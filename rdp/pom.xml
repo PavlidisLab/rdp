@@ -1,0 +1,605 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <name>rdp</name>
+    <groupId>ubc.pavlab</groupId>
+    <artifactId>rdp</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <packaging>war</packaging>
+
+
+    <properties>
+
+        <!-- Generic properties -->
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.source>1.7</maven.compiler.source>
+        <maven.compiler.target>1.7</maven.compiler.target>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+        <!-- Web -->
+        <jsp.version>2.2</jsp.version>
+        <jstl.version>1.2</jstl.version>
+        <servlet.version>2.4</servlet.version>
+
+
+        <!-- Spring -->
+        <spring-framework.version>3.2.3.RELEASE</spring-framework.version>
+        <spring.security.version>3.1.4.RELEASE</spring.security.version>
+        <!-- Hibernate / JPA -->
+        <hibernate.version>3.6.3.Final</hibernate.version>
+
+        <!-- Logging -->
+        <logback.version>1.0.13</logback.version>
+        <slf4j.version>1.7.5</slf4j.version>
+
+        <!-- Test -->
+        <junit.version>4.11</junit.version>
+
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>commons-lang</groupId>
+            <artifactId>commons-lang</artifactId>
+            <version>2.6</version>
+        </dependency>
+        <dependency>
+            <groupId>net.tanesha.recaptcha4j</groupId>
+            <artifactId>recaptcha4j</artifactId>
+            <version>0.0.7</version>
+        </dependency>
+
+        <dependency>
+            <groupId>pavlab</groupId>
+            <artifactId>gemma-gsec</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+            <type>jar</type>
+        </dependency>
+        <!-- Spring MVC -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-webmvc</artifactId>
+            <version>${spring-framework.version}</version>
+        </dependency>
+
+        <!-- Other Web dependencies -->
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>jstl</artifactId>
+            <version>${jstl.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>servlet-api</artifactId>
+            <version>${servlet.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>javax.servlet.jsp</groupId>
+            <artifactId>jsp-api</artifactId>
+            <version>${jsp.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Spring and Transactions -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-tx</artifactId>
+            <version>${spring-framework.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-web</artifactId>
+            <version>${spring.security.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-orm</artifactId>
+            <version>3.0.5.RELEASE</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context-support</artifactId>
+            <version>${spring-framework.version}</version>
+        </dependency>
+        <!-- Logging with SLF4J & LogBack -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${slf4j.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>${logback.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- Hibernate -->
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-entitymanager</artifactId>
+            <version>${hibernate.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-ehcache</artifactId>
+            <version>${hibernate.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>baseCode</groupId>
+            <artifactId>baseCode</artifactId>
+            <version>1.0.16-SNAPSHOT</version>
+            <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>5.1.9</version>
+        </dependency>
+        <dependency>
+            <groupId>javax.mail</groupId>
+            <artifactId>mail</artifactId>
+            <version>1.4.7</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.velocity</groupId>
+            <artifactId>velocity</artifactId>
+            <version>1.7</version>
+        </dependency>
+        <!-- Test Artifacts -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+            <version>${spring-framework.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>dwr</groupId>
+            <artifactId>dwr</artifactId>
+            <version>3.0.RC2</version>
+            <type>jar</type>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+            <version>1.0.0.RELEASE</version>
+        </dependency>
+    </dependencies>
+    <repositories>
+
+        <repository>
+            <id>pavlab</id>
+            <name>PavLab</name>
+            <url>
+                http://www.chibi.ubc.ca/maven2
+            </url>
+            <layout>default</layout>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>daily</updatePolicy>
+            </snapshots>
+            <releases>
+                <enabled>true</enabled>
+                <updatePolicy>never</updatePolicy>
+            </releases>
+        </repository>
+
+        <repository>
+            <id>central</id>
+            <url>http://repo1.maven.org/maven2</url>
+        </repository>
+        <repository>
+            <id>sonatype</id>
+            <url>http://oss.sonatype.org/content/repositories/snapshots</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+        </repository>
+        <repository>
+            <id>m.g.o</id>
+            <url>http://maven.glassfish.org/content/groups/public/</url>
+        </repository>
+        <repository>
+            <id>SourceForge</id>
+            <url>http://csvjdbc.sourceforge.net/maven2</url>
+        </repository>
+
+    </repositories>
+
+    <!-- copied straight from aspiredb -->
+
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.8.1</version>
+                <configuration>
+                    <additionalClasspathElements>
+                        <additionalClasspathElement>\${project.build.sourceDirectory}</additionalClasspathElement>
+                        <additionalClasspathElement>\${project.build.testSourceDirectory}</additionalClasspathElement>
+                    </additionalClasspathElements>
+                    <useManifestOnlyJar>false</useManifestOnlyJar>
+                    <forkMode>always</forkMode>
+                    <argLine>-Xmx1500M -ea -Djava.awt.headless=true -XX:MaxPermSize=512m -XX:-UseSplitVerifier</argLine>
+                    <redirectTestOutputToFile>true</redirectTestOutputToFile>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-eclipse-plugin</artifactId>
+                <version>2.8</version>
+                <configuration>
+                    <downloadSources>true</downloadSources>
+                    <downloadJavadocs>false</downloadJavadocs>
+                    <additionalBuildcommands>
+                        <buildcommand>org.eclipse.wst.common.modulecore.ComponentStructuralBuilder</buildcommand>
+                        <buildcommand>org.eclipse.jdt.core.javabuilder</buildcommand>
+                        <buildcommand>org.eclipse.wst.common.modulecore.ComponentStructuralBuilderDependencyResolver
+                        </buildcommand>
+                    </additionalBuildcommands>
+                    <additionalProjectnatures>
+                        <projectnature>org.eclipse.jdt.core.javanature</projectnature>
+                        <projectnature>org.eclipse.wst.common.modulecore.ModuleCoreNature</projectnature>
+                    </additionalProjectnatures>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>hibernate3-maven-plugin</artifactId>
+                <version>2.2</version>
+                <!-- using v3.0 produces ant run error -->
+                <configuration>
+                    <components>
+                        <component>
+                            <name>hbm2ddl</name>
+                            <!-- if implementation is jpaconfiguration: use persistence.xml in src/main/resources/META-INF -->
+                            <!-- if implementation is annotationconfiguration: use hibernate.cfg.xml in src/main/resources -->
+                            <implementation>annotationconfiguration</implementation>
+                        </component>
+                    </components>
+                    <componentProperties>
+                        <configurationfile>src/main/resources/hibernate.cfg.xml</configurationfile>
+                        <drop>false</drop>
+                        <create>true</create>
+                        <format>true</format>
+                        <export>false</export>
+                        <outputfilename>schema.sql</outputfilename>
+                    </componentProperties>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>2.4</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.7</version>
+                <executions>
+                    <execution>
+                        <id>version-file</id>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <echo append="false"
+                                    file="${project.build.directory}/${project.build.finalName}/WEB-INF/classes/version.properties">rdp.version=${project.version} built ${maven.build.timestamp}</echo>
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- mvn cobertura:cobertura -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>cobertura-maven-plugin</artifactId>
+                <version>2.6</version>
+                <configuration>
+                    <aggregate>true</aggregate>
+                    <check>
+                        <haltOnFailure>false</haltOnFailure>
+                    </check>
+                </configuration>
+            </plugin>
+
+        </plugins>
+        <outputDirectory>${project.build.directory}/${project.build.finalName}/WEB-INF/classes</outputDirectory>
+        <pluginManagement>
+            <plugins>
+                <!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven 
+                    build itself. -->
+                <plugin>
+                    <groupId>org.eclipse.m2e</groupId>
+                    <artifactId>lifecycle-mapping</artifactId>
+                    <version>1.0.0</version>
+                    <configuration>
+                        <lifecycleMappingMetadata>
+                            <pluginExecutions>
+                                <pluginExecution>
+                                    <pluginExecutionFilter>
+                                        <groupId>org.apache.maven.plugins</groupId>
+                                        <artifactId>maven-antrun-plugin</artifactId>
+                                        <versionRange>[1.7,)</versionRange>
+                                        <goals>
+                                            <goal>run</goal>
+                                        </goals>
+                                    </pluginExecutionFilter>
+                                    <action>
+                                        <ignore></ignore>
+                                    </action>
+                                </pluginExecution>
+                            </pluginExecutions>
+                        </lifecycleMappingMetadata>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>testdb.build</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+                <property>
+                    <name>testdb.build</name>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <!-- extract gsec sql files -->
+                    <plugin>
+                        <artifactId>maven-dependency-plugin</artifactId>
+                        <version>2.8</version>
+                        <executions>
+                            <execution>
+                                <phase>process-resources</phase>
+                                <goals>
+                                    <goal>unpack</goal>
+                                </goals>
+                                <configuration>
+                                    <artifactItems>
+                                        <artifactItem>
+                                            <groupId>pavlab</groupId>
+                                            <artifactId>gemma-gsec</artifactId>
+                                            <version>0.0.1-SNAPSHOT</version>
+                                            <type>jar</type>
+                                            <overWrite>true</overWrite>
+                                            <outputDirectory>${project.build.directory}/schema</outputDirectory>
+                                            <includes>**/*.sql</includes>
+                                        </artifactItem>
+                                    </artifactItems>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>sql-maven-plugin</artifactId>
+                        <version>1.5</version>
+                        <dependencies><!-- specify the dependent JDBC driver here -->
+                            <dependency>
+                                <groupId>mysql</groupId>
+                                <artifactId>mysql-connector-java</artifactId>
+                                <version>5.1.10</version>
+                                <type>jar</type>
+                            </dependency>
+                        </dependencies>
+                        <!-- common configuration shared by all executions -->
+                        <configuration>
+                            <driver>com.mysql.jdbc.Driver</driver>
+                            <username>${rdp.db.build.user}</username>
+                            <password>${rdp.db.build.password}</password>
+                            <onError>abort</onError>
+                            <autocommit>true</autocommit>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>drop-add-testdb</id>
+                                <phase>initialize</phase>
+                                <goals>
+                                    <goal>execute</goal>
+                                </goals>
+                                <configuration>
+                                    <url>${bootstrap.db.url}</url>
+                                    <username>${rdp.db.build.user}</username>
+                                    <password>${rdp.db.build.password}</password>
+                                    <autocommit>false</autocommit>
+                                    <sqlCommand>
+									<![CDATA[
+                                        drop database if exists ${rdp.testdb.name};
+									create database ${rdp.testdb.name}
+                                        ]]>
+                                    </sqlCommand>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>load-testdb-schema</id>
+                                <phase>process-test-resources</phase>
+                                <goals>
+                                    <goal>execute</goal>
+                                </goals>
+                                <configuration>
+                                    <url>${rdp.testdb.build.url}</url>
+                                    <srcFiles>
+                                        <srcFile>target/hibernate3/sql/schema.sql</srcFile>
+                                        <srcFile>target/schema/gsec-acl-ddl.sql</srcFile>
+                                        <srcFile>src/main/resources/sql/init-acls.sql</srcFile>
+                                        <srcFile>src/main/resources/sql/init-entities.sql</srcFile>
+                                        <srcFile>src/main/resources/sql/init-indices.sql</srcFile>
+                                    </srcFiles>
+                                    <onError>abort</onError>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>db.build</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+                <property>
+                    <name>db.build</name>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <!-- extract gsec sql files -->
+                    <plugin>
+                        <artifactId>maven-dependency-plugin</artifactId>
+                        <version>2.8</version>
+                        <executions>
+                            <execution>
+                                <phase>process-resources</phase>
+                                <goals>
+                                    <goal>unpack</goal>
+                                </goals>
+                                <configuration>
+                                    <artifactItems>
+                                        <artifactItem>
+                                            <groupId>pavlab</groupId>
+                                            <artifactId>gemma-gsec</artifactId>
+                                            <version>0.0.1-SNAPSHOT</version>
+                                            <type>jar</type>
+                                            <overWrite>true</overWrite>
+                                            <outputDirectory>${project.build.directory}/schema</outputDirectory>
+                                            <includes>**/*.sql</includes>
+                                        </artifactItem>
+                                    </artifactItems>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>sql-maven-plugin</artifactId>
+                        <version>1.5</version>
+                        <dependencies><!-- specify the dependent JDBC driver here -->
+                            <dependency>
+                                <groupId>mysql</groupId>
+                                <artifactId>mysql-connector-java</artifactId>
+                                <version>5.1.10</version>
+                                <type>jar</type>
+                            </dependency>
+                        </dependencies>
+                        <!-- common configuration shared by all executions -->
+                        <configuration>
+                            <driver>com.mysql.jdbc.Driver</driver>
+                            <username>${rdp.db.build.user}</username>
+                            <password>${rdp.db.build.password}</password>
+                            <onError>abort</onError>
+                            <autocommit>true</autocommit>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>drop-add-db</id>
+                                <phase>initialize</phase>
+                                <goals>
+                                    <goal>execute</goal>
+                                </goals>
+                                <configuration>
+                                    <url>${bootstrap.db.url}</url>
+                                    <autocommit>false</autocommit>
+                                    <sqlCommand>
+                                    <![CDATA[
+                                        drop database if exists ${rdp.db.name};
+                                    create database ${rdp.db.name}
+                                        ]]>
+                                    </sqlCommand>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>load-db-schema</id>
+                                <phase>process-resources</phase>
+                                <goals>
+                                    <goal>execute</goal>
+                                </goals>
+                                <configuration>
+                                    <url>${rdp.db.build.url}</url>
+                                    <username>${rdp.db.build.user}</username>
+                                    <password>${rdp.db.build.password}</password>
+                                    <srcFiles>
+                                        <srcFile>target/hibernate3/sql/schema.sql</srcFile>
+                                        <srcFile>target/schema/gsec-acl-ddl.sql</srcFile>
+                                        <srcFile>src/main/resources/sql/init-acls.sql</srcFile>
+                                        <srcFile>src/main/resources/sql/init-entities.sql</srcFile>
+                                        <srcFile>src/main/resources/sql/init-indices.sql</srcFile>
+                                    </srcFiles>
+                                    <onError>abort</onError>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <!-- For deployment where host is local (and ssh isn't available for builder, e.g. CI) -->
+            <id>local-deploy</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+                <property>
+                    <name>deploy.local</name>
+                </property>
+            </activation>
+            <distributionManagement>
+                <site>
+                    <id>localDeploy</id>
+                    <name>localDeploy</name>
+                    <url>file:///space/gemmaData/baseCode-site</url>
+                </site>
+                <repository>
+                    <id>repo</id>
+                    <name>Pavlab</name>
+                    <url>file:///space/maven2</url>
+                </repository>
+                <snapshotRepository>
+                    <id>repo</id>
+                    <name>Pavlab</name>
+                    <url>file:///space/maven2</url>
+                </snapshotRepository>
+            </distributionManagement>
+        </profile>
+    </profiles>
+
+    <reporting>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>cobertura-maven-plugin</artifactId>
+                <version>2.6</version>
+            </plugin>
+        </plugins>
+    </reporting>
+
+</project>

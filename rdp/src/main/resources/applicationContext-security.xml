@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:context="http://www.springframework.org/schema/context" xmlns:aop="http://www.springframework.org/schema/aop"
+    xmlns:s="http://www.springframework.org/schema/security" xmlns:util="http://www.springframework.org/schema/util"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans 
+           http://www.springframework.org/schema/beans/spring-beans-3.2.xsd           
+           http://www.springframework.org/schema/aop 
+           http://www.springframework.org/schema/aop/spring-aop-3.2.xsd
+           http://www.springframework.org/schema/context
+           http://www.springframework.org/schema/context/spring-context-3.2.xsd
+           http://www.springframework.org/schema/security
+           http://www.springframework.org/schema/security/spring-security-3.1.xsd
+           http://www.springframework.org/schema/util
+           http://www.springframework.org/schema/util/spring-util-3.2.xsd">
+
+
+    <!-- Spring Security configuration -->
+
+    <s:http use-expressions="true" auto-config="false" access-decision-manager-ref="httpAccessDecisionManager">
+        <s:anonymous granted-authority="GROUP_ANONYMOUS" />
+
+        <!-- Links are PRIVATE by default -->
+        <!-- 
+        <s:intercept-url pattern="/register.html" access="permitAll" />
+         -->
+         
+        <!-- only permit unauthenticated access to some URLs, order matters, see http://docs.spring.io/spring-security/site/docs/3.0.x/reference/el-access.html -->
+        <s:intercept-url pattern="/login.jsp" access="permitAll" />
+        <s:intercept-url pattern="/signup.html" access="permitAll" />
+        <s:intercept-url pattern="/fonts/**" access="permitAll" />
+        <s:intercept-url pattern="/styles/**" access="permitAll" />
+        <s:intercept-url pattern="/scripts/**" access="permitAll" />
+        <s:intercept-url pattern="/**" access="hasAnyRole('GROUP_USER', 'GROUP_ADMIN')" />
+
+        <!-- TODO SSL Disabled for now until it works on sandbox -->
+        <!-- <s:intercept-url pattern="/j_spring_security_check" access="IS_AUTHENTICATED_ANONYMOUSLY" requires-channel="https" 
+            /> -->
+
+
+        <s:form-login login-page="/login.jsp" default-target-url="/" authentication-success-handler-ref="ajaxAuthenticationSuccessHandler"
+            authentication-failure-handler-ref="ajaxAuthenticationFailureHandler" />
+
+        <s:logout invalidate-session="true" logout-success-url="/login.jsp" />
+        
+    </s:http>
+
+    <bean id="ajaxAuthenticationSuccessHandler" class="gemma.gsec.authentication.AjaxAuthenticationSuccessHandler">
+        <property name="alwaysUseDefaultTargetUrl" value="false"></property>
+    </bean>
+
+    <bean id="ajaxAuthenticationFailureHandler" class="gemma.gsec.authentication.AjaxAuthenticationFailureHandler">
+        <property name="defaultFailureUrl" value="/login.jsp"></property>
+    </bean>
+
+    <!-- works with the HttpSessionEventPublisher configured in web.xml -->
+    <bean id="sessionRegistry" class="org.springframework.security.core.session.SessionRegistryImpl" />
+
+    <s:authentication-manager alias="authenticationManager">
+        <s:authentication-provider user-service-ref="userManager">
+
+            <s:password-encoder ref="passwordEncoder">
+                <s:salt-source user-property="username" />
+            </s:password-encoder>
+
+        </s:authentication-provider>
+        <s:authentication-provider ref="runAsAuthenticationProvider" />
+    </s:authentication-manager>
+
+
+    <bean id="passwordEncoder" class="org.springframework.security.authentication.encoding.ShaPasswordEncoder" />
+
+    <bean id="runAsManager" class="org.springframework.security.access.intercept.RunAsManagerImpl">
+        <property name="rolePrefix" value="GROUP_" />
+        <property name="key" value="rdprunaspassword" />
+    </bean>
+
+    <bean id="runAsAuthenticationProvider" class="org.springframework.security.access.intercept.RunAsImplAuthenticationProvider">
+        <property name="key" value="rdprunaspassword" />
+    </bean>
+
+    <!--- global method security configuration -->
+
+    <s:global-method-security run-as-manager-ref="runAsManager" secured-annotations="enabled"
+        pre-post-annotations="enabled" access-decision-manager-ref="accessDecisionManager" order="1">
+        <s:expression-handler ref="securityExpressionHandler" />
+
+        <!-- these filters are declared here or in the security-bean-baseconfig.xml -->
+        <s:after-invocation-provider ref="afterAclReadQuiet" />
+        <s:after-invocation-provider ref="afterAclRead" />
+        <s:after-invocation-provider ref="afterAclCollectionRead" />
+        <s:after-invocation-provider ref="afterAclMyDataRead" />
+        <s:after-invocation-provider ref="afterAclMyPrivateDataRead" />
+        <s:after-invocation-provider ref="afterAclAllMyData" />
+        <s:after-invocation-provider ref="afterAclValueObjectCollection" />
+        <s:after-invocation-provider ref="afterAclValueObject" />
+        <s:after-invocation-provider ref="afterAclMapRead" />
+        <s:after-invocation-provider ref="afterAclMapValuesRead" />
+        <s:after-invocation-provider ref="postInvocationAdviceProvider" /><!-- for @Post... -->
+    </s:global-method-security>
+
+    <!-- Aspect that adds ACLs for new entities, and deletes them for deleted entities. -->
+    <aop:config>
+        <aop:aspect id="aclAspect" ref="aclAdvice" order="4">
+            <aop:after-returning method="doAclAdvice"
+                pointcut="ubc.pavlab.rdp.server.util.SystemArchitectureAspect.modifier()" returning="retValue" />
+        </aop:aspect>
+    </aop:config>
+
+    <bean id="httpAccessDecisionManager" class="org.springframework.security.access.vote.AffirmativeBased">
+        <property name="allowIfAllAbstainDecisions" value="true" />
+        <property name="decisionVoters">
+            <list>
+                <bean class="org.springframework.security.web.access.expression.WebExpressionVoter" />
+                <ref local="roleHierarchyVoter" />
+                <bean class="org.springframework.security.access.vote.AuthenticatedVoter" />
+            </list>
+        </property>
+    </bean>
+</beans>

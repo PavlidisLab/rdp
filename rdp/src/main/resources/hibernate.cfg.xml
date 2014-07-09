@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-configuration PUBLIC
+		"-//Hibernate/Hibernate Configuration DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-configuration-3.0.dtd">
+
+<hibernate-configuration>
+	<session-factory>
+
+		<property name="hibernate.dialect">org.hibernate.dialect.MySQLDialect</property>
+
+
+		<!-- We shouldn't use other options (validate is ok). We should be manually updating database schema on production. It's 
+			too risky to let hbm2ddl to handle schema updates. -->
+		<property name="hbm2ddl.auto">Validate</property>
+
+		<!-- Add new entity classes here so that hibernate tools see it. --> 
+		<mapping class="ubc.pavlab.rdp.server.model.Gene" />
+        <mapping class="ubc.pavlab.rdp.server.model.Researcher" />
+        <mapping class="ubc.pavlab.rdp.server.model.Publication" />
+        <mapping class="ubc.pavlab.rdp.server.model.Taxon" />
+
+        <mapping class="ubc.pavlab.rdp.server.model.common.auditAndSecurity.User" />
+        <mapping class="ubc.pavlab.rdp.server.model.common.auditAndSecurity.UserGroup" />
+        <mapping class="ubc.pavlab.rdp.server.model.common.auditAndSecurity.GroupAuthority" />
+        
+	</session-factory>
+</hibernate-configuration>
