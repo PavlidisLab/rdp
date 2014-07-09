@@ -7,7 +7,7 @@
     <version>0.0.1-SNAPSHOT</version>
     <packaging>war</packaging>
 
-
+        
     <properties>
 
         <!-- Generic properties -->
@@ -223,6 +223,50 @@
     <!-- copied straight from aspiredb -->
 
     <build>
+        <directory>target</directory>
+        <finalName>rdp</finalName>
+        <sourceDirectory>src/main/java</sourceDirectory>
+        <outputDirectory>target/classes</outputDirectory>
+        <testSourceDirectory>src/test/java</testSourceDirectory>
+        <testOutputDirectory>target/test-classes</testOutputDirectory>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <includes>
+                    <include>**/*</include>
+                </includes>
+            </resource>
+            <resource>
+                <directory>target/generated-sources/resources</directory>
+                <includes>
+                    <include>**/*</include>
+                </includes>
+            </resource>
+        </resources>
+        <testResources>
+            <testResource>
+                <directory>src/test/resources</directory>
+                <includes>
+                    <include>**/*.txt</include>
+                    <include>**/*.xml</include>
+                    <include>**/*.csv</include>
+                </includes>
+            </testResource>
+            <testResource>
+                <targetPath>WEB-INF</targetPath>
+                <directory>target/rdp/WEB-INF</directory>
+                <includes>
+                    <include>**/*.xml</include>
+                </includes>
+            </testResource>
+            <testResource>
+                <targetPath>WEB-INF</targetPath>
+                <directory>src/main/webapp/WEB-INF</directory>
+                <includes>
+                    <include>**/*.xml</include>
+                </includes>
+            </testResource>
+        </testResources>
         <plugins>
             <plugin>
                 <artifactId>maven-surefire-plugin</artifactId>
@@ -331,7 +375,7 @@
             </plugin>
 
         </plugins>
-        <outputDirectory>${project.build.directory}/${project.build.finalName}/WEB-INF/classes</outputDirectory>
+        
         <pluginManagement>
             <plugins>
                 <!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven 
