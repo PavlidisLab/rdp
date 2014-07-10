@@ -53,8 +53,8 @@ import ubc.pavlab.rdp.server.util.Settings;
 @Controller
 public class SignupController extends BaseController {
 
-    private static int MIN_PASSWORD_LENGTH = 6;
-
+    public static final int MIN_PASSWORD_LENGTH = 6;
+    
     @Autowired
     private PasswordEncoder passwordEncoder;
 

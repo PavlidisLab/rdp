@@ -35,7 +35,7 @@ var authenticate = function(username, password) {
             $( "#signinFailed" ).show();
          }
       },
-      error : function(xhr) {
+      error : function(response, xhr) {
          console.log( "Error with request. Status is: " + xhr.status );
          console.log( xhr.responseText );
       }
@@ -45,29 +45,6 @@ var authenticate = function(username, password) {
    return false;
 };
 
-var register = function() {
-
-   $.ajax( {
-      cache : false,
-      type : 'POST',
-      url : "signup.html",
-      beforeSend : function(xhr) {
-         xhr.setRequestHeader( 'Content-Type', 'application/x-www-form-urlencoded' );
-      },
-      data : $( "#signupForm" ).serialize(),
-      success : function(response, xhr) {
-         $( "#signupMesssage" ).html( jQuery.parseJSON( response ).message );
-         $( "#signupFailed" ).show();
-         Recaptcha.reload();
-      },
-      error : function(xhr) {
-         console.log( xhr.responseText );
-         $( "#signupMesssage" ).html( "Error with request. Status is: " + xhr.status );
-         $( "#signupFailed" ).show();
-         Recaptcha.reload();
-      }
-   } );
-};
 
 // ----------------- Initialize objects and plugins -------------
 
@@ -80,34 +57,12 @@ $( document ).ready( function() {
    } );
 } );
 
-// Add captcha
-Recaptcha.create( $( "#captchaPublicKey" ).text(), "captchadiv", {
-   theme : "clean",
-   callback : Recaptcha.focus_response_field
-} );
-
-// Make sure that the error state element is hidden.
-$( "#signinFailed" ).hide();
-$( "#signupFailed" ).hide();
-
 // Initialize form validations
 $( "#signinForm" ).validate( {
    submitHandler : function(form) {
       var username = $( "#signinId" ).val();
       var password = $( "#signinPassword" ).val();
       authenticate( username, password );
-      return false;
-   }
-} );
-
-$( "#signupForm" ).validate( {
-   rules : {
-      recaptcha_response_field : {
-         required : true,
-      }
-   },
-   submitHandler : function(form) {
-      register();
       return false;
    }
 } );
