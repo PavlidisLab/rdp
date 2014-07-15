@@ -127,7 +127,7 @@ public class UserFormMultiActionController extends BaseController {
             jsonText = "{\"success\":true, \"message\":\"Changes saved.\"}";
 
         } catch ( Exception e ) {
-            log.error( e.getLocalizedMessage() );
+            log.error( e.getLocalizedMessage(), e );
             // jsonText = jsonUtil.getJSONErrorMessage( e );
             jsonText = "{\"success\":false, \"message\":\"" + e.getLocalizedMessage() + "\"}";
             log.info( jsonText );
