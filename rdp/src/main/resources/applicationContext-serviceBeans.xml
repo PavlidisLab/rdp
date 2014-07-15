@@ -28,7 +28,7 @@
          <ref local="userProperties" />
       </constructor-arg>
       <property name="fileName">
-         <value>Gemma.properties</value>
+         <value>rdp.properties</value>
       </property>
    </bean>
 
