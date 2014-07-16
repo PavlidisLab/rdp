@@ -636,8 +636,8 @@ public class UserManagerImpl implements UserManager {
 
         if ( authenticationService != null ) {
             logger.debug( "Reauthenticating user '" + username + "' for password change request." );
-            authenticationService.attemptAuthentication( username, password );
-
+            Authentication auth = authenticationService.attemptAuthentication( username, password );
+            SecurityContextHolder.getContext().setAuthentication( auth );
         } else {
             logger.debug( "No authentication manager set. Password won't be re-checked." );
         }

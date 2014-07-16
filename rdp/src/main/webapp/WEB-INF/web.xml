@@ -19,9 +19,9 @@
     <context-param>
         <param-name>contextConfigLocation</param-name>
         <param-value>
+            classpath*:gemma/gsec/acl/security-bean-baseconfig.xml,
             classpath*:application-context.xml,
             classpath*:production-data-source.xml,
-            classpath*:gemma/gsec/acl/security-bean-baseconfig.xml,
             classpath*:applicationContext-security.xml,
             classpath*:applicationContext-serviceBeans.xml,
         </param-value>

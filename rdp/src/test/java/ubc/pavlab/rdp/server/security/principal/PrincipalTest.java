@@ -15,6 +15,7 @@
 
 package ubc.pavlab.rdp.server.security.principal;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -73,8 +74,8 @@ public class PrincipalTest extends BaseSpringContextTest {
             String encodedPassword = passwordEncoder.encodePassword( pwd, username );
             UserDetailsImpl u = new UserDetailsImpl( encodedPassword, username, true, null, email, null, new Date() );
 
-            log.error( "Encoded password old password " + pwd + " encoded is " + encodedPassword + " user is "
-                    + username );
+            // log.error( "Encoded password old password " + pwd + " encoded is " + encodedPassword + " user is "
+            // + username, e );
 
             userManager.createUser( u );
         }
@@ -102,6 +103,11 @@ public class PrincipalTest extends BaseSpringContextTest {
         assertTrue( authentication.isAuthenticated() );
 
         assertNotSame( oldpwd, userManager.findByUserName( username ).getPassword() );
+
+        // authenticate
+        userManager.reauthenticate( username, newpwd );
+        assertTrue( userManager.loggedIn() );
+        assertEquals( userManager.getCurrentUsername(), username );
 
         // Now that the account has been activated, try changing the password
         oldpwd = newpwd;
