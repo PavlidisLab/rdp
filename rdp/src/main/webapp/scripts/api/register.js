@@ -24,3 +24,4 @@ var logout = function() {
 };
 
 $( "#btnLogout" ).click( logout );
+

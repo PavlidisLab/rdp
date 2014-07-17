@@ -1,6 +1,6 @@
 //Call the button widget method on the login button to format it.
 var logout = function() {
-   
+
    $.ajax( {
       cache : false,
       type : 'POST',
@@ -24,8 +24,26 @@ var logout = function() {
 };
 
 var searchSubmit = function() {
-   alert("search submit clicked");
+   alert( "search submit clicked" );
 };
 
 $( "#logout" ).click( logout );
 $( "#searchSubmit" ).click( searchSubmit );
+
+// Initialize document
+$( "#navbarUsername" ).ready( function() {
+   $.ajax( {
+      cache : false,
+      type : 'GET',
+      url : "loadUser.html",
+      success : function(response, xhr) {
+         $( "#navbarUsername" ).text( jQuery.parseJSON( response ).data.username );
+         $( "#navbarUsername" ).append( ' <span class="caret"></span>' );
+      },
+      error : function(response, xhr) {
+         console.log( xhr.responseText );
+         $( "#navbarUsername" ).text( "Anonymous" );
+         $( "#navbarUsername" ).append( ' <span class="caret"></span>' );
+      }
+   } );
+} );

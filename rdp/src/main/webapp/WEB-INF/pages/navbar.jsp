@@ -1,4 +1,4 @@
-<nav class="navbar navbar-default" role="navigation">
+<nav id="navbar" class="navbar navbar-default" role="navigation">
     <div class="container-fluid">
         <!-- Brand and toggle get grouped for better mobile display -->
         <div class="navbar-header">
@@ -47,12 +47,14 @@
         <!-- right navbar -->
         <ul class="nav navbar-nav navbar-right">
             <!-- 
-        <li><a href="#">Link</a></li>
-       -->
+        <li><a href="#" id="navbarWelcome">Welcome!</a></li>
+             -->
+
+            <!-- username will be added here when the user has logged in -->
             <li class="dropdown"><a href="#"
-                class="dropdown-toggle" data-toggle="dropdown">Account
-                    <span class="caret"></span>
+                class="dropdown-toggle" data-toggle="dropdown" id="navbarUsername">
             </a>
+            
                 <ul class="dropdown-menu" role="menu">
                     <li><a href="#changePasswordModal"
                         data-toggle="modal">Change password</a></li>

@@ -21,8 +21,6 @@
         <!-- Navigation bar -->
         <%@ include file="navbar.jsp"%>
 
-
-
         <!-- Nav tabs -->
         <ul class="nav nav-tabs" role="tablist">
             <li class="active"><a href="#primaryContact" role="tab"
@@ -69,7 +67,6 @@
         </div>
 
     </div>
-
 
     <!-- include jQuery, and our script file -->
     <script src="scripts/lib/jquery-1.11.1.min.js"></script>
