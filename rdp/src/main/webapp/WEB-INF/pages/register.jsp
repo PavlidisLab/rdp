@@ -12,6 +12,9 @@
     data-href="styles/bootstrap-theme.min.css" rel="stylesheet"
     id="bs-theme-stylesheet">
 
+<!-- http://www.bootply.com/Wzv3JQreK5     http://ivaynberg.github.io/select2/select2-2.1/select2.css   -->
+<link href="styles/select2.css" rel="stylesheet">
+
 </head>
 
 <body id="register">
@@ -38,11 +41,16 @@
             </a>
 
                 <ul class="dropdown-menu" role="menu">
-                    <li><a id="moMouse" href="#modelOrganism" role="tab" data-toggle="tab">Mouse</a></li>
-                    <li><a id="moRat" href="#modelOrganism" role="tab" data-toggle="tab">Rat</a></li>
-                    <li><a id="moMonkey" href="#modelOrganism" role="tab" data-toggle="tab">Monkey</a></li>
-                    <li><a id="moFly" href="#modelOrganism" role="tab" data-toggle="tab">Fly</a></li>
-                    <li><a id="moWorm" href="#modelOrganism" role="tab" data-toggle="tab">Worm</a></li>
+                    <li><a id="moMouse" href="#modelOrganism"
+                        role="tab" data-toggle="tab">Mouse</a></li>
+                    <li><a id="moRat" href="#modelOrganism"
+                        role="tab" data-toggle="tab">Rat</a></li>
+                    <li><a id="moMonkey" href="#modelOrganism"
+                        role="tab" data-toggle="tab">Monkey</a></li>
+                    <li><a id="moFly" href="#modelOrganism"
+                        role="tab" data-toggle="tab">Fly</a></li>
+                    <li><a id="moWorm" href="#modelOrganism"
+                        role="tab" data-toggle="tab">Worm</a></li>
                     <li class="divider"></li>
                     <li><a id="moAddNew" href="#modelOrganism"
                         role="tab" data-toggle="tab">Add New</a></li>
@@ -68,10 +76,13 @@
 
     </div>
 
+
     <!-- include jQuery, and our script file -->
     <script src="scripts/lib/jquery-1.11.1.min.js"></script>
     <script src="scripts/lib/bootstrap.min.js"></script>
     <script src="scripts/lib/jquery.validate.min.js"></script>
+    <!-- http://www.bootply.com/Wzv3JQreK5     http://ivaynberg.github.io/select2/select2-2.1/select2.css   -->
+    <script src="scripts/lib/select2.js"></script>
 
     <!-- Our scripts -->
     <script src="scripts/api/register.js"></script>

@@ -32,10 +32,13 @@
         <div class="form-group">
             <label class="col-sm-3 control-label">Genes</label>
             <div class="col-sm-6">
-                <input type="text" class="form-control" id="BRCA1"
-                    value="BRCA1"> <input type="text"
-                    class="form-control" id="APOE" value="APOE">
-
+                <select id="geneSelect" class="select2"
+                    multiple="multiple" style="width: 100%;">
+                    <option>BRCA1</option>
+                    <option>APOE</option>
+                    <option>SNCA</option>
+                    <option>CAMK2A</option>
+                </select>
             </div>
         </div>
 
@@ -43,8 +46,13 @@
             <label class="col-sm-3 control-label">Pathways /
                 processes</label>
             <div class="col-sm-6">
-                <input type="text" class="form-control"
-                    id="Synapse Formation" value="Synapse Formation">
+                <select id="pathwaySelect" class="select2"
+                    multiple="multiple" style="width: 100%;">
+                    <option>Synapse formation</option>
+                    <option>Cell signalling</option>
+                    <option>Inflamatory response</option>
+                    <option>Cell division</option>
+                </select>
             </div>
         </div>
 
@@ -52,14 +60,19 @@
             <label class="col-sm-3 control-label">Diseases /
                 phenotypes</label>
             <div class="col-sm-6">
-                <input type="text" class="form-control"
-                    id="Microcephaly" value="Microcephaly"> <input
-                    type="text" class="form-control" id="autism"
-                    value="autism"> <input type="text"
-                    class="form-control" id="cancer" value="cancer">
+                <select id="phenoSelect" class="select2"
+                    multiple="multiple" style="width: 100%;">
+                    <option>microcephaly</option>
+                    <option>autism</option>
+                    <option>cancer</option>
+                </select>
             </div>
         </div>
 
         <button type="submit" class="btn btn-default col-sm-offset-3">Save</button>
     </form>
 </div>
+
+
+<!-- Our scripts -->
+<script src="scripts/api/modelOrganism.js"></script>
