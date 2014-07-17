@@ -37,7 +37,7 @@ $( "#navbarUsername" ).ready( function() {
       type : 'GET',
       url : "loadUser.html",
       success : function(response, xhr) {
-         $( "#navbarUsername" ).text( jQuery.parseJSON( response ).data.username );
+         $( "#navbarUsername" ).text( jQuery.parseJSON( response ).data.userName );
          $( "#navbarUsername" ).append( ' <span class="caret"></span>' );
       },
       error : function(response, xhr) {

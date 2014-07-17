@@ -42,7 +42,7 @@ $( "#changePasswordForm" ).ready( function() {
       data : $( "#changePasswordForm" ).serialize(),
       success : function(response, xhr) {
          $( "#email" ).val( jQuery.parseJSON( response ).data.email );
-         $( "#username").val( jQuery.parseJSON( response ).data.username );
+         $( "#username").val( jQuery.parseJSON( response ).data.userName );
       },
       error : function(response, xhr) {
          console.log( xhr.responseText );

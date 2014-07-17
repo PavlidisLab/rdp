@@ -32,6 +32,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.security.authentication.encoding.PasswordEncoder;
@@ -170,11 +171,16 @@ public class UserFormMultiActionController extends BaseController {
         try {
 
             if ( user == null ) {
+
                 // this shouldn't happen.
                 jsonText = "{\"success\":false,\"message\":\"No user with name " + username + "\"}";
             } else {
-                jsonText = "{\"success\":true, \"data\":{\"username\":" + "\"" + username + "\"" + ",\"email\":" + "\""
-                        + user.getEmail() + "\"" + "}}";
+                // jsonText = "{\"success\":true, \"data\":{\"username\":" + "\"" + username + "\"" + ",\"email\":" +
+                // "\""
+                // + user.getEmail() + "\"" + "}}";
+                JSONObject json = new JSONObject( user );
+                jsonText = "{\"success\":true, \"data\":" + json.toString() + "}";
+                // log.debug( "Success! json=" + jsonText );
             }
 
         } catch ( Exception e ) {

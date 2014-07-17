@@ -70,6 +70,12 @@ public class User implements gemma.gsec.model.User {
     @Column(name = "NAME")
     private String name;
 
+    @Column(name = "ORGANIZATION")
+    private String organization;
+
+    @Column(name = "DEPARTMENT")
+    private String department;
+    
     public User() {
     }
 
@@ -183,6 +189,22 @@ public class User implements gemma.gsec.model.User {
         this.firstName = firstName;
     }
 
+    public void setDepartment( String department ) {
+        this.department = department;
+    }
+    
+    public void setOrganization( String organization ) {
+        this.organization = organization;
+    }
+    
+    public String getDepartment() {
+        return department;
+    }
+    
+    public String getOrganization() {
+        return organization;
+    }
+    
     @Override
     public void setId( Long id ) {
         this.id = id;
