@@ -14,14 +14,21 @@
  */
 package ubc.pavlab.rdp.server.model;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.PrimaryKeyJoinColumn;
 import javax.persistence.Table;
 
@@ -29,9 +36,45 @@ import ubc.pavlab.rdp.server.model.common.auditAndSecurity.User;
 
 @Entity
 @Table(name = "RESEARCHER")
-@PrimaryKeyJoinColumn(name="ID")
-public class Researcher extends User {
+public class Researcher implements Serializable {
+    @Id
+    @GeneratedValue
+    @Column(name = "ID")
+    private Long id;
+    
+    @OneToOne(cascade = {CascadeType.ALL})
+    @JoinColumn(name = "CONTACT_FK")
+    private User contact;
+    
+    @Column(name = "ORGANIZATION")
+    private String organization;
 
+    @Column(name = "DEPARTMENT")
+    private String department;
+
+    public void setContact( User contact ) {
+        this.contact = contact;
+    }
+    
+    public User getContact() {
+        return this.contact;
+    }
+    
+    public void setDepartment( String department ) {
+        this.department = department;
+    }
+    
+    public void setOrganization( String organization ) {
+        this.organization = organization;
+    }
+    
+    public String getDepartment() {
+        return department;
+    }
+    
+    public String getOrganization() {
+        return organization;
+    }
     public static Collection<Researcher> emptyCollection() {
         return new ArrayList<Researcher>();
     }
@@ -48,5 +91,8 @@ public class Researcher extends User {
     @JoinTable(name = "RESEARCHER_PUBLICATIONS", joinColumns = { @JoinColumn(name = "RESEARCHER_ID", referencedColumnName = "ID") }, inverseJoinColumns = { @JoinColumn(name = "PUBLICATION_ID", referencedColumnName = "ID") })
     private List<Publication> publications = new ArrayList<Publication>();
 
+    public Object getId() {
+        return this.id;
+    }
 
 }

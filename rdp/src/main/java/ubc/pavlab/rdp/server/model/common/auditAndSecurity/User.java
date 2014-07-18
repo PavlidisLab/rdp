@@ -30,7 +30,6 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(name = "USER")
-@Inheritance(strategy=InheritanceType.JOINED)
 public class User implements gemma.gsec.model.User {
     @Id
     @GeneratedValue
@@ -64,17 +63,11 @@ public class User implements gemma.gsec.model.User {
     @Column(name = "SIGNUP_TOKEN_DATESTAMP")
     private java.util.Date signupTokenDatestamp;
 
-    @Column(name = "DESCRIPTION")
-    private String description;
-
     @Column(name = "NAME")
     private String name;
 
-    @Column(name = "ORGANIZATION")
-    private String organization;
-
-    @Column(name = "DEPARTMENT")
-    private String department;
+    @Column(name = "DESCRIPTION")
+    private String description;
     
     public User() {
     }
@@ -189,21 +182,6 @@ public class User implements gemma.gsec.model.User {
         this.firstName = firstName;
     }
 
-    public void setDepartment( String department ) {
-        this.department = department;
-    }
-    
-    public void setOrganization( String organization ) {
-        this.organization = organization;
-    }
-    
-    public String getDepartment() {
-        return department;
-    }
-    
-    public String getOrganization() {
-        return organization;
-    }
     
     @Override
     public void setId( Long id ) {
