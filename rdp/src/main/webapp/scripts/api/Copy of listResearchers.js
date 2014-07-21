@@ -1,8 +1,14 @@
-var jsonToResearcherTable = function(response, tableId) {
+var jsonToTable = function(response, tableId) {
    $.each( response, function(i, item) {
-      $( '<tr>' ).append( $( '<td>' ).text( item.username ), $( '<td>' ).text( item.email ),
-         $( '<td>' ).text( item.firstName ), $( '<td>' ).text( item.lastName ), $( '<td>' ).text( item.organization ),
-         $( '<td>' ).text( item.department ) ).appendTo( tableId );
+      $( '<tr>' )
+         .append( 
+            $( '<td>' ).text( item.name ), 
+            $( '<td>' ).text( item.position ), 
+            $( '<td>' ).text( item.office ),
+            $( '<td>' ).text( item.age ), 
+            $( '<td>' ).text( item.startDate ), 
+            $( '<td>' ).text( item.salary )
+          ).appendTo( tableId );
       // $('#records_table').append($tr);
       // console.log($tr.wrap('<p>').html());
    } );
@@ -11,10 +17,10 @@ var jsonToResearcherTable = function(response, tableId) {
 var showResearchers = function() {
 
    // get this from a controller
-   var response = '[{"username":"testUsername2", "email":"testEmail2", "firstName":"testFirstname2", "lastName":"testLastname2", "organization":"testOrganization2", "department":"testDepartment2" }]';
+   var response = '[{"name":"AAAATest User", "position":"CEO", "office":"Vancouver", "age":"0", "startDate":"0/0/0", "salary":"$0" }]';
    response = $.parseJSON( response );
    var tableId = "#listResearchersTable";
-   jsonToResearcherTable( response, tableId );
+   jsonToTable( response, tableId );
 
    $( "#listResearchersTable" ).dataTable();
    $( '#registerTab a[href="#registeredResearchers"]' ).show();
