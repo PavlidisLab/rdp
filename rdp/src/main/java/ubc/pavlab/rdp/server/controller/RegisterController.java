@@ -4,6 +4,7 @@ import gemma.gsec.authentication.UserManager;
 import gemma.gsec.util.JSONUtil;
 
 import java.io.IOException;
+import java.io.StringWriter;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -74,14 +75,14 @@ public class RegisterController extends BaseController {
             }
             researcher.setDepartment( department );
             researcher.setOrganization( organization );
-            
+
             researcherService.update( researcher );
-            
+
             JSONObject json = new JSONObject();
             json.put( "success", true );
             json.put( "message", "Changes saved" );
             jsonText = json.toString();
-            
+
         } catch ( Exception e ) {
             log.error( e.getLocalizedMessage(), e );
             JSONObject json = new JSONObject();
@@ -94,9 +95,55 @@ public class RegisterController extends BaseController {
         }
 
     }
-    
+
     /**
-     * AJAX entry point. Loads a Researcher.
+     * AJAX entry point. Loads all Researchers.
+     * 
+     * @param request
+     * @param response
+     */
+    @RequestMapping("/loadAllResearchers.html")
+    public void loadAllResearchers( HttpServletRequest request, HttpServletResponse response ) {
+
+        StringWriter jsonText = new StringWriter();
+        jsonText.write( "[" );
+
+        JSONUtil jsonUtil = new JSONUtil( request, response );
+
+        try {
+            java.util.Iterator<Researcher> it = researcherService.loadAll().iterator();
+            while ( it.hasNext() ) {
+                Researcher user = it.next();
+                String delim = it.hasNext() ? "," : "";
+                jsonText.append( new JSONObject( user ).toString() + delim );
+            }
+            jsonText.append( "]" );
+            jsonText.flush();
+        } catch ( Exception e ) {
+            log.error( e.getLocalizedMessage(), e );
+            JSONObject json = new JSONObject();
+            json.put( "success", false );
+            json.put( "message", e.getLocalizedMessage() );
+            jsonText.write( json.toString() );
+            log.info( jsonText );
+        } finally {
+            String str = jsonText.toString();
+            try {
+                jsonUtil.writeToResponse( str );
+                jsonText.close();
+            } catch ( IOException e ) {
+                log.error( e.getLocalizedMessage(), e );
+                JSONObject json = new JSONObject();
+                json.put( "success", false );
+                json.put( "message", e.getLocalizedMessage() );
+                jsonText.write( json.toString() );
+                log.info( jsonText );
+            }
+        }
+    }
+
+    /**
+     * AJAX entry point. Loads the Researcher who's currently logged in.
      * 
      * @param request
      * @param response
@@ -125,7 +172,7 @@ public class RegisterController extends BaseController {
         if ( user == null ) {
             user = userManager.findByUserName( username );
         }
-        
+
         JSONUtil jsonUtil = new JSONUtil( request, response );
 
         String jsonText = null;

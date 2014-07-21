@@ -19,6 +19,8 @@
 
 package ubc.pavlab.rdp.server.service;
 
+import java.util.Collection;
+
 import gemma.gsec.model.UserGroup;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -93,5 +95,10 @@ public class ResearcherServiceImpl implements ResearcherService {
 
     public Researcher thaw( Researcher researcher ) {
         return researcherDao.thaw( researcher );
+    }
+
+    @Override
+    public Collection<Researcher> loadAll() {
+        return ( Collection<Researcher> ) researcherDao.loadAll();
     }
 }

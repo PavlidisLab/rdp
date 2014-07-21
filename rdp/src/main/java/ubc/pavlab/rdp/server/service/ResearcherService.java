@@ -19,7 +19,7 @@
 
 package ubc.pavlab.rdp.server.service;
 
-import gemma.gsec.authentication.UserExistsException;
+import java.util.Collection;
 
 import org.springframework.security.access.annotation.Secured;
 
@@ -47,4 +47,7 @@ public interface ResearcherService {
     
     @Secured({ "GROUP_ADMIN" })
     public void delete( Researcher researcher );
+    
+    @Secured({ "GROUP_ADMIN" })
+    public Collection<Researcher> loadAll();
 }

@@ -1,25 +1,37 @@
 var jsonToResearcherTable = function(response, tableId) {
    $.each( response, function(i, item) {
-      $( '<tr>' ).append( $( '<td>' ).text( item.username ), $( '<td>' ).text( item.email ),
-         $( '<td>' ).text( item.firstName ), $( '<td>' ).text( item.lastName ), $( '<td>' ).text( item.organization ),
-         $( '<td>' ).text( item.department ) ).appendTo( tableId );
-      // $('#records_table').append($tr);
+      $( '<tr>' ).append( $( '<td>' ).text( item.contact.userName ), $( '<td>' ).text( item.contact.email ),
+         $( '<td>' ).text( item.contact.firstName ), $( '<td>' ).text( item.contact.lastName ),
+         $( '<td>' ).text( item.organization ), $( '<td>' ).text( item.department ) ).appendTo( tableId );
       // console.log($tr.wrap('<p>').html());
    } );
 };
 
 var showResearchers = function() {
 
-   // get this from a controller
-   var response = '[{"username":"testUsername2", "email":"testEmail2", "firstName":"testFirstname2", "lastName":"testLastname2", "organization":"testOrganization2", "department":"testDepartment2" }]';
-   response = $.parseJSON( response );
-   var tableId = "#listResearchersTable";
-   jsonToResearcherTable( response, tableId );
+   $.ajax( {
+      cache : false,
+      type : 'GET',
+      url : "loadAllResearchers.html",
+      success : function(response, xhr) {
+         // get this from a controller
+         // var response = '[{"userName":"testUsername2", "email":"testEmail2", "firstName":"testFirstname2",
+         // "lastName":"testLastname2", "organization":"testOrganization2", "department":"testDepartment2" }]';
+         response = $.parseJSON( response );
+         var tableId = "#listResearchersTable";
+         jsonToResearcherTable( response, tableId );
 
-   $( "#listResearchersTable" ).dataTable();
-   $( '#registerTab a[href="#registeredResearchers"]' ).show();
+         $( "#listResearchersTable" ).dataTable();
+         $( '#registerTab a[href="#registeredResearchers"]' ).show();
+      },
+      error : function(response, xhr) {
+         console.log( xhr.responseText );
+         $( "#listResearchersMessage" ).html(
+            "Error with request. Status is: " + xhr.status + ". " + jQuery.parseJSON( response ).message );
+         $( "#listResearchersFailed" ).show();
+      }
+   } );
 
-   // username, email, first name, last name, organization, department
 };
 
 $( document ).ready( function() {
