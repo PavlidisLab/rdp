@@ -2,6 +2,23 @@
     <form id="primaryContactForm" class="form-horizontal" role="form">
 
         <div class="form-group">
+            <div class="alert alert-warning col-sm-offset-3 col-sm-6"
+                id="primaryContactFailed" hidden="true">
+                <a href="#" class="close" data-dismiss="alert">&times;</a>
+                <div id="primaryContactMessage">Failed saving
+                    details.</div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="email" class="col-sm-3 control-label">Email</label>
+            <div class="col-sm-6">
+                <input type="email" class="form-control" id="email"
+                    name="email" placeholder="janlinv@ubc.ca">
+            </div>
+        </div>
+        
+        <div class="form-group">
             <label for="firstName" class="col-sm-3 control-label">First
                 name</label>
             <div class="col-sm-6">
@@ -23,7 +40,7 @@
             <label for="organization" class="col-sm-3 control-label">Organization</label>
             <div class="col-sm-6">
                 <input type="text" class="form-control"
-                    id="organization"
+                    id="organization" name="organization"
                     placeholder="University of British Columbia">
             </div>
         </div>
@@ -31,16 +48,9 @@
         <div class="form-group">
             <label for="department" class="col-sm-3 control-label">Department</label>
             <div class="col-sm-6">
-                <input type="text" class="form-control" id="department"
+                <input type="text" class="form-control"
+                    name="department" id="department"
                     placeholder="Department of Zoology">
-            </div>
-        </div>
-
-        <div class="form-group">
-            <label for="email" class="col-sm-3 control-label">Email</label>
-            <div class="col-sm-6">
-                <input type="email" class="form-control" id="email"
-                    placeholder="janlinv@ubc.ca">
             </div>
         </div>
 
@@ -99,6 +109,7 @@
 
  -->
 
-        <button type="submit" class="btn btn-default col-sm-offset-3">Save</button>
+        <button id="submit" type="submit"
+            class="btn btn-default col-sm-offset-3">Save</button>
     </form>
 </div>

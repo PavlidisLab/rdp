@@ -1,18 +1,22 @@
 //Call the button widget method on the login button to format it.
-var logout = function() {
-   
+var saveContact = function() {
+
+   console.log( "primaryContactForm serialized = " + $( "#primaryContactForm" ).serialize() );
+
    $.ajax( {
       cache : false,
       type : 'POST',
-      url : 'j_spring_security_logout',
-
+      url : 'saveResearcher.html',
+      data : $( "#primaryContactForm" ).serialize(),
       success : function(response, xhr) {
-         console.log( "logged out successfully" );
-         document.location = "login.jsp";
+         console.log( "saved researcher successfully" );
+         $( "#primaryContactMessage" ).html( jQuery.parseJSON( response ).message );
+         $( "#primaryContactFailed" ).show();
       },
-      error : function(xhr) {
-         console.log( "log out failed" );
+      error : function(response, xhr) {
          console.log( xhr.responseText );
+         $( "#primaryContactMessage" ).html( jQuery.parseJSON( response ).message );
+         $( "#primaryContactFailed" ).show();
       },
       complete : function(result) {
       }
@@ -23,22 +27,33 @@ var logout = function() {
    return false;
 };
 
-$( "#btnLogout" ).click( logout );
+$( "#primaryContactForm" ).find( "#submit" ).click( saveContact );
 
-//Initialize document
+// Initialize document
 $( document ).ready( function() {
    $.ajax( {
       cache : false,
       type : 'GET',
-      url : "loadUser.html",
+      url : "loadResearcher.html",
       success : function(response, xhr) {
          var data = jQuery.parseJSON( response ).data;
          var form = $( "#primaryContactForm" );
-         form.find("#firstName").val( data.firstName );
-         form.find("#lastName").val( data.lastName );
-         form.find("#department").val( data.department );
-         form.find("#organization").val( data.organization );
-         form.find("#email").val( data.email );
+
+         form.find( "#department" ).val( data.department );
+         form.find( "#organization" ).val( data.organization );
+
+         // Researcher created so Researcher object was returned
+         if ( data.contact != null ) {
+            form.find( "#firstName" ).val( data.contact.firstName );
+            form.find( "#lastName" ).val( data.contact.lastName );
+            form.find( "#email" ).val( data.contact.email );
+         } else {
+            // Researcher not created yet so User object was returned
+            form.find( "#firstName" ).val( data.firstName );
+            form.find( "#lastName" ).val( data.lastName );
+            form.find( "#email" ).val( data.email );
+         }
+
       },
       error : function(response, xhr) {
          console.log( xhr.responseText );

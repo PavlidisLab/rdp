@@ -2,7 +2,7 @@
     <form id="resetPasswordForm" class="form-horizontal"
         data-toggle="validator" role="form">
         <fieldset>
-            <!-- Sign In Form -->
+        
             <div class="alert alert-warning" id="resetPasswordFailed" hidden="true">
                 <a href="#" class="close" data-dismiss="alert">&times;</a>
                 <div id="resetPasswordMessage">Login username/email

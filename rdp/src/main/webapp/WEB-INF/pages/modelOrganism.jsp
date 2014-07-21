@@ -1,6 +1,12 @@
 <div class="container">
     <form id="modelOrganism" class="form-horizontal" role="form">
 
+        <div class="alert alert-warning" id="modelOrganismFailed"
+            hidden="true">
+            <a href="#" class="close" data-dismiss="alert">&times;</a>
+            <div id="modelOrganismMessage">Failed to save model organism details.</div>
+        </div>
+
         <div class="form-group">
             <label class="col-sm-3 control-label">Organism</label>
             <div class="col-sm-6">
@@ -69,7 +75,7 @@
             </div>
         </div>
 
-        <button type="submit" class="btn btn-default col-sm-offset-3">Save</button>
+        <button id="submit" type="submit" class="btn btn-default col-sm-offset-3">Save</button>
     </form>
 </div>
 

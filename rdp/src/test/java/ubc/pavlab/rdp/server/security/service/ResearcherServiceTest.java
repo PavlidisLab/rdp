@@ -24,7 +24,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 import gemma.gsec.authentication.UserDetailsImpl;
-import gemma.gsec.authentication.UserExistsException;
 import gemma.gsec.authentication.UserManager;
 
 import org.junit.Test;
@@ -57,14 +56,19 @@ public class ResearcherServiceTest extends BaseSpringContextTest {
     @Autowired
     UserManager userManager;
 
-    private Researcher createResearcher( String username, String email, String department ) throws UserExistsException {
+    private User createUser( String username, String email ) {
         User testContact = new User();
         testContact.setUserName( username );
         testContact.setEmail( email );
         testContact.setEnabled( true );
         userManager.createUser( new UserDetailsImpl( testContact ) );
         testContact = ( User ) userService.findByEmail( email );
-        
+        return testContact;
+    }
+
+    private Researcher createResearcher( String username, String email, String department ) {
+        User testContact = createUser( username, email );
+
         Researcher testResearcher = new Researcher();
         testResearcher = new Researcher();
         testResearcher.setContact( testContact );
@@ -105,7 +109,7 @@ public class ResearcherServiceTest extends BaseSpringContextTest {
     }
 
     @Test
-    public void testFindByUsername() throws Exception {
+    public void testFindByUserName() throws Exception {
 
         String email = "foobar@email.com";
         String username = "foobar";
@@ -132,5 +136,33 @@ public class ResearcherServiceTest extends BaseSpringContextTest {
         researcherService.delete( researcher );
         assertNull( researcherService.findByUserName( username ) );
         assertNull( userService.findByUserName( username ) );
+    }
+
+    @Test
+    public void testSaveFirstName() throws Exception {
+        String username = "foobar";
+        String email = "foobar@email.com";
+        String department = "dept";
+        Researcher researcher = null;
+
+        String newEmail = "newEmail@email.com";
+
+        try {
+            researcher = createResearcher( username, email, department );
+            User contact = researcher.getContact();
+            assertNotNull( contact );
+            assertEquals( email, contact.getEmail() );
+            contact.setEmail( newEmail );
+            researcherService.update( researcher );
+            contact = ( User ) userManager.findbyEmail( newEmail );
+            assertNotNull( contact );
+            assertEquals( newEmail, contact.getEmail() );
+        } catch ( Exception e ) {
+            e.printStackTrace();
+            researcherService.delete( researcher );
+            fail( e.getMessage() );
+        }
+
+        researcherService.delete( researcher );
     }
 }

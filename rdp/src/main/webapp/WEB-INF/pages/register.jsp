@@ -28,9 +28,9 @@
         <ul class="nav nav-tabs" role="tablist">
             <li class="active"><a href="#primaryContact" role="tab"
                 data-toggle="tab">Primary contact</a></li>
+            <!--
             <li><a href="#primaryInvestigator" role="tab"
-                data-toggle="tab">Primary investigator</a></li>
-            <!-- 
+                data-toggle="tab">Primary investigator</a></li>c
             <li><a href="#modelOrganism" role="tab"
                 data-toggle="tab">Model organism</a></li>
               -->
@@ -64,10 +64,12 @@
                 <br />
                 <%@ include file="primaryContact.jsp"%>
             </div>
+            <!-- 
             <div class="tab-pane" id="primaryInvestigator">
                 <br />
-                <%@ include file="primaryInvestigator.jsp"%>
+                <% /* @ include file="primaryInvestigator.jsp" */ %>
             </div>
+             -->
             <div class="tab-pane" id="modelOrganism">
                 <br />
                 <%@ include file="modelOrganism.jsp"%>

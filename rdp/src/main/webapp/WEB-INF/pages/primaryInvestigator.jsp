@@ -1,5 +1,12 @@
 <div class="container">
-    <form id="principalInvestigatorForm" class="form-horizontal" role="form">
+    <form id="principalInvestigatorForm" class="form-horizontal"
+        role="form">
+
+        <div class="alert alert-warning" id="primaryInvestigatorFailed"
+            hidden="true">
+            <a href="#" class="close" data-dismiss="alert">&times;</a>
+            <div id="primaryInvestigatorMessage">Failed to save details.</div>
+        </div>
 
         <div class="form-group">
             <label for="firstName" class="col-sm-3 control-label">First
@@ -99,6 +106,6 @@
 
  -->
 
-        <button type="submit" class="btn btn-default col-sm-offset-3">Save</button>
+        <button id="submit" type="submit" class="btn btn-default col-sm-offset-3">Save</button>
     </form>
 </div>
