@@ -35,10 +35,12 @@ $( "#navbarUsername" ).ready( function() {
    $.ajax( {
       cache : false,
       type : 'GET',
-      url : "loadUser.html",
+      url : "ajaxLoginCheck.html",
       success : function(response, xhr) {
-         $( "#navbarUsername" ).text( jQuery.parseJSON( response ).data.userName );
+         $( "#navbarUsername" ).text( jQuery.parseJSON( response ).user );
+         $( "#navbarIsAdmin" ).text( jQuery.parseJSON( response ).isAdmin );
          $( "#navbarUsername" ).append( ' <span class="caret"></span>' );
+         $( "#navbarUsername" ).trigger( "loginSuccess", response );
       },
       error : function(response, xhr) {
          console.log( xhr.responseText );

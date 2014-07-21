@@ -15,6 +15,24 @@
 <!-- http://www.bootply.com/Wzv3JQreK5     http://ivaynberg.github.io/select2/select2-2.1/select2.css   -->
 <link href="styles/select2.css" rel="stylesheet">
 
+
+<!-- DataTables CSS -->
+<!-- 
+<link rel="stylesheet" type="text/css"
+    href="//cdn.datatables.net/1.10.1/css/jquery.dataTables.css">
+ -->
+
+<link rel="stylesheet" type="text/css"
+    href="styles/dataTables.bootstrap.css">
+
+<!-- 
+
+<link rel="stylesheet" type="text/css"
+    href="//cdn.datatables.net/1.10.1/css/jquery.dataTables.css">
+ -->
+
+
+
 </head>
 
 <body id="register">
@@ -25,7 +43,8 @@
         <%@ include file="navbar.jsp"%>
 
         <!-- Nav tabs -->
-        <ul class="nav nav-tabs" role="tablist">
+        <ul id="registerTab" class="nav nav-tabs" role="tablist">
+
             <li class="active"><a href="#primaryContact" role="tab"
                 data-toggle="tab">Primary contact</a></li>
             <!--
@@ -56,6 +75,10 @@
                         role="tab" data-toggle="tab">Add New</a></li>
                 </ul></li>
 
+            <li><a href="#registeredResearchers" role="tab"
+                data-toggle="tab" style="display: none;">Registered
+                    researchers</a></li>
+
         </ul>
 
         <!-- Tab panes -->
@@ -67,13 +90,19 @@
             <!-- 
             <div class="tab-pane" id="primaryInvestigator">
                 <br />
-                <% /* @ include file="primaryInvestigator.jsp" */ %>
+                <%/* @ include file="primaryInvestigator.jsp" */%>
             </div>
              -->
             <div class="tab-pane" id="modelOrganism">
                 <br />
                 <%@ include file="modelOrganism.jsp"%>
             </div>
+
+            <div class="tab-pane" id="registeredResearchers">
+                <br />
+                <%@ include file="listResearchers.jsp"%>
+            </div>
+
         </div>
 
     </div>
@@ -85,6 +114,12 @@
     <script src="scripts/lib/jquery.validate.min.js"></script>
     <!-- http://www.bootply.com/Wzv3JQreK5     http://ivaynberg.github.io/select2/select2-2.1/select2.css   -->
     <script src="scripts/lib/select2.js"></script>
+    <!-- from http://www.datatables.net/examples/styling/bootstrap.html -->
+    <script type="text/javascript" charset="utf8"
+        src="scripts/lib/jquery.dataTables.min.js"></script>
+    <!-- DataTables -->
+    <script type="text/javascript" charset="utf8"
+        src="scripts/lib/dataTables.bootstrap.js"></script>
 
     <!-- Our scripts -->
     <script src="scripts/api/register.js"></script>

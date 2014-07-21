@@ -50,6 +50,8 @@
         <li><a href="#" id="navbarWelcome">Welcome!</a></li>
              -->
 
+            <div id="navbarIsAdmin" hidden="true">false</div>
+            
             <!-- username will be added here when the user has logged in -->
             <li class="dropdown"><a href="#"
                 class="dropdown-toggle" data-toggle="dropdown" id="navbarUsername">
