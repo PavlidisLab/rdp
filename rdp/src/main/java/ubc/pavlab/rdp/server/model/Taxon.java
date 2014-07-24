@@ -46,10 +46,6 @@ public class Taxon implements Serializable {
 
     private String abbreviation;
 
-    private String unigenePrefix;
-
-    private String swissProtSuffix;
-
     private int ncbiId;
 
     private boolean isSpecies;
@@ -95,22 +91,6 @@ public class Taxon implements Serializable {
 
     public void setAbbreviation( String abbreviation ) {
         this.abbreviation = abbreviation;
-    }
-
-    public String getUnigenePrefix() {
-        return unigenePrefix;
-    }
-
-    public void setUnigenePrefix( String unigenePrefix ) {
-        this.unigenePrefix = unigenePrefix;
-    }
-
-    public String getSwissProtSuffix() {
-        return swissProtSuffix;
-    }
-
-    public void setSwissProtSuffix( String swissProtSuffix ) {
-        this.swissProtSuffix = swissProtSuffix;
     }
 
     public int getNcbiId() {
