@@ -14,9 +14,12 @@
  */
 package ubc.pavlab.rdp.server.model;
 
+import java.util.Collection;
+
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 /**
@@ -37,7 +40,8 @@ public class Gene {
 
     private String ncbiGeneId;
 
-    // private Collection<GeneAlias> aliases;
+    @OneToMany(mappedBy="gene")
+    private Collection<GeneAlias> aliases;
 
     private String ensemblId;
 
@@ -82,6 +86,14 @@ public class Gene {
 
     public void setTaxon( Taxon taxon ) {
         this.taxon = taxon;
+    }
+
+    public Collection<GeneAlias> getAliases() {
+        return aliases;
+    }
+
+    public void setAliases( Collection<GeneAlias> aliases ) {
+        this.aliases = aliases;
     }
 
 }
