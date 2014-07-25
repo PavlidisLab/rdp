@@ -54,6 +54,24 @@
             </div>
         </div>
 
+        <div class="form-group">
+            <label class="col-sm-3 control-label">Website</label>
+            <div class="col-sm-6">
+                <input type="text" class="form-control"
+                    name="website" id="website"
+                    placeholder="http://www.chibi.ubc.ca">
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label class="col-sm-3 control-label">Phone</label>
+            <div class="col-sm-6">
+                <input type="text" class="form-control"
+                    name="phone" id="phone"
+                    placeholder="604-111-1111">
+            </div>
+        </div>
+        
         <!-- 
         <div class="form-group">
             <div class="col-sm-offset-3 col-sm-6">

@@ -33,17 +33,6 @@
       </ul>
      -->
 
-
-        <!-- search -->
-        <form class="navbar-form navbar-left" role="search">
-            <div class="form-group">
-                <input type="text" class="form-control"
-                    placeholder="Search">
-            </div>
-            <button type="submit" class="btn btn-default"
-                id="searchSubmit">Submit</button>
-        </form>
-
         <!-- right navbar -->
         <ul class="nav navbar-nav navbar-right">
             <!-- 

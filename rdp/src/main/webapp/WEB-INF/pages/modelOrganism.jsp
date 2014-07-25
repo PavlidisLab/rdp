@@ -29,51 +29,28 @@
         </div>
 
         <div class="form-group">
-            <label class="col-sm-3 control-label">Bulk upload</label>
-            <div class="col-sm-6">
-                <input type="file" id="bulkUploadInputFile">
-            </div>
-        </div>
-
-        <div class="form-group">
             <label class="col-sm-3 control-label">Genes</label>
-            <div class="col-sm-6">
-                <select id="geneSelect" class="select2"
-                    multiple="multiple" style="width: 100%;">
-                    <option>BRCA1</option>
-                    <option>APOE</option>
-                    <option>SNCA</option>
-                    <option>CAMK2A</option>
-                </select>
-            </div>
+            <label class="col-sm-5">BRCA1, APOE, SNCA, ...</label>
+                <button type="button" class="btn btn-default btn-sm">
+                  <span class="glyphicon glyphicon-pencil"></span>
+                </button>
         </div>
-
+        
+        <!-- This can be cumbersome to edit when there's a lot of genes
         <div class="form-group">
-            <label class="col-sm-3 control-label">Pathways /
-                processes</label>
-            <div class="col-sm-6">
-                <select id="pathwaySelect" class="select2"
-                    multiple="multiple" style="width: 100%;">
-                    <option>Synapse formation</option>
-                    <option>Cell signalling</option>
-                    <option>Inflamatory response</option>
-                    <option>Cell division</option>
-                </select>
-            </div>
-        </div>
-
-        <div class="form-group">
-            <label class="col-sm-3 control-label">Diseases /
-                phenotypes</label>
-            <div class="col-sm-6">
-                <select id="phenoSelect" class="select2"
-                    multiple="multiple" style="width: 100%;">
-                    <option>microcephaly</option>
-                    <option>autism</option>
-                    <option>cancer</option>
-                </select>
-            </div>
-        </div>
+                    <label class="col-sm-3 control-label">Genes</label>
+                    <div class="col-sm-6">
+                        <select id="geneSelect" class="select2"
+                            multiple="multiple" style="width: 100%;">
+                            <option>BRCA1</option>
+                            <option>APOE</option>
+                            <option>SNCA</option>
+                            <option>CAMK2A</option>
+                        </select>
+                    </div>
+                </div>
+         -->
+        
 
         <button id="submit" type="submit" class="btn btn-default col-sm-offset-3">Save</button>
     </form>
