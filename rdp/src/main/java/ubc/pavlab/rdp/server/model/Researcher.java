@@ -1,5 +1,5 @@
 /*
- * The aspiredb project
+ * The rdp project
  * 
  * Copyright (c) 2012 University of British Columbia
  * 
@@ -22,14 +22,12 @@ import java.util.List;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.OneToOne;
-import javax.persistence.PrimaryKeyJoinColumn;
 import javax.persistence.Table;
 
 import ubc.pavlab.rdp.server.model.common.auditAndSecurity.User;
@@ -37,44 +35,56 @@ import ubc.pavlab.rdp.server.model.common.auditAndSecurity.User;
 @Entity
 @Table(name = "RESEARCHER")
 public class Researcher implements Serializable {
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 778565921919207933L;
+
     @Id
     @GeneratedValue
     @Column(name = "ID")
     private Long id;
-    
-    @OneToOne(cascade = {CascadeType.ALL})
+
+    @OneToOne(cascade = { CascadeType.ALL })
     @JoinColumn(name = "CONTACT_FK")
     private User contact;
-    
+
     @Column(name = "ORGANIZATION")
     private String organization;
 
     @Column(name = "DEPARTMENT")
     private String department;
 
+    @Column(name = "PHONE")
+    private String phone;
+
+    @Column(name = "WEBSITE")
+    private String website;
+
     public void setContact( User contact ) {
         this.contact = contact;
     }
-    
+
     public User getContact() {
         return this.contact;
     }
-    
+
     public void setDepartment( String department ) {
         this.department = department;
     }
-    
+
     public void setOrganization( String organization ) {
         this.organization = organization;
     }
-    
+
     public String getDepartment() {
         return department;
     }
-    
+
     public String getOrganization() {
         return organization;
     }
+
     public static Collection<Researcher> emptyCollection() {
         return new ArrayList<Researcher>();
     }
@@ -93,6 +103,22 @@ public class Researcher implements Serializable {
 
     public Object getId() {
         return this.id;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone( String phone ) {
+        this.phone = phone;
+    }
+
+    public String getWebsite() {
+        return website;
+    }
+
+    public void setWebsite( String website ) {
+        this.website = website;
     }
 
 }

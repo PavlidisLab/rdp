@@ -11,7 +11,7 @@
 
 		<!-- We shouldn't use other options (validate is ok). We should be manually updating database schema on production. It's 
 			too risky to let hbm2ddl to handle schema updates. -->
-		<property name="hbm2ddl.auto">Validate</property>
+		<property name="hbm2ddl.auto">update</property>
 
 		<!-- Add new entity classes here so that hibernate tools see it. --> 
 		<mapping class="ubc.pavlab.rdp.server.model.Gene" />
