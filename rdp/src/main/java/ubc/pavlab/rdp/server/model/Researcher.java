@@ -17,7 +17,6 @@ package ubc.pavlab.rdp.server.model;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -90,19 +89,49 @@ public class Researcher implements Serializable {
     }
 
     @ManyToMany
-    @JoinTable(name = "RESEARCHER_TAXONS", joinColumns = { @JoinColumn(name = "RESEARCHER_ID", referencedColumnName = "ID") }, inverseJoinColumns = { @JoinColumn(name = "TAXON_ID", referencedColumnName = "ID") })
-    private List<Taxon> taxons = new ArrayList<Taxon>();
+    @JoinTable(name = "RESEARCHER_TAXONS", joinColumns = { @JoinColumn(name = "RESEARCHER_ID") }, inverseJoinColumns = { @JoinColumn(name = "TAXON_ID") })
+    private Collection<Taxon> taxons = new ArrayList<>();
 
     @ManyToMany
-    @JoinTable(name = "RESEARCHER_GENES", joinColumns = { @JoinColumn(name = "RESEARCHER_ID", referencedColumnName = "ID") }, inverseJoinColumns = { @JoinColumn(name = "GENE_ID", referencedColumnName = "ID") })
-    private List<Gene> genes = new ArrayList<Gene>();
+    @JoinTable(name = "RESEARCHER_GENES", joinColumns = { @JoinColumn(name = "RESEARCHER_ID") }, inverseJoinColumns = { @JoinColumn(name = "GENE_ID") })
+    private Collection<Gene> genes = new ArrayList<>();
 
     @ManyToMany
-    @JoinTable(name = "RESEARCHER_PUBLICATIONS", joinColumns = { @JoinColumn(name = "RESEARCHER_ID", referencedColumnName = "ID") }, inverseJoinColumns = { @JoinColumn(name = "PUBLICATION_ID", referencedColumnName = "ID") })
-    private List<Publication> publications = new ArrayList<Publication>();
+    @JoinTable(name = "RESEARCHER_PUBLICATIONS", joinColumns = { @JoinColumn(name = "RESEARCHER_ID") }, inverseJoinColumns = { @JoinColumn(name = "PUBLICATION_ID") })
+    private Collection<Publication> publications = new ArrayList<>();
 
     public Object getId() {
         return this.id;
+    }
+
+    @Override
+    public boolean equals( Object object ) {
+
+        if ( this == object ) {
+            return true;
+        }
+        if ( !( object instanceof Researcher ) ) {
+            return false;
+        }
+        final Researcher that = ( Researcher ) object;
+        if ( this.id == null || that.getId() == null || !this.id.equals( that.getId() ) ) {
+            return false;
+        }
+        return true;
+
+    }
+
+    @Override
+    public int hashCode() {
+        int hashCode = 0;
+        hashCode = 29 * hashCode + ( id == null ? 0 : id.hashCode() );
+
+        return hashCode;
+    }
+
+    @Override
+    public String toString() {
+        return "id=" + id + " username=" + contact.getUserName();
     }
 
     public String getPhone() {
@@ -121,4 +150,27 @@ public class Researcher implements Serializable {
         this.website = website;
     }
 
+    public Collection<Gene> getGenes() {
+        return genes;
+    }
+
+    public Collection<Taxon> getTaxons() {
+        return taxons;
+    }
+
+    public Collection<Publication> getPublications() {
+        return publications;
+    }
+
+    public void setTaxon( Collection<Taxon> taxons ) {
+        this.taxons = taxons;
+    }
+
+    public void setGenes( Collection<Gene> genes ) {
+        this.genes = genes;
+    }
+
+    public void setPublications( Collection<Publication> publications ) {
+        this.publications = publications;
+    }
 }

@@ -19,9 +19,9 @@
 
 package ubc.pavlab.rdp.server.service;
 
-import java.util.Collection;
-
 import gemma.gsec.model.UserGroup;
+
+import java.util.Collection;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -32,7 +32,6 @@ import ubc.pavlab.rdp.server.dao.UserDao;
 import ubc.pavlab.rdp.server.dao.UserGroupDao;
 import ubc.pavlab.rdp.server.model.Researcher;
 import ubc.pavlab.rdp.server.model.common.auditAndSecurity.User;
-import ubc.pavlab.rdp.server.security.authentication.UserService;
 
 /**
  * TODO Document Me
@@ -48,10 +47,10 @@ public class ResearcherServiceImpl implements ResearcherService {
 
     @Autowired
     UserDao userDao;
-    
+
     @Autowired
     UserGroupDao userGroupDao;
-    
+
     @Override
     @Transactional
     public Researcher create( final Researcher researcher ) {
@@ -76,23 +75,22 @@ public class ResearcherServiceImpl implements ResearcherService {
 
     @Override
     public void delete( Researcher researcher ) {
-        
+
         /**
-         * We can only delete Researcher.Contact if
-         * it's no longer referenced in UserGroup!
+         * We can only delete Researcher.Contact if it's no longer referenced in UserGroup!
          */
         if ( researcher != null ) {
             User contact = researcher.getContact();
-            for ( UserGroup group : this.userDao
-                    .loadGroups( contact ) ) {
+            for ( UserGroup group : this.userDao.loadGroups( contact ) ) {
                 group.getGroupMembers().remove( contact );
                 this.userGroupDao.update( ( ubc.pavlab.rdp.server.model.common.auditAndSecurity.UserGroup ) group );
             }
-    
+
             researcherDao.remove( researcher );
         }
     }
 
+    @Override
     public Researcher thaw( Researcher researcher ) {
         return researcherDao.thaw( researcher );
     }

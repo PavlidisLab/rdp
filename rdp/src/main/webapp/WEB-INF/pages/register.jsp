@@ -45,7 +45,7 @@
         <!-- Nav tabs -->
         <ul id="registerTab" class="nav nav-tabs" role="tablist">
 
-            <li class="active"><a href="#primaryContact" role="tab"
+            <li class=""><a href="#primaryContact" role="tab"
                 data-toggle="tab">Primary contact</a></li>
             <!--
             <li><a href="#primaryInvestigator" role="tab"
@@ -54,7 +54,7 @@
                 data-toggle="tab">Model organism</a></li>
               -->
 
-            <li class="dropdown"><a href="#"
+            <li class="active dropdown"><a href="#"
                 class="dropdown-toggle" data-toggle="dropdown">Model
                     organism <span class="caret"></span>
             </a>
@@ -83,7 +83,7 @@
 
         <!-- Tab panes -->
         <div class="tab-content">
-            <div class="tab-pane active" id="primaryContact">
+            <div class="tab-pane" id="primaryContact">
                 <br />
                 <%@ include file="primaryContact.jsp"%>
             </div>
@@ -93,7 +93,7 @@
                 <%/* @ include file="primaryInvestigator.jsp" */%>
             </div>
              -->
-            <div class="tab-pane" id="modelOrganism">
+            <div class="tab-pane active" id="modelOrganism">
                 <br />
                 <%@ include file="modelOrganism.jsp"%>
             </div>

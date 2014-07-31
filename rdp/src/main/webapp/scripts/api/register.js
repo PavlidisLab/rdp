@@ -41,6 +41,8 @@ $( document ).ready( function() {
 
          form.find( "#department" ).val( data.department );
          form.find( "#organization" ).val( data.organization );
+         form.find( "#website" ).val( data.website );
+         form.find( "#phone" ).val( data.phone );
 
          // Researcher created so Researcher object was returned
          if ( data.contact != null ) {

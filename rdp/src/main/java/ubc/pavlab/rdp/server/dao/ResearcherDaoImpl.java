@@ -29,7 +29,6 @@ import org.hibernate.Hibernate;
 import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
 import ubc.pavlab.rdp.server.model.Researcher;
 
@@ -44,10 +43,9 @@ public class ResearcherDaoImpl extends DaoBaseImpl<Researcher> implements Resear
 
     @Autowired
     UserManager userManager;
-    
+
     protected final Log log = LogFactory.getLog( UserGroupDaoImpl.class );
 
-    
     /**
      * @param sessionFactory
      */
@@ -95,9 +93,12 @@ public class ResearcherDaoImpl extends DaoBaseImpl<Researcher> implements Resear
         if ( researcher.getId() == null ) {
             throw new IllegalArgumentException( "Id cannot be null, cannot be thawed: " + researcher );
         }
-        
+
         Hibernate.initialize( researcher.getContact() );
-        
+        Hibernate.initialize( researcher.getGenes() );
+        Hibernate.initialize( researcher.getTaxons() );
+        Hibernate.initialize( researcher.getPublications() );
+
         return researcher;
     }
 }

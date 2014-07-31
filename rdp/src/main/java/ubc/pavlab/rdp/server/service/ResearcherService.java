@@ -38,16 +38,19 @@ public interface ResearcherService {
 
     @Secured({ "GROUP_USER" })
     public void update( Researcher researcher );
-    
+
     @Secured({ "GROUP_USER", "AFTER_ACL_READ" })
     public Researcher findByEmail( final String email );
-    
+
     @Secured({ "GROUP_USER", "AFTER_ACL_READ" })
     public Researcher findByUserName( final String username );
-    
+
     @Secured({ "GROUP_ADMIN" })
     public void delete( Researcher researcher );
-    
+
     @Secured({ "GROUP_ADMIN" })
     public Collection<Researcher> loadAll();
+
+    @Secured({ "GROUP_USER", "AFTER_ACL_READ" })
+    public Researcher thaw( Researcher researcher );
 }
