@@ -17,10 +17,12 @@ package ubc.pavlab.rdp.server.model;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Set;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
@@ -88,17 +90,17 @@ public class Researcher implements Serializable {
         return new ArrayList<Researcher>();
     }
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "RESEARCHER_TAXONS", joinColumns = { @JoinColumn(name = "RESEARCHER_ID") }, inverseJoinColumns = { @JoinColumn(name = "TAXON_ID") })
-    private Collection<Taxon> taxons = new ArrayList<>();
+    private Set<Taxon> taxons;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "RESEARCHER_GENES", joinColumns = { @JoinColumn(name = "RESEARCHER_ID") }, inverseJoinColumns = { @JoinColumn(name = "GENE_ID") })
-    private Collection<Gene> genes = new ArrayList<>();
+    private Set<Gene> genes;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "RESEARCHER_PUBLICATIONS", joinColumns = { @JoinColumn(name = "RESEARCHER_ID") }, inverseJoinColumns = { @JoinColumn(name = "PUBLICATION_ID") })
-    private Collection<Publication> publications = new ArrayList<>();
+    private Set<Publication> publications;
 
     public Object getId() {
         return this.id;
@@ -162,15 +164,15 @@ public class Researcher implements Serializable {
         return publications;
     }
 
-    public void setTaxon( Collection<Taxon> taxons ) {
+    public void setTaxon( Set<Taxon> taxons ) {
         this.taxons = taxons;
     }
 
-    public void setGenes( Collection<Gene> genes ) {
+    public void setGenes( Set<Gene> genes ) {
         this.genes = genes;
     }
 
-    public void setPublications( Collection<Publication> publications ) {
+    public void setPublications( Set<Publication> publications ) {
         this.publications = publications;
     }
 }

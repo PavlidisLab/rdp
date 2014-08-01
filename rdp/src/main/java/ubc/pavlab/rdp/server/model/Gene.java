@@ -14,11 +14,16 @@
  */
 package ubc.pavlab.rdp.server.model;
 
-import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
@@ -34,14 +39,16 @@ public class Gene {
 
     @Id
     @GeneratedValue
+    @Column(name = "ID")
     private Long id;
 
     private String officialName;
 
     private String ncbiGeneId;
 
-    @OneToMany(mappedBy="gene")
-    private Collection<GeneAlias> aliases;
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @JoinColumn(name = "GENE_FK")
+    private Set<GeneAlias> aliases = new HashSet<>();
 
     private String ensemblId;
 
@@ -88,11 +95,11 @@ public class Gene {
         this.taxon = taxon;
     }
 
-    public Collection<GeneAlias> getAliases() {
+    public Set<GeneAlias> getAliases() {
         return aliases;
     }
 
-    public void setAliases( Collection<GeneAlias> aliases ) {
+    public void setAliases( Set<GeneAlias> aliases ) {
         this.aliases = aliases;
     }
 

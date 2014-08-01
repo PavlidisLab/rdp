@@ -26,6 +26,7 @@ import static org.junit.Assert.fail;
 import gemma.gsec.authentication.UserDetailsImpl;
 import gemma.gsec.authentication.UserManager;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -56,6 +57,17 @@ public class ResearcherServiceTest extends BaseSpringContextTest {
     @Autowired
     UserManager userManager;
 
+    private Researcher researcher;
+    private String email = "foobar@email.com";
+    private String username = "foobar";
+    private String department = "dept";
+
+    @Before
+    public void setUp() {
+        researcher = researcherService.findByEmail( email );
+        researcherService.delete( researcher );
+    }
+
     private User createUser( String username, String email ) {
         User testContact = new User();
         testContact.setUserName( username );
@@ -81,11 +93,6 @@ public class ResearcherServiceTest extends BaseSpringContextTest {
 
         super.runAsAdmin();
 
-        String email = "foobar@email.com";
-        String username = "foobar";
-        String department = "dept";
-        Researcher researcher = null;
-
         try {
             assertNull( researcherService.findByEmail( "noEmail" ) );
 
@@ -97,6 +104,9 @@ public class ResearcherServiceTest extends BaseSpringContextTest {
             assertEquals( email, researcher.getContact().getEmail() );
             assertEquals( department, researcher.getDepartment() );
             assertNotNull( userService.findByEmail( email ) );
+            assertEquals( 0, researcher.getGenes().size() );
+            assertEquals( 0, researcher.getTaxons().size() );
+            assertEquals( 0, researcher.getPublications().size() );
         } catch ( Exception e ) {
             e.printStackTrace();
             researcherService.delete( researcher );
@@ -110,11 +120,6 @@ public class ResearcherServiceTest extends BaseSpringContextTest {
 
     @Test
     public void testFindByUserName() throws Exception {
-
-        String email = "foobar@email.com";
-        String username = "foobar";
-        String department = "dept";
-        Researcher researcher = null;
 
         try {
             assertNull( researcherService.findByUserName( "noUsername" ) );
@@ -140,10 +145,6 @@ public class ResearcherServiceTest extends BaseSpringContextTest {
 
     @Test
     public void testSaveFirstName() throws Exception {
-        String username = "foobar";
-        String email = "foobar@email.com";
-        String department = "dept";
-        Researcher researcher = null;
 
         String newEmail = "newEmail@email.com";
 

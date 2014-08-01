@@ -19,11 +19,10 @@
 
 package ubc.pavlab.rdp.server.model;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 /**
@@ -38,14 +37,11 @@ public class GeneAlias {
 
     @Id
     @GeneratedValue
+    @Column(name = "ID")
     private Long id;
-    
+
     private String alias;
 
-    @ManyToOne
-    @JoinColumn(name = "GENE_FK")
-    private Gene gene;
-    
     public String getAlias() {
         return alias;
     }
@@ -53,6 +49,5 @@ public class GeneAlias {
     public void setAlias( String alias ) {
         this.alias = alias;
     }
-    
 
 }
