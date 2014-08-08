@@ -44,7 +44,11 @@
             <artifactId>recaptcha4j</artifactId>
             <version>0.0.7</version>
         </dependency>
-
+        <dependency>
+            <groupId>com.sun.jersey</groupId>
+            <artifactId>jersey-bundle</artifactId>
+            <version>1.13</version>
+        </dependency>
         <dependency>
             <groupId>pavlab</groupId>
             <artifactId>gemma-gsec</artifactId>
