@@ -50,6 +50,11 @@
             <version>1.13</version>
         </dependency>
         <dependency>
+			<groupId>org.eclipse.jdt.core.compiler</groupId>
+			<artifactId>ecj</artifactId>
+			<version>P20140317-1600</version>
+        </dependency>
+        <dependency>
             <groupId>pavlab</groupId>
             <artifactId>gemma-gsec</artifactId>
             <version>0.0.1-SNAPSHOT</version>
