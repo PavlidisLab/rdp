@@ -6,7 +6,7 @@ import org.directwebremoting.annotations.DataTransferObject;
 import org.eclipse.jdt.internal.compiler.util.Util.Displayable;
 
 /**
- * @author anton
+ * @author anton/jleong
  */
 @DataTransferObject(javascript = "GenomicRange")
 public class GenomicRange implements Displayable, Serializable, Comparable<GenomicRange> {

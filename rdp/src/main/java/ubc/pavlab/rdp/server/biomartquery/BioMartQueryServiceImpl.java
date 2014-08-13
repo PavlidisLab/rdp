@@ -34,7 +34,7 @@ import com.sun.jersey.core.util.MultivaluedMapImpl;
 /**
  * Simple wrapper that calls BioMart REST query service.
  * 
- * @author anton
+ * @author anton/jleong
  * @version $Id: BioMartQueryServiceImpl.java,v 1.13 2013/07/15 16:01:54 anton Exp $
  */
 @Service

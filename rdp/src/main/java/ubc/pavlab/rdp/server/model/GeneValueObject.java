@@ -8,7 +8,7 @@ import org.eclipse.jdt.internal.compiler.util.Util.Displayable;
 /**
  * TODO Document Me
  * 
- * @author Paul
+ * @author Paul/jleong
  * @version $Id: GeneValueObject.java,v 1.10 2013/06/11 22:30:57 anton Exp $
  */
 @DataTransferObject(javascript = "GeneValueObject")

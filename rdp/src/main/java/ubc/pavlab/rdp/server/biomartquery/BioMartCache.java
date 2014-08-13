@@ -6,7 +6,7 @@ import java.util.List;
 import ubc.pavlab.rdp.server.model.GeneValueObject;
 
 /**
- * BioMart cache
+ * Used to store data from BioMart queries in memory.
  * 
  * @author jleong
  * @version $Id$

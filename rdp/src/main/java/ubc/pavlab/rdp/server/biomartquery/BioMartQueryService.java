@@ -8,9 +8,9 @@ import ubc.pavlab.rdp.server.model.GeneValueObject;
 import ubc.pavlab.rdp.server.model.GenomicRange;
 
 /**
- * Biomart query service
+ * Used to request gene and other data using BioMart.
  * 
- * @author frances
+ * @author frances/jleong
  * @version $Id: BioMartQueryService.java,v 1.15 2013/06/11 22:30:47 anton Exp $
  */
 public interface BioMartQueryService {
