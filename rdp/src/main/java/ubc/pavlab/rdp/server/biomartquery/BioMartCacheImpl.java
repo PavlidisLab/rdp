@@ -111,15 +111,4 @@ public class BioMartCacheImpl extends SearchableEhcache<GeneValueObject> impleme
         endAttribute = getSearchAttribute( END_SEARCH_ATTRIBUTE_NAME );
     }
 
-    @Override
-    public boolean hasExpired() {
-        // TODO Auto-generated method stub
-        return false;
-    }
-
-    @Override
-    public void putAll( Collection<GeneValueObject> genes ) {
-        // TODO Auto-generated method stub
-
-    }
 }

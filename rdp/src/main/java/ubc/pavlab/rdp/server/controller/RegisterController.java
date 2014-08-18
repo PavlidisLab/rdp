@@ -1,12 +1,8 @@
 package ubc.pavlab.rdp.server.controller;
 
 import gemma.gsec.authentication.UserManager;
-import gemma.gsec.util.JSONUtil;
 
 import java.io.IOException;
-import java.io.StringWriter;
-import java.util.Collection;
-import java.util.Iterator;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -26,6 +22,7 @@ import ubc.pavlab.rdp.server.model.Researcher;
 import ubc.pavlab.rdp.server.model.Taxon;
 import ubc.pavlab.rdp.server.model.common.auditAndSecurity.User;
 import ubc.pavlab.rdp.server.service.ResearcherService;
+import ubc.pavlab.rdp.server.util.JSONUtil;
 
 @Controller
 @RemoteProxy
@@ -151,48 +148,6 @@ public class RegisterController extends BaseController {
     }
 
     /**
-     * Converts a collection of objects to a json string
-     * 
-     * @param collection
-     * @return
-     */
-    private String collectionToJson( Collection<?> collection ) {
-        StringWriter jsonText = new StringWriter();
-        jsonText.write( "[" );
-
-        try {
-            Iterator<?> it = collection.iterator();
-            while ( it.hasNext() ) {
-                Object obj = it.next();
-                String delim = it.hasNext() ? "," : "";
-                jsonText.append( new JSONObject( obj ).toString() + delim );
-            }
-            jsonText.append( "]" );
-            jsonText.flush();
-        } catch ( Exception e ) {
-            log.error( e.getLocalizedMessage(), e );
-            JSONObject json = new JSONObject();
-            json.put( "success", false );
-            json.put( "message", e.getLocalizedMessage() );
-            jsonText.write( json.toString() );
-            log.info( jsonText );
-        }
-
-        try {
-            jsonText.close();
-        } catch ( Exception e ) {
-            log.error( e.getLocalizedMessage(), e );
-            JSONObject json = new JSONObject();
-            json.put( "success", false );
-            json.put( "message", e.getLocalizedMessage() );
-            jsonText.write( json.toString() );
-            log.info( jsonText );
-        }
-
-        return jsonText.toString();
-    }
-
-    /**
      * AJAX entry point. Loads all Researchers.
      * 
      * @param request
@@ -221,7 +176,7 @@ public class RegisterController extends BaseController {
         JSONUtil jsonUtil = new JSONUtil( request, response );
 
         try {
-            jsonText = collectionToJson( researcherService.loadAll() );
+            jsonText = jsonUtil.collectionToJson( researcherService.loadAll() );
         } finally {
 
             try {
@@ -326,7 +281,7 @@ public class RegisterController extends BaseController {
             } else {
 
                 // FIXME Filter by organism
-                jsonText = collectionToJson( user.getGenes() );
+                jsonText = jsonUtil.collectionToJson( user.getGenes() );
             }
 
         } catch ( Exception e ) {
