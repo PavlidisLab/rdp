@@ -5,26 +5,7 @@ displays it as suggestions in a combo box.
 
  */
 
-// underlines the matching (case-insensitive) text if any
-function underline(text, query) {
-   var idx = text.toUpperCase().indexOf( query.toUpperCase() );
-   if ( idx < 0 )
-      return;
-   return text.substring( 0, idx ) + "<span class='select2-match'>" + text.substring( idx, idx + query.length )
-      + "</span>" + text.substring( idx + query.length, text.length );
-}
-
-function dataFormatResult(data, container, query) {
-   var idx = data.symbol.toUpperCase().indexOf( query.term.toUpperCase() );
-   var markup = data;
-   if ( idx >= 0 ) {
-      markup = "<b>" + underline( data.symbol, query.term ) + "</b> " + data.name;
-   } else {
-      markup = "<b>" + data.symbol + "</b> " + underline( data.name, query.term );
-   }
-   return markup;
-}
-
+// sort by symbol attr
 function dataSortResult(data, container, query) {
    return data.sort( function(a, b) {
       return a.symbol.localeCompare( b.symbol );
@@ -48,18 +29,23 @@ $( document ).ready( function() {
             }
          },
          results : function(data, page) {
+            // convert object to text symbol + text
+            // select2 format result looks for the 'text' attr
+            for (var i = 0; i < data.data.length; i++) {
+               gene = data.data[i]
+               gene.text = "<b>" + gene.symbol + "</b> " + gene.name
+            }
             return {
                results : data.data
             };
-         }
-      },
-      formatResult : dataFormatResult,
-      sortResults : dataSortResult,
-   } );
+         },
 
-   // FIXME showing undefined after selecting an option
-   $( "#searchGenesSelect" ).on( "select2-selecting", function(e) {
-      console.log( "selecting val=" + e.val + " choice=" + JSON.stringify( e.choice ) );
+      },
+      // we do not want to escape markup since we are displaying html in results
+      escapeMarkup : function(m) {
+         return m;
+      },
+      sortResults : dataSortResult,
    } );
 
 } );
