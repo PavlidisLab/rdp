@@ -12,6 +12,7 @@
 			</div>
 
 			<div class="modal-body">
+			    <%@ include file="searchGenes.jsp" %><br/>
 				<%@ include file="geneManagerTable.jsp" %>
 			</div>
 

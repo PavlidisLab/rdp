@@ -17,6 +17,7 @@ var showGenes = function() {
          // get this from a controller
          // var response = '[{"userName":"testUsername2", "email":"testEmail2", "firstName":"testFirstname2",
          // "lastName":"testLastname2", "organization":"testOrganization2", "department":"testDepartment2" }]';
+         // FIXME
          response = $.parseJSON( response );
          var tableId = "#geneManagerTable";
          jsonToGenesTable( response, tableId );

@@ -14,7 +14,7 @@
 
 <!-- http://www.bootply.com/Wzv3JQreK5     http://ivaynberg.github.io/select2/select2-2.1/select2.css   -->
 <link href="styles/select2.css" rel="stylesheet">
-
+<link href="styles/select2-bootstrap.css" rel="stylesheet"/>
 
 <!-- DataTables CSS -->
 <!-- 
