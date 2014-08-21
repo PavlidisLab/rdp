@@ -143,7 +143,6 @@
     <script src="scripts/api/login.js"></script>
     <script src="scripts/api/signup.js"></script>
     <script src="scripts/api/resetPassword.js"></script>
-    <script src="scripts/api/register.js"></script>
     
 </body>
 </html>

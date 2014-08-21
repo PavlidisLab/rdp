@@ -281,7 +281,7 @@ public class RegisterController extends BaseController {
             } else {
 
                 // FIXME Filter by organism
-                jsonText = jsonUtil.collectionToJson( user.getGenes() );
+                jsonText = "{\"success\":true,\"data\":" + jsonUtil.collectionToJson( user.getGenes() ) + "}";
             }
 
         } catch ( Exception e ) {

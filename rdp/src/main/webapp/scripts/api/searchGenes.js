@@ -12,10 +12,38 @@ function dataSortResult(data, container, query) {
    } );
 }
 
+function addGene(geneValueObject, table) {
+
+   console.log( "addGene val = " + geneValueObject.name + "; dataTable = " + table );
+
+   // columns: Symbol, Alias, Name
+   // FIXME Add Alias
+   geneRow = [ geneValueObject.symbol, geneValueObject.symbol, geneValueObject.name ];
+
+   // var table = dataTableEl.DataTable();
+
+   table.row.add( geneRow ).draw();
+}
+
 $( document ).ready( function() {
+
+   var table = $( "#geneManagerTable" ).DataTable();
+
+   // init add genes button
+   $( "#addGeneBtn" ).click( function() {
+      geneValueObject = $( "#searchGenesSelect" ).select2( "data" )
+      addGene( geneValueObject, table )
+   } );
+
+   // init remove genes button
+   $( "#removeGeneBtn" ).click( function() {
+      table.row( '.selected' ).remove().draw( false );
+   } );
+
+   // init search genes combo
    $( "#searchGenesSelect" ).select2( {
       id : function(data) {
-         return data.symbol;
+         return data.key;
       },
       placeholder : "Gene symbol",
       minimumInputLength : 3,

@@ -32,10 +32,11 @@ $( "#primaryContactForm" ).find( "#submit" ).click( saveContact );
 // Initialize document
 $( document ).ready( function() {
    $.ajax( {
-      cache : false,
-      type : 'GET',
+      //cache : false,
+      //type : 'GET',
       url : "loadResearcher.html",
       success : function(response, xhr) {
+         
          var data = jQuery.parseJSON( response ).data;
          var form = $( "#primaryContactForm" );
 

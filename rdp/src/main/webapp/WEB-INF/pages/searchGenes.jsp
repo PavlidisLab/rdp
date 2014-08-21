@@ -11,7 +11,7 @@ displays it as suggestions in a combo box.
 <div class="row">
 	<!-- FIXME Get taxon from current form -->
 	<div class="col-sm-1">Symbol</div>
-	<input type="hidden" class="bigdrop col-sm-10" id="searchGenesSelect" />
+	<input type="hidden" class="bigdrop col-sm-8" id="searchGenesSelect" />
 	<!-- 
 	<select id="searchGenesSelect" class="col-sm-10">
 	   <option value="AL">Alabama</option>
@@ -19,9 +19,12 @@ displays it as suggestions in a combo box.
 	 
 	</select>
 	-->
-	<button type="button" class="btn btn-default">
+	<button type="button" id="addGeneBtn" class="btn btn-default">
 		<span class="glyphicon glyphicon-plus-sign"></span>
 	</button>
+	<button type="button" id="removeGeneBtn" class="btn btn-default">
+        <span class="glyphicon glyphicon-minus-sign"></span>
+    </button>
 </div>
 
 <!-- Our scripts -->

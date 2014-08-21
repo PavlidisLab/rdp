@@ -21,17 +21,14 @@
 <link rel="stylesheet" type="text/css"
     href="//cdn.datatables.net/1.10.1/css/jquery.dataTables.css">
  -->
-
+ <!-- 
+ 
 <link rel="stylesheet" type="text/css"
     href="styles/dataTables.bootstrap.css">
-
-<!-- 
-
+    
+     -->
 <link rel="stylesheet" type="text/css"
-    href="//cdn.datatables.net/1.10.1/css/jquery.dataTables.css">
- -->
-
-
+    href="styles/jquery.dataTables.css">
 
 </head>
 
@@ -118,9 +115,11 @@
     <script type="text/javascript" charset="utf8"
         src="scripts/lib/jquery.dataTables.min.js"></script>
     <!-- DataTables -->
+    <!-- 
     <script type="text/javascript" charset="utf8"
         src="scripts/lib/dataTables.bootstrap.js"></script>
-
+ -->
+ 
     <!-- Our scripts -->
     <script src="scripts/api/register.js"></script>
 
