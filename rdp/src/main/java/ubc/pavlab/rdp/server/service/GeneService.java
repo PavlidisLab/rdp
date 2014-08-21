@@ -24,7 +24,6 @@ import java.util.Collection;
 import org.springframework.security.access.annotation.Secured;
 
 import ubc.pavlab.rdp.server.model.Gene;
-import ubc.pavlab.rdp.server.model.Researcher;
 
 /**
  * TODO Document Me
@@ -32,32 +31,23 @@ import ubc.pavlab.rdp.server.model.Researcher;
  * @author ptan
  * @version $Id$
  */
-public interface ResearcherService {
+public interface GeneService {
+    @Secured({ "GROUP_USER" })
+    public Gene create( final Gene gene );
 
     @Secured({ "GROUP_USER" })
-    public Researcher create( final Researcher researcher );
-
-    @Secured({ "GROUP_USER" })
-    public void update( Researcher researcher );
-
-    @Secured({ "GROUP_USER", "AFTER_ACL_READ" })
-    public Researcher findByEmail( final String email );
-
-    @Secured({ "GROUP_USER", "AFTER_ACL_READ" })
-    public Researcher findByUserName( final String username );
+    public void update( Gene gene );
 
     @Secured({ "GROUP_ADMIN" })
-    public void delete( Researcher researcher );
+    public void delete( Gene gene );
 
     @Secured({ "GROUP_ADMIN" })
-    public Collection<Researcher> loadAll();
+    public Collection<Gene> loadAll();
 
     @Secured({ "GROUP_USER", "AFTER_ACL_READ" })
-    public Researcher thaw( Researcher researcher );
+    public Collection<Gene> findByOfficalSymbol( final String officialSymbol );
 
     @Secured({ "GROUP_USER" })
-    public void addGenes( Researcher researcher, Collection<Gene> genes );
+    public Gene findOrCreate( Gene gene );
 
-    @Secured({ "GROUP_USER" })
-    public void removeGenes( Researcher researcher, Collection<Gene> genes );
 }

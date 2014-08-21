@@ -56,7 +56,13 @@
                     organism <span class="caret"></span>
             </a>
 
-                <ul class="dropdown-menu" role="menu">
+            <ul class="dropdown-menu" role="menu">
+                    <li><a id="moHuman" href="#modelOrganism"
+                        role="tab" data-toggle="tab">Human</a></li>
+            </ul>
+                        
+                <!-- FIXME
+               <ul class="dropdown-menu" role="menu">
                     <li><a id="moMouse" href="#modelOrganism"
                         role="tab" data-toggle="tab">Mouse</a></li>
                     <li><a id="moRat" href="#modelOrganism"
@@ -70,7 +76,11 @@
                     <li class="divider"></li>
                     <li><a id="moAddNew" href="#modelOrganism"
                         role="tab" data-toggle="tab">Add New</a></li>
-                </ul></li>
+                </ul>
+                -->
+                
+                
+            </li>
 
             <li><a href="#registeredResearchers" role="tab"
                 data-toggle="tab" style="display: none;">Registered

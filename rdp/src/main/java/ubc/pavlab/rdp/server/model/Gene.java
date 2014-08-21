@@ -44,6 +44,8 @@ public class Gene {
 
     private String officialName;
 
+    private String officialSymbol;
+
     private String ncbiGeneId;
 
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
@@ -56,11 +58,45 @@ public class Gene {
 
     // Phenotype ????
 
+    @Override
+    public int hashCode() {
+        int hashCode = 0;
+        hashCode = 29 * hashCode + ( id == null ? 0 : id.hashCode() );
+
+        return hashCode;
+    }
+
+    @Override
+    public boolean equals( Object object ) {
+
+        if ( this == object ) {
+            return true;
+        }
+        if ( !( object instanceof Gene ) ) {
+            return false;
+        }
+        final Gene that = ( Gene ) object;
+        if ( this.id == null || that.getId() == null || !this.id.equals( that.getId() ) ) {
+            return false;
+        }
+        return true;
+
+    }
+
+    @Override
+    public String toString() {
+        return "id=" + id + " symbol=" + officialSymbol + " taxon=" + taxon;
+    }
+
     public Gene() {
     }
 
-    public Gene( String officialName ) {
-        this.officialName = officialName;
+    public Gene( String officialSymbol ) {
+        this.officialSymbol = officialSymbol;
+    }
+
+    public Long getId() {
+        return id;
     }
 
     public String getOfficialName() {
@@ -101,6 +137,14 @@ public class Gene {
 
     public void setAliases( Set<GeneAlias> aliases ) {
         this.aliases = aliases;
+    }
+
+    public String getOfficialSymbol() {
+        return officialSymbol;
+    }
+
+    public void setOfficialSymbol( String officialSymbol ) {
+        this.officialSymbol = officialSymbol;
     }
 
 }

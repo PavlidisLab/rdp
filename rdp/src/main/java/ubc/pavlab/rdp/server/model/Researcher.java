@@ -17,6 +17,7 @@ package ubc.pavlab.rdp.server.model;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
 
 import javax.persistence.CascadeType;
@@ -90,17 +91,17 @@ public class Researcher implements Serializable {
         return new ArrayList<Researcher>();
     }
 
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(name = "RESEARCHER_TAXONS", joinColumns = { @JoinColumn(name = "RESEARCHER_ID") }, inverseJoinColumns = { @JoinColumn(name = "TAXON_ID") })
-    private Set<Taxon> taxons;
+    private Set<Taxon> taxons = new HashSet<>();
 
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(name = "RESEARCHER_GENES", joinColumns = { @JoinColumn(name = "RESEARCHER_ID") }, inverseJoinColumns = { @JoinColumn(name = "GENE_ID") })
-    private Set<Gene> genes;
+    private Set<Gene> genes = new HashSet<>();
 
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(name = "RESEARCHER_PUBLICATIONS", joinColumns = { @JoinColumn(name = "RESEARCHER_ID") }, inverseJoinColumns = { @JoinColumn(name = "PUBLICATION_ID") })
-    private Set<Publication> publications;
+    private Set<Publication> publications = new HashSet<>();
 
     public Object getId() {
         return this.id;
@@ -174,5 +175,21 @@ public class Researcher implements Serializable {
 
     public void setPublications( Set<Publication> publications ) {
         this.publications = publications;
+    }
+
+    public void addGene( final Gene gene ) {
+        this.genes.add( gene );
+    }
+
+    public void removeGene( final Gene gene ) {
+        this.genes.remove( gene );
+    }
+
+    public void addPublication( final Publication publication ) {
+        this.publications.add( publication );
+    }
+
+    public void removePublication( final Publication publication ) {
+        this.publications.remove( publication );
     }
 }

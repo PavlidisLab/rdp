@@ -26,14 +26,19 @@ import static org.junit.Assert.fail;
 import gemma.gsec.authentication.UserDetailsImpl;
 import gemma.gsec.authentication.UserManager;
 
+import java.util.ArrayList;
+import java.util.Collection;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import ubc.pavlab.rdp.server.dao.ResearcherDao;
+import ubc.pavlab.rdp.server.model.Gene;
 import ubc.pavlab.rdp.server.model.Researcher;
 import ubc.pavlab.rdp.server.model.common.auditAndSecurity.User;
 import ubc.pavlab.rdp.server.security.authentication.UserService;
+import ubc.pavlab.rdp.server.service.GeneService;
 import ubc.pavlab.rdp.server.service.ResearcherService;
 import ubc.pavlab.rdp.testing.BaseSpringContextTest;
 
@@ -56,6 +61,9 @@ public class ResearcherServiceTest extends BaseSpringContextTest {
 
     @Autowired
     UserManager userManager;
+
+    @Autowired
+    GeneService geneService;
 
     private Researcher researcher;
     private String email = "foobar@email.com";
@@ -165,5 +173,47 @@ public class ResearcherServiceTest extends BaseSpringContextTest {
         }
 
         researcherService.delete( researcher );
+    }
+
+    @Test
+    public void testAddRemoveGene() throws Exception {
+        String officialSymbol = "GENEA";
+        Gene gene = new Gene( officialSymbol );
+        Collection<Gene> genes = new ArrayList<>();
+        genes.add( gene );
+
+        try {
+
+            // gene hasn't been created yet
+            researcher = createResearcher( username, email, department );
+            assertEquals( 0, researcher.getGenes().size() );
+            assertEquals( 0, geneService.findByOfficalSymbol( officialSymbol ).size() );
+
+            // now we create the gene and assign it to the researcher
+            researcherService.addGenes( researcher, genes );
+            assertEquals( 1, researcher.getGenes().size() );
+            assertEquals( officialSymbol, researcher.getGenes().iterator().next().getOfficialSymbol() );
+            assertEquals( 1, geneService.findByOfficalSymbol( officialSymbol ).size() );
+
+            // duplicate genes aren't allowed
+            researcherService.addGenes( researcher, genes );
+            assertEquals( 1, researcher.getGenes().size() );
+            assertEquals( officialSymbol, researcher.getGenes().iterator().next().getOfficialSymbol() );
+            assertEquals( 1, geneService.findByOfficalSymbol( officialSymbol ).size() );
+
+            // lets delete
+            researcherService.removeGenes( researcher, genes );
+            assertEquals( 0, researcher.getGenes().size() );
+            assertEquals( 1, geneService.findByOfficalSymbol( officialSymbol ).size() ); // keep the gene in case other
+                                                                                         // researchers use it
+
+        } catch ( Exception e ) {
+            e.printStackTrace();
+            researcherService.delete( researcher );
+            fail( e.getMessage() );
+        }
+
+        researcherService.delete( researcher );
+        geneService.delete( gene );
     }
 }
