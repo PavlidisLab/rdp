@@ -5,7 +5,7 @@
 </div>
 
 <table id="geneManagerTable"
-	class="table table-striped table-bordered" cellspacing="0" width="100%">
+	class="table table-bordered stripe" cellspacing="0" width="100%">
 	<thead>
 		<tr>
 			<th>Symbol</th>
