@@ -201,7 +201,7 @@ public class ResearcherServiceTest extends BaseSpringContextTest {
             assertEquals( officialSymbol, researcher.getGenes().iterator().next().getOfficialSymbol() );
             assertEquals( 1, geneService.findByOfficalSymbol( officialSymbol ).size() );
 
-            // lets delete
+            // FIXME lets delete
             researcherService.removeGenes( researcher, genes );
             assertEquals( 0, researcher.getGenes().size() );
             assertEquals( 1, geneService.findByOfficalSymbol( officialSymbol ).size() ); // keep the gene in case other

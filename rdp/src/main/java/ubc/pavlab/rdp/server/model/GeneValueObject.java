@@ -16,8 +16,8 @@ public class GeneValueObject implements Displayable, Serializable {
     private static final long serialVersionUID = -7411514301896256147L;
 
     private String key;
-    private String symbol;
-    private String name;
+    private String officialSymbol;
+    private String officialName;
     private String taxon;
     private String ensemblId;
     private String linkToGemma;
@@ -30,8 +30,8 @@ public class GeneValueObject implements Displayable, Serializable {
 
     public GeneValueObject( String ensemblId, String symbol, String geneName, String gene_biotype, String taxon ) {
         this.ensemblId = ensemblId;
-        this.symbol = symbol;
-        this.name = geneName;
+        this.officialSymbol = symbol;
+        this.officialName = geneName;
         this.geneBioType = gene_biotype;
         this.taxon = taxon;
         this.key = symbol + ":" + taxon;
@@ -59,19 +59,19 @@ public class GeneValueObject implements Displayable, Serializable {
 
     // @Override
     public String getLabel() {
-        return symbol.equals( "" ) ? ensemblId : symbol;
+        return officialSymbol.equals( "" ) ? ensemblId : officialSymbol;
     }
 
     public String getLinkToGemma() {
         return linkToGemma;
     }
 
-    public String getName() {
-        return name;
+    public String getOfficialName() {
+        return officialName;
     }
 
-    public String getSymbol() {
-        return symbol;
+    public String getOfficialSymbol() {
+        return officialSymbol;
     }
 
     public String getTaxon() {
@@ -103,12 +103,12 @@ public class GeneValueObject implements Displayable, Serializable {
         this.linkToGemma = linkToGemma;
     }
 
-    public void setName( String name ) {
-        this.name = name;
+    public void setOfficialName( String officialName ) {
+        this.officialName = officialName;
     }
 
-    public void setSymbol( String symbol ) {
-        this.symbol = symbol;
+    public void setOfficialSymbol( String officialSymbol ) {
+        this.officialSymbol = officialSymbol;
     }
 
     public void setTaxon( String taxon ) {

@@ -134,10 +134,14 @@ public class ResearcherServiceImpl implements ResearcherService {
         int numGenesBefore = researcher.getGenes().size();
         boolean modified = false;
 
+        // FIXME
+
         for ( Gene gene : genes ) {
-            Gene persistedGene = geneDao.findOrCreate( gene );
+            // if ( gene.getId() != null )
+            // Gene persistedGene = geneDao.findOrCreate( gene );
             if ( !geneExists( researcher, gene.getId() ) ) {
-                researcher.addGene( persistedGene );
+                // researcher.addGene( persistedGene );
+                researcher.addGene( gene );
                 modified = true;
             }
         }

@@ -35,7 +35,7 @@
 		<div class="form-group">
 			<label class="col-sm-3 control-label">Genes</label> <label
 				class="col-sm-5">BRCA1, APOE, SNCA, ...</label>
-			<button type="button" id="geneManagerBtn" name="geneManagerBtn"
+			<button type="button" id="geneManagerButton" name="geneManagerButton"
 				class="btn btn-default btn-sm">
 				<span class="glyphicon glyphicon-pencil"></span>
 			</button>

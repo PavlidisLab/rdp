@@ -9,7 +9,7 @@ var jsonToGenesTable = function(response, tableId) {
 
 // Add selected class whenever a row is clicked
 // this is useful when we want to delete a row from the table
-function addRowSelectEvent( table ) {
+function addRowSelectEvent(table) {
    table.find( "tbody" ).on( 'click', 'tr', function() {
       if ( $( this ).hasClass( 'selected' ) ) {
          $( this ).removeClass( 'selected' );
@@ -20,15 +20,23 @@ function addRowSelectEvent( table ) {
    } );
 }
 
-var showGenes = function() {
+var showError = function(response) {
+   console.log( response );
+   $( "#geneManagerMessage" ).html( "Error with request: " + response.message );
+   $( "#geneManagerFailed" ).show();
+}
 
+var saveGenes = function() {
    $.ajax( {
-      url : "loadResearcherGenes.html",
+      url : "saveResearcherGenes.html",
 
       data : {
-            userName : "ptan",
-            taxonCommonName : $( "#taxonCommonNameSelect" ).val(),
-    
+         genes : $.toJSON( jQuery.data( $( "#geneManagerTable" )[0] ) ),
+         // genes : '{ { "BABAM1" : {"ensemblId":"ENSG00000105393","symbol":"BABAM1","name":"BRISC and BRCA1 A
+         // complexmember1","label":"BABAM1","geneBioType":"protein_coding","key":"BABAM1:human","taxon":"human","genomicRange":{"baseStart":17378159,"baseEnd":17392058,"label":"19:17378159-17392058","htmlLabel":"19:17378159-17392058","bin":65910,"chromosome":"19","tooltip":"19:17378159-17392058"},"text":"<b>BABAM1</b>BRISC
+         // and BRCA1 A complex member 1"} } }',
+         taxonCommonName : $( "#taxonCommonNameSelect" ).val(),
+
       },
       dataType : "json",
 
@@ -37,21 +45,65 @@ var showGenes = function() {
          // var response = '[{"userName":"testUsername2", "email":"testEmail2", "firstName":"testFirstname2",
          // "lastName":"testLastname2", "organization":"testOrganization2", "department":"testDepartment2" }]';
          // FIXME
-         //response = $.parseJSON( response );
+         // response = $.parseJSON( response );
 
-         var table = $( "#geneManagerTable" ).dataTable();
-         
-         addRowSelectEvent( table );
-         
+         if ( !response.success ) {
+            showError( response );
+         }
+
+         var tableEl = $( "#geneManagerTable" );
+
+         addRowSelectEvent( tableEl.dataTable() );
+
          if ( !response.success ) {
             console.log( response.message );
             return;
          }
 
          // FIXME
-         console.log("found " + response.data.length + " user genes")
-         for ( var i = 0; i < response.data.length; i++ ) {
-            addGene( response.data[i], table );
+         console.log( "found " + response.data.length + " user genes" )
+         for (var i = 0; i < response.data.length; i++) {
+            addGene( response.data[i], tableEl.DataTable() );
+         }
+
+      },
+      error : function(response, xhr) {
+         showError( response );
+      }
+   } );
+}
+
+var showGenes = function() {
+
+   $.ajax( {
+      url : "loadResearcherGenes.html",
+
+      data : {
+         taxonCommonName : $( "#taxonCommonNameSelect" ).val(),
+
+      },
+      dataType : "json",
+
+      success : function(response, xhr) {
+         // get this from a controller
+         // var response = '[{"userName":"testUsername2", "email":"testEmail2", "firstName":"testFirstname2",
+         // "lastName":"testLastname2", "organization":"testOrganization2", "department":"testDepartment2" }]';
+         // FIXME
+         // response = $.parseJSON( response );
+
+         var tableEl = $( "#geneManagerTable" );
+
+         addRowSelectEvent( tableEl.dataTable() );
+
+         if ( !response.success ) {
+            console.log( response.message );
+            return;
+         }
+
+         // FIXME
+         console.log( "found " + response.data.length + " user genes" )
+         for (var i = 0; i < response.data.length; i++) {
+            addGene( response.data[i], tableEl.DataTable() );
          }
 
       },
@@ -67,6 +119,8 @@ var showGenes = function() {
 
 $( document ).ready( function() {
 
-   showGenes();
+   $( "#geneManagerButton" ).click( showGenes );
+
+   $( "#saveGenesButton" ).click( saveGenes );
 
 } );

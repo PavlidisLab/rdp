@@ -7,5 +7,5 @@ function showGenesModal() {
 };
 
 $( document ).ready( function() {
-   $( "#geneManagerBtn" ).click( showGenesModal );
+   $( "#geneManagerButton" ).click( showGenesModal );
 } );

@@ -119,11 +119,13 @@
     <script src="scripts/lib/jquery-1.11.1.min.js"></script>
     <script src="scripts/lib/bootstrap.min.js"></script>
     <script src="scripts/lib/jquery.validate.min.js"></script>
+    <script src="scripts/lib/jquery.json-2.4.js"></script>
     <!-- http://www.bootply.com/Wzv3JQreK5     http://ivaynberg.github.io/select2/select2-2.1/select2.css   -->
     <script src="scripts/lib/select2.js"></script>
     <!-- from http://www.datatables.net/examples/styling/bootstrap.html -->
     <script type="text/javascript" charset="utf8"
         src="scripts/lib/jquery.dataTables.min.js"></script>
+        
     <!-- DataTables -->
     <!-- 
     <script type="text/javascript" charset="utf8"

@@ -25,8 +25,8 @@ public class BioMartCacheImpl extends SearchableEhcache<GeneValueObject> impleme
     // These constants are used in ehcache.xml. If they are changed, ehcache.xml must be modified.
     private static final String CACHE_NAME = "BioMartCache";
     private static final String GENE_ENSEMBL_ID_SEARCH_ATTRIBUTE_NAME = "ensemblId";
-    private static final String GENE_NAME_SEARCH_ATTRIBUTE_NAME = "name";
-    private static final String GENE_SYMBOL_SEARCH_ATTRIBUTE_NAME = "symbol";
+    private static final String GENE_NAME_SEARCH_ATTRIBUTE_NAME = "officialName";
+    private static final String GENE_SYMBOL_SEARCH_ATTRIBUTE_NAME = "officialSymbol";
     private static final String CHROMOSOME_SEARCH_ATTRIBUTE_NAME = "genomicRangeChromosome";
     private static final String START_SEARCH_ATTRIBUTE_NAME = "genomicRangeStart";
     private static final String END_SEARCH_ATTRIBUTE_NAME = "genomicRangeEnd";

@@ -8,21 +8,23 @@ displays it as suggestions in a combo box.
 // sort by symbol attr
 function dataSortResult(data, container, query) {
    return data.sort( function(a, b) {
-      return a.symbol.localeCompare( b.symbol );
+      return a.officialSymbol.localeCompare( b.symbol );
    } );
 }
 
 function addGene(geneValueObject, table) {
 
-   console.log( "addGene val = " + geneValueObject.name + "; dataTable = " + table );
+   console.log( "addGene val = " + geneValueObject.officialName + "; dataTable = " + table );
 
    // columns: Symbol, Alias, Name
    // FIXME Add Alias
-   geneRow = [ geneValueObject.symbol, geneValueObject.symbol, geneValueObject.name ];
-
-   // var table = dataTableEl.DataTable();
+   geneRow = [ geneValueObject.officialSymbol, geneValueObject.officialSymbol, geneValueObject.officialName ];
 
    table.row.add( geneRow ).draw();
+
+   // save object to table element using symbol as key
+   jQuery.data( $( "#geneManagerTable" )[0], geneValueObject.officialSymbol, geneValueObject );
+
 }
 
 $( document ).ready( function() {
@@ -30,14 +32,15 @@ $( document ).ready( function() {
    var table = $( "#geneManagerTable" ).DataTable();
 
    // init add genes button
-   $( "#addGeneBtn" ).click( function() {
+   $( "#addGeneButton" ).click( function() {
       geneValueObject = $( "#searchGenesSelect" ).select2( "data" )
       addGene( geneValueObject, table )
    } );
 
    // init remove genes button
-   $( "#removeGeneBtn" ).click( function() {
+   $( "#removeGeneButton" ).click( function() {
       table.row( '.selected' ).remove().draw( false );
+      jQuery.removeData( $( "#geneManagerTable" )[0], geneValueObject.symbol );
    } );
 
    // init search genes combo
@@ -61,7 +64,7 @@ $( document ).ready( function() {
             // select2 format result looks for the 'text' attr
             for (var i = 0; i < data.data.length; i++) {
                gene = data.data[i]
-               gene.text = "<b>" + gene.symbol + "</b> " + gene.name
+               gene.text = "<b>" + gene.officialSymbol + "</b> " + gene.officialName
             }
             return {
                results : data.data

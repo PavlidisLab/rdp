@@ -27,6 +27,8 @@ import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+import org.json.JSONObject;
+
 /**
  * See gemma-model/src/main/java/ubic/gemma/model/genome/Gene.java
  * 
@@ -147,4 +149,20 @@ public class Gene {
         this.officialSymbol = officialSymbol;
     }
 
+    /**
+     * Initialize fields from JSON
+     * 
+     * @param json
+     */
+    public void parseJSON( String json ) {
+
+        JSONObject jsonObj = new JSONObject( json );
+
+        setOfficialName( jsonObj.get( "officialName" ).toString() );
+        setOfficialSymbol( jsonObj.get( "officialSymbol" ).toString() );
+        setEnsemblId( jsonObj.get( "ensemblId" ).toString() );
+
+        // TODO Set Aliases, Taxon
+        // setNcbiGeneId( jsonObj.get( "taxon" ).toString() );
+    }
 }

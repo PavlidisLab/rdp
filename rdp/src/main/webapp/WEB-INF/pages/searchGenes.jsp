@@ -19,10 +19,10 @@ displays it as suggestions in a combo box.
 	 
 	</select>
 	-->
-	<button type="button" id="addGeneBtn" class="btn btn-default">
+	<button type="button" id="addGeneButton" class="btn btn-default">
 		<span class="glyphicon glyphicon-plus-sign"></span>
 	</button>
-	<button type="button" id="removeGeneBtn" class="btn btn-default">
+	<button type="button" id="removeGeneButton" class="btn btn-default">
         <span class="glyphicon glyphicon-minus-sign"></span>
     </button>
 </div>
