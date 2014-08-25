@@ -96,6 +96,7 @@ public class GeneController {
 
                 // FIXME Filter by organism
                 jsonText = "{\"success\":true,\"data\":" + jsonUtil.collectionToJson( user.getGenes() ) + "}";
+                log.info( "Loaded " + user.getGenes().size() + " genes" );
             }
 
         } catch ( Exception e ) {
@@ -103,7 +104,6 @@ public class GeneController {
         } finally {
 
             try {
-                log.info( "Loaded " + user.getGenes().size() + " genes" );
                 jsonUtil.writeToResponse( jsonText );
             } catch ( IOException e ) {
                 e.printStackTrace();

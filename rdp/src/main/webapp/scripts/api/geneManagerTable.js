@@ -48,6 +48,7 @@ var saveGenes = function() {
 
          if ( !response.success ) {
             console.log( response.message );
+            showMessage( response );
             return;
          }
 
@@ -76,6 +77,7 @@ var showGenes = function() {
 
          if ( !response.success ) {
             console.log( response.message );
+            showMessage( response );
             return;
          }
 
