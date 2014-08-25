@@ -40,7 +40,7 @@
 			</label>
 			<button type="button" id="geneManagerButton" name="geneManagerButton"
 				class="btn btn-default btn-sm"
-				data-toggle="tooltip" data-placement="right" title="Click to edit your gene list">
+				data-toggle="tooltip" data-placement="right" title="Click to manage genes">
 				<span class="glyphicon glyphicon-pencil"></span>
 			</button>
 

@@ -1,4 +1,10 @@
-//Call the button widget method on the login button to format it.
+var showMessage = function(message) {
+   console.log( message )
+   $( "#primaryContactMessage" ).html( message );
+   $( "#primaryContactFailed" ).show();
+}
+
+// Call the button widget method on the login button to format it.
 var saveContact = function() {
 
    console.log( "primaryContactForm serialized = " + $( "#primaryContactForm" ).serialize() );
@@ -9,14 +15,16 @@ var saveContact = function() {
       url : 'saveResearcher.html',
       data : $( "#primaryContactForm" ).serialize(),
       success : function(response, xhr) {
-         console.log( "saved researcher successfully" );
-         $( "#primaryContactMessage" ).html( jQuery.parseJSON( response ).message );
-         $( "#primaryContactFailed" ).show();
+         // console.log( "saved researcher successfully" );
+         // $( "#primaryContactMessage" ).html( jQuery.parseJSON( response ).message );
+         // $( "#primaryContactFailed" ).show();
+         showMessage( jQuery.parseJSON( response ).message )
       },
       error : function(response, xhr) {
          console.log( xhr.responseText );
-         $( "#primaryContactMessage" ).html( jQuery.parseJSON( response ).message );
-         $( "#primaryContactFailed" ).show();
+         // $( "#primaryContactMessage" ).html( jQuery.parseJSON( response ).message );
+         // $( "#primaryContactFailed" ).show();
+         showMessage( jQuery.parseJSON( response ).message )
       },
       complete : function(result) {
       }
@@ -32,11 +40,11 @@ $( "#primaryContactForm" ).find( "#submit" ).click( saveContact );
 // Initialize document
 $( document ).ready( function() {
    $.ajax( {
-      //cache : false,
-      //type : 'GET',
+      // cache : false,
+      // type : 'GET',
       url : "loadResearcher.html",
       success : function(response, xhr) {
-         
+
          var data = jQuery.parseJSON( response ).data;
          var form = $( "#primaryContactForm" );
 
@@ -50,16 +58,18 @@ $( document ).ready( function() {
             form.find( "#firstName" ).val( data.contact.firstName );
             form.find( "#lastName" ).val( data.contact.lastName );
             form.find( "#email" ).val( data.contact.email );
+            $( "#primaryContactFailed" ).hide();
          } else {
             // Researcher not created yet so User object was returned
             form.find( "#firstName" ).val( data.firstName );
             form.find( "#lastName" ).val( data.lastName );
             form.find( "#email" ).val( data.email );
+            showMessage( "Missing contact details" );
          }
 
       },
       error : function(response, xhr) {
-         console.log( xhr.responseText );
+         showMessage( jQuery.parseJSON( response ).message )
       }
    } );
 } );

@@ -1,7 +1,7 @@
 var jsonToResearcherTable = function(response, tableId) {
    $.each( response, function(i, item) {
-      if ( !item.contact || !item.organization ) {
-         console.log("Researcher id " + item.id + " has no contact info");
+      if ( !item.contact ) {
+         console.log( "Researcher id " + item.id + " has no contact info" );
          return;
       }
       $( '<tr>' ).append( $( '<td>' ).text( item.contact.userName ), $( '<td>' ).text( item.contact.email ),
