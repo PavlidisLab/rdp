@@ -1,8 +1,6 @@
 /*
-
-Retrieve the list of genes through an AJAX query in a combo box and
-displays it as suggestions in a combo box.
-
+ * Retrieve the list of genes through an AJAX query and
+ * display it as suggestions in a combo box (Select2 http://ivaynberg.github.io/select2/).
  */
 
 // sort by symbol attr
@@ -14,7 +12,7 @@ function dataSortResult(data, container, query) {
 
 function addGene(geneValueObject, table) {
 
-   console.log( "addGene val = " + geneValueObject.officialName + "; dataTable = " + table );
+   // console.log( "addGene = " + geneValueObject.officialName + "; dataTable = " + table );
 
    // columns: Symbol, Alias, Name
    // FIXME Add Alias
@@ -39,8 +37,10 @@ $( document ).ready( function() {
 
    // init remove genes button
    $( "#removeGeneButton" ).click( function() {
-      table.row( '.selected' ).remove().draw( false );
-      jQuery.removeData( $( "#geneManagerTable" )[0], geneValueObject.symbol );
+      var selectedNode = table.row( '.selected' );
+      var selectedSymbol = selectedNode.data()[0]; // data = [symbol, alias, name] ie column heading ordering
+      selectedNode.remove().draw( false );
+      jQuery.removeData( $( "#geneManagerTable" )[0], selectedSymbol );
    } );
 
    // init search genes combo

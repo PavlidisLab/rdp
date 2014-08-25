@@ -61,33 +61,8 @@ public class Gene {
     // Phenotype ????
 
     @Override
-    public int hashCode() {
-        int hashCode = 0;
-        hashCode = 29 * hashCode + ( id == null ? 0 : id.hashCode() );
-
-        return hashCode;
-    }
-
-    @Override
-    public boolean equals( Object object ) {
-
-        if ( this == object ) {
-            return true;
-        }
-        if ( !( object instanceof Gene ) ) {
-            return false;
-        }
-        final Gene that = ( Gene ) object;
-        if ( this.id == null || that.getId() == null || !this.id.equals( that.getId() ) ) {
-            return false;
-        }
-        return true;
-
-    }
-
-    @Override
     public String toString() {
-        return "id=" + id + " symbol=" + officialSymbol + " taxon=" + taxon;
+        return "id=" + id + " symbol=" + officialSymbol + " taxon=" + taxon + " hashCode=" + hashCode();
     }
 
     public Gene() {

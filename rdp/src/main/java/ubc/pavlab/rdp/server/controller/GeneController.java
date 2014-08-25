@@ -117,20 +117,6 @@ public class GeneController {
      * @param genesJSON - a JSON representation of an array of Genes
      * @return
      */
-    /*
-     * private Collection<Gene> deserealizeGenes( String genesJSON ) { Collection<Gene> results = new HashSet<>(); //
-     * JSONObject json = new JSONObject( genesJSON ); JSONArray jsonArray = new JSONArray( genesJSON );
-     * 
-     * for ( int i = 0; i < jsonArray.length(); i++ ) { JSONObject json = jsonArray.getJSONObject( i ); for ( Object key
-     * : json.keySet() ) { String symbol = ( String ) key;
-     * 
-     * // try looking for an existing one Collection<Gene> genesFound = geneService.findByOfficalSymbol( symbol ); if (
-     * genesFound.size() > 0 ) { results.addAll( genesFound ); } else {
-     * 
-     * // it doesn't exist yet // biomartService.fetchGenesByGeneSymbols( geneSymbols ) Gene gene = new Gene();
-     * gene.parseJSON( json.get( symbol ).toString() ); results.add( geneService.create( gene ) ); } } } return results;
-     * }
-     */
     private Collection<Gene> deserealizeGenes( String genesJSON ) {
         Collection<Gene> results = new HashSet<>();
         JSONObject json = new JSONObject( genesJSON );
@@ -166,14 +152,12 @@ public class GeneController {
         String genesJSON = request.getParameter( "genes" ); // {"ensemblId":"ENSG00000105393","officialSymbol":"BABAM1","officialName":"BRISC and BRCA1 A complex member 1","label":"BABAM1","geneBioType":"protein_coding","key":"BABAM1:human","taxon":"human","genomicRange":{"baseStart":17378159,"baseEnd":17392058,"label":"19:17378159-17392058","htmlLabel":"19:17378159-17392058","bin":65910,"chromosome":"19","tooltip":"19:17378159-17392058"},"text":"<b>BABAM1</b> BRISC and BRCA1 A complex member 1"}
         String taxonCommonName = request.getParameter( "taxonCommonName" );
 
-        log.info( "genes = " + genesJSON );
-
         try {
             Researcher researcher = researcherService.findByUserName( username );
 
             Collection<Gene> genes = new HashSet<>();
             genes.addAll( deserealizeGenes( genesJSON ) );
-            researcherService.addGenes( researcher, genes );
+            researcherService.updateGenes( researcher, genes );
 
             JSONObject json = new JSONObject();
             json.put( "success", true );

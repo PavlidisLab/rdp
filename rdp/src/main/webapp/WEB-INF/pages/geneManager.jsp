@@ -12,12 +12,13 @@
 			</div>
 
 			<div class="modal-body">
-			    <%@ include file="searchGenes.jsp" %><br/>
-				<%@ include file="geneManagerTable.jsp" %>
+				<%@ include file="searchGenes.jsp"%><br />
+				<%@ include file="geneManagerTable.jsp"%>
 			</div>
 
 			<div class="modal-footer">
-				<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+				<button type="button" id="closeGenesButton" class="btn btn-default"
+					data-dismiss="modal">Close</button>
 				<button type="button" id="saveGenesButton" class="btn btn-primary">Save</button>
 			</div>
 

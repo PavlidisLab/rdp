@@ -37,6 +37,4 @@ public interface GeneDao extends DaoBase<Gene> {
     public Collection<Gene> findByOfficalSymbol( final String queryString, final String officialSymbol );
 
     public Gene findByOfficialSymbol( String symbol, Taxon taxon );
-
-    public Gene findOrCreate( Gene gene );
 }

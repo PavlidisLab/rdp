@@ -20,8 +20,10 @@
 package ubc.pavlab.rdp.server.security.service;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import gemma.gsec.authentication.UserDetailsImpl;
 import gemma.gsec.authentication.UserManager;
@@ -176,6 +178,44 @@ public class ResearcherServiceTest extends BaseSpringContextTest {
     }
 
     @Test
+    public void testUpdateGene() throws Exception {
+        String officialSymbol = "GENEA";
+        Gene gene = new Gene( officialSymbol );
+        Collection<Gene> genes = new ArrayList<>();
+        genes.add( gene );
+
+        String officialSymbol2 = "GENE2";
+        Gene gene2 = new Gene( officialSymbol2 );
+        Collection<Gene> genes2 = new ArrayList<>();
+        genes2.add( gene2 );
+
+        try {
+            // gene hasn't been created yet
+            researcher = createResearcher( username, email, department );
+            assertEquals( 0, researcher.getGenes().size() );
+            assertEquals( 0, geneService.findByOfficalSymbol( officialSymbol ).size() );
+
+            // now we create the gene and assign it to the researcher
+            assertTrue( researcherService.addGenes( researcher, genes ) );
+            assertEquals( 1, researcher.getGenes().size() );
+            assertEquals( officialSymbol, researcher.getGenes().iterator().next().getOfficialSymbol() );
+            assertEquals( 1, geneService.findByOfficalSymbol( officialSymbol ).size() );
+
+            // now we update or replace the gene list
+            assertTrue( researcherService.updateGenes( researcher, genes2 ) );
+            assertEquals( officialSymbol2, researcher.getGenes().iterator().next().getOfficialSymbol() );
+
+        } catch ( Exception e ) {
+            e.printStackTrace();
+            researcherService.delete( researcher );
+            fail( e.getMessage() );
+        }
+
+        researcherService.delete( researcher );
+        geneService.delete( gene );
+    }
+
+    @Test
     public void testAddRemoveGene() throws Exception {
         String officialSymbol = "GENEA";
         Gene gene = new Gene( officialSymbol );
@@ -190,23 +230,22 @@ public class ResearcherServiceTest extends BaseSpringContextTest {
             assertEquals( 0, geneService.findByOfficalSymbol( officialSymbol ).size() );
 
             // now we create the gene and assign it to the researcher
-            researcherService.addGenes( researcher, genes );
+            assertTrue( researcherService.addGenes( researcher, genes ) );
             assertEquals( 1, researcher.getGenes().size() );
             assertEquals( officialSymbol, researcher.getGenes().iterator().next().getOfficialSymbol() );
             assertEquals( 1, geneService.findByOfficalSymbol( officialSymbol ).size() );
 
             // duplicate genes aren't allowed
-            researcherService.addGenes( researcher, genes );
+            assertFalse( researcherService.addGenes( researcher, genes ) );
             assertEquals( 1, researcher.getGenes().size() );
             assertEquals( officialSymbol, researcher.getGenes().iterator().next().getOfficialSymbol() );
             assertEquals( 1, geneService.findByOfficalSymbol( officialSymbol ).size() );
 
-            // FIXME lets delete
-            researcherService.removeGenes( researcher, genes );
+            // lets delete
+            assertTrue( researcherService.removeGenes( researcher, genes ) );
             assertEquals( 0, researcher.getGenes().size() );
             assertEquals( 1, geneService.findByOfficalSymbol( officialSymbol ).size() ); // keep the gene in case other
                                                                                          // researchers use it
-
         } catch ( Exception e ) {
             e.printStackTrace();
             researcherService.delete( researcher );

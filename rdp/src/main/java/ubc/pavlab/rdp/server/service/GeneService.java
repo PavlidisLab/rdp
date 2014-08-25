@@ -47,7 +47,4 @@ public interface GeneService {
     @Secured({ "GROUP_USER", "AFTER_ACL_READ" })
     public Collection<Gene> findByOfficalSymbol( final String officialSymbol );
 
-    @Secured({ "GROUP_USER" })
-    public Gene findOrCreate( Gene gene );
-
 }

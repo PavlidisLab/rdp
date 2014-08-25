@@ -49,11 +49,6 @@ public class GeneServiceImpl implements GeneService {
         return geneDao.create( gene );
     }
 
-    @Override
-    public Gene findOrCreate( Gene gene ) {
-        return geneDao.findOrCreate( gene );
-    }
-
     /*
      * (non-Javadoc)
      * 

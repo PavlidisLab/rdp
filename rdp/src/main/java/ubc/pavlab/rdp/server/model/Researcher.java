@@ -177,16 +177,16 @@ public class Researcher implements Serializable {
         this.publications = publications;
     }
 
-    public void addGene( final Gene gene ) {
-        this.genes.add( gene );
+    public boolean addGene( final Gene gene ) {
+        return this.genes.add( gene );
     }
 
-    public void removeGene( final Gene gene ) {
-        this.genes.remove( gene );
+    public boolean removeGene( final Gene gene ) {
+        return this.genes.remove( gene );
     }
 
-    public void addPublication( final Publication publication ) {
-        this.publications.add( publication );
+    public boolean addPublication( final Publication publication ) {
+        return this.publications.add( publication );
     }
 
     public void removePublication( final Publication publication ) {

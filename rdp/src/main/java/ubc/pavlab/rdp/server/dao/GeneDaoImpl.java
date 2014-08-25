@@ -52,16 +52,6 @@ public class GeneDaoImpl extends DaoBaseImpl<Gene> implements GeneDao {
         super.setSessionFactory( sessionFactory );
     }
 
-    @Override
-    public Gene findOrCreate( Gene gene ) {
-        if ( gene.getId() == null ) {
-            this.create( gene );
-            return gene;
-        } else {
-            return this.load( gene.getId() );
-        }
-    }
-
     /**
      * @see GeneDao#findByOfficalSymbol(String, String)
      */

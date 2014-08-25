@@ -112,38 +112,18 @@ public class ResearcherServiceImpl implements ResearcherService {
         return ( Collection<Researcher> ) researcherDao.loadAll();
     }
 
-    /**
-     * Returns true if the queryGeneId already exists in Researcher.
-     * 
-     * @param researcher
-     * @param queryGene
-     * @return
-     */
-    private boolean geneExists( Researcher researcher, Long queryGeneId ) {
-        for ( Gene gene : researcher.getGenes() ) {
-            if ( gene.getId() == queryGeneId ) return true;
-        }
-
-        return false;
-    }
-
     @Override
     @Transactional
-    public void addGenes( Researcher researcher, Collection<Gene> genes ) {
+    public boolean addGenes( Researcher researcher, final Collection<Gene> genes ) {
 
         int numGenesBefore = researcher.getGenes().size();
         boolean modified = false;
 
-        // FIXME
-
         for ( Gene gene : genes ) {
-            // if ( gene.getId() != null )
-            // Gene persistedGene = geneDao.findOrCreate( gene );
-            if ( !geneExists( researcher, gene.getId() ) ) {
-                // researcher.addGene( persistedGene );
-                researcher.addGene( gene );
-                modified = true;
+            if ( gene.getId() == null ) {
+                geneDao.create( gene );
             }
+            modified = researcher.addGene( gene );
         }
 
         if ( modified ) {
@@ -151,22 +131,26 @@ public class ResearcherServiceImpl implements ResearcherService {
         }
 
         log.info( "Added " + ( researcher.getGenes().size() - numGenesBefore ) + " genes to Researcher " + researcher );
+
+        return modified;
     }
 
     @Override
     @Transactional
-    public void removeGenes( Researcher researcher, Collection<Gene> genes ) {
+    public boolean removeGenes( Researcher researcher, Collection<Gene> genes ) {
 
         int numGenesBefore = researcher.getGenes().size();
+        boolean modified = false;
 
         for ( Gene gene : genes ) {
             if ( gene.getId() != null ) {
-                researcher.removeGene( gene );
+
+                modified = researcher.removeGene( gene );
             } else {
                 // FIXME search with taxon to be more precise
                 Collection<Gene> matchedGenes = geneDao.findByOfficalSymbol( gene.getOfficialSymbol() );
                 if ( matchedGenes.size() > 0 ) {
-                    researcher.removeGene( matchedGenes.iterator().next() );
+                    modified = researcher.removeGene( matchedGenes.iterator().next() );
                 } else {
                     log.warn( "Gene " + gene + " was not removed from Researcher " + researcher
                             + " because it was found in the database" );
@@ -177,5 +161,14 @@ public class ResearcherServiceImpl implements ResearcherService {
         researcherDao.update( researcher );
 
         log.info( "Removed " + ( numGenesBefore - researcher.getGenes().size() ) + " genes to Researcher " + researcher );
+
+        return modified;
+    }
+
+    @Override
+    public boolean updateGenes( Researcher researcher, Collection<Gene> genes ) {
+        researcher.getGenes().clear();
+        boolean added = addGenes( researcher, genes );
+        return added;
     }
 }

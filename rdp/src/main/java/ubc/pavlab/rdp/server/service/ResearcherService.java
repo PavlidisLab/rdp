@@ -56,8 +56,17 @@ public interface ResearcherService {
     public Researcher thaw( Researcher researcher );
 
     @Secured({ "GROUP_USER" })
-    public void addGenes( Researcher researcher, Collection<Gene> genes );
+    public boolean addGenes( Researcher researcher, final Collection<Gene> genes );
 
     @Secured({ "GROUP_USER" })
-    public void removeGenes( Researcher researcher, Collection<Gene> genes );
+    public boolean removeGenes( Researcher researcher, final Collection<Gene> genes );
+
+    /**
+     * Removes all the associated genes and replace it with the new ones
+     * 
+     * @param researcher
+     * @param genes
+     */
+    @Secured({ "GROUP_USER" })
+    public boolean updateGenes( Researcher researcher, final Collection<Gene> genes );
 }

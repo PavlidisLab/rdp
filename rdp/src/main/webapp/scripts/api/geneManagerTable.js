@@ -1,11 +1,7 @@
-var jsonToGenesTable = function(response, tableId) {
-   $.each( response, function(i, item) {
-      $( '<tr>' ).append( $( '<td>' ).text( item.contact.userName ), $( '<td>' ).text( item.contact.email ),
-         $( '<td>' ).text( item.contact.firstName ), $( '<td>' ).text( item.contact.lastName ),
-         $( '<td>' ).text( item.organization ), $( '<td>' ).text( item.department ) ).appendTo( tableId );
-      // console.log($tr.wrap('<p>').html());
-   } );
-};
+/*
+ * Load and save genes through AJAX queries and display them in a table (DataTables http://www.datatables.net/).
+ * 
+ */
 
 // Add selected class whenever a row is clicked
 // this is useful when we want to delete a row from the table
@@ -20,9 +16,9 @@ function addRowSelectEvent(table) {
    } );
 }
 
-var showError = function(response) {
+var showMessage = function(response) {
    console.log( response );
-   $( "#geneManagerMessage" ).html( "Error with request: " + response.message );
+   $( "#geneManagerMessage" ).html( response.message );
    $( "#geneManagerFailed" ).show();
 }
 
@@ -41,14 +37,9 @@ var saveGenes = function() {
       dataType : "json",
 
       success : function(response, xhr) {
-         // get this from a controller
-         // var response = '[{"userName":"testUsername2", "email":"testEmail2", "firstName":"testFirstname2",
-         // "lastName":"testLastname2", "organization":"testOrganization2", "department":"testDepartment2" }]';
-         // FIXME
-         // response = $.parseJSON( response );
 
          if ( !response.success ) {
-            showError( response );
+            showMessage( response );
          }
 
          var tableEl = $( "#geneManagerTable" );
@@ -60,15 +51,11 @@ var saveGenes = function() {
             return;
          }
 
-         // FIXME
-         console.log( "found " + response.data.length + " user genes" )
-         for (var i = 0; i < response.data.length; i++) {
-            addGene( response.data[i], tableEl.DataTable() );
-         }
+         showMessage( response );
 
       },
       error : function(response, xhr) {
-         showError( response );
+         showMessage( response );
       }
    } );
 }
@@ -85,23 +72,14 @@ var showGenes = function() {
       dataType : "json",
 
       success : function(response, xhr) {
-         // get this from a controller
-         // var response = '[{"userName":"testUsername2", "email":"testEmail2", "firstName":"testFirstname2",
-         // "lastName":"testLastname2", "organization":"testOrganization2", "department":"testDepartment2" }]';
-         // FIXME
-         // response = $.parseJSON( response );
-
          var tableEl = $( "#geneManagerTable" );
-
-         addRowSelectEvent( tableEl.dataTable() );
 
          if ( !response.success ) {
             console.log( response.message );
             return;
          }
 
-         // FIXME
-         console.log( "found " + response.data.length + " user genes" )
+         console.log( "Loaded " + response.data.length + " user genes" )
          for (var i = 0; i < response.data.length; i++) {
             addGene( response.data[i], tableEl.DataTable() );
          }
@@ -117,9 +95,28 @@ var showGenes = function() {
 
 };
 
+var closeGenesManager = function() {
+   $( "#geneManagerFailed" ).hide();
+
+   var tableEl = $( "#geneManagerTable" );
+
+   tableEl.DataTable().clear();
+
+}
+
+var initGeneManager = function() {
+   var tableEl = $( "#geneManagerTable" );
+
+   addRowSelectEvent( tableEl.dataTable() );
+}
+
 $( document ).ready( function() {
 
+   initGeneManager();
+
    $( "#geneManagerButton" ).click( showGenes );
+
+   $( "#closeGenesButton" ).click( closeGenesManager );
 
    $( "#saveGenesButton" ).click( saveGenes );
 

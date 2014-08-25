@@ -69,9 +69,4 @@ public class GeneServiceTest extends BaseSpringContextTest {
                 .getOfficialSymbol() );
         assertEquals( 0, geneService.findByOfficalSymbol( "GENE_DOES_NOT_EXIST" ).size() );
     }
-
-    @Test
-    public void testFindOrCreate() {
-        assertEquals( gene.getId(), geneService.findOrCreate( gene ).getId() );
-    }
 }
