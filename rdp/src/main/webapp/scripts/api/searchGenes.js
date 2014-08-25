@@ -6,7 +6,7 @@
 // sort by symbol attr
 function dataSortResult(data, container, query) {
    return data.sort( function(a, b) {
-      return a.officialSymbol.localeCompare( b.symbol );
+      return a.officialSymbol.localeCompare( b.officialSymbol );
    } );
 }
 
