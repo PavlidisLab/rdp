@@ -126,13 +126,13 @@ public class BioMartQueryServiceImpl implements BioMartQueryService {
 
     private void updateCacheIfExpired() throws BioMartServiceException {
         if ( this.bioMartCache.hasExpired() ) {
-            Dataset dataset = new Dataset( "hsapiens_gene_ensembl" );
+            Dataset dataset = new Dataset( "mmusculus_gene_ensembl" );
 
             dataset.Filter.add( new Filter( "chromosome_name",
                     "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,X,Y" ) );
 
             dataset.Attribute.add( new Attribute( "ensembl_gene_id" ) );
-            dataset.Attribute.add( new Attribute( "hgnc_symbol" ) );
+            dataset.Attribute.add( new Attribute( "external_gene_id" ) );
             dataset.Attribute.add( new Attribute( "description" ) );
             dataset.Attribute.add( new Attribute( "gene_biotype" ) );
             dataset.Attribute.add( new Attribute( "chromosome_name" ) );
