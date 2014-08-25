@@ -33,10 +33,14 @@
 		</div>
 
 		<div class="form-group">
-			<label class="col-sm-3 control-label">Genes</label> <label
-				class="col-sm-5">BRCA1, APOE, SNCA, ...</label>
+			<label class="col-sm-3 control-label">Genes</label> 
+			<label> <!-- 
+			BRCA1, APOE, SNCA, ...
+             -->
+			</label>
 			<button type="button" id="geneManagerButton" name="geneManagerButton"
-				class="btn btn-default btn-sm">
+				class="btn btn-default btn-sm"
+				data-toggle="tooltip" data-placement="right" title="Click to edit your gene list">
 				<span class="glyphicon glyphicon-pencil"></span>
 			</button>
 
