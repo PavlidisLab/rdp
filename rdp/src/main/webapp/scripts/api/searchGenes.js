@@ -16,7 +16,7 @@ function addGene(geneValueObject, table) {
 
    // columns: Symbol, Alias, Name
    // FIXME Add Alias
-   geneRow = [ geneValueObject.officialSymbol, geneValueObject.officialSymbol, geneValueObject.officialName ];
+   geneRow = [ geneValueObject.officialSymbol, geneValueObject.officialName ];
 
    table.row.add( geneRow ).draw();
 

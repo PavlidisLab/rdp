@@ -17,7 +17,7 @@ function addRowSelectEvent(table) {
 }
 
 var showMessage = function(response) {
-   console.log( response );
+   console.log( $.toJSON( response ) );
    $( "#geneManagerMessage" ).html( response.message );
    $( "#geneManagerFailed" ).show();
 }

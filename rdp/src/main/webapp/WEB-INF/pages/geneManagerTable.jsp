@@ -9,15 +9,15 @@
 	<thead>
 		<tr>
 			<th>Symbol</th>
-			<th>Alias</th>
+			<!-- <th>Alias</th> -->
 			<th>Name</th>
 		</tr>
 	</thead>
 
 	<tfoot>
 		<tr>
-			<th>Symbol</th>
-            <th>Alias</th>
+            <th>Symbol</th>
+            <!-- <th>Alias</th> -->
             <th>Name</th>
 		</tr>
 	</tfoot>
