@@ -30,6 +30,7 @@ public class BioMartCacheImpl extends SearchableEhcache<GeneValueObject> impleme
     private static final String CHROMOSOME_SEARCH_ATTRIBUTE_NAME = "genomicRangeChromosome";
     private static final String START_SEARCH_ATTRIBUTE_NAME = "genomicRangeStart";
     private static final String END_SEARCH_ATTRIBUTE_NAME = "genomicRangeEnd";
+    private static final String GENE_NCBI_ID_SEARCH_ATTRIBUTE_NAME = "ncbiGeneId";
 
     private Attribute<Object> geneEnsemblIdAttribute;
     private Attribute<Object> geneNameAttribute;
@@ -37,6 +38,7 @@ public class BioMartCacheImpl extends SearchableEhcache<GeneValueObject> impleme
     private Attribute<Object> chromosomeAttribute;
     private Attribute<Object> startAttribute;
     private Attribute<Object> endAttribute;
+    private Attribute<Object> geneNcbiIdAttribute;
 
     @Override
     public Collection<GeneValueObject> fetchGenesByGeneSymbols( Collection<String> geneSymbols ) {
@@ -83,7 +85,9 @@ public class BioMartCacheImpl extends SearchableEhcache<GeneValueObject> impleme
         for ( String geneString : geneStrings ) {
             Criteria symbolCriteria = geneSymbolAttribute.ilike( geneString );
             Criteria ensemblIdCriteria = geneEnsemblIdAttribute.ilike( geneString );
-            Collection<GeneValueObject> fetchedGenes = fetchByCriteria( symbolCriteria.or( ensemblIdCriteria ) );
+            Criteria geneNcbiIdCriteria = geneNcbiIdAttribute.ilike( geneString );
+            Collection<GeneValueObject> fetchedGenes = fetchByCriteria( symbolCriteria.or( ensemblIdCriteria
+                    .or( geneNcbiIdCriteria ) ) );
             if ( fetchedGenes.size() > 0 ) {
                 // Only use the first gene.
                 genes.add( fetchedGenes.iterator().next() );
@@ -109,6 +113,7 @@ public class BioMartCacheImpl extends SearchableEhcache<GeneValueObject> impleme
         chromosomeAttribute = getSearchAttribute( CHROMOSOME_SEARCH_ATTRIBUTE_NAME );
         startAttribute = getSearchAttribute( START_SEARCH_ATTRIBUTE_NAME );
         endAttribute = getSearchAttribute( END_SEARCH_ATTRIBUTE_NAME );
+        geneNcbiIdAttribute = getSearchAttribute( GENE_NCBI_ID_SEARCH_ATTRIBUTE_NAME );
     }
 
 }

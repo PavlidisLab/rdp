@@ -22,6 +22,7 @@ public class GeneValueObject implements Displayable, Serializable {
     private String ensemblId;
     private String linkToGemma;
     private String geneBioType;
+    private String ncbiGeneId;
 
     private GenomicRange genomicRange;
 
@@ -119,5 +120,13 @@ public class GeneValueObject implements Displayable, Serializable {
     public String displayString( Object arg0 ) {
         // TODO Auto-generated method stub
         return null;
+    }
+
+    public String getNcbiGeneId() {
+        return ncbiGeneId;
+    }
+
+    public void setNcbiGeneId( String ncbiGeneId ) {
+        this.ncbiGeneId = ncbiGeneId;
     }
 }

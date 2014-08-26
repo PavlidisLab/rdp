@@ -132,6 +132,7 @@ public class BioMartQueryServiceImpl implements BioMartQueryService {
                     "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,X,Y" ) );
 
             dataset.Attribute.add( new Attribute( "ensembl_gene_id" ) );
+            dataset.Attribute.add( new Attribute( "entrezgene" ) );
             dataset.Attribute.add( new Attribute( "hgnc_symbol" ) );
             dataset.Attribute.add( new Attribute( "description" ) );
             dataset.Attribute.add( new Attribute( "gene_biotype" ) );
@@ -188,10 +189,13 @@ public class BioMartQueryServiceImpl implements BioMartQueryService {
             }
 
             for ( String row : rows ) {
+
+                // warning: split() trims off trailing whitespaces!
                 String[] fields = row.split( "\t" );
 
                 int index = 0;
                 String ensemblId = fields[index++];
+                String ncbiGeneId = fields[index++];
                 String symbol = fields[index++];
                 String name = fields[index++];
                 String geneBiotype = fields[index++];
@@ -215,6 +219,7 @@ public class BioMartQueryServiceImpl implements BioMartQueryService {
                 } else {
                     gene.setGenomicRange( new GenomicRange( chromosome, endBase, startBase ) );
                 }
+                gene.setNcbiGeneId( ncbiGeneId );
                 genes.add( gene );
             }
 
