@@ -16,12 +16,6 @@ function addRowSelectEvent(table) {
    } );
 }
 
-var showMessage = function(response) {
-   console.log( $.toJSON( response ) );
-   $( "#geneManagerMessage" ).html( response.message );
-   $( "#geneManagerFailed" ).show();
-}
-
 var saveGenes = function() {
    $.ajax( {
       url : "saveResearcherGenes.html",
@@ -52,11 +46,11 @@ var saveGenes = function() {
             return;
          }
 
-         showMessage( response );
+         showMessage( response.message, $( "#geneManagerMessage" ) );
 
       },
       error : function(response, xhr) {
-         showMessage( response );
+         showMessage( response.message, $( "#geneManagerMessage" ) );
       }
    } );
 }
@@ -77,7 +71,7 @@ var showGenes = function() {
 
          if ( !response.success ) {
             console.log( response.message );
-            showMessage( response );
+            showMessage( response.message, $( "#geneManagerMessage" ) );
             return;
          }
 
@@ -88,10 +82,7 @@ var showGenes = function() {
 
       },
       error : function(response, xhr) {
-         console.log( xhr.responseText );
-         $( "#geneManagerMessage" ).html(
-            "Error with request. Status is: " + xhr.status + ". " + jQuery.parseJSON( response ).message );
-         $( "#geneManagerFailed" ).show();
+         showMessage( response.message, $( "#geneManagerMessage" ) );
       }
    } );
 
@@ -103,7 +94,6 @@ var closeGenesManager = function() {
    var tableEl = $( "#geneManagerTable" );
 
    tableEl.DataTable().clear();
-
 }
 
 var initGeneManager = function() {
@@ -118,7 +108,9 @@ $( document ).ready( function() {
 
    $( "#geneManagerButton" ).click( showGenes );
 
-   $( "#closeGenesButton" ).click( closeGenesManager );
+   $('#geneManagerModal').on('hidden.bs.modal', closeGenesManager );
+    
+   //$( "#closeGenesButton" ).click( closeGenesManager );
 
    $( "#saveGenesButton" ).click( saveGenes );
 
