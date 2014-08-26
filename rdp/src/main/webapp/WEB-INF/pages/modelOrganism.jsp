@@ -13,8 +13,8 @@
 			<div class="col-sm-6">
 				<select id="taxonCommonNameSelect" class="form-control">
 					<option>Human</option>
+					<option>Mouse</option>
 					<!-- FIXME
-                    <option>Mouse</option>
                     <option>Rat</option>
                     <option>Fly</option>
                     <option>Worm</option>

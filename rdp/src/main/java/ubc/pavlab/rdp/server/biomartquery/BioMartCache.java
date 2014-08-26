@@ -14,6 +14,8 @@ import ubc.pavlab.rdp.server.model.GeneValueObject;
 public interface BioMartCache {
     public Collection<GeneValueObject> fetchGenesByGeneSymbols( Collection<String> geneSymbols );
 
+    public Collection<GeneValueObject> fetchGenesByGeneTaxon( Collection<String> taxons );
+    
     public Collection<GeneValueObject> fetchGenesByLocation( String chromosomeName, Long start, Long end );
 
     public Collection<GeneValueObject> findGenes( String queryString );

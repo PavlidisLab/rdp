@@ -30,6 +30,7 @@ public class BioMartCacheImpl extends SearchableEhcache<GeneValueObject> impleme
     private static final String CHROMOSOME_SEARCH_ATTRIBUTE_NAME = "genomicRangeChromosome";
     private static final String START_SEARCH_ATTRIBUTE_NAME = "genomicRangeStart";
     private static final String END_SEARCH_ATTRIBUTE_NAME = "genomicRangeEnd";
+    private static final String TAXON_SEARCH_ATTRIBUTE_NAME = "taxon";
 
     private Attribute<Object> geneEnsemblIdAttribute;
     private Attribute<Object> geneNameAttribute;
@@ -37,6 +38,7 @@ public class BioMartCacheImpl extends SearchableEhcache<GeneValueObject> impleme
     private Attribute<Object> chromosomeAttribute;
     private Attribute<Object> startAttribute;
     private Attribute<Object> endAttribute;
+    private Attribute<Object> taxonAttribute;
 
     @Override
     public Collection<GeneValueObject> fetchGenesByGeneSymbols( Collection<String> geneSymbols ) {
@@ -45,6 +47,13 @@ public class BioMartCacheImpl extends SearchableEhcache<GeneValueObject> impleme
         return fetchByCriteria( symbolCriteria );
     }
 
+    @Override
+    public Collection<GeneValueObject> fetchGenesByGeneTaxon( Collection<String> taxons ) {
+        Criteria taxonCriteria = taxonAttribute.in( taxons );
+
+        return fetchByCriteria( taxonCriteria );
+    }
+    
     @Override
     public Collection<GeneValueObject> fetchGenesByLocation( String chromosomeName, Long start, Long end ) {
         Criteria chromosomeCriteria = chromosomeAttribute.eq( chromosomeName );
@@ -109,6 +118,7 @@ public class BioMartCacheImpl extends SearchableEhcache<GeneValueObject> impleme
         chromosomeAttribute = getSearchAttribute( CHROMOSOME_SEARCH_ATTRIBUTE_NAME );
         startAttribute = getSearchAttribute( START_SEARCH_ATTRIBUTE_NAME );
         endAttribute = getSearchAttribute( END_SEARCH_ATTRIBUTE_NAME );
+        taxonAttribute = getSearchAttribute( TAXON_SEARCH_ATTRIBUTE_NAME );
     }
 
 }

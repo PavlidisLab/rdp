@@ -10,6 +10,7 @@
 		<tr>
 			<th>Symbol</th>
 			<!-- <th>Alias</th> -->
+			<th>Organism</th>
 			<th>Name</th>
 		</tr>
 	</thead>
@@ -18,6 +19,7 @@
 		<tr>
             <th>Symbol</th>
             <!-- <th>Alias</th> -->
+            <th>Organism</th>
             <th>Name</th>
 		</tr>
 	</tfoot>

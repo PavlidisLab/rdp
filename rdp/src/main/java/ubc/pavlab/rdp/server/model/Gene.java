@@ -56,7 +56,7 @@ public class Gene {
 
     private String ensemblId;
 
-    private Taxon taxon;
+    private String taxon;
 
     // Phenotype ????
 
@@ -100,11 +100,11 @@ public class Gene {
         this.ensemblId = ensemblId;
     }
 
-    public Taxon getTaxon() {
+    public String getTaxon() {
         return taxon;
     }
 
-    public void setTaxon( Taxon taxon ) {
+    public void setTaxon( String taxon ) {
         this.taxon = taxon;
     }
 
@@ -136,7 +136,7 @@ public class Gene {
         setOfficialName( jsonObj.get( "officialName" ).toString() );
         setOfficialSymbol( jsonObj.get( "officialSymbol" ).toString() );
         setEnsemblId( jsonObj.get( "ensemblId" ).toString() );
-
+        setTaxon( jsonObj.get( "taxon" ).toString() );
         // TODO Set Aliases, Taxon
         // setNcbiGeneId( jsonObj.get( "taxon" ).toString() );
     }

@@ -189,7 +189,7 @@ public class GeneController {
         String taxon = request.getParameter( "taxon" );
 
         try {
-            Collection<GeneValueObject> results = biomartService.findGenes( query );
+            Collection<GeneValueObject> results = biomartService.findGenes( query, taxon );
             jsonText = "{\"success\":true,\"data\":" + jsonUtil.collectionToJson( results ) + "}";
         } catch ( BioMartServiceException e ) {
             e.printStackTrace();

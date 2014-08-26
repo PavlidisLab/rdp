@@ -16,12 +16,12 @@ function addGene(geneValueObject, table) {
 
    // columns: Symbol, Alias, Name
    // FIXME Add Alias
-   geneRow = [ geneValueObject.officialSymbol, geneValueObject.officialName ];
+   geneRow = [ geneValueObject.officialSymbol, geneValueObject.taxon, geneValueObject.officialName ];
 
    table.row.add( geneRow ).draw();
 
    // save object to table element using symbol as key
-   jQuery.data( $( "#geneManagerTable" )[0], geneValueObject.officialSymbol, geneValueObject );
+   jQuery.data( $( "#geneManagerTable" )[0], geneValueObject.officialSymbol + ":" + geneValueObject.taxon, geneValueObject );
 
 }
 
@@ -56,7 +56,7 @@ $( document ).ready( function() {
          data : function(query, page) {
             return {
                query : query, // search term
-               taxon : 'human', // FIXME
+               taxon : $("#taxonCommonNameSelect").val(),
             }
          },
          results : function(data, page) {
@@ -64,7 +64,7 @@ $( document ).ready( function() {
             // select2 format result looks for the 'text' attr
             for (var i = 0; i < data.data.length; i++) {
                gene = data.data[i]
-               gene.text = "<b>" + gene.officialSymbol + "</b> " + gene.officialName
+               gene.text = "<b>" + gene.officialSymbol + "</b> " + gene.officialName + "</b> " + gene.taxon
             }
             return {
                results : data.data

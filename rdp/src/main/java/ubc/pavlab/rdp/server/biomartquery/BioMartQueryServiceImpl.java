@@ -2,8 +2,10 @@ package ubc.pavlab.rdp.server.biomartquery;
 
 import java.io.StringWriter;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -40,6 +42,14 @@ import com.sun.jersey.core.util.MultivaluedMapImpl;
 @Service
 public class BioMartQueryServiceImpl implements BioMartQueryService {
     private static final String BIO_MART_URL = "http://www.biomart.org/biomart/martservice/results";
+    
+    private static final Map<String, String> TAXON_COMMON_TO_DATASET = new HashMap<String,String>();
+    
+    static {
+    	TAXON_COMMON_TO_DATASET.put("Human","hsapiens_gene_ensembl");
+    	TAXON_COMMON_TO_DATASET.put("Mouse","mmusculus_gene_ensembl");
+    	//TAXON_COMMON_TO_DATASET = Collections.unmodifiableMap(TAXON_COMMON_TO_DATASET);
+    }
 
     private static Log log = LogFactory.getLog( BioMartQueryServiceImpl.class.getName() );
 
@@ -99,9 +109,10 @@ public class BioMartQueryServiceImpl implements BioMartQueryService {
     }
 
     @Override
-    public Collection<GeneValueObject> findGenes( String queryString ) throws BioMartServiceException {
-        updateCacheIfExpired();
-
+    public Collection<GeneValueObject> findGenes( String queryString, String taxon ) throws BioMartServiceException {
+        //updateCacheIfExpired(taxon);
+    	updateCacheAllTaxons();
+    	
         return bioMartCache.findGenes( queryString );
     }
 
@@ -124,9 +135,31 @@ public class BioMartQueryServiceImpl implements BioMartQueryService {
         // updateCacheIfExpired();
     }
 
+    private void updateCacheAllTaxons() throws BioMartServiceException {
+    	if ( this.bioMartCache.hasExpired() ) {
+	    	for (Map.Entry<String, String> taxon : TAXON_COMMON_TO_DATASET.entrySet()) {
+	    		updateCacheIfExpired(taxon.getKey(),true);
+	    	}
+    	}
+    }
+    
     private void updateCacheIfExpired() throws BioMartServiceException {
-        if ( this.bioMartCache.hasExpired() ) {
-            Dataset dataset = new Dataset( "mmusculus_gene_ensembl" );
+    	updateCacheIfExpired("Human", false);
+    }
+    
+    private void updateCacheIfExpired(String taxon, Boolean forceUpdate) throws BioMartServiceException {
+        if ( forceUpdate || this.bioMartCache.hasExpired() ) {
+        	
+        	String datasetName = TAXON_COMMON_TO_DATASET.get(taxon);
+        	
+        	if (datasetName == null) {
+	            String errorMessage = "Taxon: [" + taxon + "] not recognized";
+	            log.error( errorMessage );
+	
+	            throw new BioMartServiceException( errorMessage );
+        	}
+        		
+            Dataset dataset = new Dataset( datasetName);
 
             dataset.Filter.add( new Filter( "chromosome_name",
                     "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,X,Y" ) );
@@ -207,7 +240,7 @@ public class BioMartQueryServiceImpl implements BioMartQueryService {
                 int sourceIndex = name.indexOf( " [Source:" );
                 name = sourceIndex >= 0 ? name.substring( 0, sourceIndex ) : name;
 
-                GeneValueObject gene = new GeneValueObject( ensemblId, symbol, name, geneBiotype, "human" );
+                GeneValueObject gene = new GeneValueObject( ensemblId, symbol, name, geneBiotype, taxon );
                 int startBase = Integer.valueOf( start );
                 int endBase = Integer.valueOf( end );
                 if ( startBase < endBase ) {
