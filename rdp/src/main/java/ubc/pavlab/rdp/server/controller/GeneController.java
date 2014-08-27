@@ -24,12 +24,15 @@ import gemma.gsec.authentication.UserManager;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.Predicate;
 import org.directwebremoting.annotations.RemoteProxy;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -82,7 +85,7 @@ public class GeneController {
         String jsonText = "";
 
         String username = userManager.getCurrentUsername();
-        String taxonCommonName = request.getParameter( "taxonCommonName" );
+        final String taxonCommonName = request.getParameter( "taxonCommonName" );
 
         Researcher user = researcherService.findByUserName( username );
 
@@ -94,9 +97,14 @@ public class GeneController {
                 jsonText = "{\"success\":false,\"message\":\"No researcher with name " + username + "\"}";
             } else {
 
-                // FIXME Filter by organism
-                jsonText = "{\"success\":true,\"data\":" + jsonUtil.collectionToJson( user.getGenes() ) + "}";
-                log.info( "Loaded " + user.getGenes().size() + " genes" );
+            	Collection<Gene> genes = user.getGenes();
+            	CollectionUtils.filter( genes, new Predicate(){
+					public boolean evaluate( Object input ) {
+                       return ((Gene) input).getTaxon().equals(taxonCommonName);
+                    }
+                 } );
+                jsonText = "{\"success\":true,\"data\":" + jsonUtil.collectionToJson( genes ) + "}";
+                log.info( "Loaded " + genes.size() + " genes" );
             }
 
         } catch ( Exception e ) {

@@ -57,6 +57,8 @@ var saveGenes = function() {
 
 var showGenes = function() {
 
+   $( "#geneManagerTable" ).DataTable().clear();
+   $( "#geneManagerTable" ).DataTable().draw();
    $.ajax( {
       url : "loadResearcherGenes.html",
 
