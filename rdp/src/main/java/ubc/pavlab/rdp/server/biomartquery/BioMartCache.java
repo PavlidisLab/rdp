@@ -18,7 +18,7 @@ public interface BioMartCache {
     
     public Collection<GeneValueObject> fetchGenesByLocation( String chromosomeName, Long start, Long end );
 
-    public Collection<GeneValueObject> findGenes( String queryString );
+    public Collection<GeneValueObject> findGenes( String queryString, String taxon );
 
     /**
      * Get a list of genes using the given gene symbols or ensembl ids. The order of the returned list of genes is

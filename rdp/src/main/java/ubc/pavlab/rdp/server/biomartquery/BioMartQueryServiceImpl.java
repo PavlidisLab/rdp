@@ -48,6 +48,13 @@ public class BioMartQueryServiceImpl implements BioMartQueryService {
     static {
     	TAXON_COMMON_TO_DATASET.put("Human","hsapiens_gene_ensembl");
     	TAXON_COMMON_TO_DATASET.put("Mouse","mmusculus_gene_ensembl");
+    	TAXON_COMMON_TO_DATASET.put("Rat","rnorvegicus_gene_ensembl");
+    	//TAXON_COMMON_TO_DATASET.put("Zebrafish","drerio_gene_ensembl");
+    	//TAXON_COMMON_TO_DATASET.put("Fruitfly","dmelanogaster_gene_ensembl");
+    	//TAXON_COMMON_TO_DATASET.put("Worm","celegans_gene_ensembl");
+    	//TAXON_COMMON_TO_DATASET.put("Yeast","scerevisiae_gene_ensembl");
+    	//TAXON_COMMON_TO_DATASET.put("E-coli","rnorvegicus_gene_ensembl");
+    	
     	//TAXON_COMMON_TO_DATASET = Collections.unmodifiableMap(TAXON_COMMON_TO_DATASET);
     }
 
@@ -113,7 +120,7 @@ public class BioMartQueryServiceImpl implements BioMartQueryService {
         //updateCacheIfExpired(taxon);
     	updateCacheAllTaxons();
     	
-        return bioMartCache.findGenes( queryString );
+        return bioMartCache.findGenes( queryString, taxon );
     }
 
     /**

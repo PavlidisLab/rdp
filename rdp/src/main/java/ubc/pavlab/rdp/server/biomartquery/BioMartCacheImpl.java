@@ -73,13 +73,14 @@ public class BioMartCacheImpl extends SearchableEhcache<GeneValueObject> impleme
     }
 
     @Override
-    public Collection<GeneValueObject> findGenes( String queryString ) {
+    public Collection<GeneValueObject> findGenes( String queryString, String taxon ) {
         String regexQueryString = "*" + queryString + "*";
 
         Criteria nameCriteria = geneNameAttribute.ilike( regexQueryString );
         Criteria symbolCriteria = geneSymbolAttribute.ilike( regexQueryString );
+        Criteria taxonCriteria = taxonAttribute.eq( taxon );
 
-        return fetchByCriteria( nameCriteria.or( symbolCriteria ) );
+        return fetchByCriteria( taxonCriteria.and( nameCriteria.or( symbolCriteria ) ) );
     }
 
     @Override

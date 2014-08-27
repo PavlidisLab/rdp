@@ -48,7 +48,7 @@ $( document ).ready( function() {
       id : function(data) {
          return data.key;
       },
-      placeholder : "Gene symbol",
+      placeholder : "Symbol or Desciption",
       minimumInputLength : 3,
       ajax : {
          url : "searchGenes.html",
