@@ -4,8 +4,7 @@ import java.util.Collection;
 import java.util.List;
 
 import ubc.pavlab.rdp.server.exception.BioMartServiceException;
-import ubc.pavlab.rdp.server.model.GeneValueObject;
-import ubc.pavlab.rdp.server.model.GenomicRange;
+import ubc.pavlab.rdp.server.model.Gene;
 
 /**
  * Used to request gene and other data using BioMart.
@@ -22,8 +21,7 @@ public interface BioMartQueryService {
      * @return collection of genes
      * @throws BioMartServiceException
      */
-    public Collection<GeneValueObject> fetchGenesByGeneSymbols( Collection<String> geneSymbols )
-            throws BioMartServiceException;
+    public Collection<Gene> fetchGenesByGeneSymbols( Collection<String> geneSymbols ) throws BioMartServiceException;
 
     /**
      * Find genes that are inside the specified region of the genome.
@@ -34,20 +32,10 @@ public interface BioMartQueryService {
      * @return collection of genes
      * @throws BioMartServiceException
      */
-    public Collection<GeneValueObject> fetchGenesByLocation( String chromosomeName, Long start, Long end )
+    public Collection<Gene> fetchGenesByLocation( String chromosomeName, Long start, Long end )
             throws BioMartServiceException;
 
-    /**
-     * Find genomic ranges by gene symbols.
-     * 
-     * @param geneSymbols
-     * @return collection of genomic ranges
-     * @throws BioMartServiceException
-     */
-    public Collection<GenomicRange> fetchGenomicRangesByGeneSymbols( Collection<String> geneSymbols )
-            throws BioMartServiceException;
-
-    public Collection<GeneValueObject> findGenes( String queryString, String taxon) throws BioMartServiceException;
+    public Collection<Gene> findGenes( String queryString, String taxon ) throws BioMartServiceException;
 
     /**
      * Get a list of genes using the given gene symbols or ensembl ids. The order of the returned list of genes is
@@ -57,5 +45,5 @@ public interface BioMartQueryService {
      * @return a list of GeneValueObjects
      * @throws BioMartServiceException
      */
-    public List<GeneValueObject> getGenes( List<String> geneStrings ) throws BioMartServiceException;
+    public List<Gene> getGenes( List<String> geneStrings ) throws BioMartServiceException;
 }

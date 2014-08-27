@@ -116,7 +116,7 @@
 
 
     <!-- include jQuery, and our script file -->
-    <script src="scripts/lib/jquery-1.11.1.min.js"></script>
+    <script src="scripts/lib/jquery-1.11.1.js"></script>
     <script src="scripts/lib/bootstrap.min.js"></script>
     <script src="scripts/lib/jquery.validate.min.js"></script>
     <script src="scripts/lib/jquery.json-2.4.js"></script>

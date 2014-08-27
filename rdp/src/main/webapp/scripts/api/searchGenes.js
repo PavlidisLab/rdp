@@ -10,13 +10,21 @@ function dataSortResult(data, container, query) {
    } );
 }
 
+function aliasesToString(geneValueObject) {
+   arr = [];
+   geneValueObject.aliases.forEach( function(ele) {
+      arr.push( ele.alias );
+   } );
+   return arr.join( ',' );
+}
+
 function addGene(geneValueObject, table) {
 
    // console.log( "addGene = " + geneValueObject.officialName + "; dataTable = " + table );
 
    // columns: Symbol, Alias, Name
    // FIXME Add Alias
-   geneRow = [ geneValueObject.officialSymbol, geneValueObject.taxon, geneValueObject.officialName ];
+   geneRow = [ geneValueObject.officialSymbol, aliasesToString(geneValueObject), geneValueObject.taxon, geneValueObject.officialName ];
 
    table.row.add( geneRow ).draw();
 
@@ -40,10 +48,10 @@ $( document ).ready( function() {
 
    // init remove genes button
    $( "#removeGeneButton" ).click( function() {
-	  var table = $( "#geneManagerTable" ).DataTable();
+      var table = $( "#geneManagerTable" ).DataTable();
       var selectedNode = table.row( '.selected' );
       var selectedSymbol = selectedNode.data()[0]; // data = [symbol, alias, name] ie column heading ordering
-      var selectedTaxon = selectedNode.data()[1];
+      var selectedTaxon = selectedNode.data()[2];
       selectedNode.remove().draw( false );
       jQuery.removeData( $( "#geneManagerTable" )[0], selectedSymbol + ":" + selectedTaxon);
    } );
@@ -51,9 +59,9 @@ $( document ).ready( function() {
    // init search genes combo
    $( "#searchGenesSelect" ).select2( {
       id : function(data) {
-         return data.key;
+         return data.officialSymbol;
       },
-      placeholder : "Symbol or Desciption",
+      placeholder : "Enter gene symbol, alias or name",
       minimumInputLength : 3,
       ajax : {
          url : "searchGenes.html",
@@ -69,7 +77,8 @@ $( document ).ready( function() {
             // select2 format result looks for the 'text' attr
             for (var i = 0; i < data.data.length; i++) {
                gene = data.data[i]
-               gene.text = "<b>" + gene.officialSymbol + "</b> " + gene.officialName + "</b> " + gene.taxon
+               aliasStr = gene.aliases.length > 0 ? "(" + aliasesToString( gene ) + ") " : "";
+               gene.text = "<b>" + gene.officialSymbol + "</b> " + aliasStr + gene.officialName + "</b> " + gene.taxon
             }
             return {
                results : data.data

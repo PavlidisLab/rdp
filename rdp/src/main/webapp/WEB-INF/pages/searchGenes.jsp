@@ -10,8 +10,8 @@ displays it as suggestions in a combo box.
 
 <div class="row">
 	<!-- FIXME Get taxon from current form -->
-	<div class="col-sm-1">Gene</div>
-	<input type="hidden" class="bigdrop col-sm-8" id="searchGenesSelect" />
+	<!-- <div id="taxonLabel" class="col-sm-1">Taxon</div> -->
+	<input type="hidden" class="bigdrop col-sm-10" id="searchGenesSelect" />
 	<!-- 
 	<select id="searchGenesSelect" class="col-sm-10">
 	   <option value="AL">Alabama</option>

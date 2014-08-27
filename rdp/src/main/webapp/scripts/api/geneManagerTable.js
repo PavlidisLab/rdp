@@ -34,7 +34,7 @@ var saveGenes = function() {
       success : function(response, xhr) {
 
          if ( !response.success ) {
-            showMessage( response );
+            showMessage( response.message, $( "#geneManagerMessage" ) );
          }
 
          var tableEl = $( "#geneManagerTable" );
@@ -43,7 +43,7 @@ var saveGenes = function() {
 
          if ( !response.success ) {
             console.log( response.message );
-            showMessage( response );
+            showMessage( response.message, $( "#geneManagerMessage" ) );
             return;
          }
 
@@ -105,6 +105,9 @@ var closeGenesManager = function() {
 }
 
 var initGeneManager = function() {
+
+   $( "#geneModalTitle" ).html( $( "#taxonCommonNameSelect" ).val() + " Gene Manager" )
+
    var tableEl = $( "#geneManagerTable" );
 
    addRowSelectEvent( tableEl.dataTable() );
@@ -116,9 +119,9 @@ $( document ).ready( function() {
 
    $( "#geneManagerButton" ).click( showGenes );
 
-   $('#geneManagerModal').on('hidden.bs.modal', closeGenesManager );
-    
-   //$( "#closeGenesButton" ).click( closeGenesManager );
+   $( '#geneManagerModal' ).on( 'hidden.bs.modal', closeGenesManager );
+
+   // $( "#closeGenesButton" ).click( closeGenesManager );
 
    $( "#saveGenesButton" ).click( saveGenes );
 
