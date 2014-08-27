@@ -35,6 +35,7 @@
    <searchable>
     <searchAttribute name="ensemblId" />
     <searchAttribute name="ncbiGeneId" />
+    <searchAttribute name="aliases" class="ubc.pavlab.rdp.server.biomartquery.GeneAliasesAttributeExtractor" />
     <searchAttribute name="officialName" />
     <searchAttribute name="officialSymbol" />
     <searchAttribute name="genomicRangeChromosome" expression="value.getGenomicRange().getChromosome()" />

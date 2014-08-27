@@ -31,6 +31,7 @@ public class BioMartCacheImpl extends SearchableEhcache<Gene> implements BioMart
     private static final String START_SEARCH_ATTRIBUTE_NAME = "genomicRangeStart";
     private static final String END_SEARCH_ATTRIBUTE_NAME = "genomicRangeEnd";
     private static final String GENE_NCBI_ID_SEARCH_ATTRIBUTE_NAME = "ncbiGeneId";
+    private static final String ALIASES_ATTRIBUTE_NAME = "aliases";
 
     private Attribute<Object> geneEnsemblIdAttribute;
     private Attribute<Object> geneNameAttribute;
@@ -39,6 +40,7 @@ public class BioMartCacheImpl extends SearchableEhcache<Gene> implements BioMart
     private Attribute<Object> startAttribute;
     private Attribute<Object> endAttribute;
     private Attribute<Object> geneNcbiIdAttribute;
+    private Attribute<Object> aliasesAttribute;
 
     @Override
     public Collection<Gene> fetchGenesByGeneSymbols( Collection<String> geneSymbols ) {
@@ -69,8 +71,9 @@ public class BioMartCacheImpl extends SearchableEhcache<Gene> implements BioMart
 
         Criteria nameCriteria = geneNameAttribute.ilike( regexQueryString );
         Criteria symbolCriteria = geneSymbolAttribute.ilike( regexQueryString );
+        Criteria aliasesCriteria = aliasesAttribute.ilike( regexQueryString );
 
-        return fetchByCriteria( nameCriteria.or( symbolCriteria ) );
+        return fetchByCriteria( nameCriteria.or( symbolCriteria.or( aliasesCriteria ) ) );
     }
 
     @Override
@@ -114,6 +117,7 @@ public class BioMartCacheImpl extends SearchableEhcache<Gene> implements BioMart
         startAttribute = getSearchAttribute( START_SEARCH_ATTRIBUTE_NAME );
         endAttribute = getSearchAttribute( END_SEARCH_ATTRIBUTE_NAME );
         geneNcbiIdAttribute = getSearchAttribute( GENE_NCBI_ID_SEARCH_ATTRIBUTE_NAME );
+        aliasesAttribute = getSearchAttribute( ALIASES_ATTRIBUTE_NAME );
     }
 
 }
