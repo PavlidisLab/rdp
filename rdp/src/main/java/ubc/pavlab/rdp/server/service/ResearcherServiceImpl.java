@@ -169,6 +169,7 @@ public class ResearcherServiceImpl implements ResearcherService {
     public boolean updateGenes( Researcher researcher, Collection<Gene> genes ) {
         researcher.getGenes().clear();
         boolean added = addGenes( researcher, genes );
+        researcherDao.update( researcher );
         return added;
     }
 }

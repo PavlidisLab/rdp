@@ -135,123 +135,141 @@ public class BioMartQueryServiceImpl implements BioMartQueryService {
         // updateCacheIfExpired();
     }
 
-    private void updateCacheAllTaxons() throws BioMartServiceException {
-    	if ( this.bioMartCache.hasExpired() ) {
-	    	for (Map.Entry<String, String> taxon : TAXON_COMMON_TO_DATASET.entrySet()) {
-	    		updateCacheIfExpired(taxon.getKey(),true);
-	    	}
-    	}
-    }
-    
-    private void updateCacheIfExpired() throws BioMartServiceException {
-    	updateCacheIfExpired("Human", false);
-    }
-    
-    private void updateCacheIfExpired(String taxon, Boolean forceUpdate) throws BioMartServiceException {
-        if ( forceUpdate || this.bioMartCache.hasExpired() ) {
-        	
-        	String datasetName = TAXON_COMMON_TO_DATASET.get(taxon);
-        	
-        	if (datasetName == null) {
-	            String errorMessage = "Taxon: [" + taxon + "] not recognized";
-	            log.error( errorMessage );
-	
-	            throw new BioMartServiceException( errorMessage );
-        	}
-        		
-            Dataset dataset = new Dataset( datasetName);
+    private Collection<GeneValueObject> parseGeneInfo( Dataset dataset, String taxon ) throws BioMartServiceException {
 
-            dataset.Filter.add( new Filter( "chromosome_name",
-                    "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,X,Y" ) );
+        dataset.Attribute.add( new Attribute( "ensembl_gene_id" ) );
+        dataset.Attribute.add( new Attribute( "entrezgene" ) );
+        dataset.Attribute.add( new Attribute( "external_gene_id" ) );
+        dataset.Attribute.add( new Attribute( "description" ) );
+        dataset.Attribute.add( new Attribute( "gene_biotype" ) );
+        dataset.Attribute.add( new Attribute( "chromosome_name" ) );
+        dataset.Attribute.add( new Attribute( "start" ) );
+        dataset.Attribute.add( new Attribute( "end" ) );
 
-            dataset.Attribute.add( new Attribute( "ensembl_gene_id" ) );
-            dataset.Attribute.add( new Attribute( "external_gene_id" ) );
-            dataset.Attribute.add( new Attribute( "description" ) );
-            dataset.Attribute.add( new Attribute( "gene_biotype" ) );
-            dataset.Attribute.add( new Attribute( "chromosome_name" ) );
-            dataset.Attribute.add( new Attribute( "start" ) );
-            dataset.Attribute.add( new Attribute( "end" ) );
+        Query query = new Query();
+        query.Dataset = dataset;
 
-            Query query = new Query();
-            query.Dataset = dataset;
+        StringWriter xmlQueryWriter = null;
 
-            StringWriter xmlQueryWriter = null;
+        try {
+            JAXBContext jaxbContext = JAXBContext.newInstance( Query.class, Dataset.class, Filter.class,
+                    Attribute.class );
+            Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
 
-            try {
-                JAXBContext jaxbContext = JAXBContext.newInstance( Query.class, Dataset.class, Filter.class,
-                        Attribute.class );
-                Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
+            xmlQueryWriter = new StringWriter();
+            jaxbMarshaller.marshal( query, xmlQueryWriter );
+        } catch ( JAXBException e ) {
+            String errorMessage = "Cannot initialize genes from BioMart";
+            log.error( errorMessage, e );
 
-                xmlQueryWriter = new StringWriter();
-                jaxbMarshaller.marshal( query, xmlQueryWriter );
-            } catch ( JAXBException e ) {
-                String errorMessage = "Cannot initialize genes from BioMart";
-                log.error( errorMessage, e );
-
-                throw new BioMartServiceException( errorMessage );
-            }
-
-            final StopWatch timer = new StopWatch();
-            timer.start();
-
-            Timer uploadCheckerTimer = new Timer( true );
-            uploadCheckerTimer.scheduleAtFixedRate( new TimerTask() {
-                @Override
-                public void run() {
-                    log.info( "Waiting for BioMart response ... " + timer.getTime() + " ms" );
-                }
-            }, 0, 10 * 1000 );
-
-            String response = sendRequest( xmlQueryWriter.toString() );
-            log.info( "BioMart request to (" + BIO_MART_URL + ") took " + timer.getTime() + " ms" );
-
-            uploadCheckerTimer.cancel();
-
-            String[] rows = StringUtils.split( response, "\n" );
-
-            Collection<GeneValueObject> genes = new HashSet<GeneValueObject>();
-
-            int rowsLength = rows.length;
-            if ( rowsLength <= 1 ) {
-                String errorMessage = "Error: retrieved only " + rowsLength + " row of gene data from BioMart"
-                        + ( rowsLength == 1 ? "(Error message from BioMart: " + rows[0] + ")" : "" );
-                log.error( errorMessage );
-
-                throw new BioMartServiceException( errorMessage );
-            }
-
-            for ( String row : rows ) {
-                String[] fields = row.split( "\t" );
-
-                int index = 0;
-                String ensemblId = fields[index++];
-                String symbol = fields[index++];
-                String name = fields[index++];
-                String geneBiotype = fields[index++];
-                String chromosome = fields[index++];
-                String start = fields[index++];
-                String end = fields[index++];
-
-                // Ignore results that do not have required attributes.
-                if ( ensemblId.equals( "" ) || chromosome.equals( "" ) || start.equals( "" ) || end.equals( "" ) ) {
-                    continue;
-                }
-
-                int sourceIndex = name.indexOf( " [Source:" );
-                name = sourceIndex >= 0 ? name.substring( 0, sourceIndex ) : name;
-
-                GeneValueObject gene = new GeneValueObject( ensemblId, symbol, name, geneBiotype, taxon );
-                int startBase = Integer.valueOf( start );
-                int endBase = Integer.valueOf( end );
-                if ( startBase < endBase ) {
-                    gene.setGenomicRange( new GenomicRange( chromosome, startBase, endBase ) );
-                } else {
-                    gene.setGenomicRange( new GenomicRange( chromosome, endBase, startBase ) );
-                }
-                genes.add( gene );
-            }
-
-            this.bioMartCache.putAll( genes );
+            throw new BioMartServiceException( errorMessage );
         }
+
+        final StopWatch timer = new StopWatch();
+        timer.start();
+
+        Timer uploadCheckerTimer = new Timer( true );
+        uploadCheckerTimer.scheduleAtFixedRate( new TimerTask() {
+            @Override
+            public void run() {
+                log.info( "Waiting for BioMart response ... " + timer.getTime() + " ms" );
+            }
+        }, 0, 10 * 1000 );
+
+        String response = sendRequest( xmlQueryWriter.toString() );
+        log.info( "BioMart request to (" + BIO_MART_URL + ") took " + timer.getTime() + " ms" );
+
+        uploadCheckerTimer.cancel();
+
+        String[] rows = StringUtils.split( response, "\n" );
+
+        Collection<GeneValueObject> genes = new HashSet<>();
+
+        int rowsLength = rows.length;
+        if ( rowsLength <= 1 ) {
+            String errorMessage = "Error: retrieved only " + rowsLength + " row of gene data from BioMart"
+                    + ( rowsLength == 1 ? "(Error message from BioMart: " + rows[0] + ")" : "" );
+            log.error( errorMessage );
+
+            throw new BioMartServiceException( errorMessage );
+        }
+
+        for ( String row : rows ) {
+
+            // warning: split() trims off trailing whitespaces!
+            String[] fields = row.split( "\t" );
+
+            int index = 0;
+            String ensemblId = fields[index++];
+            String ncbiGeneId = fields[index++];
+            String symbol = fields[index++];
+            String name = fields[index++];
+            String geneBiotype = fields[index++];
+            String chromosome = fields[index++];
+            String start = fields[index++];
+            String end = fields[index++];
+
+            // Ignore results that do not have required attributes.
+            if ( ensemblId.equals( "" ) || chromosome.equals( "" ) || start.equals( "" ) || end.equals( "" ) ) {
+                continue;
+            }
+
+            int sourceIndex = name.indexOf( " [Source:" );
+            name = sourceIndex >= 0 ? name.substring( 0, sourceIndex ) : name;
+
+            GeneValueObject gene = new GeneValueObject( ensemblId, symbol, name, geneBiotype, taxon );
+            int startBase = Integer.valueOf( start );
+            int endBase = Integer.valueOf( end );
+            if ( startBase < endBase ) {
+                gene.setGenomicRange( new GenomicRange( chromosome, startBase, endBase ) );
+            } else {
+                gene.setGenomicRange( new GenomicRange( chromosome, endBase, startBase ) );
+            }
+            gene.setNcbiGeneId( ncbiGeneId );
+            genes.add( gene );
+        }
+
+        return genes;
     }
+
+    private void updateCacheIfExpired() throws BioMartServiceException {
+		updateCacheIfExpired("Human",false);
+
+    }
+
+
+    private void updateCacheIfExpired(String taxon, Boolean forceUpdate) throws BioMartServiceException {
+        if ( !this.bioMartCache.hasExpired() && !forceUpdate ) return;
+
+    	String datasetName = TAXON_COMMON_TO_DATASET.get(taxon);
+    	
+    	if (datasetName == null) {
+            String errorMessage = "Taxon: [" + taxon + "] not recognized";
+            log.error( errorMessage );
+
+            throw new BioMartServiceException( errorMessage );
+    	}
+
+        Dataset dataset = new Dataset( datasetName );
+
+        dataset.Filter.add( new Filter( "chromosome_name",
+                "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,X,Y" ) );
+
+
+        Collection<GeneValueObject> genes = new HashSet<>();
+        genes.addAll( parseGeneInfo(dataset, taxon) );
+
+        this.bioMartCache.putAll( genes );
+
+    }
+
+    private void updateCacheAllTaxons() throws BioMartServiceException {
+    	if ( !this.bioMartCache.hasExpired() ) return;
+
+    	for (Map.Entry<String, String> taxon : TAXON_COMMON_TO_DATASET.entrySet()) {
+    		updateCacheIfExpired(taxon.getKey(),true);
+    	}
+    	
+    }
+
 }

@@ -137,7 +137,8 @@ public class Gene {
         setOfficialSymbol( jsonObj.get( "officialSymbol" ).toString() );
         setEnsemblId( jsonObj.get( "ensemblId" ).toString() );
         setTaxon( jsonObj.get( "taxon" ).toString() );
-        // TODO Set Aliases, Taxon
-        // setNcbiGeneId( jsonObj.get( "taxon" ).toString() );
+        setNcbiGeneId( jsonObj.get( "ncbiGeneId" ).toString() );
+
+        // TODO Set Aliases
     }
 }

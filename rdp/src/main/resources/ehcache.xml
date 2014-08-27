@@ -34,6 +34,7 @@
   <cache name="BioMartCache" maxElementsInMemory="0" eternal="false" timeToLiveSeconds="86400" overflowToDisk="false">
    <searchable>
     <searchAttribute name="ensemblId" />
+    <searchAttribute name="ncbiGeneId" />
     <searchAttribute name="officialName" />
     <searchAttribute name="officialSymbol"/>
     <searchAttribute name="genomicRangeChromosome" expression="value.getGenomicRange().getChromosome()" />

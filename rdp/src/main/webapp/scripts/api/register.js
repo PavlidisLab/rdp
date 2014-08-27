@@ -1,7 +1,7 @@
-var showMessage = function(message) {
-   console.log( message )
-   $( "#primaryContactMessage" ).html( message );
-   $( "#primaryContactFailed" ).show();
+var showMessage = function( message, messageEl ) {
+   console.log( message );
+   messageEl.html( message );
+   messageEl.parent().show();
 }
 
 // Call the button widget method on the login button to format it.
@@ -18,13 +18,13 @@ var saveContact = function() {
          // console.log( "saved researcher successfully" );
          // $( "#primaryContactMessage" ).html( jQuery.parseJSON( response ).message );
          // $( "#primaryContactFailed" ).show();
-         showMessage( jQuery.parseJSON( response ).message )
+         showMessage( jQuery.parseJSON( response ).message, $( "#primaryContactMessage" ) )
       },
       error : function(response, xhr) {
          console.log( xhr.responseText );
          // $( "#primaryContactMessage" ).html( jQuery.parseJSON( response ).message );
          // $( "#primaryContactFailed" ).show();
-         showMessage( jQuery.parseJSON( response ).message )
+         showMessage( jQuery.parseJSON( response ).message, $( "#primaryContactMessage" ) )
       },
       complete : function(result) {
       }
@@ -64,12 +64,12 @@ $( document ).ready( function() {
             form.find( "#firstName" ).val( data.firstName );
             form.find( "#lastName" ).val( data.lastName );
             form.find( "#email" ).val( data.email );
-            showMessage( "Missing contact details" );
+            showMessage( "Missing contact details", $("#primaryContactMessage") );
          }
 
       },
       error : function(response, xhr) {
-         showMessage( jQuery.parseJSON( response ).message )
+         showMessage( jQuery.parseJSON( response ).message, $("#primaryContactMessage") )
       }
    } );
 } );
