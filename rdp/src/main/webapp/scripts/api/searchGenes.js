@@ -26,16 +26,15 @@ function addGene(geneValueObject, table) {
 
 $( document ).ready( function() {
    
-   var table = $( "#geneManagerTable" ).DataTable();
-
    // init add genes button
    $( "#addGeneButton" ).click( function() {
       geneValueObject = $( "#searchGenesSelect" ).select2( "data" )
-      addGene( geneValueObject, table )
+      addGene( geneValueObject, $( "#geneManagerTable" ).DataTable() )
    } );
 
    // init remove genes button
    $( "#removeGeneButton" ).click( function() {
+      var table = $( "#geneManagerTable" ).DataTable();
       var selectedNode = table.row( '.selected' );
       var selectedSymbol = selectedNode.data()[0]; // data = [symbol, alias, name] ie column heading ordering
       selectedNode.remove().draw( false );
