@@ -2,6 +2,7 @@ package ubc.pavlab.rdp.server.biomartquery;
 
 import java.io.StringWriter;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Timer;
@@ -39,17 +40,19 @@ import com.sun.jersey.core.util.MultivaluedMapImpl;
  */
 @Service
 public class BioMartQueryServiceImpl implements BioMartQueryService {
-    private static final String BIO_MART_URL = "http://www.biomart.org/biomart/martservice/results";
+    private static final String BIO_MART_URL_SUFFIX = "/biomart/martservice/results";
+    private static final String BIO_MART_URL = "http://www.biomart.org" + BIO_MART_URL_SUFFIX;
+    private static final String GENE_NAMES_BIO_MART_URL = "http://www.genenames.org" + BIO_MART_URL_SUFFIX;
 
     private static Log log = LogFactory.getLog( BioMartQueryServiceImpl.class.getName() );
 
-    private static String sendRequest( String xmlQueryString ) throws BioMartServiceException {
+    private static String sendRequest( String xmlQueryString, String url ) throws BioMartServiceException {
         Client client = Client.create();
 
         MultivaluedMap<String, String> queryData = new MultivaluedMapImpl();
         queryData.add( "query", xmlQueryString );
 
-        WebResource resource = client.resource( BIO_MART_URL ).queryParams( queryData );
+        WebResource resource = client.resource( url ).queryParams( queryData );
 
         ClientResponse response = resource.type( MediaType.APPLICATION_FORM_URLENCODED_TYPE )
                 .get( ClientResponse.class );
@@ -124,17 +127,7 @@ public class BioMartQueryServiceImpl implements BioMartQueryService {
         // updateCacheIfExpired();
     }
 
-    private Collection<GeneValueObject> parseGeneInfo( Dataset dataset ) throws BioMartServiceException {
-
-        dataset.Attribute.add( new Attribute( "ensembl_gene_id" ) );
-        dataset.Attribute.add( new Attribute( "entrezgene" ) );
-        dataset.Attribute.add( new Attribute( "external_gene_id" ) );
-        dataset.Attribute.add( new Attribute( "description" ) );
-        dataset.Attribute.add( new Attribute( "gene_biotype" ) );
-        dataset.Attribute.add( new Attribute( "chromosome_name" ) );
-        dataset.Attribute.add( new Attribute( "start" ) );
-        dataset.Attribute.add( new Attribute( "end" ) );
-
+    private String queryDataset( Dataset dataset, String url ) throws BioMartServiceException {
         Query query = new Query();
         query.Dataset = dataset;
 
@@ -165,10 +158,25 @@ public class BioMartQueryServiceImpl implements BioMartQueryService {
             }
         }, 0, 10 * 1000 );
 
-        String response = sendRequest( xmlQueryWriter.toString() );
-        log.info( "BioMart request to (" + BIO_MART_URL + ") took " + timer.getTime() + " ms" );
+        String response = sendRequest( xmlQueryWriter.toString(), url );
+        log.info( "BioMart request to (" + url + ") took " + timer.getTime() + " ms" );
 
         uploadCheckerTimer.cancel();
+        return response;
+    }
+
+    private Collection<GeneValueObject> parseGeneInfo( Dataset dataset ) throws BioMartServiceException {
+
+        dataset.Attribute.add( new Attribute( "ensembl_gene_id" ) );
+        dataset.Attribute.add( new Attribute( "entrezgene" ) );
+        dataset.Attribute.add( new Attribute( "external_gene_id" ) );
+        dataset.Attribute.add( new Attribute( "description" ) );
+        dataset.Attribute.add( new Attribute( "gene_biotype" ) );
+        dataset.Attribute.add( new Attribute( "chromosome_name" ) );
+        dataset.Attribute.add( new Attribute( "start" ) );
+        dataset.Attribute.add( new Attribute( "end" ) );
+
+        String response = queryDataset( dataset, BIO_MART_URL );
 
         String[] rows = StringUtils.split( response, "\n" );
 
@@ -221,13 +229,65 @@ public class BioMartQueryServiceImpl implements BioMartQueryService {
         return genes;
     }
 
+    private HashMap<String, GeneValueObject> convertToMap( Collection<GeneValueObject> genes ) {
+        HashMap<String, GeneValueObject> map = new HashMap<>();
+        for ( GeneValueObject g : genes ) {
+            map.put( g.getEnsemblId(), g );
+        }
+        return map;
+    }
+
+    private void addHumanGeneSynonyms( Collection<GeneValueObject> genes ) throws BioMartServiceException {
+        Dataset dataset = new Dataset( "hgnc" );
+
+        dataset.Filter.add( new Filter( "gd_pub_chr", "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,X,Y" ) );
+
+        dataset.Attribute.add( new Attribute( "gd_aliases" ) );
+        dataset.Attribute.add( new Attribute( "md_ensembl_id" ) );
+
+        String response = queryDataset( dataset, GENE_NAMES_BIO_MART_URL );
+
+        String[] rows = StringUtils.split( response, "\n" );
+
+        HashMap<String, GeneValueObject> genesMap = convertToMap( genes );
+
+        for ( String row : rows ) {
+
+            // warning: split() trims off trailing whitespaces!
+            String[] fields = row.split( "\t" );
+
+            try {
+                int index = 0;
+                String aliases = fields[index++];
+                String ensemblId = fields[index++];
+                // Ignore results that do not have required attributes.
+                if ( ensemblId.equals( "" ) || aliases.equals( "" ) || !genesMap.containsKey( ensemblId ) ) {
+                    continue;
+                }
+
+                for ( String alias : aliases.split( "," ) ) {
+                    genesMap.get( ensemblId ).getAliases().add( alias.trim() );
+                }
+
+            } catch ( ArrayIndexOutOfBoundsException e ) {
+                continue;
+            }
+        }
+
+    }
+
     private Collection<GeneValueObject> parseHumanGeneInfo() throws BioMartServiceException {
         Dataset dataset = new Dataset( "hsapiens_gene_ensembl" );
 
         dataset.Filter.add( new Filter( "chromosome_name",
                 "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,X,Y" ) );
 
-        return parseGeneInfo( dataset );
+        Collection<GeneValueObject> genes = new HashSet<>();
+        genes.addAll( parseGeneInfo( dataset ) );
+
+        addHumanGeneSynonyms( genes );
+
+        return genes;
     }
 
     private void updateCacheIfExpired() throws BioMartServiceException {

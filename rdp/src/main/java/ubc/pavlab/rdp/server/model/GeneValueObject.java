@@ -1,6 +1,8 @@
 package ubc.pavlab.rdp.server.model;
 
 import java.io.Serializable;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.directwebremoting.annotations.DataTransferObject;
 import org.eclipse.jdt.internal.compiler.util.Util.Displayable;
@@ -23,6 +25,7 @@ public class GeneValueObject implements Displayable, Serializable {
     private String linkToGemma;
     private String geneBioType;
     private String ncbiGeneId;
+    private Set<String> aliases = new HashSet<>();
 
     private GenomicRange genomicRange;
 
@@ -128,5 +131,13 @@ public class GeneValueObject implements Displayable, Serializable {
 
     public void setNcbiGeneId( String ncbiGeneId ) {
         this.ncbiGeneId = ncbiGeneId;
+    }
+
+    public Set<String> getAliases() {
+        return aliases;
+    }
+
+    public void setAliases( Set<String> aliases ) {
+        this.aliases = aliases;
     }
 }

@@ -42,6 +42,10 @@ public class GeneAlias {
 
     private String alias;
 
+    public GeneAlias( String alias ) {
+        this.alias = alias;
+    }
+
     public String getAlias() {
         return alias;
     }

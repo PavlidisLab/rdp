@@ -15,8 +15,7 @@ function addGene(geneValueObject, table) {
    // console.log( "addGene = " + geneValueObject.officialName + "; dataTable = " + table );
 
    // columns: Symbol, Alias, Name
-   // FIXME Add Alias
-   geneRow = [ geneValueObject.officialSymbol, geneValueObject.officialName ];
+   geneRow = [ geneValueObject.officialSymbol, geneValueObject.aliases, geneValueObject.officialName ];
 
    table.row.add( geneRow ).draw();
 
@@ -26,7 +25,7 @@ function addGene(geneValueObject, table) {
 }
 
 $( document ).ready( function() {
-
+   
    var table = $( "#geneManagerTable" ).DataTable();
 
    // init add genes button
@@ -48,7 +47,7 @@ $( document ).ready( function() {
       id : function(data) {
          return data.key;
       },
-      placeholder : "Gene symbol",
+      placeholder : "Enter gene symbol, alias or name",
       minimumInputLength : 3,
       ajax : {
          url : "searchGenes.html",
@@ -64,7 +63,8 @@ $( document ).ready( function() {
             // select2 format result looks for the 'text' attr
             for (var i = 0; i < data.data.length; i++) {
                gene = data.data[i]
-               gene.text = "<b>" + gene.officialSymbol + "</b> " + gene.officialName
+               aliasStr = gene.aliases.length > 0 ? "(" + gene.aliases + ") " : "";
+               gene.text = "<b>" + gene.officialSymbol + "</b> " + aliasStr + gene.officialName
             }
             return {
                results : data.data

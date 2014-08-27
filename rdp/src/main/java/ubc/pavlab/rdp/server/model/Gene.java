@@ -14,6 +14,7 @@
  */
 package ubc.pavlab.rdp.server.model;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -138,7 +139,12 @@ public class Gene {
         setEnsemblId( jsonObj.get( "ensemblId" ).toString() );
         setNcbiGeneId( jsonObj.get( "ncbiGeneId" ).toString() );
 
-        // TODO Set Aliases, Taxon
+        @SuppressWarnings("unchecked")
+        ArrayList<String> aliases = ( ArrayList<String> ) jsonObj.get( "aliases" );
+        for ( String alias : aliases ) {
+            getAliases().add( new GeneAlias( alias ) );
+        }
+        // TODO Taxon
         // setTaxon( jsonObj.get( "taxon" ).toString() );
     }
 }
