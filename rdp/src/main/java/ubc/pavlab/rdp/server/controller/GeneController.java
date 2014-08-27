@@ -98,11 +98,14 @@ public class GeneController {
             } else {
 
             	Collection<Gene> genes = user.getGenes();
-            	CollectionUtils.filter( genes, new Predicate(){
-					public boolean evaluate( Object input ) {
-                       return ((Gene) input).getTaxon().equals(taxonCommonName);
-                    }
-                 } );
+            	if ( !taxonCommonName.equals("All") ) {
+	            	CollectionUtils.filter( genes, new Predicate(){
+						public boolean evaluate( Object input ) {
+	                       return ((Gene) input).getTaxon().equals(taxonCommonName);
+	                    }
+	                 } );
+            	}
+            	
                 jsonText = "{\"success\":true,\"data\":" + jsonUtil.collectionToJson( genes ) + "}";
                 log.info( "Loaded " + genes.size() + " genes" );
             }

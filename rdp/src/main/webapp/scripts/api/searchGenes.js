@@ -20,27 +20,32 @@ function addGene(geneValueObject, table) {
 
    table.row.add( geneRow ).draw();
 
-   // save object to table element using symbol as key
-   jQuery.data( $( "#geneManagerTable" )[0], geneValueObject.officialSymbol + ":" + geneValueObject.taxon, geneValueObject );
+   // save object to table element using symbol:taxon as key
+   saveGeneToTable(geneValueObject);
 
 }
 
-$( document ).ready( function() {
+function saveGeneToTable(geneValueObject) {
+	jQuery.data( $( "#geneManagerTable" )[0], geneValueObject.officialSymbol + ":" + geneValueObject.taxon, geneValueObject );
+}
 
-   var table = $( "#geneManagerTable" ).DataTable();
+
+$( document ).ready( function() {
 
    // init add genes button
    $( "#addGeneButton" ).click( function() {
       geneValueObject = $( "#searchGenesSelect" ).select2( "data" )
-      addGene( geneValueObject, table )
+      addGene( geneValueObject, $( "#geneManagerTable" ).DataTable() )
    } );
 
    // init remove genes button
    $( "#removeGeneButton" ).click( function() {
+	  var table = $( "#geneManagerTable" ).DataTable();
       var selectedNode = table.row( '.selected' );
       var selectedSymbol = selectedNode.data()[0]; // data = [symbol, alias, name] ie column heading ordering
+      var selectedTaxon = selectedNode.data()[1];
       selectedNode.remove().draw( false );
-      jQuery.removeData( $( "#geneManagerTable" )[0], selectedSymbol );
+      jQuery.removeData( $( "#geneManagerTable" )[0], selectedSymbol + ":" + selectedTaxon);
    } );
 
    // init search genes combo
