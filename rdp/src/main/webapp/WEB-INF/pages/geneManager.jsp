@@ -9,7 +9,6 @@
 					<span aria-hidden="true">&times;</span><span class="sr-only">Close</span>
 				</button>
 				<h4 id="geneModalTitle" class="modal-title">Gene Group Manager</h4>
-				<h5 id="organism-common-name"class="modal-title"></h5>
 			</div>
 
 			<div class="modal-body">

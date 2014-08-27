@@ -106,8 +106,6 @@ var closeGenesManager = function() {
 
 var initGeneManager = function() {
 
-   $( "#geneModalTitle" ).html( $( "#taxonCommonNameSelect" ).val() + " Gene Manager" )
-
    var tableEl = $( "#geneManagerTable" );
 
    addRowSelectEvent( tableEl.dataTable() );
