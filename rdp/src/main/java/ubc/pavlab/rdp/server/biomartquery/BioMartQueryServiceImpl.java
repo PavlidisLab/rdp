@@ -24,8 +24,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import ubc.pavlab.rdp.server.exception.BioMartServiceException;
-import ubc.pavlab.rdp.server.model.GeneValueObject;
-import ubc.pavlab.rdp.server.model.GenomicRange;
+import ubc.pavlab.rdp.server.model.Gene;
+import ubc.pavlab.rdp.server.model.GeneAlias;
 
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
@@ -73,36 +73,32 @@ public class BioMartQueryServiceImpl implements BioMartQueryService {
     private BioMartCache bioMartCache;
 
     @Override
-    public Collection<GeneValueObject> fetchGenesByGeneSymbols( Collection<String> geneSymbols )
-            throws BioMartServiceException {
+    public Collection<Gene> fetchGenesByGeneSymbols( Collection<String> geneSymbols ) throws BioMartServiceException {
         updateCacheIfExpired();
 
         return bioMartCache.fetchGenesByGeneSymbols( geneSymbols );
     }
 
     @Override
-    public Collection<GeneValueObject> fetchGenesByLocation( String chromosomeName, Long start, Long end )
+    public Collection<Gene> fetchGenesByLocation( String chromosomeName, Long start, Long end )
             throws BioMartServiceException {
         updateCacheIfExpired();
 
         return bioMartCache.fetchGenesByLocation( chromosomeName, start, end );
     }
 
-    @Override
-    public Collection<GenomicRange> fetchGenomicRangesByGeneSymbols( Collection<String> geneSymbols )
-            throws BioMartServiceException {
-        Collection<GeneValueObject> genes = fetchGenesByGeneSymbols( geneSymbols );
-        Collection<GenomicRange> genomicRanges = new HashSet<GenomicRange>( genes.size() );
-
-        for ( GeneValueObject gene : genes ) {
-            genomicRanges.add( gene.getGenomicRange() );
-        }
-
-        return genomicRanges;
-    }
+    /*
+     * @Override public Collection<GenomicRange> fetchGenomicRangesByGeneSymbols( Collection<String> geneSymbols )
+     * throws BioMartServiceException { Collection<Gene> genes = fetchGenesByGeneSymbols( geneSymbols );
+     * Collection<GenomicRange> genomicRanges = new HashSet<GenomicRange>( genes.size() );
+     * 
+     * for ( Gene gene : genes ) { genomicRanges.add( gene.getGenomicRange() ); }
+     * 
+     * return genomicRanges; }
+     */
 
     @Override
-    public Collection<GeneValueObject> findGenes( String queryString ) throws BioMartServiceException {
+    public Collection<Gene> findGenes( String queryString ) throws BioMartServiceException {
         updateCacheIfExpired();
 
         return bioMartCache.findGenes( queryString );
@@ -115,7 +111,7 @@ public class BioMartQueryServiceImpl implements BioMartQueryService {
      * @return Gene value Objects associated with the given gene string list
      */
     @Override
-    public List<GeneValueObject> getGenes( List<String> geneStrings ) throws BioMartServiceException {
+    public List<Gene> getGenes( List<String> geneStrings ) throws BioMartServiceException {
         updateCacheIfExpired();
 
         return bioMartCache.getGenes( geneStrings );
@@ -165,7 +161,7 @@ public class BioMartQueryServiceImpl implements BioMartQueryService {
         return response;
     }
 
-    private Collection<GeneValueObject> parseGeneInfo( Dataset dataset ) throws BioMartServiceException {
+    private Collection<Gene> parseGeneInfo( Dataset dataset ) throws BioMartServiceException {
 
         dataset.Attribute.add( new Attribute( "ensembl_gene_id" ) );
         dataset.Attribute.add( new Attribute( "entrezgene" ) );
@@ -180,7 +176,7 @@ public class BioMartQueryServiceImpl implements BioMartQueryService {
 
         String[] rows = StringUtils.split( response, "\n" );
 
-        Collection<GeneValueObject> genes = new HashSet<>();
+        Collection<Gene> genes = new HashSet<>();
 
         int rowsLength = rows.length;
         if ( rowsLength <= 1 ) {
@@ -214,14 +210,18 @@ public class BioMartQueryServiceImpl implements BioMartQueryService {
             int sourceIndex = name.indexOf( " [Source:" );
             name = sourceIndex >= 0 ? name.substring( 0, sourceIndex ) : name;
 
-            GeneValueObject gene = new GeneValueObject( ensemblId, symbol, name, geneBiotype, "human" );
-            int startBase = Integer.valueOf( start );
-            int endBase = Integer.valueOf( end );
-            if ( startBase < endBase ) {
-                gene.setGenomicRange( new GenomicRange( chromosome, startBase, endBase ) );
-            } else {
-                gene.setGenomicRange( new GenomicRange( chromosome, endBase, startBase ) );
-            }
+            // GeneValueObject gene = new GeneValueObject( ensemblId, symbol, name, geneBiotype, "human" );
+            Gene gene = new Gene();
+            gene.setEnsemblId( ensemblId );
+            gene.setOfficialSymbol( symbol );
+            gene.setOfficialName( name );
+            // TODO
+            // gene.setTaxon(new Taxon());
+            /*
+             * int startBase = Integer.valueOf( start ); int endBase = Integer.valueOf( end ); if ( startBase < endBase
+             * ) { gene.setGenomicRange( new GenomicRange( chromosome, startBase, endBase ) ); } else {
+             * gene.setGenomicRange( new GenomicRange( chromosome, endBase, startBase ) ); }
+             */
             gene.setNcbiGeneId( ncbiGeneId );
             genes.add( gene );
         }
@@ -229,15 +229,15 @@ public class BioMartQueryServiceImpl implements BioMartQueryService {
         return genes;
     }
 
-    private HashMap<String, GeneValueObject> convertToMap( Collection<GeneValueObject> genes ) {
-        HashMap<String, GeneValueObject> map = new HashMap<>();
-        for ( GeneValueObject g : genes ) {
+    private HashMap<String, Gene> convertToMap( Collection<Gene> genes ) {
+        HashMap<String, Gene> map = new HashMap<>();
+        for ( Gene g : genes ) {
             map.put( g.getEnsemblId(), g );
         }
         return map;
     }
 
-    private void addHumanGeneSynonyms( Collection<GeneValueObject> genes ) throws BioMartServiceException {
+    private void addHumanGeneSynonyms( Collection<Gene> genes ) throws BioMartServiceException {
         Dataset dataset = new Dataset( "hgnc" );
 
         dataset.Filter.add( new Filter( "gd_pub_chr", "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,X,Y" ) );
@@ -249,7 +249,7 @@ public class BioMartQueryServiceImpl implements BioMartQueryService {
 
         String[] rows = StringUtils.split( response, "\n" );
 
-        HashMap<String, GeneValueObject> genesMap = convertToMap( genes );
+        HashMap<String, Gene> genesMap = convertToMap( genes );
 
         for ( String row : rows ) {
 
@@ -266,7 +266,7 @@ public class BioMartQueryServiceImpl implements BioMartQueryService {
                 }
 
                 for ( String alias : aliases.split( "," ) ) {
-                    genesMap.get( ensemblId ).getAliases().add( alias.trim() );
+                    genesMap.get( ensemblId ).getAliases().add( new GeneAlias( alias.trim() ) );
                 }
 
             } catch ( ArrayIndexOutOfBoundsException e ) {
@@ -276,13 +276,13 @@ public class BioMartQueryServiceImpl implements BioMartQueryService {
 
     }
 
-    private Collection<GeneValueObject> parseHumanGeneInfo() throws BioMartServiceException {
+    private Collection<Gene> parseHumanGeneInfo() throws BioMartServiceException {
         Dataset dataset = new Dataset( "hsapiens_gene_ensembl" );
 
         dataset.Filter.add( new Filter( "chromosome_name",
                 "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,X,Y" ) );
 
-        Collection<GeneValueObject> genes = new HashSet<>();
+        Collection<Gene> genes = new HashSet<>();
         genes.addAll( parseGeneInfo( dataset ) );
 
         addHumanGeneSynonyms( genes );
@@ -293,7 +293,7 @@ public class BioMartQueryServiceImpl implements BioMartQueryService {
     private void updateCacheIfExpired() throws BioMartServiceException {
         if ( !this.bioMartCache.hasExpired() ) return;
 
-        Collection<GeneValueObject> genes = new HashSet<>();
+        Collection<Gene> genes = new HashSet<>();
         genes.addAll( parseHumanGeneInfo() );
 
         this.bioMartCache.putAll( genes );

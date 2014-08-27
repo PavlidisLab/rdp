@@ -10,12 +10,20 @@ function dataSortResult(data, container, query) {
    } );
 }
 
+function aliasesToString(geneValueObject) {
+   arr = [];
+   geneValueObject.aliases.forEach( function(ele) {
+      arr.push( ele.alias );
+   } );
+   return arr.join( ',' );
+}
+
 function addGene(geneValueObject, table) {
 
    // console.log( "addGene = " + geneValueObject.officialName + "; dataTable = " + table );
 
    // columns: Symbol, Alias, Name
-   geneRow = [ geneValueObject.officialSymbol, geneValueObject.aliases, geneValueObject.officialName ];
+   geneRow = [ geneValueObject.officialSymbol, aliasesToString(geneValueObject), geneValueObject.officialName ];
 
    table.row.add( geneRow ).draw();
 
@@ -25,7 +33,7 @@ function addGene(geneValueObject, table) {
 }
 
 $( document ).ready( function() {
-   
+
    // init add genes button
    $( "#addGeneButton" ).click( function() {
       geneValueObject = $( "#searchGenesSelect" ).select2( "data" )
@@ -44,7 +52,7 @@ $( document ).ready( function() {
    // init search genes combo
    $( "#searchGenesSelect" ).select2( {
       id : function(data) {
-         return data.key;
+         return data.officialSymbol;
       },
       placeholder : "Enter gene symbol, alias or name",
       minimumInputLength : 3,
@@ -62,7 +70,7 @@ $( document ).ready( function() {
             // select2 format result looks for the 'text' attr
             for (var i = 0; i < data.data.length; i++) {
                gene = data.data[i]
-               aliasStr = gene.aliases.length > 0 ? "(" + gene.aliases + ") " : "";
+               aliasStr = gene.aliases.length > 0 ? "(" + aliasesToString( gene ) + ") " : "";
                gene.text = "<b>" + gene.officialSymbol + "</b> " + aliasStr + gene.officialName
             }
             return {
@@ -77,5 +85,5 @@ $( document ).ready( function() {
       },
       sortResults : dataSortResult,
    } );
-
+   
 } );

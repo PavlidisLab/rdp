@@ -39,7 +39,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import ubc.pavlab.rdp.server.biomartquery.BioMartQueryService;
 import ubc.pavlab.rdp.server.exception.BioMartServiceException;
 import ubc.pavlab.rdp.server.model.Gene;
-import ubc.pavlab.rdp.server.model.GeneValueObject;
 import ubc.pavlab.rdp.server.model.Researcher;
 import ubc.pavlab.rdp.server.service.GeneService;
 import ubc.pavlab.rdp.server.service.ResearcherService;
@@ -189,7 +188,7 @@ public class GeneController {
         String taxon = request.getParameter( "taxon" );
 
         try {
-            Collection<GeneValueObject> results = biomartService.findGenes( query );
+            Collection<Gene> results = biomartService.findGenes( query );
             jsonText = "{\"success\":true,\"data\":" + jsonUtil.collectionToJson( results ) + "}";
         } catch ( BioMartServiceException e ) {
             e.printStackTrace();

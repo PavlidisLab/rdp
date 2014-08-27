@@ -33,7 +33,7 @@ var saveGenes = function() {
       success : function(response, xhr) {
 
          if ( !response.success ) {
-            showMessage( response );
+            showMessage( response.message, $( "#geneManagerMessage" ) );
          }
 
          var tableEl = $( "#geneManagerTable" );
@@ -42,7 +42,7 @@ var saveGenes = function() {
 
          if ( !response.success ) {
             console.log( response.message );
-            showMessage( response );
+            showMessage( response.message, $( "#geneManagerMessage" ) );
             return;
          }
 

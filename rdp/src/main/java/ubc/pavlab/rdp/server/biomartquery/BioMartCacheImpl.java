@@ -11,7 +11,7 @@ import net.sf.ehcache.search.expression.Criteria;
 
 import org.springframework.stereotype.Component;
 
-import ubc.pavlab.rdp.server.model.GeneValueObject;
+import ubc.pavlab.rdp.server.model.Gene;
 import ubc.pavlab.rdp.server.util.SearchableEhcache;
 
 /**
@@ -21,7 +21,7 @@ import ubc.pavlab.rdp.server.util.SearchableEhcache;
  * @version $Id$
  */
 @Component
-public class BioMartCacheImpl extends SearchableEhcache<GeneValueObject> implements BioMartCache {
+public class BioMartCacheImpl extends SearchableEhcache<Gene> implements BioMartCache {
     // These constants are used in ehcache.xml. If they are changed, ehcache.xml must be modified.
     private static final String CACHE_NAME = "BioMartCache";
     private static final String GENE_ENSEMBL_ID_SEARCH_ATTRIBUTE_NAME = "ensemblId";
@@ -41,14 +41,14 @@ public class BioMartCacheImpl extends SearchableEhcache<GeneValueObject> impleme
     private Attribute<Object> geneNcbiIdAttribute;
 
     @Override
-    public Collection<GeneValueObject> fetchGenesByGeneSymbols( Collection<String> geneSymbols ) {
+    public Collection<Gene> fetchGenesByGeneSymbols( Collection<String> geneSymbols ) {
         Criteria symbolCriteria = geneSymbolAttribute.in( geneSymbols );
 
         return fetchByCriteria( symbolCriteria );
     }
 
     @Override
-    public Collection<GeneValueObject> fetchGenesByLocation( String chromosomeName, Long start, Long end ) {
+    public Collection<Gene> fetchGenesByLocation( String chromosomeName, Long start, Long end ) {
         Criteria chromosomeCriteria = chromosomeAttribute.eq( chromosomeName );
         Criteria insideVariant = startAttribute.between( start.intValue(), end.intValue() ).or(
                 endAttribute.between( start.intValue(), end.intValue() ) );
@@ -57,14 +57,14 @@ public class BioMartCacheImpl extends SearchableEhcache<GeneValueObject> impleme
 
         Criteria hasName = geneSymbolAttribute.ne( "" );
 
-        final Collection<GeneValueObject> geneValueObjects = fetchByCriteria( hasName.and( chromosomeCriteria
-                .and( insideVariant.or( overlapsStart ).or( overlapsEnd ) ) ) );
+        final Collection<Gene> geneValueObjects = fetchByCriteria( hasName.and( chromosomeCriteria.and( insideVariant
+                .or( overlapsStart ).or( overlapsEnd ) ) ) );
 
         return geneValueObjects;
     }
 
     @Override
-    public Collection<GeneValueObject> findGenes( String queryString ) {
+    public Collection<Gene> findGenes( String queryString ) {
         String regexQueryString = "*" + queryString + "*";
 
         Criteria nameCriteria = geneNameAttribute.ilike( regexQueryString );
@@ -79,14 +79,14 @@ public class BioMartCacheImpl extends SearchableEhcache<GeneValueObject> impleme
     }
 
     @Override
-    public List<GeneValueObject> getGenes( List<String> geneStrings ) {
-        List<GeneValueObject> genes = new ArrayList<GeneValueObject>( geneStrings.size() );
+    public List<Gene> getGenes( List<String> geneStrings ) {
+        List<Gene> genes = new ArrayList<>( geneStrings.size() );
 
         for ( String geneString : geneStrings ) {
             Criteria symbolCriteria = geneSymbolAttribute.ilike( geneString );
             Criteria ensemblIdCriteria = geneEnsemblIdAttribute.ilike( geneString );
             Criteria geneNcbiIdCriteria = geneNcbiIdAttribute.ilike( geneString );
-            Collection<GeneValueObject> fetchedGenes = fetchByCriteria( symbolCriteria.or( ensemblIdCriteria
+            Collection<Gene> fetchedGenes = fetchByCriteria( symbolCriteria.or( ensemblIdCriteria
                     .or( geneNcbiIdCriteria ) ) );
             if ( fetchedGenes.size() > 0 ) {
                 // Only use the first gene.
@@ -100,7 +100,7 @@ public class BioMartCacheImpl extends SearchableEhcache<GeneValueObject> impleme
     }
 
     @Override
-    public Object getKey( GeneValueObject gene ) {
+    public Object getKey( Gene gene ) {
         return gene.getEnsemblId();
     }
 

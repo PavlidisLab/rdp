@@ -14,8 +14,8 @@
  */
 package ubc.pavlab.rdp.server.model;
 
-import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import javax.persistence.CascadeType;
@@ -28,6 +28,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
@@ -140,9 +141,10 @@ public class Gene {
         setNcbiGeneId( jsonObj.get( "ncbiGeneId" ).toString() );
 
         @SuppressWarnings("unchecked")
-        ArrayList<String> aliases = ( ArrayList<String> ) jsonObj.get( "aliases" );
-        for ( String alias : aliases ) {
-            getAliases().add( new GeneAlias( alias ) );
+        JSONArray aliases = ( JSONArray ) jsonObj.get( "aliases" );
+        for ( int i = 0; i < aliases.length(); i++ ) {
+            JSONObject alias = ( JSONObject ) aliases.get( i );
+            getAliases().add( new GeneAlias( alias.get( "alias" ).toString() ) );
         }
         // TODO Taxon
         // setTaxon( jsonObj.get( "taxon" ).toString() );
