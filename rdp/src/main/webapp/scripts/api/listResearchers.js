@@ -43,6 +43,13 @@ var findResearchersByGene = function() {
 
    var gene = $( "#findResearchersByGenesSelect" ).select2( "data" )
 
+   if ( gene == null ) {
+      showMessage( "Please select a gene", $( "#listResearchersMessage" ) );
+      return;
+   } else {
+      $( "#listResearchersFailed" ).hide();
+   }
+
    $.ajax( {
       url : "findResearchersByGene.html",
       data : {
