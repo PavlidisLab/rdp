@@ -1,4 +1,5 @@
 function showGenesModal() {
+   $( "#geneModalTitle" ).html( $( "#taxonCommonNameSelect" ).val() + " Gene Manager" )
    $( "#geneManagerModal" ).modal( {
       keyboard : false,
       backdrop : 'static',

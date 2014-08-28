@@ -17,6 +17,7 @@ function addRowSelectEvent(table) {
 }
 
 var saveGenes = function() {
+   console.log(jQuery.data( $( "#geneManagerTable" )[0] ));
    $.ajax( {
       url : "saveResearcherGenes.html",
 
@@ -57,12 +58,14 @@ var saveGenes = function() {
 
 var showGenes = function() {
 
+   $( "#geneManagerTable" ).DataTable().clear();
+   $( "#geneManagerTable" ).DataTable().draw();
    $.ajax( {
       url : "loadResearcherGenes.html",
 
       data : {
-         taxonCommonName : $( "#taxonCommonNameSelect" ).val(),
-
+         //taxonCommonName : $( "#taxonCommonNameSelect" ).val(),
+         taxonCommonName : "All",
       },
       dataType : "json",
 
@@ -77,7 +80,12 @@ var showGenes = function() {
 
          console.log( "Loaded " + response.data.length + " user genes" )
          for (var i = 0; i < response.data.length; i++) {
-            addGene( response.data[i], tableEl.DataTable() );
+        	if ( response.data[i].taxon === $( "#taxonCommonNameSelect" ).val() ) {
+        		addGene( response.data[i], tableEl.DataTable() );
+        	}
+        	else {
+        		saveGeneToTable(response.data[i]);
+        	}
          }
 
       },
@@ -97,8 +105,6 @@ var closeGenesManager = function() {
 }
 
 var initGeneManager = function() {
-
-   $( "#geneModalTitle" ).html( $( "#taxonCommonNameSelect" ).val() + " Gene Manager" )
 
    var tableEl = $( "#geneManagerTable" );
 

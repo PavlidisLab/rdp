@@ -3,6 +3,13 @@
  * display it as suggestions in a combo box (Select2 http://ivaynberg.github.io/select2/).
  */
 
+// sort by symbol attr
+function dataSortResult(data, container, query) {
+   return data.sort( function(a, b) {
+      return a.officialSymbol.localeCompare( b.officialSymbol );
+   } );
+}
+
 function aliasesToString(geneValueObject) {
    arr = [];
    geneValueObject.aliases.forEach( function(ele) {
@@ -16,13 +23,18 @@ function addGene(geneValueObject, table) {
    // console.log( "addGene = " + geneValueObject.officialName + "; dataTable = " + table );
 
    // columns: Symbol, Alias, Name
-   geneRow = [ geneValueObject.officialSymbol, aliasesToString( geneValueObject ), geneValueObject.officialName ];
+   // FIXME Add Alias
+   geneRow = [ geneValueObject.officialSymbol, aliasesToString(geneValueObject), geneValueObject.taxon, geneValueObject.officialName ];
 
    table.row.add( geneRow ).draw();
 
-   // save object to table element using symbol as key
-   jQuery.data( $( "#geneManagerTable" )[0], geneValueObject.officialSymbol, geneValueObject );
+   // save object to table element using symbol:taxon as key
+   saveGeneToTable(geneValueObject);
 
+}
+
+function saveGeneToTable(geneValueObject) {
+	jQuery.data( $( "#geneManagerTable" )[0], geneValueObject.officialSymbol + ":" + geneValueObject.taxon, geneValueObject );
 }
 
 // wrapped search genes in an object for re-usability
@@ -45,7 +57,7 @@ var searchGenes = {
             data : function(query, page) {
                return {
                   query : query, // search term
-                  taxon : 'human', // FIXME
+                  taxon : $("#taxonCommonNameSelect").val()
                }
             },
             results : function(data, page) {
@@ -54,7 +66,7 @@ var searchGenes = {
                for (var i = 0; i < data.data.length; i++) {
                   gene = data.data[i]
                   aliasStr = gene.aliases.length > 0 ? "(" + aliasesToString( gene ) + ") " : "";
-                  gene.text = "<b>" + gene.officialSymbol + "</b> " + aliasStr + gene.officialName
+                  gene.text = "<b>" + gene.officialSymbol + "</b> " + aliasStr + gene.officialName + "</b> " + gene.taxon
                }
                return {
                   results : data.data
@@ -89,12 +101,13 @@ $( document ).ready( function() {
       var table = $( "#geneManagerTable" ).DataTable();
       var selectedNode = table.row( '.selected' );
       var selectedSymbol = selectedNode.data()[0]; // data = [symbol, alias, name] ie column heading ordering
+      var selectedTaxon = selectedNode.data()[2];
       selectedNode.remove().draw( false );
-      jQuery.removeData( $( "#geneManagerTable" )[0], selectedSymbol );
+      jQuery.removeData( $( "#geneManagerTable" )[0], selectedSymbol + ":" + selectedTaxon);
    } );
 
    searchGenes.init( {
       'container' : $( "#searchGenesSelect" )
    } );
-
+   
 } );

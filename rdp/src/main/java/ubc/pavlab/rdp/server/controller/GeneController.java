@@ -28,6 +28,8 @@ import java.util.HashSet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.Predicate;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.directwebremoting.annotations.RemoteProxy;
@@ -82,7 +84,7 @@ public class GeneController {
         String jsonText = "";
 
         String username = userManager.getCurrentUsername();
-        String taxonCommonName = request.getParameter( "taxonCommonName" );
+        final String taxonCommonName = request.getParameter( "taxonCommonName" );
 
         Researcher user = researcherService.findByUserName( username );
 
@@ -94,9 +96,19 @@ public class GeneController {
                 jsonText = "{\"success\":false,\"message\":\"No researcher with name " + username + "\"}";
             } else {
 
-                // FIXME Filter by organism
+                Collection<Gene> genes = user.getGenes();
+                if ( !taxonCommonName.equals( "All" ) ) {
+                    CollectionUtils.filter( genes, new Predicate() {
+                        @Override
+                        public boolean evaluate( Object input ) {
+                            return ( ( Gene ) input ).getTaxon().equals( taxonCommonName );
+                        }
+                    } );
+                }
+
                 jsonText = "{\"success\":true,\"data\":" + ( new JSONArray( user.getGenes() ) ).toString() + "}";
                 log.info( "Loaded " + user.getGenes().size() + " genes" );
+
             }
 
         } catch ( Exception e ) {
@@ -232,7 +244,7 @@ public class GeneController {
         String taxon = request.getParameter( "taxon" );
 
         try {
-            Collection<Gene> results = biomartService.findGenes( query );
+            Collection<Gene> results = biomartService.findGenes( query, taxon );
             jsonText = "{\"success\":true,\"data\":" + ( new JSONArray( results ) ).toString() + "}";
         } catch ( BioMartServiceException e ) {
             e.printStackTrace();

@@ -30,6 +30,7 @@ public class BioMartCacheImpl extends SearchableEhcache<Gene> implements BioMart
     private static final String CHROMOSOME_SEARCH_ATTRIBUTE_NAME = "genomicRangeChromosome";
     private static final String START_SEARCH_ATTRIBUTE_NAME = "genomicRangeStart";
     private static final String END_SEARCH_ATTRIBUTE_NAME = "genomicRangeEnd";
+    private static final String TAXON_SEARCH_ATTRIBUTE_NAME = "taxon";
     private static final String GENE_NCBI_ID_SEARCH_ATTRIBUTE_NAME = "ncbiGeneId";
     private static final String ALIASES_ATTRIBUTE_NAME = "aliases";
 
@@ -39,6 +40,7 @@ public class BioMartCacheImpl extends SearchableEhcache<Gene> implements BioMart
     private Attribute<Object> chromosomeAttribute;
     private Attribute<Object> startAttribute;
     private Attribute<Object> endAttribute;
+    private Attribute<Object> taxonAttribute;
     private Attribute<Object> geneNcbiIdAttribute;
     private Attribute<Object> aliasesAttribute;
 
@@ -49,6 +51,13 @@ public class BioMartCacheImpl extends SearchableEhcache<Gene> implements BioMart
         return fetchByCriteria( symbolCriteria );
     }
 
+    @Override
+    public Collection<Gene> fetchGenesByGeneTaxon( Collection<String> taxons ) {
+        Criteria taxonCriteria = taxonAttribute.in( taxons );
+
+        return fetchByCriteria( taxonCriteria );
+    }
+    
     @Override
     public Collection<Gene> fetchGenesByLocation( String chromosomeName, Long start, Long end ) {
         Criteria chromosomeCriteria = chromosomeAttribute.eq( chromosomeName );
@@ -66,14 +75,15 @@ public class BioMartCacheImpl extends SearchableEhcache<Gene> implements BioMart
     }
 
     @Override
-    public Collection<Gene> findGenes( String queryString ) {
+    public Collection<Gene> findGenes( String queryString, String taxon ) {
         String regexQueryString = "*" + queryString + "*";
 
         Criteria nameCriteria = geneNameAttribute.ilike( regexQueryString );
         Criteria symbolCriteria = geneSymbolAttribute.ilike( regexQueryString );
         Criteria aliasesCriteria = aliasesAttribute.ilike( regexQueryString );
+        Criteria taxonCriteria = taxonAttribute.eq( taxon );
 
-        return fetchByCriteria( nameCriteria.or( symbolCriteria.or( aliasesCriteria ) ) );
+        return fetchByCriteria( taxonCriteria.and( nameCriteria.or( symbolCriteria.or( aliasesCriteria ) ) ) );
     }
 
     @Override
@@ -116,7 +126,8 @@ public class BioMartCacheImpl extends SearchableEhcache<Gene> implements BioMart
         chromosomeAttribute = getSearchAttribute( CHROMOSOME_SEARCH_ATTRIBUTE_NAME );
         startAttribute = getSearchAttribute( START_SEARCH_ATTRIBUTE_NAME );
         endAttribute = getSearchAttribute( END_SEARCH_ATTRIBUTE_NAME );
-        geneNcbiIdAttribute = getSearchAttribute( GENE_NCBI_ID_SEARCH_ATTRIBUTE_NAME );
+        taxonAttribute = getSearchAttribute( TAXON_SEARCH_ATTRIBUTE_NAME );
+		geneNcbiIdAttribute = getSearchAttribute( GENE_NCBI_ID_SEARCH_ATTRIBUTE_NAME );
         aliasesAttribute = getSearchAttribute( ALIASES_ATTRIBUTE_NAME );
     }
 

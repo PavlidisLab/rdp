@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -43,6 +44,21 @@ public class BioMartQueryServiceImpl implements BioMartQueryService {
     private static final String BIO_MART_URL_SUFFIX = "/biomart/martservice/results";
     private static final String BIO_MART_URL = "http://www.biomart.org" + BIO_MART_URL_SUFFIX;
     private static final String GENE_NAMES_BIO_MART_URL = "http://www.genenames.org" + BIO_MART_URL_SUFFIX;
+    
+    private static final Map<String, String> TAXON_COMMON_TO_DATASET = new HashMap<String,String>();
+    
+    static {
+    	TAXON_COMMON_TO_DATASET.put("Human","hsapiens_gene_ensembl");
+    	TAXON_COMMON_TO_DATASET.put("Mouse","mmusculus_gene_ensembl");
+    	TAXON_COMMON_TO_DATASET.put("Rat","rnorvegicus_gene_ensembl");
+    	//TAXON_COMMON_TO_DATASET.put("Zebrafish","drerio_gene_ensembl");
+    	//TAXON_COMMON_TO_DATASET.put("Fruitfly","dmelanogaster_gene_ensembl");
+    	//TAXON_COMMON_TO_DATASET.put("Worm","celegans_gene_ensembl");
+    	//TAXON_COMMON_TO_DATASET.put("Yeast","scerevisiae_gene_ensembl");
+    	//TAXON_COMMON_TO_DATASET.put("E-coli","rnorvegicus_gene_ensembl");
+    	
+    	//TAXON_COMMON_TO_DATASET = Collections.unmodifiableMap(TAXON_COMMON_TO_DATASET);
+    }
 
     private static Log log = LogFactory.getLog( BioMartQueryServiceImpl.class.getName() );
 
@@ -98,10 +114,11 @@ public class BioMartQueryServiceImpl implements BioMartQueryService {
      */
 
     @Override
-    public Collection<Gene> findGenes( String queryString ) throws BioMartServiceException {
-        updateCacheIfExpired();
-
-        return bioMartCache.findGenes( queryString );
+    public Collection<Gene> findGenes( String queryString, String taxon ) throws BioMartServiceException {
+        //updateCacheIfExpired(taxon);
+    	updateCacheAllTaxons();
+    	
+        return bioMartCache.findGenes( queryString, taxon );
     }
 
     /**
@@ -161,7 +178,7 @@ public class BioMartQueryServiceImpl implements BioMartQueryService {
         return response;
     }
 
-    private Collection<Gene> parseGeneInfo( Dataset dataset ) throws BioMartServiceException {
+    private Collection<Gene> parseGeneInfo( Dataset dataset, String taxon ) throws BioMartServiceException {
 
         dataset.Attribute.add( new Attribute( "ensembl_gene_id" ) );
         dataset.Attribute.add( new Attribute( "entrezgene" ) );
@@ -210,13 +227,12 @@ public class BioMartQueryServiceImpl implements BioMartQueryService {
             int sourceIndex = name.indexOf( " [Source:" );
             name = sourceIndex >= 0 ? name.substring( 0, sourceIndex ) : name;
 
-            // GeneValueObject gene = new GeneValueObject( ensemblId, symbol, name, geneBiotype, "human" );
+            // GeneValueObject gene = new GeneValueObject( ensemblId, symbol, name, geneBiotype, taxon );
             Gene gene = new Gene();
             gene.setEnsemblId( ensemblId );
             gene.setOfficialSymbol( symbol );
             gene.setOfficialName( name );
-            // TODO
-            // gene.setTaxon(new Taxon());
+            gene.setTaxon(taxon);
             /*
              * int startBase = Integer.valueOf( start ); int endBase = Integer.valueOf( end ); if ( startBase < endBase
              * ) { gene.setGenomicRange( new GenomicRange( chromosome, startBase, endBase ) ); } else {
@@ -276,27 +292,44 @@ public class BioMartQueryServiceImpl implements BioMartQueryService {
 
     }
 
-    private Collection<Gene> parseHumanGeneInfo() throws BioMartServiceException {
-        Dataset dataset = new Dataset( "hsapiens_gene_ensembl" );
+    private void updateCacheIfExpired() throws BioMartServiceException {
+		updateCacheIfExpired("Human",false);
+
+    }
+
+
+    private void updateCacheIfExpired(String taxon, Boolean forceUpdate) throws BioMartServiceException {
+        if ( !this.bioMartCache.hasExpired() && !forceUpdate ) return;
+
+    	String datasetName = TAXON_COMMON_TO_DATASET.get(taxon);
+    	
+    	if (datasetName == null) {
+            String errorMessage = "Taxon: [" + taxon + "] not recognized";
+            log.error( errorMessage );
+
+            throw new BioMartServiceException( errorMessage );
+    	}
+
+        Dataset dataset = new Dataset( datasetName );
 
         dataset.Filter.add( new Filter( "chromosome_name",
                 "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,X,Y" ) );
 
-        Collection<Gene> genes = new HashSet<>();
-        genes.addAll( parseGeneInfo( dataset ) );
-
-        addHumanGeneSynonyms( genes );
-
-        return genes;
-    }
-
-    private void updateCacheIfExpired() throws BioMartServiceException {
-        if ( !this.bioMartCache.hasExpired() ) return;
 
         Collection<Gene> genes = new HashSet<>();
-        genes.addAll( parseHumanGeneInfo() );
+        genes.addAll( parseGeneInfo(dataset, taxon) );
 
         this.bioMartCache.putAll( genes );
 
     }
+
+    private void updateCacheAllTaxons() throws BioMartServiceException {
+    	if ( !this.bioMartCache.hasExpired() ) return;
+
+    	for (Map.Entry<String, String> taxon : TAXON_COMMON_TO_DATASET.entrySet()) {
+    		updateCacheIfExpired(taxon.getKey(),true);
+    	}
+    	
+    }
+
 }

@@ -37,10 +37,11 @@
     <searchAttribute name="ncbiGeneId" />
     <searchAttribute name="aliases" class="ubc.pavlab.rdp.server.biomartquery.GeneAliasesAttributeExtractor" />
     <searchAttribute name="officialName" />
-    <searchAttribute name="officialSymbol" />
+    <searchAttribute name="officialSymbol"/>
     <searchAttribute name="genomicRangeChromosome" expression="value.getGenomicRange().getChromosome()" />
     <searchAttribute name="genomicRangeStart" expression="value.getGenomicRange().getBaseStart()" />
     <searchAttribute name="genomicRangeEnd" expression="value.getGenomicRange().getBaseEnd()" />
+	<searchAttribute name="taxon" />
    </searchable>
   </cache>
 
