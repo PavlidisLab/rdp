@@ -148,7 +148,7 @@ public class ResearcherServiceImpl implements ResearcherService {
                 modified = researcher.removeGene( gene );
             } else {
                 // FIXME search with taxon to be more precise
-                Collection<Gene> matchedGenes = geneDao.findByOfficalSymbol( gene.getOfficialSymbol() );
+                Collection<Gene> matchedGenes = geneDao.findByOfficialSymbol( gene.getOfficialSymbol() );
                 if ( matchedGenes.size() > 0 ) {
                     modified = researcher.removeGene( matchedGenes.iterator().next() );
                 } else {

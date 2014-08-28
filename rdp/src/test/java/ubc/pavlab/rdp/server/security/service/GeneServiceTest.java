@@ -60,13 +60,13 @@ public class GeneServiceTest extends BaseSpringContextTest {
     @After
     public void tearDown() {
         geneService.delete( gene );
-        assertEquals( 0, geneService.findByOfficalSymbol( officialSymbol ).size() );
+        assertEquals( 0, geneService.findByOfficialSymbol( officialSymbol ).size() );
     }
 
     @Test
     public void testFindBySymbol() {
-        assertEquals( gene.getOfficialSymbol(), geneService.findByOfficalSymbol( officialSymbol ).iterator().next()
+        assertEquals( gene.getOfficialSymbol(), geneService.findByOfficialSymbol( officialSymbol ).iterator().next()
                 .getOfficialSymbol() );
-        assertEquals( 0, geneService.findByOfficalSymbol( "GENE_DOES_NOT_EXIST" ).size() );
+        assertEquals( 0, geneService.findByOfficialSymbol( "GENE_DOES_NOT_EXIST" ).size() );
     }
 }
