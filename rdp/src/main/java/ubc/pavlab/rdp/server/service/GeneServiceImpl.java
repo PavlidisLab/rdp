@@ -89,4 +89,9 @@ public class GeneServiceImpl implements GeneService {
         return geneDao.findByOfficalSymbol( officialSymbol );
     }
 
+    @Override
+    public Gene load( long geneId ) {
+        return geneDao.load( geneId );
+    }
+
 }

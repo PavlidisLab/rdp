@@ -38,6 +38,9 @@ public interface GeneService {
     @Secured({ "GROUP_USER" })
     public void update( Gene gene );
 
+    @Secured({ "GROUP_USER" })
+    public Gene load( long geneId );
+
     @Secured({ "GROUP_ADMIN" })
     public void delete( Gene gene );
 

@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import ubc.pavlab.rdp.server.model.Researcher;
 import ubc.pavlab.rdp.server.model.common.auditAndSecurity.User;
+import ubc.pavlab.rdp.server.service.GeneService;
 import ubc.pavlab.rdp.server.service.ResearcherService;
 import ubc.pavlab.rdp.server.util.JSONUtil;
 
@@ -25,6 +26,9 @@ public class RegisterController extends BaseController {
 
     @Autowired
     ResearcherService researcherService;
+
+    @Autowired
+    GeneService geneService;
 
     @Autowired
     UserManager userManager;
@@ -139,6 +143,22 @@ public class RegisterController extends BaseController {
                 log.info( jsonText );
             }
         }
+    }
+
+    /**
+     * AJAX entry point. Loads the Researcher who's currently logged in.
+     * 
+     * @param request
+     * @param response
+     */
+    @RequestMapping("/findResearchersByGene.html")
+    public void findResearchersByGene( HttpServletRequest request, HttpServletResponse response ) {
+        // FIXME
+
+        // JSONObject geneJSON = new JSONObject(geneStr);
+        // Gene gene = geneService.load( geneJSON.getId() );
+        // researcherService.findByGene( gene );
+
     }
 
     /**

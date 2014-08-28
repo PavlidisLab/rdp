@@ -30,6 +30,7 @@ import gemma.gsec.authentication.UserManager;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -126,6 +127,33 @@ public class ResearcherServiceTest extends BaseSpringContextTest {
         researcherService.delete( researcher );
         assertNull( researcherService.findByEmail( email ) );
         assertNull( userService.findByEmail( email ) );
+    }
+
+    @Test
+    public void testFindByGene() throws Exception {
+
+        Gene gene = new Gene();
+        gene.setEnsemblId( "ENSG123" );
+        gene.setOfficialSymbol( "ABC" );
+        // geneService.create( gene );
+        Collection<Gene> genes = new HashSet<>();
+        genes.add( gene );
+
+        try {
+            researcher = createResearcher( username, email, department );
+            assertNotNull( researcher );
+            Collection<Researcher> researchers = researcherService.findByGene( gene );
+            assertEquals( 0, researchers.size() );
+            assertTrue( researcherService.addGenes( researcher, genes ) );
+            researchers = researcherService.findByGene( gene );
+            assertEquals( 1, researchers.size() );
+        } catch ( Exception e ) {
+            e.printStackTrace();
+            researcherService.delete( researcher );
+            assertNull( researcherService.findByUserName( username ) );
+            fail( e.getMessage() );
+        }
+        researcherService.delete( researcher );
     }
 
     @Test

@@ -19,8 +19,10 @@
 
 package ubc.pavlab.rdp.server.dao;
 
+import java.util.Collection;
+
+import ubc.pavlab.rdp.server.model.Gene;
 import ubc.pavlab.rdp.server.model.Researcher;
-import ubc.pavlab.rdp.server.model.common.auditAndSecurity.User;
 
 /**
  * TODO Document Me
@@ -31,8 +33,10 @@ import ubc.pavlab.rdp.server.model.common.auditAndSecurity.User;
 public interface ResearcherDao extends DaoBase<Researcher> {
 
     public Researcher findByEmail( final String email );
-    
+
     public Researcher findByUsername( final String username );
+
+    public Collection<Researcher> findByGene( final Gene gene );
 
     public Researcher thaw( Researcher researcher );
 }

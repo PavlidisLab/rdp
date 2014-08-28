@@ -30,6 +30,7 @@ import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import ubc.pavlab.rdp.server.model.Gene;
 import ubc.pavlab.rdp.server.model.Researcher;
 
 /**
@@ -69,6 +70,13 @@ public class ResearcherDaoImpl extends DaoBaseImpl<Researcher> implements Resear
             researcher = results.iterator().next();
         }
         return researcher;
+    }
+
+    @Override
+    public Collection<Researcher> findByGene( final Gene gene ) {
+        String hql = "FROM Researcher r INNER JOIN r.genes g WITH g.id = :geneId";
+        Collection<Researcher> results = this.getHibernateTemplate().findByNamedParam( hql, "geneId", gene.getId() );
+        return results;
     }
 
     @Override

@@ -172,4 +172,9 @@ public class ResearcherServiceImpl implements ResearcherService {
         researcherDao.update( researcher );
         return added;
     }
+
+    @Override
+    public Collection<Researcher> findByGene( Gene gene ) {
+        return researcherDao.findByGene( gene );
+    }
 }

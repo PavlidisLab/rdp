@@ -69,4 +69,7 @@ public interface ResearcherService {
      */
     @Secured({ "GROUP_USER" })
     public boolean updateGenes( Researcher researcher, final Collection<Gene> genes );
+
+    @Secured({ "GROUP_ADMIN" })
+    public Collection<Researcher> findByGene( Gene gene );
 }

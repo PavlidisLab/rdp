@@ -38,6 +38,38 @@ var showResearchers = function() {
 
 };
 
+var findResearchersByGene = function() {
+   
+
+   var gene = $( "#findResearchersByGenesSelect" ).select2( "data" )
+   
+   console.log("findResearchersByGene gene = " + gene );  
+   
+   /*
+   $.ajax( {
+      url : "findResearchersByGene.html",
+      data : {
+         gene : $.toJSON(gene),
+         taxonCommonName : $( "#taxonCommonNameSelect" ).val(),
+      },
+      dataType : "json",
+      success : function(response, xhr) {
+         // get this from a controller
+         // var response = '[{"userName":"testUsername2", "email":"testEmail2", "firstName":"testFirstname2",
+         // "lastName":"testLastname2", "organization":"testOrganization2", "department":"testDepartment2" }]';
+         response = $.parseJSON( response );
+         var tableId = "#listResearchersTable";
+         jsonToResearcherTable( response, tableId );
+
+         $( "#listResearchersTable" ).dataTable();
+      },
+      error : function(response, xhr) {
+         showMessage( response.message,$( "#listResearchersMessage" ));
+      }
+   } );
+   */
+}
+
 $( document ).ready( function() {
 
    $( "#navbarUsername" ).on( "loginSuccess", function(event, response) {
@@ -46,5 +78,11 @@ $( document ).ready( function() {
          showResearchers();
       }
    } );
+
+   searchGenes.init( {
+      'container' : $( "#findResearchersByGenesSelect" )
+   } )
+   
+   $("#findResearchersByGeneButton").click( findResearchersByGene )
 
 } );
