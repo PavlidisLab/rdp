@@ -1,6 +1,6 @@
 <div class="container">
 
-	<div class="alert alert-warning col-sm-offset-3 col-sm-6"
+	<div class="alert alert-warning
 		id="listResearchersFailed" hidden="true">
 		<a href="#" class="close" data-dismiss="alert">&times;</a>
 		<div id="listResearchersMessage">Failed loading all researchers.</div>

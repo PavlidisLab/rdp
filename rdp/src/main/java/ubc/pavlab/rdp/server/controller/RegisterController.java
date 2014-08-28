@@ -38,14 +38,6 @@ public class RegisterController extends BaseController {
         return "register";
     }
 
-    /**
-     * @RequestMapping("/keep_alive.html") public void loadUser( HttpServletRequest request, HttpServletResponse
-     *                                     response ) throws IOException { String jsonText = null; if (
-     *                                     !SecurityServiceImpl.isUserLoggedIn() ) { jsonText = "{success:false}"; }
-     *                                     else { jsonText = "{success:true}"; } JSONUtil jsonUtil = new JSONUtil(
-     *                                     request, response ); jsonUtil.writeToResponse( jsonText ); }
-     */
-
     @RequestMapping("/saveResearcher.html")
     public void saveResearcher( HttpServletRequest request, HttpServletResponse response ) throws IOException {
 
@@ -107,22 +99,6 @@ public class RegisterController extends BaseController {
      * @param response
      */
     @RequestMapping("/loadAllResearchers.html")
-    /*
-     * public void loadAllResearchers( HttpServletRequest request, HttpServletResponse response ) {
-     * 
-     * StringWriter jsonText = new StringWriter(); jsonText.write( "[" );
-     * 
-     * JSONUtil jsonUtil = new JSONUtil( request, response );
-     * 
-     * try { java.util.Iterator<Researcher> it = researcherService.loadAll().iterator(); while ( it.hasNext() ) {
-     * Researcher user = it.next(); String delim = it.hasNext() ? "," : ""; jsonText.append( new JSONObject( user
-     * ).toString() + delim ); } jsonText.append( "]" ); jsonText.flush(); } catch ( Exception e ) { log.error(
-     * e.getLocalizedMessage(), e ); JSONObject json = new JSONObject(); json.put( "success", false ); json.put(
-     * "message", e.getLocalizedMessage() ); jsonText.write( json.toString() ); log.info( jsonText ); } finally { String
-     * str = jsonText.toString(); try { jsonUtil.writeToResponse( str ); jsonText.close(); } catch ( IOException e ) {
-     * log.error( e.getLocalizedMessage(), e ); JSONObject json = new JSONObject(); json.put( "success", false );
-     * json.put( "message", e.getLocalizedMessage() ); jsonText.write( json.toString() ); log.info( jsonText ); } } }
-     */
     public void loadAllResearchers( HttpServletRequest request, HttpServletResponse response ) {
 
         String jsonText = "";
@@ -151,37 +127,8 @@ public class RegisterController extends BaseController {
      * @param request
      * @param response
      */
-    @RequestMapping("/findResearchersByGene.html")
-    public void findResearchersByGene( HttpServletRequest request, HttpServletResponse response ) {
-        // FIXME
-
-        // JSONObject geneJSON = new JSONObject(geneStr);
-        // Gene gene = geneService.load( geneJSON.getId() );
-        // researcherService.findByGene( gene );
-
-    }
-
-    /**
-     * AJAX entry point. Loads the Researcher who's currently logged in.
-     * 
-     * @param request
-     * @param response
-     */
     @RequestMapping("/loadResearcher.html")
     public void loadUser( HttpServletRequest request, HttpServletResponse response ) {
-
-        /*
-         * Authentication authentication = SecurityContextHolder.getContext().getAuthentication(); boolean
-         * isAuthenticated = authentication.isAuthenticated();
-         * 
-         * if ( !isAuthenticated ) { log.error( "Researcher not authenticated.  Cannot populate researcher data." );
-         * return; }
-         * 
-         * Object o = authentication.getPrincipal(); String username = null;
-         * 
-         * if ( o instanceof UserDetails ) { username = ( ( UserDetails ) o ).getUsername(); } else { username =
-         * o.toString(); }
-         */
         String username = userManager.getCurrentUsername();
 
         Object user = researcherService.findByUserName( username );
@@ -201,10 +148,6 @@ public class RegisterController extends BaseController {
                 // this shouldn't happen.
                 jsonText = "{\"success\":false,\"message\":\"No researcher with name " + username + "\"}";
             } else {
-                // jsonText = "{\"success\":true, \"data\":{\"username\":" + "\"" + username + "\"" + ",\"email\":" +
-                // "\""
-                // + user.getEmail() + "\"" + "}}";
-
                 JSONObject json = new JSONObject( user );
                 jsonText = "{\"success\":true, \"data\":" + json.toString() + "}";
                 // log.debug( "Success! json=" + jsonText );

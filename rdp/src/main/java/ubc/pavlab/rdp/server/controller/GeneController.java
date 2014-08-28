@@ -31,6 +31,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.directwebremoting.annotations.RemoteProxy;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -94,7 +95,7 @@ public class GeneController {
             } else {
 
                 // FIXME Filter by organism
-                jsonText = "{\"success\":true,\"data\":" + jsonUtil.collectionToJson( user.getGenes() ) + "}";
+                jsonText = "{\"success\":true,\"data\":" + ( new JSONArray( user.getGenes() ) ).toString() + "}";
                 log.info( "Loaded " + user.getGenes().size() + " genes" );
             }
 
@@ -111,8 +112,53 @@ public class GeneController {
     }
 
     /**
-     * Returns a collection of Gene objects from the json
+     * AJAX entry point. Loads the Researcher who's currently logged in.
      * 
+     * @param request
+     * @param response
+     */
+    @RequestMapping("/findResearchersByGene.html")
+    public void findResearchersByGene( HttpServletRequest request, HttpServletResponse response ) throws IOException {
+
+        String jsonText = null;
+        JSONUtil jsonUtil = new JSONUtil( request, response );
+        String genesJSON = request.getParameter( "gene" );
+        String taxonCommonName = request.getParameter( "taxonCommonName" );
+
+        Collection<Researcher> researchers = new HashSet<>();
+
+        try {
+
+            JSONObject json = new JSONObject();
+
+            for ( Gene gene : deserealizeGenes( genesJSON ) ) {
+                researchers.addAll( researcherService.findByGene( gene ) );
+            }
+
+            JSONArray array = new JSONArray( researchers );
+
+            json.put( "data", array.toString() );
+            json.put( "success", true );
+            json.put( "message", "Found " + researchers.size() + " researchers" );
+            jsonText = json.toString();
+
+        } catch ( Exception e ) {
+            log.error( e.getLocalizedMessage(), e );
+            JSONObject json = new JSONObject();
+            json.put( "success", false );
+            json.put( "message", e.getLocalizedMessage() );
+            jsonText = json.toString();
+            log.info( jsonText );
+        } finally {
+            jsonUtil.writeToResponse( jsonText );
+        }
+
+    }
+
+    /**
+     * Returns a collection of Gene objects from the json. Requires the gene.officialSymbol to be the key, eg.
+     * "{ "BRCA1" : { "ensembleId" : "ENSG001234", "ncbiId" : "1234" } }
+     *
      * @param genesJSON - a JSON representation of an array of Genes
      * @return
      */
@@ -141,8 +187,6 @@ public class GeneController {
 
     @RequestMapping("/saveResearcherGenes.html")
     public void saveResearcherGenes( HttpServletRequest request, HttpServletResponse response ) throws IOException {
-
-        // FIXME
 
         String jsonText = null;
         JSONUtil jsonUtil = new JSONUtil( request, response );
@@ -189,7 +233,7 @@ public class GeneController {
 
         try {
             Collection<Gene> results = biomartService.findGenes( query );
-            jsonText = "{\"success\":true,\"data\":" + jsonUtil.collectionToJson( results ) + "}";
+            jsonText = "{\"success\":true,\"data\":" + ( new JSONArray( results ) ).toString() + "}";
         } catch ( BioMartServiceException e ) {
             e.printStackTrace();
             log.error( e.getMessage(), e );
