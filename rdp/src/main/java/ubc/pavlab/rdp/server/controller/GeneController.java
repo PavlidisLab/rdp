@@ -179,18 +179,19 @@ public class GeneController {
         JSONObject json = new JSONObject( genesJSON );
 
         for ( Object key : json.keySet() ) {
-            String symbol = ( String ) key;
+            String[] symbol = ( ( String ) key ).split( ":" );
 
             // try looking for an existing one
-            Collection<Gene> genesFound = geneService.findByOfficalSymbol( symbol );
-            if ( genesFound.size() > 0 ) {
-                results.addAll( genesFound );
+            Gene geneFound = geneService.findByOfficialSymbol( symbol[0], symbol[1] );
+            if ( !( geneFound == null ) ) {
+                results.add( geneFound );
             } else {
 
                 // it doesn't exist yet
                 // biomartService.fetchGenesByGeneSymbols( geneSymbols )
                 Gene gene = new Gene();
-                gene.parseJSON( json.get( symbol ).toString() );
+                gene.parseJSON( json.get( ( String ) key ).toString() );
+                log.info( "Creating new gene: " + gene.toString() );
                 results.add( geneService.create( gene ) );
             }
         }

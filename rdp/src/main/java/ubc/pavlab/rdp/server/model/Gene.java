@@ -67,7 +67,45 @@ public class Gene {
         return "id=" + id + " symbol=" + officialSymbol + " taxon=" + taxon + " hashCode=" + hashCode();
     }
 
-    public Gene() {
+    /* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result
+				+ ((officialSymbol == null) ? 0 : officialSymbol.hashCode());
+		result = prime * result + ((taxon == null) ? 0 : taxon.hashCode());
+		return result;
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (!(obj instanceof Gene))
+			return false;
+		Gene other = (Gene) obj;
+		if (officialSymbol == null) {
+			if (other.officialSymbol != null)
+				return false;
+		} else if (!officialSymbol.equals(other.officialSymbol))
+			return false;
+		if (taxon == null) {
+			if (other.taxon != null)
+				return false;
+		} else if (!taxon.equals(other.taxon))
+			return false;
+		return true;
+	}
+
+	public Gene() {
     }
 
     public Gene( String officialSymbol ) {

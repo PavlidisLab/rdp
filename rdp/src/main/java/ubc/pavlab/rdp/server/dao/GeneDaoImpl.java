@@ -57,7 +57,7 @@ public class GeneDaoImpl extends DaoBaseImpl<Gene> implements GeneDao {
      */
     @Override
     @SuppressWarnings("unchecked")
-    public Collection<Gene> findByOfficalSymbol( final String queryString, final String officialSymbol ) {
+    public Collection<Gene> findByOfficialSymbol( final String queryString, final String officialSymbol ) {
         java.util.List<String> argNames = new ArrayList<String>();
         java.util.List<Object> args = new ArrayList<Object>();
         args.add( officialSymbol );
@@ -73,8 +73,8 @@ public class GeneDaoImpl extends DaoBaseImpl<Gene> implements GeneDao {
      * @see ubc.pavlab.rdp.server.dao.GeneDao#findBySmbol(java.lang.String)
      */
     @Override
-    public Collection<Gene> findByOfficalSymbol( final String officialSymbol ) {
-        return this.findByOfficalSymbol( "from Gene g where g.officialSymbol=:officialSymbol order by g.officialName",
+    public Collection<Gene> findByOfficialSymbol( final String officialSymbol ) {
+        return this.findByOfficialSymbol( "from Gene g where g.officialSymbol=:officialSymbol order by g.officialName",
                 officialSymbol );
     }
 
@@ -82,15 +82,17 @@ public class GeneDaoImpl extends DaoBaseImpl<Gene> implements GeneDao {
      * @see GeneDao#findByOfficialSymbol(String, Taxon)
      */
     @Override
-    public Gene findByOfficialSymbol( final String symbol, final Taxon taxon ) {
+    public Gene findByOfficialSymbolAndTaxon( final String symbol, final String taxon ) {
         return this.handleFindByOfficialSymbol( symbol, taxon );
 
     }
 
-    protected Gene handleFindByOfficialSymbol( String symbol, Taxon taxon ) {
-        final String queryString = "select distinct g from GeneImpl as g inner join g.taxon t where g.officialSymbol = :symbol and t= :taxon";
-        List<?> results = getHibernateTemplate().findByNamedParam( queryString, new String[] { "symbol", "taxon" },
-                new Object[] { symbol, taxon } );
+    protected Gene handleFindByOfficialSymbol( String symbol, String taxon ) {
+        // final String queryString =
+        // "select distinct g from GeneImpl as g inner join g.taxon t where g.officialSymbol = :symbol and t= :taxon";
+        final String queryString = "from Gene g where g.officialSymbol=:officialSymbol and g.taxon=:taxon";
+        List<?> results = getHibernateTemplate().findByNamedParam( queryString,
+                new String[] { "officialSymbol", "taxon" }, new Object[] { symbol, taxon } );
         if ( results.size() == 0 ) {
             return null;
         } else if ( results.size() > 1 ) {

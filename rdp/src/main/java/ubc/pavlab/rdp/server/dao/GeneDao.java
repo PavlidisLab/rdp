@@ -22,7 +22,6 @@ package ubc.pavlab.rdp.server.dao;
 import java.util.Collection;
 
 import ubc.pavlab.rdp.server.model.Gene;
-import ubc.pavlab.rdp.server.model.Taxon;
 
 /**
  * TODO Document Me
@@ -32,9 +31,9 @@ import ubc.pavlab.rdp.server.model.Taxon;
  */
 public interface GeneDao extends DaoBase<Gene> {
 
-    public Collection<Gene> findByOfficalSymbol( final String officialSymbol );
+    public Collection<Gene> findByOfficialSymbol( final String officialSymbol );
 
-    public Collection<Gene> findByOfficalSymbol( final String queryString, final String officialSymbol );
+    public Collection<Gene> findByOfficialSymbol( final String queryString, final String officialSymbol );
 
-    public Gene findByOfficialSymbol( String symbol, Taxon taxon );
+    public Gene findByOfficialSymbolAndTaxon( String symbol, String taxon );
 }

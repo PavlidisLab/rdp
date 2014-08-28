@@ -48,6 +48,9 @@ public interface GeneService {
     public Collection<Gene> loadAll();
 
     @Secured({ "GROUP_USER", "AFTER_ACL_READ" })
-    public Collection<Gene> findByOfficalSymbol( final String officialSymbol );
+    public Collection<Gene> findByOfficialSymbol( final String officialSymbol );
+
+    @Secured({ "GROUP_USER", "AFTER_ACL_READ" })
+    public Gene findByOfficialSymbol( final String officialSymbol, final String taxon );
 
 }

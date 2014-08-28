@@ -221,13 +221,13 @@ public class ResearcherServiceTest extends BaseSpringContextTest {
             // gene hasn't been created yet
             researcher = createResearcher( username, email, department );
             assertEquals( 0, researcher.getGenes().size() );
-            assertEquals( 0, geneService.findByOfficalSymbol( officialSymbol ).size() );
+            assertEquals( 0, geneService.findByOfficialSymbol( officialSymbol ).size() );
 
             // now we create the gene and assign it to the researcher
             assertTrue( researcherService.addGenes( researcher, genes ) );
             assertEquals( 1, researcher.getGenes().size() );
             assertEquals( officialSymbol, researcher.getGenes().iterator().next().getOfficialSymbol() );
-            assertEquals( 1, geneService.findByOfficalSymbol( officialSymbol ).size() );
+            assertEquals( 1, geneService.findByOfficialSymbol( officialSymbol ).size() );
 
             // now we update or replace the gene list
             assertTrue( researcherService.updateGenes( researcher, genes2 ) );
@@ -255,25 +255,25 @@ public class ResearcherServiceTest extends BaseSpringContextTest {
             // gene hasn't been created yet
             researcher = createResearcher( username, email, department );
             assertEquals( 0, researcher.getGenes().size() );
-            assertEquals( 0, geneService.findByOfficalSymbol( officialSymbol ).size() );
+            assertEquals( 0, geneService.findByOfficialSymbol( officialSymbol ).size() );
 
             // now we create the gene and assign it to the researcher
             assertTrue( researcherService.addGenes( researcher, genes ) );
             assertEquals( 1, researcher.getGenes().size() );
             assertEquals( officialSymbol, researcher.getGenes().iterator().next().getOfficialSymbol() );
-            assertEquals( 1, geneService.findByOfficalSymbol( officialSymbol ).size() );
+            assertEquals( 1, geneService.findByOfficialSymbol( officialSymbol ).size() );
 
             // duplicate genes aren't allowed
             assertFalse( researcherService.addGenes( researcher, genes ) );
             assertEquals( 1, researcher.getGenes().size() );
             assertEquals( officialSymbol, researcher.getGenes().iterator().next().getOfficialSymbol() );
-            assertEquals( 1, geneService.findByOfficalSymbol( officialSymbol ).size() );
+            assertEquals( 1, geneService.findByOfficialSymbol( officialSymbol ).size() );
 
             // lets delete
             assertTrue( researcherService.removeGenes( researcher, genes ) );
             assertEquals( 0, researcher.getGenes().size() );
-            assertEquals( 1, geneService.findByOfficalSymbol( officialSymbol ).size() ); // keep the gene in case other
-                                                                                         // researchers use it
+            assertEquals( 1, geneService.findByOfficialSymbol( officialSymbol ).size() ); // keep the gene in case other
+                                                                                          // researchers use it
         } catch ( Exception e ) {
             e.printStackTrace();
             researcherService.delete( researcher );

@@ -85,8 +85,13 @@ public class GeneServiceImpl implements GeneService {
      * @see ubc.pavlab.rdp.server.service.GeneService#findByOfficalSymbol(java.lang.String)
      */
     @Override
-    public Collection<Gene> findByOfficalSymbol( String officialSymbol ) {
-        return geneDao.findByOfficalSymbol( officialSymbol );
+    public Collection<Gene> findByOfficialSymbol( String officialSymbol ) {
+        return geneDao.findByOfficialSymbol( officialSymbol );
+    }
+
+    @Override
+    public Gene findByOfficialSymbol( String officialSymbol, String taxon ) {
+        return geneDao.findByOfficialSymbolAndTaxon( officialSymbol, taxon );
     }
 
     @Override
