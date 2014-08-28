@@ -28,7 +28,7 @@ function addGene(geneValueObject, table) {
    }
 
    // columns: Symbol, Alias, Name
-   geneRow = [ geneValueObject.officialSymbol, aliasesToString( geneValueObject ), geneValueObject.taxon,
+   geneRow = [ geneValueObject.officialSymbol, aliasesToString( geneValueObject ),
               geneValueObject.officialName ];
 
    table.row.add( geneRow ).draw();
@@ -72,8 +72,7 @@ var searchGenes = {
                for (var i = 0; i < data.data.length; i++) {
                   gene = data.data[i]
                   aliasStr = gene.aliases.length > 0 ? "(" + aliasesToString( gene ) + ") " : "";
-                  gene.text = "<b>" + gene.officialSymbol + "</b> " + aliasStr + gene.officialName + "</b> "
-                     + gene.taxon
+                  gene.text = "<b>" + gene.officialSymbol + "</b> " + aliasStr + gene.officialName
                }
                return {
                   results : data.data
@@ -114,7 +113,7 @@ $( document ).ready( function() {
          $( "#geneManagerFailed" ).hide();
       }
       var selectedSymbol = selectedNode.data()[0]; // data = [symbol, alias, name] ie column heading ordering
-      var selectedTaxon = selectedNode.data()[2];
+      var selectedTaxon = $( "#taxonCommonNameSelect" ).val();
       selectedNode.remove().draw( false );
       jQuery.removeData( $( "#geneManagerTable" )[0], selectedSymbol + ":" + selectedTaxon );
    } );
