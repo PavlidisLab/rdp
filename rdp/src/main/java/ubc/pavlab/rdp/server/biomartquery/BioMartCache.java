@@ -14,9 +14,11 @@ import ubc.pavlab.rdp.server.model.Gene;
 public interface BioMartCache {
     public Collection<Gene> fetchGenesByGeneSymbols( Collection<String> geneSymbols );
 
+    public Collection<Gene> fetchGenesByGeneTaxon( Collection<String> taxons );
+    
     public Collection<Gene> fetchGenesByLocation( String chromosomeName, Long start, Long end );
 
-    public Collection<Gene> findGenes( String queryString );
+    public Collection<Gene> findGenes( String queryString, String taxon );
 
     /**
      * Get a list of genes using the given gene symbols or ensembl ids. The order of the returned list of genes is

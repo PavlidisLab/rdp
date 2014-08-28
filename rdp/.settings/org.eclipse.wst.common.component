@@ -6,12 +6,6 @@
         <wb-resource deploy-path="/WEB-INF/classes" source-path="/src/main/resources"/>
         <wb-resource deploy-path="/WEB-INF/classes" source-path="/src/test/resources"/>
         <wb-resource deploy-path="/WEB-INF/classes" source-path="/src/test/java"/>
-        <dependent-module archiveName="gemma-gsec-0.0.1-SNAPSHOT.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/gemma-gsec/gemma-gsec">
-            <dependency-type>uses</dependency-type>
-        </dependent-module>
-        <dependent-module archiveName="baseCode-1.0.16-SNAPSHOT.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/baseCode/baseCode">
-            <dependency-type>uses</dependency-type>
-        </dependent-module>
         <property name="java-output-path" value="/rdp/target/classes"/>
         <property name="context-root" value="rdp"/>
     </wb-module>

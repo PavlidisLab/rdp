@@ -13,12 +13,14 @@
 			<div class="col-sm-6">
 				<select id="taxonCommonNameSelect" class="form-control">
 					<option>Human</option>
+					<option>Mouse</option>
+					<option>Rat</option>
 					<!-- FIXME
-                    <option>Mouse</option>
-                    <option>Rat</option>
-                    <option>Fly</option>
+					<option>Zebrafish</option>
+                    <option>Fruitfly</option>
                     <option>Worm</option>
-                    <option>Monkey</option>
+                    <option>Yeast</option>
+                    <option>E-coli</option>
 				     -->
 				</select>
 			</div>

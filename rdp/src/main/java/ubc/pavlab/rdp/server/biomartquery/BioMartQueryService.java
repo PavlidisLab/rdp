@@ -35,18 +35,7 @@ public interface BioMartQueryService {
     public Collection<Gene> fetchGenesByLocation( String chromosomeName, Long start, Long end )
             throws BioMartServiceException;
 
-    /**
-     * Find genomic ranges by gene symbols.
-     * 
-     * @param geneSymbols
-     * @return collection of genomic ranges
-     * @throws BioMartServiceException
-     */
-    /*
-     * public Collection<GenomicRange> fetchGenomicRangesByGeneSymbols( Collection<String> geneSymbols ) throws
-     * BioMartServiceException;
-     */
-    public Collection<Gene> findGenes( String queryString ) throws BioMartServiceException;
+    public Collection<Gene> findGenes( String queryString, String taxon ) throws BioMartServiceException;
 
     /**
      * Get a list of genes using the given gene symbols or ensembl ids. The order of the returned list of genes is
