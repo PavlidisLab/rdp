@@ -108,7 +108,7 @@ var initGeneManager = function() {
 
    var tableEl = $( "#geneManagerTable" );
 
-   addRowSelectEvent( tableEl.dataTable() );
+   addRowSelectEvent( tableEl.dataTable({"searching":false}) );
 }
 
 $( document ).ready( function() {

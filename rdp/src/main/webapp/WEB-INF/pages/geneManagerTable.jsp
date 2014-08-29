@@ -14,13 +14,13 @@
 		</tr>
 	</thead>
 
-	<tfoot>
+<!-- 	<tfoot>
 		<tr>
             <th>Symbol</th>
             <th>Alias</th>
             <th>Name</th>
 		</tr>
-	</tfoot>
+	</tfoot> -->
 
 	<tbody>
 		<!--  
