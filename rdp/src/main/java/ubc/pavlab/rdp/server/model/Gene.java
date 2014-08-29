@@ -107,6 +107,13 @@ public class Gene implements Comparable<Gene> {
         this.officialSymbol = officialSymbol;
     }
 
+    public Gene( String ensemblId, String taxon, String officialSymbol, String officialName ) {
+        this.ensemblId = ensemblId;
+        this.taxon = taxon;
+        this.officialSymbol = officialSymbol;
+        this.officialName = officialName;
+    }
+
     public Long getId() {
         return id;
     }

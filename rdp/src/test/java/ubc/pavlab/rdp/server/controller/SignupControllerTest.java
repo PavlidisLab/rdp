@@ -1,5 +1,5 @@
 /*
- * The gemma-web project
+ * The rdp project
  * 
  * Copyright (c) 2013 University of British Columbia
  * 
