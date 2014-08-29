@@ -57,7 +57,7 @@ public class BioMartCacheImpl extends SearchableEhcache<Gene> implements BioMart
 
         return fetchByCriteria( taxonCriteria );
     }
-    
+
     @Override
     public Collection<Gene> fetchGenesByLocation( String chromosomeName, Long start, Long end ) {
         Criteria chromosomeCriteria = chromosomeAttribute.eq( chromosomeName );
@@ -74,16 +74,50 @@ public class BioMartCacheImpl extends SearchableEhcache<Gene> implements BioMart
         return geneValueObjects;
     }
 
+    /**
+     * See Bug 4187 - Improved gene search
+     * 
+     * <pre>
+     * Sort search results using this order : 
+     * 1. Gene symbols. Place exact matches first. 
+     * 2. Gene name 
+     * 3. Gene alias. Since this are concatenated, we loosely use *SYMBOL*
+     * </pre>
+     */
     @Override
     public Collection<Gene> findGenes( String queryString, String taxon ) {
-        String regexQueryString = "*" + queryString + "*";
 
-        Criteria nameCriteria = geneNameAttribute.ilike( regexQueryString );
-        Criteria symbolCriteria = geneSymbolAttribute.ilike( regexQueryString );
-        Criteria aliasesCriteria = aliasesAttribute.ilike( regexQueryString );
+        ArrayList<Gene> results = new ArrayList<>();
+
         Criteria taxonCriteria = taxonAttribute.eq( taxon );
 
-        return fetchByCriteria( taxonCriteria.and( nameCriteria.or( symbolCriteria.or( aliasesCriteria ) ) ) );
+        // 1. Exact Gene Symbols
+        String regexQueryString = queryString;
+        Criteria symbolCriteria = geneSymbolAttribute.ilike( regexQueryString );
+        results.addAll( fetchByCriteria( taxonCriteria.and( symbolCriteria ) ) );
+
+        // 2. Prefix Gene Symbols
+        regexQueryString = queryString + "*";
+        symbolCriteria = geneSymbolAttribute.ilike( regexQueryString );
+        Collection<Gene> tmp = fetchByCriteria( taxonCriteria.and( symbolCriteria ) );
+        tmp.removeAll( results );
+        results.addAll( tmp );
+
+        // 3. Prefix Gene name
+        Criteria nameCriteria = geneNameAttribute.ilike( regexQueryString );
+        tmp = fetchByCriteria( taxonCriteria.and( nameCriteria ) );
+        tmp.removeAll( results );
+        results.addAll( tmp );
+
+        // 4. Gene Alias. Special case, these are concatenated by ','
+        // see GeneAliasAttributeExtractor
+        regexQueryString = "*" + queryString + "*";
+        Criteria aliasesCriteria = aliasesAttribute.ilike( regexQueryString );
+        tmp = fetchByCriteria( taxonCriteria.and( aliasesCriteria ) );
+        tmp.removeAll( results );
+        results.addAll( tmp );
+
+        return results;
     }
 
     @Override
@@ -127,7 +161,7 @@ public class BioMartCacheImpl extends SearchableEhcache<Gene> implements BioMart
         startAttribute = getSearchAttribute( START_SEARCH_ATTRIBUTE_NAME );
         endAttribute = getSearchAttribute( END_SEARCH_ATTRIBUTE_NAME );
         taxonAttribute = getSearchAttribute( TAXON_SEARCH_ATTRIBUTE_NAME );
-		geneNcbiIdAttribute = getSearchAttribute( GENE_NCBI_ID_SEARCH_ATTRIBUTE_NAME );
+        geneNcbiIdAttribute = getSearchAttribute( GENE_NCBI_ID_SEARCH_ATTRIBUTE_NAME );
         aliasesAttribute = getSearchAttribute( ALIASES_ATTRIBUTE_NAME );
     }
 

@@ -15,7 +15,6 @@
 package ubc.pavlab.rdp.server.model;
 
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 import javax.persistence.CascadeType;
@@ -39,7 +38,7 @@ import org.json.JSONObject;
  */
 @Entity
 @Table(name = "GENE")
-public class Gene {
+public class Gene implements Comparable<Gene> {
 
     @Id
     @GeneratedValue
@@ -67,45 +66,41 @@ public class Gene {
         return "id=" + id + " symbol=" + officialSymbol + " taxon=" + taxon + " hashCode=" + hashCode();
     }
 
-    /* (non-Javadoc)
-	 * @see java.lang.Object#hashCode()
-	 */
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result
-				+ ((officialSymbol == null) ? 0 : officialSymbol.hashCode());
-		result = prime * result + ((taxon == null) ? 0 : taxon.hashCode());
-		return result;
-	}
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Object#hashCode()
+     */
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ( ( officialSymbol == null ) ? 0 : officialSymbol.hashCode() );
+        result = prime * result + ( ( taxon == null ) ? 0 : taxon.hashCode() );
+        return result;
+    }
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (!(obj instanceof Gene))
-			return false;
-		Gene other = (Gene) obj;
-		if (officialSymbol == null) {
-			if (other.officialSymbol != null)
-				return false;
-		} else if (!officialSymbol.equals(other.officialSymbol))
-			return false;
-		if (taxon == null) {
-			if (other.taxon != null)
-				return false;
-		} else if (!taxon.equals(other.taxon))
-			return false;
-		return true;
-	}
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals( Object obj ) {
+        if ( this == obj ) return true;
+        if ( obj == null ) return false;
+        if ( !( obj instanceof Gene ) ) return false;
+        Gene other = ( Gene ) obj;
+        if ( officialSymbol == null ) {
+            if ( other.officialSymbol != null ) return false;
+        } else if ( !officialSymbol.equals( other.officialSymbol ) ) return false;
+        if ( taxon == null ) {
+            if ( other.taxon != null ) return false;
+        } else if ( !taxon.equals( other.taxon ) ) return false;
+        return true;
+    }
 
-	public Gene() {
+    public Gene() {
     }
 
     public Gene( String officialSymbol ) {
@@ -185,5 +180,10 @@ public class Gene {
             JSONObject alias = ( JSONObject ) aliases.get( i );
             getAliases().add( new GeneAlias( alias.get( "alias" ).toString() ) );
         }
+    }
+
+    @Override
+    public int compareTo( Gene otherGene ) {
+        return this.ensemblId.compareTo( otherGene.getEnsemblId() );
     }
 }

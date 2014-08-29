@@ -4,12 +4,11 @@
  */
 
 // sort by symbol attr
-function dataSortResult(data, container, query) {
-   return data.sort( function(a, b) {
-      return a.officialSymbol.localeCompare( b.officialSymbol );
-   } );
-}
-
+//function dataSortResult(data, container, query) {
+//   return data.sort( function(a, b) {
+//      return a.officialSymbol.localeCompare( b.officialSymbol );
+//   } );
+//}
 function aliasesToString(geneValueObject) {
    arr = [];
    geneValueObject.aliases.forEach( function(ele) {
@@ -85,12 +84,12 @@ var searchGenes = {
          escapeMarkup : function(m) {
             return m;
          },
-         sortResults : // sort by symbol attr
-         function dataSortResult(data, container, query) {
-            return data.sort( function(a, b) {
-               return a.officialSymbol.localeCompare( b.officialSymbol );
-            } );
-         },
+      // sortResults : // sort by symbol attr
+      // function dataSortResult(data, container, query) {
+      // return data.sort( function(a, b) {
+      // return a.officialSymbol.localeCompare( b.officialSymbol );
+      // } );
+      // },
       } );
    }
 }
