@@ -26,16 +26,26 @@ function addGene(geneValueObject, table) {
    } else {
       $( "#geneManagerFailed" ).hide();
    }
-
+   
+   if ( geneInTable(geneValueObject) ) {
+      showMessage( "Gene already added", $( "#geneManagerMessage" ) );
+      return;
+   }
+   
    // columns: Symbol, Alias, Name
    geneRow = [ geneValueObject.officialSymbol, aliasesToString( geneValueObject ),
               geneValueObject.officialName ];
-
+   
    table.row.add( geneRow ).draw();
 
    // save object to table element using symbol:taxon as key
    saveGeneToTable( geneValueObject );
 
+}
+
+// Check if gene is already saved to table
+function geneInTable(geneValueObject) {
+   return geneValueObject.officialSymbol + ":" + geneValueObject.taxon in jQuery.data( $( "#geneManagerTable" )[0] )
 }
 
 // Saves gene data to table without displaying it
