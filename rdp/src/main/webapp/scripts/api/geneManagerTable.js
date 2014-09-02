@@ -51,7 +51,7 @@ var saveGenes = function() {
 }
 
 var showGenes = function() {
-
+   jQuery.removeData( $( "#geneManagerTable" )[0] );
    $( "#geneManagerTable" ).DataTable().clear();
    $( "#geneManagerTable" ).DataTable().draw();
    $.ajax( {
