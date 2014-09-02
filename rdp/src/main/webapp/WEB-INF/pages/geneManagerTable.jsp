@@ -10,19 +10,17 @@
 		<tr>
 			<th>Symbol</th>
 			<th>Alias</th>
-			<th>Organism</th>
 			<th>Name</th>
 		</tr>
 	</thead>
 
-	<tfoot>
+<!-- 	<tfoot>
 		<tr>
             <th>Symbol</th>
             <th>Alias</th>
-            <th>Organism</th>
             <th>Name</th>
 		</tr>
-	</tfoot>
+	</tfoot> -->
 
 	<tbody>
 		<!--  

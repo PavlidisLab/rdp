@@ -42,11 +42,7 @@
 		<!-- Nav tabs -->
 		<ul id="registerTab" class="nav nav-tabs" role="tablist">
 
-			<li class=""><a href="#primaryContact" role="tab"
-				data-toggle="tab">Primary contact</a></li>
-
-			<li><a href="#modelOrganism" role="tab" data-toggle="tab">Model
-					organism</a></li>
+			<li class="active"><a href="#overview" role="tab" data-toggle="tab">Overview</a></li>
 
 			<li><a href="#registeredResearchers" role="tab"
 				data-toggle="tab" style="display: none;">Registered researchers</a></li>
@@ -55,19 +51,9 @@
 
 		<!-- Tab panes -->
 		<div class="tab-content">
-			<div class="tab-pane" id="primaryContact">
+ 			<div class="tab-pane active" id="overview">
 				<br />
-				<%@ include file="primaryContact.jsp"%>
-			</div>
-			<!-- 
-            <div class="tab-pane" id="primaryInvestigator">
-                <br />
-                <%/* @ include file="primaryInvestigator.jsp" */%>
-            </div>
-             -->
-			<div class="tab-pane active" id="modelOrganism">
-				<br />
-				<%@ include file="modelOrganism.jsp"%>
+				<%@ include file="overview.jsp"%>
 			</div>
 
 			<div class="tab-pane" id="registeredResearchers">

@@ -47,10 +47,14 @@
             </a>
             
                 <ul class="dropdown-menu" role="menu">
+                    <li><a href="#editProfileModal"
+                        data-toggle="modal">Edit Account Information</a></li>
+                    <li><a href="#editGenesModal"
+                        data-toggle="modal">Edit Model Organism Profiles</a></li>
                     <li><a href="#changePasswordModal"
                         data-toggle="modal">Change password</a></li>
                     <li class="divider"></li>
-                    <li><a id="logout">Logout</a></li>
+                    <li><a id="logout" href="#">Logout</a></li>
                 </ul></li>
         </ul>
     </div>
@@ -63,6 +67,10 @@
 
 <!-- User signup -->
 <%@ include file="editUser.jsp"%>
+<!-- User Profile Edit -->
+<%@ include file="editProfile.jsp"%>
+<!-- User Genes Edit -->
+<%@ include file="editGenes.jsp"%>
 
 <!-- include jQuery, and our script file -->
 <script src="scripts/lib/jquery-1.11.1.min.js"></script>
