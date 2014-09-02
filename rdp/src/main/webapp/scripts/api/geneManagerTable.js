@@ -47,6 +47,7 @@ var saveGenes = function() {
             return;
          }
 
+         overview.showGenesOverview();
          showMessage( response.message, $( "#geneManagerMessage" ) );
 
       },

@@ -50,7 +50,7 @@
                     <li><a href="#editProfileModal"
                         data-toggle="modal">Edit Account Information</a></li>
                     <li><a href="#editGenesModal"
-                        data-toggle="modal">Edit Gene Profile</a></li>
+                        data-toggle="modal">Edit Model Organism Profiles</a></li>
                     <li><a href="#changePasswordModal"
                         data-toggle="modal">Change password</a></li>
                     <li class="divider"></li>
