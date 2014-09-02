@@ -1,4 +1,17 @@
+/*
+ * Dynamically create and display HTML for model organism bucketed gene data.
+ * 
+ */
+
+//namespace: overview
 (function( overview, $, undefined ) {
+
+/**
+ * generate HTML block to display an empty table for a specific model organism
+ * @param {string} taxon - Model Organism 
+ * @param {string} id - HTML DOM ID, MUST BE UNIQUE!
+ * @return {string} HTML block
+ */
 overview.geneTableHTMLBlock = function(taxon, id) {
    var htmlBlock =  '<div class = "col-sm-offset-4 col-sm-4 text-center"> \
                         <h5>' + taxon + '</h5> \
@@ -20,6 +33,11 @@ overview.geneTableHTMLBlock = function(taxon, id) {
    return htmlBlock;
 };
 
+/**
+ * Empty and re-populate table with data, table found by DOM ID
+ * @param {string} id - HTML DOM ID
+ * @param {array} data - Array of objects containing new data -> [{'symbol':'...','name':'...'}]
+ */
 overview.populateTable = function(id, data) {
    $("#yourtableid tr").remove();
    for (var i = 0; i < data.length; i++) {      
@@ -27,6 +45,9 @@ overview.populateTable = function(id, data) {
    }
 };
 
+/**
+ * Load researcher genes through AJAX query, bucket results and generate page HTML
+ */
 overview.showGenesOverview = function() {
    $('#overviewGeneBreakdown').html('');
    $.ajax( {
@@ -46,6 +67,14 @@ overview.showGenesOverview = function() {
          }
 
          console.log( "Showing " + response.data.length + " user genes" )
+         
+         if (response.data.length == 0) {
+            $('#overviewGeneBreakdown').html('<div class = "col-sm-offset-4 col-sm-4 text-center"> \
+                                             <h5>There\'s nothing here</h5> \
+                                             </div>');
+            return;
+         }
+         
          var genesByTaxon = {};
          for (var i = 0; i < response.data.length; i++) {
             if(response.data[i].taxon in genesByTaxon){

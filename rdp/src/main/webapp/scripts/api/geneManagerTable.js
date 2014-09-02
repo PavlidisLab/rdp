@@ -34,19 +34,12 @@ var saveGenes = function() {
       success : function(response, xhr) {
 
          if ( !response.success ) {
-            showMessage( response.message, $( "#geneManagerMessage" ) );
-         }
-
-         var tableEl = $( "#geneManagerTable" );
-
-         addRowSelectEvent( tableEl.dataTable() );
-
-         if ( !response.success ) {
             console.log( response.message );
             showMessage( response.message, $( "#geneManagerMessage" ) );
             return;
          }
-
+         
+         //re-populate overview page
          overview.showGenesOverview();
          showMessage( response.message, $( "#geneManagerMessage" ) );
 
@@ -80,6 +73,9 @@ var showGenes = function() {
          }
 
          console.log( "Loaded " + response.data.length + " user genes" )
+         
+         // loop through response data, add gene to table view if it's the 
+         // correct taxon otherwise only store it in table data
          for (var i = 0; i < response.data.length; i++) {
         	if ( response.data[i].taxon === $( "#taxonCommonNameSelect" ).val() ) {
         		addGene( response.data[i], tableEl.DataTable() );
@@ -101,6 +97,8 @@ var closeGenesManager = function() {
    $( "#geneManagerFailed" ).hide();
 
    var tableEl = $( "#geneManagerTable" );
+   
+   // Clear value of select box
    $( "#searchGenesSelect" ).select2("val", "");
    tableEl.DataTable().clear();
 }
@@ -109,6 +107,7 @@ var initGeneManager = function() {
 
    var tableEl = $( "#geneManagerTable" );
 
+   // Add row highlighting on click effect
    addRowSelectEvent( tableEl.dataTable({"searching":false}) );
 }
 
@@ -126,8 +125,6 @@ $( document ).ready( function() {
    $( 'a[href$="#editGenesModal"]' ).click( showGenes );
 
    $( '#editGenesModal' ).on( 'hidden.bs.modal', closeGenesManager );
-
-   // $( "#closeGenesButton" ).click( closeGenesManager );
 
    $( "#saveGenesButton" ).click( saveGenes );
 
