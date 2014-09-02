@@ -46,7 +46,7 @@ function saveGeneToTable(geneValueObject) {
 // wrapped search genes in an object for re-usability
 var searchGenes = {
    config : {
-      'container' : $( "#searchGenes" )
+      'container' : $( "#searchGenesSelect" )
    },
 
    'init' : function(config) {

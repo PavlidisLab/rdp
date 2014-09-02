@@ -100,7 +100,7 @@ var closeGenesManager = function() {
    $( "#geneManagerFailed" ).hide();
 
    var tableEl = $( "#geneManagerTable" );
-
+   $( "#searchGenesSelect" ).select2("val", "");
    tableEl.DataTable().clear();
 }
 
@@ -111,16 +111,25 @@ var initGeneManager = function() {
    addRowSelectEvent( tableEl.dataTable({"searching":false}) );
 }
 
+var refreshGenesManager = function() {
+   $( "#geneManagerFailed" ).hide();
+   $( "#searchGenesSelect" ).select2("val", "");
+   showGenes();
+   
+}
+
 $( document ).ready( function() {
 
    initGeneManager();
 
-   $( "#geneManagerButton" ).click( showGenes );
+   $( 'a[href$="#editGenesModal"]' ).click( showGenes );
 
-   $( '#geneManagerModal' ).on( 'hidden.bs.modal', closeGenesManager );
+   $( '#editGenesModal' ).on( 'hidden.bs.modal', closeGenesManager );
 
    // $( "#closeGenesButton" ).click( closeGenesManager );
 
    $( "#saveGenesButton" ).click( saveGenes );
 
+   $('#taxonCommonNameSelect').on('change', refreshGenesManager );
+   
 } );

@@ -42,8 +42,8 @@
 		<!-- Nav tabs -->
 		<ul id="registerTab" class="nav nav-tabs" role="tablist">
 
-			<li><a href="#modelOrganism" role="tab" data-toggle="tab">Model
-					organism</a></li>
+<!-- 			<li><a href="#modelOrganism" role="tab" data-toggle="tab">Model
+					organism</a></li> -->
 
 			<li><a href="#registeredResearchers" role="tab"
 				data-toggle="tab" style="display: none;">Registered researchers</a></li>
@@ -52,11 +52,11 @@
 
 		<!-- Tab panes -->
 		<div class="tab-content">
-			<div class="tab-pane active" id="modelOrganism">
+<%-- 			<div class="tab-pane active" id="modelOrganism">
 				<br />
 				<%@ include file="modelOrganism.jsp"%>
 			</div>
-
+ --%>
 			<div class="tab-pane" id="registeredResearchers">
 				<br />
 				<%@ include file="listResearchers.jsp"%>
