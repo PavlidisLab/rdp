@@ -42,7 +42,7 @@
 		<!-- Nav tabs -->
 		<ul id="registerTab" class="nav nav-tabs" role="tablist">
 
-			<li><a href="#overview" role="tab" data-toggle="tab">Overview</a></li>
+			<li class="active"><a href="#overview" role="tab" data-toggle="tab">Overview</a></li>
 
 			<li><a href="#registeredResearchers" role="tab"
 				data-toggle="tab" style="display: none;">Registered researchers</a></li>
