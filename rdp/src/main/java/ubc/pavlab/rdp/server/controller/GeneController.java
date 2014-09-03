@@ -169,7 +169,7 @@ public class GeneController {
 
     /**
      * Returns a collection of Gene objects from the json. Requires the gene.officialSymbol to be the key, eg.
-     * "{ "BRCA1" : { "ensembleId" : "ENSG001234", "ncbiId" : "1234" } }
+     * "{ "BRCA1:Human" : { "ensembleId" : "ENSG001234", "ncbiId" : "1234" } }
      *
      * @param genesJSON - a JSON representation of an array of Genes
      * @return
@@ -180,6 +180,10 @@ public class GeneController {
 
         for ( Object key : json.keySet() ) {
             String[] symbol = ( ( String ) key ).split( ":" );
+
+            if ( symbol.length != 2 ) {
+                throw new IllegalArgumentException( "Key must have the format GENE_SYMBOL:TAXON" );
+            }
 
             // try looking for an existing one
             Gene geneFound = geneService.findByOfficialSymbol( symbol[0], symbol[1] );

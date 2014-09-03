@@ -23,7 +23,7 @@
 
 
         <!-- Spring -->
-        <spring-framework.version>3.2.3.RELEASE</spring-framework.version>
+        <spring-framework.version>3.2.4.RELEASE</spring-framework.version>
         <spring.security.version>3.1.4.RELEASE</spring.security.version>
         <!-- Hibernate / JPA -->
         <hibernate.version>3.6.3.Final</hibernate.version>
@@ -50,9 +50,9 @@
             <version>1.13</version>
         </dependency>
         <dependency>
-			<groupId>org.eclipse.jdt.core.compiler</groupId>
-			<artifactId>ecj</artifactId>
-			<version>P20140317-1600</version>
+            <groupId>org.eclipse.jdt.core.compiler</groupId>
+            <artifactId>ecj</artifactId>
+            <version>P20140317-1600</version>
         </dependency>
         <dependency>
             <groupId>pavlab</groupId>
@@ -100,7 +100,7 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-orm</artifactId>
-            <version>3.0.5.RELEASE</version>
+            <version>${spring-framework.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
@@ -188,11 +188,32 @@
         </dependency>
 
         <dependency>
+            <groupId>com.jayway.restassured</groupId>
+            <artifactId>spring-mock-mvc</artifactId>
+            <version>2.3.3</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
             <groupId>org.easymock</groupId>
             <artifactId>easymock</artifactId>
             <version>3.1</version>
+            <scope>test</scope>
+        </dependency>
+        
+        <dependency>
+            <groupId>com.jayway.jsonpath</groupId>
+            <artifactId>json-path-assert</artifactId>
+            <version>0.9.1</version>
+            <scope>test</scope>
         </dependency>
 
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>1.9.5</version>
+            <scope>test</scope>
+        </dependency>
 
         <dependency>
             <groupId>org.scala-lang</groupId>
