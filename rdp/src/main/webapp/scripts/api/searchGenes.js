@@ -17,6 +17,7 @@ function aliasesToString(geneValueObject) {
    return arr.join( ',' );
 }
 
+//Add and display gene in table
 function addGene(geneValueObject, table) {
 
    if ( geneValueObject == null ) {
@@ -37,6 +38,7 @@ function addGene(geneValueObject, table) {
 
 }
 
+// Saves gene data to table without displaying it
 function saveGeneToTable(geneValueObject) {
    jQuery.data( $( "#geneManagerTable" )[0], geneValueObject.officialSymbol + ":" + geneValueObject.taxon,
       geneValueObject );
