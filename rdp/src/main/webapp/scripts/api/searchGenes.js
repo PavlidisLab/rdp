@@ -43,14 +43,14 @@ function addGene(geneValueObject, table) {
 // Check if gene is already displayed on table
 function geneInTable(geneValueObject) {
    
-   tableData = $( "#geneManagerTable" ).DataTable().data();
+   //Assumes Symbol is in 1st column!
+   tableSymbols = $( "#geneManagerTable" ).DataTable().columns(0).data()[0];
    
-   if ( tableData.length === 0 ) {
+   if ( tableSymbols.length === 0 ) {
       return false;
    }
    
-   //Assumes Symbol is in 1st column!
-   if ( geneValueObject.taxon != $( "#taxonCommonNameSelect" ).val() || !( geneValueObject.officialSymbol in tableData[0] ) ) {
+   if ( geneValueObject.taxon != $( "#taxonCommonNameSelect" ).val() || tableSymbols.indexOf(geneValueObject.officialSymbol) === -1 ) {
       return false;
    }
    

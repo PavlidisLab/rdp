@@ -20,6 +20,7 @@ var saveContact = function() {
          // $( "#primaryContactFailed" ).show();
          $('#overviewName').text( $( "#firstName" ).val() + " " + $( "#lastName" ).val() );
          $('#overviewEmail').text( $( "#email" ).val() );
+         $('#overviewOrganisation').text( $( "#organization" ).val() );
          showMessage( jQuery.parseJSON( response ).message, $( "#primaryContactMessage" ) )
       },
       error : function(response, xhr) {
