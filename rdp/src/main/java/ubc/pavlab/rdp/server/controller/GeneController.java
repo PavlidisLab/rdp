@@ -43,6 +43,7 @@ import ubc.pavlab.rdp.server.biomartquery.BioMartQueryService;
 import ubc.pavlab.rdp.server.exception.BioMartServiceException;
 import ubc.pavlab.rdp.server.model.Gene;
 import ubc.pavlab.rdp.server.model.Researcher;
+import ubc.pavlab.rdp.server.model.common.auditAndSecurity.User;
 import ubc.pavlab.rdp.server.service.GeneService;
 import ubc.pavlab.rdp.server.service.ResearcherService;
 import ubc.pavlab.rdp.server.util.JSONUtil;
@@ -86,30 +87,32 @@ public class GeneController {
         String username = userManager.getCurrentUsername();
         final String taxonCommonName = request.getParameter( "taxonCommonName" );
 
-        Researcher user = researcherService.findByUserName( username );
+        Researcher researcher = researcherService.findByUserName( username );
 
         try {
 
-            if ( user == null ) {
+            if ( researcher == null ) {
 
-                // this shouldn't happen.
-                jsonText = "{\"success\":false,\"message\":\"No researcher with name " + username + "\"}";
-            } else {
-
-                Collection<Gene> genes = user.getGenes();
-                if ( !taxonCommonName.equals( "All" ) ) {
-                    CollectionUtils.filter( genes, new Predicate() {
-                        @Override
-                        public boolean evaluate( Object input ) {
-                            return ( ( Gene ) input ).getTaxon().equals( taxonCommonName );
-                        }
-                    } );
-                }
-
-                jsonText = "{\"success\":true,\"data\":" + ( new JSONArray( user.getGenes() ) ).toString() + "}";
-                log.info( "Loaded " + user.getGenes().size() + " genes" );
+                log.info( "Could not find researcher associated account: " + username + ", creating one" );
+                researcher = researcherService.create( new Researcher() );
+                User contact = ( User ) userManager.getCurrentUser();
+                researcher.setContact( contact );
+                researcherService.update( researcher );
 
             }
+
+            Collection<Gene> genes = researcher.getGenes();
+            if ( !taxonCommonName.equals( "All" ) ) {
+                CollectionUtils.filter( genes, new Predicate() {
+                    @Override
+                    public boolean evaluate( Object input ) {
+                        return ( ( Gene ) input ).getTaxon().equals( taxonCommonName );
+                    }
+                } );
+            }
+
+            jsonText = "{\"success\":true,\"data\":" + ( new JSONArray( researcher.getGenes() ) ).toString() + "}";
+            log.info( "Loaded " + researcher.getGenes().size() + " genes" );
 
         } catch ( Exception e ) {
             jsonText = "{\"success\":false,\"message\":\"" + e.getLocalizedMessage() + "\"}";

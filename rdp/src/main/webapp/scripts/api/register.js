@@ -53,27 +53,33 @@ $( document ).ready( function() {
 
          form.find( "#department" ).val( data.department );
          form.find( "#organization" ).val( data.organization );
-         $('#overviewOrganisation').text( data.organization );
          form.find( "#website" ).val( data.website );
          form.find( "#phone" ).val( data.phone );
-
+         
+         var contact;
+         
          // Researcher created so Researcher object was returned
          if ( data.contact != null ) {
-            form.find( "#firstName" ).val( data.contact.firstName );
-            form.find( "#lastName" ).val( data.contact.lastName );
-            form.find( "#email" ).val( data.contact.email );
-            $('#overviewName').text( data.contact.firstName + " " + data.contact.lastName );
-            $('#overviewEmail').text( data.contact.email );
+            contact = data.contact;
             $( "#primaryContactFailed" ).hide();
          } else {
-            // Researcher not created yet so User object was returned
-            form.find( "#firstName" ).val( data.firstName );
-            form.find( "#lastName" ).val( data.lastName );
-            form.find( "#email" ).val( data.email );
-            $('#overviewName').text( data.firstName + " " + data.lastName );
-            $('#overviewEmail').text( data.email );
+         // Researcher not created yet so User object was returned
+            contact = data;
             showMessage( "Missing contact details", $("#primaryContactMessage") );
          }
+         
+         form.find( "#firstName" ).val( contact.firstName );
+         form.find( "#lastName" ).val( contact.lastName );
+         form.find( "#email" ).val( contact.email );
+         
+         //Fill in overview information
+         if (contact.firstName || contact.lastName) {
+            $('#overviewName').text( contact.firstName + " " + contact.lastName );
+         } else {
+            showMessage( "Missing contact details", $("#overviewMessage") );
+         }
+         $('#overviewEmail').text( contact.email );
+         $('#overviewOrganisation').text( data.organization );
 
       },
       error : function(response, xhr) {
