@@ -8,7 +8,9 @@
 
 	<div class="row">
 	    <label class="col-sm-3">Find researchers by gene </label>
-		<input type="hidden" class="bigdrop col-sm-7" id="findResearchersByGenesSelect" />
+	    <div class="col-sm-7">
+			<input type="hidden" class="bigdrop form-control" id="findResearchersByGenesSelect" />
+		</div>
 		<button type="button" id="findResearchersByGeneButton"
 			class="btn btn-default">
 			<span class="glyphicon glyphicon-search"></span>

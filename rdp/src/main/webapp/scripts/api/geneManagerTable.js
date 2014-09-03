@@ -51,7 +51,7 @@ var saveGenes = function() {
 }
 
 var showGenes = function() {
-
+   jQuery.removeData( $( "#geneManagerTable" )[0] );
    $( "#geneManagerTable" ).DataTable().clear();
    $( "#geneManagerTable" ).DataTable().draw();
    $.ajax( {
@@ -77,12 +77,13 @@ var showGenes = function() {
          // loop through response data, add gene to table view if it's the 
          // correct taxon otherwise only store it in table data
          for (var i = 0; i < response.data.length; i++) {
-        	if ( response.data[i].taxon === $( "#taxonCommonNameSelect" ).val() ) {
-        		addGene( response.data[i], tableEl.DataTable() );
-        	}
-        	else {
-        		saveGeneToTable(response.data[i]);
-        	}
+            
+           	if ( response.data[i].taxon === $( "#taxonCommonNameSelect" ).val() ) {
+           		addGene( response.data[i], tableEl.DataTable() );
+           	}
+           	
+           	saveGeneToTable(response.data[i]);
+        	
          }
 
       },
@@ -118,6 +119,22 @@ var refreshGenesManager = function() {
    
 }
 
+var switchModelOrganism = function() {
+   $( "#geneManagerFailed" ).hide();
+   $( "#searchGenesSelect" ).select2("val", "");
+   $( "#geneManagerTable" ).DataTable().clear();
+   $( "#geneManagerTable" ).DataTable().draw();
+   
+   var tableEl = $( "#geneManagerTable" );
+   
+   for (var key in jQuery.data( $( "#geneManagerTable" )[0] )) {
+      var geneValueObject = jQuery.data( $( "#geneManagerTable" )[0] )[key];
+      if ( geneValueObject.taxon === $( "#taxonCommonNameSelect" ).val() ) {
+         addGene( geneValueObject, tableEl.DataTable() );
+      }
+   }
+}
+
 $( document ).ready( function() {
 
    initGeneManager();
@@ -128,6 +145,6 @@ $( document ).ready( function() {
 
    $( "#saveGenesButton" ).click( saveGenes );
 
-   $('#taxonCommonNameSelect').on('change', refreshGenesManager );
+   $('#taxonCommonNameSelect').on('change', switchModelOrganism );
    
 } );

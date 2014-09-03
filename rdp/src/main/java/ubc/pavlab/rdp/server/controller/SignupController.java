@@ -54,7 +54,7 @@ import ubc.pavlab.rdp.server.util.Settings;
 public class SignupController extends BaseController {
 
     public static final int MIN_PASSWORD_LENGTH = 6;
-    
+
     @Autowired
     private PasswordEncoder passwordEncoder;
 
@@ -187,8 +187,14 @@ public class SignupController extends BaseController {
             log.warn( "No recaptcha private key is configured, skipping validation" );
         }
 
-        if ( password.length() < MIN_PASSWORD_LENGTH || !password.equals( cPass ) ) {
-            jsonText = "{\"success\":false,\"message\":\"Password was not valid or didn't match\"}";
+        if ( password.length() < MIN_PASSWORD_LENGTH ) {
+            jsonText = "{\"success\":false,\"message\":\"Password must be at least 6 characters in length\"}";
+            jsonUtil.writeToResponse( jsonText );
+            return;
+        }
+
+        if ( !password.equals( cPass ) ) {
+            jsonText = "{\"success\":false,\"message\":\"Passwords don't match\"}";
             jsonUtil.writeToResponse( jsonText );
             return;
         }
@@ -202,7 +208,7 @@ public class SignupController extends BaseController {
         String cEmail = request.getParameter( "emailConfirm" );
 
         /*
-         * Validate that it is a valid email....this regex adapted from extjs; a word possibly containingi '-', '+' or
+         * Validate that it is a valid email....this regex adapted from extjs; a word possibly containing '-', '+' or
          * '.', following by '@', followed by up to 5 chunks separated by '.', finally a 2-4 letter alphabetic suffix.
          */
         if ( !email.matches( "^(\\w+)([-+.][\\w]+)*@(\\w[-\\w]*\\.){1,5}([A-Za-z]){2,4}$" ) || !email.equals( cEmail ) ) {
