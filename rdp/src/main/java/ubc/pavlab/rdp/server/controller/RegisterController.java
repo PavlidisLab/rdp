@@ -48,22 +48,22 @@ public class RegisterController extends BaseController {
         String lastName = request.getParameter( "lastName" );
         String organization = request.getParameter( "organization" );
         String department = request.getParameter( "department" );
-        String email = request.getParameter( "email" );
+        // String email = request.getParameter( "email" );
         String website = request.getParameter( "website" );
         String phone = request.getParameter( "phone" );
 
         try {
             User contact = null;
-            Researcher researcher = researcherService.findByEmail( email );
+            Researcher researcher = researcherService.findByUserName( userManager.getCurrentUsername() );
             if ( researcher == null ) {
                 researcher = researcherService.create( new Researcher() );
-                contact = ( User ) userManager.findbyEmail( email );
+                contact = ( User ) userManager.getCurrentUser();
                 researcher.setContact( contact );
             } else {
                 contact = researcher.getContact();
             }
             if ( contact != null ) {
-                contact.setEmail( email );
+                // contact.setEmail( email );
                 contact.setFirstName( firstName );
                 contact.setLastName( lastName );
             }

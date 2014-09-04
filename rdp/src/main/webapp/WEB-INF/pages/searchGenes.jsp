@@ -5,18 +5,15 @@ displays it as suggestions in a combo box.
 
  -->
 
-<div class="row">
+<div class="input-group"> 
+	<input type="hidden" class="bigdrop form-control" id="searchGenesSelect" />
 
-	<input type="hidden" class="bigdrop col-sm-10" id="searchGenesSelect" />
-
-	<button type="button" id="addGeneButton" class="btn btn-default btn-sm"
-		data-toggle="tooltip" data-placement="bottom" title="Add gene">
-		<span class="glyphicon glyphicon-plus-sign"></span>
-	</button>
-
+	<span class="input-group-btn">
+		<button type="button" id="addGeneButton" class="btn btn-default" data-toggle="tooltip" data-placement="bottom" title="Add gene">
+			<span class="glyphicon glyphicon-plus-sign"></span>
+		</button>
+	</span>
 </div>
-
-
 
 <!-- Our scripts -->
 <script src="scripts/api/searchGenes.js"></script>
