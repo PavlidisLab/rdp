@@ -20,7 +20,7 @@
                         <div class="alert alert-warning"
                             id="changePasswordFailed" hidden="true">
                             <a href="#" class="close"
-                                data-dismiss="alert">&times;</a>
+                                data-hide="alert">&times;</a>
                             <div id="changePasswordMesssage">Edit
                                 failed.</div>
                         </div>

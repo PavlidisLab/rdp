@@ -4,7 +4,7 @@
 
         <div class="alert alert-warning" id="primaryInvestigatorFailed"
             hidden="true">
-            <a href="#" class="close" data-dismiss="alert">&times;</a>
+            <a href="#" class="close" data-hide="alert">&times;</a>
             <div id="primaryInvestigatorMessage">Failed to save details.</div>
         </div>
 

@@ -17,7 +17,7 @@
 			        <div class="form-group">
 			            <div class="alert alert-warning col-sm-offset-3 col-sm-6"
 			                id="primaryContactFailed" hidden="true">
-			                <a href="#" class="close" data-dismiss="alert">&times;</a>
+			                <a href="#" class="close" data-hide="alert">&times;</a>
 			                <div id="primaryContactMessage">Failed saving
 			                    details.</div>
 			            </div>

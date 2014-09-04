@@ -15,7 +15,7 @@
 
 					<div class="alert alert-warning" id="modelOrganismFailed"
 						hidden="true">
-						<a href="#" class="close" data-dismiss="alert">&times;</a>
+						<a href="#" class="close" data-hide="alert">&times;</a>
 						<div id="modelOrganismMessage">Failed to save model organism
 							details.</div>
 					</div>

@@ -3,7 +3,7 @@
 
 		<div class="alert alert-warning" id="overviewFailed"
 			hidden="true">
-			<a href="#" class="close" data-dismiss="alert">&times;</a>
+			<a href="#" class="close" data-hide="alert">&times;</a>
 			<div id="overviewMessage">Some message.</div>
 		</div>
 

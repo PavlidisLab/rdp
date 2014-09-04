@@ -1,5 +1,5 @@
 <div class="alert alert-warning" id="geneManagerFailed" hidden="true">
-	<a href="#" class="close" data-dismiss="alert">&times;</a>
+	<a href="#" class="close" data-hide="alert">&times;</a>
 	<div id="geneManagerMessage">Failed to load genes.</div>
 </div>
 
