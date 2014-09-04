@@ -23,13 +23,13 @@
 			            </div>
 			        </div>
 			
-			        <div class="form-group">
+<!-- 			        <div class="form-group">
 			            <label for="email" class="col-sm-3 control-label">Email</label>
 			            <div class="col-sm-6">
 			                <input type="email" class="form-control" id="email"
 			                    name="email" placeholder="janlinv@ubc.ca">
 			            </div>
-			        </div>
+			        </div> -->
 			        
 			        <div class="form-group">
 			            <label for="firstName" class="col-sm-3 control-label">First
