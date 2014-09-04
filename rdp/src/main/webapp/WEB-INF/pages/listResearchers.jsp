@@ -1,15 +1,27 @@
 <div class="container">
 
 	<div class="alert alert-warning
-		id="listResearchersFailed" hidden="true">
+		id="
+		listResearchersFailed" hidden="true">
 		<a href="#" class="close" data-dismiss="alert">&times;</a>
 		<div id="listResearchersMessage">Failed loading all researchers.</div>
 	</div>
 
 	<div class="row">
-	    <label class="col-sm-3">Find researchers by gene </label>
-	    <div class="col-sm-7">
-			<input type="hidden" class="bigdrop form-control" id="findResearchersByGenesSelect" />
+		<label class="col-sm-3">Find researchers by gene </label>
+		<div class="col-sm-2">
+			<select id="taxonCommonNameSelectListResearchers"
+				class="form-control">
+				<!-- 
+                <option>Human</option>
+                <option>Mouse</option>
+                <option>Rat</option>
+				 -->
+			</select>
+		</div>
+		<div class="col-sm-6">
+			<input type="hidden" class="bigdrop form-control"
+				id="findResearchersByGenesSelect" />
 		</div>
 		<button type="button" id="findResearchersByGeneButton"
 			class="btn btn-default">
@@ -19,7 +31,6 @@
 
 	<!-- empty filler -->
 	<p>
-	
 	<div class="row">
 		<table id="listResearchersTable"
 			class="table table-striped table-bordered" cellspacing="0"

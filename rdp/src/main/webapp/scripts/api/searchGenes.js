@@ -48,7 +48,8 @@ function saveGeneToTable(geneValueObject) {
 // wrapped search genes in an object for re-usability
 var searchGenes = {
    config : {
-      'container' : $( "#searchGenesSelect" )
+      'container' : $( "#searchGenesSelect" ),
+      'taxonEl' : $( "#taxonCommonNameSelect" )
    },
 
    'init' : function(config) {
@@ -65,7 +66,7 @@ var searchGenes = {
             data : function(query, page) {
                return {
                   query : query, // search term
-                  taxon : $( "#taxonCommonNameSelect" ).val()
+                  taxon : config.taxonEl.val()
                }
             },
             results : function(data, page) {
@@ -123,7 +124,8 @@ $( document ).ready( function() {
    } );
 
    searchGenes.init( {
-      'container' : $( "#searchGenesSelect" )
+      'container' : $( "#searchGenesSelect" ),
+      'taxonEl' : $( "#taxonCommonNameSelect" )
    } );
 
 } );
