@@ -22,6 +22,8 @@ package ubc.pavlab.rdp.server.controller;
 import gemma.gsec.authentication.UserManager;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 
@@ -30,6 +32,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.Predicate;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.directwebremoting.annotations.RemoteProxy;
@@ -235,6 +238,65 @@ public class GeneController {
             jsonUtil.writeToResponse( jsonText );
         }
 
+    }
+
+    /**
+     * Finds exact matching gene symbols (case-insensitive).
+     * 
+     * @param request
+     * @param response
+     * @throws IOException
+     */
+    @RequestMapping("/findGenesByGeneSymbols.html")
+    public void findGenesByGeneSymbols( HttpServletRequest request, HttpServletResponse response ) throws IOException {
+        JSONUtil jsonUtil = new JSONUtil( request, response );
+        String jsonText = null;
+
+        final String delimiter = ",";
+
+        String symbols = request.getParameter( "symbols" );
+        Collection<String> querySymbols = new ArrayList<String>(
+                Arrays.asList( symbols.toUpperCase().split( delimiter ) ) );
+        String taxon = request.getParameter( "taxon" );
+
+        Collection<String> resultSymbols = new ArrayList<>();
+
+        if ( symbols.length() == 0 || querySymbols.size() == 0 ) {
+            JSONObject json = new JSONObject();
+            json.append( "success", true );
+            json.append( "data", resultSymbols );
+            json.append( "message", "Please enter a gene symbol" );
+            jsonUtil.writeToResponse( json.toString() );
+            return;
+        }
+
+        try {
+            Collection<Gene> results = biomartService.fetchGenesByGeneSymbols( querySymbols, taxon );
+            for ( Gene gene : results ) {
+                resultSymbols.add( gene.getOfficialSymbol().toUpperCase() );
+            }
+
+            // symbols not found
+            querySymbols.removeAll( resultSymbols );
+
+            JSONObject json = new JSONObject();
+            json.append( "success", true );
+            json.append( "data", results );
+            if ( querySymbols.size() > 0 ) {
+                json.append( "message",
+                        querySymbols.size() + " symbols not found: " + StringUtils.join( querySymbols, delimiter ) );
+            } else {
+                json.append( "message", "All " + results.size() + " symbols were found." );
+            }
+            jsonText = json.toString();
+        } catch ( BioMartServiceException e ) {
+            e.printStackTrace();
+            log.error( e.getMessage(), e );
+            jsonText = "{\"success\":false,\"message\":" + e.getMessage() + "\"}";
+        }
+
+        jsonUtil.writeToResponse( jsonText );
+        return;
     }
 
     @RequestMapping("/searchGenes.html")

@@ -45,6 +45,14 @@ public class BioMartCacheImpl extends SearchableEhcache<Gene> implements BioMart
     private Attribute<Object> aliasesAttribute;
 
     @Override
+    public Collection<Gene> fetchGenesByGeneSymbols( Collection<String> geneSymbols, String taxon ) {
+        Criteria symbolCriteria = geneSymbolAttribute.in( geneSymbols );
+        Criteria taxonCriteria = taxonAttribute.eq( taxon );
+
+        return fetchByCriteria( taxonCriteria.and( symbolCriteria ) );
+    }
+
+    @Override
     public Collection<Gene> fetchGenesByGeneSymbols( Collection<String> geneSymbols ) {
         Criteria symbolCriteria = geneSymbolAttribute.in( geneSymbols );
 

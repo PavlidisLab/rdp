@@ -15,6 +15,17 @@ import ubc.pavlab.rdp.server.model.Gene;
 public interface BioMartQueryService {
 
     /**
+     * Find genes by gene symbols filtered by taxon.
+     * 
+     * @param geneSymbols
+     * @param taxon
+     * @return collection of genes
+     * @throws BioMartServiceException
+     */
+    public Collection<Gene> fetchGenesByGeneSymbols( Collection<String> geneSymbols, String taxon )
+            throws BioMartServiceException;
+
+    /**
      * Find genes by gene symbols.
      * 
      * @param geneSymbols

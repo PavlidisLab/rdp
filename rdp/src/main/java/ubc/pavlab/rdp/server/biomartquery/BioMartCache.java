@@ -15,7 +15,7 @@ public interface BioMartCache {
     public Collection<Gene> fetchGenesByGeneSymbols( Collection<String> geneSymbols );
 
     public Collection<Gene> fetchGenesByGeneTaxon( Collection<String> taxons );
-    
+
     public Collection<Gene> fetchGenesByLocation( String chromosomeName, Long start, Long end );
 
     public Collection<Gene> findGenes( String queryString, String taxon );
@@ -32,4 +32,13 @@ public interface BioMartCache {
     public boolean hasExpired();
 
     public void putAll( Collection<Gene> genes );
+
+    /**
+     * Get a list of genes that have an exact matching gene symbol and taxon.
+     * 
+     * @param geneSymbols
+     * @param taxon
+     * @return
+     */
+    public Collection<Gene> fetchGenesByGeneSymbols( Collection<String> geneSymbols, String taxon );
 }

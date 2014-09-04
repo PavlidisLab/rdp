@@ -1,0 +1,20 @@
+/* Icon spinner http://jsfiddle.net/CBLPz/2/ */
+
+.animate {
+    animation-name: rotateThis;
+    animation-duration: 0.5s;
+    animation-iteration-count: infinite;
+    animation-timing-function: linear;
+    -moz-animation: rotateThis 0.5s infinite linear;    
+    -webkit-animation: rotateThis 0.5s infinite linear;    
+}
+
+@keyframes rotateThis {
+    from { transform: scale( 1 ) rotate( 0deg );   }
+    to   { transform: scale( 1 ) rotate( 359deg ); }
+}
+
+@-webkit-keyframes rotateThis {
+    from {-webkit-transform: rotate(0deg);}
+    to   {-webkit-transform: rotate(359deg);}
+}

@@ -341,4 +341,12 @@ public class BioMartQueryServiceImpl implements BioMartQueryService {
 
     }
 
+    @Override
+    public Collection<Gene> fetchGenesByGeneSymbols( Collection<String> geneSymbols, String taxon )
+            throws BioMartServiceException {
+        updateCacheIfExpired();
+
+        return bioMartCache.fetchGenesByGeneSymbols( geneSymbols, taxon );
+    }
+
 }

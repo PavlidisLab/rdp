@@ -45,9 +45,14 @@ public class BioMartCacheTest extends BaseSpringContextTest {
 
     private String taxon = "human";
 
-    @Before
-    public void setUp() {
-
+    /**
+     * Initializes the cache and genes with sample data
+     * 
+     * @param cache
+     * @param genes
+     * @param taxon
+     */
+    public static void initCache( BioMartCache cache, Collection<Gene> genes, String taxon ) {
         HashMap<Gene, String> geneMap = new HashMap<>();
         geneMap.put( new Gene( "ENSG01", taxon, "aaa", "gene aa" ), "alias-a1,alias-a2" ); // match symbol exact first
         geneMap.put( new Gene( "ENSG02", taxon, "aaaab", "gene ab" ), "alias-ab,alias-ab2" ); // match symbol partial
@@ -70,6 +75,12 @@ public class BioMartCacheTest extends BaseSpringContextTest {
             genes.add( gene );
         }
         cache.putAll( genes );
+    }
+
+    @Before
+    public void setUp() {
+
+        initCache( cache, genes, taxon );
     }
 
     /**

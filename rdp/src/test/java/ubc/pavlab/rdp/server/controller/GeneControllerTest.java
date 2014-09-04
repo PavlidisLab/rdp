@@ -26,6 +26,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import gemma.gsec.authentication.UserService;
 
+import java.util.Collection;
+import java.util.HashSet;
+
 import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Before;
@@ -39,6 +42,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
+import ubc.pavlab.rdp.server.biomartquery.BioMartCache;
+import ubc.pavlab.rdp.server.biomartquery.BioMartCacheTest;
 import ubc.pavlab.rdp.server.model.Gene;
 import ubc.pavlab.rdp.server.model.Researcher;
 import ubc.pavlab.rdp.server.model.common.auditAndSecurity.User;
@@ -55,6 +60,9 @@ import ubc.pavlab.rdp.testing.BaseSpringContextTest;
 @RunWith(SpringJUnit4ClassRunner.class)
 @WebAppConfiguration
 public class GeneControllerTest extends BaseSpringContextTest {
+
+    @Autowired
+    private BioMartCache cache;
 
     @Autowired
     private ResearcherService researcherService;
@@ -147,5 +155,19 @@ public class GeneControllerTest extends BaseSpringContextTest {
                                 "taxonCommonName", taxon ) ).andExpect( status().isOk() )
                 .andExpect( jsonPath( "$.success" ).value( true ) )
                 .andExpect( jsonPath( "$.data[0].officialSymbol" ).value( gene.getOfficialSymbol() ) );
+    }
+
+    @Test
+    public void testFindGenesByGeneSymbols() throws Exception {
+        Collection<Gene> genes = new HashSet<>();
+        BioMartCacheTest.initCache( cache, genes, taxon );
+        this.mockMvc
+                .perform(
+                        get( "/findGenesByGeneSymbols.html" ).contentType( MediaType.APPLICATION_JSON )
+                                .param( "symbols", "Aaa,aaaab,NOT_FOUND" ).param( "taxon", taxon ) )
+                .andExpect( status().isOk() ).andExpect( jsonPath( "$.success" ).value( true ) )
+                .andExpect( jsonPath( "$.message" ).value( "1 symbols not found: NOT_FOUND" ) )
+                .andExpect( jsonPath( "$.data[0][0].officialSymbol" ).value( "aaaab" ) )
+                .andExpect( jsonPath( "$.data[0][1].officialSymbol" ).value( "aaa" ) );
     }
 }

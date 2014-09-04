@@ -17,7 +17,7 @@ function aliasesToString(geneValueObject) {
    return arr.join( ',' );
 }
 
-//Add and display gene in table
+// Add and display gene in table
 function addGene(geneValueObject, table) {
 
    if ( geneValueObject == null ) {
@@ -27,12 +27,16 @@ function addGene(geneValueObject, table) {
       $( "#geneManagerFailed" ).hide();
    }
 
+   if ( table.column(0).data().indexOf(geneValueObject.officialSymbol) != -1 ) {
+      // gene symbol already exists
+      return;
+   }
+   
    // columns: Symbol, Alias, Name
-   geneRow = [ geneValueObject.officialSymbol, aliasesToString( geneValueObject ),
-              geneValueObject.officialName ];
+   geneRow = [ geneValueObject.officialSymbol, aliasesToString( geneValueObject ), geneValueObject.officialName ];
 
    table.row.add( geneRow ).draw();
-
+   
    // save object to table element using symbol:taxon as key
    saveGeneToTable( geneValueObject );
 
@@ -56,7 +60,7 @@ var searchGenes = {
          id : function(data) {
             return data.officialSymbol;
          },
-         placeholder : "Enter gene symbol, alias or name",
+         placeholder : "Select a gene symbol or name",
          minimumInputLength : 3,
          ajax : {
             url : "searchGenes.html",
