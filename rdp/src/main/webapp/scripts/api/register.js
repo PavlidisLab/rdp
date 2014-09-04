@@ -19,7 +19,7 @@ var saveContact = function() {
          // $( "#primaryContactMessage" ).html( jQuery.parseJSON( response ).message );
          // $( "#primaryContactFailed" ).show();
          $('#overviewName').text( $( "#firstName" ).val() + " " + $( "#lastName" ).val() );
-         $('#overviewEmail').text( $( "#email" ).val() );
+         //$('#overviewEmail').text( $( "#email" ).val() );
          $('#overviewOrganisation').text( $( "#organization" ).val() );
          showMessage( jQuery.parseJSON( response ).message, $( "#primaryContactMessage" ) )
       },
@@ -70,7 +70,7 @@ $( document ).ready( function() {
          
          form.find( "#firstName" ).val( contact.firstName );
          form.find( "#lastName" ).val( contact.lastName );
-         form.find( "#email" ).val( contact.email );
+         //form.find( "#email" ).val( contact.email );
          
          //Fill in overview information
          if (contact.firstName || contact.lastName) {
