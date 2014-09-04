@@ -164,7 +164,7 @@ public class GeneControllerTest extends BaseSpringContextTest {
         this.mockMvc
                 .perform(
                         get( "/findGenesByGeneSymbols.html" ).contentType( MediaType.APPLICATION_JSON )
-                                .param( "symbols", "Aaa,aaaab,NOT_FOUND" ).param( "taxon", taxon ) )
+                                .param( "symbols", "Aaa\naaaab\nNOT_FOUND" ).param( "taxon", taxon ) )
                 .andExpect( status().isOk() ).andExpect( jsonPath( "$.success" ).value( true ) )
                 .andExpect( jsonPath( "$.message" ).value( "1 symbols not found: NOT_FOUND" ) )
                 .andExpect( jsonPath( "$.data[0][0].officialSymbol" ).value( "aaaab" ) )

@@ -3,8 +3,8 @@
 function importGeneSymbols(geneSymbols, taxon, tableEl) {
    console.log( "import gene symbols" );
 
-   $("#spinImportGenesButton").show();
-   
+   $( "#spinImportGenesButton" ).show();
+
    $.ajax( {
       url : "findGenesByGeneSymbols.html",
       dataType : "json",
@@ -14,22 +14,23 @@ function importGeneSymbols(geneSymbols, taxon, tableEl) {
       },
       success : function(response, xhr) {
 
-         $("#spinImportGenesButton").hide();
+         $( "#spinImportGenesButton" ).hide();
 
          // convert object to text symbol + text
          // select2 format result looks for the 'text' attr
          for (var i = 0; i < response.data[0].length; i++) {
             gene = response.data[0][i]
             addGene( gene, tableEl.DataTable() )
+            saveGeneToTable( gene );
          }
 
          showMessage( response.message, $( "#geneManagerMessage" ) );
-         
+
       },
       error : function(response, xhr) {
-         
-         $("#spinImportGenesButton").hide();
-         
+
+         $( "#spinImportGenesButton" ).hide();
+
          showMessage( response.message, $( "#geneManagerMessage" ) );
       }
 
@@ -37,12 +38,12 @@ function importGeneSymbols(geneSymbols, taxon, tableEl) {
 
 }
 
-$("#clearImportGenesButton").click( function() {
-   $( "#importGeneSymbolsTextArea" ).val('');
-});
+$( "#clearImportGenesButton" ).click( function() {
+   $( "#importGeneSymbolsTextArea" ).val( '' );
+} );
 
 $( "#importGenesButton" ).click(
    function() {
-      importGeneSymbols( $( "#importGeneSymbolsTextArea" ).val().replace( /\n/g, ',' ), $( "#taxonCommonNameSelect" )
-         .val(), $( "#geneManagerTable" ) );
+      importGeneSymbols( $( "#importGeneSymbolsTextArea" ).val(), $( "#taxonCommonNameSelect" ).val(),
+         $( "#geneManagerTable" ) );
    } );

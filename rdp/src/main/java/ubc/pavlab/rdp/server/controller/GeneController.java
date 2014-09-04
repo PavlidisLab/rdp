@@ -255,7 +255,7 @@ public class GeneController {
         JSONUtil jsonUtil = new JSONUtil( request, response );
         String jsonText = null;
 
-        final String delimiter = ",";
+        final String delimiter = "\n";
 
         String symbols = request.getParameter( "symbols" );
         Collection<String> querySymbols = new ArrayList<String>(
