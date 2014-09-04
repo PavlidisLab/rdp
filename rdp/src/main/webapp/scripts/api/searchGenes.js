@@ -28,7 +28,7 @@ function addGene(geneValueObject, table) {
    }
 
    if ( table.column(0).data().indexOf(geneValueObject.officialSymbol) != -1 ) {
-      // gene symbol already exists
+      showMessage( "Gene already added", $( "#geneManagerMessage" ) );
       return;
    }
    
@@ -36,13 +36,10 @@ function addGene(geneValueObject, table) {
    geneRow = [ geneValueObject.officialSymbol, aliasesToString( geneValueObject ), geneValueObject.officialName ];
 
    table.row.add( geneRow ).draw();
-   
-   // save object to table element using symbol:taxon as key
-   saveGeneToTable( geneValueObject );
 
 }
 
-// Saves gene data to table without displaying it
+// Save object to table element using symbol:taxon as key without displaying it
 function saveGeneToTable(geneValueObject) {
    jQuery.data( $( "#geneManagerTable" )[0], geneValueObject.officialSymbol + ":" + geneValueObject.taxon,
       geneValueObject );
@@ -103,8 +100,10 @@ $( document ).ready( function() {
 
    // init add genes button
    $( "#addGeneButton" ).click( function() {
-      geneValueObject = $( "#searchGenesSelect" ).select2( "data" )
-      addGene( geneValueObject, $( "#geneManagerTable" ).DataTable() )
+      geneValueObject = $( "#searchGenesSelect" ).select2( "data" );
+      addGene( geneValueObject, $( "#geneManagerTable" ).DataTable() );
+      
+      saveGeneToTable( geneValueObject );
    } );
 
    // init remove genes button
