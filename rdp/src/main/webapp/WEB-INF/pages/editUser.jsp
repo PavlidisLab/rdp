@@ -94,15 +94,15 @@
                         </div>
 
                         <!-- Button -->
-                        <div class="control-group">
+                        <div class="col-sm-offset-1 col-sm-10 control-group">
                             <label class="control-label"
                                 for="confirmsignup"></label>
                             <div class="controls">
                                 <button for="btnChangePassword"
                                     id="btnChangePassword"
                                     name="btnChangePassword"
-                                    class="btn btn-success">Save
-                                    changes</button>
+                                    class="btn btn-primary">Save</button>
+                                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
                             </div>
                         </div>
                     </fieldset>

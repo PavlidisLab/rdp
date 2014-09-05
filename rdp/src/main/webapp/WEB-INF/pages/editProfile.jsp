@@ -139,9 +139,13 @@
 			        </div>
 			
 			 -->
-			
-			        <button id="submit" type="submit"
-			            class="btn btn-default col-sm-offset-3">Save</button>
+					<div class="form-group">
+						<div class="col-sm-offset-1 col-sm-10">
+							<button type="button" id="submit" class="btn btn-primary">Save</button>
+							<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+						</div>
+					</div>
+
 			    </form>
 
             </div>

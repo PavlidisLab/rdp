@@ -115,9 +115,9 @@
 			<div class="modal-footer">
 				<div class="form-group">
 					<div class="col-sm-offset-1 col-sm-10">
+						<button type="button" id="saveGenesButton" class="btn btn-primary">Save</button>
 						<button type="button" id="closeGenesButton"
 							class="btn btn-default" data-dismiss="modal">Close</button>
-						<button type="button" id="saveGenesButton" class="btn btn-primary">Save</button>
 					</div>
 				</div>
 			</div>
