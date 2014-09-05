@@ -33,6 +33,14 @@
 <!-- Bootstrap core CSS -->
 <link href="styles/rdp.css" rel="stylesheet">
 
+<style>
+#overview .modal .modal-body {
+    max-height: 420px;
+    overflow-y: auto;
+}
+
+</style>
+
 </head>
 
 <body id="register">

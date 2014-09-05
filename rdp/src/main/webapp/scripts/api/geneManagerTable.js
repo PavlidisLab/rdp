@@ -18,7 +18,9 @@ function addRowSelectEvent(table) {
 
 var saveGenes = function() {
    console.log(jQuery.data( $( "#geneManagerTable" )[0] ));
+   console.log($.toJSON( jQuery.data( $( "#geneManagerTable" )[0] ) ));
    $.ajax( {
+      type: "POST",
       url : "saveResearcherGenes.html",
 
       data : {

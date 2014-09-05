@@ -14,9 +14,14 @@
  */
 overview.geneTableHTMLBlock = function(taxon, id) {
    var htmlBlock =  '<div class = "col-sm-offset-4 col-sm-4 text-center"> \
-                        <h5>' + taxon + '</h5> \
+                        <span>' + taxon + '</span> \
+                        <button type="button" id="overview' + taxon + 'Button" \
+                           class="btn btn-default btn-xs" data-toggle="tooltip" \
+                           data-placement="bottom" title="View Additional Data"> \
+                           <span class="glyphicon glyphicon-eye-open"></span> \
+                        </button> \
                      </div> \
-                     <div " class = "col-sm-offset-3 col-sm-6"> \
+                     <div class="col-sm-offset-3 col-sm-6"> \
                         <table id="' + id + '" class="table table-condensed"> \
                            <thead> \
                               <tr> \
@@ -37,12 +42,19 @@ overview.geneTableHTMLBlock = function(taxon, id) {
  * Empty and re-populate table with data, table found by DOM ID
  * @param {string} id - HTML DOM ID
  * @param {array} data - Array of objects containing new data -> [{'symbol':'...','name':'...'}]
+ * @param {number} max - maximum number of rows to populate
  */
-overview.populateTable = function(id, data) {
-   $("#yourtableid tr").remove();
-   for (var i = 0; i < data.length; i++) {      
-      $('#' +id + '> tbody:last').append('<tr><td>'+ data[i].symbol + '</td><td>'+ data[i].name + '</td></tr>');
+overview.populateTable = function(id, data, max) {
+   $( "#" + id + " tbody tr" ).remove();
+   max = Math.min( max, data.length );
+   for ( var i = 0; i < max; i++ ) {      
+      $( '#' +id + '> tbody:last' ).append( '<tr><td>'+ data[i].officialSymbol + '</td><td>'+ data[i].officialName + '</td></tr>' );
    }
+   
+   if ( max < data.length ) {
+      $( '#' +id + '> tbody:last' ).append( '<tr><td class="text-center">...</td><td class="text-center">...</td></tr>' );
+   }
+   
 };
 
 /**
@@ -78,15 +90,11 @@ overview.showGenesOverview = function() {
          for (var i = 0; i < response.data.length; i++) {
             if(response.data[i].taxon in genesByTaxon){
                genesByTaxon[response.data[i].taxon].count += 1;
-               genesByTaxon[response.data[i].taxon].data.push({'symbol':response.data[i].officialSymbol,
-                                                               'name':response.data[i].officialName
-                                                               });
+               genesByTaxon[response.data[i].taxon].data.push(response.data[i]);
             }
             else {
                genesByTaxon[response.data[i].taxon] = {'count':1,
-                                                       'data':[{'symbol':response.data[i].officialSymbol,
-                                                               'name':response.data[i].officialName
-                                                             }]
+                                                       'data':[response.data[i]]
                                                       };
             }
          }
@@ -94,9 +102,9 @@ overview.showGenesOverview = function() {
          
          for (var taxon in genesByTaxon) {
             $('#overviewGeneBreakdown').append(overview.geneTableHTMLBlock(taxon, 'overviewTable'+taxon));
-            overview.populateTable('overviewTable'+taxon, genesByTaxon[taxon].data)
+            overview.populateTable('overviewTable'+taxon, genesByTaxon[taxon].data , 5)
+            $("#overview" + taxon + "Button").click( createModal( taxon, genesByTaxon[taxon].data ) ); 
          }
-         
 
       },
       error : function(response, xhr) {
@@ -105,6 +113,21 @@ overview.showGenesOverview = function() {
    } );
 
 };
+
+var scrapModal = $('#scrapModal').modal({
+   backdrop: true,
+   show: false,
+   keyboard: false
+ });
+
+function createModal(taxon, data) {
+   return function() {
+            overview.populateTable('scrapModalTable', data , data.length)
+            scrapModal.find('.modal-header > h4').text(taxon + " Overview").end();
+            scrapModal.modal('show');                
+   }; 
+ };
+
 
 }( window.overview = window.overview || {}, jQuery ));
 

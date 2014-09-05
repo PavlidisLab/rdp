@@ -69,6 +69,55 @@
 	</form>
 </div>
 
+<div class="modal fade" id="scrapModal" tabindex="-1"
+    role="dialog" aria-labelledby="scrapModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">&times;</span><span
+                        class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title" id="scrapModalLabel">All Genes</h4>
+            </div>
+            <div class="modal-body">
+
+			    <form id="scrapModalForm" class="form-horizontal" role="form">
+			    
+					<div class="alert alert-warning" id="scrapModalFailed"
+						hidden="true">
+						<a href="#" class="close" data-hide="alert">&times;</a>
+						<div id="scrapModalMessage" class="text-center">Something went wrong.</div>
+					</div>
+			    
+			        <div class=" form-group">
+						<div class="col-sm-12">
+	                        <table id="scrapModalTable" class="table table-condensed">
+	                           <thead>
+	                              <tr>
+	                                 <th>Symbol</th>
+	                                 <th>Name</th>
+	                              </tr>
+	                           </thead>
+	                           <tbody>
+	                           </tbody>
+	                        </table>
+						</div>		
+					</div>	        
+
+			    </form>
+
+            </div>
+		    <div class="modal-footer">
+				<div class="form-group">
+					<div class="col-sm-offset-1 col-sm-10">
+						<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+					</div>
+				</div>
+		    </div>
+        </div>
+    </div>
+</div>
 
 <!-- Our scripts -->
 <script src="scripts/api/overview.js"></script>
