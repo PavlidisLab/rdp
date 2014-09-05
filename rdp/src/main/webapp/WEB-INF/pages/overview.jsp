@@ -4,7 +4,7 @@
 		<div class="alert alert-warning" id="overviewFailed"
 			hidden="true">
 			<a href="#" class="close" data-hide="alert">&times;</a>
-			<div id="overviewMessage">Some message.</div>
+			<div id="overviewMessage" class="text-center">Some message.</div>
 		</div>
 
 
@@ -54,6 +54,12 @@
 			<div class="col-sm-offset-4 col-sm-4 text-center">
 				<h4>Model Organisms Studied</h4>
 			</div>
+		</div>
+		
+		<div class="alert alert-warning" id="overviewModelFailed"
+			hidden="true">
+			<a href="#" class="close" data-hide="alert">&times;</a>
+			<div id="overviewModalMessage" class="text-center">No genes have been added.</div>
 		</div>
 		
 		<div id="overviewGeneBreakdown" class="form-group">

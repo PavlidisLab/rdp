@@ -69,11 +69,10 @@ overview.showGenesOverview = function() {
          console.log( "Showing " + response.data.length + " user genes" )
          
          if (response.data.length == 0) {
-            $('#overviewGeneBreakdown').html('<div class = "col-sm-offset-4 col-sm-4 text-center"> \
-                                             <h5>There\'s nothing here</h5> \
-                                             </div>');
+            showMessage( "<a href='#editGenesModal' class='alert-link' data-toggle='modal'>No genes have been added to profile  - Click Here To Enter.</a>", $( "#overviewModalMessage" ) );
             return;
          }
+         $( "#overviewModelFailed" ).hide()
          
          var genesByTaxon = {};
          for (var i = 0; i < response.data.length; i++) {

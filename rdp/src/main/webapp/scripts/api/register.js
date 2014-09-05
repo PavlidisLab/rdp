@@ -45,15 +45,11 @@ $( document ).ready( function() {
    
    $(function(){
       $("[data-hide]").on("click", function(){
-          $("." + $(this).attr("data-hide")).hide();
+         $(this).closest("." + $(this).attr("data-hide")).hide();
           /*
-           * The snippet above will hide all elements with the class specified in data-hide,
-           * i.e: data-hide="alert" will hide all elements with the alert property.
+           * The snippet above will hide the closest element with the class specified in data-hide,
+           * i.e: data-hide="alert" will hide the closest element with the alert property.
            *
-           * Xeon06 provided an alternative solution:
-           * $(this).closest("." + $(this).attr("data-hide")).hide();
-           * Use this if are using multiple alerts with the same class since it will only find the closest element
-           * 
            * (From jquery doc: For each element in the set, get the first element that matches the selector by
            * testing the element itself and traversing up through its ancestors in the DOM tree.)
           */
@@ -81,7 +77,7 @@ $( document ).ready( function() {
             contact = data.contact;
             $( "#primaryContactFailed" ).hide();
          } else {
-         // Researcher not created yet so User object was returned
+          // Researcher not created yet so User object was returned, this should not happen...
             contact = data;
             showMessage( "Missing contact details", $("#primaryContactMessage") );
          }
@@ -94,7 +90,7 @@ $( document ).ready( function() {
          if (contact.firstName || contact.lastName) {
             $('#overviewName').text( contact.firstName + " " + contact.lastName );
          } else {
-            showMessage( "Missing contact details", $("#overviewMessage") );
+            showMessage( "<a href='#editProfileModal' class='alert-link' data-toggle='modal'>Missing contact details - Click Here To Enter</a>", $("#overviewMessage") );
          }
          $('#overviewEmail').text( contact.email );
          $('#overviewOrganisation').text( data.organization );
