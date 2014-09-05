@@ -1,21 +1,30 @@
 
 <div class="form-group">
-	<textarea class="form-control" rows="5" id="importGeneSymbolsTextArea"
-		placeholder="Enter one gene symbol per line up to a maximum of 1000 genes"></textarea>
+	<label class="col-sm-2 control-label">Bulk Upload</label>
+	<div class="col-sm-9">
+		<textarea class="form-control" rows="5" id="importGeneSymbolsTextArea"
+			placeholder="Enter one gene symbol per line up to a maximum of 1000 genes"></textarea>
+	</div>
 </div>
 
 <div class="form-group">
-	<button type="button" id="importGenesButton"
-		class="btn btn-default btn-sm" data-toggle="tooltip"
-		data-placement="bottom" title="Import gene symbols">
-		<span class="glyphicon glyphicon-import"></span>
-	</button>
-
-	<button type="button" id="clearImportGenesButton"
-		class="btn btn-default btn-sm" data-toggle="tooltip"
-		data-placement="bottom" title="Remove all gene symbols">
-		<span class="glyphicon glyphicon-trash"></span>
-	</button>
+	<div class="col-sm-offset-2 col-sm-9">
+		<button type="button" id="importGenesButton"
+			class="btn btn-default btn-sm" data-toggle="tooltip"
+			data-placement="bottom" title="Bulk Upload Genes">
+			<span class="glyphicon glyphicon-save"></span>
+		</button>
+	
+		<button type="button" id="clearImportGenesButton"
+			class="btn btn-default btn-sm" data-toggle="tooltip"
+			data-placement="bottom" title="Clear Bulk Upload">
+			<span class="glyphicon glyphicon-trash"></span>
+		</button>
+		
+		<div id="spinImportGenesButton" hidden="true">
+			<span class="glyphicon glyphicon-refresh animate"></span>
+		</div>
+	</div>
 </div>
 
 <!-- Our scripts -->

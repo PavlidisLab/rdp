@@ -10,7 +10,7 @@ function addRowSelectEvent(table) {
       if ( $( this ).hasClass( 'selected' ) ) {
          $( this ).removeClass( 'selected' );
       } else {
-         table.$( 'tr.selected' ).removeClass( 'selected' );
+         //table.$( 'tr.selected' ).removeClass( 'selected' );
          $( this ).addClass( 'selected' );
       }
    } );
@@ -137,6 +137,26 @@ var switchModelOrganism = function() {
    }
 }
 
+var removeRows = function() {
+   var table = $( "#geneManagerTable" ).DataTable();
+   var selectedNodes = table.rows( '.selected' );
+   if ( selectedNodes.data().length == 0 ) {
+      showMessage( "Please select a gene to remove", $( "#geneManagerMessage" ) );
+      return;
+   } else {
+      $( "#geneManagerFailed" ).hide();
+   }
+   var data = selectedNodes.data();
+   var selectedTaxon = $( "#taxonCommonNameSelect" ).val();
+   var selectedSymbol;
+   for (var i = 0; i < data.length; i++) {
+      selectedSymbol = data[i][0]; // data = [symbol, alias, name] ie column heading ordering
+      console.log(selectedSymbol);
+      jQuery.removeData( $( "#geneManagerTable" )[0], selectedSymbol + ":" + selectedTaxon );
+   }
+   selectedNodes.remove().draw( false );
+} 
+
 $( document ).ready( function() {
 
    initGeneManager();
@@ -145,8 +165,13 @@ $( document ).ready( function() {
 
    $( '#editGenesModal' ).on( 'hidden.bs.modal', closeGenesManager );
 
-   $( "#saveGenesButton" ).click( saveGenes );
+   $( ".saveGenesButton" ).click( saveGenes );
 
    $('#taxonCommonNameSelect').on('change', switchModelOrganism );
+   
+   // init remove genes button
+   $( "#removeGeneButton" ).click( removeRows );
+   
+   
    
 } );

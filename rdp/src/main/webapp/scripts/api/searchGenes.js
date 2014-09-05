@@ -107,22 +107,6 @@ $( document ).ready( function() {
       saveGeneToTable( geneValueObject );
    } );
 
-   // init remove genes button
-   $( "#removeGeneButton" ).click( function() {
-      var table = $( "#geneManagerTable" ).DataTable();
-      var selectedNode = table.row( '.selected' );
-      if ( selectedNode.data() == null ) {
-         showMessage( "Please select a gene to remove", $( "#geneManagerMessage" ) );
-         return;
-      } else {
-         $( "#geneManagerFailed" ).hide();
-      }
-      var selectedSymbol = selectedNode.data()[0]; // data = [symbol, alias, name] ie column heading ordering
-      var selectedTaxon = $( "#taxonCommonNameSelect" ).val();
-      selectedNode.remove().draw( false );
-      jQuery.removeData( $( "#geneManagerTable" )[0], selectedSymbol + ":" + selectedTaxon );
-   } );
-
    searchGenes.init( {
       'container' : $( "#searchGenesSelect" ),
       'taxonEl' : $( "#taxonCommonNameSelect" )

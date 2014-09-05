@@ -47,8 +47,11 @@ overview.geneTableHTMLBlock = function(taxon, id) {
 overview.populateTable = function(id, data, max) {
    $( "#" + id + " tbody tr" ).remove();
    max = Math.min( max, data.length );
-   for ( var i = 0; i < max; i++ ) {      
-      $( '#' +id + '> tbody:last' ).append( '<tr><td>'+ data[i].officialSymbol + '</td><td>'+ data[i].officialName + '</td></tr>' );
+   var url;
+   var urlBase = "http://www.ncbi.nlm.nih.gov/gene/"
+   for ( var i = 0; i < max; i++ ) {   
+      url = urlBase + data[i].ncbiGeneId;
+      $( '#' +id + '> tbody:last' ).append( '<tr><td><a href="' + url + '" target="_blank">'+ data[i].officialSymbol + '</a></td><td>'+ data[i].officialName + '</td></tr>' );
    }
    
    if ( max < data.length ) {

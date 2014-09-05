@@ -9,16 +9,8 @@
 				</button>
 				<h4 class="modal-title" id="myModalGenesLabel">Model Organism
 					Profile</h4>
-			</div>
-			<div class="modal-body">
-				<form id="modelOrganism" class="form-horizontal" role="form">
-
-					<div class="alert alert-warning" id="modelOrganismFailed"
-						hidden="true">
-						<a href="#" class="close" data-hide="alert">&times;</a>
-						<div id="modelOrganismMessage">Failed to save model organism
-							details.</div>
-					</div>
+				<hr>	
+				<form class="form-horizontal" role="form">
 
 					<div class="form-group">
 						<label class="col-sm-2 control-label">Organism</label>
@@ -45,79 +37,46 @@
 								placeholder="My lab studies ..."></textarea>
 						</div>
 					</div>
-
-					<!-- 					<div class="form-group">
-						<label class="col-sm-3 control-label">Genes</label> 
-						<label> 
-						BRCA1, APOE, SNCA, ...
-			            
-						</label>
+				</form>
+					
+			</div>
 			
-						
-			
-					</div> -->
-
-					<!-- This can be cumbersome to edit when there's a lot of genes
-			        <div class="form-group">
-			                    <label class="col-sm-3 control-label">Genes</label>
-			                    <div class="col-sm-6">
-			                        <select id="geneSelect" class="select2"
-			                            multiple="multiple" style="width: 100%;">
-			                            <option>BRCA1</option>
-			                            <option>APOE</option>
-			                            <option>SNCA</option>
-			                            <option>CAMK2A</option>
-			                        </select>
-			                    </div>
-			                </div>
-			         -->
-
-
-					<!-- 					<button id="submit" type="submit"
-						class="btn btn-default col-sm-offset-3">Save</button> -->
-
-					<hr>
+			<div class="modal-body">
+				<form id="modelOrganism" class="form-horizontal" role="form">
 
 					<div class="form-group">
-						<label class="col-sm-4 control-label">Select or import
-							gene symbols</label>
-						<div id="spinImportGenesButton" hidden="true">
-							<span class="glyphicon glyphicon-refresh animate"></span>
-						</div>
-					</div>
-
-					<div class="form-group">
-						<div class="col-sm-offset-1 col-sm-10">
+						<label class="col-sm-2 control-label">Select Gene</label>
+						<div class="col-sm-9">
 							<%@ include file="searchGenes.jsp"%>
 						</div>
 					</div>
 
-
-					<div class="form-group">
-						<div class="col-sm-offset-1 col-sm-10">
-							<%@ include file="importGenes.jsp"%>
-						</div>
-					</div>
-
-
-					<div class="form-group">
-						<label class="col-sm-2 control-label">Edit gene list</label>
-					</div>
-
-					<div class="form-group">
-						<div class="col-sm-offset-1 col-sm-10">
-							<%@ include file="geneManagerTable.jsp"%>
-						</div>
-					</div>
+					<%@ include file="importGenes.jsp"%>
 
 				</form>
 			</div>
 			<div class="modal-footer">
+			
+				<div class="alert alert-warning col-sm-offset-1 col-sm-10" id="geneManagerFailed" hidden="true">
+					<a href="#" class="close" data-hide="alert">&times;</a>
+					<div id="geneManagerMessage" class="text-left">Failed to load genes.</div>
+				</div>
+		
 				<div class="form-group">
 					<div class="col-sm-offset-1 col-sm-10">
-						<button type="button" id="saveGenesButton" class="btn btn-primary">Save</button>
 						<button type="button" id="closeGenesButton"
 							class="btn btn-default" data-dismiss="modal">Close</button>
+						<button type="button" class="btn btn-primary saveGenesButton">Save</button>
+					</div>
+				</div>
+
+				<%@ include file="geneManagerTable.jsp"%>
+			
+				<div class="form-group">
+					<div class="col-sm-offset-1 col-sm-10" style="padding-top:20px">
+						<button type="button" id="closeGenesButton"
+							class="btn btn-default" data-dismiss="modal">Close</button>
+						<button type="button" class="btn btn-primary saveGenesButton">Save</button>
 					</div>
 				</div>
 			</div>

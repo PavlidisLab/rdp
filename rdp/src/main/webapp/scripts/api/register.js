@@ -94,6 +94,7 @@ $( document ).ready( function() {
          }
          $('#overviewEmail').text( contact.email );
          $('#overviewOrganisation').text( data.organization );
+         $('#overviewURL').html( "<a href='" + data.website + "' target='_blank'>"+ data.website + "</a>" );
 
       },
       error : function(response, xhr) {

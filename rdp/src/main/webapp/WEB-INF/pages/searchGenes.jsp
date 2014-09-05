@@ -4,8 +4,8 @@ Retrieve the list of genes through an AJAX query in a combo box and
 displays it as suggestions in a combo box.
 
  -->
-
-<div class="input-group"> 
+<div class="input-group">
+	
 	<input type="hidden" class="bigdrop form-control" id="searchGenesSelect" />
 
 	<span class="input-group-btn">
