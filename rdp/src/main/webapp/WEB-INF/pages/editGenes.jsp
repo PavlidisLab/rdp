@@ -13,6 +13,14 @@
 				<form class="form-horizontal" role="form">
 
 					<div class="form-group">
+						<div class="col-sm-3 pull-right">
+							<button type="button" id="closeGenesButton"
+								class="btn btn-default" data-dismiss="modal">Close</button>
+							<button type="button" class="btn btn-primary saveGenesButton">Save</button>
+						</div>
+					</div>
+
+					<div class="form-group">
 						<label class="col-sm-2 control-label">Organism</label>
 						<div class="col-sm-9">
 							<select id="taxonCommonNameSelect" class="form-control">
@@ -60,14 +68,6 @@
 				<div class="alert alert-warning col-sm-offset-1 col-sm-10" id="geneManagerFailed" hidden="true">
 					<a href="#" class="close" data-hide="alert">&times;</a>
 					<div id="geneManagerMessage" class="text-left">Failed to load genes.</div>
-				</div>
-		
-				<div class="form-group">
-					<div class="col-sm-offset-1 col-sm-10">
-						<button type="button" id="closeGenesButton"
-							class="btn btn-default" data-dismiss="modal">Close</button>
-						<button type="button" class="btn btn-primary saveGenesButton">Save</button>
-					</div>
 				</div>
 
 				<%@ include file="geneManagerTable.jsp"%>

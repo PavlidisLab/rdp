@@ -3,7 +3,7 @@
 function importGeneSymbols(geneSymbols, taxon, tableEl) {
    console.log( "import gene symbols" );
 
-   $( "#spinImportGenesButton" ).show();
+   //$( "#spinImportGenesButton" ).show();
 
    $.ajax( {
       url : "findGenesByGeneSymbols.html",
@@ -14,7 +14,7 @@ function importGeneSymbols(geneSymbols, taxon, tableEl) {
       },
       success : function(response, xhr) {
 
-         $( "#spinImportGenesButton" ).hide();
+         //$( "#spinImportGenesButton" ).hide();
 
          // convert object to text symbol + text
          // select2 format result looks for the 'text' attr
@@ -29,7 +29,7 @@ function importGeneSymbols(geneSymbols, taxon, tableEl) {
       },
       error : function(response, xhr) {
 
-         $( "#spinImportGenesButton" ).hide();
+         //$( "#spinImportGenesButton" ).hide();
 
          showMessage( response.message, $( "#geneManagerMessage" ) );
       }

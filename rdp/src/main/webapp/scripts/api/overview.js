@@ -13,13 +13,8 @@
  * @return {string} HTML block
  */
 overview.geneTableHTMLBlock = function(taxon, id) {
-   var htmlBlock =  '<div class = "col-sm-offset-4 col-sm-4 text-center"> \
+   var htmlBlock =  '<div class = "col-sm-offset-3 col-sm-6 text-center"> \
                         <span>' + taxon + '</span> \
-                        <button type="button" id="overview' + taxon + 'Button" \
-                           class="btn btn-default btn-xs" data-toggle="tooltip" \
-                           data-placement="bottom" title="View Additional Data"> \
-                           <span class="glyphicon glyphicon-eye-open"></span> \
-                        </button> \
                      </div> \
                      <div class="col-sm-offset-3 col-sm-6"> \
                         <table id="' + id + '" class="table table-condensed"> \
@@ -55,7 +50,14 @@ overview.populateTable = function(id, data, max) {
    }
    
    if ( max < data.length ) {
-      $( '#' +id + '> tbody:last' ).append( '<tr><td class="text-center">...</td><td class="text-center">...</td></tr>' );
+      $( '#' +id + '> tbody:last' ).append( '<tr><td class="text-center">...</td> \
+                                                 <td class="text-right"> \
+                                                   <button type="button" id="overview' + data[i].taxon + 'Button" \
+                                                      class="btn btn-default btn-xs" data-toggle="tooltip" \
+                                                      data-placement="bottom" title="See all genes"> \
+                                                      <span>See All</span> \
+                                                   </button> \
+                                                </td></tr>' );
    }
    
 };

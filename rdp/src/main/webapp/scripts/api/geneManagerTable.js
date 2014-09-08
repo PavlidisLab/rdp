@@ -3,19 +3,6 @@
  * 
  */
 
-// Add selected class whenever a row is clicked
-// this is useful when we want to delete a row from the table
-function addRowSelectEvent(table) {
-   table.find( "tbody" ).on( 'click', 'tr', function() {
-      if ( $( this ).hasClass( 'selected' ) ) {
-         $( this ).removeClass( 'selected' );
-      } else {
-         //table.$( 'tr.selected' ).removeClass( 'selected' );
-         $( this ).addClass( 'selected' );
-      }
-   } );
-}
-
 var saveGenes = function() {
    console.log(jQuery.data( $( "#geneManagerTable" )[0] ));
    console.log($.toJSON( jQuery.data( $( "#geneManagerTable" )[0] ) ));
@@ -106,14 +93,6 @@ var closeGenesManager = function() {
    tableEl.DataTable().clear();
 }
 
-var initGeneManager = function() {
-
-   var tableEl = $( "#geneManagerTable" );
-
-   // Add row highlighting on click effect
-   addRowSelectEvent( tableEl.dataTable({"searching":false}) );
-}
-
 var refreshGenesManager = function() {
    $( "#geneManagerFailed" ).hide();
    $( "#searchGenesSelect" ).select2("val", "");
@@ -159,19 +138,12 @@ var removeRows = function() {
 
 $( document ).ready( function() {
 
-   initGeneManager();
-
    $( 'a[href$="#editGenesModal"]' ).click( showGenes );
 
    $( '#editGenesModal' ).on( 'hidden.bs.modal', closeGenesManager );
 
    $( ".saveGenesButton" ).click( saveGenes );
 
-   $('#taxonCommonNameSelect').on('change', switchModelOrganism );
-   
-   // init remove genes button
-   $( "#removeGeneButton" ).click( removeRows );
-   
-   
+   $('#taxonCommonNameSelect').on('change', switchModelOrganism );   
    
 } );

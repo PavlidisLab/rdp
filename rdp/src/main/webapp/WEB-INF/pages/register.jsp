@@ -30,6 +30,9 @@
 <link rel="stylesheet" type="text/css"
 	href="styles/jquery.dataTables.css">
 
+<link rel="stylesheet" type="text/css"
+	href="styles/dataTables.tableTools.css">
+
 <!-- Bootstrap core CSS -->
 <link href="styles/rdp.css" rel="stylesheet">
 
@@ -87,7 +90,8 @@
 	<!-- from http://www.datatables.net/examples/styling/bootstrap.html -->
 	<script type="text/javascript" charset="utf8"
 		src="scripts/lib/jquery.dataTables.min.js"></script>
-
+	<script src="scripts/lib/dataTables.tableTools.js"></script>
+	
 	<!-- DataTables -->
 	<!-- 
     <script type="text/javascript" charset="utf8"

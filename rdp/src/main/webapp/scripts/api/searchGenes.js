@@ -98,7 +98,19 @@ var searchGenes = {
 }
 
 $( document ).ready( function() {
-
+   
+   // Initialize datatable
+   $( "#geneManagerTable" ).dataTable( {
+      "searching": false,
+      dom: 'T<"clear">lfrtip',
+      tableTools: {
+          "sRowSelect": "os",
+          "aButtons": [ {"sExtends":    "text", "fnClick":removeRows, "sButtonText": "Remove Selected" },
+                        "select_all", 
+                        "select_none" ]
+      }
+  } );
+   
    // init add genes button
    $( "#addGeneButton" ).click( function() {
       geneValueObject = $( "#searchGenesSelect" ).select2( "data" );
