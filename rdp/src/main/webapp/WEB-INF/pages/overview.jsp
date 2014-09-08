@@ -26,7 +26,7 @@
 				<span>Name:</span>
 			</div>
 			<div class="col-sm-4 text-left">
-				<span id=overviewName>Name:</span>
+				<span id=overviewName></span>
 			</div>
 		</div>
 		
@@ -35,7 +35,7 @@
 				<span>Email:</span>
 			</div>
 			<div class="col-sm-4 text-left">
-				<span id=overviewEmail>Email:</span>
+				<span id=overviewEmail></span>
 			</div>
 		</div>
 		
@@ -44,7 +44,7 @@
 				<span>Organization:</span>
 			</div>
 			<div class="col-sm-4 text-left">
-				<span id=overviewOrganisation>Organization:</span>
+				<span id=overviewOrganisation></span>
 			</div>
 		</div>
 		
@@ -53,7 +53,7 @@
 				<span>Website:</span>
 			</div>
 			<div class="col-sm-4 text-left">
-				<span id=overviewURL>Website:</span>
+				<span id=overviewURL></span>
 			</div>
 		</div>
 		
@@ -67,10 +67,19 @@
 		
 		<div class="form-group">
 			<div class="col-sm-offset-3 col-sm-6">
-				<textarea class="form-control" rows="3"
-					placeholder="My lab studies ..."></textarea>
+				<p id="overviewFocus" class="form-control-static"></p>
 			</div>
 		</div>
+		
+		<div class="form-group">
+			<div class="col-sm-4 pull-right">
+	            <a id="overviewEditDescriptionButton"
+	               class="btn btn-default btn-xs" role="button" data-toggle="modal"
+	               data-placement="bottom" title="Edit Research Focus" href="#editProfileModal">
+	               <span>Edit</span>
+	            </a>
+            </div>
+        </div>
 		
 		</br>
 		

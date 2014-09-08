@@ -15,7 +15,7 @@
 			    <form id="primaryContactForm" class="form-horizontal" role="form">
 			
 			        <div class="form-group">
-			            <div class="alert alert-warning col-sm-offset-3 col-sm-6"
+			            <div class="alert alert-warning col-sm-offset-3 col-sm-8"
 			                id="primaryContactFailed" hidden="true">
 			                <a href="#" class="close" data-hide="alert">&times;</a>
 			                <div id="primaryContactMessage">Failed saving
@@ -34,7 +34,7 @@
 			        <div class="form-group">
 			            <label for="firstName" class="col-sm-3 control-label">First
 			                name</label>
-			            <div class="col-sm-6">
+			            <div class="col-sm-8">
 			                <input type="text" name="firstName" class="form-control"
 			                    id="firstName" placeholder="Jane">
 			            </div>
@@ -43,7 +43,7 @@
 			        <div class="form-group">
 			            <label for="lastName" class="col-sm-3 control-label">Last
 			                name</label>
-			            <div class="col-sm-6">
+			            <div class="col-sm-8">
 			                <input type="text" name="lastName" class="form-control"
 			                    id="lastName" placeholder="Investigator">
 			            </div>
@@ -51,7 +51,7 @@
 			
 			        <div class="form-group">
 			            <label for="organization" class="col-sm-3 control-label">Organization</label>
-			            <div class="col-sm-6">
+			            <div class="col-sm-8">
 			                <input type="text" class="form-control"
 			                    id="organization" name="organization"
 			                    placeholder="University of British Columbia">
@@ -60,7 +60,7 @@
 			
 			        <div class="form-group">
 			            <label for="department" class="col-sm-3 control-label">Department</label>
-			            <div class="col-sm-6">
+			            <div class="col-sm-8">
 			                <input type="text" class="form-control"
 			                    name="department" id="department"
 			                    placeholder="Department of Zoology">
@@ -69,7 +69,7 @@
 			
 			        <div class="form-group">
 			            <label class="col-sm-3 control-label">Website</label>
-			            <div class="col-sm-6">
+			            <div class="col-sm-8">
 			                <input type="text" class="form-control"
 			                    name="website" id="website"
 			                    placeholder="http://www.chibi.ubc.ca">
@@ -78,10 +78,18 @@
 			        
 			        <div class="form-group">
 			            <label class="col-sm-3 control-label">Phone</label>
-			            <div class="col-sm-6">
+			            <div class="col-sm-8">
 			                <input type="text" class="form-control"
 			                    name="phone" id="phone"
 			                    placeholder="604-111-1111">
+			            </div>
+			        </div>
+			        
+			        <div class="form-group">
+			            <label class="col-sm-3 control-label">Research Focus</label>
+			            <div class="col-sm-8">
+							<textarea id="description" name="description" class="form-control" rows="3"
+								placeholder="My lab studies ..."></textarea>
 			            </div>
 			        </div>
 			        
@@ -139,6 +147,7 @@
 			        </div>
 			
 			 -->
+			 		<hr>
 					<div class="form-group">
 						<div class="col-sm-offset-1 col-sm-10">
 							<button type="button" id="submit" class="btn btn-primary">Save</button>

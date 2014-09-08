@@ -41,6 +41,8 @@
     max-height: 420px;
     overflow-y: auto;
 }
+textarea { resize:none; }
+/* #geneManagerTable td { white-space: nowrap; } */
 
 </style>
 

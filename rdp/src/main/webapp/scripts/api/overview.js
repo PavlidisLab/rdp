@@ -49,16 +49,24 @@ overview.populateTable = function(id, data, max) {
       $( '#' +id + '> tbody:last' ).append( '<tr><td><a href="' + url + '" target="_blank">'+ data[i].officialSymbol + '</a></td><td>'+ data[i].officialName + '</td></tr>' );
    }
    
+   var seeAllButtonHTML = ''
+   
    if ( max < data.length ) {
+      seeAllButtonHTML = '<button type="button" id="overview' + data[0].taxon + 'Button" \
+                              class="btn btn-default btn-xs" data-toggle="tooltip" \
+                              data-placement="bottom" title="See all genes"> \
+                              <span>See All</span> \
+                           </button>'
+   }
       $( '#' +id + '> tbody:last' ).append( '<tr><td class="text-center">...</td> \
-                                                 <td class="text-right"> \
-                                                   <button type="button" id="overview' + data[i].taxon + 'Button" \
+                                                 <td class="text-right"> ' + seeAllButtonHTML +
+                                                   '<button type="button" id="overviewEdit' + data[0].taxon + 'Button" \
                                                       class="btn btn-default btn-xs" data-toggle="tooltip" \
-                                                      data-placement="bottom" title="See all genes"> \
-                                                      <span>See All</span> \
+                                                      data-placement="bottom" title="Edit genes"> \
+                                                      <span>Edit</span> \
                                                    </button> \
                                                 </td></tr>' );
-   }
+
    
 };
 
@@ -86,7 +94,7 @@ overview.showGenesOverview = function() {
          console.log( "Showing " + response.data.length + " user genes" )
          
          if (response.data.length == 0) {
-            showMessage( "<a href='#editGenesModal' class='alert-link' data-toggle='modal'>No genes have been added to profile  - Click Here To Enter.</a>", $( "#overviewModalMessage" ) );
+            showMessage( "<a href='#editGenesModal' class='alert-link' data-toggle='modal'>No model organisms have been added to profile  - Click Here To Enter.</a>", $( "#overviewModalMessage" ) );
             return;
          }
          $( "#overviewModelFailed" ).hide()
@@ -109,6 +117,7 @@ overview.showGenesOverview = function() {
             $('#overviewGeneBreakdown').append(overview.geneTableHTMLBlock(taxon, 'overviewTable'+taxon));
             overview.populateTable('overviewTable'+taxon, genesByTaxon[taxon].data , 5)
             $("#overview" + taxon + "Button").click( createModal( taxon, genesByTaxon[taxon].data ) ); 
+            $("#overviewEdit" + taxon + "Button").click( openGeneManager(taxon) ); 
          }
 
       },
@@ -131,6 +140,15 @@ function createModal(taxon, data) {
             scrapModal.find('.modal-header > h4').text(taxon + " Overview").end();
             scrapModal.modal('show');                
    }; 
+ };
+ 
+ function openGeneManager( taxon ) {
+    return function() {
+       $( "#taxonCommonNameSelect" ).val(taxon);
+       $( "#editGenesModal" ).modal('show');
+       showGenes();
+    };
+    
  };
 
 

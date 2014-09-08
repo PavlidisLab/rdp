@@ -101,6 +101,7 @@ $( document ).ready( function() {
    
    // Initialize datatable
    $( "#geneManagerTable" ).dataTable( {
+      //"scrollX": true,
       "searching": false,
       dom: 'T<"clear">lfrtip',
       tableTools: {

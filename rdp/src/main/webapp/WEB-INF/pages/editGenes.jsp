@@ -14,9 +14,9 @@
 
 					<div class="form-group">
 						<div class="col-sm-3 pull-right">
+							<button type="button" class="btn btn-primary saveGenesButton">Save</button>
 							<button type="button" id="closeGenesButton"
 								class="btn btn-default" data-dismiss="modal">Close</button>
-							<button type="button" class="btn btn-primary saveGenesButton">Save</button>
 						</div>
 					</div>
 
@@ -74,9 +74,9 @@
 			
 				<div class="form-group">
 					<div class="col-sm-offset-1 col-sm-10" style="padding-top:20px">
+						<button type="button" class="btn btn-primary saveGenesButton">Save</button>
 						<button type="button" id="closeGenesButton"
 							class="btn btn-default" data-dismiss="modal">Close</button>
-						<button type="button" class="btn btn-primary saveGenesButton">Save</button>
 					</div>
 				</div>
 			</div>

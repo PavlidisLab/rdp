@@ -51,6 +51,9 @@ public class Researcher implements Serializable {
     @JoinColumn(name = "CONTACT_FK")
     private User contact;
 
+    @Column(name = "DESCRIPTION")
+    private String description;
+
     @Column(name = "ORGANIZATION")
     private String organization;
 
@@ -69,6 +72,14 @@ public class Researcher implements Serializable {
 
     public User getContact() {
         return this.contact;
+    }
+
+    public void setDescription( String description ) {
+        this.description = description;
+    }
+
+    public String getDescription() {
+        return description;
     }
 
     public void setDepartment( String department ) {
