@@ -3,6 +3,8 @@
  * 
  */
 
+$( document ).ready( function() {
+
 //namespace: overview
 (function( overview, $, undefined ) {
 
@@ -39,7 +41,7 @@ overview.geneTableHTMLBlock = function(taxon, id) {
  * @param {array} data - Array of objects containing new data -> [{'symbol':'...','name':'...'}]
  * @param {number} max - maximum number of rows to populate
  */
-overview.populateTable = function(id, data, max) {
+overview.populateTable = function(id, data, max, editable) {
    $( "#" + id + " tbody tr" ).remove();
    max = Math.min( max, data.length );
    var url;
@@ -49,24 +51,23 @@ overview.populateTable = function(id, data, max) {
       $( '#' +id + '> tbody:last' ).append( '<tr><td><a href="' + url + '" target="_blank">'+ data[i].officialSymbol + '</a></td><td>'+ data[i].officialName + '</td></tr>' );
    }
    
-   var seeAllButtonHTML = ''
-   
-   if ( max < data.length ) {
-      seeAllButtonHTML = '<button type="button" id="overview' + data[0].taxon + 'Button" \
-                              class="btn btn-default btn-xs" data-toggle="tooltip" \
-                              data-placement="bottom" title="See all genes"> \
-                              <span>See All</span> \
-                           </button>'
-   }
-      $( '#' +id + '> tbody:last' ).append( '<tr><td class="text-center">...</td> \
-                                                 <td class="text-right"> ' + seeAllButtonHTML +
-                                                   '<button type="button" id="overviewEdit' + data[0].taxon + 'Button" \
+   var ellipsis = ( max < data.length ) ? '...' : '';
+   var seeAllButtonHTML = ( max < data.length ) ? '<button type="button" id="overview' + data[0].taxon + 'Button" \
                                                       class="btn btn-default btn-xs" data-toggle="tooltip" \
-                                                      data-placement="bottom" title="Edit genes"> \
-                                                      <span>Edit</span> \
-                                                   </button> \
-                                                </td></tr>' );
-
+                                                      data-placement="bottom" title="See all genes"> \
+                                                      <span>See All</span> \
+                                                   </button>' : '';
+   
+   var editButton = ( editable ) ? '<button type="button" id="overviewEdit' + data[0].taxon + 'Button" \
+                                    class="btn btn-default btn-xs" data-toggle="tooltip" \
+                                    data-placement="bottom" title="Edit genes"> \
+                                    <span>Edit</span> \
+                                 </button>' : '' ;
+   
+   if ( ( editable ) || ( max < data.length ) ) {
+      $( '#' +id + '> tbody:last' ).append( '<tr><td class="text-center">' + ellipsis + '</td> \
+                                                 <td class="text-right"> ' + seeAllButtonHTML + editButton + '</td></tr>' );
+   }
    
 };
 
@@ -100,22 +101,26 @@ overview.showGenesOverview = function() {
          $( "#overviewModelFailed" ).hide()
          
          var genesByTaxon = {};
+         var allTaxons = [];
+         
+         // Bucket response data by taxon
          for (var i = 0; i < response.data.length; i++) {
             if(response.data[i].taxon in genesByTaxon){
-               genesByTaxon[response.data[i].taxon].count += 1;
                genesByTaxon[response.data[i].taxon].data.push(response.data[i]);
             }
             else {
-               genesByTaxon[response.data[i].taxon] = {'count':1,
-                                                       'data':[response.data[i]]
-                                                      };
+               allTaxons.push( response.data[i].taxon );
+               genesByTaxon[response.data[i].taxon] = { 'data':[ response.data[i] ] };
             }
          }
          console.log(genesByTaxon);
+         allTaxons.sort(); // Consistent ordering
          
-         for (var taxon in genesByTaxon) {
+         // Generate HTML blocks for each taxon
+         for (var i=0; i<allTaxons.length; i++) {
+            taxon = allTaxons[i];
             $('#overviewGeneBreakdown').append(overview.geneTableHTMLBlock(taxon, 'overviewTable'+taxon));
-            overview.populateTable('overviewTable'+taxon, genesByTaxon[taxon].data , 5)
+            overview.populateTable('overviewTable'+taxon, genesByTaxon[taxon].data , 5, true)
             $("#overview" + taxon + "Button").click( createModal( taxon, genesByTaxon[taxon].data ) ); 
             $("#overviewEdit" + taxon + "Button").click( openGeneManager(taxon) ); 
          }
@@ -136,7 +141,7 @@ var scrapModal = $('#scrapModal').modal({
 
 function createModal(taxon, data) {
    return function() {
-            overview.populateTable('scrapModalTable', data , data.length)
+            overview.populateTable('scrapModalTable', data , data.length, false)
             scrapModal.find('.modal-header > h4').text(taxon + " Overview").end();
             scrapModal.modal('show');                
    }; 
@@ -154,6 +159,6 @@ function createModal(taxon, data) {
 
 }( window.overview = window.overview || {}, jQuery ));
 
-$( document ).ready( function() {
+
    overview.showGenesOverview();
 } );

@@ -49,14 +49,14 @@ public class BioMartQueryServiceImpl implements BioMartQueryService {
     private static final Map<String, String> DATASET_NAME_TO_CHROMOSOME_FILTER = new HashMap<String, String>();
 
     static {
-        TAXON_COMMON_TO_DATASET.put( "Human", "hsapiens_gene_ensembl" );
-        TAXON_COMMON_TO_DATASET.put( "Mouse", "mmusculus_gene_ensembl" );
-        TAXON_COMMON_TO_DATASET.put( "Rat", "rnorvegicus_gene_ensembl" );
-        // TAXON_COMMON_TO_DATASET.put("Zebrafish","drerio_gene_ensembl");
-        // TAXON_COMMON_TO_DATASET.put("Fruitfly","dmelanogaster_gene_ensembl");
-        // TAXON_COMMON_TO_DATASET.put("Worm","celegans_gene_ensembl");
-        TAXON_COMMON_TO_DATASET.put( "Yeast", "scerevisiae_gene_ensembl" );
-        // TAXON_COMMON_TO_DATASET.put("E-coli","");
+        TAXON_COMMON_TO_DATASET.put( "Human", "hsapiens_gene_ensembl" ); // 9606
+        TAXON_COMMON_TO_DATASET.put( "Mouse", "mmusculus_gene_ensembl" ); // 10090
+        TAXON_COMMON_TO_DATASET.put( "Rat", "rnorvegicus_gene_ensembl" ); // 10116
+        // TAXON_COMMON_TO_DATASET.put("Zebrafish","drerio_gene_ensembl"); //7955
+        // TAXON_COMMON_TO_DATASET.put("Fruitfly","dmelanogaster_gene_ensembl"); //7227
+        // TAXON_COMMON_TO_DATASET.put("Worm","celegans_gene_ensembl"); //6239
+        TAXON_COMMON_TO_DATASET.put( "Yeast", "scerevisiae_gene_ensembl" ); // 4932
+        // TAXON_COMMON_TO_DATASET.put("E-coli",""); //562
 
         DATASET_NAME_TO_CHROMOSOME_FILTER.put( "hsapiens_gene_ensembl",
                 "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,X,Y" );
