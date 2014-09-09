@@ -27,11 +27,12 @@
 								<option>Human</option>
 								<option>Mouse</option>
 								<option>Rat</option>
+								<option>Yeast</option>
 								<!-- FIXME
 								<option>Zebrafish</option>
 			                    <option>Fruitfly</option>
 			                    <option>Worm</option>
-			                    <option>Yeast</option>
+			                    
 			                    <option>E-coli</option>
 							     -->
 							</select>

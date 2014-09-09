@@ -46,6 +46,7 @@ public class BioMartQueryServiceImpl implements BioMartQueryService {
     private static final String GENE_NAMES_BIO_MART_URL = "http://www.genenames.org" + BIO_MART_URL_SUFFIX;
 
     private static final Map<String, String> TAXON_COMMON_TO_DATASET = new HashMap<String, String>();
+    private static final Map<String, String> DATASET_NAME_TO_CHROMOSOME_FILTER = new HashMap<String, String>();
 
     static {
         TAXON_COMMON_TO_DATASET.put( "Human", "hsapiens_gene_ensembl" );
@@ -54,10 +55,23 @@ public class BioMartQueryServiceImpl implements BioMartQueryService {
         // TAXON_COMMON_TO_DATASET.put("Zebrafish","drerio_gene_ensembl");
         // TAXON_COMMON_TO_DATASET.put("Fruitfly","dmelanogaster_gene_ensembl");
         // TAXON_COMMON_TO_DATASET.put("Worm","celegans_gene_ensembl");
-        // TAXON_COMMON_TO_DATASET.put("Yeast","scerevisiae_gene_ensembl");
-        // TAXON_COMMON_TO_DATASET.put("E-coli","rnorvegicus_gene_ensembl");
+        TAXON_COMMON_TO_DATASET.put( "Yeast", "scerevisiae_gene_ensembl" );
+        // TAXON_COMMON_TO_DATASET.put("E-coli","");
 
-        // TAXON_COMMON_TO_DATASET = Collections.unmodifiableMap(TAXON_COMMON_TO_DATASET);
+        DATASET_NAME_TO_CHROMOSOME_FILTER.put( "hsapiens_gene_ensembl",
+                "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,X,Y" );
+        DATASET_NAME_TO_CHROMOSOME_FILTER.put( "mmusculus_gene_ensembl",
+                "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,X,Y" );
+        DATASET_NAME_TO_CHROMOSOME_FILTER.put( "rnorvegicus_gene_ensembl",
+                "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,X" );
+        // DATASET_NAME_TO_CHROMOSOME_FILTER.put( "drerio_gene_ensembl",
+        // "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25" );
+        // DATASET_NAME_TO_CHROMOSOME_FILTER.put( "dmelanogaster_gene_ensembl", "");
+        // DATASET_NAME_TO_CHROMOSOME_FILTER.put( "celegans_gene_ensembl", "I,II,III,IV,V,X");
+        DATASET_NAME_TO_CHROMOSOME_FILTER.put( "scerevisiae_gene_ensembl",
+                "I,II,III,IV,V,VI,VII,VIII,IX,X,XI,XII,XIII,XIV,XV,XVI" );
+        // DATASET_NAME_TO_CHROMOSOME_FILTER.put("E-coli","");
+
     }
 
     private static Log log = LogFactory.getLog( BioMartQueryServiceImpl.class.getName() );
@@ -140,7 +154,7 @@ public class BioMartQueryServiceImpl implements BioMartQueryService {
         // updateCacheIfExpired();
     }
 
-    private String queryDataset( Dataset dataset, String url ) throws BioMartServiceException {
+    private String queryDataset( final Dataset dataset, String url ) throws BioMartServiceException {
         Query query = new Query();
         query.Dataset = dataset;
 
@@ -167,12 +181,12 @@ public class BioMartQueryServiceImpl implements BioMartQueryService {
         uploadCheckerTimer.scheduleAtFixedRate( new TimerTask() {
             @Override
             public void run() {
-                log.info( "Waiting for BioMart response ... " + timer.getTime() + " ms" );
+                log.info( "Waiting for BioMart response for (" + dataset.name + ")... " + timer.getTime() + " ms" );
             }
         }, 0, 10 * 1000 );
 
         String response = sendRequest( xmlQueryWriter.toString(), url );
-        log.info( "BioMart request to (" + url + ") took " + timer.getTime() + " ms" );
+        log.info( "BioMart request to (" + url + ") for (" + dataset.name + ") took " + timer.getTime() + " ms" );
 
         uploadCheckerTimer.cancel();
         return response;
@@ -192,6 +206,8 @@ public class BioMartQueryServiceImpl implements BioMartQueryService {
         String response = queryDataset( dataset, BIO_MART_URL );
 
         String[] rows = StringUtils.split( response, "\n" );
+
+        log.info( dataset.name + " returned " + rows.length + " rows" );
 
         Collection<Gene> genes = new HashSet<>();
 
@@ -262,7 +278,8 @@ public class BioMartQueryServiceImpl implements BioMartQueryService {
     private void addHumanGeneSynonyms( Collection<Gene> genes ) throws BioMartServiceException {
         Dataset dataset = new Dataset( "hgnc" );
 
-        dataset.Filter.add( new Filter( "gd_pub_chr", "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,X,Y" ) );
+        dataset.Filter
+                .add( new Filter( "gd_pub_chr", DATASET_NAME_TO_CHROMOSOME_FILTER.get( "hsapiens_gene_ensembl" ) ) );
 
         dataset.Attribute.add( new Attribute( "gd_aliases" ) );
         dataset.Attribute.add( new Attribute( "md_ensembl_id" ) );
@@ -317,8 +334,7 @@ public class BioMartQueryServiceImpl implements BioMartQueryService {
 
         Dataset dataset = new Dataset( datasetName );
 
-        dataset.Filter.add( new Filter( "chromosome_name",
-                "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,X,Y" ) );
+        dataset.Filter.add( new Filter( "chromosome_name", DATASET_NAME_TO_CHROMOSOME_FILTER.get( datasetName ) ) );
 
         Collection<Gene> genes = new HashSet<>();
         genes.addAll( parseGeneInfo( dataset, taxon ) );

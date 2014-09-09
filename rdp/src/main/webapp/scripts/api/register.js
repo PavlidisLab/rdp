@@ -74,7 +74,7 @@ var loadResearcher = function() {
          if (contact.firstName || contact.lastName) {
             $('#overviewName').text( contact.firstName + " " + contact.lastName );
          } else {
-            showMessage( "<a href='#editProfileModal' class='alert-link' data-toggle='modal'>Missing contact details - Click Here To Enter</a>", $("#overviewMessage") );
+            showMessage( "<a href='#editProfileModal' class='alert-link' data-toggle='modal'>Missing contact details - Click Here</a>", $("#overviewMessage") );
          }
          $('#overviewEmail').text( contact.email );
          $('#overviewOrganisation').text( data.organization );

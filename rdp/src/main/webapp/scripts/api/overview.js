@@ -94,7 +94,7 @@ overview.showGenesOverview = function() {
          console.log( "Showing " + response.data.length + " user genes" )
          
          if (response.data.length == 0) {
-            showMessage( "<a href='#editGenesModal' class='alert-link' data-toggle='modal'>No model organisms have been added to profile  - Click Here To Enter.</a>", $( "#overviewModalMessage" ) );
+            showMessage( "<a href='#editGenesModal' class='alert-link' data-toggle='modal'>No model organisms have been added to profile  - Click Here.</a>", $( "#overviewModalMessage" ) );
             return;
          }
          $( "#overviewModelFailed" ).hide()
