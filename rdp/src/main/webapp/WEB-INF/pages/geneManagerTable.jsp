@@ -1,16 +1,6 @@
-<div class="form-group" >
-	<div class="col-sm-offset-1 col-sm-10" style="padding-bottom:10px">
-	    <button type="button" id="removeGeneButton"
-	        class="btn btn-default btn-xs pull-left" data-toggle="tooltip"
-	        data-placement="bottom" title="Remove selected gene">
-	        <span>Remove Selected Genes</span>
-	    </button>
-    </div>
-</div>
-
 <div class="form-group">
 	<div class="col-sm-offset-1 col-sm-10">
-	<table id="geneManagerTable" class="table table-bordered stripe text-left"
+	<table id="geneManagerTable" class="table table-bordered table-condensed stripe text-left display"
 		cellspacing="0" width="100%">
 		<thead>
 			<tr>

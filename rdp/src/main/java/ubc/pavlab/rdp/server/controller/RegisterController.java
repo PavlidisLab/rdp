@@ -51,6 +51,7 @@ public class RegisterController extends BaseController {
         // String email = request.getParameter( "email" );
         String website = request.getParameter( "website" );
         String phone = request.getParameter( "phone" );
+        String description = request.getParameter( "description" );
 
         try {
             User contact = null;
@@ -71,6 +72,7 @@ public class RegisterController extends BaseController {
             researcher.setOrganization( organization );
             researcher.setPhone( phone );
             researcher.setWebsite( website );
+            researcher.setDescription( description );
 
             researcherService.update( researcher );
 

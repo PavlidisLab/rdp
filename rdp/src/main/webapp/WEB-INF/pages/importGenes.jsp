@@ -8,22 +8,22 @@
 </div>
 
 <div class="form-group">
-	<div class="col-sm-offset-2 col-sm-9">
+	<div class="col-sm-3 pull-right">
 		<button type="button" id="importGenesButton"
 			class="btn btn-default btn-sm" data-toggle="tooltip"
 			data-placement="bottom" title="Bulk Upload Genes">
-			<span class="glyphicon glyphicon-save"></span>
+			<span>Upload</span>
 		</button>
 	
 		<button type="button" id="clearImportGenesButton"
 			class="btn btn-default btn-sm" data-toggle="tooltip"
 			data-placement="bottom" title="Clear Bulk Upload">
-			<span class="glyphicon glyphicon-trash"></span>
+			<span>Clear</span>
 		</button>
 		
-		<div id="spinImportGenesButton" hidden="true">
+<!-- 		<div id="spinImportGenesButton" hidden="true">
 			<span class="glyphicon glyphicon-refresh animate"></span>
-		</div>
+		</div> -->
 	</div>
 </div>
 

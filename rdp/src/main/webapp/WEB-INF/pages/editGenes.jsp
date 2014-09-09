@@ -13,17 +13,26 @@
 				<form class="form-horizontal" role="form">
 
 					<div class="form-group">
+						<div class="col-sm-3 pull-right">
+							<button type="button" class="btn btn-primary saveGenesButton">Save</button>
+							<button type="button" id="closeGenesButton"
+								class="btn btn-default" data-dismiss="modal">Close</button>
+						</div>
+					</div>
+
+					<div class="form-group">
 						<label class="col-sm-2 control-label">Organism</label>
 						<div class="col-sm-9">
 							<select id="taxonCommonNameSelect" class="form-control">
 								<option>Human</option>
 								<option>Mouse</option>
 								<option>Rat</option>
+								<option>Yeast</option>
 								<!-- FIXME
 								<option>Zebrafish</option>
 			                    <option>Fruitfly</option>
 			                    <option>Worm</option>
-			                    <option>Yeast</option>
+			                    
 			                    <option>E-coli</option>
 							     -->
 							</select>
@@ -44,12 +53,9 @@
 			<div class="modal-body">
 				<form id="modelOrganism" class="form-horizontal" role="form">
 
-					<div class="form-group">
-						<label class="col-sm-2 control-label">Select Gene</label>
-						<div class="col-sm-9">
-							<%@ include file="searchGenes.jsp"%>
-						</div>
-					</div>
+
+					<%@ include file="searchGenes.jsp"%>
+
 
 					<%@ include file="importGenes.jsp"%>
 
@@ -61,22 +67,14 @@
 					<a href="#" class="close" data-hide="alert">&times;</a>
 					<div id="geneManagerMessage" class="text-left">Failed to load genes.</div>
 				</div>
-		
-				<div class="form-group">
-					<div class="col-sm-offset-1 col-sm-10">
-						<button type="button" id="closeGenesButton"
-							class="btn btn-default" data-dismiss="modal">Close</button>
-						<button type="button" class="btn btn-primary saveGenesButton">Save</button>
-					</div>
-				</div>
 
 				<%@ include file="geneManagerTable.jsp"%>
 			
 				<div class="form-group">
 					<div class="col-sm-offset-1 col-sm-10" style="padding-top:20px">
+						<button type="button" class="btn btn-primary saveGenesButton">Save</button>
 						<button type="button" id="closeGenesButton"
 							class="btn btn-default" data-dismiss="modal">Close</button>
-						<button type="button" class="btn btn-primary saveGenesButton">Save</button>
 					</div>
 				</div>
 			</div>
