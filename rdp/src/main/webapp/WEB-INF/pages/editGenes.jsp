@@ -53,12 +53,9 @@
 			<div class="modal-body">
 				<form id="modelOrganism" class="form-horizontal" role="form">
 
-					<div class="form-group">
-						<label class="col-sm-2 control-label">Select Gene</label>
-						<div class="col-sm-9">
-							<%@ include file="searchGenes.jsp"%>
-						</div>
-					</div>
+
+					<%@ include file="searchGenes.jsp"%>
+
 
 					<%@ include file="importGenes.jsp"%>
 
