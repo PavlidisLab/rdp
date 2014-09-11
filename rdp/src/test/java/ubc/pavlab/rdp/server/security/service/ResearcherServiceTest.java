@@ -134,6 +134,7 @@ public class ResearcherServiceTest extends BaseSpringContextTest {
 
         Gene gene = new Gene();
         gene.setEnsemblId( "ENSG123" );
+        gene.setNcbiGeneId( "12345" );
         gene.setOfficialSymbol( "ABC" );
         // geneService.create( gene );
         Collection<Gene> genes = new HashSet<>();

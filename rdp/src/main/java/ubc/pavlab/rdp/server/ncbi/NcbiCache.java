@@ -38,11 +38,11 @@ public interface NcbiCache {
     public Collection<Gene> findGenes( String queryString, String taxon );
 
     /**
-     * Get a list of genes using the given gene symbols or ensembl ids. The order of the returned list of genes is
-     * preserved. If a gene symbol or ensembl id is not valid, the returned gene will be null.
+     * Get a list of genes using the given gene symbols or ncbi ids. The order of the returned list of genes is
+     * preserved. If a gene symbol or ncbi id is not valid, the returned gene will be null.
      * 
-     * @param geneStrings gene symbols or ensembl ids
-     * @return a list of GeneValueObjects
+     * @param geneStrings gene symbols or ncbi ids
+     * @return a list of Genes
      */
     public List<Gene> getGenes( List<String> geneStrings );
 

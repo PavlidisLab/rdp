@@ -23,6 +23,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -36,6 +37,7 @@ import ubc.pavlab.rdp.testing.BaseSpringContextTest;
  * @author ptan
  * @version $Id: $
  */
+@Ignore
 public class BioMartCacheTest extends BaseSpringContextTest {
 
     @Autowired

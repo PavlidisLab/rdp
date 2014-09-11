@@ -159,6 +159,12 @@ public class Gene implements Comparable<Gene> {
         this.aliases = aliases;
     }
 
+    public void parseAliases( String aliases ) {
+        for ( String alias : aliases.split( "," ) ) {
+            this.getAliases().add( new GeneAlias( alias.trim() ) );
+        }
+    }
+
     public String getOfficialSymbol() {
         return officialSymbol;
     }
@@ -178,7 +184,7 @@ public class Gene implements Comparable<Gene> {
 
         setOfficialName( jsonObj.get( "officialName" ).toString() );
         setOfficialSymbol( jsonObj.get( "officialSymbol" ).toString() );
-        setEnsemblId( jsonObj.get( "ensemblId" ).toString() );
+        // setEnsemblId( jsonObj.get( "ensemblId" ).toString() );
         setTaxon( jsonObj.get( "taxon" ).toString() );
         setNcbiGeneId( jsonObj.get( "ncbiGeneId" ).toString() );
 
@@ -192,6 +198,6 @@ public class Gene implements Comparable<Gene> {
 
     @Override
     public int compareTo( Gene otherGene ) {
-        return this.ensemblId.compareTo( otherGene.getEnsemblId() );
+        return this.ncbiGeneId.compareTo( otherGene.getNcbiGeneId() );
     }
 }

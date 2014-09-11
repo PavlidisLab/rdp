@@ -42,11 +42,11 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
-import ubc.pavlab.rdp.server.biomartquery.BioMartCache;
-import ubc.pavlab.rdp.server.biomartquery.BioMartCacheTest;
 import ubc.pavlab.rdp.server.model.Gene;
 import ubc.pavlab.rdp.server.model.Researcher;
 import ubc.pavlab.rdp.server.model.common.auditAndSecurity.User;
+import ubc.pavlab.rdp.server.ncbi.NcbiCache;
+import ubc.pavlab.rdp.server.ncbi.NcbiCacheTest;
 import ubc.pavlab.rdp.server.service.GeneService;
 import ubc.pavlab.rdp.server.service.ResearcherService;
 import ubc.pavlab.rdp.testing.BaseSpringContextTest;
@@ -62,7 +62,7 @@ import ubc.pavlab.rdp.testing.BaseSpringContextTest;
 public class GeneControllerTest extends BaseSpringContextTest {
 
     @Autowired
-    private BioMartCache cache;
+    private NcbiCache cache;
 
     @Autowired
     private ResearcherService researcherService;
@@ -160,7 +160,7 @@ public class GeneControllerTest extends BaseSpringContextTest {
     @Test
     public void testFindGenesByGeneSymbols() throws Exception {
         Collection<Gene> genes = new HashSet<>();
-        BioMartCacheTest.initCache( cache, genes, taxon );
+        NcbiCacheTest.initCache( cache, genes, taxon );
         this.mockMvc
                 .perform(
                         get( "/findGenesByGeneSymbols.html" ).contentType( MediaType.APPLICATION_JSON )

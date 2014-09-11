@@ -50,7 +50,6 @@ import org.xml.sax.InputSource;
 
 import ubc.pavlab.rdp.server.exception.NcbiServiceException;
 import ubc.pavlab.rdp.server.model.Gene;
-import ubc.pavlab.rdp.server.model.GeneAlias;
 
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
@@ -66,11 +65,13 @@ import com.sun.jersey.core.util.MultivaluedMapImpl;
 @Service
 public class NcbiQueryServiceImpl implements NcbiQueryService {
     private static final String NCBI_URL = "http://eutils.ncbi.nlm.nih.gov/entrez/eutils/";
+    private static final String NCBI_SEARCH = NCBI_URL + "esearch.fcgi";
+    private static final String NCBI_SUMMARY = NCBI_URL + "esummary.fcgi";
 
     private static final Map<String, String> TAXON_COMMON_TO_ID = new HashMap<String, String>();
 
     static {
-        // TAXON_COMMON_TO_ID.put( "Human", "9606" );
+        TAXON_COMMON_TO_ID.put( "Human", "9606" );
         // TAXON_COMMON_TO_ID.put( "Mouse", "10090" );
         // TAXON_COMMON_TO_ID.put( "Rat", "10116" );
         TAXON_COMMON_TO_ID.put( "Yeast", "559292" );
@@ -137,7 +138,7 @@ public class NcbiQueryServiceImpl implements NcbiQueryService {
     @SuppressWarnings("unused")
     @PostConstruct
     private void initialize() throws NcbiServiceException {
-        updateCacheIfExpired();
+        // updateCacheIfExpired();
     }
 
     private static Document loadXMLFromString( String xml ) throws Exception {
@@ -190,7 +191,7 @@ public class NcbiQueryServiceImpl implements NcbiQueryService {
         queryData.add( "retmode", "json" );
         queryData.add( "usehistory", "y" );
 
-        String response = sendRequest( queryData, "http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi" );
+        String response = sendRequest( queryData, NCBI_SEARCH );
 
         JSONObject json = new JSONObject( response );
 
@@ -213,7 +214,7 @@ public class NcbiQueryServiceImpl implements NcbiQueryService {
             queryData.add( "retstart", Integer.toString( retstart ) );
             queryData.add( "retmax", "10000" );
 
-            response = sendRequest( queryData, "http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi" );
+            response = sendRequest( queryData, NCBI_SUMMARY );
 
             try {
                 Document xmldoc = loadXMLFromString( response );
@@ -228,7 +229,7 @@ public class NcbiQueryServiceImpl implements NcbiQueryService {
 
                     Element ID = ( Element ) element.getElementsByTagName( "Id" ).item( 0 );
                     gene.setNcbiGeneId( getCharacterDataFromElement( ID ) );
-                    gene.setEnsemblId( getCharacterDataFromElement( ID ) );
+                    // gene.setEnsemblId( getCharacterDataFromElement( ID ) );
 
                     NodeList items = element.getElementsByTagName( "Item" );
                     int conditionBits = 0;
@@ -247,10 +248,8 @@ public class NcbiQueryServiceImpl implements NcbiQueryService {
                                 conditionBits = conditionBits | ( 1 << 1 ); // Set second bit to 1
                                 break;
                             case "OtherAliases":
+                                gene.parseAliases( item.getTextContent() );
                                 conditionBits = conditionBits | ( 1 << 2 );
-                                for ( String alias : item.getTextContent().split( "," ) ) {
-                                    gene.getAliases().add( new GeneAlias( alias.trim() ) );
-                                }
                                 break;
                         }
 
