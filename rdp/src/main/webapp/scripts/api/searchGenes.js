@@ -32,8 +32,8 @@ function addGene(geneValueObject, table) {
       return;
    }
    
-   // columns: Symbol, Alias, Name
-   geneRow = [ geneValueObject.officialSymbol, aliasesToString( geneValueObject ), geneValueObject.officialName ];
+   // columns: Symbol, Alias, Name, ncbiGeneId (HIDDEN)
+   geneRow = [ geneValueObject.officialSymbol, aliasesToString( geneValueObject ), geneValueObject.officialName, geneValueObject.ncbiGeneId ];
 
    table.row.add( geneRow ).draw();
 
@@ -109,7 +109,19 @@ $( document ).ready( function() {
           "aButtons": [ {"sExtends":    "text", "fnClick":removeRows, "sButtonText": "Remove Selected" },
                         "select_all", 
                         "select_none" ]
-      }
+      },
+      "fnRowCallback": function( nRow, aData, iDisplayIndex ) {
+         $('td:eq(0)', nRow).html('<a href="' + "http://www.ncbi.nlm.nih.gov/gene/" + aData[3] + '" target="_blank">'+ aData[0] + '</a>');
+         return nRow;
+     },
+     "columnDefs": [
+                    {
+                        "targets": [ 3 ],
+                        "visible": false,
+                        "searchable": false
+                    }
+                ]
+      
   } );
    
    // init add genes button
