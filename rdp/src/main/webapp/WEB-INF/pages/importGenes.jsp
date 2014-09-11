@@ -12,7 +12,7 @@
 		<button type="button" id="importGenesButton"
 			class="btn btn-default btn-sm" data-toggle="tooltip"
 			data-placement="bottom" title="Bulk Upload Genes">
-			<span>Upload</span>
+			<span>Add All</span>
 		</button>
 	
 		<button type="button" id="clearImportGenesButton"

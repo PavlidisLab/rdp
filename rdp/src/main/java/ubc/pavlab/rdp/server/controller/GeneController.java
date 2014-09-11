@@ -42,11 +42,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import ubc.pavlab.rdp.server.biomartquery.BioMartQueryService;
-import ubc.pavlab.rdp.server.exception.BioMartServiceException;
+import ubc.pavlab.rdp.server.exception.NcbiServiceException;
 import ubc.pavlab.rdp.server.model.Gene;
 import ubc.pavlab.rdp.server.model.Researcher;
 import ubc.pavlab.rdp.server.model.common.auditAndSecurity.User;
+import ubc.pavlab.rdp.server.ncbi.NcbiQueryService;
 import ubc.pavlab.rdp.server.service.GeneService;
 import ubc.pavlab.rdp.server.service.ResearcherService;
 import ubc.pavlab.rdp.server.util.JSONUtil;
@@ -73,8 +73,12 @@ public class GeneController {
     @Autowired
     protected GeneService geneService;
 
+    /*
+     * @Autowired protected BioMartQueryService biomartService;
+     */
+
     @Autowired
-    protected BioMartQueryService biomartService;
+    protected NcbiQueryService ncbiQueryService;
 
     /**
      * Returns the list of genes for the given Researcher and Model Organism.
@@ -274,7 +278,8 @@ public class GeneController {
         }
 
         try {
-            Collection<Gene> results = biomartService.fetchGenesByGeneSymbols( querySymbols, taxon );
+            // Collection<Gene> results = biomartService.fetchGenesByGeneSymbols( querySymbols, taxon );
+            Collection<Gene> results = ncbiQueryService.fetchGenesByGeneSymbolsAndTaxon( querySymbols, taxon );
             for ( Gene gene : results ) {
                 resultSymbols.add( gene.getOfficialSymbol().toUpperCase() );
             }
@@ -292,7 +297,7 @@ public class GeneController {
                 json.append( "message", "All " + results.size() + " symbols were found." );
             }
             jsonText = json.toString();
-        } catch ( BioMartServiceException e ) {
+        } catch ( NcbiServiceException e ) {
             e.printStackTrace();
             log.error( e.getMessage(), e );
             jsonText = "{\"success\":false,\"message\":" + e.getMessage() + "\"}";
@@ -314,9 +319,10 @@ public class GeneController {
         String taxon = request.getParameter( "taxon" );
 
         try {
-            Collection<Gene> results = biomartService.findGenes( query, taxon );
+            // Collection<Gene> results = biomartService.findGenes( query, taxon );
+            Collection<Gene> results = ncbiQueryService.findGenes( query, taxon );
             jsonText = "{\"success\":true,\"data\":" + ( new JSONArray( results ) ).toString() + "}";
-        } catch ( BioMartServiceException e ) {
+        } catch ( NcbiServiceException e ) {
             e.printStackTrace();
             log.error( e.getMessage(), e );
             jsonText = "{\"success\":false,\"message\":" + e.getMessage() + "\"}";

@@ -4,7 +4,7 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal">
+                <button type="button" class="close" data-dismiss="modal" style="font-size:30px">
                     <span aria-hidden="true">&times;</span><span
                         class="sr-only">Close</span>
                 </button>
@@ -94,7 +94,7 @@
                         </div>
 
                         <!-- Button -->
-                        <div class="col-sm-offset-1 col-sm-10 control-group">
+                        <div class="col-sm-offset-1 col-sm-10 control-group text-right">
                             <label class="control-label"
                                 for="confirmsignup"></label>
                             <div class="controls">
@@ -102,7 +102,6 @@
                                     id="btnChangePassword"
                                     name="btnChangePassword"
                                     class="btn btn-primary">Save</button>
-                                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
                             </div>
                         </div>
                     </fieldset>

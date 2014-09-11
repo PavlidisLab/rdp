@@ -14,10 +14,12 @@
 				<span id=overviewEmail class="pull-right"></span>
 			</div>
 		</div> -->
-
+		
+		<div class="shadowboxedin">
+		
 		<div class="form-group">
 			<div class="col-sm-offset-3 col-sm-6 text-center">
-				<h4>Personal Profile</h4>
+				<h3>Personal Profile</h4>
 			</div>
 		</div>
 		
@@ -29,6 +31,7 @@
 				<span id=overviewName></span>
 			</div>
 		</div>
+		
 		
 		<div class="form-group">
 			<div class="col-sm-offset-3 col-sm-1 text-left">
@@ -61,7 +64,7 @@
 		
 		<div class="form-group">
 			<div class="col-sm-offset-3 col-sm-6 text-center">
-				<h4>Research Focus</h4>
+				<h4>Research Interests</h4>
 			</div>
 		</div>
 		
@@ -72,7 +75,7 @@
 		</div>
 		
 		<div class="form-group">
-			<div class="col-sm-4 pull-right">
+			<div class="col-sm-offset-8 col-sm-4">
 	            <a id="overviewEditDescriptionButton"
 	               class="btn btn-default btn-xs" role="button" data-toggle="modal"
 	               data-placement="bottom" title="Edit Research Focus" href="#editProfileModal">
@@ -80,12 +83,15 @@
 	            </a>
             </div>
         </div>
+        
+		</div>
 		
 		</br>
 		
+		
 		<div class="form-group">
 			<div class="col-sm-offset-3 col-sm-6 text-center">
-				<h4>Model Organisms Studied</h4>
+				<h3>Model Organisms Studied</h4>
 			</div>
 		</div>
 		
@@ -98,6 +104,8 @@
 		<div id="overviewGeneBreakdown" class="form-group">
 
 		</div>
+		
+
 
 	</form>
 </div>
@@ -107,7 +115,7 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal">
+                <button type="button" class="close" data-dismiss="modal" style="font-size:30px">
                     <span aria-hidden="true">&times;</span><span
                         class="sr-only">Close</span>
                 </button>
@@ -142,11 +150,11 @@
 
             </div>
 		    <div class="modal-footer">
-				<div class="form-group">
+<!-- 				<div class="form-group">
 					<div class="col-sm-offset-1 col-sm-10">
 						<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
 					</div>
-				</div>
+				</div> -->
 		    </div>
         </div>
     </div>

@@ -46,6 +46,7 @@ public class BioMartQueryServiceImpl implements BioMartQueryService {
     private static final String GENE_NAMES_BIO_MART_URL = "http://www.genenames.org" + BIO_MART_URL_SUFFIX;
 
     private static final Map<String, String> TAXON_COMMON_TO_DATASET = new HashMap<String, String>();
+    private static final Map<String, String> TAXON_COMMON_TO_ID = new HashMap<String, String>();
     private static final Map<String, String> DATASET_NAME_TO_CHROMOSOME_FILTER = new HashMap<String, String>();
 
     static {
@@ -77,10 +78,16 @@ public class BioMartQueryServiceImpl implements BioMartQueryService {
     private static Log log = LogFactory.getLog( BioMartQueryServiceImpl.class.getName() );
 
     private static String sendRequest( String xmlQueryString, String url ) throws BioMartServiceException {
-        Client client = Client.create();
 
         MultivaluedMap<String, String> queryData = new MultivaluedMapImpl();
         queryData.add( "query", xmlQueryString );
+
+        return sendRequest( queryData, url );
+    }
+
+    private static String sendRequest( MultivaluedMap<String, String> queryData, String url )
+            throws BioMartServiceException {
+        Client client = Client.create();
 
         WebResource resource = client.resource( url ).queryParams( queryData );
 

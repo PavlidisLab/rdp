@@ -4,7 +4,7 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal">
+                <button type="button" class="close" data-dismiss="modal" style="font-size:30px">
                     <span aria-hidden="true">&times;</span><span
                         class="sr-only">Close</span>
                 </button>
@@ -149,9 +149,8 @@
 			 -->
 			 		<hr>
 					<div class="form-group">
-						<div class="col-sm-offset-1 col-sm-10">
+						<div class="col-sm-offset-3 col-sm-8 text-right">
 							<button type="button" id="submit" class="btn btn-primary">Save</button>
-							<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
 						</div>
 					</div>
 

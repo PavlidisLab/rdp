@@ -4,6 +4,11 @@ var showMessage = function( message, messageEl ) {
    messageEl.parent().show();
 }
 
+var hideMessage = function( messageEl ) {
+   messageEl.html( '' );
+   messageEl.parent().hide();
+}
+
 // Call the button widget method on the login button to format it.
 var saveContact = function() {
 
@@ -59,7 +64,7 @@ var loadResearcher = function() {
          // Researcher created so Researcher object was returned
          if ( data.contact != null ) {
             contact = data.contact;
-            $( "#overviewFailed" ).hide();
+            hideMessage( $( "#overviewMessage" ) );
          } else {
           // Researcher not created yet so User object was returned, this should not happen...
             contact = data;
@@ -92,6 +97,11 @@ var loadResearcher = function() {
    
 };
 
+var closeProfileModal = function() {
+   hideMessage( $( "#primaryContactMessage" ) );
+   
+};
+
 // Initialize document
 $( document ).ready( function() {
    
@@ -111,5 +121,7 @@ $( document ).ready( function() {
           */
       });
    });
+   
+   $( '#editProfileModal' ).on( 'hidden.bs.modal', closeProfileModal );
    
 } );
