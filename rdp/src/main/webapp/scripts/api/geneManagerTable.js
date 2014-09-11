@@ -84,7 +84,7 @@ var showGenes = function() {
 };
 
 var closeGenesManager = function() {
-   $( "#geneManagerFailed" ).hide();
+   hideMessage( $( "#geneManagerMessage" ) );
 
    var tableEl = $( "#geneManagerTable" );
    
@@ -94,14 +94,14 @@ var closeGenesManager = function() {
 }
 
 var refreshGenesManager = function() {
-   $( "#geneManagerFailed" ).hide();
+   hideMessage( $( "#geneManagerMessage" ) );
    $( "#searchGenesSelect" ).select2("val", "");
    showGenes();
    
 }
 
 var switchModelOrganism = function() {
-   $( "#geneManagerFailed" ).hide();
+   hideMessage( $( "#geneManagerMessage" ) );
    $( "#searchGenesSelect" ).select2("val", "");
    $( "#geneManagerTable" ).DataTable().clear();
    $( "#geneManagerTable" ).DataTable().draw();
@@ -123,7 +123,7 @@ var removeRows = function() {
       showMessage( "Please select a gene to remove", $( "#geneManagerMessage" ) );
       return;
    } else {
-      $( "#geneManagerFailed" ).hide();
+      hideMessage( $( "#geneManagerMessage" ) );
    }
    var data = selectedNodes.data();
    var selectedTaxon = $( "#taxonCommonNameSelect" ).val();

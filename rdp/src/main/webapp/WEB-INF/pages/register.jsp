@@ -44,6 +44,21 @@
 textarea { resize:none; }
 /* #geneManagerTable td { white-space: nowrap; } */
 
+.shadowboxedin { 
+	border-bottom: 2px solid grey;
+	padding:0 0 2% 0;
+	margin:0 0 2% 0;
+}
+
+.boxedin {
+	border-top: 2px solid grey; 
+	border-bottom: 2px solid grey;
+	padding:2% 0 2% 0;
+	margin:2% 0 2% 0;
+	}
+
+h3 {text-decoration: underline;}
+
 </style>
 
 </head>

@@ -51,7 +51,7 @@ var findResearchersByGene = function() {
         showMessage("Please select a gene", $("#listResearchersMessage"));
         return;
     } else {
-        $("#listResearchersFailed").hide();
+       hideMessage( $("#listResearchersMessage") );
     }
 
     $.ajax({

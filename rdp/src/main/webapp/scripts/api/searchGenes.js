@@ -24,7 +24,7 @@ function addGene(geneValueObject, table) {
       showMessage( "Please select a gene to add", $( "#geneManagerMessage" ) );
       return;
    } else {
-      $( "#geneManagerFailed" ).hide();
+      hideMessage( $( "#geneManagerMessage" ) );
    }
 
    if ( table.column(0).data().indexOf(geneValueObject.officialSymbol) != -1 ) {

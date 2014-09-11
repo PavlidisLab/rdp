@@ -63,7 +63,8 @@ public class Gene implements Comparable<Gene> {
 
     @Override
     public String toString() {
-        return "id=" + id + " symbol=" + officialSymbol + " taxon=" + taxon + " hashCode=" + hashCode();
+        return "id=" + id + " symbol=" + officialSymbol + " taxon=" + taxon + " ncbi=" + ncbiGeneId + " hashCode="
+                + hashCode();
     }
 
     /*

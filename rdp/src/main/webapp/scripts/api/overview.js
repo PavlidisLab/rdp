@@ -15,21 +15,22 @@ $( document ).ready( function() {
  * @return {string} HTML block
  */
 overview.geneTableHTMLBlock = function(taxon, id) {
-   var htmlBlock =  '<div class = "col-sm-offset-3 col-sm-6 text-center"> \
-                        <span>' + taxon + '</span> \
-                     </div> \
-                     <div class="col-sm-offset-3 col-sm-6"> \
-                        <table id="' + id + '" class="table table-condensed"> \
-                           <thead> \
-                              <tr> \
-                                 <th>Symbol</th> \
-                                 <th>Name</th> \
-                              </tr> \
-                           </thead> \
-                      \
-                           <tbody> \
-                           </tbody> \
-                        </table> \
+   var htmlBlock =  '<div id="' + id + 'Block" class="form-group"> \
+                        <div class = "col-sm-offset-3 col-sm-6 text-center"> \
+                           <h4>' + taxon + '</h4> \
+                        </div> \
+                        <div class="col-sm-offset-3 col-sm-6"> \
+                           <table id="' + id + '" class="table table-condensed"> \
+                              <thead> \
+                                 <tr> \
+                                    <th>Symbol</th> \
+                                    <th>Name</th> \
+                                 </tr> \
+                              </thead> \
+                              <tbody> \
+                              </tbody> \
+                           </table> \
+                        </div> \
                      </div>';
                         
    return htmlBlock;
@@ -51,7 +52,6 @@ overview.populateTable = function(id, data, max, editable) {
       $( '#' +id + '> tbody:last' ).append( '<tr><td><a href="' + url + '" target="_blank">'+ data[i].officialSymbol + '</a></td><td>'+ data[i].officialName + '</td></tr>' );
    }
    
-   var ellipsis = ( max < data.length ) ? '...' : '';
    var seeAllButtonHTML = ( max < data.length ) ? '<button type="button" id="overview' + data[0].taxon + 'Button" \
                                                       class="btn btn-default btn-xs" data-toggle="tooltip" \
                                                       data-placement="bottom" title="See all genes"> \
@@ -64,9 +64,13 @@ overview.populateTable = function(id, data, max, editable) {
                                     <span>Edit</span> \
                                  </button>' : '' ;
    
-   if ( ( editable ) || ( max < data.length ) ) {
-      $( '#' +id + '> tbody:last' ).append( '<tr><td class="text-center">' + ellipsis + '</td> \
-                                                 <td class="text-right"> ' + seeAllButtonHTML + editButton + '</td></tr>' );
+   if ( max < data.length ) {
+      $( '#' +id + '> tbody:last' ).append( '<tr><td class="text-center">...</td> \
+                                                 <td class="text-center">...</td></tr>' );
+   }
+   if ( editable ) {
+      $( '#' +id + 'Block' ).after( '<div class="form-group"><div class="col-sm-offset-8 col-sm-4">' + 
+                                     editButton + seeAllButtonHTML + '</div></div>' );
    }
    
 };
@@ -98,7 +102,8 @@ overview.showGenesOverview = function() {
             showMessage( "<a href='#editGenesModal' class='alert-link' data-toggle='modal'>No model organisms have been added to profile  - Click Here.</a>", $( "#overviewModalMessage" ) );
             return;
          }
-         $( "#overviewModelFailed" ).hide()
+         hideMessage( $( "#overviewMessage" ) );
+         
          
          var genesByTaxon = {};
          var allTaxons = [];
@@ -142,7 +147,7 @@ var scrapModal = $('#scrapModal').modal({
 function createModal(taxon, data) {
    return function() {
             overview.populateTable('scrapModalTable', data , data.length, false)
-            scrapModal.find('.modal-header > h4').text(taxon + " Overview").end();
+            scrapModal.find('.modal-header > h4').text(taxon + " Genes Studied").end();
             scrapModal.modal('show');                
    }; 
  };

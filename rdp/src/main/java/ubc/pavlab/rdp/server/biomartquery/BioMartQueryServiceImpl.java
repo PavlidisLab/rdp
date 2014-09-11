@@ -1,5 +1,6 @@
 package ubc.pavlab.rdp.server.biomartquery;
 
+import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.Collection;
 import java.util.HashMap;
@@ -16,13 +17,22 @@ import javax.ws.rs.core.Response;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.StopWatch;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.w3c.dom.CharacterData;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
 
 import ubc.pavlab.rdp.server.exception.BioMartServiceException;
 import ubc.pavlab.rdp.server.model.Gene;
@@ -46,6 +56,7 @@ public class BioMartQueryServiceImpl implements BioMartQueryService {
     private static final String GENE_NAMES_BIO_MART_URL = "http://www.genenames.org" + BIO_MART_URL_SUFFIX;
 
     private static final Map<String, String> TAXON_COMMON_TO_DATASET = new HashMap<String, String>();
+    private static final Map<String, String> TAXON_COMMON_TO_ID = new HashMap<String, String>();
     private static final Map<String, String> DATASET_NAME_TO_CHROMOSOME_FILTER = new HashMap<String, String>();
 
     static {
@@ -57,6 +68,15 @@ public class BioMartQueryServiceImpl implements BioMartQueryService {
         // TAXON_COMMON_TO_DATASET.put("Worm","celegans_gene_ensembl"); //6239
         TAXON_COMMON_TO_DATASET.put( "Yeast", "scerevisiae_gene_ensembl" ); // 4932
         // TAXON_COMMON_TO_DATASET.put("E-coli",""); //562
+
+        // TAXON_COMMON_TO_ID.put( "Human", "9606" );
+        // TAXON_COMMON_TO_ID.put( "Mouse", "10090" );
+        // TAXON_COMMON_TO_ID.put( "Rat", "10116" );
+        TAXON_COMMON_TO_ID.put( "Yeast", "559292" );
+        // TAXON_COMMON_TO_DATASET.put("Zebrafish","7955");
+        // TAXON_COMMON_TO_DATASET.put("Fruitfly","7227");
+        // TAXON_COMMON_TO_DATASET.put("Worm","6239");
+        // TAXON_COMMON_TO_DATASET.put("E-coli","562");
 
         DATASET_NAME_TO_CHROMOSOME_FILTER.put( "hsapiens_gene_ensembl",
                 "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,X,Y" );
@@ -77,10 +97,16 @@ public class BioMartQueryServiceImpl implements BioMartQueryService {
     private static Log log = LogFactory.getLog( BioMartQueryServiceImpl.class.getName() );
 
     private static String sendRequest( String xmlQueryString, String url ) throws BioMartServiceException {
-        Client client = Client.create();
 
         MultivaluedMap<String, String> queryData = new MultivaluedMapImpl();
         queryData.add( "query", xmlQueryString );
+
+        return sendRequest( queryData, url );
+    }
+
+    private static String sendRequest( MultivaluedMap<String, String> queryData, String url )
+            throws BioMartServiceException {
+        Client client = Client.create();
 
         WebResource resource = client.resource( url ).queryParams( queryData );
 
@@ -190,6 +216,120 @@ public class BioMartQueryServiceImpl implements BioMartQueryService {
 
         uploadCheckerTimer.cancel();
         return response;
+    }
+
+    private Collection<Gene> queryNCBI( String taxon ) throws BioMartServiceException {
+
+        String taxonID = TAXON_COMMON_TO_ID.get( taxon );
+
+        MultivaluedMap<String, String> queryData = new MultivaluedMapImpl();
+        queryData.add( "db", "gene" );
+        queryData.add( "term", taxonID + "[Taxonomy ID] AND alive[property]" );
+        queryData.add( "retmode", "json" );
+        queryData.add( "usehistory", "y" );
+
+        String response = sendRequest( queryData, "http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi" );
+
+        JSONObject json = new JSONObject( response );
+
+        String webenv = json.getJSONObject( "esearchresult" ).getString( "webenv" );
+        String querykey = json.getJSONObject( "esearchresult" ).getString( "querykey" );
+        int count = json.getJSONObject( "esearchresult" ).getInt( "count" );
+
+        log.info( response );
+        log.info( "Total genes to parse: " + count );
+
+        Collection<Gene> genes = new HashSet<>();
+
+        for ( int retstart = 0; retstart < count; retstart += 10000 ) {
+
+            queryData = new MultivaluedMapImpl();
+            queryData.add( "db", "gene" );
+            queryData.add( "query_key", querykey );
+            queryData.add( "WebEnv", webenv );
+            // queryData.add( "retmode", "json" );
+            queryData.add( "retstart", Integer.toString( retstart ) );
+            queryData.add( "retmax", "10000" );
+
+            response = sendRequest( queryData, "http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi" );
+
+            try {
+                Document xmldoc = loadXMLFromString( response );
+                response = ""; // Big string, clear some memory
+                NodeList nodes = xmldoc.getElementsByTagName( "DocSum" );
+
+                for ( int i = 0; i < nodes.getLength(); i++ ) {
+                    Element element = ( Element ) nodes.item( i );
+
+                    Gene gene = new Gene();
+                    gene.setTaxon( taxon );
+
+                    Element ID = ( Element ) element.getElementsByTagName( "Id" ).item( 0 );
+                    gene.setNcbiGeneId( getCharacterDataFromElement( ID ) );
+                    gene.setEnsemblId( getCharacterDataFromElement( ID ) );
+
+                    NodeList items = element.getElementsByTagName( "Item" );
+                    for ( int j = 0; j < items.getLength(); j++ ) {
+                        Element item = ( Element ) items.item( j );
+
+                        String name = item.getAttribute( "Name" );
+
+                        switch ( name ) {
+                            case "Name":
+                                gene.setOfficialSymbol( item.getTextContent() );
+                                break;
+                            case "Description":
+                                gene.setOfficialName( name );
+                                break;
+                            case "OtherAliases":
+                                break;
+                        }
+
+                        // Short circuit for-loop if all relevant info has been collected
+                        if ( ( gene.getOfficialName() != null && !gene.getOfficialName().isEmpty() )
+                                && ( gene.getOfficialSymbol() != null && !gene.getOfficialSymbol().isEmpty() ) ) {
+                            break;
+                        }
+
+                    }
+
+                    genes.add( gene );
+
+                }
+            } catch ( Exception e ) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+
+            // log.info( response );
+
+            // FIXME replace with something that will check to see when ratelimiting is necessary
+            try {
+                Thread.sleep( 1000 );
+            } catch ( InterruptedException ex ) {
+                Thread.currentThread().interrupt();
+            }
+
+            log.info( "Genes loaded so far: " + genes.size() );
+        }
+
+        return genes;
+    }
+
+    private static Document loadXMLFromString( String xml ) throws Exception {
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder builder = factory.newDocumentBuilder();
+        InputSource is = new InputSource( new StringReader( xml ) );
+        return builder.parse( is );
+    }
+
+    private static String getCharacterDataFromElement( Element e ) {
+        Node child = e.getFirstChild();
+        if ( child instanceof CharacterData ) {
+            CharacterData cd = ( CharacterData ) child;
+            return cd.getData();
+        }
+        return "?";
     }
 
     private Collection<Gene> parseGeneInfo( Dataset dataset, String taxon ) throws BioMartServiceException {
@@ -351,10 +491,14 @@ public class BioMartQueryServiceImpl implements BioMartQueryService {
     private void updateCacheAllTaxons() throws BioMartServiceException {
         if ( !this.bioMartCache.hasExpired() ) return;
 
-        for ( Map.Entry<String, String> taxon : TAXON_COMMON_TO_DATASET.entrySet() ) {
-            updateCacheIfExpired( taxon.getKey(), true );
-        }
+        Collection<Gene> genes = new HashSet<>();
 
+        for ( Map.Entry<String, String> taxon : TAXON_COMMON_TO_ID.entrySet() ) {
+            // updateCacheIfExpired( taxon.getKey(), true );
+            genes.addAll( queryNCBI( taxon.getKey() ) );
+        }
+        log.info( "Caching a total of " + genes.size() + " genes" );
+        this.bioMartCache.putAll( genes );
     }
 
     @Override
