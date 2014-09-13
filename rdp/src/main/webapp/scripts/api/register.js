@@ -25,6 +25,11 @@ var saveContact = function() {
          // $( "#primaryContactFailed" ).show();
          
          loadResearcher();
+         
+         if ( !response.success ) {
+            console.log( jQuery.parseJSON( response ).error );
+         }
+         
          showMessage( jQuery.parseJSON( response ).message, $( "#primaryContactMessage" ) )
       },
       error : function(response, xhr) {
@@ -78,6 +83,7 @@ var loadResearcher = function() {
          //Fill in overview information
          if (contact.firstName || contact.lastName) {
             $('#overviewName').text( contact.firstName + " " + contact.lastName );
+            hideMessage( $( "#overviewMessage" ) );
          } else {
             showMessage( "<a href='#editProfileModal' class='alert-link' data-toggle='modal'>Missing contact details - Click Here</a>", $("#overviewMessage") );
          }

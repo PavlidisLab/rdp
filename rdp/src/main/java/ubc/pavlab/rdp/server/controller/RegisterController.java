@@ -85,7 +85,8 @@ public class RegisterController extends BaseController {
             log.error( e.getLocalizedMessage(), e );
             JSONObject json = new JSONObject();
             json.put( "success", false );
-            json.put( "message", e.getLocalizedMessage() );
+            json.put( "message", "An error occurred, could not save changes!" );
+            json.put( "error", e.getLocalizedMessage() );
             jsonText = json.toString();
             log.info( jsonText );
         } finally {

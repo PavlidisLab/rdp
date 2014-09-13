@@ -100,7 +100,7 @@ public class GeneController {
 
             if ( researcher == null ) {
 
-                log.info( "Could not find researcher associated account: " + username + ", creating one" );
+                log.info( "Could not find researcher associated with account: " + username + ", creating one" );
                 researcher = researcherService.create( new Researcher() );
                 User contact = ( User ) userManager.getCurrentUser();
                 researcher.setContact( contact );
