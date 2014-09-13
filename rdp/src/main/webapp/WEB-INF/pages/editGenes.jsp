@@ -32,13 +32,10 @@
 								<option>Mouse</option>
 								<option>Rat</option>
 								<option>Yeast</option>
-								<!-- FIXME
 								<option>Zebrafish</option>
 			                    <option>Fruitfly</option>
 			                    <option>Worm</option>
-			                    
-			                    <option>E-coli</option>
-							     -->
+			                    <option>E. Coli</option>
 							</select>
 						</div>
 					</div>

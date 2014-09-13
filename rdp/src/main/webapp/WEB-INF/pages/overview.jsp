@@ -78,7 +78,7 @@
 			<div class="col-sm-offset-8 col-sm-4">
 	            <a id="overviewEditDescriptionButton"
 	               class="btn btn-default btn-xs" role="button" data-toggle="modal"
-	               data-placement="bottom" title="Edit Research Focus" href="#editProfileModal">
+	               data-placement="bottom" title="Edit Personal Profile" href="#editProfileModal">
 	               <span>Edit</span>
 	            </a>
             </div>
@@ -98,7 +98,7 @@
 		<div class="alert alert-warning" id="overviewModelFailed"
 			hidden="true">
 			<a href="#" class="close" data-hide="alert">&times;</a>
-			<div id="overviewModalMessage" class="text-center">No genes have been added.</div>
+			<div id="overviewModelMessage" class="text-center">No genes have been added.</div>
 		</div>
 		
 		<div id="overviewGeneBreakdown" class="form-group">
