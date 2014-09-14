@@ -15,7 +15,7 @@
 			    <form id="primaryContactForm" class="form-horizontal" role="form">
 			
 			        <div class="form-group">
-			            <div class="alert alert-warning col-sm-offset-3 col-sm-8"
+			            <div class="alert alert-warning col-sm-offset-1 col-sm-10"
 			                id="primaryContactFailed" hidden="true">
 			                <a href="#" class="close" data-hide="alert">&times;</a>
 			                <div id="primaryContactMessage">Failed saving

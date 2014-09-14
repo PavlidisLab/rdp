@@ -21,7 +21,7 @@
                             id="changePasswordFailed" hidden="true">
                             <a href="#" class="close"
                                 data-hide="alert">&times;</a>
-                            <div id="changePasswordMesssage">Edit
+                            <div id="changePasswordMessage">Edit
                                 failed.</div>
                         </div>
 
@@ -112,9 +112,4 @@
 </div>
 
 <!-- include jQuery, jQuery UI, and our script file -->
-<script src="scripts/lib/jquery-1.11.1.min.js"></script>
-<script src="scripts/lib/bootstrap.min.js"></script>
-<script src="scripts/lib/jquery.validate.min.js"></script>
-
 <!-- Our scripts -->
-<script src="scripts/api/editUser.js"></script>

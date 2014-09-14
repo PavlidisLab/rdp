@@ -1,4 +1,4 @@
-// Import gene symbols
+/*// Import gene symbols
 
 function importGeneSymbols(geneSymbols, taxon, tableEl) {
    console.log( "import gene symbols" );
@@ -47,3 +47,4 @@ $( "#importGenesButton" ).click(
       importGeneSymbols( $( "#importGeneSymbolsTextArea" ).val(), $( "#taxonCommonNameSelect" ).val(),
          $( "#geneManagerTable" ) );
    } );
+*/

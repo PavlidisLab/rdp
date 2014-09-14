@@ -1,7 +1,7 @@
 /*
  * Load and save genes through AJAX queries and display them in a table (DataTables http://www.datatables.net/).
  * 
- */
+ 
 
 var saveGenes = function() {
    console.log(jQuery.data( $( "#geneManagerTable" )[0] ));
@@ -146,4 +146,4 @@ $( document ).ready( function() {
 
    $('#taxonCommonNameSelect').on('change', switchModelOrganism );   
    
-} );
+} );*/

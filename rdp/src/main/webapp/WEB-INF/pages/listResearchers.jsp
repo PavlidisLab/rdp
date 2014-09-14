@@ -74,4 +74,4 @@
 </div>
 
 <!-- Our scripts -->
-<script src="scripts/api/listResearchers.js"></script>
+

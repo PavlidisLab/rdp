@@ -1,7 +1,7 @@
 /*
  * Retrieve the list of genes through an AJAX query and
  * display it as suggestions in a combo box (Select2 http://ivaynberg.github.io/select2/).
- */
+ 
 
 // sort by symbol attr
 //function dataSortResult(data, container, query) {
@@ -139,3 +139,4 @@ $( document ).ready( function() {
    } );
 
 } );
+*/

@@ -34,5 +34,5 @@
 	</div>
 </div>
 
-<!-- Our scripts -->
-<script src="scripts/api/geneManagerTable.js"></script>
+<!-- Our scripts 
+<script src="scripts/api/geneManagerTable.js"></script>-->

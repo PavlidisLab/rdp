@@ -161,4 +161,3 @@
 </div>
 
 <!-- Our scripts -->
-<script src="scripts/api/overview.js"></script>

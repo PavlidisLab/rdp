@@ -46,6 +46,7 @@ public class RegisterController extends BaseController {
 
         String firstName = request.getParameter( "firstName" );
         String lastName = request.getParameter( "lastName" );
+        log.info(firstName + " " + lastName);
         String organization = request.getParameter( "organization" );
         String department = request.getParameter( "department" );
         // String email = request.getParameter( "email" );
@@ -75,7 +76,8 @@ public class RegisterController extends BaseController {
             researcher.setDescription( description );
 
             researcherService.update( researcher );
-
+            log.info( "User: (" + userManager.getCurrentUsername() + ") updated profile"); 
+            
             JSONObject json = new JSONObject();
             json.put( "success", true );
             json.put( "message", "Changes saved" );
