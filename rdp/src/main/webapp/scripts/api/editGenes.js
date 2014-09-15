@@ -5,8 +5,17 @@
 
 	var hiddenGenes = [];
 	
+	editGenes.beforeCloseGeneModal = function(event) {
+	   if ( genesChanged() ) {
+   	   var confirmExit = confirm('Are you sure? You haven\'t saved your changes. Click OK to leave or Cancel to go back and save your changes.'); 
+   	   if ( !confirmExit ) {
+   	      event.stopPropagation();
+   	      return false;
+   	   }
+	   }
+	}
+	
 	editGenes.closeGeneModal = function() {
-		//FIXME needs to prompt for saving changes
 	   hideMessage( $( "#geneManagerMessage" ) );
 	   $( "#searchGenesSelect" ).select2("val", "");
 	   hiddenGenes = [];
@@ -16,7 +25,8 @@
 		var table = $( "#geneManagerTable" ).DataTable();
 		var oldGenes = researcherModel.getGenes();
 		var showingGenes = table.columns().data()[0];
-		researcherModel.setGenes( showingGenes.concat( hiddenGenes ) );
+		var newGenes = showingGenes.concat( hiddenGenes );
+		researcherModel.setGenes( newGenes );
         var promise = researcherModel.saveResearcherGenes();
         $.when(promise).done(function() {
         	showMessage( promise.responseJSON.message, $( "#geneManagerMessage" ) );
@@ -28,14 +38,25 @@
         });
 	}
 	
+	genesChanged = function() {
+	   var table = $( "#geneManagerTable" ).DataTable();
+	   var oldGenes = researcherModel.getGenes();
+	   var showingGenes = table.columns().data()[0];
+	   var newGenes = showingGenes.concat( hiddenGenes );
+	   var r = researcherModel.compareGenes(newGenes,oldGenes);
+	   return !r;
+	}
+		
 	editGenes.fillForm = function() {
+	   var taxonSel = $( "#taxonCommonNameSelect" );
+	   $.data( taxonSel[0] , 'current', taxonSel.val());
 		$( "#geneManagerTable" ).DataTable().clear();
 		$( "#searchGenesSelect" ).select2("val", "");
 		hiddenGenes = [];
 		var table = $( "#geneManagerTable" ).DataTable();
 		var genes = researcherModel.getGenes();
 	    for (var i = 0; i < genes.length; i++) {
-	       	if ( genes[i].taxon === $( "#taxonCommonNameSelect" ).val() ) {
+	       	if ( genes[i].taxon === taxonSel.val() ) {
 	       	   // columns: Symbol, Alias, Name, ncbiGeneId (HIDDEN)
 	       	   //geneRow = [ genes[i].officialSymbol, researcherModel.aliasesToString( genes[i] ), genes[i].officialName, genes[i] ];
 	       	   geneRow = [genes[i], "",""];
@@ -49,11 +70,25 @@
 	}
 	
 	editGenes.changeOrganism = function() {
-		//FIXME needs to prompt for saving changes
-		hideMessage( $( "#geneManagerMessage" ) );
-		editGenes.fillForm();		
+	   console.log("changed");
+	   var newVal = $(this).val();
+	   $( this ).val( $.data(this, 'current') );
+	   
+	   var changed = genesChanged();
+	   
+	   var confirmExit = changed ? confirm('Are you sure? You haven\'t saved your changes. Click OK to leave or Cancel to go back and save your changes.') : true; 
+		if ( confirmExit ) {
+   	   hideMessage( $( "#geneManagerMessage" ) );
+         $( this ).val( newVal );
+         $.data(this, 'current', newVal );
+   		editGenes.fillForm();
+		}
+		else {
+		   $( this ).val( $.data(this, 'current') );
+		   return false;
+		}
 	}
-		
+	
 	editGenes.addGeneToTable = function(gene, table) {
 	   if ( gene == null ) {
 		      showMessage( "Please select a gene to add", $( "#geneManagerMessage" ) );
@@ -196,19 +231,20 @@
          },
 	   } );
 	}
-
+	
 }( window.editGenes = window.editGenes || {}, jQuery ));
 
 $( document ).ready( function() {
 	editGenes.initDataTable();
-	editGenes.initSelect2(config = {
+	editGenes.initSelect2({
 		      'container' : $( "#searchGenesSelect" ),
 		      'taxonEl' : $( "#taxonCommonNameSelect" )
 		   });
 	$( "#editGenesModal .saveGenesButton" ).click( editGenes.saveGenes );
 	$( '#editGenesModal' ).on( 'show.bs.modal', editGenes.fillForm );
+	$( '#editGenesModal' ).on( 'hide.bs.modal', editGenes.beforeCloseGeneModal );
 	$( '#editGenesModal' ).on( 'hidden.bs.modal', editGenes.closeGeneModal );
-	$( '#taxonCommonNameSelect').on('change',editGenes.changeOrganism);
+	$( '#taxonCommonNameSelect').on('change', editGenes.changeOrganism);
 	$( "#addGeneButton" ).click( editGenes.addSelectedGene );
 	$( "#clearImportGenesButton" ).click( function() {
 		   $( "#importGeneSymbolsTextArea" ).val( '' );

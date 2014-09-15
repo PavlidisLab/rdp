@@ -31,7 +31,11 @@
 	   researcher.department = val || "";
    }
    researcherModel.setWebsite = function(val) {
-	   researcher.website = val || "";
+      if ( val ) {
+         // Prepend for absolute path
+         val = val.indexOf("http://") === 0 ? val : "http://" + val;
+         researcher.website = val;
+      }
    }
    researcherModel.setPhone = function(val) {
 	   researcher.phone = val || "";
@@ -85,7 +89,7 @@
        }
    }
    removeGene = function(gene) {
-	   var index = indexOf(gene);
+	   var index = indexOf(gene, researcher.genes);
 	   if ( index > -1 ) {
 		   researcher.genes.splice(index, 1);
 	   }
@@ -98,9 +102,9 @@
    isEqual = function(gene1, gene2) {
 	   return ( gene1.officialSymbol === gene2.officialSymbol && gene1.taxon === gene2.taxon );
    }
-   indexOf = function(gene) {
-       for (var i=0; i<researcher.genes.length; i++) {
-    	   if ( isEqual(researcher.genes[i], gene) ) {
+   indexOf = function(gene, genes) {
+       for (var i=0; i<genes.length; i++) {
+    	   if ( isEqual(genes[i], gene) ) {
     		   return i;
     	   }
        }
@@ -111,10 +115,10 @@
    researcherModel.toJson = function() {
 	   return $.toJSON(researcher);
    }
-   researcherModel.genesToJSON = function() {
+   researcherModel.genesToJSON = function(genes) {
 	   var jsonArr = [];
-	   for (var i=0; i<researcher.genes.length; i++) {
-		   jsonArr.push( $.toJSON( researcher.genes[i] ) );
+	   for (var i=0; i<genes.length; i++) {
+		   jsonArr.push( $.toJSON( genes[i] ) );
 	   }
 	   return jsonArr.slice();
    }
@@ -127,6 +131,32 @@
 	   return arr.join( ', ' );
    
 	}
+   
+   researcherModel.compareGenes = function(genes1, genes2) { // This is ugly...
+      g1 = genes1.slice();
+      g2 = genes2.slice();
+      
+/*      if ( g1.length != g2.length ) { // Duplicates counted as different
+         return false;
+      }*/
+      
+      for (var i=0; i<genes1.length; i++) {
+         var index = indexOf(genes1[i], genes2);
+         if ( index == -1 ) {
+            return false;
+         }
+      }
+      
+      for (var i=0; i<genes2.length; i++) {
+         var index = indexOf(genes2[i], genes1);
+         if ( index == -1 ) {
+            return false;
+         }
+      }
+      
+      return true;
+      
+   }
    
    researcherModel.loadResearcherProfile = function() {
 	   
@@ -233,7 +263,7 @@
 	      url : "saveResearcherGenes.html",
 
 	      data : {
-	         genes : researcherModel.genesToJSON(),
+	         genes : researcherModel.genesToJSON( researcherModel.getGenes() ),
 	      },
 	      dataType : "json"
 	   } );

@@ -71,14 +71,14 @@ public class NcbiQueryServiceImpl implements NcbiQueryService {
     private static final Map<String, String> TAXON_COMMON_TO_ID = new HashMap<String, String>();
 
     static {
-        //TAXON_COMMON_TO_ID.put( "Human", "9606" );
-        //TAXON_COMMON_TO_ID.put( "Mouse", "10090" );
-        //TAXON_COMMON_TO_ID.put( "Rat", "10116" );
+        // TAXON_COMMON_TO_ID.put( "Human", "9606" );
+        // TAXON_COMMON_TO_ID.put( "Mouse", "10090" );
+        // TAXON_COMMON_TO_ID.put( "Rat", "10116" );
         TAXON_COMMON_TO_ID.put( "Yeast", "559292" );
-        //TAXON_COMMON_TO_ID.put( "Zebrafish", "7955" );
-        //TAXON_COMMON_TO_ID.put( "Fruitfly", "7227" );
-        //TAXON_COMMON_TO_ID.put( "Worm", "6239" );
-        //TAXON_COMMON_TO_ID.put( "E. Coli", "562" );
+        // TAXON_COMMON_TO_ID.put( "Zebrafish", "7955" );
+        // TAXON_COMMON_TO_ID.put( "Fruitfly", "7227" );
+        // TAXON_COMMON_TO_ID.put( "Worm", "6239" );
+        // TAXON_COMMON_TO_ID.put( "E. Coli", "562" );
     }
 
     private static Log log = LogFactory.getLog( NcbiQueryServiceImpl.class.getName() );

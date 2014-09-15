@@ -18,14 +18,17 @@
         researcherModel.setPhone( form.find( "#phone" ).val());
         researcherModel.setDescription( form.find( "#description" ).val());
         var promise = researcherModel.saveResearcherProfile();
-        overview.showProfile();
         $.when(promise).done(function() {
-        	showMessage( promise.responseJSON.message, $( "#primaryContactMessage" ) )
+        	showMessage( promise.responseJSON.message, $( "#primaryContactMessage" ) );
+         promise = researcherModel.loadResearcherProfile();
+         $.when(promise).done(function() {
+            overview.showProfile();
+            editProfile.fillForm();
+         });
         });
 	}
 	
 	editProfile.fillForm = function() {
-		hideMessage( $( "#primaryContactMessage" ) );
         var form = $( "#primaryContactForm" );
         form.find( "#firstName" ).val( researcherModel.getFirstName() );
         form.find( "#lastName" ).val( researcherModel.getLastName() );

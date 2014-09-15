@@ -221,6 +221,24 @@ var scrapModal = $('#scrapModal').modal({
 
 function createModal(taxon, data) {
    return function() {
+            var tableHTML =  '<div class=" form-group"> \
+                                 <div class="col-sm-12"> \
+                                          <table id="scrapModalTable" class="table table-condensed"> \
+                                             <thead> \
+                                                <tr> \
+                                                   <th>Symbol</th> \
+                                                   <th>Name</th> \
+                                                </tr> \
+                                             </thead> \
+                                             <tbody> \
+                                             </tbody> \
+                                          </table> \
+                                 </div> \
+                              </div>'
+            $( '#scrapModalFailed' ).nextAll().remove()
+            $( '#scrapModalFailed' ).after( tableHTML ); 
+            scrapModal.removeClass( "bs-example-modal-sm");
+            scrapModal.find(".modal-dialog").removeClass("modal-sm");
             overview.populateTable('scrapModalTable', data , data.length, false)
             scrapModal.find('.modal-header > h4').text(taxon + " Genes Studied").end();
             scrapModal.modal('show');                
