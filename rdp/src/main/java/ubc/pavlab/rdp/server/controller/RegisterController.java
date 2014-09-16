@@ -75,6 +75,7 @@ public class RegisterController extends BaseController {
             researcher.setDescription( description );
 
             researcherService.update( researcher );
+            log.info( "User: (" + userManager.getCurrentUsername() + ") updated profile" );
 
             JSONObject json = new JSONObject();
             json.put( "success", true );

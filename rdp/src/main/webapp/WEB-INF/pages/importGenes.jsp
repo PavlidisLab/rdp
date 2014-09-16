@@ -27,5 +27,5 @@
 	</div>
 </div>
 
-<!-- Our scripts -->
-<script src="scripts/api/importGenes.js"></script>
+<!-- Our scripts 
+	<script src="scripts/api/importGenes.js"></script>-->

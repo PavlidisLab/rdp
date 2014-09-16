@@ -73,9 +73,4 @@
 <%@ include file="editGenes.jsp"%>
 
 <!-- include jQuery, and our script file -->
-<script src="scripts/lib/jquery-1.11.1.min.js"></script>
-<script src="scripts/lib/bootstrap.min.js"></script>
-<script src="scripts/lib/jquery.validate.min.js"></script>
-
 <!-- inlcude our script -->
-<script src="scripts/api/navbar.js"></script>

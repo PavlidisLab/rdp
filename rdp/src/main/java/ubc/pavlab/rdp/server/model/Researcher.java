@@ -29,6 +29,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
+import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
@@ -102,6 +103,10 @@ public class Researcher implements Serializable {
         return new ArrayList<Researcher>();
     }
 
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @JoinColumn(name = "RESEARCHER_ID")
+    private Set<TaxonDescription> taxonDescriptions = new HashSet<>();
+
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(name = "RESEARCHER_TAXONS", joinColumns = { @JoinColumn(name = "RESEARCHER_ID") }, inverseJoinColumns = { @JoinColumn(name = "TAXON_ID") })
     private Set<Taxon> taxons = new HashSet<>();
@@ -168,6 +173,10 @@ public class Researcher implements Serializable {
         return genes;
     }
 
+    public Collection<TaxonDescription> getTaxonDescriptions() {
+        return taxonDescriptions;
+    }
+
     public Collection<Taxon> getTaxons() {
         return taxons;
     }
@@ -182,6 +191,16 @@ public class Researcher implements Serializable {
 
     public void setGenes( Set<Gene> genes ) {
         this.genes = genes;
+    }
+
+    public void updateTaxonDescription( String taxon, String description ) {
+        for ( TaxonDescription td : this.taxonDescriptions ) {
+            if ( td.getTaxon().equals( taxon ) ) {
+                td.setDescription( description );
+                return;
+            }
+        }
+        this.taxonDescriptions.add( new TaxonDescription( taxon, description ) );
     }
 
     public void setPublications( Set<Publication> publications ) {

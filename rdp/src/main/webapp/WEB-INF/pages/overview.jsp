@@ -131,34 +131,20 @@
 						<div id="scrapModalMessage" class="text-center">Something went wrong.</div>
 					</div>
 			    
-			        <div class=" form-group">
-						<div class="col-sm-12">
-	                        <table id="scrapModalTable" class="table table-condensed">
-	                           <thead>
-	                              <tr>
-	                                 <th>Symbol</th>
-	                                 <th>Name</th>
-	                              </tr>
-	                           </thead>
-	                           <tbody>
-	                           </tbody>
-	                        </table>
-						</div>		
-					</div>	        
+      
 
 			    </form>
 
             </div>
-		    <div class="modal-footer">
-<!-- 				<div class="form-group">
+		    <!--<div class="modal-footer">
+ 				<div class="form-group">
 					<div class="col-sm-offset-1 col-sm-10">
 						<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
 					</div>
-				</div> -->
-		    </div>
+				</div> 
+		    </div>-->
         </div>
     </div>
 </div>
 
 <!-- Our scripts -->
-<script src="scripts/api/overview.js"></script>

@@ -16,5 +16,5 @@ displays it as suggestions in a combo box.
 			<span>Add</span>
 		</button>
 </div>
-<!-- Our scripts -->
-<script src="scripts/api/searchGenes.js"></script>
+<!-- Our scripts 
+<script src="scripts/api/searchGenes.js"></script>-->

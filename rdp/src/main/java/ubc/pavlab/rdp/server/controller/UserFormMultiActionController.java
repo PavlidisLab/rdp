@@ -72,15 +72,9 @@ public class UserFormMultiActionController extends BaseController {
     @RequestMapping("/editUser.html")
     public void editUser( HttpServletRequest request, HttpServletResponse response ) throws Exception {
 
-        String email = request.getParameter( "email" );
         String password = request.getParameter( "password" );
         String passwordConfirm = request.getParameter( "passwordConfirm" );
-        String oldPassword = request.getParameter( "oldpassword" );
-
-        /*
-         * I had this idea we could let users change their user names, but this turns out to be a PITA.
-         */
-        String originalUserName = request.getParameter( "username" );
+        String oldPassword = request.getParameter( "oldPassword" );
 
         String jsonText = null;
         JSONUtil jsonUtil = new JSONUtil( request, response );
@@ -91,39 +85,34 @@ public class UserFormMultiActionController extends BaseController {
              */
             String username = SecurityContextHolder.getContext().getAuthentication().getName();
 
-            if ( !username.equals( originalUserName ) ) {
+            if ( !SecurityContextHolder.getContext().getAuthentication().isAuthenticated() ) {
                 throw new RuntimeException( "You must be logged in to edit your profile." );
             }
 
-            userManager.reauthenticate( originalUserName, oldPassword );
+            userManager.reauthenticate( username, oldPassword );
 
             UserDetailsImpl user = ( UserDetailsImpl ) userManager.loadUserByUsername( username );
 
-            boolean changed = false;
+            /*
+             * if ( StringUtils.isNotBlank( email ) && !user.getEmail().equals( email ) ) { if ( !email.matches(
+             * "/^(\\w+)([-+.][\\w]+)*@(\\w[-\\w]*\\.){1,5}([A-Za-z]){2,4}$/;" ) ) { // if (
+             * !EmailValidator.getInstance().isValid( email ) ) { jsonText =
+             * "{\"success\":false,\"message\":\"The email address does not look valid\"}"; jsonUtil.writeToResponse(
+             * jsonText ); return; } user.setEmail( email ); changed = true; }
+             */
 
-            if ( StringUtils.isNotBlank( email ) && !user.getEmail().equals( email ) ) {
-                if ( !email.matches( "/^(\\w+)([-+.][\\w]+)*@(\\w[-\\w]*\\.){1,5}([A-Za-z]){2,4}$/;" ) ) {
-                    // if ( !EmailValidator.getInstance().isValid( email ) ) {
-                    jsonText = "{\"success\":false,\"message\":\"The email address does not look valid\"}";
-                    jsonUtil.writeToResponse( jsonText );
-                    return;
-                }
-                user.setEmail( email );
-                changed = true;
-            }
-
-            if ( password.length() > 0 ) {
+            if ( password.length() >= MIN_PASSWORD_LENGTH ) {
                 if ( !StringUtils.equals( password, passwordConfirm ) ) {
                     throw new RuntimeException( "Passwords do not match." );
                 }
                 String encryptedPassword = passwordEncoder.encodePassword( password, username );
                 userManager.changePassword( oldPassword, encryptedPassword );
+            } else {
+                throw new RuntimeException( "Password must be at least " + MIN_PASSWORD_LENGTH
+                        + " characters in length." );
             }
 
-            if ( changed ) {
-                userManager.updateUser( user );
-            }
-
+            log.info( "user: (" + username + ") changed password" );
             saveMessage( request, "Changes saved." );
             jsonText = "{\"success\":true, \"message\":\"Changes saved.\"}";
 

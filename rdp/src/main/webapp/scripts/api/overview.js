@@ -5,7 +5,9 @@
 
 $( document ).ready( function() {
 
-//namespace: overview
+	   /**
+	    * @memberOf overview
+	    */
 (function( overview, $, undefined ) {
 
 /**
@@ -80,7 +82,9 @@ overview.populateTable = function(id, data, max, editable) {
 /**
  * Load researcher genes through AJAX query, bucket results and generate page HTML
  */
+/*
 overview.showGenesOverview = function() {
+
    $('#overviewGeneBreakdown').html('');
    $.ajax( {
       url : "loadResearcherGenes.html",
@@ -139,8 +143,76 @@ overview.showGenesOverview = function() {
       }
    } );
 
-};
+	
 
+	
+	
+};
+*/
+
+overview.showProfile = function() {
+    //Fill in overview profile
+	
+	$('#overviewName').text( researcherModel.getFirstName() + " " + researcherModel.getLastName() );
+    $('#overviewEmail').text( researcherModel.getEmail() );
+    $('#overviewOrganisation').text( researcherModel.getOrganization() );
+    if ( researcherModel.getWebsite() !== "" ) {
+       $('#overviewURL').html( "<a href='" + researcherModel.getWebsite() + "' target='_blank'>"+ researcherModel.getWebsite() + "</a>" );
+    }
+    $('#overviewFocus').text( researcherModel.getDescription() );
+    
+   if ( researcherModel.getFirstName() === ""  && researcherModel.getLastName() === "" ) {
+	   showMessage( "<a href='#editProfileModal' class='alert-link' data-toggle='modal'>Missing contact details - Click Here</a>", $("#overviewMessage") );
+   }
+   else {
+	   hideMessage( $("#overviewMessage") );
+   }
+}
+
+overview.showGenes = function() {
+	$('#overviewGeneBreakdown').html('');
+	var genes = researcherModel.getGenes();
+	var genesByTaxon = {};
+	var allTaxons = [];
+	
+	
+	//Fill in overview genes
+	// Bucket response data by taxon
+	for (var i = 0; i < genes.length; i++) {
+	   if(genes[i].taxon in genesByTaxon){
+	      genesByTaxon[genes[i].taxon].push(genes[i]);
+	   }
+	   else {
+	      allTaxons.push( genes[i].taxon );
+	      genesByTaxon[genes[i].taxon] = [ genes[i] ];
+	   }
+	}
+
+	allTaxons.sort(); // Consistent ordering
+	
+	// Generate HTML blocks for each taxon
+	for (var i=0; i<allTaxons.length; i++) {
+	   taxon = allTaxons[i];
+	   var taxonId = taxon.replace(/ /g,'').replace(/\./g,'');
+	   $('#overviewGeneBreakdown').append(overview.geneTableHTMLBlock(taxon, 'overviewTable'+taxonId));
+	   overview.populateTable('overviewTable'+taxonId, genesByTaxon[taxon] , 5, true)
+	   $("#overview" + taxonId + "Button").click( createModal( taxon, genesByTaxon[taxon] ) ); 
+	   $("#overviewEdit" + taxonId + "Button").click( openGeneManager(taxon) ); 
+	}
+	
+   if ( genes.length === 0 ) {
+	   showMessage( "<a href='#editGenesModal' class='alert-link' data-toggle='modal'>No model organisms have been added to profile  - Click Here.</a>", $( "#overviewModelMessage" ) );
+   }
+   else {
+	   hideMessage( $("#overviewModelMessage") );
+   }
+	
+}
+
+overview.showOverview = function() {
+	overview.showProfile();
+	overview.showGenes();
+}
 var scrapModal = $('#scrapModal').modal({
    backdrop: true,
    show: false,
@@ -149,6 +221,24 @@ var scrapModal = $('#scrapModal').modal({
 
 function createModal(taxon, data) {
    return function() {
+            var tableHTML =  '<div class=" form-group"> \
+                                 <div class="col-sm-12"> \
+                                          <table id="scrapModalTable" class="table table-condensed"> \
+                                             <thead> \
+                                                <tr> \
+                                                   <th>Symbol</th> \
+                                                   <th>Name</th> \
+                                                </tr> \
+                                             </thead> \
+                                             <tbody> \
+                                             </tbody> \
+                                          </table> \
+                                 </div> \
+                              </div>'
+            $( '#scrapModalFailed' ).nextAll().remove()
+            $( '#scrapModalFailed' ).after( tableHTML ); 
+            scrapModal.removeClass( "bs-example-modal-sm");
+            scrapModal.find(".modal-dialog").removeClass("modal-sm");
             overview.populateTable('scrapModalTable', data , data.length, false)
             scrapModal.find('.modal-header > h4').text(taxon + " Genes Studied").end();
             scrapModal.modal('show');                
@@ -159,7 +249,6 @@ function createModal(taxon, data) {
     return function() {
        $( "#taxonCommonNameSelect" ).val(taxon);
        $( "#editGenesModal" ).modal('show');
-       showGenes();
     };
     
  };
@@ -168,5 +257,5 @@ function createModal(taxon, data) {
 }( window.overview = window.overview || {}, jQuery ));
 
 
-   overview.showGenesOverview();
+   //overview.showGenesOverview();
 } );

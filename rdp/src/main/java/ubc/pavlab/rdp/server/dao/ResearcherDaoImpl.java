@@ -107,6 +107,7 @@ public class ResearcherDaoImpl extends DaoBaseImpl<Researcher> implements Resear
         Hibernate.initialize( researcher.getTaxons() );
         Hibernate.initialize( researcher.getPublications() );
         Hibernate.initialize( researcher.getDescription() );
+        Hibernate.initialize( researcher.getTaxonDescriptions() );
 
         return researcher;
     }

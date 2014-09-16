@@ -1,53 +1,52 @@
-var editUser = function( username, email, password, passwordConfirm, oldpassword ) {
+   /**
+    * @memberOf editUser
+    */
+(function( editUser, $, undefined ) {
 
-   $.ajax( {
-      cache : false,
-      type : 'POST',
-      url : "editUser.html",
-      beforeSend : function(xhr) {
-         xhr.setRequestHeader( 'Content-Type', 'application/x-www-form-urlencoded' );
-      },
-      data : $( "#changePasswordForm" ).serialize(),
-      success : function(response, xhr) {
-         $( "#changePasswordMesssage" ).html( jQuery.parseJSON( response ).message );
-         $( "#changePasswordFailed" ).show();
-      },
-      error : function(response, xhr) {
-         console.log( xhr.responseText );
-         $( "#changePasswordMesssage" ).html( "Error with request. Status is: " + xhr.status );
-         $( "#changePasswordFailed" ).show();
-      }
-   } );
-};
+	editUser.changePassword = function(event) {
+	   event.preventDefault();
+	   $.ajax( {
+	      cache : false,
+	      type : 'POST',
+	      url : "editUser.html",
+	      beforeSend : function(xhr) {
+	         xhr.setRequestHeader( 'Content-Type', 'application/x-www-form-urlencoded' );
+	      },
+	      data : $( "#changePasswordForm" ).serialize(),
+	      success : function(response, xhr) {
+	    	  showMessage( jQuery.parseJSON( response ).message, $( "#changePasswordMessage" ) );
+	    	  if (!jQuery.parseJSON( response ).success) {
+	    	     var form = $( "#changePasswordForm" );
+              form.find( "#oldPassword" ).val( "" );
+              form.find( "#password" ).val( "" );
+              form.find( "#passwordConfirm" ).val( "" );
+	    	  }
+	      },
+	      error : function(response, xhr) {
+	         //console.log( xhr.responseText );
+	         showMessage( jQuery.parseJSON( response ).message, $( "#changePasswordMessage" ) );
+	      }
+	   } );
+	}
+	
+	editUser.closeModal = function() {
+		hideMessage( $( "#changePasswordMessage" ) );
+      var form = $( "#changePasswordForm" );
+      form.find( "#oldPassword" ).val( "" );
+      form.find( "#password" ).val( "" );
+      form.find( "#passwordConfirm" ).val( "" );
+	}
+	
+	editUser.fillForm = function() {
+		hideMessage( $( "#changePasswordMessage" ) );
+	}
 
-// Initialize form validations
-$( "#changePasswordForm" ).validate( {
-   submitHandler : function(form) {
-      var username = $("#username").val();
-      var email = $( "#email" ).val();
-      var password = $( "#password" ).val();
-      var passwordConfirm = $( "#passwordConfirm" ).val();
-      var oldpassword = $( "#oldpassword" ).val();
-      editUser( username, email, password, passwordConfirm, oldpassword );
-      return false;
-   }
-} );
+}( window.editUser = window.editUser || {}, jQuery ));
 
-//Initialize document
-$( "#changePasswordForm" ).ready( function() {
-   $.ajax( {
-      cache : false,
-      type : 'GET',
-      url : "loadUser.html",
-      data : $( "#changePasswordForm" ).serialize(),
-      success : function(response, xhr) {
-         $( "#email" ).val( jQuery.parseJSON( response ).data.email );
-         $( "#username").val( jQuery.parseJSON( response ).data.userName );
-      },
-      error : function(response, xhr) {
-         console.log( xhr.responseText );
-         $( "#changePasswordMesssage" ).html( "Error with request. Status is: " + xhr.status );
-         $( "#changePasswordFailed" ).show();
-      }
-   });
-} );
+$( document ).ready( function() {
+	$( "#changePasswordModal" ).submit( editUser.changePassword );
+	$( '#changePasswordModal' ).on( 'hidden.bs.modal', editUser.closeModal );
+	$( '#changePasswordModal' ).on( 'show.bs.modal', editUser.fillForm );
+	
+	
+});
