@@ -3,7 +3,8 @@
     */
 (function( editUser, $, undefined ) {
 
-	editUser.changePassword = function() {
+	editUser.changePassword = function(event) {
+	   event.preventDefault();
 	   $.ajax( {
 	      cache : false,
 	      type : 'POST',
@@ -14,28 +15,36 @@
 	      data : $( "#changePasswordForm" ).serialize(),
 	      success : function(response, xhr) {
 	    	  showMessage( jQuery.parseJSON( response ).message, $( "#changePasswordMessage" ) );
+	    	  if (!jQuery.parseJSON( response ).success) {
+	    	     var form = $( "#changePasswordForm" );
+              form.find( "#oldPassword" ).val( "" );
+              form.find( "#password" ).val( "" );
+              form.find( "#passwordConfirm" ).val( "" );
+	    	  }
 	      },
 	      error : function(response, xhr) {
-	         console.log( xhr.responseText );
-	         showMessage( xhr.status, $( "#changePasswordMessage" ) );
+	         //console.log( xhr.responseText );
+	         showMessage( jQuery.parseJSON( response ).message, $( "#changePasswordMessage" ) );
 	      }
 	   } );
 	}
 	
 	editUser.closeModal = function() {
 		hideMessage( $( "#changePasswordMessage" ) );
+      var form = $( "#changePasswordForm" );
+      form.find( "#oldPassword" ).val( "" );
+      form.find( "#password" ).val( "" );
+      form.find( "#passwordConfirm" ).val( "" );
 	}
 	
 	editUser.fillForm = function() {
 		hideMessage( $( "#changePasswordMessage" ) );
-        var form = $( "#changePasswordForm" );
-        form.find( "#email" ).val( researcherModel.getEmail() );
 	}
 
 }( window.editUser = window.editUser || {}, jQuery ));
 
 $( document ).ready( function() {
-	$( "#btnChangePassword" ).click( editUser.changePassword );
+	$( "#changePasswordModal" ).submit( editUser.changePassword );
 	$( '#changePasswordModal' ).on( 'hidden.bs.modal', editUser.closeModal );
 	$( '#changePasswordModal' ).on( 'show.bs.modal', editUser.fillForm );
 	

@@ -13,98 +13,49 @@
             </div>
             <div class="modal-body">
 
-                <form id="changePasswordForm" class="form-horizontal"
-                    data-toggle="validator" role="form">
-                    <fieldset>
-                        <!-- Change Password Form -->
-                        <div class="alert alert-warning"
-                            id="changePasswordFailed" hidden="true">
-                            <a href="#" class="close"
-                                data-hide="alert">&times;</a>
-                            <div id="changePasswordMessage">Edit
-                                failed.</div>
-                        </div>
-
-                        <!-- Text input-->
-                        <div class="control-group" hidden="true">
-                            <label class="control-label" for=username>Username:</label>
-                            <div class="controls">
-                                <input id="username" name="username"
-                                    class="form-control" type="text"
-                                    placeholder="joe123"
-                                    class="input-large" required="false">
-                            </div>
-                        </div>
+                <form id="changePasswordForm" class="form-horizontal" role="form">
+                        <!-- Change Password Form -->                     
+                    <div class="form-group">
+			            <div class="alert alert-warning col-sm-offset-1 col-sm-10"
+			                id="changePasswordFailed" hidden="true">
+			                <a href="#" class="close" data-hide="alert">&times;</a>
+			                <div id="changePasswordMessage">Failed saving
+			                    details.</div>
+			            </div>
+			        </div>
                         
-                        <!-- Text input-->
-                        <div class="control-group">
-                            <label class="control-label" for="email">Email:</label>
-                            <div class="controls">
-                                <input id="email" name="email"
-                                    class="form-control" type="email"
-                                    placeholder="joe@rdp.com"
-                                    class="input-large" required>
-                            </div>
-                        </div>
-
-                        <!-- Password input-->
-                        <div class="control-group">
-                            <label class="control-label"
-                                for="oldpassword">Current
-                                password:</label>
-                            <div class="controls">
-                                <input
-                                    id="oldpassword"
-                                    name="oldpassword"
-                                    class="form-control" type="password"
-                                    placeholder="********"
-                                    class="input-large" required="true"
-                                    minLength="6">
-                            </div>
-                        </div>
-
-                        <!-- Password input-->
-                        <div class="control-group">
-                            <label class="control-label" for="password">New
-                                password:</label>
-                            <div class="controls">
-                                <input id="password" name="password"
-                                    class="form-control" type="password"
-                                    placeholder="********"
-                                    class="input-large" required="true"
-                                    minLength="6">
-                            </div>
-                        </div>
-
-                        <!-- Text input-->
-                        <div class="control-group">
-                            <label class="control-label"
-                                for="passwordConfirm">Confirm
-                                new password:</label>
-                            <div class="controls">
-                                <input id="passwordConfirm"
-                                    class="form-control"
-                                    name="passwordConfirm"
-                                    type="password"
-                                    placeholder="********"
-                                    class="input-large"
-                                    equalTo="#password" required
-                                    minLength="6">
-                            </div>
-                        </div>
-
-                        <!-- Button -->
-                        <div class="col-sm-offset-1 col-sm-10 control-group text-right">
-                            <label class="control-label"
-                                for="confirmsignup"></label>
-                            <div class="controls">
-                                <button for="btnChangePassword"
-                                    id="btnChangePassword"
-                                    name="btnChangePassword"
-                                    class="btn btn-primary">Save</button>
-                            </div>
-                        </div>
-                    </fieldset>
+			        <div class="form-group">
+			            <label for="oldPassword" class="col-sm-4 control-label">Current Password</label>
+			            <div class="col-sm-7">
+			                <input type="password" name="oldPassword" class="form-control"
+			                    id="oldPassword" placeholder="********">
+			            </div>
+			        </div>
+			
+			        <div class="form-group">
+			            <label for="password" class="col-sm-4 control-label">New Password</label>
+			            <div class="col-sm-7">
+			                <input type="password" name="password" class="form-control"
+			                    id="password" placeholder="********">
+			            </div>
+			        </div>
+			
+			        <div class="form-group">
+			            <label for="passwordConfirm" class="col-sm-4 control-label">Confirm Password</label>
+			            <div class="col-sm-7">
+			                <input type="password" name="passwordConfirm" class="form-control"
+			                    id="passwordConfirm" placeholder="********">
+			            </div>
+			        </div>
+                        
+                    <hr>
+                    
+					<div class="form-group">
+						<div class="col-sm-offset-4 col-sm-7 text-right">
+							<button type="submit" id="btnChangePassword" class="btn btn-primary">Save</button>
+						</div>
+					</div>
+                        
                 </form>
             </div>
         </div>

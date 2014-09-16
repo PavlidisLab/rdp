@@ -188,7 +188,8 @@ public class SignupController extends BaseController {
         }
 
         if ( password.length() < MIN_PASSWORD_LENGTH ) {
-            jsonText = "{\"success\":false,\"message\":\"Password must be at least 6 characters in length\"}";
+            jsonText = "{\"success\":false,\"message\":\"Password must be at least " + MIN_PASSWORD_LENGTH
+                    + " characters in length\"}";
             jsonUtil.writeToResponse( jsonText );
             return;
         }
