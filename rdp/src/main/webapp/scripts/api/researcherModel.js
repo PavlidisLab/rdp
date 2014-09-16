@@ -16,6 +16,8 @@
    
    // Model Organisms
    researcher.genes = [];
+   researcher.taxonDescriptions = {};
+   
    // Profile
    // Setters
    researcherModel.setFirstName = function(val) {
@@ -73,7 +75,7 @@
 	      return researcher.email;
 	   }
 
-   // Model Organisms
+   // Model Organisms Genes
    researcherModel.setGenes = function(genes) {
 	   researcher.genes = genes.slice(); //set to clone of input, not reference
    }
@@ -110,6 +112,25 @@
        }
        return -1;
    }
+   
+   // Taxon Descriptions
+   researcherModel.setTaxonDescriptionsFromArray = function(taxonDescriptionsArr) {
+      researcher.taxonDescriptions = {};
+      for (var i=0;i<taxonDescriptionsArr.length;i++) {
+         researcher.taxonDescriptions[taxonDescriptionsArr[i].taxon] = taxonDescriptionsArr[i].description;
+      }
+   }
+   researcherModel.getTaxonDescriptions = function() {
+      return researcher.taxonDescriptions;
+   }
+   researcherModel.addTaxonDescription = function(taxon, taxonDescription) {
+      return researcher.taxonDescriptions[taxon] = taxonDescription;
+   }
+   taxonDescriptionsToJSON = function() {
+      return $.toJSON( researcher.taxonDescriptions );
+   }
+   
+   
    
    // High level functionality
    researcherModel.toJson = function() {
@@ -175,6 +196,7 @@
 	         researcherModel.setWebsite(data.website);
 	         researcherModel.setPhone(data.phone);
 	         researcherModel.setDescription(data.description);
+	         researcherModel.setTaxonDescriptionsFromArray(data.taxonDescriptions);
 	         
 	         var contact;
 	         
@@ -232,7 +254,7 @@
 	}
    
    researcherModel.saveResearcherProfile = function() {
-
+      
 	   var promise = $.ajax( {
 	      cache : false,
 	      type : 'POST',
@@ -264,6 +286,7 @@
 
 	      data : {
 	         genes : researcherModel.genesToJSON( researcherModel.getGenes() ),
+	         taxonDescriptions: taxonDescriptionsToJSON()
 	      },
 	      dataType : "json"
 	   } );

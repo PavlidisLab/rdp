@@ -4,6 +4,7 @@
 (function( editGenes, $, undefined ) {
 
 	var hiddenGenes = [];
+	var taxonDescriptionChanged = false;
 	
 	editGenes.beforeCloseGeneModal = function(event) {
 	   if ( genesChanged() ) {
@@ -27,6 +28,7 @@
 		var showingGenes = table.columns().data()[0];
 		var newGenes = showingGenes.concat( hiddenGenes );
 		researcherModel.setGenes( newGenes );
+		researcherModel.addTaxonDescription($( "#taxonCommonNameSelect" ).val(), $( "#taxonDescription" ).val() )
         var promise = researcherModel.saveResearcherGenes();
         $.when(promise).done(function() {
         	showMessage( promise.responseJSON.message, $( "#geneManagerMessage" ) );
@@ -43,15 +45,17 @@
 	   var oldGenes = researcherModel.getGenes();
 	   var showingGenes = table.columns().data()[0];
 	   var newGenes = showingGenes.concat( hiddenGenes );
-	   var r = researcherModel.compareGenes(newGenes,oldGenes);
-	   return !r;
+	   return taxonDescriptionChanged || !researcherModel.compareGenes(newGenes,oldGenes);
 	}
 		
 	editGenes.fillForm = function() {
+	   console.log(researcherModel.getTaxonDescriptions());
+	   taxonDescriptionChanged = false;
 	   var taxonSel = $( "#taxonCommonNameSelect" );
 	   $.data( taxonSel[0] , 'current', taxonSel.val());
 		$( "#geneManagerTable" ).DataTable().clear();
 		$( "#searchGenesSelect" ).select2("val", "");
+		$( "#taxonDescription" ).val(researcherModel.getTaxonDescriptions()[taxonSel.val()]);
 		hiddenGenes = [];
 		var table = $( "#geneManagerTable" ).DataTable();
 		var genes = researcherModel.getGenes();
@@ -87,6 +91,10 @@
 		   $( this ).val( $.data(this, 'current') );
 		   return false;
 		}
+	}
+	
+	editGenes.changeTaxonDescription = function() {
+	   taxonDescriptionChanged = true;
 	}
 	
 	editGenes.addGeneToTable = function(gene, table) {
@@ -250,5 +258,6 @@ $( document ).ready( function() {
 		   $( "#importGeneSymbolsTextArea" ).val( '' );
 		} );
 	$( "#importGenesButton" ).click(editGenes.bulkImportGenes);
+	$( "#taxonDescription" ).on('change', editGenes.changeTaxonDescription);
 	
 });

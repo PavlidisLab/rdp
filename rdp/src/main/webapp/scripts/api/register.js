@@ -152,8 +152,7 @@ $( document ).ready( function() {
    
    // This gets run when the ajax calls in defs have completed
    $.when.apply(null, defs).done(function() {
-	   overview.showOverview();
-	   
+	   overview.showOverview();   
    });
    
 } );

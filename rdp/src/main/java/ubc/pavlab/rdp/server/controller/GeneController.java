@@ -211,12 +211,13 @@ public class GeneController {
         }
         return results;
     }
-    
+
     private Collection<Gene> deserealizeGenes( String[] genesJSON ) {
         Collection<Gene> results = new HashSet<>();
-        for (int i = 0; i < genesJSON.length; i++) {
-        	JSONObject json = new JSONObject( genesJSON[i] );
-        	Gene geneFound = geneService.findByOfficialSymbol( json.getString("officialSymbol"), json.getString("taxon") );
+        for ( int i = 0; i < genesJSON.length; i++ ) {
+            JSONObject json = new JSONObject( genesJSON[i] );
+            Gene geneFound = geneService.findByOfficialSymbol( json.getString( "officialSymbol" ),
+                    json.getString( "taxon" ) );
             if ( !( geneFound == null ) ) {
                 results.add( geneFound );
             } else {
@@ -227,7 +228,7 @@ public class GeneController {
                 results.add( geneService.create( gene ) );
             }
         }
-        
+
         return results;
     }
 
@@ -238,21 +239,35 @@ public class GeneController {
         JSONUtil jsonUtil = new JSONUtil( request, response );
 
         String username = userManager.getCurrentUsername();
-        //String genesJSON = request.getParameter( "genes" ); // {"ensemblId":"ENSG00000105393","officialSymbol":"BABAM1","officialName":"BRISC and BRCA1 A complex member 1","label":"BABAM1","geneBioType":"protein_coding","key":"BABAM1:human","taxon":"human","genomicRange":{"baseStart":17378159,"baseEnd":17392058,"label":"19:17378159-17392058","htmlLabel":"19:17378159-17392058","bin":65910,"chromosome":"19","tooltip":"19:17378159-17392058"},"text":"<b>BABAM1</b> BRISC and BRCA1 A complex member 1"}
+        // String genesJSON = request.getParameter( "genes" ); //
+        // {"ensemblId":"ENSG00000105393","officialSymbol":"BABAM1","officialName":"BRISC and BRCA1 A complex member 1","label":"BABAM1","geneBioType":"protein_coding","key":"BABAM1:human","taxon":"human","genomicRange":{"baseStart":17378159,"baseEnd":17392058,"label":"19:17378159-17392058","htmlLabel":"19:17378159-17392058","bin":65910,"chromosome":"19","tooltip":"19:17378159-17392058"},"text":"<b>BABAM1</b> BRISC and BRCA1 A complex member 1"}
         String taxonCommonName = request.getParameter( "taxonCommonName" );
         String[] genesJSON = request.getParameterValues( "genes[]" );
+        String taxonDescriptions = request.getParameter( "taxonDescriptions" );
 
         if ( genesJSON == null ) {
-        	log.info(username + ": No genes to save");
-        	genesJSON = new String[]{};
+            log.info( username + ": No genes to save" );
+            genesJSON = new String[] {};
         }
-        
+
         try {
             Researcher researcher = researcherService.findByUserName( username );
 
+            // Update Organism Descriptions
+            JSONObject jsonDescriptionSet = new JSONObject( taxonDescriptions );
+
+            for ( Object key : jsonDescriptionSet.keySet() ) {
+                String taxon = ( String ) key;
+                // researcher.updateTaxonDescription( new TaxonDescription( taxon, jsonDescriptionSet.get( taxon )
+                // .toString() ) );
+                String td = jsonDescriptionSet.get( taxon ).toString();
+                researcher.updateTaxonDescription( taxon, td );
+            }
+
+            // Update Genes
             Collection<Gene> genes = new HashSet<>();
             genes.addAll( deserealizeGenes( genesJSON ) );
-            researcherService.updateGenes( researcher, genes );
+            researcherService.updateGenes( researcher, genes ); // This updates the researcher persistence for both
 
             JSONObject json = new JSONObject();
             json.put( "success", true );
