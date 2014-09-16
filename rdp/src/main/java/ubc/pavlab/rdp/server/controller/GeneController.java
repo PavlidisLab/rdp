@@ -216,8 +216,12 @@ public class GeneController {
         Collection<Gene> results = new HashSet<>();
         for ( int i = 0; i < genesJSON.length; i++ ) {
             JSONObject json = new JSONObject( genesJSON[i] );
-            Gene geneFound = geneService.findByOfficialSymbol( json.getString( "officialSymbol" ),
-                    json.getString( "taxon" ) );
+            String symbol = json.getString( "officialSymbol" );
+            String taxon = json.getString( "taxon" );
+            if ( symbol.equals( "" ) || taxon.equals( "" ) ) {
+                throw new IllegalArgumentException( "Every gene must have an assigned symbol and organism." );
+            }
+            Gene geneFound = geneService.findByOfficialSymbol( symbol, taxon );
             if ( !( geneFound == null ) ) {
                 results.add( geneFound );
             } else {
@@ -257,9 +261,7 @@ public class GeneController {
             JSONObject jsonDescriptionSet = new JSONObject( taxonDescriptions );
 
             for ( Object key : jsonDescriptionSet.keySet() ) {
-                String taxon = ( String ) key;
-                // researcher.updateTaxonDescription( new TaxonDescription( taxon, jsonDescriptionSet.get( taxon )
-                // .toString() ) );
+                String taxon = ( String ) key; //
                 String td = jsonDescriptionSet.get( taxon ).toString();
                 researcher.updateTaxonDescription( taxon, td );
             }

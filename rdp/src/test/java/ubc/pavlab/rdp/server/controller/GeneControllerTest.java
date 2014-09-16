@@ -80,6 +80,8 @@ public class GeneControllerTest extends BaseSpringContextTest {
 
     private Gene gene;
 
+    private Gene badGene;
+
     private Researcher researcher;
 
     private MockMvc mockMvc;
@@ -105,12 +107,18 @@ public class GeneControllerTest extends BaseSpringContextTest {
         gene.setTaxon( taxon );
     }
 
+    private void createBadGene() {
+        badGene = new Gene();
+        badGene.setNcbiGeneId( "12345" );
+    }
+
     @Before
     public void setup() {
         this.mockMvc = MockMvcBuilders.webAppContextSetup( this.wac ).build();
 
         createResearcher( "administrator" );
         createGene();
+        createBadGene();
     }
 
     @After
@@ -128,25 +136,24 @@ public class GeneControllerTest extends BaseSpringContextTest {
     @Test
     public void testSaveLoadResearcherGenes() throws Exception {
 
-        String genesJsonMissingKey = ( new JSONObject( gene ) ).toString();
+        String genesJsonOks = ( new JSONObject( gene ) ).toString();
+        String genesJsonMissingInfos = ( new JSONObject( badGene ) ).toString();
 
-        // String genesJsonMissingKey =
-        // "{'ensemblId':'ENSG00000105393','officialSymbol':'BABAM1','officialName':'BRISC and BRCA1 A complex member 1','label':'BABAM1','geneBioType':'protein_coding','key':'BABAM1:human','taxon':'human','genomicRange':{'baseStart':17378159,'baseEnd':17392058,'label':'19:17378159-17392058','htmlLabel':'19:17378159-17392058','bin':65910,'chromosome':'19','tooltip':'19:17378159-17392058'},'text':'<b>BABAM1</b> BRISC and BRCA1 A complex member 1'}";
-        String genesJsonOk = "{ \"BABAM1:Human\" : " + genesJsonMissingKey + " }";
-
-        // this doesn't work, a gene key is required
+        // this doesn't work, officialSymbol and taxon is required for all genes
         this.mockMvc
                 .perform(
                         put( "/saveResearcherGenes.html" ).contentType( MediaType.APPLICATION_JSON )
-                                .param( "genes", genesJsonMissingKey ).param( "taxonCommonName", taxon ) )
-                .andExpect( status().isOk() ).andExpect( jsonPath( "$.success" ).value( false ) );
+                                .param( "genes[]", genesJsonMissingInfos ).param( "taxonCommonName", taxon )
+                                .param( "taxonDescriptions", "{}" ) ).andExpect( status().isOk() )
+                .andExpect( jsonPath( "$.success" ).value( false ) );
 
         // this works, we saved the gene
         this.mockMvc
                 .perform(
                         put( "/saveResearcherGenes.html" ).contentType( MediaType.APPLICATION_JSON )
-                                .param( "genes", genesJsonOk ).param( "taxonCommonName", taxon ) )
-                .andExpect( status().isOk() ).andExpect( jsonPath( "$.success" ).value( true ) );
+                                .param( "genes[]", genesJsonOks ).param( "taxonCommonName", taxon )
+                                .param( "taxonDescriptions", "{}" ) ).andExpect( status().isOk() )
+                .andExpect( jsonPath( "$.success" ).value( true ) );
 
         // now let's try loading the saved gene
         this.mockMvc
