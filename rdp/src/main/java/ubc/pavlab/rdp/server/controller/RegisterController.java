@@ -152,7 +152,9 @@ public class RegisterController extends BaseController {
                 // this shouldn't happen.
                 jsonText = "{\"success\":false,\"message\":\"No researcher with name " + username + "\"}";
             } else {
+
                 JSONObject json = new JSONObject( user );
+
                 jsonText = "{\"success\":true, \"data\":" + json.toString() + "}";
                 // log.debug( "Success! json=" + jsonText );
             }

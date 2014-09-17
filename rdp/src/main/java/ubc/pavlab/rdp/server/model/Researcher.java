@@ -33,6 +33,8 @@ import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
+import org.json.JSONObject;
+
 import ubc.pavlab.rdp.server.model.common.auditAndSecurity.User;
 
 @Entity
@@ -103,6 +105,9 @@ public class Researcher implements Serializable {
         return new ArrayList<Researcher>();
     }
 
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, mappedBy = "pk.researcher")
+    private Set<GeneAssociation> geneAssociations = new HashSet<GeneAssociation>();
+
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "RESEARCHER_ID")
     private Set<TaxonDescription> taxonDescriptions = new HashSet<>();
@@ -111,9 +116,12 @@ public class Researcher implements Serializable {
     @JoinTable(name = "RESEARCHER_TAXONS", joinColumns = { @JoinColumn(name = "RESEARCHER_ID") }, inverseJoinColumns = { @JoinColumn(name = "TAXON_ID") })
     private Set<Taxon> taxons = new HashSet<>();
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    @JoinTable(name = "RESEARCHER_GENES", joinColumns = { @JoinColumn(name = "RESEARCHER_ID") }, inverseJoinColumns = { @JoinColumn(name = "GENE_ID") })
-    private Set<Gene> genes = new HashSet<>();
+    /*
+     * @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+     * 
+     * @JoinTable(name = "RESEARCHER_GENES", joinColumns = { @JoinColumn(name = "RESEARCHER_ID") }, inverseJoinColumns =
+     * { @JoinColumn(name = "GENE_ID") }) private Set<Gene> genes = new HashSet<>();
+     */
 
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(name = "RESEARCHER_PUBLICATIONS", joinColumns = { @JoinColumn(name = "RESEARCHER_ID") }, inverseJoinColumns = { @JoinColumn(name = "PUBLICATION_ID") })
@@ -153,6 +161,20 @@ public class Researcher implements Serializable {
         return "id=" + id + " username=" + contact.getUserName();
     }
 
+    public JSONObject toJSON() {
+        JSONObject jsonObj = new JSONObject();
+        jsonObj.put( "contact", this.contact );
+        jsonObj.put( "department", this.department );
+        jsonObj.put( "description", this.description );
+        jsonObj.put( "description", this.description );
+        jsonObj.put( "description", this.description );
+        jsonObj.put( "description", this.description );
+        jsonObj.put( "description", this.description );
+        jsonObj.put( "description", this.description );
+
+        return "id=" + id + " username=" + contact.getUserName();
+    }
+
     public String getPhone() {
         return phone;
     }
@@ -169,8 +191,8 @@ public class Researcher implements Serializable {
         this.website = website;
     }
 
-    public Collection<Gene> getGenes() {
-        return genes;
+    public Collection<GeneAssociation> getGenes() {
+        return geneAssociations;
     }
 
     public Collection<TaxonDescription> getTaxonDescriptions() {
@@ -189,8 +211,8 @@ public class Researcher implements Serializable {
         this.taxons = taxons;
     }
 
-    public void setGenes( Set<Gene> genes ) {
-        this.genes = genes;
+    public void setGenes( Set<GeneAssociation> genes ) {
+        this.geneAssociations = genes;
     }
 
     public void updateTaxonDescription( String taxon, String description ) {
@@ -207,12 +229,12 @@ public class Researcher implements Serializable {
         this.publications = publications;
     }
 
-    public boolean addGene( final Gene gene ) {
-        return this.genes.add( gene );
+    public boolean addGene( final GeneAssociation gene ) {
+        return this.geneAssociations.add( gene );
     }
 
-    public boolean removeGene( final Gene gene ) {
-        return this.genes.remove( gene );
+    public boolean removeGene( final GeneAssociation gene ) {
+        return this.geneAssociations.remove( gene );
     }
 
     public boolean addPublication( final Publication publication ) {
@@ -221,5 +243,14 @@ public class Researcher implements Serializable {
 
     public void removePublication( final Publication publication ) {
         this.publications.remove( publication );
+    }
+
+    public Collection<Gene> getGenesVals() {
+        Collection<Gene> genes = new HashSet<Gene>();
+        for ( GeneAssociation g : geneAssociations ) {
+            genes.add( g.getGene() );
+        }
+
+        return genes;
     }
 }

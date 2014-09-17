@@ -103,7 +103,7 @@ public class ResearcherDaoImpl extends DaoBaseImpl<Researcher> implements Resear
         }
 
         Hibernate.initialize( researcher.getContact() );
-        Hibernate.initialize( researcher.getGenes() );
+        // Hibernate.initialize( researcher.getGenes() );
         Hibernate.initialize( researcher.getTaxons() );
         Hibernate.initialize( researcher.getPublications() );
         Hibernate.initialize( researcher.getDescription() );

@@ -108,7 +108,7 @@ public class GeneController {
 
             }
 
-            Collection<Gene> genes = researcher.getGenes();
+            Collection<Gene> genes = researcher.getGenesVals();
             if ( !taxonCommonName.equals( "All" ) ) {
                 CollectionUtils.filter( genes, new Predicate() {
                     @Override
@@ -118,8 +118,8 @@ public class GeneController {
                 } );
             }
 
-            jsonText = "{\"success\":true,\"data\":" + ( new JSONArray( researcher.getGenes() ) ).toString() + "}";
-            log.info( "Loaded " + researcher.getGenes().size() + " genes" );
+            jsonText = "{\"success\":true,\"data\":" + ( new JSONArray( genes ) ).toString() + "}";
+            log.info( "Loaded " + genes.size() + " genes" );
 
         } catch ( Exception e ) {
             jsonText = "{\"success\":false,\"message\":\"" + e.getLocalizedMessage() + "\"}";

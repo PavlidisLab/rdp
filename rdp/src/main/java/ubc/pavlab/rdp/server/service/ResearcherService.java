@@ -24,6 +24,7 @@ import java.util.Collection;
 import org.springframework.security.access.annotation.Secured;
 
 import ubc.pavlab.rdp.server.model.Gene;
+import ubc.pavlab.rdp.server.model.GeneAssociation;
 import ubc.pavlab.rdp.server.model.Researcher;
 
 /**
@@ -65,7 +66,7 @@ public interface ResearcherService {
     public boolean addGenes( Researcher researcher, final Collection<Gene> genes );
 
     @Secured({ "GROUP_USER" })
-    public boolean removeGenes( Researcher researcher, final Collection<Gene> genes );
+    public boolean removeGenes( Researcher researcher, final Collection<GeneAssociation> genes );
 
     /**
      * Removes all the associated genes and replace it with the new ones

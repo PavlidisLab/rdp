@@ -34,6 +34,7 @@ import ubc.pavlab.rdp.server.dao.ResearcherDao;
 import ubc.pavlab.rdp.server.dao.UserDao;
 import ubc.pavlab.rdp.server.dao.UserGroupDao;
 import ubc.pavlab.rdp.server.model.Gene;
+import ubc.pavlab.rdp.server.model.GeneAssociation;
 import ubc.pavlab.rdp.server.model.Researcher;
 import ubc.pavlab.rdp.server.model.common.auditAndSecurity.User;
 
@@ -135,7 +136,7 @@ public class ResearcherServiceImpl implements ResearcherService {
             if ( gene.getId() == null ) {
                 geneDao.create( gene );
             }
-            modified = researcher.addGene( gene );
+            modified |= researcher.addGene( new GeneAssociation( gene, researcher ) );
         }
 
         if ( modified ) {
@@ -149,20 +150,21 @@ public class ResearcherServiceImpl implements ResearcherService {
 
     @Override
     @Transactional
-    public boolean removeGenes( Researcher researcher, Collection<Gene> genes ) {
+    public boolean removeGenes( Researcher researcher, Collection<GeneAssociation> genes ) {
 
         int numGenesBefore = researcher.getGenes().size();
         boolean modified = false;
 
-        for ( Gene gene : genes ) {
+        for ( GeneAssociation geneAssociation : genes ) {
+            Gene gene = geneAssociation.getGene();
             if ( gene.getId() != null ) {
 
-                modified = researcher.removeGene( gene );
+                modified = researcher.removeGene( geneAssociation );
             } else {
-                // FIXME search with taxon to be more precise
-                Collection<Gene> matchedGenes = geneDao.findByOfficialSymbol( gene.getOfficialSymbol() );
-                if ( matchedGenes.size() > 0 ) {
-                    modified = researcher.removeGene( matchedGenes.iterator().next() );
+                // FIXME has to search for the GeneAssocation
+                Gene matchedGene = geneDao.findByOfficialSymbolAndTaxon( gene.getOfficialSymbol(), gene.getTaxon() );
+                if ( matchedGene != null ) {
+                    modified = researcher.removeGene( geneAssociation );
                 } else {
                     log.warn( "Gene " + gene + " was not removed from Researcher " + researcher
                             + " because it was found in the database" );
