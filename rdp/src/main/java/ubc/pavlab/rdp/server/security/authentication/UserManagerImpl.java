@@ -55,7 +55,6 @@ import org.springframework.security.core.userdetails.cache.NullUserCache;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import ubc.pavlab.rdp.server.model.Researcher;
 import ubc.pavlab.rdp.server.service.ResearcherService;
 
 /**
@@ -287,10 +286,6 @@ public class UserManagerImpl implements UserManager {
         // Add the user to the default user group.
         UserGroup g = loadGroup( USER_GROUP_NAME );
         userService.addUserToGroup( g, u );
-
-        Researcher researcher = researcherService.create( new Researcher() );
-        researcher.setContact( ( ubc.pavlab.rdp.server.model.common.auditAndSecurity.User ) u );
-        researcherService.update( researcher );
 
         /*
          * We don't log the user in automatically, because we require that new users click a confirmation link in an

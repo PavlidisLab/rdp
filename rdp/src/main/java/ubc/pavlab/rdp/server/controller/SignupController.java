@@ -41,6 +41,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
+import ubc.pavlab.rdp.server.model.Researcher;
+import ubc.pavlab.rdp.server.model.common.auditAndSecurity.User;
+import ubc.pavlab.rdp.server.service.ResearcherService;
 import ubc.pavlab.rdp.server.util.Settings;
 
 /**
@@ -60,6 +63,9 @@ public class SignupController extends BaseController {
 
     @Autowired
     private UserManager userManager;
+
+    @Autowired
+    private ResearcherService researcherService;
 
     private RecaptchaTester recaptchaTester = new DefaultRecaptchaTester();
 
@@ -228,6 +234,11 @@ public class SignupController extends BaseController {
         try {
 
             userManager.createUser( u );
+
+            Researcher researcher = researcherService.createAsAdmin( new Researcher() );
+            researcher.setContact( ( User ) userManager.findByUserName( username ) );
+            researcherService.updateAsAdmin( researcher );
+
             String msg = sendSignupConfirmationEmail( request, u );
 
             jsonText = "{\"success\":true,\"message\":\"" + msg + "\"}";

@@ -37,8 +37,14 @@ public interface ResearcherService {
     @Secured({ "GROUP_USER" })
     public Researcher create( final Researcher researcher );
 
+    @Secured({ "IS_AUTHENTICATED_ANONYMOUSLY", "RUN_AS_ADMIN" })
+    public Researcher createAsAdmin( final Researcher researcher );
+
     @Secured({ "GROUP_USER" })
     public void update( Researcher researcher );
+
+    @Secured({ "IS_AUTHENTICATED_ANONYMOUSLY", "RUN_AS_ADMIN" })
+    public void updateAsAdmin( Researcher researcher );
 
     @Secured({ "GROUP_USER", "AFTER_ACL_READ" })
     public Researcher findByEmail( final String email );

@@ -71,7 +71,19 @@ public class ResearcherServiceImpl implements ResearcherService {
 
     @Override
     @Transactional
+    public Researcher createAsAdmin( final Researcher researcher ) {
+        return researcherDao.create( researcher );
+    }
+
+    @Override
+    @Transactional
     public void update( Researcher researcher ) {
+        researcherDao.update( researcher );
+    }
+
+    @Override
+    @Transactional
+    public void updateAsAdmin( Researcher researcher ) {
         researcherDao.update( researcher );
     }
 
