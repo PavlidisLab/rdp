@@ -55,6 +55,8 @@ import org.springframework.security.core.userdetails.cache.NullUserCache;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import ubc.pavlab.rdp.server.service.ResearcherService;
+
 /**
  * Implementation for Spring Security, plus some other handy methods.
  * 
@@ -91,6 +93,9 @@ public class UserManagerImpl implements UserManager {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private ResearcherService researcherService;
 
     @Autowired
     private SecurityService securityService;
