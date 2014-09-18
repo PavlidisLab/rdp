@@ -71,14 +71,14 @@ public class NcbiQueryServiceImpl implements NcbiQueryService {
     private static final Map<String, String> TAXON_COMMON_TO_ID = new HashMap<String, String>();
 
     static {
-        // TAXON_COMMON_TO_ID.put( "Human", "9606" );
-        // TAXON_COMMON_TO_ID.put( "Mouse", "10090" );
-        // TAXON_COMMON_TO_ID.put( "Rat", "10116" );
+        TAXON_COMMON_TO_ID.put( "Human", "9606" );
+        TAXON_COMMON_TO_ID.put( "Mouse", "10090" );
+        TAXON_COMMON_TO_ID.put( "Rat", "10116" );
         TAXON_COMMON_TO_ID.put( "Yeast", "559292" );
-        // TAXON_COMMON_TO_ID.put( "Zebrafish", "7955" );
-        // TAXON_COMMON_TO_ID.put( "Fruitfly", "7227" );
-        // TAXON_COMMON_TO_ID.put( "Worm", "6239" );
-        // TAXON_COMMON_TO_ID.put( "E. Coli", "562" );
+        TAXON_COMMON_TO_ID.put( "Zebrafish", "7955" );
+        TAXON_COMMON_TO_ID.put( "Fruitfly", "7227" );
+        TAXON_COMMON_TO_ID.put( "Worm", "6239" );
+        TAXON_COMMON_TO_ID.put( "E. Coli", "562" );
     }
 
     private static Log log = LogFactory.getLog( NcbiQueryServiceImpl.class.getName() );
@@ -177,21 +177,13 @@ public class NcbiQueryServiceImpl implements NcbiQueryService {
         final StopWatch timer = new StopWatch();
         timer.start();
 
-        Timer uploadCheckerTimer = new Timer( true );
-        uploadCheckerTimer.scheduleAtFixedRate( new TimerTask() {
-            @Override
-            public void run() {
-                log.info( "Waiting for NCBI response for (" + taxon + ")... " + timer.getTime() + " ms" );
-            }
-        }, 0, 10 * 1000 );
-
         MultivaluedMap<String, String> queryData = new MultivaluedMapImpl();
         queryData.add( "db", "gene" );
         queryData.add( "term", taxonID + "[Taxonomy ID] AND alive[property]" );
         queryData.add( "retmode", "json" );
         queryData.add( "usehistory", "y" );
 
-        String response = sendRequest( queryData, NCBI_SEARCH );
+        String response = sendRequest( queryData, NCBI_SEARCH, taxon );
 
         JSONObject json = new JSONObject( response );
 
@@ -214,7 +206,7 @@ public class NcbiQueryServiceImpl implements NcbiQueryService {
             queryData.add( "retstart", Integer.toString( retstart ) );
             queryData.add( "retmax", "10000" );
 
-            response = sendRequest( queryData, NCBI_SUMMARY );
+            response = sendRequest( queryData, NCBI_SUMMARY, taxon );
 
             try {
                 Document xmldoc = loadXMLFromString( response );
@@ -265,8 +257,11 @@ public class NcbiQueryServiceImpl implements NcbiQueryService {
 
                 }
             } catch ( Exception e ) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+                timer.stop();
+                String errorMessage = "Error parsing response from NCBI";
+                log.error( errorMessage, e );
+
+                throw new NcbiServiceException( errorMessage );
             }
 
             // log.info( response );
@@ -278,35 +273,64 @@ public class NcbiQueryServiceImpl implements NcbiQueryService {
                 Thread.currentThread().interrupt();
             }
 
-            log.info( "Genes loaded so far: " + genes.size() );
+            log.info( "Genes loaded so far: " + genes.size() + " / " + count );
         }
 
-        log.info( "NCBI request to for (" + taxon + ") took " + timer.getTime() + " ms" );
+        log.info( "NCBI request for (" + taxon + ") took " + timer.getTime() + " ms" );
 
-        uploadCheckerTimer.cancel();
-
+        timer.stop();
         return genes;
     }
 
-    private static String sendRequest( MultivaluedMap<String, String> queryData, String url )
-            throws NcbiServiceException {
+    private static String sendRequest( MultivaluedMap<String, String> queryData, final String url,
+            final String logDescription ) throws NcbiServiceException {
         Client client = Client.create();
 
-        WebResource resource = client.resource( url ).queryParams( queryData );
+        log.info( "Sending request to (" + url + ") for " + logDescription + "..." );
 
-        ClientResponse response = resource.type( MediaType.APPLICATION_FORM_URLENCODED_TYPE )
-                .get( ClientResponse.class );
+        final StopWatch timer = new StopWatch();
+        timer.start();
 
-        // Check return code
-        if ( Response.Status.fromStatusCode( response.getStatus() ).getFamily() != Response.Status.Family.SUCCESSFUL ) {
-            String errorMessage = "Error occurred when accessing BioMart web service: "
-                    + response.getEntity( String.class );
-            log.error( errorMessage );
+        Timer responseCheckerTimer = new Timer( true );
+        responseCheckerTimer.scheduleAtFixedRate( new TimerTask() {
+            @Override
+            public void run() {
+                log.info( "Waiting for NCBI response from (" + url + ") for " + logDescription + "... "
+                        + timer.getTime() + " ms" );
+            }
+        }, 10 * 1000, 10 * 1000 );
+
+        ClientResponse response = null;
+
+        try {
+            WebResource resource = client.resource( url ).queryParams( queryData );
+
+            response = resource.type( MediaType.APPLICATION_FORM_URLENCODED_TYPE ).get( ClientResponse.class );
+
+            // Check return code
+            if ( Response.Status.fromStatusCode( response.getStatus() ).getFamily() != Response.Status.Family.SUCCESSFUL ) {
+                String errorMessage = "Failed Response when accessing NCBI web service: "
+                        + response.getEntity( String.class );
+                log.error( errorMessage );
+
+                throw new NcbiServiceException( errorMessage );
+            }
+
+        } catch ( Exception e ) {
+            responseCheckerTimer.cancel();
+            String errorMessage = "Error sending request to NCBI";
+            log.error( errorMessage, e );
 
             throw new NcbiServiceException( errorMessage );
         }
 
-        return response.getEntity( String.class );
+        String r = response.getEntity( String.class );
+
+        responseCheckerTimer.cancel();
+        timer.stop();
+        log.info( "Response received from (" + url + ") for " + logDescription + "." );
+
+        return r;
     }
 
 }
