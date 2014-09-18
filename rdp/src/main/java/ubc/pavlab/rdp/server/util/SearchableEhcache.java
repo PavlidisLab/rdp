@@ -72,6 +72,10 @@ public abstract class SearchableEhcache<T> {
         }
     }
 
+    public void removeAll() {
+        this.cache.removeAll();
+    }
+
     @SuppressWarnings("unused")
     @PostConstruct
     private void initialize() {

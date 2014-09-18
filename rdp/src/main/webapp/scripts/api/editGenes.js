@@ -32,8 +32,9 @@
         var promise = researcherModel.saveResearcherGenes();
         $.when(promise).done(function() {
         	showMessage( promise.responseJSON.message, $( "#geneManagerMessage" ) );
-        	promise = researcherModel.loadResearcherGenes();
-        	$.when(promise).done(function() {
+        	
+        	var defs = [researcherModel.loadResearcherProfile(),researcherModel.loadResearcherGenes()];
+        	$.when.apply(null, defs).done(function() {
 	        	overview.showGenes();
 	        	editGenes.fillForm();
         	});
@@ -105,6 +106,7 @@
 	      hideMessage( $( "#geneManagerMessage" ) );
 	   }
 
+	   //FIXME column(0) now holds objects
 	   if ( table.column(0).data().indexOf(gene.officialSymbol) != -1 ) {
 	      showMessage( "Gene already added", $( "#geneManagerMessage" ) );
 	      return;
@@ -121,7 +123,7 @@
 		
 	   var gene = $( "#searchGenesSelect" ).select2( "data" );
 	   var table = $( "#geneManagerTable" ).DataTable();
-	   
+	   $( "#searchGenesSelect" ).select2("val", "");
 	   editGenes.addGeneToTable(gene,table);
 	}
 	

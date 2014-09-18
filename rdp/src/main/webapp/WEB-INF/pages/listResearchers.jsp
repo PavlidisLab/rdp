@@ -71,6 +71,14 @@
 			</tbody>
 		</table>
 	</div>
+	
+	<div class="row">
+		<button type="button" id="updateCache"
+			class="btn btn-default">
+			<span class="">Update Cache</span>
+		</button>
+	</div>
+	
 </div>
 
 <!-- Our scripts -->

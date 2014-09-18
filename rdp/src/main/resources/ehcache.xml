@@ -45,7 +45,7 @@
    </searchable>
   </cache>
 
-  <cache name="NcbiCache" maxElementsInMemory="0" eternal="false" timeToLiveSeconds="86400" overflowToDisk="false">
+  <cache name="NcbiCache" maxElementsInMemory="0" eternal="true" timeToLiveSeconds="86400" overflowToDisk="false">
    <searchable>
     <searchAttribute name="ncbiGeneId" />
     <searchAttribute name="aliases" class="ubc.pavlab.rdp.server.ncbi.GeneAliasesAttributeExtractor" />

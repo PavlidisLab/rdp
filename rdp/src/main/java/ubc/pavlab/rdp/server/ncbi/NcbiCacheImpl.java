@@ -152,6 +152,11 @@ public class NcbiCacheImpl extends SearchableEhcache<Gene> implements NcbiCache 
         return gene.getNcbiGeneId();
     }
 
+    @Override
+    public void clearAll() {
+        removeAll();
+    }
+
     @SuppressWarnings("unused")
     @PostConstruct
     private void initialize() {

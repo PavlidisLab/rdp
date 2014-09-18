@@ -58,4 +58,6 @@ public interface NcbiCache {
      * @return
      */
     public Collection<Gene> fetchGenesByGeneSymbolsAndTaxon( Collection<String> geneSymbols, String taxon );
+
+    public void clearAll();
 }

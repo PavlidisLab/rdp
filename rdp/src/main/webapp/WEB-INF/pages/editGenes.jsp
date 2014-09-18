@@ -44,7 +44,7 @@
 						<label class="col-sm-2 control-label">Research Focus</label>
 						<div class="col-sm-9">
 							<textarea id="taxonDescription" class="form-control" rows="3"
-								placeholder="My studies on this organism involve..."></textarea>
+								placeholder="My research on this organism involves..." maxlength="1000"></textarea>
 						</div>
 						
 					</div>

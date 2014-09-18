@@ -52,7 +52,7 @@ public class Researcher implements Serializable {
     @JoinColumn(name = "CONTACT_FK")
     private User contact;
 
-    @Column(name = "DESCRIPTION", length = 500)
+    @Column(name = "DESCRIPTION", columnDefinition = "TEXT")
     private String description;
 
     @Column(name = "ORGANIZATION")

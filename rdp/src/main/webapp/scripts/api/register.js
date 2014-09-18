@@ -147,7 +147,7 @@ $( document ).ready( function() {
 	         $( "#navbarUsername" ).append( ' <span class="caret"></span>' );
 	      }
 	   } );
-      
+         
    var defs = [researcherModel.loadResearcherProfile(),researcherModel.loadResearcherGenes()];
    
    // This gets run when the ajax calls in defs have completed
