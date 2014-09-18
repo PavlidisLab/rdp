@@ -12,6 +12,20 @@
     data-href="styles/bootstrap-theme.min.css" rel="stylesheet"
     id="bs-theme-stylesheet">
 
+<style>
+	/*Lighten placeholder text*/
+	.form-control::-moz-placeholder {
+	  color: #A9A9A9;
+	  opacity: 1;
+	}
+	.form-control:-ms-input-placeholder {
+	  color: #A9A9A9;
+	}
+	.form-control::-webkit-input-placeholder {
+	  color: #A9A9A9;
+	}
+</style>
+
 </head>
 <body>
 
