@@ -21,6 +21,9 @@ overview.geneTableHTMLBlock = function(taxon, id) {
                         <div class = "col-sm-offset-3 col-sm-6 text-center"> \
                            <h4>' + taxon + '</h4> \
                         </div> \
+                        <div id="' + id + 'BlockDescription" class = "col-sm-offset-3 col-sm-6"> \
+                        \
+                        </div> \
                         <div class="col-sm-offset-3 col-sm-6"> \
                            <table id="' + id + '" class="table table-condensed"> \
                               <thead> \
@@ -79,77 +82,6 @@ overview.populateTable = function(id, data, max, editable) {
    
 };
 
-/**
- * Load researcher genes through AJAX query, bucket results and generate page HTML
- */
-/*
-overview.showGenesOverview = function() {
-
-   $('#overviewGeneBreakdown').html('');
-   $.ajax( {
-      url : "loadResearcherGenes.html",
-
-      data : {
-         taxonCommonName : "All",
-      },
-      dataType : "json",
-
-      success : function(response, xhr) {
-
-         if ( !response.success ) {
-            console.log( response.message );
-            showMessage( response.message, $( "#overviewMessage" ) );
-            return;
-         }
-
-         console.log( "Showing " + response.data.length + " user genes" )
-         
-         if (response.data.length == 0) {
-            showMessage( "<a href='#editGenesModal' class='alert-link' data-toggle='modal'>No model organisms have been added to profile  - Click Here.</a>", $( "#overviewModelMessage" ) );
-            return;
-         }
-         hideMessage( $( "#overviewModelMessage" ) );
-         
-         
-         var genesByTaxon = {};
-         var allTaxons = [];
-         
-         // Bucket response data by taxon
-         for (var i = 0; i < response.data.length; i++) {
-            if(response.data[i].taxon in genesByTaxon){
-               genesByTaxon[response.data[i].taxon].data.push(response.data[i]);
-            }
-            else {
-               allTaxons.push( response.data[i].taxon );
-               genesByTaxon[response.data[i].taxon] = { 'data':[ response.data[i] ] };
-            }
-         }
-         console.log(genesByTaxon);
-         allTaxons.sort(); // Consistent ordering
-
-         // Generate HTML blocks for each taxon
-         for (var i=0; i<allTaxons.length; i++) {
-            taxon = allTaxons[i];
-            var taxonId = taxon.replace(/ /g,'').replace(/\./g,'');
-            $('#overviewGeneBreakdown').append(overview.geneTableHTMLBlock(taxon, 'overviewTable'+taxonId));
-            overview.populateTable('overviewTable'+taxonId, genesByTaxon[taxon].data , 5, true)
-            $("#overview" + taxonId + "Button").click( createModal( taxon, genesByTaxon[taxon].data ) ); 
-            $("#overviewEdit" + taxonId + "Button").click( openGeneManager(taxon) ); 
-         }
-
-      },
-      error : function(response, xhr) {
-         showMessage( response.message, $( "#overviewMessage" ) );
-      }
-   } );
-
-	
-
-	
-	
-};
-*/
-
 overview.showProfile = function() {
     //Fill in overview profile
 	
@@ -194,7 +126,14 @@ overview.showGenes = function() {
 	for (var i=0; i<allTaxons.length; i++) {
 	   taxon = allTaxons[i];
 	   var taxonId = taxon.replace(/ /g,'').replace(/\./g,'');
+	   var taxonDescription = researcherModel.getTaxonDescriptions()[taxon];
 	   $('#overviewGeneBreakdown').append(overview.geneTableHTMLBlock(taxon, 'overviewTable'+taxonId));
+	   
+	   if (taxonDescription) {
+	      taxonDescription = taxonDescription.length > 100 ? taxonDescription.substring(0,100) + "..." : taxonDescription;
+	      $('#'+'overviewTable'+taxonId+'BlockDescription').append("<span><em>"+ taxonDescription +"</em></span>");
+	   }
+	   
 	   overview.populateTable('overviewTable'+taxonId, genesByTaxon[taxon] , 5, true)
 	   $("#overview" + taxonId + "Button").click( createModal( taxon, genesByTaxon[taxon] ) ); 
 	   $("#overviewEdit" + taxonId + "Button").click( openGeneManager(taxon) ); 

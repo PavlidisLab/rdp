@@ -18,7 +18,28 @@
 	        table.row.add(researcherRow).draw();
 	    });
 	}
-
+	listResearchers.updateCache = function() {
+	   
+      var promise = $.ajax( {
+         url : "updateCache.html",
+         success : function(response, xhr) {
+   
+            if ( !response.success ) {
+             console.log(response.message);
+               return;
+            }
+            console.log(response);
+            
+         },
+         error : function(response, xhr) {
+           console.log(response.message);
+         }
+      } );
+      
+      return promise;
+	}
+	
+	
 	listResearchers.showResearchers = function() {
 
 	    $.ajax({
@@ -103,6 +124,7 @@ $(document).ready(function() {
         // Only show Researchers tab if current user is "admin"
         if (jQuery.parseJSON(response).isAdmin == "true") {
         	listResearchers.showResearchers();
+        	$("#updateCache").click(listResearchers.updateCache)
         }
     });
 

@@ -73,4 +73,15 @@ public interface NcbiQueryService {
      */
     public List<Gene> getGenes( List<String> geneStrings ) throws NcbiServiceException;
 
+    /**
+     * Update Cache if it has expired
+     * 
+     * @param geneStrings
+     * @return
+     * @throws NcbiServiceException
+     */
+    public void updateCacheIfExpired() throws NcbiServiceException;
+
+    public void clearCache() throws NcbiServiceException;
+
 }

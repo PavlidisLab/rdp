@@ -24,7 +24,7 @@
 		</div>
 		
 		<div class="form-group">
-			<div class="col-sm-offset-3 col-sm-1 text-left">
+			<div class="col-sm-offset-3 col-sm-2 text-left">
 				<span>Name:</span>
 			</div>
 			<div class="col-sm-4 text-left">
@@ -34,7 +34,7 @@
 		
 		
 		<div class="form-group">
-			<div class="col-sm-offset-3 col-sm-1 text-left">
+			<div class="col-sm-offset-3 col-sm-2 text-left">
 				<span>Email:</span>
 			</div>
 			<div class="col-sm-4 text-left">
@@ -43,7 +43,7 @@
 		</div>
 		
 		<div class="form-group">
-			<div class="col-sm-offset-3 col-sm-1 text-left">
+			<div class="col-sm-offset-3 col-sm-2 text-left">
 				<span>Organization:</span>
 			</div>
 			<div class="col-sm-4 text-left">
@@ -52,7 +52,7 @@
 		</div>
 		
 		<div class="form-group">
-			<div class="col-sm-offset-3 col-sm-1 text-left">
+			<div class="col-sm-offset-3 col-sm-2 text-left">
 				<span>Website:</span>
 			</div>
 			<div class="col-sm-4 text-left">

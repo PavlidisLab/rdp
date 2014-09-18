@@ -40,7 +40,7 @@ public class TaxonDescription {
     @Column(name = "ID")
     private Long id;
 
-    @Column()
+    @Column(columnDefinition = "TEXT")
     private String description;
 
     @Column()

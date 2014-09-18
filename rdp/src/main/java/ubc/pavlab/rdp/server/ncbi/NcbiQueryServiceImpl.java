@@ -118,7 +118,7 @@ public class NcbiQueryServiceImpl implements NcbiQueryService {
      */
     @Override
     public Collection<Gene> findGenes( String queryString, String taxon ) throws NcbiServiceException {
-        updateCacheIfExpired();
+        // updateCacheIfExpired();
 
         return ncbiCache.findGenes( queryString, taxon );
     }
@@ -157,7 +157,11 @@ public class NcbiQueryServiceImpl implements NcbiQueryService {
         return "?";
     }
 
-    private void updateCacheIfExpired() throws NcbiServiceException {
+    public void clearCache() throws NcbiServiceException {
+        this.ncbiCache.clearAll();
+    }
+
+    public void updateCacheIfExpired() throws NcbiServiceException {
         if ( !this.ncbiCache.hasExpired() ) return;
 
         Collection<Gene> genes = new HashSet<>();

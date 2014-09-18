@@ -290,6 +290,34 @@ public class GeneController {
     }
 
     /**
+     * Force Update NCBI ehcache.
+     * 
+     * @param request
+     * @param response
+     * @throws IOException
+     */
+    @RequestMapping("/updateCache.html")
+    public void updateCache( HttpServletRequest request, HttpServletResponse response ) throws IOException {
+        JSONUtil jsonUtil = new JSONUtil( request, response );
+        String jsonText = null;
+        try {
+            ncbiQueryService.clearCache();
+            ncbiQueryService.updateCacheIfExpired();
+
+            JSONObject json = new JSONObject();
+            json.append( "success", true );
+            json.append( "success", "loaded genes to cache" );
+            jsonText = json.toString();
+        } catch ( Exception e ) {
+            e.printStackTrace();
+            log.error( e.getMessage(), e );
+            jsonText = "{\"success\":false,\"message\":" + e.getMessage() + "\"}";
+        } finally {
+            jsonUtil.writeToResponse( jsonText );
+        }
+    }
+
+    /**
      * Finds exact matching gene symbols (case-insensitive).
      * 
      * @param request
