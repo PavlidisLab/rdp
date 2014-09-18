@@ -18,3 +18,15 @@
     from {-webkit-transform: rotate(0deg);}
     to   {-webkit-transform: rotate(359deg);}
 }
+
+/*Lighten placeholder text*/
+.form-control::-moz-placeholder {
+  color: #A9A9A9;
+  opacity: 1;
+}
+.form-control:-ms-input-placeholder {
+  color: #A9A9A9;
+}
+.form-control::-webkit-input-placeholder {
+  color: #A9A9A9;
+}

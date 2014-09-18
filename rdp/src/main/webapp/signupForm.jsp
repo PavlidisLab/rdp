@@ -68,8 +68,7 @@
             <!-- reCAPTCHA -->
             <%@ page import="ubc.pavlab.rdp.server.util.Settings"%>
             <div class="control-group">
-                <label class="recaptcha_only_if_image control-label">Prove
-                    that you are human:</label>
+                <label class="recaptcha_only_if_image control-label">Please enter the number below:</label>
                 <div class="controls">
                     <div id="captchadiv"></div>
                     <div id="captchaPublicKey" hidden="true"><%=Settings.getProperty( "rdp.recaptcha.publicKey" )%></div>
