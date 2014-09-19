@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.annotation.PostConstruct;
 import javax.ws.rs.core.MediaType;
@@ -70,15 +71,17 @@ public class NcbiQueryServiceImpl implements NcbiQueryService {
 
     private static final Map<String, String> TAXON_COMMON_TO_ID = new HashMap<String, String>();
 
+    private static AtomicBoolean updatingCache = new AtomicBoolean( false );
+
     static {
-        TAXON_COMMON_TO_ID.put( "Human", "9606" );
-        TAXON_COMMON_TO_ID.put( "Mouse", "10090" );
-        TAXON_COMMON_TO_ID.put( "Rat", "10116" );
+        // TAXON_COMMON_TO_ID.put( "Human", "9606" );
+        // TAXON_COMMON_TO_ID.put( "Mouse", "10090" );
+        // TAXON_COMMON_TO_ID.put( "Rat", "10116" );
         TAXON_COMMON_TO_ID.put( "Yeast", "559292" );
-        TAXON_COMMON_TO_ID.put( "Zebrafish", "7955" );
-        TAXON_COMMON_TO_ID.put( "Fruitfly", "7227" );
-        TAXON_COMMON_TO_ID.put( "Worm", "6239" );
-        TAXON_COMMON_TO_ID.put( "E. Coli", "562" );
+        // TAXON_COMMON_TO_ID.put( "Zebrafish", "7955" );
+        // TAXON_COMMON_TO_ID.put( "Fruitfly", "7227" );
+        // TAXON_COMMON_TO_ID.put( "Worm", "6239" );
+        // TAXON_COMMON_TO_ID.put( "E. Coli", "562" );
     }
 
     private static Log log = LogFactory.getLog( NcbiQueryServiceImpl.class.getName() );
@@ -94,7 +97,6 @@ public class NcbiQueryServiceImpl implements NcbiQueryService {
     @Override
     public Collection<Gene> fetchGenesByGeneSymbolsAndTaxon( Collection<String> geneSymbols, String taxon )
             throws NcbiServiceException {
-        updateCacheIfExpired();
 
         return ncbiCache.fetchGenesByGeneSymbolsAndTaxon( geneSymbols, taxon );
     }
@@ -106,7 +108,6 @@ public class NcbiQueryServiceImpl implements NcbiQueryService {
      */
     @Override
     public Collection<Gene> fetchGenesByGeneSymbols( Collection<String> geneSymbols ) throws NcbiServiceException {
-        updateCacheIfExpired();
 
         return ncbiCache.fetchGenesByGeneSymbols( geneSymbols );
     }
@@ -118,7 +119,6 @@ public class NcbiQueryServiceImpl implements NcbiQueryService {
      */
     @Override
     public Collection<Gene> findGenes( String queryString, String taxon ) throws NcbiServiceException {
-        // updateCacheIfExpired();
 
         return ncbiCache.findGenes( queryString, taxon );
     }
@@ -130,7 +130,6 @@ public class NcbiQueryServiceImpl implements NcbiQueryService {
      */
     @Override
     public List<Gene> getGenes( List<String> geneStrings ) throws NcbiServiceException {
-        updateCacheIfExpired();
 
         return ncbiCache.getGenes( geneStrings );
     }
@@ -138,7 +137,6 @@ public class NcbiQueryServiceImpl implements NcbiQueryService {
     @SuppressWarnings("unused")
     @PostConstruct
     private void initialize() throws NcbiServiceException {
-        // updateCacheIfExpired();
     }
 
     private static Document loadXMLFromString( String xml ) throws Exception {
@@ -161,17 +159,28 @@ public class NcbiQueryServiceImpl implements NcbiQueryService {
         this.ncbiCache.clearAll();
     }
 
-    public void updateCacheIfExpired() throws NcbiServiceException {
-        if ( !this.ncbiCache.hasExpired() ) return;
-
-        Collection<Gene> genes = new HashSet<>();
-
-        for ( Map.Entry<String, String> taxon : TAXON_COMMON_TO_ID.entrySet() ) {
-            // updateCacheIfExpired( taxon.getKey(), true );
-            genes.addAll( queryNCBI( taxon.getKey() ) );
+    public int updateCache() throws NcbiServiceException {
+        int cacheSize = -1;
+        if ( updatingCache.compareAndSet( false, true ) ) {
+            try {
+                Collection<Gene> genes = new HashSet<>();
+                for ( Map.Entry<String, String> taxon : TAXON_COMMON_TO_ID.entrySet() ) {
+                    genes.addAll( queryNCBI( taxon.getKey() ) );
+                }
+                log.info( "Caching a total of " + genes.size() + " genes" );
+                this.ncbiCache.putAll( genes );
+                cacheSize = this.ncbiCache.size();
+                log.info( "Current size of Cache: " + cacheSize );
+            } finally {
+                updatingCache.set( false );
+            }
+        } else {
+            String errorMessage = "Update Cache already running!";
+            log.error( errorMessage );
+            throw new IllegalThreadStateException( errorMessage );
         }
-        log.info( "Caching a total of " + genes.size() + " genes" );
-        this.ncbiCache.putAll( genes );
+
+        return cacheSize;
     }
 
     private Collection<Gene> queryNCBI( final String taxon ) throws NcbiServiceException {

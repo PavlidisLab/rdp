@@ -22,6 +22,8 @@ package ubc.pavlab.rdp.server.ncbi;
 import java.util.Collection;
 import java.util.List;
 
+import org.springframework.security.access.annotation.Secured;
+
 import ubc.pavlab.rdp.server.exception.NcbiServiceException;
 import ubc.pavlab.rdp.server.model.Gene;
 
@@ -80,8 +82,10 @@ public interface NcbiQueryService {
      * @return
      * @throws NcbiServiceException
      */
-    public void updateCacheIfExpired() throws NcbiServiceException;
+    @Secured({ "GROUP_ADMIN" })
+    public int updateCache() throws NcbiServiceException;
 
+    @Secured({ "GROUP_ADMIN" })
     public void clearCache() throws NcbiServiceException;
 
 }

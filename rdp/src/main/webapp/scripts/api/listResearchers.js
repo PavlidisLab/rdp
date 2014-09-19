@@ -23,16 +23,11 @@
       var promise = $.ajax( {
          url : "updateCache.html",
          success : function(response, xhr) {
-   
-            if ( !response.success ) {
-             console.log(response.message);
-               return;
-            }
-            console.log(response);
-            
+            response = jQuery.parseJSON(response);
+            console.log(response.message);
          },
          error : function(response, xhr) {
-           console.log(response.message);
+           console.log("Error:",response);
          }
       } );
       

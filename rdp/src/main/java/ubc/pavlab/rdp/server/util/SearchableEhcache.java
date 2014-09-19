@@ -76,6 +76,10 @@ public abstract class SearchableEhcache<T> {
         this.cache.removeAll();
     }
 
+    public int getSize() {
+        return this.cache.getSize();
+    }
+
     @SuppressWarnings("unused")
     @PostConstruct
     private void initialize() {

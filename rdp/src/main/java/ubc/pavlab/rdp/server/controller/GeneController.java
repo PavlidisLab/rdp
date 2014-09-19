@@ -302,16 +302,18 @@ public class GeneController {
         String jsonText = null;
         try {
             ncbiQueryService.clearCache();
-            ncbiQueryService.updateCacheIfExpired();
+            int cacheSize = ncbiQueryService.updateCache();
 
             JSONObject json = new JSONObject();
             json.append( "success", true );
-            json.append( "success", "loaded genes to cache" );
+            json.append( "message", "Cache size: " + cacheSize );
             jsonText = json.toString();
         } catch ( Exception e ) {
-            e.printStackTrace();
             log.error( e.getMessage(), e );
-            jsonText = "{\"success\":false,\"message\":" + e.getMessage() + "\"}";
+            JSONObject json = new JSONObject();
+            json.append( "success", false );
+            json.append( "message", e.getMessage() );
+            jsonText = json.toString();
         } finally {
             jsonUtil.writeToResponse( jsonText );
         }
