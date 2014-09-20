@@ -173,7 +173,7 @@ public class Researcher implements Serializable {
         jsonObj.put( "description", this.description );
 
         jsonObj.put( "taxonDescriptions", this.taxonDescriptions );
-        jsonObj.put( "genes", this.getGenesVals() );
+        jsonObj.put( "genes", this.getGenes() );
 
         return jsonObj;
     }
@@ -194,7 +194,7 @@ public class Researcher implements Serializable {
         this.website = website;
     }
 
-    public Collection<GeneAssociation> getGenes() {
+    public Collection<GeneAssociation> getGeneAssociations() {
         return geneAssociations;
     }
 
@@ -214,7 +214,7 @@ public class Researcher implements Serializable {
         this.taxons = taxons;
     }
 
-    public void setGenes( Set<GeneAssociation> genes ) {
+    public void setGeneAssociations( Set<GeneAssociation> genes ) {
         this.geneAssociations = genes;
     }
 
@@ -232,11 +232,11 @@ public class Researcher implements Serializable {
         this.publications = publications;
     }
 
-    public boolean addGene( final GeneAssociation gene ) {
+    public boolean addGeneAssociation( final GeneAssociation gene ) {
         return this.geneAssociations.add( gene );
     }
 
-    public boolean removeGene( final GeneAssociation gene ) {
+    public boolean removeGeneAssociation( final GeneAssociation gene ) {
         return this.geneAssociations.remove( gene );
     }
 
@@ -248,7 +248,7 @@ public class Researcher implements Serializable {
         this.publications.remove( publication );
     }
 
-    public Collection<Gene> getGenesVals() {
+    public Collection<Gene> getGenes() {
         Collection<Gene> genes = new HashSet<Gene>();
         for ( GeneAssociation g : geneAssociations ) {
             genes.add( g.getGene() );
@@ -256,4 +256,28 @@ public class Researcher implements Serializable {
 
         return genes;
     }
+
+    public Collection<GeneAssociation> getGeneAssociatonsFromGenes( Collection<Gene> genes ) {
+        Collection<GeneAssociation> geneAssociations = new HashSet<GeneAssociation>();
+        for ( Gene g : genes ) {
+            for ( GeneAssociation gA : this.geneAssociations ) {
+                if ( gA.getGene().getId() == g.getId() ) {
+                    geneAssociations.add( gA );
+                }
+            }
+        }
+
+        return geneAssociations;
+    }
+
+    public GeneAssociation getGeneAssociatonFromGene( Gene gene ) {
+        for ( GeneAssociation gA : this.geneAssociations ) {
+            if ( gA.getGene().getId() == gene.getId() ) {
+                return gA;
+            }
+        }
+
+        return null;
+    }
+
 }

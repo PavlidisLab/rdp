@@ -109,7 +109,7 @@ public class GeneController {
 
             }
 
-            Collection<Gene> genes = researcher.getGenesVals();
+            Collection<Gene> genes = researcher.getGenes();
             if ( !taxonCommonName.equals( "All" ) ) {
                 CollectionUtils.filter( genes, new Predicate() {
                     @Override

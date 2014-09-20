@@ -136,7 +136,10 @@ public class ResearcherServiceImpl implements ResearcherService {
             if ( gene.getId() == null ) {
                 geneDao.create( gene );
             }
-            modified |= researcher.addGene( new GeneAssociation( gene, researcher ) );
+            if ( researcher.getGeneAssociatonFromGene( gene ) == null ) {
+                // gene not already added to researcher
+                modified |= researcher.addGeneAssociation( new GeneAssociation( gene, researcher ) );
+            }
         }
 
         if ( modified ) {
@@ -150,21 +153,21 @@ public class ResearcherServiceImpl implements ResearcherService {
 
     @Override
     @Transactional
-    public boolean removeGenes( Researcher researcher, Collection<GeneAssociation> genes ) {
+    public boolean removeGenes( Researcher researcher, Collection<Gene> genes ) {
 
         int numGenesBefore = researcher.getGenes().size();
         boolean modified = false;
-
-        for ( GeneAssociation geneAssociation : genes ) {
+        Collection<GeneAssociation> geneAssociations = researcher.getGeneAssociatonsFromGenes( genes );
+        for ( GeneAssociation geneAssociation : geneAssociations ) {
             Gene gene = geneAssociation.getGene();
             if ( gene.getId() != null ) {
 
-                modified = researcher.removeGene( geneAssociation );
+                modified = researcher.removeGeneAssociation( geneAssociation );
             } else {
                 // FIXME has to search for the GeneAssocation
                 Gene matchedGene = geneDao.findByOfficialSymbolAndTaxon( gene.getOfficialSymbol(), gene.getTaxon() );
                 if ( matchedGene != null ) {
-                    modified = researcher.removeGene( geneAssociation );
+                    modified = researcher.removeGeneAssociation( geneAssociation );
                 } else {
                     log.warn( "Gene " + gene + " was not removed from Researcher " + researcher
                             + " because it was found in the database" );
@@ -181,7 +184,7 @@ public class ResearcherServiceImpl implements ResearcherService {
 
     @Override
     public boolean updateGenes( Researcher researcher, Collection<Gene> genes ) {
-        researcher.getGenes().clear();
+        researcher.getGeneAssociations().clear();
         boolean added = addGenes( researcher, genes );
         researcherDao.update( researcher );
         return added;

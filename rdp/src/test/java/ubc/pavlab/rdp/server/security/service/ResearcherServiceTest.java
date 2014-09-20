@@ -123,10 +123,11 @@ public class ResearcherServiceTest extends BaseSpringContextTest {
             researcherService.delete( researcher );
             assertNull( researcherService.findByEmail( email ) );
             fail( e.getMessage() );
+        } finally {
+            researcherService.delete( researcher );
+            assertNull( researcherService.findByEmail( email ) );
+            assertNull( userService.findByEmail( email ) );
         }
-        researcherService.delete( researcher );
-        assertNull( researcherService.findByEmail( email ) );
-        assertNull( userService.findByEmail( email ) );
     }
 
     @Test
@@ -153,8 +154,10 @@ public class ResearcherServiceTest extends BaseSpringContextTest {
             researcherService.delete( researcher );
             assertNull( researcherService.findByUserName( username ) );
             fail( e.getMessage() );
+        } finally {
+            researcherService.delete( researcher );
+            geneService.delete( gene );
         }
-        researcherService.delete( researcher );
     }
 
     @Test
@@ -176,10 +179,11 @@ public class ResearcherServiceTest extends BaseSpringContextTest {
             researcherService.delete( researcher );
             assertNull( researcherService.findByUserName( username ) );
             fail( e.getMessage() );
+        } finally {
+            researcherService.delete( researcher );
+            assertNull( researcherService.findByUserName( username ) );
+            assertNull( userService.findByUserName( username ) );
         }
-        researcherService.delete( researcher );
-        assertNull( researcherService.findByUserName( username ) );
-        assertNull( userService.findByUserName( username ) );
     }
 
     @Test
@@ -201,20 +205,23 @@ public class ResearcherServiceTest extends BaseSpringContextTest {
             e.printStackTrace();
             researcherService.delete( researcher );
             fail( e.getMessage() );
-        }
+        } finally {
 
-        researcherService.delete( researcher );
+            researcherService.delete( researcher );
+        }
     }
 
     @Test
     public void testUpdateGene() throws Exception {
         String officialSymbol = "GENEA";
         Gene gene = new Gene( officialSymbol );
+        gene.setTaxon( "human" );
         Collection<Gene> genes = new ArrayList<>();
         genes.add( gene );
 
         String officialSymbol2 = "GENE2";
         Gene gene2 = new Gene( officialSymbol2 );
+        gene2.setTaxon( "human" );
         Collection<Gene> genes2 = new ArrayList<>();
         genes2.add( gene2 );
 
@@ -222,7 +229,8 @@ public class ResearcherServiceTest extends BaseSpringContextTest {
             // gene hasn't been created yet
             researcher = createResearcher( username, email, department );
             assertEquals( 0, researcher.getGenes().size() );
-            assertEquals( 0, geneService.findByOfficialSymbol( officialSymbol ).size() );
+            // assertEquals( 0, geneService.findByOfficialSymbol( officialSymbol ).size() );
+            assertNull( geneService.findByOfficialSymbol( officialSymbol, "human" ) );
 
             // now we create the gene and assign it to the researcher
             assertTrue( researcherService.addGenes( researcher, genes ) );
@@ -238,10 +246,11 @@ public class ResearcherServiceTest extends BaseSpringContextTest {
             e.printStackTrace();
             researcherService.delete( researcher );
             fail( e.getMessage() );
-        }
+        } finally {
 
-        researcherService.delete( researcher );
-        geneService.delete( gene );
+            researcherService.delete( researcher );
+            geneService.delete( gene );
+        }
     }
 
     @Test
@@ -256,7 +265,8 @@ public class ResearcherServiceTest extends BaseSpringContextTest {
             // gene hasn't been created yet
             researcher = createResearcher( username, email, department );
             assertEquals( 0, researcher.getGenes().size() );
-            assertEquals( 0, geneService.findByOfficialSymbol( officialSymbol ).size() );
+            // assertEquals( 0, geneService.findByOfficialSymbol( officialSymbol ).size() );
+            assertNull( geneService.findByOfficialSymbol( officialSymbol, "human" ) );
 
             // now we create the gene and assign it to the researcher
             assertTrue( researcherService.addGenes( researcher, genes ) );
@@ -279,9 +289,11 @@ public class ResearcherServiceTest extends BaseSpringContextTest {
             e.printStackTrace();
             researcherService.delete( researcher );
             fail( e.getMessage() );
-        }
+        } finally {
 
-        researcherService.delete( researcher );
-        geneService.delete( gene );
+            researcherService.delete( researcher );
+            geneService.delete( gene );
+
+        }
     }
 }
