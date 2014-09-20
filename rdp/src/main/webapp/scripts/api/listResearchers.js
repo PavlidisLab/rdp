@@ -12,9 +12,12 @@
 	            return;
 	        }
 	
-	        var researcherRow = [ item.contact.userName, item.contact.email,
-	                item.contact.firstName, item.contact.lastName,
-	                item.organization, item.department ]
+	        var researcherRow = [ item.contact.userName || "", 
+	                              item.contact.email || "",
+	                              item.contact.firstName || "", 
+	                              item.contact.lastName || "",
+	                              item.organization || "", 
+	                              item.genes.length || 0]
 	        table.row.add(researcherRow).draw();
 	    });
 	}
@@ -36,7 +39,7 @@
 	
 	
 	listResearchers.showResearchers = function() {
-
+	   hideMessage($("#listResearchersMessage"));
 	    $.ajax({
 	        cache : false,
 	        type : 'GET',
@@ -48,8 +51,13 @@
 	            // "lastName":"testLastname2", "organization":"testOrganization2",
 	            // "department":"testDepartment2" }]';
 	            response = $.parseJSON(response);
+	            var researchers = [];
+	            $.each(response, function(index, json) {
+	               researchers.push( $.parseJSON(json) );
+	            });
+	            console.log(researchers);
 	            $('#registerTab a[href="#registeredResearchers"]').show();
-	            listResearchers.jsonToResearcherTable(response, $("#listResearchersTable").DataTable());
+	            listResearchers.jsonToResearcherTable(researchers, $("#listResearchersTable").DataTable());
 	
 	            
 	        },
@@ -63,7 +71,7 @@
 	    });
 	
 	}
-
+	
 	listResearchers.findResearchersByGene = function() {
 
 	    var gene = $("#findResearchersByGenesSelect").select2("data")
@@ -78,9 +86,7 @@
 	    $.ajax({
 	        url : "findResearchersByGene.html",
 	        data : {
-	            gene : '{ "' + gene.officialSymbol + ':'
-	                    + $("#taxonCommonNameSelectListResearchers").val() + '" : '
-	                    + $.toJSON(gene) + '}',
+	            gene : [$.toJSON(gene)],
 	            // gene : '{ "ACOX2:Human" :
 	            // {"ensemblId":"ENSG00000168306","ncbiGeneId":"8309","officialSymbol":"ACOX2","officialName":"acyl-CoA
 	            // oxidase
@@ -99,7 +105,13 @@
 	
 	            showMessage(response.message, $("#listResearchersMessage"));
 	
-	            listResearchers.jsonToResearcherTable($.parseJSON(response.data), $("#listResearchersTable").DataTable());
+               var data = $.parseJSON(response.data);
+               var researchers = [];
+               $.each(data, function(index, json) {
+                  researchers.push( $.parseJSON(json) );
+               });
+	            
+	            listResearchers.jsonToResearcherTable(researchers, $("#listResearchersTable").DataTable());
 
 	        },
 	        error : function(response, xhr) {
@@ -120,6 +132,7 @@ $(document).ready(function() {
         if (jQuery.parseJSON(response).isAdmin == "true") {
         	listResearchers.showResearchers();
         	$("#updateCache").click(listResearchers.updateCache)
+        	$("#resetResearchersButton").click(listResearchers.showResearchers)
         }
     });
 

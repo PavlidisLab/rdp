@@ -33,8 +33,8 @@
         $.when(promise).done(function() {
         	showMessage( promise.responseJSON.message, $( "#geneManagerMessage" ) );
         	
-        	var defs = [researcherModel.loadResearcherProfile(),researcherModel.loadResearcherGenes()];
-        	$.when.apply(null, defs).done(function() {
+        	promise = researcherModel.loadResearcher();
+        	$.when(promise).done(function() {
 	        	overview.showGenes();
 	        	editGenes.fillForm();
         	});

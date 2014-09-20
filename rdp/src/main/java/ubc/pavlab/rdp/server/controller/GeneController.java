@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -144,7 +145,7 @@ public class GeneController {
 
         String jsonText = null;
         JSONUtil jsonUtil = new JSONUtil( request, response );
-        String genesJSON = request.getParameter( "gene" );
+        String[] genesJSON = request.getParameterValues( "gene[]" );
         String taxonCommonName = request.getParameter( "taxonCommonName" );
 
         Collection<Researcher> researchers = new HashSet<>();
@@ -157,7 +158,12 @@ public class GeneController {
                 researchers.addAll( researcherService.findByGene( gene ) );
             }
 
-            JSONArray array = new JSONArray( researchers );
+            Set<String> researchersJson = new HashSet<String>();
+            for ( Researcher r : researchers ) {
+                researchersJson.add( r.toJSON().toString() );
+            }
+
+            JSONArray array = new JSONArray( researchersJson );
 
             json.put( "data", array.toString() );
             json.put( "success", true );
@@ -178,40 +184,11 @@ public class GeneController {
     }
 
     /**
-     * Returns a collection of Gene objects from the json. Requires the gene.officialSymbol to be the key, eg.
-     * "{ "BRCA1:Human" : { "ensembleId" : "ENSG001234", "ncbiId" : "1234" } }
-     *
-     * @param genesJSON - a JSON representation of an array of Genes
+     * Returns a collection of Gene objects from the json.
+     * 
+     * @param genesJSON - an array of JSON representations of Genes
      * @return
      */
-    private Collection<Gene> deserealizeGenes( String genesJSON ) {
-        Collection<Gene> results = new HashSet<>();
-        JSONObject json = new JSONObject( genesJSON );
-
-        for ( Object key : json.keySet() ) {
-            String[] symbol = ( ( String ) key ).split( ":" );
-
-            if ( symbol.length != 2 ) {
-                throw new IllegalArgumentException( "Key must have the format GENE_SYMBOL:TAXON" );
-            }
-
-            // try looking for an existing one
-            Gene geneFound = geneService.findByOfficialSymbol( symbol[0], symbol[1] );
-            if ( !( geneFound == null ) ) {
-                results.add( geneFound );
-            } else {
-
-                // it doesn't exist yet
-                // biomartService.fetchGenesByGeneSymbols( geneSymbols )
-                Gene gene = new Gene();
-                gene.parseJSON( json.get( ( String ) key ).toString() );
-                log.info( "Creating new gene: " + gene.toString() );
-                results.add( geneService.create( gene ) );
-            }
-        }
-        return results;
-    }
-
     private Collection<Gene> deserealizeGenes( String[] genesJSON ) {
         Collection<Gene> results = new HashSet<>();
         for ( int i = 0; i < genesJSON.length; i++ ) {

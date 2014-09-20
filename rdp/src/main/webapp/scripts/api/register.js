@@ -148,10 +148,10 @@ $( document ).ready( function() {
 	      }
 	   } );
          
-   var defs = [researcherModel.loadResearcherProfile(),researcherModel.loadResearcherGenes()];
+   promise = researcherModel.loadResearcher();
    
    // This gets run when the ajax calls in defs have completed
-   $.when.apply(null, defs).done(function() {
+   $.when(promise).done(function() {
 	   overview.showOverview();   
    });
    

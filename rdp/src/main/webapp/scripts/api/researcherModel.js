@@ -179,7 +179,7 @@
       
    }
    
-   researcherModel.loadResearcherProfile = function() {
+   researcherModel.loadResearcher = function() {
 	   
 	   var promise = $.ajax( {
 	      // cache : false,
@@ -197,6 +197,7 @@
 	         researcherModel.setPhone(data.phone);
 	         researcherModel.setDescription(data.description);
 	         researcherModel.setTaxonDescriptionsFromArray(data.taxonDescriptions);
+	         researcherModel.setGenes(data.genes);
 	         
 	         var contact;
 	         
@@ -222,7 +223,7 @@
 	   return promise;
 	   
 	}
-   researcherModel.loadResearcherGenes = function() {
+/*   researcherModel.loadResearcherGenes = function() {
 	   
 	   var promise = $.ajax( {
 	      url : "loadResearcherGenes.html",
@@ -241,7 +242,7 @@
 
 	         console.log( "Loaded researcher genes:", response.data);
 	         
-	         researcherModel.setGenes(response.data);
+	         //researcherModel.setGenes(response.data);
 	         //$("#overviewModelMessage").trigger("genesLoaded");
 	         
 	      },
@@ -251,7 +252,7 @@
 	   } );
 	   
 	   return promise;
-	}
+	}*/
    
    researcherModel.saveResearcherProfile = function() {
       

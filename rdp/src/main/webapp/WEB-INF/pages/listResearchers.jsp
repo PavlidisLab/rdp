@@ -27,6 +27,10 @@
 			class="btn btn-default">
 			<span class="glyphicon glyphicon-search"></span>
 		</button>
+		<button type="button" id="resetResearchersButton"
+			class="btn btn-default">
+			<span class="glyphicon glyphicon-repeat"></span>
+		</button>
 	</div>
 
 	<!-- empty filler -->
@@ -42,7 +46,7 @@
 					<th>First name</th>
 					<th>Last name</th>
 					<th>Organization</th>
-					<th>Department</th>
+					<th>Genes Count</th>
 				</tr>
 			</thead>
 
@@ -53,7 +57,7 @@
 					<th>First name</th>
 					<th>Last name</th>
 					<th>Organization</th>
-					<th>Department</th>
+					<th>Genes Count</th>
 				</tr>
 			</tfoot>
 

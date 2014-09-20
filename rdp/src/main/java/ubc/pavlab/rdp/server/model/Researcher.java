@@ -105,7 +105,7 @@ public class Researcher implements Serializable {
         return new ArrayList<Researcher>();
     }
 
-    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, mappedBy = "pk.researcher")
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, mappedBy = "pk.researcher", orphanRemoval = true)
     private Set<GeneAssociation> geneAssociations = new HashSet<GeneAssociation>();
 
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
@@ -163,16 +163,19 @@ public class Researcher implements Serializable {
 
     public JSONObject toJSON() {
         JSONObject jsonObj = new JSONObject();
-        jsonObj.put( "contact", this.contact );
+        jsonObj.put( "contact", new JSONObject( this.contact ) );
         jsonObj.put( "department", this.department );
         jsonObj.put( "description", this.description );
-        jsonObj.put( "description", this.description );
-        jsonObj.put( "description", this.description );
-        jsonObj.put( "description", this.description );
-        jsonObj.put( "description", this.description );
+        jsonObj.put( "id", this.id );
+        jsonObj.put( "organization", this.organization );
+        jsonObj.put( "phone", this.phone );
+        jsonObj.put( "website", this.website );
         jsonObj.put( "description", this.description );
 
-        return "id=" + id + " username=" + contact.getUserName();
+        jsonObj.put( "taxonDescriptions", this.taxonDescriptions );
+        jsonObj.put( "genes", this.getGenesVals() );
+
+        return jsonObj;
     }
 
     public String getPhone() {
