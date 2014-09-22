@@ -78,4 +78,5 @@ public interface ResearcherService {
 
     @Secured({ "GROUP_ADMIN" })
     public Collection<Researcher> findByGene( Gene gene );
+
 }

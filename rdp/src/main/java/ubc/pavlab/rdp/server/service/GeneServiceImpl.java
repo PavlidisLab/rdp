@@ -20,7 +20,11 @@
 package ubc.pavlab.rdp.server.service;
 
 import java.util.Collection;
+import java.util.HashSet;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -35,6 +39,8 @@ import ubc.pavlab.rdp.server.model.Gene;
  */
 @Service("geneService")
 public class GeneServiceImpl implements GeneService {
+
+    private static Log log = LogFactory.getLog( ResearcherServiceImpl.class );
 
     @Autowired
     GeneDao geneDao;
@@ -97,6 +103,40 @@ public class GeneServiceImpl implements GeneService {
     @Override
     public Gene load( long geneId ) {
         return geneDao.load( geneId );
+    }
+
+    /**
+     * Returns a collection of Gene objects from the json.
+     * 
+     * @param genesJSON - an array of JSON representations of Genes
+     * @return
+     */
+    @Override
+    public Collection<Gene> deserializeGenes( String[] genesJSON ) throws IllegalArgumentException {
+        Collection<Gene> results = new HashSet<>();
+        for ( int i = 0; i < genesJSON.length; i++ ) {
+            JSONObject json = new JSONObject( genesJSON[i] );
+            if ( !json.has( "officialSymbol" ) || !json.has( "taxon" ) ) {
+                throw new IllegalArgumentException( "Every gene must have an assigned symbol and organism." );
+            }
+            String symbol = json.getString( "officialSymbol" );
+            String taxon = json.getString( "taxon" );
+            if ( symbol.equals( "" ) || taxon.equals( "" ) ) {
+                throw new IllegalArgumentException( "Every gene must have an assigned symbol and organism." );
+            }
+            Gene geneFound = this.findByOfficialSymbol( symbol, taxon );
+            if ( !( geneFound == null ) ) {
+                results.add( geneFound );
+            } else {
+                // it doesn't exist yet
+                Gene gene = new Gene();
+                gene.parseJSON( genesJSON[i] );
+                log.info( "Creating new gene: " + gene.toString() );
+                results.add( this.create( gene ) );
+            }
+        }
+
+        return results;
     }
 
 }

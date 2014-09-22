@@ -53,4 +53,7 @@ public interface GeneService {
     @Secured({ "GROUP_USER", "AFTER_ACL_READ" })
     public Gene findByOfficialSymbol( final String officialSymbol, final String taxon );
 
+    @Secured({ "GROUP_USER" })
+    public Collection<Gene> deserializeGenes( String[] genesJSON );
+
 }

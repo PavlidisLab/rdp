@@ -23,6 +23,7 @@ import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -46,18 +47,6 @@ public class NcbiCacheTest extends BaseSpringContextTest {
 
     private String taxon = "Human";
 
-    private static Gene createGene( String ncbiGeneId, String taxon, String officialSymbol, String officialName,
-            String aliases ) {
-        Gene gene = new Gene();
-        gene.setNcbiGeneId( ncbiGeneId );
-        gene.setTaxon( taxon );
-        gene.setOfficialSymbol( officialSymbol );
-        gene.setOfficialName( officialName );
-        gene.parseAliases( aliases );
-
-        return gene;
-    }
-
     /**
      * Initializes the cache and genes with sample data
      * 
@@ -66,14 +55,14 @@ public class NcbiCacheTest extends BaseSpringContextTest {
      * @param taxon
      */
     public static void initCache( NcbiCache cache, Collection<Gene> genes, String taxon ) {
-        genes.add( createGene( "1", taxon, "aaa", "gene aa", "alias-a1,alias-a2" ) ); // match symbol exact first
-        genes.add( createGene( "2", taxon, "aaaab", "gene ab", "alias-ab,alias-ab2" ) ); // match symbol partial
-                                                                                         // second
-        genes.add( createGene( "3", taxon, "dddd", "aaa gene dd", "alias-dd1,alias-dd2" ) ); // match name third
-        genes.add( createGene( "4", taxon, "ccccc", "gene ccc", "alias-cc1,aaaalias-cc2" ) ); // match alias fourth
-        genes.add( createGene( "5", taxon, "caaaa", "gene ca", "alias-ca1,alias-ca2" ) ); // not symbol suffix
-        genes.add( createGene( "6", taxon, "bbb", "gene bbaaaa", "alias-b1" ) ); // not name suffix
-        genes.add( createGene( "7", "Fish", "aaafish", "gene aa", "alias-a1,alias-a2" ) ); // not taxon
+        genes.add( new Gene( "1", taxon, "aaa", "gene aa", "alias-a1,alias-a2" ) ); // match symbol exact first
+        genes.add( new Gene( "2", taxon, "aaaab", "gene ab", "alias-ab,alias-ab2" ) ); // match symbol partial
+                                                                                       // second
+        genes.add( new Gene( "3", taxon, "dddd", "aaa gene dd", "alias-dd1,alias-dd2" ) ); // match name third
+        genes.add( new Gene( "4", taxon, "ccccc", "gene ccc", "alias-cc1,aaaalias-cc2" ) ); // match alias fourth
+        genes.add( new Gene( "5", taxon, "caaaa", "gene ca", "alias-ca1,alias-ca2" ) ); // not symbol suffix
+        genes.add( new Gene( "6", taxon, "bbb", "gene bbaaaa", "alias-b1" ) ); // not name suffix
+        genes.add( new Gene( "7", "Fish", "aaafish", "gene aa", "alias-a1,alias-a2" ) ); // not taxon
 
         cache.putAll( genes );
     }
@@ -98,4 +87,55 @@ public class NcbiCacheTest extends BaseSpringContextTest {
             i++;
         }
     }
+
+    @Test
+    public void testFetchGenesByGeneSymbolsAndTaxon() {
+        Collection<String> symbols = new HashSet<>();
+        symbols.add( "aaa" );
+        symbols.add( "aaafish" );
+        symbols.add( "aaaab" );
+        Collection<Gene> results = cache.fetchGenesByGeneSymbolsAndTaxon( symbols, taxon );
+        assertEquals( 2, results.size() );
+    }
+
+    @Test
+    public void testFetchGenesByGeneSymbols() {
+        Collection<String> symbols = new HashSet<>();
+        symbols.add( "aaa" );
+        symbols.add( "aaafish" );
+        symbols.add( "aaaab" );
+        Collection<Gene> results = cache.fetchGenesByGeneSymbols( symbols );
+        assertEquals( 3, results.size() );
+    }
+
+    @Test
+    public void testFetchGenesByGeneTaxon() {
+        Collection<String> taxons = new HashSet<>();
+        taxons.add( taxon );
+        Collection<Gene> results = cache.fetchGenesByGeneTaxon( taxons );
+        assertEquals( 6, results.size() );
+
+        taxons.add( "Fish" );
+        results = cache.fetchGenesByGeneTaxon( taxons );
+        assertEquals( 7, results.size() );
+
+        taxons.remove( taxon );
+        results = cache.fetchGenesByGeneTaxon( taxons );
+        assertEquals( 1, results.size() );
+    }
+
+    @Test
+    public void testSize() {
+        assertEquals( 7, cache.size() );
+    }
+
+    @Test
+    public void testClearAll() {
+        // This is dependent on testSize()
+        assertEquals( 7, cache.size() );
+        cache.clearAll();
+        assertEquals( 0, cache.size() );
+
+    }
+
 }

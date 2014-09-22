@@ -154,7 +154,7 @@ public class GeneController {
 
             JSONObject json = new JSONObject();
 
-            for ( Gene gene : deserealizeGenes( genesJSON ) ) {
+            for ( Gene gene : geneService.deserializeGenes( genesJSON ) ) {
                 researchers.addAll( researcherService.findByGene( gene ) );
             }
 
@@ -181,36 +181,6 @@ public class GeneController {
             jsonUtil.writeToResponse( jsonText );
         }
 
-    }
-
-    /**
-     * Returns a collection of Gene objects from the json.
-     * 
-     * @param genesJSON - an array of JSON representations of Genes
-     * @return
-     */
-    private Collection<Gene> deserealizeGenes( String[] genesJSON ) {
-        Collection<Gene> results = new HashSet<>();
-        for ( int i = 0; i < genesJSON.length; i++ ) {
-            JSONObject json = new JSONObject( genesJSON[i] );
-            String symbol = json.getString( "officialSymbol" );
-            String taxon = json.getString( "taxon" );
-            if ( symbol.equals( "" ) || taxon.equals( "" ) ) {
-                throw new IllegalArgumentException( "Every gene must have an assigned symbol and organism." );
-            }
-            Gene geneFound = geneService.findByOfficialSymbol( symbol, taxon );
-            if ( !( geneFound == null ) ) {
-                results.add( geneFound );
-            } else {
-                // it doesn't exist yet
-                Gene gene = new Gene();
-                gene.parseJSON( genesJSON[i] );
-                log.info( "Creating new gene: " + gene.toString() );
-                results.add( geneService.create( gene ) );
-            }
-        }
-
-        return results;
     }
 
     @RequestMapping("/saveResearcherGenes.html")
@@ -245,7 +215,7 @@ public class GeneController {
 
             // Update Genes
             Collection<Gene> genes = new HashSet<>();
-            genes.addAll( deserealizeGenes( genesJSON ) );
+            genes.addAll( geneService.deserializeGenes( genesJSON ) );
             researcherService.updateGenes( researcher, genes ); // This updates the researcher persistence for both
 
             JSONObject json = new JSONObject();
@@ -347,7 +317,6 @@ public class GeneController {
             }
             jsonText = json.toString();
         } catch ( NcbiServiceException e ) {
-            e.printStackTrace();
             log.error( e.getMessage(), e );
             jsonText = "{\"success\":false,\"message\":" + e.getMessage() + "\"}";
         }
@@ -372,7 +341,6 @@ public class GeneController {
             Collection<Gene> results = ncbiQueryService.findGenes( query, taxon );
             jsonText = "{\"success\":true,\"data\":" + ( new JSONArray( results ) ).toString() + "}";
         } catch ( NcbiServiceException e ) {
-            e.printStackTrace();
             log.error( e.getMessage(), e );
             jsonText = "{\"success\":false,\"message\":" + e.getMessage() + "\"}";
         }
