@@ -29,6 +29,7 @@ import gemma.gsec.authentication.UserDetailsImpl;
 import gemma.gsec.authentication.UserManager;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 
 import org.junit.After;
@@ -38,6 +39,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import ubc.pavlab.rdp.server.dao.ResearcherDao;
 import ubc.pavlab.rdp.server.model.Gene;
+import ubc.pavlab.rdp.server.model.GeneAssociation.TierType;
 import ubc.pavlab.rdp.server.model.Researcher;
 import ubc.pavlab.rdp.server.model.common.auditAndSecurity.User;
 import ubc.pavlab.rdp.server.security.authentication.UserService;
@@ -138,8 +140,8 @@ public class ResearcherServiceTest extends BaseSpringContextTest {
 
     @Test
     public void testFindByGene() throws Exception {
-        Collection<Gene> genes = new HashSet<>();
-        genes.add( gene1 );
+        HashMap<Gene, TierType> genes = new HashMap<Gene, TierType>();
+        genes.put( gene1, TierType.UNKNOWN );
 
         try {
             assertNotNull( researcher );
@@ -200,11 +202,11 @@ public class ResearcherServiceTest extends BaseSpringContextTest {
 
     @Test
     public void testUpdateGene() throws Exception {
-        Collection<Gene> genes = new HashSet<>();
-        genes.add( gene1 );
+        HashMap<Gene, TierType> genes = new HashMap<Gene, TierType>();
+        genes.put( gene1, TierType.UNKNOWN );
 
-        Collection<Gene> genes2 = new HashSet<>();
-        genes2.add( gene2 );
+        HashMap<Gene, TierType> genes2 = new HashMap<Gene, TierType>();
+        genes2.put( gene2, TierType.UNKNOWN );
 
         try {
             // gene hasn't been assigned yet
@@ -230,8 +232,10 @@ public class ResearcherServiceTest extends BaseSpringContextTest {
 
     @Test
     public void testAddRemoveGene() throws Exception {
-        Collection<Gene> genes = new HashSet<>();
-        genes.add( gene1 );
+        HashMap<Gene, TierType> genes = new HashMap<Gene, TierType>();
+        genes.put( gene1, TierType.UNKNOWN );
+        Collection<Gene> genesColl = new HashSet<>();
+        genesColl.add( gene1 );
 
         try {
 
@@ -253,7 +257,7 @@ public class ResearcherServiceTest extends BaseSpringContextTest {
             assertEquals( 1, geneService.findByOfficialSymbol( "aaa" ).size() );
 
             // lets delete
-            assertTrue( researcherService.removeGenes( researcher, genes ) );
+            assertTrue( researcherService.removeGenes( researcher, genesColl ) );
             assertEquals( 0, researcher.getGenes().size() );
             assertEquals( 1, geneService.findByOfficialSymbol( "aaa" ).size() ); // keep the gene in case other
                                                                                  // researchers use it

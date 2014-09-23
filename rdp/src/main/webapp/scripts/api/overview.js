@@ -30,6 +30,7 @@ overview.geneTableHTMLBlock = function(taxon, id) {
                                  <tr> \
                                     <th>Symbol</th> \
                                     <th>Name</th> \
+                                    <th>Primary?</th> \
                                  </tr> \
                               </thead> \
                               <tbody> \
@@ -56,7 +57,11 @@ overview.populateTable = function(id, data, max, editable) {
    var urlBase = "http://www.ncbi.nlm.nih.gov/gene/"
    for ( var i = 0; i < max; i++ ) {   
       url = urlBase + data[i].ncbiGeneId;
-      $( '#' +id + '> tbody:last' ).append( '<tr><td><a href="' + url + '" target="_blank">'+ data[i].officialSymbol + '</a></td><td>'+ data[i].officialName + '</td></tr>' );
+      var tier = "";
+      if (data[i].tier) {
+         tier = data[i].tier === "TIER1" ? '<span class="glyphicon glyphicon-ok"></span>' : "";
+      }
+      $( '#' +id + '> tbody:last' ).append( '<tr><td><a href="' + url + '" target="_blank">'+ data[i].officialSymbol + '</a></td><td>'+ data[i].officialName + '</td><td>'+ tier + '</td></tr>' );
    }
    
    var seeAllButtonHTML = ( max < data.length ) ? '<button type="button" id="overview' + taxonId + 'Button" \
@@ -167,6 +172,7 @@ function createModal(taxon, data) {
                                                 <tr> \
                                                    <th>Symbol</th> \
                                                    <th>Name</th> \
+                                                   <th>Primary?</th> \
                                                 </tr> \
                                              </thead> \
                                              <tbody> \

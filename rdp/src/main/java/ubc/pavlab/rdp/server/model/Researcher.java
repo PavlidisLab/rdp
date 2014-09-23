@@ -17,6 +17,7 @@ package ubc.pavlab.rdp.server.model;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -35,6 +36,7 @@ import javax.persistence.Table;
 
 import org.json.JSONObject;
 
+import ubc.pavlab.rdp.server.model.GeneAssociation.TierType;
 import ubc.pavlab.rdp.server.model.common.auditAndSecurity.User;
 
 @Entity
@@ -173,8 +175,8 @@ public class Researcher implements Serializable {
         jsonObj.put( "description", this.description );
 
         jsonObj.put( "taxonDescriptions", this.taxonDescriptions );
-        jsonObj.put( "genes", this.getGenes() );
 
+        jsonObj.put( "genes", new JSONObject( this.getGenesByTier() ) );
         return jsonObj;
     }
 
@@ -280,4 +282,23 @@ public class Researcher implements Serializable {
         return null;
     }
 
+    public HashMap<TierType, Collection<Gene>> getGenesByTier() {
+        HashMap<TierType, Collection<Gene>> genesbyTier = new HashMap<TierType, Collection<Gene>>();
+
+        Collection<GeneAssociation> geneAssociations = this.getGeneAssociations();
+
+        for ( GeneAssociation ga : geneAssociations ) {
+            Collection<Gene> genes = genesbyTier.get( ga.getTier() );
+            // never storing null values so this is fine
+            if ( genes != null ) {
+                genes.add( ga.getGene() );
+            } else {
+                genes = new HashSet<Gene>();
+                genes.add( ga.getGene() );
+                genesbyTier.put( ga.getTier(), genes );
+            }
+        }
+
+        return genesbyTier;
+    }
 }

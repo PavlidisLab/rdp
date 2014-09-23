@@ -55,7 +55,7 @@
 	            $.each(response, function(index, json) {
 	               researchers.push( $.parseJSON(json) );
 	            });
-	            console.log(researchers);
+	            console.log("Loaded All Researchers:",researchers);
 	            $('#registerTab a[href="#registeredResearchers"]').show();
 	            listResearchers.jsonToResearcherTable(researchers, $("#listResearchersTable").DataTable());
 	

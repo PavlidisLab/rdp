@@ -24,6 +24,8 @@ import javax.persistence.AssociationOverrides;
 import javax.persistence.Column;
 import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.JoinColumn;
 import javax.persistence.Table;
 
@@ -53,8 +55,13 @@ public class GeneAssociation {
      * @JoinColumn(name = "GENE_ID") private Gene gene;
      */
 
+    public enum TierType {
+        TIER1, TIER2, TIER3, UNKNOWN
+    };
+
+    @Enumerated(EnumType.STRING)
     @Column
-    private String tier;
+    private TierType tier;
 
     public GeneAssociationID getPk() {
         return pk;
@@ -63,9 +70,10 @@ public class GeneAssociation {
     public GeneAssociation() {
     }
 
-    public GeneAssociation( Gene gene, Researcher researcher ) {
+    public GeneAssociation( Gene gene, Researcher researcher, TierType tier ) {
         this.pk.setResearcher( researcher );
         this.pk.setGene( gene );
+        this.tier = tier;
     }
 
     public Gene getGene() {
@@ -74,6 +82,14 @@ public class GeneAssociation {
 
     public Researcher getResearcher() {
         return this.pk.getResearcher();
+    }
+
+    public void setTier( TierType tier ) {
+        this.tier = tier;
+    }
+
+    public TierType getTier() {
+        return tier;
     }
 
 }

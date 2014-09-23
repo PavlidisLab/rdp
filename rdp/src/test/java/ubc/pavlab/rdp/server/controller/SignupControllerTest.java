@@ -31,6 +31,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 
+import ubc.pavlab.rdp.server.service.ResearcherService;
 import ubc.pavlab.rdp.testing.BaseSpringContextTest;
 
 /**
@@ -44,6 +45,9 @@ public class SignupControllerTest extends BaseSpringContextTest {
 
     @Autowired
     private SignupController suc;
+
+    @Autowired
+    ResearcherService researcherService;
 
     @Before
     public void setup() {
@@ -86,6 +90,8 @@ public class SignupControllerTest extends BaseSpringContextTest {
 
                             req.addParameter( "emailConfirm", email );
                             suc.signup( req, new MockHttpServletResponse() );
+
+                            researcherService.delete( researcherService.findByUserName( uname ) ); // Cleanup
 
                             c.incrementAndGet();
 

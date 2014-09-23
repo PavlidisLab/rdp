@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
@@ -45,6 +46,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import ubc.pavlab.rdp.server.exception.NcbiServiceException;
 import ubc.pavlab.rdp.server.model.Gene;
+import ubc.pavlab.rdp.server.model.GeneAssociation.TierType;
 import ubc.pavlab.rdp.server.model.Researcher;
 import ubc.pavlab.rdp.server.model.common.auditAndSecurity.User;
 import ubc.pavlab.rdp.server.ncbi.NcbiQueryService;
@@ -154,7 +156,9 @@ public class GeneController {
 
             JSONObject json = new JSONObject();
 
-            for ( Gene gene : geneService.deserializeGenes( genesJSON ) ) {
+            for ( Entry<Gene, TierType> entry : geneService.deserializeGenes( genesJSON ).entrySet() ) {
+                Gene gene = entry.getKey();
+                TierType tier = entry.getValue();
                 researchers.addAll( researcherService.findByGene( gene ) );
             }
 
@@ -214,9 +218,10 @@ public class GeneController {
             }
 
             // Update Genes
-            Collection<Gene> genes = new HashSet<>();
-            genes.addAll( geneService.deserializeGenes( genesJSON ) );
-            researcherService.updateGenes( researcher, genes ); // This updates the researcher persistence for both
+            researcherService.updateGenes( researcher, geneService.deserializeGenes( genesJSON ) ); // This updates the
+                                                                                                    // researcher
+                                                                                                    // persistence for
+                                                                                                    // both
 
             JSONObject json = new JSONObject();
             json.put( "success", true );

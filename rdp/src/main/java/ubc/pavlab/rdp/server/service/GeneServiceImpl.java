@@ -20,7 +20,7 @@
 package ubc.pavlab.rdp.server.service;
 
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.HashMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -30,6 +30,7 @@ import org.springframework.stereotype.Service;
 
 import ubc.pavlab.rdp.server.dao.GeneDao;
 import ubc.pavlab.rdp.server.model.Gene;
+import ubc.pavlab.rdp.server.model.GeneAssociation.TierType;
 
 /**
  * TODO Document Me
@@ -106,14 +107,14 @@ public class GeneServiceImpl implements GeneService {
     }
 
     /**
-     * Returns a collection of Gene objects from the json.
+     * Returns a mapping of Gene objects from the json to tier type.
      * 
      * @param genesJSON - an array of JSON representations of Genes
      * @return
      */
     @Override
-    public Collection<Gene> deserializeGenes( String[] genesJSON ) throws IllegalArgumentException {
-        Collection<Gene> results = new HashSet<>();
+    public HashMap<Gene, TierType> deserializeGenes( String[] genesJSON ) throws IllegalArgumentException {
+        HashMap<Gene, TierType> results = new HashMap<Gene, TierType>();
         for ( int i = 0; i < genesJSON.length; i++ ) {
             JSONObject json = new JSONObject( genesJSON[i] );
             if ( !json.has( "officialSymbol" ) || !json.has( "taxon" ) ) {
@@ -124,15 +125,26 @@ public class GeneServiceImpl implements GeneService {
             if ( symbol.equals( "" ) || taxon.equals( "" ) ) {
                 throw new IllegalArgumentException( "Every gene must have an assigned symbol and organism." );
             }
+            TierType tier = TierType.UNKNOWN;
+            if ( json.has( "tier" ) ) {
+                try {
+                    tier = TierType.valueOf( json.getString( "tier" ) );
+                } catch ( IllegalArgumentException e ) {
+                    log.warn( "Invalid tier: (" + json.getString( "tier" ) + ") for gene: " + symbol + " from " + taxon );
+                }
+            } else {
+                log.warn( "Missing tier for gene: " + symbol + " from " + taxon );
+            }
+
             Gene geneFound = this.findByOfficialSymbol( symbol, taxon );
             if ( !( geneFound == null ) ) {
-                results.add( geneFound );
+                results.put( geneFound, tier );
             } else {
                 // it doesn't exist yet
                 Gene gene = new Gene();
                 gene.parseJSON( genesJSON[i] );
                 log.info( "Creating new gene: " + gene.toString() );
-                results.add( this.create( gene ) );
+                results.put( this.create( gene ), tier );
             }
         }
 

@@ -20,10 +20,12 @@
 package ubc.pavlab.rdp.server.service;
 
 import java.util.Collection;
+import java.util.HashMap;
 
 import org.springframework.security.access.annotation.Secured;
 
 import ubc.pavlab.rdp.server.model.Gene;
+import ubc.pavlab.rdp.server.model.GeneAssociation.TierType;
 
 /**
  * TODO Document Me
@@ -54,6 +56,6 @@ public interface GeneService {
     public Gene findByOfficialSymbol( final String officialSymbol, final String taxon );
 
     @Secured({ "GROUP_USER" })
-    public Collection<Gene> deserializeGenes( String[] genesJSON );
+    public HashMap<Gene, TierType> deserializeGenes( String[] genesJSON );
 
 }

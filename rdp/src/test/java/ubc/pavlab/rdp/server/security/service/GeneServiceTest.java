@@ -23,7 +23,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 
-import java.util.Collection;
+import java.util.HashMap;
 
 import org.json.JSONObject;
 import org.junit.Before;
@@ -32,6 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import ubc.pavlab.rdp.server.dao.GeneDao;
 import ubc.pavlab.rdp.server.model.Gene;
+import ubc.pavlab.rdp.server.model.GeneAssociation.TierType;
 import ubc.pavlab.rdp.server.service.GeneService;
 import ubc.pavlab.rdp.testing.BaseSpringContextTest;
 
@@ -99,10 +100,10 @@ public class GeneServiceTest extends BaseSpringContextTest {
                 ( new JSONObject( gene2 ) ).toString() };
         String[] genesJsonMissingInfo = new String[] { ( new JSONObject( badGene ) ).toString() };
 
-        Collection<Gene> results = geneService.deserializeGenes( genesJsonOk );
+        HashMap<Gene, TierType> results = geneService.deserializeGenes( genesJsonOk );
         assertEquals( 2, results.size() );
 
-        for ( Gene g : results ) {
+        for ( Gene g : results.keySet() ) {
             geneService.delete( g );
         }
 
