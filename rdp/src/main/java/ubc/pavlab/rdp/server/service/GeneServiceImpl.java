@@ -20,12 +20,17 @@
 package ubc.pavlab.rdp.server.service;
 
 import java.util.Collection;
+import java.util.HashMap;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import ubc.pavlab.rdp.server.dao.GeneDao;
 import ubc.pavlab.rdp.server.model.Gene;
+import ubc.pavlab.rdp.server.model.GeneAssociation.TierType;
 
 /**
  * TODO Document Me
@@ -35,6 +40,8 @@ import ubc.pavlab.rdp.server.model.Gene;
  */
 @Service("geneService")
 public class GeneServiceImpl implements GeneService {
+
+    private static Log log = LogFactory.getLog( ResearcherServiceImpl.class );
 
     @Autowired
     GeneDao geneDao;
@@ -97,6 +104,51 @@ public class GeneServiceImpl implements GeneService {
     @Override
     public Gene load( long geneId ) {
         return geneDao.load( geneId );
+    }
+
+    /**
+     * Returns a mapping of Gene objects from the json to tier type.
+     * 
+     * @param genesJSON - an array of JSON representations of Genes
+     * @return
+     */
+    @Override
+    public HashMap<Gene, TierType> deserializeGenes( String[] genesJSON ) throws IllegalArgumentException {
+        HashMap<Gene, TierType> results = new HashMap<Gene, TierType>();
+        for ( int i = 0; i < genesJSON.length; i++ ) {
+            JSONObject json = new JSONObject( genesJSON[i] );
+            if ( !json.has( "officialSymbol" ) || !json.has( "taxon" ) ) {
+                throw new IllegalArgumentException( "Every gene must have an assigned symbol and organism." );
+            }
+            String symbol = json.getString( "officialSymbol" );
+            String taxon = json.getString( "taxon" );
+            if ( symbol.equals( "" ) || taxon.equals( "" ) ) {
+                throw new IllegalArgumentException( "Every gene must have an assigned symbol and organism." );
+            }
+            TierType tier = TierType.UNKNOWN;
+            if ( json.has( "tier" ) ) {
+                try {
+                    tier = TierType.valueOf( json.getString( "tier" ) );
+                } catch ( IllegalArgumentException e ) {
+                    log.warn( "Invalid tier: (" + json.getString( "tier" ) + ") for gene: " + symbol + " from " + taxon );
+                }
+            } else {
+                log.warn( "Missing tier for gene: " + symbol + " from " + taxon );
+            }
+
+            Gene geneFound = this.findByOfficialSymbol( symbol, taxon );
+            if ( !( geneFound == null ) ) {
+                results.put( geneFound, tier );
+            } else {
+                // it doesn't exist yet
+                Gene gene = new Gene();
+                gene.parseJSON( genesJSON[i] );
+                log.info( "Creating new gene: " + gene.toString() );
+                results.put( this.create( gene ), tier );
+            }
+        }
+
+        return results;
     }
 
 }

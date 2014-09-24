@@ -157,19 +157,27 @@
       g1 = genes1.slice();
       g2 = genes2.slice();
       
+      identicalIndexOf = function(gene,genes) { //Harsher equality check than indexOf
+         for (var i=0; i<genes.length; i++) {
+            if ( genes[i].officialSymbol === gene.officialSymbol && genes[i].taxon === gene.taxon && genes[i].tier === gene.tier) {
+               return i;
+            }
+          }
+          return -1;
+      }
 /*      if ( g1.length != g2.length ) { // Duplicates counted as different
          return false;
       }*/
       
       for (var i=0; i<genes1.length; i++) {
-         var index = indexOf(genes1[i], genes2);
+         var index = identicalIndexOf(genes1[i], genes2);
          if ( index == -1 ) {
             return false;
          }
       }
       
       for (var i=0; i<genes2.length; i++) {
-         var index = indexOf(genes2[i], genes1);
+         var index = identicalIndexOf(genes2[i], genes1);
          if ( index == -1 ) {
             return false;
          }
@@ -179,7 +187,7 @@
       
    }
    
-   researcherModel.loadResearcherProfile = function() {
+   researcherModel.loadResearcher = function() {
 	   
 	   var promise = $.ajax( {
 	      // cache : false,
@@ -197,6 +205,28 @@
 	         researcherModel.setPhone(data.phone);
 	         researcherModel.setDescription(data.description);
 	         researcherModel.setTaxonDescriptionsFromArray(data.taxonDescriptions);
+	         
+	         var genes = [];
+	         //This is ugly but for now with just two tiers and unknown it will do
+	         if ("TIER1" in data.genes) {
+   	         for (var i=0;i<data.genes.TIER1.length;i++) {
+   	            data.genes.TIER1[i].tier = "TIER1";
+   	         }
+   	         genes = genes.concat(data.genes.TIER1);
+	         }
+	         if ("TIER2" in data.genes) {
+               for (var i=0;i<data.genes.TIER2.length;i++) {
+                  data.genes.TIER2[i].tier = "TIER2";
+               }
+               genes = genes.concat(data.genes.TIER2);
+	         }
+            if ("UNKNOWN" in data.genes) {
+               for (var i=0;i<data.genes.UNKNOWN.length;i++) {
+                  data.genes.UNKNOWN[i].tier = "UNKNOWN";
+               }
+               genes = genes.concat(data.genes.UNKNOWN);
+            }
+	         researcherModel.setGenes(genes);
 	         
 	         var contact;
 	         
@@ -222,7 +252,7 @@
 	   return promise;
 	   
 	}
-   researcherModel.loadResearcherGenes = function() {
+/*   researcherModel.loadResearcherGenes = function() {
 	   
 	   var promise = $.ajax( {
 	      url : "loadResearcherGenes.html",
@@ -241,7 +271,7 @@
 
 	         console.log( "Loaded researcher genes:", response.data);
 	         
-	         researcherModel.setGenes(response.data);
+	         //researcherModel.setGenes(response.data);
 	         //$("#overviewModelMessage").trigger("genesLoaded");
 	         
 	      },
@@ -251,7 +281,7 @@
 	   } );
 	   
 	   return promise;
-	}
+	}*/
    
    researcherModel.saveResearcherProfile = function() {
       

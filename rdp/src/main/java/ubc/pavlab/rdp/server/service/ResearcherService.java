@@ -20,10 +20,12 @@
 package ubc.pavlab.rdp.server.service;
 
 import java.util.Collection;
+import java.util.HashMap;
 
 import org.springframework.security.access.annotation.Secured;
 
 import ubc.pavlab.rdp.server.model.Gene;
+import ubc.pavlab.rdp.server.model.GeneAssociation.TierType;
 import ubc.pavlab.rdp.server.model.Researcher;
 
 /**
@@ -62,7 +64,7 @@ public interface ResearcherService {
     public Researcher thaw( Researcher researcher );
 
     @Secured({ "GROUP_USER" })
-    public boolean addGenes( Researcher researcher, final Collection<Gene> genes );
+    public boolean addGenes( Researcher researcher, final HashMap<Gene, TierType> genes );
 
     @Secured({ "GROUP_USER" })
     public boolean removeGenes( Researcher researcher, final Collection<Gene> genes );
@@ -74,8 +76,9 @@ public interface ResearcherService {
      * @param genes
      */
     @Secured({ "GROUP_USER" })
-    public boolean updateGenes( Researcher researcher, final Collection<Gene> genes );
+    public boolean updateGenes( Researcher researcher, final HashMap<Gene, TierType> genes );
 
     @Secured({ "GROUP_ADMIN" })
     public Collection<Researcher> findByGene( Gene gene );
+
 }

@@ -20,6 +20,7 @@
         <mapping class="ubc.pavlab.rdp.server.model.Publication" />
         <mapping class="ubc.pavlab.rdp.server.model.Taxon" />
         <mapping class="ubc.pavlab.rdp.server.model.TaxonDescription" />
+        <mapping class="ubc.pavlab.rdp.server.model.GeneAssociation" />
 
         <mapping class="ubc.pavlab.rdp.server.model.common.auditAndSecurity.User" />
         <mapping class="ubc.pavlab.rdp.server.model.common.auditAndSecurity.UserGroup" />

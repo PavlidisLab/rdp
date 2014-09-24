@@ -5,6 +5,7 @@
 
 	var hiddenGenes = [];
 	var taxonDescriptionChanged = false;
+	var tierChanged = false;
 	
 	editGenes.beforeCloseGeneModal = function(event) {
 	   if ( genesChanged() ) {
@@ -26,6 +27,16 @@
 		var table = $( "#geneManagerTable" ).DataTable();
 		var oldGenes = researcherModel.getGenes();
 		var showingGenes = table.columns().data()[0];
+		var geneTiers = table.columns().nodes()[4];
+		for (var i = 0; i < geneTiers.length; i++) {
+		   if (geneTiers[i].firstChild.checked) {
+		      showingGenes[i].tier = geneTiers[i].firstChild.value;
+		   }
+		   else {
+		      showingGenes[i].tier = "TIER2";
+		   }
+		}
+		
 		var newGenes = showingGenes.concat( hiddenGenes );
 		researcherModel.setGenes( newGenes );
 		researcherModel.addTaxonDescription($( "#taxonCommonNameSelect" ).val(), $( "#taxonDescription" ).val() )
@@ -33,8 +44,8 @@
         $.when(promise).done(function() {
         	showMessage( promise.responseJSON.message, $( "#geneManagerMessage" ) );
         	
-        	var defs = [researcherModel.loadResearcherProfile(),researcherModel.loadResearcherGenes()];
-        	$.when.apply(null, defs).done(function() {
+        	promise = researcherModel.loadResearcher();
+        	$.when(promise).done(function() {
 	        	overview.showGenes();
 	        	editGenes.fillForm();
         	});
@@ -46,12 +57,12 @@
 	   var oldGenes = researcherModel.getGenes();
 	   var showingGenes = table.columns().data()[0];
 	   var newGenes = showingGenes.concat( hiddenGenes );
-	   return taxonDescriptionChanged || !researcherModel.compareGenes(newGenes,oldGenes);
+	   return tierChanged || taxonDescriptionChanged || !researcherModel.compareGenes(newGenes,oldGenes);
 	}
 		
 	editGenes.fillForm = function() {
-	   console.log(researcherModel.getTaxonDescriptions());
 	   taxonDescriptionChanged = false;
+	   tierChanged = false;
 	   var taxonSel = $( "#taxonCommonNameSelect" );
 	   $.data( taxonSel[0] , 'current', taxonSel.val());
 		$( "#geneManagerTable" ).DataTable().clear();
@@ -64,7 +75,7 @@
 	       	if ( genes[i].taxon === taxonSel.val() ) {
 	       	   // columns: Symbol, Alias, Name, ncbiGeneId (HIDDEN)
 	       	   //geneRow = [ genes[i].officialSymbol, researcherModel.aliasesToString( genes[i] ), genes[i].officialName, genes[i] ];
-	       	   geneRow = [genes[i], "",""];
+	       	   geneRow = [genes[i]];
 	       	   table.row.add( geneRow );
 	       	}
 	       	else {
@@ -72,10 +83,10 @@
 	       	}
 	    }
 	    table.draw();
+	    $(".datatable-checkbox > :checkbox").on('change',function() {tierChanged = true})
 	}
 	
 	editGenes.changeOrganism = function() {
-	   console.log("changed");
 	   var newVal = $(this).val();
 	   $( this ).val( $.data(this, 'current') );
 	   
@@ -115,7 +126,7 @@
 	   // columns: Symbol, Alias, Name, ncbiGeneId (HIDDEN)
 	   //researcherModel.addGene(gene);
 	   //geneRow = [ gene.officialSymbol, researcherModel.aliasesToString( gene ), gene.officialName, gene.ncbiGeneId ];
-	   geneRow = [gene, "",""];
+	   geneRow = [gene];
 	   table.row.add( geneRow ).draw();
 		
 	}
@@ -185,6 +196,43 @@
 	   // Initialize datatable
 	   $( "#geneManagerTable" ).dataTable( {
 	      //"scrollX": true,
+          "aoColumnDefs": [ {
+             "defaultContent": "",
+             "targets": "_all"
+              },
+           {
+              "aTargets": [ 0 ],
+              "defaultContent": "",
+              "visible":false,
+              "searchable":false
+           },
+           {
+              "aTargets": [ 1 ],
+              "defaultContent": "",
+              "mData": function ( source, type, val ) {
+                return source[0].officialSymbol || "";
+              }
+           },
+           {
+              "aTargets": [ 2 ],
+              "defaultContent": "",
+              "mData": function ( source, type, val ) {
+                return researcherModel.aliasesToString( source[0] ) || "";
+              }
+           },
+           {
+              "aTargets": [ 3 ],
+              "defaultContent": "",
+              "mData": function ( source, type, val ) {
+                return source[0].officialName || "";
+              }
+           },
+           {
+              "aTargets": [ 4 ],
+              "defaultContent": "",
+              "sWidth":"12%",
+              "sClass":"text-center datatable-checkbox"
+            }],
 	      "searching": false,
 	      dom: 'T<"clear">lfrtip',
 	      tableTools: {
@@ -194,9 +242,23 @@
 	                        "select_none" ]
 	      },
 	      "fnRowCallback": function( nRow, aData, iDisplayIndex ) {
+	         // Keep in mind that $('td:eq(1)', nRow) refers to the first DISPLAYED column
+	         // whereas aData[0] refers to the data in the first column, hidden or not
 	         $('td:eq(0)', nRow).html('<a href="' + "http://www.ncbi.nlm.nih.gov/gene/" + aData[0].ncbiGeneId + '" target="_blank">'+ aData[0].officialSymbol + '</a>');
-	         $('td:eq(1)', nRow).html(researcherModel.aliasesToString( aData[0] ));
-	         $('td:eq(2)', nRow).html(aData[0].officialName);
+	         //$('td:eq(1)', nRow).html(researcherModel.aliasesToString( aData[0] ));
+	         //$('td:eq(2)', nRow).html(aData[0].officialName);
+	         
+	         var inputHTML = '<input type="checkbox" id="rowSelect'+aData[0].ncbiGeneId+'"value="TIER1"></input>'
+	         
+	         if ( aData[0].tier ) {
+	            // If this gene has an associated tier and it is TIER1 check the box
+	            var n = inputHTML.indexOf('value="'+aData[0].tier+'"')
+	            if (n > -1) {
+	               inputHTML = inputHTML.slice(0, n) + 'checked="checked" ' + inputHTML.slice(n);
+	            }
+	         }
+	         $('td:eq(3)', nRow).html(inputHTML);
+	         
 	         //$('td:eq(1)', nRow).html(aData[1].replace( /,/g, ", " )); // DataTables causes some visual bugs when there are no spaces
 	         return nRow;
 	      },

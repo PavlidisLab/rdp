@@ -22,6 +22,8 @@ package ubc.pavlab.rdp.server.service;
 import gemma.gsec.model.UserGroup;
 
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map.Entry;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -34,6 +36,8 @@ import ubc.pavlab.rdp.server.dao.ResearcherDao;
 import ubc.pavlab.rdp.server.dao.UserDao;
 import ubc.pavlab.rdp.server.dao.UserGroupDao;
 import ubc.pavlab.rdp.server.model.Gene;
+import ubc.pavlab.rdp.server.model.GeneAssociation;
+import ubc.pavlab.rdp.server.model.GeneAssociation.TierType;
 import ubc.pavlab.rdp.server.model.Researcher;
 import ubc.pavlab.rdp.server.model.common.auditAndSecurity.User;
 
@@ -126,16 +130,21 @@ public class ResearcherServiceImpl implements ResearcherService {
 
     @Override
     @Transactional
-    public boolean addGenes( Researcher researcher, final Collection<Gene> genes ) {
+    public boolean addGenes( Researcher researcher, final HashMap<Gene, TierType> genes ) {
 
         int numGenesBefore = researcher.getGenes().size();
         boolean modified = false;
 
-        for ( Gene gene : genes ) {
+        for ( Entry<Gene, TierType> entry : genes.entrySet() ) {
+            Gene gene = entry.getKey();
+            TierType tier = entry.getValue();
             if ( gene.getId() == null ) {
                 geneDao.create( gene );
             }
-            modified = researcher.addGene( gene );
+            if ( researcher.getGeneAssociatonFromGene( gene ) == null ) {
+                // gene not already added to researcher
+                modified |= researcher.addGeneAssociation( new GeneAssociation( gene, researcher, tier ) );
+            }
         }
 
         if ( modified ) {
@@ -153,16 +162,17 @@ public class ResearcherServiceImpl implements ResearcherService {
 
         int numGenesBefore = researcher.getGenes().size();
         boolean modified = false;
-
-        for ( Gene gene : genes ) {
+        Collection<GeneAssociation> geneAssociations = researcher.getGeneAssociatonsFromGenes( genes );
+        for ( GeneAssociation geneAssociation : geneAssociations ) {
+            Gene gene = geneAssociation.getGene();
             if ( gene.getId() != null ) {
 
-                modified = researcher.removeGene( gene );
+                modified = researcher.removeGeneAssociation( geneAssociation );
             } else {
-                // FIXME search with taxon to be more precise
-                Collection<Gene> matchedGenes = geneDao.findByOfficialSymbol( gene.getOfficialSymbol() );
-                if ( matchedGenes.size() > 0 ) {
-                    modified = researcher.removeGene( matchedGenes.iterator().next() );
+                // FIXME has to search for the GeneAssocation?
+                Gene matchedGene = geneDao.findByOfficialSymbolAndTaxon( gene.getOfficialSymbol(), gene.getTaxon() );
+                if ( matchedGene != null ) {
+                    modified = researcher.removeGeneAssociation( geneAssociation );
                 } else {
                     log.warn( "Gene " + gene + " was not removed from Researcher " + researcher
                             + " because it was found in the database" );
@@ -178,8 +188,8 @@ public class ResearcherServiceImpl implements ResearcherService {
     }
 
     @Override
-    public boolean updateGenes( Researcher researcher, Collection<Gene> genes ) {
-        researcher.getGenes().clear();
+    public boolean updateGenes( Researcher researcher, HashMap<Gene, TierType> genes ) {
+        researcher.getGeneAssociations().clear();
         boolean added = addGenes( researcher, genes );
         researcherDao.update( researcher );
         return added;

@@ -3,11 +3,15 @@ package ubc.pavlab.rdp.server.controller;
 import gemma.gsec.authentication.UserManager;
 
 import java.io.IOException;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.directwebremoting.annotations.RemoteProxy;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -109,7 +113,14 @@ public class RegisterController extends BaseController {
         JSONUtil jsonUtil = new JSONUtil( request, response );
 
         try {
-            jsonText = jsonUtil.collectionToJson( researcherService.loadAll() );
+            Collection<Researcher> researchers = researcherService.loadAll();
+            Set<String> researchersJson = new HashSet<String>();
+            for ( Researcher r : researchers ) {
+                researchersJson.add( r.toJSON().toString() );
+            }
+
+            jsonText = ( new JSONArray( researchersJson ) ).toString();
+            // jsonText = jsonUtil.collectionToJson( researchers );
         } finally {
 
             try {
@@ -152,7 +163,8 @@ public class RegisterController extends BaseController {
                 // this shouldn't happen.
                 jsonText = "{\"success\":false,\"message\":\"No researcher with name " + username + "\"}";
             } else {
-                JSONObject json = new JSONObject( user );
+                // JSONObject json = new JSONObject( user );
+                JSONObject json = ( ( Researcher ) user ).toJSON();
                 jsonText = "{\"success\":true, \"data\":" + json.toString() + "}";
                 // log.debug( "Success! json=" + jsonText );
             }

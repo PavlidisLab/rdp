@@ -30,6 +30,7 @@ overview.geneTableHTMLBlock = function(taxon, id) {
                                  <tr> \
                                     <th>Symbol</th> \
                                     <th>Name</th> \
+                                    <th>Primary?</th> \
                                  </tr> \
                               </thead> \
                               <tbody> \
@@ -47,7 +48,7 @@ overview.geneTableHTMLBlock = function(taxon, id) {
  * @param {array} data - Array of objects containing new data -> [{'symbol':'...','name':'...'}]
  * @param {number} max - maximum number of rows to populate
  */
-overview.populateTable = function(id, data, max, editable) {
+populateTable = function(id, data, max, editable) {
    var taxonId = data[0].taxon.replace(/ /g,'').replace(/\./g,'');
    
    $( "#" + id + " tbody tr" ).remove();
@@ -56,7 +57,11 @@ overview.populateTable = function(id, data, max, editable) {
    var urlBase = "http://www.ncbi.nlm.nih.gov/gene/"
    for ( var i = 0; i < max; i++ ) {   
       url = urlBase + data[i].ncbiGeneId;
-      $( '#' +id + '> tbody:last' ).append( '<tr><td><a href="' + url + '" target="_blank">'+ data[i].officialSymbol + '</a></td><td>'+ data[i].officialName + '</td></tr>' );
+      var tier = "";
+      if (data[i].tier) {
+         tier = data[i].tier === "TIER1" ? '<span class="glyphicon glyphicon-ok"></span>' : "";
+      }
+      $( '#' +id + '> tbody:last' ).append( '<tr><td><a href="' + url + '" target="_blank">'+ data[i].officialSymbol + '</a></td><td>'+ data[i].officialName + '</td><td>'+ tier + '</td></tr>' );
    }
    
    var seeAllButtonHTML = ( max < data.length ) ? '<button type="button" id="overview' + taxonId + 'Button" \
@@ -134,7 +139,7 @@ overview.showGenes = function() {
 	      $('#'+'overviewTable'+taxonId+'BlockDescription').append("<span><em>"+ taxonDescription +"</em></span>");
 	   }
 	   
-	   overview.populateTable('overviewTable'+taxonId, genesByTaxon[taxon] , 5, true)
+	   populateTable('overviewTable'+taxonId, genesByTaxon[taxon] , 5, true)
 	   $("#overview" + taxonId + "Button").click( createModal( taxon, genesByTaxon[taxon] ) ); 
 	   $("#overviewEdit" + taxonId + "Button").click( openGeneManager(taxon) ); 
 	}
@@ -167,6 +172,7 @@ function createModal(taxon, data) {
                                                 <tr> \
                                                    <th>Symbol</th> \
                                                    <th>Name</th> \
+                                                   <th>Primary?</th> \
                                                 </tr> \
                                              </thead> \
                                              <tbody> \
@@ -178,7 +184,7 @@ function createModal(taxon, data) {
             $( '#scrapModalFailed' ).after( tableHTML ); 
             scrapModal.removeClass( "bs-example-modal-sm");
             scrapModal.find(".modal-dialog").removeClass("modal-sm");
-            overview.populateTable('scrapModalTable', data , data.length, false)
+            populateTable('scrapModalTable', data , data.length, false)
             scrapModal.find('.modal-header > h4').text(taxon + " Genes Studied").end();
             scrapModal.modal('show');                
    }; 

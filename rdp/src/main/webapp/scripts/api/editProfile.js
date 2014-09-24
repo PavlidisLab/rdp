@@ -20,7 +20,7 @@
         var promise = researcherModel.saveResearcherProfile();
         $.when(promise).done(function() {
         	showMessage( promise.responseJSON.message, $( "#primaryContactMessage" ) );
-         promise = researcherModel.loadResearcherProfile();
+         promise = researcherModel.loadResearcher();
          $.when(promise).done(function() {
             overview.showProfile();
             editProfile.fillForm();
