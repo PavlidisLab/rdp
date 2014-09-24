@@ -10,13 +10,14 @@
 	
 	editProfile.saveResearcher = function() {
         var form = $( "#primaryContactForm" );
-        researcherModel.setFirstName( form.find( "#firstName" ).val() );
-        researcherModel.setLastName( form.find( "#lastName" ).val());
-        researcherModel.setDepartment( form.find( "#department" ).val());
-        researcherModel.setOrganization( form.find( "#organization" ).val());
-        researcherModel.setWebsite( form.find( "#website" ).val());
-        researcherModel.setPhone( form.find( "#phone" ).val());
-        researcherModel.setDescription( form.find( "#description" ).val());
+        researcherModel.currentResearcher.firstName = form.find( "#firstName" ).val();
+        researcherModel.currentResearcher.lastName = form.find( "#lastName" ).val();
+        researcherModel.currentResearcher.department = form.find( "#department" ).val();
+        researcherModel.currentResearcher.organization = form.find( "#organization" ).val();
+        researcherModel.currentResearcher.website = form.find( "#website" ).val();
+        researcherModel.currentResearcher.phone = form.find( "#phone" ).val();
+        researcherModel.currentResearcher.description = form.find( "#description" ).val();
+       
         var promise = researcherModel.saveResearcherProfile();
         $.when(promise).done(function() {
         	showMessage( promise.responseJSON.message, $( "#primaryContactMessage" ) );
@@ -30,13 +31,13 @@
 	
 	editProfile.fillForm = function() {
         var form = $( "#primaryContactForm" );
-        form.find( "#firstName" ).val( researcherModel.getFirstName() );
-        form.find( "#lastName" ).val( researcherModel.getLastName() );
-        form.find( "#department" ).val( researcherModel.getDepartment() );
-        form.find( "#organization" ).val( researcherModel.getOrganization() );
-        form.find( "#website" ).val( researcherModel.getWebsite() );
-        form.find( "#phone" ).val( researcherModel.getPhone() );
-        form.find( "#description" ).val( researcherModel.getDescription() );
+        form.find( "#firstName" ).val( researcherModel.currentResearcher.firstName );
+        form.find( "#lastName" ).val( researcherModel.currentResearcher.lastName );
+        form.find( "#department" ).val( researcherModel.currentResearcher.department );
+        form.find( "#organization" ).val( researcherModel.currentResearcher.organization );
+        form.find( "#website" ).val( researcherModel.currentResearcher.website );
+        form.find( "#phone" ).val( researcherModel.currentResearcher.phone );
+        form.find( "#description" ).val( researcherModel.currentResearcher.description );
 	}
 	
 

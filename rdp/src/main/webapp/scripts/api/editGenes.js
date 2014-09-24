@@ -25,21 +25,10 @@
 	
 	editGenes.saveGenes = function() {
 		var table = $( "#geneManagerTable" ).DataTable();
-		var oldGenes = researcherModel.getGenes();
-		var showingGenes = table.columns().data()[0];
-		var geneTiers = table.columns().nodes()[4];
-		for (var i = 0; i < geneTiers.length; i++) {
-		   if (geneTiers[i].firstChild.checked) {
-		      showingGenes[i].tier = geneTiers[i].firstChild.value;
-		   }
-		   else {
-		      showingGenes[i].tier = "TIER2";
-		   }
-		}
-		
+		var showingGenes = getShowingGenes();	
 		var newGenes = showingGenes.concat( hiddenGenes );
-		researcherModel.setGenes( newGenes );
-		researcherModel.addTaxonDescription($( "#taxonCommonNameSelect" ).val(), $( "#taxonDescription" ).val() )
+		researcherModel.currentResearcher.genes = newGenes.slice();
+		researcherModel.currentResearcher.addTaxonDescription($( "#taxonCommonNameSelect" ).val(), $( "#taxonDescription" ).val() )
         var promise = researcherModel.saveResearcherGenes();
         $.when(promise).done(function() {
         	showMessage( promise.responseJSON.message, $( "#geneManagerMessage" ) );
@@ -52,12 +41,30 @@
         });
 	}
 	
+	getShowingGenes = function() {
+	   // Gets showing Genes and updates them with the selected tiers
+	   var table = $( "#geneManagerTable" ).DataTable();
+      var showingGenes = table.columns().data()[0];
+      var geneTiers = table.columns().nodes()[4];
+      for (var i = 0; i < geneTiers.length; i++) {
+         if (geneTiers[i].firstChild.checked) {
+            showingGenes[i].tier = geneTiers[i].firstChild.value;
+         }
+         else {
+            showingGenes[i].tier = "TIER2";
+         }
+      }
+      return showingGenes;
+	}
+	
 	genesChanged = function() {
 	   var table = $( "#geneManagerTable" ).DataTable();
-	   var oldGenes = researcherModel.getGenes();
-	   var showingGenes = table.columns().data()[0];
+	   var oldGenes = researcherModel.currentResearcher.genes;
+	   
+	   var showingGenes = getShowingGenes();  
+	      
 	   var newGenes = showingGenes.concat( hiddenGenes );
-	   return tierChanged || taxonDescriptionChanged || !researcherModel.compareGenes(newGenes,oldGenes);
+	   return taxonDescriptionChanged || !researcherModel.currentResearcher.compareGenes(newGenes);
 	}
 		
 	editGenes.fillForm = function() {
@@ -67,18 +74,22 @@
 	   $.data( taxonSel[0] , 'current', taxonSel.val());
 		$( "#geneManagerTable" ).DataTable().clear();
 		$( "#searchGenesSelect" ).select2("val", "");
-		$( "#taxonDescription" ).val(researcherModel.getTaxonDescriptions()[taxonSel.val()]);
+		$( "#taxonDescription" ).val(researcherModel.currentResearcher.taxonDescriptions[taxonSel.val()]);
 		hiddenGenes = [];
 		var table = $( "#geneManagerTable" ).DataTable();
-		var genes = researcherModel.getGenes();
+		var genes = researcherModel.currentResearcher.genes;
 	    for (var i = 0; i < genes.length; i++) {
+	         // This is important; the genes stored in the table are NOT the same instances 
+	         // as are stored in the currentResearcher. They can be altered without consequence.
+	         var geneClone = genes[i].clone();
+	       
 	       	if ( genes[i].taxon === taxonSel.val() ) {
 	       	   // columns: Object (HIDDEN), Symbol, Alias, Name, Tier
-	       	   geneRow = [genes[i]];
+	       	   geneRow = [geneClone];
 	       	   table.row.add( geneRow );
 	       	}
 	       	else {
-	       		hiddenGenes.push( genes[i] );
+	       		hiddenGenes.push( geneClone );
 	       	}
 	    }
 	    table.draw();
@@ -109,6 +120,12 @@
 	}
 	
 	editGenes.addGeneToTable = function(gene, table) {
+	   
+	   if ( !(gene instanceof researcherModel.Gene ) ){
+	      console.log("Object is not a Gene", gene);
+	      gene = new researcherModel.Gene(gene);
+	   }
+	   
 	   if ( gene == null ) {
 		      showMessage( "Please select a gene to add", $( "#geneManagerMessage" ) );
 		      return;
@@ -128,7 +145,7 @@
 	}
 	editGenes.addSelectedGene = function() {
 		
-	   var gene = $( "#searchGenesSelect" ).select2( "data" );
+	   var gene = new researcherModel.Gene( $( "#searchGenesSelect" ).select2( "data" ) );
 	   var table = $( "#geneManagerTable" ).DataTable();
 	   $( "#searchGenesSelect" ).select2("val", "");
 	   editGenes.addGeneToTable(gene,table);
@@ -169,7 +186,7 @@
 	         // convert object to text symbol + text
 	         // select2 format result looks for the 'text' attr
 	         for (var i = 0; i < response.data[0].length; i++) {
-	            gene = response.data[0][i];
+	            gene = new researcherModel.Gene( response.data[0][i] );
 	            editGenes.addGeneToTable(gene,table);
 	         }
 
@@ -192,6 +209,7 @@
 	   // Initialize datatable
 	   $( "#geneManagerTable" ).dataTable( {
 	      //"scrollX": true,
+	      "order": [[ 1, "asc" ]],
           "aoColumnDefs": [ {
              "defaultContent": "",
              "targets": "_all"
@@ -213,7 +231,7 @@
               "aTargets": [ 2 ],
               "defaultContent": "",
               "mData": function ( source, type, val ) {
-                return researcherModel.aliasesToString( source[0] ) || "";
+                return source[0].aliasesToString() || "";
               }
            },
            {
@@ -284,7 +302,7 @@
                // select2 format result looks for the 'text' attr
                for (var i = 0; i < data.data.length; i++) {
                   gene = data.data[i]
-                  aliasStr = gene.aliases.length > 0 ? "(" + researcherModel.aliasesToString( gene ) + ") " : "";
+                  aliasStr = gene.aliases.length > 0 ? "(" + (new researcherModel.Gene(gene)).aliasesToString() + ") " : "";
                   gene.text = "<b>" + gene.officialSymbol + "</b> " + aliasStr + gene.officialName
                }
                return {

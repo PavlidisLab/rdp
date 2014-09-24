@@ -90,15 +90,15 @@ populateTable = function(id, data, max, editable) {
 overview.showProfile = function() {
     //Fill in overview profile
 	
-	$('#overviewName').text( researcherModel.getFirstName() + " " + researcherModel.getLastName() );
-    $('#overviewEmail').text( researcherModel.getEmail() );
-    $('#overviewOrganisation').text( researcherModel.getOrganization() );
-    if ( researcherModel.getWebsite() !== "" ) {
-       $('#overviewURL').html( "<a href='" + researcherModel.getWebsite() + "' target='_blank'>"+ researcherModel.getWebsite() + "</a>" );
+	$('#overviewName').text( researcherModel.currentResearcher.fullName() );
+    $('#overviewEmail').text( researcherModel.currentResearcher.email );
+    $('#overviewOrganisation').text( researcherModel.currentResearcher.organization );
+    if ( researcherModel.currentResearcher.website ) {
+       $('#overviewURL').html( "<a href='" + researcherModel.currentResearcher.website + "' target='_blank'>"+ researcherModel.currentResearcher.website + "</a>" );
     }
-    $('#overviewFocus').text( researcherModel.getDescription() );
+    $('#overviewFocus').text( researcherModel.currentResearcher.description );
     
-   if ( researcherModel.getFirstName() === ""  && researcherModel.getLastName() === "" ) {
+   if ( researcherModel.currentResearcher.fullName() === "" ) {
 	   showMessage( "<a href='#editProfileModal' class='alert-link' data-toggle='modal'>Missing contact details - Click Here</a>", $("#overviewMessage") );
    }
    else {
@@ -108,7 +108,7 @@ overview.showProfile = function() {
 
 overview.showGenes = function() {
 	$('#overviewGeneBreakdown').html('');
-	var genes = researcherModel.getGenes();
+	var genes = researcherModel.currentResearcher.genes;
 	var genesByTaxon = {};
 	var allTaxons = [];
 	
@@ -131,7 +131,7 @@ overview.showGenes = function() {
 	for (var i=0; i<allTaxons.length; i++) {
 	   taxon = allTaxons[i];
 	   var taxonId = taxon.replace(/ /g,'').replace(/\./g,'');
-	   var taxonDescription = researcherModel.getTaxonDescriptions()[taxon];
+	   var taxonDescription = researcherModel.currentResearcher.taxonDescriptions[taxon];
 	   $('#overviewGeneBreakdown').append(overview.geneTableHTMLBlock(taxon, 'overviewTable'+taxonId));
 	   
 	   if (taxonDescription) {

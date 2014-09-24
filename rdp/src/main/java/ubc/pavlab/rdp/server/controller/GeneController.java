@@ -89,6 +89,7 @@ public class GeneController {
      * @param request
      * @param response
      */
+    @Deprecated
     @RequestMapping("/loadResearcherGenes.html")
     public void loadResearcherGenes( HttpServletRequest request, HttpServletResponse response ) {
         JSONUtil jsonUtil = new JSONUtil( request, response );
