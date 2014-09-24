@@ -48,7 +48,7 @@ overview.geneTableHTMLBlock = function(taxon, id) {
  * @param {array} data - Array of objects containing new data -> [{'symbol':'...','name':'...'}]
  * @param {number} max - maximum number of rows to populate
  */
-overview.populateTable = function(id, data, max, editable) {
+populateTable = function(id, data, max, editable) {
    var taxonId = data[0].taxon.replace(/ /g,'').replace(/\./g,'');
    
    $( "#" + id + " tbody tr" ).remove();
@@ -139,7 +139,7 @@ overview.showGenes = function() {
 	      $('#'+'overviewTable'+taxonId+'BlockDescription').append("<span><em>"+ taxonDescription +"</em></span>");
 	   }
 	   
-	   overview.populateTable('overviewTable'+taxonId, genesByTaxon[taxon] , 5, true)
+	   populateTable('overviewTable'+taxonId, genesByTaxon[taxon] , 5, true)
 	   $("#overview" + taxonId + "Button").click( createModal( taxon, genesByTaxon[taxon] ) ); 
 	   $("#overviewEdit" + taxonId + "Button").click( openGeneManager(taxon) ); 
 	}
@@ -184,7 +184,7 @@ function createModal(taxon, data) {
             $( '#scrapModalFailed' ).after( tableHTML ); 
             scrapModal.removeClass( "bs-example-modal-sm");
             scrapModal.find(".modal-dialog").removeClass("modal-sm");
-            overview.populateTable('scrapModalTable', data , data.length, false)
+            populateTable('scrapModalTable', data , data.length, false)
             scrapModal.find('.modal-header > h4').text(taxon + " Genes Studied").end();
             scrapModal.modal('show');                
    }; 

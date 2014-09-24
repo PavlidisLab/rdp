@@ -222,7 +222,7 @@
 	         }
             if ("UNKNOWN" in data.genes) {
                for (var i=0;i<data.genes.UNKNOWN.length;i++) {
-                  data.genes.UNKNOWN[i].tier = null;
+                  data.genes.UNKNOWN[i].tier = "UNKNOWN";
                }
                genes = genes.concat(data.genes.UNKNOWN);
             }

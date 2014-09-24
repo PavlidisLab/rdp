@@ -1,23 +1,48 @@
    /**
-    * FIXME Needs to be looked at
+    *
     * @memberOf listResearchers
     */
 (function( listResearchers, $, undefined ) {
+   
+   var allResearchers;
 	
-	listResearchers.jsonToResearcherTable = function(response, table) {
+	populateResearcherTable = function(researchers, specificGene) {
+	   table = $("#listResearchersTable").DataTable();
 	    table.clear().draw();
-	    $.each(response, function(i, item) {
+	    $.each(researchers, function(i, item) {
 	        if (!item.contact) {
 	            console.log("Researcher id " + item.id + " has no contact info");
 	            return;
 	        }
+	        
+	        item.allGenes = [];
+	        for (var tier in item.genes) {
+	           if (item.genes.hasOwnProperty(tier)) {
+	              for (var i=0;i<item.genes[tier].length;i++) {
+	                 item.genes[tier][i].tier = tier;
+	                 item.allGenes.push(item.genes[tier][i]);
+	              }
+	           }
+	        }
+	        
+	        if ( specificGene ) {
+	           for (var i=0;i<item.allGenes.length;i++) {
+	              if ( ( item.allGenes[i].officialSymbol == specificGene.officialSymbol ) &&
+	                   ( item.allGenes[i].taxon == specificGene.taxon ) ) {
+	                 var specificTier = item.allGenes[i].tier;
+	              }
+
+	           }
+	        }
+	         
 	
 	        var researcherRow = [ item.contact.userName || "", 
 	                              item.contact.email || "",
 	                              item.contact.firstName || "", 
 	                              item.contact.lastName || "",
 	                              item.organization || "", 
-	                              item.genes.length || 0]
+	                              item.allGenes.length || 0,
+	                              specificTier || ""]
 	        table.row.add(researcherRow).draw();
 	    });
 	}
@@ -38,7 +63,7 @@
 	}
 	
 	
-	listResearchers.showResearchers = function() {
+	listResearchers.getResearchers = function() {
 	   hideMessage($("#listResearchersMessage"));
 	    $.ajax({
 	        cache : false,
@@ -56,8 +81,11 @@
 	               researchers.push( $.parseJSON(json) );
 	            });
 	            console.log("Loaded All Researchers:",researchers);
+	            allResearchers = researchers;
 	            $('#registerTab a[href="#registeredResearchers"]').show();
-	            listResearchers.jsonToResearcherTable(researchers, $("#listResearchersTable").DataTable());
+	            $("#listResearchersTable").DataTable().column(6).visible(false);
+	            $( "#findResearchersByGenesSelect" ).select2("val", "");
+	            populateResearcherTable(researchers);
 	
 	            
 	        },
@@ -82,42 +110,24 @@
 	    } else {
 	       hideMessage( $("#listResearchersMessage") );
 	    }
-	
-	    $.ajax({
-	        url : "findResearchersByGene.html",
-	        data : {
-	            gene : [$.toJSON(gene)],
-	            // gene : '{ "ACOX2:Human" :
-	            // {"ensemblId":"ENSG00000168306","ncbiGeneId":"8309","officialSymbol":"ACOX2","officialName":"acyl-CoA
-	            // oxidase
-	            // 2, branched
-	            // chain","aliases":[{"alias":"THCCox"},{"alias":"BRCACOX"},{"alias":"BRCOX"}],"text":"<b>ACOX2</b>
-	            // (THCCox,BRCACOX,BRCOX) acyl-CoA oxidase 2, branched chain"}}',
-	            taxonCommonName : $("#taxonCommonNameSelectListResearchers").val(),
-	        },
-	        dataType : "json",
-	        success : function(response, xhr) {
-	            // get this from a controller
-	            // var response = '[{"userName":"testUsername2",
-	            // "email":"testEmail2", "firstName":"testFirstname2",
-	            // "lastName":"testLastname2", "organization":"testOrganization2",
-	            // "department":"testDepartment2" }]';
-	
-	            showMessage(response.message, $("#listResearchersMessage"));
-	
-               var data = $.parseJSON(response.data);
-               var researchers = [];
-               $.each(data, function(index, json) {
-                  researchers.push( $.parseJSON(json) );
-               });
-	            
-	            listResearchers.jsonToResearcherTable(researchers, $("#listResearchersTable").DataTable());
+	    
+	    researchers = [];
+	    
+	    for (var i=0;i<allResearchers.length;i++) {
+	       for (var j=0;j<allResearchers[i].allGenes.length;j++) {
+	          var gene2 = allResearchers[i].allGenes[j];
+             if ( ( gene.officialSymbol == gene2.officialSymbol ) &&
+                ( gene.taxon == gene2.taxon ) ) {
+                researchers.push(allResearchers[i]);
+                continue;
+                
+             }
+	       }
+	    }
+	    
+	    $("#listResearchersTable").DataTable().column(6).visible(true);
+	    populateResearcherTable(researchers, gene);
 
-	        },
-	        error : function(response, xhr) {
-	            showMessage(response.message, $("#listResearchersMessage"));
-	        }
-	    });
 	}
 
 }( window.listResearchers = window.listResearchers || {}, jQuery ));
@@ -130,9 +140,9 @@ $(document).ready(function() {
     $("#navbarUsername").on("loginSuccess", function(event, response) {
         // Only show Researchers tab if current user is "admin"
         if (jQuery.parseJSON(response).isAdmin == "true") {
-        	listResearchers.showResearchers();
+        	listResearchers.getResearchers();
         	$("#updateCache").click(listResearchers.updateCache)
-        	$("#resetResearchersButton").click(listResearchers.showResearchers)
+        	$("#resetResearchersButton").click(listResearchers.getResearchers)
         }
     });
 

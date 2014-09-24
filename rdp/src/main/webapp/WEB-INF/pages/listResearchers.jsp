@@ -47,6 +47,7 @@
 					<th>Last name</th>
 					<th>Organization</th>
 					<th>Genes Count</th>
+					<th>Tier</th>
 				</tr>
 			</thead>
 
@@ -58,6 +59,7 @@
 					<th>Last name</th>
 					<th>Organization</th>
 					<th>Genes Count</th>
+					<th>Tier</th>
 				</tr>
 			</tfoot>
 
@@ -78,7 +80,7 @@
 	
 	<div class="row">
 		<button type="button" id="updateCache"
-			class="btn btn-default">
+			class="btn btn-danger">
 			<span class="">Update Cache</span>
 		</button>
 	</div>
