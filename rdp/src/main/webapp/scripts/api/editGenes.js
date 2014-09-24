@@ -73,8 +73,7 @@
 		var genes = researcherModel.getGenes();
 	    for (var i = 0; i < genes.length; i++) {
 	       	if ( genes[i].taxon === taxonSel.val() ) {
-	       	   // columns: Symbol, Alias, Name, ncbiGeneId (HIDDEN)
-	       	   //geneRow = [ genes[i].officialSymbol, researcherModel.aliasesToString( genes[i] ), genes[i].officialName, genes[i] ];
+	       	   // columns: Object (HIDDEN), Symbol, Alias, Name, Tier
 	       	   geneRow = [genes[i]];
 	       	   table.row.add( geneRow );
 	       	}
@@ -117,15 +116,12 @@
 	      hideMessage( $( "#geneManagerMessage" ) );
 	   }
 
-	   //FIXME column(0) now holds objects
-	   if ( table.column(0).data().indexOf(gene.officialSymbol) != -1 ) {
+	   if ( table.column(1).data().indexOf(gene.officialSymbol) != -1 ) {
 	      showMessage( "Gene already added", $( "#geneManagerMessage" ) );
 	      return;
 	   }
 	   
-	   // columns: Symbol, Alias, Name, ncbiGeneId (HIDDEN)
-	   //researcherModel.addGene(gene);
-	   //geneRow = [ gene.officialSymbol, researcherModel.aliasesToString( gene ), gene.officialName, gene.ncbiGeneId ];
+	   // columns: Object (HIDDEN), Symbol, Alias, Name, Tier
 	   geneRow = [gene];
 	   table.row.add( geneRow ).draw();
 		
