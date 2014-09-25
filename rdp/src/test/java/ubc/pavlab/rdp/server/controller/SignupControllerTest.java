@@ -111,7 +111,7 @@ public class SignupControllerTest extends BaseSpringContextTest {
         }
 
         int waits = 0;
-        int maxWaits = 20;
+        int maxWaits = 30;
         int expectedEventCount = numThreads * numsignupsperthread;
         while ( c.get() < expectedEventCount && !failed.get() ) {
             Thread.sleep( 5000 );
