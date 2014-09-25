@@ -27,6 +27,10 @@
 			class="btn btn-default">
 			<span class="glyphicon glyphicon-search"></span>
 		</button>
+		<button type="button" id="resetResearchersButton"
+			class="btn btn-default">
+			<span class="glyphicon glyphicon-repeat"></span>
+		</button>
 	</div>
 
 	<!-- empty filler -->
@@ -37,23 +41,27 @@
 			width="100%">
 			<thead>
 				<tr>
+					<th>Index</th>
 					<th>Username</th>
 					<th>Email</th>
 					<th>First name</th>
 					<th>Last name</th>
 					<th>Organization</th>
-					<th>Department</th>
+					<th>Genes Count</th>
+					<th>Tier</th>
 				</tr>
 			</thead>
 
 			<tfoot>
 				<tr>
+					<th>Index</th>
 					<th>Username</th>
 					<th>Email</th>
 					<th>First name</th>
 					<th>Last name</th>
 					<th>Organization</th>
-					<th>Department</th>
+					<th>Genes Count</th>
+					<th>Tier</th>
 				</tr>
 			</tfoot>
 
@@ -74,10 +82,9 @@
 	
 	<div class="row">
 		<button type="button" id="updateCache"
-			class="btn btn-default">
+			class="btn btn-danger">
 			<span class="">Update Cache</span>
 		</button>
-	</div>
 	
 </div>
 

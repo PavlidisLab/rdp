@@ -74,7 +74,7 @@ public class ResearcherDaoImpl extends DaoBaseImpl<Researcher> implements Resear
 
     @Override
     public Collection<Researcher> findByGene( final Gene gene ) {
-        String hql = "SELECT r FROM Researcher r INNER JOIN r.genes g WITH g.id = :geneId";
+        String hql = "SELECT r FROM Researcher r INNER JOIN r.geneAssociations g WHERE g.pk.gene.id = :geneId";
         Collection<Researcher> results = this.getHibernateTemplate().findByNamedParam( hql, "geneId", gene.getId() );
         return results;
     }
@@ -103,7 +103,7 @@ public class ResearcherDaoImpl extends DaoBaseImpl<Researcher> implements Resear
         }
 
         Hibernate.initialize( researcher.getContact() );
-        Hibernate.initialize( researcher.getGenes() );
+        // Hibernate.initialize( researcher.getGenes() );
         Hibernate.initialize( researcher.getTaxons() );
         Hibernate.initialize( researcher.getPublications() );
         Hibernate.initialize( researcher.getDescription() );

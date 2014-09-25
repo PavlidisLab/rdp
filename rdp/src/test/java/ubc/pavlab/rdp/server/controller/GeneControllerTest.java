@@ -46,7 +46,6 @@ import ubc.pavlab.rdp.server.model.Gene;
 import ubc.pavlab.rdp.server.model.Researcher;
 import ubc.pavlab.rdp.server.model.common.auditAndSecurity.User;
 import ubc.pavlab.rdp.server.ncbi.NcbiCache;
-import ubc.pavlab.rdp.server.ncbi.NcbiCacheTest;
 import ubc.pavlab.rdp.server.service.GeneService;
 import ubc.pavlab.rdp.server.service.ResearcherService;
 import ubc.pavlab.rdp.testing.BaseSpringContextTest;
@@ -60,6 +59,9 @@ import ubc.pavlab.rdp.testing.BaseSpringContextTest;
 @RunWith(SpringJUnit4ClassRunner.class)
 @WebAppConfiguration
 public class GeneControllerTest extends BaseSpringContextTest {
+
+    @Autowired
+    private GeneController geneController;
 
     @Autowired
     private NcbiCache cache;
@@ -86,8 +88,8 @@ public class GeneControllerTest extends BaseSpringContextTest {
 
     private MockMvc mockMvc;
 
-    private void createResearcher( String userName ) {
-        researcher = researcherService.findByUserName( userName );
+    private Researcher findOrCreateResearcher( String userName ) {
+        Researcher researcher = researcherService.findByUserName( userName );
         if ( researcher == null ) {
             User contact = ( User ) userService.findByUserName( userName );
             researcher = new Researcher();
@@ -96,35 +98,29 @@ public class GeneControllerTest extends BaseSpringContextTest {
 
             assertEquals( researcher.getId(), researcherService.findByUserName( userName ).getId() );
         }
-    }
-
-    private void createGene() {
-        gene = new Gene();
-        gene.setEnsemblId( "ENSG00000105393" );
-        gene.setOfficialSymbol( "BABAM1" );
-        gene.setOfficialName( "BRISC and BRCA1" );
-        gene.setNcbiGeneId( "12345" );
-        gene.setTaxon( taxon );
-    }
-
-    private void createBadGene() {
-        badGene = new Gene();
-        badGene.setNcbiGeneId( "12345" );
+        return researcher;
     }
 
     @Before
     public void setup() {
         this.mockMvc = MockMvcBuilders.webAppContextSetup( this.wac ).build();
 
-        createResearcher( "administrator" );
-        createGene();
-        createBadGene();
+        researcher = findOrCreateResearcher( "administrator" );
+        gene = new Gene( "12345", taxon, "BABAM1", "BRISC and BRCA1", "alias-a1,alias-a2" );
+        badGene = new Gene();
+        badGene.setNcbiGeneId( "12345" );
     }
 
     @After
     public void tearDown() {
         try {
-            geneService.delete( gene );
+            researcher.setContact( null ); // Set to null so that deleting the researcher won't delete the user...
+            researcherService.delete( researcher );
+            // geneService.delete( gene );
+            // geneService.delete( badGene );
+
+            Gene savedGene = geneService.findByOfficialSymbol( "BABAM1", taxon );
+            geneService.delete( savedGene );
 
             // don't delete the administrator researcher anymore
             // researcherService.delete( researcher );
@@ -133,17 +129,37 @@ public class GeneControllerTest extends BaseSpringContextTest {
         }
     }
 
+    /**
+     * Initializes the cache and genes with sample data
+     * 
+     * @param cache
+     * @param genes
+     * @param taxon
+     */
+    private static void initCache( NcbiCache cache, Collection<Gene> genes, String taxon ) {
+        genes.add( new Gene( "1", taxon, "aaa", "gene aa", "alias-a1,alias-a2" ) ); // match symbol exact first
+        genes.add( new Gene( "2", taxon, "aaaab", "gene ab", "alias-ab,alias-ab2" ) ); // match symbol partial
+                                                                                       // second
+        genes.add( new Gene( "3", taxon, "dddd", "aaa gene dd", "alias-dd1,alias-dd2" ) ); // match name third
+        genes.add( new Gene( "4", taxon, "ccccc", "gene ccc", "alias-cc1,aaaalias-cc2" ) ); // match alias fourth
+        genes.add( new Gene( "5", taxon, "caaaa", "gene ca", "alias-ca1,alias-ca2" ) ); // not symbol suffix
+        genes.add( new Gene( "6", taxon, "bbb", "gene bbaaaa", "alias-b1" ) ); // not name suffix
+        genes.add( new Gene( "7", "Fish", "aaafish", "gene aa", "alias-a1,alias-a2" ) ); // not taxon
+
+        cache.putAll( genes );
+    }
+
     @Test
     public void testSaveLoadResearcherGenes() throws Exception {
 
-        String genesJsonOks = ( new JSONObject( gene ) ).toString();
-        String genesJsonMissingInfos = ( new JSONObject( badGene ) ).toString();
+        String genesJsonOk = ( new JSONObject( gene ) ).toString();
+        String genesJsonMissingInfo = ( new JSONObject( badGene ) ).toString();
 
         // this doesn't work, officialSymbol and taxon is required for all genes
         this.mockMvc
                 .perform(
                         put( "/saveResearcherGenes.html" ).contentType( MediaType.APPLICATION_JSON )
-                                .param( "genes[]", genesJsonMissingInfos ).param( "taxonCommonName", taxon )
+                                .param( "genes[]", genesJsonMissingInfo ).param( "taxonCommonName", taxon )
                                 .param( "taxonDescriptions", "{}" ) ).andExpect( status().isOk() )
                 .andExpect( jsonPath( "$.success" ).value( false ) );
 
@@ -151,7 +167,7 @@ public class GeneControllerTest extends BaseSpringContextTest {
         this.mockMvc
                 .perform(
                         put( "/saveResearcherGenes.html" ).contentType( MediaType.APPLICATION_JSON )
-                                .param( "genes[]", genesJsonOks ).param( "taxonCommonName", taxon )
+                                .param( "genes[]", genesJsonOk ).param( "taxonCommonName", taxon )
                                 .param( "taxonDescriptions", "{}" ) ).andExpect( status().isOk() )
                 .andExpect( jsonPath( "$.success" ).value( true ) );
 
@@ -161,13 +177,14 @@ public class GeneControllerTest extends BaseSpringContextTest {
                         get( "/loadResearcherGenes.html" ).contentType( MediaType.APPLICATION_JSON ).param(
                                 "taxonCommonName", taxon ) ).andExpect( status().isOk() )
                 .andExpect( jsonPath( "$.success" ).value( true ) )
-                .andExpect( jsonPath( "$.data[0].officialSymbol" ).value( gene.getOfficialSymbol() ) );
+                .andExpect( jsonPath( "$.data[0].officialSymbol" ).value( gene.getOfficialSymbol() ) )
+                .andExpect( jsonPath( "$.data[0].taxon" ).value( taxon ) );
     }
 
     @Test
     public void testFindGenesByGeneSymbols() throws Exception {
         Collection<Gene> genes = new HashSet<>();
-        NcbiCacheTest.initCache( cache, genes, taxon );
+        initCache( cache, genes, taxon );
         this.mockMvc
                 .perform(
                         get( "/findGenesByGeneSymbols.html" ).contentType( MediaType.APPLICATION_JSON )
@@ -176,5 +193,27 @@ public class GeneControllerTest extends BaseSpringContextTest {
                 .andExpect( jsonPath( "$.message" ).value( "1 symbols not found: NOT_FOUND" ) )
                 .andExpect( jsonPath( "$.data[0][0].officialSymbol" ).value( "aaaab" ) )
                 .andExpect( jsonPath( "$.data[0][1].officialSymbol" ).value( "aaa" ) );
+    }
+
+    @Test
+    public void testSearchGenes() throws Exception {
+        Collection<Gene> genes = new HashSet<>();
+        initCache( cache, genes, taxon );
+        this.mockMvc
+                .perform(
+                        get( "/searchGenes.html" ).contentType( MediaType.APPLICATION_JSON ).param( "query", "aAa" )
+                                .param( "taxon", taxon ) ).andExpect( status().isOk() )
+                .andExpect( jsonPath( "$.success" ).value( true ) )
+                .andExpect( jsonPath( "$.data[0].officialSymbol" ).value( "aaa" ) )
+                .andExpect( jsonPath( "$.data[1].officialSymbol" ).value( "aaaab" ) )
+                .andExpect( jsonPath( "$.data[2].officialSymbol" ).value( "dddd" ) )
+                .andExpect( jsonPath( "$.data[3].officialSymbol" ).value( "ccccc" ) );
+
+        this.mockMvc
+                .perform(
+                        get( "/searchGenes.html" ).contentType( MediaType.APPLICATION_JSON ).param( "query", "aAa" )
+                                .param( "taxon", "Fish" ) ).andExpect( status().isOk() )
+                .andExpect( jsonPath( "$.success" ).value( true ) )
+                .andExpect( jsonPath( "$.data[0].officialSymbol" ).value( "aaafish" ) );
     }
 }

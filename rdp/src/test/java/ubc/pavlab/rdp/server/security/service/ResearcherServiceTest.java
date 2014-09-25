@@ -28,16 +28,18 @@ import static org.junit.Assert.fail;
 import gemma.gsec.authentication.UserDetailsImpl;
 import gemma.gsec.authentication.UserManager;
 
-import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import ubc.pavlab.rdp.server.dao.ResearcherDao;
 import ubc.pavlab.rdp.server.model.Gene;
+import ubc.pavlab.rdp.server.model.GeneAssociation.TierType;
 import ubc.pavlab.rdp.server.model.Researcher;
 import ubc.pavlab.rdp.server.model.common.auditAndSecurity.User;
 import ubc.pavlab.rdp.server.security.authentication.UserService;
@@ -69,14 +71,28 @@ public class ResearcherServiceTest extends BaseSpringContextTest {
     GeneService geneService;
 
     private Researcher researcher;
+    private Gene gene1;
+    private Gene gene2;
+
     private String email = "foobar@email.com";
     private String username = "foobar";
     private String department = "dept";
 
     @Before
     public void setUp() {
-        researcher = researcherService.findByEmail( email );
+        researcher = createResearcher( username, email, department );
+        gene1 = new Gene( "1", "human", "aaa", "gene aa", "alias-a1,alias-a2" );
+        gene2 = new Gene( "7", "Fish", "aaafish", "gene aa", "alias-a1,alias-a2" );
+
+    }
+
+    @After
+    public void tearDown() {
         researcherService.delete( researcher );
+        geneService.delete( gene1 );
+        geneService.delete( gene2 );
+        assertNull( researcherService.findByEmail( email ) );
+        assertNull( userService.findByEmail( email ) );
     }
 
     private User createUser( String username, String email ) {
@@ -106,55 +122,40 @@ public class ResearcherServiceTest extends BaseSpringContextTest {
 
         try {
             assertNull( researcherService.findByEmail( "noEmail" ) );
-
-            researcher = createResearcher( username, email, department );
             assertNotNull( researcher );
-            researcher = researcherService.findByEmail( email );
-            assertNotNull( researcher );
-            assertNotNull( researcher.getContact() );
-            assertEquals( email, researcher.getContact().getEmail() );
-            assertEquals( department, researcher.getDepartment() );
+            Researcher r = researcherService.findByEmail( email );
+            assertNotNull( r );
+            assertNotNull( r.getContact() );
+            assertEquals( email, r.getContact().getEmail() );
+            assertEquals( department, r.getDepartment() );
             assertNotNull( userService.findByEmail( email ) );
-            assertEquals( 0, researcher.getGenes().size() );
-            assertEquals( 0, researcher.getTaxons().size() );
-            assertEquals( 0, researcher.getPublications().size() );
+            assertEquals( 0, r.getGenes().size() );
+            assertEquals( 0, r.getTaxons().size() );
+            assertEquals( 0, r.getPublications().size() );
         } catch ( Exception e ) {
             e.printStackTrace();
-            researcherService.delete( researcher );
-            assertNull( researcherService.findByEmail( email ) );
             fail( e.getMessage() );
         }
-        researcherService.delete( researcher );
-        assertNull( researcherService.findByEmail( email ) );
-        assertNull( userService.findByEmail( email ) );
     }
 
     @Test
     public void testFindByGene() throws Exception {
-
-        Gene gene = new Gene();
-        gene.setEnsemblId( "ENSG123" );
-        gene.setNcbiGeneId( "12345" );
-        gene.setOfficialSymbol( "ABC" );
-        // geneService.create( gene );
-        Collection<Gene> genes = new HashSet<>();
-        genes.add( gene );
+        HashMap<Gene, TierType> genes = new HashMap<Gene, TierType>();
+        genes.put( gene1, TierType.UNKNOWN );
 
         try {
-            researcher = createResearcher( username, email, department );
             assertNotNull( researcher );
-            Collection<Researcher> researchers = researcherService.findByGene( gene );
+            Collection<Researcher> researchers = researcherService.findByGene( gene1 );
             assertEquals( 0, researchers.size() );
             assertTrue( researcherService.addGenes( researcher, genes ) );
-            researchers = researcherService.findByGene( gene );
+            researchers = researcherService.findByGene( gene1 );
             assertEquals( 1, researchers.size() );
+            researchers = researcherService.findByGene( gene2 );
+            assertEquals( 0, researchers.size() );
         } catch ( Exception e ) {
             e.printStackTrace();
-            researcherService.delete( researcher );
-            assertNull( researcherService.findByUserName( username ) );
             fail( e.getMessage() );
         }
-        researcherService.delete( researcher );
     }
 
     @Test
@@ -162,126 +163,127 @@ public class ResearcherServiceTest extends BaseSpringContextTest {
 
         try {
             assertNull( researcherService.findByUserName( "noUsername" ) );
-
-            researcher = createResearcher( username, email, department );
             assertNotNull( researcher );
-            researcher = researcherService.findByUserName( username );
-            assertNotNull( researcher );
-            assertNotNull( researcher.getContact() );
-            assertEquals( email, researcher.getContact().getEmail() );
-            assertEquals( department, researcher.getDepartment() );
+            Researcher r = researcherService.findByUserName( username );
+            assertNotNull( r );
+            assertNotNull( r.getContact() );
+            assertEquals( email, r.getContact().getEmail() );
+            assertEquals( department, r.getDepartment() );
             assertNotNull( userService.findByUserName( username ) );
         } catch ( Exception e ) {
             e.printStackTrace();
-            researcherService.delete( researcher );
-            assertNull( researcherService.findByUserName( username ) );
             fail( e.getMessage() );
         }
-        researcherService.delete( researcher );
-        assertNull( researcherService.findByUserName( username ) );
-        assertNull( userService.findByUserName( username ) );
     }
 
     @Test
-    public void testSaveFirstName() throws Exception {
+    public void testUpdateEmail() throws Exception {
 
         String newEmail = "newEmail@email.com";
 
         try {
-            researcher = createResearcher( username, email, department );
-            User contact = researcher.getContact();
+            Researcher r = researcherService.findByEmail( email );
+            User contact = r.getContact();
             assertNotNull( contact );
             assertEquals( email, contact.getEmail() );
             contact.setEmail( newEmail );
-            researcherService.update( researcher );
-            contact = ( User ) userManager.findbyEmail( newEmail );
-            assertNotNull( contact );
-            assertEquals( newEmail, contact.getEmail() );
+            researcherService.update( r );
+
+            r = researcherService.findByEmail( email );
+            assertNull( r );
+            r = researcherService.findByEmail( newEmail );
+            assertNotNull( r );
+            assertEquals( newEmail, r.getContact().getEmail() );
         } catch ( Exception e ) {
             e.printStackTrace();
-            researcherService.delete( researcher );
             fail( e.getMessage() );
         }
-
-        researcherService.delete( researcher );
     }
 
     @Test
     public void testUpdateGene() throws Exception {
-        String officialSymbol = "GENEA";
-        Gene gene = new Gene( officialSymbol );
-        Collection<Gene> genes = new ArrayList<>();
-        genes.add( gene );
+        HashMap<Gene, TierType> genes = new HashMap<Gene, TierType>();
+        genes.put( gene1, TierType.UNKNOWN );
 
-        String officialSymbol2 = "GENE2";
-        Gene gene2 = new Gene( officialSymbol2 );
-        Collection<Gene> genes2 = new ArrayList<>();
-        genes2.add( gene2 );
+        HashMap<Gene, TierType> genes2 = new HashMap<Gene, TierType>();
+        genes2.put( gene2, TierType.UNKNOWN );
 
         try {
-            // gene hasn't been created yet
-            researcher = createResearcher( username, email, department );
+            // gene hasn't been assigned yet
             assertEquals( 0, researcher.getGenes().size() );
-            assertEquals( 0, geneService.findByOfficialSymbol( officialSymbol ).size() );
+            // assertEquals( 0, geneService.findByOfficialSymbol( officialSymbol ).size() );
+            assertNull( geneService.findByOfficialSymbol( "aaa", "human" ) );
 
-            // now we create the gene and assign it to the researcher
+            // now we assign it to the researcher
             assertTrue( researcherService.addGenes( researcher, genes ) );
             assertEquals( 1, researcher.getGenes().size() );
-            assertEquals( officialSymbol, researcher.getGenes().iterator().next().getOfficialSymbol() );
-            assertEquals( 1, geneService.findByOfficialSymbol( officialSymbol ).size() );
+            assertEquals( "aaa", researcher.getGenes().iterator().next().getOfficialSymbol() );
+            assertEquals( 1, geneService.findByOfficialSymbol( "aaa" ).size() );
 
             // now we update or replace the gene list
             assertTrue( researcherService.updateGenes( researcher, genes2 ) );
-            assertEquals( officialSymbol2, researcher.getGenes().iterator().next().getOfficialSymbol() );
+            assertEquals( "aaafish", researcher.getGenes().iterator().next().getOfficialSymbol() );
 
         } catch ( Exception e ) {
             e.printStackTrace();
-            researcherService.delete( researcher );
             fail( e.getMessage() );
         }
-
-        researcherService.delete( researcher );
-        geneService.delete( gene );
     }
 
     @Test
     public void testAddRemoveGene() throws Exception {
-        String officialSymbol = "GENEA";
-        Gene gene = new Gene( officialSymbol );
-        Collection<Gene> genes = new ArrayList<>();
-        genes.add( gene );
+        HashMap<Gene, TierType> genes = new HashMap<Gene, TierType>();
+        genes.put( gene1, TierType.UNKNOWN );
+        Collection<Gene> genesColl = new HashSet<>();
+        genesColl.add( gene1 );
 
         try {
 
-            // gene hasn't been created yet
-            researcher = createResearcher( username, email, department );
+            // gene hasn't been assigned yet
             assertEquals( 0, researcher.getGenes().size() );
-            assertEquals( 0, geneService.findByOfficialSymbol( officialSymbol ).size() );
+            // assertEquals( 0, geneService.findByOfficialSymbol( officialSymbol ).size() );
+            assertNull( geneService.findByOfficialSymbol( "aaa", "human" ) );
 
-            // now we create the gene and assign it to the researcher
+            // now we assign it to the researcher
             assertTrue( researcherService.addGenes( researcher, genes ) );
             assertEquals( 1, researcher.getGenes().size() );
-            assertEquals( officialSymbol, researcher.getGenes().iterator().next().getOfficialSymbol() );
-            assertEquals( 1, geneService.findByOfficialSymbol( officialSymbol ).size() );
+            assertEquals( "aaa", researcher.getGenes().iterator().next().getOfficialSymbol() );
+            assertEquals( 1, geneService.findByOfficialSymbol( "aaa" ).size() );
 
             // duplicate genes aren't allowed
             assertFalse( researcherService.addGenes( researcher, genes ) );
             assertEquals( 1, researcher.getGenes().size() );
-            assertEquals( officialSymbol, researcher.getGenes().iterator().next().getOfficialSymbol() );
-            assertEquals( 1, geneService.findByOfficialSymbol( officialSymbol ).size() );
+            assertEquals( "aaa", researcher.getGenes().iterator().next().getOfficialSymbol() );
+            assertEquals( 1, geneService.findByOfficialSymbol( "aaa" ).size() );
 
             // lets delete
-            assertTrue( researcherService.removeGenes( researcher, genes ) );
+            assertTrue( researcherService.removeGenes( researcher, genesColl ) );
             assertEquals( 0, researcher.getGenes().size() );
-            assertEquals( 1, geneService.findByOfficialSymbol( officialSymbol ).size() ); // keep the gene in case other
-                                                                                          // researchers use it
+            assertEquals( 1, geneService.findByOfficialSymbol( "aaa" ).size() ); // keep the gene in case other
+                                                                                 // researchers use it
         } catch ( Exception e ) {
             e.printStackTrace();
-            researcherService.delete( researcher );
+            fail( e.getMessage() );
+        }
+    }
+
+    @Test
+    public void testLoadAll() throws Exception {
+        try {
+            Collection<Researcher> researchers = researcherService.loadAll();
+            assertEquals( 1, researchers.size() );
+
+            Researcher r = createResearcher( "testtesttest", "test@testtest.com", "testtesttest" );
+            researchers = researcherService.loadAll();
+            assertEquals( 2, researchers.size() );
+
+            researcherService.delete( r );
+            researchers = researcherService.loadAll();
+            assertEquals( 1, researchers.size() );
+        } catch ( Exception e ) {
+            e.printStackTrace();
             fail( e.getMessage() );
         }
 
-        researcherService.delete( researcher );
-        geneService.delete( gene );
     }
 }

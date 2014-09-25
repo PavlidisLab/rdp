@@ -1,5 +1,5 @@
 <div class="container">
-	<form id="overview" class="form-horizontal" role="form">
+	<form id="overviewForm" class="form-horizontal" role="form">
 
 		<div class="alert alert-warning" id="overviewFailed"
 			hidden="true">
@@ -19,7 +19,7 @@
 		
 		<div class="form-group">
 			<div class="col-sm-offset-3 col-sm-6 text-center">
-				<h3>Personal Profile</h4>
+				<h3>Personal Profile</h3>
 			</div>
 		</div>
 		
@@ -91,7 +91,7 @@
 		
 		<div class="form-group">
 			<div class="col-sm-offset-3 col-sm-6 text-center">
-				<h3>Model Organisms Studied</h4>
+				<h3>Model Organisms Studied</h3>
 			</div>
 		</div>
 		

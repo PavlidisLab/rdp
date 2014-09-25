@@ -4,35 +4,16 @@
 		cellspacing="0" width="100%">
 		<thead>
 			<tr>
+				<th>Data</th>
 				<th>Symbol</th>
 				<th>Alias</th>
 				<th>Name</th>
+				<th>Primary?</th>
 			</tr>
 		</thead>
 
-		<!-- 	<tfoot>
-		<tr>
-            <th>Symbol</th>
-            <th>Alias</th>
-            <th>Name</th>
-		</tr>
-	</tfoot> -->
-
 		<tbody>
-			<!--  
-        <tr>
-                <td>testUsername</td>
-                <td>testEmail</td>
-                <td>testFirstname</td>
-                <td>testLastname</td>
-                <td>testOrganization</td>
-                <td>testDepartment</td>
-            </tr>
-        -->
 		</tbody>
 	</table>
 	</div>
 </div>
-
-<!-- Our scripts 
-<script src="scripts/api/geneManagerTable.js"></script>-->

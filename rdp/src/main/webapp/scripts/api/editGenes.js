@@ -5,6 +5,7 @@
 
 	var hiddenGenes = [];
 	var taxonDescriptionChanged = false;
+	var tierChanged = false;
 	
 	editGenes.beforeCloseGeneModal = function(event) {
 	   if ( genesChanged() ) {
@@ -24,58 +25,78 @@
 	
 	editGenes.saveGenes = function() {
 		var table = $( "#geneManagerTable" ).DataTable();
-		var oldGenes = researcherModel.getGenes();
-		var showingGenes = table.columns().data()[0];
+		var showingGenes = getShowingGenes();	
 		var newGenes = showingGenes.concat( hiddenGenes );
-		researcherModel.setGenes( newGenes );
-		researcherModel.addTaxonDescription($( "#taxonCommonNameSelect" ).val(), $( "#taxonDescription" ).val() )
+		researcherModel.currentResearcher.genes = newGenes.slice();
+		researcherModel.currentResearcher.addTaxonDescription($( "#taxonCommonNameSelect" ).val(), $( "#taxonDescription" ).val() )
         var promise = researcherModel.saveResearcherGenes();
         $.when(promise).done(function() {
         	showMessage( promise.responseJSON.message, $( "#geneManagerMessage" ) );
         	
-        	var defs = [researcherModel.loadResearcherProfile(),researcherModel.loadResearcherGenes()];
-        	$.when.apply(null, defs).done(function() {
+        	promise = researcherModel.loadResearcher();
+        	$.when(promise).done(function() {
 	        	overview.showGenes();
 	        	editGenes.fillForm();
         	});
         });
 	}
 	
+	getShowingGenes = function() {
+	   // Gets showing Genes and updates them with the selected tiers
+	   var table = $( "#geneManagerTable" ).DataTable();
+      var showingGenes = table.columns().data()[0];
+      var geneTiers = table.columns().nodes()[4];
+      for (var i = 0; i < geneTiers.length; i++) {
+         if (geneTiers[i].firstChild.checked) {
+            showingGenes[i].tier = geneTiers[i].firstChild.value;
+         }
+         else {
+            showingGenes[i].tier = "TIER2";
+         }
+      }
+      return showingGenes;
+	}
+	
 	genesChanged = function() {
 	   var table = $( "#geneManagerTable" ).DataTable();
-	   var oldGenes = researcherModel.getGenes();
-	   var showingGenes = table.columns().data()[0];
+	   var oldGenes = researcherModel.currentResearcher.genes;
+	   
+	   var showingGenes = getShowingGenes();  
+	      
 	   var newGenes = showingGenes.concat( hiddenGenes );
-	   return taxonDescriptionChanged || !researcherModel.compareGenes(newGenes,oldGenes);
+	   return taxonDescriptionChanged || !researcherModel.currentResearcher.compareGenes(newGenes);
 	}
 		
 	editGenes.fillForm = function() {
-	   console.log(researcherModel.getTaxonDescriptions());
 	   taxonDescriptionChanged = false;
+	   tierChanged = false;
 	   var taxonSel = $( "#taxonCommonNameSelect" );
 	   $.data( taxonSel[0] , 'current', taxonSel.val());
 		$( "#geneManagerTable" ).DataTable().clear();
 		$( "#searchGenesSelect" ).select2("val", "");
-		$( "#taxonDescription" ).val(researcherModel.getTaxonDescriptions()[taxonSel.val()]);
+		$( "#taxonDescription" ).val(researcherModel.currentResearcher.taxonDescriptions[taxonSel.val()]);
 		hiddenGenes = [];
 		var table = $( "#geneManagerTable" ).DataTable();
-		var genes = researcherModel.getGenes();
+		var genes = researcherModel.currentResearcher.genes;
 	    for (var i = 0; i < genes.length; i++) {
+	         // This is important; the genes stored in the table are NOT the same instances 
+	         // as are stored in the currentResearcher. They can be altered without consequence.
+	         var geneClone = genes[i].clone();
+	       
 	       	if ( genes[i].taxon === taxonSel.val() ) {
-	       	   // columns: Symbol, Alias, Name, ncbiGeneId (HIDDEN)
-	       	   //geneRow = [ genes[i].officialSymbol, researcherModel.aliasesToString( genes[i] ), genes[i].officialName, genes[i] ];
-	       	   geneRow = [genes[i], "",""];
+	       	   // columns: Object (HIDDEN), Symbol, Alias, Name, Tier
+	       	   geneRow = [geneClone];
 	       	   table.row.add( geneRow );
 	       	}
 	       	else {
-	       		hiddenGenes.push( genes[i] );
+	       		hiddenGenes.push( geneClone );
 	       	}
 	    }
 	    table.draw();
+	    $(".datatable-checkbox > :checkbox").on('change',function() {tierChanged = true})
 	}
 	
 	editGenes.changeOrganism = function() {
-	   console.log("changed");
 	   var newVal = $(this).val();
 	   $( this ).val( $.data(this, 'current') );
 	   
@@ -99,6 +120,12 @@
 	}
 	
 	editGenes.addGeneToTable = function(gene, table) {
+	   
+	   if ( !(gene instanceof researcherModel.Gene ) ){
+	      console.log("Object is not a Gene", gene);
+	      gene = new researcherModel.Gene(gene);
+	   }
+	   
 	   if ( gene == null ) {
 		      showMessage( "Please select a gene to add", $( "#geneManagerMessage" ) );
 		      return;
@@ -106,22 +133,19 @@
 	      hideMessage( $( "#geneManagerMessage" ) );
 	   }
 
-	   //FIXME column(0) now holds objects
-	   if ( table.column(0).data().indexOf(gene.officialSymbol) != -1 ) {
+	   if ( table.column(1).data().indexOf(gene.officialSymbol) != -1 ) {
 	      showMessage( "Gene already added", $( "#geneManagerMessage" ) );
 	      return;
 	   }
 	   
-	   // columns: Symbol, Alias, Name, ncbiGeneId (HIDDEN)
-	   //researcherModel.addGene(gene);
-	   //geneRow = [ gene.officialSymbol, researcherModel.aliasesToString( gene ), gene.officialName, gene.ncbiGeneId ];
-	   geneRow = [gene, "",""];
+	   // columns: Object (HIDDEN), Symbol, Alias, Name, Tier
+	   geneRow = [gene];
 	   table.row.add( geneRow ).draw();
 		
 	}
 	editGenes.addSelectedGene = function() {
 		
-	   var gene = $( "#searchGenesSelect" ).select2( "data" );
+	   var gene = new researcherModel.Gene( $( "#searchGenesSelect" ).select2( "data" ) );
 	   var table = $( "#geneManagerTable" ).DataTable();
 	   $( "#searchGenesSelect" ).select2("val", "");
 	   editGenes.addGeneToTable(gene,table);
@@ -162,7 +186,7 @@
 	         // convert object to text symbol + text
 	         // select2 format result looks for the 'text' attr
 	         for (var i = 0; i < response.data[0].length; i++) {
-	            gene = response.data[0][i];
+	            gene = new researcherModel.Gene( response.data[0][i] );
 	            editGenes.addGeneToTable(gene,table);
 	         }
 
@@ -185,6 +209,44 @@
 	   // Initialize datatable
 	   $( "#geneManagerTable" ).dataTable( {
 	      //"scrollX": true,
+	      "order": [[ 1, "asc" ]],
+          "aoColumnDefs": [ {
+             "defaultContent": "",
+             "targets": "_all"
+              },
+           {
+              "aTargets": [ 0 ],
+              "defaultContent": "",
+              "visible":false,
+              "searchable":false
+           },
+           {
+              "aTargets": [ 1 ],
+              "defaultContent": "",
+              "mData": function ( source, type, val ) {
+                return source[0].officialSymbol || "";
+              }
+           },
+           {
+              "aTargets": [ 2 ],
+              "defaultContent": "",
+              "mData": function ( source, type, val ) {
+                return source[0].aliasesToString() || "";
+              }
+           },
+           {
+              "aTargets": [ 3 ],
+              "defaultContent": "",
+              "mData": function ( source, type, val ) {
+                return source[0].officialName || "";
+              }
+           },
+           {
+              "aTargets": [ 4 ],
+              "defaultContent": "",
+              "sWidth":"12%",
+              "sClass":"text-center datatable-checkbox"
+            }],
 	      "searching": false,
 	      dom: 'T<"clear">lfrtip',
 	      tableTools: {
@@ -194,9 +256,23 @@
 	                        "select_none" ]
 	      },
 	      "fnRowCallback": function( nRow, aData, iDisplayIndex ) {
+	         // Keep in mind that $('td:eq(0)', nRow) refers to the first DISPLAYED column
+	         // whereas aData[0] refers to the data in the first column, hidden or not
 	         $('td:eq(0)', nRow).html('<a href="' + "http://www.ncbi.nlm.nih.gov/gene/" + aData[0].ncbiGeneId + '" target="_blank">'+ aData[0].officialSymbol + '</a>');
-	         $('td:eq(1)', nRow).html(researcherModel.aliasesToString( aData[0] ));
-	         $('td:eq(2)', nRow).html(aData[0].officialName);
+	         //$('td:eq(1)', nRow).html(researcherModel.aliasesToString( aData[0] ));
+	         //$('td:eq(2)', nRow).html(aData[0].officialName);
+	         
+	         var inputHTML = '<input type="checkbox" id="rowSelect'+aData[0].ncbiGeneId+'"value="TIER1"></input>'
+	         
+	         if ( aData[0].tier ) {
+	            // If this gene has an associated tier and it is TIER1 check the box
+	            var n = inputHTML.indexOf('value="'+aData[0].tier+'"')
+	            if (n > -1) {
+	               inputHTML = inputHTML.slice(0, n) + 'checked="checked" ' + inputHTML.slice(n);
+	            }
+	         }
+	         $('td:eq(3)', nRow).html(inputHTML);
+	         
 	         //$('td:eq(1)', nRow).html(aData[1].replace( /,/g, ", " )); // DataTables causes some visual bugs when there are no spaces
 	         return nRow;
 	      },
@@ -226,7 +302,7 @@
                // select2 format result looks for the 'text' attr
                for (var i = 0; i < data.data.length; i++) {
                   gene = data.data[i]
-                  aliasStr = gene.aliases.length > 0 ? "(" + researcherModel.aliasesToString( gene ) + ") " : "";
+                  aliasStr = gene.aliases.length > 0 ? "(" + (new researcherModel.Gene(gene)).aliasesToString() + ") " : "";
                   gene.text = "<b>" + gene.officialSymbol + "</b> " + aliasStr + gene.officialName
                }
                return {

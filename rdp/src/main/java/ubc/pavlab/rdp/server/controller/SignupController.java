@@ -81,6 +81,7 @@ public class SignupController extends BaseController {
 
             if ( userManager.loggedIn() ) {
                 userName = userManager.getCurrentUsername();
+                log.info( userName + " has logged in." );
                 jsonText = "{\"success\":true,\"user\":\"" + userName + "\",\"isAdmin\":\""
                         + SecurityUtil.isUserAdmin() + "\"}";
             } else {

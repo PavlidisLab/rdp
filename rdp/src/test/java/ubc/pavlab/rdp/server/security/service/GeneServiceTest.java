@@ -20,15 +20,19 @@
 package ubc.pavlab.rdp.server.security.service;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
 
-import org.junit.After;
+import java.util.HashMap;
+
+import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import ubc.pavlab.rdp.server.dao.GeneDao;
 import ubc.pavlab.rdp.server.model.Gene;
+import ubc.pavlab.rdp.server.model.GeneAssociation.TierType;
 import ubc.pavlab.rdp.server.service.GeneService;
 import ubc.pavlab.rdp.testing.BaseSpringContextTest;
 
@@ -47,26 +51,68 @@ public class GeneServiceTest extends BaseSpringContextTest {
     GeneService geneService;
 
     private Gene gene;
-    private String officialSymbol = "GENEA";
+    private Gene gene2;
+    private Gene gene3;
+    private String officialSymbol = "aaa";
+    private String taxon = "human";
+
+    private String officialSymbol2 = "aaafish";
+    private String taxon2 = "Fish";
 
     @Before
     public void setUp() {
-        gene = new Gene( officialSymbol );
-        gene = geneService.create( gene );
-        assertNotNull( gene.getId() );
-        assertEquals( officialSymbol, gene.getOfficialSymbol() );
-    }
-
-    @After
-    public void tearDown() {
-        geneService.delete( gene );
-        assertEquals( 0, geneService.findByOfficialSymbol( officialSymbol ).size() );
+        gene = new Gene( "1", taxon, officialSymbol, "gene aa", "alias-a1,alias-a2" );
+        gene2 = new Gene( "2", taxon2, officialSymbol2, "gene aa", "alias-a1,alias-a2" );
+        gene3 = new Gene( "3", taxon2, officialSymbol, "gene aa", "alias-a1,alias-a2" );
     }
 
     @Test
-    public void testFindBySymbol() {
-        assertEquals( gene.getOfficialSymbol(), geneService.findByOfficialSymbol( officialSymbol ).iterator().next()
+    public void testFindByOfficialSymbol() {
+        Gene savedGene = geneService.create( gene );
+        Gene savedGene2 = geneService.create( gene2 );
+        Gene savedGene3 = geneService.create( gene3 );
+
+        assertEquals( savedGene.getOfficialSymbol(), geneService.findByOfficialSymbol( officialSymbol, taxon )
                 .getOfficialSymbol() );
-        assertEquals( 0, geneService.findByOfficialSymbol( "GENE_DOES_NOT_EXIST" ).size() );
+        assertEquals( savedGene2.getOfficialSymbol(), geneService.findByOfficialSymbol( officialSymbol2, taxon2 )
+                .getOfficialSymbol() );
+        assertEquals( savedGene3.getOfficialSymbol(), geneService.findByOfficialSymbol( officialSymbol, taxon2 )
+                .getOfficialSymbol() );
+
+        assertEquals( 2, geneService.findByOfficialSymbol( officialSymbol ).size() );
+        assertEquals( 1, geneService.findByOfficialSymbol( officialSymbol2 ).size() );
+
+        geneService.delete( savedGene );
+        assertNull( geneService.findByOfficialSymbol( officialSymbol, taxon ) );
+        geneService.delete( savedGene2 );
+        assertNull( geneService.findByOfficialSymbol( officialSymbol2, taxon2 ) );
+        geneService.delete( savedGene3 );
+        assertNull( geneService.findByOfficialSymbol( officialSymbol, taxon2 ) );
+
     }
+
+    @Test
+    public void testDeserializeGenes() {
+        Gene badGene = new Gene();
+        badGene.setNcbiGeneId( "4" );
+
+        String[] genesJsonOk = new String[] { ( new JSONObject( gene ) ).toString(),
+                ( new JSONObject( gene2 ) ).toString() };
+        String[] genesJsonMissingInfo = new String[] { ( new JSONObject( badGene ) ).toString() };
+
+        HashMap<Gene, TierType> results = geneService.deserializeGenes( genesJsonOk );
+        assertEquals( 2, results.size() );
+
+        for ( Gene g : results.keySet() ) {
+            geneService.delete( g );
+        }
+
+        try {
+            results = geneService.deserializeGenes( genesJsonMissingInfo );
+            fail( "Method should throw IllegalArgumentException" );
+        } catch ( IllegalArgumentException e ) {
+        }
+
+    }
+
 }

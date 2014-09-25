@@ -17,6 +17,7 @@ package ubc.pavlab.rdp.server.model;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -33,6 +34,9 @@ import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
+import org.json.JSONObject;
+
+import ubc.pavlab.rdp.server.model.GeneAssociation.TierType;
 import ubc.pavlab.rdp.server.model.common.auditAndSecurity.User;
 
 @Entity
@@ -103,6 +107,9 @@ public class Researcher implements Serializable {
         return new ArrayList<Researcher>();
     }
 
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, mappedBy = "pk.researcher", orphanRemoval = true)
+    private Set<GeneAssociation> geneAssociations = new HashSet<GeneAssociation>();
+
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "RESEARCHER_ID")
     private Set<TaxonDescription> taxonDescriptions = new HashSet<>();
@@ -111,9 +118,12 @@ public class Researcher implements Serializable {
     @JoinTable(name = "RESEARCHER_TAXONS", joinColumns = { @JoinColumn(name = "RESEARCHER_ID") }, inverseJoinColumns = { @JoinColumn(name = "TAXON_ID") })
     private Set<Taxon> taxons = new HashSet<>();
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    @JoinTable(name = "RESEARCHER_GENES", joinColumns = { @JoinColumn(name = "RESEARCHER_ID") }, inverseJoinColumns = { @JoinColumn(name = "GENE_ID") })
-    private Set<Gene> genes = new HashSet<>();
+    /*
+     * @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+     * 
+     * @JoinTable(name = "RESEARCHER_GENES", joinColumns = { @JoinColumn(name = "RESEARCHER_ID") }, inverseJoinColumns =
+     * { @JoinColumn(name = "GENE_ID") }) private Set<Gene> genes = new HashSet<>();
+     */
 
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(name = "RESEARCHER_PUBLICATIONS", joinColumns = { @JoinColumn(name = "RESEARCHER_ID") }, inverseJoinColumns = { @JoinColumn(name = "PUBLICATION_ID") })
@@ -153,6 +163,23 @@ public class Researcher implements Serializable {
         return "id=" + id + " username=" + contact.getUserName();
     }
 
+    public JSONObject toJSON() {
+        JSONObject jsonObj = new JSONObject();
+        jsonObj.put( "contact", new JSONObject( this.contact ) );
+        jsonObj.put( "department", this.department );
+        jsonObj.put( "description", this.description );
+        jsonObj.put( "id", this.id );
+        jsonObj.put( "organization", this.organization );
+        jsonObj.put( "phone", this.phone );
+        jsonObj.put( "website", this.website );
+        jsonObj.put( "description", this.description );
+
+        jsonObj.put( "taxonDescriptions", this.taxonDescriptions );
+
+        jsonObj.put( "genes", new JSONObject( this.getGenesByTier() ) );
+        return jsonObj;
+    }
+
     public String getPhone() {
         return phone;
     }
@@ -169,8 +196,8 @@ public class Researcher implements Serializable {
         this.website = website;
     }
 
-    public Collection<Gene> getGenes() {
-        return genes;
+    public Collection<GeneAssociation> getGeneAssociations() {
+        return geneAssociations;
     }
 
     public Collection<TaxonDescription> getTaxonDescriptions() {
@@ -189,8 +216,8 @@ public class Researcher implements Serializable {
         this.taxons = taxons;
     }
 
-    public void setGenes( Set<Gene> genes ) {
-        this.genes = genes;
+    public void setGeneAssociations( Set<GeneAssociation> genes ) {
+        this.geneAssociations = genes;
     }
 
     public void updateTaxonDescription( String taxon, String description ) {
@@ -207,12 +234,12 @@ public class Researcher implements Serializable {
         this.publications = publications;
     }
 
-    public boolean addGene( final Gene gene ) {
-        return this.genes.add( gene );
+    public boolean addGeneAssociation( final GeneAssociation gene ) {
+        return this.geneAssociations.add( gene );
     }
 
-    public boolean removeGene( final Gene gene ) {
-        return this.genes.remove( gene );
+    public boolean removeGeneAssociation( final GeneAssociation gene ) {
+        return this.geneAssociations.remove( gene );
     }
 
     public boolean addPublication( final Publication publication ) {
@@ -221,5 +248,57 @@ public class Researcher implements Serializable {
 
     public void removePublication( final Publication publication ) {
         this.publications.remove( publication );
+    }
+
+    public Collection<Gene> getGenes() {
+        Collection<Gene> genes = new HashSet<Gene>();
+        for ( GeneAssociation g : geneAssociations ) {
+            genes.add( g.getGene() );
+        }
+
+        return genes;
+    }
+
+    public Collection<GeneAssociation> getGeneAssociatonsFromGenes( Collection<Gene> genes ) {
+        Collection<GeneAssociation> geneAssociations = new HashSet<GeneAssociation>();
+        for ( Gene g : genes ) {
+            for ( GeneAssociation gA : this.geneAssociations ) {
+                if ( gA.getGene().getId() == g.getId() ) {
+                    geneAssociations.add( gA );
+                }
+            }
+        }
+
+        return geneAssociations;
+    }
+
+    public GeneAssociation getGeneAssociatonFromGene( Gene gene ) {
+        for ( GeneAssociation gA : this.geneAssociations ) {
+            if ( gA.getGene().getId() == gene.getId() ) {
+                return gA;
+            }
+        }
+
+        return null;
+    }
+
+    public HashMap<TierType, Collection<Gene>> getGenesByTier() {
+        HashMap<TierType, Collection<Gene>> genesbyTier = new HashMap<TierType, Collection<Gene>>();
+
+        Collection<GeneAssociation> geneAssociations = this.getGeneAssociations();
+
+        for ( GeneAssociation ga : geneAssociations ) {
+            Collection<Gene> genes = genesbyTier.get( ga.getTier() );
+            // never storing null values so this is fine
+            if ( genes != null ) {
+                genes.add( ga.getGene() );
+            } else {
+                genes = new HashSet<Gene>();
+                genes.add( ga.getGene() );
+                genesbyTier.put( ga.getTier(), genes );
+            }
+        }
+
+        return genesbyTier;
     }
 }

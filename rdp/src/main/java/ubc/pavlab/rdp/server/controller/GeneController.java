@@ -26,6 +26,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -44,6 +46,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import ubc.pavlab.rdp.server.exception.NcbiServiceException;
 import ubc.pavlab.rdp.server.model.Gene;
+import ubc.pavlab.rdp.server.model.GeneAssociation.TierType;
 import ubc.pavlab.rdp.server.model.Researcher;
 import ubc.pavlab.rdp.server.model.common.auditAndSecurity.User;
 import ubc.pavlab.rdp.server.ncbi.NcbiQueryService;
@@ -86,6 +89,7 @@ public class GeneController {
      * @param request
      * @param response
      */
+    @Deprecated
     @RequestMapping("/loadResearcherGenes.html")
     public void loadResearcherGenes( HttpServletRequest request, HttpServletResponse response ) {
         JSONUtil jsonUtil = new JSONUtil( request, response );
@@ -118,8 +122,8 @@ public class GeneController {
                 } );
             }
 
-            jsonText = "{\"success\":true,\"data\":" + ( new JSONArray( researcher.getGenes() ) ).toString() + "}";
-            log.info( "Loaded " + researcher.getGenes().size() + " genes" );
+            jsonText = "{\"success\":true,\"data\":" + ( new JSONArray( genes ) ).toString() + "}";
+            log.info( "Loaded " + genes.size() + " genes" );
 
         } catch ( Exception e ) {
             jsonText = "{\"success\":false,\"message\":\"" + e.getLocalizedMessage() + "\"}";
@@ -144,7 +148,7 @@ public class GeneController {
 
         String jsonText = null;
         JSONUtil jsonUtil = new JSONUtil( request, response );
-        String genesJSON = request.getParameter( "gene" );
+        String[] genesJSON = request.getParameterValues( "gene[]" );
         String taxonCommonName = request.getParameter( "taxonCommonName" );
 
         Collection<Researcher> researchers = new HashSet<>();
@@ -153,11 +157,18 @@ public class GeneController {
 
             JSONObject json = new JSONObject();
 
-            for ( Gene gene : deserealizeGenes( genesJSON ) ) {
+            for ( Entry<Gene, TierType> entry : geneService.deserializeGenes( genesJSON ).entrySet() ) {
+                Gene gene = entry.getKey();
+                TierType tier = entry.getValue();
                 researchers.addAll( researcherService.findByGene( gene ) );
             }
 
-            JSONArray array = new JSONArray( researchers );
+            Set<String> researchersJson = new HashSet<String>();
+            for ( Researcher r : researchers ) {
+                researchersJson.add( r.toJSON().toString() );
+            }
+
+            JSONArray array = new JSONArray( researchersJson );
 
             json.put( "data", array.toString() );
             json.put( "success", true );
@@ -175,65 +186,6 @@ public class GeneController {
             jsonUtil.writeToResponse( jsonText );
         }
 
-    }
-
-    /**
-     * Returns a collection of Gene objects from the json. Requires the gene.officialSymbol to be the key, eg.
-     * "{ "BRCA1:Human" : { "ensembleId" : "ENSG001234", "ncbiId" : "1234" } }
-     *
-     * @param genesJSON - a JSON representation of an array of Genes
-     * @return
-     */
-    private Collection<Gene> deserealizeGenes( String genesJSON ) {
-        Collection<Gene> results = new HashSet<>();
-        JSONObject json = new JSONObject( genesJSON );
-
-        for ( Object key : json.keySet() ) {
-            String[] symbol = ( ( String ) key ).split( ":" );
-
-            if ( symbol.length != 2 ) {
-                throw new IllegalArgumentException( "Key must have the format GENE_SYMBOL:TAXON" );
-            }
-
-            // try looking for an existing one
-            Gene geneFound = geneService.findByOfficialSymbol( symbol[0], symbol[1] );
-            if ( !( geneFound == null ) ) {
-                results.add( geneFound );
-            } else {
-
-                // it doesn't exist yet
-                // biomartService.fetchGenesByGeneSymbols( geneSymbols )
-                Gene gene = new Gene();
-                gene.parseJSON( json.get( ( String ) key ).toString() );
-                log.info( "Creating new gene: " + gene.toString() );
-                results.add( geneService.create( gene ) );
-            }
-        }
-        return results;
-    }
-
-    private Collection<Gene> deserealizeGenes( String[] genesJSON ) {
-        Collection<Gene> results = new HashSet<>();
-        for ( int i = 0; i < genesJSON.length; i++ ) {
-            JSONObject json = new JSONObject( genesJSON[i] );
-            String symbol = json.getString( "officialSymbol" );
-            String taxon = json.getString( "taxon" );
-            if ( symbol.equals( "" ) || taxon.equals( "" ) ) {
-                throw new IllegalArgumentException( "Every gene must have an assigned symbol and organism." );
-            }
-            Gene geneFound = geneService.findByOfficialSymbol( symbol, taxon );
-            if ( !( geneFound == null ) ) {
-                results.add( geneFound );
-            } else {
-                // it doesn't exist yet
-                Gene gene = new Gene();
-                gene.parseJSON( genesJSON[i] );
-                log.info( "Creating new gene: " + gene.toString() );
-                results.add( geneService.create( gene ) );
-            }
-        }
-
-        return results;
     }
 
     @RequestMapping("/saveResearcherGenes.html")
@@ -267,9 +219,10 @@ public class GeneController {
             }
 
             // Update Genes
-            Collection<Gene> genes = new HashSet<>();
-            genes.addAll( deserealizeGenes( genesJSON ) );
-            researcherService.updateGenes( researcher, genes ); // This updates the researcher persistence for both
+            researcherService.updateGenes( researcher, geneService.deserializeGenes( genesJSON ) ); // This updates the
+                                                                                                    // researcher
+                                                                                                    // persistence for
+                                                                                                    // both
 
             JSONObject json = new JSONObject();
             json.put( "success", true );
@@ -302,16 +255,18 @@ public class GeneController {
         String jsonText = null;
         try {
             ncbiQueryService.clearCache();
-            ncbiQueryService.updateCacheIfExpired();
+            int cacheSize = ncbiQueryService.updateCache();
 
             JSONObject json = new JSONObject();
             json.append( "success", true );
-            json.append( "success", "loaded genes to cache" );
+            json.append( "message", "Cache size: " + cacheSize );
             jsonText = json.toString();
         } catch ( Exception e ) {
-            e.printStackTrace();
             log.error( e.getMessage(), e );
-            jsonText = "{\"success\":false,\"message\":" + e.getMessage() + "\"}";
+            JSONObject json = new JSONObject();
+            json.append( "success", false );
+            json.append( "message", e.getMessage() );
+            jsonText = json.toString();
         } finally {
             jsonUtil.writeToResponse( jsonText );
         }
@@ -368,7 +323,6 @@ public class GeneController {
             }
             jsonText = json.toString();
         } catch ( NcbiServiceException e ) {
-            e.printStackTrace();
             log.error( e.getMessage(), e );
             jsonText = "{\"success\":false,\"message\":" + e.getMessage() + "\"}";
         }
@@ -393,7 +347,6 @@ public class GeneController {
             Collection<Gene> results = ncbiQueryService.findGenes( query, taxon );
             jsonText = "{\"success\":true,\"data\":" + ( new JSONArray( results ) ).toString() + "}";
         } catch ( NcbiServiceException e ) {
-            e.printStackTrace();
             log.error( e.getMessage(), e );
             jsonText = "{\"success\":false,\"message\":" + e.getMessage() + "\"}";
         }

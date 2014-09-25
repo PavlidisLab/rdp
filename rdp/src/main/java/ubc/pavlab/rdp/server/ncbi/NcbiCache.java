@@ -60,4 +60,7 @@ public interface NcbiCache {
     public Collection<Gene> fetchGenesByGeneSymbolsAndTaxon( Collection<String> geneSymbols, String taxon );
 
     public void clearAll();
+
+    public int size();
+
 }

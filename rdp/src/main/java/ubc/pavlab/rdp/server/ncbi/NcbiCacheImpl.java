@@ -157,6 +157,11 @@ public class NcbiCacheImpl extends SearchableEhcache<Gene> implements NcbiCache 
         removeAll();
     }
 
+    @Override
+    public int size() {
+        return getSize();
+    }
+
     @SuppressWarnings("unused")
     @PostConstruct
     private void initialize() {

@@ -70,6 +70,7 @@ h3 {text-decoration: underline;}
 		<!-- Navigation bar -->
 		<%@ include file="navbar.jsp"%>
 
+		<div id="container">
 		<!-- Nav tabs -->
 		<ul id="registerTab" class="nav nav-tabs" role="tablist">
 
@@ -92,6 +93,7 @@ h3 {text-decoration: underline;}
 				<%@ include file="listResearchers.jsp"%>
 			</div>
 
+		</div>
 		</div>
 
 	</div>
