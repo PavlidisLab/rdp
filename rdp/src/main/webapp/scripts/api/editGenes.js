@@ -256,7 +256,7 @@
 	                        "select_none" ]
 	      },
 	      "fnRowCallback": function( nRow, aData, iDisplayIndex ) {
-	         // Keep in mind that $('td:eq(1)', nRow) refers to the first DISPLAYED column
+	         // Keep in mind that $('td:eq(0)', nRow) refers to the first DISPLAYED column
 	         // whereas aData[0] refers to the data in the first column, hidden or not
 	         $('td:eq(0)', nRow).html('<a href="' + "http://www.ncbi.nlm.nih.gov/gene/" + aData[0].ncbiGeneId + '" target="_blank">'+ aData[0].officialSymbol + '</a>');
 	         //$('td:eq(1)', nRow).html(researcherModel.aliasesToString( aData[0] ));

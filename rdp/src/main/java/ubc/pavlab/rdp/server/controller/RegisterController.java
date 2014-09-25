@@ -165,6 +165,8 @@ public class RegisterController extends BaseController {
             } else {
                 // JSONObject json = new JSONObject( user );
                 JSONObject json = ( ( Researcher ) user ).toJSON();
+                log.info( "Loaded Researcher from account: (" + username + "). Account contains "
+                        + ( ( Researcher ) user ).getGenes().size() + " Genes." );
                 jsonText = "{\"success\":true, \"data\":" + json.toString() + "}";
                 // log.debug( "Success! json=" + jsonText );
             }
@@ -179,6 +181,41 @@ public class RegisterController extends BaseController {
             }
         }
 
+    }
+
+    /**
+     * AJAX entry point. Delete User
+     * 
+     * @param request
+     * @param response
+     * @throws IOException
+     */
+    @RequestMapping("/deleteUser.html")
+    public void deleteUser( HttpServletRequest request, HttpServletResponse response ) throws IOException {
+        String userName = request.getParameter( "userName" );
+
+        JSONUtil jsonUtil = new JSONUtil( request, response );
+
+        String jsonText = null;
+
+        try {
+            Researcher r = researcherService.findByUserName( userName );
+            researcherService.delete( r );
+            JSONObject json = new JSONObject();
+            json.put( "success", true );
+            json.put( "message", "User: (" + userName + ") deleted." );
+            jsonText = json.toString();
+        } catch ( Exception e ) {
+            log.error( e.getLocalizedMessage(), e );
+            JSONObject json = new JSONObject();
+            json.put( "success", false );
+            json.put( "message", "An error occurred!" );
+            json.put( "error", e.getLocalizedMessage() );
+            jsonText = json.toString();
+            log.info( jsonText );
+        } finally {
+            jsonUtil.writeToResponse( jsonText );
+        }
     }
 
 }

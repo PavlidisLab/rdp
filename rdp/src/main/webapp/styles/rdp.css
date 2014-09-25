@@ -30,3 +30,9 @@
 .form-control::-webkit-input-placeholder {
   color: #A9A9A9;
 }
+
+.nav-tabs > li .close {
+    margin: -2px 0 0 10px;
+    font-size: 18px;
+    color: red;
+}

@@ -52,7 +52,7 @@ populateTable = function(id, data, max, editable) {
    var taxonId = data[0].taxon.replace(/ /g,'').replace(/\./g,'');
    
    $( "#" + id + " tbody tr" ).remove();
-   max = Math.min( max, data.length );
+   max = max ? Math.min( max, data.length ) : data.length;
    var url;
    var urlBase = "http://www.ncbi.nlm.nih.gov/gene/"
    for ( var i = 0; i < max; i++ ) {   
@@ -64,13 +64,13 @@ populateTable = function(id, data, max, editable) {
       $( '#' +id + '> tbody:last' ).append( '<tr><td><a href="' + url + '" target="_blank">'+ data[i].officialSymbol + '</a></td><td>'+ data[i].officialName + '</td><td>'+ tier + '</td></tr>' );
    }
    
-   var seeAllButtonHTML = ( max < data.length ) ? '<button type="button" id="overview' + taxonId + 'Button" \
+   var seeAllButtonHTML = ( max < data.length ) ? '<button type="button" id="overviewSeeAllButton' + taxonId + '" \
                                                       class="btn btn-default btn-xs" data-toggle="tooltip" \
                                                       data-placement="bottom" title="See all genes"> \
                                                       <span>See All</span> \
                                                    </button>' : '';
    
-   var editButton = ( editable ) ? '<button type="button" id="overviewEdit' + taxonId + 'Button" \
+   var editButton = ( editable ) ? '<button type="button" id="overviewEditButton' + taxonId + '" \
                                     class="btn btn-default btn-xs" data-toggle="tooltip" \
                                     data-placement="bottom" title="Edit genes"> \
                                     <span>Edit</span> \
@@ -87,18 +87,32 @@ populateTable = function(id, data, max, editable) {
    
 };
 
-overview.showProfile = function() {
+overview.showButtons = function() {
+   $('#overviewEditDescriptionButton').show();
+   $('*[id^="overviewEditButton"]').show();
+   $('*[id^="overviewSeeAllButton"]').show();
+}
+
+overview.hideButtons = function() {
+   $('#overviewEditDescriptionButton').hide();
+   $('*[id^="overviewEditButton"]').hide();
+   $('*[id^="overviewSeeAllButton"]').hide();
+}
+
+overview.showProfile = function(researcher) {
     //Fill in overview profile
-	
-	$('#overviewName').text( researcherModel.currentResearcher.fullName() );
-    $('#overviewEmail').text( researcherModel.currentResearcher.email );
-    $('#overviewOrganisation').text( researcherModel.currentResearcher.organization );
-    if ( researcherModel.currentResearcher.website ) {
-       $('#overviewURL').html( "<a href='" + researcherModel.currentResearcher.website + "' target='_blank'>"+ researcherModel.currentResearcher.website + "</a>" );
+	researcher = researcher || researcherModel.currentResearcher;
+	$('#overviewName').text( researcher.fullName() || "" );
+    $('#overviewEmail').text( researcher.email || "" );
+    $('#overviewOrganisation').text( researcher.organization || "" );
+    if ( researcher.website ) {
+       $('#overviewURL').html( "<a href='" + researcher.website + "' target='_blank'>"+ researcher.website + "</a>" );
+    } else {
+       $('#overviewURL').html("");
     }
-    $('#overviewFocus').text( researcherModel.currentResearcher.description );
+    $('#overviewFocus').text( researcher.description || "" );
     
-   if ( researcherModel.currentResearcher.fullName() === "" ) {
+   if ( researcher.fullName() === "" ) {
 	   showMessage( "<a href='#editProfileModal' class='alert-link' data-toggle='modal'>Missing contact details - Click Here</a>", $("#overviewMessage") );
    }
    else {
@@ -106,9 +120,11 @@ overview.showProfile = function() {
    }
 }
 
-overview.showGenes = function() {
+overview.showGenes = function(researcher, showAll) {
+   researcher = researcher || researcherModel.currentResearcher;
+   showAll = showAll || false;
 	$('#overviewGeneBreakdown').html('');
-	var genes = researcherModel.currentResearcher.genes;
+	var genes = researcher.genes;
 	var genesByTaxon = {};
 	var allTaxons = [];
 	
@@ -131,17 +147,17 @@ overview.showGenes = function() {
 	for (var i=0; i<allTaxons.length; i++) {
 	   taxon = allTaxons[i];
 	   var taxonId = taxon.replace(/ /g,'').replace(/\./g,'');
-	   var taxonDescription = researcherModel.currentResearcher.taxonDescriptions[taxon];
+	   var taxonDescription = researcher.taxonDescriptions[taxon];
 	   $('#overviewGeneBreakdown').append(overview.geneTableHTMLBlock(taxon, 'overviewTable'+taxonId));
 	   
 	   if (taxonDescription) {
-	      taxonDescription = taxonDescription.length > 100 ? taxonDescription.substring(0,100) + "..." : taxonDescription;
+	      taxonDescription = taxonDescription.length > 100 && !showAll ? taxonDescription.substring(0,100) + "..." : taxonDescription;
 	      $('#'+'overviewTable'+taxonId+'BlockDescription').append("<span><em>"+ taxonDescription +"</em></span>");
 	   }
-	   
-	   populateTable('overviewTable'+taxonId, genesByTaxon[taxon] , 5, true)
-	   $("#overview" + taxonId + "Button").click( createModal( taxon, genesByTaxon[taxon] ) ); 
-	   $("#overviewEdit" + taxonId + "Button").click( openGeneManager(taxon) ); 
+	   var maxGenes = showAll ? null : 5;
+	   populateTable('overviewTable'+taxonId, genesByTaxon[taxon] , maxGenes, true)
+	   $("#overviewSeeAllButton" + taxonId).click( createModal( taxon, genesByTaxon[taxon] ) ); 
+	   $("#overviewEditButton" + taxonId).click( openGeneManager(taxon) ); 
 	}
 	
    if ( genes.length === 0 ) {
@@ -153,9 +169,9 @@ overview.showGenes = function() {
 	
 }
 
-overview.showOverview = function() {
-	overview.showProfile();
-	overview.showGenes();
+overview.showOverview = function(researcher, showAll) {
+	overview.showProfile(researcher);
+	overview.showGenes(researcher, showAll);
 }
 var scrapModal = $('#scrapModal').modal({
    backdrop: true,

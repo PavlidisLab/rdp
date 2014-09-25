@@ -41,6 +41,7 @@
 			width="100%">
 			<thead>
 				<tr>
+					<th>Index</th>
 					<th>Username</th>
 					<th>Email</th>
 					<th>First name</th>
@@ -53,6 +54,7 @@
 
 			<tfoot>
 				<tr>
+					<th>Index</th>
 					<th>Username</th>
 					<th>Email</th>
 					<th>First name</th>
@@ -83,7 +85,6 @@
 			class="btn btn-danger">
 			<span class="">Update Cache</span>
 		</button>
-	</div>
 	
 </div>
 

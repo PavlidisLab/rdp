@@ -4,6 +4,7 @@
 (function( researcherModel, $, undefined ) {
    
    researcherModel.Researcher = function Researcher() {
+      this.userName = "";
       this.firstName = "";
       this.lastName = "";
       this.organization = "";
@@ -139,6 +140,7 @@
       this.firstName = contact.firstName;
       this.lastName = contact.lastName;
       this.email = contact.email;
+      this.userName = contact.userName;
    }
    
    researcherModel.Gene = function Gene(geneValueObject) {
