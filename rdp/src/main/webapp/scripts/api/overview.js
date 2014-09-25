@@ -16,7 +16,8 @@ $( document ).ready( function() {
  * @param {string} id - HTML DOM ID, MUST BE UNIQUE!
  * @return {string} HTML block
  */
-overview.geneTableHTMLBlock = function(taxon, id) {
+overview.geneTableHTMLBlock = function(taxon, id, explicitTiers) {
+   var header = explicitTiers ? "Tier" : "Primary?";
    var htmlBlock =  '<div id="' + id + 'Block" class="form-group"> \
                         <div class = "col-sm-offset-3 col-sm-6 text-center"> \
                            <h4>' + taxon + '</h4> \
@@ -30,7 +31,7 @@ overview.geneTableHTMLBlock = function(taxon, id) {
                                  <tr> \
                                     <th>Symbol</th> \
                                     <th>Name</th> \
-                                    <th>Primary?</th> \
+                                    <th>'+header+'</th> \
                                  </tr> \
                               </thead> \
                               <tbody> \
@@ -48,18 +49,22 @@ overview.geneTableHTMLBlock = function(taxon, id) {
  * @param {array} data - Array of objects containing new data -> [{'symbol':'...','name':'...'}]
  * @param {number} max - maximum number of rows to populate
  */
-populateTable = function(id, data, max, editable) {
+populateTable = function(id, data, max, editable, explicitTiers) {
    var taxonId = data[0].taxon.replace(/ /g,'').replace(/\./g,'');
-   
    $( "#" + id + " tbody tr" ).remove();
    max = max ? Math.min( max, data.length ) : data.length;
    var url;
    var urlBase = "http://www.ncbi.nlm.nih.gov/gene/"
+            
    for ( var i = 0; i < max; i++ ) {   
       url = urlBase + data[i].ncbiGeneId;
       var tier = "";
       if (data[i].tier) {
-         tier = data[i].tier === "TIER1" ? '<span class="glyphicon glyphicon-ok"></span>' : "";
+         if (explicitTiers) {
+            tier = data[i].tier;
+         } else {
+            tier = data[i].tier === "TIER1" ? '<span class="glyphicon glyphicon-ok"></span>' : "";
+         }
       }
       $( '#' +id + '> tbody:last' ).append( '<tr><td><a href="' + url + '" target="_blank">'+ data[i].officialSymbol + '</a></td><td>'+ data[i].officialName + '</td><td>'+ tier + '</td></tr>' );
    }
@@ -120,9 +125,10 @@ overview.showProfile = function(researcher) {
    }
 }
 
-overview.showGenes = function(researcher, showAll) {
+overview.showGenes = function(researcher, showAll, explicitTiers) {
    researcher = researcher || researcherModel.currentResearcher;
    showAll = showAll || false;
+   explicitTiers = explicitTiers || false;
 	$('#overviewGeneBreakdown').html('');
 	var genes = researcher.genes;
 	var genesByTaxon = {};
@@ -148,16 +154,19 @@ overview.showGenes = function(researcher, showAll) {
 	   taxon = allTaxons[i];
 	   var taxonId = taxon.replace(/ /g,'').replace(/\./g,'');
 	   var taxonDescription = researcher.taxonDescriptions[taxon];
-	   $('#overviewGeneBreakdown').append(overview.geneTableHTMLBlock(taxon, 'overviewTable'+taxonId));
+	   $('#overviewGeneBreakdown').append(overview.geneTableHTMLBlock(taxon, 'overviewTable'+taxonId, explicitTiers));
 	   
 	   if (taxonDescription) {
 	      taxonDescription = taxonDescription.length > 100 && !showAll ? taxonDescription.substring(0,100) + "..." : taxonDescription;
 	      $('#'+'overviewTable'+taxonId+'BlockDescription').append("<span><em>"+ taxonDescription +"</em></span>");
 	   }
 	   var maxGenes = showAll ? null : 5;
-	   populateTable('overviewTable'+taxonId, genesByTaxon[taxon] , maxGenes, true)
-	   $("#overviewSeeAllButton" + taxonId).click( createModal( taxon, genesByTaxon[taxon] ) ); 
-	   $("#overviewEditButton" + taxonId).click( openGeneManager(taxon) ); 
+	   populateTable('overviewTable'+taxonId, genesByTaxon[taxon] , maxGenes, true, explicitTiers)
+	   if ( !showAll ) {
+	      // This if statement is not necessary but stops data being saved in a closure that will never be used
+   	   $("#overviewSeeAllButton" + taxonId).click( createModal( taxon, genesByTaxon[taxon] ) ); 
+   	   $("#overviewEditButton" + taxonId).click( openGeneManager(taxon) ); 
+	   }
 	}
 	
    if ( genes.length === 0 ) {
@@ -169,9 +178,9 @@ overview.showGenes = function(researcher, showAll) {
 	
 }
 
-overview.showOverview = function(researcher, showAll) {
+overview.showOverview = function(researcher, showAll, explicitTiers) {
 	overview.showProfile(researcher);
-	overview.showGenes(researcher, showAll);
+	overview.showGenes(researcher, showAll, explicitTiers);
 }
 var scrapModal = $('#scrapModal').modal({
    backdrop: true,

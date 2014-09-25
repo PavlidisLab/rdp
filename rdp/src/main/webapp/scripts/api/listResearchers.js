@@ -51,7 +51,7 @@
             $('<li id="tab'+nextTab+'"><a href="#overview" data-toggle="tab"><button class="close" title="Remove this page" type="button"> &times </button>'+tabName+'</a></li>').appendTo('#registerTab');
             
             $('#registerTab li[id="tab'+nextTab+'"]').on('show.bs.tab',function() {
-               overview.showOverview( allResearchers[index], true );
+               overview.showOverview( allResearchers[index], true, true );
                overview.hideButtons();
                });           
             
