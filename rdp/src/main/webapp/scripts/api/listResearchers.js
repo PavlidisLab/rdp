@@ -50,10 +50,14 @@
             // create the tab
             $('<li id="tab'+nextTab+'"><a href="#overview" data-toggle="tab"><button class="close" title="Remove this page" type="button"> &times </button>'+tabName+'</a></li>').appendTo('#registerTab');
             
-            $('#registerTab li[id="tab'+nextTab+'"]').on('show.bs.tab',function() {
-               overview.showOverview( allResearchers[index], true, true );
+            // Closure to make sure that tab always returns the correct researcher
+            $('#registerTab li[id="tab'+nextTab+'"]').on('show.bs.tab',(function(r) {
+               return function() {
+               overview.showOverview( r, true, true );
                overview.hideButtons();
-               });           
+               };
+               })(allResearchers[index])
+            );           
             
             // make the new tab active
             $('#registerTab a:last').tab('show');
