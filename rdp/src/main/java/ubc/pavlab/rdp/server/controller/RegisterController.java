@@ -201,6 +201,7 @@ public class RegisterController extends BaseController {
         try {
             Researcher r = researcherService.findByUserName( userName );
             researcherService.delete( r );
+            log.info( userName + " deleted." );
             JSONObject json = new JSONObject();
             json.put( "success", true );
             json.put( "message", "User: (" + userName + ") deleted." );

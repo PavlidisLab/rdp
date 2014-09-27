@@ -55,7 +55,13 @@ populateTable = function(id, data, max, editable, explicitTiers) {
    max = max ? Math.min( max, data.length ) : data.length;
    var url;
    var urlBase = "http://www.ncbi.nlm.nih.gov/gene/"
-            
+   data.sort(function(a, b){
+      if (a.tier < b.tier)
+         return -1;
+      if (a.tier > b.tier)
+        return 1;
+      return 0;
+      });
    for ( var i = 0; i < max; i++ ) {   
       url = urlBase + data[i].ncbiGeneId;
       var tier = "";

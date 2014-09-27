@@ -5,7 +5,6 @@
 
 	var hiddenGenes = [];
 	var taxonDescriptionChanged = false;
-	var tierChanged = false;
 	
 	editGenes.beforeCloseGeneModal = function(event) {
 	   if ( genesChanged() ) {
@@ -45,15 +44,6 @@
 	   // Gets showing Genes and updates them with the selected tiers
 	   var table = $( "#geneManagerTable" ).DataTable();
       var showingGenes = table.columns().data()[0];
-      var geneTiers = table.columns().nodes()[4];
-      for (var i = 0; i < geneTiers.length; i++) {
-         if (geneTiers[i].firstChild.checked) {
-            showingGenes[i].tier = geneTiers[i].firstChild.value;
-         }
-         else {
-            showingGenes[i].tier = "TIER2";
-         }
-      }
       return showingGenes;
 	}
 	
@@ -69,7 +59,6 @@
 		
 	editGenes.fillForm = function() {
 	   taxonDescriptionChanged = false;
-	   tierChanged = false;
 	   var taxonSel = $( "#taxonCommonNameSelect" );
 	   $.data( taxonSel[0] , 'current', taxonSel.val());
 		$( "#geneManagerTable" ).DataTable().clear();
@@ -93,7 +82,7 @@
 	       	}
 	    }
 	    table.draw();
-	    $(".datatable-checkbox > :checkbox").on('change',function() {tierChanged = true})
+
 	}
 	
 	editGenes.changeOrganism = function() {
@@ -209,7 +198,7 @@
 	   // Initialize datatable
 	   $( "#geneManagerTable" ).dataTable( {
 	      //"scrollX": true,
-	      "order": [[ 1, "asc" ]],
+	      "order": [[ 4, "asc" ]],
           "aoColumnDefs": [ {
              "defaultContent": "",
              "targets": "_all"
@@ -245,7 +234,10 @@
               "aTargets": [ 4 ],
               "defaultContent": "",
               "sWidth":"12%",
-              "sClass":"text-center datatable-checkbox"
+              "sClass":"text-center datatable-checkbox",
+              "mData": function ( source, type, val ) {
+                 return source[0].tier || "";
+               }
             }],
 	      "searching": false,
 	      dom: 'T<"clear">lfrtip',
@@ -272,7 +264,9 @@
 	            }
 	         }
 	         $('td:eq(3)', nRow).html(inputHTML);
-	         
+	         $('td:eq(3)', nRow).on('change', function() {
+	            aData[0].tier = $(this)[0].firstChild.checked ? "TIER1" : "TIER2";
+	            });
 	         //$('td:eq(1)', nRow).html(aData[1].replace( /,/g, ", " )); // DataTables causes some visual bugs when there are no spaces
 	         return nRow;
 	      },

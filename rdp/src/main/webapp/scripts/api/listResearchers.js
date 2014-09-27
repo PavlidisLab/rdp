@@ -34,35 +34,6 @@
 	        table.row.add(researcherRow).draw();
 	    });
 	    
-	    // Attach listeners to users in table
-	    $('a[href^="#displayResearcher"]').click(function (e) {
-	          var index = $(this).attr('href').substr(18); // Length of '#displayResearcher'
-	          if ( index ==="" ) {
-	             // Something went wrong when trying to attach the researchers index to the hyperlink
-	             console.log("Cannot find researcher!")
-	             return;
-	          }
-	          index = parseInt(index);
-	          tabName = allResearchers[index].userName;
-	          
-            var nextTab = $('#registerTab li').size()+1;
-            
-            // create the tab
-            $('<li id="tab'+nextTab+'"><a href="#overview" data-toggle="tab"><button class="close" title="Remove this page" type="button"> &times </button>'+tabName+'</a></li>').appendTo('#registerTab');
-            
-            // Closure to make sure that tab always returns the correct researcher
-            $('#registerTab li[id="tab'+nextTab+'"]').on('show.bs.tab',(function(r) {
-               return function() {
-               overview.showOverview( r, true, true );
-               overview.hideButtons();
-               };
-               })(allResearchers[index])
-            );           
-            
-            // make the new tab active
-            $('#registerTab a:last').tab('show');
-         });
-	    
 	}
 	
 	listResearchers.updateCache = function() {
@@ -167,6 +138,36 @@
 	            // Keep in mind that $('td:eq(0)', nRow) refers to the first DISPLAYED column
 	            // whereas aData[0] refers to the data in the first column, hidden or not
 	            $('td:eq(0)', nRow).html('<a href="#displayResearcher' + aData[0] + '">'+ aData[1] + '</a>');
+
+	            $('td:eq(0) > a', nRow).click(function (e) {
+
+	               var index = $(this).attr('href').substr(18); // Length of '#displayResearcher'
+	               if ( index ==="" ) {
+	                  // Something went wrong when trying to attach the researchers index to the hyperlink
+	                  console.log("Cannot find researcher!")
+	                  return;
+	               }
+	               index = parseInt(index);
+	               tabName = allResearchers[index].userName;
+	               
+	              var nextTab = $('#registerTab li').size()+1;
+	              
+	              // create the tab
+	              $('<li id="tab'+nextTab+'"><a href="#overview" data-toggle="tab"><button class="close" title="Remove this page" type="button"> &times </button>'+tabName+'</a></li>').appendTo('#registerTab');
+	              
+	              // Closure to make sure that tab always returns the correct researcher
+	              $('#registerTab li[id="tab'+nextTab+'"]').on('show.bs.tab',(function(r) {
+	                 return function() {
+	                 overview.showOverview( r, true, true );
+	                 overview.hideButtons();
+	                 };
+	                 })(allResearchers[index])
+	              );           
+	              
+	              // make the new tab active
+	              $('#registerTab a:last').tab('show');
+	           });
+	            
 	            return nRow;
 	         },
 	         
