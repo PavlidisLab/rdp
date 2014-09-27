@@ -5,7 +5,6 @@
 
 	var hiddenGenes = [];
 	var taxonDescriptionChanged = false;
-	var tierChanged = false;
 	
 	editGenes.beforeCloseGeneModal = function(event) {
 	   if ( genesChanged() ) {
@@ -60,7 +59,6 @@
 		
 	editGenes.fillForm = function() {
 	   taxonDescriptionChanged = false;
-	   tierChanged = false;
 	   var taxonSel = $( "#taxonCommonNameSelect" );
 	   $.data( taxonSel[0] , 'current', taxonSel.val());
 		$( "#geneManagerTable" ).DataTable().clear();
@@ -200,7 +198,7 @@
 	   // Initialize datatable
 	   $( "#geneManagerTable" ).dataTable( {
 	      //"scrollX": true,
-	      "order": [[ 1, "asc" ]],
+	      "order": [[ 4, "asc" ]],
           "aoColumnDefs": [ {
              "defaultContent": "",
              "targets": "_all"
