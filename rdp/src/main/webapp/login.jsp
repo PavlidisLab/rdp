@@ -77,7 +77,7 @@
 							        <div class="form-group">
 							            <label for="email" class="col-sm-3 control-label">Email:</label>
 							            <div class="col-sm-8">
-							                <input type="email" name="email" class="form-control"
+							                <input type="text" name="email" class="form-control"
 							                    id="email" placeholder="joe@rdp.com" required>
 							            </div>
 							        </div>
