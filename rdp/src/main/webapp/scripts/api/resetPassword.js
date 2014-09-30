@@ -1,5 +1,9 @@
-var resetPassword = function(username, email) {
+/**
+ * @memberOf resetPassword
+ */
+(function( resetPassword, $, undefined ) {
 
+resetPassword.resetPassword = function(e) {
    $.ajax( {
       cache : false,
       type : 'POST',
@@ -9,23 +13,19 @@ var resetPassword = function(username, email) {
       },
       data : $( "#resetPasswordForm" ).serialize(),
       success : function(response, xhr) {
-         $( "#resetPasswordMessage" ).html( jQuery.parseJSON( response ).message );
-         $( "#resetPasswordFailed" ).show();
+         utility.showMessage( $("#resetPasswordMessage") , jQuery.parseJSON( response ).message );
       },
       error : function(response, xhr) {
          console.log( xhr.responseText );
-         $( "#resetPasswordMessage" ).html( "Error with request. Status is: " + xhr.status );
-         $( "#resetPasswordFailed" ).show();
+         utility.showMessage( $("#resetPasswordMessage"), "Error with request. Status is: " + xhr.status );
       }
    } );
+   e.preventDefault();
+   return false;
 };
 
-// Initialize form validations
-$( "#resetPasswordForm" ).validate( {
-   submitHandler : function(form) {
-      var username = $( "#resetPasswordId" ).val();
-      var email = $( "#resetPasswordEmail" ).val();
-      resetPassword( username, email );
-      return false;
-   }
+}( window.resetPassword = window.resetPassword || {}, jQuery ));
+
+$( document ).ready( function() {
+   $( "#resetPasswordForm" ).submit( resetPassword.resetPassword );
 } );

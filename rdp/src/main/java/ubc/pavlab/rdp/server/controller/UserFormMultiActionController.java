@@ -197,7 +197,6 @@ public class UserFormMultiActionController extends BaseController {
         }
 
         String email = request.getParameter( "resetPasswordEmail" );
-        String username = request.getParameter( "resetPasswordId" );
 
         JSONUtil jsonUtil = new JSONUtil( request, response );
         String txt = null;
@@ -206,9 +205,11 @@ public class UserFormMultiActionController extends BaseController {
         /* look up the user's information and reset password. */
         try {
 
+            String username = userManager.findbyEmail( email ).getUserName();
+
             /* make sure the email and username has been sent */
-            if ( StringUtils.isEmpty( email ) || StringUtils.isEmpty( username ) ) {
-                txt = "Email or username not specified.  These are required fields.";
+            if ( StringUtils.isEmpty( email ) ) {
+                txt = "Email not specified.  This is a required field.";
                 log.warn( txt );
                 throw new RuntimeException( txt );
             }
@@ -273,7 +274,7 @@ public class UserFormMultiActionController extends BaseController {
              */
             String templateName = "passwordReset.vm";
             sendEmail( username, email, "Password reset", templateName, model );
-            message = getText( "login.passwordReset", new Object[] { username, email }, request.getLocale() );
+            message = getText( "login.passwordReset", new Object[] { email }, request.getLocale() );
             saveMessage( request, message );
 
         } catch ( Exception e ) {

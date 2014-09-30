@@ -354,7 +354,7 @@ public class UserManagerImpl implements UserManager {
      * @see ubic.gemma.security.authentication.UserManager#findbyEmail(java.lang.String)
      */
     @Override
-    @Secured({ "GROUP_USER", "RUN_AS_ADMIN" })
+    @Secured({ "IS_AUTHENTICATED_ANONYMOUSLY", "RUN_AS_ADMIN" })
     public User findbyEmail( String emailAddress ) {
         return findByEmail( emailAddress );
     }

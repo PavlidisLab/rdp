@@ -60,69 +60,41 @@
                                 will not be sold, traded, or given to
                                 anyone.</p>
                             <p></p>
-                            <br> Please contact <a
-                                mailto:href="rdp@chibi.ubc.ca"></a>rdp@chibi.ubc.ca</a>
+                            <br> Please contact <a href="mailto:rdp@chibi.ubc.ca">rdp@chibi.ubc.ca</a>
                             for any other inquiries.
                             </p>
                         </div>
                         <div class="tab-pane fade active in" id="signin">
                             <form id="signinForm"
-                                class="form-horizontal"
-                                data-toggle="validator" role="form">
-                                <fieldset>
+                                class="form-horizontal" role="form">
                                     <!-- Sign In Form -->
-                                    <div class="alert alert-warning"
-                                        id="signinFailed" hidden="true">
-                                        <a href="#" class="close"
-                                            data-dismiss="alert">&times;</a>
-                                        <strong>Warning!</strong> Login
-                                        username/password incorrect.
-                                    </div>
+                  					<div class="alert alert-warning col-sm-offset-1 col-sm-10" id="signinFailed" hidden="true">
+										<a href="#" class="close" data-hide="alert">&times;</a>
+										<div id="signinMessage" class="text-left"><strong>Warning!</strong> Login
+                                        email/password incorrect.</div>
+									</div>
 
-                                    <!-- Text input-->
-                                    <div class="control-group">
-                                        <label class="control-label"
-                                            for="signinId">Username:</label>
-                                        <div class="controls">
-                                            <input required
-                                                id="signinId"
-                                                name="signinId"
-                                                type="text"
-                                                class="form-control"
-                                                placeholder="joe123"
-                                                class="input-medium"
-                                                required="">
-                                        </div>
-                                    </div>
+							        <div class="form-group">
+							            <label for="email" class="col-sm-3 control-label">Email:</label>
+							            <div class="col-sm-8">
+							                <input type="email" name="email" class="form-control"
+							                    id="email" placeholder="joe@rdp.com" required>
+							            </div>
+							        </div>
+							        
+							        <div class="form-group">
+							            <label for="password" class="col-sm-3 control-label">Password:</label>
+							            <div class="col-sm-8">
+							                <input type="password" name="password" class="form-control"
+							                    id="password" placeholder="********" required>
+							            </div>
+							        </div>
 
-                                    <!-- Password input-->
-                                    <div class="control-group">
-                                        <label class="control-label"
-                                            for="signinPassword">Password:</label>
-                                        <div class="controls">
-                                            <input required
-                                                id="signinPassword"
-                                                name="signinPassword"
-                                                class="form-control"
-                                                type="password"
-                                                placeholder="********"
-                                                class="input-medium">
-                                        </div>
-                                    </div>
-
-                                    <!-- Button -->
-                                    <div class="control-group">
-                                        <label class="control-label"
-                                            for="signin"></label>
-                                        <div class="controls">
-                                            <button for="btnSignin"
-                                                id="btnSignin"
-                                                name="signin"
-                                                class="btn btn-success">Sign
-                                                In</button>
-                                        </div>
-                                    </div>
-                                </fieldset>
+									<div class="form-group">
+										<div class="col-sm-offset-3 col-sm-8 text-right">
+											<button type="submit" id="btnSignin" class="btn btn-success">Sign In</button>
+										</div>
+									</div>
                             </form>
                         </div>
                         
@@ -154,6 +126,7 @@
         src="http://www.google.com/recaptcha/api/js/recaptcha_ajax.js"></script>
 
     <!-- Our scripts -->
+    <script src="scripts/api/utility.js"></script>
     <script src="scripts/api/login.js"></script>
     <script src="scripts/api/signup.js"></script>
     <script src="scripts/api/resetPassword.js"></script>

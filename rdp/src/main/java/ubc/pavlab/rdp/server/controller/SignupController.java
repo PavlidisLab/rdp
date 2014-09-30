@@ -207,7 +207,7 @@ public class SignupController extends BaseController {
             return;
         }
 
-        String username = request.getParameter( "username" );
+        String username = request.getParameter( "email" );
 
         String encodedPassword = passwordEncoder.encodePassword( password, username );
 
