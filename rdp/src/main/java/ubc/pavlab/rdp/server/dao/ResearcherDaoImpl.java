@@ -19,8 +19,6 @@
 
 package ubc.pavlab.rdp.server.dao;
 
-import gemma.gsec.authentication.UserManager;
-
 import java.util.Collection;
 
 import org.apache.commons.logging.Log;
@@ -32,6 +30,7 @@ import org.springframework.stereotype.Repository;
 
 import ubc.pavlab.rdp.server.model.Gene;
 import ubc.pavlab.rdp.server.model.Researcher;
+import ubc.pavlab.rdp.server.security.authentication.UserManager;
 
 /**
  * TODO Document Me

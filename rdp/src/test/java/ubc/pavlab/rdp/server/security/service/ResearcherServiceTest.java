@@ -26,7 +26,6 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import gemma.gsec.authentication.UserDetailsImpl;
-import gemma.gsec.authentication.UserManager;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -42,6 +41,7 @@ import ubc.pavlab.rdp.server.model.Gene;
 import ubc.pavlab.rdp.server.model.GeneAssociation.TierType;
 import ubc.pavlab.rdp.server.model.Researcher;
 import ubc.pavlab.rdp.server.model.common.auditAndSecurity.User;
+import ubc.pavlab.rdp.server.security.authentication.UserManager;
 import ubc.pavlab.rdp.server.security.authentication.UserService;
 import ubc.pavlab.rdp.server.service.GeneService;
 import ubc.pavlab.rdp.server.service.ResearcherService;

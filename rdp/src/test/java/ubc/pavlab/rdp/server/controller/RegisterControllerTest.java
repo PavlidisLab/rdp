@@ -26,7 +26,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import gemma.gsec.authentication.UserDetailsImpl;
-import gemma.gsec.authentication.UserManager;
 
 import org.junit.After;
 import org.junit.Before;
@@ -42,6 +41,7 @@ import org.springframework.web.context.WebApplicationContext;
 
 import ubc.pavlab.rdp.server.model.Researcher;
 import ubc.pavlab.rdp.server.model.common.auditAndSecurity.User;
+import ubc.pavlab.rdp.server.security.authentication.UserManager;
 import ubc.pavlab.rdp.server.security.authentication.UserService;
 import ubc.pavlab.rdp.server.service.ResearcherService;
 import ubc.pavlab.rdp.testing.BaseSpringContextTest;

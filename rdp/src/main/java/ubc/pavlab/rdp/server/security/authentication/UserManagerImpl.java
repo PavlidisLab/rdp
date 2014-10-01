@@ -20,7 +20,6 @@ import gemma.gsec.SecurityService;
 import gemma.gsec.authentication.ManualAuthenticationService;
 import gemma.gsec.authentication.UserDetailsImpl;
 import gemma.gsec.authentication.UserExistsException;
-import gemma.gsec.authentication.UserManager;
 import gemma.gsec.model.GroupAuthority;
 import gemma.gsec.model.User;
 import gemma.gsec.model.UserGroup;

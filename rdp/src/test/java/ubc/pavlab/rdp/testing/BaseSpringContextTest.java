@@ -16,7 +16,6 @@
 package ubc.pavlab.rdp.testing;
 
 import gemma.gsec.AuthorityConstants;
-import gemma.gsec.authentication.UserManager;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -49,17 +48,17 @@ import org.springframework.test.jdbc.SimpleJdbcTestUtils;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 
+import ubc.pavlab.rdp.server.security.authentication.UserManager;
+
 /**
  * subclass for tests that need the container and use the database
  * 
  * @author pavlidis
  * @version $Id: BaseSpringContextTest.java,v 1.4 2013/06/12 20:18:48 cmcdonald Exp $
  */
-@ContextConfiguration(locations = { "classpath*:application-context.xml",
-        "classpath*:test-data-source.xml",
-        "classpath*:gemma/gsec/acl/security-bean-baseconfig.xml",
-        "classpath*:applicationContext-security.xml",
-        "classpath*:applicationContext-serviceBeans.xml"})
+@ContextConfiguration(locations = { "classpath*:application-context.xml", "classpath*:test-data-source.xml",
+        "classpath*:gemma/gsec/acl/security-bean-baseconfig.xml", "classpath*:applicationContext-security.xml",
+        "classpath*:applicationContext-serviceBeans.xml" })
 public abstract class BaseSpringContextTest extends AbstractJUnit4SpringContextTests implements InitializingBean {
 
     protected abstract class InlineTransaction {

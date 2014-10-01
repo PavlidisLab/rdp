@@ -19,7 +19,6 @@
 package ubc.pavlab.rdp.server.controller;
 
 import gemma.gsec.authentication.UserDetailsImpl;
-import gemma.gsec.authentication.UserManager;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -38,6 +37,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 
 import ubc.pavlab.rdp.server.model.common.auditAndSecurity.User;
+import ubc.pavlab.rdp.server.security.authentication.UserManager;
 
 /**
  * For display and editing of users. Note: do not use parameterized collections as parameters for ajax methods in this
@@ -95,7 +95,7 @@ public class UserListControllerImpl implements UserListController {
          */
         return new ModelAndView( "/admin/activeUsers", "users", userManager.loadAll() );
     }
-    
+
     /*
      * (non-Javadoc)
      * 

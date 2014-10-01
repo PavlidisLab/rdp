@@ -20,7 +20,6 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import gemma.gsec.SecurityService;
 import gemma.gsec.authentication.UserDetailsImpl;
-import gemma.gsec.authentication.UserManager;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -35,6 +34,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.GrantedAuthorityImpl;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
+import ubc.pavlab.rdp.server.security.authentication.UserManager;
 import ubc.pavlab.rdp.server.security.authentication.UserService;
 import ubc.pavlab.rdp.testing.BaseSpringContextTest;
 

@@ -19,7 +19,6 @@
 package ubc.pavlab.rdp.server.controller;
 
 import gemma.gsec.authentication.UserDetailsImpl;
-import gemma.gsec.authentication.UserManager;
 import gemma.gsec.model.User;
 import gemma.gsec.util.JSONUtil;
 
@@ -42,6 +41,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import ubc.pavlab.rdp.server.security.authentication.UserManager;
 import ubc.pavlab.rdp.server.util.Settings;
 
 /**

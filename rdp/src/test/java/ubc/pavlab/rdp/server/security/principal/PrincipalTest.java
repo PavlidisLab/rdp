@@ -20,7 +20,6 @@ import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import gemma.gsec.authentication.UserDetailsImpl;
-import gemma.gsec.authentication.UserManager;
 
 import java.util.Date;
 
@@ -35,6 +34,7 @@ import org.springframework.security.authentication.encoding.PasswordEncoder;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
+import ubc.pavlab.rdp.server.security.authentication.UserManager;
 import ubc.pavlab.rdp.testing.BaseSpringContextTest;
 
 /**
