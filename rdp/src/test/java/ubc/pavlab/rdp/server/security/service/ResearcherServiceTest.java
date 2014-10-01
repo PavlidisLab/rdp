@@ -271,15 +271,16 @@ public class ResearcherServiceTest extends BaseSpringContextTest {
     public void testLoadAll() throws Exception {
         try {
             Collection<Researcher> researchers = researcherService.loadAll();
-            assertEquals( 1, researchers.size() );
+            // assertEquals( 1, researchers.size() );
+            int controlSize = researchers.size();
 
             Researcher r = createResearcher( "testtesttest", "test@testtest.com", "testtesttest" );
             researchers = researcherService.loadAll();
-            assertEquals( 2, researchers.size() );
+            assertEquals( controlSize + 1, researchers.size() );
 
             researcherService.delete( r );
             researchers = researcherService.loadAll();
-            assertEquals( 1, researchers.size() );
+            assertEquals( controlSize, researchers.size() );
         } catch ( Exception e ) {
             e.printStackTrace();
             fail( e.getMessage() );
