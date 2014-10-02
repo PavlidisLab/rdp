@@ -45,8 +45,8 @@
                             data-toggle="tab">Sign In</a></li>
                         <li class=""><a href="#signup"
                             data-toggle="tab">Register</a></li>
-                        <li class=""><a href="#resetPassword"
-                            data-toggle="tab">Reset Password</a></li>
+                        <li class=""><a href="#forgotPassword"
+                            data-toggle="tab">Forgot Password</a></li>
                         <li class=""><a href="#why"
                             data-toggle="tab">Why?</a></li>
                     </ul>
@@ -102,7 +102,7 @@
                         <%@ include file="signupForm.jsp" %>
                         
                         <!-- Reset password -->
-                        <%@ include file="resetPasswordForm.jsp" %>
+                        <%@ include file="forgotPasswordForm.jsp" %>
                         
                     </div>
                 </div>
@@ -129,7 +129,7 @@
     <script src="scripts/api/utility.js"></script>
     <script src="scripts/api/login.js"></script>
     <script src="scripts/api/signup.js"></script>
-    <script src="scripts/api/resetPassword.js"></script>
+    <script src="scripts/api/forgotPasswordForm.js"></script>
     
 </body>
 </html>

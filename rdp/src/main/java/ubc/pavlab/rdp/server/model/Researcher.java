@@ -165,7 +165,7 @@ public class Researcher implements Serializable {
 
     public JSONObject toJSON() {
         JSONObject jsonObj = new JSONObject();
-        jsonObj.put( "contact", new JSONObject( this.contact ) );
+        jsonObj.put( "contact", this.contact.toJSON() );
         jsonObj.put( "department", this.department );
         jsonObj.put( "description", this.description );
         jsonObj.put( "id", this.id );

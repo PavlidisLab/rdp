@@ -140,32 +140,33 @@ public class RegisterController extends BaseController {
      * 
      * @param request
      * @param response
+     * @throws IOException
      */
     @RequestMapping("/loadResearcher.html")
-    public void loadUser( HttpServletRequest request, HttpServletResponse response ) {
+    public void loadUser( HttpServletRequest request, HttpServletResponse response ) throws IOException {
         String username = userManager.getCurrentUsername();
 
-        Object user = researcherService.findByUserName( username );
-        if ( user == null ) {
-            user = userManager.findByUserName( username );
-        } else {
-            user = researcherService.thaw( ( Researcher ) user );
-        }
+        /*
+         * Object user = researcherService.findByUserName( username ); if ( user == null ) { user =
+         * userManager.findByUserName( username ); } else { user = researcherService.thaw( ( Researcher ) user ); }
+         */
+
+        Researcher researcher = researcherService.findByUserName( username );
 
         JSONUtil jsonUtil = new JSONUtil( request, response );
 
         String jsonText = null;
         try {
 
-            if ( user == null ) {
+            if ( researcher == null ) {
 
                 // this shouldn't happen.
                 jsonText = "{\"success\":false,\"message\":\"No researcher with name " + username + "\"}";
             } else {
                 // JSONObject json = new JSONObject( user );
-                JSONObject json = ( ( Researcher ) user ).toJSON();
+                JSONObject json = researcher.toJSON();
                 log.info( "Loaded Researcher from account: (" + username + "). Account contains "
-                        + ( ( Researcher ) user ).getGenes().size() + " Genes." );
+                        + researcher.getGenes().size() + " Genes." );
                 jsonText = "{\"success\":true, \"data\":" + json.toString() + "}";
                 // log.debug( "Success! json=" + jsonText );
             }
@@ -173,11 +174,7 @@ public class RegisterController extends BaseController {
         } catch ( Exception e ) {
             jsonText = "{\"success\":false,\"message\":\"" + e.getLocalizedMessage() + "\"}";
         } finally {
-            try {
-                jsonUtil.writeToResponse( jsonText );
-            } catch ( IOException e ) {
-                e.printStackTrace();
-            }
+            jsonUtil.writeToResponse( jsonText );
         }
 
     }

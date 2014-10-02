@@ -31,9 +31,9 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.NoSuchMessageException;
 import org.springframework.mail.SimpleMailMessage;
 
-import ubc.pavlab.rdp.server.util.Settings;
 import ubc.pavlab.rdp.server.util.MailEngine;
 import ubc.pavlab.rdp.server.util.MessageUtil;
+import ubc.pavlab.rdp.server.util.Settings;
 
 /**
  * Extend this to create a simple Single or MultiActionController; includes configuration for sending email and setting
@@ -145,6 +145,20 @@ public abstract class BaseController {
         mailMessage.setFrom( Settings.getAdminEmailAddress() );
         mailMessage.setSubject( subject );
         mailMessage.setTo( name + "<" + emailAddress + ">" );
+        mailEngine.sendMessage( mailMessage, templateName, model );
+    }
+
+    /**
+     * @param subject
+     * @param emailAddress
+     * @param templateName
+     * @param model
+     */
+    protected void sendEmail( String emailAddress, String subject, String templateName, Map<String, Object> model ) {
+        SimpleMailMessage mailMessage = new SimpleMailMessage();
+        mailMessage.setFrom( Settings.getAdminEmailAddress() );
+        mailMessage.setSubject( subject );
+        mailMessage.setTo( "<" + emailAddress + ">" );
         mailEngine.sendMessage( mailMessage, templateName, model );
     }
 

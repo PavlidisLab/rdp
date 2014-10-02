@@ -27,7 +27,9 @@
         <!-- only permit unauthenticated access to some URLs, order matters, see http://docs.spring.io/spring-security/site/docs/3.0.x/reference/el-access.html -->
         <s:intercept-url pattern="/login.jsp" access="permitAll" />
         <s:intercept-url pattern="/confirmRegistration.html" access="permitAll" />
-        <s:intercept-url pattern="/resetPassword.html" access="permitAll" />
+        <s:intercept-url pattern="/resetPassword.jsp" access="permitAll" />
+        <s:intercept-url pattern="/newPassword.html" access="permitAll" />
+        <s:intercept-url pattern="/forgotPassword.html" access="permitAll" />
         <s:intercept-url pattern="/signup.html" access="permitAll" />
         <s:intercept-url pattern="/fonts/**" access="permitAll" />
         <s:intercept-url pattern="/styles/**" access="permitAll" />
