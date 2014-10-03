@@ -1,10 +1,10 @@
 
 -- username: administrator, password: changemeadmin
-insert into USER (ID, FIRSTNAME, LASTNAME, USERNAME, PASSWORD, ENABLED, EMAIL, PASSWORD_HINT) values (1, "administrator",  "", "administrator", "7920f75bb07e1d15aa8a42238eec19774fbc28de", 1, "administrator@email.ca", "hint");
+insert into USER (ID, FIRSTNAME, LASTNAME, USERNAME, PASSWORD, ENABLED, EMAIL, PASSWORD_HINT) values (1, "administrator",  "", "administrator", "$2a$10$rOj2xdKqWiHh0Dtm1KoVmeI0K0cEu4iqqr/iuamgklA3TMoab9NIe", 1, "administrator@email.ca", "hint");
 -- username: aspiredbAgent, password: aspagent4
-insert into USER (ID, FIRSTNAME, LASTNAME, USERNAME, PASSWORD, ENABLED, EMAIL, PASSWORD_HINT) values (2, "aspiredbAgent",  "", "aspiredbAgent", "2eb2e0ac05fa979005a81e7abbe42d01b0f4f829", 1, "aspiredbAgent@email.ca", "hint");
+insert into USER (ID, FIRSTNAME, LASTNAME, USERNAME, PASSWORD, ENABLED, EMAIL, PASSWORD_HINT) values (2, "aspiredbAgent",  "", "aspiredbAgent", "$2a$10$g9wNokjCk.pv1iiIn2YWnOnQ1hbb5xJbb4qt6u1KGoaACT6sZrjz.", 1, "aspiredbAgent@email.ca", "hint");
 -- username: user, password: changeme
-insert into USER (ID, FIRSTNAME, LASTNAME, USERNAME, PASSWORD, ENABLED, EMAIL, PASSWORD_HINT) values (3, "user",  "", "user", "ba8de2e66e08abf7f5f9f90cced8533bdeb1fcc1", 1, "user@chibi.ubc.ca", "hint");
+insert into USER (ID, FIRSTNAME, LASTNAME, USERNAME, PASSWORD, ENABLED, EMAIL, PASSWORD_HINT) values (3, "user",  "", "user", "$2a$10$Wym8DlT/8LLue8RUXt44r.6.WIaJGu0ghoxLoHGMlVUxVDAsV1wuK", 1, "user@chibi.ubc.ca", "hint");
 
 
 

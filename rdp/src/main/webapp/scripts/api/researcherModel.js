@@ -149,7 +149,7 @@
       this.officialName = geneValueObject.officialName || null;
       this.officialSymbol = geneValueObject.officialSymbol || null;
       this.taxon = geneValueObject.taxon || null;
-      this.tier = geneValueObject.tier || null;
+      this.tier = geneValueObject.tier || "TIER2";
       this.aliases = geneValueObject.aliases || [];
    }
    

@@ -4,6 +4,7 @@
 (function( resetPassword, $, undefined ) {
 
    resetPassword.newPassword = function(e) {
+      e.preventDefault();
       $.ajax( {
          cache : false,
          type : 'POST',
@@ -23,7 +24,7 @@
             utility.showMessage( "Error with request. Status is: " + xhr.status, $("#resetPasswordMessage") );
          }
       } );
-      e.preventDefault();
+      
       return false;
    };
    

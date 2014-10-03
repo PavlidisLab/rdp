@@ -36,6 +36,40 @@ public class GeneAssociationID implements java.io.Serializable {
      */
     private static final long serialVersionUID = 7241936203064995188L;
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Object#hashCode()
+     */
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ( ( gene == null ) ? 0 : gene.hashCode() );
+        result = prime * result + ( ( researcher == null ) ? 0 : researcher.hashCode() );
+        return result;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals( Object obj ) {
+        if ( this == obj ) return true;
+        if ( obj == null ) return false;
+        if ( !( obj instanceof GeneAssociationID ) ) return false;
+        GeneAssociationID other = ( GeneAssociationID ) obj;
+        if ( gene == null ) {
+            if ( other.gene != null ) return false;
+        } else if ( !gene.equals( other.gene ) ) return false;
+        if ( researcher == null ) {
+            if ( other.researcher != null ) return false;
+        } else if ( !researcher.equals( other.researcher ) ) return false;
+        return true;
+    }
+
     @ManyToOne
     private Researcher researcher;
 

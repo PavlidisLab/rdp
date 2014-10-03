@@ -4,6 +4,7 @@
 (function( login, $, undefined ) {
 
    login.authenticate = function(e) {
+      e.preventDefault();
       var form = $( "#signinForm" );
       var email = form.find( "#email" ).val();
       var password = form.find( "#password" ).val();
@@ -43,12 +44,16 @@
             }
          },
          error : function(response, xhr) {
-            console.log( "Error with request. Status is: " + xhr.status );
-            console.log( xhr.responseText );
-            utility.showMessage( "Error with request. Status is: " + xhr.status, $("#signinMessage") );
+            console.log( "Error with request. Status is: " + response.status );
+            //FIXME This should be removed after all users have reset
+            if ( response.responseText.indexOf("Encoded password does not look like BCrypt") > -1) {
+               utility.showMessage( 'Please <a href="#forgotPassword" data-toggle="tab"><strong>reset your password</strong></a>, sorry for the inconvenience.', $("#signinMessage") );
+            } else {
+               utility.showMessage( "Error with request. Status is: " + response.status, $("#signinMessage") );
+            }
          }
       } );
-      e.preventDefault();
+      
       return false;
    };
 

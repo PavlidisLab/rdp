@@ -4,7 +4,7 @@
 (function( signup, $, undefined ) {
    
    signup.register = function(e) {
-      console.log("ajax call")
+      e.preventDefault();
       $.ajax( {
          cache : false,
          type : 'POST',
@@ -23,7 +23,7 @@
             Recaptcha.reload();
          }
       } );
-      e.preventDefault();
+      
       return false;
    };
    

@@ -4,6 +4,7 @@
 (function( forgotPasswordForm, $, undefined ) {
 
    forgotPasswordForm.resetPassword = function(e) {
+   e.preventDefault();
    $.ajax( {
       cache : false,
       type : 'POST',
@@ -20,7 +21,7 @@
          utility.showMessage( "Error with request. Status is: " + xhr.status, $("#forgotPasswordMessage") );
       }
    } );
-   e.preventDefault();
+   
    return false;
 };
 
