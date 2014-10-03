@@ -14,6 +14,9 @@
          data : $( "#resetPasswordForm" ).serialize(),
          success : function(response, xhr) {
             utility.showMessage( jQuery.parseJSON( response ).message, $("#resetPasswordMessage") );
+            if ( jQuery.parseJSON( response ).success == true ) {
+               document.location = "register.html";
+            }
          },
          error : function(response, xhr) {
             console.log( xhr.responseText );

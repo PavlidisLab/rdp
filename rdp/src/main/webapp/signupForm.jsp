@@ -8,48 +8,46 @@
 			</div>
 	        
 	        <div class="form-group">
-	            <label for="email" class="col-sm-3 control-label">Email:</label>
-	            <div class="col-sm-8">
+	            <div class="col-sm-offset-3 col-sm-6">
+	        		<span><strong>Email</strong></span>
 	                <input type="email" name="email" class="form-control"
 	                    id="email" placeholder="joe@rdp.com" required>
 	            </div>
 	        </div>
 	        
 	        <div class="form-group">
-	            <label for="emailConfirm" class="col-sm-3 control-label">Confirm Email:</label>
-	            <div class="col-sm-8">
+	            <div class="col-sm-offset-3 col-sm-6">
+	            	<span><strong>Confirm Email</strong></span>
 	                <input type="email" name="emailConfirm" class="form-control"
 	                    id="emailConfirm" placeholder="joe@rdp.com" required>
 	            </div>
 	        </div>
 	        
 	        <div class="form-group">
-	            <label for="password" class="col-sm-3 control-label">Password:</label>
-	            <div class="col-sm-8">
+	            <div class="col-sm-offset-3 col-sm-6">
+	            	<span><strong>Password</strong></span>
 	                <input type="password" name="password" class="form-control"
 	                    id="password" placeholder="********" required>
 	            </div>
 	        </div>
 	        
 	        <div class="form-group">
-	            <label for="passwordConfirm" class="col-sm-3 control-label">Confirm Password:</label>
-	            <div class="col-sm-8">
+	            <div class="col-sm-offset-3 col-sm-6">
+	            	<span><strong>Confirm Password</strong></span>
 	                <input type="password" name="passwordConfirm" class="form-control"
 	                    id="passwordConfirm" placeholder="********" required>
 	            </div>
 	        </div>
 
-			<hr>
             <%@ page import="ubc.pavlab.rdp.server.util.Settings"%>
-            <div class="control-group">
-                <label class="recaptcha_only_if_image control-label col-sm-offset-1">Please enter the text below:</label>
-                <div class="col-sm-offset-1" id="captchadiv"></div>
+            <div class="form-group">
+                <label class="recaptcha_only_if_image control-label col-sm-offset-2">Please enter the text below:</label>
+                <div class="col-sm-offset-2" id="captchadiv"></div>
                 <div id="captchaPublicKey" hidden="true"><%=Settings.getProperty( "rdp.recaptcha.publicKey" )%></div>
             </div>
-			<hr>
 			
 			<div class="form-group">
-				<div class="col-sm-offset-3 col-sm-8 text-right">
+				<div class="col-sm-offset-3 col-sm-6 text-right">
 					<button type="submit" id="btnSignup" class="btn btn-success">Register</button>
 				</div>
 			</div>
