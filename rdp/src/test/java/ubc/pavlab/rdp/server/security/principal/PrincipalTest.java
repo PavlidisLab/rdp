@@ -30,8 +30,8 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.authentication.encoding.PasswordEncoder;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import ubc.pavlab.rdp.server.model.common.auditAndSecurity.PasswordResetToken;
 import ubc.pavlab.rdp.server.model.common.auditAndSecurity.User;
@@ -58,7 +58,7 @@ public class PrincipalTest extends BaseSpringContextTest {
     UserManager userManager;
 
     @Autowired
-    private PasswordEncoder passwordEncoder;
+    private BCryptPasswordEncoder passwordEncoder;
 
     @Autowired
     private AuthenticationManager authenticationManager;
@@ -68,7 +68,7 @@ public class PrincipalTest extends BaseSpringContextTest {
         username = randomName();
         email = username + "@foo.foo";
 
-        String encodedPassword = passwordEncoder.encodePassword( pwd, username );
+        String encodedPassword = passwordEncoder.encode( pwd );
         UserDetailsImpl u = new UserDetailsImpl( encodedPassword, username, true, null, email, null, new Date() );
         userManager.createUser( u );
         user = ( User ) userManager.findByEmail( email );
@@ -84,7 +84,7 @@ public class PrincipalTest extends BaseSpringContextTest {
         User u = ( User ) userManager.findByUserName( username );
         String oldpwd = u.getPassword();
         String newpwd = randomName();
-        String encodedPassword = passwordEncoder.encodePassword( newpwd, username );
+        String encodedPassword = passwordEncoder.encode( newpwd );
 
         PasswordResetToken token = userManager.createPasswordResetToken( u );
 
@@ -108,7 +108,7 @@ public class PrincipalTest extends BaseSpringContextTest {
     @Test
     public final void testChangePassword() throws Exception {
         String newpwd = randomName();
-        String encodedPassword = passwordEncoder.encodePassword( newpwd, username );
+        String encodedPassword = passwordEncoder.encode( newpwd );
 
         // Current user changing password
 

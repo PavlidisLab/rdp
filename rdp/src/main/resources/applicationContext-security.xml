@@ -62,16 +62,14 @@
     <s:authentication-manager alias="authenticationManager">
         <s:authentication-provider user-service-ref="userManager">
 
-            <s:password-encoder ref="passwordEncoder">
-                <s:salt-source user-property="username" />
-            </s:password-encoder>
+            <s:password-encoder ref="passwordEncoder"></s:password-encoder>
 
         </s:authentication-provider>
         <s:authentication-provider ref="runAsAuthenticationProvider" />
     </s:authentication-manager>
 
 
-    <bean id="passwordEncoder" class="org.springframework.security.authentication.encoding.ShaPasswordEncoder" />
+    <bean id="passwordEncoder" class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder" />
 
     <bean id="runAsManager" class="org.springframework.security.access.intercept.RunAsManagerImpl">
         <property name="rolePrefix" value="GROUP_" />

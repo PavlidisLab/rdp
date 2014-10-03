@@ -35,7 +35,7 @@ import net.tanesha.recaptcha.ReCaptchaResponse;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.encoding.PasswordEncoder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -59,7 +59,7 @@ public class SignupController extends BaseController {
     public static final int MIN_PASSWORD_LENGTH = 6;
 
     @Autowired
-    private PasswordEncoder passwordEncoder;
+    private BCryptPasswordEncoder passwordEncoder;
 
     @Autowired
     private UserManager userManager;
@@ -150,7 +150,7 @@ public class SignupController extends BaseController {
     /**
      * @param passwordEncoder the passwordEncoder to set
      */
-    public void setPasswordEncoder( PasswordEncoder passwordEncoder ) {
+    public void setPasswordEncoder( BCryptPasswordEncoder passwordEncoder ) {
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -209,7 +209,7 @@ public class SignupController extends BaseController {
 
         String username = request.getParameter( "email" );
 
-        String encodedPassword = passwordEncoder.encodePassword( password, username );
+        String encodedPassword = passwordEncoder.encode( password );
 
         String email = request.getParameter( "email" );
 

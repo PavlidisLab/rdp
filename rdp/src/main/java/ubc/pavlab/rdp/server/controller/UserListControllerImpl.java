@@ -30,7 +30,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.encoding.PasswordEncoder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -58,7 +58,7 @@ public class UserListControllerImpl implements UserListController {
     private UserManager userManager;
 
     @Autowired
-    private PasswordEncoder passwordEncoder;
+    private BCryptPasswordEncoder passwordEncoder;
 
     /*
      * (non-Javadoc)
@@ -113,9 +113,8 @@ public class UserListControllerImpl implements UserListController {
 
         boolean newUser = false;
         if ( u == null ) {
-            userDetails = new UserDetailsImpl(
-                    passwordEncoder.encodePassword( user.getPassword(), user.getUserName() ), user.getUserName(),
-                    false, null, user.getEmail(), userManager.generateSignupToken( user.getUserName() ), new Date() );
+            userDetails = new UserDetailsImpl( passwordEncoder.encode( user.getPassword() ), user.getUserName(), false,
+                    null, user.getEmail(), userManager.generateSignupToken( user.getUserName() ), new Date() );
         } else {
             u.setEmail( user.getEmail() );
             u.setEnabled( user.isEnabled() );

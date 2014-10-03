@@ -190,7 +190,7 @@ public class UserManagerImpl implements UserManager {
             throw new RuntimeException( "User has a malformed token, please reset again." );
         }
 
-        Date expirationDate = DateUtils.addHours( creationDateStamp, 1 );
+        Date expirationDate = DateUtils.addHours( creationDateStamp, 2 );
 
         if ( !tokenKey.equals( key ) || expirationDate.before( new Date() ) ) {
             throw new RuntimeException( "Invalid reset token." );

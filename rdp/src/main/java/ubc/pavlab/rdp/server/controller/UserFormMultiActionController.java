@@ -33,10 +33,10 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.encoding.PasswordEncoder;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -60,7 +60,7 @@ public class UserFormMultiActionController extends BaseController {
     private UserManager userManager;
 
     @Autowired
-    private PasswordEncoder passwordEncoder;
+    private BCryptPasswordEncoder passwordEncoder;
 
     /**
      * Entry point for updates.
@@ -105,7 +105,7 @@ public class UserFormMultiActionController extends BaseController {
                 if ( !StringUtils.equals( password, passwordConfirm ) ) {
                     throw new RuntimeException( "Passwords do not match." );
                 }
-                String encryptedPassword = passwordEncoder.encodePassword( password, username );
+                String encryptedPassword = passwordEncoder.encode( password );
                 userManager.changePassword( oldPassword, encryptedPassword );
             } else {
                 throw new RuntimeException( "Password must be at least " + MIN_PASSWORD_LENGTH
@@ -289,7 +289,7 @@ public class UserFormMultiActionController extends BaseController {
                 throw new RuntimeException( "Unknown problem with token." );
             }
 
-            String pwd = passwordEncoder.encodePassword( password, username );
+            String pwd = passwordEncoder.encode( password );
 
             userManager.changePasswordForUser( username, pwd );
             userManager.invalidatePasswordResetToken( username );
