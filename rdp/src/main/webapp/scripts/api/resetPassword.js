@@ -13,11 +13,11 @@
          },
          data : $( "#resetPasswordForm" ).serialize(),
          success : function(response, xhr) {
-            utility.showMessage( $("#resetPasswordMessage") , jQuery.parseJSON( response ).message );
+            utility.showMessage( jQuery.parseJSON( response ).message, $("#resetPasswordMessage") );
          },
          error : function(response, xhr) {
             console.log( xhr.responseText );
-            utility.showMessage( $("#resetPasswordMessage"), "Error with request. Status is: " + xhr.status );
+            utility.showMessage( "Error with request. Status is: " + xhr.status, $("#resetPasswordMessage") );
          }
       } );
       e.preventDefault();

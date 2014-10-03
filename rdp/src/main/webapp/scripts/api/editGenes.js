@@ -17,7 +17,7 @@
 	}
 	
 	editGenes.closeGeneModal = function() {
-	   hideMessage( $( "#geneManagerMessage" ) );
+	   utility.hideMessage( $( "#geneManagerMessage" ) );
 	   $( "#searchGenesSelect" ).select2("val", "");
 	   hiddenGenes = [];
 	};
@@ -30,7 +30,7 @@
 		researcherModel.currentResearcher.addTaxonDescription($( "#taxonCommonNameSelect" ).val(), $( "#taxonDescription" ).val() )
         var promise = researcherModel.saveResearcherGenes();
         $.when(promise).done(function() {
-        	showMessage( promise.responseJSON.message, $( "#geneManagerMessage" ) );
+           utility.showMessage( promise.responseJSON.message, $( "#geneManagerMessage" ) );
         	
         	promise = researcherModel.loadResearcher();
         	$.when(promise).done(function() {
@@ -93,7 +93,7 @@
 	   
 	   var confirmExit = changed ? confirm('Are you sure? You haven\'t saved your changes. Click OK to leave or Cancel to go back and save your changes.') : true; 
 		if ( confirmExit ) {
-   	   hideMessage( $( "#geneManagerMessage" ) );
+   	   utility.hideMessage( $( "#geneManagerMessage" ) );
          $( this ).val( newVal );
          $.data(this, 'current', newVal );
    		editGenes.fillForm();
@@ -116,14 +116,14 @@
 	   }
 	   
 	   if ( gene == null ) {
-		      showMessage( "Please select a gene to add", $( "#geneManagerMessage" ) );
+	      utility.showMessage( "Please select a gene to add", $( "#geneManagerMessage" ) );
 		      return;
 	   } else {
-	      hideMessage( $( "#geneManagerMessage" ) );
+	      utility.hideMessage( $( "#geneManagerMessage" ) );
 	   }
 
 	   if ( table.column(1).data().indexOf(gene.officialSymbol) != -1 ) {
-	      showMessage( "Gene already added", $( "#geneManagerMessage" ) );
+	      utility.showMessage( "Gene already added", $( "#geneManagerMessage" ) );
 	      return;
 	   }
 	   
@@ -144,10 +144,10 @@
 		   var table = $( "#geneManagerTable" ).DataTable();
 		   var selectedNodes = table.rows( '.selected' );
 		   if ( selectedNodes.data().length == 0 ) {
-		      showMessage( "Please select a gene to remove", $( "#geneManagerMessage" ) );
+		      utility.showMessage( "Please select a gene to remove", $( "#geneManagerMessage" ) );
 		      return;
 		   } else {
-		      hideMessage( $( "#geneManagerMessage" ) );
+		      utility.hideMessage( $( "#geneManagerMessage" ) );
 		   }
 		   var data = selectedNodes.data();
 		   var selectedTaxon = $( "#taxonCommonNameSelect" ).val();
@@ -179,14 +179,14 @@
 	            editGenes.addGeneToTable(gene,table);
 	         }
 
-	         showMessage( response.message, $( "#geneManagerMessage" ) );
+	         utility.showMessage( response.message, $( "#geneManagerMessage" ) );
 
 	      },
 	      error : function(response, xhr) {
 
 	         //$( "#spinImportGenesButton" ).hide();
 
-	         showMessage( response.message, $( "#geneManagerMessage" ) );
+	         utility.showMessage( response.message, $( "#geneManagerMessage" ) );
 	      }
 
 	   } );

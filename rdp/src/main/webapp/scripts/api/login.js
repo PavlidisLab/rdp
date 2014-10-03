@@ -39,13 +39,13 @@
             } else {
                // If the login credentials are not correct,
                // show our error state element.
-               utility.showMessage($("#signinMessage"), "<strong>Warning!</strong> Login email/password incorrect.");
+               utility.showMessage( "<strong>Warning!</strong> Login email/password incorrect.", $("#signinMessage"));
             }
          },
          error : function(response, xhr) {
             console.log( "Error with request. Status is: " + xhr.status );
             console.log( xhr.responseText );
-            utility.showMessage($("#signinMessage"), "Error with request. Status is: " + xhr.status);
+            utility.showMessage( "Error with request. Status is: " + xhr.status, $("#signinMessage") );
          }
       } );
       e.preventDefault();

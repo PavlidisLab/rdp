@@ -2,7 +2,7 @@
  * @memberOf utility
  */
 (function( utility, $, undefined ) {
-   utility.showMessage = function( messageEl, message ) {
+   utility.showMessage = function(message, messageEl ) {
       console.log( message );
       messageEl.html( message );
       messageEl.parent().show();

@@ -14,12 +14,12 @@
          },
          data : $( "#signupForm" ).serialize(),
          success : function(response, xhr) {
-            utility.showMessage($("#signupMessage"), jQuery.parseJSON( response ).message);
+            utility.showMessage( jQuery.parseJSON( response ).message, $("#signupMessage") );
             Recaptcha.reload();
          },
          error : function(xhr) {
             console.log( xhr.responseText );
-            utility.showMessage($("#signupMessage"), "Error with request. Status is: " + xhr.status);
+            utility.showMessage( "Error with request. Status is: " + xhr.status, $("#signupMessage") );
             Recaptcha.reload();
          }
       } );

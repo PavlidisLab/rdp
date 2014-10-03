@@ -118,6 +118,7 @@ h3 {text-decoration: underline;}
  -->
 
 	<!-- Our scripts -->
+	<script src="scripts/api/utility.js"></script>
 	<script src="scripts/api/researcherModel.js"></script>
 	<script src="scripts/api/overview.js"></script>
 	<script src="scripts/api/editGenes.js"></script>
