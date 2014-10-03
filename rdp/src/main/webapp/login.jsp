@@ -24,6 +24,13 @@
 	.form-control::-webkit-input-placeholder {
 	  color: #A9A9A9;
 	}
+	
+	.shadowboxedin { 
+		padding: 10px 0;
+		margin-bottom: 10px;
+		-webkit-box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.3);
+		box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.3);
+	}
 </style>
 
 </head>
@@ -36,111 +43,65 @@
         aria-hidden="true">
         <div class="modal-dialog" data-backdrop="static"
             data-show="true">
-            <div class="modal-content" data-backdrop="static"
-                data-show="true">
-                <br>
-                <div class="bs-example bs-example-tabs">
-                    <ul id="myTab" class="nav nav-tabs">
-                        <li class="active"><a href="#signin"
-                            data-toggle="tab">Sign In</a></li>
-                        <li class=""><a href="#signup"
-                            data-toggle="tab">Register</a></li>
-                        <li class=""><a href="#resetPassword"
-                            data-toggle="tab">Reset Password</a></li>
-                        <li class=""><a href="#why"
-                            data-toggle="tab">Why?</a></li>
-                    </ul>
-                </div>
+            <div class="modal-content" data-backdrop="static" data-show="true">
+                <div class="modal-header">
+					<h3 class="modal-title text-center"><a href="#signin" data-toggle="tab">Rare Disease Project</a></h3>
+					<h5 class="modal-title text-center">Canadian Rare Disease Models & Mechanisms Network</h5>
+	            </div>
                 <div class="modal-body">
-                    <div id="myTabContent" class="tab-content">
-                        <div class="tab-pane fade in" id="why">
-                            <p>We need this information so that you
-                                can receive access to the site and its
-                                content. Rest assured your information
-                                will not be sold, traded, or given to
-                                anyone.</p>
-                            <p></p>
-                            <br> Please contact <a
-                                mailto:href="rdp@chibi.ubc.ca"></a>rdp@chibi.ubc.ca</a>
-                            for any other inquiries.
-                            </p>
-                        </div>
-                        <div class="tab-pane fade active in" id="signin">
-                            <form id="signinForm"
-                                class="form-horizontal"
-                                data-toggle="validator" role="form">
-                                <fieldset>
-                                    <!-- Sign In Form -->
-                                    <div class="alert alert-warning"
-                                        id="signinFailed" hidden="true">
-                                        <a href="#" class="close"
-                                            data-dismiss="alert">&times;</a>
-                                        <strong>Warning!</strong> Login
-                                        username/password incorrect.
-                                    </div>
-
-                                    <!-- Text input-->
-                                    <div class="control-group">
-                                        <label class="control-label"
-                                            for="signinId">Username:</label>
-                                        <div class="controls">
-                                            <input required
-                                                id="signinId"
-                                                name="signinId"
-                                                type="text"
-                                                class="form-control"
-                                                placeholder="joe123"
-                                                class="input-medium"
-                                                required="">
-                                        </div>
-                                    </div>
-
-                                    <!-- Password input-->
-                                    <div class="control-group">
-                                        <label class="control-label"
-                                            for="signinPassword">Password:</label>
-                                        <div class="controls">
-                                            <input required
-                                                id="signinPassword"
-                                                name="signinPassword"
-                                                class="form-control"
-                                                type="password"
-                                                placeholder="********"
-                                                class="input-medium">
-                                        </div>
-                                    </div>
-
-                                    <!-- Button -->
-                                    <div class="control-group">
-                                        <label class="control-label"
-                                            for="signin"></label>
-                                        <div class="controls">
-                                            <button for="btnSignin"
-                                                id="btnSignin"
-                                                name="signin"
-                                                class="btn btn-success">Sign
-                                                In</button>
-                                        </div>
-                                    </div>
-                                </fieldset>
-                            </form>
-                        </div>
-                        
-                        <!-- User signup -->
-                        <%@ include file="signupForm.jsp" %>
-                        
-                        <!-- Reset password -->
-                        <%@ include file="resetPasswordForm.jsp" %>
-                        
-                    </div>
+                	<div class="tab-content">
+                		<div class="tab-pane fade in active" id="signin">
+		                    <form id="signinForm" class="form-horizontal shadowboxedin" role="form">
+		                    <!-- Sign In Form -->
+			              		<div class="alert alert-warning col-sm-offset-1 col-sm-10" id="signinFailed" hidden="true">
+									<a href="#" class="close" data-hide="alert">&times;</a>
+									<div id="signinMessage" class="text-left"><strong>Warning!</strong> Login
+			                                    email/password incorrect.</div>
+								</div>
+			
+						        <div class="form-group">
+						            <div class="col-sm-offset-3 col-sm-6">
+						                <input type="text" name="email" class="form-control"
+						                    id="email" placeholder="Email" required>
+						            </div>
+						        </div>
+						        
+						        <div class="form-group">
+						            <div class="col-sm-offset-3 col-sm-6">
+						                <input type="password" name="password" class="form-control"
+						                    id="password" placeholder="Password" required>
+						            </div>
+						        </div>
+			
+								<div class="form-group">
+									<div class="col-sm-offset-3 col-sm-4 text-left">
+										<a href="#forgotPassword" data-toggle="tab" style="font-size:12px">Forgot password?</a>
+									</div>
+									<div class="col-sm-2 text-right">
+										<button type="submit" id="btnSignin" class="btn btn-success">Sign in</button>
+									</div>
+								</div>
+		                    </form>  
+		                    <div class="row">
+			                    <div class="col-sm-offset-3 col-sm-6 text-center">
+									<a href="#signup" data-toggle="tab" style="font-size:15px">Create an account</a>
+								</div>  
+							</div> 
+						</div>
+						
+						<%@ include file="signupForm.jsp" %>
+						
+						<%@ include file="forgotPasswordForm.jsp" %>
+						
+					</div>	                   
                 </div>
-                <!-- 
-      <div class="modal-footer">
-      <center>
-        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-        </center>
-      </div>
-       -->
+
+			    <div class="modal-footer">
+					<div class="col-sm-offset-9 col-sm-3 text-right">
+						<a href="mailto:rdp@chibi.ubc.ca" style="font-size:15px">Contact Support</a>
+					</div>
+			    </div>
+
 
             </div>
         </div>
@@ -154,9 +115,10 @@
         src="http://www.google.com/recaptcha/api/js/recaptcha_ajax.js"></script>
 
     <!-- Our scripts -->
+    <script src="scripts/api/utility.js"></script>
     <script src="scripts/api/login.js"></script>
     <script src="scripts/api/signup.js"></script>
-    <script src="scripts/api/resetPassword.js"></script>
+    <script src="scripts/api/forgotPasswordForm.js"></script>
     
 </body>
 </html>

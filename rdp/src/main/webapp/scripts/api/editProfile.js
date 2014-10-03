@@ -4,7 +4,7 @@
 (function( editProfile, $, undefined ) {
 
 	editProfile.closeProfileModal = function() {
-	   hideMessage( $( "#primaryContactMessage" ) );
+	   utility.hideMessage( $( "#primaryContactMessage" ) );
 	   
 	};
 	
@@ -20,7 +20,7 @@
        
         var promise = researcherModel.saveResearcherProfile();
         $.when(promise).done(function() {
-        	showMessage( promise.responseJSON.message, $( "#primaryContactMessage" ) );
+           utility.showMessage( promise.responseJSON.message, $( "#primaryContactMessage" ) );
          promise = researcherModel.loadResearcher();
          $.when(promise).done(function() {
             overview.showProfile();

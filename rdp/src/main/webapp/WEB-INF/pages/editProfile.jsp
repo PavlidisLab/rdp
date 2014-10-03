@@ -89,7 +89,7 @@
 			            <label class="col-sm-3 control-label">Research Focus</label>
 			            <div class="col-sm-8">
 							<textarea id="description" name="description" class="form-control" rows="3"
-								placeholder="My lab studies ..." maxlength="1000"></textarea>
+								placeholder="My lab studies ..." maxlength="1200"></textarea>
 			            </div>
 			        </div>
 			        

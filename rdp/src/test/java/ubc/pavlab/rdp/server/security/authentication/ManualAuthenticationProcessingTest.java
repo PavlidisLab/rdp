@@ -21,7 +21,6 @@ package ubc.pavlab.rdp.server.security.authentication;
 import static org.junit.Assert.fail;
 import gemma.gsec.authentication.ManualAuthenticationService;
 import gemma.gsec.authentication.UserDetailsImpl;
-import gemma.gsec.authentication.UserManager;
 
 import java.util.Date;
 
@@ -29,8 +28,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.encoding.PasswordEncoder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import ubc.pavlab.rdp.testing.BaseSpringContextTest;
 
@@ -51,7 +50,7 @@ public class ManualAuthenticationProcessingTest extends BaseSpringContextTest {
     UserManager userManager;
 
     @Autowired
-    private PasswordEncoder passwordEncoder;
+    private BCryptPasswordEncoder passwordEncoder;
 
     @Before
     public void before() {
@@ -62,7 +61,7 @@ public class ManualAuthenticationProcessingTest extends BaseSpringContextTest {
         try {
             userManager.loadUserByUsername( username );
         } catch ( UsernameNotFoundException e ) {
-            String encodedPassword = passwordEncoder.encodePassword( pwd, username );
+            String encodedPassword = passwordEncoder.encode( pwd );
             UserDetailsImpl u = new UserDetailsImpl( encodedPassword, username, true, null, null, null, new Date() );
             userManager.createUser( u );
         }

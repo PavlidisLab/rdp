@@ -107,11 +107,11 @@
    }
    
    researcherModel.Researcher.prototype.parseResearcherObject = function(data) {
-      this.department = data.department;
-      this.organization = data.organization;
+      this.department = data.department || "";
+      this.organization = data.organization || "";
       this.website = data.website;
-      this.phone = data.phone;
-      this.description = data.description;
+      this.phone = data.phone || "";
+      this.description = data.description || "";
       this.setTaxonDescriptionsFromArray(data.taxonDescriptions);
       
       var genes = [];
@@ -137,10 +137,10 @@
          contact = data;
       }
       
-      this.firstName = contact.firstName;
-      this.lastName = contact.lastName;
-      this.email = contact.email;
-      this.userName = contact.userName;
+      this.firstName = contact.firstName || "";
+      this.lastName = contact.lastName || "";
+      this.email = contact.email || "";
+      this.userName = contact.userName || "";
    }
    
    researcherModel.Gene = function Gene(geneValueObject) {
@@ -149,7 +149,7 @@
       this.officialName = geneValueObject.officialName || null;
       this.officialSymbol = geneValueObject.officialSymbol || null;
       this.taxon = geneValueObject.taxon || null;
-      this.tier = geneValueObject.tier || null;
+      this.tier = geneValueObject.tier || "TIER2";
       this.aliases = geneValueObject.aliases || [];
    }
    

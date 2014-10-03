@@ -27,7 +27,9 @@
         <!-- only permit unauthenticated access to some URLs, order matters, see http://docs.spring.io/spring-security/site/docs/3.0.x/reference/el-access.html -->
         <s:intercept-url pattern="/login.jsp" access="permitAll" />
         <s:intercept-url pattern="/confirmRegistration.html" access="permitAll" />
-        <s:intercept-url pattern="/resetPassword.html" access="permitAll" />
+        <s:intercept-url pattern="/resetPassword.jsp" access="permitAll" />
+        <s:intercept-url pattern="/newPassword.html" access="permitAll" />
+        <s:intercept-url pattern="/forgotPassword.html" access="permitAll" />
         <s:intercept-url pattern="/signup.html" access="permitAll" />
         <s:intercept-url pattern="/fonts/**" access="permitAll" />
         <s:intercept-url pattern="/styles/**" access="permitAll" />
@@ -60,16 +62,14 @@
     <s:authentication-manager alias="authenticationManager">
         <s:authentication-provider user-service-ref="userManager">
 
-            <s:password-encoder ref="passwordEncoder">
-                <s:salt-source user-property="username" />
-            </s:password-encoder>
+            <s:password-encoder ref="passwordEncoder"></s:password-encoder>
 
         </s:authentication-provider>
         <s:authentication-provider ref="runAsAuthenticationProvider" />
     </s:authentication-manager>
 
 
-    <bean id="passwordEncoder" class="org.springframework.security.authentication.encoding.ShaPasswordEncoder" />
+    <bean id="passwordEncoder" class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder" />
 
     <bean id="runAsManager" class="org.springframework.security.access.intercept.RunAsManagerImpl">
         <property name="rolePrefix" value="GROUP_" />

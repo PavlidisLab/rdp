@@ -14,7 +14,7 @@
 	      },
 	      data : $( "#changePasswordForm" ).serialize(),
 	      success : function(response, xhr) {
-	    	  showMessage( jQuery.parseJSON( response ).message, $( "#changePasswordMessage" ) );
+	         utility.showMessage( jQuery.parseJSON( response ).message, $( "#changePasswordMessage" ) );
 	    	  if (!jQuery.parseJSON( response ).success) {
 	    	     var form = $( "#changePasswordForm" );
               form.find( "#oldPassword" ).val( "" );
@@ -24,13 +24,13 @@
 	      },
 	      error : function(response, xhr) {
 	         //console.log( xhr.responseText );
-	         showMessage( jQuery.parseJSON( response ).message, $( "#changePasswordMessage" ) );
+	         utility.showMessage( jQuery.parseJSON( response ).message, $( "#changePasswordMessage" ) );
 	      }
 	   } );
 	}
 	
 	editUser.closeModal = function() {
-		hideMessage( $( "#changePasswordMessage" ) );
+		utility.hideMessage( $( "#changePasswordMessage" ) );
       var form = $( "#changePasswordForm" );
       form.find( "#oldPassword" ).val( "" );
       form.find( "#password" ).val( "" );
@@ -38,7 +38,7 @@
 	}
 	
 	editUser.fillForm = function() {
-		hideMessage( $( "#changePasswordMessage" ) );
+		utility.hideMessage( $( "#changePasswordMessage" ) );
 	}
 
 }( window.editUser = window.editUser || {}, jQuery ));

@@ -20,7 +20,6 @@ import gemma.gsec.SecurityService;
 import gemma.gsec.authentication.ManualAuthenticationService;
 import gemma.gsec.authentication.UserDetailsImpl;
 import gemma.gsec.authentication.UserExistsException;
-import gemma.gsec.authentication.UserManager;
 import gemma.gsec.model.GroupAuthority;
 import gemma.gsec.model.User;
 import gemma.gsec.model.UserGroup;
@@ -55,6 +54,7 @@ import org.springframework.security.core.userdetails.cache.NullUserCache;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import ubc.pavlab.rdp.server.model.common.auditAndSecurity.PasswordResetToken;
 import ubc.pavlab.rdp.server.service.ResearcherService;
 
 /**
@@ -142,6 +142,76 @@ public class UserManagerImpl implements UserManager {
         userService.addUserToGroup( g, u );
     }
 
+    @Override
+    @Secured({ "IS_AUTHENTICATED_ANONYMOUSLY", "RUN_AS_ADMIN" })
+    @Transactional
+    public PasswordResetToken createPasswordResetToken( User u ) {
+
+        String key = RandomStringUtils.randomAlphanumeric( 32 ).toUpperCase();
+
+        Date now = new Date();
+
+        PasswordResetToken token = new PasswordResetToken(
+                ( ( ubc.pavlab.rdp.server.model.common.auditAndSecurity.User ) u ), key, now );
+
+        ( ( ubc.pavlab.rdp.server.model.common.auditAndSecurity.User ) u ).setPasswordResetToken( token );
+
+        userService.update( u );
+
+        return token;
+
+    }
+
+    @Override
+    @Secured({ "IS_AUTHENTICATED_ANONYMOUSLY", "RUN_AS_ADMIN" })
+    @Transactional
+    public PasswordResetToken getPasswordResetToken( String username ) {
+        User u = loadUser( username );
+        return ( ( ubc.pavlab.rdp.server.model.common.auditAndSecurity.User ) u ).getPasswordResetToken();
+    }
+
+    @Override
+    @Secured({ "IS_AUTHENTICATED_ANONYMOUSLY", "RUN_AS_ADMIN" })
+    @Transactional
+    public boolean validatePasswordResetToken( String username, String key ) throws RuntimeException {
+        User u = loadUser( username );
+
+        PasswordResetToken token = ( ( ubc.pavlab.rdp.server.model.common.auditAndSecurity.User ) u )
+                .getPasswordResetToken();
+
+        if ( token == null ) {
+            throw new RuntimeException( "User does not have a password reset token." );
+        }
+
+        Date creationDateStamp = token.getCreationDateStamp();
+        String tokenKey = token.getTokenKey();
+
+        if ( tokenKey == null || creationDateStamp == null ) {
+            throw new RuntimeException( "User has a malformed token, please reset again." );
+        }
+
+        Date expirationDate = DateUtils.addHours( creationDateStamp, 2 );
+
+        if ( !tokenKey.equals( key ) || expirationDate.before( new Date() ) ) {
+            throw new RuntimeException( "Invalid reset token." );
+        }
+
+        return true;
+    }
+
+    @Override
+    @Secured({ "IS_AUTHENTICATED_ANONYMOUSLY", "RUN_AS_ADMIN" })
+    @Transactional
+    public void invalidatePasswordResetToken( String username ) {
+        User u = loadUser( username );
+        // Setting to a useless token instead of null because orphan removal is currently bugged
+        // on OnetoOne relationships in Hibernate.
+        ( ( ubc.pavlab.rdp.server.model.common.auditAndSecurity.User ) u )
+                .setPasswordResetToken( new PasswordResetToken(
+                        ( ( ubc.pavlab.rdp.server.model.common.auditAndSecurity.User ) u ), null, null ) );
+        userService.update( u );
+    }
+
     /*
      * (non-Javadoc)
      * 
@@ -184,6 +254,7 @@ public class UserManagerImpl implements UserManager {
      * 
      * @see ubic.gemma.security.authentication.UserManager#changePasswordForUser(java.lang.String, java.lang.String)
      */
+    @Deprecated
     @Override
     @Secured({ "IS_AUTHENTICATED_ANONYMOUSLY", "RUN_AS_ADMIN" })
     @Transactional
@@ -220,6 +291,29 @@ public class UserManagerImpl implements UserManager {
         userCache.removeUserFromCache( username );
 
         return u.getSignupToken();
+    }
+
+    @Override
+    @Secured({ "IS_AUTHENTICATED_ANONYMOUSLY", "RUN_AS_ADMIN" })
+    @Transactional
+    public void changePasswordForUser( String username, String newPassword ) throws AuthenticationException {
+        Authentication currentAuthentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if ( currentAuthentication == null ) {
+            // This would indicate bad coding somewhere
+            throw new AccessDeniedException( "Can't change password as no Authentication object found in context "
+                    + "for current user." );
+        }
+
+        User u = loadUser( username );
+
+        logger.debug( "Changing password for user '" + u.getUserName() + "'" );
+
+        u.setPassword( newPassword );
+        userService.update( u );
+
+        userCache.removeUserFromCache( u.getUserName() );
+
     }
 
     /*
@@ -320,6 +414,14 @@ public class UserManagerImpl implements UserManager {
         userCache.removeUserFromCache( username );
     }
 
+    @Override
+    @Transactional
+    public void deleteUser( User user ) {
+
+        userService.delete( user );
+        userCache.removeUserFromCache( user.getUserName() );
+    }
+
     /*
      * (non-Javadoc)
      * 
@@ -354,7 +456,7 @@ public class UserManagerImpl implements UserManager {
      * @see ubic.gemma.security.authentication.UserManager#findbyEmail(java.lang.String)
      */
     @Override
-    @Secured({ "GROUP_USER", "RUN_AS_ADMIN" })
+    @Secured({ "IS_AUTHENTICATED_ANONYMOUSLY", "RUN_AS_ADMIN" })
     public User findbyEmail( String emailAddress ) {
         return findByEmail( emailAddress );
     }

@@ -1,46 +1,40 @@
-var register = function() {
-
-   $.ajax( {
-      cache : false,
-      type : 'POST',
-      url : "signup.html",
-      beforeSend : function(xhr) {
-         xhr.setRequestHeader( 'Content-Type', 'application/x-www-form-urlencoded' );
-      },
-      data : $( "#signupForm" ).serialize(),
-      success : function(response, xhr) {
-         $( "#signupMesssage" ).html( jQuery.parseJSON( response ).message );
-         $( "#signupFailed" ).show();
-         Recaptcha.reload();
-      },
-      error : function(xhr) {
-         console.log( xhr.responseText );
-         $( "#signupMesssage" ).html( "Error with request. Status is: " + xhr.status );
-         $( "#signupFailed" ).show();
-         Recaptcha.reload();
-      }
-   } );
-};
-
-// Add captcha
-Recaptcha.create( $( "#captchaPublicKey" ).text(), "captchadiv", {
-   theme : "clean",
-   callback : Recaptcha.focus_response_field
-} );
-
-// Make sure that the error state element is hidden.
-$( "#signupFailed" ).hide();
-
-
-$( "#signupForm" ).validate( {
-   rules : {
-      recaptcha_response_field : {
-         required : true,
-      }
-   },
-   submitHandler : function(form) {
-      register();
+/**
+ * @memberOf signup
+ */
+(function( signup, $, undefined ) {
+   
+   signup.register = function(e) {
+      e.preventDefault();
+      $.ajax( {
+         cache : false,
+         type : 'POST',
+         url : "signup.html",
+         beforeSend : function(xhr) {
+            xhr.setRequestHeader( 'Content-Type', 'application/x-www-form-urlencoded' );
+         },
+         data : $( "#signupForm" ).serialize(),
+         success : function(response, xhr) {
+            utility.showMessage( jQuery.parseJSON( response ).message, $("#signupMessage") );
+            Recaptcha.reload();
+         },
+         error : function(xhr) {
+            console.log( xhr.responseText );
+            utility.showMessage( "Error with request. Status is: " + xhr.status, $("#signupMessage") );
+            Recaptcha.reload();
+         }
+      } );
+      
       return false;
-   }
-} );
+   };
+   
+}( window.signup = window.signup || {}, jQuery ));
 
+$( document ).ready( function() {
+   // Add captcha
+   Recaptcha.create( $( "#captchaPublicKey" ).text(), "captchadiv", {
+      theme : "clean",
+      callback : function() {$("#recaptcha_response_field").prop("required", true);}
+   } );
+   $( "#signupForm" ).submit( signup.register);
+
+} );

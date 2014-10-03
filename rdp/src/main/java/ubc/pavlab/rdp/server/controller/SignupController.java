@@ -20,7 +20,6 @@ package ubc.pavlab.rdp.server.controller;
 
 import gemma.gsec.authentication.LoginDetailsValueObject;
 import gemma.gsec.authentication.UserDetailsImpl;
-import gemma.gsec.authentication.UserManager;
 import gemma.gsec.util.JSONUtil;
 import gemma.gsec.util.SecurityUtil;
 
@@ -36,13 +35,14 @@ import net.tanesha.recaptcha.ReCaptchaResponse;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.encoding.PasswordEncoder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import ubc.pavlab.rdp.server.model.Researcher;
 import ubc.pavlab.rdp.server.model.common.auditAndSecurity.User;
+import ubc.pavlab.rdp.server.security.authentication.UserManager;
 import ubc.pavlab.rdp.server.service.ResearcherService;
 import ubc.pavlab.rdp.server.util.Settings;
 
@@ -59,7 +59,7 @@ public class SignupController extends BaseController {
     public static final int MIN_PASSWORD_LENGTH = 6;
 
     @Autowired
-    private PasswordEncoder passwordEncoder;
+    private BCryptPasswordEncoder passwordEncoder;
 
     @Autowired
     private UserManager userManager;
@@ -150,7 +150,7 @@ public class SignupController extends BaseController {
     /**
      * @param passwordEncoder the passwordEncoder to set
      */
-    public void setPasswordEncoder( PasswordEncoder passwordEncoder ) {
+    public void setPasswordEncoder( BCryptPasswordEncoder passwordEncoder ) {
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -207,9 +207,9 @@ public class SignupController extends BaseController {
             return;
         }
 
-        String username = request.getParameter( "username" );
+        String username = request.getParameter( "email" );
 
-        String encodedPassword = passwordEncoder.encodePassword( password, username );
+        String encodedPassword = passwordEncoder.encode( password );
 
         String email = request.getParameter( "email" );
 

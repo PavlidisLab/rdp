@@ -16,11 +16,10 @@
 package ubc.pavlab.rdp.server.security.principal;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import gemma.gsec.authentication.UserDetailsImpl;
-import gemma.gsec.authentication.UserManager;
 
 import java.util.Date;
 
@@ -31,10 +30,12 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.authentication.encoding.PasswordEncoder;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
+import ubc.pavlab.rdp.server.model.common.auditAndSecurity.PasswordResetToken;
+import ubc.pavlab.rdp.server.model.common.auditAndSecurity.User;
+import ubc.pavlab.rdp.server.security.authentication.UserManager;
 import ubc.pavlab.rdp.testing.BaseSpringContextTest;
 
 /**
@@ -45,84 +46,78 @@ import ubc.pavlab.rdp.testing.BaseSpringContextTest;
  */
 public class PrincipalTest extends BaseSpringContextTest {
 
-    String pwd;
+    private String pwd;
 
-    String username;
+    private String username;
+
+    private String email;
+
+    private User user;
 
     @Autowired
     UserManager userManager;
 
     @Autowired
-    private PasswordEncoder passwordEncoder;
+    private BCryptPasswordEncoder passwordEncoder;
 
     @Autowired
     private AuthenticationManager authenticationManager;
 
-    private String email;
-
-    @Before
-    public void before() {
-
+    private void createUser() {
         pwd = randomName();
         username = randomName();
         email = username + "@foo.foo";
 
+        String encodedPassword = passwordEncoder.encode( pwd );
+        UserDetailsImpl u = new UserDetailsImpl( encodedPassword, username, true, null, email, null, new Date() );
+        userManager.createUser( u );
+        user = ( User ) userManager.findByEmail( email );
+    }
+
+    @Before
+    public void before() {
+        createUser();
+    }
+
+    @Test
+    public final void testResetPassword() throws Exception {
+        User u = ( User ) userManager.findByUserName( username );
+        String oldpwd = u.getPassword();
+        String newpwd = randomName();
+        String encodedPassword = passwordEncoder.encode( newpwd );
+
+        PasswordResetToken token = userManager.createPasswordResetToken( u );
+
+        boolean valid = userManager.validatePasswordResetToken( username, token.getTokenKey() );
+        assertTrue( valid );
+
+        userManager.changePasswordForUser( username, encodedPassword );
+        u = ( User ) userManager.findByUserName( username );
+        assertEquals( encodedPassword, u.getPassword() );
+
+        userManager.invalidatePasswordResetToken( username );
         try {
-            userManager.loadUserByUsername( username );
-        } catch ( UsernameNotFoundException e ) {
-
-            String encodedPassword = passwordEncoder.encodePassword( pwd, username );
-            UserDetailsImpl u = new UserDetailsImpl( encodedPassword, username, true, null, email, null, new Date() );
-
-            // log.error( "Encoded password old password " + pwd + " encoded is " + encodedPassword + " user is "
-            // + username, e );
-
-            userManager.createUser( u );
+            valid = userManager.validatePasswordResetToken( username, token.getTokenKey() );
+        } catch ( Exception e ) {
+            valid = false;
         }
+        assertFalse( valid );
+
     }
 
     @Test
     public final void testChangePassword() throws Exception {
-        String oldpwd = userManager.findByUserName( username ).getPassword();
         String newpwd = randomName();
-        String encodedPassword = passwordEncoder.encodePassword( newpwd, username );
-
-        String token = userManager.changePasswordForUser( email, username, encodedPassword );
-
-        assertTrue( !userManager.loadUserByUsername( username ).isEnabled() );
-
-        /*
-         * User has to unlock the account, we mimic that:
-         */
-        assertTrue( userManager.validateSignupToken( username, token ) );
-
-        assertTrue( userManager.loadUserByUsername( username ).isEnabled() );
-
-        Authentication auth = new UsernamePasswordAuthenticationToken( username, newpwd );
-        Authentication authentication = ( ( ProviderManager ) authenticationManager ).authenticate( auth );
-        assertTrue( authentication.isAuthenticated() );
-
-        assertNotSame( oldpwd, userManager.findByUserName( username ).getPassword() );
-
-        // authenticate
-        userManager.reauthenticate( username, newpwd );
-        assertTrue( userManager.loggedIn() );
-        assertEquals( userManager.getCurrentUsername(), username );
-
-        // Now that the account has been activated, try changing the password
-        oldpwd = newpwd;
-        newpwd = randomName();
-        encodedPassword = passwordEncoder.encodePassword( newpwd, username );
+        String encodedPassword = passwordEncoder.encode( newpwd );
 
         // Current user changing password
+
         super.runAsUser( username );
-        userManager.changePassword( oldpwd, encodedPassword );
+        userManager.changePassword( pwd, encodedPassword );
 
         assertTrue( userManager.loadUserByUsername( username ).isEnabled() );
-        assertNotSame( oldpwd, userManager.findByUserName( username ).getPassword() );
-        auth = new UsernamePasswordAuthenticationToken( username, newpwd );
-        authentication = ( ( ProviderManager ) authenticationManager ).authenticate( auth );
-        assertTrue( authentication.isAuthenticated() );
+        assertEquals( encodedPassword, userManager.findByUserName( username ).getPassword() );
+
     }
 
     /**

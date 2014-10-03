@@ -19,29 +19,30 @@
 package ubc.pavlab.rdp.server.controller;
 
 import gemma.gsec.authentication.UserDetailsImpl;
-import gemma.gsec.authentication.UserManager;
 import gemma.gsec.model.User;
 import gemma.gsec.util.JSONUtil;
 
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.security.authentication.encoding.PasswordEncoder;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import ubc.pavlab.rdp.server.model.common.auditAndSecurity.PasswordResetToken;
+import ubc.pavlab.rdp.server.security.authentication.UserManager;
 import ubc.pavlab.rdp.server.util.Settings;
 
 /**
@@ -60,7 +61,7 @@ public class UserFormMultiActionController extends BaseController {
     private UserManager userManager;
 
     @Autowired
-    private PasswordEncoder passwordEncoder;
+    private BCryptPasswordEncoder passwordEncoder;
 
     /**
      * Entry point for updates.
@@ -105,7 +106,7 @@ public class UserFormMultiActionController extends BaseController {
                 if ( !StringUtils.equals( password, passwordConfirm ) ) {
                     throw new RuntimeException( "Passwords do not match." );
                 }
-                String encryptedPassword = passwordEncoder.encodePassword( password, username );
+                String encryptedPassword = passwordEncoder.encode( password );
                 userManager.changePassword( oldPassword, encryptedPassword );
             } else {
                 throw new RuntimeException( "Password must be at least " + MIN_PASSWORD_LENGTH
@@ -185,103 +186,133 @@ public class UserFormMultiActionController extends BaseController {
     }
 
     /**
-     * Resets the password to a random alphanumeric (of length MIN_PASSWORD_LENGTH).
+     * Begins the process for user to choose new password without logging in.
      * 
      * @param request
      * @param response
+     * @throws IOException
      */
-    @RequestMapping("/resetPassword.html")
-    public void resetPassword( HttpServletRequest request, HttpServletResponse response ) {
-        if ( log.isDebugEnabled() ) {
-            log.debug( "entering 'resetPassword' method..." );
-        }
-
-        String email = request.getParameter( "resetPasswordEmail" );
-        String username = request.getParameter( "resetPasswordId" );
+    @RequestMapping("/forgotPassword.html")
+    public void forgotPassword( HttpServletRequest request, HttpServletResponse response ) throws IOException {
+        String email = request.getParameter( "forgotPasswordEmail" );
 
         JSONUtil jsonUtil = new JSONUtil( request, response );
         String txt = null;
         String jsonText = null;
 
-        /* look up the user's information and reset password. */
+        /* look up the user's information and send email */
         try {
 
-            /* make sure the email and username has been sent */
-            if ( StringUtils.isEmpty( email ) || StringUtils.isEmpty( username ) ) {
-                txt = "Email or username not specified.  These are required fields.";
-                log.warn( txt );
-                throw new RuntimeException( txt );
+            /* make sure the email has been set */
+            if ( StringUtils.isEmpty( email ) ) {
+                throw new RuntimeException( "Email not specified.  This is a required field." );
             }
 
-            /* Change the password. */
-            String pwd = RandomStringUtils.randomAlphanumeric( UserFormMultiActionController.MIN_PASSWORD_LENGTH )
-                    .toLowerCase();
+            User user = userManager.findbyEmail( email );
 
-            String token = userManager.changePasswordForUser( email, username,
-                    passwordEncoder.encodePassword( pwd, username ) );
+            /* make sure the user exists */
+            if ( user == null ) {
+                throw new RuntimeException( "User with specified email does not exist." );
+            }
 
-            String message = sendResetConfirmationEmail( request, token, username, pwd, email );
+            String username = user.getUserName();
+
+            PasswordResetToken token = userManager.createPasswordResetToken( user );
+
+            String key = token.getTokenKey();
+
+            String templateName = "forgotPassword.vm";
+
+            Map<String, Object> model = new HashMap<>();
+
+            String name = ( ( ubc.pavlab.rdp.server.model.common.auditAndSecurity.User ) user ).getFirstName();
+            if ( StringUtils.isEmpty( name ) ) {
+                name = username;
+            }
+
+            model.put( "name", name );
+            model.put(
+                    "confirmLink",
+                    Settings.getBaseUrl() + "resetPassword.jsp?key=" + key + "&user="
+                            + URLEncoder.encode( username, "UTF-8" ) );
+
+            sendEmail( email, "Password Reset Instructions", templateName, model );
+
+            String message = "Password reset instructions have been sent to <strong>" + email + "</strong>";
 
             jsonText = "{\"success\":true,\"message\":\"" + message + "\"}";
 
         } catch ( Exception e ) {
-            log.error( e, e );
-            // jsonText = jsonUtil.getJSONErrorMessage( e );
+            log.error( e.getLocalizedMessage(), e );
             jsonText = "{\"success\":false,\"message\":\"" + e.getLocalizedMessage() + "\"}";
         } finally {
-            try {
-                jsonUtil.writeToResponse( jsonText );
-            } catch ( IOException e ) {
-                e.printStackTrace();
-            }
+            jsonUtil.writeToResponse( jsonText );
         }
     }
 
     /**
-     * Send an email to request signup confirmation. FIXME this is very similar to code in SignupController.
+     * Check token-user against database, changes password if all goes well.
      * 
      * @param request
-     * @param u
+     * @param response
+     * @throws IOException
      */
-    private String sendResetConfirmationEmail( HttpServletRequest request, String token, String username,
-            String password, String email ) {
+    @RequestMapping("/newPassword.html")
+    public void newPassword( HttpServletRequest request, HttpServletResponse response ) throws IOException {
+        String username = request.getParameter( "user" );
+        String key = request.getParameter( "key" );
+        String password = request.getParameter( "password" );
+        String passwordConfirm = request.getParameter( "passwordConfirm" );
 
-        String message = "";
+        JSONUtil jsonUtil = new JSONUtil( request, response );
+        JSONObject json = new JSONObject();
+        String jsonText = null;
 
-        // Send an account information e-mail
-        SimpleMailMessage mailMessage = new SimpleMailMessage();
-        mailMessage.setFrom( Settings.getAdminEmailAddress() );
-        mailMessage.setSubject( getText( "signup.email.subject", request.getLocale() ) );
         try {
-            Map<String, Object> model = new HashMap<>();
-            model.put( "username", username );
-            model.put( "password", password );
 
-            /*
-             * FIXME: make this url configurable.
-             */
-            // String host = "www.chibi.ubc.ca";
-            // model.put( "confirmLink", "http://" + host + "/Gemma/confirmRegistration.html?key=" + token +
-            // "&username="
-            // + username );
-            model.put( "confirmLink", Settings.getBaseUrl() + "/confirmRegistration.html?key=" + token + "&username="
-                    + username );
-            model.put( "message", getText( "login.passwordReset.emailMessage", request.getLocale() ) );
+            if ( StringUtils.isEmpty( password ) | StringUtils.isEmpty( passwordConfirm ) ) {
+                throw new RuntimeException( "Missing password." );
+            }
 
-            /*
-             * FIXME: make the template name configurable.
-             */
-            String templateName = "passwordReset.vm";
-            sendEmail( username, email, "Password reset", templateName, model );
-            message = getText( "login.passwordReset", new Object[] { username, email }, request.getLocale() );
-            saveMessage( request, message );
+            if ( !password.equals( passwordConfirm ) ) {
+                throw new RuntimeException( "Passwords do not match." );
+            }
+
+            if ( password.length() < MIN_PASSWORD_LENGTH ) {
+                throw new RuntimeException( "Password must be at least " + MIN_PASSWORD_LENGTH
+                        + " characters in length" );
+            }
+
+            boolean valid = userManager.validatePasswordResetToken( username, key );
+
+            if ( !valid ) {
+                // This shouldn't happen...
+                throw new RuntimeException( "Unknown problem with token." );
+            }
+
+            String pwd = passwordEncoder.encode( password );
+
+            userManager.changePasswordForUser( username, pwd );
+            userManager.invalidatePasswordResetToken( username );
+
+            // log in automatically for convenience
+            UserDetails user = userManager.loadUserByUsername( username );
+            Authentication auth = new UsernamePasswordAuthenticationToken( username, password );
+            SecurityContextHolder.getContext().setAuthentication( auth );
+
+            log.info( "user: (" + username + ") reset password" );
+            json.put( "success", true );
+            json.put( "message", "Password successfully reset for (" + username + ")." );
+            jsonText = json.toString();
 
         } catch ( Exception e ) {
-            message = "Couldn't send password change confirmation email to " + email;
-            throw new RuntimeException( message, e );
+            log.error( e.getLocalizedMessage(), e );
+            json.put( "success", false );
+            json.put( "message", e.getLocalizedMessage() );
+            jsonText = json.toString();
+        } finally {
+            jsonUtil.writeToResponse( jsonText );
         }
-
-        return message;
 
     }
 

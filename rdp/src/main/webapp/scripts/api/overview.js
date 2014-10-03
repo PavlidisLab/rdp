@@ -124,10 +124,10 @@ overview.showProfile = function(researcher) {
     $('#overviewFocus').text( researcher.description || "" );
     
    if ( researcher.fullName() === "" ) {
-	   showMessage( "<a href='#editProfileModal' class='alert-link' data-toggle='modal'>Missing contact details - Click Here</a>", $("#overviewMessage") );
+      utility.showMessage( "<a href='#editProfileModal' class='alert-link' data-toggle='modal'>Missing contact details - Click Here</a>", $("#overviewMessage") );
    }
    else {
-	   hideMessage( $("#overviewMessage") );
+	   utility.hideMessage( $("#overviewMessage") );
    }
 }
 
@@ -176,10 +176,10 @@ overview.showGenes = function(researcher, showAll, explicitTiers) {
 	}
 	
    if ( genes.length === 0 ) {
-	   showMessage( "<a href='#editGenesModal' class='alert-link' data-toggle='modal'>No model organisms have been added to profile  - Click Here.</a>", $( "#overviewModelMessage" ) );
+      utility.showMessage( "<a href='#editGenesModal' class='alert-link' data-toggle='modal'>No model organisms have been added to profile  - Click Here.</a>", $( "#overviewModelMessage" ) );
    }
    else {
-	   hideMessage( $("#overviewModelMessage") );
+	   utility.hideMessage( $("#overviewModelMessage") );
    }
 	
 }

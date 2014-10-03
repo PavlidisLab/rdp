@@ -54,7 +54,7 @@
 	
 	
 	listResearchers.getResearchers = function() {
-	   hideMessage($("#listResearchersMessage"));
+	   utility.hideMessage($("#listResearchersMessage"));
 	    $.ajax({
 	        cache : false,
 	        type : 'GET',
@@ -99,10 +99,10 @@
 	    var gene = $("#findResearchersByGenesSelect").select2("data")
 	
 	    if (gene == null) {
-	        showMessage("Please select a gene", $("#listResearchersMessage"));
+	       utility.showMessage("Please select a gene", $("#listResearchersMessage"));
 	        return;
 	    } else {
-	       hideMessage( $("#listResearchersMessage") );
+	       utility.hideMessage( $("#listResearchersMessage") );
 	    }
 	    
 	    researchers = [];

@@ -26,7 +26,6 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import gemma.gsec.authentication.UserDetailsImpl;
-import gemma.gsec.authentication.UserManager;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -42,6 +41,7 @@ import ubc.pavlab.rdp.server.model.Gene;
 import ubc.pavlab.rdp.server.model.GeneAssociation.TierType;
 import ubc.pavlab.rdp.server.model.Researcher;
 import ubc.pavlab.rdp.server.model.common.auditAndSecurity.User;
+import ubc.pavlab.rdp.server.security.authentication.UserManager;
 import ubc.pavlab.rdp.server.security.authentication.UserService;
 import ubc.pavlab.rdp.server.service.GeneService;
 import ubc.pavlab.rdp.server.service.ResearcherService;
@@ -271,15 +271,16 @@ public class ResearcherServiceTest extends BaseSpringContextTest {
     public void testLoadAll() throws Exception {
         try {
             Collection<Researcher> researchers = researcherService.loadAll();
-            assertEquals( 1, researchers.size() );
+            // assertEquals( 1, researchers.size() );
+            int controlSize = researchers.size();
 
             Researcher r = createResearcher( "testtesttest", "test@testtest.com", "testtesttest" );
             researchers = researcherService.loadAll();
-            assertEquals( 2, researchers.size() );
+            assertEquals( controlSize + 1, researchers.size() );
 
             researcherService.delete( r );
             researchers = researcherService.loadAll();
-            assertEquals( 1, researchers.size() );
+            assertEquals( controlSize, researchers.size() );
         } catch ( Exception e ) {
             e.printStackTrace();
             fail( e.getMessage() );

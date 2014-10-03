@@ -14,13 +14,16 @@
  */
 package ubc.pavlab.rdp.server.model.common.auditAndSecurity;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
-import javax.persistence.Inheritance;
-import javax.persistence.InheritanceType;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
+
+import org.json.JSONObject;
 
 /**
  * A user of the software system, who is authenticated. *
@@ -68,7 +71,12 @@ public class User implements gemma.gsec.model.User {
 
     @Column(name = "DESCRIPTION")
     private String description;
-    
+
+    // This really should be orphanRemoval = true but a bug related to this HHH-5267
+    // was only fixed in Hibernate 4.1.7
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "user")
+    private PasswordResetToken passwordResetToken;
+
     public User() {
     }
 
@@ -108,7 +116,7 @@ public class User implements gemma.gsec.model.User {
 
     @Override
     public String getFullName() {
-        return this.getName() + " " + this.getLastName();
+        return this.getFirstName() + " " + this.getLastName();
     }
 
     @Override
@@ -151,6 +159,10 @@ public class User implements gemma.gsec.model.User {
         return this.userName;
     }
 
+    public PasswordResetToken getPasswordResetToken() {
+        return this.passwordResetToken;
+    }
+
     /**
      * Returns a hash code based on this entity's identifiers.
      */
@@ -182,7 +194,6 @@ public class User implements gemma.gsec.model.User {
         this.firstName = firstName;
     }
 
-    
     @Override
     public void setId( Long id ) {
         this.id = id;
@@ -223,6 +234,20 @@ public class User implements gemma.gsec.model.User {
     @Override
     public void setUserName( String userName ) {
         this.userName = userName;
+    }
+
+    public void setPasswordResetToken( PasswordResetToken passwordResetToken ) {
+        this.passwordResetToken = passwordResetToken;
+    }
+
+    public JSONObject toJSON() {
+        JSONObject jsonObj = new JSONObject();
+        jsonObj.put( "firstName", this.firstName );
+        jsonObj.put( "lastName", this.lastName );
+        jsonObj.put( "email", this.email );
+        jsonObj.put( "userName", this.userName );
+
+        return jsonObj;
     }
 
 }
