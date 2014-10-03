@@ -45,8 +45,8 @@
             data-show="true">
             <div class="modal-content" data-backdrop="static" data-show="true">
                 <div class="modal-header">
-					<h4 class="modal-title text-center"><a href="#signin" data-toggle="tab">Rare Disease Project</a></h4>
-					<h5 class="modal-title text-center">Subtitle</h5>
+					<h3 class="modal-title text-center"><a href="#signin" data-toggle="tab">Rare Disease Project</a></h3>
+					<h5 class="modal-title text-center">Canadian Rare Disease Models & Mechanisms Network</h5>
 	            </div>
                 <div class="modal-body">
                 	<div class="tab-content">
