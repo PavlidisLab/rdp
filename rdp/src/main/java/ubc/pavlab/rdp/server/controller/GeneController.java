@@ -338,7 +338,17 @@ public class GeneController {
 
         String query = request.getParameter( "query" );
 
-        // FIXME Handle other taxons
+        // Strips non-alphanumeric characters to prevent regex
+        query = query.replaceAll( "[^A-Za-z0-9]", "" );
+        log.info( query );
+
+        if ( query.length() == 0 ) {
+            // Returning illegal json so the select2 fails
+            jsonText = "Illegal query";
+            jsonUtil.writeToResponse( jsonText );
+            return;
+        }
+
         String taxon = request.getParameter( "taxon" );
 
         try {

@@ -305,6 +305,10 @@
             },
 
          },
+         formatAjaxError : function(response) {
+            var msg = response.responseText;
+            return msg;
+         }, 
          // we do not want to escape markup since we are displaying html in results
          escapeMarkup : function(m) {
             return m;
