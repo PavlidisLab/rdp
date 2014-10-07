@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<class-diagram version="1.1.6" icons="true" always-add-relationships="false" generalizations="true" realizations="true" 
+  associations="true" dependencies="false" nesting-relationships="true">  
+  <class id="1" language="java" name="ubc.pavlab.rdp.server.controller.GeneController" project="rdp" 
+    file="/rdp/src/main/java/ubc/pavlab/rdp/server/controller/GeneController.java" binary="false" corner="BOTTOM_RIGHT">    
+    <position height="111" width="168" x="34" y="30"/>    
+    <display autosize="false" stereotype="true" package="true" initial-value="false" signature="true" accessors="true" 
+      visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true" static="true"/>      
+      <operations public="true" package="true" protected="true" private="true" static="true"/>    
+    </display>  
+  </class>  
+  <class id="2" language="java" name="ubc.pavlab.rdp.server.controller.RegisterController" project="rdp" 
+    file="/rdp/src/main/java/ubc/pavlab/rdp/server/controller/RegisterController.java" binary="false" 
+    corner="BOTTOM_RIGHT">    
+    <position height="102" width="167" x="279" y="25"/>    
+    <display autosize="false" stereotype="true" package="true" initial-value="false" signature="true" accessors="true" 
+      visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true" static="true"/>      
+      <operations public="true" package="true" protected="true" private="true" static="true"/>    
+    </display>  
+  </class>  
+  <interface id="3" language="java" name="ubc.pavlab.rdp.server.service.GeneService" project="rdp" 
+    file="/rdp/src/main/java/ubc/pavlab/rdp/server/service/GeneService.java" binary="false" corner="BOTTOM_RIGHT">    
+    <position height="119" width="161" x="277" y="316"/>    
+    <display autosize="false" stereotype="true" package="true" initial-value="false" signature="true" accessors="true" 
+      visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true" static="true"/>      
+      <operations public="true" package="true" protected="true" private="true" static="true"/>    
+    </display>  
+  </interface>  
+  <interface id="4" language="java" name="ubc.pavlab.rdp.server.service.ResearcherService" project="rdp" 
+    file="/rdp/src/main/java/ubc/pavlab/rdp/server/service/ResearcherService.java" binary="false" corner="BOTTOM_RIGHT">    
+    <position height="146" width="205" x="471" y="306"/>    
+    <display autosize="false" stereotype="true" package="true" initial-value="false" signature="true" accessors="true" 
+      visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true" static="true"/>      
+      <operations public="true" package="true" protected="true" private="true" static="true"/>    
+    </display>  
+  </interface>  
+  <class id="5" language="java" name="ubc.pavlab.rdp.server.controller.UserFormMultiActionController" project="rdp" 
+    file="/rdp/src/main/java/ubc/pavlab/rdp/server/controller/UserFormMultiActionController.java" binary="false" 
+    corner="BOTTOM_RIGHT">    
+    <position height="89" width="203" x="780" y="38"/>    
+    <display autosize="false" stereotype="true" package="true" initial-value="false" signature="true" accessors="true" 
+      visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true" static="true"/>      
+      <operations public="true" package="true" protected="true" private="true" static="true"/>    
+    </display>  
+  </class>  
+  <interface id="6" language="java" name="ubc.pavlab.rdp.server.security.authentication.UserManager" project="rdp" 
+    file="/rdp/src/main/java/ubc/pavlab/rdp/server/security/authentication/UserManager.java" binary="false" 
+    corner="BOTTOM_RIGHT">    
+    <position height="103" width="196" x="781" y="324"/>    
+    <display autosize="false" stereotype="true" package="true" initial-value="false" signature="true" accessors="true" 
+      visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true" static="true"/>      
+      <operations public="true" package="true" protected="true" private="true" static="true"/>    
+    </display>  
+  </interface>  
+  <class id="7" language="java" name="ubc.pavlab.rdp.server.controller.SignupController" project="rdp" 
+    file="/rdp/src/main/java/ubc/pavlab/rdp/server/controller/SignupController.java" binary="false" 
+    corner="BOTTOM_RIGHT">    
+    <position height="114" width="191" x="537" y="104"/>    
+    <display autosize="false" stereotype="true" package="true" initial-value="false" signature="true" accessors="true" 
+      visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true" static="true"/>      
+      <operations public="true" package="true" protected="true" private="true" static="true"/>    
+    </display>  
+  </class>  
+  <interface id="8" language="java" name="ubc.pavlab.rdp.server.ncbi.NcbiQueryService" project="rdp" 
+    file="/rdp/src/main/java/ubc/pavlab/rdp/server/ncbi/NcbiQueryService.java" binary="false" corner="BOTTOM_RIGHT">    
+    <position height="162" width="196" x="17" y="282"/>    
+    <display autosize="false" stereotype="true" package="true" initial-value="false" signature="true" accessors="true" 
+      visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true" static="true"/>      
+      <operations public="true" package="true" protected="true" private="true" static="true"/>    
+    </display>  
+  </interface>  
+  <association id="9">    
+    <bendpoint x="224" y="86"/>    
+    <bendpoint x="218" y="468"/>    
+    <bendpoint x="752" y="470"/>    
+    <end type="SOURCE" refId="1" navigable="false">      
+      <attribute id="10" name="userManager">        
+        <position height="17" width="74" x="703" y="435"/>      
+      </attribute>      
+      <multiplicity id="11" minimum="0" maximum="1"/>    
+    </end>    
+    <end type="TARGET" refId="6" navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <association id="12">    
+    <end type="SOURCE" refId="5" navigable="false">      
+      <attribute id="13" name="userManager">        
+        <position height="17" width="72" x="878" y="249"/>      
+      </attribute>      
+      <multiplicity id="14" minimum="0" maximum="1"/>    
+    </end>    
+    <end type="TARGET" refId="6" navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <association id="15">    
+    <bendpoint x="462" y="75"/>    
+    <bendpoint x="459" y="260"/>    
+    <bendpoint x="500" y="261"/>    
+    <bendpoint x="501" y="297"/>    
+    <end type="SOURCE" refId="2" navigable="false">      
+      <attribute id="16" name="researcherService"/>      
+      <multiplicity id="17" minimum="0" maximum="1"/>    
+    </end>    
+    <end type="TARGET" refId="4" navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <association id="18">    
+    <bendpoint x="704" y="218"/>    
+    <bendpoint x="704" y="374"/>    
+    <end type="SOURCE" refId="7" navigable="false">      
+      <attribute id="19" name="userManager">        
+        <position height="17" width="72" x="789" y="238"/>      
+      </attribute>      
+      <multiplicity id="20" minimum="0" maximum="1"/>    
+    </end>    
+    <end type="TARGET" refId="6" navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <association id="21">    
+    <end type="SOURCE" refId="2" navigable="false">      
+      <attribute id="22" name="geneService"/>      
+      <multiplicity id="23" minimum="0" maximum="1"/>    
+    </end>    
+    <end type="TARGET" refId="3" navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <association id="24">    
+    <end type="SOURCE" refId="1" navigable="false">      
+      <attribute id="25" name="ncbiQueryService"/>      
+      <multiplicity id="26" minimum="0" maximum="1"/>    
+    </end>    
+    <end type="TARGET" refId="8" navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <association id="27">    
+    <bendpoint x="243" y="86"/>    
+    <bendpoint x="241" y="373"/>    
+    <end type="SOURCE" refId="1" navigable="false">      
+      <attribute id="28" name="geneService"/>      
+      <multiplicity id="29" minimum="0" maximum="1"/>    
+    </end>    
+    <end type="TARGET" refId="3" navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <association id="30">    
+    <bendpoint x="629" y="300"/>    
+    <end type="SOURCE" refId="7" navigable="false">      
+      <attribute id="31" name="researcherService">        
+        <position height="17" width="95" x="534" y="250"/>      
+      </attribute>      
+      <multiplicity id="32" minimum="0" maximum="1"/>    
+    </end>    
+    <end type="TARGET" refId="4" navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <association id="33">    
+    <bendpoint x="751" y="73"/>    
+    <bendpoint x="752" y="232"/>    
+    <bendpoint x="831" y="232"/>    
+    <bendpoint x="832" y="320"/>    
+    <end type="SOURCE" refId="2" navigable="false">      
+      <attribute id="34" name="userManager">        
+        <position height="17" width="74" x="701" y="291"/>      
+      </attribute>      
+      <multiplicity id="35" minimum="0" maximum="1">        
+        <position height="15" width="23" x="832" y="291"/>      
+      </multiplicity>    
+    </end>    
+    <end type="TARGET" refId="6" navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <association id="36">    
+    <bendpoint x="232" y="86"/>    
+    <bendpoint x="228" y="458"/>    
+    <bendpoint x="462" y="454"/>    
+    <end type="SOURCE" refId="1" navigable="false">      
+      <attribute id="37" name="researcherService"/>      
+      <multiplicity id="38" minimum="0" maximum="1"/>    
+    </end>    
+    <end type="TARGET" refId="4" navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <classifier-display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
+    accessors="true" visibility="true">    
+    <attributes public="true" package="true" protected="true" private="true" static="true"/>    
+    <operations public="true" package="true" protected="true" private="true" static="true"/>  
+  </classifier-display>  
+  <association-display labels="true" multiplicity="true"/>
+</class-diagram>
