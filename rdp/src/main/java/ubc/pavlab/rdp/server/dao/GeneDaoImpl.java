@@ -122,10 +122,12 @@ public class GeneDaoImpl extends DaoBaseImpl<Gene> implements GeneDao {
                 .getCurrentSession()
                 .createSQLQuery(
                         "LOAD DATA LOCAL INFILE :fileName INTO TABLE GENE IGNORE 1 LINES "
-                                + "(tax_id, GeneID, Symbol, @dummy, synonyms, @dummy, "
-                                + "@dummy, @dummy, description, @dummy, @dummy, @dummy, "
-                                + "@dummy, @dummy, Modification_date);" ).setParameter( "fileName", filePath )
-                .executeUpdate();
+                                + "(tax_id, GeneID, Symbol, @dummy, @Synonyms, @dummy, "
+                                + "@dummy, @dummy, @description, @dummy, @dummy, @dummy, "
+                                + "@dummy, @dummy, Modification_date) "
+                                + "SET Synonyms = IF(@Synonyms='-', NULL, @Synonyms), "
+                                + "description = IF(@description='-', NULL, @description);" )
+                .setParameter( "fileName", filePath ).executeUpdate();
 
     }
 

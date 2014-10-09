@@ -19,7 +19,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import ubc.pavlab.rdp.server.model.Researcher;
 import ubc.pavlab.rdp.server.model.common.auditAndSecurity.User;
 import ubc.pavlab.rdp.server.security.authentication.UserManager;
-import ubc.pavlab.rdp.server.service.GeneService;
 import ubc.pavlab.rdp.server.service.ResearcherService;
 import ubc.pavlab.rdp.server.util.JSONUtil;
 
@@ -29,9 +28,6 @@ public class RegisterController extends BaseController {
 
     @Autowired
     ResearcherService researcherService;
-
-    @Autowired
-    GeneService geneService;
 
     @Autowired
     UserManager userManager;

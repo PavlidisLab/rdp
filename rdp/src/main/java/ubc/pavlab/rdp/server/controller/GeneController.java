@@ -44,7 +44,6 @@ import ubc.pavlab.rdp.server.exception.NcbiServiceException;
 import ubc.pavlab.rdp.server.model.Gene;
 import ubc.pavlab.rdp.server.model.GeneAssociation.TierType;
 import ubc.pavlab.rdp.server.model.Researcher;
-import ubc.pavlab.rdp.server.model.Taxon;
 import ubc.pavlab.rdp.server.ncbi.NcbiQueryService;
 import ubc.pavlab.rdp.server.security.authentication.UserManager;
 import ubc.pavlab.rdp.server.service.GeneService;
@@ -91,6 +90,7 @@ public class GeneController {
      * @param request
      * @param response
      */
+    @Deprecated
     @RequestMapping("/findResearchersByGene.html")
     public void findResearchersByGene( HttpServletRequest request, HttpServletResponse response ) throws IOException {
 
@@ -136,6 +136,9 @@ public class GeneController {
 
     }
 
+    /*
+     * Used to save genes selected by researcher in the front-end table
+     */
     @RequestMapping("/saveResearcherGenes.html")
     public void saveResearcherGenes( HttpServletRequest request, HttpServletResponse response ) throws IOException {
 
@@ -143,9 +146,7 @@ public class GeneController {
         JSONUtil jsonUtil = new JSONUtil( request, response );
 
         String username = userManager.getCurrentUsername();
-        // String genesJSON = request.getParameter( "genes" ); //
-        // {"ensemblId":"ENSG00000105393","officialSymbol":"BABAM1","officialName":"BRISC and BRCA1 A complex member 1","label":"BABAM1","geneBioType":"protein_coding","key":"BABAM1:human","taxon":"human","genomicRange":{"baseStart":17378159,"baseEnd":17392058,"label":"19:17378159-17392058","htmlLabel":"19:17378159-17392058","bin":65910,"chromosome":"19","tooltip":"19:17378159-17392058"},"text":"<b>BABAM1</b> BRISC and BRCA1 A complex member 1"}
-        String taxonCommonName = request.getParameter( "taxonCommonName" );
+        // String taxonCommonName = request.getParameter( "taxonCommonName" );
         String[] genesJSON = request.getParameterValues( "genes[]" );
         String taxonDescriptions = request.getParameter( "taxonDescriptions" );
 
@@ -161,9 +162,9 @@ public class GeneController {
             JSONObject jsonDescriptionSet = new JSONObject( taxonDescriptions );
 
             for ( Object key : jsonDescriptionSet.keySet() ) {
-                String taxon = ( String ) key; //
+                String taxon = ( String ) key;
                 String td = jsonDescriptionSet.get( taxon ).toString();
-                researcher.updateTaxonDescription( taxon, td );
+                researcher.updateTaxonDescription( Long.parseLong( taxon, 10 ), td );
             }
 
             // Update Genes
@@ -237,8 +238,7 @@ public class GeneController {
         String symbols = request.getParameter( "symbols" );
         Collection<String> querySymbols = new ArrayList<String>(
                 Arrays.asList( symbols.toUpperCase().split( delimiter ) ) );
-        Taxon taxon = taxonService.findByCommonName( request.getParameter( "taxon" ) );
-        Long taxonId = taxon.getId();
+        Long taxonId = Long.parseLong( request.getParameter( "taxonId" ), 10 );
 
         Collection<String> resultSymbols = new ArrayList<>();
 
@@ -298,8 +298,7 @@ public class GeneController {
             return;
         }
 
-        Taxon taxon = taxonService.findByCommonName( request.getParameter( "taxon" ) );
-        Long taxonId = taxon.getId();
+        Long taxonId = Long.parseLong( request.getParameter( "taxonId" ), 10 );
 
         try {
             // Collection<Gene> results = biomartService.findGenes( query, taxon );

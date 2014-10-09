@@ -16,11 +16,11 @@ $( document ).ready( function() {
  * @param {string} id - HTML DOM ID, MUST BE UNIQUE!
  * @return {string} HTML block
  */
-overview.geneTableHTMLBlock = function(taxon, id, explicitTiers) {
-   var header = explicitTiers ? "Tier" : "Primary?";
+overview.geneTableHTMLBlock = function(header, id, explicitTiers) {
+   var tableHeader = explicitTiers ? "Tier" : "Primary?";
    var htmlBlock =  '<div id="' + id + 'Block" class="form-group"> \
                         <div class = "col-sm-offset-3 col-sm-6 text-center"> \
-                           <h4>' + taxon + '</h4> \
+                           <h4>' + header + '</h4> \
                         </div> \
                         <div id="' + id + 'BlockDescription" class = "col-sm-offset-3 col-sm-6"> \
                         \
@@ -31,7 +31,7 @@ overview.geneTableHTMLBlock = function(taxon, id, explicitTiers) {
                                  <tr> \
                                     <th>Symbol</th> \
                                     <th>Name</th> \
-                                    <th>'+header+'</th> \
+                                    <th>'+tableHeader+'</th> \
                                  </tr> \
                               </thead> \
                               <tbody> \
@@ -50,8 +50,7 @@ overview.geneTableHTMLBlock = function(taxon, id, explicitTiers) {
  * @param {number} max - maximum number of rows to populate
  */
 populateTable = function(id, data, max, editable, explicitTiers) {
-   var taxonId = data[0].taxon.replace(/ /g,'').replace(/\./g,'');
-   $( "#" + id + " tbody tr" ).remove();
+   $( "#overviewTable"+id + " tbody tr" ).remove();
    max = max ? Math.min( max, data.length ) : data.length;
    var url;
    var urlBase = "http://www.ncbi.nlm.nih.gov/gene/"
@@ -72,27 +71,27 @@ populateTable = function(id, data, max, editable, explicitTiers) {
             tier = data[i].tier === "TIER1" ? '<span class="glyphicon glyphicon-ok"></span>' : "";
          }
       }
-      $( '#' +id + '> tbody:last' ).append( '<tr><td><a href="' + url + '" target="_blank">'+ data[i].officialSymbol + '</a></td><td>'+ data[i].officialName + '</td><td>'+ tier + '</td></tr>' );
+      $( "#overviewTable"+id + '> tbody:last' ).append( '<tr><td><a href="' + url + '" target="_blank">'+ data[i].officialSymbol + '</a></td><td>'+ data[i].officialName + '</td><td>'+ tier + '</td></tr>' );
    }
    
-   var seeAllButtonHTML = ( max < data.length ) ? '<button type="button" id="overviewSeeAllButton' + taxonId + '" \
+   var seeAllButtonHTML = ( max < data.length ) ? '<button type="button" id="overviewSeeAllButton' + id + '" \
                                                       class="btn btn-default btn-xs" data-toggle="tooltip" \
                                                       data-placement="bottom" title="See all genes"> \
                                                       <span>See All</span> \
                                                    </button>' : '';
    
-   var editButton = ( editable ) ? '<button type="button" id="overviewEditButton' + taxonId + '" \
+   var editButton = ( editable ) ? '<button type="button" id="overviewEditButton' + id + '" \
                                     class="btn btn-default btn-xs" data-toggle="tooltip" \
                                     data-placement="bottom" title="Edit genes"> \
                                     <span>Edit</span> \
                                  </button>' : '' ;
    
    if ( max < data.length ) {
-      $( '#' +id + '> tbody:last' ).append( '<tr><td class="text-center">...</td> \
+      $( "#overviewTable"+id + '> tbody:last' ).append( '<tr><td class="text-center">...</td> \
                                                  <td class="text-center">...</td></tr>' );
    }
    if ( editable ) {
-      $( '#' +id + 'Block' ).after( '<div class="form-group"><div class="col-sm-offset-8 col-sm-4">' + 
+      $( "#overviewTable"+id + 'Block' ).after( '<div class="form-group"><div class="col-sm-offset-8 col-sm-4">' + 
                                      editButton + seeAllButtonHTML + '</div></div>' );
    }
    
@@ -144,12 +143,12 @@ overview.showGenes = function(researcher, showAll, explicitTiers) {
 	//Fill in overview genes
 	// Bucket response data by taxon
 	for (var i = 0; i < genes.length; i++) {
-	   if(genes[i].taxon in genesByTaxon){
-	      genesByTaxon[genes[i].taxon].push(genes[i]);
+	   if(genes[i].taxonId in genesByTaxon){
+	      genesByTaxon[genes[i].taxonId].push(genes[i]);
 	   }
 	   else {
-	      allTaxons.push( genes[i].taxon );
-	      genesByTaxon[genes[i].taxon] = [ genes[i] ];
+	      allTaxons.push( genes[i].taxonId );
+	      genesByTaxon[genes[i].taxonId] = [ genes[i] ];
 	   }
 	}
 
@@ -157,9 +156,10 @@ overview.showGenes = function(researcher, showAll, explicitTiers) {
 	
 	// Generate HTML blocks for each taxon
 	for (var i=0; i<allTaxons.length; i++) {
-	   taxon = allTaxons[i];
-	   var taxonId = taxon.replace(/ /g,'').replace(/\./g,'');
-	   var taxonDescription = researcher.taxonDescriptions[taxon];
+	   var taxonId = allTaxons[i];
+	   var taxon = $('#taxonCommonNameSelect option[value=' + taxonId + ']').text();
+	   //var taxonId = taxon.replace(/ /g,'').replace(/\./g,'');
+	   var taxonDescription = researcher.taxonDescriptions[taxonId];
 	   $('#overviewGeneBreakdown').append(overview.geneTableHTMLBlock(taxon, 'overviewTable'+taxonId, explicitTiers));
 	   
 	   if (taxonDescription) {
@@ -167,11 +167,11 @@ overview.showGenes = function(researcher, showAll, explicitTiers) {
 	      $('#'+'overviewTable'+taxonId+'BlockDescription').append("<span><em>"+ taxonDescription +"</em></span>");
 	   }
 	   var maxGenes = showAll ? null : 5;
-	   populateTable('overviewTable'+taxonId, genesByTaxon[taxon] , maxGenes, true, explicitTiers)
+	   populateTable(taxonId, genesByTaxon[taxonId] , maxGenes, true, explicitTiers)
 	   if ( !showAll ) {
 	      // This if statement is not necessary but stops data being saved in a closure that will never be used
-   	   $("#overviewSeeAllButton" + taxonId).click( createModal( taxon, genesByTaxon[taxon] ) ); 
-   	   $("#overviewEditButton" + taxonId).click( openGeneManager(taxon) ); 
+   	   $("#overviewSeeAllButton" + taxonId).click( createModal( taxon, genesByTaxon[taxonId] ) ); 
+   	   $("#overviewEditButton" + taxonId).click( openGeneManager(taxonId) ); 
 	   }
 	}
 	
@@ -198,7 +198,7 @@ function createModal(taxon, data) {
    return function() {
             var tableHTML =  '<div class=" form-group"> \
                                  <div class="col-sm-12"> \
-                                          <table id="scrapModalTable" class="table table-condensed"> \
+                                          <table id="overviewTable-scrapModalTable" class="table table-condensed"> \
                                              <thead> \
                                                 <tr> \
                                                    <th>Symbol</th> \
@@ -215,15 +215,16 @@ function createModal(taxon, data) {
             $( '#scrapModalFailed' ).after( tableHTML ); 
             scrapModal.removeClass( "bs-example-modal-sm");
             scrapModal.find(".modal-dialog").removeClass("modal-sm");
-            populateTable('scrapModalTable', data , data.length, false)
+            populateTable('-scrapModalTable', data , data.length, false)
             scrapModal.find('.modal-header > h4').text(taxon + " Genes Studied").end();
             scrapModal.modal('show');                
    }; 
  };
  
- function openGeneManager( taxon ) {
+ function openGeneManager( taxonId ) {
     return function() {
-       $( "#taxonCommonNameSelect" ).val(taxon);
+       $('#taxonCommonNameSelect option[value=' + taxonId + ']').prop('selected',true);
+       //$( "#taxonCommonNameSelect" ).val(taxonId);
        $( "#editGenesModal" ).modal('show');
     };
     

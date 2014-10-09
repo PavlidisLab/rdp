@@ -14,8 +14,7 @@
 	        
 	        if ( specificGene ) {
 	           for (var i=0;i<researcher.genes.length;i++) {
-	              if ( ( researcher.genes[i].officialSymbol == specificGene.officialSymbol ) &&
-	                   ( researcher.genes[i].taxonId == specificGene.taxonId ) ) {
+	              if ( researcher.genes[i].equals(specificGene) ) {
 	                 var specificTier = researcher.genes[i].tier;
 	              }
 
@@ -103,17 +102,14 @@
 	       utility.hideMessage( $("#listResearchersMessage") );
 	    }
 	    
+	    gene = new researcherModel.Gene(gene);
+	    
 	    researchers = [];
 	    
 	    for (var i=0;i<allResearchers.length;i++) {
-	       for (var j=0;j<allResearchers[i].genes.length;j++) {
-	          var gene2 = allResearchers[i].genes[j];
-             if ( ( gene.officialSymbol == gene2.officialSymbol ) &&
-                ( gene.taxonId == gene2.taxonId ) ) {
-                researchers.push(allResearchers[i]);
-                continue;
-                
-             }
+	       var idx = allResearchers[i].indexOfGene(gene);
+	       if ( idx !== -1 ) {
+	          researchers.push(allResearchers[i]);
 	       }
 	    }
 	    

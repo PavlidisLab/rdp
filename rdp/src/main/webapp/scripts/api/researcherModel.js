@@ -60,7 +60,7 @@
    researcherModel.Researcher.prototype.setTaxonDescriptionsFromArray = function(taxonDescriptionsArr) {
       this.taxonDescriptions = {};
       for (var i=0;i<taxonDescriptionsArr.length;i++) {
-         this.taxonDescriptions[taxonDescriptionsArr[i].taxon] = taxonDescriptionsArr[i].description;
+         this.taxonDescriptions[taxonDescriptionsArr[i].taxonId] = taxonDescriptionsArr[i].description;
       }
    }
    
@@ -82,7 +82,7 @@
       
       identicalIndexOf = function(gene,genes) { //Harsher equality check than indexOf
          for (var i=0; i<genes.length; i++) {
-            if ( genes[i].officialSymbol === gene.officialSymbol && genes[i].taxon === gene.taxon && genes[i].tier === gene.tier) {
+            if ( genes[i].id === gene.id && genes[i].tier === gene.tier) {
                return i;
             }
           }
@@ -113,11 +113,12 @@
       this.phone = data.phone || "";
       this.description = data.description || "";
       this.setTaxonDescriptionsFromArray(data.taxonDescriptions);
-      
+
       var genes = [];
-      console.log(data);
       for (var i=0;i<data.genes.length;i++) {
-         data.genes[i].aliases = data.genes[i].aliases.split("|");
+         if ( data.genes[i].aliases ) {
+            data.genes[i].aliases = data.genes[i].aliases.split("|");
+         }
          genes.push( new researcherModel.Gene( data.genes[i] ) );
       }
       
@@ -154,7 +155,7 @@
       if ( !(otherGene instanceof researcherModel.Gene) ) {
          return false;
       }
-      if (otherGene.officialSymbol === this.officialSymbol && otherGene.taxon === this.taxon) {
+      if (otherGene.id === this.id) {
          return true;
       }
       else {

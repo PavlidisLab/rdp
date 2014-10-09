@@ -71,8 +71,7 @@
 	         // This is important; the genes stored in the table are NOT the same instances 
 	         // as are stored in the currentResearcher. They can be altered without consequence.
 	         var geneClone = genes[i].clone();
-	       
-	       	if ( genes[i].taxon === taxonSel.val() ) {
+	       	if ( genes[i].taxonId == taxonSel.val() ) {
 	       	   // columns: Object (HIDDEN), Symbol, Alias, Name, Tier
 	       	   geneRow = [geneClone];
 	       	   table.row.add( geneRow );
@@ -150,23 +149,19 @@
 		      utility.hideMessage( $( "#geneManagerMessage" ) );
 		   }
 		   var data = selectedNodes.data();
-		   var selectedTaxon = $( "#taxonCommonNameSelect" ).val();
-		   for (var i = 0; i < data.length; i++) {
-		      //researcherModel.removeGeneOnSave(data[i][0])
-		   }
 		   selectedNodes.remove().draw( false );
 		} 
 	
 	editGenes.bulkImportGenes = function() {
        var geneSymbols = $( "#importGeneSymbolsTextArea" ).val();
-	   var taxon = $( "#taxonCommonNameSelect" ).val();
+	   var taxonId = $( "#taxonCommonNameSelect" ).val();
 	   var table = $( "#geneManagerTable" ).DataTable();
 	   var promise = $.ajax( {
 	      url : "findGenesByGeneSymbols.html",
 	      dataType : "json",
 	      data : {
 	         "symbols" : geneSymbols,
-	         "taxon" : taxon
+	         "taxonId" : taxonId
 	      },
 	      success : function(response, xhr) {
 
@@ -288,7 +283,7 @@
             data : function(query, page) {
                return {
                   query : query, // search term
-                  taxon : config.taxonEl.val()
+                  taxonId : config.taxonEl.val()
                }
             },
             results : function(data, page) {

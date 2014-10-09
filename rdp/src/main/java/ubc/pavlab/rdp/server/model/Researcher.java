@@ -207,14 +207,14 @@ public class Researcher implements Serializable {
         this.geneAssociations = genes;
     }
 
-    public void updateTaxonDescription( String taxon, String description ) {
+    public void updateTaxonDescription( Long taxonId, String description ) {
         for ( TaxonDescription td : this.taxonDescriptions ) {
-            if ( td.getTaxon().equals( taxon ) ) {
+            if ( td.getTaxonId().equals( taxonId ) ) {
                 td.setDescription( description );
                 return;
             }
         }
-        this.taxonDescriptions.add( new TaxonDescription( taxon, description ) );
+        this.taxonDescriptions.add( new TaxonDescription( taxonId, description ) );
     }
 
     public void setPublications( Set<Publication> publications ) {
