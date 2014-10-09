@@ -29,6 +29,8 @@ import javax.persistence.Enumerated;
 import javax.persistence.JoinColumn;
 import javax.persistence.Table;
 
+import org.json.JSONObject;
+
 /**
  * TODO Document Me
  * 
@@ -39,21 +41,11 @@ import javax.persistence.Table;
 @Table(name = "RESEARCHER_GENE")
 @AssociationOverrides({
         @AssociationOverride(name = "pk.researcher", joinColumns = @JoinColumn(name = "RESEARCHER_ID")),
-        @AssociationOverride(name = "pk.gene", joinColumns = @JoinColumn(name = "GENE_ID")) })
+        @AssociationOverride(name = "pk.gene", joinColumns = @JoinColumn(name = "GeneID")) })
 public class GeneAssociation {
 
     @EmbeddedId
     private GeneAssociationID pk = new GeneAssociationID();
-
-    /*
-     * @ManyToOne()
-     * 
-     * @JoinColumn(name = "RESEARCHER_ID") private Researcher researcher;
-     * 
-     * @ManyToOne()
-     * 
-     * @JoinColumn(name = "GENE_ID") private Gene gene;
-     */
 
     public enum TierType {
         TIER1, TIER2, TIER3, UNKNOWN
@@ -90,6 +82,18 @@ public class GeneAssociation {
 
     public TierType getTier() {
         return tier;
+    }
+
+    public JSONObject toJSON() {
+        JSONObject jsonObj = new JSONObject();
+        Gene gene = this.pk.getGene();
+        jsonObj.put( "id", gene.getId() );
+        jsonObj.put( "taxonId", gene.getTaxonId() );
+        jsonObj.put( "officialSymbol", gene.getOfficialSymbol() );
+        jsonObj.put( "officialName", gene.getOfficialName() );
+        jsonObj.put( "aliases", gene.getAliases() );
+        jsonObj.put( "tier", this.tier );
+        return jsonObj;
     }
 
 }

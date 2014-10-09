@@ -15,7 +15,6 @@
 
 		<!-- Add new entity classes here so that hibernate tools see it. --> 
 		<mapping class="ubc.pavlab.rdp.server.model.Gene" />
-        <mapping class="ubc.pavlab.rdp.server.model.GeneAlias" />
         <mapping class="ubc.pavlab.rdp.server.model.Researcher" />
         <mapping class="ubc.pavlab.rdp.server.model.Publication" />
         <mapping class="ubc.pavlab.rdp.server.model.Taxon" />

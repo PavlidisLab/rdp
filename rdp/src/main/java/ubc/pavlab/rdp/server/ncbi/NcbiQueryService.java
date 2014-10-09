@@ -43,7 +43,7 @@ public interface NcbiQueryService {
      * @return
      * @throws NcbiServiceException
      */
-    public Collection<Gene> fetchGenesByGeneSymbolsAndTaxon( Collection<String> geneSymbols, String taxon )
+    public Collection<Gene> fetchGenesByGeneSymbolsAndTaxon( Collection<String> geneSymbols, Long taxonId )
             throws NcbiServiceException;
 
     /**
@@ -63,7 +63,7 @@ public interface NcbiQueryService {
      * @return
      * @throws NcbiServiceException
      */
-    public Collection<Gene> findGenes( String queryString, String taxon ) throws NcbiServiceException;
+    public Collection<Gene> findGenes( String queryString, Long taxonId ) throws NcbiServiceException;
 
     /**
      * Get a list of genes using the given gene symbols or ncbi ids. The order of the returned list of genes is

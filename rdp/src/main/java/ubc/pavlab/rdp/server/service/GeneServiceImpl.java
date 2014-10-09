@@ -27,6 +27,7 @@ import org.apache.commons.logging.LogFactory;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import ubc.pavlab.rdp.server.dao.GeneDao;
 import ubc.pavlab.rdp.server.model.Gene;
@@ -102,6 +103,11 @@ public class GeneServiceImpl implements GeneService {
     }
 
     @Override
+    public Gene findById( Long id ) {
+        return geneDao.findById( id );
+    }
+
+    @Override
     public Gene load( long geneId ) {
         return geneDao.load( geneId );
     }
@@ -117,38 +123,46 @@ public class GeneServiceImpl implements GeneService {
         HashMap<Gene, TierType> results = new HashMap<Gene, TierType>();
         for ( int i = 0; i < genesJSON.length; i++ ) {
             JSONObject json = new JSONObject( genesJSON[i] );
-            if ( !json.has( "officialSymbol" ) || !json.has( "taxon" ) ) {
-                throw new IllegalArgumentException( "Every gene must have an assigned symbol and organism." );
+            if ( !json.has( "id" ) ) {
+                throw new IllegalArgumentException( "Every gene must have an assigned ID." );
             }
-            String symbol = json.getString( "officialSymbol" );
-            String taxon = json.getString( "taxon" );
-            if ( symbol.equals( "" ) || taxon.equals( "" ) ) {
-                throw new IllegalArgumentException( "Every gene must have an assigned symbol and organism." );
+            Long id = json.getLong( "id" );
+
+            if ( id.equals( 0L ) ) {
+                throw new IllegalArgumentException( "Every gene must have an assigned ID." );
             }
             TierType tier = TierType.UNKNOWN;
             if ( json.has( "tier" ) ) {
                 try {
                     tier = TierType.valueOf( json.getString( "tier" ) );
                 } catch ( IllegalArgumentException e ) {
-                    log.warn( "Invalid tier: (" + json.getString( "tier" ) + ") for gene: " + symbol + " from " + taxon );
+                    log.warn( "Invalid tier: (" + json.getString( "tier" ) + ") for gene: " + id );
                 }
             } else {
-                log.warn( "Missing tier for gene: " + symbol + " from " + taxon );
+                log.warn( "Missing tier for gene: " + id );
             }
 
-            Gene geneFound = this.findByOfficialSymbol( symbol, taxon );
+            Gene geneFound = this.findById( id );
             if ( !( geneFound == null ) ) {
                 results.put( geneFound, tier );
             } else {
-                // it doesn't exist yet
-                Gene gene = new Gene();
-                gene.parseJSON( genesJSON[i] );
-                log.info( "Creating new gene: " + gene.toString() );
-                results.put( this.create( gene ), tier );
+                // it doesn't exist in database
+                log.warn( "Cannot deserialize gene: " + id );
             }
         }
 
         return results;
     }
 
+    @Override
+    @Transactional
+    public void updateGeneTable( String filePath ) {
+        geneDao.updateGeneTable( filePath );
+    }
+
+    @Override
+    @Transactional
+    public void truncateGeneTable() {
+        geneDao.truncateGeneTable();
+    }
 }

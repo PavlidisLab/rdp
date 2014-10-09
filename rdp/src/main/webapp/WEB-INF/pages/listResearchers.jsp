@@ -85,6 +85,11 @@
 			class="btn btn-danger">
 			<span class="">Update Cache</span>
 		</button>
+		<button type="button" id="resetGeneTable"
+			class="btn btn-danger">
+			<span class="">Reset Gene Table</span>
+		</button>
+	</div>
 	
 </div>
 

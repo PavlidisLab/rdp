@@ -17,7 +17,6 @@ package ubc.pavlab.rdp.server.model;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -33,11 +32,12 @@ import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
-import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
 
-import ubc.pavlab.rdp.server.model.GeneAssociation.TierType;
 import ubc.pavlab.rdp.server.model.common.auditAndSecurity.User;
+import ubc.pavlab.rdp.server.service.TaxonService;
 
 @Entity
 @Table(name = "RESEARCHER")
@@ -46,6 +46,10 @@ public class Researcher implements Serializable {
      * 
      */
     private static final long serialVersionUID = 778565921919207933L;
+
+    @Autowired
+    @Transient
+    TaxonService taxonService;
 
     @Id
     @GeneratedValue
@@ -163,23 +167,6 @@ public class Researcher implements Serializable {
         return "id=" + id + " username=" + contact.getUserName();
     }
 
-    public JSONObject toJSON() {
-        JSONObject jsonObj = new JSONObject();
-        jsonObj.put( "contact", this.contact.toJSON() );
-        jsonObj.put( "department", this.department );
-        jsonObj.put( "description", this.description );
-        jsonObj.put( "id", this.id );
-        jsonObj.put( "organization", this.organization );
-        jsonObj.put( "phone", this.phone );
-        jsonObj.put( "website", this.website );
-        jsonObj.put( "description", this.description );
-
-        jsonObj.put( "taxonDescriptions", this.taxonDescriptions );
-
-        jsonObj.put( "genes", new JSONObject( this.getGenesByTier() ) );
-        return jsonObj;
-    }
-
     public String getPhone() {
         return phone;
     }
@@ -282,23 +269,4 @@ public class Researcher implements Serializable {
         return null;
     }
 
-    public HashMap<TierType, Collection<Gene>> getGenesByTier() {
-        HashMap<TierType, Collection<Gene>> genesbyTier = new HashMap<TierType, Collection<Gene>>();
-
-        Collection<GeneAssociation> geneAssociations = this.getGeneAssociations();
-
-        for ( GeneAssociation ga : geneAssociations ) {
-            Collection<Gene> genes = genesbyTier.get( ga.getTier() );
-            // never storing null values so this is fine
-            if ( genes != null ) {
-                genes.add( ga.getGene() );
-            } else {
-                genes = new HashSet<Gene>();
-                genes.add( ga.getGene() );
-                genesbyTier.put( ga.getTier(), genes );
-            }
-        }
-
-        return genesbyTier;
-    }
 }

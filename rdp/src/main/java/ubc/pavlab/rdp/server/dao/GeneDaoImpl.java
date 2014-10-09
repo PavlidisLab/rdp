@@ -100,4 +100,51 @@ public class GeneDaoImpl extends DaoBaseImpl<Gene> implements GeneDao {
         }
         return ( Gene ) results.iterator().next();
     }
+
+    @Override
+    public Gene findById( final Long id ) {
+        final String queryString = "from Gene g where g.id=:id";
+        List<?> results = getHibernateTemplate().findByNamedParam( queryString, new String[] { "id" },
+                new Object[] { id } );
+        if ( results.size() == 0 ) {
+            return null;
+        } else if ( results.size() > 1 ) {
+            log.warn( "Multiple genes match " + id + ", return first hit" );
+        }
+        return ( Gene ) results.iterator().next();
+    }
+
+    @Override
+    public void updateGeneTable( String filePath ) {
+        // This update query needs to have up to date field names
+        getHibernateTemplate()
+                .getSessionFactory()
+                .getCurrentSession()
+                .createSQLQuery(
+                        "LOAD DATA LOCAL INFILE :fileName INTO TABLE GENE IGNORE 1 LINES "
+                                + "(tax_id, GeneID, Symbol, @dummy, synonyms, @dummy, "
+                                + "@dummy, @dummy, description, @dummy, @dummy, @dummy, "
+                                + "@dummy, @dummy, Modification_date);" ).setParameter( "fileName", filePath )
+                .executeUpdate();
+
+    }
+
+    @Override
+    public void truncateGeneTable() {
+        // Removing Foreign Key Constraints is usually a bad idea for data integrity
+        // however, since the FK GeneID is unique outside of our application as well
+        // it is safe to assume that data integrity will be kept with the newly loaded
+        // database.
+
+        getHibernateTemplate().getSessionFactory().getCurrentSession().createSQLQuery( "SET FOREIGN_KEY_CHECKS=0;" )
+                .executeUpdate();
+
+        getHibernateTemplate().getSessionFactory().getCurrentSession().createSQLQuery( "TRUNCATE TABLE GENE;" )
+                .executeUpdate();
+
+        getHibernateTemplate().getSessionFactory().getCurrentSession().createSQLQuery( "SET FOREIGN_KEY_CHECKS=1;" )
+                .executeUpdate();
+
+    }
+
 }

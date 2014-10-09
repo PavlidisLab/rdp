@@ -17,29 +17,23 @@
  *
  */
 
-package ubc.pavlab.rdp.server.dao;
+package ubc.pavlab.rdp.server.service;
 
-import java.util.Collection;
+import org.springframework.security.access.annotation.Secured;
 
-import ubc.pavlab.rdp.server.model.Gene;
+import ubc.pavlab.rdp.server.model.Taxon;
 
 /**
  * TODO Document Me
  * 
- * @author ptan
+ * @author mjacobson
  * @version $Id$
  */
-public interface GeneDao extends DaoBase<Gene> {
+public interface TaxonService {
 
-    public Collection<Gene> findByOfficialSymbol( final String officialSymbol );
+    @Secured({ "GROUP_USER", "AFTER_ACL_READ" })
+    public Taxon findById( final Long id );
 
-    public Collection<Gene> findByOfficialSymbol( final String queryString, final String officialSymbol );
-
-    public Gene findByOfficialSymbolAndTaxon( String symbol, String taxon );
-
-    public Gene findById( Long id );
-
-    public void updateGeneTable( String filePath );
-
-    public void truncateGeneTable();
+    @Secured({ "GROUP_USER", "AFTER_ACL_READ" })
+    public Taxon findByCommonName( final String commonName );
 }

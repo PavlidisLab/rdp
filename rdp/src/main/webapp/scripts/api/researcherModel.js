@@ -115,14 +115,10 @@
       this.setTaxonDescriptionsFromArray(data.taxonDescriptions);
       
       var genes = [];
-
-      for (var tier in data.genes) {
-         if (data.genes.hasOwnProperty(tier)) {
-            for (var i=0;i<data.genes[tier].length;i++) {
-               data.genes[tier][i].tier = tier;
-               genes.push( new researcherModel.Gene( data.genes[tier][i] ) );
-            }
-         }
+      console.log(data);
+      for (var i=0;i<data.genes.length;i++) {
+         data.genes[i].aliases = data.genes[i].aliases.split("|");
+         genes.push( new researcherModel.Gene( data.genes[i] ) );
       }
       
       this.genes = genes;
@@ -145,10 +141,11 @@
    
    researcherModel.Gene = function Gene(geneValueObject) {
       this.id = geneValueObject.id || null;
-      this.ncbiGeneId = geneValueObject.ncbiGeneId || null;
+      this.ncbiGeneId = geneValueObject.id || null;
       this.officialName = geneValueObject.officialName || null;
       this.officialSymbol = geneValueObject.officialSymbol || null;
-      this.taxon = geneValueObject.taxon || null;
+      this.taxon = geneValueObject.taxonCommonName || null;
+      this.taxonId = geneValueObject.taxonId || null;
       this.tier = geneValueObject.tier || "TIER2";
       this.aliases = geneValueObject.aliases || [];
    }
@@ -188,14 +185,22 @@
 	      // type : 'GET',
 	      url : "loadResearcher.html",
 	      success : function(response, xhr) {
-
-	         var data = jQuery.parseJSON( response ).data;
 	         
-	         //console.log("Loaded researcher:", data);
+	         var  json = jQuery.parseJSON( response );
 	         
-	         researcherModel.currentResearcher.parseResearcherObject(data);
+	         if (json.success==true) {
+	            
+   	         var data = jQuery.parseJSON( response ).data;
+   	         
+   	         //console.log("Loaded researcher:", data);
+   	         
+   	         researcherModel.currentResearcher.parseResearcherObject(data);
+   	         
+   	         console.log("Loaded researcher:", researcherModel.currentResearcher);
 	         
-	         console.log("Loaded researcher:", researcherModel.currentResearcher);
+	         } else {
+	            console.log("Failed to load researcher:", json.message);
+	         }
 
 	      },
 	      error : function(response, xhr) {

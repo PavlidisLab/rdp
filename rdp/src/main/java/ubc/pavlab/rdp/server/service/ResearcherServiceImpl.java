@@ -23,10 +23,13 @@ import gemma.gsec.model.UserGroup;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map.Entry;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -63,6 +66,9 @@ public class ResearcherServiceImpl implements ResearcherService {
 
     @Autowired
     GeneService geneService;
+
+    @Autowired
+    TaxonService taxonService;
 
     @Autowired
     GeneDao geneDao;
@@ -139,19 +145,21 @@ public class ResearcherServiceImpl implements ResearcherService {
             Gene gene = entry.getKey();
             TierType tier = entry.getValue();
             if ( gene.getId() == null ) {
-                geneDao.create( gene );
-            }
-            if ( researcher.getGeneAssociatonFromGene( gene ) == null ) {
-                // gene not already added to researcher
-                modified |= researcher.addGeneAssociation( new GeneAssociation( gene, researcher, tier ) );
+                log.warn( "Attempting to add gene without ID to researcher: " + researcher );
+                // geneDao.create( gene );
+            } else {
+                if ( researcher.getGeneAssociatonFromGene( gene ) == null ) {
+                    // gene not already added to researcher
+                    modified |= researcher.addGeneAssociation( new GeneAssociation( gene, researcher, tier ) );
+                }
             }
         }
 
         if ( modified ) {
             researcherDao.update( researcher );
+            log.info( "Added " + ( researcher.getGenes().size() - numGenesBefore ) + " genes to Researcher "
+                    + researcher );
         }
-
-        log.info( "Added " + ( researcher.getGenes().size() - numGenesBefore ) + " genes to Researcher " + researcher );
 
         return modified;
     }
@@ -170,7 +178,7 @@ public class ResearcherServiceImpl implements ResearcherService {
                 modified = researcher.removeGeneAssociation( geneAssociation );
             } else {
                 // FIXME has to search for the GeneAssocation?
-                Gene matchedGene = geneDao.findByOfficialSymbolAndTaxon( gene.getOfficialSymbol(), gene.getTaxon() );
+                Gene matchedGene = geneDao.findById( gene.getId() );
                 if ( matchedGene != null ) {
                     modified = researcher.removeGeneAssociation( geneAssociation );
                 } else {
@@ -199,4 +207,30 @@ public class ResearcherServiceImpl implements ResearcherService {
     public Collection<Researcher> findByGene( Gene gene ) {
         return researcherDao.findByGene( gene );
     }
+
+    @Override
+    public JSONObject toJSON( Researcher r ) {
+        JSONObject jsonObj = new JSONObject();
+        jsonObj.put( "contact", r.getContact().toJSON() );
+        jsonObj.put( "department", r.getDepartment() );
+        jsonObj.put( "description", r.getDescription() );
+        jsonObj.put( "organization", r.getOrganization() );
+        jsonObj.put( "phone", r.getPhone() );
+        jsonObj.put( "website", r.getWebsite() );
+        jsonObj.put( "description", r.getDescription() );
+
+        jsonObj.put( "taxonDescriptions", r.getTaxonDescriptions() );
+
+        Collection<JSONObject> genesValuesJson = new HashSet<JSONObject>();
+
+        for ( GeneAssociation ga : r.getGeneAssociations() ) {
+            JSONObject geneValuesJson = ga.toJSON();
+            geneValuesJson.put( "taxonCommonName", taxonService.findById( ga.getGene().getTaxonId() ).getCommonName() );
+            genesValuesJson.add( geneValuesJson );
+        }
+
+        jsonObj.put( "genes", new JSONArray( genesValuesJson ) );
+        return jsonObj;
+    }
+
 }

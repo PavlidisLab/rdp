@@ -220,7 +220,7 @@
               "aTargets": [ 2 ],
               "defaultContent": "",
               "mData": function ( source, type, val ) {
-                return source[0].aliasesToString() || "";
+                return source[0].aliases || "";
               }
            },
            {
@@ -296,7 +296,7 @@
                // select2 format result looks for the 'text' attr
                for (var i = 0; i < data.data.length; i++) {
                   gene = data.data[i]
-                  aliasStr = gene.aliases.length > 0 ? "(" + (new researcherModel.Gene(gene)).aliasesToString() + ") " : "";
+                  aliasStr = gene.aliases.length > 0 ? "(" + (new researcherModel.Gene(gene)).aliases + ") " : "";
                   gene.text = "<b>" + gene.officialSymbol + "</b> " + aliasStr + gene.officialName
                }
                return {

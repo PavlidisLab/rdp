@@ -115,7 +115,7 @@ public class RegisterController extends BaseController {
             Collection<Researcher> researchers = researcherService.loadAll();
             Set<String> researchersJson = new HashSet<String>();
             for ( Researcher r : researchers ) {
-                researchersJson.add( r.toJSON().toString() );
+                researchersJson.add( researcherService.toJSON( r ).toString() );
             }
 
             jsonText = ( new JSONArray( researchersJson ) ).toString();
@@ -164,7 +164,7 @@ public class RegisterController extends BaseController {
                 jsonText = "{\"success\":false,\"message\":\"No researcher with name " + username + "\"}";
             } else {
                 // JSONObject json = new JSONObject( user );
-                JSONObject json = researcher.toJSON();
+                JSONObject json = researcherService.toJSON( researcher );
                 log.info( "Loaded Researcher from account: (" + username + "). Account contains "
                         + researcher.getGenes().size() + " Genes." );
                 jsonText = "{\"success\":true, \"data\":" + json.toString() + "}";

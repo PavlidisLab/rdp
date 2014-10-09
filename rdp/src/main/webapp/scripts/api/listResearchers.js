@@ -15,7 +15,7 @@
 	        if ( specificGene ) {
 	           for (var i=0;i<researcher.genes.length;i++) {
 	              if ( ( researcher.genes[i].officialSymbol == specificGene.officialSymbol ) &&
-	                   ( researcher.genes[i].taxon == specificGene.taxon ) ) {
+	                   ( researcher.genes[i].taxonId == specificGene.taxonId ) ) {
 	                 var specificTier = researcher.genes[i].tier;
 	              }
 
@@ -36,10 +36,9 @@
 	    
 	}
 	
-	listResearchers.updateCache = function() {
-	   
+	listResearchers.executeAjax = function(ajax_url) {
       var promise = $.ajax( {
-         url : "updateCache.html",
+         url : ajax_url,
          success : function(response, xhr) {
             response = jQuery.parseJSON(response);
             console.log(response.message);
@@ -50,8 +49,7 @@
       } );
       
       return promise;
-	}
-	
+	}	
 	
 	listResearchers.getResearchers = function() {
 	   utility.hideMessage($("#listResearchersMessage"));
@@ -111,7 +109,7 @@
 	       for (var j=0;j<allResearchers[i].genes.length;j++) {
 	          var gene2 = allResearchers[i].genes[j];
              if ( ( gene.officialSymbol == gene2.officialSymbol ) &&
-                ( gene.taxon == gene2.taxon ) ) {
+                ( gene.taxonId == gene2.taxonId ) ) {
                 researchers.push(allResearchers[i]);
                 continue;
                 
@@ -186,7 +184,9 @@ $(document).ready(function() {
         if (jQuery.parseJSON(response).isAdmin == "true") {
          listResearchers.initDataTable();
         	listResearchers.getResearchers();
-        	$("#updateCache").click(listResearchers.updateCache)
+        	$("#updateCache").click(function() {return listResearchers.executeAjax("updateCache.html");})
+        	$("#resetGeneTable").click(function() {return listResearchers.executeAjax("resetGeneTable.html");})
+        	
         	$("#resetResearchersButton").click(listResearchers.getResearchers)
         	$('#registerTab li:first').on('show.bs.tab',function() {
         	   overview.showOverview( researcherModel.currentResearcher );

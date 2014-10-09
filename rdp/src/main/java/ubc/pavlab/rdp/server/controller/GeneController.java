@@ -30,8 +30,6 @@ import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.Predicate;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -46,12 +44,14 @@ import ubc.pavlab.rdp.server.exception.NcbiServiceException;
 import ubc.pavlab.rdp.server.model.Gene;
 import ubc.pavlab.rdp.server.model.GeneAssociation.TierType;
 import ubc.pavlab.rdp.server.model.Researcher;
-import ubc.pavlab.rdp.server.model.common.auditAndSecurity.User;
+import ubc.pavlab.rdp.server.model.Taxon;
 import ubc.pavlab.rdp.server.ncbi.NcbiQueryService;
 import ubc.pavlab.rdp.server.security.authentication.UserManager;
 import ubc.pavlab.rdp.server.service.GeneService;
 import ubc.pavlab.rdp.server.service.ResearcherService;
+import ubc.pavlab.rdp.server.service.TaxonService;
 import ubc.pavlab.rdp.server.util.JSONUtil;
+import ubc.pavlab.rdp.server.util.Settings;
 
 /**
  * Handles gene-related requests
@@ -75,66 +75,15 @@ public class GeneController {
     @Autowired
     protected GeneService geneService;
 
+    @Autowired
+    protected TaxonService taxonService;
+
     /*
      * @Autowired protected BioMartQueryService biomartService;
      */
 
     @Autowired
     protected NcbiQueryService ncbiQueryService;
-
-    /**
-     * Returns the list of genes for the given Researcher and Model Organism.
-     * 
-     * @param request
-     * @param response
-     */
-    @Deprecated
-    @RequestMapping("/loadResearcherGenes.html")
-    public void loadResearcherGenes( HttpServletRequest request, HttpServletResponse response ) {
-        JSONUtil jsonUtil = new JSONUtil( request, response );
-        String jsonText = "";
-
-        String username = userManager.getCurrentUsername();
-        final String taxonCommonName = request.getParameter( "taxonCommonName" );
-
-        Researcher researcher = researcherService.findByUserName( username );
-
-        try {
-
-            if ( researcher == null ) {
-                // This shouldn't happen.
-                log.info( "Could not find researcher associated with account: " + username + ", creating one" );
-                researcher = researcherService.create( new Researcher() );
-                User contact = ( User ) userManager.getCurrentUser();
-                researcher.setContact( contact );
-                researcherService.update( researcher );
-
-            }
-
-            Collection<Gene> genes = researcher.getGenes();
-            if ( !taxonCommonName.equals( "All" ) ) {
-                CollectionUtils.filter( genes, new Predicate() {
-                    @Override
-                    public boolean evaluate( Object input ) {
-                        return ( ( Gene ) input ).getTaxon().equals( taxonCommonName );
-                    }
-                } );
-            }
-
-            jsonText = "{\"success\":true,\"data\":" + ( new JSONArray( genes ) ).toString() + "}";
-            log.info( "Loaded " + genes.size() + " genes" );
-
-        } catch ( Exception e ) {
-            jsonText = "{\"success\":false,\"message\":\"" + e.getLocalizedMessage() + "\"}";
-        } finally {
-
-            try {
-                jsonUtil.writeToResponse( jsonText );
-            } catch ( IOException e ) {
-                e.printStackTrace();
-            }
-        }
-    }
 
     /**
      * AJAX entry point. Loads the Researcher who's currently logged in.
@@ -164,7 +113,7 @@ public class GeneController {
 
             Set<String> researchersJson = new HashSet<String>();
             for ( Researcher r : researchers ) {
-                researchersJson.add( r.toJSON().toString() );
+                researchersJson.add( researcherService.toJSON( r ).toString() );
             }
 
             JSONArray array = new JSONArray( researchersJson );
@@ -288,7 +237,8 @@ public class GeneController {
         String symbols = request.getParameter( "symbols" );
         Collection<String> querySymbols = new ArrayList<String>(
                 Arrays.asList( symbols.toUpperCase().split( delimiter ) ) );
-        String taxon = request.getParameter( "taxon" );
+        Taxon taxon = taxonService.findByCommonName( request.getParameter( "taxon" ) );
+        Long taxonId = taxon.getId();
 
         Collection<String> resultSymbols = new ArrayList<>();
 
@@ -303,7 +253,7 @@ public class GeneController {
 
         try {
             // Collection<Gene> results = biomartService.fetchGenesByGeneSymbols( querySymbols, taxon );
-            Collection<Gene> results = ncbiQueryService.fetchGenesByGeneSymbolsAndTaxon( querySymbols, taxon );
+            Collection<Gene> results = ncbiQueryService.fetchGenesByGeneSymbolsAndTaxon( querySymbols, taxonId );
             for ( Gene gene : results ) {
                 resultSymbols.add( gene.getOfficialSymbol().toUpperCase() );
             }
@@ -340,7 +290,6 @@ public class GeneController {
 
         // Strips non-alphanumeric characters to prevent regex
         query = query.replaceAll( "[^A-Za-z0-9]", "" );
-        log.info( query );
 
         if ( query.length() == 0 ) {
             // Returning illegal json so the select2 fails
@@ -349,11 +298,12 @@ public class GeneController {
             return;
         }
 
-        String taxon = request.getParameter( "taxon" );
+        Taxon taxon = taxonService.findByCommonName( request.getParameter( "taxon" ) );
+        Long taxonId = taxon.getId();
 
         try {
             // Collection<Gene> results = biomartService.findGenes( query, taxon );
-            Collection<Gene> results = ncbiQueryService.findGenes( query, taxon );
+            Collection<Gene> results = ncbiQueryService.findGenes( query, taxonId );
             jsonText = "{\"success\":true,\"data\":" + ( new JSONArray( results ) ).toString() + "}";
         } catch ( NcbiServiceException e ) {
             log.error( e.getMessage(), e );
@@ -363,5 +313,35 @@ public class GeneController {
         jsonUtil.writeToResponse( jsonText );
         return;
 
+    }
+
+    @RequestMapping("/resetGeneTable.html")
+    public void resetGeneTable( HttpServletRequest request, HttpServletResponse response ) throws IOException {
+
+        JSONUtil jsonUtil = new JSONUtil( request, response );
+
+        String jsonText = null;
+        String filePath = Settings.getString( "rdp.ftp.genePath" );
+        log.info( "Resetting GENE table from path: " + filePath );
+        try {
+            geneService.truncateGeneTable();
+            log.info( "GENE table truncated" );
+            geneService.updateGeneTable( filePath );
+            log.info( "GENE table updated." );
+            JSONObject json = new JSONObject();
+            json.put( "success", true );
+            json.put( "message", "GENE table reset." );
+            jsonText = json.toString();
+        } catch ( Exception e ) {
+            log.error( e.getLocalizedMessage(), e );
+            JSONObject json = new JSONObject();
+            json.put( "success", false );
+            json.put( "message", "An error occurred!" );
+            json.put( "error", e.getLocalizedMessage() );
+            jsonText = json.toString();
+            log.info( jsonText );
+        } finally {
+            jsonUtil.writeToResponse( jsonText );
+        }
     }
 }

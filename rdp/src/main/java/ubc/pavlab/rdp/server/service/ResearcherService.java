@@ -22,6 +22,7 @@ package ubc.pavlab.rdp.server.service;
 import java.util.Collection;
 import java.util.HashMap;
 
+import org.json.JSONObject;
 import org.springframework.security.access.annotation.Secured;
 
 import ubc.pavlab.rdp.server.model.Gene;
@@ -80,5 +81,8 @@ public interface ResearcherService {
 
     @Secured({ "GROUP_ADMIN" })
     public Collection<Researcher> findByGene( Gene gene );
+
+    @Secured({ "GROUP_USER" })
+    public JSONObject toJSON( Researcher r );
 
 }

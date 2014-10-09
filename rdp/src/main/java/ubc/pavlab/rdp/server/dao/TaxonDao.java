@@ -17,44 +17,20 @@
  *
  */
 
-package ubc.pavlab.rdp.server.model;
+package ubc.pavlab.rdp.server.dao;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import ubc.pavlab.rdp.server.model.Taxon;
 
 /**
  * TODO Document Me
  * 
- * @author ptan
+ * @author mjacobson
  * @version $Id$
  */
-@Entity
-@Table(name = "GENE_ALIAS")
-public class GeneAlias {
+public interface TaxonDao extends DaoBase<Taxon> {
 
-    @Id
-    @GeneratedValue
-    @Column(name = "ID")
-    private Long id;
+    public Taxon findById( final Long id );
 
-    private String alias;
-
-    public GeneAlias() {
-    }
-
-    public GeneAlias( String alias ) {
-        this.alias = alias;
-    }
-
-    public String getAlias() {
-        return alias;
-    }
-
-    public void setAlias( String alias ) {
-        this.alias = alias;
-    }
+    public Taxon findByCommonName( final String commonName );
 
 }

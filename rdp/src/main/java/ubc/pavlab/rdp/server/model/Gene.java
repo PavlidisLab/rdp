@@ -21,14 +21,9 @@ import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
-
-import org.json.JSONArray;
-import org.json.JSONObject;
 
 /**
  * See gemma-model/src/main/java/ubic/gemma/model/genome/Gene.java
@@ -41,23 +36,23 @@ import org.json.JSONObject;
 public class Gene implements Comparable<Gene> {
 
     @Id
-    @GeneratedValue
-    @Column(name = "ID")
+    @Column(name = "GeneID")
     private Long id;
 
-    private String officialName;
+    @Column(name = "tax_id")
+    private Long taxonId;
 
+    @Column(name = "Symbol")
     private String officialSymbol;
 
-    private String ncbiGeneId;
+    @Column(name = "description", columnDefinition = "TEXT")
+    private String officialName;
 
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    @JoinColumn(name = "GENE_FK")
-    private Set<GeneAlias> aliases = new HashSet<>();
+    @Column(name = "Synonyms", columnDefinition = "TEXT")
+    private String aliases;
 
-    private String ensemblId;
-
-    private String taxon;
+    @Column(name = "Modification_date")
+    private int modificationDate;
 
     @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, mappedBy = "pk.gene")
     private Set<GeneAssociation> geneAssociations = new HashSet<GeneAssociation>();
@@ -66,8 +61,7 @@ public class Gene implements Comparable<Gene> {
 
     @Override
     public String toString() {
-        return "id=" + id + " symbol=" + officialSymbol + " taxon=" + taxon + " ncbi=" + ncbiGeneId + " hashCode="
-                + hashCode();
+        return "id=" + id + " symbol=" + officialSymbol + " taxon=" + taxonId + " hashCode=" + hashCode();
     }
 
     /*
@@ -79,8 +73,7 @@ public class Gene implements Comparable<Gene> {
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ( ( officialSymbol == null ) ? 0 : officialSymbol.hashCode() );
-        result = prime * result + ( ( taxon == null ) ? 0 : taxon.hashCode() );
+        result = prime * result + ( ( id == null ) ? 0 : id.hashCode() );
         return result;
     }
 
@@ -95,12 +88,9 @@ public class Gene implements Comparable<Gene> {
         if ( obj == null ) return false;
         if ( !( obj instanceof Gene ) ) return false;
         Gene other = ( Gene ) obj;
-        if ( officialSymbol == null ) {
-            if ( other.officialSymbol != null ) return false;
-        } else if ( !officialSymbol.equals( other.officialSymbol ) ) return false;
-        if ( taxon == null ) {
-            if ( other.taxon != null ) return false;
-        } else if ( !taxon.equals( other.taxon ) ) return false;
+        if ( id == null ) {
+            if ( other.id != null ) return false;
+        } else if ( !id.equals( other.id ) ) return false;
         return true;
     }
 
@@ -111,24 +101,20 @@ public class Gene implements Comparable<Gene> {
         this.officialSymbol = officialSymbol;
     }
 
-    @Deprecated
-    public Gene( String ensemblId, String taxon, String officialSymbol, String officialName ) {
-        this.ensemblId = ensemblId;
-        this.taxon = taxon;
+    public Gene( Long ncbiGeneId, Long taxonId, String officialSymbol, String officialName, String aliases ) {
+        this.id = ncbiGeneId;
+        this.taxonId = taxonId;
         this.officialSymbol = officialSymbol;
         this.officialName = officialName;
-    }
-
-    public Gene( String ncbiGeneId, String taxon, String officialSymbol, String officialName, String aliases ) {
-        this.ncbiGeneId = ncbiGeneId;
-        this.taxon = taxon;
-        this.officialSymbol = officialSymbol;
-        this.officialName = officialName;
-        this.parseAliases( aliases );
+        this.aliases = aliases;
     }
 
     public Long getId() {
         return id;
+    }
+
+    public void setId( Long id ) {
+        this.id = id;
     }
 
     public String getOfficialName() {
@@ -139,42 +125,20 @@ public class Gene implements Comparable<Gene> {
         this.officialName = officialName;
     }
 
-    public String getNcbiGeneId() {
-        return ncbiGeneId;
+    public Long getTaxonId() {
+        return taxonId;
     }
 
-    public void setNcbiGeneId( String ncbiGeneId ) {
-        this.ncbiGeneId = ncbiGeneId;
+    public void setTaxonId( Long taxonId ) {
+        this.taxonId = taxonId;
     }
 
-    public String getEnsemblId() {
-        return ensemblId;
-    }
-
-    public void setEnsemblId( String ensemblId ) {
-        this.ensemblId = ensemblId;
-    }
-
-    public String getTaxon() {
-        return taxon;
-    }
-
-    public void setTaxon( String taxon ) {
-        this.taxon = taxon;
-    }
-
-    public Set<GeneAlias> getAliases() {
+    public String getAliases() {
         return aliases;
     }
 
-    public void setAliases( Set<GeneAlias> aliases ) {
+    public void setAliases( String aliases ) {
         this.aliases = aliases;
-    }
-
-    public void parseAliases( String aliases ) {
-        for ( String alias : aliases.split( "," ) ) {
-            this.getAliases().add( new GeneAlias( alias.trim() ) );
-        }
     }
 
     public String getOfficialSymbol() {
@@ -185,31 +149,8 @@ public class Gene implements Comparable<Gene> {
         this.officialSymbol = officialSymbol;
     }
 
-    /**
-     * Initialize fields from JSON
-     * 
-     * @param json
-     */
-    public void parseJSON( String json ) {
-
-        JSONObject jsonObj = new JSONObject( json );
-
-        setOfficialName( jsonObj.get( "officialName" ).toString() );
-        setOfficialSymbol( jsonObj.get( "officialSymbol" ).toString() );
-        // setEnsemblId( jsonObj.get( "ensemblId" ).toString() );
-        setTaxon( jsonObj.get( "taxon" ).toString() );
-        setNcbiGeneId( jsonObj.get( "ncbiGeneId" ).toString() );
-
-        @SuppressWarnings("unchecked")
-        JSONArray aliases = ( JSONArray ) jsonObj.get( "aliases" );
-        for ( int i = 0; i < aliases.length(); i++ ) {
-            JSONObject alias = ( JSONObject ) aliases.get( i );
-            getAliases().add( new GeneAlias( alias.get( "alias" ).toString() ) );
-        }
-    }
-
     @Override
     public int compareTo( Gene otherGene ) {
-        return this.ncbiGeneId.compareTo( otherGene.getNcbiGeneId() );
+        return this.getId().compareTo( otherGene.getId() );
     }
 }
