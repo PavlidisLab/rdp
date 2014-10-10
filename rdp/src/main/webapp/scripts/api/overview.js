@@ -151,8 +151,7 @@ overview.showGenes = function(researcher, showAll, explicitTiers) {
 	      genesByTaxon[genes[i].taxonId] = [ genes[i] ];
 	   }
 	}
-
-	allTaxons.sort(); // Consistent ordering
+	allTaxons.sort(function(a, b){return a-b}); // Consistent ordering
 	
 	// Generate HTML blocks for each taxon
 	for (var i=0; i<allTaxons.length; i++) {

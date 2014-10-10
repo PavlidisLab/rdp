@@ -130,7 +130,7 @@ public class GeneDaoImpl extends DaoBaseImpl<Gene> implements GeneDao {
 
     @Override
     public void updateGeneTable( String filePath ) {
-        // This update query needs to have up to date field names
+        // This query needs to have up to date field names in our table and orderings from the data file
         getHibernateTemplate()
                 .getSessionFactory()
                 .getCurrentSession()
