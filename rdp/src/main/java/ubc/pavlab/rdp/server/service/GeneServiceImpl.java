@@ -97,9 +97,15 @@ public class GeneServiceImpl implements GeneService {
         return geneDao.findByOfficialSymbol( officialSymbol );
     }
 
+    @Deprecated
     @Override
     public Gene findByOfficialSymbol( String officialSymbol, String taxon ) {
         return geneDao.findByOfficialSymbolAndTaxon( officialSymbol, taxon );
+    }
+
+    @Override
+    public Collection<Gene> findByTaxonId( Long id ) {
+        return geneDao.findByTaxonId( id );
     }
 
     @Override

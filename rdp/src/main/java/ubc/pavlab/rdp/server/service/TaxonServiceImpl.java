@@ -19,6 +19,8 @@
 
 package ubc.pavlab.rdp.server.service;
 
+import java.util.Collection;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,6 +64,12 @@ public class TaxonServiceImpl implements TaxonService {
     @Override
     public Taxon findByCommonName( String commonName ) {
         return taxonDao.findByCommonName( commonName );
+    }
+
+    @Transactional
+    @Override
+    public Collection<Taxon> loadAll() {
+        return taxonDao.loadAll();
     }
 
 }

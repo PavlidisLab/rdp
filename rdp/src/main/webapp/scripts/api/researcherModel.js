@@ -116,9 +116,6 @@
 
       var genes = [];
       for (var i=0;i<data.genes.length;i++) {
-         if ( data.genes[i].aliases ) {
-            data.genes[i].aliases = data.genes[i].aliases.split("|");
-         }
          genes.push( new researcherModel.Gene( data.genes[i] ) );
       }
       
@@ -148,7 +145,16 @@
       this.taxon = geneValueObject.taxonCommonName || null;
       this.taxonId = geneValueObject.taxonId || null;
       this.tier = geneValueObject.tier || "TIER2";
-      this.aliases = geneValueObject.aliases || [];
+
+      if ( !geneValueObject.aliases ) {
+         this.aliases = [];
+      } else {
+         if (geneValueObject.aliases instanceof Array) {
+            this.aliases = geneValueObject.aliases;
+         } else {
+            this.aliases = geneValueObject.aliases.split("|");
+         }
+      }
    }
    
    researcherModel.Gene.prototype.equals = function(otherGene) {
@@ -165,12 +171,7 @@
    }
    
    researcherModel.Gene.prototype.aliasesToString = function() {
-      arr = [];
-      for (var i=0; i<this.aliases.length; i++) {
-         arr.push( this.aliases[i].alias );
-      }
-      return arr.join( ', ' );
-      
+      return this.aliases.join( ', ' );
    }
    
    researcherModel.Gene.prototype.clone = function() {

@@ -39,6 +39,8 @@ public interface GeneDao extends DaoBase<Gene> {
 
     public Gene findById( Long id );
 
+    public Collection<Gene> findByTaxonId( final Long taxonId );
+
     public void updateGeneTable( String filePath );
 
     public void truncateGeneTable();

@@ -17,11 +17,11 @@
  *
  */
 
-package ubc.pavlab.rdp.server.dao;
+package ubc.pavlab.rdp.server.cache;
 
 import java.util.Collection;
 
-import ubc.pavlab.rdp.server.model.Taxon;
+import ubc.pavlab.rdp.server.model.Gene;
 
 /**
  * TODO Document Me
@@ -29,12 +29,24 @@ import ubc.pavlab.rdp.server.model.Taxon;
  * @author mjacobson
  * @version $Id$
  */
-public interface TaxonDao extends DaoBase<Taxon> {
+public interface GeneCache {
 
-    public Taxon findById( final Long id );
+    public boolean hasExpired();
 
-    public Taxon findByCommonName( final String commonName );
+    public Collection<Gene> fetchBySymbols( Collection<String> geneSymbols );
 
-    public Collection<Taxon> loadAll();
+    public Collection<Gene> fetchByTaxons( Collection<Long> taxonIds );
+
+    public Collection<Gene> fetchById( Collection<Long> ids );
+
+    public Collection<Gene> fetchByQuery( String queryString, Long taxonId );
+
+    public Collection<Gene> fetchBySymbolsAndTaxon( Collection<String> geneSymbols, Long taxonId );
+
+    public void putAll( Collection<Gene> genes );
+
+    public void clearAll();
+
+    public long size();
 
 }

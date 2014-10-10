@@ -23,22 +23,34 @@ import java.util.Collection;
 
 import org.springframework.security.access.annotation.Secured;
 
-import ubc.pavlab.rdp.server.model.Taxon;
+import ubc.pavlab.rdp.server.model.Gene;
 
 /**
- * TODO Document Me
+ * Used to manipulate and load GeneCache
  * 
  * @author mjacobson
  * @version $Id$
  */
-public interface TaxonService {
+public interface GeneCacheService {
 
-    @Secured({ "GROUP_USER", "AFTER_ACL_READ" })
-    public Taxon findById( final Long id );
+    @Secured({ "GROUP_USER" })
+    public Collection<Gene> fetchBySymbols( Collection<String> geneSymbols );
 
-    @Secured({ "GROUP_USER", "AFTER_ACL_READ" })
-    public Taxon findByCommonName( final String commonName );
+    @Secured({ "GROUP_USER" })
+    public Collection<Gene> fetchByTaxons( Collection<Long> taxonIds );
 
-    @Secured({ "GROUP_ADMIN", "AFTER_ACL_READ" })
-    public Collection<Taxon> loadAll();
+    @Secured({ "GROUP_USER" })
+    public Collection<Gene> fetchById( Collection<Long> ids );
+
+    @Secured({ "GROUP_USER" })
+    public Collection<Gene> fetchByQuery( String queryString, Long taxonId );
+
+    @Secured({ "GROUP_USER" })
+    public Collection<Gene> fetchBySymbolsAndTaxon( Collection<String> geneSymbols, Long taxonId );
+
+    @Secured({ "GROUP_ADMIN" })
+    public long updateCache();
+
+    @Secured({ "GROUP_ADMIN" })
+    public void clearCache();
 }

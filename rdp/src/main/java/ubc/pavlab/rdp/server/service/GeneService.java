@@ -61,6 +61,9 @@ public interface GeneService {
     @Secured({ "GROUP_USER", "AFTER_ACL_READ" })
     public Gene findById( final Long id );
 
+    @Secured({ "GROUP_ADMIN", "AFTER_ACL_READ" })
+    public Collection<Gene> findByTaxonId( final Long id );
+
     @Secured({ "GROUP_ADMIN" })
     public void updateGeneTable( String filePath );
 

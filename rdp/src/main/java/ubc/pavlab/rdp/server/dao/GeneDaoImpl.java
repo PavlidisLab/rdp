@@ -87,6 +87,20 @@ public class GeneDaoImpl extends DaoBaseImpl<Gene> implements GeneDao {
 
     }
 
+    @Override
+    @SuppressWarnings("unchecked")
+    public Collection<Gene> findByTaxonId( Long taxonId ) {
+        final String queryString = "from Gene g where g.taxonId=:taxonId";
+        List<?> results = getHibernateTemplate().findByNamedParam( queryString, new String[] { "taxonId" },
+                new Object[] { taxonId } );
+        if ( results.size() == 0 ) {
+            return null;
+        } else {
+            return ( Collection<Gene> ) results;
+        }
+
+    }
+
     protected Gene handleFindByOfficialSymbol( String symbol, String taxon ) {
         // final String queryString =
         // "select distinct g from GeneImpl as g inner join g.taxon t where g.officialSymbol = :symbol and t= :taxon";

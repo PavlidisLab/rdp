@@ -40,5 +40,16 @@
 	<searchAttribute name="taxonId" />
    </searchable>
   </cache>
+  
+  <cache name="GeneCache" maxElementsInMemory="0" eternal="true" overflowToDisk="false">
+   <searchable>
+    <searchAttribute name="id" />
+    <searchAttribute name="aliases" />
+    <searchAttribute name="officialName" />
+    <searchAttribute name="officialSymbol"/>
+	<searchAttribute name="taxonId" />
+	<searchAttribute name="modificationDate" />
+   </searchable>
+  </cache>
 
  </ehcache>

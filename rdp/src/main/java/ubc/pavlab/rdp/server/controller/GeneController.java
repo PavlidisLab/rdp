@@ -40,12 +40,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import ubc.pavlab.rdp.server.exception.NcbiServiceException;
 import ubc.pavlab.rdp.server.model.Gene;
 import ubc.pavlab.rdp.server.model.GeneAssociation.TierType;
 import ubc.pavlab.rdp.server.model.Researcher;
-import ubc.pavlab.rdp.server.ncbi.NcbiQueryService;
 import ubc.pavlab.rdp.server.security.authentication.UserManager;
+import ubc.pavlab.rdp.server.service.GeneCacheService;
 import ubc.pavlab.rdp.server.service.GeneService;
 import ubc.pavlab.rdp.server.service.ResearcherService;
 import ubc.pavlab.rdp.server.service.TaxonService;
@@ -82,7 +81,7 @@ public class GeneController {
      */
 
     @Autowired
-    protected NcbiQueryService ncbiQueryService;
+    protected GeneCacheService geneCacheService;
 
     /**
      * AJAX entry point. Loads the Researcher who's currently logged in.
@@ -203,8 +202,8 @@ public class GeneController {
         JSONUtil jsonUtil = new JSONUtil( request, response );
         String jsonText = null;
         try {
-            ncbiQueryService.clearCache();
-            int cacheSize = ncbiQueryService.updateCache();
+            geneCacheService.clearCache();
+            long cacheSize = geneCacheService.updateCache();
 
             JSONObject json = new JSONObject();
             json.append( "success", true );
@@ -253,7 +252,7 @@ public class GeneController {
 
         try {
             // Collection<Gene> results = biomartService.fetchGenesByGeneSymbols( querySymbols, taxon );
-            Collection<Gene> results = ncbiQueryService.fetchGenesByGeneSymbolsAndTaxon( querySymbols, taxonId );
+            Collection<Gene> results = geneCacheService.fetchBySymbolsAndTaxon( querySymbols, taxonId );
             for ( Gene gene : results ) {
                 resultSymbols.add( gene.getOfficialSymbol().toUpperCase() );
             }
@@ -271,7 +270,7 @@ public class GeneController {
                 json.append( "message", "All " + results.size() + " symbols were found." );
             }
             jsonText = json.toString();
-        } catch ( NcbiServiceException e ) {
+        } catch ( Exception e ) {
             log.error( e.getMessage(), e );
             jsonText = "{\"success\":false,\"message\":" + e.getMessage() + "\"}";
         }
@@ -302,9 +301,9 @@ public class GeneController {
 
         try {
             // Collection<Gene> results = biomartService.findGenes( query, taxon );
-            Collection<Gene> results = ncbiQueryService.findGenes( query, taxonId );
+            Collection<Gene> results = geneCacheService.fetchByQuery( query, taxonId );
             jsonText = "{\"success\":true,\"data\":" + ( new JSONArray( results ) ).toString() + "}";
-        } catch ( NcbiServiceException e ) {
+        } catch ( Exception e ) {
             log.error( e.getMessage(), e );
             jsonText = "{\"success\":false,\"message\":" + e.getMessage() + "\"}";
         }

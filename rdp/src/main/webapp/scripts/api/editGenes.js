@@ -215,7 +215,7 @@
               "aTargets": [ 2 ],
               "defaultContent": "",
               "mData": function ( source, type, val ) {
-                return source[0].aliases || "";
+                return source[0].aliasesToString() || "";
               }
            },
            {
@@ -289,13 +289,16 @@
             results : function(data, page) {
                // convert object to text symbol + text
                // select2 format result looks for the 'text' attr
+               var geneResults = []
                for (var i = 0; i < data.data.length; i++) {
-                  gene = data.data[i]
-                  aliasStr = gene.aliases.length > 0 ? "(" + (new researcherModel.Gene(gene)).aliases + ") " : "";
+                  var gene = new researcherModel.Gene( data.data[i] );
+                  var aliasStr = gene.aliasesToString();
+                  aliasStr = aliasStr ? "(" + aliasStr + ") " : "";
                   gene.text = "<b>" + gene.officialSymbol + "</b> " + aliasStr + gene.officialName
+                  geneResults.push(gene);
                }
                return {
-                  results : data.data
+                  results : geneResults
                };
             },
 
