@@ -119,8 +119,10 @@ public class GeneCacheServiceImpl implements GeneCacheService {
                 for ( Taxon taxon : taxons ) {
                     Long taxonId = taxon.getId();
                     Collection<Gene> genes = geneService.findByTaxonId( taxonId );
-                    log.info( "Caching a total of " + genes.size() + " genes for taxon: " + taxon.getCommonName() );
-                    this.geneCache.putAll( genes );
+                    if ( genes != null ) {
+                        log.info( "Caching a total of " + genes.size() + " genes for taxon: " + taxon.getCommonName() );
+                        this.geneCache.putAll( genes );
+                    }
                 }
 
                 cacheSize = this.geneCache.size();
