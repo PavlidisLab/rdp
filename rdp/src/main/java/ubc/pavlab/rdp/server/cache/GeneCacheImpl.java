@@ -41,7 +41,7 @@ import ubc.pavlab.rdp.server.util.SearchableEhcache;
 @Component
 public class GeneCacheImpl extends SearchableEhcache<Gene> implements GeneCache {
     // These constants are used in ehcache.xml. If they are changed, ehcache.xml must be modified.
-    private static final String CACHE_NAME = "NcbiCache";
+    private static final String CACHE_NAME = "GeneCache";
     private static final String GENE_ID_SEARCH_ATTRIBUTE_NAME = "id";
     private static final String GENE_NAME_SEARCH_ATTRIBUTE_NAME = "officialName";
     private static final String GENE_SYMBOL_SEARCH_ATTRIBUTE_NAME = "officialSymbol";
@@ -53,7 +53,6 @@ public class GeneCacheImpl extends SearchableEhcache<Gene> implements GeneCache 
     private Attribute<Object> geneNameAttribute;
     private Attribute<Object> geneSymbolAttribute;
     private Attribute<Object> taxonAttribute;
-    private Attribute<Object> geneNcbiIdAttribute;
     private Attribute<Object> aliasesAttribute;
     private Attribute<Object> modificationDateAttribute;
 

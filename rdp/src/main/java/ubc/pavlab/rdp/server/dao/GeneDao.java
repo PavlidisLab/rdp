@@ -33,9 +33,7 @@ public interface GeneDao extends DaoBase<Gene> {
 
     public Collection<Gene> findByOfficialSymbol( final String officialSymbol );
 
-    public Collection<Gene> findByOfficialSymbol( final String queryString, final String officialSymbol );
-
-    public Gene findByOfficialSymbolAndTaxon( String symbol, String taxon );
+    public Gene findByOfficialSymbolAndTaxon( String symbol, Long taxonId );
 
     public Gene findById( Long id );
 
@@ -44,4 +42,5 @@ public interface GeneDao extends DaoBase<Gene> {
     public void updateGeneTable( String filePath );
 
     public void truncateGeneTable();
+
 }

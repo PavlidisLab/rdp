@@ -109,12 +109,15 @@ public class RegisterController extends BaseController {
 
         try {
             Collection<Researcher> researchers = researcherService.loadAll();
-            Set<String> researchersJson = new HashSet<String>();
+            Set<JSONObject> researchersJson = new HashSet<JSONObject>();
             for ( Researcher r : researchers ) {
-                researchersJson.add( researcherService.toJSON( r ).toString() );
+                researchersJson.add( researcherService.toJSON( r ) );
             }
-
-            jsonText = ( new JSONArray( researchersJson ) ).toString();
+            JSONObject json = new JSONObject();
+            json.put( "success", true );
+            json.put( "message", "All researchers loaded." );
+            json.put( "data", ( new JSONArray( researchersJson ) ) );
+            jsonText = json.toString();
             // jsonText = jsonUtil.collectionToJson( researchers );
         } finally {
 

@@ -19,7 +19,6 @@
 
 package ubc.pavlab.rdp.server.dao;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -52,38 +51,30 @@ public class GeneDaoImpl extends DaoBaseImpl<Gene> implements GeneDao {
         super.setSessionFactory( sessionFactory );
     }
 
-    /**
-     * @see GeneDao#findByOfficalSymbol(String, String)
-     */
-    @Override
-    @SuppressWarnings("unchecked")
-    public Collection<Gene> findByOfficialSymbol( final String queryString, final String officialSymbol ) {
-        java.util.List<String> argNames = new ArrayList<String>();
-        java.util.List<Object> args = new ArrayList<Object>();
-        args.add( officialSymbol );
-        argNames.add( "officialSymbol" );
-        java.util.List<?> results = this.getHibernateTemplate().findByNamedParam( queryString,
-                argNames.toArray( new String[argNames.size()] ), args.toArray() );
-        return ( Collection<Gene> ) results;
-    }
-
     /*
      * (non-Javadoc)
      * 
      * @see ubc.pavlab.rdp.server.dao.GeneDao#findBySmbol(java.lang.String)
      */
     @Override
+    @SuppressWarnings("unchecked")
     public Collection<Gene> findByOfficialSymbol( final String officialSymbol ) {
-        return this.findByOfficialSymbol( "from Gene g where g.officialSymbol=:officialSymbol order by g.officialName",
-                officialSymbol );
+        final String queryString = "from Gene g where g.officialSymbol=:officialSymbol";
+        List<?> results = getHibernateTemplate().findByNamedParam( queryString, new String[] { "officialSymbol" },
+                new Object[] { officialSymbol } );
+        if ( results.size() == 0 ) {
+            return null;
+        } else {
+            return ( Collection<Gene> ) results;
+        }
     }
 
     /**
      * @see GeneDao#findByOfficialSymbol(String, Taxon)
      */
     @Override
-    public Gene findByOfficialSymbolAndTaxon( final String symbol, final String taxon ) {
-        return this.handleFindByOfficialSymbol( symbol, taxon );
+    public Gene findByOfficialSymbolAndTaxon( final String symbol, final Long taxonId ) {
+        return this.handleFindByOfficialSymbol( symbol, taxonId );
 
     }
 
@@ -101,16 +92,16 @@ public class GeneDaoImpl extends DaoBaseImpl<Gene> implements GeneDao {
 
     }
 
-    protected Gene handleFindByOfficialSymbol( String symbol, String taxon ) {
+    protected Gene handleFindByOfficialSymbol( String symbol, Long taxonId ) {
         // final String queryString =
         // "select distinct g from GeneImpl as g inner join g.taxon t where g.officialSymbol = :symbol and t= :taxon";
-        final String queryString = "from Gene g where g.officialSymbol=:officialSymbol and g.taxon=:taxon";
+        final String queryString = "from Gene g where g.officialSymbol=:officialSymbol and g.taxonId=:taxonId";
         List<?> results = getHibernateTemplate().findByNamedParam( queryString,
-                new String[] { "officialSymbol", "taxon" }, new Object[] { symbol, taxon } );
+                new String[] { "officialSymbol", "taxonId" }, new Object[] { symbol, taxonId } );
         if ( results.size() == 0 ) {
             return null;
         } else if ( results.size() > 1 ) {
-            log.warn( "Multiple genes match " + symbol + " in " + taxon + ", return first hit" );
+            log.warn( "Multiple genes match " + symbol + " in " + taxonId + ", return first hit" );
         }
         return ( Gene ) results.iterator().next();
     }

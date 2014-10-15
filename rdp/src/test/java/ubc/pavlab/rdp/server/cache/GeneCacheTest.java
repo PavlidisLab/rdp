@@ -17,14 +17,14 @@
  *
  */
 
-package ubc.pavlab.rdp.server.ncbi;
+package ubc.pavlab.rdp.server.cache;
 
 import static org.junit.Assert.assertEquals;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,12 +38,10 @@ import ubc.pavlab.rdp.testing.BaseSpringContextTest;
  * @author mjacobson
  * @version $Id$
  */
-public class NcbiCacheTest extends BaseSpringContextTest {
+public class GeneCacheTest extends BaseSpringContextTest {
 
     @Autowired
-    private NcbiCache cache;
-
-    private Collection<Gene> genes = new ArrayList<>();
+    private GeneCache cache;
 
     private static Long taxonId = 9606L;
     private static Long taxonId2 = 562L;
@@ -52,10 +50,8 @@ public class NcbiCacheTest extends BaseSpringContextTest {
      * Initializes the cache and genes with sample data
      * 
      * @param cache
-     * @param genes
-     * @param taxon
      */
-    private static void initCache( NcbiCache cache ) {
+    private static void initCache( GeneCache cache ) {
         Collection<Gene> genes = new HashSet<>();
         genes.add( new Gene( 1L, taxonId, "aaa", "gene aa", "alias-a1,alias-a2" ) ); // match symbol exact first
         genes.add( new Gene( 2L, taxonId, "aaaab", "gene ab", "alias-ab,alias-ab2" ) ); // match symbol partial
@@ -75,12 +71,18 @@ public class NcbiCacheTest extends BaseSpringContextTest {
         initCache( cache );
     }
 
+    @After
+    public void tearDown() {
+
+        cache.clearAll();
+    }
+
     /**
      * See Bug 4187
      */
     @Test
-    public void testFindGenes() {
-        Collection<Gene> results = cache.findGenes( "aaa", taxonId );
+    public void testFetchByQuery() {
+        Collection<Gene> results = cache.fetchByQuery( "aaa", taxonId );
         Long[] expectedNcbiGeneIds = new Long[] { 1L, 2L, 3L, 4L };
         assertEquals( expectedNcbiGeneIds.length, results.size() );
         int i = 0;
@@ -91,39 +93,51 @@ public class NcbiCacheTest extends BaseSpringContextTest {
     }
 
     @Test
-    public void testFetchGenesByGeneSymbolsAndTaxon() {
+    public void testFetchBySymbolsAndTaxon() {
         Collection<String> symbols = new HashSet<>();
         symbols.add( "aaa" );
         symbols.add( "aaafish" );
         symbols.add( "aaaab" );
-        Collection<Gene> results = cache.fetchGenesByGeneSymbolsAndTaxon( symbols, taxonId );
+        Collection<Gene> results = cache.fetchBySymbolsAndTaxon( symbols, taxonId );
         assertEquals( 2, results.size() );
     }
 
     @Test
-    public void testFetchGenesByGeneSymbols() {
+    public void testFetchBySymbols() {
         Collection<String> symbols = new HashSet<>();
         symbols.add( "aaa" );
         symbols.add( "aaafish" );
         symbols.add( "aaaab" );
-        Collection<Gene> results = cache.fetchGenesByGeneSymbols( symbols );
+        Collection<Gene> results = cache.fetchBySymbols( symbols );
         assertEquals( 3, results.size() );
     }
 
     @Test
-    public void testFetchGenesByGeneTaxon() {
+    public void testFetchByTaxons() {
         Collection<Long> taxons = new HashSet<>();
         taxons.add( taxonId );
-        Collection<Gene> results = cache.fetchGenesByGeneTaxon( taxons );
+        Collection<Gene> results = cache.fetchByTaxons( taxons );
         assertEquals( 6, results.size() );
 
         taxons.add( taxonId2 );
-        results = cache.fetchGenesByGeneTaxon( taxons );
+        results = cache.fetchByTaxons( taxons );
         assertEquals( 7, results.size() );
 
         taxons.remove( taxonId );
-        results = cache.fetchGenesByGeneTaxon( taxons );
+        results = cache.fetchByTaxons( taxons );
         assertEquals( 1, results.size() );
+    }
+
+    @Test
+    public void testFetchById() {
+        Collection<Long> ids = new HashSet<>();
+        ids.add( 1L );
+        ids.add( 3L );
+        ids.add( 7L );
+        ids.add( 8L );
+
+        Collection<Gene> results = cache.fetchById( ids );
+        assertEquals( 3, results.size() );
     }
 
     @Test

@@ -23,12 +23,10 @@ import gemma.gsec.model.UserGroup;
 
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map.Entry;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -66,9 +64,6 @@ public class ResearcherServiceImpl implements ResearcherService {
 
     @Autowired
     GeneService geneService;
-
-    @Autowired
-    TaxonService taxonService;
 
     @Autowired
     GeneDao geneDao;
@@ -221,15 +216,8 @@ public class ResearcherServiceImpl implements ResearcherService {
 
         jsonObj.put( "taxonDescriptions", r.getTaxonDescriptions() );
 
-        Collection<JSONObject> genesValuesJson = new HashSet<JSONObject>();
+        jsonObj.put( "genes", geneService.toJSON( r.getGeneAssociations() ) );
 
-        for ( GeneAssociation ga : r.getGeneAssociations() ) {
-            JSONObject geneValuesJson = ga.toJSON();
-            geneValuesJson.put( "taxonCommonName", taxonService.findById( ga.getGene().getTaxonId() ).getCommonName() );
-            genesValuesJson.add( geneValuesJson );
-        }
-
-        jsonObj.put( "genes", new JSONArray( genesValuesJson ) );
         return jsonObj;
     }
 

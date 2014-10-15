@@ -71,8 +71,8 @@ public class NcbiCacheImpl extends SearchableEhcache<Gene> implements NcbiCache 
     }
 
     @Override
-    public Collection<Gene> fetchGenesByGeneTaxon( Collection<String> taxons ) {
-        Criteria taxonCriteria = taxonAttribute.in( taxons );
+    public Collection<Gene> fetchGenesByGeneTaxon( Collection<Long> taxonIds ) {
+        Criteria taxonCriteria = taxonAttribute.in( taxonIds );
 
         return fetchByCriteria( taxonCriteria );
     }

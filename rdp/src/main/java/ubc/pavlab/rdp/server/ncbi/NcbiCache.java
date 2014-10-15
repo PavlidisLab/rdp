@@ -33,7 +33,7 @@ import ubc.pavlab.rdp.server.model.Gene;
 public interface NcbiCache {
     public Collection<Gene> fetchGenesByGeneSymbols( Collection<String> geneSymbols );
 
-    public Collection<Gene> fetchGenesByGeneTaxon( Collection<String> taxons );
+    public Collection<Gene> fetchGenesByGeneTaxon( Collection<Long> taxonIds );
 
     public Collection<Gene> findGenes( String queryString, Long taxonId );
 

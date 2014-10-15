@@ -22,9 +22,11 @@ package ubc.pavlab.rdp.server.service;
 import java.util.Collection;
 import java.util.HashMap;
 
+import org.json.JSONArray;
 import org.springframework.security.access.annotation.Secured;
 
 import ubc.pavlab.rdp.server.model.Gene;
+import ubc.pavlab.rdp.server.model.GeneAssociation;
 import ubc.pavlab.rdp.server.model.GeneAssociation.TierType;
 
 /**
@@ -52,9 +54,6 @@ public interface GeneService {
     @Secured({ "GROUP_USER", "AFTER_ACL_READ" })
     public Collection<Gene> findByOfficialSymbol( final String officialSymbol );
 
-    @Secured({ "GROUP_USER", "AFTER_ACL_READ" })
-    public Gene findByOfficialSymbol( final String officialSymbol, final String taxon );
-
     @Secured({ "GROUP_USER" })
     public HashMap<Gene, TierType> deserializeGenes( String[] genesJSON );
 
@@ -69,5 +68,11 @@ public interface GeneService {
 
     @Secured({ "GROUP_ADMIN" })
     public void truncateGeneTable();
+
+    @Secured({ "GROUP_USER" })
+    public JSONArray toJSON( Collection<GeneAssociation> geneAssociations );
+
+    @Secured({ "GROUP_USER", "AFTER_ACL_READ" })
+    public Gene findByOfficialSymbolAndTaxon( String officialSymbol, Long taxonId );
 
 }

@@ -57,19 +57,18 @@
 	        type : 'GET',
 	        url : "loadAllResearchers.html",
 	        success : function(response, xhr) {
-	            // get this from a controller
-	            // var response = '[{"userName":"testUsername2",
-	            // "email":"testEmail2", "firstName":"testFirstname2",
-	            // "lastName":"testLastname2", "organization":"testOrganization2",
-	            // "department":"testDepartment2" }]';
 	            response = $.parseJSON(response);
+	            if ( response.success != true ) {
+	               console.log("Failed to load all researchers", response);
+	               return;
+	            }
 	            var researchers = [];
-	            var i =0
-	            $.each(response, function(index, json) {
-	               var r = new researcherModel.Researcher();
-	               r.parseResearcherObject( $.parseJSON(json) )
-	               r.index = i;
-	               researchers.push( r );
+	            var i = 0;
+	            $.each(response.data, function(index, r) {
+	               var researcher = new researcherModel.Researcher();
+	               researcher.parseResearcherObject( r )
+	               researcher.index = i;
+	               researchers.push( researcher );
 	               i++;
 	            });
 	            console.log("Loaded All Researchers:",researchers);

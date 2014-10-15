@@ -41,6 +41,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import ubc.pavlab.rdp.server.model.Gene;
+import ubc.pavlab.rdp.server.model.GeneAssociation;
 import ubc.pavlab.rdp.server.model.GeneAssociation.TierType;
 import ubc.pavlab.rdp.server.model.Researcher;
 import ubc.pavlab.rdp.server.security.authentication.UserManager;
@@ -177,6 +178,40 @@ public class GeneController {
             json.put( "message", "Changes saved" );
             jsonText = json.toString();
 
+        } catch ( Exception e ) {
+            log.error( e.getLocalizedMessage(), e );
+            JSONObject json = new JSONObject();
+            json.put( "success", false );
+            json.put( "message", e.getLocalizedMessage() );
+            jsonText = json.toString();
+            log.info( jsonText );
+        } finally {
+            jsonUtil.writeToResponse( jsonText );
+        }
+
+    }
+
+    @RequestMapping("/loadGenes.html")
+    public void loadGenes( HttpServletRequest request, HttpServletResponse response ) throws IOException {
+        JSONUtil jsonUtil = new JSONUtil( request, response );
+
+        String jsonText = null;
+        try {
+            String username = userManager.getCurrentUsername();
+
+            Researcher researcher = researcherService.findByUserName( username );
+
+            Collection<GeneAssociation> geneAssociations = researcher.getGeneAssociations();
+
+            JSONArray jsonArray = geneService.toJSON( geneAssociations );
+
+            JSONObject json = new JSONObject();
+            json.put( "success", true );
+            json.put( "message", "Genes Loaded" );
+            json.put( "genes", jsonArray );
+            json.put( "size", jsonArray.length() );
+            jsonText = json.toString();
+            log.info( jsonText );
         } catch ( Exception e ) {
             log.error( e.getLocalizedMessage(), e );
             JSONObject json = new JSONObject();

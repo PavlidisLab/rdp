@@ -26,6 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 
 import org.json.JSONObject;
@@ -41,10 +42,11 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
+import ubc.pavlab.rdp.server.cache.GeneCache;
 import ubc.pavlab.rdp.server.model.Gene;
+import ubc.pavlab.rdp.server.model.GeneAssociation;
 import ubc.pavlab.rdp.server.model.Researcher;
 import ubc.pavlab.rdp.server.model.common.auditAndSecurity.User;
-import ubc.pavlab.rdp.server.ncbi.NcbiCache;
 import ubc.pavlab.rdp.server.security.authentication.UserService;
 import ubc.pavlab.rdp.server.service.GeneService;
 import ubc.pavlab.rdp.server.service.ResearcherService;
@@ -64,7 +66,7 @@ public class GeneControllerTest extends BaseSpringContextTest {
     private GeneController geneController;
 
     @Autowired
-    private NcbiCache cache;
+    private GeneCache cache;
 
     @Autowired
     private ResearcherService researcherService;
@@ -78,7 +80,8 @@ public class GeneControllerTest extends BaseSpringContextTest {
     @Autowired
     private GeneService geneService;
 
-    private final String taxon = "Human";
+    private final static Long taxonId = 9606L;
+    private final static Long taxonId2 = 562L;
 
     private Gene gene;
 
@@ -106,9 +109,12 @@ public class GeneControllerTest extends BaseSpringContextTest {
         this.mockMvc = MockMvcBuilders.webAppContextSetup( this.wac ).build();
 
         researcher = findOrCreateResearcher( "administrator" );
-        gene = new Gene( "12345", taxon, "BABAM1", "BRISC and BRCA1", "alias-a1,alias-a2" );
+        gene = new Gene( 12345L, taxonId, "BABAM1", "BRISC and BRCA1", "alias-a1,alias-a2" );
         badGene = new Gene();
-        badGene.setNcbiGeneId( "12345" );
+        badGene.setOfficialSymbol( "testSymbol" );
+        badGene.setOfficialName( "testName" );
+        badGene.setTaxonId( taxonId );
+        initCache( cache );
     }
 
     @After
@@ -116,14 +122,9 @@ public class GeneControllerTest extends BaseSpringContextTest {
         try {
             researcher.setContact( null ); // Set to null so that deleting the researcher won't delete the user...
             researcherService.delete( researcher );
-            // geneService.delete( gene );
-            // geneService.delete( badGene );
 
-            Gene savedGene = geneService.findByOfficialSymbol( "BABAM1", taxon );
-            geneService.delete( savedGene );
+            cache.clearAll();
 
-            // don't delete the administrator researcher anymore
-            // researcherService.delete( researcher );
         } catch ( Exception e ) {
             e.printStackTrace();
         }
@@ -136,15 +137,16 @@ public class GeneControllerTest extends BaseSpringContextTest {
      * @param genes
      * @param taxon
      */
-    private static void initCache( NcbiCache cache, Collection<Gene> genes, String taxon ) {
-        genes.add( new Gene( "1", taxon, "aaa", "gene aa", "alias-a1,alias-a2" ) ); // match symbol exact first
-        genes.add( new Gene( "2", taxon, "aaaab", "gene ab", "alias-ab,alias-ab2" ) ); // match symbol partial
-                                                                                       // second
-        genes.add( new Gene( "3", taxon, "dddd", "aaa gene dd", "alias-dd1,alias-dd2" ) ); // match name third
-        genes.add( new Gene( "4", taxon, "ccccc", "gene ccc", "alias-cc1,aaaalias-cc2" ) ); // match alias fourth
-        genes.add( new Gene( "5", taxon, "caaaa", "gene ca", "alias-ca1,alias-ca2" ) ); // not symbol suffix
-        genes.add( new Gene( "6", taxon, "bbb", "gene bbaaaa", "alias-b1" ) ); // not name suffix
-        genes.add( new Gene( "7", "Fish", "aaafish", "gene aa", "alias-a1,alias-a2" ) ); // not taxon
+    private static void initCache( GeneCache cache ) {
+        Collection<Gene> genes = new HashSet<>();
+        genes.add( new Gene( 1L, taxonId, "aaa", "gene aa", "alias-a1,alias-a2" ) ); // match symbol exact first
+        genes.add( new Gene( 2L, taxonId, "aaaab", "gene ab", "alias-ab,alias-ab2" ) ); // match symbol partial
+                                                                                        // second
+        genes.add( new Gene( 3L, taxonId, "dddd", "aaa gene dd", "alias-dd1,alias-dd2" ) ); // match name third
+        genes.add( new Gene( 4L, taxonId, "ccccc", "gene ccc", "alias-cc1,aaaalias-cc2" ) ); // match alias fourth
+        genes.add( new Gene( 5L, taxonId, "caaaa", "gene ca", "alias-ca1,alias-ca2" ) ); // not symbol suffix
+        genes.add( new Gene( 6L, taxonId, "bbb", "gene bbaaaa", "alias-b1" ) ); // not name suffix
+        genes.add( new Gene( 7L, taxonId2, "aaafish", "gene aa", "alias-a1,alias-a2" ) ); // not taxon
 
         cache.putAll( genes );
     }
@@ -155,65 +157,78 @@ public class GeneControllerTest extends BaseSpringContextTest {
         String genesJsonOk = ( new JSONObject( gene ) ).toString();
         String genesJsonMissingInfo = ( new JSONObject( badGene ) ).toString();
 
-        // this doesn't work, officialSymbol and taxon is required for all genes
+        // this doesn't work, id is required for all genes
         this.mockMvc
                 .perform(
                         put( "/saveResearcherGenes.html" ).contentType( MediaType.APPLICATION_JSON )
-                                .param( "genes[]", genesJsonMissingInfo ).param( "taxonCommonName", taxon )
-                                .param( "taxonDescriptions", "{}" ) ).andExpect( status().isOk() )
-                .andExpect( jsonPath( "$.success" ).value( false ) );
+                                .param( "genes[]", genesJsonMissingInfo )
+                                .param( "taxonCommonName", Long.toString( taxonId ) ).param( "taxonDescriptions", "{}" ) )
+                .andExpect( status().isOk() ).andExpect( jsonPath( "$.success" ).value( false ) );
 
-        // this works, we saved the gene
+        // this works but gene is not saved as it doesn't exist in database
         this.mockMvc
                 .perform(
                         put( "/saveResearcherGenes.html" ).contentType( MediaType.APPLICATION_JSON )
-                                .param( "genes[]", genesJsonOk ).param( "taxonCommonName", taxon )
+                                .param( "genes[]", genesJsonOk ).param( "taxonCommonName", Long.toString( taxonId ) )
+                                .param( "taxonDescriptions", "{}" ) ).andExpect( status().isOk() )
+                .andExpect( jsonPath( "$.success" ).value( true ) );
+
+        // now let's try loading the saved gene, this should return nothing
+        this.mockMvc.perform( get( "/loadGenes.html" ).contentType( MediaType.APPLICATION_JSON ) )
+                .andExpect( status().isOk() ).andExpect( jsonPath( "$.success" ).value( true ) )
+                .andExpect( jsonPath( "$.size" ).value( 0 ) );
+
+        // Create gene in db
+        geneService.create( gene );
+
+        // this works
+        this.mockMvc
+                .perform(
+                        put( "/saveResearcherGenes.html" ).contentType( MediaType.APPLICATION_JSON )
+                                .param( "genes[]", genesJsonOk ).param( "taxonCommonName", Long.toString( taxonId ) )
                                 .param( "taxonDescriptions", "{}" ) ).andExpect( status().isOk() )
                 .andExpect( jsonPath( "$.success" ).value( true ) );
 
         // now let's try loading the saved gene
-        this.mockMvc
-                .perform(
-                        get( "/loadResearcherGenes.html" ).contentType( MediaType.APPLICATION_JSON ).param(
-                                "taxonCommonName", taxon ) ).andExpect( status().isOk() )
-                .andExpect( jsonPath( "$.success" ).value( true ) )
-                .andExpect( jsonPath( "$.data[0].officialSymbol" ).value( gene.getOfficialSymbol() ) )
-                .andExpect( jsonPath( "$.data[0].taxon" ).value( taxon ) );
+        this.mockMvc.perform( get( "/loadGenes.html" ).contentType( MediaType.APPLICATION_JSON ) )
+                .andExpect( status().isOk() ).andExpect( jsonPath( "$.success" ).value( true ) )
+                .andExpect( jsonPath( "$.size" ).value( 1 ) )
+                .andExpect( jsonPath( "$.genes[0].id" ).value( gene.getId().intValue() ) );
+
+        Researcher r = researcherService.findByUserName( researcher.getContact().getUserName() );
+        researcherService.updateGenes( r, new HashMap<Gene, GeneAssociation.TierType>() );
+        researcherService.update( r );
+        geneService.delete( gene );
     }
 
     @Test
     public void testFindGenesByGeneSymbols() throws Exception {
-        Collection<Gene> genes = new HashSet<>();
-        initCache( cache, genes, taxon );
         this.mockMvc
                 .perform(
                         get( "/findGenesByGeneSymbols.html" ).contentType( MediaType.APPLICATION_JSON )
-                                .param( "symbols", "Aaa\naaaab\nNOT_FOUND" ).param( "taxon", taxon ) )
-                .andExpect( status().isOk() ).andExpect( jsonPath( "$.success" ).value( true ) )
+                                .param( "symbols", "Aaa\naaaab\nNOT_FOUND" )
+                                .param( "taxonId", Long.toString( taxonId ) ) ).andExpect( status().isOk() )
+                .andExpect( jsonPath( "$.success" ).value( true ) )
                 .andExpect( jsonPath( "$.message" ).value( "1 symbols not found: NOT_FOUND" ) )
-                .andExpect( jsonPath( "$.data[0][0].officialSymbol" ).value( "aaaab" ) )
-                .andExpect( jsonPath( "$.data[0][1].officialSymbol" ).value( "aaa" ) );
+                .andExpect( jsonPath( "$.data[0][0].id" ).value( 1 ) )
+                .andExpect( jsonPath( "$.data[0][1].id" ).value( 2 ) );
     }
 
     @Test
     public void testSearchGenes() throws Exception {
-        Collection<Gene> genes = new HashSet<>();
-        initCache( cache, genes, taxon );
         this.mockMvc
                 .perform(
                         get( "/searchGenes.html" ).contentType( MediaType.APPLICATION_JSON ).param( "query", "aAa" )
-                                .param( "taxon", taxon ) ).andExpect( status().isOk() )
-                .andExpect( jsonPath( "$.success" ).value( true ) )
-                .andExpect( jsonPath( "$.data[0].officialSymbol" ).value( "aaa" ) )
-                .andExpect( jsonPath( "$.data[1].officialSymbol" ).value( "aaaab" ) )
-                .andExpect( jsonPath( "$.data[2].officialSymbol" ).value( "dddd" ) )
-                .andExpect( jsonPath( "$.data[3].officialSymbol" ).value( "ccccc" ) );
+                                .param( "taxonId", Long.toString( taxonId ) ) ).andExpect( status().isOk() )
+                .andExpect( jsonPath( "$.success" ).value( true ) ).andExpect( jsonPath( "$.data[0].id" ).value( 1 ) )
+                .andExpect( jsonPath( "$.data[1].id" ).value( 2 ) ).andExpect( jsonPath( "$.data[2].id" ).value( 3 ) )
+                .andExpect( jsonPath( "$.data[3].id" ).value( 4 ) );
 
         this.mockMvc
                 .perform(
                         get( "/searchGenes.html" ).contentType( MediaType.APPLICATION_JSON ).param( "query", "aAa" )
-                                .param( "taxon", "Fish" ) ).andExpect( status().isOk() )
-                .andExpect( jsonPath( "$.success" ).value( true ) )
-                .andExpect( jsonPath( "$.data[0].officialSymbol" ).value( "aaafish" ) );
+                                .param( "taxonId", Long.toString( taxonId2 ) ) ).andExpect( status().isOk() )
+                .andExpect( jsonPath( "$.success" ).value( true ) ).andExpect( jsonPath( "$.data[0].id" ).value( 7 ) );
     }
+
 }

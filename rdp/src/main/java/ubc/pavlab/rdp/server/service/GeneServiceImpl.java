@@ -21,9 +21,11 @@ package ubc.pavlab.rdp.server.service;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -31,6 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import ubc.pavlab.rdp.server.dao.GeneDao;
 import ubc.pavlab.rdp.server.model.Gene;
+import ubc.pavlab.rdp.server.model.GeneAssociation;
 import ubc.pavlab.rdp.server.model.GeneAssociation.TierType;
 
 /**
@@ -46,6 +49,9 @@ public class GeneServiceImpl implements GeneService {
 
     @Autowired
     GeneDao geneDao;
+
+    @Autowired
+    TaxonService taxonService;
 
     /*
      * (non-Javadoc)
@@ -97,10 +103,9 @@ public class GeneServiceImpl implements GeneService {
         return geneDao.findByOfficialSymbol( officialSymbol );
     }
 
-    @Deprecated
     @Override
-    public Gene findByOfficialSymbol( String officialSymbol, String taxon ) {
-        return geneDao.findByOfficialSymbolAndTaxon( officialSymbol, taxon );
+    public Gene findByOfficialSymbolAndTaxon( String officialSymbol, Long taxonId ) {
+        return geneDao.findByOfficialSymbolAndTaxon( officialSymbol, taxonId );
     }
 
     @Override
@@ -170,5 +175,18 @@ public class GeneServiceImpl implements GeneService {
     @Transactional
     public void truncateGeneTable() {
         geneDao.truncateGeneTable();
+    }
+
+    @Override
+    public JSONArray toJSON( Collection<GeneAssociation> geneAssociations ) {
+        Collection<JSONObject> genesValuesJson = new HashSet<JSONObject>();
+
+        for ( GeneAssociation ga : geneAssociations ) {
+            JSONObject geneValuesJson = ga.toJSON();
+            geneValuesJson.put( "taxonCommonName", taxonService.findById( ga.getGene().getTaxonId() ).getCommonName() );
+            genesValuesJson.add( geneValuesJson );
+        }
+
+        return new JSONArray( genesValuesJson );
     }
 }
