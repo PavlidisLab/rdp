@@ -57,6 +57,9 @@ public class Gene implements Comparable<Gene> {
     @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, mappedBy = "pk.gene")
     private Set<GeneAssociation> geneAssociations = new HashSet<GeneAssociation>();
 
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, mappedBy = "pk.gene")
+    private Set<GeneAnnotation> geneAnnotations = new HashSet<GeneAnnotation>();
+
     // Phenotype ????
 
     @Override

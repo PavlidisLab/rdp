@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
@@ -43,8 +44,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import ubc.pavlab.rdp.server.model.Gene;
 import ubc.pavlab.rdp.server.model.GeneAssociation;
 import ubc.pavlab.rdp.server.model.GeneAssociation.TierType;
+import ubc.pavlab.rdp.server.model.GeneOntologyTerm;
 import ubc.pavlab.rdp.server.model.Researcher;
 import ubc.pavlab.rdp.server.security.authentication.UserManager;
+import ubc.pavlab.rdp.server.service.GeneAnnotationService;
 import ubc.pavlab.rdp.server.service.GeneCacheService;
 import ubc.pavlab.rdp.server.service.GeneService;
 import ubc.pavlab.rdp.server.service.ResearcherService;
@@ -73,6 +76,9 @@ public class GeneController {
 
     @Autowired
     protected GeneService geneService;
+
+    @Autowired
+    protected GeneAnnotationService geneAnnotationService;
 
     @Autowired
     protected TaxonService taxonService;
@@ -237,6 +243,7 @@ public class GeneController {
         JSONUtil jsonUtil = new JSONUtil( request, response );
         String jsonText = null;
         try {
+            log.info( "Updating Cache" );
             geneCacheService.clearCache();
             long cacheSize = geneCacheService.updateCache();
 
@@ -371,6 +378,77 @@ public class GeneController {
             json.put( "success", false );
             json.put( "message", "An error occurred!" );
             json.put( "error", e.getLocalizedMessage() );
+            jsonText = json.toString();
+            log.info( jsonText );
+        } finally {
+            jsonUtil.writeToResponse( jsonText );
+        }
+    }
+
+    @RequestMapping("/resetGeneAnnotationTable.html")
+    public void resetGeneAnnotationTable( HttpServletRequest request, HttpServletResponse response ) throws IOException {
+
+        JSONUtil jsonUtil = new JSONUtil( request, response );
+
+        String jsonText = null;
+        String filePath = Settings.getString( "rdp.ftp.geneAnnotationPath" );
+        log.info( "Resetting GENE_ANNOTATION table from path: " + filePath );
+        try {
+            geneAnnotationService.truncateGeneAnnotationTable();
+            log.info( "GENE_ANNOTATION table truncated" );
+            geneAnnotationService.updateGeneAnnotationTable( filePath );
+            log.info( "GENE_ANNOTATION table updated." );
+            JSONObject json = new JSONObject();
+            json.put( "success", true );
+            json.put( "message", "GENE_ANNOTATION table reset." );
+            jsonText = json.toString();
+        } catch ( Exception e ) {
+            log.error( e.getLocalizedMessage(), e );
+            JSONObject json = new JSONObject();
+            json.put( "success", false );
+            json.put( "message", "An error occurred!" );
+            json.put( "error", e.getLocalizedMessage() );
+            jsonText = json.toString();
+            log.info( jsonText );
+        } finally {
+            jsonUtil.writeToResponse( jsonText );
+        }
+    }
+
+    @RequestMapping("/getRelatedTerms.html")
+    public void getRelatedTerms( HttpServletRequest request, HttpServletResponse response ) throws IOException {
+        JSONUtil jsonUtil = new JSONUtil( request, response );
+
+        String jsonText = null;
+        try {
+            String username = userManager.getCurrentUsername();
+
+            Researcher researcher = researcherService.findByUserName( username );
+
+            Collection<Gene> genes = researcher.getGenes();
+            String minimumFrequency = request.getParameter( "minimumFrequency" );
+            int m = 2;
+            if ( minimumFrequency != null ) {
+                m = Integer.parseInt( minimumFrequency );
+            }
+
+            Map<GeneOntologyTerm, Long> goTermsMap = geneAnnotationService.findRelatedTerms( genes, m );
+            Collection<GeneOntologyTerm> goTerms = goTermsMap.keySet();
+            Collection<Long> goFrequencies = goTermsMap.values();
+            // Collection<GeneOntologyTerm> goTerms = geneAnnotationService.findTermsByGenes( genes );
+
+            JSONObject json = new JSONObject();
+            json.put( "success", true );
+            json.put( "message", "Terms Loaded" );
+            json.put( "terms", goTerms );
+            json.put( "frequencies", goFrequencies );
+            jsonText = json.toString();
+            log.info( jsonText );
+        } catch ( Exception e ) {
+            log.error( e.getLocalizedMessage(), e );
+            JSONObject json = new JSONObject();
+            json.put( "success", false );
+            json.put( "message", e.getLocalizedMessage() );
             jsonText = json.toString();
             log.info( jsonText );
         } finally {

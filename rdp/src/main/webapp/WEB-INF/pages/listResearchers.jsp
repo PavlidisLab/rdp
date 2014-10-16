@@ -89,6 +89,10 @@
 			class="btn btn-danger">
 			<span class="">Reset Gene Table</span>
 		</button>
+		<button type="button" id="resetGeneAnnotationTable"
+			class="btn btn-danger">
+			<span class="">Reset Gene_Annotation Table</span>
+		</button>
 	</div>
 	
 </div>

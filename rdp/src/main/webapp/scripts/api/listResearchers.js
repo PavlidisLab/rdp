@@ -35,9 +35,12 @@
 	    
 	}
 	
-	listResearchers.executeAjax = function(ajax_url) {
+	listResearchers.executeAjax = function(ajax_url, data) {
+	   data = data || {};
       var promise = $.ajax( {
+         cache : false,
          url : ajax_url,
+         data : data,
          success : function(response, xhr) {
             response = jQuery.parseJSON(response);
             console.log(response.message);
@@ -181,6 +184,7 @@ $(document).ready(function() {
         	listResearchers.getResearchers();
         	$("#updateCache").click(function() {return listResearchers.executeAjax("updateCache.html");})
         	$("#resetGeneTable").click(function() {return listResearchers.executeAjax("resetGeneTable.html");})
+        	$("#resetGeneAnnotationTable").click(function() {return listResearchers.executeAjax("resetGeneAnnotationTable.html");})
         	
         	$("#resetResearchersButton").click(listResearchers.getResearchers)
         	$('#registerTab li:first').on('show.bs.tab',function() {
