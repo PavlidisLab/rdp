@@ -75,4 +75,7 @@ public interface GeneService {
     @Secured({ "GROUP_USER", "AFTER_ACL_READ" })
     public Gene findByOfficialSymbolAndTaxon( String officialSymbol, Long taxonId );
 
+    @Secured({ "GROUP_USER", "AFTER_ACL_READ" })
+    public Collection<Gene> findByMultipleIds( Collection<Long> ids );
+
 }

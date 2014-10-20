@@ -57,6 +57,7 @@ public class GeneAnnotationServiceTest extends BaseSpringContextTest {
     GeneService geneService;
 
     private Long taxonId = 9606L;
+    private Long taxonId2 = 562L;
     private List<GeneAnnotation> geneAnnotations = new ArrayList<GeneAnnotation>();
     private List<Gene> genes = new ArrayList<Gene>();
 
@@ -64,32 +65,32 @@ public class GeneAnnotationServiceTest extends BaseSpringContextTest {
     public void setUp() {
         genes.add( new Gene( 1L, taxonId, "AAA", "gene aaa", "alias-a1|alias-a2" ) );
         genes.add( new Gene( 2L, taxonId, "BBB", "gene bbb", "alias-b1|alias-b2" ) );
-        genes.add( new Gene( 3L, taxonId, "CCC", "gene ccc", "alias-c1|alias-c2" ) );
+        genes.add( new Gene( 3L, taxonId2, "CCC", "gene ccc", "alias-c1|alias-c2" ) );
         for ( Gene gene : genes ) {
             geneService.create( gene );
         }
         // GeneId, GO_ID, tax_id, GO_term, Category
-        geneAnnotations.add( new GeneAnnotation( genes.get( 0 ), "GO:0000001", taxonId, "Process 1", "Process" ) ); // 0-2
-        geneAnnotations.add( new GeneAnnotation( genes.get( 0 ), "GO:0000002", taxonId, "Process 2", "Process" ) ); // 1-1
-        geneAnnotations.add( new GeneAnnotation( genes.get( 0 ), "GO:0000003", taxonId, "Process 3", "Process" ) ); // 2-1
-        geneAnnotations.add( new GeneAnnotation( genes.get( 0 ), "GO:0000004", taxonId, "Process 4", "Process" ) ); // 3-2
-        geneAnnotations.add( new GeneAnnotation( genes.get( 1 ), "GO:0000005", taxonId, "Process 5", "Process" ) ); // 4-2
-        geneAnnotations.add( new GeneAnnotation( genes.get( 1 ), "GO:0000006", taxonId, "Process 6", "Process" ) ); // 5-2
-        geneAnnotations.add( new GeneAnnotation( genes.get( 1 ), "GO:0000007", taxonId, "Process 7", "Process" ) ); // 6-1
-        geneAnnotations.add( new GeneAnnotation( genes.get( 2 ), "GO:0000008", taxonId, "Process 8", "Process" ) ); // 7-2
-        geneAnnotations.add( new GeneAnnotation( genes.get( 2 ), "GO:0000009", taxonId, "Process 9", "Process" ) ); // 8-1
-        geneAnnotations.add( new GeneAnnotation( genes.get( 2 ), "GO:0000010", taxonId, "Process 10", "Process" ) ); // 9-3
+        geneAnnotations.add( new GeneAnnotation( genes.get( 0 ), "GO:0000001", "Process 1", "Process" ) ); // 0-2
+        geneAnnotations.add( new GeneAnnotation( genes.get( 0 ), "GO:0000002", "Process 2", "Process" ) ); // 1-1
+        geneAnnotations.add( new GeneAnnotation( genes.get( 0 ), "GO:0000003", "Process 3", "Process" ) ); // 2-1
+        geneAnnotations.add( new GeneAnnotation( genes.get( 0 ), "GO:0000004", "Process 4", "Process" ) ); // 3-2
+        geneAnnotations.add( new GeneAnnotation( genes.get( 1 ), "GO:0000005", "Process 5", "Process" ) ); // 4-2
+        geneAnnotations.add( new GeneAnnotation( genes.get( 1 ), "GO:0000006", "Process 6", "Process" ) ); // 5-2
+        geneAnnotations.add( new GeneAnnotation( genes.get( 1 ), "GO:0000007", "Process 7", "Process" ) ); // 6-1
+        geneAnnotations.add( new GeneAnnotation( genes.get( 2 ), "GO:0000008", "Process 8", "Process" ) ); // 7-2
+        geneAnnotations.add( new GeneAnnotation( genes.get( 2 ), "GO:0000009", "Process 9", "Process" ) ); // 8-1
+        geneAnnotations.add( new GeneAnnotation( genes.get( 2 ), "GO:0000010", "Process 10", "Process" ) ); // 9-3
 
         // Crossovers
-        geneAnnotations.add( new GeneAnnotation( genes.get( 0 ), "GO:0000005", taxonId, "Process 5", "Process" ) ); // 10
-        geneAnnotations.add( new GeneAnnotation( genes.get( 0 ), "GO:0000008", taxonId, "Process 8", "Process" ) ); // 11
-        geneAnnotations.add( new GeneAnnotation( genes.get( 0 ), "GO:0000010", taxonId, "Process 10", "Process" ) ); // 12
+        geneAnnotations.add( new GeneAnnotation( genes.get( 0 ), "GO:0000005", "Process 5", "Process" ) ); // 10
+        geneAnnotations.add( new GeneAnnotation( genes.get( 0 ), "GO:0000008", "Process 8", "Process" ) ); // 11
+        geneAnnotations.add( new GeneAnnotation( genes.get( 0 ), "GO:0000010", "Process 10", "Process" ) ); // 12
 
-        geneAnnotations.add( new GeneAnnotation( genes.get( 1 ), "GO:0000001", taxonId, "Process 1", "Process" ) ); // 13
-        geneAnnotations.add( new GeneAnnotation( genes.get( 1 ), "GO:0000010", taxonId, "Process 10", "Process" ) ); // 14
+        geneAnnotations.add( new GeneAnnotation( genes.get( 1 ), "GO:0000001", "Process 1", "Process" ) ); // 13
+        geneAnnotations.add( new GeneAnnotation( genes.get( 1 ), "GO:0000010", "Process 10", "Process" ) ); // 14
 
-        geneAnnotations.add( new GeneAnnotation( genes.get( 2 ), "GO:0000006", taxonId, "Process 6", "Process" ) ); // 15
-        geneAnnotations.add( new GeneAnnotation( genes.get( 2 ), "GO:0000004", taxonId, "Process 4", "Process" ) ); // 16
+        geneAnnotations.add( new GeneAnnotation( genes.get( 2 ), "GO:0000006", "Process 6", "Process" ) ); // 15
+        geneAnnotations.add( new GeneAnnotation( genes.get( 2 ), "GO:0000004", "Process 4", "Process" ) ); // 16
 
         for ( GeneAnnotation geneAnnotation : geneAnnotations ) {
             geneAnnotationService.create( geneAnnotation );
@@ -115,21 +116,41 @@ public class GeneAnnotationServiceTest extends BaseSpringContextTest {
     @Test
     public void testFindByGeneOntologyId() {
         Collection<GeneAnnotation> ga = geneAnnotationService.findByGeneOntologyId( "GO:0000001" );
+        assertEquals( 2, ga.size() );
         assertTrue( ga.contains( geneAnnotations.get( 0 ) ) );
         assertTrue( ga.contains( geneAnnotations.get( 13 ) ) );
 
         ga = geneAnnotationService.findByGeneOntologyId( "GO:0000002" );
+        assertEquals( 1, ga.size() );
         assertTrue( ga.contains( geneAnnotations.get( 1 ) ) );
 
         ga = geneAnnotationService.findByGeneOntologyId( "GO:0000010" );
+        assertEquals( 3, ga.size() );
         assertTrue( ga.contains( geneAnnotations.get( 9 ) ) );
         assertTrue( ga.contains( geneAnnotations.get( 12 ) ) );
         assertTrue( ga.contains( geneAnnotations.get( 14 ) ) );
     }
 
     @Test
+    public void testFindByGeneOntologyIdAndTaxon() {
+        Collection<GeneAnnotation> ga = geneAnnotationService.findByGeneOntologyIdAndTaxon( "GO:0000010", taxonId );
+        assertEquals( 2, ga.size() );
+        assertTrue( ga.contains( geneAnnotations.get( 12 ) ) );
+        assertTrue( ga.contains( geneAnnotations.get( 14 ) ) );
+
+        ga = geneAnnotationService.findByGeneOntologyIdAndTaxon( "GO:0000010", taxonId2 );
+        assertEquals( 1, ga.size() );
+        assertTrue( ga.contains( geneAnnotations.get( 9 ) ) );
+
+        ga = geneAnnotationService.findByGeneOntologyIdAndTaxon( "GO:0000006", taxonId );
+        assertEquals( 1, ga.size() );
+        assertTrue( ga.contains( geneAnnotations.get( 5 ) ) );
+    }
+
+    @Test
     public void testFindByGene() {
         Collection<GeneAnnotation> ga = geneAnnotationService.findByGene( genes.get( 0 ) );
+        assertEquals( 7, ga.size() );
         assertTrue( ga.contains( geneAnnotations.get( 0 ) ) );
         assertTrue( ga.contains( geneAnnotations.get( 1 ) ) );
         assertTrue( ga.contains( geneAnnotations.get( 2 ) ) );
@@ -139,6 +160,7 @@ public class GeneAnnotationServiceTest extends BaseSpringContextTest {
         assertTrue( ga.contains( geneAnnotations.get( 12 ) ) );
 
         ga = geneAnnotationService.findByGene( genes.get( 1 ) );
+        assertEquals( 5, ga.size() );
         assertTrue( ga.contains( geneAnnotations.get( 4 ) ) );
         assertTrue( ga.contains( geneAnnotations.get( 5 ) ) );
         assertTrue( ga.contains( geneAnnotations.get( 6 ) ) );
@@ -146,6 +168,7 @@ public class GeneAnnotationServiceTest extends BaseSpringContextTest {
         assertTrue( ga.contains( geneAnnotations.get( 14 ) ) );
 
         ga = geneAnnotationService.findByGene( genes.get( 2 ) );
+        assertEquals( 5, ga.size() );
         assertTrue( ga.contains( geneAnnotations.get( 7 ) ) );
         assertTrue( ga.contains( geneAnnotations.get( 8 ) ) );
         assertTrue( ga.contains( geneAnnotations.get( 9 ) ) );
@@ -185,6 +208,7 @@ public class GeneAnnotationServiceTest extends BaseSpringContextTest {
     @Test
     public void testFindByGeneLimitedByTermSize() {
         Collection<GeneAnnotation> ga = geneAnnotationService.findByGeneLimitedByTermSize( genes.get( 0 ), 3 );
+        assertEquals( 7, ga.size() );
         assertTrue( ga.contains( geneAnnotations.get( 0 ) ) );
         assertTrue( ga.contains( geneAnnotations.get( 1 ) ) );
         assertTrue( ga.contains( geneAnnotations.get( 2 ) ) );
@@ -194,6 +218,7 @@ public class GeneAnnotationServiceTest extends BaseSpringContextTest {
         assertTrue( ga.contains( geneAnnotations.get( 12 ) ) );
 
         ga = geneAnnotationService.findByGeneLimitedByTermSize( genes.get( 0 ), 2 );
+        assertEquals( 6, ga.size() );
         assertTrue( ga.contains( geneAnnotations.get( 0 ) ) );
         assertTrue( ga.contains( geneAnnotations.get( 1 ) ) );
         assertTrue( ga.contains( geneAnnotations.get( 2 ) ) );
@@ -202,6 +227,7 @@ public class GeneAnnotationServiceTest extends BaseSpringContextTest {
         assertTrue( ga.contains( geneAnnotations.get( 11 ) ) );
 
         ga = geneAnnotationService.findByGeneLimitedByTermSize( genes.get( 0 ), 1 );
+        assertEquals( 2, ga.size() );
         assertTrue( ga.contains( geneAnnotations.get( 1 ) ) );
         assertTrue( ga.contains( geneAnnotations.get( 2 ) ) );
 

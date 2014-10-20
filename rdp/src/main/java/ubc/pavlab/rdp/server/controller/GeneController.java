@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -49,11 +50,13 @@ import ubc.pavlab.rdp.server.model.Researcher;
 import ubc.pavlab.rdp.server.security.authentication.UserManager;
 import ubc.pavlab.rdp.server.service.GeneAnnotationService;
 import ubc.pavlab.rdp.server.service.GeneCacheService;
+import ubc.pavlab.rdp.server.service.GeneOntologyService;
 import ubc.pavlab.rdp.server.service.GeneService;
 import ubc.pavlab.rdp.server.service.ResearcherService;
 import ubc.pavlab.rdp.server.service.TaxonService;
 import ubc.pavlab.rdp.server.util.JSONUtil;
 import ubc.pavlab.rdp.server.util.Settings;
+import ubic.basecode.ontology.model.OntologyTerm;
 
 /**
  * Handles gene-related requests
@@ -79,6 +82,9 @@ public class GeneController {
 
     @Autowired
     protected GeneAnnotationService geneAnnotationService;
+
+    @Autowired
+    protected GeneOntologyService geneOntologyService;
 
     @Autowired
     protected TaxonService taxonService;
@@ -427,21 +433,39 @@ public class GeneController {
 
             Collection<Gene> genes = researcher.getGenes();
             String minimumFrequency = request.getParameter( "minimumFrequency" );
-            int m = 2;
+            String minimumTermSize = request.getParameter( "minimumTermSize" );
+            String maximumTermSize = request.getParameter( "maximumTermSize" );
+            Long taxonId = Long.parseLong( request.getParameter( "taxonId" ), 10 );
+
+            int minFreq = 2;
             if ( minimumFrequency != null ) {
-                m = Integer.parseInt( minimumFrequency );
+                minFreq = Integer.parseInt( minimumFrequency );
             }
 
-            Map<GeneOntologyTerm, Long> goTermsMap = geneAnnotationService.findRelatedTerms( genes, m );
-            Collection<GeneOntologyTerm> goTerms = goTermsMap.keySet();
-            Collection<Long> goFrequencies = goTermsMap.values();
-            // Collection<GeneOntologyTerm> goTerms = geneAnnotationService.findTermsByGenes( genes );
+            int maxTerm = 100;
+            if ( maximumTermSize != null ) {
+                maxTerm = Integer.parseInt( maximumTermSize );
+            }
+
+            int minTerm = 10;
+            if ( minimumTermSize != null ) {
+                minTerm = Integer.parseInt( minimumTermSize );
+            }
+
+            Map<String, Map<OntologyTerm, Long>> goTermsResult = geneOntologyService.calculateGoTermFrequency( genes,
+                    taxonId, minFreq, minTerm, maxTerm );
+            List<GeneOntologyTerm> goTerms = new ArrayList<GeneOntologyTerm>();
+            for ( OntologyTerm term : goTermsResult.get( "frequency" ).keySet() ) {
+                GeneOntologyTerm goTerm = new GeneOntologyTerm( term );
+                goTerm.setFrequency( goTermsResult.get( "frequency" ).get( term ) );
+                goTerm.setSize( goTermsResult.get( "size" ).get( term ) );
+                goTerms.add( goTerm );
+            }
 
             JSONObject json = new JSONObject();
             json.put( "success", true );
-            json.put( "message", "Terms Loaded" );
+            json.put( "message", goTerms.size() + " Terms Loaded" );
             json.put( "terms", goTerms );
-            json.put( "frequencies", goFrequencies );
             jsonText = json.toString();
             log.info( jsonText );
         } catch ( Exception e ) {

@@ -19,6 +19,8 @@
 
 package ubc.pavlab.rdp.server.model;
 
+import ubic.basecode.ontology.model.OntologyTerm;
+
 /**
  * TODO Document Me
  * 
@@ -28,6 +30,8 @@ package ubc.pavlab.rdp.server.model;
 public class GeneOntologyTerm {
     private String geneOntologyId;
     private String geneOntologyTerm;
+    private Long frequency;
+    private Long size;
 
     public GeneOntologyTerm() {
 
@@ -36,6 +40,11 @@ public class GeneOntologyTerm {
     public GeneOntologyTerm( String geneOntologyId, String geneOntologyTerm ) {
         this.geneOntologyId = geneOntologyId;
         this.geneOntologyTerm = geneOntologyTerm;
+    }
+
+    public GeneOntologyTerm( OntologyTerm term ) {
+        this.geneOntologyId = term.getUri().replaceAll( ".*?/", "" ).replace( "_", ":" );
+        this.geneOntologyTerm = term.getTerm();
     }
 
     /**
@@ -64,6 +73,34 @@ public class GeneOntologyTerm {
      */
     public void setGeneOntologyTerm( String geneOntologyTerm ) {
         this.geneOntologyTerm = geneOntologyTerm;
+    }
+
+    /**
+     * @return the frequency
+     */
+    public Long getFrequency() {
+        return frequency;
+    }
+
+    /**
+     * @param frequency the frequency to set
+     */
+    public void setFrequency( Long frequency ) {
+        this.frequency = frequency;
+    }
+
+    /**
+     * @return the size
+     */
+    public Long getSize() {
+        return size;
+    }
+
+    /**
+     * @param size the size to set
+     */
+    public void setSize( Long size ) {
+        this.size = size;
     }
 
     /*

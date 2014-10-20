@@ -46,6 +46,9 @@ public interface GeneAnnotationService {
     public Collection<GeneAnnotation> findByGeneOntologyId( final String geneOntologyId );
 
     @Secured({ "GROUP_USER", "AFTER_ACL_READ" })
+    public Collection<GeneAnnotation> findByGeneOntologyIdAndTaxon( final String geneOntologyId, final Long taxonId );
+
+    @Secured({ "GROUP_USER", "AFTER_ACL_READ" })
     public Collection<GeneAnnotation> findByGene( final Gene gene );
 
     @Secured({ "GROUP_USER", "AFTER_ACL_READ" })
@@ -53,6 +56,9 @@ public interface GeneAnnotationService {
 
     @Secured({ "GROUP_USER", "AFTER_ACL_READ" })
     public Long countGenesForGeneOntologyId( final String geneOntologyId );
+
+    @Secured({ "GROUP_USER", "AFTER_ACL_READ" })
+    public Long countGenesForGeneOntologyIdAndTaxon( String geneOntologyId, Long taxonId );
 
     @Secured({ "GROUP_USER", "AFTER_ACL_READ" })
     public Collection<GeneAnnotation> findByGeneLimitedByTermSize( final Gene gene, final int limit );
@@ -88,5 +94,8 @@ public interface GeneAnnotationService {
 
     @Secured({ "GROUP_USER" })
     public Collection<GeneOntologyTerm> annotationToGeneOntologyId( Collection<GeneAnnotation> geneAnnotations );
+
+    @Secured({ "GROUP_USER" })
+    public Collection<Gene> annotationToGene( Collection<GeneAnnotation> geneAnnotations );
 
 }

@@ -43,4 +43,6 @@ public interface GeneDao extends DaoBase<Gene> {
 
     public void truncateGeneTable();
 
+    public Collection<Gene> findByMultipleIds( Collection<Long> ids );
+
 }

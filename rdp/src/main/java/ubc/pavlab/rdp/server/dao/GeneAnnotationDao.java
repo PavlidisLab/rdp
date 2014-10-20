@@ -40,10 +40,14 @@ public interface GeneAnnotationDao extends DaoBase<GeneAnnotation> {
 
     public Long countGenesForGeneOntologyId( final String geneOntologyId );
 
+    public Long countGenesForGeneOntologyIdAndTaxon( String geneOntologyId, Long taxonId );
+
     public Collection<GeneAnnotation> loadAll();
 
     public void updateGeneAnnotationTable( String filePath );
 
     public void truncateGeneAnnotationTable();
+
+    public Collection<GeneAnnotation> findByGeneOntologyIdAndTaxon( String geneOntologyId, Long taxonId );
 
 }

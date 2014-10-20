@@ -89,6 +89,17 @@ public class GeneAnnotationServiceImpl implements GeneAnnotationService {
     /*
      * (non-Javadoc)
      * 
+     * @see ubc.pavlab.rdp.server.service.GeneAnnotationService#findByGeneOntologyIdAndTaxon(java.lang.String,
+     * java.lang.Long)
+     */
+    @Override
+    public Collection<GeneAnnotation> findByGeneOntologyIdAndTaxon( String geneOntologyId, Long taxonId ) {
+        return geneAnnotationDao.findByGeneOntologyIdAndTaxon( geneOntologyId, taxonId );
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
      * @see ubc.pavlab.rdp.server.service.GeneAnnotationService#findByGene(ubc.pavlab.rdp.server.model.Gene)
      */
     @Transactional
@@ -121,6 +132,12 @@ public class GeneAnnotationServiceImpl implements GeneAnnotationService {
         return geneAnnotationDao.countGenesForGeneOntologyId( geneOntologyId );
     }
 
+    @Transactional
+    @Override
+    public Long countGenesForGeneOntologyIdAndTaxon( String geneOntologyId, Long taxonId ) {
+        return geneAnnotationDao.countGenesForGeneOntologyIdAndTaxon( geneOntologyId, taxonId );
+    }
+
     /*
      * (non-Javadoc)
      * 
@@ -149,6 +166,7 @@ public class GeneAnnotationServiceImpl implements GeneAnnotationService {
      * @param genes the collection of genes to find terms for
      * @return A mapping of terms to their frequency among the genes
      */
+    @Deprecated
     @Override
     public Map<GeneOntologyTerm, Long> findTermsAndFrequenciesByGenes( Collection<Gene> genes ) {
         Map<GeneOntologyTerm, Long> geneTermMap = new HashMap<GeneOntologyTerm, Long>();
@@ -172,6 +190,7 @@ public class GeneAnnotationServiceImpl implements GeneAnnotationService {
      * @return A mapping of terms to their frequency among the genes where each term has a maximum of <code>limit</code>
      *         genes associated with it
      */
+    @Deprecated
     @Override
     public Map<GeneOntologyTerm, Long> findTermsAndFrequenciesByGenesLimitedByTermSize( Collection<Gene> genes,
             int limit ) {
@@ -192,6 +211,7 @@ public class GeneAnnotationServiceImpl implements GeneAnnotationService {
      * @param genes the collection of genes to find terms for
      * @return A set of terms among the genes
      */
+    @Deprecated
     @Override
     public Collection<GeneOntologyTerm> findTermsByGenes( Collection<Gene> genes ) {
         Collection<GeneOntologyTerm> results = new HashSet<GeneOntologyTerm>();
@@ -211,6 +231,7 @@ public class GeneAnnotationServiceImpl implements GeneAnnotationService {
      * @return A set of terms among the genes where each term has a maximum of <code>limit</code> genes associated with
      *         it
      */
+    @Deprecated
     @Override
     public Collection<GeneOntologyTerm> findTermsByGenesLimitedByTermSize( Collection<Gene> genes, int limit ) {
         Collection<GeneOntologyTerm> goTerms = findTermsByGenes( genes );
@@ -231,6 +252,7 @@ public class GeneAnnotationServiceImpl implements GeneAnnotationService {
      * @param minimumFrequency minimum frequency of term to be included in results
      * @return A sorted map of terms that have at least a frequency of <code>minimumFrequency</code> among the genes
      */
+    @Deprecated
     @SuppressWarnings("unchecked")
     @Transactional
     @Override
@@ -258,6 +280,7 @@ public class GeneAnnotationServiceImpl implements GeneAnnotationService {
      * @return A sorted map of terms that have at least a frequency of <code>minimumFrequency</code> among the genes
      *         where each term has a maximum of <code>limit</code> genes associated with it
      */
+    @Deprecated
     @SuppressWarnings("unchecked")
     @Transactional
     @Override
@@ -319,12 +342,24 @@ public class GeneAnnotationServiceImpl implements GeneAnnotationService {
         geneAnnotationDao.truncateGeneAnnotationTable();
     }
 
+    @Deprecated
     @Override
     public Collection<GeneOntologyTerm> annotationToGeneOntologyId( Collection<GeneAnnotation> geneAnnotations ) {
         Collection<GeneOntologyTerm> results = new HashSet<GeneOntologyTerm>();
 
         for ( GeneAnnotation ga : geneAnnotations ) {
             results.add( new GeneOntologyTerm( ga.getGeneOntologyId(), ga.getGeneOntologyTerm() ) );
+        }
+
+        return results;
+    }
+
+    @Override
+    public Collection<Gene> annotationToGene( Collection<GeneAnnotation> geneAnnotations ) {
+        Collection<Gene> results = new HashSet<Gene>();
+
+        for ( GeneAnnotation ga : geneAnnotations ) {
+            results.add( ga.getGene() );
         }
 
         return results;

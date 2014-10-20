@@ -67,6 +67,18 @@ public class GeneAnnotationDaoImpl extends DaoBaseImpl<GeneAnnotation> implement
         return results;
     }
 
+    @SuppressWarnings("unchecked")
+    @Override
+    public Collection<GeneAnnotation> findByGeneOntologyIdAndTaxon( String geneOntologyId, Long taxonId ) {
+        String hql = "FROM GeneAnnotation ga WHERE ga.pk.geneOntologyId = :geneOntologyId AND ga.taxonId = :taxonId";
+        Collection<GeneAnnotation> results = this.getHibernateTemplate().findByNamedParam( hql,
+                new String[] { "geneOntologyId", "taxonId" }, new Object[] { geneOntologyId, taxonId } );
+        if ( results.size() == 0 ) {
+            return null;
+        }
+        return results;
+    }
+
     /*
      * (non-Javadoc)
      * 
@@ -114,6 +126,16 @@ public class GeneAnnotationDaoImpl extends DaoBaseImpl<GeneAnnotation> implement
         String hql = "select count(*) FROM GeneAnnotation ga WHERE ga.pk.geneOntologyId = :geneOntologyId";
         Long count = ( Long ) this.getHibernateTemplate().findByNamedParam( hql, "geneOntologyId", geneOntologyId )
                 .get( 0 );
+        return count;
+    }
+
+    @Override
+    public Long countGenesForGeneOntologyIdAndTaxon( String geneOntologyId, Long taxonId ) {
+        String hql = "select count(*) FROM GeneAnnotation ga WHERE ga.pk.geneOntologyId = :geneOntologyId AND ga.taxonId = :taxonId ";
+        Long count = ( Long ) this
+                .getHibernateTemplate()
+                .findByNamedParam( hql, new String[] { "geneOntologyId", "taxonId" },
+                        new Object[] { geneOntologyId, taxonId } ).get( 0 );
         return count;
     }
 

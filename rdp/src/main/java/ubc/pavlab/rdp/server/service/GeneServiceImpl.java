@@ -119,6 +119,11 @@ public class GeneServiceImpl implements GeneService {
     }
 
     @Override
+    public Collection<Gene> findByMultipleIds( Collection<Long> ids ) {
+        return geneDao.findByMultipleIds( ids );
+    }
+
+    @Override
     public Gene load( long geneId ) {
         return geneDao.load( geneId );
     }

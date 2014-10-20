@@ -24,8 +24,11 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 
 import org.json.JSONObject;
 import org.junit.Before;
@@ -136,6 +139,27 @@ public class GeneServiceTest extends BaseSpringContextTest {
         assertNull( geneService.findById( savedGene2.getId() ) );
         geneService.delete( savedGene3 );
         assertNull( geneService.findById( savedGene3.getId() ) );
+
+    }
+
+    @Test
+    public void testFindByMultipleIds() {
+        Gene savedGene = geneService.create( gene );
+        Gene savedGene2 = geneService.create( gene2 );
+        Gene savedGene3 = geneService.create( gene3 );
+
+        List<Gene> genes = new ArrayList<Gene>();
+        Collection<Long> geneIds = new HashSet<Long>();
+        genes.add( savedGene );
+        geneIds.add( savedGene.getId() );
+        genes.add( savedGene2 );
+        geneIds.add( savedGene2.getId() );
+
+        assertEquals( genes, geneService.findByMultipleIds( geneIds ) );
+
+        geneService.delete( savedGene );
+        geneService.delete( savedGene2 );
+        geneService.delete( savedGene3 );
 
     }
 
