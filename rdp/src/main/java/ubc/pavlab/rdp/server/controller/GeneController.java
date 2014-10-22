@@ -158,7 +158,7 @@ public class GeneController {
         JSONUtil jsonUtil = new JSONUtil( request, response );
 
         String username = userManager.getCurrentUsername();
-        // String taxonCommonName = request.getParameter( "taxonCommonName" );
+        // Long taxonId = Long.parseLong( request.getParameter( "taxonId" ), 10 );
         String[] genesJSON = request.getParameterValues( "genes[]" );
         String taxonDescriptions = request.getParameter( "taxonDescriptions" );
 
@@ -431,11 +431,13 @@ public class GeneController {
 
             Researcher researcher = researcherService.findByUserName( username );
 
-            Collection<Gene> genes = researcher.getGenes();
             String minimumFrequency = request.getParameter( "minimumFrequency" );
             String minimumTermSize = request.getParameter( "minimumTermSize" );
             String maximumTermSize = request.getParameter( "maximumTermSize" );
             Long taxonId = Long.parseLong( request.getParameter( "taxonId" ), 10 );
+
+            Collection<Gene> genes = researcher.getGenesByTaxonId( taxonId );
+            log.info( genes );
 
             int minFreq = 2;
             if ( minimumFrequency != null ) {
@@ -452,6 +454,7 @@ public class GeneController {
                 minTerm = Integer.parseInt( minimumTermSize );
             }
 
+            log.debug( "Loading GO Terms for " + username );
             Map<String, Map<OntologyTerm, Long>> goTermsResult = geneOntologyService.calculateGoTermFrequency( genes,
                     taxonId, minFreq, minTerm, maxTerm );
             List<GeneOntologyTerm> goTerms = new ArrayList<GeneOntologyTerm>();
@@ -459,6 +462,7 @@ public class GeneController {
                 GeneOntologyTerm goTerm = new GeneOntologyTerm( term );
                 goTerm.setFrequency( goTermsResult.get( "frequency" ).get( term ) );
                 goTerm.setSize( goTermsResult.get( "size" ).get( term ) );
+                goTerm.setDefinition( geneOntologyService.getTermDefinition( term ) );
                 goTerms.add( goTerm );
             }
 
@@ -479,4 +483,49 @@ public class GeneController {
             jsonUtil.writeToResponse( jsonText );
         }
     }
+
+    @RequestMapping("/searchGO.html")
+    public void searchGO( HttpServletRequest request, HttpServletResponse response ) throws IOException {
+        JSONUtil jsonUtil = new JSONUtil( request, response );
+
+        String jsonText = null;
+        String query = request.getParameter( "query" );
+
+        // Strips non-alphanumeric characters to prevent regex
+        // query = query.replaceAll( "[^A-Za-z0-9]", "" );
+
+        if ( query.length() == 0 ) {
+            // Returning illegal json so the select2 fails
+            jsonText = "Illegal query";
+            jsonUtil.writeToResponse( jsonText );
+            return;
+        }
+
+        try {
+            // Collection<Gene> results = biomartService.findGenes( query, taxon );
+            List<GeneOntologyTerm> results = new ArrayList( geneOntologyService.fetchByQuery( query ) );
+
+            // List<GeneOntologyTerm> goTerms = new ArrayList<GeneOntologyTerm>();
+            for ( GeneOntologyTerm term : results ) {
+                // GeneOntologyTerm goTerm = new GeneOntologyTerm( term );
+                term.setFrequency( 0L );
+                // term.setSize( geneOntologyService.getGeneSize( term.getGeneOntologyId() ) );
+                // goTerm.setDefinition( geneOntologyService.getTermDefinition( term ) );
+                // goTerms.add( goTerm );
+            }
+            try {
+                results = results.subList( 0, 100 );
+            } catch ( IndexOutOfBoundsException e ) {
+                // ignore
+            }
+            jsonText = "{\"success\":true,\"data\":" + ( new JSONArray( results ) ).toString() + "}";
+        } catch ( Exception e ) {
+            log.error( e.getMessage(), e );
+            jsonText = "{\"success\":false,\"message\":" + e.getMessage() + "\"}";
+        }
+
+        jsonUtil.writeToResponse( jsonText );
+        return;
+    }
+
 }

@@ -32,6 +32,7 @@ public class GeneOntologyTerm {
     private String geneOntologyTerm;
     private Long frequency;
     private Long size;
+    private String definition;
 
     public GeneOntologyTerm() {
 
@@ -73,6 +74,14 @@ public class GeneOntologyTerm {
      */
     public void setGeneOntologyTerm( String geneOntologyTerm ) {
         this.geneOntologyTerm = geneOntologyTerm;
+    }
+
+    public String getDefinition() {
+        return definition;
+    }
+
+    public void setDefinition( String definition ) {
+        this.definition = definition;
     }
 
     /**

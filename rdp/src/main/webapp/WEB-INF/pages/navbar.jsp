@@ -71,6 +71,8 @@
 <%@ include file="editProfile.jsp"%>
 <!-- User Genes Edit -->
 <%@ include file="editGenes.jsp"%>
+<!-- User Gene Ontology Modal -->
+<%@ include file="selectGeneOntologyTerms.jsp"%>
 
 <!-- include jQuery, and our script file -->
 <!-- inlcude our script -->

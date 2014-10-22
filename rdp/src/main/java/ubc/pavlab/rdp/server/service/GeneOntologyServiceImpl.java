@@ -41,8 +41,10 @@ import org.apache.jena.larq.IndexLARQ;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import ubc.pavlab.rdp.server.cache.GeneOntologyTermCache;
 import ubc.pavlab.rdp.server.model.Gene;
 import ubc.pavlab.rdp.server.model.GeneAnnotation;
+import ubc.pavlab.rdp.server.model.GeneOntologyTerm;
 import ubc.pavlab.rdp.server.model.Taxon;
 import ubc.pavlab.rdp.server.util.Settings;
 import ubic.basecode.ontology.OntologyLoader;
@@ -82,6 +84,9 @@ public class GeneOntologyServiceImpl implements GeneOntologyService {
     private static final String ALL_ROOT = BASE_GO_URI + "ALL";
 
     private static boolean enabled = true;
+
+    @Autowired
+    private GeneOntologyTermCache geneOntologyTermCache;
 
     /*
      * FIXME don't hardcode this.
@@ -235,14 +240,8 @@ public class GeneOntologyServiceImpl implements GeneOntologyService {
 
         // Limit by maximum gene pool size of go terms
         // TODO wayyyyyy too slow...
-        int total = frequencyMap.size();
-        int idx = 1;
-        if ( maximumTermSize > 0 ) {
+        if ( maximumTermSize > 0 && minimumTermSize > 0 ) {
             for ( Iterator<Map.Entry<OntologyTerm, Long>> i = frequencyMap.entrySet().iterator(); i.hasNext(); ) {
-                if ( idx % 5 == 0 ) {
-                    log.info( idx + " out of " + total );
-                }
-                idx++;
                 Map.Entry<OntologyTerm, Long> termEntry = i.next();
                 OntologyTerm term = termEntry.getKey();
                 // Limit to just a taxon?
@@ -269,6 +268,7 @@ public class GeneOntologyServiceImpl implements GeneOntologyService {
         List list = new LinkedList( unsortMap.entrySet() );
 
         Collections.sort( list, new Comparator() {
+            @Override
             public int compare( Object o1, Object o2 ) {
                 return ( ( Comparable ) ( ( Map.Entry ) ( o1 ) ).getValue() ).compareTo( ( ( Map.Entry ) ( o2 ) )
                         .getValue() );
@@ -408,6 +408,7 @@ public class GeneOntologyServiceImpl implements GeneOntologyService {
         StopWatch timer = new StopWatch();
         timer.start();
         Collection<OntologyResource> rawMatches = new HashSet<>();
+        queryString = "a";
         for ( SearchIndex index : this.indices ) {
             rawMatches.addAll( OntologySearch.matchIndividuals( model, index, queryString ) );
         }
@@ -417,7 +418,7 @@ public class GeneOntologyServiceImpl implements GeneOntologyService {
         }
         timer.reset();
         timer.start();
-
+        log.info( rawMatches.size() );
         /*
          * Required to make sure the descriptions are filled in.
          */
@@ -764,11 +765,16 @@ public class GeneOntologyServiceImpl implements GeneOntologyService {
     @Override
     public String getTermDefinition( String goId ) {
         OntologyTerm t = getTermForId( goId );
+        return getTermDefinition( t );
+    }
+
+    @Override
+    public String getTermDefinition( OntologyTerm t ) {
         assert t != null;
         Collection<AnnotationProperty> annotations = t.getAnnotations();
         for ( AnnotationProperty annot : annotations ) {
-            log.info( annot.getProperty() );
-            if ( annot.getProperty().equals( "hasDefinition" ) ) {
+            // log.info( annot.getProperty() );
+            if ( annot.getProperty().equals( "hasDefinition" ) || annot.getProperty().equals( "definition" ) ) {
                 return annot.getContents();
             }
         }
@@ -1160,6 +1166,12 @@ public class GeneOntologyServiceImpl implements GeneOntologyService {
                     ready.set( true );
                     running.set( false );
 
+                    loadTime.reset();
+                    loadTime.start();
+                    long cacheSize = updateEhCache();
+                    log.info( "Gene Ontology ehCache, total of " + cacheSize + " items in " + loadTime.getTime() / 1000
+                            + "s" );
+
                     log.info( "Done loading GO" );
                     loadTime.stop();
                 } catch ( Throwable e ) {
@@ -1185,6 +1197,32 @@ public class GeneOntologyServiceImpl implements GeneOntologyService {
         }
         buf.append( " ]" );
         log.trace( buf.toString() );
+    }
+
+    private long updateEhCache() {
+        long cacheSize = -1;
+        Collection<OntologyTerm> terms = listTerms();
+        // prepare terms
+        Collection<GeneOntologyTerm> goTerms = new HashSet<GeneOntologyTerm>();
+        for ( OntologyTerm term : terms ) {
+            GeneOntologyTerm goTerm = new GeneOntologyTerm( term );
+            // goTerm.setFrequency( 0L );
+            // goTerm.setSize( geneOntologyService.getGeneSize( term ) );
+            goTerm.setDefinition( getTermDefinition( term ) );
+            goTerms.add( goTerm );
+        }
+        geneOntologyTermCache.putAll( goTerms );
+
+        cacheSize = geneOntologyTermCache.size();
+        log.info( "Current size of Cache: " + cacheSize );
+
+        return cacheSize;
+
+    }
+
+    @Override
+    public Collection<GeneOntologyTerm> fetchByQuery( String queryString ) {
+        return geneOntologyTermCache.fetchByQuery( queryString );
     }
 
 }

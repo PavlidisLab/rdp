@@ -34,6 +34,8 @@ import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import ubc.pavlab.rdp.server.model.common.auditAndSecurity.User;
@@ -46,6 +48,8 @@ public class Researcher implements Serializable {
      * 
      */
     private static final long serialVersionUID = 778565921919207933L;
+
+    private static Log log = LogFactory.getLog( Researcher.class );
 
     @Autowired
     @Transient
@@ -241,6 +245,18 @@ public class Researcher implements Serializable {
         Collection<Gene> genes = new HashSet<Gene>();
         for ( GeneAssociation g : geneAssociations ) {
             genes.add( g.getGene() );
+        }
+
+        return genes;
+    }
+
+    public Collection<Gene> getGenesByTaxonId( Long taxonId ) {
+        Collection<Gene> genes = new HashSet<Gene>();
+        for ( GeneAssociation ga : geneAssociations ) {
+            Gene g = ga.getGene();
+            if ( g.getTaxonId().equals( taxonId ) ) {
+                genes.add( g );
+            }
         }
 
         return genes;

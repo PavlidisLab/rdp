@@ -2,11 +2,11 @@
 
 .animate {
     animation-name: rotateThis;
-    animation-duration: 0.5s;
+    animation-duration: 1s;
     animation-iteration-count: infinite;
     animation-timing-function: linear;
-    -moz-animation: rotateThis 0.5s infinite linear;    
-    -webkit-animation: rotateThis 0.5s infinite linear;    
+    -moz-animation: rotateThis 1s infinite linear;    
+    -webkit-animation: rotateThis 1s infinite linear;    
 }
 
 @keyframes rotateThis {

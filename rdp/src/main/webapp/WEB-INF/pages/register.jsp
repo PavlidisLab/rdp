@@ -128,6 +128,7 @@ h3 {text-decoration: underline;}
 	<script src="scripts/api/editProfile.js"></script>
 	
 	<script src="scripts/api/editUser.js"></script>
+	<script src="scripts/api/selectGeneOntologyTerms.js"></script>
 	
 
 </body>

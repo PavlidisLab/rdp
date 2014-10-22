@@ -28,6 +28,7 @@ import java.util.Map;
 import org.springframework.beans.factory.InitializingBean;
 
 import ubc.pavlab.rdp.server.model.Gene;
+import ubc.pavlab.rdp.server.model.GeneOntologyTerm;
 import ubc.pavlab.rdp.server.model.Taxon;
 import ubc.pavlab.rdp.server.service.GeneOntologyServiceImpl.GOAspect;
 import ubic.basecode.ontology.model.OntologyTerm;
@@ -83,6 +84,8 @@ public interface GeneOntologyService extends InitializingBean {
      * @return
      */
     public abstract Collection<OntologyTerm> findTerm( String queryString );
+
+    public abstract Collection<GeneOntologyTerm> fetchByQuery( String queryString );
 
     /**
      * @param entry
@@ -216,6 +219,8 @@ public interface GeneOntologyService extends InitializingBean {
      * @return Definition or null if there is no definition.
      */
     public abstract String getTermDefinition( String goId );
+
+    public abstract String getTermDefinition( OntologyTerm t );
 
     /**
      * Return human-readable term ("protein kinase") for a GO Id.
