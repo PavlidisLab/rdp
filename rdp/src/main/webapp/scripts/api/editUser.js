@@ -5,6 +5,8 @@
 
 	editUser.changePassword = function(event) {
 	   event.preventDefault();
+	   var btns = $( "#btnChangePassword" );
+	   btns.attr("disabled", "disabled");
 	   $.ajax( {
 	      cache : false,
 	      type : 'POST',
@@ -14,6 +16,7 @@
 	      },
 	      data : $( "#changePasswordForm" ).serialize(),
 	      success : function(response, xhr) {
+	         btns.removeAttr("disabled");
 	         utility.showMessage( jQuery.parseJSON( response ).message, $( "#changePasswordMessage" ) );
 	    	  if (!jQuery.parseJSON( response ).success) {
 	    	     var form = $( "#changePasswordForm" );
@@ -23,6 +26,7 @@
 	    	  }
 	      },
 	      error : function(response, xhr) {
+	         btns.removeAttr("disabled");
 	         //console.log( xhr.responseText );
 	         utility.showMessage( jQuery.parseJSON( response ).message, $( "#changePasswordMessage" ) );
 	      }

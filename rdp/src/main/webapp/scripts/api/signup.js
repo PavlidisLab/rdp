@@ -5,6 +5,9 @@
    
    signup.register = function(e) {
       e.preventDefault();
+      var btns = $( "#btnSignup" );
+      btns.attr("disabled", "disabled");
+      
       $.ajax( {
          cache : false,
          type : 'POST',
@@ -14,10 +17,12 @@
          },
          data : $( "#signupForm" ).serialize(),
          success : function(response, xhr) {
+            btns.removeAttr("disabled");
             utility.showMessage( jQuery.parseJSON( response ).message, $("#signupMessage") );
             Recaptcha.reload();
          },
          error : function(xhr) {
+            btns.removeAttr("disabled");
             console.log( xhr.responseText );
             utility.showMessage( "Error with request. Status is: " + xhr.status, $("#signupMessage") );
             Recaptcha.reload();

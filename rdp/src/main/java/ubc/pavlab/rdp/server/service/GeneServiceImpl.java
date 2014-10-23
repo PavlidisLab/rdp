@@ -208,7 +208,9 @@ public class GeneServiceImpl implements GeneService {
             ids.put( id, tier );
         }
 
-        Collection<Gene> genes = findByMultipleIds( ids.keySet() );
+        if ( ids.size() > 0 ) {
+            Collection<Gene> genes = findByMultipleIds( ids.keySet() );
+        }
 
         for ( Long id : ids.keySet() ) {
             boolean found = false;

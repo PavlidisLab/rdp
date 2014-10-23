@@ -72,7 +72,10 @@
       var terms = getSelectedTerms();
       researcherModel.currentResearcher.updateTermsForTaxon( terms, selectGeneOntologyTerms.currentTaxonId );
       var promise = researcherModel.saveResearcherTermsForTaxon( selectGeneOntologyTerms.currentTaxonId );
+      var btns = $( "#selectGeneOntologyTermsButton" );
+      btns.attr("disabled", "disabled");
       $.when(promise).done(function() {
+         btns.removeAttr("disabled");
          utility.showMessage( promise.responseJSON.message, $( "#selectGeneOntologyTermsMessage" ) );
       });
    }
