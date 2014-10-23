@@ -84,4 +84,10 @@ public interface GeneService {
     @Secured({ "GROUP_USER", "AFTER_ACL_READ" })
     public Collection<Gene> findByMultipleIds( Collection<Long> ids );
 
+    @Secured({ "IS_AUTHENTICATED_ANONYMOUSLY" })
+    public Long countUniqueAssociations();
+
+    @Secured({ "IS_AUTHENTICATED_ANONYMOUSLY" })
+    public Long countAssociations();
+
 }

@@ -101,4 +101,10 @@ public interface ResearcherService {
     @Secured({ "GROUP_USER" })
     public boolean removeGenesByTiers( Researcher researcher, Collection<TierType> tier );
 
+    @Secured({ "IS_AUTHENTICATED_ANONYMOUSLY" })
+    public Long countResearchers();
+
+    @Secured({ "IS_AUTHENTICATED_ANONYMOUSLY" })
+    public Long countResearchersWithGenes();
+
 }

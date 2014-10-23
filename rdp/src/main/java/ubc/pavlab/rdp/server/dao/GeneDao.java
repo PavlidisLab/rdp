@@ -45,4 +45,8 @@ public interface GeneDao extends DaoBase<Gene> {
 
     public Collection<Gene> findByMultipleIds( Collection<Long> ids );
 
+    public Long countAssociations();
+
+    public Long countUniqueAssociations();
+
 }

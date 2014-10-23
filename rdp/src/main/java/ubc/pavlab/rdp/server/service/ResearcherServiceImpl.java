@@ -216,7 +216,6 @@ public class ResearcherServiceImpl implements ResearcherService {
             if ( ga.getTier().equals( tier ) && ga.getGene().getTaxonId().equals( taxonId ) ) {
                 i.remove();
                 modified = true;
-                log.info( ga.getGene().getOfficialSymbol() );
             }
         }
 
@@ -283,6 +282,16 @@ public class ResearcherServiceImpl implements ResearcherService {
     @Override
     public Collection<Researcher> findByGene( Gene gene ) {
         return researcherDao.findByGene( gene );
+    }
+
+    @Override
+    public Long countResearchers() {
+        return researcherDao.countResearchers();
+    }
+
+    @Override
+    public Long countResearchersWithGenes() {
+        return researcherDao.countResearchersWithGenes();
     }
 
     @Override

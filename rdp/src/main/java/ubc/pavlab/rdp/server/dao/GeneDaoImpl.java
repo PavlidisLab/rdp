@@ -166,4 +166,16 @@ public class GeneDaoImpl extends DaoBaseImpl<Gene> implements GeneDao {
 
     }
 
+    @Override
+    public Long countAssociations() {
+        String hql = "select count(*) FROM GeneAssociation";
+        return ( Long ) this.getHibernateTemplate().find( hql ).get( 0 );
+    }
+
+    @Override
+    public Long countUniqueAssociations() {
+        String hql = "select count(distinct GeneID) FROM GeneAssociation";
+        return ( Long ) this.getHibernateTemplate().find( hql ).get( 0 );
+    }
+
 }

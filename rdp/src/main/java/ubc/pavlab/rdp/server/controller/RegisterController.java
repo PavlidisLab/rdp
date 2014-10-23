@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import ubc.pavlab.rdp.server.model.Researcher;
 import ubc.pavlab.rdp.server.model.common.auditAndSecurity.User;
 import ubc.pavlab.rdp.server.security.authentication.UserManager;
+import ubc.pavlab.rdp.server.service.GeneService;
 import ubc.pavlab.rdp.server.service.ResearcherService;
 import ubc.pavlab.rdp.server.util.JSONUtil;
 
@@ -31,6 +32,9 @@ public class RegisterController extends BaseController {
 
     @Autowired
     UserManager userManager;
+
+    @Autowired
+    GeneService geneService;
 
     @RequestMapping(value = { "", "/", "/register.html", "/home.html", "/index.html" })
     public String showRegister( ModelMap model ) {
@@ -200,6 +204,39 @@ public class RegisterController extends BaseController {
             JSONObject json = new JSONObject();
             json.put( "success", true );
             json.put( "message", "User: (" + userName + ") deleted." );
+            jsonText = json.toString();
+        } catch ( Exception e ) {
+            log.error( e.getLocalizedMessage(), e );
+            JSONObject json = new JSONObject();
+            json.put( "success", false );
+            json.put( "message", "An error occurred!" );
+            json.put( "error", e.getLocalizedMessage() );
+            jsonText = json.toString();
+            log.info( jsonText );
+        } finally {
+            jsonUtil.writeToResponse( jsonText );
+        }
+    }
+
+    @RequestMapping("/stats.html")
+    public void stats( HttpServletRequest request, HttpServletResponse response ) throws IOException {
+        String jsonText = null;
+        JSONUtil jsonUtil = null;
+        try {
+            jsonUtil = new JSONUtil( request, response );
+
+            Long researchersRegistered = researcherService.countResearchers();
+            Long researchersRegisteredWithGenes = researcherService.countResearchersWithGenes();
+            Long genesAdded = geneService.countAssociations();
+            Long genesAddedUnique = geneService.countUniqueAssociations();
+            ;
+            JSONObject json = new JSONObject();
+            json.put( "success", true );
+            json.put( "message", "Statistics succesfully loaded" );
+            json.put( "researchers_registered", researchersRegistered );
+            json.put( "researchers_registered_with_genes", researchersRegisteredWithGenes );
+            json.put( "genes_added", genesAdded );
+            json.put( "genes_added_unique", genesAddedUnique );
             jsonText = json.toString();
         } catch ( Exception e ) {
             log.error( e.getLocalizedMessage(), e );

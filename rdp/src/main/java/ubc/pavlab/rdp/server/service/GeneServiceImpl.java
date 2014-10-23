@@ -210,21 +210,21 @@ public class GeneServiceImpl implements GeneService {
 
         if ( ids.size() > 0 ) {
             Collection<Gene> genes = findByMultipleIds( ids.keySet() );
-        }
 
-        for ( Long id : ids.keySet() ) {
-            boolean found = false;
+            for ( Long id : ids.keySet() ) {
+                boolean found = false;
 
-            for ( Gene g : genes ) {
-                if ( g.getId().equals( id ) ) {
-                    found = true;
-                    results.put( g, ids.get( id ) );
-                    break;
+                for ( Gene g : genes ) {
+                    if ( g.getId().equals( id ) ) {
+                        found = true;
+                        results.put( g, ids.get( id ) );
+                        break;
+                    }
                 }
-            }
 
-            if ( !found ) {
-                log.warn( "Cannot deserialize gene: " + id );
+                if ( !found ) {
+                    log.warn( "Cannot deserialize gene: " + id );
+                }
             }
         }
 
@@ -241,6 +241,18 @@ public class GeneServiceImpl implements GeneService {
     @Transactional
     public void truncateGeneTable() {
         geneDao.truncateGeneTable();
+    }
+
+    @Override
+    @Transactional
+    public Long countAssociations() {
+        return geneDao.countAssociations();
+    }
+
+    @Override
+    @Transactional
+    public Long countUniqueAssociations() {
+        return geneDao.countUniqueAssociations();
     }
 
     @Override
