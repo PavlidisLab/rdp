@@ -30,6 +30,7 @@
       
       // Model Organisms
       this.genes = [];
+      this.calculatedGenes = [];
       this.terms = {};
       this.taxonDescriptions = {};
    }
@@ -149,11 +150,18 @@
       this.setTermsFromArray(data.terms);
 
       var genes = [];
+      var calculateGenes = [];
       for (var i=0;i<data.genes.length;i++) {
-         genes.push( new researcherModel.Gene( data.genes[i] ) );
+         var g = new researcherModel.Gene( data.genes[i] );
+         if ( data.genes[i].tier === "TIER3" ) {
+            calculateGenes.push( g );                     
+         } else {
+            genes.push( g );
+         }
       }
       
       this.genes = genes;
+      this.calculatedGenes = calculateGenes;
       
       var contact;
       

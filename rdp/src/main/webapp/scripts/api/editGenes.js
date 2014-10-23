@@ -96,14 +96,16 @@
       for (var i = 0; i < genes.length; i++) {
          // This is important; the genes stored in the table are NOT the same instances 
          // as are stored in the currentResearcher. They can be altered without consequence.
-         var geneClone = genes[i].clone();
-         if ( genes[i].taxonId == taxonSel.val() ) {
-            // columns: Object (HIDDEN), Symbol, Alias, Name, Tier
-            geneRow = [geneClone];
-            table.row.add( geneRow );
-         }
-         else {
-            hiddenGenes.push( geneClone );
+         if ( genes[i].tier !== "TIER3" ) {
+            var geneClone = genes[i].clone();
+            if ( genes[i].taxonId == taxonSel.val() ) {
+               // columns: Object (HIDDEN), Symbol, Alias, Name, Tier
+               geneRow = [geneClone];
+               table.row.add( geneRow );
+            }
+            else {
+               hiddenGenes.push( geneClone );
+            }
          }
       }
       table.draw();
@@ -276,15 +278,13 @@
             //$('td:eq(2)', nRow).html(aData[0].officialName);
 
             var inputHTML = '<input type="checkbox" id="rowSelect'+aData[0].ncbiGeneId+'"value="TIER1"></input>'
-
-            if ( aData[0].tier ) {
-               // If this gene has an associated tier and it is TIER1 check the box
-               var n = inputHTML.indexOf('value="'+aData[0].tier+'"')
-               if (n > -1) {
-                  inputHTML = inputHTML.slice(0, n) + 'checked="checked" ' + inputHTML.slice(n);
-               }
-            }
             $('td:eq(3)', nRow).html(inputHTML);
+            
+            if ( aData[0].tier === "TIER1" ) {
+               // If this gene has an associated tier and it is TIER1 check the box
+               $('td:eq(3)', nRow).find('input').prop("checked",true);
+            }
+            
             $('td:eq(3)', nRow).on('change', function() {
                aData[0].tier = $(this)[0].firstChild.checked ? "TIER1" : "TIER2";
             });
