@@ -7,18 +7,19 @@
    var allResearchers;
    var table;
 	
-	populateResearcherTable = function(researchers, specificGene) {
+	populateResearcherTable = function(researchers, tiers) {
 	   table = $("#listResearchersTable").DataTable();
 	    table.clear().draw();
 	    $.each(researchers, function(index, researcher) {
 	        
-	        if ( specificGene ) {
-	           for (var i=0;i<researcher.genes.length;i++) {
-	              if ( researcher.genes[i].equals(specificGene) ) {
-	                 var specificTier = researcher.genes[i].tier;
-	              }
-
-	           }
+	        if ( tiers ) {
+	           var specificTier = tiers[index];
+//	           for (var i=0;i<researcher.genes.length;i++) {
+//	              if ( researcher.genes[i].equals(specificGene) ) {
+//	                 var specificTier = researcher.genes[i].tier;
+//	              }
+//
+//	           }
 	        }
 	         
 	
@@ -106,17 +107,18 @@
 	    
 	    gene = new researcherModel.Gene(gene);
 	    
-	    researchers = [];
-	    
+	    var researchers = [];
+	    var tiers = [];
 	    for (var i=0;i<allResearchers.length;i++) {
-	       var idx = allResearchers[i].indexOfGene(gene);
-	       if ( idx !== -1 ) {
+	       var specificGene = allResearchers[i].getGene(gene);
+	       if ( specificGene !== null ) {
 	          researchers.push(allResearchers[i]);
+	          tiers.push( specificGene.tier );
 	       }
 	    }
 	    
 	    $("#listResearchersTable").DataTable().column(7).visible(true);
-	    populateResearcherTable(researchers, gene);
+	    populateResearcherTable(researchers, tiers);
 
 	}
 

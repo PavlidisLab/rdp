@@ -53,6 +53,9 @@ public class GeneServiceImpl implements GeneService {
     @Autowired
     TaxonService taxonService;
 
+    // @Autowired
+    // GeneCacheService geneCacheService;
+
     /*
      * (non-Javadoc)
      * 
@@ -118,6 +121,11 @@ public class GeneServiceImpl implements GeneService {
         return geneDao.findById( id );
     }
 
+    // @Override
+    // public Gene fastFindById( Long id ) {
+    // return geneCacheService.fetchById( id );
+    // }
+
     @Override
     public Collection<Gene> findByMultipleIds( Collection<Long> ids ) {
         return geneDao.findByMultipleIds( ids );
@@ -134,6 +142,7 @@ public class GeneServiceImpl implements GeneService {
      * @param genesJSON - an array of JSON representations of Genes
      * @return
      */
+    @Deprecated
     @Override
     public HashMap<Gene, TierType> deserializeGenes( String[] genesJSON ) throws IllegalArgumentException {
         HashMap<Gene, TierType> results = new HashMap<Gene, TierType>();
@@ -159,10 +168,60 @@ public class GeneServiceImpl implements GeneService {
             }
 
             Gene geneFound = this.findById( id );
+
             if ( !( geneFound == null ) ) {
                 results.put( geneFound, tier );
             } else {
                 // it doesn't exist in database
+                log.warn( "Cannot deserialize gene: " + id );
+            }
+        }
+
+        return results;
+    }
+
+    @Override
+    public HashMap<Gene, TierType> quickDeserializeGenes( String[] genesJSON ) throws IllegalArgumentException {
+        HashMap<Gene, TierType> results = new HashMap<Gene, TierType>();
+        HashMap<Long, TierType> ids = new HashMap<Long, TierType>();
+        for ( int i = 0; i < genesJSON.length; i++ ) {
+            JSONObject json = new JSONObject( genesJSON[i] );
+            if ( !json.has( "id" ) ) {
+                throw new IllegalArgumentException( "Every gene must have an assigned ID." );
+            }
+            Long id = json.getLong( "id" );
+
+            if ( id.equals( 0L ) ) {
+                throw new IllegalArgumentException( "Every gene must have an assigned ID." );
+            }
+            TierType tier = TierType.UNKNOWN;
+            if ( json.has( "tier" ) ) {
+                try {
+                    tier = TierType.valueOf( json.getString( "tier" ) );
+                } catch ( IllegalArgumentException e ) {
+                    log.warn( "Invalid tier: (" + json.getString( "tier" ) + ") for gene: " + id );
+                }
+            } else {
+                log.warn( "Missing tier for gene: " + id );
+            }
+
+            ids.put( id, tier );
+        }
+
+        Collection<Gene> genes = findByMultipleIds( ids.keySet() );
+
+        for ( Long id : ids.keySet() ) {
+            boolean found = false;
+
+            for ( Gene g : genes ) {
+                if ( g.getId().equals( id ) ) {
+                    found = true;
+                    results.put( g, ids.get( id ) );
+                    break;
+                }
+            }
+
+            if ( !found ) {
                 log.warn( "Cannot deserialize gene: " + id );
             }
         }

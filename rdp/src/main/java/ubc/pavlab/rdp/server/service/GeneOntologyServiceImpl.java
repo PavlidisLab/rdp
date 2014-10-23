@@ -667,6 +667,7 @@ public class GeneOntologyServiceImpl implements GeneOntologyService {
     @Override
     public Collection<OntologyTerm> getGOTerms( Gene gene, boolean includePartOf, GOAspect goAspect,
             boolean includeParents ) {
+        if ( !isReady() ) return new HashSet<OntologyTerm>();
         Collection<OntologyTerm> cachedTerms = goTerms.get( gene );
         if ( log.isTraceEnabled() && cachedTerms != null ) {
             logIds( "found cached GO terms for " + gene.getOfficialSymbol(), goTerms.get( gene ) );
@@ -1025,6 +1026,8 @@ public class GeneOntologyServiceImpl implements GeneOntologyService {
      */
     private synchronized Collection<OntologyTerm> getAncestors( OntologyTerm entry, boolean includePartOf ) {
 
+        if ( !isReady() ) return new HashSet<OntologyTerm>();
+
         if ( entry == null ) {
             return new HashSet<OntologyTerm>();
         }
@@ -1053,6 +1056,8 @@ public class GeneOntologyServiceImpl implements GeneOntologyService {
      *         getAllParents but the recusive code is a little cleaner and doesn't use and accumulator)
      */
     private synchronized Collection<OntologyTerm> getDescendants( OntologyTerm entry, boolean includePartOf ) {
+
+        if ( !isReady() ) return new HashSet<OntologyTerm>();
 
         Collection<OntologyTerm> descendants = childrenCache.get( entry.getUri() );
         if ( descendants == null ) {
@@ -1138,6 +1143,9 @@ public class GeneOntologyServiceImpl implements GeneOntologyService {
      * @return
      */
     private GOAspect getTermAspect( OntologyTerm term ) {
+
+        if ( !isReady() ) return null;
+
         assert term != null;
         String goid = term.getTerm();
 

@@ -136,7 +136,7 @@ public class GeneCacheTest extends BaseSpringContextTest {
         ids.add( 7L );
         ids.add( 8L );
 
-        Collection<Gene> results = cache.fetchById( ids );
+        Collection<Gene> results = cache.fetchByIds( ids );
         assertEquals( 3, results.size() );
     }
 

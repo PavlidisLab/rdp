@@ -40,7 +40,10 @@ public interface GeneCacheService {
     public Collection<Gene> fetchByTaxons( Collection<Long> taxonIds );
 
     @Secured({ "GROUP_USER" })
-    public Collection<Gene> fetchById( Collection<Long> ids );
+    public Gene fetchById( Long id );
+
+    @Secured({ "GROUP_USER" })
+    public Collection<Gene> fetchByIds( Collection<Long> ids );
 
     @Secured({ "GROUP_USER" })
     public Collection<Gene> fetchByQuery( String queryString, Long taxonId );

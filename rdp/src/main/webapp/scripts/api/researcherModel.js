@@ -48,6 +48,26 @@
       
    }
    
+   // Used to determine if a researcher has a gene in either saved or calculated genes
+   researcherModel.Researcher.prototype.getGene = function(gene) {
+      if ( !(gene instanceof researcherModel.Gene) ) {
+         console.log( "Not a Gene Object", gene );
+         return null;
+      }
+      for (var i=0;i<this.genes.length;i++) {
+         if ( gene.equals(this.genes[i]) ) {
+            return this.genes[i];
+         }
+      }
+      for (var i=0;i<this.calculatedGenes.length;i++) {
+         if ( gene.equals(this.calculatedGenes[i]) ) {
+            return this.calculatedGenes[i];
+         }
+      }
+      return null;
+      
+   }
+   
    researcherModel.Researcher.prototype.shallowCopy = function() {
       // For some reason jquery AJAX doesn't like sending instances of Researcher
       // straight in the data

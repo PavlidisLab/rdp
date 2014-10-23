@@ -181,10 +181,7 @@ public class GeneController {
             }
 
             // Update Genes
-            researcherService.updateGenes( researcher, geneService.deserializeGenes( genesJSON ) ); // This updates the
-                                                                                                    // researcher
-                                                                                                    // persistence for
-                                                                                                    // both
+            researcherService.updateGenes( researcher, geneService.quickDeserializeGenes( genesJSON ) );
 
             JSONObject json = new JSONObject();
             json.put( "success", true );
@@ -572,9 +569,8 @@ public class GeneController {
             for ( Gene g : geneOntologyService.getRelatedGenes( goTerms, taxonId ) ) {
                 calculatedGenes.put( g, TierType.TIER3 );
             }
-            log.info( calculatedGenes.size() );
-            log.info( calculatedGenes );
-            researcherService.removeGenesByTier( researcher, TierType.TIER3 );
+
+            researcherService.removeGenesByTierAndTaxon( researcher, TierType.TIER3, taxonId );
             researcherService.addGenes( researcher, calculatedGenes );
 
             JSONObject json = new JSONObject();

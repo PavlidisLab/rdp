@@ -37,7 +37,9 @@ public interface GeneCache {
 
     public Collection<Gene> fetchByTaxons( Collection<Long> taxonIds );
 
-    public Collection<Gene> fetchById( Collection<Long> ids );
+    public Collection<Gene> fetchByIds( Collection<Long> ids );
+
+    public Gene fetchById( Long id );
 
     public Collection<Gene> fetchByQuery( String queryString, Long taxonId );
 

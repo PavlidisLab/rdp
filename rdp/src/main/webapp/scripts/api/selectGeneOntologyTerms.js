@@ -64,6 +64,7 @@
 
    selectGeneOntologyTerms.closeModal = function() {
       $( "#spinLoadGOTerms" ).hide();
+      clearTable();
       utility.hideMessage( $( "#selectGeneOntologyTermsMessage" ) );
    };
 
@@ -77,14 +78,13 @@
    }
 
    selectGeneOntologyTerms.openModal = function() {
-      clearTable();
       $( "#spinLoadGOTerms" ).show();
    }
 
    selectGeneOntologyTerms.combineWithSavedTerms =  function(terms) {
       // Modifies array in place.
       // Add and select those suggested terms that the researcher has already saved
-      var savedTerms = researcherModel.currentResearcher.terms[ selectGeneOntologyTerms.currentTaxonId ];
+      var savedTerms = researcherModel.currentResearcher.terms[ selectGeneOntologyTerms.currentTaxonId ] || [];
       
       for ( var i = 0; i < terms.length; i++ ) {
          terms[i].selected = false;
@@ -108,7 +108,7 @@
    
    selectGeneOntologyTerms.fillTable = function(terms) {
       $( "#spinLoadGOTerms" ).hide();
-      
+      clearTable();
       for ( var i = 0; i < terms.length; i++ ) {
          var termRow = [terms[i]];
          selectGeneOntologyTerms.table.DataTable().row.add( termRow );

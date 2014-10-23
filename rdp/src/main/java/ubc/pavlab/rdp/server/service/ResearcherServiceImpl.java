@@ -23,6 +23,7 @@ import gemma.gsec.model.UserGroup;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
@@ -197,18 +198,41 @@ public class ResearcherServiceImpl implements ResearcherService {
 
     @Override
     public boolean updateGenes( Researcher researcher, HashMap<Gene, TierType> genes ) {
-        researcher.getGeneAssociations().clear();
+        Collection<TierType> tiersToRemove = new HashSet<TierType>();
+        tiersToRemove.add( TierType.TIER1 );
+        tiersToRemove.add( TierType.TIER2 );
+        this.removeGenesByTiers( researcher, tiersToRemove );
+        // researcher.getGeneAssociations().clear();
         boolean added = addGenes( researcher, genes );
         researcherDao.update( researcher );
         return added;
     }
 
     @Override
-    public boolean removeGenesByTier( Researcher researcher, TierType tier ) {
+    public boolean removeGenesByTierAndTaxon( Researcher researcher, TierType tier, Long taxonId ) {
         boolean modified = false;
         for ( Iterator<GeneAssociation> i = researcher.getGeneAssociations().iterator(); i.hasNext(); ) {
             GeneAssociation ga = i.next();
-            if ( ga.getTier().equals( tier ) ) {
+            if ( ga.getTier().equals( tier ) && ga.getGene().getTaxonId().equals( taxonId ) ) {
+                i.remove();
+                modified = true;
+                log.info( ga.getGene().getOfficialSymbol() );
+            }
+        }
+
+        if ( modified ) {
+            researcherDao.update( researcher );
+        }
+
+        return modified;
+    }
+
+    @Override
+    public boolean removeGenesByTiers( Researcher researcher, Collection<TierType> tiers ) {
+        boolean modified = false;
+        for ( Iterator<GeneAssociation> i = researcher.getGeneAssociations().iterator(); i.hasNext(); ) {
+            GeneAssociation ga = i.next();
+            if ( tiers.contains( ga.getTier() ) ) {
                 i.remove();
                 modified = true;
             }

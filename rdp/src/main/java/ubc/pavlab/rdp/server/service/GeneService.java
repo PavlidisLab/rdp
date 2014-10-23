@@ -57,8 +57,14 @@ public interface GeneService {
     @Secured({ "GROUP_USER" })
     public HashMap<Gene, TierType> deserializeGenes( String[] genesJSON );
 
+    @Secured({ "GROUP_USER" })
+    public HashMap<Gene, TierType> quickDeserializeGenes( String[] genesJSON ) throws IllegalArgumentException;
+
     @Secured({ "GROUP_USER", "AFTER_ACL_READ" })
     public Gene findById( final Long id );
+
+    // @Secured({ "GROUP_USER" })
+    // public Gene fastFindById( Long id );
 
     @Secured({ "GROUP_ADMIN", "AFTER_ACL_READ" })
     public Collection<Gene> findByTaxonId( final Long id );

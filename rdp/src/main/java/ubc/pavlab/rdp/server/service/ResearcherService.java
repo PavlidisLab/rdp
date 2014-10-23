@@ -96,6 +96,9 @@ public interface ResearcherService {
     public boolean AddGOTerms( Researcher researcher, Collection<GeneOntologyTerm> goTerms );
 
     @Secured({ "GROUP_USER" })
-    public boolean removeGenesByTier( Researcher researcher, TierType tier );
+    public boolean removeGenesByTierAndTaxon( Researcher researcher, TierType tier, Long taxonId );
+
+    @Secured({ "GROUP_USER" })
+    public boolean removeGenesByTiers( Researcher researcher, Collection<TierType> tier );
 
 }

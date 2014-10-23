@@ -27,6 +27,8 @@ import javax.annotation.PostConstruct;
 import net.sf.ehcache.search.Attribute;
 import net.sf.ehcache.search.expression.Criteria;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.stereotype.Component;
 
 import ubc.pavlab.rdp.server.model.Gene;
@@ -55,6 +57,8 @@ public class GeneCacheImpl extends SearchableEhcache<Gene> implements GeneCache 
     private Attribute<Object> taxonAttribute;
     private Attribute<Object> aliasesAttribute;
     private Attribute<Object> modificationDateAttribute;
+
+    protected final Log log = LogFactory.getLog( GeneCacheImpl.class );
 
     /*
      * (non-Javadoc)
@@ -86,10 +90,22 @@ public class GeneCacheImpl extends SearchableEhcache<Gene> implements GeneCache 
      * @see ubc.pavlab.rdp.server.cache.GeneCache#fetchById(java.util.Collection)
      */
     @Override
-    public Collection<Gene> fetchById( Collection<Long> ids ) {
+    public Collection<Gene> fetchByIds( Collection<Long> ids ) {
         Criteria idCriteria = idAttribute.in( ids );
 
         return fetchByCriteria( idCriteria );
+    }
+
+    @Override
+    public Gene fetchById( Long id ) {
+        Criteria idCriteria = idAttribute.eq( id );
+        Collection<Gene> results = fetchByCriteria( idCriteria );
+        if ( results.size() == 0 ) {
+            return null;
+        } else if ( results.size() > 1 ) {
+            log.warn( "Multiple terms match GO ID: (" + id + "), return first hit" );
+        }
+        return fetchByCriteria( idCriteria ).iterator().next();
     }
 
     /**

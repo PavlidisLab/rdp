@@ -81,8 +81,13 @@ public class GeneCacheServiceImpl implements GeneCacheService {
      * @see ubc.pavlab.rdp.server.service.GeneCacheService#fetchById(java.util.Collection)
      */
     @Override
-    public Collection<Gene> fetchById( Collection<Long> ids ) {
-        return geneCache.fetchById( ids );
+    public Collection<Gene> fetchByIds( Collection<Long> ids ) {
+        return geneCache.fetchByIds( ids );
+    }
+
+    @Override
+    public Gene fetchById( Long id ) {
+        return geneCache.fetchById( id );
     }
 
     /*
