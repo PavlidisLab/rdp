@@ -19,6 +19,13 @@
 
 package ubc.pavlab.rdp.server.model;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+
 import ubic.basecode.ontology.model.OntologyTerm;
 
 /**
@@ -27,12 +34,36 @@ import ubic.basecode.ontology.model.OntologyTerm;
  * @author mjacobson
  * @version $Id$
  */
+@Entity
+@Table(name = "GOTERMS")
 public class GeneOntologyTerm {
+
+    @Id
+    @GeneratedValue
+    @Column(name = "ID")
+    private Long id;
+
+    @Column(name = "GO_ID")
     private String geneOntologyId;
+
+    @Column(name = "TAXON_ID")
+    private Long taxonId;
+
+    @Column(name = "GO_TERM", columnDefinition = "TEXT")
     private String geneOntologyTerm;
+
+    @Transient
     private Long frequency;
+
+    @Transient
     private Long size;
+
+    @Column(name = "definition", columnDefinition = "TEXT")
     private String definition;
+
+    public Long getId() {
+        return id;
+    }
 
     public GeneOntologyTerm() {
 
@@ -110,6 +141,14 @@ public class GeneOntologyTerm {
      */
     public void setSize( Long size ) {
         this.size = size;
+    }
+
+    public Long getTaxonId() {
+        return taxonId;
+    }
+
+    public void setTaxonId( Long taxonId ) {
+        this.taxonId = taxonId;
     }
 
     /*

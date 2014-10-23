@@ -33,7 +33,9 @@ public interface GeneOntologyTermCache {
 
     public boolean hasExpired();
 
-    public Collection<GeneOntologyTerm> fetchById( Collection<String> ids );
+    public Collection<GeneOntologyTerm> fetchByIds( Collection<String> ids );
+
+    public GeneOntologyTerm fetchById( String id );
 
     public Collection<GeneOntologyTerm> fetchByQuery( String queryString );
 

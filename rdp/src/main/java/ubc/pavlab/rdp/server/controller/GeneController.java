@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -513,11 +514,14 @@ public class GeneController {
                 // goTerm.setDefinition( geneOntologyService.getTermDefinition( term ) );
                 // goTerms.add( goTerm );
             }
+
+            // Only return max 100 hits
             try {
                 results = results.subList( 0, 100 );
             } catch ( IndexOutOfBoundsException e ) {
                 // ignore
             }
+
             jsonText = "{\"success\":true,\"data\":" + ( new JSONArray( results ) ).toString() + "}";
         } catch ( Exception e ) {
             log.error( e.getMessage(), e );
@@ -526,6 +530,109 @@ public class GeneController {
 
         jsonUtil.writeToResponse( jsonText );
         return;
+    }
+
+    /*
+     * Used to save GO Terms selected by researcher in the front-end
+     */
+    @RequestMapping("/saveResearcherGOTerms.html")
+    public void saveResearcherGOTerms( HttpServletRequest request, HttpServletResponse response ) throws IOException {
+
+        String jsonText = null;
+        JSONUtil jsonUtil = new JSONUtil( request, response );
+
+        String username = userManager.getCurrentUsername();
+        Long taxonId = Long.parseLong( request.getParameter( "taxonId" ), 10 );
+        String[] GOJSON = request.getParameterValues( "terms[]" );
+
+        if ( GOJSON == null ) {
+            log.info( username + ": No terms to save" );
+            GOJSON = new String[] {};
+        }
+
+        try {
+            Researcher researcher = researcherService.findByUserName( username );
+
+            // Deserialize GO Terms
+            Collection<GeneOntologyTerm> goTerms = geneOntologyService.deserializeGOTerms( GOJSON );
+
+            // Add taxonId to terms and find sizes
+            for ( GeneOntologyTerm term : goTerms ) {
+                term.setTaxonId( taxonId );
+                // if ( term.getSize() == null ) {
+                // term.setSize( geneOntologyService.getGeneSize( term.getGeneOntologyId() ) );
+                // }
+            }
+
+            // Update GO Terms for this taxon
+            researcherService.updateGOTermsForTaxon( researcher, goTerms, taxonId );
+
+            HashMap<Gene, TierType> calculatedGenes = new HashMap<Gene, TierType>();
+
+            for ( Gene g : geneOntologyService.getRelatedGenes( goTerms, taxonId ) ) {
+                calculatedGenes.put( g, TierType.TIER3 );
+            }
+            log.info( calculatedGenes.size() );
+            log.info( calculatedGenes );
+            researcherService.removeGenesByTier( researcher, TierType.TIER3 );
+            researcherService.addGenes( researcher, calculatedGenes );
+
+            JSONObject json = new JSONObject();
+            json.put( "success", true );
+            json.put( "message", "Changes saved" );
+            jsonText = json.toString();
+
+        } catch ( Exception e ) {
+            log.error( e.getLocalizedMessage(), e );
+            JSONObject json = new JSONObject();
+            json.put( "success", false );
+            json.put( "message", e.getLocalizedMessage() );
+            jsonText = json.toString();
+            log.info( jsonText );
+        } finally {
+            jsonUtil.writeToResponse( jsonText );
+        }
+
+    }
+
+    /*
+     * Used to calculate GO Term size on the fly
+     */
+    @RequestMapping("/getGOTermStats.html")
+    public void getGOTermStats( HttpServletRequest request, HttpServletResponse response ) throws IOException {
+
+        String jsonText = null;
+        JSONUtil jsonUtil = new JSONUtil( request, response );
+
+        String geneOntologyId = request.getParameter( "geneOntologyId" );
+        Long taxonId = Long.parseLong( request.getParameter( "taxonId" ), 10 );
+        try {
+            String username = userManager.getCurrentUsername();
+
+            Researcher researcher = researcherService.findByUserName( username );
+            // Deserialize GO Terms
+            Long size = geneOntologyService.getGeneSize( geneOntologyId );
+            Collection<Gene> genes = researcher.getGenesByTaxonId( taxonId );
+            Long frequency = geneOntologyService.computeOverlapFrequency( geneOntologyId, genes );
+
+            JSONObject json = new JSONObject();
+            json.put( "success", true );
+            json.put( "message", "Stats calculated" );
+            json.put( "geneSize", size );
+            json.put( "frequency", frequency );
+            jsonText = json.toString();
+
+        } catch ( Exception e ) {
+            log.error( e.getLocalizedMessage(), e );
+            JSONObject json = new JSONObject();
+            json.put( "success", false );
+            json.put( "message", e.getLocalizedMessage() );
+            jsonText = json.toString();
+            log.info( jsonText );
+        } finally {
+            jsonUtil.writeToResponse( jsonText );
+        }
+
     }
 
 }

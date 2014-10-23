@@ -27,6 +27,8 @@ import javax.annotation.PostConstruct;
 import net.sf.ehcache.search.Attribute;
 import net.sf.ehcache.search.expression.Criteria;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.stereotype.Component;
 
 import ubc.pavlab.rdp.server.model.GeneOntologyTerm;
@@ -50,23 +52,27 @@ public class GeneOntologyTermCacheImpl extends SearchableEhcache<GeneOntologyTer
     private Attribute<Object> termAttribute;
     private Attribute<Object> definitionAttribute;
 
+    protected final Log log = LogFactory.getLog( GeneOntologyTermCacheImpl.class );
+
     @Override
-    public Collection<GeneOntologyTerm> fetchById( Collection<String> ids ) {
+    public Collection<GeneOntologyTerm> fetchByIds( Collection<String> ids ) {
         Criteria idCriteria = idAttribute.in( ids );
 
         return fetchByCriteria( idCriteria );
     }
 
-    /**
-     * See Bug 4187 - Improved gene search
-     * 
-     * <pre>
-     * Sort search results using this order : 
-     * 1. Gene symbols. Place exact matches first. 
-     * 2. Gene name 
-     * 3. Gene alias. Since this are concatenated, we loosely use *SYMBOL*
-     * </pre>
-     */
+    @Override
+    public GeneOntologyTerm fetchById( String id ) {
+        Criteria idCriteria = idAttribute.eq( id );
+        Collection<GeneOntologyTerm> results = fetchByCriteria( idCriteria );
+        if ( results.size() == 0 ) {
+            return null;
+        } else if ( results.size() > 1 ) {
+            log.warn( "Multiple terms match GO ID: (" + id + "), return first hit" );
+        }
+        return fetchByCriteria( idCriteria ).iterator().next();
+    }
+
     @Override
     public Collection<GeneOntologyTerm> fetchByQuery( String queryString ) {
         ArrayList<GeneOntologyTerm> results = new ArrayList<>();

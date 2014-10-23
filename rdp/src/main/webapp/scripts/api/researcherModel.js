@@ -13,7 +13,6 @@
       this.phone = "";
       this.description = "";
       this.email = "";
-      this.test = "";
       
       var _website = "";
       Object.defineProperty(this, "website", { 
@@ -31,6 +30,7 @@
       
       // Model Organisms
       this.genes = [];
+      this.terms = {};
       this.taxonDescriptions = {};
    }
    
@@ -64,6 +64,27 @@
       }
    }
    
+   researcherModel.Researcher.prototype.setTermsFromArray = function(goTermsArr) {
+      this.terms = {};
+      if ( goTermsArr ) {
+      for (var i=0;i<goTermsArr.length;i++) {
+         if ( this.terms.hasOwnProperty( goTermsArr[i].taxonId ) ) {
+            this.terms[goTermsArr[i].taxonId].push( goTermsArr[i] );
+         } else {
+            this.terms[goTermsArr[i].taxonId] = [ goTermsArr[i] ];
+         }
+      }
+      }
+   }
+   
+   researcherModel.Researcher.prototype.updateTermsForTaxon = function(goTermsArr, taxonId) {
+      delete this.terms[taxonId];
+      this.terms[taxonId] = [];
+      for (var i=0;i<goTermsArr.length;i++) {
+         this.terms[taxonId].push( goTermsArr[i] );
+      }
+   }
+      
    researcherModel.Researcher.prototype.addTaxonDescription = function(taxon, taxonDescription) {
       this.taxonDescriptions[taxon] = taxonDescription;
    }
@@ -72,6 +93,18 @@
       var jsonArr = [];
       for (var i=0; i<this.genes.length; i++) {
          jsonArr.push( $.toJSON( this.genes[i] ) );
+      }
+      return jsonArr;
+   }
+   
+   researcherModel.Researcher.prototype.termsToJSON = function(taxonId) {
+      if ( !taxonId ) {
+         return null;
+      }
+      
+      var jsonArr = [];
+      for (var i=0; i<this.terms[taxonId].length; i++) {
+         jsonArr.push( $.toJSON( this.terms[taxonId][i] ) );
       }
       return jsonArr;
    }
@@ -113,6 +146,7 @@
       this.phone = data.phone || "";
       this.description = data.description || "";
       this.setTaxonDescriptionsFromArray(data.taxonDescriptions);
+      this.setTermsFromArray(data.terms);
 
       var genes = [];
       for (var i=0;i<data.genes.length;i++) {
@@ -252,6 +286,26 @@
 	   } );
 	   
 	   return promise;
-	}   
+	}  
+   
+   researcherModel.saveResearcherTermsForTaxon = function(taxId) {
+      if ( !taxId ){
+         return null;
+      }
+      console.log("saving terms: ", researcherModel.currentResearcher.terms[taxId])
+            
+      var promise = $.ajax( {
+         type: "POST",
+         url : "saveResearcherGOTerms.html",
+
+         data : {
+            terms : researcherModel.currentResearcher.termsToJSON(taxId),
+            taxonId: taxId
+         },
+         dataType : "json"
+      } );
+      
+      return promise;
+   } 
    
 }( window.researcherModel = window.researcherModel || {}, jQuery ));

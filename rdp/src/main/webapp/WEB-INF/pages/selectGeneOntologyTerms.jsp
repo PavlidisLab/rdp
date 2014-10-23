@@ -14,25 +14,24 @@
 			<div class="modal-body">
 				
 				<form id="selectGeneOntologyTermsForm" class="form-horizontal" role="form">
-					
-					<div class="alert alert-warning col-sm-offset-1 col-sm-10" id="selectGeneOntologyTermsFailed" hidden="true">
-						<a href="#" class="close" data-hide="alert">&times;</a>
-						<div id="selectGeneOntologyTermsMessage" class="text-left"></div>
+					<div class="form-group">
+						<div class="alert alert-warning col-sm-offset-1 col-sm-10" id="selectGeneOntologyTermsFailed" hidden="true">
+							<a href="#" class="close" data-hide="alert">&times;</a>
+							<div id="selectGeneOntologyTermsMessage" class="text-left"></div>
+						</div>
 					</div>
 	
 					<div class="form-group">
 						<label class="col-sm-offset-1 col-sm-2 control-label">Add GO Term</label>
 						<div class="col-sm-7">
 							
-								<input type="hidden" class="bigdrop form-control" id="selectGeneOntologyTermsSelect" />
-							
+								<input type="hidden" class="bigdrop form-control" id="selectGeneOntologyTermsSelect" />					
 					
 						</div>
-							<button type="button" id="selectGeneOntologyTermsAddTermButton" class="btn btn-default" data-toggle="tooltip" data-placement="bottom" title="Add gene">
-								<span>Add</span>
-							</button>
+								<button type="button" id="selectGeneOntologyTermsAddTermButton" class="btn btn-default" data-toggle="tooltip" data-placement="bottom" title="Add gene">
+									<span>Add</span>
+								</button>	
 					</div>
-
 	
 					<div class="form-group">
 						<div class="col-sm-offset-1 col-sm-10">

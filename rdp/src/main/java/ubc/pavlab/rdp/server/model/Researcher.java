@@ -122,6 +122,10 @@ public class Researcher implements Serializable {
     @JoinColumn(name = "RESEARCHER_ID")
     private Set<TaxonDescription> taxonDescriptions = new HashSet<>();
 
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
+    @JoinColumn(name = "RESEARCHER_ID")
+    private Set<GeneOntologyTerm> goTerms = new HashSet<>();
+
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(name = "RESEARCHER_TAXONS", joinColumns = { @JoinColumn(name = "RESEARCHER_ID") }, inverseJoinColumns = { @JoinColumn(name = "TAXON_ID") })
     private Set<Taxon> taxons = new HashSet<>();
@@ -187,6 +191,14 @@ public class Researcher implements Serializable {
         this.website = website;
     }
 
+    public Set<GeneOntologyTerm> getGoTerms() {
+        return goTerms;
+    }
+
+    public void setGoTerms( Set<GeneOntologyTerm> goTerms ) {
+        this.goTerms = goTerms;
+    }
+
     public Collection<GeneAssociation> getGeneAssociations() {
         return geneAssociations;
     }
@@ -233,6 +245,14 @@ public class Researcher implements Serializable {
         return this.geneAssociations.remove( gene );
     }
 
+    public boolean addGOTerm( final GeneOntologyTerm term ) {
+        return this.goTerms.add( term );
+    }
+
+    public boolean removeGOTerm( final GeneOntologyTerm term ) {
+        return this.goTerms.remove( term );
+    }
+
     public boolean addPublication( final Publication publication ) {
         return this.publications.add( publication );
     }
@@ -277,7 +297,7 @@ public class Researcher implements Serializable {
 
     public GeneAssociation getGeneAssociatonFromGene( Gene gene ) {
         for ( GeneAssociation gA : this.geneAssociations ) {
-            if ( gA.getGene().getId() == gene.getId() ) {
+            if ( gA.getGene().getId().equals( gene.getId() ) ) {
                 return gA;
             }
         }

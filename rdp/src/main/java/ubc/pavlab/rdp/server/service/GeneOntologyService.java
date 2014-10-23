@@ -156,6 +156,8 @@ public interface GeneOntologyService extends InitializingBean {
 
     public abstract Long getGeneSize( OntologyTerm t );
 
+    public abstract Long getGeneSize( String id );
+
     public abstract Long getDirectGeneSize( OntologyTerm t );
 
     /**
@@ -292,5 +294,11 @@ public interface GeneOntologyService extends InitializingBean {
      * Primarily here for testing, to recover memory.
      */
     public abstract void shutDown();
+
+    public abstract Collection<GeneOntologyTerm> deserializeGOTerms( String[] GOJSON );
+
+    public abstract Long computeOverlapFrequency( String id, Collection<Gene> genes );
+
+    public abstract Collection<Gene> getRelatedGenes( Collection<GeneOntologyTerm> goTerms, Long taxonId );
 
 }

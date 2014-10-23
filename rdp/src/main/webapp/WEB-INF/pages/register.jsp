@@ -118,17 +118,17 @@ h3 {text-decoration: underline;}
  -->
 
 	<!-- Our scripts -->
-	<script src="scripts/api/utility.js"></script>
-	<script src="scripts/api/researcherModel.js"></script>
-	<script src="scripts/api/overview.js"></script>
-	<script src="scripts/api/editGenes.js"></script>
-	<script src="scripts/api/listResearchers.js"></script>
-	<script src="scripts/api/register.js"></script>
-	<script src="scripts/api/navbar.js"></script>
-	<script src="scripts/api/editProfile.js"></script>
+	<script src="scripts/api/utility.js?version=1"></script>
+	<script src="scripts/api/researcherModel.js?version=1"></script>
+	<script src="scripts/api/overview.js?version=1"></script>
+	<script src="scripts/api/editGenes.js?version=1"></script>
+	<script src="scripts/api/listResearchers.js?version=1"></script>
+	<script src="scripts/api/register.js?version=1"></script>
+	<script src="scripts/api/navbar.js?version=1"></script>
+	<script src="scripts/api/editProfile.js?version=1"></script>
 	
-	<script src="scripts/api/editUser.js"></script>
-	<script src="scripts/api/selectGeneOntologyTerms.js"></script>
+	<script src="scripts/api/editUser.js?version=1"></script>
+	<script src="scripts/api/selectGeneOntologyTerms.js?version=1"></script>
 	
 
 </body>

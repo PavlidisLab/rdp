@@ -36,3 +36,8 @@
     font-size: 18px;
     color: red;
 }
+
+/*Needs to be quite specific to override datatable sorting css*/
+#selectGeneOntologyTermsTable.table.dataTable.display tbody tr.datatable-selected > td {
+	background-color: #B5EAAA;
+}

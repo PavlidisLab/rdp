@@ -23,6 +23,7 @@ import gemma.gsec.model.UserGroup;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map.Entry;
 
 import org.apache.commons.logging.Log;
@@ -39,6 +40,7 @@ import ubc.pavlab.rdp.server.dao.UserGroupDao;
 import ubc.pavlab.rdp.server.model.Gene;
 import ubc.pavlab.rdp.server.model.GeneAssociation;
 import ubc.pavlab.rdp.server.model.GeneAssociation.TierType;
+import ubc.pavlab.rdp.server.model.GeneOntologyTerm;
 import ubc.pavlab.rdp.server.model.Researcher;
 import ubc.pavlab.rdp.server.model.common.auditAndSecurity.User;
 
@@ -64,6 +66,9 @@ public class ResearcherServiceImpl implements ResearcherService {
 
     @Autowired
     GeneService geneService;
+
+    @Autowired
+    protected GeneOntologyService geneOntologyService;
 
     @Autowired
     GeneDao geneDao;
@@ -199,6 +204,59 @@ public class ResearcherServiceImpl implements ResearcherService {
     }
 
     @Override
+    public boolean removeGenesByTier( Researcher researcher, TierType tier ) {
+        boolean modified = false;
+        for ( Iterator<GeneAssociation> i = researcher.getGeneAssociations().iterator(); i.hasNext(); ) {
+            GeneAssociation ga = i.next();
+            if ( ga.getTier().equals( tier ) ) {
+                i.remove();
+                modified = true;
+            }
+        }
+
+        if ( modified ) {
+            researcherDao.update( researcher );
+        }
+
+        return modified;
+    }
+
+    @Override
+    public boolean updateGOTermsForTaxon( Researcher researcher, Collection<GeneOntologyTerm> goTerms, Long taxonId ) {
+        boolean modified = false;
+        modified = clearGOTermsForTaxon( researcher, taxonId );
+        modified |= AddGOTerms( researcher, goTerms );
+
+        if ( modified ) {
+            researcherDao.update( researcher );
+        }
+
+        return modified;
+    }
+
+    @Override
+    public boolean clearGOTermsForTaxon( Researcher researcher, Long taxonId ) {
+        boolean modified = false;
+        for ( Iterator<GeneOntologyTerm> i = researcher.getGoTerms().iterator(); i.hasNext(); ) {
+            GeneOntologyTerm term = i.next();
+            if ( term.getTaxonId().equals( taxonId ) ) {
+                i.remove();
+                modified = true;
+            }
+        }
+        return modified;
+    }
+
+    @Override
+    public boolean AddGOTerms( Researcher researcher, Collection<GeneOntologyTerm> goTerms ) {
+        boolean modified = false;
+        for ( GeneOntologyTerm term : goTerms ) {
+            modified |= researcher.addGOTerm( term );
+        }
+        return modified;
+    }
+
+    @Override
     public Collection<Researcher> findByGene( Gene gene ) {
         return researcherDao.findByGene( gene );
     }
@@ -217,6 +275,16 @@ public class ResearcherServiceImpl implements ResearcherService {
         jsonObj.put( "taxonDescriptions", r.getTaxonDescriptions() );
 
         jsonObj.put( "genes", geneService.toJSON( r.getGeneAssociations() ) );
+
+        Collection<GeneOntologyTerm> terms = r.getGoTerms();
+
+        for ( GeneOntologyTerm term : terms ) {
+            if ( term.getSize() == null ) {
+                term.setSize( geneOntologyService.getGeneSize( term.getGeneOntologyId() ) );
+            }
+        }
+
+        jsonObj.put( "terms", r.getGoTerms() );
 
         return jsonObj;
     }

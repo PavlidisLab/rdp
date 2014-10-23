@@ -38,6 +38,7 @@ import org.apache.commons.lang3.time.StopWatch;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.jena.larq.IndexLARQ;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -375,6 +376,25 @@ public class GeneOntologyServiceImpl implements GeneOntologyService {
         return overlap;
     }
 
+    @Override
+    public Long computeOverlapFrequency( String id, Collection<Gene> genes ) {
+        OntologyTerm t = getTermForId( id );
+        Long frequency = 0L;
+        for ( Gene g : genes ) {
+            Collection<OntologyTerm> directTerms = getGOTerms( g, false, null, false );
+
+            for ( OntologyTerm term : directTerms ) {
+                if ( term.equals( t ) ) {
+                    frequency++;
+                    // Can break because a gene cannot (and shouldn't) have duplicate terms
+                    break;
+                }
+            }
+
+        }
+        return frequency;
+    }
+
     /*
      * (non-Javadoc)
      * 
@@ -588,6 +608,11 @@ public class GeneOntologyServiceImpl implements GeneOntologyService {
         }
 
         return size;
+    }
+
+    @Override
+    public Long getGeneSize( String id ) {
+        return getGeneSize( getTermForId( id ) );
     }
 
     @Override
@@ -1223,6 +1248,44 @@ public class GeneOntologyServiceImpl implements GeneOntologyService {
     @Override
     public Collection<GeneOntologyTerm> fetchByQuery( String queryString ) {
         return geneOntologyTermCache.fetchByQuery( queryString );
+    }
+
+    @Override
+    public Collection<GeneOntologyTerm> deserializeGOTerms( String[] GOJSON ) {
+        Collection<GeneOntologyTerm> results = new HashSet<GeneOntologyTerm>();
+        for ( int i = 0; i < GOJSON.length; i++ ) {
+            JSONObject json = new JSONObject( GOJSON[i] );
+            if ( !json.has( "geneOntologyId" ) ) {
+                throw new IllegalArgumentException( "Every gene must have an assigned ID." );
+            }
+            String geneOntologyId = json.getString( "geneOntologyId" );
+
+            if ( StringUtils.isEmpty( geneOntologyId ) ) {
+                throw new IllegalArgumentException( "Every gene must have an assigned ID." );
+            }
+
+            GeneOntologyTerm term = geneOntologyTermCache.fetchById( geneOntologyId );
+            if ( !( term == null ) ) {
+                results.add( term );
+            } else {
+                // it doesn't exist in cache
+                log.warn( "Cannot deserialize GO Term: " + geneOntologyId );
+            }
+        }
+
+        return results;
+    }
+
+    @Override
+    public Collection<Gene> getRelatedGenes( Collection<GeneOntologyTerm> goTerms, Long taxonId ) {
+        Collection<Gene> results = new HashSet<Gene>();
+
+        for ( GeneOntologyTerm term : goTerms ) {
+            results.addAll( getGenes( term.getGeneOntologyId(), taxonId ) );
+        }
+
+        return results;
+
     }
 
 }

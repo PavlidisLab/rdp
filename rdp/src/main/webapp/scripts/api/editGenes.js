@@ -31,6 +31,8 @@
    };
 
    editGenes.saveGenes = function() {
+      var btns = $( "#editGenesModal .saveGenesButton" );
+      btns.attr("disabled", "disabled");
       var table = $( "#geneManagerTable" ).DataTable();
       var showingGenes = getShowingGenes();	
       var newGenes = showingGenes.concat( hiddenGenes );
@@ -40,15 +42,19 @@
       var promise = researcherModel.saveResearcherGenes();
       $.when(promise).done(function() {
          // When done saving
+         btns.removeAttr("disabled");
          utility.showMessage( promise.responseJSON.message, $( "#geneManagerMessage" ) );
-         promise = loadSuggestedGOTerms( getTaxonId() );
+         promise = selectGeneOntologyTerms.loadSuggestedGOTerms( getTaxonId() );
          $( '#editGenesModal' ).modal('hide');
+         selectGeneOntologyTerms.title.html("Select Go Terms for " + getTaxonCommonName());
          $( '#selectGeneOntologyTermsModal' ).modal('show');
          $.when(promise).done(function() {
             // When done loading Go Terms
             var terms = promise.responseJSON.terms;
+            selectGeneOntologyTerms.combineWithSavedTerms(terms);
             console.log("GO Terms", terms);
-            selectGeneOntologyTerms.fillTable(terms,"Select Go Terms for " + getTaxonCommonName() );
+            
+            selectGeneOntologyTerms.fillTable(terms);
 
             promise = researcherModel.loadResearcher();
             $.when(promise).done(function() {
@@ -75,23 +81,6 @@
 
       var newGenes = showingGenes.concat( hiddenGenes );
       return taxonDescriptionChanged || !researcherModel.currentResearcher.compareGenes(newGenes);
-   }
-
-   loadSuggestedGOTerms = function(taxonId) {
-      var promise = $.ajax( {
-         cache : false,
-         url : "getRelatedTerms.html",
-         data : {'minimumFrequency':2,'minimumTermSize':10,'maximumTermSize':100,'taxonId':taxonId},
-         dataType : "json",
-         success : function(response, xhr) {
-            console.log(response.message);
-         },
-         error : function(response, xhr) {
-            console.log("Error:",response);
-         }
-      } );
-
-      return promise;
    }
 
    editGenes.fillForm = function() {
