@@ -301,4 +301,10 @@ public interface GeneOntologyService extends InitializingBean {
 
     public abstract Collection<Gene> getRelatedGenes( Collection<GeneOntologyTerm> goTerms, Long taxonId );
 
+    public abstract Long getGeneSizeInTaxon( OntologyTerm t, Long taxonId );
+
+    public abstract Long getGeneSizeInTaxon( String id, Long taxonId );
+
+    public abstract Long getDirectGeneSizeInTaxon( OntologyTerm t, Long taxonId );
+
 }

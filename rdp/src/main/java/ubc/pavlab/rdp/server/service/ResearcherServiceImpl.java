@@ -69,9 +69,6 @@ public class ResearcherServiceImpl implements ResearcherService {
     GeneService geneService;
 
     @Autowired
-    protected GeneOntologyService geneOntologyService;
-
-    @Autowired
     GeneDao geneDao;
 
     @Override
@@ -308,14 +305,6 @@ public class ResearcherServiceImpl implements ResearcherService {
         jsonObj.put( "taxonDescriptions", r.getTaxonDescriptions() );
 
         jsonObj.put( "genes", geneService.toJSON( r.getGeneAssociations() ) );
-
-        Collection<GeneOntologyTerm> terms = r.getGoTerms();
-
-        for ( GeneOntologyTerm term : terms ) {
-            if ( term.getSize() == null ) {
-                term.setSize( geneOntologyService.getGeneSize( term.getGeneOntologyId() ) );
-            }
-        }
 
         jsonObj.put( "terms", r.getGoTerms() );
 

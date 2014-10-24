@@ -45,24 +45,15 @@
          btns.removeAttr("disabled");
          utility.showMessage( promise.responseJSON.message, $( "#geneManagerMessage" ) );
          if ( showingGenes.length > 1 ) {
-            promise = selectGeneOntologyTerms.loadSuggestedGOTerms( getTaxonId() );
             $( '#editGenesModal' ).modal('hide');
-            selectGeneOntologyTerms.title.html("Select Go Terms for " + getTaxonCommonName());
-            $( '#selectGeneOntologyTermsModal' ).modal('show');
+            if ( !researcherModel.currentResearcher.terms[ getTaxonId() ] ) {
+               selectGeneOntologyTerms.load( getTaxonId() );
+            }
+            promise = researcherModel.loadResearcher();
             $.when(promise).done(function() {
-               // When done loading Go Terms
-               var terms = promise.responseJSON.terms;
-               selectGeneOntologyTerms.combineWithSavedTerms(terms);
-               console.log("GO Terms", terms);
-               
-               selectGeneOntologyTerms.fillTable(terms);
-   
-               promise = researcherModel.loadResearcher();
-               $.when(promise).done(function() {
-                  // When done reloading researcher
-                  overview.showGenes();
-                  editGenes.fillForm();
-               });
+               // When done reloading researcher
+               overview.showGenes();
+               editGenes.fillForm();
             });
          }
       });

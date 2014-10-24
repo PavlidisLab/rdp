@@ -38,6 +38,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import ubc.pavlab.rdp.server.model.GeneAssociation.TierType;
 import ubc.pavlab.rdp.server.model.common.auditAndSecurity.User;
 import ubc.pavlab.rdp.server.service.TaxonService;
 
@@ -275,6 +276,30 @@ public class Researcher implements Serializable {
         for ( GeneAssociation ga : geneAssociations ) {
             Gene g = ga.getGene();
             if ( g.getTaxonId().equals( taxonId ) ) {
+                genes.add( g );
+            }
+        }
+
+        return genes;
+    }
+
+    public Collection<Gene> getGenesByTaxonIdAndTiers( Long taxonId, Collection<TierType> tiers ) {
+        Collection<Gene> genes = new HashSet<Gene>();
+        for ( GeneAssociation ga : geneAssociations ) {
+            Gene g = ga.getGene();
+            if ( g.getTaxonId().equals( taxonId ) && tiers.contains( ga.getTier() ) ) {
+                genes.add( g );
+            }
+        }
+
+        return genes;
+    }
+
+    public Collection<Gene> getDirectGenesInTaxon( Long taxonId ) {
+        Collection<Gene> genes = new HashSet<Gene>();
+        for ( GeneAssociation ga : geneAssociations ) {
+            Gene g = ga.getGene();
+            if ( g.getTaxonId().equals( taxonId ) && !ga.getTier().equals( TierType.TIER3 ) ) {
                 genes.add( g );
             }
         }

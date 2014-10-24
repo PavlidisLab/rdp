@@ -24,7 +24,6 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
-import javax.persistence.Transient;
 
 import ubic.basecode.ontology.model.OntologyTerm;
 
@@ -52,10 +51,10 @@ public class GeneOntologyTerm {
     @Column(name = "GO_TERM", columnDefinition = "TEXT")
     private String geneOntologyTerm;
 
-    @Transient
+    @Column(name = "frequency")
     private Long frequency;
 
-    @Transient
+    @Column(name = "size")
     private Long size;
 
     @Column(name = "definition", columnDefinition = "TEXT")

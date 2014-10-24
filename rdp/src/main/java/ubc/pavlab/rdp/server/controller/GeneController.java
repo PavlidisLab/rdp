@@ -434,8 +434,7 @@ public class GeneController {
             String maximumTermSize = request.getParameter( "maximumTermSize" );
             Long taxonId = Long.parseLong( request.getParameter( "taxonId" ), 10 );
 
-            Collection<Gene> genes = researcher.getGenesByTaxonId( taxonId );
-            log.info( genes );
+            Collection<Gene> genes = researcher.getDirectGenesInTaxon( taxonId );
 
             int minFreq = 2;
             if ( minimumFrequency != null ) {
@@ -553,12 +552,13 @@ public class GeneController {
             // Deserialize GO Terms
             Collection<GeneOntologyTerm> goTerms = geneOntologyService.deserializeGOTerms( GOJSON );
 
+            Collection<Gene> genes = researcher.getDirectGenesInTaxon( taxonId );
+
             // Add taxonId to terms and find sizes
             for ( GeneOntologyTerm term : goTerms ) {
                 term.setTaxonId( taxonId );
-                // if ( term.getSize() == null ) {
-                // term.setSize( geneOntologyService.getGeneSize( term.getGeneOntologyId() ) );
-                // }
+                term.setSize( geneOntologyService.getGeneSizeInTaxon( term.getGeneOntologyId(), taxonId ) );
+                term.setFrequency( geneOntologyService.computeOverlapFrequency( term.getGeneOntologyId(), genes ) );
             }
 
             // Update GO Terms for this taxon
@@ -607,8 +607,9 @@ public class GeneController {
 
             Researcher researcher = researcherService.findByUserName( username );
             // Deserialize GO Terms
-            Long size = geneOntologyService.getGeneSize( geneOntologyId );
-            Collection<Gene> genes = researcher.getGenesByTaxonId( taxonId );
+            Long size = geneOntologyService.getGeneSizeInTaxon( geneOntologyId, taxonId );
+
+            Collection<Gene> genes = researcher.getDirectGenesInTaxon( taxonId );
             Long frequency = geneOntologyService.computeOverlapFrequency( geneOntologyId, genes );
 
             JSONObject json = new JSONObject();

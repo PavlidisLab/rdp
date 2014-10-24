@@ -94,15 +94,40 @@
 				<h3>Model Organisms Studied</h3>
 			</div>
 		</div>
+		<div class="form-group">
+			<div class="col-sm-offset-5 col-sm-2 text-center">
+				<ul id="overviewTab" class="nav nav-tabs" role="tablist">
 		
-		<div class="alert alert-warning" id="overviewModelFailed"
-			hidden="true">
-			<a href="#" class="close" data-hide="alert">&times;</a>
-			<div id="overviewModelMessage" class="text-center">No genes have been added.</div>
+					<li class="active"><a href="#geneOverviewTab" role="tab" data-toggle="tab">Genes</a></li>
+		
+					<li><a href="#termOverviewTab" role="tab" data-toggle="tab"">Terms</a></li>
+		
+				</ul>
+			</div>
 		</div>
+		<div class="tab-content">
+        	<div class="tab-pane fade in active" id="geneOverviewTab">
+				<div class="alert alert-warning" id="overviewModelFailed"
+					hidden="true">
+					<a href="#" class="close" data-hide="alert">&times;</a>
+					<div id="overviewModelMessage" class="text-center">No genes have been added.</div>
+				</div>
+				
+				<div id="overviewGeneBreakdown" class="form-group">
 		
-		<div id="overviewGeneBreakdown" class="form-group">
-
+				</div>
+			</div>
+        	<div class="tab-pane fade in active" id="termOverviewTab">
+				<div class="alert alert-warning" id="overviewTermModelFailed"
+					hidden="true">
+					<a href="#" class="close" data-hide="alert">&times;</a>
+					<div id="overviewTermModelMessage" class="text-center">No GO terms have been added.</div>
+				</div>
+				
+				<div id="overviewTermBreakdown" class="form-group">
+		
+				</div>
+			</div>
 		</div>
 		
 

@@ -34,6 +34,12 @@
 					</div>
 	
 					<div class="form-group">
+						<div class="col-sm-offset-3 col-sm-6 text-center">
+							<h4>Suggested terms</h4>
+						</div>
+					</div>
+	
+					<div class="form-group">
 						<div class="col-sm-offset-1 col-sm-10">
 							<table id="selectGeneOntologyTermsTable" class="table table-bordered table-condensed stripe text-left display"
 								cellspacing="0" width="100%">

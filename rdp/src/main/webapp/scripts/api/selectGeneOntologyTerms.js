@@ -77,6 +77,11 @@
       $.when(promise).done(function() {
          btns.removeAttr("disabled");
          utility.showMessage( promise.responseJSON.message, $( "#selectGeneOntologyTermsMessage" ) );
+         promise = researcherModel.loadResearcher();
+         $.when(promise).done(function() {
+            // When done reloading researcher
+            overview.showTerms();
+         });
       });
    }
 
@@ -108,6 +113,23 @@
          }
       }
    }
+   
+   selectGeneOntologyTerms.load = function(taxonId) {
+      clearTable();
+      selectGeneOntologyTerms.table.DataTable().draw();
+      var promise = selectGeneOntologyTerms.loadSuggestedGOTerms( taxonId );
+      selectGeneOntologyTerms.title.html("Select Go Terms for " + $('#taxonCommonNameSelect option[value=' + taxonId + ']').text() );
+      selectGeneOntologyTerms.modal.modal('show');
+      $.when(promise).done(function() {
+         // When done loading Go Terms
+         var terms = promise.responseJSON.terms;
+         selectGeneOntologyTerms.combineWithSavedTerms(terms);
+         console.log("GO Terms", terms);
+         
+         selectGeneOntologyTerms.fillTable(terms);
+      });
+   }
+   
    
    selectGeneOntologyTerms.fillTable = function(terms) {
       $( "#spinLoadGOTerms" ).hide();

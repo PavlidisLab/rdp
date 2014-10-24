@@ -182,6 +182,8 @@ public class GeneOntologyServiceImpl implements GeneOntologyService {
 
     private Map<OntologyTerm, Long> goSizeCache = new HashMap<OntologyTerm, Long>();
 
+    private Map<Long, Map<OntologyTerm, Long>> goSizeByTaxonCache = new HashMap<Long, Map<OntologyTerm, Long>>();
+
     private Collection<SearchIndex> indices = new HashSet<>();
 
     private OntModel model;
@@ -246,7 +248,7 @@ public class GeneOntologyServiceImpl implements GeneOntologyService {
                 Map.Entry<OntologyTerm, Long> termEntry = i.next();
                 OntologyTerm term = termEntry.getKey();
                 // Limit to just a taxon?
-                Long count = getGeneSize( term );
+                Long count = getGeneSizeInTaxon( term, taxonId );
                 if ( count > maximumTermSize || count < minimumTermSize ) {
                     i.remove();
                 } else {
@@ -622,6 +624,38 @@ public class GeneOntologyServiceImpl implements GeneOntologyService {
         if ( cachedSize == null ) {
             cachedSize = geneAnnotationService.countGenesForGeneOntologyId( asRegularGoId( t ) );
             goSizeCache.put( t, cachedSize );
+        }
+
+        return cachedSize;
+    }
+
+    @Override
+    public Long getGeneSizeInTaxon( OntologyTerm t, Long taxonId ) {
+        if ( t == null ) return null;
+        Collection<OntologyTerm> terms = getAllChildren( t );
+        Long size = getDirectGeneSizeInTaxon( t, taxonId );
+        for ( OntologyTerm term : terms ) {
+            size += getDirectGeneSizeInTaxon( term, taxonId );
+        }
+
+        return size;
+    }
+
+    @Override
+    public Long getGeneSizeInTaxon( String id, Long taxonId ) {
+        return getGeneSizeInTaxon( getTermForId( id ), taxonId );
+    }
+
+    @Override
+    public Long getDirectGeneSizeInTaxon( OntologyTerm t, Long taxonId ) {
+        if ( t == null ) return null;
+        if ( goSizeByTaxonCache.get( taxonId ) == null ) {
+            goSizeByTaxonCache.put( taxonId, new HashMap<OntologyTerm, Long>() );
+        }
+        Long cachedSize = goSizeByTaxonCache.get( taxonId ).get( t );
+        if ( cachedSize == null ) {
+            cachedSize = geneAnnotationService.countGenesForGeneOntologyIdAndTaxon( asRegularGoId( t ), taxonId );
+            goSizeByTaxonCache.get( taxonId ).put( t, cachedSize );
         }
 
         return cachedSize;
