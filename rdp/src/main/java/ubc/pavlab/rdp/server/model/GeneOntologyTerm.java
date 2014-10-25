@@ -21,10 +21,13 @@ package ubc.pavlab.rdp.server.model;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+import ubc.pavlab.rdp.server.service.GeneOntologyServiceImpl.GOAspect;
 import ubic.basecode.ontology.model.OntologyTerm;
 
 /**
@@ -59,6 +62,10 @@ public class GeneOntologyTerm {
 
     @Column(name = "definition", columnDefinition = "TEXT")
     private String definition;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "aspect")
+    private GOAspect aspect;
 
     public Long getId() {
         return id;
@@ -112,6 +119,14 @@ public class GeneOntologyTerm {
 
     public void setDefinition( String definition ) {
         this.definition = definition;
+    }
+
+    public GOAspect getAspect() {
+        return aspect;
+    }
+
+    public void setAspect( GOAspect aspect ) {
+        this.aspect = aspect;
     }
 
     /**

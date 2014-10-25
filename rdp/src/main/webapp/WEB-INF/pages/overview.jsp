@@ -117,7 +117,7 @@
 		
 				</div>
 			</div>
-        	<div class="tab-pane fade in active" id="termOverviewTab">
+        	<div class="tab-pane fade in" id="termOverviewTab">
 				<div class="alert alert-warning" id="overviewTermModelFailed"
 					hidden="true">
 					<a href="#" class="close" data-hide="alert">&times;</a>

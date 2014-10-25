@@ -20,10 +20,13 @@
 package ubc.pavlab.rdp.server.dao;
 
 import java.util.Collection;
+import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.SessionFactory;
+import org.hibernate.type.LongType;
+import org.hibernate.type.StringType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -113,7 +116,7 @@ public class GeneAnnotationDaoImpl extends DaoBaseImpl<GeneAnnotation> implement
             log.warn( "Multiple genes match geneId: (" + gene.getId() + ") and GO_ID: (" + geneOntologyId
                     + "), return first hit" );
         }
-        return ( GeneAnnotation ) results.iterator().next();
+        return results.iterator().next();
     }
 
     /*
@@ -169,6 +172,21 @@ public class GeneAnnotationDaoImpl extends DaoBaseImpl<GeneAnnotation> implement
 
         getHibernateTemplate().getSessionFactory().getCurrentSession().createSQLQuery( "SET FOREIGN_KEY_CHECKS=1;" )
                 .executeUpdate();
+
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public List<Object[]> calculateDirectSizes() {
+        // select geneOntologyId, TAXON_ID, COUNT(*) FROM GENE_ANNOTATION GROUP BY geneOntologyId, TAXON_ID
+        List<Object[]> list = getHibernateTemplate()
+                .getSessionFactory()
+                .getCurrentSession()
+                .createSQLQuery(
+                        "select geneOntologyId, TAXON_ID, COUNT(*) as count FROM GENE_ANNOTATION GROUP BY geneOntologyId, TAXON_ID;" )
+                .addScalar( "geneOntologyId", StringType.INSTANCE ).addScalar( "TAXON_ID", LongType.INSTANCE )
+                .addScalar( "count", LongType.INSTANCE ).list();
+        return list;
 
     }
 

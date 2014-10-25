@@ -72,4 +72,10 @@ public class TaxonServiceImpl implements TaxonService {
         return taxonDao.loadAll();
     }
 
+    @Transactional
+    @Override
+    public Collection<Long> loadAllIds() {
+        return taxonDao.loadAllIds();
+    }
+
 }

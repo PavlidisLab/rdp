@@ -8,6 +8,20 @@
    selectGeneOntologyTerms.title;
    selectGeneOntologyTerms.select;
    selectGeneOntologyTerms.currentTaxonId;
+   
+   selectGeneOntologyTerms.aspectToString = function(aspect) {
+      switch(aspect) {
+         case "BIOLOGICAL_PROCESS":
+            return "BP";
+         case "CELLULAR_COMPONENT":
+             return "CC";
+         case "MOLECULAR_FUNCTION":
+            return "MF";
+         default:
+            return "";
+     }
+
+   }
 
    clearTable = function() {
       selectGeneOntologyTerms.table.DataTable().clear();
@@ -180,7 +194,7 @@
    selectGeneOntologyTerms.initDataTable = function() {
       // Initialize datatable
       dataTable = selectGeneOntologyTerms.table.dataTable( {
-         "order": [[ 5, "desc" ],[ 3, "desc" ]],
+         "order": [[ 6, "desc" ],[ 4, "desc" ]],
          "aoColumnDefs": [ 
                           {
                              "aTargets": [ 0 ],
@@ -199,15 +213,14 @@
                              "aTargets": [ 2 ],
                              "defaultContent": "",
                              "mData": function ( source, type, val ) {
-                                return utility.isUndefined( source[0].geneOntologyTerm ) ? "" : source[0].geneOntologyTerm;
+                                return utility.isUndefined( source[0].aspect ) ? "" : source[0].aspect;
                              }
                           },
                           {
                              "aTargets": [ 3 ],
                              "defaultContent": "",
-                             "sClass":"datatable-checkbox",
                              "mData": function ( source, type, val ) {
-                                return utility.isUndefined( source[0].frequency ) ? "" : source[0].frequency;
+                                return utility.isUndefined( source[0].geneOntologyTerm ) ? "" : source[0].geneOntologyTerm;
                              }
                           },
                           {
@@ -215,11 +228,19 @@
                              "defaultContent": "",
                              "sClass":"datatable-checkbox",
                              "mData": function ( source, type, val ) {
-                                return utility.isUndefined( source[0].size ) ? "" : source[0].size;
+                                return utility.isUndefined( source[0].frequency ) ? "" : source[0].frequency;
                              }
                           },
                           {
                              "aTargets": [ 5 ],
+                             "defaultContent": "",
+                             "sClass":"datatable-checkbox",
+                             "mData": function ( source, type, val ) {
+                                return utility.isUndefined( source[0].size ) ? "" : source[0].size;
+                             }
+                          },
+                          {
+                             "aTargets": [ 6 ],
                              "defaultContent": "",
                              "sWidth":"12%",
                              "sClass":"text-center datatable-checkbox",
@@ -239,6 +260,8 @@
                                 link = '<a href="'+url+'" data-content="Unknown Definition" data-toggle="popover" target="_blank">'+aData[0].geneOntologyId+'</a>';
                              }
 
+                             $('td:eq(1)', nRow).html(selectGeneOntologyTerms.aspectToString( aData[0].aspect));
+                             
                              $('td:eq(0)', nRow).html(link);
                              $('td:eq(0) > a', nRow).popover({
                                 trigger: 'hover',
@@ -247,8 +270,8 @@
 
                              var inputHTML = '<input type="checkbox"></input>'
 
-                                $('td:eq(4)', nRow).html(inputHTML);
-                             $('td:eq(4)', nRow).unbind('change').on('change', function() {
+                                $('td:eq(5)', nRow).html(inputHTML);
+                             $('td:eq(5)', nRow).unbind('change').on('change', function() {
                                 aData[0].selected = $(this)[0].firstChild.checked;
                                 if (aData[0].selected) {
                                    $(nRow).addClass("datatable-selected");
@@ -265,7 +288,7 @@
                              });
 
                              if ( aData[0].selected ) {
-                                $('td:eq(4)', nRow).find('input').prop("checked",true);
+                                $('td:eq(5)', nRow).find('input').prop("checked",true);
                                 $(nRow).addClass("datatable-selected");
                              } else {
                                 aData[0].selected = false;
@@ -273,11 +296,11 @@
                              }
                              
                              if ( utility.isUndefined( aData[0].size ) ) {
-                                $('td:eq(3)', nRow).html('<img src="styles/select2-spinner.gif">');
+                                $('td:eq(4)', nRow).html('<img src="styles/select2-spinner.gif">');
                              }
                              
                              if ( utility.isUndefined( aData[0].frequency ) ) {
-                                $('td:eq(2)', nRow).html('<img src="styles/select2-spinner.gif">');
+                                $('td:eq(3)', nRow).html('<img src="styles/select2-spinner.gif">');
                              }
 
                              return nRow;
@@ -303,10 +326,11 @@
                }
             },
             results : function(data, page) {
+               console.log(data);
                var GOResults = []
                for (var i = 0; i < data.data.length; i++) {
                   var term = data.data[i];
-                  term.text = "<b>" + term.geneOntologyId + "</b> " + term.geneOntologyTerm;
+                  term.text = "<b>" + term.geneOntologyId + "</b> <i>" + selectGeneOntologyTerms.aspectToString(term.aspect) + "</i> " +term.geneOntologyTerm;
                   GOResults.push(term);
                }
                return {

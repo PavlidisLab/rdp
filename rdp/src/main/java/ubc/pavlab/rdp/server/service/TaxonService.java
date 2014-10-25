@@ -41,4 +41,7 @@ public interface TaxonService {
 
     @Secured({ "GROUP_ADMIN", "AFTER_ACL_READ" })
     public Collection<Taxon> loadAll();
+
+    @Secured({ "IS_AUTHENTICATED_ANONYMOUSLY", "RUN_AS_ADMIN" })
+    public Collection<Long> loadAllIds();
 }

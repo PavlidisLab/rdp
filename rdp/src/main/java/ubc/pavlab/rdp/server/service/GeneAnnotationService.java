@@ -20,6 +20,7 @@
 package ubc.pavlab.rdp.server.service;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.security.access.annotation.Secured;
@@ -97,5 +98,7 @@ public interface GeneAnnotationService {
 
     @Secured({ "GROUP_USER" })
     public Collection<Gene> annotationToGene( Collection<GeneAnnotation> geneAnnotations );
+
+    public List<Object[]> calculateDirectSizes();
 
 }

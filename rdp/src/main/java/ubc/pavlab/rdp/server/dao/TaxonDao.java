@@ -36,5 +36,7 @@ public interface TaxonDao extends DaoBase<Taxon> {
     public Taxon findByCommonName( final String commonName );
 
     public Collection<Taxon> loadAll();
+    
+    public Collection<Long> loadAllIds();
 
 }

@@ -87,4 +87,17 @@ public class TaxonDaoImpl extends DaoBaseImpl<Taxon> implements TaxonDao {
         return results.iterator().next();
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see ubc.pavlab.rdp.server.dao.TaxonDao#findByCommonName(java.lang.String)
+     */
+    @SuppressWarnings("unchecked")
+    @Override
+    public Collection<Long> loadAllIds() {
+        String hql = "SELECT id FROM Taxon t";
+        Collection<Long> results = this.getHibernateTemplate().find( hql );
+        return results;
+    }
+
 }

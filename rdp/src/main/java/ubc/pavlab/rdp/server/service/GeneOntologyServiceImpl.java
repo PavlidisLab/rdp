@@ -38,6 +38,7 @@ import org.apache.commons.lang3.time.StopWatch;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.jena.larq.IndexLARQ;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -88,6 +89,9 @@ public class GeneOntologyServiceImpl implements GeneOntologyService {
 
     @Autowired
     private GeneOntologyTermCache geneOntologyTermCache;
+
+    @Autowired
+    private TaxonService taxonService;
 
     /*
      * FIXME don't hardcode this.
@@ -182,7 +186,7 @@ public class GeneOntologyServiceImpl implements GeneOntologyService {
 
     private Map<OntologyTerm, Long> goSizeCache = new HashMap<OntologyTerm, Long>();
 
-    private Map<Long, Map<OntologyTerm, Long>> goSizeByTaxonCache = new HashMap<Long, Map<OntologyTerm, Long>>();
+    private static Map<OntologyTerm, Map<Long, Long>> goSizeByTaxonCache = new HashMap<OntologyTerm, Map<Long, Long>>();
 
     private Collection<SearchIndex> indices = new HashSet<>();
 
@@ -206,13 +210,13 @@ public class GeneOntologyServiceImpl implements GeneOntologyService {
 
     @SuppressWarnings("unchecked")
     @Override
-    public HashMap<String, Map<OntologyTerm, Long>> calculateGoTermFrequency( Collection<Gene> genes, Long taxonId,
+    public Map<OntologyTerm, Long> calculateGoTermFrequency( Collection<Gene> genes, Long taxonId,
             int minimumFrequency, int minimumTermSize, int maximumTermSize ) {
         Map<OntologyTerm, Long> frequencyMap = new HashMap<OntologyTerm, Long>();
         Map<OntologyTerm, Long> sizeMap = new HashMap<OntologyTerm, Long>();
         for ( Gene g : genes ) {
             // Collection<OntologyTerm> terms = new HashSet<OntologyTerm>();
-            Collection<OntologyTerm> directTerms = getGOTerms( g, false, null, false );
+            Collection<OntologyTerm> directTerms = getGOTerms( g, false, null, true );
 
             // add all child terms
             // for ( OntologyTerm term : directTerms ) {
@@ -239,8 +243,6 @@ public class GeneOntologyServiceImpl implements GeneOntologyService {
             }
         }
 
-        frequencyMap = sortByValue( frequencyMap );
-
         // Limit by maximum gene pool size of go terms
         // TODO wayyyyyy too slow...
         if ( maximumTermSize > 0 && minimumTermSize > 0 ) {
@@ -248,22 +250,16 @@ public class GeneOntologyServiceImpl implements GeneOntologyService {
                 Map.Entry<OntologyTerm, Long> termEntry = i.next();
                 OntologyTerm term = termEntry.getKey();
                 // Limit to just a taxon?
-                Long count = getGeneSizeInTaxon( term, taxonId );
+                Long count = getGeneSize( term );
                 if ( count > maximumTermSize || count < minimumTermSize ) {
                     i.remove();
-                } else {
-                    sizeMap.put( term, count );
                 }
             }
         }
 
-        // frequencyMap = sortByValue( frequencyMap );
+        frequencyMap = sortByValue( frequencyMap );
 
-        HashMap<String, Map<OntologyTerm, Long>> result = new HashMap<String, Map<OntologyTerm, Long>>();
-        result.put( "frequency", frequencyMap );
-        result.put( "size", sizeMap );
-
-        return result;
+        return frequencyMap;
     }
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
@@ -620,10 +616,16 @@ public class GeneOntologyServiceImpl implements GeneOntologyService {
     @Override
     public Long getDirectGeneSize( OntologyTerm t ) {
         if ( t == null ) return null;
-        Long cachedSize = goSizeCache.get( t );
-        if ( cachedSize == null ) {
-            cachedSize = geneAnnotationService.countGenesForGeneOntologyId( asRegularGoId( t ) );
-            goSizeCache.put( t, cachedSize );
+        Long cachedSize = null;
+        Map<Long, Long> cache = goSizeByTaxonCache.get( t );
+
+        // Since we pre-compute direct sizes, if the cache is not found it means
+        // there are no genes directly annotated with this term
+        cachedSize = 0L;
+        if ( cache != null ) {
+            for ( Long taxonSize : cache.values() ) {
+                cachedSize += taxonSize;
+            }
         }
 
         return cachedSize;
@@ -649,14 +651,28 @@ public class GeneOntologyServiceImpl implements GeneOntologyService {
     @Override
     public Long getDirectGeneSizeInTaxon( OntologyTerm t, Long taxonId ) {
         if ( t == null ) return null;
-        if ( goSizeByTaxonCache.get( taxonId ) == null ) {
-            goSizeByTaxonCache.put( taxonId, new HashMap<OntologyTerm, Long>() );
+
+        Map<Long, Long> cache = goSizeByTaxonCache.get( t );
+
+        // Since we pre-compute direct sizes, if the cache is not found it means
+        // there are no genes directly annotated with this term
+        Long cachedSize = 0L;
+        if ( cache != null ) {
+            cachedSize = cache.get( taxonId );
+
+            if ( cachedSize == null ) {
+                cachedSize = 0L;
+            }
         }
-        Long cachedSize = goSizeByTaxonCache.get( taxonId ).get( t );
-        if ( cachedSize == null ) {
-            cachedSize = geneAnnotationService.countGenesForGeneOntologyIdAndTaxon( asRegularGoId( t ), taxonId );
-            goSizeByTaxonCache.get( taxonId ).put( t, cachedSize );
-        }
+        // String id = asRegularGoId( t );
+        // if ( goSizeByTaxonCache.get( t ) == null ) {
+        // goSizeByTaxonCache.put( t, new HashMap<Long, Long>() );
+        // }
+        // Long cachedSize = goSizeByTaxonCache.get( t ).get( taxonId );
+        // if ( cachedSize == null ) {
+        // cachedSize = geneAnnotationService.countGenesForGeneOntologyIdAndTaxon( id, taxonId );
+        // goSizeByTaxonCache.get( t ).put( taxonId, cachedSize );
+        // }
 
         return cachedSize;
     }
@@ -1227,7 +1243,8 @@ public class GeneOntologyServiceImpl implements GeneOntologyService {
                 //
                 try {
                     loadTermsInNameSpace( GO_URL );
-
+                    precomputeSizes();
+                    log.info( "GOSize cache size: " + goSizeByTaxonCache.size() );
                     log.info( "Gene Ontology loaded, total of " + uri2Term.size() + " items in " + loadTime.getTime()
                             / 1000 + "s" );
                     ready.set( true );
@@ -1266,17 +1283,38 @@ public class GeneOntologyServiceImpl implements GeneOntologyService {
         log.trace( buf.toString() );
     }
 
+    private void precomputeSizes() {
+        List<Object[]> list = geneAnnotationService.calculateDirectSizes();
+        for ( Object[] entity : list ) {
+            String id = ( String ) entity[0];
+
+            Long taxonId = ( Long ) entity[1];
+            Long count = ( Long ) entity[2];
+            OntologyTerm term = getTermForId( id );
+
+            if ( goSizeByTaxonCache.get( term ) == null ) {
+                goSizeByTaxonCache.put( term, new HashMap<Long, Long>() );
+            }
+            goSizeByTaxonCache.get( term ).put( taxonId, count );
+
+        }
+
+    }
+
     private long updateEhCache() {
         long cacheSize = -1;
         Collection<OntologyTerm> terms = listTerms();
         // prepare terms
         Collection<GeneOntologyTerm> goTerms = new HashSet<GeneOntologyTerm>();
+
         for ( OntologyTerm term : terms ) {
             GeneOntologyTerm goTerm = new GeneOntologyTerm( term );
             // goTerm.setFrequency( 0L );
             // goTerm.setSize( geneOntologyService.getGeneSize( term ) );
             goTerm.setDefinition( getTermDefinition( term ) );
+            goTerm.setAspect( getTermAspect( term ) );
             goTerms.add( goTerm );
+
         }
         geneOntologyTermCache.putAll( goTerms );
 
@@ -1327,6 +1365,26 @@ public class GeneOntologyServiceImpl implements GeneOntologyService {
         }
 
         return results;
+
+    }
+
+    @Override
+    public JSONArray toJSON( Collection<GeneOntologyTerm> goTerms ) {
+        Collection<JSONObject> jsonSet = new HashSet<JSONObject>();
+        for ( GeneOntologyTerm term : goTerms ) {
+            JSONObject jsonObj = new JSONObject();
+            jsonObj.put( "geneOntologyId", term.getGeneOntologyId() );
+            jsonObj.put( "aspect", term.getAspect() );
+            jsonObj.put( "geneOntologyTerm", term.getGeneOntologyTerm() );
+            jsonObj.put( "definition", term.getDefinition() );
+            jsonObj.put( "taxonId", term.getTaxonId() );
+
+            jsonObj.put( "size", term.getSize() );
+            jsonObj.put( "frequency", term.getFrequency() );
+            jsonSet.add( jsonObj );
+        }
+
+        return new JSONArray( jsonSet );
 
     }
 

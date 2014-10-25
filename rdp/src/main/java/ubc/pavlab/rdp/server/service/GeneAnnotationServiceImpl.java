@@ -308,6 +308,7 @@ public class GeneAnnotationServiceImpl implements GeneAnnotationService {
         List list = new LinkedList( unsortMap.entrySet() );
 
         Collections.sort( list, new Comparator() {
+            @Override
             public int compare( Object o1, Object o2 ) {
                 return ( ( Comparable ) ( ( Map.Entry ) ( o1 ) ).getValue() ).compareTo( ( ( Map.Entry ) ( o2 ) )
                         .getValue() );
@@ -340,6 +341,12 @@ public class GeneAnnotationServiceImpl implements GeneAnnotationService {
     @Transactional
     public void truncateGeneAnnotationTable() {
         geneAnnotationDao.truncateGeneAnnotationTable();
+    }
+
+    @Override
+    @Transactional
+    public List<Object[]> calculateDirectSizes() {
+        return geneAnnotationDao.calculateDirectSizes();
     }
 
     @Deprecated

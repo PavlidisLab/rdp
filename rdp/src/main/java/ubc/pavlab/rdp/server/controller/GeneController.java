@@ -452,21 +452,22 @@ public class GeneController {
             }
 
             log.debug( "Loading GO Terms for " + username );
-            Map<String, Map<OntologyTerm, Long>> goTermsResult = geneOntologyService.calculateGoTermFrequency( genes,
-                    taxonId, minFreq, minTerm, maxTerm );
+            Map<OntologyTerm, Long> goTermsResult = geneOntologyService.calculateGoTermFrequency( genes, taxonId,
+                    minFreq, minTerm, maxTerm );
             List<GeneOntologyTerm> goTerms = new ArrayList<GeneOntologyTerm>();
-            for ( OntologyTerm term : goTermsResult.get( "frequency" ).keySet() ) {
+            for ( OntologyTerm term : goTermsResult.keySet() ) {
                 GeneOntologyTerm goTerm = new GeneOntologyTerm( term );
-                goTerm.setFrequency( goTermsResult.get( "frequency" ).get( term ) );
-                goTerm.setSize( goTermsResult.get( "size" ).get( term ) );
+                goTerm.setFrequency( goTermsResult.get( term ) );
+                goTerm.setSize( geneOntologyService.getGeneSizeInTaxon( goTerm.getGeneOntologyId(), taxonId ) );
                 goTerm.setDefinition( geneOntologyService.getTermDefinition( term ) );
+                goTerm.setAspect( geneOntologyService.getTermAspect( goTerm.getGeneOntologyId() ) );
                 goTerms.add( goTerm );
             }
 
             JSONObject json = new JSONObject();
             json.put( "success", true );
             json.put( "message", goTerms.size() + " Terms Loaded" );
-            json.put( "terms", goTerms );
+            json.put( "terms", geneOntologyService.toJSON( goTerms ) );
             jsonText = json.toString();
             log.info( jsonText );
         } catch ( Exception e ) {
@@ -518,7 +519,7 @@ public class GeneController {
                 // ignore
             }
 
-            jsonText = "{\"success\":true,\"data\":" + ( new JSONArray( results ) ).toString() + "}";
+            jsonText = "{\"success\":true,\"data\":" + ( geneOntologyService.toJSON( results ) ).toString() + "}";
         } catch ( Exception e ) {
             log.error( e.getMessage(), e );
             jsonText = "{\"success\":false,\"message\":" + e.getMessage() + "\"}";
@@ -559,6 +560,7 @@ public class GeneController {
                 term.setTaxonId( taxonId );
                 term.setSize( geneOntologyService.getGeneSizeInTaxon( term.getGeneOntologyId(), taxonId ) );
                 term.setFrequency( geneOntologyService.computeOverlapFrequency( term.getGeneOntologyId(), genes ) );
+                term.setAspect( geneOntologyService.getTermAspect( term.getGeneOntologyId() ) );
             }
 
             // Update GO Terms for this taxon

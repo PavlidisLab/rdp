@@ -47,6 +47,7 @@
 									<tr>
 										<th>Data</th>
 										<th>GO ID</th>
+										<th>Aspect</th>
 										<th>Term</th>
 										<th>Frequency</th>
 										<th>Size</th>

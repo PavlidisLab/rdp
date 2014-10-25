@@ -22,9 +22,9 @@ package ubc.pavlab.rdp.server.service;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
 
+import org.json.JSONArray;
 import org.springframework.beans.factory.InitializingBean;
 
 import ubc.pavlab.rdp.server.model.Gene;
@@ -43,8 +43,8 @@ public interface GeneOntologyService extends InitializingBean {
 
     public static final String BASE_GO_URI = "http://purl.obolibrary.org/obo/";
 
-    public abstract HashMap<String, Map<OntologyTerm, Long>> calculateGoTermFrequency( Collection<Gene> genes,
-            Long taxonId, int minimumFrequency, int minimumTermSize, int maximumTermSize );
+    public abstract Map<OntologyTerm, Long> calculateGoTermFrequency( Collection<Gene> genes, Long taxonId,
+            int minimumFrequency, int minimumTermSize, int maximumTermSize );
 
     /**
      * <p>
@@ -306,5 +306,7 @@ public interface GeneOntologyService extends InitializingBean {
     public abstract Long getGeneSizeInTaxon( String id, Long taxonId );
 
     public abstract Long getDirectGeneSizeInTaxon( OntologyTerm t, Long taxonId );
+
+    public abstract JSONArray toJSON( Collection<GeneOntologyTerm> goTerms );
 
 }

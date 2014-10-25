@@ -20,6 +20,7 @@
 package ubc.pavlab.rdp.server.dao;
 
 import java.util.Collection;
+import java.util.List;
 
 import ubc.pavlab.rdp.server.model.Gene;
 import ubc.pavlab.rdp.server.model.GeneAnnotation;
@@ -49,5 +50,7 @@ public interface GeneAnnotationDao extends DaoBase<GeneAnnotation> {
     public void truncateGeneAnnotationTable();
 
     public Collection<GeneAnnotation> findByGeneOntologyIdAndTaxon( String geneOntologyId, Long taxonId );
+
+    public List<Object[]> calculateDirectSizes();
 
 }
