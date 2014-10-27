@@ -10,66 +10,6 @@ $( document ).ready( function() {
 	    */
 (function( overview, $, undefined ) {
 
-/**
- * generate HTML block to display an empty table for a specific model organism
- * @param {string} taxon - Model Organism 
- * @param {string} id - HTML DOM ID, MUST BE UNIQUE!
- * @return {string} HTML block
- */
-overview.geneTableHTMLBlock = function(header, id, explicitTiers) {
-   var tableHeader = explicitTiers ? "Tier" : "Primary?";
-   var htmlBlock =  '<div id="' + id + 'Block" class="form-group"> \
-                        <div class = "col-sm-offset-3 col-sm-6 text-center"> \
-                           <h4>' + header + '</h4> \
-                        </div> \
-                        <div id="' + id + 'BlockDescription" class = "col-sm-offset-3 col-sm-6"> \
-                        \
-                        </div> \
-                        <div class="col-sm-offset-3 col-sm-6"> \
-                           <table id="' + id + '" class="table table-condensed"> \
-                              <thead> \
-                                 <tr> \
-                                    <th>Symbol</th> \
-                                    <th>Name</th> \
-                                    <th>'+tableHeader+'</th> \
-                                 </tr> \
-                              </thead> \
-                              <tbody> \
-                              </tbody> \
-                           </table> \
-                        </div> \
-                     </div>';
-                        
-   return htmlBlock;
-};
-
-overview.geneTermTableHTMLBlock = function(header, id) {
-   var htmlBlock =  '<div id="' + id + 'Block" class="form-group"> \
-                        <div class = "col-sm-offset-3 col-sm-6 text-center"> \
-                           <h4>' + header + '</h4> \
-                        </div> \
-                        <div id="' + id + 'BlockDescription" class = "col-sm-offset-3 col-sm-6"> \
-                        \
-                        </div> \
-                        <div class="col-sm-offset-3 col-sm-6"> \
-                           <table id="' + id + '" class="table table-condensed"> \
-                              <thead> \
-                                 <tr> \
-                                    <th>GO ID</th> \
-                                    <th>Term</th> \
-                                    <th>Frequency</th> \
-                                    <th>Size</th> \
-                                 </tr> \
-                              </thead> \
-                              <tbody> \
-                              </tbody> \
-                           </table> \
-                        </div> \
-                     </div>';
-                        
-   return htmlBlock;
-};
-
 var HTMLBlock = $('<div class="form-group"> \
                         <div class = "col-sm-offset-3 col-sm-6 text-center"> \
                            <h4></h4> \
@@ -99,96 +39,6 @@ var editButtonHTML = $('<button type="button" name="edit" class="btn btn-default
                         <span>Edit</span> \
                       </button>');
 
-/**
- * Empty and re-populate table with data, table found by DOM ID
- * @param {string} id - HTML DOM ID
- * @param {array} data - Array of objects containing new data -> [{'symbol':'...','name':'...'}]
- * @param {number} max - maximum number of rows to populate
- */
-populateGeneTable = function(id, data, max, editable, explicitTiers) {
-   $( "#overviewTable"+id + " tbody tr" ).remove();
-   max = max ? Math.min( max, data.length ) : data.length;
-   var url;
-   var urlBase = "http://www.ncbi.nlm.nih.gov/gene/"
-   data.sort(function(a, b){
-      if (a.tier < b.tier)
-         return -1;
-      if (a.tier > b.tier)
-        return 1;
-      return 0;
-      });
-   for ( var i = 0; i < max; i++ ) {   
-      url = urlBase + data[i].ncbiGeneId;
-      var tier = "";
-      if (data[i].tier) {
-         if (explicitTiers) {
-            tier = data[i].tier;
-         } else {
-            tier = data[i].tier === "TIER1" ? '<span class="glyphicon glyphicon-ok"></span>' : "";
-         }
-      }
-      $( "#overviewTable"+id + '> tbody:last' ).append( '<tr><td><a href="' + url + '" target="_blank">'+ data[i].officialSymbol + '</a></td><td>'+ data[i].officialName + '</td><td>'+ tier + '</td></tr>' );
-   }
-   
-   var seeAllButtonHTML = ( max < data.length ) ? '<button type="button" id="overviewSeeAllButton' + id + '" \
-                                                      class="btn btn-default btn-xs" data-toggle="tooltip" \
-                                                      data-placement="bottom" title="See all genes"> \
-                                                      <span>See All</span> \
-                                                   </button>' : '';
-   
-   var editButton = ( editable ) ? '<button type="button" id="overviewEditButton' + id + '" \
-                                    class="btn btn-default btn-xs" data-toggle="tooltip" \
-                                    data-placement="bottom" title="Edit genes"> \
-                                    <span>Edit</span> \
-                                 </button>' : '' ;
-   
-   if ( max < data.length ) {
-      $( "#overviewTable"+id + '> tbody:last' ).append( '<tr><td class="text-center">...</td> \
-                                                 <td class="text-center">...</td></tr>' );
-   }
-   if ( editable ) {
-      $( "#overviewTable"+id + 'Block' ).after( '<div class="form-group"><div class="col-sm-offset-8 col-sm-4">' + 
-                                     editButton + seeAllButtonHTML + '</div></div>' );
-   }
-   
-};
-
-populateTermTable = function(id, data, max, editable) {
-   $( "#overviewTermTable"+id + " tbody tr" ).remove();
-   max = max ? Math.min( max, data.length ) : data.length;
-   var url;
-   var urlBase = "http://www.ncbi.nlm.nih.gov/gene/"
-   for ( var i = 0; i < max; i++ ) { 
-      var url = "http://www.ebi.ac.uk/QuickGO/GTerm?id="+data[i].geneOntologyId+"#term=ancchart";
-      $( "#overviewTermTable"+id + '> tbody:last' ).append( '<tr><td><a href="' + url + '" target="_blank">'+ data[i].geneOntologyId + '</a></td><td>'+ data[i].geneOntologyTerm + '</td><td>'+ data[i].frequency + '</td><td>'+ data[i].size + '</td></tr>' );
-   }
-   
-   var seeAllButtonHTML = ( max < data.length ) ? '<button type="button" id="overviewTermSeeAllButton' + id + '" \
-                                                      class="btn btn-default btn-xs" data-toggle="tooltip" \
-                                                      data-placement="bottom" title="See all terms"> \
-                                                      <span>See All</span> \
-                                                   </button>' : '';
-   
-   var editButton = ( editable ) ? '<button type="button" id="overviewTermEditButton' + id + '" \
-                                    class="btn btn-default btn-xs" data-toggle="tooltip" \
-                                    data-placement="bottom" title="Edit terms"> \
-                                    <span>Edit</span> \
-                                 </button>' : '' ;
-   
-   if ( max < data.length ) {
-      $( "#overviewTermTable"+id + '> tbody:last' ).append( '<tr><td class="text-center">...</td> \
-                                                 <td class="text-center">...</td></tr>' );
-   }
-   if ( editable ) {
-      $( "#overviewTermTable"+id + 'Block' ).after( '<div class="form-group"><div class="col-sm-offset-8 col-sm-4">' + 
-                                     editButton + seeAllButtonHTML + '</div></div>' );
-   }
-   
-};
-
-populateTable = function(table, data, max) {
-   $( "tbody tr", table ).remove();
-}
 
 overview.showButtons = function() {
    $('#overviewEditDescriptionButton').show();
@@ -333,7 +183,6 @@ overview.showGenes = function(researcher, showAll, explicitTiers, editable) {
 }
 
 overview.showTerms = function(researcher, showAll, editable) {
-   console.log("show genes")
    editable = utility.isUndefined( editable ) ? true : editable;
    researcher = utility.isUndefined( researcher ) ? researcherModel.currentResearcher : researcher;
    showAll = utility.isUndefined( showAll ) ? false : showAll;
@@ -361,9 +210,7 @@ overview.showTerms = function(researcher, showAll, editable) {
          }
          
          var maxTerms = showAll ? data.length : Math.min( 5, data.length );
-            
-         var urlBase = "http://www.ncbi.nlm.nih.gov/gene/"
-            
+                        
          for (var i=0; i<maxTerms; i++ ) {
             var url = "http://www.ebi.ac.uk/QuickGO/GTerm?id="+data[i].geneOntologyId+"#term=ancchart";
             $('tbody:last', block).append( '<tr><td><a href="' + url + '" target="_blank">'+ data[i].geneOntologyId + '</a></td> \
@@ -404,9 +251,14 @@ overview.showTerms = function(researcher, showAll, editable) {
 
 overview.showOverview = function(researcher, showAll, explicitTiers, editable) {
 	overview.showProfile(researcher);
-	overview.showGenes(researcher, showAll, explicitTiers, editable);
-	overview.showTerms(researcher, showAll, editable);
+	overview.showOrganisms(researcher, showAll, explicitTiers, editable);
 }
+
+overview.showOrganisms = function(researcher, showAll, explicitTiers, editable) {
+   overview.showGenes(researcher, showAll, explicitTiers, editable);
+   overview.showTerms(researcher, showAll, editable);
+}
+
 var scrapModal = $('#scrapModal').modal({
    backdrop: true,
    show: false,
@@ -417,7 +269,7 @@ createGeneModal = function(taxon, data) {
    return function() {
             var tableHTML =  '<div class=" form-group"> \
                                  <div class="col-sm-12"> \
-                                          <table id="overviewTable-scrapModalTable" class="table table-condensed"> \
+                                          <table id="scrapModalTable" class="table table-condensed"> \
                                              <thead> \
                                                 <tr> \
                                                    <th>Symbol</th> \
@@ -434,7 +286,19 @@ createGeneModal = function(taxon, data) {
             $( '#scrapModalFailed' ).after( tableHTML ); 
             scrapModal.removeClass( "bs-example-modal-sm");
             scrapModal.find(".modal-dialog").removeClass("modal-sm");
-            populateGeneTable('-scrapModalTable', data , data.length, false)
+            var block = $("#scrapModalTable");
+            
+            var urlBase = "http://www.ncbi.nlm.nih.gov/gene/"
+               
+            for (var i=0; i<data.length; i++ ) {
+               var url = urlBase + data[i].ncbiGeneId;
+               var tier = data[i].tier === "TIER1" ? '<span class="glyphicon glyphicon-ok"></span>' : "";
+               $('tbody:last', block).append('<tr><td><a href="' + url + '" target="_blank">'+ data[i].officialSymbol + '</a></td> \
+                                             <td>'+ data[i].officialName + '</td> \
+                                             <td>'+ tier + '</td></tr>')
+               
+            }
+            
             scrapModal.find('.modal-header > h4').text(taxon + " Genes Studied").end();
             scrapModal.modal('show');                
    }; 
@@ -444,11 +308,13 @@ createTermModal = function(taxon, data) {
     return function() {
              var tableHTML =  '<div class=" form-group"> \
                                   <div class="col-sm-12"> \
-                                           <table id="overviewTermTable-scrapModalTable" class="table table-condensed"> \
+                                           <table id="scrapModalTable" class="table table-condensed"> \
                                               <thead> \
                                                  <tr> \
                                                     <th>GO ID</th> \
                                                     <th>Term</th> \
+                                                    <th>Frequency</th> \
+                                                    <th>Size</th> \
                                                  </tr> \
                                               </thead> \
                                               <tbody> \
@@ -460,7 +326,17 @@ createTermModal = function(taxon, data) {
              $( '#scrapModalFailed' ).after( tableHTML ); 
              scrapModal.removeClass( "bs-example-modal-sm");
              scrapModal.find(".modal-dialog").removeClass("modal-sm");
-             populateGeneTable('-scrapModalTable', data , data.length, false)
+
+             var block = $("#scrapModalTable");
+             console.log(data);
+             for (var i=0; i<data.length; i++ ) {
+                var url = "http://www.ebi.ac.uk/QuickGO/GTerm?id="+data[i].geneOntologyId+"#term=ancchart";
+                $('tbody:last', block).append( '<tr><td><a href="' + url + '" target="_blank">'+ data[i].geneOntologyId + '</a></td> \
+                   <td>'+ data[i].geneOntologyTerm + '</td> \
+                   <td>'+ data[i].frequency + '</td> \
+                   <td>'+ data[i].size + '</td></tr>' );
+             }
+             
              scrapModal.find('.modal-header > h4').text(taxon + " GO Terms Studied").end();
              scrapModal.modal('show');                
     }; 

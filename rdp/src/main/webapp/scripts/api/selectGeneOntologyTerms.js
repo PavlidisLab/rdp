@@ -94,7 +94,7 @@
          promise = researcherModel.loadResearcher();
          $.when(promise).done(function() {
             // When done reloading researcher
-            overview.showTerms();
+            overview.showOrganisms();
          });
       });
    }
