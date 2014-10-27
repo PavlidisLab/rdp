@@ -77,7 +77,6 @@
 
 
    selectGeneOntologyTerms.closeModal = function() {
-      $( "#spinLoadGOTerms" ).hide();
       clearTable();
       utility.hideMessage( $( "#selectGeneOntologyTermsMessage" ) );
    };
@@ -100,7 +99,6 @@
    }
 
    selectGeneOntologyTerms.openModal = function() {
-      $( "#spinLoadGOTerms" ).show();
    }
 
    selectGeneOntologyTerms.combineWithSavedTerms =  function(terms) {
@@ -130,12 +128,14 @@
    
    selectGeneOntologyTerms.load = function(taxonId) {
       clearTable();
+      selectGeneOntologyTerms.table.DataTable().settings()[0].oLanguage.sEmptyTable = 'Searching for GO term suggestions <img src="styles/select2-spinner.gif">';
       selectGeneOntologyTerms.table.DataTable().draw();
       var promise = selectGeneOntologyTerms.loadSuggestedGOTerms( taxonId );
       selectGeneOntologyTerms.title.html("Select Go Terms for " + $('#taxonCommonNameSelect option[value=' + taxonId + ']').text() );
       selectGeneOntologyTerms.modal.modal('show');
       $.when(promise).done(function() {
          // When done loading Go Terms
+         selectGeneOntologyTerms.table.DataTable().settings()[0].oLanguage.sEmptyTable = "Could not find any GO term suggestions";
          var terms = promise.responseJSON.terms;
          selectGeneOntologyTerms.combineWithSavedTerms(terms);
          console.log("GO Terms", terms);
@@ -146,7 +146,6 @@
    
    
    selectGeneOntologyTerms.fillTable = function(terms) {
-      $( "#spinLoadGOTerms" ).hide();
       clearTable();
       for ( var i = 0; i < terms.length; i++ ) {
          var termRow = [terms[i]];
@@ -194,6 +193,9 @@
    selectGeneOntologyTerms.initDataTable = function() {
       // Initialize datatable
       dataTable = selectGeneOntologyTerms.table.dataTable( {
+         "oLanguage": {
+            "sEmptyTable": 'Searching for GO term suggestions <img src="styles/select2-spinner.gif">'
+          },
          "order": [[ 6, "desc" ],[ 4, "desc" ]],
          "aoColumnDefs": [ 
                           {

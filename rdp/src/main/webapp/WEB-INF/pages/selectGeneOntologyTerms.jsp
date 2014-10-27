@@ -60,11 +60,6 @@
 							</table>
 						</div>
 					</div>
-					<div class="form-group">
-						<div id="spinLoadGOTerms" class="col-sm-offset-1 col-sm-10 text-center" hidden="true">
-							<img src="styles/select2-spinner.gif">
-						</div>
-					</div>
 					
 				</form>
 				
