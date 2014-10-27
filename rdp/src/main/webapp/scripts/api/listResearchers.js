@@ -156,8 +156,7 @@
 	              // Closure to make sure that tab always returns the correct researcher
 	              $('#registerTab li[id="tab'+nextTab+'"]').on('show.bs.tab',(function(r) {
 	                 return function() {
-	                 overview.showOverview( r, true, true );
-	                 overview.hideButtons();
+	                 overview.showOverview( r, true, true, false);
 	                 };
 	                 })(allResearchers[index])
 	              );           

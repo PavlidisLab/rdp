@@ -43,19 +43,20 @@
       $.when(promise).done(function() {
          // When done saving
          btns.removeAttr("disabled");
+         taxonDescriptionChanged = false;
          utility.showMessage( promise.responseJSON.message, $( "#geneManagerMessage" ) );
          if ( showingGenes.length > 1 ) {
-            $( '#editGenesModal' ).modal('hide');
             if ( !researcherModel.currentResearcher.terms[ getTaxonId() ] ) {
+               $( '#editGenesModal' ).modal('hide');
                selectGeneOntologyTerms.load( getTaxonId() );
             }
-            promise = researcherModel.loadResearcher();
-            $.when(promise).done(function() {
-               // When done reloading researcher
-               overview.showGenes();
-               editGenes.fillForm();
-            });
          }
+         promise = researcherModel.loadResearcher();
+         $.when(promise).done(function() {
+            // When done reloading researcher
+            overview.showGenes();
+            editGenes.fillForm();
+         });
       });
    }
 

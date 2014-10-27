@@ -70,6 +70,35 @@ overview.geneTermTableHTMLBlock = function(header, id) {
    return htmlBlock;
 };
 
+var HTMLBlock = $('<div class="form-group"> \
+                        <div class = "col-sm-offset-3 col-sm-6 text-center"> \
+                           <h4></h4> \
+                        </div> \
+                        <div class = "col-sm-offset-3 col-sm-6"> \
+                           <span></span>\
+                        </div> \
+                        <div class="col-sm-offset-3 col-sm-6"> \
+                           <table class="table table-condensed"> \
+                              <thead> \
+                                 <tr> \
+                                 </tr> \
+                              </thead> \
+                              <tbody> \
+                              </tbody> \
+                           </table> \
+                        </div> \
+                     </div>');
+
+var seeAllButtonHTML = $('<button type="button" name="seeAll" class="btn btn-default btn-xs" data-toggle="tooltip" \
+                           data-placement="bottom" title="See all"> \
+                           <span>See All</span> \
+                        </button>');
+
+var editButtonHTML = $('<button type="button" name="edit" class="btn btn-default btn-xs" data-toggle="tooltip" \
+                        data-placement="bottom" title="Edit"> \
+                        <span>Edit</span> \
+                      </button>');
+
 /**
  * Empty and re-populate table with data, table found by DOM ID
  * @param {string} id - HTML DOM ID
@@ -157,6 +186,10 @@ populateTermTable = function(id, data, max, editable) {
    
 };
 
+populateTable = function(table, data, max) {
+   $( "tbody tr", table ).remove();
+}
+
 overview.showButtons = function() {
    $('#overviewEditDescriptionButton').show();
    $('*[id^="overviewEditButton"]').show();
@@ -164,9 +197,12 @@ overview.showButtons = function() {
 }
 
 overview.hideButtons = function() {
+   // Not really used, but here for history sake
    $('#overviewEditDescriptionButton').hide();
    $('*[id^="overviewEditButton"]').hide();
    $('*[id^="overviewSeeAllButton"]').hide();
+   $('*[id^="overviewTermEditButton"]').hide();
+   $('*[id^="overviewTermSeeAllButton"]').hide();
 }
 
 overview.showProfile = function(researcher) {
@@ -190,15 +226,14 @@ overview.showProfile = function(researcher) {
    }
 }
 
-overview.showGenes = function(researcher, showAll, explicitTiers) {
-   researcher = researcher || researcherModel.currentResearcher;
-   showAll = showAll || false;
-   explicitTiers = explicitTiers || false;
+overview.showGenes = function(researcher, showAll, explicitTiers, editable) {
+   editable = utility.isUndefined( editable ) ? true : editable;
+   researcher = utility.isUndefined( researcher ) ? researcherModel.currentResearcher : researcher;
+   showAll = utility.isUndefined( showAll ) ? false : showAll;
+   explicitTiers = utility.isUndefined( explicitTiers ) ? false : explicitTiers;
 	$('#overviewGeneBreakdown').html('');
 	var genes = researcher.genes;
-	var genesByTaxon = {};
-	var allTaxons = [];
-	
+	var genesByTaxon = {};	
 	
 	//Fill in overview genes
 	// Bucket response data by taxon
@@ -207,32 +242,86 @@ overview.showGenes = function(researcher, showAll, explicitTiers) {
 	      genesByTaxon[genes[i].taxonId].push(genes[i]);
 	   }
 	   else {
-	      allTaxons.push( genes[i].taxonId );
 	      genesByTaxon[genes[i].taxonId] = [ genes[i] ];
 	   }
 	}
-	allTaxons.sort(function(a, b){return a-b}); // Consistent ordering
 	
 	// Generate HTML blocks for each taxon
-	for (var i=0; i<allTaxons.length; i++) {
-	   var taxonId = allTaxons[i];
-	   var taxon = $('#taxonCommonNameSelect option[value=' + taxonId + ']').text();
-	   //var taxonId = taxon.replace(/ /g,'').replace(/\./g,'');
+	$('#taxonCommonNameSelect option').each( function(idx,val) {
+	   var taxonId = $(val).val();
+	   var taxon = $(val).text();
 	   var taxonDescription = researcher.taxonDescriptions[taxonId];
-	   $('#overviewGeneBreakdown').append(overview.geneTableHTMLBlock(taxon, 'overviewTable'+taxonId, explicitTiers));
-	   
-	   if (taxonDescription) {
-	      taxonDescription = taxonDescription.length > 100 && !showAll ? taxonDescription.substring(0,100) + "..." : taxonDescription;
-	      $('#'+'overviewTable'+taxonId+'BlockDescription').append("<span><em>"+ taxonDescription +"</em></span>");
+	   var data = genesByTaxon[taxonId] || [];
+	   if (data.length || taxonDescription ) {
+   	   var block = HTMLBlock.clone();
+   	   $('h4', block).html(taxon);
+   	   $('table thead tr', block).append("<th>Symbol</th>");
+   	   $('table thead tr', block).append("<th>Name</th>");
+   	   if ( explicitTiers ) {
+   	      $('table thead tr', block).append("<th>Tier</th>");
+   	   } else {
+   	      $('table thead tr', block).append('<th width="75px">Primary</th>');
+   	   }
+   	   
+   	   if (taxonDescription) {
+   	      taxonDescription = taxonDescription.length > 100 && !showAll ? taxonDescription.substring(0,100) + "..." : taxonDescription;
+   	      $('span', block).append("<em>"+ taxonDescription +"</em>");
+   	   }
+   	   
+   	   var maxGenes = showAll ? data.length : Math.min( 5, data.length );
+   	   
+   	   var url;
+   	   var urlBase = "http://www.ncbi.nlm.nih.gov/gene/"
+   	   data.sort(function(a, b){
+   	      if (a.tier < b.tier)
+   	         return -1;
+   	      if (a.tier > b.tier)
+   	        return 1;
+   	      return 0;
+   	      });    
+   	      
+   	   for (var i=0; i<maxGenes; i++ ) {
+            url = urlBase + data[i].ncbiGeneId;
+            var tier = "";
+            if (data[i].tier) {
+               if (explicitTiers) {
+                  tier = data[i].tier;
+               } else {
+                  tier = data[i].tier === "TIER1" ? '<span class="glyphicon glyphicon-ok"></span>' : "";
+               }
+            }
+   	      $('tbody:last', block).append('<tr><td><a href="' + url + '" target="_blank">'+ data[i].officialSymbol + '</a></td> \
+   	                                    <td>'+ data[i].officialName + '</td> \
+   	                                    <td>'+ tier + '</td></tr>')
+   	      
+   	   }
+   	   
+         if ( maxGenes < data.length ) {
+            $('tbody:last', block).append('<tr><td class="text-center">...</td> \
+                                               <td class="text-center">...</td> \
+                                               <td class="text-center">...</td></tr>'); 
+         }
+   	   
+         var seeAll = seeAllButtonHTML.clone();
+         var edit = editButtonHTML.clone();
+         
+   	   if ( maxGenes < data.length || editable  ) {
+   	      $('tbody:last', block).append('<tr><td colspan="3" class="text-right"></td>');
+         }
+   	   
+         if ( editable ) {
+            $('tbody:last tr:last td:last', block).append(edit);
+         }
+   	   
+   	   if ( maxGenes < data.length ) {
+   	      $('tbody:last tr:last td:last', block).append(seeAll);
+   	   }
+         seeAll.click(createGeneModal( taxon, data ));
+         edit.click(openGeneManager(taxonId));	   
+   	   $('#overviewGeneBreakdown').append(block);
+
 	   }
-	   var maxGenes = showAll ? null : 5;
-	   populateGeneTable(taxonId, genesByTaxon[taxonId] , maxGenes, true, explicitTiers)
-	   if ( !showAll ) {
-	      // This if statement is not necessary but stops data being saved in a closure that will never be used
-   	   $("#overviewSeeAllButton" + taxonId).click( createGeneModal( taxon, genesByTaxon[taxonId] ) ); 
-   	   $("#overviewEditButton" + taxonId).click( openGeneManager(taxonId) ); 
-	   }
-	}
+	});
 	
    if ( genes.length === 0 ) {
       utility.showMessage( "<a href='#editGenesModal' class='alert-link' data-toggle='modal'>No model organisms have been added to profile  - Click Here.</a>", $( "#overviewModelMessage" ) );
@@ -243,50 +332,80 @@ overview.showGenes = function(researcher, showAll, explicitTiers) {
 	
 }
 
-overview.showTerms = function(researcher, showAll) {
-   researcher = researcher || researcherModel.currentResearcher;
-   showAll = showAll || false;
+overview.showTerms = function(researcher, showAll, editable) {
+   console.log("show genes")
+   editable = utility.isUndefined( editable ) ? true : editable;
+   researcher = utility.isUndefined( researcher ) ? researcherModel.currentResearcher : researcher;
+   showAll = utility.isUndefined( showAll ) ? false : showAll;
    $('#overviewTermBreakdown').html('');
    var termsByTaxon = researcher.terms; 
-   var allTaxons = Object.keys(termsByTaxon);
-   
-   
-   allTaxons.sort(function(a, b){return a-b}); // Consistent ordering
    
    // Generate HTML blocks for each taxon
-   for (var i=0; i<allTaxons.length; i++) {
-      var taxonId = allTaxons[i];
-      var terms = termsByTaxon[taxonId] || [];
-      var taxon = $('#taxonCommonNameSelect option[value=' + taxonId + ']').text();
+   $('#taxonCommonNameSelect option').each( function(idx,val) {
+      var taxonId = $(val).val();
+      var taxon = $(val).text();
+      var data = termsByTaxon[taxonId] || [];
+
       var taxonDescription = researcher.taxonDescriptions[taxonId];
-      $('#overviewTermBreakdown').append(overview.geneTermTableHTMLBlock(taxon, 'overviewTermTable'+taxonId));
-      
-      if (taxonDescription) {
-         taxonDescription = taxonDescription.length > 100 && !showAll ? taxonDescription.substring(0,100) + "..." : taxonDescription;
-         $('#'+'overviewTermTable'+taxonId+'BlockDescription').append("<span><em>"+ taxonDescription +"</em></span>");
+      if (data.length || taxonDescription ) {
+         var block = HTMLBlock.clone();
+         $('h4', block).html(taxon);
+         $('table thead tr', block).append("<th>GO ID</th>");
+         $('table thead tr', block).append("<th>Term</th>");
+         $('table thead tr', block).append("<th>Frequency</th>");
+         $('table thead tr', block).append("<th>Size</th>");
+         
+         if (taxonDescription) {
+            taxonDescription = taxonDescription.length > 100 && !showAll ? taxonDescription.substring(0,100) + "..." : taxonDescription;
+            $('span', block).append("<em>"+ taxonDescription +"</em>");
+         }
+         
+         var maxTerms = showAll ? data.length : Math.min( 5, data.length );
+            
+         var urlBase = "http://www.ncbi.nlm.nih.gov/gene/"
+            
+         for (var i=0; i<maxTerms; i++ ) {
+            var url = "http://www.ebi.ac.uk/QuickGO/GTerm?id="+data[i].geneOntologyId+"#term=ancchart";
+            $('tbody:last', block).append( '<tr><td><a href="' + url + '" target="_blank">'+ data[i].geneOntologyId + '</a></td> \
+                                                <td>'+ data[i].geneOntologyTerm + '</td> \
+                                                <td>'+ data[i].frequency + '</td> \
+                                                <td>'+ data[i].size + '</td></tr>' );
+         }
+         
+         if ( maxTerms < data.length ) {
+            $('tbody:last', block).append('<tr><td class="text-center">...</td> \
+                                               <td class="text-center">...</td> \
+                                               <td class="text-center">...</td> \
+                                               <td class="text-center">...</td></tr>'); 
+         }
+         
+         var seeAll = seeAllButtonHTML.clone();
+         var edit = editButtonHTML.clone();
+         
+         if ( maxTerms < data.length || editable  ) {
+            $('tbody:last', block).append('<tr><td colspan="4" class="text-right"></td>');
+         }
+         
+         if ( editable ) {
+            $('tbody:last tr:last td:last', block).append(edit);
+         }
+         
+         if ( maxTerms < data.length ) {
+            $('tbody:last tr:last td:last', block).append(seeAll);
+         }
+         seeAll.click(createTermModal( taxon, data ));
+         edit.click(openTermManager(taxonId));     
+         $('#overviewTermBreakdown').append(block);
+
       }
-      var maxTerms = showAll ? null : 5;
-      populateTermTable(taxonId, terms , maxTerms, true)
-      if ( !showAll ) {
-         // This if statement is not necessary but stops data being saved in a closure that will never be used
-         $("#overviewTermSeeAllButton" + taxonId).click( createTermModal( taxon, terms ) ); 
-         $("#overviewTermEditButton" + taxonId).click( openTermManager(taxonId) ); 
-      }
-   }
-   
-//   if ( genes.length === 0 ) {
-//      utility.showMessage( "<a href='#editGenesModal' class='alert-link' data-toggle='modal'>No model organisms have been added to profile  - Click Here.</a>", $( "#overviewModelMessage" ) );
-//   }
-//   else {
-//      utility.hideMessage( $("#overviewModelMessage") );
-//   }
+   });
    
 }
 
-overview.showOverview = function(researcher, showAll, explicitTiers) {
+overview.showOverview = function(researcher, showAll, explicitTiers, editable) {
 	overview.showProfile(researcher);
-	overview.showGenes(researcher, showAll, explicitTiers);
-	overview.showTerms(researcher, showAll);
+	overview.showGenes(researcher, showAll, explicitTiers, editable);
+	overview.showTerms(researcher, showAll, editable);
 }
 var scrapModal = $('#scrapModal').modal({
    backdrop: true,
