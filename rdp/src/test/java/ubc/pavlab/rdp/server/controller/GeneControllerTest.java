@@ -154,7 +154,12 @@ public class GeneControllerTest extends BaseSpringContextTest {
     @Test
     public void testSaveLoadResearcherGenes() throws Exception {
 
-        String genesJsonOk = ( new JSONObject( gene ) ).toString();
+        JSONObject geneJSON = new JSONObject( gene );
+        geneJSON.put( "id", gene.getId() ); // This is here because we are not using the built toJSON functions to
+                                            // convert this to a string
+        geneJSON.put( "tier", "TIER2" );
+
+        String genesJsonOk = geneJSON.toString();
         String genesJsonMissingInfo = ( new JSONObject( badGene ) ).toString();
 
         // this doesn't work, id is required for all genes

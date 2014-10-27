@@ -26,8 +26,6 @@ import java.io.InputStream;
 import java.util.Collection;
 import java.util.zip.GZIPInputStream;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -43,7 +41,8 @@ import ubic.basecode.ontology.model.OntologyTerm;
 @SuppressWarnings("static-access")
 public class GeneOntologyServiceTest {
     static GeneOntologyServiceImpl gos;
-    private static Log log = LogFactory.getLog( GeneOntologyServiceTest.class.getName() );
+
+    // private static Log log = LogFactory.getLog( GeneOntologyServiceTest.class.getName() );
 
     // note: no spring context.
     @BeforeClass

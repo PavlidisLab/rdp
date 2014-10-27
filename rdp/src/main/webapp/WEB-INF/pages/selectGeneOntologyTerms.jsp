@@ -51,7 +51,7 @@
 										<th>Term</th>
 										<th>Frequency</th>
 										<th>Size</th>
-										<th>Select</th>
+										<th>Add</th>
 									</tr>
 								</thead>
 						

@@ -125,9 +125,6 @@ public class GeneDaoImpl extends DaoBaseImpl<Gene> implements GeneDao {
         final String queryString = "from Gene g where g.id in (:ids)";
         List<?> results = getHibernateTemplate().findByNamedParam( queryString, new String[] { "ids" },
                 new Object[] { ids } );
-        if ( results.size() == 0 ) {
-            return null;
-        }
         return ( Collection<Gene> ) results;
     }
 

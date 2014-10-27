@@ -146,7 +146,7 @@ public class ResearcherServiceTest extends BaseSpringContextTest {
     @Test
     public void testFindByGene() throws Exception {
         HashMap<Gene, TierType> genes = new HashMap<Gene, TierType>();
-        genes.put( gene1, TierType.UNKNOWN );
+        genes.put( gene1, TierType.TIER2 );
 
         try {
             assertNotNull( researcher );
@@ -208,10 +208,10 @@ public class ResearcherServiceTest extends BaseSpringContextTest {
     @Test
     public void testUpdateGene() throws Exception {
         HashMap<Gene, TierType> genes = new HashMap<Gene, TierType>();
-        genes.put( gene1, TierType.UNKNOWN );
+        genes.put( gene1, TierType.TIER2 );
 
         HashMap<Gene, TierType> genes2 = new HashMap<Gene, TierType>();
-        genes2.put( gene2, TierType.UNKNOWN );
+        genes2.put( gene2, TierType.TIER2 );
 
         try {
             // gene hasn't been assigned yet
@@ -235,7 +235,7 @@ public class ResearcherServiceTest extends BaseSpringContextTest {
     @Test
     public void testAddRemoveGene() throws Exception {
         HashMap<Gene, TierType> genes = new HashMap<Gene, TierType>();
-        genes.put( gene1, TierType.UNKNOWN );
+        genes.put( gene1, TierType.TIER2 );
         Collection<Gene> genesColl = new HashSet<>();
         genesColl.add( gene1 );
 
