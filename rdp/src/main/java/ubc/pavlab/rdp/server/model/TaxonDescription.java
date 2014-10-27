@@ -44,14 +44,14 @@ public class TaxonDescription {
     private String description;
 
     @Column()
-    private String taxon;
+    private Long taxonId;
 
     public TaxonDescription() {
     }
 
-    public TaxonDescription( String taxon, String description ) {
+    public TaxonDescription( Long taxonId, String description ) {
         this.description = description;
-        this.taxon = taxon;
+        this.taxonId = taxonId;
     }
 
     public String getDescription() {
@@ -62,12 +62,12 @@ public class TaxonDescription {
         this.description = description;
     }
 
-    public String getTaxon() {
-        return taxon;
+    public Long getTaxonId() {
+        return taxonId;
     }
 
-    public void setTaxon( String taxon ) {
-        this.taxon = taxon;
+    public void setTaxonId( Long taxonId ) {
+        this.taxonId = taxonId;
     }
 
     public long getId() {

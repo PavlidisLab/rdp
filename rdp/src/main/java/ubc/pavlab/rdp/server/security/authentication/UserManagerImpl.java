@@ -147,7 +147,7 @@ public class UserManagerImpl implements UserManager {
     @Transactional
     public PasswordResetToken createPasswordResetToken( User u ) {
 
-        String key = RandomStringUtils.randomAlphanumeric( 32 ).toUpperCase();
+        String key = RandomStringUtils.randomAlphanumeric( 64 ).toUpperCase();
 
         Date now = new Date();
 

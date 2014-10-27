@@ -11,6 +11,7 @@ import net.sf.ehcache.Element;
 import net.sf.ehcache.search.Attribute;
 import net.sf.ehcache.search.Result;
 import net.sf.ehcache.search.Results;
+import net.sf.ehcache.search.SearchException;
 import net.sf.ehcache.search.expression.Criteria;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,8 +34,16 @@ public abstract class SearchableEhcache<T> {
         net.sf.ehcache.search.Query query = this.cache.createQuery();
         query.includeValues();
         query.addCriteria( criteria );
+        Results results = null;
+        try {
+            results = query.execute();
+        } catch ( Exception e ) {
+            throw new SearchException( "Query error" );
+        }
 
-        Results results = query.execute();
+        if ( results == null ) {
+            return null;
+        }
 
         Collection<T> genes = new HashSet<T>( results.size() );
 

@@ -33,9 +33,9 @@ import ubc.pavlab.rdp.server.model.Gene;
 public interface NcbiCache {
     public Collection<Gene> fetchGenesByGeneSymbols( Collection<String> geneSymbols );
 
-    public Collection<Gene> fetchGenesByGeneTaxon( Collection<String> taxons );
+    public Collection<Gene> fetchGenesByGeneTaxon( Collection<Long> taxonIds );
 
-    public Collection<Gene> findGenes( String queryString, String taxon );
+    public Collection<Gene> findGenes( String queryString, Long taxonId );
 
     /**
      * Get a list of genes using the given gene symbols or ncbi ids. The order of the returned list of genes is
@@ -57,7 +57,7 @@ public interface NcbiCache {
      * @param taxon
      * @return
      */
-    public Collection<Gene> fetchGenesByGeneSymbolsAndTaxon( Collection<String> geneSymbols, String taxon );
+    public Collection<Gene> fetchGenesByGeneSymbolsAndTaxon( Collection<String> geneSymbols, Long taxonId );
 
     public void clearAll();
 

@@ -2,11 +2,11 @@
 
 .animate {
     animation-name: rotateThis;
-    animation-duration: 0.5s;
+    animation-duration: 1s;
     animation-iteration-count: infinite;
     animation-timing-function: linear;
-    -moz-animation: rotateThis 0.5s infinite linear;    
-    -webkit-animation: rotateThis 0.5s infinite linear;    
+    -moz-animation: rotateThis 1s infinite linear;    
+    -webkit-animation: rotateThis 1s infinite linear;    
 }
 
 @keyframes rotateThis {
@@ -35,4 +35,9 @@
     margin: -2px 0 0 10px;
     font-size: 18px;
     color: red;
+}
+
+/*Needs to be quite specific to override datatable sorting css*/
+#selectGeneOntologyTermsTable.table.dataTable.display tbody tr.datatable-selected > td {
+	background-color: #B5EAAA;
 }

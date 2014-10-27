@@ -5,6 +5,8 @@
 
    forgotPasswordForm.resetPassword = function(e) {
    e.preventDefault();
+   var btns = $( "#btnForgotPasssword" );
+   btns.attr("disabled", "disabled");
    $.ajax( {
       cache : false,
       type : 'POST',
@@ -14,9 +16,11 @@
       },
       data : $( "#forgotPasswordForm" ).serialize(),
       success : function(response, xhr) {
+         btns.removeAttr("disabled");
          utility.showMessage( jQuery.parseJSON( response ).message, $("#forgotPasswordMessage") );
       },
       error : function(response, xhr) {
+         btns.removeAttr("disabled");
          console.log( xhr.responseText );
          utility.showMessage( "Error with request. Status is: " + xhr.status, $("#forgotPasswordMessage") );
       }

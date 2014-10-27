@@ -27,3 +27,12 @@ insert into GROUP_MEMBERS (USER_GROUP_FK, GROUP_MEMBERS_FK) VALUES (3, 2);
 
 -- add user  to the user group (note that there is no need for a corresponding ACL entry)
 insert into GROUP_MEMBERS (USER_GROUP_FK, GROUP_MEMBERS_FK) VALUES (2, 3);
+
+insert into TAXON (tax_id, commonName, scientificName, isActivated) VALUES (9606, "human", "Homo sapiens", true);
+insert into TAXON (tax_id, commonName, scientificName, isActivated) VALUES (10090, "mouse", "Mus musculus", true);
+insert into TAXON (tax_id, commonName, scientificName, isActivated) VALUES (10116, "rat", "Rattus norvegicus", true);
+insert into TAXON (tax_id, commonName, scientificName, isActivated) VALUES (559292, "yeast", "Saccharomyces cerevisiae S288c", true);
+insert into TAXON (tax_id, commonName, scientificName, isActivated) VALUES (7955, "zebrafish", "Danio rerio", true);
+insert into TAXON (tax_id, commonName, scientificName, isActivated) VALUES (7227, "fruit fly", "Drosophila melanogaster", true);
+insert into TAXON (tax_id, commonName, scientificName, isActivated) VALUES (6239, "roundworm", "Caenorhabditis elegans", true);
+insert into TAXON (tax_id, commonName, scientificName, isActivated) VALUES (562, "e. coli", "Escherichia coli", true);

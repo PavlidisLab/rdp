@@ -31,10 +31,10 @@ public class RegisterController extends BaseController {
     ResearcherService researcherService;
 
     @Autowired
-    GeneService geneService;
+    UserManager userManager;
 
     @Autowired
-    UserManager userManager;
+    GeneService geneService;
 
     @RequestMapping(value = { "", "/", "/register.html", "/home.html", "/index.html" })
     public String showRegister( ModelMap model ) {
@@ -113,12 +113,15 @@ public class RegisterController extends BaseController {
 
         try {
             Collection<Researcher> researchers = researcherService.loadAll();
-            Set<String> researchersJson = new HashSet<String>();
+            Set<JSONObject> researchersJson = new HashSet<JSONObject>();
             for ( Researcher r : researchers ) {
-                researchersJson.add( r.toJSON().toString() );
+                researchersJson.add( researcherService.toJSON( r ) );
             }
-
-            jsonText = ( new JSONArray( researchersJson ) ).toString();
+            JSONObject json = new JSONObject();
+            json.put( "success", true );
+            json.put( "message", "All researchers loaded." );
+            json.put( "data", ( new JSONArray( researchersJson ) ) );
+            jsonText = json.toString();
             // jsonText = jsonUtil.collectionToJson( researchers );
         } finally {
 
@@ -164,7 +167,7 @@ public class RegisterController extends BaseController {
                 jsonText = "{\"success\":false,\"message\":\"No researcher with name " + username + "\"}";
             } else {
                 // JSONObject json = new JSONObject( user );
-                JSONObject json = researcher.toJSON();
+                JSONObject json = researcherService.toJSON( researcher );
                 log.info( "Loaded Researcher from account: (" + username + "). Account contains "
                         + researcher.getGenes().size() + " Genes." );
                 jsonText = "{\"success\":true, \"data\":" + json.toString() + "}";
@@ -201,6 +204,39 @@ public class RegisterController extends BaseController {
             JSONObject json = new JSONObject();
             json.put( "success", true );
             json.put( "message", "User: (" + userName + ") deleted." );
+            jsonText = json.toString();
+        } catch ( Exception e ) {
+            log.error( e.getLocalizedMessage(), e );
+            JSONObject json = new JSONObject();
+            json.put( "success", false );
+            json.put( "message", "An error occurred!" );
+            json.put( "error", e.getLocalizedMessage() );
+            jsonText = json.toString();
+            log.info( jsonText );
+        } finally {
+            jsonUtil.writeToResponse( jsonText );
+        }
+    }
+
+    @RequestMapping("/stats.html")
+    public void stats( HttpServletRequest request, HttpServletResponse response ) throws IOException {
+        String jsonText = null;
+        JSONUtil jsonUtil = null;
+        try {
+            jsonUtil = new JSONUtil( request, response );
+
+            Long researchersRegistered = researcherService.countResearchers();
+            Long researchersRegisteredWithGenes = researcherService.countResearchersWithGenes();
+            Long genesAdded = geneService.countAssociations();
+            Long genesAddedUnique = geneService.countUniqueAssociations();
+            ;
+            JSONObject json = new JSONObject();
+            json.put( "success", true );
+            json.put( "message", "Statistics succesfully loaded" );
+            json.put( "researchers_registered", researchersRegistered );
+            json.put( "researchers_registered_with_genes", researchersRegisteredWithGenes );
+            json.put( "genes_added", genesAdded );
+            json.put( "genes_added_unique", genesAddedUnique );
             jsonText = json.toString();
         } catch ( Exception e ) {
             log.error( e.getLocalizedMessage(), e );

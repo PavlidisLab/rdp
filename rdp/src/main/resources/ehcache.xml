@@ -31,28 +31,33 @@
  <cache name="org.hibernate.cache.UpdateTimestampsCache" maxElementsOnDisk="10000" maxElementsInMemory="5000"
   eternal="true" overflowToDisk="false" />
 
-  <cache name="BioMartCache" maxElementsInMemory="0" eternal="false" timeToLiveSeconds="86400" overflowToDisk="false">
-   <searchable>
-    <searchAttribute name="ensemblId" />
-    <searchAttribute name="ncbiGeneId" />
-    <searchAttribute name="aliases" class="ubc.pavlab.rdp.server.biomartquery.GeneAliasesAttributeExtractor" />
-    <searchAttribute name="officialName" />
-    <searchAttribute name="officialSymbol"/>
-    <searchAttribute name="genomicRangeChromosome" expression="value.getGenomicRange().getChromosome()" />
-    <searchAttribute name="genomicRangeStart" expression="value.getGenomicRange().getBaseStart()" />
-    <searchAttribute name="genomicRangeEnd" expression="value.getGenomicRange().getBaseEnd()" />
-	<searchAttribute name="taxon" />
-   </searchable>
-  </cache>
-
   <cache name="NcbiCache" maxElementsInMemory="0" eternal="true" overflowToDisk="false">
    <searchable>
     <searchAttribute name="ncbiGeneId" />
-    <searchAttribute name="aliases" class="ubc.pavlab.rdp.server.ncbi.GeneAliasesAttributeExtractor" />
+    <searchAttribute name="aliases" />
     <searchAttribute name="officialName" />
     <searchAttribute name="officialSymbol"/>
-	<searchAttribute name="taxon" />
+	<searchAttribute name="taxonId" />
    </searchable>
   </cache>
-
+  
+  <cache name="GeneCache" maxElementsInMemory="0" eternal="true" overflowToDisk="false">
+   <searchable>
+    <searchAttribute name="id" />
+    <searchAttribute name="aliases" />
+    <searchAttribute name="officialName" />
+    <searchAttribute name="officialSymbol"/>
+	<searchAttribute name="taxonId" />
+	<searchAttribute name="modificationDate" />
+   </searchable>
+  </cache>
+  
+  <cache name="GeneOntologyTermCache" maxElementsInMemory="0" eternal="true" overflowToDisk="false">
+   <searchable>
+    <searchAttribute name="geneOntologyId" />
+    <searchAttribute name="geneOntologyTerm" />
+    <searchAttribute name="definition" />
+   </searchable>
+  </cache>
+  
  </ehcache>

@@ -13,7 +13,6 @@
       this.phone = "";
       this.description = "";
       this.email = "";
-      this.test = "";
       
       var _website = "";
       Object.defineProperty(this, "website", { 
@@ -31,6 +30,8 @@
       
       // Model Organisms
       this.genes = [];
+      this.calculatedGenes = [];
+      this.terms = {};
       this.taxonDescriptions = {};
    }
    
@@ -47,6 +48,26 @@
       
    }
    
+   // Used to determine if a researcher has a gene in either saved or calculated genes
+   researcherModel.Researcher.prototype.getGene = function(gene) {
+      if ( !(gene instanceof researcherModel.Gene) ) {
+         console.log( "Not a Gene Object", gene );
+         return null;
+      }
+      for (var i=0;i<this.genes.length;i++) {
+         if ( gene.equals(this.genes[i]) ) {
+            return this.genes[i];
+         }
+      }
+      for (var i=0;i<this.calculatedGenes.length;i++) {
+         if ( gene.equals(this.calculatedGenes[i]) ) {
+            return this.calculatedGenes[i];
+         }
+      }
+      return null;
+      
+   }
+   
    researcherModel.Researcher.prototype.shallowCopy = function() {
       // For some reason jquery AJAX doesn't like sending instances of Researcher
       // straight in the data
@@ -60,10 +81,31 @@
    researcherModel.Researcher.prototype.setTaxonDescriptionsFromArray = function(taxonDescriptionsArr) {
       this.taxonDescriptions = {};
       for (var i=0;i<taxonDescriptionsArr.length;i++) {
-         this.taxonDescriptions[taxonDescriptionsArr[i].taxon] = taxonDescriptionsArr[i].description;
+         this.taxonDescriptions[taxonDescriptionsArr[i].taxonId] = taxonDescriptionsArr[i].description;
       }
    }
    
+   researcherModel.Researcher.prototype.setTermsFromArray = function(goTermsArr) {
+      this.terms = {};
+      if ( goTermsArr ) {
+      for (var i=0;i<goTermsArr.length;i++) {
+         if ( this.terms.hasOwnProperty( goTermsArr[i].taxonId ) ) {
+            this.terms[goTermsArr[i].taxonId].push( goTermsArr[i] );
+         } else {
+            this.terms[goTermsArr[i].taxonId] = [ goTermsArr[i] ];
+         }
+      }
+      }
+   }
+   
+   researcherModel.Researcher.prototype.updateTermsForTaxon = function(goTermsArr, taxonId) {
+      delete this.terms[taxonId];
+      this.terms[taxonId] = [];
+      for (var i=0;i<goTermsArr.length;i++) {
+         this.terms[taxonId].push( goTermsArr[i] );
+      }
+   }
+      
    researcherModel.Researcher.prototype.addTaxonDescription = function(taxon, taxonDescription) {
       this.taxonDescriptions[taxon] = taxonDescription;
    }
@@ -75,6 +117,18 @@
       }
       return jsonArr;
    }
+   
+   researcherModel.Researcher.prototype.termsToJSON = function(taxonId) {
+      if ( !taxonId ) {
+         return null;
+      }
+      
+      var jsonArr = [];
+      for (var i=0; i<this.terms[taxonId].length; i++) {
+         jsonArr.push( $.toJSON( this.terms[taxonId][i] ) );
+      }
+      return jsonArr;
+   }
     
    researcherModel.Researcher.prototype.compareGenes = function(otherGenes) {
       g1 = otherGenes.slice();
@@ -82,7 +136,7 @@
       
       identicalIndexOf = function(gene,genes) { //Harsher equality check than indexOf
          for (var i=0; i<genes.length; i++) {
-            if ( genes[i].officialSymbol === gene.officialSymbol && genes[i].taxon === gene.taxon && genes[i].tier === gene.tier) {
+            if ( genes[i].id === gene.id && genes[i].tier === gene.tier) {
                return i;
             }
           }
@@ -113,19 +167,21 @@
       this.phone = data.phone || "";
       this.description = data.description || "";
       this.setTaxonDescriptionsFromArray(data.taxonDescriptions);
-      
-      var genes = [];
+      this.setTermsFromArray(data.terms);
 
-      for (var tier in data.genes) {
-         if (data.genes.hasOwnProperty(tier)) {
-            for (var i=0;i<data.genes[tier].length;i++) {
-               data.genes[tier][i].tier = tier;
-               genes.push( new researcherModel.Gene( data.genes[tier][i] ) );
-            }
+      var genes = [];
+      var calculateGenes = [];
+      for (var i=0;i<data.genes.length;i++) {
+         var g = new researcherModel.Gene( data.genes[i] );
+         if ( data.genes[i].tier === "TIER3" ) {
+            calculateGenes.push( g );                     
+         } else {
+            genes.push( g );
          }
       }
       
       this.genes = genes;
+      this.calculatedGenes = calculateGenes;
       
       var contact;
       
@@ -145,19 +201,29 @@
    
    researcherModel.Gene = function Gene(geneValueObject) {
       this.id = geneValueObject.id || null;
-      this.ncbiGeneId = geneValueObject.ncbiGeneId || null;
+      this.ncbiGeneId = geneValueObject.id || null;
       this.officialName = geneValueObject.officialName || null;
       this.officialSymbol = geneValueObject.officialSymbol || null;
-      this.taxon = geneValueObject.taxon || null;
+      this.taxon = geneValueObject.taxonCommonName || null;
+      this.taxonId = geneValueObject.taxonId || null;
       this.tier = geneValueObject.tier || "TIER2";
-      this.aliases = geneValueObject.aliases || [];
+
+      if ( !geneValueObject.aliases ) {
+         this.aliases = [];
+      } else {
+         if (geneValueObject.aliases instanceof Array) {
+            this.aliases = geneValueObject.aliases;
+         } else {
+            this.aliases = geneValueObject.aliases.split("|");
+         }
+      }
    }
    
    researcherModel.Gene.prototype.equals = function(otherGene) {
       if ( !(otherGene instanceof researcherModel.Gene) ) {
          return false;
       }
-      if (otherGene.officialSymbol === this.officialSymbol && otherGene.taxon === this.taxon) {
+      if (otherGene.id === this.id) {
          return true;
       }
       else {
@@ -167,12 +233,7 @@
    }
    
    researcherModel.Gene.prototype.aliasesToString = function() {
-      arr = [];
-      for (var i=0; i<this.aliases.length; i++) {
-         arr.push( this.aliases[i].alias );
-      }
-      return arr.join( ', ' );
-      
+      return this.aliases.join( ', ' );
    }
    
    researcherModel.Gene.prototype.clone = function() {
@@ -188,14 +249,22 @@
 	      // type : 'GET',
 	      url : "loadResearcher.html",
 	      success : function(response, xhr) {
-
-	         var data = jQuery.parseJSON( response ).data;
 	         
-	         //console.log("Loaded researcher:", data);
+	         var  json = jQuery.parseJSON( response );
 	         
-	         researcherModel.currentResearcher.parseResearcherObject(data);
+	         if (json.success==true) {
+	            
+   	         var data = jQuery.parseJSON( response ).data;
+   	         
+   	         //console.log("Loaded researcher:", data);
+   	         
+   	         researcherModel.currentResearcher.parseResearcherObject(data);
+   	         
+   	         console.log("Loaded researcher:", researcherModel.currentResearcher);
 	         
-	         console.log("Loaded researcher:", researcherModel.currentResearcher);
+	         } else {
+	            console.log("Failed to load researcher:", json.message);
+	         }
 
 	      },
 	      error : function(response, xhr) {
@@ -245,6 +314,26 @@
 	   } );
 	   
 	   return promise;
-	}   
+	}  
+   
+   researcherModel.saveResearcherTermsForTaxon = function(taxId) {
+      if ( !taxId ){
+         return null;
+      }
+      console.log("saving terms: ", researcherModel.currentResearcher.terms[taxId])
+            
+      var promise = $.ajax( {
+         type: "POST",
+         url : "saveResearcherGOTerms.html",
+
+         data : {
+            terms : researcherModel.currentResearcher.termsToJSON(taxId),
+            taxonId: taxId
+         },
+         dataType : "json"
+      } );
+      
+      return promise;
+   } 
    
 }( window.researcherModel = window.researcherModel || {}, jQuery ));

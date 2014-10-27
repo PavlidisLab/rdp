@@ -20,6 +20,7 @@
 package ubc.pavlab.rdp.server.controller;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -27,12 +28,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import gemma.gsec.authentication.UserDetailsImpl;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
@@ -161,6 +165,88 @@ public class RegisterControllerTest extends BaseSpringContextTest {
             fail( e.getMessage() );
         } finally {
             super.runAsAdmin();
+        }
+    }
+
+    @Test
+    public void testLoadAllResearchers() throws Exception {
+        Researcher researcher2 = null;
+        try {
+            int numResearchers = researcherService.loadAll().size();
+            researcher2 = createResearcher( "foobar2", "foobar2@email.com", "dept2" );
+            researcher2.getContact().setFirstName( "firstname2" );
+            researcher2.getContact().setLastName( "lastname2" );
+            researcher2.setOrganization( "organization2" );
+            researcherService.update( researcher2 );
+
+            researcher.getContact().setFirstName( "firstname" );
+            researcher.getContact().setLastName( "lastname" );
+            researcher.setOrganization( "organization" );
+            researcherService.update( researcher );
+            MockHttpServletResponse response = this.mockMvc
+                    .perform( put( "/loadAllResearchers.html" ).contentType( MediaType.APPLICATION_JSON ) )
+                    .andExpect( status().isOk() ).andReturn().getResponse();
+            JSONObject json = new JSONObject( response.getContentAsString() );
+            assertEquals( true, json.getBoolean( "success" ) );
+            JSONArray data = json.getJSONArray( "data" );
+
+            assertEquals( numResearchers + 1, data.length() );
+
+            int conditionBits = 0;
+            for ( int i = 0; i < data.length(); i++ ) {
+                JSONObject res = data.getJSONObject( i );
+                JSONObject cont = res.getJSONObject( "contact" );
+                if ( cont.getString( "email" ).equals( "foobar2@email.com" ) ) {
+                    conditionBits = conditionBits | ( 1 << 0 );
+                    assertEquals( "firstname2", cont.getString( "firstName" ) );
+                    assertEquals( "lastname2", cont.getString( "lastName" ) );
+                    assertEquals( "foobar2", cont.getString( "userName" ) );
+                    assertEquals( "dept2", res.getString( "department" ) );
+                    assertEquals( "organization2", res.getString( "organization" ) );
+                } else if ( cont.getString( "email" ).equals( "foobar@email.com" ) ) {
+                    conditionBits = conditionBits | ( 1 << 1 );
+                    assertEquals( "firstname", cont.getString( "firstName" ) );
+                    assertEquals( "lastname", cont.getString( "lastName" ) );
+                    assertEquals( "foobar", cont.getString( "userName" ) );
+                    assertEquals( "dept", res.getString( "department" ) );
+                    assertEquals( "organization", res.getString( "organization" ) );
+                }
+            }
+
+            // Check if both were found
+            assertEquals( 3, conditionBits );
+
+        } catch ( Exception e ) {
+            fail( e.getMessage() );
+        } finally {
+            researcherService.delete( researcher2 );
+        }
+    }
+
+    @Test
+    public void testDeleteUser() throws Exception {
+        Researcher researcher2 = null;
+        try {
+            researcher2 = createResearcher( "foobar2", "foobar2@email.com", "dept2" );
+            researcherService.update( researcher2 );
+
+            Researcher r = researcherService.findByEmail( "foobar2@email.com" );
+
+            assertNotNull( r );
+
+            this.mockMvc
+                    .perform(
+                            put( "/deleteUser.html" ).contentType( MediaType.APPLICATION_JSON ).param( "userName",
+                                    "foobar2" ) ).andExpect( status().isOk() )
+                    .andExpect( jsonPath( "$.success" ).value( true ) );
+
+            r = researcherService.findByEmail( "foobar2@email.com" );
+
+            assertNull( r );
+
+        } catch ( Exception e ) {
+            fail( e.getMessage() );
+            researcherService.delete( researcher2 );
         }
     }
 }

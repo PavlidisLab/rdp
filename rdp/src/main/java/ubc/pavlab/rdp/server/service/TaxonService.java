@@ -17,44 +17,31 @@
  *
  */
 
-package ubc.pavlab.rdp.server.model;
+package ubc.pavlab.rdp.server.service;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import java.util.Collection;
+
+import org.springframework.security.access.annotation.Secured;
+
+import ubc.pavlab.rdp.server.model.Taxon;
 
 /**
  * TODO Document Me
  * 
- * @author ptan
+ * @author mjacobson
  * @version $Id$
  */
-@Entity
-@Table(name = "GENE_ALIAS")
-public class GeneAlias {
+public interface TaxonService {
 
-    @Id
-    @GeneratedValue
-    @Column(name = "ID")
-    private Long id;
+    @Secured({ "GROUP_USER", "AFTER_ACL_READ" })
+    public Taxon findById( final Long id );
 
-    private String alias;
+    @Secured({ "GROUP_USER", "AFTER_ACL_READ" })
+    public Taxon findByCommonName( final String commonName );
 
-    public GeneAlias() {
-    }
+    @Secured({ "GROUP_ADMIN", "AFTER_ACL_READ" })
+    public Collection<Taxon> loadAll();
 
-    public GeneAlias( String alias ) {
-        this.alias = alias;
-    }
-
-    public String getAlias() {
-        return alias;
-    }
-
-    public void setAlias( String alias ) {
-        this.alias = alias;
-    }
-
+    @Secured({ "IS_AUTHENTICATED_ANONYMOUSLY", "RUN_AS_ADMIN" })
+    public Collection<Long> loadAllIds();
 }

@@ -7,19 +7,19 @@
    var allResearchers;
    var table;
 	
-	populateResearcherTable = function(researchers, specificGene) {
+	populateResearcherTable = function(researchers, tiers) {
 	   table = $("#listResearchersTable").DataTable();
 	    table.clear().draw();
 	    $.each(researchers, function(index, researcher) {
 	        
-	        if ( specificGene ) {
-	           for (var i=0;i<researcher.genes.length;i++) {
-	              if ( ( researcher.genes[i].officialSymbol == specificGene.officialSymbol ) &&
-	                   ( researcher.genes[i].taxon == specificGene.taxon ) ) {
-	                 var specificTier = researcher.genes[i].tier;
-	              }
-
-	           }
+	        if ( tiers ) {
+	           var specificTier = tiers[index];
+//	           for (var i=0;i<researcher.genes.length;i++) {
+//	              if ( researcher.genes[i].equals(specificGene) ) {
+//	                 var specificTier = researcher.genes[i].tier;
+//	              }
+//
+//	           }
 	        }
 	         
 	
@@ -36,10 +36,12 @@
 	    
 	}
 	
-	listResearchers.updateCache = function() {
-	   
+	listResearchers.executeAjax = function(ajax_url, data) {
+	   data = data || {};
       var promise = $.ajax( {
-         url : "updateCache.html",
+         cache : false,
+         url : ajax_url,
+         data : data,
          success : function(response, xhr) {
             response = jQuery.parseJSON(response);
             console.log(response.message);
@@ -50,8 +52,7 @@
       } );
       
       return promise;
-	}
-	
+	}	
 	
 	listResearchers.getResearchers = function() {
 	   utility.hideMessage($("#listResearchersMessage"));
@@ -60,19 +61,18 @@
 	        type : 'GET',
 	        url : "loadAllResearchers.html",
 	        success : function(response, xhr) {
-	            // get this from a controller
-	            // var response = '[{"userName":"testUsername2",
-	            // "email":"testEmail2", "firstName":"testFirstname2",
-	            // "lastName":"testLastname2", "organization":"testOrganization2",
-	            // "department":"testDepartment2" }]';
 	            response = $.parseJSON(response);
+	            if ( response.success != true ) {
+	               console.log("Failed to load all researchers", response);
+	               return;
+	            }
 	            var researchers = [];
-	            var i =0
-	            $.each(response, function(index, json) {
-	               var r = new researcherModel.Researcher();
-	               r.parseResearcherObject( $.parseJSON(json) )
-	               r.index = i;
-	               researchers.push( r );
+	            var i = 0;
+	            $.each(response.data, function(index, r) {
+	               var researcher = new researcherModel.Researcher();
+	               researcher.parseResearcherObject( r )
+	               researcher.index = i;
+	               researchers.push( researcher );
 	               i++;
 	            });
 	            console.log("Loaded All Researchers:",researchers);
@@ -105,22 +105,20 @@
 	       utility.hideMessage( $("#listResearchersMessage") );
 	    }
 	    
-	    researchers = [];
+	    gene = new researcherModel.Gene(gene);
 	    
+	    var researchers = [];
+	    var tiers = [];
 	    for (var i=0;i<allResearchers.length;i++) {
-	       for (var j=0;j<allResearchers[i].genes.length;j++) {
-	          var gene2 = allResearchers[i].genes[j];
-             if ( ( gene.officialSymbol == gene2.officialSymbol ) &&
-                ( gene.taxon == gene2.taxon ) ) {
-                researchers.push(allResearchers[i]);
-                continue;
-                
-             }
+	       var specificGene = allResearchers[i].getGene(gene);
+	       if ( specificGene !== null ) {
+	          researchers.push(allResearchers[i]);
+	          tiers.push( specificGene.tier );
 	       }
 	    }
 	    
 	    $("#listResearchersTable").DataTable().column(7).visible(true);
-	    populateResearcherTable(researchers, gene);
+	    populateResearcherTable(researchers, tiers);
 
 	}
 
@@ -158,8 +156,7 @@
 	              // Closure to make sure that tab always returns the correct researcher
 	              $('#registerTab li[id="tab'+nextTab+'"]').on('show.bs.tab',(function(r) {
 	                 return function() {
-	                 overview.showOverview( r, true, true );
-	                 overview.hideButtons();
+	                 overview.showOverview( r, true, true, false);
 	                 };
 	                 })(allResearchers[index])
 	              );           
@@ -186,7 +183,10 @@ $(document).ready(function() {
         if (jQuery.parseJSON(response).isAdmin == "true") {
          listResearchers.initDataTable();
         	listResearchers.getResearchers();
-        	$("#updateCache").click(listResearchers.updateCache)
+        	$("#updateCache").click(function() {return listResearchers.executeAjax("updateCache.html");})
+        	$("#resetGeneTable").click(function() {return listResearchers.executeAjax("resetGeneTable.html");})
+        	$("#resetGeneAnnotationTable").click(function() {return listResearchers.executeAjax("resetGeneAnnotationTable.html");})
+        	
         	$("#resetResearchersButton").click(listResearchers.getResearchers)
         	$('#registerTab li:first').on('show.bs.tab',function() {
         	   overview.showOverview( researcherModel.currentResearcher );

@@ -28,14 +28,14 @@
 						<label class="col-sm-2 control-label">Organism</label>
 						<div class="col-sm-9">
 							<select id="taxonCommonNameSelect" class="form-control">
-								<option>Human</option>
-								<option>Mouse</option>
-								<option>Rat</option>
-								<option>Yeast</option>
-								<option>Zebrafish</option>
-			                    <option>Fruitfly</option>
-			                    <option>Worm</option>
-			                    <option>E. Coli</option>
+								<option value="9606">Human</option>
+								<option value="10090">Mouse</option>
+								<option value="10116">Rat</option>
+								<option value="559292">Yeast</option>
+								<option value="7955">Zebrafish</option>
+			                    <option value="7227">Fruit Fly</option>
+			                    <option value="6239">Roundworm</option>
+			                    <option value="562">E. Coli</option>
 							</select>
 						</div>
 					</div>

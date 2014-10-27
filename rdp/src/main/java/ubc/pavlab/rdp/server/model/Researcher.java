@@ -17,7 +17,6 @@ package ubc.pavlab.rdp.server.model;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -33,11 +32,15 @@ import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
-import org.json.JSONObject;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import ubc.pavlab.rdp.server.model.GeneAssociation.TierType;
 import ubc.pavlab.rdp.server.model.common.auditAndSecurity.User;
+import ubc.pavlab.rdp.server.service.TaxonService;
 
 @Entity
 @Table(name = "RESEARCHER")
@@ -46,6 +49,12 @@ public class Researcher implements Serializable {
      * 
      */
     private static final long serialVersionUID = 778565921919207933L;
+
+    private static Log log = LogFactory.getLog( Researcher.class );
+
+    @Autowired
+    @Transient
+    TaxonService taxonService;
 
     @Id
     @GeneratedValue
@@ -114,6 +123,10 @@ public class Researcher implements Serializable {
     @JoinColumn(name = "RESEARCHER_ID")
     private Set<TaxonDescription> taxonDescriptions = new HashSet<>();
 
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
+    @JoinColumn(name = "RESEARCHER_ID")
+    private Set<GeneOntologyTerm> goTerms = new HashSet<>();
+
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(name = "RESEARCHER_TAXONS", joinColumns = { @JoinColumn(name = "RESEARCHER_ID") }, inverseJoinColumns = { @JoinColumn(name = "TAXON_ID") })
     private Set<Taxon> taxons = new HashSet<>();
@@ -163,23 +176,6 @@ public class Researcher implements Serializable {
         return "id=" + id + " username=" + contact.getUserName();
     }
 
-    public JSONObject toJSON() {
-        JSONObject jsonObj = new JSONObject();
-        jsonObj.put( "contact", this.contact.toJSON() );
-        jsonObj.put( "department", this.department );
-        jsonObj.put( "description", this.description );
-        jsonObj.put( "id", this.id );
-        jsonObj.put( "organization", this.organization );
-        jsonObj.put( "phone", this.phone );
-        jsonObj.put( "website", this.website );
-        jsonObj.put( "description", this.description );
-
-        jsonObj.put( "taxonDescriptions", this.taxonDescriptions );
-
-        jsonObj.put( "genes", new JSONObject( this.getGenesByTier() ) );
-        return jsonObj;
-    }
-
     public String getPhone() {
         return phone;
     }
@@ -194,6 +190,14 @@ public class Researcher implements Serializable {
 
     public void setWebsite( String website ) {
         this.website = website;
+    }
+
+    public Set<GeneOntologyTerm> getGoTerms() {
+        return goTerms;
+    }
+
+    public void setGoTerms( Set<GeneOntologyTerm> goTerms ) {
+        this.goTerms = goTerms;
     }
 
     public Collection<GeneAssociation> getGeneAssociations() {
@@ -220,14 +224,14 @@ public class Researcher implements Serializable {
         this.geneAssociations = genes;
     }
 
-    public void updateTaxonDescription( String taxon, String description ) {
+    public void updateTaxonDescription( Long taxonId, String description ) {
         for ( TaxonDescription td : this.taxonDescriptions ) {
-            if ( td.getTaxon().equals( taxon ) ) {
+            if ( td.getTaxonId().equals( taxonId ) ) {
                 td.setDescription( description );
                 return;
             }
         }
-        this.taxonDescriptions.add( new TaxonDescription( taxon, description ) );
+        this.taxonDescriptions.add( new TaxonDescription( taxonId, description ) );
     }
 
     public void setPublications( Set<Publication> publications ) {
@@ -242,6 +246,14 @@ public class Researcher implements Serializable {
         return this.geneAssociations.remove( gene );
     }
 
+    public boolean addGOTerm( final GeneOntologyTerm term ) {
+        return this.goTerms.add( term );
+    }
+
+    public boolean removeGOTerm( final GeneOntologyTerm term ) {
+        return this.goTerms.remove( term );
+    }
+
     public boolean addPublication( final Publication publication ) {
         return this.publications.add( publication );
     }
@@ -254,6 +266,42 @@ public class Researcher implements Serializable {
         Collection<Gene> genes = new HashSet<Gene>();
         for ( GeneAssociation g : geneAssociations ) {
             genes.add( g.getGene() );
+        }
+
+        return genes;
+    }
+
+    public Collection<Gene> getGenesByTaxonId( Long taxonId ) {
+        Collection<Gene> genes = new HashSet<Gene>();
+        for ( GeneAssociation ga : geneAssociations ) {
+            Gene g = ga.getGene();
+            if ( g.getTaxonId().equals( taxonId ) ) {
+                genes.add( g );
+            }
+        }
+
+        return genes;
+    }
+
+    public Collection<Gene> getGenesByTaxonIdAndTiers( Long taxonId, Collection<TierType> tiers ) {
+        Collection<Gene> genes = new HashSet<Gene>();
+        for ( GeneAssociation ga : geneAssociations ) {
+            Gene g = ga.getGene();
+            if ( g.getTaxonId().equals( taxonId ) && tiers.contains( ga.getTier() ) ) {
+                genes.add( g );
+            }
+        }
+
+        return genes;
+    }
+
+    public Collection<Gene> getDirectGenesInTaxon( Long taxonId ) {
+        Collection<Gene> genes = new HashSet<Gene>();
+        for ( GeneAssociation ga : geneAssociations ) {
+            Gene g = ga.getGene();
+            if ( g.getTaxonId().equals( taxonId ) && !ga.getTier().equals( TierType.TIER3 ) ) {
+                genes.add( g );
+            }
         }
 
         return genes;
@@ -274,7 +322,7 @@ public class Researcher implements Serializable {
 
     public GeneAssociation getGeneAssociatonFromGene( Gene gene ) {
         for ( GeneAssociation gA : this.geneAssociations ) {
-            if ( gA.getGene().getId() == gene.getId() ) {
+            if ( gA.getGene().getId().equals( gene.getId() ) ) {
                 return gA;
             }
         }
@@ -282,23 +330,4 @@ public class Researcher implements Serializable {
         return null;
     }
 
-    public HashMap<TierType, Collection<Gene>> getGenesByTier() {
-        HashMap<TierType, Collection<Gene>> genesbyTier = new HashMap<TierType, Collection<Gene>>();
-
-        Collection<GeneAssociation> geneAssociations = this.getGeneAssociations();
-
-        for ( GeneAssociation ga : geneAssociations ) {
-            Collection<Gene> genes = genesbyTier.get( ga.getTier() );
-            // never storing null values so this is fine
-            if ( genes != null ) {
-                genes.add( ga.getGene() );
-            } else {
-                genes = new HashSet<Gene>();
-                genes.add( ga.getGene() );
-                genesbyTier.put( ga.getTier(), genes );
-            }
-        }
-
-        return genesbyTier;
-    }
 }

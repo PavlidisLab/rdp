@@ -23,15 +23,16 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.Predicate;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -42,16 +43,21 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import ubc.pavlab.rdp.server.exception.NcbiServiceException;
 import ubc.pavlab.rdp.server.model.Gene;
+import ubc.pavlab.rdp.server.model.GeneAssociation;
 import ubc.pavlab.rdp.server.model.GeneAssociation.TierType;
+import ubc.pavlab.rdp.server.model.GeneOntologyTerm;
 import ubc.pavlab.rdp.server.model.Researcher;
-import ubc.pavlab.rdp.server.model.common.auditAndSecurity.User;
-import ubc.pavlab.rdp.server.ncbi.NcbiQueryService;
 import ubc.pavlab.rdp.server.security.authentication.UserManager;
+import ubc.pavlab.rdp.server.service.GeneAnnotationService;
+import ubc.pavlab.rdp.server.service.GeneCacheService;
+import ubc.pavlab.rdp.server.service.GeneOntologyService;
 import ubc.pavlab.rdp.server.service.GeneService;
 import ubc.pavlab.rdp.server.service.ResearcherService;
+import ubc.pavlab.rdp.server.service.TaxonService;
 import ubc.pavlab.rdp.server.util.JSONUtil;
+import ubc.pavlab.rdp.server.util.Settings;
+import ubic.basecode.ontology.model.OntologyTerm;
 
 /**
  * Handles gene-related requests
@@ -75,66 +81,21 @@ public class GeneController {
     @Autowired
     protected GeneService geneService;
 
+    @Autowired
+    protected GeneAnnotationService geneAnnotationService;
+
+    @Autowired
+    protected GeneOntologyService geneOntologyService;
+
+    @Autowired
+    protected TaxonService taxonService;
+
     /*
      * @Autowired protected BioMartQueryService biomartService;
      */
 
     @Autowired
-    protected NcbiQueryService ncbiQueryService;
-
-    /**
-     * Returns the list of genes for the given Researcher and Model Organism.
-     * 
-     * @param request
-     * @param response
-     */
-    @Deprecated
-    @RequestMapping("/loadResearcherGenes.html")
-    public void loadResearcherGenes( HttpServletRequest request, HttpServletResponse response ) {
-        JSONUtil jsonUtil = new JSONUtil( request, response );
-        String jsonText = "";
-
-        String username = userManager.getCurrentUsername();
-        final String taxonCommonName = request.getParameter( "taxonCommonName" );
-
-        Researcher researcher = researcherService.findByUserName( username );
-
-        try {
-
-            if ( researcher == null ) {
-                // This shouldn't happen.
-                log.info( "Could not find researcher associated with account: " + username + ", creating one" );
-                researcher = researcherService.create( new Researcher() );
-                User contact = ( User ) userManager.getCurrentUser();
-                researcher.setContact( contact );
-                researcherService.update( researcher );
-
-            }
-
-            Collection<Gene> genes = researcher.getGenes();
-            if ( !taxonCommonName.equals( "All" ) ) {
-                CollectionUtils.filter( genes, new Predicate() {
-                    @Override
-                    public boolean evaluate( Object input ) {
-                        return ( ( Gene ) input ).getTaxon().equals( taxonCommonName );
-                    }
-                } );
-            }
-
-            jsonText = "{\"success\":true,\"data\":" + ( new JSONArray( genes ) ).toString() + "}";
-            log.info( "Loaded " + genes.size() + " genes" );
-
-        } catch ( Exception e ) {
-            jsonText = "{\"success\":false,\"message\":\"" + e.getLocalizedMessage() + "\"}";
-        } finally {
-
-            try {
-                jsonUtil.writeToResponse( jsonText );
-            } catch ( IOException e ) {
-                e.printStackTrace();
-            }
-        }
-    }
+    protected GeneCacheService geneCacheService;
 
     /**
      * AJAX entry point. Loads the Researcher who's currently logged in.
@@ -142,6 +103,7 @@ public class GeneController {
      * @param request
      * @param response
      */
+    @Deprecated
     @RequestMapping("/findResearchersByGene.html")
     public void findResearchersByGene( HttpServletRequest request, HttpServletResponse response ) throws IOException {
 
@@ -164,7 +126,7 @@ public class GeneController {
 
             Set<String> researchersJson = new HashSet<String>();
             for ( Researcher r : researchers ) {
-                researchersJson.add( r.toJSON().toString() );
+                researchersJson.add( researcherService.toJSON( r ).toString() );
             }
 
             JSONArray array = new JSONArray( researchersJson );
@@ -187,6 +149,9 @@ public class GeneController {
 
     }
 
+    /*
+     * Used to save genes selected by researcher in the front-end table
+     */
     @RequestMapping("/saveResearcherGenes.html")
     public void saveResearcherGenes( HttpServletRequest request, HttpServletResponse response ) throws IOException {
 
@@ -194,9 +159,7 @@ public class GeneController {
         JSONUtil jsonUtil = new JSONUtil( request, response );
 
         String username = userManager.getCurrentUsername();
-        // String genesJSON = request.getParameter( "genes" ); //
-        // {"ensemblId":"ENSG00000105393","officialSymbol":"BABAM1","officialName":"BRISC and BRCA1 A complex member 1","label":"BABAM1","geneBioType":"protein_coding","key":"BABAM1:human","taxon":"human","genomicRange":{"baseStart":17378159,"baseEnd":17392058,"label":"19:17378159-17392058","htmlLabel":"19:17378159-17392058","bin":65910,"chromosome":"19","tooltip":"19:17378159-17392058"},"text":"<b>BABAM1</b> BRISC and BRCA1 A complex member 1"}
-        String taxonCommonName = request.getParameter( "taxonCommonName" );
+        // Long taxonId = Long.parseLong( request.getParameter( "taxonId" ), 10 );
         String[] genesJSON = request.getParameterValues( "genes[]" );
         String taxonDescriptions = request.getParameter( "taxonDescriptions" );
 
@@ -212,22 +175,53 @@ public class GeneController {
             JSONObject jsonDescriptionSet = new JSONObject( taxonDescriptions );
 
             for ( Object key : jsonDescriptionSet.keySet() ) {
-                String taxon = ( String ) key; //
+                String taxon = ( String ) key;
                 String td = jsonDescriptionSet.get( taxon ).toString();
-                researcher.updateTaxonDescription( taxon, td );
+                researcher.updateTaxonDescription( Long.parseLong( taxon, 10 ), td );
             }
 
             // Update Genes
-            researcherService.updateGenes( researcher, geneService.deserializeGenes( genesJSON ) ); // This updates the
-                                                                                                    // researcher
-                                                                                                    // persistence for
-                                                                                                    // both
+            researcherService.updateGenes( researcher, geneService.quickDeserializeGenes( genesJSON ) );
 
             JSONObject json = new JSONObject();
             json.put( "success", true );
             json.put( "message", "Changes saved" );
             jsonText = json.toString();
 
+        } catch ( Exception e ) {
+            log.error( e.getLocalizedMessage(), e );
+            JSONObject json = new JSONObject();
+            json.put( "success", false );
+            json.put( "message", e.getLocalizedMessage() );
+            jsonText = json.toString();
+            log.info( jsonText );
+        } finally {
+            jsonUtil.writeToResponse( jsonText );
+        }
+
+    }
+
+    @RequestMapping("/loadGenes.html")
+    public void loadGenes( HttpServletRequest request, HttpServletResponse response ) throws IOException {
+        JSONUtil jsonUtil = new JSONUtil( request, response );
+
+        String jsonText = null;
+        try {
+            String username = userManager.getCurrentUsername();
+
+            Researcher researcher = researcherService.findByUserName( username );
+
+            Collection<GeneAssociation> geneAssociations = researcher.getGeneAssociations();
+
+            JSONArray jsonArray = geneService.toJSON( geneAssociations );
+
+            JSONObject json = new JSONObject();
+            json.put( "success", true );
+            json.put( "message", "Genes Loaded" );
+            json.put( "genes", jsonArray );
+            json.put( "size", jsonArray.length() );
+            jsonText = json.toString();
+            log.info( jsonText );
         } catch ( Exception e ) {
             log.error( e.getLocalizedMessage(), e );
             JSONObject json = new JSONObject();
@@ -253,8 +247,9 @@ public class GeneController {
         JSONUtil jsonUtil = new JSONUtil( request, response );
         String jsonText = null;
         try {
-            ncbiQueryService.clearCache();
-            int cacheSize = ncbiQueryService.updateCache();
+            log.info( "Updating Cache" );
+            geneCacheService.clearCache();
+            long cacheSize = geneCacheService.updateCache();
 
             JSONObject json = new JSONObject();
             json.append( "success", true );
@@ -288,7 +283,7 @@ public class GeneController {
         String symbols = request.getParameter( "symbols" );
         Collection<String> querySymbols = new ArrayList<String>(
                 Arrays.asList( symbols.toUpperCase().split( delimiter ) ) );
-        String taxon = request.getParameter( "taxon" );
+        Long taxonId = Long.parseLong( request.getParameter( "taxonId" ), 10 );
 
         Collection<String> resultSymbols = new ArrayList<>();
 
@@ -303,7 +298,7 @@ public class GeneController {
 
         try {
             // Collection<Gene> results = biomartService.fetchGenesByGeneSymbols( querySymbols, taxon );
-            Collection<Gene> results = ncbiQueryService.fetchGenesByGeneSymbolsAndTaxon( querySymbols, taxon );
+            Collection<Gene> results = geneCacheService.fetchBySymbolsAndTaxon( querySymbols, taxonId );
             for ( Gene gene : results ) {
                 resultSymbols.add( gene.getOfficialSymbol().toUpperCase() );
             }
@@ -321,7 +316,7 @@ public class GeneController {
                 json.append( "message", "All " + results.size() + " symbols were found." );
             }
             jsonText = json.toString();
-        } catch ( NcbiServiceException e ) {
+        } catch ( Exception e ) {
             log.error( e.getMessage(), e );
             jsonText = "{\"success\":false,\"message\":" + e.getMessage() + "\"}";
         }
@@ -338,14 +333,23 @@ public class GeneController {
 
         String query = request.getParameter( "query" );
 
-        // FIXME Handle other taxons
-        String taxon = request.getParameter( "taxon" );
+        // Strips non-alphanumeric characters to prevent regex
+        query = query.replaceAll( "[^A-Za-z0-9]", "" );
+
+        if ( query.length() == 0 ) {
+            // Returning illegal json so the select2 fails
+            jsonText = "Illegal query";
+            jsonUtil.writeToResponse( jsonText );
+            return;
+        }
+
+        Long taxonId = Long.parseLong( request.getParameter( "taxonId" ), 10 );
 
         try {
             // Collection<Gene> results = biomartService.findGenes( query, taxon );
-            Collection<Gene> results = ncbiQueryService.findGenes( query, taxon );
+            Collection<Gene> results = geneCacheService.fetchByQuery( query, taxonId );
             jsonText = "{\"success\":true,\"data\":" + ( new JSONArray( results ) ).toString() + "}";
-        } catch ( NcbiServiceException e ) {
+        } catch ( Exception e ) {
             log.error( e.getMessage(), e );
             jsonText = "{\"success\":false,\"message\":" + e.getMessage() + "\"}";
         }
@@ -354,4 +358,280 @@ public class GeneController {
         return;
 
     }
+
+    @RequestMapping("/resetGeneTable.html")
+    public void resetGeneTable( HttpServletRequest request, HttpServletResponse response ) throws IOException {
+
+        JSONUtil jsonUtil = new JSONUtil( request, response );
+
+        String jsonText = null;
+        String filePath = Settings.getString( "rdp.ftp.genePath" );
+        log.info( "Resetting GENE table from path: " + filePath );
+        try {
+            geneService.truncateGeneTable();
+            log.info( "GENE table truncated" );
+            geneService.updateGeneTable( filePath );
+            log.info( "GENE table updated." );
+            JSONObject json = new JSONObject();
+            json.put( "success", true );
+            json.put( "message", "GENE table reset." );
+            jsonText = json.toString();
+        } catch ( Exception e ) {
+            log.error( e.getLocalizedMessage(), e );
+            JSONObject json = new JSONObject();
+            json.put( "success", false );
+            json.put( "message", "An error occurred!" );
+            json.put( "error", e.getLocalizedMessage() );
+            jsonText = json.toString();
+            log.info( jsonText );
+        } finally {
+            jsonUtil.writeToResponse( jsonText );
+        }
+    }
+
+    @RequestMapping("/resetGeneAnnotationTable.html")
+    public void resetGeneAnnotationTable( HttpServletRequest request, HttpServletResponse response ) throws IOException {
+
+        JSONUtil jsonUtil = new JSONUtil( request, response );
+
+        String jsonText = null;
+        String filePath = Settings.getString( "rdp.ftp.geneAnnotationPath" );
+        log.info( "Resetting GENE_ANNOTATION table from path: " + filePath );
+        try {
+            geneAnnotationService.truncateGeneAnnotationTable();
+            log.info( "GENE_ANNOTATION table truncated" );
+            geneAnnotationService.updateGeneAnnotationTable( filePath );
+            log.info( "GENE_ANNOTATION table updated." );
+            JSONObject json = new JSONObject();
+            json.put( "success", true );
+            json.put( "message", "GENE_ANNOTATION table reset." );
+            jsonText = json.toString();
+        } catch ( Exception e ) {
+            log.error( e.getLocalizedMessage(), e );
+            JSONObject json = new JSONObject();
+            json.put( "success", false );
+            json.put( "message", "An error occurred!" );
+            json.put( "error", e.getLocalizedMessage() );
+            jsonText = json.toString();
+            log.info( jsonText );
+        } finally {
+            jsonUtil.writeToResponse( jsonText );
+        }
+    }
+
+    @RequestMapping("/getRelatedTerms.html")
+    public void getRelatedTerms( HttpServletRequest request, HttpServletResponse response ) throws IOException {
+        JSONUtil jsonUtil = new JSONUtil( request, response );
+
+        String jsonText = null;
+        try {
+            String username = userManager.getCurrentUsername();
+
+            Researcher researcher = researcherService.findByUserName( username );
+
+            String minimumFrequency = request.getParameter( "minimumFrequency" );
+            String minimumTermSize = request.getParameter( "minimumTermSize" );
+            String maximumTermSize = request.getParameter( "maximumTermSize" );
+            Long taxonId = Long.parseLong( request.getParameter( "taxonId" ), 10 );
+
+            Collection<Gene> genes = researcher.getDirectGenesInTaxon( taxonId );
+
+            int minFreq = 2;
+            if ( minimumFrequency != null ) {
+                minFreq = Integer.parseInt( minimumFrequency );
+            }
+
+            int maxTerm = 100;
+            if ( maximumTermSize != null ) {
+                maxTerm = Integer.parseInt( maximumTermSize );
+            }
+
+            int minTerm = 10;
+            if ( minimumTermSize != null ) {
+                minTerm = Integer.parseInt( minimumTermSize );
+            }
+
+            log.debug( "Loading GO Terms for " + username );
+            Map<OntologyTerm, Long> goTermsResult = geneOntologyService.calculateGoTermFrequency( genes, taxonId,
+                    minFreq, minTerm, maxTerm );
+            List<GeneOntologyTerm> goTerms = new ArrayList<GeneOntologyTerm>();
+            for ( OntologyTerm term : goTermsResult.keySet() ) {
+                GeneOntologyTerm goTerm = new GeneOntologyTerm( term );
+                goTerm.setFrequency( goTermsResult.get( term ) );
+                goTerm.setSize( geneOntologyService.getGeneSizeInTaxon( goTerm.getGeneOntologyId(), taxonId ) );
+                goTerm.setDefinition( geneOntologyService.getTermDefinition( term ) );
+                goTerm.setAspect( geneOntologyService.getTermAspect( goTerm.getGeneOntologyId() ) );
+                goTerms.add( goTerm );
+            }
+
+            JSONObject json = new JSONObject();
+            json.put( "success", true );
+            json.put( "message", goTerms.size() + " Terms Loaded" );
+            json.put( "terms", geneOntologyService.toJSON( goTerms ) );
+            jsonText = json.toString();
+            log.info( jsonText );
+        } catch ( Exception e ) {
+            log.error( e.getLocalizedMessage(), e );
+            JSONObject json = new JSONObject();
+            json.put( "success", false );
+            json.put( "message", e.getLocalizedMessage() );
+            jsonText = json.toString();
+            log.info( jsonText );
+        } finally {
+            jsonUtil.writeToResponse( jsonText );
+        }
+    }
+
+    @RequestMapping("/searchGO.html")
+    public void searchGO( HttpServletRequest request, HttpServletResponse response ) throws IOException {
+        JSONUtil jsonUtil = new JSONUtil( request, response );
+
+        String jsonText = null;
+        String query = request.getParameter( "query" );
+
+        // Strips non-alphanumeric characters to prevent regex
+        // query = query.replaceAll( "[^A-Za-z0-9]", "" );
+
+        if ( query.length() == 0 ) {
+            // Returning illegal json so the select2 fails
+            jsonText = "Illegal query";
+            jsonUtil.writeToResponse( jsonText );
+            return;
+        }
+
+        try {
+            // Collection<Gene> results = biomartService.findGenes( query, taxon );
+            List<GeneOntologyTerm> results = new ArrayList( geneOntologyService.fetchByQuery( query ) );
+
+            // List<GeneOntologyTerm> goTerms = new ArrayList<GeneOntologyTerm>();
+            for ( GeneOntologyTerm term : results ) {
+                // GeneOntologyTerm goTerm = new GeneOntologyTerm( term );
+                term.setFrequency( 0L );
+                // term.setSize( geneOntologyService.getGeneSize( term.getGeneOntologyId() ) );
+                // goTerm.setDefinition( geneOntologyService.getTermDefinition( term ) );
+                // goTerms.add( goTerm );
+            }
+
+            // Only return max 100 hits
+            try {
+                results = results.subList( 0, 100 );
+            } catch ( IndexOutOfBoundsException e ) {
+                // ignore
+            }
+
+            jsonText = "{\"success\":true,\"data\":" + ( geneOntologyService.toJSON( results ) ).toString() + "}";
+        } catch ( Exception e ) {
+            log.error( e.getMessage(), e );
+            jsonText = "{\"success\":false,\"message\":" + e.getMessage() + "\"}";
+        }
+
+        jsonUtil.writeToResponse( jsonText );
+        return;
+    }
+
+    /*
+     * Used to save GO Terms selected by researcher in the front-end
+     */
+    @RequestMapping("/saveResearcherGOTerms.html")
+    public void saveResearcherGOTerms( HttpServletRequest request, HttpServletResponse response ) throws IOException {
+
+        String jsonText = null;
+        JSONUtil jsonUtil = new JSONUtil( request, response );
+
+        String username = userManager.getCurrentUsername();
+        Long taxonId = Long.parseLong( request.getParameter( "taxonId" ), 10 );
+        String[] GOJSON = request.getParameterValues( "terms[]" );
+
+        if ( GOJSON == null ) {
+            log.info( username + ": No terms to save" );
+            GOJSON = new String[] {};
+        }
+
+        try {
+            Researcher researcher = researcherService.findByUserName( username );
+
+            // Deserialize GO Terms
+            Collection<GeneOntologyTerm> goTerms = geneOntologyService.deserializeGOTerms( GOJSON );
+
+            Collection<Gene> genes = researcher.getDirectGenesInTaxon( taxonId );
+
+            // Add taxonId to terms and find sizes
+            for ( GeneOntologyTerm term : goTerms ) {
+                term.setTaxonId( taxonId );
+                term.setSize( geneOntologyService.getGeneSizeInTaxon( term.getGeneOntologyId(), taxonId ) );
+                term.setFrequency( geneOntologyService.computeOverlapFrequency( term.getGeneOntologyId(), genes ) );
+                term.setAspect( geneOntologyService.getTermAspect( term.getGeneOntologyId() ) );
+            }
+
+            // Update GO Terms for this taxon
+            researcherService.updateGOTermsForTaxon( researcher, goTerms, taxonId );
+
+            HashMap<Gene, TierType> calculatedGenes = new HashMap<Gene, TierType>();
+
+            for ( Gene g : geneOntologyService.getRelatedGenes( goTerms, taxonId ) ) {
+                calculatedGenes.put( g, TierType.TIER3 );
+            }
+
+            researcherService.removeGenesByTierAndTaxon( researcher, TierType.TIER3, taxonId );
+            researcherService.addGenes( researcher, calculatedGenes );
+
+            JSONObject json = new JSONObject();
+            json.put( "success", true );
+            json.put( "message", "Changes saved" );
+            jsonText = json.toString();
+
+        } catch ( Exception e ) {
+            log.error( e.getLocalizedMessage(), e );
+            JSONObject json = new JSONObject();
+            json.put( "success", false );
+            json.put( "message", e.getLocalizedMessage() );
+            jsonText = json.toString();
+            log.info( jsonText );
+        } finally {
+            jsonUtil.writeToResponse( jsonText );
+        }
+
+    }
+
+    /*
+     * Used to calculate GO Term size on the fly
+     */
+    @RequestMapping("/getGOTermStats.html")
+    public void getGOTermStats( HttpServletRequest request, HttpServletResponse response ) throws IOException {
+
+        String jsonText = null;
+        JSONUtil jsonUtil = new JSONUtil( request, response );
+
+        String geneOntologyId = request.getParameter( "geneOntologyId" );
+        Long taxonId = Long.parseLong( request.getParameter( "taxonId" ), 10 );
+        try {
+            String username = userManager.getCurrentUsername();
+
+            Researcher researcher = researcherService.findByUserName( username );
+            // Deserialize GO Terms
+            Long size = geneOntologyService.getGeneSizeInTaxon( geneOntologyId, taxonId );
+
+            Collection<Gene> genes = researcher.getDirectGenesInTaxon( taxonId );
+            Long frequency = geneOntologyService.computeOverlapFrequency( geneOntologyId, genes );
+
+            JSONObject json = new JSONObject();
+            json.put( "success", true );
+            json.put( "message", "Stats calculated" );
+            json.put( "geneSize", size );
+            json.put( "frequency", frequency );
+            jsonText = json.toString();
+
+        } catch ( Exception e ) {
+            log.error( e.getLocalizedMessage(), e );
+            JSONObject json = new JSONObject();
+            json.put( "success", false );
+            json.put( "message", e.getLocalizedMessage() );
+            jsonText = json.toString();
+            log.info( jsonText );
+        } finally {
+            jsonUtil.writeToResponse( jsonText );
+        }
+
+    }
+
 }
