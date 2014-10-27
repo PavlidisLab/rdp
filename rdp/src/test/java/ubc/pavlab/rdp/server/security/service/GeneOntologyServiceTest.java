@@ -27,6 +27,7 @@ import java.util.Collection;
 import java.util.zip.GZIPInputStream;
 
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import ubc.pavlab.rdp.server.service.GeneOntologyServiceImpl;
@@ -38,6 +39,7 @@ import ubic.basecode.ontology.model.OntologyTerm;
  * @author mjacobson
  * @version $Id$
  */
+@Ignore
 @SuppressWarnings("static-access")
 public class GeneOntologyServiceTest {
     static GeneOntologyServiceImpl gos;
