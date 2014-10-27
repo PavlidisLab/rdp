@@ -36,6 +36,12 @@ public class GeneAssociationID implements java.io.Serializable {
      */
     private static final long serialVersionUID = 7241936203064995188L;
 
+    @ManyToOne
+    private Researcher researcher;
+
+    @ManyToOne
+    private Gene gene;
+
     /*
      * (non-Javadoc)
      * 
@@ -69,12 +75,6 @@ public class GeneAssociationID implements java.io.Serializable {
         } else if ( !researcher.equals( other.researcher ) ) return false;
         return true;
     }
-
-    @ManyToOne
-    private Researcher researcher;
-
-    @ManyToOne
-    private Gene gene;
 
     public Researcher getResearcher() {
         return researcher;

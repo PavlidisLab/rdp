@@ -92,6 +92,18 @@ public class ResearcherDaoImpl extends DaoBaseImpl<Researcher> implements Resear
     }
 
     @Override
+    public Long countResearchers() {
+        String hql = "select count(*) FROM Researcher";
+        return ( Long ) this.getHibernateTemplate().find( hql ).get( 0 );
+    }
+
+    @Override
+    public Long countResearchersWithGenes() {
+        String hql = "select count(distinct RESEARCHER_ID) FROM GeneAssociation";
+        return ( Long ) this.getHibernateTemplate().find( hql ).get( 0 );
+    }
+
+    @Override
     public Researcher thaw( Researcher researcher ) {
         if ( researcher == null ) {
             return null;

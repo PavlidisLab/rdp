@@ -39,4 +39,8 @@ public interface ResearcherDao extends DaoBase<Researcher> {
     public Collection<Researcher> findByGene( final Gene gene );
 
     public Researcher thaw( Researcher researcher );
+
+    public Long countResearchersWithGenes();
+
+    public Long countResearchers();
 }

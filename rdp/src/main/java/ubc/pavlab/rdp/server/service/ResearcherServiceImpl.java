@@ -23,10 +23,13 @@ import gemma.gsec.model.UserGroup;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map.Entry;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,6 +41,7 @@ import ubc.pavlab.rdp.server.dao.UserGroupDao;
 import ubc.pavlab.rdp.server.model.Gene;
 import ubc.pavlab.rdp.server.model.GeneAssociation;
 import ubc.pavlab.rdp.server.model.GeneAssociation.TierType;
+import ubc.pavlab.rdp.server.model.GeneOntologyTerm;
 import ubc.pavlab.rdp.server.model.Researcher;
 import ubc.pavlab.rdp.server.model.common.auditAndSecurity.User;
 
@@ -63,6 +67,9 @@ public class ResearcherServiceImpl implements ResearcherService {
 
     @Autowired
     GeneService geneService;
+
+    @Autowired
+    GeneOntologyService geneOntologyService;
 
     @Autowired
     GeneDao geneDao;
@@ -139,19 +146,21 @@ public class ResearcherServiceImpl implements ResearcherService {
             Gene gene = entry.getKey();
             TierType tier = entry.getValue();
             if ( gene.getId() == null ) {
-                geneDao.create( gene );
-            }
-            if ( researcher.getGeneAssociatonFromGene( gene ) == null ) {
-                // gene not already added to researcher
-                modified |= researcher.addGeneAssociation( new GeneAssociation( gene, researcher, tier ) );
+                log.warn( "Attempting to add gene without ID to researcher: " + researcher );
+                // geneDao.create( gene );
+            } else {
+                if ( researcher.getGeneAssociatonFromGene( gene ) == null ) {
+                    // gene not already added to researcher
+                    modified |= researcher.addGeneAssociation( new GeneAssociation( gene, researcher, tier ) );
+                }
             }
         }
 
         if ( modified ) {
             researcherDao.update( researcher );
+            log.info( "Added " + ( researcher.getGenes().size() - numGenesBefore ) + " genes to Researcher "
+                    + researcher );
         }
-
-        log.info( "Added " + ( researcher.getGenes().size() - numGenesBefore ) + " genes to Researcher " + researcher );
 
         return modified;
     }
@@ -170,7 +179,7 @@ public class ResearcherServiceImpl implements ResearcherService {
                 modified = researcher.removeGeneAssociation( geneAssociation );
             } else {
                 // FIXME has to search for the GeneAssocation?
-                Gene matchedGene = geneDao.findByOfficialSymbolAndTaxon( gene.getOfficialSymbol(), gene.getTaxon() );
+                Gene matchedGene = geneDao.findById( gene.getId() );
                 if ( matchedGene != null ) {
                     modified = researcher.removeGeneAssociation( geneAssociation );
                 } else {
@@ -189,14 +198,120 @@ public class ResearcherServiceImpl implements ResearcherService {
 
     @Override
     public boolean updateGenes( Researcher researcher, HashMap<Gene, TierType> genes ) {
-        researcher.getGeneAssociations().clear();
+        Collection<TierType> tiersToRemove = new HashSet<TierType>();
+        tiersToRemove.add( TierType.TIER1 );
+        tiersToRemove.add( TierType.TIER2 );
+        this.removeGenesByTiers( researcher, tiersToRemove );
+        // researcher.getGeneAssociations().clear();
         boolean added = addGenes( researcher, genes );
         researcherDao.update( researcher );
         return added;
     }
 
     @Override
+    public boolean removeGenesByTierAndTaxon( Researcher researcher, TierType tier, Long taxonId ) {
+        boolean modified = false;
+        for ( Iterator<GeneAssociation> i = researcher.getGeneAssociations().iterator(); i.hasNext(); ) {
+            GeneAssociation ga = i.next();
+            if ( ga.getTier().equals( tier ) && ga.getGene().getTaxonId().equals( taxonId ) ) {
+                i.remove();
+                modified = true;
+            }
+        }
+
+        if ( modified ) {
+            researcherDao.update( researcher );
+        }
+
+        return modified;
+    }
+
+    @Override
+    public boolean removeGenesByTiers( Researcher researcher, Collection<TierType> tiers ) {
+        boolean modified = false;
+        for ( Iterator<GeneAssociation> i = researcher.getGeneAssociations().iterator(); i.hasNext(); ) {
+            GeneAssociation ga = i.next();
+            if ( tiers.contains( ga.getTier() ) ) {
+                i.remove();
+                modified = true;
+            }
+        }
+
+        if ( modified ) {
+            researcherDao.update( researcher );
+        }
+
+        return modified;
+    }
+
+    @Override
+    public boolean updateGOTermsForTaxon( Researcher researcher, Collection<GeneOntologyTerm> goTerms, Long taxonId ) {
+        boolean modified = false;
+        modified = clearGOTermsForTaxon( researcher, taxonId );
+        modified |= AddGOTerms( researcher, goTerms );
+
+        if ( modified ) {
+            researcherDao.update( researcher );
+        }
+
+        return modified;
+    }
+
+    @Override
+    public boolean clearGOTermsForTaxon( Researcher researcher, Long taxonId ) {
+        boolean modified = false;
+        for ( Iterator<GeneOntologyTerm> i = researcher.getGoTerms().iterator(); i.hasNext(); ) {
+            GeneOntologyTerm term = i.next();
+            if ( term.getTaxonId().equals( taxonId ) ) {
+                i.remove();
+                modified = true;
+            }
+        }
+        return modified;
+    }
+
+    @Override
+    public boolean AddGOTerms( Researcher researcher, Collection<GeneOntologyTerm> goTerms ) {
+        boolean modified = false;
+        for ( GeneOntologyTerm term : goTerms ) {
+            modified |= researcher.addGOTerm( term );
+        }
+        return modified;
+    }
+
+    @Override
     public Collection<Researcher> findByGene( Gene gene ) {
         return researcherDao.findByGene( gene );
     }
+
+    @Override
+    public Long countResearchers() {
+        return researcherDao.countResearchers();
+    }
+
+    @Override
+    public Long countResearchersWithGenes() {
+        return researcherDao.countResearchersWithGenes();
+    }
+
+    @Override
+    public JSONObject toJSON( Researcher r ) {
+        JSONObject jsonObj = new JSONObject();
+        jsonObj.put( "contact", r.getContact().toJSON() );
+        jsonObj.put( "department", r.getDepartment() );
+        jsonObj.put( "description", r.getDescription() );
+        jsonObj.put( "organization", r.getOrganization() );
+        jsonObj.put( "phone", r.getPhone() );
+        jsonObj.put( "website", r.getWebsite() );
+        jsonObj.put( "description", r.getDescription() );
+
+        jsonObj.put( "taxonDescriptions", r.getTaxonDescriptions() );
+
+        jsonObj.put( "genes", geneService.toJSON( r.getGeneAssociations() ) );
+
+        jsonObj.put( "terms", geneOntologyService.toJSON( r.getGoTerms() ) );
+
+        return jsonObj;
+    }
+
 }

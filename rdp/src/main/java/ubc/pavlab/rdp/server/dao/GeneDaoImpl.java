@@ -19,7 +19,6 @@
 
 package ubc.pavlab.rdp.server.dao;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -52,52 +51,128 @@ public class GeneDaoImpl extends DaoBaseImpl<Gene> implements GeneDao {
         super.setSessionFactory( sessionFactory );
     }
 
-    /**
-     * @see GeneDao#findByOfficalSymbol(String, String)
-     */
-    @Override
-    @SuppressWarnings("unchecked")
-    public Collection<Gene> findByOfficialSymbol( final String queryString, final String officialSymbol ) {
-        java.util.List<String> argNames = new ArrayList<String>();
-        java.util.List<Object> args = new ArrayList<Object>();
-        args.add( officialSymbol );
-        argNames.add( "officialSymbol" );
-        java.util.List<?> results = this.getHibernateTemplate().findByNamedParam( queryString,
-                argNames.toArray( new String[argNames.size()] ), args.toArray() );
-        return ( Collection<Gene> ) results;
-    }
-
     /*
      * (non-Javadoc)
      * 
      * @see ubc.pavlab.rdp.server.dao.GeneDao#findBySmbol(java.lang.String)
      */
     @Override
+    @SuppressWarnings("unchecked")
     public Collection<Gene> findByOfficialSymbol( final String officialSymbol ) {
-        return this.findByOfficialSymbol( "from Gene g where g.officialSymbol=:officialSymbol order by g.officialName",
-                officialSymbol );
+        final String queryString = "from Gene g where g.officialSymbol=:officialSymbol";
+        List<?> results = getHibernateTemplate().findByNamedParam( queryString, new String[] { "officialSymbol" },
+                new Object[] { officialSymbol } );
+        if ( results.size() == 0 ) {
+            return null;
+        } else {
+            return ( Collection<Gene> ) results;
+        }
     }
 
     /**
      * @see GeneDao#findByOfficialSymbol(String, Taxon)
      */
     @Override
-    public Gene findByOfficialSymbolAndTaxon( final String symbol, final String taxon ) {
-        return this.handleFindByOfficialSymbol( symbol, taxon );
+    public Gene findByOfficialSymbolAndTaxon( final String symbol, final Long taxonId ) {
+        return this.handleFindByOfficialSymbol( symbol, taxonId );
 
     }
 
-    protected Gene handleFindByOfficialSymbol( String symbol, String taxon ) {
+    @Override
+    @SuppressWarnings("unchecked")
+    public Collection<Gene> findByTaxonId( Long taxonId ) {
+        final String queryString = "from Gene g where g.taxonId=:taxonId";
+        List<?> results = getHibernateTemplate().findByNamedParam( queryString, new String[] { "taxonId" },
+                new Object[] { taxonId } );
+        if ( results.size() == 0 ) {
+            return null;
+        } else {
+            return ( Collection<Gene> ) results;
+        }
+
+    }
+
+    protected Gene handleFindByOfficialSymbol( String symbol, Long taxonId ) {
         // final String queryString =
         // "select distinct g from GeneImpl as g inner join g.taxon t where g.officialSymbol = :symbol and t= :taxon";
-        final String queryString = "from Gene g where g.officialSymbol=:officialSymbol and g.taxon=:taxon";
+        final String queryString = "from Gene g where g.officialSymbol=:officialSymbol and g.taxonId=:taxonId";
         List<?> results = getHibernateTemplate().findByNamedParam( queryString,
-                new String[] { "officialSymbol", "taxon" }, new Object[] { symbol, taxon } );
+                new String[] { "officialSymbol", "taxonId" }, new Object[] { symbol, taxonId } );
         if ( results.size() == 0 ) {
             return null;
         } else if ( results.size() > 1 ) {
-            log.warn( "Multiple genes match " + symbol + " in " + taxon + ", return first hit" );
+            log.warn( "Multiple genes match " + symbol + " in " + taxonId + ", return first hit" );
         }
         return ( Gene ) results.iterator().next();
     }
+
+    @Override
+    public Gene findById( final Long id ) {
+        final String queryString = "from Gene g where g.id=:id";
+        List<?> results = getHibernateTemplate().findByNamedParam( queryString, new String[] { "id" },
+                new Object[] { id } );
+        if ( results.size() == 0 ) {
+            return null;
+        } else if ( results.size() > 1 ) {
+            log.warn( "Multiple genes match " + id + ", return first hit" );
+        }
+        return ( Gene ) results.iterator().next();
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public Collection<Gene> findByMultipleIds( final Collection<Long> ids ) {
+        final String queryString = "from Gene g where g.id in (:ids)";
+        List<?> results = getHibernateTemplate().findByNamedParam( queryString, new String[] { "ids" },
+                new Object[] { ids } );
+        return ( Collection<Gene> ) results;
+    }
+
+    @Override
+    public void updateGeneTable( String filePath ) {
+        // This query needs to have up to date field names in our table and orderings from the data file
+        getHibernateTemplate()
+                .getSessionFactory()
+                .getCurrentSession()
+                .createSQLQuery(
+                        "LOAD DATA LOCAL INFILE :fileName INTO TABLE GENE IGNORE 1 LINES "
+                                + "(tax_id, GeneID, Symbol, @dummy, @Synonyms, @dummy, "
+                                + "@dummy, @dummy, @description, @dummy, @dummy, @dummy, "
+                                + "@dummy, @dummy, Modification_date) "
+                                + "SET Synonyms = IF(@Synonyms='-', NULL, @Synonyms), "
+                                + "description = IF(@description='-', NULL, @description);" )
+                .setParameter( "fileName", filePath ).executeUpdate();
+
+    }
+
+    @Override
+    public void truncateGeneTable() {
+        // Removing Foreign Key Constraints is usually a bad idea for data integrity
+        // however, since the FK GeneID is unique outside of our application as well
+        // it is safe to assume that data integrity will be kept with the newly loaded
+        // database.
+
+        getHibernateTemplate().getSessionFactory().getCurrentSession().createSQLQuery( "SET FOREIGN_KEY_CHECKS=0;" )
+                .executeUpdate();
+
+        getHibernateTemplate().getSessionFactory().getCurrentSession().createSQLQuery( "TRUNCATE TABLE GENE;" )
+                .executeUpdate();
+
+        getHibernateTemplate().getSessionFactory().getCurrentSession().createSQLQuery( "SET FOREIGN_KEY_CHECKS=1;" )
+                .executeUpdate();
+
+    }
+
+    @Override
+    public Long countAssociations() {
+        String hql = "select count(*) FROM GeneAssociation";
+        return ( Long ) this.getHibernateTemplate().find( hql ).get( 0 );
+    }
+
+    @Override
+    public Long countUniqueAssociations() {
+        String hql = "select count(distinct GeneID) FROM GeneAssociation";
+        return ( Long ) this.getHibernateTemplate().find( hql ).get( 0 );
+    }
+
 }

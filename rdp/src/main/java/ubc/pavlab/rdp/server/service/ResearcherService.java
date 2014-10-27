@@ -22,10 +22,12 @@ package ubc.pavlab.rdp.server.service;
 import java.util.Collection;
 import java.util.HashMap;
 
+import org.json.JSONObject;
 import org.springframework.security.access.annotation.Secured;
 
 import ubc.pavlab.rdp.server.model.Gene;
 import ubc.pavlab.rdp.server.model.GeneAssociation.TierType;
+import ubc.pavlab.rdp.server.model.GeneOntologyTerm;
 import ubc.pavlab.rdp.server.model.Researcher;
 
 /**
@@ -80,5 +82,29 @@ public interface ResearcherService {
 
     @Secured({ "GROUP_ADMIN" })
     public Collection<Researcher> findByGene( Gene gene );
+
+    @Secured({ "GROUP_USER" })
+    public JSONObject toJSON( Researcher r );
+
+    @Secured({ "GROUP_USER" })
+    public boolean updateGOTermsForTaxon( Researcher researcher, Collection<GeneOntologyTerm> goTerms, Long taxonId );
+
+    @Secured({ "GROUP_USER" })
+    public boolean clearGOTermsForTaxon( Researcher researcher, Long taxonId );
+
+    @Secured({ "GROUP_USER" })
+    public boolean AddGOTerms( Researcher researcher, Collection<GeneOntologyTerm> goTerms );
+
+    @Secured({ "GROUP_USER" })
+    public boolean removeGenesByTierAndTaxon( Researcher researcher, TierType tier, Long taxonId );
+
+    @Secured({ "GROUP_USER" })
+    public boolean removeGenesByTiers( Researcher researcher, Collection<TierType> tier );
+
+    @Secured({ "IS_AUTHENTICATED_ANONYMOUSLY" })
+    public Long countResearchers();
+
+    @Secured({ "IS_AUTHENTICATED_ANONYMOUSLY" })
+    public Long countResearchersWithGenes();
 
 }

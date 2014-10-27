@@ -13,6 +13,10 @@
       messageEl.parent().hide();
    }
    
+   utility.isUndefined = function( variable ) {
+      return ( typeof variable === 'undefined' );
+   }
+   
    $(function(){
       $("[data-hide]").on("click", function(){
          $(this).closest("." + $(this).attr("data-hide")).hide();

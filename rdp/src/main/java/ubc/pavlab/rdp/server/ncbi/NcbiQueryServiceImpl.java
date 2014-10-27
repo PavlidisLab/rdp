@@ -74,14 +74,14 @@ public class NcbiQueryServiceImpl implements NcbiQueryService {
     private static AtomicBoolean updatingCache = new AtomicBoolean( false );
 
     static {
-        TAXON_COMMON_TO_ID.put( "Human", "9606" );
-        TAXON_COMMON_TO_ID.put( "Mouse", "10090" );
-        TAXON_COMMON_TO_ID.put( "Rat", "10116" );
+        // TAXON_COMMON_TO_ID.put( "Human", "9606" );
+        // TAXON_COMMON_TO_ID.put( "Mouse", "10090" );
+        // TAXON_COMMON_TO_ID.put( "Rat", "10116" );
         TAXON_COMMON_TO_ID.put( "Yeast", "559292" );
-        TAXON_COMMON_TO_ID.put( "Zebrafish", "7955" );
-        TAXON_COMMON_TO_ID.put( "Fruitfly", "7227" );
-        TAXON_COMMON_TO_ID.put( "Worm", "6239" );
-        TAXON_COMMON_TO_ID.put( "E. Coli", "562" );
+        // TAXON_COMMON_TO_ID.put( "Zebrafish", "7955" );
+        // TAXON_COMMON_TO_ID.put( "Fruitfly", "7227" );
+        // TAXON_COMMON_TO_ID.put( "Worm", "6239" );
+        // TAXON_COMMON_TO_ID.put( "E. Coli", "562" );
     }
 
     private static Log log = LogFactory.getLog( NcbiQueryServiceImpl.class.getName() );
@@ -95,10 +95,10 @@ public class NcbiQueryServiceImpl implements NcbiQueryService {
      * @see ubc.pavlab.rdp.server.ncbi.NcbiQueryService#fetchGenesByGeneSymbols(java.util.Collection, java.lang.String)
      */
     @Override
-    public Collection<Gene> fetchGenesByGeneSymbolsAndTaxon( Collection<String> geneSymbols, String taxon )
+    public Collection<Gene> fetchGenesByGeneSymbolsAndTaxon( Collection<String> geneSymbols, Long taxonId )
             throws NcbiServiceException {
 
-        return ncbiCache.fetchGenesByGeneSymbolsAndTaxon( geneSymbols, taxon );
+        return ncbiCache.fetchGenesByGeneSymbolsAndTaxon( geneSymbols, taxonId );
     }
 
     /*
@@ -118,9 +118,9 @@ public class NcbiQueryServiceImpl implements NcbiQueryService {
      * @see ubc.pavlab.rdp.server.ncbi.NcbiQueryService#findGenes(java.lang.String, java.lang.String)
      */
     @Override
-    public Collection<Gene> findGenes( String queryString, String taxon ) throws NcbiServiceException {
+    public Collection<Gene> findGenes( String queryString, Long taxonId ) throws NcbiServiceException {
 
-        return ncbiCache.findGenes( queryString, taxon );
+        return ncbiCache.findGenes( queryString, taxonId );
     }
 
     /*
@@ -230,10 +230,9 @@ public class NcbiQueryServiceImpl implements NcbiQueryService {
                     Element element = ( Element ) nodes.item( i );
 
                     Gene gene = new Gene();
-                    gene.setTaxon( taxon );
 
                     Element ID = ( Element ) element.getElementsByTagName( "Id" ).item( 0 );
-                    gene.setNcbiGeneId( getCharacterDataFromElement( ID ) );
+                    gene.setId( Long.parseLong( getCharacterDataFromElement( ID ), 10 ) );
                     // gene.setEnsemblId( getCharacterDataFromElement( ID ) );
 
                     NodeList items = element.getElementsByTagName( "Item" );
@@ -252,15 +251,19 @@ public class NcbiQueryServiceImpl implements NcbiQueryService {
                                 gene.setOfficialName( item.getTextContent() );
                                 conditionBits = conditionBits | ( 1 << 1 ); // Set second bit to 1
                                 break;
+                            case "TaxID":
+                                gene.setTaxonId( Long.parseLong( item.getTextContent(), 10 ) );
+                                conditionBits = conditionBits | ( 1 << 2 ); // Set second bit to 1
+                                break;
                             case "OtherAliases":
-                                gene.parseAliases( item.getTextContent() );
-                                conditionBits = conditionBits | ( 1 << 2 );
+                                gene.setAliases( item.getTextContent() );
+                                conditionBits = conditionBits | ( 1 << 3 );
                                 break;
                         }
 
                         // Short circuit for-loop if all relevant info has been collected,
                         // integer to check against is ( 2^N - 1 ) where N is the # of cases
-                        if ( conditionBits == 7 ) {
+                        if ( conditionBits == 15 ) {
                             break;
                         }
 

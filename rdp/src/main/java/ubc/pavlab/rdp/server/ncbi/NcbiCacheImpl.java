@@ -45,8 +45,7 @@ public class NcbiCacheImpl extends SearchableEhcache<Gene> implements NcbiCache 
     private static final String CACHE_NAME = "NcbiCache";
     private static final String GENE_NAME_SEARCH_ATTRIBUTE_NAME = "officialName";
     private static final String GENE_SYMBOL_SEARCH_ATTRIBUTE_NAME = "officialSymbol";
-    private static final String TAXON_SEARCH_ATTRIBUTE_NAME = "taxon";
-    private static final String GENE_NCBI_ID_SEARCH_ATTRIBUTE_NAME = "ncbiGeneId";
+    private static final String TAXON_SEARCH_ATTRIBUTE_NAME = "taxonId";
     private static final String ALIASES_ATTRIBUTE_NAME = "aliases";
 
     private Attribute<Object> geneNameAttribute;
@@ -56,9 +55,10 @@ public class NcbiCacheImpl extends SearchableEhcache<Gene> implements NcbiCache 
     private Attribute<Object> aliasesAttribute;
 
     @Override
-    public Collection<Gene> fetchGenesByGeneSymbolsAndTaxon( Collection<String> geneSymbols, String taxon ) {
+    public Collection<Gene> fetchGenesByGeneSymbolsAndTaxon( Collection<String> geneSymbols, Long taxonId ) {
         Criteria symbolCriteria = geneSymbolAttribute.in( geneSymbols );
-        Criteria taxonCriteria = taxonAttribute.eq( taxon );
+
+        Criteria taxonCriteria = taxonAttribute.eq( taxonId );
 
         return fetchByCriteria( taxonCriteria.and( symbolCriteria ) );
     }
@@ -71,8 +71,8 @@ public class NcbiCacheImpl extends SearchableEhcache<Gene> implements NcbiCache 
     }
 
     @Override
-    public Collection<Gene> fetchGenesByGeneTaxon( Collection<String> taxons ) {
-        Criteria taxonCriteria = taxonAttribute.in( taxons );
+    public Collection<Gene> fetchGenesByGeneTaxon( Collection<Long> taxonIds ) {
+        Criteria taxonCriteria = taxonAttribute.in( taxonIds );
 
         return fetchByCriteria( taxonCriteria );
     }
@@ -88,11 +88,10 @@ public class NcbiCacheImpl extends SearchableEhcache<Gene> implements NcbiCache 
      * </pre>
      */
     @Override
-    public Collection<Gene> findGenes( String queryString, String taxon ) {
+    public Collection<Gene> findGenes( String queryString, Long taxonId ) {
 
         ArrayList<Gene> results = new ArrayList<>();
-
-        Criteria taxonCriteria = taxonAttribute.eq( taxon );
+        Criteria taxonCriteria = taxonAttribute.eq( taxonId );
 
         // 1. Exact Gene Symbols
         String regexQueryString = queryString;
@@ -149,7 +148,7 @@ public class NcbiCacheImpl extends SearchableEhcache<Gene> implements NcbiCache 
 
     @Override
     public Object getKey( Gene gene ) {
-        return gene.getNcbiGeneId();
+        return gene.getId();
     }
 
     @Override
@@ -168,7 +167,6 @@ public class NcbiCacheImpl extends SearchableEhcache<Gene> implements NcbiCache 
         geneNameAttribute = getSearchAttribute( GENE_NAME_SEARCH_ATTRIBUTE_NAME );
         geneSymbolAttribute = getSearchAttribute( GENE_SYMBOL_SEARCH_ATTRIBUTE_NAME );
         taxonAttribute = getSearchAttribute( TAXON_SEARCH_ATTRIBUTE_NAME );
-        geneNcbiIdAttribute = getSearchAttribute( GENE_NCBI_ID_SEARCH_ATTRIBUTE_NAME );
         aliasesAttribute = getSearchAttribute( ALIASES_ATTRIBUTE_NAME );
     }
 

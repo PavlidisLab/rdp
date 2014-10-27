@@ -19,7 +19,12 @@
         researcherModel.currentResearcher.description = form.find( "#description" ).val();
        
         var promise = researcherModel.saveResearcherProfile();
+        
+        var btns = $( "#submit" );
+        btns.attr("disabled", "disabled");
+      
         $.when(promise).done(function() {
+           btns.removeAttr("disabled");
            utility.showMessage( promise.responseJSON.message, $( "#primaryContactMessage" ) );
          promise = researcherModel.loadResearcher();
          $.when(promise).done(function() {
