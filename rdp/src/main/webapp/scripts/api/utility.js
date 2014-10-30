@@ -17,6 +17,28 @@
       return ( typeof variable === 'undefined' );
    }
    
+   utility.taxonIdToName = {
+                 562:'E. Coli',
+                 6239:'Roundworm',
+                 7227:'Fruit Fly',
+                 7955:'Zebrafish',
+                 9606:'Human',
+                 10090:'Mouse',
+                 10116:'Rat',
+                 559292:'Yeast'                            
+   }
+   
+   utility.taxonNameToId = {
+                            'E. Coli': 562, 
+                            'Roundworm': 6239, 
+                            'Fruit Fly': 7227, 
+                            'Zebrafish': 7955, 
+                            'Human': 9606,
+                            'Mouse': 10090,
+                            'Rat': 10116,
+                            'Yeast':559292
+                            }
+   
    $(function(){
       $("[data-hide]").on("click", function(){
          $(this).closest("." + $(this).attr("data-hide")).hide();

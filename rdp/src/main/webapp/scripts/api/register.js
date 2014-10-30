@@ -6,16 +6,16 @@ $( document ).ready( function() {
 	      type : 'GET',
 	      url : "ajaxLoginCheck.html",
 	      success : function(response, xhr) {
-	         $( "#navbarUsername" ).text( jQuery.parseJSON( response ).user );
-	         $( "#navbarIsAdmin" ).text( jQuery.parseJSON( response ).isAdmin );
-	         $( "#navbarUsername" ).append( ' <span class="caret"></span>' );
-	         $( "#navbarUsername" ).trigger( "loginSuccess", response );
+	         //$( "#navbarUsername" ).text( jQuery.parseJSON( response ).user );
+	         //$( "#navbarIsAdmin" ).text( jQuery.parseJSON( response ).isAdmin );
+	         //$( "#navbarUsername" ).append( ' <span class="caret"></span>' );
+	         $( "body" ).trigger( "loginSuccess", response );
 	         console.log("successfully logged in as: " + jQuery.parseJSON( response ).user);
 	      },
 	      error : function(response, xhr) {
 	         console.log( xhr.responseText );
-	         $( "#navbarUsername" ).text( "Anonymous" );
-	         $( "#navbarUsername" ).append( ' <span class="caret"></span>' );
+	         //$( "#navbarUsername" ).text( "Anonymous" );
+	         //$( "#navbarUsername" ).append( ' <span class="caret"></span>' );
 	      }
 	   } );
          
@@ -23,7 +23,20 @@ $( document ).ready( function() {
    
    // This gets run when the ajax calls in defs have completed
    $.when(promise).done(function() {
-	   overview.showOverview();   
+      //$('.tab-pane a[href="#overview"]').tab('show'); 
+      //profile.setInfo();
    });
+   
+   $('a[href="#modelOrganisms"]').click(function(){
+      $("#currentOrganismBreadcrumb").text($(this).text());
+      modelOrganisms.setFocus();
+      geneManager.fillTable();
+    });
+   
+   $('#settingsDropdown').click(function(){
+      $('#menu a[href="#profile"]').tab('show');
+      $('.tab-pane a[href="#settings-tab"]').tab('show');
+    });
+   
    
 } );
