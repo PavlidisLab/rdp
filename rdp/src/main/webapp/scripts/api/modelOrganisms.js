@@ -19,7 +19,6 @@
    
    modelOrganisms.setFocus = function() {
       var focus = researcherModel.currentResearcher.taxonDescriptions[modelOrganisms.currentTaxonId()] || "";
-      console.log(focus);
       modelOrganisms.focus().text( focus );
    }
    

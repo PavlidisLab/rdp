@@ -29,6 +29,7 @@ $( document ).ready( function() {
    
    $('a[href="#modelOrganisms"]').click(function(){
       $("#currentOrganismBreadcrumb").text($(this).text());
+      $("#modelOrganisms .main-header em").text ( $(this).text() );
       modelOrganisms.setFocus();
       geneManager.fillTable();
     });
@@ -37,6 +38,17 @@ $( document ).ready( function() {
       $('#menu a[href="#profile"]').tab('show');
       $('.tab-pane a[href="#settings-tab"]').tab('show');
     });
+   
+   $('#profileDropdown').click(function(){
+      $('#menu a[href="#profile"]').tab('show');
+      $('.tab-pane a[href="#profile-tab"]').tab('show');
+    });
+   
+/*   $('a[href="#profile"]').on('show.bs.tab', function() {
+      $('a[href="#profile"]').parent('li').removeClass('active');
+      $(this).parent('li').addClass('active');
+      
+   } );*/
    
    
 } );

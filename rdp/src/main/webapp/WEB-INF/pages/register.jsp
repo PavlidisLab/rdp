@@ -36,151 +36,155 @@
 </head>
 
 <body>
+	<div class="wrapper">
+		<div>
 
-	<div>
+			<nav class="navbar navbar-default navbar-static-top"
+				role="navigation">
+				<div class="container-fluid">
+					<!-- Brand and toggle get grouped for better mobile display -->
+					<div class="navbar-header">
+						<button type="button" class="navbar-toggle" data-toggle="collapse"
+							data-target="#bs-example-navbar-collapse-1">
+							<span class="sr-only">Toggle navigation</span> <span
+								class="icon-bar"></span> <span class="icon-bar"></span> <span
+								class="icon-bar"></span>
+						</button>
+						<a class="navbar-brand" href="register.html">Rare Diseases:
+							Models & Mechanisms Network</a>
+					</div>
 
-		<nav class="navbar navbar-default navbar-static-top" role="navigation">
-			<div class="container-fluid">
-				<!-- Brand and toggle get grouped for better mobile display -->
-				<div class="navbar-header">
-					<button type="button" class="navbar-toggle" data-toggle="collapse"
-						data-target="#bs-example-navbar-collapse-1">
-						<span class="sr-only">Toggle navigation</span> <span
-							class="icon-bar"></span> <span class="icon-bar"></span> <span
-							class="icon-bar"></span>
-					</button>
-					<a class="navbar-brand" href="register.html">Rare Diseases: Models & Mechanisms Network</a>
+					<!-- Collect the nav links, forms, and other content for toggling -->
+					<div class="collapse navbar-collapse"
+						id="bs-example-navbar-collapse-1">
+						<!-- right navbar -->
+						<ul class="nav navbar-nav navbar-right">
+
+							<!-- username will be added here when the user has logged in -->
+							<li class="dropdown"><a href="#" class="dropdown-toggle"
+								data-toggle="dropdown"> <i
+									class="fa fa-user fa-fw fa-inverse"></i> <i
+									class="fa fa-caret-down fa-inverse"></i>
+							</a>
+								<ul class="dropdown-menu dropdown-user">
+									<li><a id="profileDropdown" href="#profile"><i
+											class="fa fa-user fa-fw"></i> User Profile</a></li>
+									<li><a id="settingsDropdown" href="#settings-tab"><i
+											class="fa fa-gear fa-fw"></i> Settings</a></li>
+									<li class="divider"></li>
+									<li><a id="logout" href="login.html"><i
+											class="fa fa-sign-out fa-fw"></i> Logout</a></li>
+								</ul>
+						</ul>
+					</div>
+					<!-- /.navbar-collapse -->
+
+
+
+
+
+
 				</div>
-
-				<!-- Collect the nav links, forms, and other content for toggling -->
-				<div class="collapse navbar-collapse"
-					id="bs-example-navbar-collapse-1">
-					<!-- right navbar -->
-					<ul class="nav navbar-nav navbar-right">
-
-						<!-- username will be added here when the user has logged in -->
-						<li class="dropdown"><a href="#" class="dropdown-toggle"
-							data-toggle="dropdown"> <i
-								class="fa fa-user fa-fw fa-inverse"></i> <i
-								class="fa fa-caret-down fa-inverse"></i>
-						</a>
-							<ul class="dropdown-menu dropdown-user">
-								<li><a href="#profile" data-toggle="tab"><i class="fa fa-user fa-fw"></i> User
-										Profile</a></li>
-								<li><a id="settingsDropdown" href="#settings-tab"><i class="fa fa-gear fa-fw"></i>
-										Settings</a></li>
-								<li class="divider"></li>
-								<li><a id="logout" href="login.html"><i
-										class="fa fa-sign-out fa-fw"></i> Logout</a></li>
-							</ul>
-					</ul>
-				</div>
-				<!-- /.navbar-collapse -->
-
-
-
-
-
-
-			</div>
-			<!-- /.container-fluid -->
-		</nav>
-	</div>
-	<div class="content-wrapper clearfix">
-
-		<aside class="sidebar">
-			<nav class="sidebar-nav">
-				<ul id="menu">
-					<li class="activeMetis"><a href="#overview" data-toggle="tab">
-							<span class="sidebar-nav-item-icon fa fa-fw fa-home fa-lg"></span>
-							<span class="sidebar-nav-item">Overview</span>
-					</a>
-
-					
-					</li>
-					<li><a href="#profile" data-toggle="tab"> <span
-							class="sidebar-nav-item-icon fa fa-fw fa-user fa-lg"></span> <span
-							class="sidebar-nav-item">Profile</span>
-					</a>
-
-					</li>
-					<li><a href="#"> <span
-							class="sidebar-nav-item-icon fa fa-fw fa-bug fa-lg"></span> <span
-							class="sidebar-nav-item">Model Organisms</span> <span
-							class="fa arrow"></span>
-					</a>
-						<ul>
-							<li><a href="#modelOrganisms" data-toggle="tab">Human</a></li>
-							<li><a href="#modelOrganisms" data-toggle="tab">Mouse</a></li>
-							<li><a href="#modelOrganisms" data-toggle="tab">Rat</a></li>
-							<li><a href="#modelOrganisms" data-toggle="tab">Yeast</a></li>
-							<li><a href="#modelOrganisms" data-toggle="tab">Zebrafish</a></li>
-							<li><a href="#modelOrganisms" data-toggle="tab">Fruit Fly</a></li>
-							<li><a href="#modelOrganisms" data-toggle="tab">Roundworm</a></li>
-							<li><a href="#modelOrganisms" data-toggle="tab">E. Coli</a></li>
-						</ul></li>
-
-				</ul>
+				<!-- /.container-fluid -->
 			</nav>
-		</aside>
+		</div>
+		<div class="content-wrapper clearfix">
 
-		<section class="content">
-			<div class="tab-content">
-				<div class="tab-pane active" id="overview">
+			<aside class="sidebar">
+				<nav class="sidebar-nav">
+					<ul id="menu">
+						<li class="activeMetis"><a href="#overview" data-toggle="tab">
+								<span class="sidebar-nav-item-icon fa fa-fw fa-home fa-lg"></span>
+								<span class="sidebar-nav-item">Overview</span>
+						</a></li>
+						<li><a href="#profile" data-toggle="tab"> <span
+								class="sidebar-nav-item-icon fa fa-fw fa-user fa-lg"></span> <span
+								class="sidebar-nav-item">Profile</span>
+						</a></li>
+						<li><a href="#"> <span
+								class="sidebar-nav-item-icon fa fa-fw fa-bug fa-lg"></span> <span
+								class="sidebar-nav-item">Model Organisms</span> <span
+								class="fa arrow"></span>
+						</a>
+							<ul>
+								<li><a href="#modelOrganisms" data-toggle="tab">Human</a></li>
+								<li><a href="#modelOrganisms" data-toggle="tab">Mouse</a></li>
+								<li><a href="#modelOrganisms" data-toggle="tab">Rat</a></li>
+								<li><a href="#modelOrganisms" data-toggle="tab">Yeast</a></li>
+								<li><a href="#modelOrganisms" data-toggle="tab">Zebrafish</a></li>
+								<li><a href="#modelOrganisms" data-toggle="tab">Fruit
+										Fly</a></li>
+								<li><a href="#modelOrganisms" data-toggle="tab">Roundworm</a></li>
+								<li><a href="#modelOrganisms" data-toggle="tab">E. Coli</a></li>
+							</ul></li>
 
-					<div class="col-xs-12">
-						<div class="row">
-							<div class="col-lg-4 ">
-								<ul class="breadcrumb">
-									<li class="active"><i class="fa fa-home"></i><a
-										href="#overview">Overview</a></li>
-								</ul>
+					</ul>
+				</nav>
+			</aside>
+
+			<section class="content">
+				<div class="tab-content">
+					<div class="tab-pane active" id="overview">
+
+						<div class="col-xs-12">
+							<div class="row">
+								<div class="col-lg-4 ">
+									<ul class="breadcrumb">
+										<li class="active"><i class="fa fa-home"></i><a
+											href="#overview">Overview</a></li>
+									</ul>
+								</div>
+
 							</div>
-
 						</div>
+
+					</div>
+
+					<div class="tab-pane" id="profile">
+
+						<div class="col-xs-12">
+							<div class="row">
+								<div class="col-lg-4 ">
+									<ul class="breadcrumb">
+										<li class="active"><i class="fa fa-user"></i><a
+											href="#profile">Profile</a></li>
+									</ul>
+								</div>
+
+							</div>
+							<%@ include file="profile.jsp"%>
+						</div>
+
+					</div>
+
+					<div class="tab-pane" id="modelOrganisms">
+
+						<div class="col-xs-12">
+							<div class="row">
+								<div class="col-lg-4 ">
+									<ul class="breadcrumb">
+										<li><i class="fa fa-bug"></i><a href="#">Model
+												Organisms</a></li>
+										<li class="active"><a id="currentOrganismBreadcrumb"
+											href="#modelOrganisms"></a></li>
+									</ul>
+								</div>
+
+							</div>
+							<%@ include file="modelOrganisms.jsp"%>
+						</div>
+
 					</div>
 
 				</div>
 
-				<div class="tab-pane" id="profile">
-
-					<div class="col-xs-12">
-						<div class="row">
-							<div class="col-lg-4 ">
-								<ul class="breadcrumb">
-									<li class="active"><i class="fa fa-user"></i><a
-										href="#profile">Profile</a></li>
-								</ul>
-							</div>
-
-						</div>
-						<%@ include file="profile.jsp"%>
-					</div>
-
-				</div>
-
-				<div class="tab-pane" id="modelOrganisms">
-
-					<div class="col-xs-12">
-						<div class="row">
-							<div class="col-lg-4 ">
-								<ul class="breadcrumb">
-									<li><i class="fa fa-bug"></i><a href="#">Model Organisms</a></li>
-									<li class="active"><a id="currentOrganismBreadcrumb" href="#modelOrganisms"></a></li>
-								</ul>
-							</div>
-
-						</div>
-						<%@ include file="modelOrganisms.jsp"%>
-					</div>
-
-				</div>
-
-			</div>
-
-		</section>
+			</section>
+		</div>
+		<div class="push-sticky-footer"></div>
 	</div>
-
+	<footer class="footer"> © 2014 Pavlidis Labs </footer>
+	
+	
 	<!-- include jQuery, and our script file -->
 	<script src="scripts/lib/jquery-1.11.1.js"></script>
 	<script src="scripts/lib/bootstrap.min.js"></script>
@@ -194,6 +198,7 @@
 	<script src="scripts/lib/dataTables.tableTools.js"></script>
 
 	<!-- Metis Menu Plugin JavaScript -->
+	<!-- THIS HAS BEEN ALTERED DO NOT MINIFY WILLY-NILLY -->
 	<script src="scripts/lib/metisMenu/metisMenu.js"></script>
 
 	<script src="scripts/api/utility.js?version=2"></script>

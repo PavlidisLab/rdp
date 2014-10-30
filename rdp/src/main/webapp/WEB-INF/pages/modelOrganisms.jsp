@@ -38,6 +38,12 @@
 				<div class="row">
 					<div class="col-md-12">
 						<%@ include file="geneTable.jsp"%>
+						<hr>
+						<div class="col-md-9">
+							<button class="btn btn-danger">
+								<i class="fa fa-floppy-o"></i> Save Changes
+							</button>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -48,6 +54,12 @@
 				<div class="row">
 					<div class="col-md-12">
 						<%@ include file="goTable.jsp"%>
+						<hr>
+						<div class="col-md-9">
+							<button class="btn btn-danger">
+								<i class="fa fa-floppy-o"></i> Save Changes
+							</button>
+						</div>
 					</div>
 				</div>
 			</div>
