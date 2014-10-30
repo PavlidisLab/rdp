@@ -73,7 +73,7 @@
    editProfile = function(e) {
       e.stopPropagation();
       e.preventDefault();
-      $(this).removeClass('fa-edit').addClass('fa-check-square-o').addClass('green-icon');
+      $(this).removeClass('fa-edit').addClass('fa-check-square-o').removeClass('yellow-icon').addClass('green-icon');
       var div = $(this).closest('div');
       var newElem = $('<input type="text">');
       $('span[class^="data-value"]', div).each( function(idx) {
@@ -99,7 +99,7 @@
    lockProfile = function(e) {
       e.stopPropagation();
       e.preventDefault();
-      $(this).removeClass('fa-check-square-o').addClass('fa-edit').removeClass('green-icon');
+      $(this).removeClass('fa-check-square-o').addClass('fa-edit').removeClass('green-icon').addClass('yellow-icon');
 
       var div = $(this).closest('div');
       var newElem = $('<span class="data-value"></span>');

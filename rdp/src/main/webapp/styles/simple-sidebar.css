@@ -71,7 +71,6 @@ html, body {
 	background: #333;
 	padding-right: 0;
 	border-bottom: 1px solid rgba(0, 0, 0, 0.3);
-
 }
 
 .content {
@@ -222,6 +221,10 @@ hr {
 	color: #FF0000;
 }
 
+.yellow-icon {
+	color: #FF931D;
+}
+
 textarea {
 	width: 100%;
 	-webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
@@ -236,6 +239,10 @@ table thead {
 
 .research-focus {
 	margin-bottom: 20px;
+}
+
+.research-focus p {
+	min-height: 20px;
 }
 
 .push-sticky-footer {
@@ -256,4 +263,8 @@ table thead {
 	height: auto !important;
 	height: 100%;
 	margin: 0 auto -34px;
+}
+
+[custom-placeholder=true]:empty:not(:focus ):before {
+	content: attr(data-ph)
 }

@@ -10,10 +10,10 @@
 
 			<div class="col-md-12">
 				<h3>
-					<a href="#"><i class="fa fa-edit"></i></a> Research Focus
+					<a href="#"><i class="fa fa-edit yellow-icon"></i></a> Research Focus
 				</h3>
 				<div class="col-sm-8 research-focus">
-					<p class="data-paragraph">My research lies at the intersection
+					<p custom-placeholder=true data-ph="My research on this organism involves..." class="data-paragraph">My research lies at the intersection
 						of bioinformatics and neuroscience. I have a particular interest
 						in neuropsychiatric disorders such as schizophrenia and autism,
 						and how they affect the function of chemical synapses. A current

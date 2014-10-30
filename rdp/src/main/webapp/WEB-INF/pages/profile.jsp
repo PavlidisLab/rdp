@@ -22,7 +22,7 @@
 						<div class="user-info-right">
 							<div class="basic-info">
 								<h3>
-									<a href="#"><i class="fa fa-edit"></i></a> Basic Information
+									<a href="#"><i class="fa fa-edit yellow-icon"></i></a> Basic Information
 								</h3>
 								<p class="data-row">
 									<span class="data-name">First Name</span> <span
@@ -46,7 +46,7 @@
 							</div>
 							<div class="contact-info">
 								<h3>
-									<a href="#"><i class="fa fa-edit"></i></a> Contact Information
+									<a href="#"><i class="fa fa-edit yellow-icon"></i></a> Contact Information
 								</h3>
 								<p class="data-row">
 									<span class="data-name">Email</span> <span class="locked data-value"></span>
@@ -57,7 +57,7 @@
 							</div>
 							<div class="about">
 								<h3>
-									<a href="#"><i class="fa fa-edit"></i></a> About My Research
+									<a href="#"><i class="fa fa-edit yellow-icon"></i></a> About My Research
 								</h3>
 								<div class="col-sm-8">
 									<p class="data-paragraph"></p>

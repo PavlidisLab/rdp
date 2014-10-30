@@ -25,7 +25,7 @@
    editFocus = function(e) {
       e.stopPropagation();
       e.preventDefault();
-      $(this).removeClass('fa-edit').addClass('fa-check-square-o').addClass('green-icon');
+      $(this).removeClass('fa-edit').addClass('fa-check-square-o').removeClass('yellow-icon').addClass('green-icon');
       var div = $(this).closest('div');
       var newElem = $('<textarea rows="3" maxlength="1200"></textarea>');
       $('p[class="data-paragraph"]', div).each( function(idx) {
@@ -41,10 +41,10 @@
    lockFocus = function(e) {
       e.stopPropagation();
       e.preventDefault();
-      $(this).removeClass('fa-check-square-o').addClass('fa-edit').removeClass('green-icon');
+      $(this).removeClass('fa-check-square-o').addClass('fa-edit').removeClass('green-icon').addClass('yellow-icon');
 
       var div = $(this).closest('div');
-      var newElem = $('<p class="data-paragraph"></p>');
+      var newElem = $('<p custom-placeholder=true data-ph="My research on this organism involves..." class="data-paragraph">');
       $('textarea', div).each( function(idx) {
          newElem.text( $(this).val() );
          $(this).replaceWith( newElem.clone() );
