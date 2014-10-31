@@ -28,7 +28,7 @@
 			<li class="active"><a href="#gene-tab" data-toggle="tab"><i
 					class="fa fa-link"></i> Genes</a></li>
 			<li class=""><a href="#go-tab" data-toggle="tab"><i
-					class="fa fa-sitemap"></i> Gene Ontologies</a></li>
+					class="fa fa-sitemap"></i> Gene Ontology Terms</a></li>
 		</ul>
 		<!-- END NAV TABS -->
 

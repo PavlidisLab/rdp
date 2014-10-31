@@ -65,7 +65,20 @@
          }
       }
       return null;
-      
+
+   }
+   
+   researcherModel.Researcher.prototype.getTaxons = function() {
+      var taxons = [];
+      //var taxonIds = Object.keys(utility.taxonIdToName);
+      var genes = this.genes;
+      for (var i=0;i<genes.length;i++) {
+         var taxonId = genes[i].taxonId;
+         if ( taxons.indexOf(taxonId) == -1 ) {
+            taxons.push(taxonId);
+         }
+      }
+      return taxons;
    }
    
    researcherModel.Researcher.prototype.shallowCopy = function() {

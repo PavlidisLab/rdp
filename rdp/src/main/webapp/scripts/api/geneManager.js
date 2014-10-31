@@ -47,6 +47,10 @@
       var data = selectedNodes.data();
       selectedNodes.remove().draw( false );
    }
+   
+   geneManager.addGenes = function(e) {
+      console.log(e);
+   }
 
    geneManager.initDataTable = function() {
       geneManager.table().dataTable( {
@@ -98,7 +102,8 @@
          dom: 'T<"clear">lfrtip',
          tableTools: {
             "sRowSelect": "os",
-            "aButtons": [ {"sExtends":    "text", "fnClick":geneManager.removeSelectedRows, "sButtonText": '<i class="fa fa-minus-circle red-icon"></i>&nbsp; Remove Selected' },
+            "aButtons": [ {"sExtends":    "text", "fnClick":geneManager.addGenes, "sButtonText": '<i class="fa fa-plus-circle green-icon"></i>&nbsp; Add Gene(s)' },
+                          {"sExtends":    "text", "fnClick":geneManager.removeSelectedRows, "sButtonText": '<i class="fa fa-minus-circle red-icon"></i>&nbsp; Remove Selected' },
                           "select_all", 
                           "select_none" ]
          },

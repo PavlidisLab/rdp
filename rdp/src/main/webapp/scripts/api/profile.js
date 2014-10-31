@@ -27,7 +27,7 @@
    profile.description = function() {
       return $('#profile-tab .about div p');
    }
-
+   
    saveProfile = function(e) {
       var btn = $(this);
       btn.attr("disabled", "disabled");

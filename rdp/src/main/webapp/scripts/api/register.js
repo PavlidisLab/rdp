@@ -1,6 +1,11 @@
 // Initialize document
 $( document ).ready( function() {
    
+   $( function() {
+
+      $( '#menu' ).metisMenu();
+   } );
+   
    var promise = $.ajax( {
 	      cache : false,
 	      type : 'GET',
@@ -23,16 +28,41 @@ $( document ).ready( function() {
    
    // This gets run when the ajax calls in defs have completed
    $.when(promise).done(function() {
+      var taxonIds = researcherModel.currentResearcher.getTaxons();
+      $('#myModelOrganismsList ul li').has('a[href="#modelOrganisms"]').each( function(index) {
+         var taxonName = $('a',this).text()
+         var taxonId = utility.taxonNameToId[ taxonName ];
+         if ( taxonIds.indexOf( taxonId ) == -1 ) {
+            $(this).hide();
+         } else {
+            $('#myModelOrganismsList > ul > li > ul > li').has('a:contains("'+taxonName+'")').hide();
+         }
+      });
       //$('.tab-pane a[href="#overview"]').tab('show'); 
       //profile.setInfo();
    });
    
-   $('a[href="#modelOrganisms"]').click(function(){
+   $('#myModelOrganismsList').on('click', 'a[href="#add"]',  function() {
+      var taxonName = $(this).text().split('Add ').pop();
+      $(this).parent('li').hide();
+      $('#myModelOrganismsList > ul > li').has('a[href="#modelOrganisms"]:contains("'+taxonName+'")').show().find('a').click();
+      if ( $('#myModelOrganismsList > ul > li > ul > li:visible').length == 0 ) {
+         $('#myModelOrganismsList > ul > li > ul > li').has('a[href="#"]').show();
+      }
+   });
+   
+   $('body').on('click', 'a[href="#modelOrganisms"]', function(){
       $("#currentOrganismBreadcrumb").text($(this).text());
       $("#modelOrganisms .main-header em").text ( $(this).text() );
       modelOrganisms.setFocus();
       geneManager.fillTable();
     });
+/*   $('a[href="#modelOrganisms"]').click(function(){
+      $("#currentOrganismBreadcrumb").text($(this).text());
+      $("#modelOrganisms .main-header em").text ( $(this).text() );
+      modelOrganisms.setFocus();
+      geneManager.fillTable();
+    });*/
    
    $('#settingsDropdown').click(function(){
       $('#menu a[href="#profile"]').tab('show');

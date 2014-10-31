@@ -28,8 +28,6 @@
 <link rel="stylesheet"
 	href="styles/font-awesome-4.2.0/css/font-awesome.min.css">
 
-
-
 <!-- Custom CSS -->
 <link href="styles/simple-sidebar.css" rel="stylesheet">
 
@@ -101,9 +99,9 @@
 								class="sidebar-nav-item-icon fa fa-fw fa-user fa-lg"></span> <span
 								class="sidebar-nav-item">Profile</span>
 						</a></li>
-						<li><a href="#"> <span
+						<li id="myModelOrganismsList"><a href="#"> <span
 								class="sidebar-nav-item-icon fa fa-fw fa-bug fa-lg"></span> <span
-								class="sidebar-nav-item">Model Organisms</span> <span
+								class="sidebar-nav-item">My Model Organisms</span> <span
 								class="fa arrow"></span>
 						</a>
 							<ul>
@@ -116,7 +114,36 @@
 										Fly</a></li>
 								<li><a href="#modelOrganisms" data-toggle="tab">Roundworm</a></li>
 								<li><a href="#modelOrganisms" data-toggle="tab">E. Coli</a></li>
+								<li><a href="#addOrganism">Add Organism<span
+										class="fa arrow"></span></a>
+									<ul class="sub-list">
+										<li><a href="#add"><i
+												class="fa fa-plus-circle green-icon"></i>&nbsp; Add Human</a>
+										<li><a href="#add"><i
+												class="fa fa-plus-circle green-icon"></i>&nbsp; Add Mouse</a>
+										<li><a href="#add"><i
+												class="fa fa-plus-circle green-icon"></i>&nbsp; Add Rat</a>
+										<li><a href="#add"><i
+												class="fa fa-plus-circle green-icon"></i>&nbsp; Add Yeast</a>
+										<li><a href="#add"><i
+												class="fa fa-plus-circle green-icon"></i>&nbsp; Add
+												Zebrafish</a>
+										<li><a href="#add"><i
+												class="fa fa-plus-circle green-icon"></i>&nbsp; Add Fruit
+												Fly</a>
+										<li><a href="#add"><i
+												class="fa fa-plus-circle green-icon"></i>&nbsp; Add
+												Roundworm</a>
+										<li><a href="#add"><i
+												class="fa fa-plus-circle green-icon"></i>&nbsp; Add E. Coli</a>
+										<li style="display: none;"><a href="#"><i
+												class="fa fa-ban red-icon"></i>&nbsp; No More Organisms</a>
+									</ul></li>
 							</ul></li>
+						<li><a href="#help" data-toggle="tab"> <span
+								class="sidebar-nav-item-icon fa fa-fw fa-question-circle fa-lg"></span>
+								<span class="sidebar-nav-item">Help</span>
+						</a></li>
 
 					</ul>
 				</nav>
@@ -136,6 +163,7 @@
 								</div>
 
 							</div>
+							<%@ include file="newOverview.jsp"%>
 						</div>
 
 					</div>
@@ -176,15 +204,57 @@
 
 					</div>
 
+					<div class="tab-pane" id="help">
+
+						<div class="col-xs-12">
+							<div class="row">
+								<div class="col-lg-4 ">
+									<ul class="breadcrumb">
+										<li class="active"><i class="fa fa-question-circle"></i><a
+											href="#help">Help</a></li>
+									</ul>
+								</div>
+
+							</div>
+						</div>
+						
+					</div>
+
 				</div>
 
 			</section>
 		</div>
 		<div class="push-sticky-footer"></div>
 	</div>
-	<footer class="footer"> © 2014 Pavlidis Labs </footer>
-	
-	
+	<div id="confirmModal" class="modal fade bs-example-modal-sm"
+		tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel"
+		aria-hidden="true">
+		<div class="modal-dialog modal-sm">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal">
+						<span aria-hidden="true">&times;</span><span class="sr-only">Close</span>
+					</button>
+					<h5 class="modal-title" id="myModalLabel">Save Changes?</h5>
+				</div>
+				<div class="modal-body">
+					<p>You haven't saved your changes. Are you sure you want to
+						discard your changes?</p>
+				</div>
+				<div class="modal-footer">
+					<button class="btn btn-custom-grey btn-sm">
+						<i class="fa fa-trash"></i> Discard
+					</button>
+					<button class="btn btn-danger btn-sm">
+						<i class="fa fa-floppy-o"></i> Save
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	<footer class="footer"> © 2014 CRDMMN </footer>
+
+
 	<!-- include jQuery, and our script file -->
 	<script src="scripts/lib/jquery-1.11.1.js"></script>
 	<script src="scripts/lib/bootstrap.min.js"></script>
@@ -210,13 +280,6 @@
 	<script src="scripts/api/goManager.js?version=2"></script>
 	<script src="scripts/api/register.js?version=2"></script>
 	<script src="scripts/api/navbar.js?version=2"></script>
-
-	<script>
-      $( function() {
-
-         $( '#menu' ).metisMenu();
-      } );
-   </script>
 
 </body>
 </html>

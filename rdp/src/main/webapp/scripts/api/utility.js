@@ -17,6 +17,40 @@
       return ( typeof variable === 'undefined' );
    }
    
+   utility.confirmModal = function(callback) {
+
+   }
+   
+   utility.callback = function(result) {
+      
+   }
+   
+   utility.modalAlert = function(callback) {
+      var modal = $( "#confirmModal");
+      modal.modal({
+         backdrop:'static',
+         keyboard: false
+      });
+      
+      modal.unbind('click').on('click', 'button', function(e) {
+         console.log('click');
+         console.log(e);
+         modal.modal('hide');
+         result = true;
+         callback(result);
+      });
+      
+      modal.unbind('hide.bs.modal').on('hide.bs.modal', 'button', function(e) {
+         console.log('hide')
+         console.log(e);
+         result = false;
+         callback(result);
+      });
+      
+      return modal;
+      
+   }
+   
    utility.taxonIdToName = {
                  562:'E. Coli',
                  6239:'Roundworm',
