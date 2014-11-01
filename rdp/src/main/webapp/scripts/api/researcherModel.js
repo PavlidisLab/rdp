@@ -28,6 +28,8 @@
           } 
       });
       
+      this.pubMedIds = [];
+      
       // Model Organisms
       this.genes = [];
       this.calculatedGenes = [];
@@ -95,6 +97,13 @@
       this.taxonDescriptions = {};
       for (var i=0;i<taxonDescriptionsArr.length;i++) {
          this.taxonDescriptions[taxonDescriptionsArr[i].taxonId] = taxonDescriptionsArr[i].description;
+      }
+   }
+   
+   researcherModel.Researcher.prototype.setPubMedIdsFromPublications = function(publicationsArray) {
+      this.pubMedIds = [];
+      for (var i=0;i<publicationsArray.length;i++) {
+         this.pubMedIds.push( publicationsArray[i].pubMedId );
       }
    }
    
@@ -179,6 +188,7 @@
       this.website = data.website;
       this.phone = data.phone || "";
       this.description = data.description || "";
+      this.setPubMedIdsFromPublications( data.publications );
       this.setTaxonDescriptionsFromArray(data.taxonDescriptions);
       this.setTermsFromArray(data.terms);
 

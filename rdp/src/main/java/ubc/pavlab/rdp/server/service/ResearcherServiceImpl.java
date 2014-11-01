@@ -304,6 +304,7 @@ public class ResearcherServiceImpl implements ResearcherService {
         jsonObj.put( "phone", r.getPhone() );
         jsonObj.put( "website", r.getWebsite() );
         jsonObj.put( "description", r.getDescription() );
+        jsonObj.put( "publications", r.getPublications() );
 
         jsonObj.put( "taxonDescriptions", r.getTaxonDescriptions() );
 

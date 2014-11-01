@@ -16,6 +16,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import ubc.pavlab.rdp.server.model.Publication;
 import ubc.pavlab.rdp.server.model.Researcher;
 import ubc.pavlab.rdp.server.model.common.auditAndSecurity.User;
 import ubc.pavlab.rdp.server.security.authentication.UserManager;
@@ -55,6 +56,14 @@ public class RegisterController extends BaseController {
         String website = request.getParameter( "website" );
         String phone = request.getParameter( "phone" );
         String description = request.getParameter( "description" );
+        String[] pubMedIdsJSON = request.getParameterValues( "pubMedIds[]" );
+
+        Set<Publication> publications = new HashSet<Publication>();
+        if ( pubMedIdsJSON != null ) {
+            for ( int i = 0; i < pubMedIdsJSON.length; i++ ) {
+                publications.add( new Publication( Integer.valueOf( pubMedIdsJSON[i] ) ) );
+            }
+        }
 
         try {
             User contact = null;
@@ -76,6 +85,8 @@ public class RegisterController extends BaseController {
             researcher.setPhone( phone );
             researcher.setWebsite( website );
             researcher.setDescription( description );
+
+            researcher.setPublications( publications );
 
             researcherService.update( researcher );
             log.info( "User: (" + userManager.getCurrentUsername() + ") updated profile" );

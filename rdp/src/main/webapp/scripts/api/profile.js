@@ -25,7 +25,11 @@
       return $('#profile-tab .contact-info .data-row').eq( 1 ).find('.data-value');
    }
    profile.description = function() {
-      return $('#profile-tab .about div p');
+      return $('#profile-tab .about p').eq( 0 );
+   }
+   
+   profile.pubMedIds = function() {
+      return $('#publicationsList ul').eq( 0 );
    }
    
    saveProfile = function(e) {
@@ -65,6 +69,13 @@
       profile.email().text(researcher.email);
       profile.phone().text(researcher.phone);
       profile.description().text(researcher.description);
+      
+      if ( researcher.pubMedIds.length > 0 ) {
+         researcher.pubMedIds.sort(function(a, b){return a-b});
+         for (var i=0; i<researcher.pubMedIds.length; i++) {
+            profile.pubMedIds().append( '<li>' + researcher.pubMedIds[i] + '</li>'  )
+         }
+      }
 
    }
 
@@ -75,23 +86,11 @@
       e.preventDefault();
       $(this).removeClass('fa-edit').addClass('fa-check-square-o').removeClass('yellow-icon').addClass('green-icon');
       var div = $(this).closest('div');
-      var newElem = $('<input type="text">');
-      $('span[class^="data-value"]', div).each( function(idx) {
-         if ( $(this).hasClass("link") ) {
-            newElem.addClass('link');
-         }
-         newElem.val( $(this).text() );
-         $(this).replaceWith( newElem.clone() );
-
+      
+      $('.data-editable', div).each( function(idx) {
+         $(this).prop('contenteditable',true);
+         $(this).addClass('editable');
       });
-
-      newElem = $('<textarea rows="3" maxlength="1200"></textarea>');
-      $('p[class="data-paragraph"]', div).each( function(idx) {
-         newElem.text( $(this).text() );
-         $(this).replaceWith( newElem.clone() );
-
-      });
-
 
 
    }
@@ -100,30 +99,11 @@
       e.stopPropagation();
       e.preventDefault();
       $(this).removeClass('fa-check-square-o').addClass('fa-edit').removeClass('green-icon').addClass('yellow-icon');
-
       var div = $(this).closest('div');
-      var newElem = $('<span class="data-value"></span>');
-      $('input', div).each( function(idx) {
-         if ( $(this).hasClass("link") ) {
-            var url = $(this).val()
-            if ( url ) {
-               url = url.indexOf("http://") === 0 ? url : "http://" + url;
-            }
-            newElem.html( '<a href="' + url + '">' + url + '</a>');
-            newElem.addClass('link');
-         } else {
-            newElem.text( $(this).val() );
-         }
-
-         $(this).replaceWith( newElem.clone() );
-
-      });
-
-      newElem = $('<p class="data-paragraph"></p>');
-      $('textarea', div).each( function(idx) {
-         newElem.text( $(this).val() );
-         $(this).replaceWith( newElem.clone() );
-
+      
+      $('*[contenteditable="true"]', div).each( function(idx) {
+         $(this).removeAttr('contenteditable');
+         $(this).removeClass('editable');
       });
 
    }

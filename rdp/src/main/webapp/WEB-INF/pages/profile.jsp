@@ -18,30 +18,30 @@
 			<!-- PROFILE TAB CONTENT -->
 			<div class="tab-pane profile active" id="profile-tab">
 				<div class="row">
-					<div class="col-md-9">
-						<div class="user-info-right">
+					<div class="col-md-12">
+						<div class="user-info-left col-md-4">
 							<div class="basic-info">
 								<h3>
 									<a href="#"><i class="fa fa-edit yellow-icon"></i></a> Basic Information
 								</h3>
 								<p class="data-row">
 									<span class="data-name">First Name</span> <span
-										class="data-value"></span>
+										class="data-editable data-value"></span>
 								</p>
 								<p class="data-row">
 									<span class="data-name">Last Name</span> <span
-										class="data-value"></span>
+										class="data-editable data-value"></span>
 								</p>
 								<p class="data-row">
 									<span class="data-name">Organization</span> <span
-										class="data-value"></span>
+										class="data-editable data-value"></span>
 								</p>
 								<p class="data-row">
 									<span class="data-name">Department</span> <span
-										class="data-value"></span>
+										class="data-editable data-value"></span>
 								</p>
 								<p class="data-row">
-									<span class="data-name">Website</span> <span class="data-value link"></span>
+									<span class="data-name">Website</span> <span class="data-editable data-value link"></span>
 								</p>
 							</div>
 							<div class="contact-info">
@@ -49,22 +49,33 @@
 									<a href="#"><i class="fa fa-edit yellow-icon"></i></a> Contact Information
 								</h3>
 								<p class="data-row">
-									<span class="data-name">Email</span> <span class="locked data-value"></span>
+									<span class="data-name">Email</span> <span class="data-value"></span>
 								</p>
 								<p class="data-row">
-									<span class="data-name">Phone</span> <span class="data-value"></span>
+									<span class="data-name">Phone</span> <span class="data-editable data-value"></span>
 								</p>
 							</div>
-							<div class="about">
+
+						</div>
+						<div class="user-info-right col-md-8">
+							<div class="about col-sm-12">
 								<h3>
 									<a href="#"><i class="fa fa-edit yellow-icon"></i></a> About My Research
 								</h3>
-								<div class="col-sm-8">
-									<p class="data-paragraph"></p>
+								<p custom-placeholder=true data-ph="My lab studies ..." class="data-editable data-paragraph"></p>
+							</div>
+							<div class="publications col-sm-3">
+								<h3>
+									<a href="#"><i class="fa fa-edit yellow-icon"></i></a> Publications
+								</h3>
+								<div id="publicationsList">
+								<ul class="data-editable">								
+								</ul>
 								</div>
 							</div>
 						</div>
 					</div>
+					
 				</div>
 				<br>
 				<div class="col-md-9">

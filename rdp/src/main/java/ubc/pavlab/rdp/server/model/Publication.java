@@ -45,7 +45,10 @@ public class Publication implements Serializable {
     private Long id;
 
     // meshterms
-    //private Collection<String> authorList;
+    // private Collection<String> authorList;
+
+    @Column(name = "PubMedId")
+    private int pubMedId;
 
     private String title;
 
@@ -53,6 +56,7 @@ public class Publication implements Serializable {
 
     private String fullTextUri;
 
+    @Column(columnDefinition = "TEXT")
     private String abstractText;
 
     public Publication() {
@@ -64,13 +68,23 @@ public class Publication implements Serializable {
         this.abstractText = abstractText;
     }
 
-    /*public Collection<String> getAuthorList() {
-        return authorList;
+    public Publication( int pubMedId ) {
+        this.pubMedId = pubMedId;
     }
 
-    public void setAuthorList( Collection<String> authorList ) {
-        this.authorList = authorList;
-    }*/
+    /*
+     * public Collection<String> getAuthorList() { return authorList; }
+     * 
+     * public void setAuthorList( Collection<String> authorList ) { this.authorList = authorList; }
+     */
+
+    public int getPubMedId() {
+        return pubMedId;
+    }
+
+    public void setPubMedId( int pubMedId ) {
+        this.pubMedId = pubMedId;
+    }
 
     public String getTitle() {
         return title;

@@ -194,7 +194,7 @@ hr {
 }
 
 .data-row {
-	margin-bottom: 0;
+	margin-bottom: 0px;
 }
 
 .data-row .data-name, .data-row .data-value {
@@ -207,10 +207,6 @@ hr {
 	padding: 5px;
 }
 
-.data-row input {
-	padding: 3px;
-}
-
 .data-row .data-name {
 	width: 12em;
 	/*background-color: #ececec;*/
@@ -221,9 +217,14 @@ hr {
 
 .data-row .data-value {
 	padding-left: 10px;
+	width: 50%;
 }
 
-.profile .user-info-right>div {
+.data-paragraph {
+	padding: 5px;
+}
+
+.profile .user-info-right>div, .profile .user-info-left>div {
 	margin-bottom: 60px;
 }
 
@@ -300,6 +301,19 @@ background-color: #555753;
 border-color: #555753;
 }
 
-[custom-placeholder=true]:empty:not(:focus ):before {
+#publicationsList  {
+	height: 100px;
+	overflow-y: scroll;
+}
+
+#profile-tab .editable, .editable {
+	box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+	border: 1px solid rgb(140, 140, 140);
+	padding-bottom: 3px;
+}
+
+[custom-placeholder=true]:empty:not (:focus ):before {
 	content: attr(data-ph)
 }
