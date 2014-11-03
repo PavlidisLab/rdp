@@ -31,6 +31,7 @@
         <s:intercept-url pattern="/newPassword.html" access="permitAll" />
         <s:intercept-url pattern="/forgotPassword.html" access="permitAll" />
         <s:intercept-url pattern="/signup.html" access="permitAll" />
+        <s:intercept-url pattern="/stats.html" access="permitAll" />
         <s:intercept-url pattern="/fonts/**" access="permitAll" />
         <s:intercept-url pattern="/styles/**" access="permitAll" />
         <s:intercept-url pattern="/scripts/**" access="permitAll" />
