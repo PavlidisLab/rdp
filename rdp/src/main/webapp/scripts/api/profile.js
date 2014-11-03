@@ -69,6 +69,8 @@
       profile.email().text(researcher.email);
       profile.phone().text(researcher.phone);
       profile.description().text(researcher.description);
+      profile.pubMedIds().empty();
+      
       
       if ( researcher.pubMedIds.length > 0 ) {
          researcher.pubMedIds.sort(function(a, b){return a-b});

@@ -62,13 +62,14 @@
 								<h3>
 									<a href="#"><i class="fa fa-edit yellow-icon"></i></a> About My Research
 								</h3>
-								<p custom-placeholder=true data-ph="My lab studies ..." class="data-editable data-paragraph"></p>
+								<p custom-placeholder=true data-ph="My lab studies ..." class="data-editable data-paragraph well"></p>
 							</div>
-							<div class="publications col-sm-3">
+							<div class="publications col-sm-12">
 								<h3>
 									<a href="#"><i class="fa fa-edit yellow-icon"></i></a> Publications
 								</h3>
-								<div id="publicationsList">
+								<p class="data-row col-sm-2"><span class="data-name">PubMed Ids</span></p>
+								<div id="publicationsList" class="well col-sm-3">
 								<ul class="data-editable">								
 								</ul>
 								</div>

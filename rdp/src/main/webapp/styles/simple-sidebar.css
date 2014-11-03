@@ -221,7 +221,7 @@ hr {
 }
 
 .data-paragraph {
-	padding: 5px;
+	padding: 3px;
 }
 
 .profile .user-info-right>div, .profile .user-info-left>div {
@@ -257,7 +257,7 @@ table thead {
 }
 
 .research-focus p {
-	min-height: 20px;
+	min-height: 28px;
 }
 
 .push-sticky-footer {
@@ -302,7 +302,7 @@ border-color: #555753;
 }
 
 #publicationsList  {
-	height: 100px;
+	height: 115px;
 	overflow-y: scroll;
 }
 
