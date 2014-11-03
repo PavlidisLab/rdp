@@ -27,13 +27,11 @@
       e.preventDefault();
       $(this).removeClass('fa-edit').addClass('fa-check-square-o').removeClass('yellow-icon').addClass('green-icon');
       var div = $(this).closest('div');
-      var newElem = $('<textarea rows="3" maxlength="1200"></textarea>');
-      $('p[class="data-paragraph"]', div).each( function(idx) {
-         newElem.text( $(this).text() );
-         $(this).replaceWith( newElem.clone() );
-
+      
+      $('.data-editable', div).each( function(idx) {
+         $(this).prop('contenteditable',true);
+         $(this).addClass('editable');
       });
-
 
 
    }
@@ -42,13 +40,11 @@
       e.stopPropagation();
       e.preventDefault();
       $(this).removeClass('fa-check-square-o').addClass('fa-edit').removeClass('green-icon').addClass('yellow-icon');
-
       var div = $(this).closest('div');
-      var newElem = $('<p custom-placeholder=true data-ph="My research on this organism involves..." class="data-paragraph">');
-      $('textarea', div).each( function(idx) {
-         newElem.text( $(this).val() );
-         $(this).replaceWith( newElem.clone() );
-
+      
+      $('*[contenteditable="true"]', div).each( function(idx) {
+         $(this).removeAttr('contenteditable');
+         $(this).removeClass('editable');
       });
 
    }

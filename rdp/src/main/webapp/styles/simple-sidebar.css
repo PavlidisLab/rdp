@@ -257,7 +257,7 @@ table thead {
 }
 
 .research-focus p {
-	min-height: 28px;
+	min-height: 20px;
 }
 
 .push-sticky-footer {
@@ -314,6 +314,6 @@ border-color: #555753;
 	padding-bottom: 3px;
 }
 
-[custom-placeholder=true]:empty:not (:focus ):before {
+[custom-placeholder=true]:empty:not(:focus ):before {
 	content: attr(data-ph)
 }
