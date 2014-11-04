@@ -226,32 +226,8 @@
 		</div>
 		<div class="push-sticky-footer"></div>
 	</div>
-	<div id="confirmModal" class="modal fade bs-example-modal-sm"
-		tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel"
-		aria-hidden="true">
-		<div class="modal-dialog modal-sm">
-			<div class="modal-content">
-				<div class="modal-header">
-					<button type="button" class="close" data-dismiss="modal">
-						<span aria-hidden="true">&times;</span><span class="sr-only">Close</span>
-					</button>
-					<h5 class="modal-title" id="myModalLabel">Save Changes?</h5>
-				</div>
-				<div class="modal-body">
-					<p>You haven't saved your changes. Are you sure you want to
-						discard your changes?</p>
-				</div>
-				<div class="modal-footer">
-					<button class="btn btn-custom-grey btn-sm">
-						<i class="fa fa-trash"></i> Discard
-					</button>
-					<button class="btn btn-danger btn-sm">
-						<i class="fa fa-floppy-o"></i> Save
-					</button>
-				</div>
-			</div>
-		</div>
-	</div>
+	<%@ include file="addGenesModal.jsp"%>
+	<%@ include file="confirmModal.jsp"%>
 	<footer class="footer"> © 2014 CRDMMN </footer>
 
 

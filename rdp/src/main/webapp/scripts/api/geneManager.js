@@ -13,7 +13,19 @@
 
    geneManager.currentTaxonId = function() {
       return utility.taxonNameToId[ $( '#currentOrganismBreadcrumb').text() ];
-   };   
+   };  
+   
+   geneManager.addGenesModal = function() {
+      return $( '#addGenesModal');
+   };  
+   
+   geneManager.select2 = function() {
+      return $( "#searchGenesSelect" );
+   };  
+   
+   
+   
+   
 
    geneManager.fillTable = function() {
       var table = geneManager.table().DataTable();
@@ -48,10 +60,126 @@
       selectedNodes.remove().draw( false );
    }
    
-   geneManager.addGenes = function(e) {
-      console.log(e);
+   geneManager.openAddGenesModal = function() {
+      geneManager.addGenesModal().modal('show');
+   }
+   
+   geneManager.addGeneToTable = function( gene, draw ) {
+      draw = utility.isUndefined( draw ) ? true : false;
+      if ( !(gene instanceof researcherModel.Gene ) ){
+         console.log("Object is not a Gene", gene);
+         return;
+      }
+
+      if ( gene == null ) {
+         console.log("Please select a gene to add")
+         //utility.showMessage( "Please select a gene to add", $( "#geneManagerMessage" ) );
+         return;
+      } else {
+         //utility.hideMessage( $( "#geneManagerMessage" ) );
+      }
+
+      var table = geneManager.table().DataTable();
+      
+      if ( table.column(1).data().indexOf(gene.officialSymbol) != -1 ) {
+         console.log("Gene already added")
+         //utility.showMessage( "Gene already added", $( "#geneManagerMessage" ) );
+         return;
+      }
+      geneRow = [gene];
+      var inst = table.row.add( geneRow );
+      if (draw) {
+         inst.draw();
+      }
+
+   }
+   
+   geneManager.addSelectedGene = function() {
+      var data = $( "#searchGenesSelect" ).select2( "data" );
+      if ( data ) {
+         var gene = new researcherModel.Gene( data );
+      }
+      $( "#searchGenesSelect" ).select2("val", "");
+      geneManager.addGeneToTable(gene, true);
+   }
+   
+   geneManager.bulkImportGenes = function() {
+      var geneSymbols = $( "#importGeneSymbolsTextArea" ).val();
+      var taxonId = geneManager.currentTaxonId();
+      var table = geneManager.table().DataTable();
+      var promise = $.ajax( {
+         url : "findGenesByGeneSymbols.html",
+         dataType : "json",
+         data : {
+            "symbols" : geneSymbols,
+            "taxonId" : taxonId
+         },
+         success : function(response, xhr) {
+
+            for (var i = 0; i < response.data[0].length; i++) {
+               gene = new researcherModel.Gene( response.data[0][i] );
+               geneManager.addGeneToTable( gene, false );
+            }
+            table.rows().draw();
+            console.log(response.message)
+            //utility.showMessage( response.message, $( "#geneManagerMessage" ) );
+
+         },
+         error : function(response, xhr) {
+            console.log(response.message)
+            //utility.showMessage( response.message, $( "#geneManagerMessage" ) );
+         }
+
+      } );
+
+      return promise;
    }
 
+   geneManager.initSelect2 = function() {
+      // init search genes combo    
+      geneManager.select2().select2( {
+         id : function(data) {
+            return data.officialSymbol;
+         },
+         placeholder : "Select a gene symbol or name",
+         minimumInputLength : 3,
+         ajax : {
+            url : "searchGenes.html",
+            dataType : "json",
+            data : function(query, page) {
+               return {
+                  query : query, // search term
+                  taxonId : geneManager.currentTaxonId()
+               }
+            },
+            results : function(data, page) {
+               // convert object to text symbol + text
+               // select2 format result looks for the 'text' attr
+               var geneResults = []
+               for (var i = 0; i < data.data.length; i++) {
+                  var gene = new researcherModel.Gene( data.data[i] );
+                  var aliasStr = gene.aliasesToString();
+                  aliasStr = aliasStr ? "(" + aliasStr + ") " : "";
+                  gene.text = "<b>" + gene.officialSymbol + "</b> " + aliasStr + gene.officialName
+                  geneResults.push(gene);
+               }
+               return {
+                  results : geneResults
+               };
+            },
+
+         },
+         formatAjaxError : function(response) {
+            var msg = response.responseText;
+            return msg;
+         }, 
+         // we do not want to escape markup since we are displaying html in results
+         escapeMarkup : function(m) {
+            return m;
+         },
+      } );
+   }
+   
    geneManager.initDataTable = function() {
       geneManager.table().dataTable( {
          "oLanguage": {
@@ -102,7 +230,7 @@
          dom: 'T<"clear">lfrtip',
          tableTools: {
             "sRowSelect": "os",
-            "aButtons": [ {"sExtends":    "text", "fnClick":geneManager.addGenes, "sButtonText": '<i class="fa fa-plus-circle green-icon"></i>&nbsp; Add Gene(s)' },
+            "aButtons": [ {"sExtends":    "text", "fnClick":geneManager.openAddGenesModal, "sButtonText": '<i class="fa fa-plus-circle green-icon"></i>&nbsp; Add Gene(s)' },
                           {"sExtends":    "text", "fnClick":geneManager.removeSelectedRows, "sButtonText": '<i class="fa fa-minus-circle red-icon"></i>&nbsp; Remove Selected' },
                           "select_all", 
                           "select_none" ]
@@ -132,11 +260,21 @@
       } );
 
    }
+   
+   geneManager.init = function() {
+      $( "#addGeneButton" ).click( geneManager.addSelectedGene );
+      $( "#clearImportGenesButton" ).click( function() {
+         $( "#importGeneSymbolsTextArea" ).val( '' );
+      } );
+      $( "#importGenesButton" ).click(geneManager.bulkImportGenes);
+   }
 
 
 }( window.geneManager = window.geneManager || {}, jQuery ));
 
 $( document ).ready( function() {
+   geneManager.init();
+   geneManager.initSelect2();
    geneManager.initDataTable();
 
 

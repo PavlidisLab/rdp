@@ -27,11 +27,11 @@
    profile.description = function() {
       return $('#profile-tab .about p').eq( 0 );
    }
-   
+
    profile.pubMedIds = function() {
       return $('#publicationsList ul').eq( 0 );
    }
-   
+
    saveProfile = function(e) {
       var btn = $(this);
       btn.attr("disabled", "disabled");
@@ -44,6 +44,14 @@
       researcherModel.currentResearcher.phone = profile.phone().text();
       researcherModel.currentResearcher.description = profile.description().text();
 
+      researcherModel.currentResearcher.pubMedIds = [];
+      profile.pubMedIds().find( 'li' ).each(function(index) {
+         var val = parseInt( $(this).text() );
+         if ( !isNaN(val) ) {
+         researcherModel.currentResearcher.pubMedIds.push( val );
+         }
+      });
+
       var promise = researcherModel.saveResearcherProfile();
 
       $.when(promise).done(function() {
@@ -53,7 +61,51 @@
       });
    }
 
+   profile.isChanged = function() {
+      researcher = researcherModel.currentResearcher;
+      var changed = false;
+
+      changed |= profile.firstName().text() != researcher.firstName;  
+      changed |= profile.lastName().text() != researcher.lastName;     
+      changed |= profile.organization().text() != researcher.organization; 
+      changed |= profile.department().text() != researcher.department;
+      changed |= profile.website().text() != researcher.website;
+
+      changed |= profile.phone().text() != researcher.phone;
+
+      changed |= profile.description().text() != researcher.description;
+
+
+      if ( !changed && researcher.pubMedIds.length > 0 ) {
+         researcher.pubMedIds.sort(function(a, b){return a-b});
+         var ids = [];
+         profile.pubMedIds().find( 'li' ).each(function(index) {
+            var val = parseInt( $(this).text() );
+            if ( !isNaN(val) ) {
+               ids.push( val );
+            }
+         });
+         ids.sort(function(a, b){return a-b});
+         if ( ids.length != researcher.pubMedIds.length ) {
+            return true;
+         }
+         for (var i=0; i<ids.length; i++) {
+            if ( ids[i] != researcher.pubMedIds[i] ) {
+               return true;
+            }
+         }
+      }
+
+      return changed;
+
+   }
+
+   profile.hideTab = function() {
+      console.log('hide');
+   }
+
    profile.setInfo = function( researcher ) {
+      lockAll();
       researcher = utility.isUndefined( researcher ) ? researcherModel.currentResearcher : researcher;
       profile.firstName().text(researcher.firstName);
       profile.lastName().text(researcher.lastName);
@@ -70,8 +122,8 @@
       profile.phone().text(researcher.phone);
       profile.description().text(researcher.description);
       profile.pubMedIds().empty();
-      
-      
+
+
       if ( researcher.pubMedIds.length > 0 ) {
          researcher.pubMedIds.sort(function(a, b){return a-b});
          for (var i=0; i<researcher.pubMedIds.length; i++) {
@@ -88,7 +140,7 @@
       e.preventDefault();
       $(this).removeClass('fa-edit').addClass('fa-check-square-o').removeClass('yellow-icon').addClass('green-icon');
       var div = $(this).closest('div');
-      
+
       $('.data-editable', div).each( function(idx) {
          $(this).prop('contenteditable',true);
          $(this).addClass('editable');
@@ -102,7 +154,7 @@
       e.preventDefault();
       $(this).removeClass('fa-check-square-o').addClass('fa-edit').removeClass('green-icon').addClass('yellow-icon');
       var div = $(this).closest('div');
-      
+
       $('*[contenteditable="true"]', div).each( function(idx) {
          $(this).removeAttr('contenteditable');
          $(this).removeClass('editable');
@@ -117,7 +169,22 @@
    profile.init = function() {
       $('#profile-tab a').on('click', 'i[class~="fa-edit"]', editProfile );
       $('#profile-tab a').on('click', 'i[class~="fa-check-square-o"]', lockProfile );
-      $('a[href="#profile"]').on('show.bs.tab', function() {profile.setInfo() } );
+      $('a[href="#profile"]').on('show.bs.tab', function() {profile.setInfo(); } );
+      $('a[href="#profile"]').on('shown.bs.tab', function() {
+         $('#menu').off('show.bs.tab', 'a[href!="#profile"][data-toggle="tab"]').on('show.bs.tab', 'a[href!="#profile"][data-toggle="tab"]', function(e) {
+            var target = e.target;
+            if ( profile.isChanged() ) {
+               utility.confirmModal( function(result) {
+                  if ( result ) {
+                     $('#menu').off('show.bs.tab', 'a[href!="#profile"][data-toggle="tab"]');
+                     $(target).trigger("click");
+                  }
+               });
+               e.preventDefault();
+            }
+         } );
+      } );
+
       $('#profile-tab button').click(saveProfile);
    }
 
@@ -125,4 +192,5 @@
 
 $( document ).ready( function() {
    profile.init();
+   $('a[href="#overview"]').on('hide.bs.tab', function() {console.log('hide') } );
 });

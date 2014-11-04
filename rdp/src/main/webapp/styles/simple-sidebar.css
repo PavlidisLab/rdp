@@ -29,7 +29,7 @@ html, body {
 	border: 0;
 	width: 100%;
 	position: absolute;
-	bottom: 34px;
+	bottom: 38px;
 	top: 60px;
 }
 
@@ -261,7 +261,7 @@ table thead {
 }
 
 .push-sticky-footer {
-	height: 34px;
+	height: 38px;
 }
 
 .footer {
@@ -277,7 +277,7 @@ table thead {
 	min-height: 100%;
 	height: auto !important;
 	height: 100%;
-	margin: 0 auto -34px;
+	margin: 0 auto -38px;
 }
 .btn.btn-custom-grey {
 	color: #fff;

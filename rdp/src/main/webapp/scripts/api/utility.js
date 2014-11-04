@@ -16,33 +16,19 @@
    utility.isUndefined = function( variable ) {
       return ( typeof variable === 'undefined' );
    }
-   
+      
    utility.confirmModal = function(callback) {
-
-   }
-   
-   utility.callback = function(result) {
-      
-   }
-   
-   utility.modalAlert = function(callback) {
       var modal = $( "#confirmModal");
-      modal.modal({
-         backdrop:'static',
-         keyboard: false
-      });
+      modal.modal('show');
       
-      modal.unbind('click').on('click', 'button', function(e) {
-         console.log('click');
-         console.log(e);
+      modal.off('click',  'button.return-choice').on('click', 'button.return-choice', function(e) {
+         modal.off('hide.bs.modal');
          modal.modal('hide');
-         result = true;
+         result = $(this).hasClass("return-true") ? true:false;
          callback(result);
       });
       
-      modal.unbind('hide.bs.modal').on('hide.bs.modal', 'button', function(e) {
-         console.log('hide')
-         console.log(e);
+      modal.off('hide.bs.modal').on('hide.bs.modal', function(e) {
          result = false;
          callback(result);
       });

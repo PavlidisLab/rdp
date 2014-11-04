@@ -35,12 +35,10 @@
             }
 
             $this.find("li").children("a").on("click" + "." + pluginName, function(e) {
-                e.preventDefault();
+                //e.preventDefault();
                 
                 if ( $(this).parent("li").has("ul").length == 0 ) {
                    $this.find("li").removeClass("active");
-                } else {
-                   e.stopPropagation();
                 }
                 
                 //Do we need to enable the double tap

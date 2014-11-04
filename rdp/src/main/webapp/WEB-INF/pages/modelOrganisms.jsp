@@ -40,7 +40,7 @@
 							</button>
 						</div>
 					</div>
-				</div>
+				</div>				
 			</div>
 			<!-- END GENE TAB CONTENT -->
 
