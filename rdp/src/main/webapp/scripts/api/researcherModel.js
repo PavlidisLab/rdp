@@ -70,6 +70,18 @@
 
    }
    
+   // Used to determine if a researcher has a gene in either saved or calculated genes
+   researcherModel.Researcher.prototype.getGenesByTaxonId = function(taxonId) {
+      var filter = [];
+      for (var i=0;i<this.genes.length;i++) {
+         if ( this.genes[i].taxonId == taxonId ) {
+            filter.push(this.genes[i])
+         }
+      }
+      return filter;
+
+   }
+   
    researcherModel.Researcher.prototype.getTaxons = function() {
       var taxons = [];
       //var taxonIds = Object.keys(utility.taxonIdToName);
@@ -152,9 +164,9 @@
       return jsonArr;
    }
     
-   researcherModel.Researcher.prototype.compareGenes = function(otherGenes) {
+   researcherModel.Researcher.prototype.compareGenes = function(otherGenes, compareAgainst) {
       g1 = otherGenes.slice();
-      g2 = this.genes.slice();
+      g2 = ( typeof compareAgainst === 'undefined' ) ? this.genes.slice() : compareAgainst;
       
       identicalIndexOf = function(gene,genes) { //Harsher equality check than indexOf
          for (var i=0; i<genes.length; i++) {

@@ -25,7 +25,24 @@
    
    
    
+   geneManager.isChanged =  function() {
+      var table = geneManager.table().DataTable();
+      var researcher = researcherModel.currentResearcher;
+      var taxonId = geneManager.currentTaxonId();
+      var oldGenes = researcher.getGenesByTaxonId( taxonId );
+
+      var showingGenes = table.columns().data()[0]; 
+      var focus = researcher.taxonDescriptions[taxonId] ? researcher.taxonDescriptions[taxonId]:"";
+      return ( modelOrganisms.focus().text() != focus) || !researcher.compareGenes(showingGenes, oldGenes);
+   }
    
+   geneManager.loadTaxon =  function(taxonName) {
+      $("#currentOrganismBreadcrumb").text(taxonName);
+      $("#modelOrganisms .main-header em").text ( taxonName );
+      modelOrganisms.setFocus();
+      geneManager.fillTable();
+      $('a[href="#modelOrganisms"][data-toggle="tab"]').tab('show')
+   }
 
    geneManager.fillTable = function() {
       var table = geneManager.table().DataTable();
@@ -267,6 +284,9 @@
          $( "#importGeneSymbolsTextArea" ).val( '' );
       } );
       $( "#importGenesButton" ).click(geneManager.bulkImportGenes);
+      $('a[href="#modelOrganisms"][data-toggle="tab"]').on('show.bs.tab', function() {
+         utility.setConfirmChanges($(this), geneManager.isChanged, $('#myModelOrganismsList > ul > li > a[href="#modelOrganisms"]:contains("'+geneManager.currentTaxon()+'")'));
+         } );
    }
 
 

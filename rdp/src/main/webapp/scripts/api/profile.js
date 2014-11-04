@@ -169,21 +169,12 @@
    profile.init = function() {
       $('#profile-tab a').on('click', 'i[class~="fa-edit"]', editProfile );
       $('#profile-tab a').on('click', 'i[class~="fa-check-square-o"]', lockProfile );
-      $('a[href="#profile"]').on('show.bs.tab', function() {profile.setInfo(); } );
-      $('a[href="#profile"]').on('shown.bs.tab', function() {
-         $('#menu').off('show.bs.tab', 'a[href!="#profile"][data-toggle="tab"]').on('show.bs.tab', 'a[href!="#profile"][data-toggle="tab"]', function(e) {
-            var target = e.target;
-            if ( profile.isChanged() ) {
-               utility.confirmModal( function(result) {
-                  if ( result ) {
-                     $('#menu').off('show.bs.tab', 'a[href!="#profile"][data-toggle="tab"]');
-                     $(target).trigger("click");
-                  }
-               });
-               e.preventDefault();
-            }
-         } );
-      } );
+      $('a[href="#profile"]').on('show.bs.tab', function() {
+         profile.setInfo(); 
+         utility.setConfirmChanges($('a[href="#profile"]'), profile.isChanged, $('a[href="#profile"]'))
+
+         } );     
+
 
       $('#profile-tab button').click(saveProfile);
    }
@@ -192,5 +183,4 @@
 
 $( document ).ready( function() {
    profile.init();
-   $('a[href="#overview"]').on('hide.bs.tab', function() {console.log('hide') } );
 });

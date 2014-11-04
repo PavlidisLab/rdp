@@ -22,24 +22,26 @@
                 obj = this;
 
             if (this.isIE() <= 9) {
-                $this.find("li.activeMetis").has("ul").children("ul").collapse("show");
-                $this.find("li").not(".activeMetis").has("ul").children("ul").collapse("hide");
+                $this.find("li.active-metis").addClass('current-metis').has("ul").children("ul").collapse("show");
+                $this.find("li").not(".active-metis").has("ul").children("ul").collapse("hide");
             } else {
-                $this.find("li.activeMetis").has("ul").children("ul").addClass("collapse in");
-                $this.find("li").not(".activeMetis").has("ul").children("ul").addClass("collapse");
+                $this.find("li.active-metis").addClass('current-metis').has("ul").children("ul").addClass("collapse in");
+                $this.find("li").not(".active-metis").has("ul").children("ul").addClass("collapse");
             }
 
-            //add the "doubleTapToGo" class to activeMetis items if needed
+            //add the "doubleTapToGo" class to active-metis items if needed
             if (obj.settings.doubleTapToGo) {
-                $this.find("li.activeMetis").has("ul").children("a").addClass("doubleTapToGo");
+                $this.find("li.active-metis").has("ul").children("a").addClass("doubleTapToGo");
             }
 
             $this.find("li").children("a").on("click" + "." + pluginName, function(e) {
+            //$this.on("click" + "." + pluginName, 'li > a',function(e) {
                 //e.preventDefault();
+               //console.log("click" + "." + pluginName, $(this))
                 
-                if ( $(this).parent("li").has("ul").length == 0 ) {
+/*                if ( $(this).parent("li").has("ul").length == 0 ) {
                    $this.find("li").removeClass("active");
-                }
+                }*/
                 
                 //Do we need to enable the double tap
                 if (obj.settings.doubleTapToGo) {
@@ -52,10 +54,16 @@
                     }
                 }
 
-                $(this).parent("li").toggleClass("activeMetis").children("ul").collapse("toggle");
-
+                $(this).parent("li").toggleClass("active-metis").children("ul").collapse("toggle");
+                if ( $(this).parent("li").has("ul").length == 0 ) {
+                   $this.find('li.current-metis').removeClass("current-metis");
+                   $(this).parent("li").addClass("current-metis");
+                }
+                
+                $(this).parent("li").siblings().children("ul").find('li').removeClass("active-metis");
                 if ($toggle) {
-                    $(this).parent("li").siblings().removeClass("activeMetis").children("ul.in").collapse("hide");
+                   
+                    $(this).parent("li").siblings().removeClass("active-metis").children("ul.in").collapse("hide");
                 }
 
             });

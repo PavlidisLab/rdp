@@ -37,6 +37,21 @@
       
    }
    
+   utility.setConfirmChanges = function(tab, isDirty, fixSidebar) {
+      tab.one('hide.bs.tab', function(e) {
+         if ( isDirty() ) {
+            fixSidebar.trigger('click.metisMenu');
+            e.preventDefault();
+            var relatedTarget = e.relatedTarget;
+            utility.confirmModal( function(result) {
+               if ( result ) {
+                  $(e.relatedTarget).trigger("click");
+               }
+            });
+         }
+      });
+   }
+   
    utility.taxonIdToName = {
                  562:'E. Coli',
                  6239:'Roundworm',

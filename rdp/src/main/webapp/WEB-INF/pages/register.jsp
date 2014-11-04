@@ -23,6 +23,7 @@
 	href="styles/dataTables.tableTools.css">
 
 <!-- MetisMenu CSS -->
+<!-- THIS HAS BEEN ALTERED DO NOT MINIFY WILLY-NILLY -->
 <link href="styles/metisMenu/metisMenu.min.css" rel="stylesheet">
 
 <link rel="stylesheet"
@@ -91,7 +92,7 @@
 			<aside class="sidebar">
 				<nav class="sidebar-nav">
 					<ul id="menu">
-						<li class="activeMetis"><a href="#overview" data-toggle="tab">
+						<li class="active active-metis"><a href="#overview" data-toggle="tab">
 								<span class="sidebar-nav-item-icon fa fa-fw fa-home fa-lg"></span>
 								<span class="sidebar-nav-item">Overview</span>
 						</a></li>
@@ -99,21 +100,21 @@
 								class="sidebar-nav-item-icon fa fa-fw fa-user fa-lg"></span> <span
 								class="sidebar-nav-item">Profile</span>
 						</a></li>
-						<li id="myModelOrganismsList"><a href="#"> <span
+						<li id="myModelOrganismsList"><a href="#modelOrganisms" data-toggle="tab"> <span
 								class="sidebar-nav-item-icon fa fa-fw fa-bug fa-lg"></span> <span
 								class="sidebar-nav-item">My Model Organisms</span> <span
 								class="fa arrow"></span>
 						</a>
 							<ul>
-								<li><a href="#modelOrganisms" data-toggle="tab">Human</a></li>
-								<li><a href="#modelOrganisms" data-toggle="tab">Mouse</a></li>
-								<li><a href="#modelOrganisms" data-toggle="tab">Rat</a></li>
-								<li><a href="#modelOrganisms" data-toggle="tab">Yeast</a></li>
-								<li><a href="#modelOrganisms" data-toggle="tab">Zebrafish</a></li>
-								<li><a href="#modelOrganisms" data-toggle="tab">Fruit
+								<li><a href="#modelOrganisms">Human</a></li>
+								<li><a href="#modelOrganisms">Mouse</a></li>
+								<li><a href="#modelOrganisms">Rat</a></li>
+								<li><a href="#modelOrganisms">Yeast</a></li>
+								<li><a href="#modelOrganisms">Zebrafish</a></li>
+								<li><a href="#modelOrganisms">Fruit
 										Fly</a></li>
-								<li><a href="#modelOrganisms" data-toggle="tab">Roundworm</a></li>
-								<li><a href="#modelOrganisms" data-toggle="tab">E. Coli</a></li>
+								<li><a href="#modelOrganisms">Roundworm</a></li>
+								<li><a href="#modelOrganisms">E. Coli</a></li>
 								<li><a href="#addOrganism">Add Organism<span
 										class="fa arrow"></span></a>
 									<ul class="sub-list">

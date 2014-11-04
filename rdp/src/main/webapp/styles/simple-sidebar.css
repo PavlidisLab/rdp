@@ -131,11 +131,19 @@ html, body {
 	background-color: rgba(255, 255, 255, 0.2);
 }
 
-#menu li.active {
+#menu li {
+	background-image: -webkit-linear-gradient(left, color-stop(#333333 10px),
+		color-stop(#222222 10px));
+	background-image: linear-gradient(to right, #333333 10px, #222222 10px);
+}
+
+#menu li.active.current-metis, #menu li.active > ul > li.current-metis {
 	background-image: -webkit-linear-gradient(left, color-stop(#009900 10px),
 		color-stop(#222222 10px));
 	background-image: linear-gradient(to right, #009900 10px, #222222 10px);
 }
+
+
 
 .sidebar-nav ul ul a:hover, .sidebar-nav ul ul a:focus, .sidebar-nav ul ul a:active
 	{

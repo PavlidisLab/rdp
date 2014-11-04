@@ -3,7 +3,7 @@ $( document ).ready( function() {
    
    $( function() {
 
-      $( '#menu' ).metisMenu();
+      $( '#menu' ).metisMenu({'toggle':false});
    } );
    
    var promise = $.ajax( {
@@ -50,13 +50,29 @@ $( document ).ready( function() {
          $('#myModelOrganismsList > ul > li > ul > li').has('a[href="#"]').show();
       }
    });
-   
-   $('body').on('click', 'a[href="#modelOrganisms"]', function(){
-      $("#currentOrganismBreadcrumb").text($(this).text());
-      $("#modelOrganisms .main-header em").text ( $(this).text() );
-      modelOrganisms.setFocus();
-      geneManager.fillTable();
+
+   $('#menu').on('click', 'a[href="#modelOrganisms"][data-toggle!="tab"]', function(){
+      if ( $('#menu li.active > a').is('a[href="#modelOrganisms"]') && geneManager.isChanged() ) {
+         var $this = $(this);
+         $('#myModelOrganismsList > ul > li a[href="#modelOrganisms"]:contains("'+geneManager.currentTaxon()+'")').trigger('click.metisMenu')
+         var taxonName = $(this).text();
+         utility.confirmModal( function(result) {
+            if ( result ) {
+               $this.trigger('click.metisMenu');
+               geneManager.loadTaxon( taxonName );
+            }
+         });
+      } else {
+         geneManager.loadTaxon( $(this).text() );
+      }
+   });
+
+
+
+   $('#menu').on('click', 'a[href="#modelOrganisms"][data-toggle="tab"]', function(){
+      return false;
     });
+   
 /*   $('a[href="#modelOrganisms"]').click(function(){
       $("#currentOrganismBreadcrumb").text($(this).text());
       $("#modelOrganisms .main-header em").text ( $(this).text() );
@@ -66,11 +82,14 @@ $( document ).ready( function() {
    
    $('#settingsDropdown').click(function(){
       $('#menu a[href="#profile"]').tab('show');
+      $('#menu a[href="#profile"]').trigger('click.metisMenu');
       $('.tab-pane a[href="#settings-tab"]').tab('show');
     });
    
    $('#profileDropdown').click(function(){
+      
       $('#menu a[href="#profile"]').tab('show');
+      $('#menu a[href="#profile"]').trigger('click.metisMenu');
       $('.tab-pane a[href="#profile-tab"]').tab('show');
     });
    
