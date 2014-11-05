@@ -209,11 +209,23 @@ public class ResearcherServiceImpl implements ResearcherService {
     }
 
     @Override
-    public boolean removeGenesByTierAndTaxon( Researcher researcher, TierType tier, Long taxonId ) {
+    public boolean updateGenesByTaxon( Researcher researcher, Long taxonId, HashMap<Gene, TierType> genes ) {
+        Collection<TierType> tiersToRemove = new HashSet<TierType>();
+        tiersToRemove.add( TierType.TIER1 );
+        tiersToRemove.add( TierType.TIER2 );
+        this.removeGenesByTiersAndTaxon( researcher, tiersToRemove, taxonId );
+        // researcher.getGeneAssociations().clear();
+        boolean added = addGenes( researcher, genes );
+        researcherDao.update( researcher );
+        return added;
+    }
+
+    @Override
+    public boolean removeGenesByTiersAndTaxon( Researcher researcher, Collection<TierType> tiers, Long taxonId ) {
         boolean modified = false;
         for ( Iterator<GeneAssociation> i = researcher.getGeneAssociations().iterator(); i.hasNext(); ) {
             GeneAssociation ga = i.next();
-            if ( ga.getTier().equals( tier ) && ga.getGene().getTaxonId().equals( taxonId ) ) {
+            if ( tiers.contains( ga.getTier() ) && ga.getGene().getTaxonId().equals( taxonId ) ) {
                 i.remove();
                 modified = true;
             }

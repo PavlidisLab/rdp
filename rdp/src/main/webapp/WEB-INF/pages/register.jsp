@@ -111,8 +111,7 @@
 								<li><a href="#modelOrganisms">Rat</a></li>
 								<li><a href="#modelOrganisms">Yeast</a></li>
 								<li><a href="#modelOrganisms">Zebrafish</a></li>
-								<li><a href="#modelOrganisms">Fruit
-										Fly</a></li>
+								<li><a href="#modelOrganisms">Fruit Fly</a></li>
 								<li><a href="#modelOrganisms">Roundworm</a></li>
 								<li><a href="#modelOrganisms">E. Coli</a></li>
 								<li><a href="#addOrganism">Add Organism<span
@@ -127,14 +126,11 @@
 										<li><a href="#add"><i
 												class="fa fa-plus-circle green-icon"></i>&nbsp; Add Yeast</a>
 										<li><a href="#add"><i
-												class="fa fa-plus-circle green-icon"></i>&nbsp; Add
-												Zebrafish</a>
+												class="fa fa-plus-circle green-icon"></i>&nbsp; Add Zebrafish</a>
 										<li><a href="#add"><i
-												class="fa fa-plus-circle green-icon"></i>&nbsp; Add Fruit
-												Fly</a>
+												class="fa fa-plus-circle green-icon"></i>&nbsp; Add Fruit Fly</a>
 										<li><a href="#add"><i
-												class="fa fa-plus-circle green-icon"></i>&nbsp; Add
-												Roundworm</a>
+												class="fa fa-plus-circle green-icon"></i>&nbsp; Add Roundworm</a>
 										<li><a href="#add"><i
 												class="fa fa-plus-circle green-icon"></i>&nbsp; Add E. Coli</a>
 										<li style="display: none;"><a href="#"><i
@@ -228,6 +224,7 @@
 		<div class="push-sticky-footer"></div>
 	</div>
 	<%@ include file="addGenesModal.jsp"%>
+	<%@ include file="addTermsModal.jsp"%>
 	<%@ include file="confirmModal.jsp"%>
 	<footer class="footer"> © 2014 CRDMMN </footer>
 

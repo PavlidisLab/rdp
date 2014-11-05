@@ -70,7 +70,6 @@
 
    }
    
-   // Used to determine if a researcher has a gene in either saved or calculated genes
    researcherModel.Researcher.prototype.getGenesByTaxonId = function(taxonId) {
       var filter = [];
       for (var i=0;i<this.genes.length;i++) {
@@ -80,6 +79,22 @@
       }
       return filter;
 
+   }
+   
+   researcherModel.Researcher.prototype.setGenesByTaxonId = function(genes, taxonId) {
+      var newGenes = [];
+      for (var i=0;i<this.genes.length;i++) {
+         if ( this.genes[i].taxonId != taxonId ) {
+            newGenes.push(this.genes[i])
+         }
+      }
+      for (var i=0;i<genes.length;i++) {
+         if ( genes[i].taxonId == taxonId ) {
+            newGenes.push(genes[i])
+         }
+      }
+      
+      this.genes = newGenes;
    }
    
    researcherModel.Researcher.prototype.getTaxons = function() {
@@ -144,10 +159,11 @@
       this.taxonDescriptions[taxon] = taxonDescription;
    }
    
-   researcherModel.Researcher.prototype.genesToJSON = function() {
+   researcherModel.Researcher.prototype.genesToJSON = function(genes) {
+      genes = ( typeof genes === 'undefined' ) ? this.genes : genes;
       var jsonArr = [];
-      for (var i=0; i<this.genes.length; i++) {
-         jsonArr.push( $.toJSON( this.genes[i] ) );
+      for (var i=0; i<genes.length; i++) {
+         jsonArr.push( $.toJSON( genes[i] ) );
       }
       return jsonArr;
    }
@@ -349,7 +365,25 @@
 	   } );
 	   
 	   return promise;
-	}  
+	}
+   
+   researcherModel.saveResearcherGenesByTaxon = function(taxonId) {
+      console.log("saving genes: ", researcherModel.currentResearcher.getGenesByTaxonId(taxonId))
+            
+      var promise = $.ajax( {
+         type: "POST",
+         url : "saveGenesByTaxon.html",
+
+         data : {
+            genes : researcherModel.currentResearcher.genesToJSON(researcherModel.currentResearcher.getGenesByTaxonId(taxonId)),
+            taxonDescription: researcherModel.currentResearcher.taxonDescriptions[taxonId] || "",
+            taxonId:taxonId
+         },
+         dataType : "json"
+      } );
+      
+      return promise;
+   }  
    
    researcherModel.saveResearcherTermsForTaxon = function(taxId) {
       if ( !taxId ){

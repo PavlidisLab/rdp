@@ -43,7 +43,7 @@ $( document ).ready( function() {
    });
    
    $('#myModelOrganismsList').on('click', 'a[href="#add"]',  function() {
-      var taxonName = $(this).text().split('Add ').pop();
+      var taxonName = $(this).text().split('Add ').pop().trim();
       $(this).parent('li').hide();
       $('#myModelOrganismsList > ul > li').has('a[href="#modelOrganisms"]:contains("'+taxonName+'")').show().find('a').click();
       if ( $('#myModelOrganismsList > ul > li > ul > li:visible').length == 0 ) {

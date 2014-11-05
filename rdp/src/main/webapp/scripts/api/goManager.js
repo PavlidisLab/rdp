@@ -2,10 +2,6 @@
  * @memberOf goManager
  */
 (function( goManager, $, undefined ) {
-
-   goManager.table;
-   goManager.currentTaxonId;
-   goManager.currentTaxon;
    
    goManager.aspectToString = function(aspect) {
       switch(aspect) {
@@ -20,6 +16,29 @@
      }
 
    }
+   goManager.table = function() {
+      return $( '#go-tab table');
+   }; 
+   
+   goManager.currentTaxon = function() {
+      return $( '#currentOrganismBreadcrumb').text();
+   };
+
+   goManager.currentTaxonId = function() {
+      return utility.taxonNameToId[ $( '#currentOrganismBreadcrumb').text() ];
+   };  
+   
+   goManager.addTermsModal = function() {
+      return $( '#addTermsModal');
+   };  
+   
+   goManager.suggestionTable = function() {
+      return $( '#suggestedTermsTable');
+   };  
+   
+   goManager.select2 = function() {
+      return $( "#searchTermsSelect" );
+   }; 
 
    clearTable = function() {
       goManager.table.DataTable().clear();
@@ -147,14 +166,16 @@
       
       
       if ( term == null ) {
-         utility.showMessage( "Please select a GO Term to add", $( "#goManagerMessage" ) );
+         //utility.showMessage( "Please select a GO Term to add", $( "#goManagerMessage" ) );
+         console.log("Please select a GO Term to add")
          return;
       } else {
-         utility.hideMessage( $( "#goManagerMessage" ) );
+         //utility.hideMessage( $( "#goManagerMessage" ) );
       }
 
-      if ( goManager.table.DataTable().column(1).data().indexOf(term.geneOntologyId) != -1 ) {
-         utility.showMessage( "GO Term already added", $( "#goManagerMessage" ) );
+      if ( goManager.table().DataTable().column(1).data().indexOf(term.geneOntologyId) != -1 ) {
+         //utility.showMessage( "GO Term already added", $( "#goManagerMessage" ) );
+         console.log("GO Term already added")
          return;
       }
 
@@ -176,12 +197,51 @@
       
       
    }
+   
+   goManager.addGoTermToTable = function( term, draw ) {
+      draw = utility.isUndefined( draw ) ? true : false;
+      if ( !(gene instanceof researcherModel.Gene ) ){
+         console.log("Object is not a Gene", gene);
+         return;
+      }
+
+      if ( gene == null ) {
+         console.log("Please select a GO Term to add")
+         //utility.showMessage( "Please select a gene to add", $( "#geneManagerMessage" ) );
+         return;
+      } else {
+         //utility.hideMessage( $( "#geneManagerMessage" ) );
+      }
+
+      var table = goManager.table().DataTable();
+      
+      if ( table.column(1).data().indexOf(term.geneOntologyId) != -1 ) {
+         console.log("GO Term already added")
+         //utility.showMessage( "Gene already added", $( "#geneManagerMessage" ) );
+         return;
+      }
+      var row = [term];
+      var inst = table.row.add( row );
+      if (draw) {
+         inst.draw();
+      }
+
+   }
+   
+   goManager.openAddTermsModal = function() {
+      goManager.addTermsModal().modal('show');
+   }
+   
+   goManager.addHighlightedTerms = function() {
+      
+   }
 
    goManager.initDataTable = function() {
       // Initialize datatable
-      dataTable = goManager.table.dataTable( {
+      dataTable = goManager.table().dataTable( {
          "oLanguage": {
-            "sEmptyTable": 'Searching for GO term suggestions <img src="styles/select2-spinner.gif">'
+            //"sEmptyTable": 'Searching for GO term suggestions <img src="styles/select2-spinner.gif">'
+            "sEmptyTable": 'No Gene Ontology terms have been added'
           },
          "order": [[ 6, "desc" ],[ 4, "desc" ]],
          "aoColumnDefs": [ 
@@ -237,6 +297,15 @@
                                 return utility.isUndefined( source[0].selected ) ? "" : source[0].selected;
                              }
                           }],
+                          "searching": false,
+                          dom: 'T<"clear">lfrtip',
+                          tableTools: {
+                             "sRowSelect": "os",
+                             "aButtons": [ {"sExtends":    "text", "fnClick":geneManager.openAddGenesModal, "sButtonText": '<i class="fa fa-plus-circle green-icon"></i>&nbsp; Add Gene(s)' },
+                                           {"sExtends":    "text", "fnClick":geneManager.removeSelectedRows, "sButtonText": '<i class="fa fa-minus-circle red-icon"></i>&nbsp; Remove Selected' },
+                                           "select_all", 
+                                           "select_none" ]
+                          },
                           "fnRowCallback": function( nRow, aData, iDisplayIndex ) {
                              // Keep in mind that $('td:eq(0)', nRow) refers to the first DISPLAYED column
                              // whereas aData[0] refers to the data in the first column, hidden or not
@@ -297,10 +366,99 @@
 
       } );
    }
+   
+   goManager.initSuggestDataTable = function() {
+      // Initialize datatable
+      dataTable = goManager.suggestionTable().dataTable( {
+         "oLanguage": {
+            "sEmptyTable": 'Searching for GO term suggestions <img src="styles/select2-spinner.gif">'
+          },
+         "order": [[ 6, "desc" ],[ 4, "desc" ]],
+         "aoColumnDefs": [ 
+                          {
+                             "aTargets": [ 0 ],
+                             "defaultContent": "",
+                             "visible":false,
+                             "searchable":false
+                          },
+                          {
+                             "aTargets": [ 1 ],
+                             "defaultContent": "",
+                             "mData": function ( source, type, val ) {
+                                return utility.isUndefined( source[0].geneOntologyId ) ? "" : source[0].geneOntologyId;
+                             }
+                          },
+                          {
+                             "aTargets": [ 2 ],
+                             "defaultContent": "",
+                             "mData": function ( source, type, val ) {
+                                return utility.isUndefined( source[0].aspect ) ? "" : source[0].aspect;
+                             }
+                          },
+                          {
+                             "aTargets": [ 3 ],
+                             "defaultContent": "",
+                             "mData": function ( source, type, val ) {
+                                return utility.isUndefined( source[0].geneOntologyTerm ) ? "" : source[0].geneOntologyTerm;
+                             }
+                          },
+                          {
+                             "aTargets": [ 4 ],
+                             "mData": function ( source, type, val ) {
+                                return utility.isUndefined( source[0].frequency ) ? "" : source[0].frequency;
+                             }
+                          },
+                          {
+                             "aTargets": [ 5 ],
+                             "defaultContent": "",
+                             "mData": function ( source, type, val ) {
+                                return utility.isUndefined( source[0].size ) ? "" : source[0].size;
+                             }
+                          }],
+                          "searching": false,
+                          dom: 'T<"clear">lfrtip',
+                          tableTools: {
+                             "sRowSelect": "os",
+                             "aButtons": [ {"sExtends":    "text", "fnClick":goManager.addHighlightedTerms, "sButtonText": '<i class="fa fa-plus-circle green-icon"></i>&nbsp; Add Highlighted Term(s)' },
+                                           "select_none" ]
+                          }
+                          "fnRowCallback": function( nRow, aData, iDisplayIndex ) {
+                             // Keep in mind that $('td:eq(0)', nRow) refers to the first DISPLAYED column
+                             // whereas aData[0] refers to the data in the first column, hidden or not
+                             var url = "http://www.ebi.ac.uk/QuickGO/GTerm?id="+aData[0].geneOntologyId+"#term=ancchart";
+                             var link;
+                             if ( aData[0].definition ) {
+                                link = '<a href="'+url+'" data-content="' + aData[0].definition + '" data-toggle="popover" target="_blank">'+aData[0].geneOntologyId+'</a>';
+                             }
+                             else {
+                                link = '<a href="'+url+'" data-content="Unknown Definition" data-toggle="popover" target="_blank">'+aData[0].geneOntologyId+'</a>';
+                             }
+
+                             $('td:eq(1)', nRow).html(selectGeneOntologyTerms.aspectToString( aData[0].aspect));
+                             
+                             $('td:eq(0)', nRow).html(link);
+                             $('td:eq(0) > a', nRow).popover({
+                                trigger: 'hover',
+                                'placement': 'left'
+                             });
+                             
+                             if ( utility.isUndefined( aData[0].size ) ) {
+                                $('td:eq(4)', nRow).html('<img src="styles/select2-spinner.gif">');
+                             }
+                             
+                             if ( utility.isUndefined( aData[0].frequency ) ) {
+                                $('td:eq(3)', nRow).html('<img src="styles/select2-spinner.gif">');
+                             }
+
+                             return nRow;
+                          },
+
+      } );
+   }
 
    goManager.initSelect2 = function() {
       // init search genes combo    
-      goManager.select.select2( {
+      goManager.select2().select2( {
          id : function(data) {
             return data.geneOntologyId;
          },
@@ -340,10 +498,7 @@
    }
 
    goManager.init = function() {
-      //goManager.modal = $( '#goManagerModal');
-      goManager.table = $( '#go-tab table');
-      //goManager.title = $( '#goManagerTitle');
-      //goManager.select = $( '#goManagerSelect');
+
    }
 
 }( window.goManager = window.goManager || {}, jQuery ));
@@ -351,6 +506,8 @@
 $( document ).ready( function() {
    goManager.init();
    goManager.initDataTable();
+   goManager.initSuggestDataTable();
+   goManager.initSelect2();
    //goManager.initSelect2();
    //$( "#goManagerButton" ).click( goManager.saveGoTerms );
    //$( "#goManagerAddTermButton" ).click( goManager.addGoTerm );

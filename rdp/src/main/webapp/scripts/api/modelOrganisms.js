@@ -20,6 +20,10 @@
    modelOrganisms.setFocus = function() {
       var focus = researcherModel.currentResearcher.taxonDescriptions[modelOrganisms.currentTaxonId()] || "";
       modelOrganisms.focus().text( focus );
+      modelOrganisms.lockAll();
+   }
+   
+   modelOrganisms.lockAll = function() {
       $('#research-focus a i[class~="fa-check-square-o"]').trigger( "click" )
    }
    

@@ -35,7 +35,7 @@
 						<%@ include file="geneTable.jsp"%>
 						<hr>
 						<div class="col-md-9">
-							<button class="btn btn-danger">
+							<button id="gene-tab-save" class="btn btn-danger">
 								<i class="fa fa-floppy-o"></i> Save Changes
 							</button>
 						</div>
