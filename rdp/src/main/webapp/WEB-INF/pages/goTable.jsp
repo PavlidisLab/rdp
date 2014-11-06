@@ -9,7 +9,6 @@
 			<th>Term</th>
 			<th>Frequency</th>
 			<th>Size</th>
-			<th>Add</th>
 		</tr>
 	</thead>
 

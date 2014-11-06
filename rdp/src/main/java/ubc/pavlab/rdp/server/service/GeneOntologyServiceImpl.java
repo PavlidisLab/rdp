@@ -213,7 +213,7 @@ public class GeneOntologyServiceImpl implements GeneOntologyService {
     public Map<OntologyTerm, Long> calculateGoTermFrequency( Collection<Gene> genes, Long taxonId,
             int minimumFrequency, int minimumTermSize, int maximumTermSize ) {
         Map<OntologyTerm, Long> frequencyMap = new HashMap<OntologyTerm, Long>();
-        Map<OntologyTerm, Long> sizeMap = new HashMap<OntologyTerm, Long>();
+
         for ( Gene g : genes ) {
             // Collection<OntologyTerm> terms = new HashSet<OntologyTerm>();
             Collection<OntologyTerm> directTerms = getGOTerms( g, false, null, true );

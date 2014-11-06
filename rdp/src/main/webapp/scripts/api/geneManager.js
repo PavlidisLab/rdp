@@ -43,6 +43,7 @@
       }
       var btn = $(this);
       btn.attr("disabled", "disabled");
+      btn.children('i').addClass('fa-spin');
       var researcher = researcherModel.currentResearcher;
       
       var taxonId = geneManager.currentTaxonId();
@@ -55,21 +56,14 @@
 
       $.when(promise).done(function() {
          btn.removeAttr("disabled");
+         btn.children('i').removeClass('fa-spin');
          console.log("Saved Changes");
          //utility.showMessage( promise.responseJSON.message, $( "#primaryContactMessage" ) );
       });
       
    }
    
-   geneManager.loadTaxon =  function(taxonName) {
-      $("#currentOrganismBreadcrumb").text(taxonName);
-      $("#modelOrganisms .main-header em").text ( taxonName );
-      modelOrganisms.setFocus();
-      geneManager.fillTable();
-      $('a[href="#modelOrganisms"][data-toggle="tab"]').tab('show')
-   }
-
-   geneManager.fillTable = function() {
+   geneManager.loadTable = function() {
       var table = geneManager.table().DataTable();
       table.clear();
       var genes = researcherModel.currentResearcher.genes;
@@ -309,9 +303,6 @@
          $( "#importGeneSymbolsTextArea" ).val( '' );
       } );
       $( "#importGenesButton" ).click(geneManager.bulkImportGenes);
-      $('a[href="#modelOrganisms"][data-toggle="tab"]').on('show.bs.tab', function() {
-         utility.setConfirmChanges($(this), geneManager.isChanged, $('#myModelOrganismsList > ul > li > a[href="#modelOrganisms"]:contains("'+geneManager.currentTaxon()+'")'));
-      } );
       $('#gene-tab-save').click(saveGenes);
    }
 

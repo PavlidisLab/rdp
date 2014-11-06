@@ -35,6 +35,7 @@
    saveProfile = function(e) {
       var btn = $(this);
       btn.attr("disabled", "disabled");
+      btn.children('i').addClass('fa-spin');
       lockAll();
       researcherModel.currentResearcher.firstName = profile.firstName().text();
       researcherModel.currentResearcher.lastName = profile.lastName().text();
@@ -56,6 +57,7 @@
 
       $.when(promise).done(function() {
          btn.removeAttr("disabled");
+         btn.children('i').removeClass('fa-spin');
          console.log("Saved Changes");
          //utility.showMessage( promise.responseJSON.message, $( "#primaryContactMessage" ) );
       });

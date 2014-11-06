@@ -210,6 +210,34 @@
       return true;
    }
    
+   researcherModel.Researcher.prototype.compareTerms = function(terms, compareAgainst) {
+   
+      identicalIndexOf = function(term,terms) {
+         for (var i=0; i<terms.length; i++) {
+            if ( terms[i].geneOntologyId === term.geneOntologyId ) {
+               return i;
+            }
+          }
+          return -1;
+      }
+      
+      for (var i=0; i<terms.length; i++) {
+         var index = identicalIndexOf(terms[i], compareAgainst);
+         if ( index == -1 ) {
+            return false;
+         }
+      }
+      
+      for (var i=0; i<compareAgainst.length; i++) {
+         var index = identicalIndexOf(compareAgainst[i], terms);
+         if ( index == -1 ) {
+            return false;
+         }
+      }
+      
+      return true;
+   }
+   
    researcherModel.Researcher.prototype.parseResearcherObject = function(data) {
       this.department = data.department || "";
       this.organization = data.organization || "";

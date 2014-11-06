@@ -46,10 +46,31 @@
             utility.confirmModal( function(result) {
                if ( result ) {
                   $(e.relatedTarget).trigger("click");
+               } else {
+                  utility.setConfirmChanges(tab, isDirty, fixSidebar);
                }
             });
          }
       });
+   }
+   
+   utility.executeAjax = function(ajax_url, data, verbose) {
+      data = utility.isUndefined( data ) ? {} : data;
+      verbose = utility.isUndefined( verbose ) ? true : verbose;
+      var promise = $.ajax( {
+         cache : false,
+         url : ajax_url,
+         data : data,
+         dataType : "json",
+         success : function(response, xhr) {
+            if (verbose) {console.log(response.message);}
+         },
+         error : function(response, xhr) {
+            if (verbose) {console.log("Error:",response);}
+         }
+      } );
+      
+      return promise;
    }
    
    utility.taxonIdToName = {

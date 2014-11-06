@@ -52,18 +52,18 @@ $( document ).ready( function() {
    });
 
    $('#menu').on('click', 'a[href="#modelOrganisms"][data-toggle!="tab"]', function(){
-      if ( $('#menu li.active > a').is('a[href="#modelOrganisms"]') && geneManager.isChanged() ) {
+      if ( $('#menu li.active > a').is('a[href="#modelOrganisms"]') && modelOrganisms.isChanged() ) {
          var $this = $(this);
          $('#myModelOrganismsList > ul > li a[href="#modelOrganisms"]:contains("'+geneManager.currentTaxon()+'")').trigger('click.metisMenu')
          var taxonName = $(this).text();
          utility.confirmModal( function(result) {
             if ( result ) {
                $this.trigger('click.metisMenu');
-               geneManager.loadTaxon( taxonName );
+               modelOrganisms.load( taxonName );
             }
          });
       } else {
-         geneManager.loadTaxon( $(this).text() );
+         modelOrganisms.load( $(this).text() );
       }
    });
 

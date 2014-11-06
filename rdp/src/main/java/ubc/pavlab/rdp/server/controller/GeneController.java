@@ -561,13 +561,13 @@ public class GeneController {
             List<GeneOntologyTerm> results = new ArrayList( geneOntologyService.fetchByQuery( query ) );
 
             // List<GeneOntologyTerm> goTerms = new ArrayList<GeneOntologyTerm>();
-            for ( GeneOntologyTerm term : results ) {
-                // GeneOntologyTerm goTerm = new GeneOntologyTerm( term );
-                term.setFrequency( 0L );
-                // term.setSize( geneOntologyService.getGeneSize( term.getGeneOntologyId() ) );
-                // goTerm.setDefinition( geneOntologyService.getTermDefinition( term ) );
-                // goTerms.add( goTerm );
-            }
+            // for ( GeneOntologyTerm term : results ) {
+            // GeneOntologyTerm goTerm = new GeneOntologyTerm( term );
+            // term.setFrequency( 0L );
+            // term.setSize( geneOntologyService.getGeneSize( term.getGeneOntologyId() ) );
+            // goTerm.setDefinition( geneOntologyService.getTermDefinition( term ) );
+            // goTerms.add( goTerm );
+            // }
 
             // Only return max 100 hits
             try {
@@ -608,24 +608,28 @@ public class GeneController {
             Researcher researcher = researcherService.findByUserName( username );
 
             // Deserialize GO Terms
-            Collection<GeneOntologyTerm> goTerms = geneOntologyService.deserializeGOTerms( GOJSON );
+            Collection<GeneOntologyTerm> goTermsInMemory = geneOntologyService.deserializeGOTerms( GOJSON );
 
             Collection<Gene> genes = researcher.getDirectGenesInTaxon( taxonId );
 
             // Add taxonId to terms and find sizes
-            for ( GeneOntologyTerm term : goTerms ) {
-                term.setTaxonId( taxonId );
-                term.setSize( geneOntologyService.getGeneSizeInTaxon( term.getGeneOntologyId(), taxonId ) );
-                term.setFrequency( geneOntologyService.computeOverlapFrequency( term.getGeneOntologyId(), genes ) );
-                term.setAspect( geneOntologyService.getTermAspect( term.getGeneOntologyId() ) );
+            Collection<GeneOntologyTerm> goTermsToBePersisted = new HashSet<GeneOntologyTerm>();
+            for ( GeneOntologyTerm term : goTermsInMemory ) {
+                // Necessary to save a new instance as the one in memory cannot be changed without Hibernate throwing
+                // stale state exceptions on updates
+                GeneOntologyTerm newTerm = new GeneOntologyTerm( term );
+                newTerm.setTaxonId( taxonId );
+                newTerm.setSize( geneOntologyService.getGeneSizeInTaxon( term.getGeneOntologyId(), taxonId ) );
+                newTerm.setFrequency( geneOntologyService.computeOverlapFrequency( term.getGeneOntologyId(), genes ) );
+                goTermsToBePersisted.add( newTerm );
             }
 
             // Update GO Terms for this taxon
-            researcherService.updateGOTermsForTaxon( researcher, goTerms, taxonId );
+            researcherService.updateGOTermsForTaxon( researcher, goTermsToBePersisted, taxonId );
 
             HashMap<Gene, TierType> calculatedGenes = new HashMap<Gene, TierType>();
 
-            for ( Gene g : geneOntologyService.getRelatedGenes( goTerms, taxonId ) ) {
+            for ( Gene g : geneOntologyService.getRelatedGenes( goTermsToBePersisted, taxonId ) ) {
                 calculatedGenes.put( g, TierType.TIER3 );
             }
 

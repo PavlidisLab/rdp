@@ -15,7 +15,20 @@
       return utility.taxonNameToId[ $( '#currentOrganismBreadcrumb').text() ];
    }; 
    
+   modelOrganisms.load = function(taxonName) {
+      $("#currentOrganismBreadcrumb").text(taxonName);
+      $("#modelOrganisms .main-header em").text ( taxonName );
+      modelOrganisms.setFocus();
+      
+      geneManager.loadTable();
+      goManager.loadTable();
+      
+      $('a[href="#modelOrganisms"][data-toggle="tab"]').tab('show')
+   }
    
+   modelOrganisms.isChanged = function() {
+      return geneManager.isChanged() || goManager.isChanged();
+   }
    
    modelOrganisms.setFocus = function() {
       var focus = researcherModel.currentResearcher.taxonDescriptions[modelOrganisms.currentTaxonId()] || "";
@@ -57,6 +70,9 @@
    modelOrganisms.init = function() {
       $('#research-focus a').on('click', 'i[class~="fa-edit"]', editFocus );
       $('#research-focus a').on('click', 'i[class~="fa-check-square-o"]', lockFocus );
+      $('a[href="#modelOrganisms"][data-toggle="tab"]').on('show.bs.tab', function() {
+         utility.setConfirmChanges($(this), modelOrganisms.isChanged, $('#myModelOrganismsList > ul > li > a[href="#modelOrganisms"]:contains("'+modelOrganisms.currentTaxon()+'")'));
+      } );
    }
    
 }( window.modelOrganisms = window.modelOrganisms || {}, jQuery ));

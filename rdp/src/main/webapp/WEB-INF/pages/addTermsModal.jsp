@@ -21,7 +21,7 @@
 								name="searchTermsSelect" class="bigdrop form-control">
 						</div>
 						<div class="col-sm-2 pull-right">
-							<button type="button" id="addGeneButton"
+							<button type="button" id="addTermButton"
 								class="btn btn-default btn-sm" data-toggle="tooltip"
 								data-placement="bottom" title="Add gene">
 								<span><i class="fa fa-plus-circle green-icon"></i>&nbsp;

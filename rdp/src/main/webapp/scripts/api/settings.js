@@ -15,6 +15,7 @@
       event.preventDefault();
       var btns = settings.saveButton();
       btns.attr("disabled", "disabled");
+      btn.children('i').addClass('fa-spin');
       $.ajax( {
          cache : false,
          type : 'POST',
@@ -25,6 +26,7 @@
          data : settings.passwordForm().serialize(),
          success : function(response, xhr) {
             btns.removeAttr("disabled");
+            btn.children('i').removeClass('fa-spin');
             //utility.showMessage( jQuery.parseJSON( response ).message, $( "#changePasswordMessage" ) );
             console.log(jQuery.parseJSON( response ).message);
 
@@ -35,6 +37,7 @@
          },
          error : function(response, xhr) {
             btns.removeAttr("disabled");
+            btn.children('i').removeClass('fa-spin');
             //console.log( xhr.responseText );
             //utility.showMessage( jQuery.parseJSON( response ).message, $( "#changePasswordMessage" ) );
          }
