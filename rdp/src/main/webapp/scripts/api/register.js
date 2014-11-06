@@ -6,7 +6,7 @@ $( document ).ready( function() {
       $( '#menu' ).metisMenu({'toggle':false});
    } );
    
-   var promise = $.ajax( {
+   $.ajax( {
 	      cache : false,
 	      type : 'GET',
 	      url : "ajaxLoginCheck.html",
@@ -15,7 +15,14 @@ $( document ).ready( function() {
 	         //$( "#navbarIsAdmin" ).text( jQuery.parseJSON( response ).isAdmin );
 	         //$( "#navbarUsername" ).append( ' <span class="caret"></span>' );
 	         $( "body" ).trigger( "loginSuccess", response );
-	         console.log("successfully logged in as: " + jQuery.parseJSON( response ).user);
+	         var responseJSON = jQuery.parseJSON( response );
+	         console.log("successfully logged in as: " + responseJSON.user);
+	         
+	         if (responseJSON.isAdmin == 'true'){
+	            $('#menu > li').has('a[href="#admin"][data-toggle="tab"]').show();
+	            admin.init();
+	         }
+	         
 	      },
 	      error : function(response, xhr) {
 	         console.log( xhr.responseText );
@@ -23,8 +30,8 @@ $( document ).ready( function() {
 	         //$( "#navbarUsername" ).append( ' <span class="caret"></span>' );
 	      }
 	   } );
-         
-   promise = researcherModel.loadResearcher();
+            
+   var promise = researcherModel.loadResearcher();
    
    // This gets run when the ajax calls in defs have completed
    $.when(promise).done(function() {

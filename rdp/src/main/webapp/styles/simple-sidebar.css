@@ -180,8 +180,7 @@ html, body {
 .tab-content.profile-page, .tab-content.modelOrganism-page {
 	padding: 35px 15px;
 }
-
-.profile h3, .settings h3, #modelOrganisms h3, .gene-overview h3 {
+.main-content h3 {
 	font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
 	font-size: 1.2em;
 	margin-top: 0;

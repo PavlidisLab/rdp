@@ -92,6 +92,10 @@
 			<aside class="sidebar">
 				<nav class="sidebar-nav">
 					<ul id="menu">
+						<li style="display: none;"><a href="#admin" data-toggle="tab">
+								<span class="sidebar-nav-item-icon fa fa-fw fa-cogs fa-lg"></span>
+								<span class="sidebar-nav-item">Administration</span>
+						</a></li>
 						<li class="active active-metis"><a href="#overview" data-toggle="tab">
 								<span class="sidebar-nav-item-icon fa fa-fw fa-home fa-lg"></span>
 								<span class="sidebar-nav-item">Overview</span>
@@ -201,6 +205,23 @@
 
 					</div>
 
+					<div class="tab-pane" id="admin">
+
+						<div class="col-xs-12">
+							<div class="row">
+								<div class="col-lg-4 ">
+									<ul class="breadcrumb">
+										<li class="active"><i class="fa fa-cogs"></i><a
+											href="#admin">Administration</a></li>
+									</ul>
+								</div>
+
+							</div>
+							<%@ include file="admin.jsp"%>
+						</div>
+
+					</div>
+
 					<div class="tab-pane" id="help">
 
 						<div class="col-xs-12">
@@ -252,6 +273,7 @@
 	<script src="scripts/api/modelOrganisms.js?version=2"></script>
 	<script src="scripts/api/geneManager.js?version=2"></script>
 	<script src="scripts/api/goManager.js?version=2"></script>
+	<script src="scripts/api/admin.js?version=2"></script>
 	<script src="scripts/api/register.js?version=2"></script>
 	<script src="scripts/api/navbar.js?version=2"></script>
 
