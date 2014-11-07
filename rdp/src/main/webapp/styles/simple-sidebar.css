@@ -330,6 +330,10 @@ border-color: #555753;
 	height: 500px;
 }
 
+.offwhite-color {
+	color:#aaa;
+}
+
 [custom-placeholder=true]:empty:not(:focus ):before {
 	content: attr(data-ph)
 }

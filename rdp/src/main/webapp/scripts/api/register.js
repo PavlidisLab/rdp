@@ -35,6 +35,7 @@ $( document ).ready( function() {
    
    // This gets run when the ajax calls in defs have completed
    $.when(promise).done(function() {
+      $('#navbar-username').html(researcherModel.currentResearcher.userName)
       var taxonIds = researcherModel.currentResearcher.getTaxons();
       $('#myModelOrganismsList ul li').has('a[href="#modelOrganisms"]').each( function(index) {
          var taxonName = $('a',this).text()
