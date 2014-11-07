@@ -13,8 +13,8 @@
    
    changePassword = function(event) {
       event.preventDefault();
-      var btns = settings.saveButton();
-      btns.attr("disabled", "disabled");
+      var btn = settings.saveButton();
+      btn.attr("disabled", "disabled");
       btn.children('i').addClass('fa-spin');
       $.ajax( {
          cache : false,
@@ -25,8 +25,9 @@
          },
          data : settings.passwordForm().serialize(),
          success : function(response, xhr) {
-            btns.removeAttr("disabled");
+            btn.removeAttr("disabled");
             btn.children('i').removeClass('fa-spin');
+            utility.showMessage( promise.responseJSON.message, $( "#profile .alert div" ) );
             //utility.showMessage( jQuery.parseJSON( response ).message, $( "#changePasswordMessage" ) );
             console.log(jQuery.parseJSON( response ).message);
 
@@ -36,9 +37,10 @@
             form.find( "#passwordConfirm" ).val( "" );
          },
          error : function(response, xhr) {
-            btns.removeAttr("disabled");
+            btn.removeAttr("disabled");
             btn.children('i').removeClass('fa-spin');
             //console.log( xhr.responseText );
+            utility.showMessage( promise.responseJSON.message, $( "#profile .alert div" ) );
             //utility.showMessage( jQuery.parseJSON( response ).message, $( "#changePasswordMessage" ) );
          }
       } );
