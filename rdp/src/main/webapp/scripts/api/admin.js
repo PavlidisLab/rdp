@@ -7,6 +7,20 @@
       return $('#researchersTable');
    }
    
+   admin.select2 = function() {
+      return $('#adminSearchGenesSelect');
+   }
+   
+   admin.taxonSelect = function() {
+      return $('#adminTaxonCommonNameSelect');
+   }
+   
+   admin.tierSelect = function() {
+      return $('#adminTierSelect');
+   }
+   
+   var oTable;
+   
    var allResearchers;
    
    populateResearcherTable = function(researchers, tiers) {
@@ -43,9 +57,15 @@
        
    }
    
+   resetTable = function() {
+      var dTable = admin.table().DataTable();
+      dTable.column(dTable.columns()[0].length - 1).visible(false);
+      populateResearcherTable(allResearchers);
+   }
+   
    admin.getResearchers = function() {
       //utility.hideMessage($("#listResearchersMessage"));
-       $.ajax({
+       var promise = $.ajax({
            cache : false,
            type : 'GET',
            url : "loadAllResearchers.html",
@@ -67,53 +87,66 @@
                console.log("Loaded All Researchers:",researchers);
                allResearchers = researchers;
                //$('#registerTab a[href="#registeredResearchers"]').show();
-               admin.table().DataTable().column(7).visible(false);
+               var dTable = admin.table().DataTable();
+               dTable.column(dTable.columns()[0].length - 1).visible(false);
+               //admin.table().DataTable().column(7).visible(false);
                //$( "#findResearchersByGenesSelect" ).select2("val", "");
                populateResearcherTable(researchers);
                
            },
            error : function(response, xhr) {
                console.log(xhr.responseText);
-               $("#listResearchersMessage").html(
+/*               $("#listResearchersMessage").html(
                        "Error with request. Status is: " + xhr.status + ". "
-                               + jQuery.parseJSON(response).message);
+                               + jQuery.parseJSON(response).message);*/
                //$("#listResearchersFailed").show();
            }
        });
-   
+       return promise;
    }
    
-/*   admin.findResearchersByGene = function() {
+   admin.findResearchersByGene = function() {
 
-       var gene = $("#findResearchersByGenesSelect").select2("data")
+       var gene = admin.select2().select2("data")
    
        if (gene == null) {
-          utility.showMessage("Please select a gene", $("#listResearchersMessage"));
+          console.log("Please select a gene")
+          //utility.showMessage("Please select a gene", $("#listResearchersMessage"));
            return;
        } else {
-          utility.hideMessage( $("#listResearchersMessage") );
+          //utility.hideMessage( $("#listResearchersMessage") );
        }
        
        gene = new researcherModel.Gene(gene);
-       
+       var tierSelect = admin.tierSelect().val();
        var researchers = [];
        var tiers = [];
        for (var i=0;i<allResearchers.length;i++) {
           var specificGene = allResearchers[i].getGene(gene);
           if ( specificGene !== null ) {
+             if ( !tierSelect || specificGene.tier == tierSelect ) {
              researchers.push(allResearchers[i]);
              tiers.push( specificGene.tier );
+             }
           }
        }
-       
-       $("#listResearchersTable").DataTable().column(7).visible(true);
+       var dTable = admin.table().DataTable();
+       dTable.column(dTable.columns()[0].length - 1).visible(true);
        populateResearcherTable(researchers, tiers);
 
-   }*/
+   }
+   
+   removeTab = function(tabId,  navbar) {
+      navbar.find('a[href="'+tabId+'"]').closest('li').remove();
+      $(tabId).remove();
+   }
    
    admin.initDataTable = function() {
       // Initialize datatable
-      admin.table().dataTable( {
+      oTable = admin.table().dataTable( {
+         "scrollY":        "400px",
+         "scrollCollapse": true,
+         "paging":         false,
          "order": [ 1, "asc" ],
          "aoColumnDefs": [ 
            {
@@ -125,36 +158,96 @@
          "fnRowCallback": function( nRow, aData, iDisplayIndex ) {
             // Keep in mind that $('td:eq(0)', nRow) refers to the first DISPLAYED column
             // whereas aData[0] refers to the data in the first column, hidden or not
-            $('td:eq(0)', nRow).html('<i class="fa fa-search fa-fw yellow-icon"></i>&nbsp;'+aData[1]);
+            $('td:eq(0)', nRow).html('<a href="#view'+aData[0]+'"><i class="fa fa-search fa-fw yellow-icon"></i></a>&nbsp;'+aData[1]);
             //$('td:eq(0)', nRow).html('<a href="#displayResearcher' + aData[0] + '">'+ aData[1] + '</a>');
 
-/*            $('td:eq(0) > a', nRow).click(function (e) {
+            $('td:eq(0) > a', nRow).click(function (e) {
 
-               var index = $(this).attr('href').substr(18); // Length of '#displayResearcher'
+               var index = $(this).attr('href').substr(5); // Length of '#displayResearcher'
                if ( index ==="" ) {
                   // Something went wrong when trying to attach the researchers index to the hyperlink
                   console.log("Cannot find researcher!")
                   return;
                }
                index = parseInt(index);
+               
+               if ( $('#researcherTab-'+index).length > 0 ) {
+                  return;
+               }
+               
                tabName = allResearchers[index].userName;
                
-              var nextTab = $('#registerTab li').size()+1;
+              var nextTab = $('#admin-nav-tabs li').size()+1;
               
               // create the tab
-              $('<li id="tab'+nextTab+'"><a href="#overview" data-toggle="tab"><button class="close" title="Remove this page" type="button"> &times </button>'+tabName+'</a></li>').appendTo('#registerTab');
+              $('<li id="researcherView'+nextTab+'"><a href="#researcherTab-'+index+'" data-toggle="tab"><button class="close" title="Remove this page" type="button">&nbsp; <i class="fa fa-close red-icon"></i> </button><i class="fa fa-user"></i> '+tabName+'</a></li>').appendTo('#admin-nav-tabs');
+              $('#admin-nav-tabs a[href="#researcherTab-'+index+'"] button').click( function() {
+                 var tabId = '#researcherTab-'+index;
+                 var navbar = $('#admin-nav-tabs');
+                 $('#admin-nav-tabs a:first').click();
+                 removeTab(tabId, navbar);
+                 
+              })
+              var clone = $('#profile-tab').children('.row').clone()
+              clone.find('i').closest('a').replaceWith('<i class="fa fa-info-circle fa-fw"></i>');
+              $('#admin .tab-content').append('<div class="tab-pane profile" id="researcherTab-'+index+'"></div>')
+              $('#researcherTab-'+index).append( clone );
+              profile.setInfo( allResearchers[index], '#researcherTab-'+index );
               
-              // Closure to make sure that tab always returns the correct researcher
-              $('#registerTab li[id="tab'+nextTab+'"]').on('show.bs.tab',(function(r) {
-                 return function() {
-                 overview.showOverview( r, true, true, false);
-                 };
-                 })(allResearchers[index])
-              );           
+              var tables = $( 
+                 '<div class="row">\
+                    <div class="col-sm-6 scrollable-y">\
+                       <table class="table table-bordered table-condensed stripe text-left display gene-table" cellspacing="0" width="100%">\
+                          <thead>\
+                             <tr>\
+                                <th>Symbol</th>\
+                                <th>Organism</th>\
+                                <th>Tier</th>\
+                             </tr>\
+                          </thead>\
+                          <tbody>\
+                          </tbody>\
+                       </table>\
+                    </div>\
+                    <div class="col-sm-6 scrollable-y">\
+                       <table class="table table-bordered table-condensed stripe text-left display go-table" cellspacing="0" width="100%">\
+                          <thead>\
+                             <tr>\
+                                <th>GO ID</th>\
+                                <th>Aspect</th>\
+                             </tr>\
+                          </thead>\
+                          <tbody>\
+                          </tbody>\
+                       </table>\
+                    </div>\
+                  </div>' 
+                 );
+              var genes = allResearchers[index].genes;
+              genes.sort(function(a, b){
+                 if (a.taxon < b.taxon)
+                    return -1;
+                 if (a.taxon > b.taxon)
+                   return 1;
+                 return 0;
+                 });
+              for (var i=0;i<genes.length;i++) {
+                 tables.find('table.gene-table tbody').append('<tr><td>'+genes[i].officialSymbol+'</td><td>'+genes[i].taxon+'</td><td>'+genes[i].tier+'</td></tr>')
+              }
+              
+              var taxonIds = Object.keys(allResearchers[index].terms);
+              for ( var i=0;i<taxonIds.length;i++) {
+                 var terms = allResearchers[index].terms[taxonIds[i]];
+                 for (var j=0;j<terms.length;j++) {
+                    tables.find('table.go-table tbody').append('<tr><td>'+terms[i].geneOntologyId+'</td><td>'+terms[i].aspect+'</td></tr>')
+                 }
+              }
+              
+              $('#researcherTab-'+index).append(tables);
               
               // make the new tab active
-              $('#registerTab a:last').tab('show');
-           });*/
+              $('#admin-nav-tabs a:last').click();
+           });
             
             return nRow;
          },
@@ -162,9 +255,67 @@
       } );
    }
    
+   admin.initSelect2 = function() {
+      // init search genes combo    
+      admin.select2().select2( {
+         id : function(data) {
+            return data.officialSymbol;
+         },
+         placeholder : "Select a gene symbol or name",
+         minimumInputLength : 3,
+         ajax : {
+            url : "searchGenes.html",
+            dataType : "json",
+            data : function(query, page) {
+               return {
+                  query : query, // search term
+                  taxonId : admin.taxonSelect().val()
+               }
+            },
+            results : function(data, page) {
+               // convert object to text symbol + text
+               // select2 format result looks for the 'text' attr
+               var geneResults = []
+               for (var i = 0; i < data.data.length; i++) {
+                  var gene = new researcherModel.Gene( data.data[i] );
+                  var aliasStr = gene.aliasesToString();
+                  aliasStr = aliasStr ? "(" + aliasStr + ") " : "";
+                  gene.text = "<b>" + gene.officialSymbol + "</b> " + aliasStr + gene.officialName
+                  geneResults.push(gene);
+               }
+               return {
+                  results : geneResults
+               };
+            },
+
+         },
+         formatSelection : function(item) {
+            item.text = item.text.split('</b>')[0] + '</b>';
+            return item.text
+         },
+         formatAjaxError : function(response) {
+            var msg = response.responseText;
+            return msg;
+         }, 
+         // we do not want to escape markup since we are displaying html in results
+         escapeMarkup : function(m) {
+            return m;
+         },
+      } );
+   }
+   
       admin.init = function(){
          admin.initDataTable();
-         admin.getResearchers();
+         admin.initSelect2();
+         var promise = admin.getResearchers();
+         $('#menu > li a[href="#admin"][data-toggle="tab"]').on('shown.bs.tab',function() {
+            oTable.fnAdjustColumnSizing();
+         });
+         $('#admin-nav-tabs > li a[href="#researchers-tab"][data-toggle="tab"]').on('shown.bs.tab',function() {
+            oTable.fnAdjustColumnSizing();
+         });
+         $("#adminResetResearchersButton").click(resetTable)
+         $("#adminFindResearchersByGeneButton").click(admin.findResearchersByGene)         
       };
 }( window.admin = window.admin || {}, jQuery ));
 

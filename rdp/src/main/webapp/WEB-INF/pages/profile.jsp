@@ -19,7 +19,7 @@
 			<div class="tab-pane profile active" id="profile-tab">
 				<div class="row">
 					<div class="col-md-12">
-						<div class="user-info-left col-md-4">
+						<div class="user-info-left col-md-5">
 							<div class="basic-info">
 								<h3>
 									<a href="#"><i class="fa fa-edit yellow-icon"></i></a> Basic Information
@@ -57,21 +57,26 @@
 							</div>
 
 						</div>
-						<div class="user-info-right col-md-8">
+						<div class="user-info-right col-md-7">
 							<div class="about col-sm-12">
 								<h3>
-									<a href="#"><i class="fa fa-edit yellow-icon"></i></a> About My Research
+									<a href="#"><i class="fa fa-edit yellow-icon"></i></a> About My
+									Research
 								</h3>
-								<p custom-placeholder=true data-ph="My lab studies ..." class="data-editable data-paragraph well"></p>
+								<p custom-placeholder=true data-ph="My lab studies ..."
+									class="data-editable data-paragraph well"></p>
 							</div>
 							<div class="publications col-sm-12">
 								<h3>
-									<a href="#"><i class="fa fa-edit yellow-icon"></i></a> Publications
+									<a href="#"><i class="fa fa-edit yellow-icon"></i></a>
+									Publications
 								</h3>
-								<p class="data-row col-sm-2"><span class="data-name">PubMed Ids</span></p>
-								<div id="publicationsList" class="well col-sm-3">
-								<ul class="data-editable">								
-								</ul>
+								<p class="data-row col-sm-2">
+									<span class="data-name">PubMed Ids</span>
+								</p>
+								<div class="publicationsList well col-sm-3">
+									<p class="data-editable">
+									</p>
 								</div>
 							</div>
 						</div>

@@ -2,35 +2,44 @@
  * @memberOf profile
  */
 (function( profile, $, undefined ) {
-   profile.firstName = function() {
-      return $('#profile-tab .basic-info .data-row').eq( 0 ).find('.data-value');
+   profile.firstName = function(idOverride) {
+      idOverride = utility.isUndefined(idOverride) ? '#profile-tab' : idOverride;
+      return $(idOverride+' .basic-info .data-row').eq( 0 ).find('.data-value');
    };
-   profile.lastName = function() {
-      return $('#profile-tab .basic-info .data-row').eq( 1 ).find('.data-value');
-   }
-   profile.organization = function() {
-      return $('#profile-tab .basic-info .data-row').eq( 2 ).find('.data-value');
-   }
-   profile.department = function() {
-      return $('#profile-tab .basic-info .data-row').eq( 3 ).find('.data-value');
-   }
-   profile.website = function() {
-      return $('#profile-tab .basic-info .data-row').eq( 4 ).find('.data-value');
-   }
+   profile.lastName = function(idOverride) {
+      idOverride = utility.isUndefined(idOverride) ? '#profile-tab' : idOverride;
+      return $(idOverride+' .basic-info .data-row').eq( 1 ).find('.data-value');
+   };
+   profile.organization = function(idOverride) {
+      idOverride = utility.isUndefined(idOverride) ? '#profile-tab' : idOverride;
+      return $(idOverride+' .basic-info .data-row').eq( 2 ).find('.data-value');
+   };
+   profile.department = function(idOverride) {
+      idOverride = utility.isUndefined(idOverride) ? '#profile-tab' : idOverride;
+      return $(idOverride+' .basic-info .data-row').eq( 3 ).find('.data-value');
+   };
+   profile.website = function(idOverride) {
+      idOverride = utility.isUndefined(idOverride) ? '#profile-tab' : idOverride;
+      return $(idOverride+' .basic-info .data-row').eq( 4 ).find('.data-value');
+   };
+   
+   profile.email = function(idOverride) {
+      idOverride = utility.isUndefined(idOverride) ? '#profile-tab' : idOverride;
+      return $(idOverride+' .contact-info .data-row').eq( 0 ).find('.data-value');
+   };
+   profile.phone = function(idOverride) {
+      idOverride = utility.isUndefined(idOverride) ? '#profile-tab' : idOverride;
+      return $(idOverride+' .contact-info .data-row').eq( 1 ).find('.data-value');
+   };
+   profile.description = function(idOverride) {
+      idOverride = utility.isUndefined(idOverride) ? '#profile-tab' : idOverride;
+      return $(idOverride+' .about p').eq( 0 );
+   };
 
-   profile.email = function() {
-      return $('#profile-tab .contact-info .data-row').eq( 0 ).find('.data-value');
-   }
-   profile.phone = function() {
-      return $('#profile-tab .contact-info .data-row').eq( 1 ).find('.data-value');
-   }
-   profile.description = function() {
-      return $('#profile-tab .about p').eq( 0 );
-   }
-
-   profile.pubMedIds = function() {
-      return $('#publicationsList ul').eq( 0 );
-   }
+   profile.pubMedIds = function(idOverride) {
+      idOverride = utility.isUndefined(idOverride) ? '#profile-tab' : idOverride;
+      return $(idOverride+' .publicationsList p').eq( 0 );
+   };
 
    saveProfile = function(e) {
       var btn = $(this);
@@ -46,7 +55,7 @@
       researcherModel.currentResearcher.description = profile.description().text();
 
       researcherModel.currentResearcher.pubMedIds = [];
-      profile.pubMedIds().find( 'li' ).each(function(index) {
+      profile.pubMedIds().find( 'div' ).each(function(index) {
          var val = parseInt( $(this).text() );
          if ( !isNaN(val) ) {
          researcherModel.currentResearcher.pubMedIds.push( val );
@@ -81,7 +90,7 @@
       if ( !changed && researcher.pubMedIds.length > 0 ) {
          researcher.pubMedIds.sort(function(a, b){return a-b});
          var ids = [];
-         profile.pubMedIds().find( 'li' ).each(function(index) {
+         profile.pubMedIds().find( 'div' ).each(function(index) {
             var val = parseInt( $(this).text() );
             if ( !isNaN(val) ) {
                ids.push( val );
@@ -106,33 +115,37 @@
       console.log('hide');
    }
 
-   profile.setInfo = function( researcher ) {
+   profile.setInfo = function( researcher, idOverride ) {
       lockAll();
       researcher = utility.isUndefined( researcher ) ? researcherModel.currentResearcher : researcher;
-      profile.firstName().text(researcher.firstName);
-      profile.lastName().text(researcher.lastName);
-      profile.organization().text(researcher.organization);
-      profile.department().text(researcher.department);
+      profile.firstName(idOverride).text(researcher.firstName);
+      profile.lastName(idOverride).text(researcher.lastName);
+      profile.organization(idOverride).text(researcher.organization);
+      profile.department(idOverride).text(researcher.department);
 
       if ( researcher.website ) {
-         profile.website().html( "<a href='" + researcher.website + "' target='_blank'>"+ researcher.website + "</a>" );
+         profile.website(idOverride).html( "<a href='" + researcher.website + "' target='_blank'>"+ researcher.website + "</a>" );
       } else {
-         profile.website().html("");
+         profile.website(idOverride).html("");
       }
 
-      profile.email().text(researcher.email);
-      profile.phone().text(researcher.phone);
-      profile.description().text(researcher.description);
-      profile.pubMedIds().empty();
+      profile.email(idOverride).text(researcher.email);
+      profile.phone(idOverride).text(researcher.phone);
+      profile.description(idOverride).text(researcher.description);
+      profile.pubMedIds(idOverride).empty();
 
 
       if ( researcher.pubMedIds.length > 0 ) {
          researcher.pubMedIds.sort(function(a, b){return a-b});
+         //var pubMedHTML = researcher.pubMedIds.join('<br/>');
          for (var i=0; i<researcher.pubMedIds.length; i++) {
-            profile.pubMedIds().append( '<li>' + researcher.pubMedIds[i] + '</li>'  )
+            profile.pubMedIds(idOverride).append( '<div>' + researcher.pubMedIds[i] + '</div>'  )
          }
+         //profile.pubMedIds(idOverride).html(pubMedHTML);
+      } else {
+         //profile.pubMedIds(idOverride).append( '<li></li>'  )
       }
-
+      //profile.pubMedIds(idOverride).append( '<div style="height: 1px;">'  )
    }
 
 

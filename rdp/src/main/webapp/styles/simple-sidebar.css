@@ -177,7 +177,7 @@ html, body {
 	color: #bbb;
 }
 
-.tab-content.profile-page, .tab-content.modelOrganism-page {
+.tab-content.profile-page, .tab-content.modelOrganism-page, .tab-content.admin-page {
 	padding: 35px 15px;
 }
 .main-content h3 {
@@ -308,7 +308,7 @@ background-color: #555753;
 border-color: #555753;
 }
 
-#publicationsList  {
+.publicationsList  {
 	height: 115px;
 	overflow-y: scroll;
 }
@@ -319,6 +319,15 @@ border-color: #555753;
 	-webkit-box-sizing: border-box;
 	border: 1px solid rgb(140, 140, 140);
 	padding-bottom: 3px;
+}
+
+.input-group-addon {
+	background-color: #D3D3D3;
+}
+
+.scrollable-y {
+	overflow-y:scroll;
+	height: 500px;
 }
 
 [custom-placeholder=true]:empty:not(:focus ):before {

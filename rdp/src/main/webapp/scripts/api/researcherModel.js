@@ -24,7 +24,9 @@
                 // Prepend for absolute path
                 val = val.indexOf("http://") === 0 ? val : "http://" + val;
                 _website = val;
-             } 
+             } else {
+                _website = val;
+             }
           } 
       });
       
