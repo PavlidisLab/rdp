@@ -71,7 +71,7 @@
 									<li><a id="settingsDropdown" href="#settings-tab"><i
 											class="fa fa-gear fa-fw"></i> Settings</a></li>
 									<li class="divider"></li>
-									<li><a id="logout" href="login.html"><i
+									<li><a id="logout" href="#logout"><i
 											class="fa fa-sign-out fa-fw"></i> Logout</a></li>
 								</ul>
 						</ul>
