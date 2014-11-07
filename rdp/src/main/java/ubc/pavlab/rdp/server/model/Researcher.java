@@ -138,8 +138,8 @@ public class Researcher implements Serializable {
      * { @JoinColumn(name = "GENE_ID") }) private Set<Gene> genes = new HashSet<>();
      */
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    @JoinTable(name = "RESEARCHER_PUBLICATIONS", joinColumns = { @JoinColumn(name = "RESEARCHER_ID") }, inverseJoinColumns = { @JoinColumn(name = "PUBLICATION_ID") })
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @JoinColumn(name = "RESEARCHER_ID")
     private Set<Publication> publications = new HashSet<>();
 
     public Object getId() {

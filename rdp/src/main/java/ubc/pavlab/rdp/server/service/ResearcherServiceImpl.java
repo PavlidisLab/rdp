@@ -197,6 +197,7 @@ public class ResearcherServiceImpl implements ResearcherService {
     }
 
     @Override
+    @Transactional
     public boolean updateGenes( Researcher researcher, HashMap<Gene, TierType> genes ) {
         Collection<TierType> tiersToRemove = new HashSet<TierType>();
         tiersToRemove.add( TierType.TIER1 );
@@ -209,24 +210,37 @@ public class ResearcherServiceImpl implements ResearcherService {
     }
 
     @Override
-    public boolean removeGenesByTierAndTaxon( Researcher researcher, TierType tier, Long taxonId ) {
+    @Transactional
+    public boolean updateGenesByTaxon( Researcher researcher, Long taxonId, HashMap<Gene, TierType> genes ) {
+        Collection<TierType> tiersToRemove = new HashSet<TierType>();
+        tiersToRemove.add( TierType.TIER1 );
+        tiersToRemove.add( TierType.TIER2 );
+        boolean modified = this.removeGenesByTiersAndTaxon( researcher, tiersToRemove, taxonId );
+        // researcher.getGeneAssociations().clear();
+        modified |= addGenes( researcher, genes );
+        if ( modified ) {
+            researcherDao.update( researcher );
+        }
+        return modified;
+    }
+
+    @Override
+    @Transactional
+    public boolean removeGenesByTiersAndTaxon( Researcher researcher, Collection<TierType> tiers, Long taxonId ) {
         boolean modified = false;
         for ( Iterator<GeneAssociation> i = researcher.getGeneAssociations().iterator(); i.hasNext(); ) {
             GeneAssociation ga = i.next();
-            if ( ga.getTier().equals( tier ) && ga.getGene().getTaxonId().equals( taxonId ) ) {
+            if ( tiers.contains( ga.getTier() ) && ga.getGene().getTaxonId().equals( taxonId ) ) {
                 i.remove();
                 modified = true;
             }
-        }
-
-        if ( modified ) {
-            researcherDao.update( researcher );
         }
 
         return modified;
     }
 
     @Override
+    @Transactional
     public boolean removeGenesByTiers( Researcher researcher, Collection<TierType> tiers ) {
         boolean modified = false;
         for ( Iterator<GeneAssociation> i = researcher.getGeneAssociations().iterator(); i.hasNext(); ) {
@@ -245,6 +259,7 @@ public class ResearcherServiceImpl implements ResearcherService {
     }
 
     @Override
+    @Transactional
     public boolean updateGOTermsForTaxon( Researcher researcher, Collection<GeneOntologyTerm> goTerms, Long taxonId ) {
         boolean modified = false;
         modified = clearGOTermsForTaxon( researcher, taxonId );
@@ -258,6 +273,7 @@ public class ResearcherServiceImpl implements ResearcherService {
     }
 
     @Override
+    @Transactional
     public boolean clearGOTermsForTaxon( Researcher researcher, Long taxonId ) {
         boolean modified = false;
         for ( Iterator<GeneOntologyTerm> i = researcher.getGoTerms().iterator(); i.hasNext(); ) {
@@ -271,6 +287,7 @@ public class ResearcherServiceImpl implements ResearcherService {
     }
 
     @Override
+    @Transactional
     public boolean AddGOTerms( Researcher researcher, Collection<GeneOntologyTerm> goTerms ) {
         boolean modified = false;
         for ( GeneOntologyTerm term : goTerms ) {
@@ -304,6 +321,7 @@ public class ResearcherServiceImpl implements ResearcherService {
         jsonObj.put( "phone", r.getPhone() );
         jsonObj.put( "website", r.getWebsite() );
         jsonObj.put( "description", r.getDescription() );
+        jsonObj.put( "publications", r.getPublications() );
 
         jsonObj.put( "taxonDescriptions", r.getTaxonDescriptions() );
 

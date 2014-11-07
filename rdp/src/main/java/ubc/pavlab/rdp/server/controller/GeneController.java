@@ -25,6 +25,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -182,6 +183,62 @@ public class GeneController {
 
             // Update Genes
             researcherService.updateGenes( researcher, geneService.quickDeserializeGenes( genesJSON ) );
+
+            JSONObject json = new JSONObject();
+            json.put( "success", true );
+            json.put( "message", "Changes saved" );
+            jsonText = json.toString();
+
+        } catch ( Exception e ) {
+            log.error( e.getLocalizedMessage(), e );
+            JSONObject json = new JSONObject();
+            json.put( "success", false );
+            json.put( "message", e.getLocalizedMessage() );
+            jsonText = json.toString();
+            log.info( jsonText );
+        } finally {
+            jsonUtil.writeToResponse( jsonText );
+        }
+
+    }
+
+    /*
+     * Used to save genes selected by researcher in the front-end table
+     */
+    @RequestMapping("/saveGenesByTaxon.html")
+    public void saveGenesByTaxon( HttpServletRequest request, HttpServletResponse response ) throws IOException {
+
+        String jsonText = null;
+        JSONUtil jsonUtil = new JSONUtil( request, response );
+
+        String username = userManager.getCurrentUsername();
+        Long taxonId = Long.parseLong( request.getParameter( "taxonId" ), 10 );
+        String[] genesJSON = request.getParameterValues( "genes[]" );
+        String taxonDescription = request.getParameter( "taxonDescription" );
+
+        if ( genesJSON == null ) {
+            log.info( username + ": No genes to save" );
+            genesJSON = new String[] {};
+        }
+
+        try {
+            Researcher researcher = researcherService.findByUserName( username );
+
+            // Update Organism Description
+            researcher.updateTaxonDescription( taxonId, taxonDescription );
+
+            // remove genes not in specified taxon
+            HashMap<Gene, TierType> genes = geneService.quickDeserializeGenes( genesJSON );
+            for ( Iterator<Gene> i = genes.keySet().iterator(); i.hasNext(); ) {
+                Gene gene = i.next();
+                if ( !gene.getTaxonId().equals( taxonId ) ) {
+                    i.remove();
+                }
+            }
+
+            // Update Genes
+            researcherService.updateGenesByTaxon( researcher, taxonId, genes );
+            // researcherService.updateGenes( researcher, geneService.quickDeserializeGenes( genesJSON ) );
 
             JSONObject json = new JSONObject();
             json.put( "success", true );
@@ -504,13 +561,13 @@ public class GeneController {
             List<GeneOntologyTerm> results = new ArrayList( geneOntologyService.fetchByQuery( query ) );
 
             // List<GeneOntologyTerm> goTerms = new ArrayList<GeneOntologyTerm>();
-            for ( GeneOntologyTerm term : results ) {
-                // GeneOntologyTerm goTerm = new GeneOntologyTerm( term );
-                term.setFrequency( 0L );
-                // term.setSize( geneOntologyService.getGeneSize( term.getGeneOntologyId() ) );
-                // goTerm.setDefinition( geneOntologyService.getTermDefinition( term ) );
-                // goTerms.add( goTerm );
-            }
+            // for ( GeneOntologyTerm term : results ) {
+            // GeneOntologyTerm goTerm = new GeneOntologyTerm( term );
+            // term.setFrequency( 0L );
+            // term.setSize( geneOntologyService.getGeneSize( term.getGeneOntologyId() ) );
+            // goTerm.setDefinition( geneOntologyService.getTermDefinition( term ) );
+            // goTerms.add( goTerm );
+            // }
 
             // Only return max 100 hits
             try {
@@ -551,28 +608,34 @@ public class GeneController {
             Researcher researcher = researcherService.findByUserName( username );
 
             // Deserialize GO Terms
-            Collection<GeneOntologyTerm> goTerms = geneOntologyService.deserializeGOTerms( GOJSON );
+            Collection<GeneOntologyTerm> goTermsInMemory = geneOntologyService.deserializeGOTerms( GOJSON );
 
             Collection<Gene> genes = researcher.getDirectGenesInTaxon( taxonId );
 
             // Add taxonId to terms and find sizes
-            for ( GeneOntologyTerm term : goTerms ) {
-                term.setTaxonId( taxonId );
-                term.setSize( geneOntologyService.getGeneSizeInTaxon( term.getGeneOntologyId(), taxonId ) );
-                term.setFrequency( geneOntologyService.computeOverlapFrequency( term.getGeneOntologyId(), genes ) );
-                term.setAspect( geneOntologyService.getTermAspect( term.getGeneOntologyId() ) );
+            Collection<GeneOntologyTerm> goTermsToBePersisted = new HashSet<GeneOntologyTerm>();
+            for ( GeneOntologyTerm term : goTermsInMemory ) {
+                // Necessary to save a new instance as the one in memory cannot be changed without Hibernate throwing
+                // stale state exceptions on updates
+                GeneOntologyTerm newTerm = new GeneOntologyTerm( term );
+                newTerm.setTaxonId( taxonId );
+                newTerm.setSize( geneOntologyService.getGeneSizeInTaxon( term.getGeneOntologyId(), taxonId ) );
+                newTerm.setFrequency( geneOntologyService.computeOverlapFrequency( term.getGeneOntologyId(), genes ) );
+                goTermsToBePersisted.add( newTerm );
             }
 
             // Update GO Terms for this taxon
-            researcherService.updateGOTermsForTaxon( researcher, goTerms, taxonId );
+            researcherService.updateGOTermsForTaxon( researcher, goTermsToBePersisted, taxonId );
 
             HashMap<Gene, TierType> calculatedGenes = new HashMap<Gene, TierType>();
 
-            for ( Gene g : geneOntologyService.getRelatedGenes( goTerms, taxonId ) ) {
+            for ( Gene g : geneOntologyService.getRelatedGenes( goTermsToBePersisted, taxonId ) ) {
                 calculatedGenes.put( g, TierType.TIER3 );
             }
 
-            researcherService.removeGenesByTierAndTaxon( researcher, TierType.TIER3, taxonId );
+            Collection<TierType> tiersToRemove = new HashSet<TierType>();
+            tiersToRemove.add( TierType.TIER3 );
+            researcherService.removeGenesByTiersAndTaxon( researcher, tiersToRemove, taxonId );
             researcherService.addGenes( researcher, calculatedGenes );
 
             JSONObject json = new JSONObject();

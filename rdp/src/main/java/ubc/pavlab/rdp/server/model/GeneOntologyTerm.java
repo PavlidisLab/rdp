@@ -85,6 +85,16 @@ public class GeneOntologyTerm {
         this.geneOntologyTerm = term.getTerm();
     }
 
+    public GeneOntologyTerm( GeneOntologyTerm term ) {
+        this.geneOntologyId = term.geneOntologyId;
+        this.geneOntologyTerm = term.geneOntologyTerm;
+        this.taxonId = term.taxonId;
+        this.frequency = term.frequency;
+        this.size = term.size;
+        this.definition = term.definition;
+        this.aspect = term.aspect;
+    }
+
     /**
      * @return the geneOntologyId
      */
