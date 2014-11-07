@@ -24,9 +24,13 @@
                 // Prepend for absolute path
                 val = val.indexOf("http://") === 0 ? val : "http://" + val;
                 _website = val;
-             } 
+             } else {
+                _website = val;
+             }
           } 
       });
+      
+      this.pubMedIds = [];
       
       // Model Organisms
       this.genes = [];
@@ -65,7 +69,47 @@
          }
       }
       return null;
+
+   }
+   
+   researcherModel.Researcher.prototype.getGenesByTaxonId = function(taxonId) {
+      var filter = [];
+      for (var i=0;i<this.genes.length;i++) {
+         if ( this.genes[i].taxonId == taxonId ) {
+            filter.push(this.genes[i])
+         }
+      }
+      return filter;
+
+   }
+   
+   researcherModel.Researcher.prototype.setGenesByTaxonId = function(genes, taxonId) {
+      var newGenes = [];
+      for (var i=0;i<this.genes.length;i++) {
+         if ( this.genes[i].taxonId != taxonId ) {
+            newGenes.push(this.genes[i])
+         }
+      }
+      for (var i=0;i<genes.length;i++) {
+         if ( genes[i].taxonId == taxonId ) {
+            newGenes.push(genes[i])
+         }
+      }
       
+      this.genes = newGenes;
+   }
+   
+   researcherModel.Researcher.prototype.getTaxons = function() {
+      var taxons = [];
+      //var taxonIds = Object.keys(utility.taxonIdToName);
+      var genes = this.genes;
+      for (var i=0;i<genes.length;i++) {
+         var taxonId = genes[i].taxonId;
+         if ( taxons.indexOf(taxonId) == -1 ) {
+            taxons.push(taxonId);
+         }
+      }
+      return taxons;
    }
    
    researcherModel.Researcher.prototype.shallowCopy = function() {
@@ -82,6 +126,13 @@
       this.taxonDescriptions = {};
       for (var i=0;i<taxonDescriptionsArr.length;i++) {
          this.taxonDescriptions[taxonDescriptionsArr[i].taxonId] = taxonDescriptionsArr[i].description;
+      }
+   }
+   
+   researcherModel.Researcher.prototype.setPubMedIdsFromPublications = function(publicationsArray) {
+      this.pubMedIds = [];
+      for (var i=0;i<publicationsArray.length;i++) {
+         this.pubMedIds.push( publicationsArray[i].pubMedId );
       }
    }
    
@@ -110,10 +161,11 @@
       this.taxonDescriptions[taxon] = taxonDescription;
    }
    
-   researcherModel.Researcher.prototype.genesToJSON = function() {
+   researcherModel.Researcher.prototype.genesToJSON = function(genes) {
+      genes = ( typeof genes === 'undefined' ) ? this.genes : genes;
       var jsonArr = [];
-      for (var i=0; i<this.genes.length; i++) {
-         jsonArr.push( $.toJSON( this.genes[i] ) );
+      for (var i=0; i<genes.length; i++) {
+         jsonArr.push( $.toJSON( genes[i] ) );
       }
       return jsonArr;
    }
@@ -130,9 +182,9 @@
       return jsonArr;
    }
     
-   researcherModel.Researcher.prototype.compareGenes = function(otherGenes) {
+   researcherModel.Researcher.prototype.compareGenes = function(otherGenes, compareAgainst) {
       g1 = otherGenes.slice();
-      g2 = this.genes.slice();
+      g2 = ( typeof compareAgainst === 'undefined' ) ? this.genes.slice() : compareAgainst;
       
       identicalIndexOf = function(gene,genes) { //Harsher equality check than indexOf
          for (var i=0; i<genes.length; i++) {
@@ -160,12 +212,41 @@
       return true;
    }
    
+   researcherModel.Researcher.prototype.compareTerms = function(terms, compareAgainst) {
+   
+      identicalIndexOf = function(term,terms) {
+         for (var i=0; i<terms.length; i++) {
+            if ( terms[i].geneOntologyId === term.geneOntologyId ) {
+               return i;
+            }
+          }
+          return -1;
+      }
+      
+      for (var i=0; i<terms.length; i++) {
+         var index = identicalIndexOf(terms[i], compareAgainst);
+         if ( index == -1 ) {
+            return false;
+         }
+      }
+      
+      for (var i=0; i<compareAgainst.length; i++) {
+         var index = identicalIndexOf(compareAgainst[i], terms);
+         if ( index == -1 ) {
+            return false;
+         }
+      }
+      
+      return true;
+   }
+   
    researcherModel.Researcher.prototype.parseResearcherObject = function(data) {
       this.department = data.department || "";
       this.organization = data.organization || "";
       this.website = data.website;
       this.phone = data.phone || "";
       this.description = data.description || "";
+      this.setPubMedIdsFromPublications( data.publications );
       this.setTaxonDescriptionsFromArray(data.taxonDescriptions);
       this.setTermsFromArray(data.terms);
 
@@ -314,7 +395,25 @@
 	   } );
 	   
 	   return promise;
-	}  
+	}
+   
+   researcherModel.saveResearcherGenesByTaxon = function(taxonId) {
+      console.log("saving genes: ", researcherModel.currentResearcher.getGenesByTaxonId(taxonId))
+            
+      var promise = $.ajax( {
+         type: "POST",
+         url : "saveGenesByTaxon.html",
+
+         data : {
+            genes : researcherModel.currentResearcher.genesToJSON(researcherModel.currentResearcher.getGenesByTaxonId(taxonId)),
+            taxonDescription: researcherModel.currentResearcher.taxonDescriptions[taxonId] || "",
+            taxonId:taxonId
+         },
+         dataType : "json"
+      } );
+      
+      return promise;
+   }  
    
    researcherModel.saveResearcherTermsForTaxon = function(taxId) {
       if ( !taxId ){

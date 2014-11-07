@@ -80,6 +80,9 @@ public interface ResearcherService {
     @Secured({ "GROUP_USER" })
     public boolean updateGenes( Researcher researcher, final HashMap<Gene, TierType> genes );
 
+    @Secured({ "GROUP_USER" })
+    public boolean updateGenesByTaxon( Researcher researcher, Long taxonId, HashMap<Gene, TierType> genes );
+
     @Secured({ "GROUP_ADMIN" })
     public Collection<Researcher> findByGene( Gene gene );
 
@@ -96,7 +99,7 @@ public interface ResearcherService {
     public boolean AddGOTerms( Researcher researcher, Collection<GeneOntologyTerm> goTerms );
 
     @Secured({ "GROUP_USER" })
-    public boolean removeGenesByTierAndTaxon( Researcher researcher, TierType tier, Long taxonId );
+    public boolean removeGenesByTiersAndTaxon( Researcher researcher, Collection<TierType> tiers, Long taxonId );
 
     @Secured({ "GROUP_USER" })
     public boolean removeGenesByTiers( Researcher researcher, Collection<TierType> tier );

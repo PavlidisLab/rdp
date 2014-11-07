@@ -213,7 +213,7 @@ public class GeneOntologyServiceImpl implements GeneOntologyService {
     public Map<OntologyTerm, Long> calculateGoTermFrequency( Collection<Gene> genes, Long taxonId,
             int minimumFrequency, int minimumTermSize, int maximumTermSize ) {
         Map<OntologyTerm, Long> frequencyMap = new HashMap<OntologyTerm, Long>();
-        Map<OntologyTerm, Long> sizeMap = new HashMap<OntologyTerm, Long>();
+
         for ( Gene g : genes ) {
             // Collection<OntologyTerm> terms = new HashSet<OntologyTerm>();
             Collection<OntologyTerm> directTerms = getGOTerms( g, false, null, true );
@@ -1182,6 +1182,8 @@ public class GeneOntologyServiceImpl implements GeneOntologyService {
                 if ( log.isDebugEnabled() ) log.debug( uri2Term.get( uri ) + " is part of " + entry );
                 r.add( uri2Term.get( uri ) );
             }
+        } catch ( Exception e ) {
+            log.error( e, e );
         } finally {
             qexec.close();
         }
