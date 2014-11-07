@@ -1182,6 +1182,8 @@ public class GeneOntologyServiceImpl implements GeneOntologyService {
                 if ( log.isDebugEnabled() ) log.debug( uri2Term.get( uri ) + " is part of " + entry );
                 r.add( uri2Term.get( uri ) );
             }
+        } catch ( Exception e ) {
+            log.error( e, e );
         } finally {
             qexec.close();
         }

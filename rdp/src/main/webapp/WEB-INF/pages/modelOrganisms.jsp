@@ -2,6 +2,10 @@
 	<div class="main-header">
 		<h2>Model Organism Manager</h2>
 		<em>Human</em>
+		<div class="alert alert-warning col-sm-12" hidden="true">
+			<a href="#" class="close" data-hide="alert">&times;</a>
+			<div class="text-center"></div>
+		</div>
 	</div>
 
 	<div class="main-content">

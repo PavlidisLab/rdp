@@ -58,6 +58,7 @@
          btn.removeAttr("disabled");
          btn.children('i').removeClass('fa-spin');
          console.log("Saved Changes");
+         utility.showMessage( promise.responseJSON.message, $( "#modelOrganisms .main-header .alert div" ) );
          //utility.showMessage( promise.responseJSON.message, $( "#primaryContactMessage" ) );
       });
       
@@ -100,6 +101,10 @@
       geneManager.addGenesModal().modal('show');
    }
    
+   geneManager.closeAddGenesModal =  function() {
+      geneManager.addGenesModal().modal('hide');
+   }
+   
    geneManager.addGeneToTable = function( gene, draw ) {
       draw = utility.isUndefined( draw ) ? true : false;
       if ( !(gene instanceof researcherModel.Gene ) ){
@@ -137,9 +142,13 @@
       }
       $( "#searchGenesSelect" ).select2("val", "");
       geneManager.addGeneToTable(gene, true);
+      geneManager.closeAddGenesModal();
    }
    
    geneManager.bulkImportGenes = function() {
+      var btn = $(this);
+      btn.attr("disabled", "disabled");
+      btn.children('i').addClass('fa-spin');
       var geneSymbols = $( "#importGeneSymbolsTextArea" ).val();
       var taxonId = geneManager.currentTaxonId();
       var table = geneManager.table().DataTable();
@@ -151,6 +160,8 @@
             "taxonId" : taxonId
          },
          success : function(response, xhr) {
+            btn.removeAttr("disabled");
+            btn.children('i').removeClass('fa-spin');
 
             for (var i = 0; i < response.data[0].length; i++) {
                gene = new researcherModel.Gene( response.data[0][i] );
@@ -158,16 +169,20 @@
             }
             table.rows().draw();
             console.log(response.message)
+            utility.showMessage( promise.responseJSON.message, $( "#modelOrganisms .main-header .alert div" ) );
             //utility.showMessage( response.message, $( "#geneManagerMessage" ) );
 
          },
          error : function(response, xhr) {
+            btn.removeAttr("disabled");
+            btn.children('i').removeClass('fa-spin');
             console.log(response.message)
+            utility.showMessage( promise.responseJSON.message, $( "#modelOrganisms .main-header .alert div" ) )
             //utility.showMessage( response.message, $( "#geneManagerMessage" ) );
          }
 
       } );
-
+      geneManager.closeAddGenesModal();
       return promise;
    }
 

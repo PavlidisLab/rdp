@@ -73,6 +73,9 @@
       $('a[href="#modelOrganisms"][data-toggle="tab"]').on('show.bs.tab', function() {
          utility.setConfirmChanges($(this), modelOrganisms.isChanged, $('#myModelOrganismsList > ul > li > a[href="#modelOrganisms"]:contains("'+modelOrganisms.currentTaxon()+'")'));
       } );
+      $('a[href="#modelOrganisms"]').on('hidden.bs.tab', function() {
+         utility.hideMessage( $( "#modelOrganisms .main-header .alert div" ) );
+      });
    }
    
 }( window.modelOrganisms = window.modelOrganisms || {}, jQuery ));

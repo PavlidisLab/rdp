@@ -68,7 +68,7 @@
          btn.removeAttr("disabled");
          btn.children('i').removeClass('fa-spin');
          console.log("Saved Changes");
-         //utility.showMessage( promise.responseJSON.message, $( "#primaryContactMessage" ) );
+         utility.showMessage( promise.responseJSON.message, $( "#profile .alert div" ) );
       });
    }
 
@@ -188,7 +188,11 @@
          profile.setInfo(); 
          utility.setConfirmChanges($('a[href="#profile"]'), profile.isChanged, $('a[href="#profile"]'))
 
-         } );     
+         } ); 
+      $('a[href="#profile"]').on('hidden.bs.tab', function() {
+         utility.hideMessage( $( "#profile .alert div" ) );
+      });
+      
 
 
       $('#profile-tab button').click(saveProfile);

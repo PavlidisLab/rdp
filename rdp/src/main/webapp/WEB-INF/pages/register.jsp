@@ -96,11 +96,11 @@
 								<span class="sidebar-nav-item-icon fa fa-fw fa-cogs fa-lg"></span>
 								<span class="sidebar-nav-item">Administration</span>
 						</a></li>
-						<li class="active active-metis"><a href="#overview" data-toggle="tab">
+						<li><a href="#overview" data-toggle="tab">
 								<span class="sidebar-nav-item-icon fa fa-fw fa-home fa-lg"></span>
 								<span class="sidebar-nav-item">Overview</span>
 						</a></li>
-						<li><a href="#profile" data-toggle="tab"> <span
+						<li class="active active-metis"><a href="#profile" data-toggle="tab"> <span
 								class="sidebar-nav-item-icon fa fa-fw fa-user fa-lg"></span> <span
 								class="sidebar-nav-item">Profile</span>
 						</a></li>
@@ -152,7 +152,7 @@
 
 			<section class="content">
 				<div class="tab-content">
-					<div class="tab-pane active" id="overview">
+					<div class="tab-pane" id="overview">
 
 						<div class="col-xs-12">
 							<div class="row">
@@ -169,7 +169,7 @@
 
 					</div>
 
-					<div class="tab-pane" id="profile">
+					<div class="tab-pane active" id="profile">
 
 						<div class="col-xs-12">
 							<div class="row">

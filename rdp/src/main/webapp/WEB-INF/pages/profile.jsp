@@ -2,7 +2,13 @@
 	<div class="main-header">
 		<h2>Profile</h2>
 		<em>user profile page</em>
+		<div class="alert alert-warning col-sm-12" hidden="true">
+			<a href="#" class="close" data-hide="alert">&times;</a>
+			<div class="text-center"></div>
+		</div>
 	</div>
+
+
 
 	<div class="main-content">
 		<!-- NAV TABS -->

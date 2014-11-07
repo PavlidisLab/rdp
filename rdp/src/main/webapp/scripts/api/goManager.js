@@ -71,6 +71,7 @@
          btn.removeAttr("disabled");
          btn.children('i').removeClass('fa-spin');
          console.log("Saved Changes");
+         utility.showMessage( promise.responseJSON.message, $( "#modelOrganisms .main-header .alert div" ) );
          //utility.showMessage( promise.responseJSON.message, $( "#primaryContactMessage" ) );
       });
       

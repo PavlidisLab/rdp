@@ -1,4 +1,5 @@
 // Initialize document
+var loadPromise = researcherModel.loadResearcher();
 $( document ).ready( function() {
    
    $( function() {
@@ -31,10 +32,11 @@ $( document ).ready( function() {
 	      }
 	   } );
             
-   var promise = researcherModel.loadResearcher();
+   
    
    // This gets run when the ajax calls in defs have completed
-   $.when(promise).done(function() {
+   $.when(loadPromise).done(function() {
+      $('a[href="#profile"]').trigger('show.bs.tab');
       $('#navbar-username').html(researcherModel.currentResearcher.userName)
       var taxonIds = researcherModel.currentResearcher.getTaxons();
       $('#myModelOrganismsList ul li').has('a[href="#modelOrganisms"]').each( function(index) {
@@ -66,11 +68,13 @@ $( document ).ready( function() {
          var taxonName = $(this).text();
          utility.confirmModal( function(result) {
             if ( result ) {
+               utility.hideMessage( $( "#modelOrganisms .main-header .alert div" ) );
                $this.trigger('click.metisMenu');
                modelOrganisms.load( taxonName );
             }
          });
       } else {
+         utility.hideMessage( $( "#modelOrganisms .main-header .alert div" ) );
          modelOrganisms.load( $(this).text() );
       }
    });
