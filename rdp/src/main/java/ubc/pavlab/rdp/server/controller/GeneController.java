@@ -526,7 +526,7 @@ public class GeneController {
             json.put( "message", goTerms.size() + " Terms Loaded" );
             json.put( "terms", geneOntologyService.toJSON( goTerms ) );
             jsonText = json.toString();
-            log.info( jsonText );
+            // log.info( jsonText );
         } catch ( Exception e ) {
             log.error( e.getLocalizedMessage(), e );
             JSONObject json = new JSONObject();
@@ -682,6 +682,39 @@ public class GeneController {
             json.put( "message", "Stats calculated" );
             json.put( "geneSize", size );
             json.put( "frequency", frequency );
+            jsonText = json.toString();
+
+        } catch ( Exception e ) {
+            log.error( e.getLocalizedMessage(), e );
+            JSONObject json = new JSONObject();
+            json.put( "success", false );
+            json.put( "message", e.getLocalizedMessage() );
+            jsonText = json.toString();
+            log.info( jsonText );
+        } finally {
+            jsonUtil.writeToResponse( jsonText );
+        }
+
+    }
+
+    /*
+     * Used to get genes of a specific taxon in gene pool of a GO TERM
+     */
+    @RequestMapping("/getGenePool.html")
+    public void getGenePool( HttpServletRequest request, HttpServletResponse response ) throws IOException {
+
+        String jsonText = null;
+        JSONUtil jsonUtil = new JSONUtil( request, response );
+        String geneOntologyId = request.getParameter( "geneOntologyId" );
+        Long taxonId = Long.parseLong( request.getParameter( "taxonId" ), 10 );
+        try {
+
+            Collection<Gene> genes = geneOntologyService.getGenes( geneOntologyId, taxonId );
+
+            JSONObject json = new JSONObject();
+            json.put( "success", true );
+            json.put( "message", "Gene Pool for " + geneOntologyId + " in " + taxonId );
+            json.put( "genePool", genes );
             jsonText = json.toString();
 
         } catch ( Exception e ) {

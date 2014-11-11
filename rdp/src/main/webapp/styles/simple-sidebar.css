@@ -334,6 +334,25 @@ border-color: #555753;
 	color:#aaa;
 }
 
+.child-header {
+	color: #555;
+}
+
+#go-tab table.dataTable.display tbody tr.child-table tr > th,
+#suggestedTermsTable.table.dataTable.display tbody tr.child-table tr > th {
+	background-color: #d3d7cf;
+}
+
+#go-tab table.dataTable.display tbody tr.child-table > td.child-table,
+#suggestedTermsTable.table.dataTable.display tbody tr.child-table > td.child-table {
+	padding-left: 25px;
+}
+
+#go-tab table.dataTable.display tbody tr.child-table tr.green-row > td, 
+#suggestedTermsTable.table.dataTable.display tbody tr.child-table tr.green-row > td {
+	background-color: #B5EAAA;
+}
+
 [custom-placeholder=true]:empty:not(:focus ):before {
 	content: attr(data-ph)
 }
