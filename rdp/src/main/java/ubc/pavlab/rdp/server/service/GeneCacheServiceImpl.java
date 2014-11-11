@@ -19,19 +19,28 @@
 
 package ubc.pavlab.rdp.server.service;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.annotation.PostConstruct;
 
+import org.apache.commons.lang3.time.StopWatch;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import ubc.pavlab.rdp.server.cache.GeneCache;
 import ubc.pavlab.rdp.server.model.Gene;
 import ubc.pavlab.rdp.server.model.Taxon;
+import ubc.pavlab.rdp.server.model.common.auditAndSecurity.User;
 
 /**
  * TODO Document Me
@@ -44,7 +53,11 @@ public class GeneCacheServiceImpl implements GeneCacheService {
 
     private static Log log = LogFactory.getLog( GeneCacheServiceImpl.class.getName() );
 
-    private static AtomicBoolean updatingCache = new AtomicBoolean( false );
+    private static final AtomicBoolean updatingCache = new AtomicBoolean( false );
+
+    private static final AtomicBoolean running = new AtomicBoolean( false );
+
+    private static final AtomicBoolean ready = new AtomicBoolean( false );
 
     @Autowired
     private GeneCache geneCache;
@@ -117,6 +130,11 @@ public class GeneCacheServiceImpl implements GeneCacheService {
      */
     @Override
     public long updateCache() {
+        return loadCache();
+    }
+
+    @Override
+    public long loadCache() {
         long cacheSize = -1;
         if ( updatingCache.compareAndSet( false, true ) ) {
             try {
@@ -157,6 +175,61 @@ public class GeneCacheServiceImpl implements GeneCacheService {
     @SuppressWarnings("unused")
     @PostConstruct
     private void initialize() {
+    }
+
+    @Override
+    public void afterPropertiesSet() {
+        this.init( false );
+    }
+
+    @Override
+    public synchronized void init( boolean force ) {
+
+        if ( running.get() ) {
+            log.warn( "Gene Cache initialization is already running" );
+            return;
+        }
+
+        initializeGeneCache();
+    }
+
+    private synchronized void initializeGeneCache() {
+        if ( running.get() ) return;
+
+        Thread loadThread = new Thread( new Runnable() {
+            @Override
+            public void run() {
+                running.set( true );
+                log.info( "Loading Gene Cache..." );
+                StopWatch loadTime = new StopWatch();
+                loadTime.start();
+                //
+                try {
+
+                    // Must attach a user with authorities to the session so that we can use injected beans
+                    User user = new User();
+                    List<GrantedAuthority> dbAuths = new ArrayList<GrantedAuthority>();
+                    dbAuths.add( new SimpleGrantedAuthority( "ROLE_ADMIN" ) );
+                    Authentication auth = new UsernamePasswordAuthenticationToken( user, null, dbAuths );
+                    SecurityContextHolder.getContext().setAuthentication( auth );
+
+                    long count = loadCache();
+                    log.info( "Gene Cache loaded, total of " + count + " items in " + loadTime.getTime() / 1000 + "s" );
+                    ready.set( true );
+                    running.set( false );
+
+                    loadTime.stop();
+                } catch ( Throwable e ) {
+                    if ( log != null ) log.error( e, e );
+                    ready.set( false );
+                    running.set( false );
+                }
+            }
+
+        } );
+
+        loadThread.start();
+
     }
 
 }

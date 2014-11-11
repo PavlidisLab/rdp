@@ -21,6 +21,7 @@ package ubc.pavlab.rdp.server.service;
 
 import java.util.Collection;
 
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.security.access.annotation.Secured;
 
 import ubc.pavlab.rdp.server.model.Gene;
@@ -31,7 +32,7 @@ import ubc.pavlab.rdp.server.model.Gene;
  * @author mjacobson
  * @version $Id$
  */
-public interface GeneCacheService {
+public interface GeneCacheService extends InitializingBean {
 
     @Secured({ "GROUP_USER" })
     public Collection<Gene> fetchBySymbols( Collection<String> geneSymbols );
@@ -54,6 +55,13 @@ public interface GeneCacheService {
     @Secured({ "GROUP_ADMIN" })
     public long updateCache();
 
+    @Secured({ "IS_AUTHENTICATED_ANONYMOUSLY", "RUN_AS_ADMIN" })
+    public long loadCache();
+
     @Secured({ "GROUP_ADMIN" })
     public void clearCache();
+
+    @Secured({ "IS_AUTHENTICATED_ANONYMOUSLY", "RUN_AS_ADMIN" })
+    public abstract void init( boolean force );
+
 }
