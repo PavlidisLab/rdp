@@ -118,7 +118,7 @@
    }
    
    geneManager.addGeneToTable = function( gene, draw ) {
-      draw = utility.isUndefined( draw ) ? true : false;
+      draw = utility.isUndefined( draw ) ? true : draw;
       if ( !(gene instanceof researcherModel.Gene ) ){
          console.log("Object is not a Gene", gene);
          return;
