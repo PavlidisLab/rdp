@@ -25,6 +25,7 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import ubc.pavlab.rdp.server.model.GOTerm;
@@ -42,6 +43,7 @@ public class GOParserTest {
     private static Log log = LogFactory.getLog( GeneOntologyServiceTest.class.getName() );
 
     // note: no spring context.
+    @Ignore
     @Test
     public void testTest() throws Exception {
         log.info( "test log message" );
