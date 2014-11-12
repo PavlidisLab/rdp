@@ -41,7 +41,7 @@
    }; 
    
    goManager.loadSuggestedGOTerms = function() {
-      return utility.executeAjax( "getRelatedTerms.html", {'minimumFrequency':2,'minimumTermSize':10,'maximumTermSize':100,'taxonId':modelOrganisms.currentTaxonId()} );
+      return utility.executeAjax( "getRelatedTerms.html", {'minimumFrequency':2,'minimumTermSize':5,'maximumTermSize':100,'taxonId':modelOrganisms.currentTaxonId()} );
    }
    
    getGOTermStats = function(geneOntologyId) {
@@ -423,7 +423,6 @@ $( document ).ready( function() {
    
    // Add event listener for opening and closing details
    $('#go-tab table tbody, #suggestedTermsTable tbody' ).on('click', 'td.details-control', function () {
-      console.log('lcick')
        var tr = $(this).closest('tr');
        var dTable = $(this).closest('table').DataTable();
        var row = dTable.row( tr );
@@ -439,7 +438,6 @@ $( document ).ready( function() {
              var term = row.data()[0]
              var promise = goManager.getGenePool( term.geneOntologyId )
              $.when(promise).done(function() {
-                console.log(promise)
                 row.child( goManager.formatGenePool( promise.responseJSON.genePool ), 'child-table' ).show();
              });
           } else {

@@ -190,7 +190,7 @@ public class GOServiceImpl implements GOService {
                 continue;
             }
 
-            Collection<GOTerm> parents = getAncestors( term, false );
+            Collection<GOTerm> parents = getAncestors( term, true );
 
             for ( GOTerm parent : parents ) {
                 if ( fmap.containsKey( parent ) ) {

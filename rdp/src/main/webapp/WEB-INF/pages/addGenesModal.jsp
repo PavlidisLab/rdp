@@ -21,6 +21,9 @@
 					</div>
 					
 					<div class="form-group">
+				        <div class="checkbox col-sm-offset-3 col-sm-3">
+				          <label><input id="selectGeneTierCheckbox" type="checkbox" value="TIER1">Primary</label>
+				        </div>
 						<div class="col-sm-2 pull-right">
 						<button type="button" id="addGeneButton" class="btn btn-default btn-sm"
 							data-toggle="tooltip" data-placement="bottom" title="Add gene">
@@ -42,7 +45,12 @@
 					</div>
 
 					<div class="form-group">
+				        <div class="checkbox col-sm-offset-3 col-sm-3">
+				          <label><input id="bulkUploadTierCheckbox" type="checkbox" value="TIER1">Primary</label>
+				        </div>
+	
 						<div class="col-sm-4 pull-right">
+							
 							<button type="button" id="importGenesButton"
 								class="btn btn-default btn-sm" data-toggle="tooltip"
 								data-placement="bottom" title="Bulk Upload Genes">

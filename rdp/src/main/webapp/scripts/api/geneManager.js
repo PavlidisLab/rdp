@@ -151,6 +151,9 @@
       var data = $( "#searchGenesSelect" ).select2( "data" );
       if ( data ) {
          var gene = new researcherModel.Gene( data );
+         if ( $('#selectGeneTierCheckbox').prop('checked') ) {
+            gene.tier = "TIER1";
+         }
       }
       $( "#searchGenesSelect" ).select2("val", "");
       geneManager.addGeneToTable(gene, true);
@@ -177,6 +180,9 @@
 
             for (var i = 0; i < response.data[0].length; i++) {
                gene = new researcherModel.Gene( response.data[0][i] );
+               if ( $('#bulkUploadTierCheckbox').prop('checked') ) {
+                  gene.tier = "TIER1";
+               }
                geneManager.addGeneToTable( gene, false );
             }
             table.rows().draw();

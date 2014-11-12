@@ -354,5 +354,12 @@ border-color: #555753;
 }
 
 [custom-placeholder=true]:empty:not(:focus ):before {
-	content: attr(data-ph)
+	content: attr(data-ph);
+	color: #babdb6;
+}
+
+[custom-placeholder="pubmed"]:empty:not(:focus ):before {
+	content: '25387334 \A 25387283 \A 25387236';
+	white-space: pre;
+	color: #babdb6;
 }

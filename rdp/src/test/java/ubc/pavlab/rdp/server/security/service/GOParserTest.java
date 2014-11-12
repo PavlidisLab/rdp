@@ -52,9 +52,9 @@ public class GOParserTest {
         log.info( termMap.size() );
         log.info( termMap.get( "GO:0000003" ) );
         log.info( termMap.get( "GO:0000008" ) );
-        log.info( termMap.get( "GO:0042393" ) );
-        log.info( termMap.get( "GO:0042393" ).getChildren() );
-        log.info( termMap.get( "GO:0042393" ).getParents() );
+        log.info( termMap.get( "GO:0034990" ) );
+        log.info( termMap.get( "GO:0034990" ).getChildren() );
+        log.info( termMap.get( "GO:0034990" ).getParents() );
 
         log.info( termMap.get( "GO:0000022" ) );
         log.info( termMap.get( "GO:0000022" ).getChildren() );
