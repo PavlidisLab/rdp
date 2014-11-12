@@ -558,7 +558,7 @@ public class GeneController {
 
         try {
             // Collection<Gene> results = biomartService.findGenes( query, taxon );
-            List<GeneOntologyTerm> results = new ArrayList( geneOntologyService.fetchByQuery( query ) );
+            List<GeneOntologyTerm> results = new ArrayList<GeneOntologyTerm>( geneOntologyService.fetchByQuery( query ) );
 
             // List<GeneOntologyTerm> goTerms = new ArrayList<GeneOntologyTerm>();
             // for ( GeneOntologyTerm term : results ) {

@@ -21,6 +21,7 @@ package ubc.pavlab.rdp.server.service;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -1412,7 +1413,7 @@ public class GeneOntologyServiceImpl implements GeneOntologyService {
 
     @Override
     public JSONArray toJSON( Collection<GeneOntologyTerm> goTerms ) {
-        Collection<JSONObject> jsonSet = new HashSet<JSONObject>();
+        Collection<JSONObject> jsonList = new ArrayList<JSONObject>();
         for ( GeneOntologyTerm term : goTerms ) {
             JSONObject jsonObj = new JSONObject();
             jsonObj.put( "geneOntologyId", term.getGeneOntologyId() );
@@ -1423,10 +1424,10 @@ public class GeneOntologyServiceImpl implements GeneOntologyService {
 
             jsonObj.put( "size", term.getSize() );
             jsonObj.put( "frequency", term.getFrequency() );
-            jsonSet.add( jsonObj );
+            jsonList.add( jsonObj );
         }
 
-        return new JSONArray( jsonSet );
+        return new JSONArray( jsonList );
 
     }
 

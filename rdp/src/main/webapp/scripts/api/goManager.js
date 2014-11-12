@@ -412,7 +412,7 @@ return $(result);
 
 $( document ).ready( function() {
    goManager.init();
-   goManager.initDataTable( goManager.table(), [ {"sExtends":    "text", "fnClick":goManager.openAddTermsModal, "sButtonText": '<i class="fa fa-plus-circle green-icon"></i>&nbsp; Add Term(s)' },
+   goManager.initDataTable( goManager.table(), [ {"sExtends":    "text", "fnClick":goManager.openAddTermsModal, "sButtonText": '<i class="fa fa-plus-circle green-icon"></i>&nbsp; Suggest Terms' },
                                            {"sExtends":    "text", "fnClick":goManager.removeSelectedRows, "sButtonText": '<i class="fa fa-minus-circle red-icon"></i>&nbsp; Remove Selected' },
                                            "select_all", 
                                            "select_none" ] );
