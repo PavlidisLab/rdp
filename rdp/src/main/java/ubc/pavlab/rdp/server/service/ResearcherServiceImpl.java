@@ -68,8 +68,11 @@ public class ResearcherServiceImpl implements ResearcherService {
     @Autowired
     GeneService geneService;
 
+    // @Autowired
+    // GeneOntologyService geneOntologyService;
+
     @Autowired
-    GeneOntologyService geneOntologyService;
+    GOService gOService;
 
     @Autowired
     GeneDao geneDao;
@@ -327,7 +330,7 @@ public class ResearcherServiceImpl implements ResearcherService {
 
         jsonObj.put( "genes", geneService.toJSON( r.getGeneAssociations() ) );
 
-        jsonObj.put( "terms", geneOntologyService.toJSON( r.getGoTerms() ) );
+        jsonObj.put( "terms", gOService.toJSON( r.getGoTerms() ) );
 
         return jsonObj;
     }

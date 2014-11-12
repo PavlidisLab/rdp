@@ -55,17 +55,16 @@ public class GOParser {
         BufferedReader br = new BufferedReader( new InputStreamReader( i ) );
         GOTerm currentNode = null;
         GOTerm parentNode = null;
-        while ( br.ready() ) {
-            String line = br.readLine();
+        // while ( br.ready() ) {
+        String line = "";
+        while ( ( line = br.readLine() ) != null ) {
+            // String line = br.readLine();
 
             if ( line.equals( "" ) ) {
                 // Finished/Between Stanza
                 if ( currentNode != null ) {
                     // Just finished Term Stanza
                     // Create Node
-                    if ( currentNode.getId().equals( "GO:0042393" ) ) {
-                        log.info( currentNode );
-                    }
                     termMap.put( currentNode.getId(), currentNode );
                     currentNode = null;
                 } else {

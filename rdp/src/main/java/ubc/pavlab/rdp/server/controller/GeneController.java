@@ -44,21 +44,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import ubc.pavlab.rdp.server.model.GOTerm;
 import ubc.pavlab.rdp.server.model.Gene;
 import ubc.pavlab.rdp.server.model.GeneAssociation;
 import ubc.pavlab.rdp.server.model.GeneAssociation.TierType;
 import ubc.pavlab.rdp.server.model.GeneOntologyTerm;
 import ubc.pavlab.rdp.server.model.Researcher;
 import ubc.pavlab.rdp.server.security.authentication.UserManager;
+import ubc.pavlab.rdp.server.service.GOService;
+import ubc.pavlab.rdp.server.service.GOServiceImpl.GOAspect;
 import ubc.pavlab.rdp.server.service.GeneAnnotationService;
 import ubc.pavlab.rdp.server.service.GeneCacheService;
-import ubc.pavlab.rdp.server.service.GeneOntologyService;
 import ubc.pavlab.rdp.server.service.GeneService;
 import ubc.pavlab.rdp.server.service.ResearcherService;
 import ubc.pavlab.rdp.server.service.TaxonService;
 import ubc.pavlab.rdp.server.util.JSONUtil;
 import ubc.pavlab.rdp.server.util.Settings;
-import ubic.basecode.ontology.model.OntologyTerm;
 
 /**
  * Handles gene-related requests
@@ -85,8 +86,11 @@ public class GeneController {
     @Autowired
     protected GeneAnnotationService geneAnnotationService;
 
+    // @Autowired
+    // protected GeneOntologyService geneOntologyService;
+
     @Autowired
-    protected GeneOntologyService geneOntologyService;
+    GOService gOService;
 
     @Autowired
     protected TaxonService taxonService;
@@ -509,22 +513,22 @@ public class GeneController {
             }
 
             log.debug( "Loading GO Terms for " + username );
-            Map<OntologyTerm, Long> goTermsResult = geneOntologyService.calculateGoTermFrequency( genes, taxonId,
-                    minFreq, minTerm, maxTerm );
+            Map<GOTerm, Long> goTermsResult = gOService.calculateGoTermFrequency( genes, taxonId, minFreq, minTerm,
+                    maxTerm );
             List<GeneOntologyTerm> goTerms = new ArrayList<GeneOntologyTerm>();
-            for ( OntologyTerm term : goTermsResult.keySet() ) {
+            for ( GOTerm term : goTermsResult.keySet() ) {
                 GeneOntologyTerm goTerm = new GeneOntologyTerm( term );
                 goTerm.setFrequency( goTermsResult.get( term ) );
-                goTerm.setSize( geneOntologyService.getGeneSizeInTaxon( goTerm.getGeneOntologyId(), taxonId ) );
-                goTerm.setDefinition( geneOntologyService.getTermDefinition( term ) );
-                goTerm.setAspect( geneOntologyService.getTermAspect( goTerm.getGeneOntologyId() ) );
+                goTerm.setSize( gOService.getGeneSizeInTaxon( goTerm.getGeneOntologyId(), taxonId ) );
+                goTerm.setDefinition( term.getDefinition() );
+                goTerm.setAspect( GOAspect.valueOf( term.getAspect().toUpperCase() ) );
                 goTerms.add( goTerm );
             }
 
             JSONObject json = new JSONObject();
             json.put( "success", true );
             json.put( "message", goTerms.size() + " Terms Loaded" );
-            json.put( "terms", geneOntologyService.toJSON( goTerms ) );
+            json.put( "terms", gOService.toJSON( goTerms ) );
             jsonText = json.toString();
             // log.info( jsonText );
         } catch ( Exception e ) {
@@ -558,7 +562,7 @@ public class GeneController {
 
         try {
             // Collection<Gene> results = biomartService.findGenes( query, taxon );
-            List<GeneOntologyTerm> results = new ArrayList<GeneOntologyTerm>( geneOntologyService.fetchByQuery( query ) );
+            List<GeneOntologyTerm> results = new ArrayList<GeneOntologyTerm>( gOService.fetchByQuery( query ) );
 
             // List<GeneOntologyTerm> goTerms = new ArrayList<GeneOntologyTerm>();
             // for ( GeneOntologyTerm term : results ) {
@@ -576,7 +580,7 @@ public class GeneController {
                 // ignore
             }
 
-            jsonText = "{\"success\":true,\"data\":" + ( geneOntologyService.toJSON( results ) ).toString() + "}";
+            jsonText = "{\"success\":true,\"data\":" + ( gOService.toJSON( results ) ).toString() + "}";
         } catch ( Exception e ) {
             log.error( e.getMessage(), e );
             jsonText = "{\"success\":false,\"message\":" + e.getMessage() + "\"}";
@@ -608,7 +612,7 @@ public class GeneController {
             Researcher researcher = researcherService.findByUserName( username );
 
             // Deserialize GO Terms
-            Collection<GeneOntologyTerm> goTermsInMemory = geneOntologyService.deserializeGOTerms( GOJSON );
+            Collection<GeneOntologyTerm> goTermsInMemory = gOService.deserializeGOTerms( GOJSON );
 
             Collection<Gene> genes = researcher.getDirectGenesInTaxon( taxonId );
 
@@ -619,8 +623,8 @@ public class GeneController {
                 // stale state exceptions on updates
                 GeneOntologyTerm newTerm = new GeneOntologyTerm( term );
                 newTerm.setTaxonId( taxonId );
-                newTerm.setSize( geneOntologyService.getGeneSizeInTaxon( term.getGeneOntologyId(), taxonId ) );
-                newTerm.setFrequency( geneOntologyService.computeOverlapFrequency( term.getGeneOntologyId(), genes ) );
+                newTerm.setSize( gOService.getGeneSizeInTaxon( term.getGeneOntologyId(), taxonId ) );
+                newTerm.setFrequency( gOService.computeOverlapFrequency( term.getGeneOntologyId(), genes ) );
                 goTermsToBePersisted.add( newTerm );
             }
 
@@ -629,7 +633,7 @@ public class GeneController {
 
             HashMap<Gene, TierType> calculatedGenes = new HashMap<Gene, TierType>();
 
-            for ( Gene g : geneOntologyService.getRelatedGenes( goTermsToBePersisted, taxonId ) ) {
+            for ( Gene g : gOService.getRelatedGenes( goTermsToBePersisted, taxonId ) ) {
                 calculatedGenes.put( g, TierType.TIER3 );
             }
 
@@ -672,10 +676,10 @@ public class GeneController {
 
             Researcher researcher = researcherService.findByUserName( username );
             // Deserialize GO Terms
-            Long size = geneOntologyService.getGeneSizeInTaxon( geneOntologyId, taxonId );
+            Long size = gOService.getGeneSizeInTaxon( geneOntologyId, taxonId );
 
             Collection<Gene> genes = researcher.getDirectGenesInTaxon( taxonId );
-            Long frequency = geneOntologyService.computeOverlapFrequency( geneOntologyId, genes );
+            Long frequency = gOService.computeOverlapFrequency( geneOntologyId, genes );
 
             JSONObject json = new JSONObject();
             json.put( "success", true );
@@ -709,7 +713,7 @@ public class GeneController {
         Long taxonId = Long.parseLong( request.getParameter( "taxonId" ), 10 );
         try {
 
-            Collection<Gene> genes = geneOntologyService.getGenes( geneOntologyId, taxonId );
+            Collection<Gene> genes = gOService.getGenes( geneOntologyId, taxonId );
 
             JSONObject json = new JSONObject();
             json.put( "success", true );

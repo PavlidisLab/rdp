@@ -42,7 +42,6 @@ import org.apache.jena.larq.IndexLARQ;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 import ubc.pavlab.rdp.server.cache.GeneOntologyTermCache;
 import ubc.pavlab.rdp.server.model.Gene;
@@ -77,7 +76,7 @@ import com.hp.hpl.jena.rdf.model.Resource;
  * @author mjacobson
  * @version $Id$
  */
-@Service("geneOntologyService")
+// @Service("geneOntologyService")
 public class GeneOntologyServiceImpl implements GeneOntologyService {
 
     public static enum GOAspect {

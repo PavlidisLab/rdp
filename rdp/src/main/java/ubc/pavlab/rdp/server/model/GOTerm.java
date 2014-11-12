@@ -44,6 +44,22 @@ public class GOTerm {
             this.type = type;
         }
 
+        public String getId() {
+            return id;
+        }
+
+        public void setId( String id ) {
+            this.id = id;
+        }
+
+        public RelationshipType getType() {
+            return type;
+        }
+
+        public void setType( RelationshipType type ) {
+            this.type = type;
+        }
+
         @Override
         public String toString() {
             return "Relationship [id=" + id + ", type=" + type + "]";

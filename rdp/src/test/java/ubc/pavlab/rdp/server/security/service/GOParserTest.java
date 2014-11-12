@@ -20,6 +20,7 @@
 package ubc.pavlab.rdp.server.security.service;
 
 import java.io.InputStream;
+import java.net.URL;
 import java.util.Map;
 
 import org.apache.commons.logging.Log;
@@ -44,7 +45,8 @@ public class GOParserTest {
     @Test
     public void testTest() throws Exception {
         log.info( "test log message" );
-        InputStream z = GOParserTest.class.getResourceAsStream( "/data/go.obo" );
+        InputStream z = new URL( "http://purl.obolibrary.org/obo/go.obo" ).openStream();
+        // InputStream z = GOParserTest.class.getResourceAsStream( "/data/go.obo" );
         GOParser gOParser = new GOParser( z );
         Map<String, GOTerm> termMap = gOParser.getMap();
         log.info( termMap.size() );
