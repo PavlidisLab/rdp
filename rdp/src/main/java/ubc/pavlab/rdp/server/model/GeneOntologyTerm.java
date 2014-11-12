@@ -27,7 +27,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
-import ubc.pavlab.rdp.server.service.GeneOntologyServiceImpl.GOAspect;
+import ubc.pavlab.rdp.server.service.GOServiceImpl.GOAspect;
 import ubic.basecode.ontology.model.OntologyTerm;
 
 /**
@@ -82,6 +82,11 @@ public class GeneOntologyTerm {
 
     public GeneOntologyTerm( OntologyTerm term ) {
         this.geneOntologyId = term.getUri().replaceAll( ".*?/", "" ).replace( "_", ":" );
+        this.geneOntologyTerm = term.getTerm();
+    }
+
+    public GeneOntologyTerm( GOTerm term ) {
+        this.geneOntologyId = term.getId();
         this.geneOntologyTerm = term.getTerm();
     }
 

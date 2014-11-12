@@ -66,7 +66,7 @@ public interface GeneService {
     // @Secured({ "GROUP_USER" })
     // public Gene fastFindById( Long id );
 
-    @Secured({ "GROUP_ADMIN", "AFTER_ACL_READ" })
+    @Secured({ "IS_AUTHENTICATED_ANONYMOUSLY", "AFTER_ACL_READ" })
     public Collection<Gene> findByTaxonId( final Long id );
 
     @Secured({ "GROUP_ADMIN" })

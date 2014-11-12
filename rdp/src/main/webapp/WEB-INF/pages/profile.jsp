@@ -75,15 +75,10 @@
 							<div class="publications col-sm-12">
 								<h3>
 									<a href="#"><i class="fa fa-edit yellow-icon"></i></a>
-									Publications
+									Publications (PUBMED IDs) 
 								</h3>
-								<p class="data-row col-sm-2">
-									<span class="data-name">PubMed Ids</span>
-								</p>
-								<div class="publicationsList well col-sm-3">
-									<p class="data-editable">
-									</p>
-								</div>
+								<p custom-placeholder=pubmed data-ph="My lab studies ..."
+									class="data-editable data-paragraph publicationsList well"></p>
 							</div>
 						</div>
 					</div>

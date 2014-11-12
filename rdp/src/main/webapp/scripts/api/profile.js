@@ -38,7 +38,7 @@
 
    profile.pubMedIds = function(idOverride) {
       idOverride = utility.isUndefined(idOverride) ? '#profile-tab' : idOverride;
-      return $(idOverride+' .publicationsList p').eq( 0 );
+      return $(idOverride+' p.publicationsList').eq( 0 );
    };
 
    saveProfile = function(e) {
@@ -54,13 +54,26 @@
       researcherModel.currentResearcher.phone = profile.phone().text();
       researcherModel.currentResearcher.description = profile.description().text();
 
-      researcherModel.currentResearcher.pubMedIds = [];
+/*      researcherModel.currentResearcher.pubMedIds = [];
+      console.log(profile.pubMedIds() );
+      console.log(profile.pubMedIds().html() );
       profile.pubMedIds().find( 'div' ).each(function(index) {
          var val = parseInt( $(this).text() );
          if ( !isNaN(val) ) {
          researcherModel.currentResearcher.pubMedIds.push( val );
          }
-      });
+      });*/
+      
+      var ids = [];
+      var stringIds = profile.pubMedIds()[0].innerText.split('\n');
+      for (var i=0; i<stringIds.length; i++) {
+         var val = parseInt( stringIds[i] );
+         if ( !isNaN(val) ) {
+            ids.push( val );
+         }
+      }
+      
+      researcherModel.currentResearcher.pubMedIds = ids;
 
       var promise = researcherModel.saveResearcherProfile();
 
@@ -90,12 +103,20 @@
       if ( !changed && researcher.pubMedIds.length > 0 ) {
          researcher.pubMedIds.sort(function(a, b){return a-b});
          var ids = [];
-         profile.pubMedIds().find( 'div' ).each(function(index) {
+         var stringIds = profile.pubMedIds()[0].innerText.split('\n');
+/*         profile.pubMedIds().find( 'div' ).each(function(index) {
             var val = parseInt( $(this).text() );
             if ( !isNaN(val) ) {
                ids.push( val );
             }
-         });
+         });*/
+         for (var i=0; i<stringIds.length; i++) {
+            var val = parseInt( stringIds[i] );
+            if ( !isNaN(val) ) {
+               ids.push( val );
+            }
+         }
+                  
          ids.sort(function(a, b){return a-b});
          if ( ids.length != researcher.pubMedIds.length ) {
             return true;
@@ -192,8 +213,18 @@
       $('a[href="#profile"]').on('hidden.bs.tab', function() {
          utility.hideMessage( $( "#profile .alert div" ) );
       });
-      
+            
+      profile.pubMedIds()[0].addEventListener("paste", function(e) {
+         // cancel paste
+         e.preventDefault();
 
+         // get text representation of clipboard
+         var text = e.clipboardData.getData("text/plain");
+         console.log(text);
+
+         // insert text manually
+         document.execCommand("insertText", false, text);
+     });
 
       $('#profile-tab button').click(saveProfile);
    }

@@ -97,6 +97,18 @@
       selectedNodes.remove().draw( false );
    }
    
+   //TODO make this work
+   exportGenes  = function() {
+      var table = geneManager.table().DataTable();
+      var showingGenes = table.columns().data()[0];
+      var text = [];
+      for (var i=0;i<showingGenes.length;i++) {
+         text.push(showingGenes[i].officialSymbol)
+      }
+      text = text.join("\r\n");
+      window.prompt("Copy to clipboard: Ctrl+C (Cmd+C) , Enter", text);
+   }
+   
    geneManager.openAddGenesModal = function() {
       geneManager.addGenesModal().modal('show');
    }
@@ -106,7 +118,7 @@
    }
    
    geneManager.addGeneToTable = function( gene, draw ) {
-      draw = utility.isUndefined( draw ) ? true : false;
+      draw = utility.isUndefined( draw ) ? true : draw;
       if ( !(gene instanceof researcherModel.Gene ) ){
          console.log("Object is not a Gene", gene);
          return;
@@ -139,6 +151,9 @@
       var data = $( "#searchGenesSelect" ).select2( "data" );
       if ( data ) {
          var gene = new researcherModel.Gene( data );
+         if ( $('#selectGeneTierCheckbox').prop('checked') ) {
+            gene.tier = "TIER1";
+         }
       }
       $( "#searchGenesSelect" ).select2("val", "");
       geneManager.addGeneToTable(gene, true);
@@ -165,6 +180,9 @@
 
             for (var i = 0; i < response.data[0].length; i++) {
                gene = new researcherModel.Gene( response.data[0][i] );
+               if ( $('#bulkUploadTierCheckbox').prop('checked') ) {
+                  gene.tier = "TIER1";
+               }
                geneManager.addGeneToTable( gene, false );
             }
             table.rows().draw();
@@ -284,7 +302,7 @@
             "aButtons": [ {"sExtends":    "text", "fnClick":geneManager.openAddGenesModal, "sButtonText": '<i class="fa fa-plus-circle green-icon"></i>&nbsp; Add Gene(s)' },
                           {"sExtends":    "text", "fnClick":geneManager.removeSelectedRows, "sButtonText": '<i class="fa fa-minus-circle red-icon"></i>&nbsp; Remove Selected' },
                           "select_all", 
-                          "select_none" ]
+                          "select_none"]
          },
          "fnRowCallback": function( nRow, aData, iDisplayIndex ) {
             // Keep in mind that $('td:eq(0)', nRow) refers to the first DISPLAYED column

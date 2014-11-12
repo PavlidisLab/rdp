@@ -4,11 +4,11 @@
 	<thead>
 		<tr>
 			<th>Data</th>
-			<th>GO ID</th>
-			<th>Aspect</th>
+			<th>Term ID</th>
+			<th>GO Aspect</th>
 			<th>Term</th>
-			<th>Frequency</th>
-			<th>Size</th>
+			<th>My Genes in Term</th>
+			<th>Term Size</th>
 		</tr>
 	</thead>
 

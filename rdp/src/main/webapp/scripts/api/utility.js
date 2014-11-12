@@ -46,6 +46,7 @@
             utility.confirmModal( function(result) {
                if ( result ) {
                   $(e.relatedTarget).trigger("click");
+                  $(e.relatedTarget).tab('show');
                } else {
                   utility.setConfirmChanges(tab, isDirty, fixSidebar);
                }

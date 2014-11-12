@@ -39,9 +39,9 @@ public interface TaxonService {
     @Secured({ "GROUP_USER", "AFTER_ACL_READ" })
     public Taxon findByCommonName( final String commonName );
 
-    @Secured({ "GROUP_ADMIN", "AFTER_ACL_READ" })
+    @Secured({ "IS_AUTHENTICATED_ANONYMOUSLY", "AFTER_ACL_READ" })
     public Collection<Taxon> loadAll();
 
-    @Secured({ "IS_AUTHENTICATED_ANONYMOUSLY", "RUN_AS_ADMIN" })
+    @Secured({ "IS_AUTHENTICATED_ANONYMOUSLY", "AFTER_ACL_READ" })
     public Collection<Long> loadAllIds();
 }

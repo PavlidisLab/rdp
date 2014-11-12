@@ -243,7 +243,7 @@
    researcherModel.Researcher.prototype.parseResearcherObject = function(data) {
       this.department = data.department || "";
       this.organization = data.organization || "";
-      this.website = data.website;
+      this.website = data.website || "";
       this.phone = data.phone || "";
       this.description = data.description || "";
       this.setPubMedIdsFromPublications( data.publications );

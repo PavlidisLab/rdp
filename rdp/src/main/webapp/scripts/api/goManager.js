@@ -2,7 +2,7 @@
  * @memberOf goManager
  */
 (function( goManager, $, undefined ) {
-   
+      
    goManager.aspectToString = function(aspect) {
       switch(aspect) {
          case "BIOLOGICAL_PROCESS":
@@ -41,11 +41,15 @@
    }; 
    
    goManager.loadSuggestedGOTerms = function() {
-      return utility.executeAjax( "getRelatedTerms.html", {'minimumFrequency':2,'minimumTermSize':10,'maximumTermSize':100,'taxonId':modelOrganisms.currentTaxonId()} );
+      return utility.executeAjax( "getRelatedTerms.html", {'minimumFrequency':2,'minimumTermSize':5,'maximumTermSize':100,'taxonId':modelOrganisms.currentTaxonId()} );
    }
    
    getGOTermStats = function(geneOntologyId) {
       return utility.executeAjax( "getGOTermStats.html", {'geneOntologyId':geneOntologyId, 'taxonId':modelOrganisms.currentTaxonId()}, false );
+   }
+   
+   goManager.getGenePool = function(geneOntologyId) {
+      return utility.executeAjax( "getGenePool.html", {'geneOntologyId':geneOntologyId, 'taxonId':modelOrganisms.currentTaxonId()}, false );
    }
 
    saveGoTerms = function() {      
@@ -179,6 +183,54 @@
       goManager.addTermsModal().modal('hide');
    }
    
+   formatGenePool = function( genes ) {
+      var result = '<tr class="child-header">'+
+      '<th>Symbol</td>'+
+      '<th colspan="4">Name</td>'+
+      '</tr>';
+      for (var i=0;i<genes.length;i++){
+         var savedGenes = researcherModel.currentResearcher.genes;
+         var classColored = "";
+         for (var j=0;j<savedGenes.length;j++){
+            if ( genes[i].id == savedGenes[j].id ) {
+               classColored = "green-row";
+               break;
+            }
+         }
+         result +=
+            '<tr class="'+classColored+'">'+
+            '<td>'+genes[i].officialSymbol+'</td>'+
+            '<td colspan="4">'+genes[i].officialName+'</td>'+
+            '</tr>'
+      }
+return $(result);
+  }
+   
+   goManager.formatGenePool = function( genes ) {
+      var result = '<table class="table table-bordered table-condensed stripe text-left display" cellpadding="5" cellspacing="0" border="0" width="100%">' +
+                     '<thead class="child-header">' +
+                     '<tr>'+
+                        '<th>Symbol</th>'+
+                        '<th>Name</th>'+
+                     '</tr>' +
+                     '</thead>'
+      for (var i=0;i<genes.length;i++){
+         var savedGenes = researcherModel.currentResearcher.genes;
+         var classColored = "";
+         for (var j=0;j<savedGenes.length;j++){
+            if ( genes[i].id == savedGenes[j].id ) {
+               classColored = "green-row";
+               break;
+            }
+         }
+         result +=
+            '<tr class="'+classColored+'">'+
+               '<td>'+genes[i].officialSymbol+'</td>'+
+               '<td colspan="4">'+genes[i].officialName+'</td>'+
+            '</tr>'
+      }
+      return result + '</table>';
+  }
    
    goManager.removeSelectedRows = function() {
       var table = goManager.table().DataTable();
@@ -257,6 +309,7 @@
                              }
                           },
                           {
+                             "class":"details-control",
                              "aTargets": [ 5 ],
                              "defaultContent": "",
                              "mData": function ( source, type, val ) {
@@ -281,7 +334,7 @@
                                 link = '<a href="'+url+'" data-content="Unknown Definition" data-container="body" data-toggle="popover" target="_blank">'+aData[0].geneOntologyId+'</a>';
                              }
 
-                             $('td:eq(1)', nRow).html(goManager.aspectToString( aData[0].aspect));
+                             
                              
                              $('td:eq(0)', nRow).html(link);
                              $('td:eq(0) > a', nRow).popover({
@@ -289,8 +342,12 @@
                                 'placement': 'top'
                              });
                              
+                             $('td:eq(1)', nRow).html(goManager.aspectToString( aData[0].aspect));
+                             
                              if ( utility.isUndefined( aData[0].size ) ) {
                                 $('td:eq(4)', nRow).html('<img src="styles/select2-spinner.gif">');
+                             } else {
+                                $('td:eq(4)', nRow).html('<i class="fa fa-caret-right fa-fw green-icon"></i> ' + aData[0].size );
                              }
                              
                              if ( utility.isUndefined( aData[0].frequency ) ) {
@@ -347,13 +404,15 @@
    goManager.init = function() {
       $( "#addTermButton" ).click( goManager.selectGoTerm );
       $('#term-tab-save').click(saveGoTerms);
+      
+
    }
 
 }( window.goManager = window.goManager || {}, jQuery ));
 
 $( document ).ready( function() {
    goManager.init();
-   goManager.initDataTable( goManager.table(), [ {"sExtends":    "text", "fnClick":goManager.openAddTermsModal, "sButtonText": '<i class="fa fa-plus-circle green-icon"></i>&nbsp; Add Term(s)' },
+   goManager.initDataTable( goManager.table(), [ {"sExtends":    "text", "fnClick":goManager.openAddTermsModal, "sButtonText": '<i class="fa fa-plus-circle green-icon"></i>&nbsp; Suggest Terms' },
                                            {"sExtends":    "text", "fnClick":goManager.removeSelectedRows, "sButtonText": '<i class="fa fa-minus-circle red-icon"></i>&nbsp; Remove Selected' },
                                            "select_all", 
                                            "select_none" ] );
@@ -361,11 +420,36 @@ $( document ).ready( function() {
                                                            "select_none" ] );
    //goManager.initSuggestDataTable();
    goManager.initSelect2();
-   //goManager.initSelect2();
-   //$( "#goManagerButton" ).click( goManager.saveGoTerms );
-   //$( "#goManagerAddTermButton" ).click( goManager.addGoTerm );
-   //goManager.modal.on( 'hidden.bs.modal', goManager.closeModal );
-   //goManager.modal.on( 'show.bs.modal', goManager.openModal );
+   
+   // Add event listener for opening and closing details
+   $('#go-tab table tbody, #suggestedTermsTable tbody' ).on('click', 'td.details-control', function () {
+       var tr = $(this).closest('tr');
+       var dTable = $(this).closest('table').DataTable();
+       var row = dTable.row( tr );
+       if ( row.child.isShown() ) {
+           // This row is already open - close it
+           row.child.hide();
+           tr.removeClass('shown');
+           $('i', this).removeClass('fa-caret-down').addClass('fa-caret-right').removeClass('red-icon').addClass('green-icon');
+       }
+       else {
+           // Open this row
+          if ( utility.isUndefined( row.child() ) ) {
+             var term = row.data()[0]
+             var promise = goManager.getGenePool( term.geneOntologyId )
+             $.when(promise).done(function() {
+                row.child( goManager.formatGenePool( promise.responseJSON.genePool ), 'child-table' ).show();
+             });
+          } else {
+             row.child.show();
+          }
+          
+          tr.addClass('shown');
+          $('i', this).removeClass('fa-caret-right').addClass('fa-caret-down').removeClass('green-icon').addClass('red-icon');
+
+       }
+   } );
+
    
 
 });

@@ -122,21 +122,21 @@
 										class="fa arrow"></span></a>
 									<ul class="sub-list">
 										<li><a href="#add"><i
-												class="fa fa-plus-circle green-icon"></i>&nbsp; Add Human</a>
+												class="fa fa-plus-circle green-icon"></i>&nbsp; Human</a>
 										<li><a href="#add"><i
-												class="fa fa-plus-circle green-icon"></i>&nbsp; Add Mouse</a>
+												class="fa fa-plus-circle green-icon"></i>&nbsp; Mouse</a>
 										<li><a href="#add"><i
-												class="fa fa-plus-circle green-icon"></i>&nbsp; Add Rat</a>
+												class="fa fa-plus-circle green-icon"></i>&nbsp; Rat</a>
 										<li><a href="#add"><i
-												class="fa fa-plus-circle green-icon"></i>&nbsp; Add Yeast</a>
+												class="fa fa-plus-circle green-icon"></i>&nbsp; Yeast</a>
 										<li><a href="#add"><i
-												class="fa fa-plus-circle green-icon"></i>&nbsp; Add Zebrafish</a>
+												class="fa fa-plus-circle green-icon"></i>&nbsp; Zebrafish</a>
 										<li><a href="#add"><i
-												class="fa fa-plus-circle green-icon"></i>&nbsp; Add Fruit Fly</a>
+												class="fa fa-plus-circle green-icon"></i>&nbsp; Fruit Fly</a>
 										<li><a href="#add"><i
-												class="fa fa-plus-circle green-icon"></i>&nbsp; Add Roundworm</a>
+												class="fa fa-plus-circle green-icon"></i>&nbsp; Roundworm</a>
 										<li><a href="#add"><i
-												class="fa fa-plus-circle green-icon"></i>&nbsp; Add E. Coli</a>
+												class="fa fa-plus-circle green-icon"></i>&nbsp; E. Coli</a>
 										<li style="display: none;"><a href="#"><i
 												class="fa fa-ban red-icon"></i>&nbsp; No More Organisms</a>
 									</ul></li>

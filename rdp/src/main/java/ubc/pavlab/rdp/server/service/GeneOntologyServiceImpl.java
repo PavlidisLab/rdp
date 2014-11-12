@@ -21,6 +21,7 @@ package ubc.pavlab.rdp.server.service;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -41,7 +42,6 @@ import org.apache.jena.larq.IndexLARQ;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 import ubc.pavlab.rdp.server.cache.GeneOntologyTermCache;
 import ubc.pavlab.rdp.server.model.Gene;
@@ -76,7 +76,7 @@ import com.hp.hpl.jena.rdf.model.Resource;
  * @author mjacobson
  * @version $Id$
  */
-@Service("geneOntologyService")
+// @Service("geneOntologyService")
 public class GeneOntologyServiceImpl implements GeneOntologyService {
 
     public static enum GOAspect {
@@ -244,7 +244,6 @@ public class GeneOntologyServiceImpl implements GeneOntologyService {
         }
 
         // Limit by maximum gene pool size of go terms
-        // TODO wayyyyyy too slow...
         if ( maximumTermSize > 0 && minimumTermSize > 0 ) {
             for ( Iterator<Map.Entry<OntologyTerm, Long>> i = frequencyMap.entrySet().iterator(); i.hasNext(); ) {
                 Map.Entry<OntologyTerm, Long> termEntry = i.next();
@@ -256,6 +255,9 @@ public class GeneOntologyServiceImpl implements GeneOntologyService {
                 }
             }
         }
+
+        // Reduce GO TERM redundancies
+        frequencyMap = reduceRedundancies( frequencyMap );
 
         frequencyMap = sortByValue( frequencyMap );
 
@@ -282,6 +284,44 @@ public class GeneOntologyServiceImpl implements GeneOntologyService {
             sortedMap.put( entry.getKey(), entry.getValue() );
         }
         return sortedMap;
+    }
+
+    private Map<OntologyTerm, Long> reduceRedundancies( Map<OntologyTerm, Long> frequencyMap ) {
+        // Reduce GO TERM redundancies
+        Collection<OntologyTerm> markedForDeletion = new HashSet<OntologyTerm>();
+        Map<OntologyTerm, Long> fmap = new HashMap<OntologyTerm, Long>( frequencyMap );
+        for ( Map.Entry<OntologyTerm, Long> entry : fmap.entrySet() ) {
+            OntologyTerm term = entry.getKey();
+            Long frequency = entry.getValue();
+
+            if ( markedForDeletion.contains( term ) ) {
+                // Skip because a previous step would have taken care of this terms parents anyways
+                continue;
+            }
+
+            Collection<OntologyTerm> parents = getAllParents( term, false );
+
+            for ( OntologyTerm parent : parents ) {
+                if ( fmap.containsKey( parent ) ) {
+                    if ( fmap.get( parent ) > frequency ) {
+                        // keep parent
+                        markedForDeletion.add( term );
+                        break;
+                    } else {
+                        // keep child
+                        markedForDeletion.add( parent );
+                    }
+                }
+            }
+
+        }
+
+        // Delete those marked for deletion
+        for ( OntologyTerm redundantTerm : markedForDeletion ) {
+            fmap.remove( redundantTerm );
+        }
+
+        return fmap;
     }
 
     /*
@@ -1372,7 +1412,7 @@ public class GeneOntologyServiceImpl implements GeneOntologyService {
 
     @Override
     public JSONArray toJSON( Collection<GeneOntologyTerm> goTerms ) {
-        Collection<JSONObject> jsonSet = new HashSet<JSONObject>();
+        Collection<JSONObject> jsonList = new ArrayList<JSONObject>();
         for ( GeneOntologyTerm term : goTerms ) {
             JSONObject jsonObj = new JSONObject();
             jsonObj.put( "geneOntologyId", term.getGeneOntologyId() );
@@ -1383,10 +1423,10 @@ public class GeneOntologyServiceImpl implements GeneOntologyService {
 
             jsonObj.put( "size", term.getSize() );
             jsonObj.put( "frequency", term.getFrequency() );
-            jsonSet.add( jsonObj );
+            jsonList.add( jsonObj );
         }
 
-        return new JSONArray( jsonSet );
+        return new JSONArray( jsonList );
 
     }
 
