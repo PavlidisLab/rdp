@@ -1354,7 +1354,7 @@ public class GeneOntologyServiceImpl implements GeneOntologyService {
             // goTerm.setFrequency( 0L );
             // goTerm.setSize( geneOntologyService.getGeneSize( term ) );
             goTerm.setDefinition( getTermDefinition( term ) );
-            goTerm.setAspect( getTermAspect( term ) );
+            // goTerm.setAspect( getTermAspect( term ) );
             goTerms.add( goTerm );
 
         }
