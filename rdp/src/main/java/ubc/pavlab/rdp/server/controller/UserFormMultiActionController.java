@@ -41,7 +41,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import ubc.pavlab.rdp.server.model.common.auditAndSecurity.PasswordResetToken;
 import ubc.pavlab.rdp.server.security.authentication.UserManager;
 import ubc.pavlab.rdp.server.util.Settings;
 
@@ -217,9 +216,9 @@ public class UserFormMultiActionController extends BaseController {
 
             String username = user.getUserName();
 
-            PasswordResetToken token = userManager.createPasswordResetToken( user );
+            String key = userManager.createPasswordResetToken( user );
 
-            String key = token.getTokenKey();
+            // String key = token.getTokenKey();
 
             String templateName = "forgotPassword.vm";
 

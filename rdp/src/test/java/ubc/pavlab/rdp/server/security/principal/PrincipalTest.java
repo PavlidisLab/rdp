@@ -33,7 +33,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
-import ubc.pavlab.rdp.server.model.common.auditAndSecurity.PasswordResetToken;
 import ubc.pavlab.rdp.server.model.common.auditAndSecurity.User;
 import ubc.pavlab.rdp.server.security.authentication.UserManager;
 import ubc.pavlab.rdp.testing.BaseSpringContextTest;
@@ -86,9 +85,9 @@ public class PrincipalTest extends BaseSpringContextTest {
         String newpwd = randomName();
         String encodedPassword = passwordEncoder.encode( newpwd );
 
-        PasswordResetToken token = userManager.createPasswordResetToken( u );
+        String key = userManager.createPasswordResetToken( u );
 
-        boolean valid = userManager.validatePasswordResetToken( username, token.getTokenKey() );
+        boolean valid = userManager.validatePasswordResetToken( username, key );
         assertTrue( valid );
 
         userManager.changePasswordForUser( username, encodedPassword );
@@ -97,7 +96,7 @@ public class PrincipalTest extends BaseSpringContextTest {
 
         userManager.invalidatePasswordResetToken( username );
         try {
-            valid = userManager.validatePasswordResetToken( username, token.getTokenKey() );
+            valid = userManager.validatePasswordResetToken( username, key );
         } catch ( Exception e ) {
             valid = false;
         }

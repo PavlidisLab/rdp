@@ -38,7 +38,7 @@
             data-show="true">
             <div class="modal-content" data-backdrop="static" data-show="true">
 	            <div class="modal-header">
-					<h4 class="modal-title text-center"><a href="/rdp/login.jsp" >Rare Disease Project</a></h4>
+					<h4 class="modal-title text-center"><a href="/rdp/login.jsp" >Rare Diseases: Models & Mechanisms Network</a></h4>
 					<h5 class="modal-title text-center">Password Reset</h5>
 	            </div>
                 <div class="modal-body">
