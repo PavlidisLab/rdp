@@ -2,7 +2,7 @@
 <html lang="en" class="no-js">
 <head>
 <meta charset="UTF-8" />
-<title>Rare Disease Project</title>
+<title>Rare Diseases: Models & Mechanisms Network</title>
 
 <!-- Bootstrap core CSS -->
 <link href="styles/bootstrap.min.css" rel="stylesheet">
@@ -45,8 +45,8 @@
             data-show="true">
             <div class="modal-content" data-backdrop="static" data-show="true">
                 <div class="modal-header">
-					<h3 class="modal-title text-center"><a href="#signin" data-toggle="tab">Rare Disease Project</a></h3>
-					<h5 class="modal-title text-center">Canadian Rare Disease Models & Mechanisms Network</h5>
+					<h3 class="modal-title text-center"><a href="#signin" data-toggle="tab">Rare Diseases</a></h3>
+					<h5 class="modal-title text-center">Models & Mechanisms Network</h5>
 	            </div>
                 <div class="modal-body">
                 	<div class="tab-content">

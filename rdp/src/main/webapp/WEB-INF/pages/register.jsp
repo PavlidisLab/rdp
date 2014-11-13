@@ -2,7 +2,7 @@
 <html lang="en" class="no-js">
 <head>
 <meta charset="UTF-8" />
-<title>Rare Disease Project</title>
+<title>Rare Diseases: Models & Mechanisms Network</title>
 
 <!-- Bootstrap core CSS -->
 <link href="styles/bootstrap.min.css" rel="stylesheet">
@@ -247,7 +247,7 @@
 	<%@ include file="addGenesModal.jsp"%>
 	<%@ include file="addTermsModal.jsp"%>
 	<%@ include file="confirmModal.jsp"%>
-	<footer class="footer"> © 2014 CRDMMN </footer>
+	<footer class="footer"> © Copyright 2014. "Rare Diseases: Models & Mechanisms Network" All rights reserved. </footer>
 
 
 	<!-- include jQuery, and our script file -->

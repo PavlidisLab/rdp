@@ -118,11 +118,13 @@ public class SignupController extends BaseController {
         boolean ok = userManager.validateSignupToken( username, key );
 
         if ( ok ) {
+            log.info( "Account Successfully Confirmed " + username );
             super.saveMessage( request, "Your account is now enabled. Log in to continue" );
-            response.sendRedirect( response.encodeRedirectURL( "/rdp/home.html" ) );
+            // response.setHeader( "Refresh", "5;url=/rdp/home.html" );
+            response.sendRedirect( response.encodeRedirectURL( "/rdp/login.jsp?confirmRegistration=true" ) );
         } else {
             super.saveMessage( request, "Sorry, your registration could not be validated. Please register again." );
-            response.sendRedirect( response.encodeRedirectURL( "/rdp/signup.html" ) );
+            response.sendRedirect( response.encodeRedirectURL( "/rdp/login.jsp?confirmRegistration=false" ) );
         }
 
     }
@@ -242,6 +244,8 @@ public class SignupController extends BaseController {
 
             String msg = sendSignupConfirmationEmail( request, u );
 
+            log.info( "New Signup " + username );
+
             jsonText = "{\"success\":true,\"message\":\"" + msg + "\"}";
         } catch ( Exception e ) {
             /*
@@ -273,10 +277,11 @@ public class SignupController extends BaseController {
 
         try {
             Map<String, Object> model = new HashMap<String, Object>();
-            model.put( "username", u.getUsername() );
+            // model.put( "username", u.getUsername() );
             model.put( "siteurl", Settings.getBaseUrl() );
             model.put( "confirmLink", Settings.getBaseUrl() + "confirmRegistration.html?key=" + u.getSignupToken()
                     + "&username=" + u.getUsername() );
+            model.put( "contact", Settings.getString( "rdp.contact.email" ) );
 
             String templateName = "accountCreated.vm";
             sendEmail( u.getUsername(), u.getEmail(), getText( "signup.email.subject", request.getLocale() ),

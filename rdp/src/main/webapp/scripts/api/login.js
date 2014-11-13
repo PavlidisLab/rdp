@@ -60,6 +60,19 @@
 
 }( window.login = window.login || {}, jQuery ));
 
+var urlParams;
+(window.onpopstate = function () {
+    var match,
+        pl     = /\+/g,  // Regex for replacing addition symbol with a space
+        search = /([^&=]+)=?([^&]*)/g,
+        decode = function (s) { return decodeURIComponent(s.replace(pl, " ")); },
+        query  = window.location.search.substring(1);
+
+    urlParams = {};
+    while (match = search.exec(query))
+       urlParams[decode(match[1])] = decode(match[2]);
+})();
+
 $( document ).ready( function() {
 
    $( '#myModal' ).modal( {
@@ -68,6 +81,13 @@ $( document ).ready( function() {
       show : true
    } );
    $( "#signinForm" ).submit( login.authenticate );
+   
+   var msg = urlParams['confirmRegistration'];
+   if ( msg == "true" ) {
+      utility.showMessage( "Your account is now enabled. Log in to continue", $("#signinMessage"));
+   } else if (msg == "false"){
+      utility.showMessage( "Sorry, your registration could not be validated. Please register again.", $("#signinMessage"));
+   }
 
 
 });
