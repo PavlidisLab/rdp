@@ -1,6 +1,6 @@
 <div>
 	<div class="main-header">
-		<h2>Profile</h2>
+		<h2>My Account</h2>
 		<em>user profile page</em>
 		<div class="alert alert-warning col-sm-12" hidden="true">
 			<a href="#" class="close" data-hide="alert">&times;</a>
@@ -28,7 +28,7 @@
 						<div class="user-info-left col-md-5">
 							<div class="basic-info">
 								<h3>
-									<a href="#"><i class="fa fa-edit yellow-icon"></i></a> Basic Information
+									<a href="#" data-toggle="tooltip" data-placement="bottom" title="Edit"><i class="fa fa-edit yellow-icon"></i></a> Basic Information
 								</h3>
 								<p class="data-row">
 									<span class="data-name">First Name</span> <span
@@ -52,7 +52,7 @@
 							</div>
 							<div class="contact-info">
 								<h3>
-									<a href="#"><i class="fa fa-edit yellow-icon"></i></a> Contact Information
+									<a href="#" data-toggle="tooltip" data-placement="bottom" title="Edit"><i class="fa fa-edit yellow-icon"></i></a> Contact Information
 								</h3>
 								<p class="data-row">
 									<span class="data-name">Email</span> <span class="data-value"></span>
@@ -66,16 +66,16 @@
 						<div class="user-info-right col-md-7">
 							<div class="about col-sm-12">
 								<h3>
-									<a href="#"><i class="fa fa-edit yellow-icon"></i></a> About My
+									<a href="#" data-toggle="tooltip" data-placement="bottom" title="Edit"><i class="fa fa-edit yellow-icon"></i></a> About My
 									Research
 								</h3>
 								<p custom-placeholder=true data-ph="My lab studies ..."
-									class="data-editable data-paragraph well"></p>
+									class="data-editable data-paragraph well about-research"></p>
 							</div>
 							<div class="publications col-sm-12">
 								<h3>
-									<a href="#"><i class="fa fa-edit yellow-icon"></i></a>
-									Publications (PUBMED IDs) 
+									<a href="#" data-toggle="tooltip" data-placement="bottom" title="Edit"><i class="fa fa-edit yellow-icon"></i></a>
+									Publications (PubMed Ids) 
 								</h3>
 								<p custom-placeholder=pubmed data-ph="My lab studies ..."
 									class="data-editable data-paragraph publicationsList well"></p>

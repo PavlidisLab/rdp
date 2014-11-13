@@ -66,7 +66,7 @@
 									class="fa fa-caret-down offwhite-color"></i>
 							</a>
 								<ul class="dropdown-menu dropdown-user">
-									<li><a id="profileDropdown" href="#profile"><i
+									<li><a id="profileDropdown" href="#myAccount"><i
 											class="fa fa-user fa-fw"></i> User Profile</a></li>
 									<li><a id="settingsDropdown" href="#settings-tab"><i
 											class="fa fa-gear fa-fw"></i> Settings</a></li>
@@ -100,9 +100,9 @@
 								<span class="sidebar-nav-item-icon fa fa-fw fa-home fa-lg"></span>
 								<span class="sidebar-nav-item">Overview</span>
 						</a></li>
-						<li class="active active-metis"><a href="#profile" data-toggle="tab"> <span
+						<li class="active active-metis"><a href="#myAccount" data-toggle="tab"> <span
 								class="sidebar-nav-item-icon fa fa-fw fa-user fa-lg"></span> <span
-								class="sidebar-nav-item">Profile</span>
+								class="sidebar-nav-item">My Account</span>
 						</a></li>
 						<li id="myModelOrganismsList"><a href="#modelOrganisms" data-toggle="tab"> <span
 								class="sidebar-nav-item-icon fa fa-fw fa-bug fa-lg"></span> <span
@@ -169,14 +169,14 @@
 
 					</div>
 
-					<div class="tab-pane active" id="profile">
+					<div class="tab-pane active" id="myAccount">
 
 						<div class="col-xs-12">
 							<div class="row">
 								<div class="col-lg-4 ">
 									<ul class="breadcrumb">
 										<li class="active"><i class="fa fa-user"></i><a
-											href="#profile">Profile</a></li>
+											href="#myAccount">My Account</a></li>
 									</ul>
 								</div>
 

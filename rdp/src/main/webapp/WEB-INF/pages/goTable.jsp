@@ -7,7 +7,7 @@
 			<th>Term ID</th>
 			<th>GO Aspect</th>
 			<th>Term</th>
-			<th>My Genes in Term</th>
+			<th>Overlap</th>
 			<th>Term Size</th>
 		</tr>
 	</thead>

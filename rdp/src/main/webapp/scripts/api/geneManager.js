@@ -126,16 +126,19 @@
 
       if ( gene == null ) {
          console.log("Please select a gene to add")
+         utility.showMessage( "Please select a gene to add", $( "#modelOrganisms .main-header .alert div" ) );
          //utility.showMessage( "Please select a gene to add", $( "#geneManagerMessage" ) );
          return;
       } else {
-         //utility.hideMessage( $( "#geneManagerMessage" ) );
+         
+         utility.hideMessage( $( "#modelOrganisms .main-header .alert div" ) );
       }
 
       var table = geneManager.table().DataTable();
       
       if ( table.column(1).data().indexOf(gene.officialSymbol) != -1 ) {
          console.log("Gene already added")
+         utility.showMessage( "Gene already added", $( "#modelOrganisms .main-header .alert div" ) );
          //utility.showMessage( "Gene already added", $( "#geneManagerMessage" ) );
          return;
       }
@@ -307,7 +310,7 @@
          "fnRowCallback": function( nRow, aData, iDisplayIndex ) {
             // Keep in mind that $('td:eq(0)', nRow) refers to the first DISPLAYED column
             // whereas aData[0] refers to the data in the first column, hidden or not
-            $('td:eq(0)', nRow).html('<a href="' + "http://www.ncbi.nlm.nih.gov/gene/" + aData[0].ncbiGeneId + '" target="_blank">'+ aData[0].officialSymbol + '</a>');
+            $('td:eq(0)', nRow).html('<a href="' + "http://www.ncbi.nlm.nih.gov/gene/" + aData[0].ncbiGeneId + '" target="_blank"><i class="fa fa-external-link"></i> '+ aData[0].officialSymbol + '</a>');
             //$('td:eq(1)', nRow).html(researcherModel.aliasesToString( aData[0] ));
             //$('td:eq(2)', nRow).html(aData[0].officialName);
 

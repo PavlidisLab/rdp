@@ -229,6 +229,8 @@ hr {
 
 .data-paragraph {
 	padding: 3px;
+	max-height: 135px;
+	overflow-y: scroll;
 }
 
 .profile .user-info-right>div, .profile .user-info-left>div {
@@ -351,6 +353,11 @@ border-color: #555753;
 #go-tab table.dataTable.display tbody tr.child-table tr.green-row > td, 
 #suggestedTermsTable.table.dataTable.display tbody tr.child-table tr.green-row > td {
 	background-color: #B5EAAA;
+}
+
+#profile-tab p.about-research {
+	max-height: 135px;
+	overflow-y: scroll;
 }
 
 [custom-placeholder=true]:empty:not(:focus ):before {

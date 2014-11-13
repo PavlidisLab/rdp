@@ -137,17 +137,17 @@
 
       if ( term == null ) {
          console.log("Please select a GO Term to add")
-         //utility.showMessage( "Please select a gene to add", $( "#geneManagerMessage" ) );
+         utility.showMessage( "Please select a GO Term to add", $( "#modelOrganisms .main-header .alert div" ) );
          return;
       } else {
-         //utility.hideMessage( $( "#geneManagerMessage" ) );
+         utility.hideMessage( $( "#modelOrganisms .main-header .alert div" ) );
       }
 
       var table = goManager.table().DataTable();
       
       if ( table.column(1).data().indexOf(term.geneOntologyId) != -1 ) {
          console.log("GO Term already added")
-         //utility.showMessage( "Gene already added", $( "#geneManagerMessage" ) );
+         utility.showMessage( "GO Term already added", $( "#modelOrganisms .main-header .alert div" ) );
          return;
       }
       var row = [term];
@@ -169,7 +169,12 @@
       goManager.addTermsModal().modal('show');
       $.when(promise).done(function() {
          // When done loading Go Terms
-         dTable.settings()[0].oLanguage.sEmptyTable = "Could not find any GO term suggestions";
+         if (researcherModel.currentResearcher.getGenesByTaxonId( modelOrganisms.currentTaxonId() ).length > 1 ) {
+            dTable.settings()[0].oLanguage.sEmptyTable = "Could not find any GO term suggestions";
+         }
+         else {
+            dTable.settings()[0].oLanguage.sEmptyTable = "A minimum of 2 genes are required for GO Term suggestions";
+         }
          var terms = promise.responseJSON.terms;
          //goManager.combineWithSavedTerms(terms);
          console.log("GO Terms", terms);
@@ -328,7 +333,7 @@ return $(result);
                              var url = "http://www.ebi.ac.uk/QuickGO/GTerm?id="+aData[0].geneOntologyId+"#term=ancchart";
                              var link;
                              if ( aData[0].definition ) {
-                                link = '<a href="'+url+'" data-content="' + aData[0].definition + '" data-container="body" data-toggle="popover" target="_blank">'+aData[0].geneOntologyId+'</a>';
+                                link = '<a href="'+url+'" data-content="' + aData[0].definition + '" data-container="body" data-toggle="popover" target="_blank"><i class="fa fa-external-link"></i> '+aData[0].geneOntologyId+'</a>';
                              }
                              else {
                                 link = '<a href="'+url+'" data-content="Unknown Definition" data-container="body" data-toggle="popover" target="_blank">'+aData[0].geneOntologyId+'</a>';

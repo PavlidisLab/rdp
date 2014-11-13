@@ -46,6 +46,10 @@
       $(this).removeClass('fa-edit').addClass('fa-check-square-o').removeClass('yellow-icon').addClass('green-icon');
       var div = $(this).closest('div');
       
+      var a = $(this).closest('a');
+      
+      a.prop('title', 'Save');
+      
       $('.data-editable', div).each( function(idx) {
          $(this).prop('contenteditable',true);
          $(this).addClass('editable');
@@ -59,6 +63,10 @@
       e.preventDefault();
       $(this).removeClass('fa-check-square-o').addClass('fa-edit').removeClass('green-icon').addClass('yellow-icon');
       var div = $(this).closest('div');
+      
+      var a = $(this).closest('a');
+      
+      a.prop('title', 'Edit');
       
       $('*[contenteditable="true"]', div).each( function(idx) {
          $(this).removeAttr('contenteditable');
