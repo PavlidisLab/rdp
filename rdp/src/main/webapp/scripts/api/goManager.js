@@ -333,7 +333,7 @@ return $(result);
                              var url = "http://www.ebi.ac.uk/QuickGO/GTerm?id="+aData[0].geneOntologyId+"#term=ancchart";
                              var link;
                              if ( aData[0].definition ) {
-                                link = '<a href="'+url+'" data-content="' + aData[0].definition + '" data-container="body" data-toggle="popover" target="_blank"><i class="fa fa-external-link"></i> '+aData[0].geneOntologyId+'</a>';
+                                link = '<a href="'+url+'" data-content="' + aData[0].definition + '" data-container="body" data-toggle="popover" target="_blank">'+aData[0].geneOntologyId+'</a>';
                              }
                              else {
                                 link = '<a href="'+url+'" data-content="Unknown Definition" data-container="body" data-toggle="popover" target="_blank">'+aData[0].geneOntologyId+'</a>';

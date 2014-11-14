@@ -30,13 +30,16 @@
 	href="styles/font-awesome-4.2.0/css/font-awesome.min.css">
 
 <!-- Custom CSS -->
-<link href="styles/simple-sidebar.css" rel="stylesheet">
+<link href="styles/rdp.css" rel="stylesheet">
+
+<!-- Custom CSS -->
+<!-- <link href="styles/simple-sidebar.css" rel="stylesheet"> -->
 
 </head>
 
 <body>
 	<div class="wrapper">
-		<div>
+		<div id="rdp-navbar">
 
 			<nav class="navbar navbar-default navbar-static-top"
 				role="navigation">
@@ -61,9 +64,9 @@
 
 							<!-- username will be added here when the user has logged in -->
 							<li class="dropdown"><a href="#" class="dropdown-toggle"
-								data-toggle="dropdown"><span id="navbar-username" class="offwhite-color"></span> <i
-									class="fa fa-user fa-fw offwhite-color"></i> <i
-									class="fa fa-caret-down offwhite-color"></i>
+								data-toggle="dropdown"><span id="navbar-username"></span> <i
+									class="fa fa-user fa-fw"></i> <i
+									class="fa fa-caret-down"></i>
 							</a>
 								<ul class="dropdown-menu dropdown-user">
 									<li><a id="profileDropdown" href="#myAccount"><i

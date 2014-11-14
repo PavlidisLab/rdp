@@ -25,7 +25,7 @@
 			<div class="tab-pane profile active" id="profile-tab">
 				<div class="row">
 					<div class="col-md-12">
-						<div class="user-info-left col-md-5">
+						<div class="user-info-left col-md-6">
 							<div class="basic-info">
 								<h3>
 									<a href="#" data-toggle="tooltip" data-placement="bottom" title="Edit"><i class="fa fa-edit yellow-icon"></i></a> Basic Information
@@ -63,7 +63,7 @@
 							</div>
 
 						</div>
-						<div class="user-info-right col-md-7">
+						<div class="user-info-right col-md-6">
 							<div class="about col-sm-12">
 								<h3>
 									<a href="#" data-toggle="tooltip" data-placement="bottom" title="Edit"><i class="fa fa-edit yellow-icon"></i></a> About My
