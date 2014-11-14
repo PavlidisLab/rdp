@@ -34,7 +34,7 @@ html, body {
 }
 
 .navbar {
-	min-height: 108px;
+	height: 108px;
 	background: #333;
 	background-image: url("../images/new-blue.jpg");
 	margin-bottom: 0px;
@@ -60,8 +60,11 @@ letter-spacing: 3px;
 
 	}
 
-.container-fluid .navbar-nav {
-	margin: 53px -15px 5px -15px;
+.navbar-nav {
+	bottom: 5px;
+	right: 20px;
+	position: absolute;
+	/* margin: 53px -15px 5px -15px; */
 }
 
 .navbar-default .navbar-nav>li>a {

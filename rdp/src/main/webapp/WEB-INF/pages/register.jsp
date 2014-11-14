@@ -43,7 +43,7 @@
 
 			<nav class="navbar navbar-default navbar-static-top"
 				role="navigation">
-				<div class="container-fluid">
+				<div class="">
 					<!-- Brand and toggle get grouped for better mobile display -->
 					<div class="navbar-header">
 						<button type="button" class="navbar-toggle" data-toggle="collapse"
@@ -57,7 +57,7 @@
 					</div>
 
 					<!-- Collect the nav links, forms, and other content for toggling -->
-					<div class="collapse navbar-collapse"
+					<div class=""
 						id="bs-example-navbar-collapse-1">
 						<!-- right navbar -->
 						<ul class="nav navbar-nav navbar-right">
