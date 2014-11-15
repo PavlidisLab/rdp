@@ -76,6 +76,7 @@ public class GOServiceImpl implements GOService {
     private static Map<String, GOTerm> termMap = new HashMap<>();
 
     private static Map<GOTerm, Map<Long, Long>> termSizeByTaxonCache = new HashMap<GOTerm, Map<Long, Long>>();
+    private static Map<GOTerm, Collection<GOTerm>> descendantsCache = new HashMap<GOTerm, Collection<GOTerm>>();
 
     @Autowired
     private GeneOntologyTermCache geneOntologyTermCache;
@@ -104,7 +105,8 @@ public class GOServiceImpl implements GOService {
     public Map<GOTerm, Long> calculateGoTermFrequency( Collection<Gene> genes, Long taxonId, int minimumFrequency,
             int minimumTermSize, int maximumTermSize ) {
         Map<GOTerm, Long> frequencyMap = new HashMap<GOTerm, Long>();
-
+        StopWatch loadTime = new StopWatch();
+        loadTime.start();
         for ( Gene g : genes ) {
             // Collection<OntologyTerm> terms = new HashSet<OntologyTerm>();
             Collection<GOTerm> directTerms = getGOTerms( g, true, true );
@@ -123,7 +125,9 @@ public class GOServiceImpl implements GOService {
             }
 
         }
-
+        log.debug( "Calculate overlaps for each term with propagation took " + loadTime.getTime() / 1000 + "s" );
+        loadTime.reset();
+        loadTime.start();
         // Limit by minimum frequency
         if ( minimumFrequency > 0 ) {
             for ( Iterator<Map.Entry<GOTerm, Long>> i = frequencyMap.entrySet().iterator(); i.hasNext(); ) {
@@ -133,7 +137,9 @@ public class GOServiceImpl implements GOService {
                 }
             }
         }
-
+        log.debug( "Limit by min freq took " + loadTime.getTime() / 1000 + "s" );
+        loadTime.reset();
+        loadTime.start();
         // Limit by maximum gene pool size of go terms
         if ( maximumTermSize > 0 && minimumTermSize > 0 ) {
             for ( Iterator<Map.Entry<GOTerm, Long>> i = frequencyMap.entrySet().iterator(); i.hasNext(); ) {
@@ -146,11 +152,19 @@ public class GOServiceImpl implements GOService {
                 }
             }
         }
-
+        log.debug( "Limit by size took " + loadTime.getTime() / 1000 + "s" );
+        loadTime.reset();
+        loadTime.start();
         // Reduce GO TERM redundancies
         frequencyMap = reduceRedundancies( frequencyMap );
 
+        log.debug( "Reduce redundancy took " + loadTime.getTime() / 1000 + "s" );
+        loadTime.reset();
+        loadTime.start();
+
         frequencyMap = sortByValue( frequencyMap );
+        log.debug( "Sort took " + loadTime.getTime() / 1000 + "s" );
+        loadTime.stop();
 
         return frequencyMap;
     }
@@ -265,15 +279,22 @@ public class GOServiceImpl implements GOService {
 
     @Override
     public Collection<GOTerm> getDescendants( GOTerm entry, boolean includePartOf ) {
-        Collection<GOTerm> descendants = new HashSet<GOTerm>();
+        Collection<GOTerm> descendants = descendantsCache.get( entry );
 
-        Collection<GOTerm> children = getChildren( entry, includePartOf );
-        for ( GOTerm child : children ) {
-            descendants.add( child );
-            descendants.addAll( getDescendants( child, includePartOf ) );
+        if ( descendants == null ) {
+            descendants = new HashSet<GOTerm>();
+
+            Collection<GOTerm> children = getChildren( entry, includePartOf );
+            for ( GOTerm child : children ) {
+                descendants.add( child );
+                descendants.addAll( getDescendants( child, includePartOf ) );
+            }
+
+            descendants = Collections.unmodifiableCollection( descendants );
+
+            descendantsCache.put( entry, descendants );
+
         }
-
-        descendants = Collections.unmodifiableCollection( descendants );
 
         return new HashSet<GOTerm>( descendants );
     }
@@ -481,10 +502,21 @@ public class GOServiceImpl implements GOService {
 
                 try {
                     loadTermsInNameSpace( GO_URL );
-                    precomputeSizes();
-                    log.info( "GOSize cache size: " + termSizeByTaxonCache.size() );
                     log.info( "Gene Ontology loaded, total of " + termMap.size() + " items in " + loadTime.getTime()
                             / 1000 + "s" );
+
+                    loadTime.reset();
+                    loadTime.start();
+
+                    precomputeSizes();
+                    log.info( "GOSize cache size: " + termSizeByTaxonCache.size() + " in " + loadTime.getTime() / 1000
+                            + "s" );
+
+                    loadTime.reset();
+                    loadTime.start();
+                    precomputeDescendants();
+                    log.info( "Precompute descendants in " + loadTime.getTime() / 1000 + "s" );
+
                     ready.set( true );
                     running.set( false );
 
@@ -546,6 +578,12 @@ public class GOServiceImpl implements GOService {
             log.warn( "Could not find " + nullIds.size() + " terms in map " );
         }
 
+    }
+
+    private void precomputeDescendants() {
+        getDescendants( termMap.get( "GO:0003674" ) );
+        getDescendants( termMap.get( "GO:0005575" ) );
+        getDescendants( termMap.get( "GO:0008150" ) );
     }
 
     private long updateEhCache() {
