@@ -149,6 +149,13 @@ public class GeneCacheImpl extends SearchableEhcache<Gene> implements GeneCache 
         tmp.removeAll( results );
         results.addAll( tmp );
 
+        // 5. anywhere in Gene name
+        regexQueryString = "*" + queryString + "*";
+        nameCriteria = geneNameAttribute.ilike( regexQueryString );
+        tmp = fetchByCriteria( taxonCriteria.and( nameCriteria ) );
+        tmp.removeAll( results );
+        results.addAll( tmp );
+
         return results;
     }
 

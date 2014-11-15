@@ -27,7 +27,7 @@
          success : function(response, xhr) {
             btn.removeAttr("disabled");
             btn.children('i').removeClass('fa-spin');
-            utility.showMessage( jQuery.parseJSON( response ).message, $( "#profile .alert div" ) );
+            utility.showMessage( jQuery.parseJSON( response ).message, $( "#myAccount .alert div" ) );
             //utility.showMessage( jQuery.parseJSON( response ).message, $( "#changePasswordMessage" ) );
             console.log(jQuery.parseJSON( response ).message);
 
@@ -40,7 +40,7 @@
             btn.removeAttr("disabled");
             btn.children('i').removeClass('fa-spin');
             //console.log( xhr.responseText );
-            utility.showMessage( jQuery.parseJSON( response ).message, $( "#profile .alert div" ) );
+            utility.showMessage( jQuery.parseJSON( response ).message, $( "#myAccount .alert div" ) );
             //utility.showMessage( jQuery.parseJSON( response ).message, $( "#changePasswordMessage" ) );
          }
       } );

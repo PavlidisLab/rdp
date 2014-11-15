@@ -2,7 +2,7 @@
 <html lang="en" class="no-js">
 <head>
 <meta charset="UTF-8" />
-<title>Rare Disease Project</title>
+<title>Rare Diseases: Models & Mechanisms Network</title>
 
 <!-- Bootstrap core CSS -->
 <link href="styles/bootstrap.min.css" rel="stylesheet">
@@ -30,17 +30,20 @@
 	href="styles/font-awesome-4.2.0/css/font-awesome.min.css">
 
 <!-- Custom CSS -->
+<!-- <link href="styles/rdp.css" rel="stylesheet"> -->
+
+<!-- Custom CSS -->
 <link href="styles/simple-sidebar.css" rel="stylesheet">
 
 </head>
 
 <body>
 	<div class="wrapper">
-		<div>
+		<div id="rdp-navbar">
 
 			<nav class="navbar navbar-default navbar-static-top"
 				role="navigation">
-				<div class="container-fluid">
+				<div class="">
 					<!-- Brand and toggle get grouped for better mobile display -->
 					<div class="navbar-header">
 						<button type="button" class="navbar-toggle" data-toggle="collapse"
@@ -54,19 +57,19 @@
 					</div>
 
 					<!-- Collect the nav links, forms, and other content for toggling -->
-					<div class="collapse navbar-collapse"
+					<div class=""
 						id="bs-example-navbar-collapse-1">
 						<!-- right navbar -->
 						<ul class="nav navbar-nav navbar-right">
 
 							<!-- username will be added here when the user has logged in -->
 							<li class="dropdown"><a href="#" class="dropdown-toggle"
-								data-toggle="dropdown"><span id="navbar-username" class="offwhite-color"></span> <i
-									class="fa fa-user fa-fw offwhite-color"></i> <i
-									class="fa fa-caret-down offwhite-color"></i>
+								data-toggle="dropdown"><span id="navbar-username"></span> <i
+									class="fa fa-user fa-fw"></i> <i
+									class="fa fa-caret-down"></i>
 							</a>
 								<ul class="dropdown-menu dropdown-user">
-									<li><a id="profileDropdown" href="#profile"><i
+									<li><a id="profileDropdown" href="#myAccount"><i
 											class="fa fa-user fa-fw"></i> User Profile</a></li>
 									<li><a id="settingsDropdown" href="#settings-tab"><i
 											class="fa fa-gear fa-fw"></i> Settings</a></li>
@@ -100,9 +103,9 @@
 								<span class="sidebar-nav-item-icon fa fa-fw fa-home fa-lg"></span>
 								<span class="sidebar-nav-item">Overview</span>
 						</a></li>
-						<li class="active active-metis"><a href="#profile" data-toggle="tab"> <span
+						<li class="active active-metis"><a href="#myAccount" data-toggle="tab"> <span
 								class="sidebar-nav-item-icon fa fa-fw fa-user fa-lg"></span> <span
-								class="sidebar-nav-item">Profile</span>
+								class="sidebar-nav-item">My Account</span>
 						</a></li>
 						<li id="myModelOrganismsList"><a href="#modelOrganisms" data-toggle="tab"> <span
 								class="sidebar-nav-item-icon fa fa-fw fa-bug fa-lg"></span> <span
@@ -169,14 +172,14 @@
 
 					</div>
 
-					<div class="tab-pane active" id="profile">
+					<div class="tab-pane active" id="myAccount">
 
 						<div class="col-xs-12">
 							<div class="row">
 								<div class="col-lg-4 ">
 									<ul class="breadcrumb">
 										<li class="active"><i class="fa fa-user"></i><a
-											href="#profile">Profile</a></li>
+											href="#myAccount">My Account</a></li>
 									</ul>
 								</div>
 
@@ -247,7 +250,7 @@
 	<%@ include file="addGenesModal.jsp"%>
 	<%@ include file="addTermsModal.jsp"%>
 	<%@ include file="confirmModal.jsp"%>
-	<footer class="footer"> © 2014 CRDMMN </footer>
+	<footer class="footer"> © Copyright 2014. "Rare Diseases: Models & Mechanisms Network" All rights reserved. </footer>
 
 
 	<!-- include jQuery, and our script file -->
@@ -266,16 +269,16 @@
 	<!-- THIS HAS BEEN ALTERED DO NOT MINIFY WILLY-NILLY -->
 	<script src="scripts/lib/metisMenu/metisMenu.js"></script>
 
-	<script src="scripts/api/utility.js?version=2"></script>
-	<script src="scripts/api/researcherModel.js?version=2"></script>
-	<script src="scripts/api/profile.js?version=2"></script>
-	<script src="scripts/api/settings.js?version=3"></script>
-	<script src="scripts/api/modelOrganisms.js?version=2"></script>
-	<script src="scripts/api/geneManager.js?version=2"></script>
-	<script src="scripts/api/goManager.js?version=2"></script>
-	<script src="scripts/api/admin.js?version=2"></script>
-	<script src="scripts/api/register.js?version=2"></script>
-	<script src="scripts/api/navbar.js?version=2"></script>
+	<script src="scripts/api/utility.js?version=5"></script>
+	<script src="scripts/api/researcherModel.js?version=5"></script>
+	<script src="scripts/api/profile.js?version=5"></script>
+	<script src="scripts/api/settings.js?version=5"></script>
+	<script src="scripts/api/modelOrganisms.js?version=5"></script>
+	<script src="scripts/api/geneManager.js?version=5"></script>
+	<script src="scripts/api/goManager.js?version=5"></script>
+	<script src="scripts/api/admin.js?version=5"></script>
+	<script src="scripts/api/register.js?version=5"></script>
+	<script src="scripts/api/navbar.js?version=5"></script>
 
 </body>
 </html>

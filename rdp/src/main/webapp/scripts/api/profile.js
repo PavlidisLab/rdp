@@ -81,7 +81,7 @@
          btn.removeAttr("disabled");
          btn.children('i').removeClass('fa-spin');
          console.log("Saved Changes");
-         utility.showMessage( promise.responseJSON.message, $( "#profile .alert div" ) );
+         utility.showMessage( promise.responseJSON.message, $( "#myAccount .alert div" ) );
       });
    }
 
@@ -176,6 +176,10 @@
       e.preventDefault();
       $(this).removeClass('fa-edit').addClass('fa-check-square-o').removeClass('yellow-icon').addClass('green-icon');
       var div = $(this).closest('div');
+      
+      var a = $(this).closest('a');
+      
+      a.prop('title', 'Save');
 
       $('.data-editable', div).each( function(idx) {
          $(this).prop('contenteditable',true);
@@ -190,6 +194,9 @@
       e.preventDefault();
       $(this).removeClass('fa-check-square-o').addClass('fa-edit').removeClass('green-icon').addClass('yellow-icon');
       var div = $(this).closest('div');
+      var a = $(this).closest('a');
+      
+      a.prop('title', 'Edit');
 
       $('*[contenteditable="true"]', div).each( function(idx) {
          $(this).removeAttr('contenteditable');
@@ -205,13 +212,13 @@
    profile.init = function() {
       $('#profile-tab a').on('click', 'i[class~="fa-edit"]', editProfile );
       $('#profile-tab a').on('click', 'i[class~="fa-check-square-o"]', lockProfile );
-      $('a[href="#profile"]').on('show.bs.tab', function() {
+      $('a[href="#myAccount"]').on('show.bs.tab', function() {
          profile.setInfo(); 
-         utility.setConfirmChanges($('a[href="#profile"]'), profile.isChanged, $('a[href="#profile"]'))
+         utility.setConfirmChanges($('a[href="#myAccount"]'), profile.isChanged, $('a[href="#myAccount"]'))
 
          } ); 
-      $('a[href="#profile"]').on('hidden.bs.tab', function() {
-         utility.hideMessage( $( "#profile .alert div" ) );
+      $('a[href="#myAccount"]').on('hidden.bs.tab', function() {
+         utility.hideMessage( $( "#myAccount .alert div" ) );
       });
             
       profile.pubMedIds()[0].addEventListener("paste", function(e) {

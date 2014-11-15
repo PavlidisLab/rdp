@@ -1,9 +1,9 @@
-Dear ${username},
-
-Thank you for registering for Rare Disease Project ($siteurl).
+Thank you for registering for the Rare Diseases: Models & Mechanisms Network as a model organism researcher. ($siteurl).
 
 Please confirm your registration by clicking on the following link:
 
 ${confirmLink}
 
-Please feel free to contact us: rdp@chibi.ubc.ca
+You will then be able to log in using the password you provided, and start filling in your profile.
+
+If you have questions or difficulties with registration please feel free to contact us: ${contact}

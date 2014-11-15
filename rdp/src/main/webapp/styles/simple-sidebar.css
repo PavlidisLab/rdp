@@ -54,18 +54,20 @@ html, body {
 	margin: 5px -15px;
 }
 
-.navbar-default .navbar-nav>li>a:hover {
-	color: #FFF;
+.navbar-default .navbar-nav>li>a:hover, .navbar-default .navbar-nav>li>a:focus {
+	color: #777;
 }
 
 .navbar-default .navbar-nav>.open>a, .navbar-default .navbar-nav>.open>a:hover,
 	.navbar-default .navbar-nav>.open>a:focus {
-	background-color: #333;
+	background-color: transparent;
+	color: #777;
 }
 
 .navbar-default .navbar-nav>.active>a, .navbar-default .navbar-nav>.active>a:hover,
 	.navbar-default .navbar-nav>.active>a:focus {
-	background-color: #333;
+	background-color: transparent;
+	color: #777;
 }
 
 .sidebar {
@@ -229,6 +231,8 @@ hr {
 
 .data-paragraph {
 	padding: 3px;
+	max-height: 135px;
+	overflow-y: scroll;
 }
 
 .profile .user-info-right>div, .profile .user-info-left>div {
@@ -351,6 +355,11 @@ border-color: #555753;
 #go-tab table.dataTable.display tbody tr.child-table tr.green-row > td, 
 #suggestedTermsTable.table.dataTable.display tbody tr.child-table tr.green-row > td {
 	background-color: #B5EAAA;
+}
+
+#profile-tab p.about-research {
+	max-height: 135px;
+	overflow-y: scroll;
 }
 
 [custom-placeholder=true]:empty:not(:focus ):before {

@@ -14,15 +14,9 @@
  */
 package ubc.pavlab.rdp.server.model;
 
-import java.util.HashSet;
-import java.util.Set;
-
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.Id;
-import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 /**
@@ -54,11 +48,15 @@ public class Gene implements Comparable<Gene> {
     @Column(name = "Modification_date")
     private int modificationDate;
 
-    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, mappedBy = "pk.gene")
-    private Set<GeneAssociation> geneAssociations = new HashSet<GeneAssociation>();
+    /*
+     * @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, mappedBy = "pk.gene") private Set<GeneAssociation>
+     * geneAssociations = new HashSet<GeneAssociation>();
+     */
 
-    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, mappedBy = "pk.gene")
-    private Set<GeneAnnotation> geneAnnotations = new HashSet<GeneAnnotation>();
+    /*
+     * @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, mappedBy = "pk.gene") private Set<GeneAnnotation>
+     * geneAnnotations = new HashSet<GeneAnnotation>();
+     */
 
     // Phenotype ????
 

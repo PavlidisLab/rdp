@@ -83,7 +83,7 @@ public class GeneCacheTest extends BaseSpringContextTest {
     @Test
     public void testFetchByQuery() {
         Collection<Gene> results = cache.fetchByQuery( "aaa", taxonId );
-        Long[] expectedNcbiGeneIds = new Long[] { 1L, 2L, 3L, 4L };
+        Long[] expectedNcbiGeneIds = new Long[] { 1L, 2L, 3L, 4L, 6L };
         assertEquals( expectedNcbiGeneIds.length, results.size() );
         int i = 0;
         for ( Gene g : results ) {

@@ -126,16 +126,19 @@
 
       if ( gene == null ) {
          console.log("Please select a gene to add")
+         utility.showMessage( "Please select a gene to add", $( "#modelOrganisms .main-header .alert div" ) );
          //utility.showMessage( "Please select a gene to add", $( "#geneManagerMessage" ) );
          return;
       } else {
-         //utility.hideMessage( $( "#geneManagerMessage" ) );
+         
+         utility.hideMessage( $( "#modelOrganisms .main-header .alert div" ) );
       }
 
       var table = geneManager.table().DataTable();
       
       if ( table.column(1).data().indexOf(gene.officialSymbol) != -1 ) {
          console.log("Gene already added")
+         utility.showMessage( "Gene already added", $( "#modelOrganisms .main-header .alert div" ) );
          //utility.showMessage( "Gene already added", $( "#geneManagerMessage" ) );
          return;
       }

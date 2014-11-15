@@ -33,7 +33,7 @@ import ubc.pavlab.rdp.server.model.common.auditAndSecurity.PasswordResetToken;
  */
 public interface UserManager extends gemma.gsec.authentication.UserManager {
 
-    public PasswordResetToken createPasswordResetToken( User u );
+    public String createPasswordResetToken( User u );
 
     public PasswordResetToken getPasswordResetToken( String username );
 

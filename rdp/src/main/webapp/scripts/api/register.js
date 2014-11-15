@@ -36,7 +36,7 @@ $( document ).ready( function() {
    
    // This gets run when the ajax calls in defs have completed
    $.when(loadPromise).done(function() {
-      $('a[href="#profile"]').trigger('show.bs.tab');
+      $('a[href="#myAccount"]').trigger('show.bs.tab');
       $('#navbar-username').html(researcherModel.currentResearcher.userName)
       var taxonIds = researcherModel.currentResearcher.getTaxons();
       $('#myModelOrganismsList ul li').has('a[href="#modelOrganisms"]').each( function(index) {
@@ -93,15 +93,15 @@ $( document ).ready( function() {
     });*/
    
    $('#settingsDropdown').click(function(){
-      $('#menu a[href="#profile"]').tab('show');
-      $('#menu a[href="#profile"]').trigger('click.metisMenu');
+      $('#menu a[href="#myAccount"]').tab('show');
+      $('#menu a[href="#myAccount"]').trigger('click.metisMenu');
       $('.tab-pane a[href="#settings-tab"]').tab('show');
     });
    
    $('#profileDropdown').click(function(){
       
-      $('#menu a[href="#profile"]').tab('show');
-      $('#menu a[href="#profile"]').trigger('click.metisMenu');
+      $('#menu a[href="#myAccount"]').tab('show');
+      $('#menu a[href="#myAccount"]').trigger('click.metisMenu');
       $('.tab-pane a[href="#profile-tab"]').tab('show');
     });
    

@@ -51,6 +51,7 @@ import org.springframework.security.core.userdetails.UserCache;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.core.userdetails.cache.NullUserCache;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -103,6 +104,9 @@ public class UserManagerImpl implements UserManager {
     @Autowired
     ManualAuthenticationService authenticationService;
 
+    @Autowired
+    private BCryptPasswordEncoder passwordEncoder;
+
     /*
      * (non-Javadoc)
      * 
@@ -145,20 +149,22 @@ public class UserManagerImpl implements UserManager {
     @Override
     @Secured({ "IS_AUTHENTICATED_ANONYMOUSLY", "RUN_AS_ADMIN" })
     @Transactional
-    public PasswordResetToken createPasswordResetToken( User u ) {
+    public String createPasswordResetToken( User u ) {
 
         String key = RandomStringUtils.randomAlphanumeric( 64 ).toUpperCase();
+
+        String encodedKey = passwordEncoder.encode( key );
 
         Date now = new Date();
 
         PasswordResetToken token = new PasswordResetToken(
-                ( ( ubc.pavlab.rdp.server.model.common.auditAndSecurity.User ) u ), key, now );
+                ( ( ubc.pavlab.rdp.server.model.common.auditAndSecurity.User ) u ), encodedKey, now );
 
         ( ( ubc.pavlab.rdp.server.model.common.auditAndSecurity.User ) u ).setPasswordResetToken( token );
 
         userService.update( u );
 
-        return token;
+        return key;
 
     }
 
@@ -192,7 +198,7 @@ public class UserManagerImpl implements UserManager {
 
         Date expirationDate = DateUtils.addHours( creationDateStamp, 2 );
 
-        if ( !tokenKey.equals( key ) || expirationDate.before( new Date() ) ) {
+        if ( !passwordEncoder.matches( key, tokenKey ) || expirationDate.before( new Date() ) ) {
             throw new RuntimeException( "Invalid reset token." );
         }
 
