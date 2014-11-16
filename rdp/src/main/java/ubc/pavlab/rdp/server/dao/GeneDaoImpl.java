@@ -165,13 +165,13 @@ public class GeneDaoImpl extends DaoBaseImpl<Gene> implements GeneDao {
 
     @Override
     public Long countAssociations() {
-        String hql = "select count(*) FROM GeneAssociation";
+        String hql = "select count(*) FROM GeneAssociation WHERE tier<>'TIER3'";
         return ( Long ) this.getHibernateTemplate().find( hql ).get( 0 );
     }
 
     @Override
     public Long countUniqueAssociations() {
-        String hql = "select count(distinct GeneID) FROM GeneAssociation";
+        String hql = "select count(distinct GeneID) FROM GeneAssociation WHERE tier<>'TIER3'";
         return ( Long ) this.getHibernateTemplate().find( hql ).get( 0 );
     }
 
