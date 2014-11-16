@@ -30,10 +30,10 @@
 	href="styles/font-awesome-4.2.0/css/font-awesome.min.css">
 
 <!-- Custom CSS -->
-<link href="styles/rdp.css" rel="stylesheet">
+<link href="styles/rdp.css" rel="stylesheet" title="default" class="themes">
 
 <!-- Custom CSS -->
-<!-- <link href="styles/simple-sidebar.css" rel="stylesheet"> -->
+<link href="styles/rdp_dark.css" rel="alternate stylesheet" title="dark" class="themes" disabled="">
 
 </head>
 
@@ -52,7 +52,7 @@
 								class="icon-bar"></span> <span class="icon-bar"></span> <span
 								class="icon-bar"></span>
 						</button>
-						<a class="navbar-brand" href="register.html">Rare Diseases:
+						<a class="navbar-brand" href="http://www.rare-diseases-catalyst-network.ca/" target="_blank">Rare Diseases:
 							Models & Mechanisms Network</a>
 					</div>
 

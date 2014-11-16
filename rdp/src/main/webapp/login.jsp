@@ -98,7 +98,7 @@
 
 			    <div class="modal-footer">
 					<div class="col-sm-offset-9 col-sm-3 text-right">
-						<a href="mailto:rdp@chibi.ubc.ca" style="font-size:15px">Contact Support</a>
+						<a href="mailto:registry-help@rare-diseases-catalyst-network.ca" style="font-size:15px">Contact Support</a>
 					</div>
 			    </div>
 

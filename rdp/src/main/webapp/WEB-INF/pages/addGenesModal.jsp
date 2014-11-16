@@ -13,7 +13,7 @@
 				<form class="form-horizontal" role="form">
 
 					<div class="form-group">
-						<label for="searchGenesSelect" class="col-sm-3 control-label">Select Gene</label>
+						<label for="searchGenesSelect" class="col-sm-3 control-label">Search for Gene</label>
 						<div class="col-sm-9">
 							<input type="text" id="searchGenesSelect" name="searchGenesSelect"
 								class="bigdrop form-control">

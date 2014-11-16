@@ -160,7 +160,7 @@
       }
       $( "#searchGenesSelect" ).select2("val", "");
       geneManager.addGeneToTable(gene, true);
-      geneManager.closeAddGenesModal();
+      //geneManager.closeAddGenesModal();
    }
    
    geneManager.bulkImportGenes = function() {

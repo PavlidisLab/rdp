@@ -31,6 +31,29 @@ $( document ).ready( function() {
 	         //$( "#navbarUsername" ).append( ' <span class="caret"></span>' );
 	      }
 	   } );
+   
+   window.onbeforeunload = function (e) {
+      e = e || window.event;
+
+      var currentTab = $("#menu li.active a").attr('href');
+      var dirtyCheck = function() {return false;};
+      if (currentTab == "#modelOrganisms") {
+         dirtyCheck = modelOrganisms.isChanged;
+      } else if ( currentTab == "#myAccount") {
+         dirtyCheck = profile.isChanged;
+      }
+
+      if ( dirtyCheck() ) {
+      
+         // For IE and Firefox prior to version 4
+         if (e) {
+             e.returnValue = 'You have unsaved changes!';
+         }
+   
+         // For Safari
+         return 'You have unsaved changes!';
+      }
+   };
             
    
    

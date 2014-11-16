@@ -14,8 +14,7 @@
 					<form class="form-horizontal" role="form">
 
 						<div class="form-group">
-							<label for="searchTermsSelect" class="col-sm-2 control-label">Select
-								Term</label>
+							<label for="searchTermsSelect" class="col-sm-2 control-label">Search for Term</label>
 							<div class="col-sm-8">
 								<input type="text" id="searchTermsSelect"
 									name="searchTermsSelect" class="bigdrop form-control">

@@ -138,11 +138,6 @@ letter-spacing: 3px;
 	display: block;
 }
 
-.sidebar-nav {
-/* 	border-top: 1px solid #ddd;
-	border-right: 1px solid #ddd; */
-}
-
 .sidebar-nav > ul > li > ul li {
 	padding-left:20px;
 }
@@ -223,7 +218,7 @@ ul.breadcrumb {
 }
 
 .main-header em {
-	color: #bbb;
+	color: #666;
 }
 
 .tab-content.profile-page, .tab-content.modelOrganism-page, .tab-content.admin-page {
@@ -427,7 +422,7 @@ div.sidebar-footer {
 	position: absolute;
 	bottom: 20px;
 	height: 50px;
-	left: 5px;
+	left: 15px;
 }
 .sidebar-footer p{
 	font-size: 9px;
