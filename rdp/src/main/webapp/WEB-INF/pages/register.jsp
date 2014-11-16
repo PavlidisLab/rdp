@@ -167,7 +167,7 @@
 								</div>
 
 							</div>
-							<%@ include file="newOverview.jsp"%>
+							<%@ include file="overview.jsp"%>
 						</div>
 
 					</div>

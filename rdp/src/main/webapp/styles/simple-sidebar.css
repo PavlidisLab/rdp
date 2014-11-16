@@ -362,6 +362,10 @@ border-color: #555753;
 	overflow-y: scroll;
 }
 
+ul.select2-results li.greyed-out {
+	color: #999;
+}
+
 [custom-placeholder=true]:empty:not(:focus ):before {
 	content: attr(data-ph);
 	color: #babdb6;

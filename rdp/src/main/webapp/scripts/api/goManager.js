@@ -3,6 +3,8 @@
  */
 (function( goManager, $, undefined ) {
       
+	sizeLimit = 100;
+	
    goManager.aspectToString = function(aspect) {
       switch(aspect) {
          case "BIOLOGICAL_PROCESS":
@@ -114,8 +116,11 @@
       goManager.select2().select2( "val", "" );
       
       goManager.closeAddTermsModal();
-      
-      var inst = goManager.addGoTermToTable(term, true)
+      if (term.size <= sizeLimit) {
+    	  var inst = goManager.addGoTermToTable(term, true)
+      } else {
+    	  utility.showMessage( "GO Term is too large, please select another", $( "#modelOrganisms .main-header .alert div" ) );
+      }
       
       if (inst) {
       
@@ -365,7 +370,15 @@ return $(result);
       } );
    }
    
-
+   formatTerm = function(term) {
+	   if ( term.size > sizeLimit ) {
+		   //$(container).addClass("greyed-out");
+		   return "greyed-out";
+	   }
+	   //return term.text;
+	    
+   }
+   
    goManager.initSelect2 = function() {
       // init search genes combo    
       goManager.select2().select2( {
@@ -379,14 +392,15 @@ return $(result);
             dataType : "json",
             data : function(query, page) {
                return {
-                  query : query // search term
+                  query : query, // search term
+                  taxonId: modelOrganisms.currentTaxonId()
                }
             },
             results : function(data, page) {
                var GOResults = []
                for (var i = 0; i < data.data.length; i++) {
                   var term = data.data[i];
-                  term.text = "<b>" + term.geneOntologyId + "</b> <i>" + goManager.aspectToString(term.aspect) + "</i> " +term.geneOntologyTerm;
+                  term.text = "<b>" + term.geneOntologyId + "</b> <i>" + goManager.aspectToString(term.aspect) + "</i> " + "size: " + term.size + " " + term.geneOntologyTerm;
                   GOResults.push(term);
                }
                return {
@@ -395,6 +409,7 @@ return $(result);
             },
 
          },
+         formatResultCssClass: formatTerm,
          formatAjaxError : function(response) {
             var msg = response.responseText;
             return msg;

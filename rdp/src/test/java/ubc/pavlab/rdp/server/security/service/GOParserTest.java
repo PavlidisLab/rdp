@@ -40,7 +40,7 @@ import ubc.pavlab.rdp.server.service.GOParser;
 
 public class GOParserTest {
 
-    private static Log log = LogFactory.getLog( GeneOntologyServiceTest.class.getName() );
+    private static Log log = LogFactory.getLog( GOParserTest.class.getName() );
 
     // note: no spring context.
     @Ignore

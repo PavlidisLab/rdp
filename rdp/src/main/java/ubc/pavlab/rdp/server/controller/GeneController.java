@@ -52,7 +52,6 @@ import ubc.pavlab.rdp.server.model.GeneOntologyTerm;
 import ubc.pavlab.rdp.server.model.Researcher;
 import ubc.pavlab.rdp.server.security.authentication.UserManager;
 import ubc.pavlab.rdp.server.service.GOService;
-import ubc.pavlab.rdp.server.service.GOServiceImpl.GOAspect;
 import ubc.pavlab.rdp.server.service.GeneAnnotationService;
 import ubc.pavlab.rdp.server.service.GeneCacheService;
 import ubc.pavlab.rdp.server.service.GeneService;
@@ -73,6 +72,8 @@ import ubc.pavlab.rdp.server.util.Settings;
 public class GeneController {
 
     private static Log log = LogFactory.getLog( GeneController.class );
+
+    private static long GO_SIZE_LIMIT = 100;
 
     @Autowired
     protected UserManager userManager;
@@ -520,8 +521,6 @@ public class GeneController {
                 GeneOntologyTerm goTerm = new GeneOntologyTerm( term );
                 goTerm.setFrequency( goTermsResult.get( term ) );
                 goTerm.setSize( gOService.getGeneSizeInTaxon( goTerm.getGeneOntologyId(), taxonId ) );
-                goTerm.setDefinition( term.getDefinition() );
-                goTerm.setAspect( GOAspect.valueOf( term.getAspect().toUpperCase() ) );
                 goTerms.add( goTerm );
             }
 
@@ -549,6 +548,7 @@ public class GeneController {
 
         String jsonText = null;
         String query = request.getParameter( "query" );
+        Long taxonId = Long.parseLong( request.getParameter( "taxonId" ), 10 );
 
         // Strips non-alphanumeric characters to prevent regex
         // query = query.replaceAll( "[^A-Za-z0-9]", "" );
@@ -561,17 +561,9 @@ public class GeneController {
         }
 
         try {
-            // Collection<Gene> results = biomartService.findGenes( query, taxon );
-            List<GeneOntologyTerm> results = new ArrayList<GeneOntologyTerm>( gOService.fetchByQuery( query ) );
 
-            // List<GeneOntologyTerm> goTerms = new ArrayList<GeneOntologyTerm>();
-            // for ( GeneOntologyTerm term : results ) {
-            // GeneOntologyTerm goTerm = new GeneOntologyTerm( term );
-            // term.setFrequency( 0L );
-            // term.setSize( geneOntologyService.getGeneSize( term.getGeneOntologyId() ) );
-            // goTerm.setDefinition( geneOntologyService.getTermDefinition( term ) );
-            // goTerms.add( goTerm );
-            // }
+            // List<GeneOntologyTerm> results = new ArrayList<GeneOntologyTerm>( gOService.fetchByQuery( query ) );
+            List<GOTerm> results = new ArrayList<GOTerm>( gOService.search( query ) );
 
             // Only return max 100 hits
             try {
@@ -580,7 +572,20 @@ public class GeneController {
                 // ignore
             }
 
-            jsonText = "{\"success\":true,\"data\":" + ( gOService.toJSON( results ) ).toString() + "}";
+            List<GeneOntologyTerm> goTerms = new ArrayList<GeneOntologyTerm>();
+            for ( GOTerm term : results ) {
+                GeneOntologyTerm goTerm = new GeneOntologyTerm( term );
+                // term.setFrequency( 0L );
+                goTerm.setSize( gOService.getGeneSizeInTaxon( term, taxonId ) );
+                goTerms.add( goTerm );
+            }
+
+            /*
+             * for ( Iterator<GeneOntologyTerm> i = results.iterator(); i.hasNext(); ) { GeneOntologyTerm term =
+             * i.next(); if ( term.getSize() > 100L ) { i.remove(); } }
+             */
+
+            jsonText = "{\"success\":true,\"data\":" + ( gOService.toJSON( goTerms ) ).toString() + "}";
         } catch ( Exception e ) {
             log.error( e.getMessage(), e );
             jsonText = "{\"success\":false,\"message\":" + e.getMessage() + "\"}";
@@ -612,20 +617,23 @@ public class GeneController {
             Researcher researcher = researcherService.findByUserName( username );
 
             // Deserialize GO Terms
-            Collection<GeneOntologyTerm> goTermsInMemory = gOService.deserializeGOTerms( GOJSON );
+            // Collection<GeneOntologyTerm> goTermsInMemory = gOService.deserializeGOTerms( GOJSON );
+            Collection<GOTerm> goTermsInMemory = gOService.deserializeGOTerms( GOJSON );
 
             Collection<Gene> genes = researcher.getDirectGenesInTaxon( taxonId );
 
             // Add taxonId to terms and find sizes
             Collection<GeneOntologyTerm> goTermsToBePersisted = new HashSet<GeneOntologyTerm>();
-            for ( GeneOntologyTerm term : goTermsInMemory ) {
+            for ( GOTerm term : goTermsInMemory ) {
                 // Necessary to save a new instance as the one in memory cannot be changed without Hibernate throwing
                 // stale state exceptions on updates
                 GeneOntologyTerm newTerm = new GeneOntologyTerm( term );
                 newTerm.setTaxonId( taxonId );
-                newTerm.setSize( gOService.getGeneSizeInTaxon( term.getGeneOntologyId(), taxonId ) );
-                newTerm.setFrequency( gOService.computeOverlapFrequency( term.getGeneOntologyId(), genes ) );
-                goTermsToBePersisted.add( newTerm );
+                newTerm.setSize( gOService.getGeneSizeInTaxon( term.getId(), taxonId ) );
+                newTerm.setFrequency( gOService.computeOverlapFrequency( term.getId(), genes ) );
+                if ( newTerm.getSize() < GO_SIZE_LIMIT ) {
+                    goTermsToBePersisted.add( newTerm );
+                }
             }
 
             // Update GO Terms for this taxon
