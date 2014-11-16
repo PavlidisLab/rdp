@@ -110,4 +110,7 @@ public interface ResearcherService {
     @Secured({ "IS_AUTHENTICATED_ANONYMOUSLY" })
     public Long countResearchersWithGenes();
 
+    @Secured({ "GROUP_USER" })
+    public boolean calculateGenes( Researcher researcher, Long taxonId );
+
 }

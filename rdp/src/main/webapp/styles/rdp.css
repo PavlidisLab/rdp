@@ -56,12 +56,12 @@ letter-spacing: 3px;
 }
 
 .navbar-nav>li>.dropdown-menu {
-	margin-top:5px;
+	margin-top: -5px;
 
 	}
 
 .navbar-nav {
-	bottom: 5px;
+	bottom: -5px;
 	right: 20px;
 	position: absolute;
 	/* margin: 53px -15px 5px -15px; */
@@ -98,6 +98,9 @@ letter-spacing: 3px;
 	background-repeat: no-repeat; */
 	padding-right: 0;
 	border-bottom: 1px solid rgba(0, 0, 0, 0.3);
+	border-top: 1px solid #ddd;
+	border-right: 1px solid #ddd;
+	overflow-y: auto;
 }
 
 .content {
@@ -110,15 +113,15 @@ letter-spacing: 3px;
 }
 
 .sidebar-nav {
-	border-bottom: 1px solid rgba(0, 0, 0, 0.3);
-	background-image: -webkit-linear-gradient(left, color-stop(#333333 10px),
+/* 	border-bottom: 1px solid rgba(0, 0, 0, 0.3); */
+/* 	background-image: -webkit-linear-gradient(left, color-stop(#333333 10px),
 		color-stop(#222222 10px));
 	background-image: linear-gradient(to right, #333333 10px, #222222 10px);
-	/* background-image: url("../images/new-blue-rotated.jpg"); */
-	/* background-color: #2c4c92; */
+	background-image: url("../images/new-blue-rotated.jpg");
+	background-color: #2c4c92;
 	background-repeat: repeat-x;
 	filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ff333333',
-		endColorstr='#ff222222', GradientType=1);
+		endColorstr='#ff222222', GradientType=1); */
 }
 
 .sidebar-nav ul {
@@ -131,12 +134,25 @@ letter-spacing: 3px;
 	display: block;
 }
 
+.sidebar-nav {
+/* 	border-top: 1px solid #ddd;
+	border-right: 1px solid #ddd; */
+}
+
+.sidebar-nav > ul > li > ul li {
+	padding-left:20px;
+}
+
+ul.breadcrumb {
+	background-color: #FFF;
+}
+
 .sidebar-nav ul a {
 	padding: 10px 20px;
-	color: #aaa;
-	border-top: 1px solid rgba(0, 0, 0, 0.3);
+	color: #333;
+	border-top: 1px solid #FFF;
 	box-shadow: 0px 1px 0px rgba(255, 255, 255, 0.05) inset;
-	text-shadow: 0px 1px 0px rgba(0, 0, 0, 0.5);
+/* 	text-shadow: 0px 1px 0px rgba(0, 0, 0, 0.5); */
 }
 
 .sidebar-nav ul a:hover, .sidebar-nav ul a:focus, .sidebar-nav ul a:active
@@ -156,25 +172,26 @@ letter-spacing: 3px;
 }
 
 #menu li {
-	background-image: -webkit-linear-gradient(left, color-stop(#333333 10px),
-		color-stop(#222222 10px));
-	background-image: linear-gradient(to right, #333333 10px, #222222 10px);
+/* 	background-image: -webkit-linear-gradient(left, color-stop(#555 10px),
+		color-stop(#f5f5f5 10px));
+	background-image: linear-gradient(to right, #555 10px, #f5f5f5 10px); */
 	/* background-image: url("../images/new-blue.jpg"); */
 	/* background-color: #2c4c92; */
 }
 
 #menu li.active.current-metis, #menu li.active > ul > li.current-metis {
-	background-image: -webkit-linear-gradient(left, color-stop(#009900 10px),
-		color-stop(#222222 10px));
-	background-image: linear-gradient(to right, #009900 10px, #222222 10px);
+	background-image: -webkit-linear-gradient(left, color-stop(#3b8ced 10px),
+		color-stop(#f5f5f5 10px));
+	background-image: linear-gradient(to right, #3b8ced 10px, #f5f5f5 10px);
 	/* background-color: #2c4c92; */
 	/* background-image: url("../images/new-blue-rotated.jpg"); */
 }
 
 
 
-.sidebar-nav ul ul a:hover, .sidebar-nav ul ul a:focus, .sidebar-nav ul ul a:active
+.sidebar-nav ul a:hover, .sidebar-nav ul a:focus, .sidebar-nav ul a:active
 	{
+	color: inherit;
 	background-color: rgba(255, 255, 255, 0.2);
 }
 
@@ -229,7 +246,7 @@ hr {
 }
 
 .data-row {
-	margin-bottom: 0px;
+	margin-bottom: 1px;
 }
 
 .data-row .data-name, .data-row .data-value {
@@ -245,7 +262,8 @@ hr {
 .data-row .data-name {
 	width: 12em;
 	/*background-color: #ececec;*/
-	color: #b9b9b9;
+	/* color: #b9b9b9; */
+	color: #999;
 	font-size: 0.9em;
 	vertical-align: top;
 }
@@ -267,7 +285,7 @@ hr {
 
 .green-icon {
 /* 	color: #009900; */
-	color: #009900;
+	color: #76ba28;
 	
 }
 
@@ -287,7 +305,7 @@ textarea {
 }
 
 table thead {
-	background-color: #296eaa;
+	background-color: #2b78bb;
 	color: #FFF;
 }
 
@@ -349,7 +367,7 @@ border-color: #555753;
 	box-sizing: border-box;
 	-moz-box-sizing: border-box;
 	-webkit-box-sizing: border-box;
-	border: 1px solid rgb(140, 140, 140);
+	border: 1px solid #c6c6c6;
 	padding-bottom: 3px;
 }
 
@@ -400,6 +418,28 @@ div.alert.pulse {
 	-webkit-transform-origin:10% 10%;
 	-webkit-animation-iteration-count: 1;
 	-webkit-animation-timing-function: linear;
+}
+div.custom-sidebar-brand {
+	position: absolute;
+	bottom: 20px;
+}
+.custom-sidebar-brand p{
+	font-size: 9px;
+	text-transform: uppercase;
+	font-weight: 300;
+	margin-bottom: 2px;
+}
+.custom-sidebar-brand h1 {
+	color: #333333;
+	font-size: 9px;
+	font-family: 'Open Sans', sans-serif;
+	font-weight: 600;
+	margin: 0 0 30px;
+	font-size: 18px;
+	text-transform: uppercase;
+	font-weight: 700;
+	letter-spacing: 1px;
+	margin: 0;
 }
 
 [custom-placeholder=true]:empty:not(:focus ):before {

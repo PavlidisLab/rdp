@@ -638,17 +638,17 @@ public class GeneController {
 
             // Update GO Terms for this taxon
             researcherService.updateGOTermsForTaxon( researcher, goTermsToBePersisted, taxonId );
-
-            HashMap<Gene, TierType> calculatedGenes = new HashMap<Gene, TierType>();
-
-            for ( Gene g : gOService.getRelatedGenes( goTermsToBePersisted, taxonId ) ) {
-                calculatedGenes.put( g, TierType.TIER3 );
-            }
-
-            Collection<TierType> tiersToRemove = new HashSet<TierType>();
-            tiersToRemove.add( TierType.TIER3 );
-            researcherService.removeGenesByTiersAndTaxon( researcher, tiersToRemove, taxonId );
-            researcherService.addGenes( researcher, calculatedGenes );
+            researcherService.calculateGenes( researcher, taxonId );
+            // HashMap<Gene, TierType> calculatedGenes = new HashMap<Gene, TierType>();
+            //
+            // for ( Gene g : gOService.getRelatedGenes( goTermsToBePersisted, taxonId ) ) {
+            // calculatedGenes.put( g, TierType.TIER3 );
+            // }
+            //
+            // Collection<TierType> tiersToRemove = new HashSet<TierType>();
+            // tiersToRemove.add( TierType.TIER3 );
+            // researcherService.removeGenesByTiersAndTaxon( researcher, tiersToRemove, taxonId );
+            // researcherService.addGenes( researcher, calculatedGenes );
 
             JSONObject json = new JSONObject();
             json.put( "success", true );

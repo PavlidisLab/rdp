@@ -152,10 +152,13 @@ public class ResearcherServiceImpl implements ResearcherService {
                 log.warn( "Attempting to add gene without ID to researcher: " + researcher );
                 // geneDao.create( gene );
             } else {
-                if ( researcher.getGeneAssociatonFromGene( gene ) == null ) {
-                    // gene not already added to researcher
-                    modified |= researcher.addGeneAssociation( new GeneAssociation( gene, researcher, tier ) );
+                GeneAssociation ga = researcher.getGeneAssociatonFromGene( gene );
+                if ( ga != null ) {
+                    log.warn( "gene already exists :" + gene );
+                    // gene already added to researcher
+                    modified |= researcher.removeGeneAssociation( ga );
                 }
+                modified |= researcher.addGeneAssociation( new GeneAssociation( gene, researcher, tier ) );
             }
         }
 
@@ -296,6 +299,25 @@ public class ResearcherServiceImpl implements ResearcherService {
         for ( GeneOntologyTerm term : goTerms ) {
             modified |= researcher.addGOTerm( term );
         }
+        return modified;
+    }
+
+    @Override
+    @Transactional
+    public boolean calculateGenes( Researcher researcher, Long taxonId ) {
+        HashMap<Gene, TierType> calculatedGenes = new HashMap<Gene, TierType>();
+
+        Collection<TierType> tiersToRemove = new HashSet<TierType>();
+        tiersToRemove.add( TierType.TIER3 );
+        boolean modified = removeGenesByTiersAndTaxon( researcher, tiersToRemove, taxonId );
+
+        for ( Gene g : gOService.getRelatedGenes( researcher.getGoTerms(), taxonId ) ) {
+            calculatedGenes.put( g, TierType.TIER3 );
+        }
+
+        calculatedGenes.keySet().removeAll( researcher.getGenesByTaxonId( taxonId ) );
+
+        modified |= addGenes( researcher, calculatedGenes );
         return modified;
     }
 

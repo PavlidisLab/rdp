@@ -279,14 +279,14 @@
             "aTargets": [ 2 ],
             "defaultContent": "",
             "mData": function ( source, type, val ) {
-               return source[0].aliasesToString() || "";
+               return source[0].officialName || "";
             }
          },
          {
             "aTargets": [ 3 ],
             "defaultContent": "",
             "mData": function ( source, type, val ) {
-               return source[0].officialName || "";
+               return source[0].aliasesToString() || "";
             }
          },
          {

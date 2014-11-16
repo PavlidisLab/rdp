@@ -30,10 +30,10 @@
 	href="styles/font-awesome-4.2.0/css/font-awesome.min.css">
 
 <!-- Custom CSS -->
-<!-- <link href="styles/rdp.css" rel="stylesheet"> -->
+<link href="styles/rdp.css" rel="stylesheet">
 
 <!-- Custom CSS -->
-<link href="styles/simple-sidebar.css" rel="stylesheet">
+<!-- <link href="styles/simple-sidebar.css" rel="stylesheet"> -->
 
 </head>
 
@@ -151,6 +151,10 @@
 
 					</ul>
 				</nav>
+				<div class="custom-sidebar-brand">
+					<p>Models &amp; Mechanisms Network</p>
+					<h1>RARE DISEASES</h1>
+				</div>
 			</aside>
 
 			<section class="content">
