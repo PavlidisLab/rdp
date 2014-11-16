@@ -94,7 +94,7 @@ public class GOParser {
                         currentNode.setAspect( tagValuePair[1] );
                         break;
                     case "def":
-                        currentNode.setDefinition( tagValuePair[1] );
+                        currentNode.setDefinition( tagValuePair[1].split( "\"" )[1] );
                         break;
                     case "is_a":
                         values = tagValuePair[1].split( " " );

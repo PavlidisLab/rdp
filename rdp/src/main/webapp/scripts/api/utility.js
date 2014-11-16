@@ -5,7 +5,15 @@
    utility.showMessage = function(message, messageEl ) {
       console.log( message );
       messageEl.html( message );
-      messageEl.parent().show();
+      var parent = messageEl.parent();
+         parent.show().addClass("pulse");
+         parent.one(
+            "webkitAnimationEnd oanimationend msAnimationEnd animationend",
+            function() {
+                $(this).removeClass("pulse");
+            }
+        );
+
    }
 
    utility.hideMessage = function( messageEl ) {

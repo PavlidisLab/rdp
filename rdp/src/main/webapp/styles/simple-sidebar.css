@@ -366,6 +366,14 @@ ul.select2-results li.greyed-out {
 	color: #999;
 }
 
+div.alert.pulse {
+	-webkit-animation-name: spaceboots;
+	-webkit-animation-duration: 0.2s;
+	-webkit-transform-origin:10% 10%;
+	-webkit-animation-iteration-count: 1;
+	-webkit-animation-timing-function: linear;
+}
+
 [custom-placeholder=true]:empty:not(:focus ):before {
 	content: attr(data-ph);
 	color: #babdb6;
@@ -376,3 +384,11 @@ ul.select2-results li.greyed-out {
 	white-space: pre;
 	color: #babdb6;
 }
+
+@-webkit-keyframes spaceboots {
+	0% { -webkit-transform: translateY(2px); }
+	25% { -webkit-transform: translateY(-2px); }
+	50% { -webkit-transform: translateY(2px); }
+	100% { -webkit-transform: translateY(-2px); }
+}
+
