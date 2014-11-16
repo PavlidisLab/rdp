@@ -91,7 +91,6 @@
 			</nav>
 		</div>
 		<div class="content-wrapper clearfix">
-
 			<aside class="sidebar">
 				<nav class="sidebar-nav">
 					<ul id="menu">
@@ -151,7 +150,7 @@
 
 					</ul>
 				</nav>
-				<div class="custom-sidebar-brand">
+				<div class="sidebar-footer">
 					<p>Models &amp; Mechanisms Network</p>
 					<h1>RARE DISEASES</h1>
 				</div>
