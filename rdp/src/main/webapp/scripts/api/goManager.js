@@ -462,6 +462,18 @@ $( document ).ready( function() {
              });
           } else {
              row.child.show();
+             var childTableRows = $('table tbody tr', row.child() );
+             var researcher = researcherModel.currentResearcher;
+             var taxonId = modelOrganisms.currentTaxonId();
+             childTableRows.each( function( i, el ) {
+                var symbol = $('td:first',el).text();
+                if ( researcher.hasGeneBySymbolTaxonId( symbol, taxonId ) ) {
+                   $(el).addClass('green-row');
+                } else {
+                   $(el).removeClass('green-row');
+                }
+             });
+             
           }
           
           tr.addClass('shown');

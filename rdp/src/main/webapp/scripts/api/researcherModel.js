@@ -72,6 +72,15 @@
 
    }
    
+   researcherModel.Researcher.prototype.hasGeneBySymbolTaxonId = function(symbol, taxonId) {
+      for (var i=0;i<this.genes.length;i++) {
+         if ( this.genes[i].officialSymbol == symbol && this.genes[i].taxonId == taxonId ) {
+            return true;
+         }
+      }
+      return false;
+   }
+   
    researcherModel.Researcher.prototype.getGenesByTaxonId = function(taxonId) {
       var filter = [];
       for (var i=0;i<this.genes.length;i++) {
