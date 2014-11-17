@@ -169,7 +169,7 @@ ul.breadcrumb {
 }
 
 .main-header {
-	margin-bottom: 50px;
+	margin-bottom: 10px;
 }
 
 .main-header h2 {
@@ -414,7 +414,7 @@ div.sidebar-footer {
 	margin: 0;
 }
 
-.fa.fa-lock:hover {
+.fa.fa-edit:hover {
 	color: #ffc71d;
 }
 
@@ -427,8 +427,8 @@ div.sidebar-footer {
 }
 
 img.thumbnail {
-	width: 150px;
-	height: 150px;
+	width: 350px;
+	height: 350px;
 	-webkit-border-radius: 5px;
 	-moz-border-radius: 5px;
 	-ms-border-radius: 5px;

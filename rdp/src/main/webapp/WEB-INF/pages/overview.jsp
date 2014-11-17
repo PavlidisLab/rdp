@@ -37,7 +37,7 @@
 
 						<p>
 							<b>General help</b>: For many fields throughout the site, you
-							will see an icon like this: <i class="fa fa-lock yellow-icon"></i>.
+							will see an icon like this: <i class="fa fa-edit yellow-icon"></i>.
 							Click on the icon to enable editing of the associated field. When
 							you are done, click the icon again (which now looks like this: <i
 								class="fa fa-check-square-o green-icon"></i>) to lock your
