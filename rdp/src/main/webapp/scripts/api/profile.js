@@ -174,7 +174,7 @@
    editProfile = function(e) {
       e.stopPropagation();
       e.preventDefault();
-      $(this).removeClass('fa-edit').addClass('fa-check-square-o').removeClass('yellow-icon').addClass('green-icon');
+      $(this).removeClass('fa-lock').addClass('fa-check-square-o').removeClass('yellow-icon').addClass('green-icon');
       var div = $(this).closest('div');
       
       var a = $(this).closest('a');
@@ -192,7 +192,7 @@
    lockProfile = function(e) {
       e.stopPropagation();
       e.preventDefault();
-      $(this).removeClass('fa-check-square-o').addClass('fa-edit').removeClass('green-icon').addClass('yellow-icon');
+      $(this).removeClass('fa-check-square-o').addClass('fa-lock').removeClass('green-icon').addClass('yellow-icon');
       var div = $(this).closest('div');
       var a = $(this).closest('a');
       
@@ -210,7 +210,7 @@
    }
 
    profile.init = function() {
-      $('#profile-tab a').on('click', 'i[class~="fa-edit"]', editProfile );
+      $('#profile-tab a').on('click', 'i[class~="fa-lock"]', editProfile );
       $('#profile-tab a').on('click', 'i[class~="fa-check-square-o"]', lockProfile );
       $('a[href="#myAccount"]').on('show.bs.tab', function() {
          profile.setInfo(); 

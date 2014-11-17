@@ -16,16 +16,18 @@
 		<div class="tab-content admin-page">
 			<div class="tab-pane active" id="researchers-tab">
 				<div class="row">
-					<button type="button" id="adminResetResearchersButton"
-						class="btn btn-default">
-						<span class="glyphicon glyphicon-repeat"></span>
-					</button>
-					<button type="button" id="adminFindResearchersByGeneButton"
-						class="btn btn-default col-sm-offset-1 pull-left">
-						<span class="glyphicon glyphicon-search"></span>
-					</button>
-					<div class="col-sm-3">
+					<div class="col-sm-12 col-lg-4">
 						<div class="input-group">
+							<div class="input-group-btn">
+							<button type="button" id="adminFindResearchersByGeneButton"
+								class="btn btn-default">
+								<span class="glyphicon glyphicon-search"></span>
+							</button>
+							<button type="button" id="adminResetResearchersButton"
+								class="btn btn-default" style="margin-right:10px;">
+								<span class="glyphicon glyphicon-repeat"></span>
+							</button>
+							</div>
 							<span class="input-group-addon">Organism</span> <select
 								id="adminTaxonCommonNameSelect" class="form-control">
 								<option value="9606">Human</option>
@@ -40,7 +42,7 @@
 						</div>
 					</div>
 
-					<div class="col-sm-3">
+					<div class="col-sm-12 col-lg-4">
 						<div class="input-group">
 							<span class="input-group-addon">Gene</span> <input type="hidden"
 								id="adminSearchGenesSelect" name="adminSearchGenesSelect"
@@ -48,7 +50,7 @@
 						</div>
 					</div>
 
-					<div class="col-sm-3">
+					<div class="col-sm-12 col-lg-4">
 						<div class="input-group">
 							<span class="input-group-addon">Tier</span> <select
 								id="adminTierSelect" class="form-control">

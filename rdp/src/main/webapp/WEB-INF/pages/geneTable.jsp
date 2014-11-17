@@ -5,8 +5,8 @@
 		<tr>
 			<th>Data</th>
 			<th>Symbol</th>
-			<th>Alias</th>
 			<th>Name</th>
+			<th>Aliases</th>
 			<th>Primary</th>
 		</tr>
 	</thead>

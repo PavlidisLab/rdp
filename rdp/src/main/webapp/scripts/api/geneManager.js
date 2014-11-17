@@ -53,7 +53,14 @@
       researcher.addTaxonDescription(taxonId, modelOrganisms.focus().text() )
 
       var promise = researcherModel.saveResearcherGenesByTaxon(taxonId);
-
+      
+      // invalidate all child rows so that ajax will be called again on them
+      var dTable = goManager.table().DataTable();
+      var rows = dTable.rows().nodes();
+      for (var i=0;i<rows.length;i++) {
+         dTable.row(rows[i]).child.remove();
+      }
+            
       $.when(promise).done(function() {
          btn.removeAttr("disabled");
          btn.children('i').removeClass('fa-spin');
@@ -160,7 +167,7 @@
       }
       $( "#searchGenesSelect" ).select2("val", "");
       geneManager.addGeneToTable(gene, true);
-      geneManager.closeAddGenesModal();
+      //geneManager.closeAddGenesModal();
    }
    
    geneManager.bulkImportGenes = function() {
@@ -210,6 +217,8 @@
    geneManager.initSelect2 = function() {
       // init search genes combo    
       geneManager.select2().select2( {
+/*         multiple: true,
+         closeOnSelect:false,*/
          id : function(data) {
             return data.officialSymbol;
          },
@@ -240,6 +249,10 @@
                };
             },
 
+         },
+         formatSelection : function(item) {
+            item.text = item.text.split('</b>')[0] + '</b>';
+            return item.text
          },
          formatAjaxError : function(response) {
             var msg = response.responseText;
@@ -279,14 +292,14 @@
             "aTargets": [ 2 ],
             "defaultContent": "",
             "mData": function ( source, type, val ) {
-               return source[0].aliasesToString() || "";
+               return source[0].officialName || "";
             }
          },
          {
             "aTargets": [ 3 ],
             "defaultContent": "",
             "mData": function ( source, type, val ) {
-               return source[0].officialName || "";
+               return source[0].aliasesToString() || "";
             }
          },
          {

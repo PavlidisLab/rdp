@@ -1,6 +1,6 @@
 <div>
 	<div class="main-header">
-		<h2>Model Organism Manager</h2>
+		<h2>Organism Information</h2>
 		<em>Human</em>
 		<div class="alert alert-warning col-sm-12" hidden="true">
 			<a href="#" class="close" data-hide="alert">&times;</a>
@@ -14,7 +14,7 @@
 
 			<div class="col-md-12">
 				<h3>
-					<a href="#" data-toggle="tooltip" data-placement="bottom" title="Edit"><i class="fa fa-edit yellow-icon"></i></a> Research Focus
+					<a href="#" data-toggle="tooltip" data-placement="bottom" title="Edit"><i class="fa fa-lock yellow-icon"></i></a> Organism Research Focus
 				</h3>
 				<div class="col-sm-8 research-focus">
 					<p custom-placeholder=true data-ph="My research on this organism involves..." class="data-editable data-paragraph well"></p>

@@ -30,10 +30,10 @@
 	href="styles/font-awesome-4.2.0/css/font-awesome.min.css">
 
 <!-- Custom CSS -->
-<!-- <link href="styles/rdp.css" rel="stylesheet"> -->
+<link href="styles/rdp.css" rel="stylesheet" title="default" class="themes">
 
 <!-- Custom CSS -->
-<link href="styles/simple-sidebar.css" rel="stylesheet">
+<link href="styles/rdp_dark.css" rel="alternate stylesheet" title="dark" class="themes" disabled="">
 
 </head>
 
@@ -52,7 +52,7 @@
 								class="icon-bar"></span> <span class="icon-bar"></span> <span
 								class="icon-bar"></span>
 						</button>
-						<a class="navbar-brand" href="register.html">Rare Diseases:
+						<a class="navbar-brand" href="http://www.rare-diseases-catalyst-network.ca/" target="_blank">Rare Diseases:
 							Models & Mechanisms Network</a>
 					</div>
 
@@ -91,7 +91,6 @@
 			</nav>
 		</div>
 		<div class="content-wrapper clearfix">
-
 			<aside class="sidebar">
 				<nav class="sidebar-nav">
 					<ul id="menu">
@@ -99,11 +98,11 @@
 								<span class="sidebar-nav-item-icon fa fa-fw fa-cogs fa-lg"></span>
 								<span class="sidebar-nav-item">Administration</span>
 						</a></li>
-						<li><a href="#overview" data-toggle="tab">
+						<li class="active active-metis"><a href="#overview" data-toggle="tab">
 								<span class="sidebar-nav-item-icon fa fa-fw fa-home fa-lg"></span>
 								<span class="sidebar-nav-item">Overview</span>
 						</a></li>
-						<li class="active active-metis"><a href="#myAccount" data-toggle="tab"> <span
+						<li><a href="#myAccount" data-toggle="tab"> <span
 								class="sidebar-nav-item-icon fa fa-fw fa-user fa-lg"></span> <span
 								class="sidebar-nav-item">My Account</span>
 						</a></li>
@@ -151,11 +150,15 @@
 
 					</ul>
 				</nav>
+				<div class="sidebar-footer">
+					<p>Models &amp; Mechanisms Network</p>
+					<h1>RARE DISEASES</h1>
+				</div>
 			</aside>
 
 			<section class="content">
 				<div class="tab-content">
-					<div class="tab-pane" id="overview">
+					<div class="tab-pane active" id="overview">
 
 						<div class="col-xs-12">
 							<div class="row">
@@ -167,12 +170,12 @@
 								</div>
 
 							</div>
-							<%@ include file="newOverview.jsp"%>
+							<%@ include file="overview.jsp"%>
 						</div>
 
 					</div>
 
-					<div class="tab-pane active" id="myAccount">
+					<div class="tab-pane" id="myAccount">
 
 						<div class="col-xs-12">
 							<div class="row">
@@ -237,7 +240,9 @@
 								</div>
 
 							</div>
+							<%@ include file="help.jsp"%>
 						</div>
+						
 						
 					</div>
 
@@ -250,7 +255,7 @@
 	<%@ include file="addGenesModal.jsp"%>
 	<%@ include file="addTermsModal.jsp"%>
 	<%@ include file="confirmModal.jsp"%>
-	<footer class="footer"> © Copyright 2014. "Rare Diseases: Models & Mechanisms Network" All rights reserved. </footer>
+	<footer class="footer"> © Copyright 2014. "Rare Diseases: Models & Mechanisms Network" All rights reserved. <a href="mailto:registry-help@rare-diseases-catalyst-network.ca" class="pull-right">Contact Support</a></footer>
 
 
 	<!-- include jQuery, and our script file -->
@@ -269,16 +274,16 @@
 	<!-- THIS HAS BEEN ALTERED DO NOT MINIFY WILLY-NILLY -->
 	<script src="scripts/lib/metisMenu/metisMenu.js"></script>
 
-	<script src="scripts/api/utility.js?version=5"></script>
-	<script src="scripts/api/researcherModel.js?version=5"></script>
-	<script src="scripts/api/profile.js?version=5"></script>
-	<script src="scripts/api/settings.js?version=5"></script>
-	<script src="scripts/api/modelOrganisms.js?version=5"></script>
-	<script src="scripts/api/geneManager.js?version=5"></script>
-	<script src="scripts/api/goManager.js?version=5"></script>
-	<script src="scripts/api/admin.js?version=5"></script>
-	<script src="scripts/api/register.js?version=5"></script>
-	<script src="scripts/api/navbar.js?version=5"></script>
+	<script src="scripts/api/utility.js?version=6"></script>
+	<script src="scripts/api/researcherModel.js?version=6"></script>
+	<script src="scripts/api/profile.js?version=6"></script>
+	<script src="scripts/api/settings.js?version=6"></script>
+	<script src="scripts/api/modelOrganisms.js?version=6"></script>
+	<script src="scripts/api/geneManager.js?version=6"></script>
+	<script src="scripts/api/goManager.js?version=6"></script>
+	<script src="scripts/api/admin.js?version=6"></script>
+	<script src="scripts/api/register.js?version=6"></script>
+	<script src="scripts/api/navbar.js?version=6"></script>
 
 </body>
 </html>
