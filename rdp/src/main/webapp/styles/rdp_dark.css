@@ -426,6 +426,16 @@ div.sidebar-footer {
 	background-color:#2387df;
 }
 
+img.thumbnail {
+	width: 150px;
+	height: 150px;
+	-webkit-border-radius: 5px;
+	-moz-border-radius: 5px;
+	-ms-border-radius: 5px;
+	-o-border-radius: 5px;
+	border-radius: 5px;
+}
+
 [custom-placeholder=true]:empty:not(:focus ):before {
 	content: attr(data-ph);
 	color: #babdb6;

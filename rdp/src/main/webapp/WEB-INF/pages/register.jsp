@@ -28,6 +28,8 @@
 
 <link rel="stylesheet"
 	href="styles/font-awesome-4.2.0/css/font-awesome.min.css">
+	
+<link href="styles/lightbox.css" rel="stylesheet" />
 
 <!-- Custom CSS -->
 <link href="styles/rdp.css" rel="stylesheet" title="default" class="themes">
@@ -70,7 +72,7 @@
 							</a>
 								<ul class="dropdown-menu dropdown-user">
 									<li><a id="profileDropdown" href="#myAccount"><i
-											class="fa fa-user fa-fw"></i> User Profile</a></li>
+											class="fa fa-user fa-fw"></i> Profile</a></li>
 									<li><a id="settingsDropdown" href="#settings-tab"><i
 											class="fa fa-gear fa-fw"></i> Settings</a></li>
 									<li class="divider"></li>
@@ -273,17 +275,19 @@
 	<!-- Metis Menu Plugin JavaScript -->
 	<!-- THIS HAS BEEN ALTERED DO NOT MINIFY WILLY-NILLY -->
 	<script src="scripts/lib/metisMenu/metisMenu.js"></script>
+	
+	<script src="scripts/lib/lightbox.min.js"></script>
 
-	<script src="scripts/api/utility.js?version=6"></script>
-	<script src="scripts/api/researcherModel.js?version=6"></script>
-	<script src="scripts/api/profile.js?version=6"></script>
-	<script src="scripts/api/settings.js?version=6"></script>
-	<script src="scripts/api/modelOrganisms.js?version=6"></script>
-	<script src="scripts/api/geneManager.js?version=6"></script>
-	<script src="scripts/api/goManager.js?version=6"></script>
-	<script src="scripts/api/admin.js?version=6"></script>
-	<script src="scripts/api/register.js?version=6"></script>
-	<script src="scripts/api/navbar.js?version=6"></script>
+	<script src="scripts/api/utility.js?version=7"></script>
+	<script src="scripts/api/researcherModel.js?version=7"></script>
+	<script src="scripts/api/profile.js?version=7"></script>
+	<script src="scripts/api/settings.js?version=7"></script>
+	<script src="scripts/api/modelOrganisms.js?version=7"></script>
+	<script src="scripts/api/geneManager.js?version=7"></script>
+	<script src="scripts/api/goManager.js?version=7"></script>
+	<script src="scripts/api/admin.js?version=7"></script>
+	<script src="scripts/api/register.js?version=7"></script>
+	<script src="scripts/api/navbar.js?version=7"></script>
 
 </body>
 </html>

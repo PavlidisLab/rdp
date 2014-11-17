@@ -51,9 +51,35 @@
 											<li>A summary of your research interests (we recommend
 												100-500 words)</li>
 											<li>A list of PubMed IDs for your publications (for
-												instructions on finding PubMed IDs, go <a href="#">THISNEEDSTOBEFILLEDINDONOTFORGET</a>).
+												instructions on finding PubMed IDs, go <a data-toggle="collapse" href="#aboutcollapsePub">here</a>).
 											</li>
 										</ul>
+
+										<div class="panel">
+											<div id="aboutcollapsePub" class="panel-collapse collapse">
+												<div class="panel-body">
+													<p>
+														To rapidly get a list of your PubMed IDs, in a new browser
+														window use PubMed search (<a
+															href="http://www.ncbi.nlm.nih.gov/pubmed/">http://www.ncbi.nlm.nih.gov/pubmed/</a>)
+														to find your publications. Select the publications you
+														wish to use (if necessary using the checkboxes), and click
+														on "display settings"; select "PMID List" and click
+														"Apply". Copy and paste the resulting list of numeric IDs
+														into the field in the Profile.
+													</p>
+													<p>
+														<b>Note</b>: Currently the PubMed IDs are for future use
+														and are optional.
+													</p>
+													<a href="images/pubmed.png" data-lightbox="pubmed"> 
+													<img class="thumbnail" src="images/pubmed.png" alt="pubmed">
+													</a>
+													<!-- <img height="50px" width="50px" src="images/pubmed.png"></img> -->
+
+												</div>
+											</div>
+										</div>
 
 										<p>
 											These fields are optional. From the "<i>My Account</i>" page
@@ -79,7 +105,7 @@
 										<div class="panel-group" id="aboutaccordion2-1">
 											<div class="panel">
 												<a data-toggle="collapse" data-parent="#aboutaccordion2-1"
-													href="#aboutcollapse2-1">Add Model Organsim » </a>
+													href="#aboutcollapse2-1">Add Model Organism » </a>
 												<div id="aboutcollapse2-1" class="panel-collapse collapse">
 													<div class="panel-body">
 														<p>To add a model organism:</p>
@@ -113,6 +139,168 @@
 
 														<p>The most important functionality of the Manager is
 															the addition of Genes, and then of Gene Ontology Terms.</p>
+													</div>
+												</div>
+											</div>
+											<div class="panel">
+												<a data-toggle="collapse" data-parent="#aboutaccordion2-1"
+													href="#aboutcollapse2-3">Adding Genes » </a>
+												<div id="aboutcollapse2-3" class="panel-collapse collapse">
+													<div class="panel-body">
+														<p>The goal of this section is to collect a list of
+															the genes you study. Genes are either Primary or
+															Secondary (non-Primary). You should designate as Primary
+															genes that you are most focused on in your work and for
+															which you feel you have the most immediate capabilities
+															for functional assays. If you can't decide, just
+															designate all genes as Primary.</p>
+
+														<p>
+															For more detailed instructions, go <a data-toggle="collapse" href="#aboutcollapseAddGenes">here</a>
+														</p>
+														<div class="panel">
+															<div id="aboutcollapseAddGenes"
+																class="panel-collapse collapse">
+																<div class="panel-body">
+																	<p>To get started, click on "Add Gene(s)".</p>
+
+																	<a href="images/AddGenes1.png"
+																		data-lightbox="AddGenes1"> <img class="thumbnail"
+																		src="images/AddGenes1.png" alt="AddGenes1">
+																	</a>
+
+																	<p>In the pop-up window, use the Search Gene field
+																		to search by symbol, name or alias. Select the gene
+																		and click 'Add'.</p>
+
+																	<a href="images/AddGenes2.png"
+																		data-lightbox="AddGenes2"> <img class="thumbnail"
+																		src="images/AddGenes2.png" alt="AddGenes2">
+																	</a>
+
+																	<p>Alternatively, you can type or paste multiple
+																		genes into the 'Bulk Upload' field and click 'Add
+																		All'. You will see a warning if any of your
+																		identifiers didn't match a gene in our database.</p>
+
+																	<a href="images/AddGenes3.png"
+																		data-lightbox="AddGenes3"> <img class="thumbnail"
+																		src="images/AddGenes3.png" alt="AddGenes3">
+																	</a>
+
+																	<p>For both Search and Bulk Upload, check the box
+																		to indicate if the gene(s) are Primary or not.</p>
+																	<p>The added genes will appear in the table at the
+																		bottom of the Model Organism Manager. You can remove
+																		genes by selecting them and clicking the 'Remove
+																		Selected' button. You can also change the 'Primary'
+																		status of genes one at a time.</p>
+																		
+																	<a href="images/AddGenes4.png"
+																		data-lightbox="AddGenes4"> <img class="thumbnail"
+																		src="images/AddGenes4.png" alt="AddGenes4">
+																	</a>
+																	
+																	<p>Finally, be sure to save your changes. If you
+																		navigate away from the page you will be prompted to
+																		save your changes.</p>
+																	
+																</div>
+															</div>
+														</div>
+													</div>
+												</div>
+											</div>
+											<div class="panel">
+												<a data-toggle="collapse" data-parent="#aboutaccordion2-1"
+													href="#aboutcollapse2-4">Gene Ontology Terms » </a>
+												<div id="aboutcollapse2-4" class="panel-collapse collapse">
+													<div class="panel-body">
+														<p>
+															Once you have added some genes, you can optionally
+															provide some Gene Ontology (GO) terms related to your
+															work. Genes associated with the GO terms you select will
+															be considered a "third tier" of genes for possible use in
+															identifying researchers who can study a particular gene.
+															For more details about GO, please see <a
+																href="http://geneontology.org/" target="_blank">geneontology.org</a>.
+														</p>
+
+														<p>
+															For more detailed instructions, go <a
+																data-toggle="collapse" href="#aboutcollapseGO">here</a>
+														</p>
+														<div class="panel">
+															<div id="aboutcollapseGO" class="panel-collapse collapse">
+																<div class="panel-body">
+																	<p>To enter GO terms for an organism, click on the
+																		"Gene Ontology Terms" tab on the Manager page. Click
+																		on "Select GO Terms", which will cause a new popup to
+																		appear.</p>
+																	<a href="images/GO1.png" data-lightbox="GO1"> <img
+																		class="thumbnail" src="images/GO1.png" alt="GO1">
+																	</a>
+
+																	<p>You can search for terms similar to the way you
+																		search for genes, by GO Term ID (e.g., GO:0007638) or
+																		name (e.g., "mechanosensory behavior"). If you have
+																		already added some genes, you will also see Suggested
+																		Terms after a short delay.</p>
+																		
+																	<a href="images/GO2.png" data-lightbox="GO2"> <img
+																		class="thumbnail" src="images/GO2.png" alt="GO2">
+																	</a>
+
+																	<p>The terms found appear in the table, with the
+																		Aspect and term name, as well a count for how many
+																		genes in this organism are annotated with that term
+																		("Term Size") and how many of your genes are annotated
+																		with that term ("Overlap").</p>
+
+																	<p>You can expand the row in the Term Size column
+																		to see the genes that have the annotation. Genes you
+																		have manually added are highlighted. The other genes
+																		will automatically be considered "third tier" genes
+																		associated with your profile.</p>
+
+																	<a href="images/GO3.png" data-lightbox="GO3"> <img
+																		class="thumbnail" src="images/GO3.png" alt="GO3">
+																	</a>
+
+																	<p>Once you are done, you can close the popup and
+																		review the GO terms in the Manager. As with genes, you
+																		can select and then remove terms, or add more terms
+																		later</p>
+																		
+																	<p>Once again, don't forget to Save Changes.</p>
+
+																</div>
+															</div>
+														</div>
+													</div>
+												</div>
+											</div>
+											<div class="panel">
+												<a data-toggle="collapse" data-parent="#aboutaccordion2-1"
+													href="#aboutcollapse2-5">How does the Gene Ontology
+													Term suggestion work? » </a>
+												<div id="aboutcollapse2-5" class="panel-collapse collapse">
+													<div class="panel-body">
+														<p>
+															If you have already entered at least two genes, the
+															system can suggest related GO terms for you. The system
+															uses a very simple algorithm to do this. We look at GO
+															terms shared by the genes you have entered. If a term has
+															enough genes overlapping with your genes, it is
+															considered a candidate. We then prune terms that are too
+															big, too small or highly redundant with another candidate
+															term. The final list of terms is then sorted for display.
+															The full process is a little more complicated than this,
+															as it makes use of the structure of the GO hierarchy and
+															several heuristics to provide useful results. <a
+																href="mailto:registry-help@rare-diseases-catalyst-network.ca">Contact
+																us</a> if you want more details.
+														</p>
 													</div>
 												</div>
 											</div>
@@ -155,8 +343,7 @@
 									aria-controls="collapse2" class="panel-heading" role="tab"
 									id="heading2">
 									<h4 class="panel-title">
-										<a href="#"> What is the purpose of the RDMMN
-											registry? </a>
+										<a href="#"> What is the purpose of the RDMMN registry? </a>
 									</h4>
 								</div>
 								<div id="collapse2" class="panel-collapse collapse"
@@ -192,8 +379,7 @@
 									aria-controls="collapse4" class="panel-heading" role="tab"
 									id="heading4">
 									<h4 class="panel-title">
-										<a href="#"> Who will see the information I
-											submit? </a>
+										<a href="#"> Who will see the information I submit? </a>
 									</h4>
 								</div>
 								<div id="collapse4" class="panel-collapse collapse"
@@ -215,8 +401,8 @@
 									aria-controls="collapse5" class="panel-heading" role="tab"
 									id="heading5">
 									<h4 class="panel-title">
-										<a href="#"> What happens after I fill in my
-											information? </a>
+										<a href="#"> What happens after I fill in my information?
+										</a>
 									</h4>
 								</div>
 								<div id="collapse5" class="panel-collapse collapse"
@@ -237,8 +423,8 @@
 									aria-controls="collapse6" class="panel-heading" role="tab"
 									id="heading6">
 									<h4 class="panel-title">
-										<a href="#"> What is the process for making a
-											catalyst grant award? </a>
+										<a href="#"> What is the process for making a catalyst
+											grant award? </a>
 									</h4>
 								</div>
 								<div id="collapse6" class="panel-collapse collapse"
@@ -263,8 +449,8 @@
 									aria-controls="collapse7" class="panel-heading" role="tab"
 									id="heading7">
 									<h4 class="panel-title">
-										<a href="#"> What model organisms are directly
-											supported within the registry? </a>
+										<a href="#"> What model organisms are directly supported
+											within the registry? </a>
 									</h4>
 								</div>
 								<div id="collapse7" class="panel-collapse collapse"
@@ -281,8 +467,8 @@
 									aria-controls="collapse8" class="panel-heading" role="tab"
 									id="heading8">
 									<h4 class="panel-title">
-										<a href="#"> Which genes should I enter into the
-											registry? </a>
+										<a href="#"> Which genes should I enter into the registry?
+										</a>
 									</h4>
 								</div>
 								<div id="collapse8" class="panel-collapse collapse"
@@ -341,8 +527,8 @@
 									aria-controls="collapse9" class="panel-heading" role="tab"
 									id="heading9">
 									<h4 class="panel-title">
-										<a href="#"> What if I study more than one model
-											organism? </a>
+										<a href="#"> What if I study more than one model organism?
+										</a>
 									</h4>
 								</div>
 								<div id="collapse9" class="panel-collapse collapse"
@@ -357,8 +543,8 @@
 									aria-controls="collapse10" class="panel-heading" role="tab"
 									id="heading10">
 									<h4 class="panel-title">
-										<a href="#"> Are humans a "model" for the
-											purposes of the RDMMN registry? </a>
+										<a href="#"> Are humans a "model" for the purposes of the
+											RDMMN registry? </a>
 									</h4>
 								</div>
 								<div id="collapse10" class="panel-collapse collapse"
@@ -379,8 +565,7 @@
 									aria-controls="collapse11" class="panel-heading" role="tab"
 									id="heading11">
 									<h4 class="panel-title">
-										<a href="#"> What if the organism I study is not
-											listed? </a>
+										<a href="#"> What if the organism I study is not listed? </a>
 									</h4>
 								</div>
 								<div id="collapse11" class="panel-collapse collapse"
@@ -406,8 +591,8 @@
 									aria-controls="collapse12" class="panel-heading" role="tab"
 									id="heading12">
 									<h4 class="panel-title">
-										<a href="#"> Should I fill in the human
-											orthologs of genes I study? </a>
+										<a href="#"> Should I fill in the human orthologs of genes
+											I study? </a>
 									</h4>
 								</div>
 								<div id="collapse12" class="panel-collapse collapse"
@@ -424,9 +609,9 @@
 									aria-controls="collapse13" class="panel-heading" role="tab"
 									id="heading13">
 									<h4 class="panel-title">
-										<a href="#"> I study the entire genome, or have
-											the ability to assay the function of any gene. How do I
-											select which genes I should list? </a>
+										<a href="#"> I study the entire genome, or have the
+											ability to assay the function of any gene. How do I select
+											which genes I should list? </a>
 									</h4>
 								</div>
 								<div id="collapse13" class="panel-collapse collapse"

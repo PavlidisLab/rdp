@@ -239,6 +239,14 @@ return $(result);
                         '<th>Name</th>'+
                      '</tr>' +
                      '</thead>'
+                     
+      genes.sort(function(a, b){
+         if (a.officialSymbol < b.officialSymbol)
+            return -1;
+         if (a.officialSymbol > b.officialSymbol)
+           return 1;
+         return 0;
+         });              
       for (var i=0;i<genes.length;i++){
          var savedGenes = researcherModel.currentResearcher.genes;
          var classColored = "";
