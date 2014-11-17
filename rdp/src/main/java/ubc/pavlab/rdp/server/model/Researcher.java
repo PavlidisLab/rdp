@@ -196,6 +196,17 @@ public class Researcher implements Serializable {
         return goTerms;
     }
 
+    public Set<GeneOntologyTerm> getGoTermsByTaxonId( Long taxonId ) {
+        Set<GeneOntologyTerm> terms = new HashSet<GeneOntologyTerm>();
+        for ( GeneOntologyTerm term : goTerms ) {
+            if ( term.getTaxonId().equals( taxonId ) ) {
+                terms.add( term );
+            }
+        }
+
+        return terms;
+    }
+
     public void setGoTerms( Set<GeneOntologyTerm> goTerms ) {
         this.goTerms = goTerms;
     }

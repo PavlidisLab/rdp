@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -319,6 +320,18 @@ public class ResearcherServiceImpl implements ResearcherService {
 
         modified |= addGenes( researcher, calculatedGenes );
         return modified;
+    }
+
+    @Override
+    @Transactional
+    public void refreshOverlaps( Researcher researcher, Long taxonId ) {
+        Set<GeneOntologyTerm> goTerms = researcher.getGoTermsByTaxonId( taxonId );
+        Collection<Gene> genes = researcher.getDirectGenesInTaxon( taxonId );
+        for ( GeneOntologyTerm term : goTerms ) {
+            term.setFrequency( gOService.computeOverlapFrequency( term.getGeneOntologyId(), genes ) );
+        }
+
+        researcherDao.update( researcher );
     }
 
     @Override

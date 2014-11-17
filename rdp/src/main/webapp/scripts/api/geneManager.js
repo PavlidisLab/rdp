@@ -53,7 +53,14 @@
       researcher.addTaxonDescription(taxonId, modelOrganisms.focus().text() )
 
       var promise = researcherModel.saveResearcherGenesByTaxon(taxonId);
-
+      
+      // invalidate all child rows so that ajax will be called again on them
+      var dTable = goManager.table().DataTable();
+      var rows = dTable.rows().nodes();
+      for (var i=0;i<rows.length;i++) {
+         dTable.row(rows[i]).child.remove();
+      }
+            
       $.when(promise).done(function() {
          btn.removeAttr("disabled");
          btn.children('i').removeClass('fa-spin');

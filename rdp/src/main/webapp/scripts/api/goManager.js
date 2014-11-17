@@ -72,7 +72,14 @@
       researcher.addTaxonDescription(taxonId, modelOrganisms.focus().text() )
       researcher.updateTermsForTaxon( newTerms, taxonId );
       var promise = researcherModel.saveResearcherTermsForTaxon( taxonId );
-
+      
+      // invalidate all child rows so that ajax will be called again on them
+      var dTable = goManager.table().DataTable();
+      var rows = dTable.rows().nodes();
+      for (var i=0;i<rows.length;i++) {
+         dTable.row(rows[i]).child.remove();
+      }
+      
       $.when(promise).done(function() {
          btn.removeAttr("disabled");
          btn.children('i').removeClass('fa-spin');
@@ -459,6 +466,15 @@ $( document ).ready( function() {
              var promise = goManager.getGenePool( term.geneOntologyId )
              $.when(promise).done(function() {
                 row.child( goManager.formatGenePool( promise.responseJSON.genePool ), 'child-table' ).show();
+
+                promise = getGOTermStats( term.geneOntologyId );
+                
+                $.when(promise).done(function() {
+                   term.size = promise.responseJSON.geneSize;
+                   term.frequency = promise.responseJSON.frequency;
+                   row.invalidate().draw();
+                });
+                
              });
           } else {
              row.child.show();

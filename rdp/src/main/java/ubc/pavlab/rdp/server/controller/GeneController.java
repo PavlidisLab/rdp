@@ -244,6 +244,7 @@ public class GeneController {
             // Update Genes
             researcherService.updateGenesByTaxon( researcher, taxonId, genes );
             researcherService.calculateGenes( researcher, taxonId );
+            researcherService.refreshOverlaps( researcher, taxonId );
             // researcherService.updateGenes( researcher, geneService.quickDeserializeGenes( genesJSON ) );
 
             JSONObject json = new JSONObject();

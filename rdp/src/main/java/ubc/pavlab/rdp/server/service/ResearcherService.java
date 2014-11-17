@@ -113,4 +113,7 @@ public interface ResearcherService {
     @Secured({ "GROUP_USER" })
     public boolean calculateGenes( Researcher researcher, Long taxonId );
 
+    @Secured({ "GROUP_USER" })
+    public void refreshOverlaps( Researcher researcher, Long taxonId );
+
 }
