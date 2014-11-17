@@ -353,6 +353,12 @@ border-color: #555753;
 #go-tab table.dataTable.display tbody tr.child-table tr > th,
 #suggestedTermsTable.table.dataTable.display tbody tr.child-table tr > th {
 	background-color: #d3d7cf;
+	font-size: 12px;
+}
+
+#go-tab table.dataTable.display tbody tr.child-table tr > td,
+#suggestedTermsTable.table.dataTable.display tbody tr.child-table tr > td {
+	font-size: 12px;
 }
 
 #go-tab table.dataTable.display tbody tr.child-table > td.child-table,
