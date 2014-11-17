@@ -242,7 +242,7 @@ public class GOServiceImpl implements GOService {
 
         // ArrayList<GOTerm> results = new ArrayList<GOTerm>();
         Map<GOTerm, Long> results = new HashMap<GOTerm, Long>();
-        log.info( "search: " + queryString );
+        // log.info( "search: " + queryString );
         for ( GOTerm term : termMap.values() ) {
             if ( queryString.equals( term.getId() ) || ( "GO:" + queryString ).equals( term.getId() ) ) {
                 results.put( term, 1L );
@@ -295,7 +295,7 @@ public class GOServiceImpl implements GOService {
 
         }
 
-        log.info( "search result size " + results.size() );
+        // log.info( "search result size " + results.size() );
 
         // Now we have a set of terms with how well they match
         results = sortByValue( results, false );

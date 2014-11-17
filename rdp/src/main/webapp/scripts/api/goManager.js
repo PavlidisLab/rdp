@@ -415,7 +415,7 @@ return $(result);
                var GOResults = []
                for (var i = 0; i < data.data.length; i++) {
                   var term = data.data[i];
-                  term.text = "<b>" + term.geneOntologyId + "</b> <i>" + goManager.aspectToString(term.aspect) + "</i> " + term.geneOntologyTerm + " <i>Term Size:</i> " + term.size;
+                  term.text = "<b>" + term.geneOntologyId + "</b> <i>" + goManager.aspectToString(term.aspect) + "</i> " + term.geneOntologyTerm + ", " + term.size + " Genes";
                   GOResults.push(term);
                }
                return {
