@@ -88,6 +88,8 @@ public class GeneOntologyTerm {
     public GeneOntologyTerm( GOTerm term ) {
         this.geneOntologyId = term.getId();
         this.geneOntologyTerm = term.getTerm();
+        this.definition = term.getDefinition();
+        this.aspect = GOAspect.valueOf( term.getAspect().toUpperCase() );
     }
 
     public GeneOntologyTerm( GeneOntologyTerm term ) {

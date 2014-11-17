@@ -39,7 +39,7 @@ public interface GOService extends InitializingBean {
     public abstract Map<GOTerm, Long> calculateGoTermFrequency( Collection<Gene> genes, Long taxonId,
             int minimumFrequency, int minimumTermSize, int maximumTermSize );
 
-    public abstract Collection<GeneOntologyTerm> fetchByQuery( String queryString );
+    // public abstract Collection<GeneOntologyTerm> fetchByQuery( String queryString );
 
     /**
      * @param entry
@@ -112,13 +112,13 @@ public interface GOService extends InitializingBean {
 
     public abstract Long getGeneSize( GOTerm t );
 
-    public abstract Long getDirectGeneSize( GOTerm t );
+    // public abstract Long getDirectGeneSize( GOTerm t );
 
     public abstract Long getGeneSizeInTaxon( String id, Long taxonId );
 
     public abstract Long getGeneSizeInTaxon( GOTerm t, Long taxonId );
 
-    public abstract Long getDirectGeneSizeInTaxon( GOTerm t, Long taxonId );
+    // public abstract Long getDirectGeneSizeInTaxon( GOTerm t, Long taxonId );
 
     public abstract Collection<Gene> getRelatedGenes( Collection<GeneOntologyTerm> goTerms, Long taxonId );
 
@@ -126,8 +126,10 @@ public interface GOService extends InitializingBean {
 
     public abstract void init();
 
-    public abstract Collection<GeneOntologyTerm> deserializeGOTerms( String[] GOJSON );
+    public abstract Collection<GOTerm> deserializeGOTerms( String[] GOJSON );
 
     public abstract JSONArray toJSON( Collection<GeneOntologyTerm> goTerms );
+
+    public abstract Collection<GOTerm> search( String queryString );
 
 }

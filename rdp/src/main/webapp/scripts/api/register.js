@@ -31,6 +31,29 @@ $( document ).ready( function() {
 	         //$( "#navbarUsername" ).append( ' <span class="caret"></span>' );
 	      }
 	   } );
+   
+   window.onbeforeunload = function (e) {
+      e = e || window.event;
+
+      var currentTab = $("#menu li.active a").attr('href');
+      var dirtyCheck = function() {return false;};
+      if (currentTab == "#modelOrganisms") {
+         dirtyCheck = modelOrganisms.isChanged;
+      } else if ( currentTab == "#myAccount") {
+         dirtyCheck = profile.isChanged;
+      }
+
+      if ( dirtyCheck() ) {
+      
+         // For IE and Firefox prior to version 4
+         if (e) {
+             e.returnValue = 'You have unsaved changes!';
+         }
+   
+         // For Safari
+         return 'You have unsaved changes!';
+      }
+   };
             
    
    
@@ -103,6 +126,12 @@ $( document ).ready( function() {
       $('#menu a[href="#myAccount"]').tab('show');
       $('#menu a[href="#myAccount"]').trigger('click.metisMenu');
       $('.tab-pane a[href="#profile-tab"]').tab('show');
+    });
+   
+   $('a[href="#help"]').click(function(){
+      
+      $('#menu a[href="#help"]').tab('show');
+      $('#menu a[href="#help"]').trigger('click.metisMenu');
     });
    
 /*   $('a[href="#profile"]').on('show.bs.tab', function() {

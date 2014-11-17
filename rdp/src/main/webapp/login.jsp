@@ -98,7 +98,7 @@
 
 			    <div class="modal-footer">
 					<div class="col-sm-offset-9 col-sm-3 text-right">
-						<a href="mailto:rdp@chibi.ubc.ca" style="font-size:15px">Contact Support</a>
+						<a href="mailto:registry-help@rare-diseases-catalyst-network.ca" style="font-size:15px">Contact Support</a>
 					</div>
 			    </div>
 
@@ -113,12 +113,30 @@
     <script src="scripts/lib/jquery.validate.min.js"></script>
     <script type="text/javascript"
         src="http://www.google.com/recaptcha/api/js/recaptcha_ajax.js"></script>
-
+	<script src="scripts/lib/modernizr.custom.31926.js"></script>
     <!-- Our scripts -->
     <script src="scripts/api/utility.js"></script>
     <script src="scripts/api/login.js"></script>
     <script src="scripts/api/signup.js"></script>
     <script src="scripts/api/forgotPasswordForm.js"></script>
+    <script> 
+    $(document).ready(function() {
+    	if(!Modernizr.input.placeholder){
+    		$("input").each(
+    			function(){
+    				if($(this).val()=="" && $(this).attr("placeholder")!=""){
+    					$(this).val($(this).attr("placeholder"));
+    					$(this).focus(function(){
+    						if($(this).val()==$(this).attr("placeholder")) $(this).val("");
+    					});
+    					$(this).blur(function(){
+    						if($(this).val()=="") $(this).val($(this).attr("placeholder"));
+    					});
+    				}
+    		});
+    	}
+    });
+    </script>
     
 </body>
 </html>

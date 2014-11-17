@@ -20,7 +20,9 @@
 package ubc.pavlab.rdp.server.model;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 
 /**
  * TODO Document Me
@@ -96,6 +98,7 @@ public class GOTerm {
     private boolean isObsolete;
     private Collection<Relationship> parents = new HashSet<Relationship>();
     private Collection<Relationship> children = new HashSet<Relationship>();
+    private Map<Long, Long> sizesByTaxon = new HashMap<Long, Long>();
 
     public GOTerm() {
     }
@@ -174,6 +177,35 @@ public class GOTerm {
 
     public void addParent( Relationship parent ) {
         this.parents.add( parent );
+    }
+
+    public Map<Long, Long> getSizesByTaxon() {
+        return sizesByTaxon;
+    }
+
+    public void setSizesByTaxon( Map<Long, Long> sizesByTaxon ) {
+        this.sizesByTaxon = sizesByTaxon;
+    }
+
+    public void setSize( Long size, Long taxonId ) {
+        this.sizesByTaxon.put( taxonId, size );
+    }
+
+    public Long getSize( Long taxonId ) {
+        Long res = this.sizesByTaxon.get( taxonId );
+        if ( res == null ) {
+            return 0L;
+        } else {
+            return res;
+        }
+    }
+
+    public Long getSize() {
+        Long size = 0L;
+        for ( Long count : this.sizesByTaxon.values() ) {
+            size += count;
+        }
+        return size;
     }
 
     @Override

@@ -45,7 +45,6 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import ubc.pavlab.rdp.server.cache.GeneOntologyTermCache;
 import ubc.pavlab.rdp.server.model.GOTerm;
 import ubc.pavlab.rdp.server.model.GOTerm.Relationship;
 import ubc.pavlab.rdp.server.model.GOTerm.Relationship.RelationshipType;
@@ -75,11 +74,11 @@ public class GOServiceImpl implements GOService {
 
     private static Map<String, GOTerm> termMap = new HashMap<>();
 
-    private static Map<GOTerm, Map<Long, Long>> termSizeByTaxonCache = new HashMap<GOTerm, Map<Long, Long>>();
+    // private static Map<GOTerm, Map<Long, Long>> termSizeByTaxonCache = new HashMap<GOTerm, Map<Long, Long>>();
     private static Map<GOTerm, Collection<GOTerm>> descendantsCache = new HashMap<GOTerm, Collection<GOTerm>>();
 
-    @Autowired
-    private GeneOntologyTermCache geneOntologyTermCache;
+    // @Autowired
+    // private GeneOntologyTermCache geneOntologyTermCache;
 
     @Autowired
     private TaxonService taxonService;
@@ -169,8 +168,13 @@ public class GOServiceImpl implements GOService {
         return frequencyMap;
     }
 
-    @SuppressWarnings({ "unchecked", "rawtypes" })
+    @SuppressWarnings("rawtypes")
     private Map sortByValue( Map unsortMap ) {
+        return sortByValue( unsortMap, true );
+    }
+
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    private Map sortByValue( Map unsortMap, boolean reverse ) {
         List list = new LinkedList( unsortMap.entrySet() );
 
         Collections.sort( list, new Comparator() {
@@ -181,7 +185,9 @@ public class GOServiceImpl implements GOService {
             }
         } );
 
-        Collections.reverse( list );
+        if ( reverse ) {
+            Collections.reverse( list );
+        }
 
         Map sortedMap = new LinkedHashMap();
         for ( Iterator it = list.iterator(); it.hasNext(); ) {
@@ -229,10 +235,79 @@ public class GOServiceImpl implements GOService {
         return fmap;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public Collection<GeneOntologyTerm> fetchByQuery( String queryString ) {
-        return geneOntologyTermCache.fetchByQuery( queryString );
+    public Collection<GOTerm> search( String queryString ) {
+        if ( queryString == null ) return new ArrayList<GOTerm>();
+
+        // ArrayList<GOTerm> results = new ArrayList<GOTerm>();
+        Map<GOTerm, Long> results = new HashMap<GOTerm, Long>();
+        // log.info( "search: " + queryString );
+        for ( GOTerm term : termMap.values() ) {
+            if ( queryString.equals( term.getId() ) || ( "GO:" + queryString ).equals( term.getId() ) ) {
+                results.put( term, 1L );
+                continue;
+            }
+
+            String pattern = "(.*)" + queryString + "(.*)";
+            // Pattern r = Pattern.compile(pattern);
+            String m = term.getTerm();
+            // Matcher m = r.matcher( term.getTerm() );
+            if ( m.matches( pattern ) ) {
+                results.put( term, 2L );
+                continue;
+            }
+
+            m = term.getDefinition();
+            // m = r.matcher( term.getDefinition() );
+            if ( m.matches( pattern ) ) {
+                results.put( term, 3L );
+                continue;
+            }
+
+            String[] queryList = queryString.split( " " );
+            for ( String q : queryList ) {
+                pattern = "(.*)" + q + "(.*)";
+                // r = Pattern.compile(pattern);
+                m = term.getTerm();
+                // m = r.matcher( term.getTerm() );
+
+                if ( m.matches( pattern ) ) {
+                    results.put( term, 4L );
+                    break;
+                }
+
+            }
+
+            if ( results.containsKey( term ) ) continue;
+
+            for ( String q : queryList ) {
+                pattern = "(.*)" + q + "(.*)";
+                // r = Pattern.compile(pattern);
+                // m = r.matcher( term.getDefinition() );
+                m = term.getDefinition();
+                if ( m.matches( pattern ) ) {
+                    results.put( term, 5L );
+                    break;
+                }
+
+            }
+
+        }
+
+        // log.info( "search result size " + results.size() );
+
+        // Now we have a set of terms with how well they match
+        results = sortByValue( results, false );
+
+        return results.keySet();
+
     }
+
+    // @Override
+    // public Collection<GeneOntologyTerm> fetchByQuery( String queryString ) {
+    // return geneOntologyTermCache.fetchByQuery( queryString );
+    // }
 
     @Override
     public Collection<GOTerm> getChildren( GOTerm entry ) {
@@ -384,32 +459,33 @@ public class GOServiceImpl implements GOService {
     @Override
     public Long getGeneSize( GOTerm t ) {
         if ( t == null ) return null;
-        Collection<GOTerm> terms = getDescendants( t );
-        Long size = getDirectGeneSize( t );
-        for ( GOTerm term : terms ) {
-            size += getDirectGeneSize( term );
-        }
-
-        return size;
+        return t.getSize();
+        // Collection<GOTerm> terms = getDescendants( t );
+        // Long size = getDirectGeneSize( t );
+        // for ( GOTerm term : terms ) {
+        // size += getDirectGeneSize( term );
+        // }
+        //
+        // return size;
     }
 
-    @Override
-    public Long getDirectGeneSize( GOTerm t ) {
-        if ( t == null ) return null;
-        Long cachedSize = null;
-        Map<Long, Long> cache = termSizeByTaxonCache.get( t );
-
-        // Since we pre-compute direct sizes, if the cache is not found it means
-        // there are no genes directly annotated with this term
-        cachedSize = 0L;
-        if ( cache != null ) {
-            for ( Long taxonSize : cache.values() ) {
-                cachedSize += taxonSize;
-            }
-        }
-
-        return cachedSize;
-    }
+    // @Override
+    // public Long getDirectGeneSize( GOTerm t ) {
+    // if ( t == null ) return null;
+    // Long cachedSize = null;
+    // Map<Long, Long> cache = termSizeByTaxonCache.get( t );
+    //
+    // // Since we pre-compute direct sizes, if the cache is not found it means
+    // // there are no genes directly annotated with this term
+    // cachedSize = 0L;
+    // if ( cache != null ) {
+    // for ( Long taxonSize : cache.values() ) {
+    // cachedSize += taxonSize;
+    // }
+    // }
+    //
+    // return cachedSize;
+    // }
 
     @Override
     public Long getGeneSizeInTaxon( String id, Long taxonId ) {
@@ -419,34 +495,35 @@ public class GOServiceImpl implements GOService {
     @Override
     public Long getGeneSizeInTaxon( GOTerm t, Long taxonId ) {
         if ( t == null ) return null;
-        Collection<GOTerm> terms = getDescendants( t );
-        Long size = getDirectGeneSizeInTaxon( t, taxonId );
-        for ( GOTerm term : terms ) {
-            size += getDirectGeneSizeInTaxon( term, taxonId );
-        }
-
-        return size;
+        return t.getSize( taxonId );
+        // Collection<GOTerm> terms = getDescendants( t );
+        // Long size = getDirectGeneSizeInTaxon( t, taxonId );
+        // for ( GOTerm term : terms ) {
+        // size += getDirectGeneSizeInTaxon( term, taxonId );
+        // }
+        //
+        // return size;
     }
 
-    @Override
-    public Long getDirectGeneSizeInTaxon( GOTerm t, Long taxonId ) {
-        if ( t == null ) return null;
-
-        Map<Long, Long> cache = termSizeByTaxonCache.get( t );
-
-        // Since we pre-compute direct sizes, if the cache is not found it means
-        // there are no genes directly annotated with this term
-        Long cachedSize = 0L;
-        if ( cache != null ) {
-            cachedSize = cache.get( taxonId );
-
-            if ( cachedSize == null ) {
-                cachedSize = 0L;
-            }
-        }
-
-        return cachedSize;
-    }
+    // @Override
+    // public Long getDirectGeneSizeInTaxon( GOTerm t, Long taxonId ) {
+    // if ( t == null ) return null;
+    //
+    // Map<Long, Long> cache = termSizeByTaxonCache.get( t );
+    //
+    // // Since we pre-compute direct sizes, if the cache is not found it means
+    // // there are no genes directly annotated with this term
+    // Long cachedSize = 0L;
+    // if ( cache != null ) {
+    // cachedSize = cache.get( taxonId );
+    //
+    // if ( cachedSize == null ) {
+    // cachedSize = 0L;
+    // }
+    // }
+    //
+    // return cachedSize;
+    // }
 
     @Override
     public Collection<Gene> getRelatedGenes( Collection<GeneOntologyTerm> goTerms, Long taxonId ) {
@@ -508,23 +585,23 @@ public class GOServiceImpl implements GOService {
                     loadTime.reset();
                     loadTime.start();
 
-                    precomputeSizes();
-                    log.info( "GOSize cache size: " + termSizeByTaxonCache.size() + " in " + loadTime.getTime() / 1000
-                            + "s" );
+                    long cacheSize = precomputeSizes();
+                    log.info( "GOSize cache size: " + cacheSize + " in " + loadTime.getTime() / 1000 + "s" );
 
-                    loadTime.reset();
-                    loadTime.start();
-                    precomputeDescendants();
-                    log.info( "Precompute descendants in " + loadTime.getTime() / 1000 + "s" );
+                    // loadTime.reset();
+                    // loadTime.start();
+                    // precomputeDescendants();
+                    // log.info( "Precompute descendants in " + loadTime.getTime() / 1000 + "s" );
 
                     ready.set( true );
                     running.set( false );
 
-                    loadTime.reset();
-                    loadTime.start();
-                    long cacheSize = updateEhCache();
-                    log.info( "Gene Ontology ehCache, total of " + cacheSize + " items in " + loadTime.getTime() / 1000
-                            + "s" );
+                    // loadTime.reset();
+                    // loadTime.start();
+                    // cacheSize = updateEhCache();
+                    // log.info( "Gene Ontology ehCache, total of " + cacheSize + " items in " + loadTime.getTime() /
+                    // 1000
+                    // + "s" );
 
                     log.info( "Done loading GO" );
                     loadTime.stop();
@@ -552,8 +629,9 @@ public class GOServiceImpl implements GOService {
         termMap = gOParser.getMap();
     }
 
-    private void precomputeSizes() {
+    private long precomputeSizes() {
         List<Object[]> list = geneAnnotationService.calculateDirectSizes();
+        Map<GOTerm, Map<Long, Long>> directTermSizeByTaxon = new HashMap<GOTerm, Map<Long, Long>>();
         Collection<String> nullIds = new HashSet<String>();
         for ( Object[] entity : list ) {
             String id = ( String ) entity[0];
@@ -567,10 +645,12 @@ public class GOServiceImpl implements GOService {
                 continue;
             }
 
-            if ( termSizeByTaxonCache.get( term ) == null ) {
-                termSizeByTaxonCache.put( term, new HashMap<Long, Long>() );
+            if ( directTermSizeByTaxon.get( term ) == null ) {
+                directTermSizeByTaxon.put( term, new HashMap<Long, Long>() );
             }
-            termSizeByTaxonCache.get( term ).put( taxonId, count );
+            directTermSizeByTaxon.get( term ).put( taxonId, count );
+
+            // term.setSize(count, taxonId);
 
         }
 
@@ -578,6 +658,44 @@ public class GOServiceImpl implements GOService {
             log.warn( "Could not find " + nullIds.size() + " terms in map " );
         }
 
+        Collection<GOTerm> allTerms = termMap.values();
+
+        for ( GOTerm term : allTerms ) {
+            Map<Long, Long> sizesByTaxon = new HashMap<Long, Long>();
+
+            sizesByTaxon = addMaps( sizesByTaxon, directTermSizeByTaxon.get( term ) );
+
+            Collection<GOTerm> descendants = getDescendants( term );
+
+            for ( GOTerm descendant : descendants ) {
+                sizesByTaxon = addMaps( sizesByTaxon, directTermSizeByTaxon.get( descendant ) );
+            }
+
+            term.setSizesByTaxon( sizesByTaxon );
+
+        }
+
+        return directTermSizeByTaxon.size();
+
+    }
+
+    private Map<Long, Long> addMaps( Map<Long, Long> one, Map<Long, Long> two ) {
+        // Changes first Map in place
+
+        if ( two == null ) return one;
+
+        for ( Map.Entry<Long, Long> entry : two.entrySet() ) {
+            Long key = entry.getKey();
+            Long val = entry.getValue();
+            Long otherVal = one.get( key );
+            if ( otherVal == null ) {
+                one.put( key, val );
+            } else {
+                one.put( key, otherVal + val );
+            }
+        }
+
+        return one;
     }
 
     private void precomputeDescendants() {
@@ -586,33 +704,33 @@ public class GOServiceImpl implements GOService {
         getDescendants( termMap.get( "GO:0008150" ) );
     }
 
-    private long updateEhCache() {
-        long cacheSize = -1;
-        Collection<GOTerm> terms = termMap.values();
-        // prepare terms
-        Collection<GeneOntologyTerm> goTerms = new HashSet<GeneOntologyTerm>();
-
-        for ( GOTerm term : terms ) {
-            GeneOntologyTerm goTerm = new GeneOntologyTerm( term );
-            // goTerm.setFrequency( 0L );
-            // goTerm.setSize( geneOntologyService.getGeneSize( term ) );
-            goTerm.setDefinition( term.getDefinition() );
-            goTerm.setAspect( GOAspect.valueOf( term.getAspect().toUpperCase() ) );
-            goTerms.add( goTerm );
-
-        }
-        geneOntologyTermCache.putAll( goTerms );
-
-        cacheSize = geneOntologyTermCache.size();
-        log.info( "Current size of Cache: " + cacheSize );
-
-        return cacheSize;
-
-    }
+    // private long updateEhCache() {
+    // long cacheSize = -1;
+    // Collection<GOTerm> terms = termMap.values();
+    // // prepare terms
+    // Collection<GeneOntologyTerm> goTerms = new HashSet<GeneOntologyTerm>();
+    //
+    // for ( GOTerm term : terms ) {
+    // GeneOntologyTerm goTerm = new GeneOntologyTerm( term );
+    // // goTerm.setFrequency( 0L );
+    // goTerm.setSize( getGeneSize( term ) );
+    // goTerm.setDefinition( term.getDefinition() );
+    // goTerm.setAspect( GOAspect.valueOf( term.getAspect().toUpperCase() ) );
+    // goTerms.add( goTerm );
+    //
+    // }
+    // geneOntologyTermCache.putAll( goTerms );
+    //
+    // cacheSize = geneOntologyTermCache.size();
+    // log.info( "Current size of Cache: " + cacheSize );
+    //
+    // return cacheSize;
+    //
+    // }
 
     @Override
-    public Collection<GeneOntologyTerm> deserializeGOTerms( String[] GOJSON ) {
-        Collection<GeneOntologyTerm> results = new HashSet<GeneOntologyTerm>();
+    public Collection<GOTerm> deserializeGOTerms( String[] GOJSON ) {
+        Collection<GOTerm> results = new HashSet<GOTerm>();
         for ( int i = 0; i < GOJSON.length; i++ ) {
             JSONObject json = new JSONObject( GOJSON[i] );
             if ( !json.has( "geneOntologyId" ) ) {
@@ -624,7 +742,8 @@ public class GOServiceImpl implements GOService {
                 throw new IllegalArgumentException( "Every gene must have an assigned ID." );
             }
 
-            GeneOntologyTerm term = geneOntologyTermCache.fetchById( geneOntologyId );
+            // GeneOntologyTerm term = geneOntologyTermCache.fetchById( geneOntologyId );
+            GOTerm term = termMap.get( geneOntologyId );
             if ( !( term == null ) ) {
                 results.add( term );
             } else {

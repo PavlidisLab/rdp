@@ -43,7 +43,7 @@
    editFocus = function(e) {
       e.stopPropagation();
       e.preventDefault();
-      $(this).removeClass('fa-edit').addClass('fa-check-square-o').removeClass('yellow-icon').addClass('green-icon');
+      $(this).removeClass('fa-lock').addClass('fa-check-square-o').removeClass('yellow-icon').addClass('green-icon');
       var div = $(this).closest('div');
       
       var a = $(this).closest('a');
@@ -61,7 +61,7 @@
    lockFocus = function(e) {
       e.stopPropagation();
       e.preventDefault();
-      $(this).removeClass('fa-check-square-o').addClass('fa-edit').removeClass('green-icon').addClass('yellow-icon');
+      $(this).removeClass('fa-check-square-o').addClass('fa-lock').removeClass('green-icon').addClass('yellow-icon');
       var div = $(this).closest('div');
       
       var a = $(this).closest('a');
@@ -76,7 +76,7 @@
    }
    
    modelOrganisms.init = function() {
-      $('#research-focus a').on('click', 'i[class~="fa-edit"]', editFocus );
+      $('#research-focus a').on('click', 'i[class~="fa-lock"]', editFocus );
       $('#research-focus a').on('click', 'i[class~="fa-check-square-o"]', lockFocus );
       $('a[href="#modelOrganisms"][data-toggle="tab"]').on('show.bs.tab', function() {
          utility.setConfirmChanges($(this), modelOrganisms.isChanged, $('#myModelOrganismsList > ul > li > a[href="#modelOrganisms"]:contains("'+modelOrganisms.currentTaxon()+'")'));

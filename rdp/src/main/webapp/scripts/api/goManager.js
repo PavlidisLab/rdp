@@ -3,6 +3,8 @@
  */
 (function( goManager, $, undefined ) {
       
+	sizeLimit = 100;
+	
    goManager.aspectToString = function(aspect) {
       switch(aspect) {
          case "BIOLOGICAL_PROCESS":
@@ -70,7 +72,14 @@
       researcher.addTaxonDescription(taxonId, modelOrganisms.focus().text() )
       researcher.updateTermsForTaxon( newTerms, taxonId );
       var promise = researcherModel.saveResearcherTermsForTaxon( taxonId );
-
+      
+      // invalidate all child rows so that ajax will be called again on them
+      var dTable = goManager.table().DataTable();
+      var rows = dTable.rows().nodes();
+      for (var i=0;i<rows.length;i++) {
+         dTable.row(rows[i]).child.remove();
+      }
+      
       $.when(promise).done(function() {
          btn.removeAttr("disabled");
          btn.children('i').removeClass('fa-spin');
@@ -114,8 +123,11 @@
       goManager.select2().select2( "val", "" );
       
       goManager.closeAddTermsModal();
-      
-      var inst = goManager.addGoTermToTable(term, true)
+      if (term.size <= sizeLimit) {
+    	  var inst = goManager.addGoTermToTable(term, true)
+      } else {
+    	  utility.showMessage( "GO Term is too large, please select another", $( "#modelOrganisms .main-header .alert div" ) );
+      }
       
       if (inst) {
       
@@ -193,6 +205,14 @@
       '<th>Symbol</td>'+
       '<th colspan="4">Name</td>'+
       '</tr>';
+
+      genes.sort(function(a, b){
+         if (a.officialSymbol < b.officialSymbol)
+            return -1;
+         if (a.officialSymbol > b.officialSymbol)
+           return 1;
+         return 0;
+         });
       for (var i=0;i<genes.length;i++){
          var savedGenes = researcherModel.currentResearcher.genes;
          var classColored = "";
@@ -365,7 +385,15 @@ return $(result);
       } );
    }
    
-
+   formatTerm = function(term) {
+	   if ( term.size > sizeLimit ) {
+		   //$(container).addClass("greyed-out");
+		   return "greyed-out";
+	   }
+	   //return term.text;
+	    
+   }
+   
    goManager.initSelect2 = function() {
       // init search genes combo    
       goManager.select2().select2( {
@@ -379,14 +407,15 @@ return $(result);
             dataType : "json",
             data : function(query, page) {
                return {
-                  query : query // search term
+                  query : query, // search term
+                  taxonId: modelOrganisms.currentTaxonId()
                }
             },
             results : function(data, page) {
                var GOResults = []
                for (var i = 0; i < data.data.length; i++) {
                   var term = data.data[i];
-                  term.text = "<b>" + term.geneOntologyId + "</b> <i>" + goManager.aspectToString(term.aspect) + "</i> " +term.geneOntologyTerm;
+                  term.text = "<b>" + term.geneOntologyId + "</b> <i>" + goManager.aspectToString(term.aspect) + "</i> " + term.geneOntologyTerm + ", " + term.size + " Genes";
                   GOResults.push(term);
                }
                return {
@@ -395,6 +424,7 @@ return $(result);
             },
 
          },
+         formatResultCssClass: formatTerm,
          formatAjaxError : function(response) {
             var msg = response.responseText;
             return msg;
@@ -417,7 +447,7 @@ return $(result);
 
 $( document ).ready( function() {
    goManager.init();
-   goManager.initDataTable( goManager.table(), [ {"sExtends":    "text", "fnClick":goManager.openAddTermsModal, "sButtonText": '<i class="fa fa-plus-circle green-icon"></i>&nbsp; Suggest Terms' },
+   goManager.initDataTable( goManager.table(), [ {"sExtends":    "text", "fnClick":goManager.openAddTermsModal, "sButtonText": '<i class="fa fa-plus-circle green-icon"></i>&nbsp; Select GO Terms' },
                                            {"sExtends":    "text", "fnClick":goManager.removeSelectedRows, "sButtonText": '<i class="fa fa-minus-circle red-icon"></i>&nbsp; Remove Selected' },
                                            "select_all", 
                                            "select_none" ] );
@@ -444,9 +474,30 @@ $( document ).ready( function() {
              var promise = goManager.getGenePool( term.geneOntologyId )
              $.when(promise).done(function() {
                 row.child( goManager.formatGenePool( promise.responseJSON.genePool ), 'child-table' ).show();
+
+                promise = getGOTermStats( term.geneOntologyId );
+                
+                $.when(promise).done(function() {
+                   term.size = promise.responseJSON.geneSize;
+                   term.frequency = promise.responseJSON.frequency;
+                   row.invalidate().draw();
+                });
+                
              });
           } else {
              row.child.show();
+             var childTableRows = $('table tbody tr', row.child() );
+             var researcher = researcherModel.currentResearcher;
+             var taxonId = modelOrganisms.currentTaxonId();
+             childTableRows.each( function( i, el ) {
+                var symbol = $('td:first',el).text();
+                if ( researcher.hasGeneBySymbolTaxonId( symbol, taxonId ) ) {
+                   $(el).addClass('green-row');
+                } else {
+                   $(el).removeClass('green-row');
+                }
+             });
+             
           }
           
           tr.addClass('shown');

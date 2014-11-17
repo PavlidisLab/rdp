@@ -20,7 +20,6 @@
 package ubc.pavlab.rdp.server.security.service;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -250,7 +249,7 @@ public class ResearcherServiceTest extends BaseSpringContextTest {
             assertEquals( "aaa", researcher.getGenes().iterator().next().getOfficialSymbol() );
 
             // duplicate genes aren't allowed
-            assertFalse( researcherService.addGenes( researcher, genes ) );
+            assertTrue( researcherService.addGenes( researcher, genes ) );
             assertEquals( 1, researcher.getGenes().size() );
             assertEquals( "aaa", researcher.getGenes().iterator().next().getOfficialSymbol() );
 

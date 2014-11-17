@@ -30,16 +30,6 @@
 
  <cache name="org.hibernate.cache.UpdateTimestampsCache" maxElementsOnDisk="10000" maxElementsInMemory="5000"
   eternal="true" overflowToDisk="false" />
-
-  <cache name="NcbiCache" maxElementsInMemory="0" eternal="true" overflowToDisk="false">
-   <searchable>
-    <searchAttribute name="ncbiGeneId" />
-    <searchAttribute name="aliases" />
-    <searchAttribute name="officialName" />
-    <searchAttribute name="officialSymbol"/>
-	<searchAttribute name="taxonId" />
-   </searchable>
-  </cache>
   
   <cache name="GeneCache" maxElementsInMemory="0" eternal="true" overflowToDisk="false">
    <searchable>
@@ -49,14 +39,6 @@
     <searchAttribute name="officialSymbol"/>
 	<searchAttribute name="taxonId" />
 	<searchAttribute name="modificationDate" />
-   </searchable>
-  </cache>
-  
-  <cache name="GeneOntologyTermCache" maxElementsInMemory="0" eternal="true" overflowToDisk="false">
-   <searchable>
-    <searchAttribute name="geneOntologyId" />
-    <searchAttribute name="geneOntologyTerm" />
-    <searchAttribute name="definition" />
    </searchable>
   </cache>
   

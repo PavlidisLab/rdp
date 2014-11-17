@@ -191,7 +191,7 @@ public class Settings {
      * @return the configured base url (e.g., http://www.chibi.ubc.ca/rdp/). It will always end in a slash.
      */
     public static String getBaseUrl() {
-        String url = getString( "rdp.base.url", "http://www.chibi.ubc.ca/rdp/" );
+        String url = getString( "rdp.base.url", "http://register.rare-diseases-catalyst-network.ca/rdp/" );
         if ( !url.endsWith( "/" ) ) {
             return url + "/";
         }
@@ -404,7 +404,7 @@ public class Settings {
      * @return host url e.g. http://www.chibi.ubc.ca
      */
     public static String getHostUrl() {
-        return getString( "rdp.hosturl", "http://www.chibi.ubc.ca/" );
+        return getString( "rdp.hosturl", "http://register.rare-diseases-catalyst-network.ca/" );
     }
 
     /**

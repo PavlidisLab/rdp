@@ -25,10 +25,10 @@
 			<div class="tab-pane profile active" id="profile-tab">
 				<div class="row">
 					<div class="col-md-12">
-						<div class="user-info-left col-md-6">
+						<div class="user-info-left col-md-6 col-lg-5">
 							<div class="basic-info">
 								<h3>
-									<a href="#" data-toggle="tooltip" data-placement="bottom" title="Edit"><i class="fa fa-edit yellow-icon"></i></a> Basic Information
+									<a href="#" data-toggle="tooltip" data-placement="bottom" title="Edit"><i class="fa fa-lock yellow-icon"></i></a> Basic Information
 								</h3>
 								<p class="data-row">
 									<span class="data-name">First Name</span> <span
@@ -52,7 +52,7 @@
 							</div>
 							<div class="contact-info">
 								<h3>
-									<a href="#" data-toggle="tooltip" data-placement="bottom" title="Edit"><i class="fa fa-edit yellow-icon"></i></a> Contact Information
+									<a href="#" data-toggle="tooltip" data-placement="bottom" title="Edit"><i class="fa fa-lock yellow-icon"></i></a> Contact Information
 								</h3>
 								<p class="data-row">
 									<span class="data-name">Email</span> <span class="data-value"></span>
@@ -63,10 +63,10 @@
 							</div>
 
 						</div>
-						<div class="user-info-right col-md-6">
+						<div class="user-info-right col-md-6 col-lg-7">
 							<div class="about col-sm-12">
 								<h3>
-									<a href="#" data-toggle="tooltip" data-placement="bottom" title="Edit"><i class="fa fa-edit yellow-icon"></i></a> About My
+									<a href="#" data-toggle="tooltip" data-placement="bottom" title="Edit"><i class="fa fa-lock yellow-icon"></i></a> About My
 									Research
 								</h3>
 								<p custom-placeholder=true data-ph="My lab studies ..."
@@ -74,7 +74,7 @@
 							</div>
 							<div class="publications col-sm-12">
 								<h3>
-									<a href="#" data-toggle="tooltip" data-placement="bottom" title="Edit"><i class="fa fa-edit yellow-icon"></i></a>
+									<a href="#" data-toggle="tooltip" data-placement="bottom" title="Edit"><i class="fa fa-lock yellow-icon"></i></a>
 									Publications (PubMed Ids) 
 								</h3>
 								<p custom-placeholder=pubmed data-ph="My lab studies ..."
