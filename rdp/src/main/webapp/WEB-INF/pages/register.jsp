@@ -98,11 +98,11 @@
 								<span class="sidebar-nav-item-icon fa fa-fw fa-cogs fa-lg"></span>
 								<span class="sidebar-nav-item">Administration</span>
 						</a></li>
-						<li><a href="#overview" data-toggle="tab">
+						<li class="active active-metis"><a href="#overview" data-toggle="tab">
 								<span class="sidebar-nav-item-icon fa fa-fw fa-home fa-lg"></span>
 								<span class="sidebar-nav-item">Overview</span>
 						</a></li>
-						<li class="active active-metis"><a href="#myAccount" data-toggle="tab"> <span
+						<li><a href="#myAccount" data-toggle="tab"> <span
 								class="sidebar-nav-item-icon fa fa-fw fa-user fa-lg"></span> <span
 								class="sidebar-nav-item">My Account</span>
 						</a></li>
@@ -158,7 +158,7 @@
 
 			<section class="content">
 				<div class="tab-content">
-					<div class="tab-pane" id="overview">
+					<div class="tab-pane active" id="overview">
 
 						<div class="col-xs-12">
 							<div class="row">
@@ -175,7 +175,7 @@
 
 					</div>
 
-					<div class="tab-pane active" id="myAccount">
+					<div class="tab-pane" id="myAccount">
 
 						<div class="col-xs-12">
 							<div class="row">
@@ -255,7 +255,7 @@
 	<%@ include file="addGenesModal.jsp"%>
 	<%@ include file="addTermsModal.jsp"%>
 	<%@ include file="confirmModal.jsp"%>
-	<footer class="footer"> © Copyright 2014. "Rare Diseases: Models & Mechanisms Network" All rights reserved. </footer>
+	<footer class="footer"> © Copyright 2014. "Rare Diseases: Models & Mechanisms Network" All rights reserved. <a href="mailto:registry-help@rare-diseases-catalyst-network.ca" class="pull-right">Contact Support</a></footer>
 
 
 	<!-- include jQuery, and our script file -->

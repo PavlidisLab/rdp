@@ -187,7 +187,7 @@ ul.breadcrumb {
 	color: #666;
 }
 
-.tab-content.profile-page, .tab-content.modelOrganism-page, .tab-content.admin-page, .tab-content {
+.main-content .tab-content { {
 	padding: 35px 15px;
 }
 .main-content h3 {

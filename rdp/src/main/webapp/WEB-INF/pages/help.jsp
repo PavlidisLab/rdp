@@ -16,15 +16,110 @@
 		<div class="tab-content help-page">
 			<div class="tab-pane active" id="about-tab">
 				<div class="row">
-					<div class="col-md-9">
-						<div>
-							<h3>
-								<i class="fa fa-info-circle"></i> About
-							</h3>
-							<p class="data-row">
-								<span class="data-name">stuff</span> <span class="data-value"></span>
-							</p>
+					<div class="col-md-12">
+						<div class="panel-group" id="aboutaccordion" role="tablist"
+							aria-multiselectable="true">
+							<div class="panel panel-default">
+								<div data-toggle="collapse" data-target="#aboutcollapse1"
+									data-parent="#aboutaccordion" aria-expanded="false"
+									aria-controls="aboutcollapse1" class="panel-heading" role="tab"
+									id="aboutheading1">
+									<h4 class="panel-title">
+										<a href="#aboutcollapse1"> My Account </a>
+									</h4>
+								</div>
+								<div id="aboutcollapse1" class="panel-collapse collapse"
+									role="tabpanel" aria-labelledby="aboutheading1">
+									<div class="panel-body">
+										<p>
+											On the <b>Profile</b> tab, use the edit functions to provide
+											basic information:
+										</p>
+										<ul>
+											<li>Name</li>
+											<li>Organization</li>
+											<li>Department</li>
+										</ul>
 
+										<p>Complete and accurate information is important to
+											ensure the Network can contact you.</p>
+
+										<p>You can also provide:</p>
+										<ul>
+											<li>A link to your home page (e.g., your lab site)</li>
+											<li>A phone number</li>
+											<li>A summary of your research interests (we recommend
+												100-500 words)</li>
+											<li>A list of PubMed IDs for your publications (for
+												instructions on finding PubMed IDs, go <a href="#">THISNEEDSTOBEFILLEDINDONOTFORGET</a>).
+											</li>
+										</ul>
+
+										<p>
+											These fields are optional. From the "<i>My Account</i>" page
+											you can also edit your account settings. Currently the only
+											editable setting is your password.
+										</p>
+									</div>
+								</div>
+							</div>
+							<div class="panel panel-default">
+								<div data-toggle="collapse" data-target="#aboutcollapse2"
+									data-parent="#aboutaccordion" aria-expanded="false"
+									aria-controls="aboutcollapse2" class="panel-heading" role="tab"
+									id="aboutheading2">
+									<h4 class="panel-title">
+										<a href="#aboutcollapse2"> My Model Organisms </a>
+									</h4>
+								</div>
+								<div id="aboutcollapse2" class="panel-collapse collapse"
+									role="tabpanel" aria-labelledby="aboutheading2">
+									<div class="panel-body">
+
+										<div class="panel-group" id="aboutaccordion2-1">
+											<div class="panel">
+												<a data-toggle="collapse" data-parent="#aboutaccordion2-1"
+													href="#aboutcollapse2-1">Add Model Organsim » </a>
+												<div id="aboutcollapse2-1" class="panel-collapse collapse">
+													<div class="panel-body">
+														<p>To add a model organism:</p>
+														<ol>
+															<li>Click the side bar "<i>My Model Organisms</i>"
+															</li>
+															<li>Click on "<i>Add Organism</i>"
+															</li>
+															<li>Select the desired organism's name</li>
+														</ol>
+														<p>
+															It will be moved to the top section of "<i>My Model
+																Organisms</i>" and the main panel will show you the Manager
+															for that organism. You can have multiple Model Organisms
+															associated with your account.
+														</p>
+													</div>
+												</div>
+											</div>
+											<div class="panel">
+												<a data-toggle="collapse" data-parent="#aboutaccordion2-1"
+													href="#aboutcollapse2-2">Model Organism Manager » </a>
+												<div id="aboutcollapse2-2" class="panel-collapse collapse">
+													<div class="panel-body">
+														<p>
+															In the manager, you can optionally enter a description of
+															your research on this organism, if you feel it is
+															different from the description you may have provided in
+															the <i>My Account</i> section.
+														</p>
+
+														<p>The most important functionality of the Manager is
+															the addition of Genes, and then of Gene Ontology Terms.</p>
+													</div>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
 						</div>
 					</div>
 				</div>

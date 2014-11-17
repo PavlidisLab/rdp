@@ -128,6 +128,12 @@ $( document ).ready( function() {
       $('.tab-pane a[href="#profile-tab"]').tab('show');
     });
    
+   $('a[href="#help"]').click(function(){
+      
+      $('#menu a[href="#help"]').tab('show');
+      $('#menu a[href="#help"]').trigger('click.metisMenu');
+    });
+   
 /*   $('a[href="#profile"]').on('show.bs.tab', function() {
       $('a[href="#profile"]').parent('li').removeClass('active');
       $(this).parent('li').addClass('active');
