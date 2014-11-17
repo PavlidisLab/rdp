@@ -240,7 +240,9 @@
 								</div>
 
 							</div>
+							<%@ include file="help.jsp"%>
 						</div>
+						
 						
 					</div>
 

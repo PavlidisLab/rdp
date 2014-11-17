@@ -217,6 +217,8 @@
    geneManager.initSelect2 = function() {
       // init search genes combo    
       geneManager.select2().select2( {
+/*         multiple: true,
+         closeOnSelect:false,*/
          id : function(data) {
             return data.officialSymbol;
          },
@@ -247,6 +249,10 @@
                };
             },
 
+         },
+         formatSelection : function(item) {
+            item.text = item.text.split('</b>')[0] + '</b>';
+            return item.text
          },
          formatAjaxError : function(response) {
             var msg = response.responseText;

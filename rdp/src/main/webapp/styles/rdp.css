@@ -221,7 +221,7 @@ ul.breadcrumb {
 	color: #666;
 }
 
-.tab-content.profile-page, .tab-content.modelOrganism-page, .tab-content.admin-page {
+.tab-content.profile-page, .tab-content.modelOrganism-page, .tab-content.admin-page, .tab-content {
 	padding: 35px 15px;
 }
 .main-content h3 {
@@ -451,6 +451,14 @@ div.sidebar-footer {
 
 .fa.fa-lock:hover {
 	color: #ffc71d;
+}
+
+.panel-heading {
+	cursor: pointer;
+}
+
+.panel-heading:hover {
+	background-color:#2387df;
 }
 
 [custom-placeholder=true]:empty:not(:focus ):before {
