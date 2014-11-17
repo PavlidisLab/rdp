@@ -278,16 +278,16 @@
 	
 	<script src="scripts/lib/lightbox.min.js"></script>
 
-	<script src="scripts/api/utility.js?version=6"></script>
-	<script src="scripts/api/researcherModel.js?version=6"></script>
-	<script src="scripts/api/profile.js?version=6"></script>
-	<script src="scripts/api/settings.js?version=6"></script>
-	<script src="scripts/api/modelOrganisms.js?version=6"></script>
-	<script src="scripts/api/geneManager.js?version=6"></script>
-	<script src="scripts/api/goManager.js?version=6"></script>
-	<script src="scripts/api/admin.js?version=6"></script>
-	<script src="scripts/api/register.js?version=6"></script>
-	<script src="scripts/api/navbar.js?version=6"></script>
+	<script src="scripts/api/utility.js?version=7"></script>
+	<script src="scripts/api/researcherModel.js?version=7"></script>
+	<script src="scripts/api/profile.js?version=7"></script>
+	<script src="scripts/api/settings.js?version=7"></script>
+	<script src="scripts/api/modelOrganisms.js?version=7"></script>
+	<script src="scripts/api/geneManager.js?version=7"></script>
+	<script src="scripts/api/goManager.js?version=7"></script>
+	<script src="scripts/api/admin.js?version=7"></script>
+	<script src="scripts/api/register.js?version=7"></script>
+	<script src="scripts/api/navbar.js?version=7"></script>
 
 </body>
 </html>
