@@ -104,6 +104,9 @@
          researcher.pubMedIds.sort(function(a, b){return a-b});
          var ids = [];
          var stringIds = profile.pubMedIds()[0].innerText.split('\n');
+         if (stringIds.length == 1 ) {
+            stringIds = profile.pubMedIds().html().split('<br>').join('').split('</div>').join('').split('<div>')
+         }
 /*         profile.pubMedIds().find( 'div' ).each(function(index) {
             var val = parseInt( $(this).text() );
             if ( !isNaN(val) ) {
