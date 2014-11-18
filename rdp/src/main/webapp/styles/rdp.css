@@ -485,6 +485,9 @@ img.thumbnail {
 	font-size: 18px;
 }
 
+div.registry-overview {
+	padding-left:25px;
+}
 
 [custom-placeholder=true]:empty:not(:focus ):before {
 	content: attr(data-ph);

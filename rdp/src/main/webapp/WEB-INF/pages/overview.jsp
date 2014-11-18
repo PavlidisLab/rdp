@@ -8,7 +8,7 @@
 
 		<div class="overview-page">
 			<div class="row">
-				<div class="col-md-offset-1 col-md-6">
+				<div class="col-md-6">
 					<div class="registry-overview">
 						<p>
 							The <b>RDMMN registry</b> is an online registration tool and a
