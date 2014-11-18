@@ -455,7 +455,8 @@ return $(result);
 
 $( document ).ready( function() {
    goManager.init();
-   goManager.initDataTable( goManager.table(), [ {"sExtends":    "text", "fnClick":goManager.openAddTermsModal, "sButtonText": '<i class="fa fa-plus-circle green-icon"></i>&nbsp; Suggest GO Terms' },
+   goManager.initDataTable( goManager.table(), [ {"sExtends":    "text", "fnClick":function(){return utility.openAccordian($("#aboutcollapse2-4"))}, "sButtonText": '<a href="#"><i class="fa fa-question-circle"></i></a>' },
+                                                 {"sExtends":    "text", "fnClick":goManager.openAddTermsModal, "sButtonText": '<i class="fa fa-plus-circle green-icon"></i>&nbsp; Suggest GO Terms' },
                                            {"sExtends":    "text", "fnClick":goManager.removeSelectedRows, "sButtonText": '<i class="fa fa-minus-circle red-icon"></i>&nbsp; Remove Selected' },
                                            "select_all", 
                                            "select_none" ] );

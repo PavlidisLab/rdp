@@ -315,7 +315,8 @@
          dom: 'T<"clear">lfrtip',
          tableTools: {
             "sRowSelect": "os",
-            "aButtons": [ {"sExtends":    "text", "fnClick":geneManager.openAddGenesModal, "sButtonText": '<i class="fa fa-plus-circle green-icon"></i>&nbsp; Add Gene(s)' },
+            "aButtons": [ {"sExtends":    "text", "fnClick":function(){return utility.openAccordian($("#aboutcollapseAddGenes"))}, "sButtonText": '<a href="#"><i class="fa fa-question-circle"></i></a>' },
+                          {"sExtends":    "text", "fnClick":geneManager.openAddGenesModal, "sButtonText": '<i class="fa fa-plus-circle green-icon"></i>&nbsp; Add Gene(s)' },
                           {"sExtends":    "text", "fnClick":geneManager.removeSelectedRows, "sButtonText": '<i class="fa fa-minus-circle red-icon"></i>&nbsp; Remove Selected' },
                           "select_all", 
                           "select_none"]

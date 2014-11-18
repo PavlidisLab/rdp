@@ -4,7 +4,22 @@
 (function( utility, $, undefined ) {
    
    utility.openAccordian = function(el) {
-      el.collapse('show').parentsUntil('.help-page', '.panel-collapse').collapse('show');
+      //el.collapse('show').parentsUntil('.help-page', '.panel-collapse').collapse('show');
+      el.parentsUntil('.help-page', '.panel-collapse').each(function(idx, elem){
+         var $e = $(elem);
+
+         if ( !$e.hasClass('in') ) {
+            $e.siblings().click();
+         }
+      });
+
+      if ( !el.hasClass('in') ) {
+         el.siblings().click();
+         el.one('shown.bs.collapse', function() {
+            el[0].scrollIntoView();
+         });
+      }
+      //el.parentsUntil('.help-page', '.panel').siblings('.panel').children('.panel-collapse').collapse('hide');
       $('#menu a[href="#help"]').tab('show');
       $('#menu a[href="#help"]').trigger('click.metisMenu');
       if  (el.parentsUntil('.help-page', '#about-tab').length ) {
@@ -12,16 +27,23 @@
       } else if ( el.parentsUntil('.help-page', '#faq-tab').length ) {
          $('.tab-pane a[href="#faq-tab"]').tab('show');
       }
-      var a = el.siblings('a');
-      
-      if (!a.length) {
-         a = el.siblings('div').find('a');
-      }
-      console.log(a);
-      window.location.hash=a.attr('href');
+      el[0].scrollIntoView();
+
+      //el[0].scrollIntoView();
+      //utility.scrollToElement(el);
+      /*      var a = el.siblings('a');
+            
+            if (!a.length) {
+               a = el.siblings('div').find('a');
+            }
+            window.location.hash=a.attr('href');*/
      
       
    }
+   
+   utility.scrollToElement = function(el) {
+      $("section.content").scrollTop(el.offset().top);
+  }
    
    
    toggleTheme = function() {
@@ -82,12 +104,16 @@
    }
    
    utility.setConfirmChanges = function(tab, isDirty, fixSidebar) {
+      console.log('setConfirmChanges')
       tab.one('hide.bs.tab', function(e) {
+         console.log('hide.bs.tab');
          if ( isDirty() ) {
+            console.log('isdirty');
             fixSidebar.trigger('click.metisMenu');
             e.preventDefault();
             var relatedTarget = e.relatedTarget;
             utility.confirmModal( function(result) {
+               console.log('callback');
                if ( result ) {
                   $(e.relatedTarget).trigger("click");
                   $(e.relatedTarget).tab('show');

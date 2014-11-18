@@ -9,28 +9,22 @@
 	</div>
 	<div class="row">
 		<div class="col-md-4">
-		<a data-toggle="collapse" href="#collapseReadFirst" class="read-first" >Read this first - how to select genes</a>
+		<a data-toggle="collapse" href="#collapseReadFirst" class="read-first" >Read this first - how to decide which genes to add</a>
 		</div>
 		<div class="panel col-md-9">
 			<div id="collapseReadFirst" class="panel-collapse collapse">
 				<div class="panel-body"> 
-					<p>Use this Manager to enter genes you study. It is important that you choose the genes carefully. Your 
-					genes are divided into three Tiers.</p>
+					<p>Use this Manager to enter genes you study. It is important that you choose the genes carefully. Complete instructions are available <a href="#" onclick='return utility.openAccordian($("#collapse8"))'>here</a>. Briefly:</p>
+					<ol>
+					<li>
+					<p>From the Genes tab, click "Add genes" to find and add genes to your profile. You should indicate which of your genes are Primary and which are non-Primary:</p>
 					<ul>
-						<li><b>Tier 1 or "Primary" genes</b> are those you currently
-							work on in a model organism. We
-							expect this to typically be between one and ten genes.</li>
-						<li><b>Tier 2 genes</b> are those you do not mark as
-							"Primary". For
-							most registrants we expect there might be between one and 100
-							non-Primary genes entered.</li>
-						<li><b>Tier 3 genes</b> are not specifically selected. Instead, we use Gene Ontology (GO) terms selected to
-							infer them. By indicating the GO terms most related to your work,
-							genes having those annotations will be considered as Tier 3
-							genes.</li>
+					<li>A <b>Primary (or Tier 1) gene</b> is one you are able to immediately, specifically and rapidly study in your laboratory. Most registrants will have between one and ten primary genes.</li>
+					<li><b>Non-Primary (Tier 2) gene</b> are those you do not consider primary but would be able to work on rapidly and specifically with minimal set-up time. For most registrants we expect there might be between one and 100 non-Primary genes entered.</li>
 					</ul>
-				<p>For more information, see the <a href="#" onclick='return utility.openAccordian($("#collapse8"))'>Help</a></p>
-
+					</li>
+					<li>Click the "Gene Ontology Terms" tab and click "Suggest GO Terms". By indicating the GO terms most related to your work, genes having those annotations will be considered as Tier 3 genes.</li>
+					</ol>
 				</div>
 			</div>
 		</div>

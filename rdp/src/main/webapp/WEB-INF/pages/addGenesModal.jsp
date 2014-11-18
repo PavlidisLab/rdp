@@ -22,7 +22,7 @@
 					
 					<div class="form-group">
 				        <div class="checkbox col-sm-offset-3 col-sm-3">
-				          <label><input id="selectGeneTierCheckbox" type="checkbox" value="TIER1">Primary</label>
+				          <label><input id="selectGeneTierCheckbox" type="checkbox" value="TIER1">Primary <a href="#" onclick='geneManager.closeAddGenesModal(); return utility.openAccordian($("#aboutcollapse2-3"))'><i class="fa fa-question-circle"></i></a></label>
 				        </div>
 						<div class="col-sm-2 pull-right">
 						<button type="button" id="addGeneButton" class="btn btn-default btn-sm"
@@ -46,7 +46,7 @@
 
 					<div class="form-group">
 				        <div class="checkbox col-sm-offset-3 col-sm-3">
-				          <label><input id="bulkUploadTierCheckbox" type="checkbox" value="TIER1">Primary</label>
+				          <label><input id="bulkUploadTierCheckbox" type="checkbox" value="TIER1">Primary <a href="#" onclick='geneManager.closeAddGenesModal(); return utility.openAccordian($("#aboutcollapse2-3"))'><i class="fa fa-question-circle"></i></a></label>
 				        </div>
 	
 						<div class="col-sm-4 pull-right">
