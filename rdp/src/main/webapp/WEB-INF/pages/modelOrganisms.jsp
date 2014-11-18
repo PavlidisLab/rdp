@@ -1,12 +1,42 @@
 <div>
 	<div class="main-header">
-		<h2>Organism Information</h2>
+		<h2>Model Organism Manager</h2>
 		<em>Human</em>
 		<div class="alert alert-warning col-sm-12" hidden="true">
 			<a href="#" class="close" data-hide="alert">&times;</a>
 			<div class="text-center"></div>
 		</div>
 	</div>
+	<div class="row">
+		<div class="col-md-offset-4 col-md-4">
+		<a data-toggle="collapse" href="#collapseReadFirst" class="read-first" >Read this first - how to select genes</a>
+		</div>
+		<div class="panel col-md-9">
+			<div id="collapseReadFirst" class="panel-collapse collapse">
+				<div class="panel-body"> 
+					<p>Use this Manager to enter genes you study. It is important that you choose the genes carefully. Your 
+					genes are divided into three Tiers.</p>
+					<ul>
+						<li><b>Tier 1 or "Primary" genes</b> are those you currently
+							work on in a model organism. We
+							expect this to typically be between one and ten genes.</li>
+						<li><b>Tier 2 genes</b> are those you do not mark as
+							"Primary". For
+							most registrants we expect there might be between one and 100
+							non-Primary genes entered.</li>
+						<li><b>Tier 3 genes</b> are not specifically selected. Instead, we use Gene Ontology (GO) terms selected to
+							infer them. By indicating the GO terms most related to your work,
+							genes having those annotations will be considered as Tier 3
+							genes.</li>
+					</ul>
+				<p>For more information, see the <a href="#" onclick='return utility.openAccordian($("#collapse8"))'>Help</a></p>
+
+				</div>
+			</div>
+		</div>
+
+	</div>
+
 
 	<div class="main-content">
 
@@ -14,10 +44,14 @@
 
 			<div class="col-md-12">
 				<h3>
-					<a href="#" data-toggle="tooltip" data-placement="bottom" title="Edit"><i class="fa fa-lock yellow-icon"></i></a> Organism Research Focus
+					<a href="#" data-toggle="tooltip" data-placement="bottom"
+						title="Edit"><i class="fa fa-edit yellow-icon"></i></a> Organism
+					Research Focus
 				</h3>
 				<div class="col-sm-8 research-focus">
-					<p custom-placeholder=true data-ph="My research on this organism involves..." class="data-editable data-paragraph well"></p>
+					<p custom-placeholder=true
+						data-ph="My research on this organism involves..."
+						class="data-editable data-paragraph well"></p>
 				</div>
 			</div>
 		</div>
@@ -44,7 +78,7 @@
 							</button>
 						</div>
 					</div>
-				</div>				
+				</div>
 			</div>
 			<!-- END GENE TAB CONTENT -->
 

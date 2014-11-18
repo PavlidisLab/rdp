@@ -3,7 +3,28 @@
  */
 (function( utility, $, undefined ) {
    
-   utility.toggleTheme = function() {
+   utility.openAccordian = function(el) {
+      el.collapse('show').parentsUntil('.help-page', '.panel-collapse').collapse('show');
+      $('#menu a[href="#help"]').tab('show');
+      $('#menu a[href="#help"]').trigger('click.metisMenu');
+      if  (el.parentsUntil('.help-page', '#about-tab').length ) {
+         $('.tab-pane a[href="#about-tab"]').tab('show');
+      } else if ( el.parentsUntil('.help-page', '#faq-tab').length ) {
+         $('.tab-pane a[href="#faq-tab"]').tab('show');
+      }
+      var a = el.siblings('a');
+      
+      if (!a.length) {
+         a = el.siblings('div').find('a');
+      }
+      console.log(a);
+      window.location.hash=a.attr('href');
+     
+      
+   }
+   
+   
+   toggleTheme = function() {
       
       var theme_css = $('link.themes');
       theme_css.each(function(i, el ) {
@@ -15,28 +36,6 @@
          }
       });
       
-      
-      
-   }
- 
-   function switch_style ( css_title )
-   {
-   // You may use this script on your site free of charge provided
-   // you do not remove this notice or the URL below. Script from
-   // http://www.thesitewizard.com/javascripts/change-style-sheets.shtml
-     var i, link_tag ;
-     for (i = 0, link_tag = document.getElementsByTagName("link") ;
-       i < link_tag.length ; i++ ) {
-       if ((link_tag[i].rel.indexOf( "stylesheet" ) != -1) &&
-         link_tag[i].title) {
-         link_tag[i].disabled = true ;
-         if (link_tag[i].title == css_title) {
-           link_tag[i].disabled = false ;
-         }
-       }
-       set_cookie( style_cookie_name, css_title,
-         style_cookie_duration );
-     }
    }
    
    utility.showMessage = function(message, messageEl ) {

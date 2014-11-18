@@ -11,19 +11,22 @@
 				<div class="col-md-offset-1 col-md-6">
 					<div class="registry-overview">
 						<p>
-							The <b>RDMMN Registry</b> ("the Registry") is the mechanism by
-							which the Network will find potential matches of model organism
-							researchers to human rare disease researchers.
+							The <b>RDMMN registry</b> is an online registration tool and a
+							database of Canadian model organism researchers and the specific
+							genes they study. The registry is the mechanism by which the
+							RDMM Network will find potential matches of model organism researchers
+							to human rare disease researchers.
 						</p>
-						<p>The Registry collects two types of information:</p>
-						<ol>
-							<li>Basic contact information and some general information
-								about your research (under <i>"My Account"</i>).
-							</li>
-							<li>Information about genes you study, for one or more model
-								organisms (under <i>"My Model Organisms"</i>).
-							</li>
-						</ol>
+						<p>The Registry collects two types of information. First, you
+							will enter your basic contact information and some general
+							information about your research (under "<a href="#" onclick='return utility.openAccordian($("#aboutcollapse1"))'>My Account</a>"). Second, you
+							will enter information about genes you study, for one or more
+							model organisms ("<a href="#" onclick='return utility.openAccordian($("#aboutcollapse2"))'>My Model Organisms</a>"). Obtaining a correct and
+							comprehensive list of genes is of key interest. In order to
+							assist registrants in this regard we devised a three-tier gene
+							model described here. Please read carefully before you start
+							adding genes to your profile.</p>
+
 						<p>
 							All information in the Registry is confidential and will only be
 							used by the Network administration for matching you to rare
@@ -32,12 +35,14 @@
 							researchers) without your consent.
 						</p>
 
-						<p>By having a complete Registry entry, you will maximize the
-							chances that you will be contacted to apply for a Catalyst Grant.</p>
+						<p>Obtaining a correct and comprehensive list of genes is of
+							key interest. In order to assist registrants in this regard we
+							devised a three-tier gene model described here. Please read
+							carefully before you start adding genes to your profile.</p>
 
 						<p>
 							<b>General help</b>: For many fields throughout the site, you
-							will see an icon like this: <i class="fa fa-lock yellow-icon"></i>.
+							will see an icon like this: <i class="fa fa-edit yellow-icon"></i>.
 							Click on the icon to enable editing of the associated field. When
 							you are done, click the icon again (which now looks like this: <i
 								class="fa fa-check-square-o green-icon"></i>) to lock your

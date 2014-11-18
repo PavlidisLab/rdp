@@ -118,7 +118,7 @@
       dTable.draw();
    }
    
-   goManager.selectGoTerm = function(terms) {
+   selectGoTerm = function(terms) {
       var term = goManager.select2().select2( "data" );
       goManager.select2().select2( "val", "" );
       
@@ -182,7 +182,7 @@
       $.when(promise).done(function() {
          // When done loading Go Terms
          if (researcherModel.currentResearcher.getGenesByTaxonId( modelOrganisms.currentTaxonId() ).length > 1 ) {
-            dTable.settings()[0].oLanguage.sEmptyTable = "Could not find any GO term suggestions";
+            dTable.settings()[0].oLanguage.sEmptyTable = "Could not find any GO term suggestions for genes entered";
          }
          else {
             dTable.settings()[0].oLanguage.sEmptyTable = "A minimum of 2 genes are required for GO Term suggestions";
@@ -423,7 +423,7 @@ return $(result);
                var GOResults = []
                for (var i = 0; i < data.data.length; i++) {
                   var term = data.data[i];
-                  term.text = "<b>" + term.geneOntologyId + "</b> <i>" + goManager.aspectToString(term.aspect) + "</i> " + term.geneOntologyTerm + ", " + term.size + " Genes";
+                  term.text = "<b>" + term.geneOntologyId + "</b> <i>" + goManager.aspectToString(term.aspect) + "</i> " + term.geneOntologyTerm + " (<i>Term Size:</i> " + term.size + ")";
                   GOResults.push(term);
                }
                return {
@@ -445,7 +445,7 @@ return $(result);
    }
 
    goManager.init = function() {
-      $( "#addTermButton" ).click( goManager.selectGoTerm );
+      //$( "#addTermButton" ).click( selectGoTerm );
       $('#term-tab-save').click(saveGoTerms);
       
 
@@ -455,7 +455,7 @@ return $(result);
 
 $( document ).ready( function() {
    goManager.init();
-   goManager.initDataTable( goManager.table(), [ {"sExtends":    "text", "fnClick":goManager.openAddTermsModal, "sButtonText": '<i class="fa fa-plus-circle green-icon"></i>&nbsp; Select GO Terms' },
+   goManager.initDataTable( goManager.table(), [ {"sExtends":    "text", "fnClick":goManager.openAddTermsModal, "sButtonText": '<i class="fa fa-plus-circle green-icon"></i>&nbsp; Suggest GO Terms' },
                                            {"sExtends":    "text", "fnClick":goManager.removeSelectedRows, "sButtonText": '<i class="fa fa-minus-circle red-icon"></i>&nbsp; Remove Selected' },
                                            "select_all", 
                                            "select_none" ] );

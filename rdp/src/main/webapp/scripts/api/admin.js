@@ -215,6 +215,7 @@
                              <tr>\
                                 <th>GO ID</th>\
                                 <th>Aspect</th>\
+                                <th>Organism</th>\
                              </tr>\
                           </thead>\
                           <tbody>\
@@ -239,7 +240,7 @@
               for ( var i=0;i<taxonIds.length;i++) {
                  var terms = allResearchers[index].terms[taxonIds[i]];
                  for (var j=0;j<terms.length;j++) {
-                    tables.find('table.go-table tbody').append('<tr><td>'+terms[i].geneOntologyId+'</td><td>'+terms[i].aspect+'</td></tr>')
+                    tables.find('table.go-table tbody').append('<tr><td>'+terms[j].geneOntologyId+'</td><td>'+terms[j].aspect+'</td><td>'+utility.taxonIdToName[taxonIds[i]]+'</td></tr>')
                  }
               }
               
