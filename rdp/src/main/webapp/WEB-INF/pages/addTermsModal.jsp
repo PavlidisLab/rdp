@@ -37,6 +37,16 @@
 								<h4>Suggested Terms</h4>
 							</div>
 						</div>
+						
+						<div class="form-group">
+							<div class="alert alert-warning col-sm-offset-1  col-sm-10">
+								<a href="#" class="close" data-hide="alert">&times;</a>
+								<div class="text-center">Based on the genes you selected, we suggest the following GO terms as relevant to your work. Please select the terms you approve and click on the "Add Highlighted Term(s)" button. The terms you select will be used to infer "Tier 3" genes for your profile.</div>
+							</div>
+							<div class="col-sm-offset-1 col-sm-10">
+								<p></p>
+							</div>
+						</div>
 
 						<div class="form-group">
 							<div class="col-sm-offset-1 col-sm-10">

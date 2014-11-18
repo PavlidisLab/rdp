@@ -108,7 +108,7 @@
 								class="sidebar-nav-item-icon fa fa-fw fa-user fa-lg"></span> <span
 								class="sidebar-nav-item">My Account</span>
 						</a></li>
-						<li id="myModelOrganismsList"><a href="#modelOrganisms" data-toggle="tab"> <span
+						<li id="myModelOrganismsList" style="display: none;"><a href="#modelOrganisms" data-toggle="tab"> <span
 								class="sidebar-nav-item-icon fa fa-fw fa-bug fa-lg"></span> <span
 								class="sidebar-nav-item">My Model Organisms</span> <span
 								class="fa arrow"></span>
@@ -278,16 +278,16 @@
 	
 	<script src="scripts/lib/lightbox.min.js"></script>
 
-	<script src="scripts/api/utility.js?version=8"></script>
-	<script src="scripts/api/researcherModel.js?version=8"></script>
-	<script src="scripts/api/profile.js?version=8"></script>
-	<script src="scripts/api/settings.js?version=8"></script>
-	<script src="scripts/api/modelOrganisms.js?version=8"></script>
-	<script src="scripts/api/geneManager.js?version=8"></script>
-	<script src="scripts/api/goManager.js?version=8"></script>
-	<script src="scripts/api/admin.js?version=8"></script>
-	<script src="scripts/api/register.js?version=8"></script>
-	<script src="scripts/api/navbar.js?version=8"></script>
+	<script src="scripts/api/utility.js?version=9"></script>
+	<script src="scripts/api/researcherModel.js?version=9"></script>
+	<script src="scripts/api/profile.js?version=9"></script>
+	<script src="scripts/api/settings.js?version=9"></script>
+	<script src="scripts/api/modelOrganisms.js?version=9"></script>
+	<script src="scripts/api/geneManager.js?version=9"></script>
+	<script src="scripts/api/goManager.js?version=9"></script>
+	<script src="scripts/api/admin.js?version=9"></script>
+	<script src="scripts/api/register.js?version=9"></script>
+	<script src="scripts/api/navbar.js?version=9"></script>
 
 </body>
 </html>

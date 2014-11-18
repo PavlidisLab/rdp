@@ -8,9 +8,9 @@
 		<!-- NAV TABS -->
 		<ul class="nav nav-tabs">
 			<li class="active"><a href="#about-tab" data-toggle="tab"><i
-					class="fa fa-info-circle"></i> User Manual</a></li>
+					class="fa fa-question-circle"></i> User Manual</a></li>
 			<li class=""><a href="#faq-tab" data-toggle="tab"><i
-					class="fa fa-question-circle"></i> FAQ</a></li>
+					class="fa fa-info-circle"></i> FAQ</a></li>
 		</ul>
 		<!-- END NAV TABS -->
 		<div class="tab-content help-page">
@@ -31,37 +31,54 @@
 								<div id="aboutcollapse1" class="panel-collapse collapse"
 									role="tabpanel" aria-labelledby="aboutheading1">
 									<div class="panel-body">
-										<p>
-											On the <b>Profile</b> tab under "<i>My Account</i>", use the edit functions to provide
-											basic information:
-										</p>
-										<ul>
-											<li>Name</li>
-											<li>Organization</li>
-											<li>Department</li>
-										</ul>
+										<div class="panel">
+											<a data-toggle="collapse" href="#aboutcollapseProfile">Fill out profile information » </a>
+											<div id="aboutcollapseProfile"
+												class="panel-collapse collapse">
+												<div class="panel-body">
+													<p>
+														On the <b>Profile</b> tab under "<i>My Account</i>", use
+														the edit functions to provide basic information:
+													</p>
+													<ul>
+														<li>Name</li>
+														<li>Organization</li>
+														<li>Department</li>
+													</ul>
 
-										<p>Complete and accurate information is important to
-											ensure the Network can contact you.</p>
+													<p>Complete and accurate information is important to
+														ensure the Network can contact you.</p>
 
-										<p>You can also provide:</p>
-										<ul>
-											<li>A link to your home page (e.g., your lab site)</li>
-											<li>A phone number</li>
-											<li>A summary of your research interests (we recommend
-												100-500 words)</li>
-											<li>A list of PubMed IDs for your publications (for
-												instructions on finding PubMed IDs, go <a data-toggle="collapse" href="#aboutcollapsePub">here</a>).
-											</li>
-										</ul>
+													<p>You can also provide:</p>
+													<ul>
+														<li>A link to your home page (e.g., your lab site)</li>
+														<li>A phone number</li>
+														<li>A summary of your research interests (we
+															recommend 100-500 words)</li>
+														<li>A list of PubMed IDs for your publications.</li>
+													</ul>
+
+													<p>
+														These fields are optional. Your email address is not
+														editable because it serves as your User ID. From the "<i>My
+															Account</i>" page you can also edit your account settings.
+														Currently the only editable setting is your password.
+													</p>
+												</div>
+											</div>
+										</div>
+
 
 										<div class="panel">
+											<a data-toggle="collapse" href="#aboutcollapsePub">Finding
+												PubMed IDs » </a>
 											<div id="aboutcollapsePub" class="panel-collapse collapse">
 												<div class="panel-body">
 													<p>
 														To rapidly get a list of your PubMed IDs, in a new browser
 														window use PubMed search (<a
-															href="http://www.ncbi.nlm.nih.gov/pubmed/" target="_blank">http://www.ncbi.nlm.nih.gov/pubmed/</a>)
+															href="http://www.ncbi.nlm.nih.gov/pubmed/"
+															target="_blank">http://www.ncbi.nlm.nih.gov/pubmed/</a>)
 														to find your publications. The citations are returned 20
 														per page by default, but you can change this by clicking
 														on "Display settings" and choosing a different setting for
@@ -83,21 +100,14 @@
 														<b>Note</b>: Currently the PubMed IDs are for future use
 														and are optional.
 													</p>
-													<a href="images/pubmed.png" data-lightbox="pubmed"> 
-													<img class="thumbnail" src="images/pubmed.png" alt="pubmed">
+													<a href="images/pubmed.png" data-lightbox="pubmed"> <img
+														class="thumbnail" src="images/pubmed.png" alt="pubmed">
 													</a>
 													<!-- <img height="50px" width="50px" src="images/pubmed.png"></img> -->
 
 												</div>
 											</div>
 										</div>
-
-										<p>
-											These fields are optional. Your email address is not editable
-											because it serves as your User ID. From the "<i>My Account</i>"
-											page you can also edit your account settings. Currently the
-											only editable setting is your password.
-										</p>
 									</div>
 								</div>
 							</div>
@@ -134,6 +144,12 @@
 															for that organism. You can have multiple Model Organisms
 															associated with your account.
 														</p>
+														<p>Also see relevant Frequently Asked Questions:</p>
+														<ul>
+														<li><a href="#" onclick='return utility.openAccordian($("#collapse9"))'>What if I study more than one model organism?</a></li>
+														<li><a href="#" onclick='return utility.openAccordian($("#collapse10"))'>Are humans a "model" for the purposes of the RDMMN registry?</a></li>
+														<li><a href="#" onclick='return utility.openAccordian($("#collapse11"))'>What if the organism I study is not listed?</a></li>
+														</ul>
 													</div>
 												</div>
 											</div>
@@ -159,20 +175,21 @@
 													href="#aboutcollapse2-3">Adding Genes » </a>
 												<div id="aboutcollapse2-3" class="panel-collapse collapse">
 													<div class="panel-body">
-														<p>The goal of this section is to collect a list of
-															the genes you study. Genes that you are entering
-															directly into the system can be either Primary or
-															Secondary (non-Primary).</p>
+														<p>The main goal of the registry is to collect an accurate
+															and comprehensive list of the genes that you study or are
+															able to study. Genes that you are entering directly into
+															the system can be either Primary or Secondary
+															(non-Primary).</p>
 															
 															<ul>
-															<li><b>Primary genes</b> (tier 1) are those you currently
+															<li><b>Primary genes</b> (Tier 1) are those you currently
 																work on in a model organism. You must be able to
 																immediately, specifically and rapidly study them in your
 																laboratory. Genes you have recently published on are
 																especially good Primary genes. We expect this to
 																typically be between one and ten genes.</li>
-															<li><b>Secondary genes</b> (tier 2) are those you do not
-																mark as "Primary". Carefully choose genes which you are
+															<li><b>Secondary genes</b> (Tier 2) are those you do not
+																mark as Primary. Carefully choose genes which you are
 																not necessarily actively investigating but would be able
 																to work on rapidly and specifically with minimal set-up
 																time. These might be paralogs of Tier 1 genes, or
@@ -180,11 +197,17 @@
 																registrants we expect there might be between one and 100
 																non-Primary genes entered.</li>
 														</ul>
+														
+														<p>For more information, see the relevant <a href="#" onclick='return utility.openAccordian($("#collapse8"))'>FAQ</a> </p>
 
-														<p>
-															For more detailed instructions, go <a data-toggle="collapse" href="#aboutcollapseAddGenes">here</a>
-														</p>
+														<p>Also see relevant Frequently Asked Questions:</p>
+														<ul>
+														<li><a href="#" onclick='return utility.openAccordian($("#collapse12"))'>Should I fill in the human orthologs of genes I study?</a></li>
+														<li><a href="#" onclick='return utility.openAccordian($("#collapse13"))'>I study the entire genome, or have the ability to assay the function of any gene. How do I select which genes I should list?</a></li>
+														</ul>
+
 														<div class="panel">
+															<a data-toggle="collapse" href="#aboutcollapseAddGenes">Detailed Instructions » </a>
 															<div id="aboutcollapseAddGenes"
 																class="panel-collapse collapse">
 																<div class="panel-body">
@@ -218,19 +241,21 @@
 																		to indicate if the gene(s) are Primary or not.</p>
 																	<p>The added genes will appear in the table at the
 																		bottom of the Model Organism Manager. You can remove
-																		genes by selecting them and clicking the 'Remove
-																		Selected' button. You can also change the 'Primary'
+																		genes by selecting them and clicking the "Remove
+																		Selected" button. You can also change the Primary
 																		status of genes one at a time.</p>
 																		
 																	<a href="images/AddGenes4.png"
 																		data-lightbox="AddGenes4"> <img class="thumbnail"
 																		src="images/AddGenes4.png" alt="AddGenes4">
 																	</a>
-																	
-																	<p>Finally, be sure to save your changes. If you
-																		navigate away from the page you will be prompted to
-																		save your changes.</p>
-																	
+
+																	<p>
+																		Finally, be sure to <b>Save Changes</b>. If you
+																		navigate away from the page without doing so, you will
+																		be prompted to confirm.
+																	</p>
+
 																</div>
 															</div>
 														</div>
@@ -246,17 +271,14 @@
 															Once you have added some genes, you can optionally
 															provide some Gene Ontology (GO) terms related to your
 															work. Genes associated with the GO terms you select will
-															be considered a "third tier" of genes for possible use in
+															be considered a "third Tier" of genes for possible use in
 															identifying researchers who can study a particular gene.
 															For more details about GO, please see <a
 																href="http://geneontology.org/" target="_blank">geneontology.org</a>.
 														</p>
 
-														<p>
-															For more detailed instructions, go <a
-																data-toggle="collapse" href="#aboutcollapseGO">here</a>
-														</p>
 														<div class="panel">
+															<a data-toggle="collapse" href="#aboutcollapseGO">Detailed Instructions » </a>
 															<div id="aboutcollapseGO" class="panel-collapse collapse">
 																<div class="panel-body">
 																	<p>To enter GO terms for an organism, click on the
@@ -271,7 +293,7 @@
 																		class="thumbnail" src="images/GO1.png" alt="GO1">
 																	</a>
 
-																	<p>Suggested GO terms will appear in a table.(allow
+																	<p>Suggested GO terms will appear in a table (allow
 																		for a short delay especially if you have a lot of
 																		genes saved) that has the following columns:</p>
 
@@ -279,15 +301,15 @@
 																		<li>GO Aspect, which indicates one of three
 																			domains from which the GO term originates (biological
 																			process (BP), molecular function (MF), cellular
-																			component (CC)).</li>
-																		<li>GO term full name.</li>
+																			component (CC))</li>
+																		<li>GO term full name</li>
 																		<li>Overlap, which indicates how many of your
-																			(tier 1 and 2) genes are annotated with that term</li>
+																			(Tier 1 and 2) genes are annotated with that term</li>
 																		<li>Term Size, which indicates how many genes in
 																			the currently chosen model organism are annotated
-																			with that term and will be added as tier 3 genes if
+																			with that term and will be added as Tier 3 genes if
 																			the term is selected (excluding the highlighted genes
-																			that are already in the system).</li>
+																			that are already in the system)</li>
 																	</ul>
 
 																	<a href="images/GO2.png" data-lightbox="GO2"> <img
@@ -297,10 +319,10 @@
 																	<p>You can expand by clicking on the green arrow in the
 																		Term Size column to see the genes that are associated
 																		with the listed GO term. Genes that you have manually
-																		added (tier 1 and 2) are highlighted. If you choose to
+																		added (Tier 1 and 2) are highlighted. If you choose to
 																		add a selected GO term to you profile, genes that are
 																		not highlighted will be associated with your profile
-																		as "third tier" genes.</p>
+																		as "third Tier" genes.</p>
 
 																	<a href="images/GO3.png" data-lightbox="GO3"> <img
 																		class="thumbnail" src="images/GO3.png" alt="GO3">
@@ -309,9 +331,9 @@
 																	<p>Once you are done, you can close the window and
 																		review the GO terms in the Manager. As with genes, you
 																		can select and then remove terms, or add more terms
-																		later</p>
+																		later.</p>
 																		
-																	<p>Once again, don't forget to Save Changes.</p>
+																	<p>Once again, don't forget to <b>Save Changes</b>.</p>
 
 																</div>
 															</div>
@@ -333,7 +355,7 @@
 															enough genes overlapping with your genes, it is
 															considered a candidate. We then prune terms that are too
 															big, too small or highly redundant with another candidate
-															term. The final list of terms is then sorted for display.
+															term. The final list of terms is then sorted by overlap size for display.
 															The full process is a little more complicated than this,
 															as it makes use of the structure of the GO hierarchy and
 															several heuristics to provide useful results. <a
@@ -409,7 +431,7 @@
 									role="tabpanel" aria-labelledby="heading3">
 									<div class="panel-body">All model organism researchers
 										eligible for CIHR funds should register if they want to be
-										considered for a Network Catalyst Grant.</div>
+										considered for a Network Catalyst Grant. (<a href="http://rare-diseases-catalyst-network.ca/register-as-a-model-organism-investigator.html" target="_blank">Read more here</a>)</div>
 								</div>
 							</div>
 							<div class="panel panel-default">
@@ -524,14 +546,14 @@
 											gene.</p>
 										<p>To reach this balance, genes are divided into Tiers:</p>
 										<ul>
-											<li><b>Tier 1 or "Primary" genes</b> are those you
+											<li><b>Tier 1 or Primary genes</b> are those you
 												currently work on in a model organism. You must be able to
 												immediately, specifically and rapidly study them in your
 												laboratory. Genes you have recently published on are
 												especially good Primary genes. We expect this to typically
 												be between one and ten genes.</li>
 											<li><b>Tier 2 genes</b> are those you do not mark as
-												"Primary". Carefully choose genes which you are not
+												Primary. Carefully choose genes which you are not
 												necessarily actively investigating but would be able to work
 												on rapidly and specifically with minimal set-up time. These
 												might be paralogs of Tier 1 genes, or members of the same
@@ -544,8 +566,10 @@
 												considered as Tier 3 genes. There may be several hundred
 												such genes.</li>
 										</ul>
-										<p>See also the question about "I study the entire
-											genome".</p>
+										<p>
+											See also the question about <a href="#"
+												onclick='return utility.openAccordian($("#collapse13"))'>I study the entire genome</a>.
+										</p>
 
 										<p>Remember that entering genes into the registry is only
 											the first step in the Catalyst Granting process. For a given
@@ -638,8 +662,10 @@
 									role="tabpanel" aria-labelledby="heading12">
 									<div class="panel-body">No. Only register genes from the
 										model organisms you currently work on. Only register human
-										genes if you are working on them. See also Which genes should
-										I enter into the registry? and Are humans a "model".</div>
+										genes if you are working on them. See also <a href="#"
+												onclick='return utility.openAccordian($("#collapse8"))'>Which genes should
+										I enter into the registry?</a> and <a href="#"
+												onclick='return utility.openAccordian($("#collapse10"))'>Are humans a "model"</a>.</div>
 								</div>
 							</div>
 							<div class="panel panel-default">
@@ -662,9 +688,11 @@
 										(ideally, who are poised to immediately conduct functional
 										analyses that inform a human disease gene that has been
 										discovered). You should register the genes that you can
-										specifically and rapidly study in your laboratory. See "What
-										is the purpose of the RDMMN registry" and "Which genes should
-										I enter into the registry?".</div>
+										specifically and rapidly study in your laboratory. See <a href="#"
+												onclick='return utility.openAccordian($("#collapse2"))'>What
+										is the purpose of the RDMMN registry</a> and <a href="#"
+												onclick='return utility.openAccordian($("#collapse8"))'>Which genes should
+										I enter into the registry?</a>.</div>
 								</div>
 							</div>
 						</div>

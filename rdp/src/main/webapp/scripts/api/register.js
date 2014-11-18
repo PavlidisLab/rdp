@@ -1,12 +1,9 @@
 // Initialize document
-var loadPromise = researcherModel.loadResearcher();
 $( document ).ready( function() {
    
-   $( function() {
-
-      $( '#menu' ).metisMenu({'toggle':false});
-   } );
-   
+   $( '#menu' ).metisMenu({'toggle':false});
+   var loadPromise = researcherModel.loadResearcher();
+   $('#navbar-username').html('<i class="fa fa-spinner fa-spin"></i>')
    $.ajax( {
 	      cache : false,
 	      type : 'GET',
@@ -20,6 +17,7 @@ $( document ).ready( function() {
 	         console.log("successfully logged in as: " + responseJSON.user);
 	         
 	         if (responseJSON.isAdmin == 'true'){
+	            console.log("Is Admin");
 	            $('#menu > li').has('a[href="#admin"][data-toggle="tab"]').show();
 	            admin.init();
 	         }
@@ -59,7 +57,8 @@ $( document ).ready( function() {
    
    // This gets run when the ajax calls in defs have completed
    $.when(loadPromise).done(function() {
-      $('a[href="#myAccount"]').trigger('show.bs.tab');
+      //$('a[href="#myAccount"]').trigger('show.bs.tab');
+      $('#menu > li').has('a[href="#modelOrganisms"][data-toggle="tab"]').show();
       $('#navbar-username').html(researcherModel.currentResearcher.userName)
       var taxonIds = researcherModel.currentResearcher.getTaxons();
       $('#myModelOrganismsList ul li').has('a[href="#modelOrganisms"]').each( function(index) {
@@ -128,7 +127,7 @@ $( document ).ready( function() {
       $('.tab-pane a[href="#profile-tab"]').tab('show');
     });
    
-   $('a[href="#help"]').click(function(){
+   $('a[href="#help"][data-toggle!="tab"]').click(function(){
       
       $('#menu a[href="#help"]').tab('show');
       $('#menu a[href="#help"]').trigger('click.metisMenu');
