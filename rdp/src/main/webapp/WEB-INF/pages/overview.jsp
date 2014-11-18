@@ -8,24 +8,30 @@
 
 		<div class="overview-page">
 			<div class="row">
-				<div class="col-md-offset-1 col-md-6">
+				<div class="col-md-6">
 					<div class="registry-overview">
 						<p>
-							The <b>RDMMN registry</b> is an online registration tool and a
-							database of Canadian model organism researchers and the specific
-							genes they study. The registry is the mechanism by which the
-							RDMM Network will find potential matches of model organism researchers
-							to human rare disease researchers.
+							The <b>RDMMN registry</b> collects information on Canadian model
+							organism researchers and the specific genes they study. The
+							registry is the mechanism by which the RDMM Network will find
+							potential matches of model organism researchers to human rare
+							disease researchers.
 						</p>
-						<p>The Registry collects two types of information. First, you
-							will enter your basic contact information and some general
-							information about your research (under "<a href="#" onclick='return utility.openAccordian($("#aboutcollapse1"))'>My Account</a>"). Second, you
-							will enter information about genes you study, for one or more
-							model organisms ("<a href="#" onclick='return utility.openAccordian($("#aboutcollapse2"))'>My Model Organisms</a>"). Obtaining a correct and
-							comprehensive list of genes is of key interest. In order to
-							assist registrants in this regard we devised a three-tier gene
-							model described here. Please read carefully before you start
-							adding genes to your profile.</p>
+						<p>
+							The Registry collects two types of information. First, you will
+							enter your basic contact information and some general information
+							about your research (under "<a href="#"
+								onclick='return utility.openAccordian($("#aboutcollapse1"))'>My
+								Account</a>"). Second, you will enter information about genes you
+							study, for one or more model organisms ("<a href="#"
+								onclick='return utility.openAccordian($("#aboutcollapse2"))'>My
+								Model Organisms</a>"). Obtaining a correct and comprehensive list of
+							genes is of key interest. In order to assist registrants in this
+							regard we devised a three-tier gene model described. Please
+							<a href="#"
+								onclick='return utility.openAccordian($("#aboutcollapse2-3"))'>read
+								carefully</a> before you start adding genes to your profile.
+						</p>
 
 						<p>
 							All information in the Registry is confidential and will only be
@@ -34,11 +40,6 @@
 							shared with any third party (including other registered
 							researchers) without your consent.
 						</p>
-
-						<p>Obtaining a correct and comprehensive list of genes is of
-							key interest. In order to assist registrants in this regard we
-							devised a three-tier gene model described here. Please read
-							carefully before you start adding genes to your profile.</p>
 
 						<p>
 							<b>General help</b>: For many fields throughout the site, you

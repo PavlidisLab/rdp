@@ -466,7 +466,7 @@ div.sidebar-footer {
 }
 
 img.thumbnail {
-	width: 350px;
+	width: 500px;
 	height: 350px;
 	-webkit-border-radius: 5px;
 	-moz-border-radius: 5px;
@@ -485,6 +485,9 @@ img.thumbnail {
 	font-size: 18px;
 }
 
+div.registry-overview {
+	padding-left:25px;
+}
 
 [custom-placeholder=true]:empty:not(:focus ):before {
 	content: attr(data-ph);

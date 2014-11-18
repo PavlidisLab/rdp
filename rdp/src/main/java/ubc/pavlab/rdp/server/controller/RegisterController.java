@@ -233,6 +233,10 @@ public class RegisterController extends BaseController {
     public void stats( HttpServletRequest request, HttpServletResponse response ) throws IOException {
         String jsonText = null;
         JSONUtil jsonUtil = null;
+
+        response.setHeader( "Access-Control-Allow-Origin", "*" );
+        response.setHeader( "Access-Control-Allow-Methods", "GET, POST, DELETE, PUT" );
+        response.setHeader( "Access-Control-Allow-Headers", "X-Requested-With, Content-Type, X-Codingpedia" );
         try {
             jsonUtil = new JSONUtil( request, response );
 

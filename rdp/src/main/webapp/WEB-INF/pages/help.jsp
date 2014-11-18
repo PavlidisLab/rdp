@@ -8,7 +8,7 @@
 		<!-- NAV TABS -->
 		<ul class="nav nav-tabs">
 			<li class="active"><a href="#about-tab" data-toggle="tab"><i
-					class="fa fa-info-circle"></i> About</a></li>
+					class="fa fa-info-circle"></i> User Manual</a></li>
 			<li class=""><a href="#faq-tab" data-toggle="tab"><i
 					class="fa fa-question-circle"></i> FAQ</a></li>
 		</ul>
@@ -593,7 +593,7 @@
 										contribute to the understanding of the identified human
 										disease genes. This might include biochemical assays or assays
 										based on cell lines. New research on human subjects is not
-										considered to be within the of RDMMN Catalyst Grant projects.
+										considered to be within the scope of RDMMN Catalyst Grant projects.
 										Do not register human genes merely because they are orthologs
 										of the genes you study in a model organism.</div>
 								</div>
