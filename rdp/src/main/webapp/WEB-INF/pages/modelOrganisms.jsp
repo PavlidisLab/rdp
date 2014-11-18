@@ -8,7 +8,7 @@
 		</div>
 	</div>
 	<div class="row">
-		<div class="col-md-offset-4 col-md-4">
+		<div class="col-md-4">
 		<a data-toggle="collapse" href="#collapseReadFirst" class="read-first" >Read this first - how to select genes</a>
 		</div>
 		<div class="panel col-md-9">
