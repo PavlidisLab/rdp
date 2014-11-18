@@ -35,7 +35,7 @@
 <link href="styles/rdp.css" rel="stylesheet" title="default" class="themes">
 
 <!-- Custom CSS -->
-<link href="styles/rdp_dark.css" rel="alternate stylesheet" title="dark" class="themes" disabled="">
+<!-- <link href="styles/rdp_dark.css" rel="alternate stylesheet" title="dark" class="themes" disabled=""> -->
 
 </head>
 
@@ -278,16 +278,16 @@
 	
 	<script src="scripts/lib/lightbox.min.js"></script>
 
-	<script src="scripts/api/utility.js?version=7"></script>
-	<script src="scripts/api/researcherModel.js?version=7"></script>
-	<script src="scripts/api/profile.js?version=7"></script>
-	<script src="scripts/api/settings.js?version=7"></script>
-	<script src="scripts/api/modelOrganisms.js?version=7"></script>
-	<script src="scripts/api/geneManager.js?version=7"></script>
-	<script src="scripts/api/goManager.js?version=7"></script>
-	<script src="scripts/api/admin.js?version=7"></script>
-	<script src="scripts/api/register.js?version=7"></script>
-	<script src="scripts/api/navbar.js?version=7"></script>
+	<script src="scripts/api/utility.js?version=8"></script>
+	<script src="scripts/api/researcherModel.js?version=8"></script>
+	<script src="scripts/api/profile.js?version=8"></script>
+	<script src="scripts/api/settings.js?version=8"></script>
+	<script src="scripts/api/modelOrganisms.js?version=8"></script>
+	<script src="scripts/api/geneManager.js?version=8"></script>
+	<script src="scripts/api/goManager.js?version=8"></script>
+	<script src="scripts/api/admin.js?version=8"></script>
+	<script src="scripts/api/register.js?version=8"></script>
+	<script src="scripts/api/navbar.js?version=8"></script>
 
 </body>
 </html>

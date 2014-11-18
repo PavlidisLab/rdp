@@ -32,7 +32,7 @@
 									role="tabpanel" aria-labelledby="aboutheading1">
 									<div class="panel-body">
 										<p>
-											On the <b>Profile</b> tab, use the edit functions to provide
+											On the <b>Profile</b> tab under "<i>My Account</i>", use the edit functions to provide
 											basic information:
 										</p>
 										<ul>
@@ -61,13 +61,24 @@
 													<p>
 														To rapidly get a list of your PubMed IDs, in a new browser
 														window use PubMed search (<a
-															href="http://www.ncbi.nlm.nih.gov/pubmed/">http://www.ncbi.nlm.nih.gov/pubmed/</a>)
-														to find your publications. Select the publications you
-														wish to use (if necessary using the checkboxes), and click
-														on "display settings"; select "PMID List" and click
-														"Apply". Copy and paste the resulting list of numeric IDs
-														into the field in the Profile.
+															href="http://www.ncbi.nlm.nih.gov/pubmed/" target="_blank">http://www.ncbi.nlm.nih.gov/pubmed/</a>)
+														to find your publications. The citations are returned 20
+														per page by default, but you can change this by clicking
+														on "Display settings" and choosing a different setting for
+														"Items per page". You can select the publications you wish
+														to use by clicking on the checkboxes; to save all your
+														citations do not click any check boxes. After making a
+														selection click on "Display settings"; select "PMID List"
+														and click "Apply". Copy and paste the resulting list of
+														numeric IDs into the field in the Profile.
 													</p>
+													<p>If your search returns a long list of publications
+														and you would like to exclude only few of them click on
+														"Send to", select Clipboard and click on "Add to
+														Clipboard". In the top-right corner there will be a link
+														to items in the Clipboard. Within the Clipboard you can
+														remove any items you want and then export the PubMed IDs
+														as described above.</p>
 													<p>
 														<b>Note</b>: Currently the PubMed IDs are for future use
 														and are optional.
@@ -82,9 +93,10 @@
 										</div>
 
 										<p>
-											These fields are optional. From the "<i>My Account</i>" page
-											you can also edit your account settings. Currently the only
-											editable setting is your password.
+											These fields are optional. Your email address is not editable
+											because it serves as your User ID. From the "<i>My Account</i>"
+											page you can also edit your account settings. Currently the
+											only editable setting is your password.
 										</p>
 									</div>
 								</div>
@@ -132,13 +144,13 @@
 													<div class="panel-body">
 														<p>
 															In the manager, you can optionally enter a description of
-															your research on this organism, if you feel it is
+															your research on this organism (Organism Research Focus), if you feel it is
 															different from the description you may have provided in
-															the <i>My Account</i> section.
+															the "<i>My Account</i>" section (About My Research).
 														</p>
 
 														<p>The most important functionality of the Manager is
-															the addition of Genes, and then of Gene Ontology Terms.</p>
+															the addition of genes, and then of Gene Ontology terms.</p>
 													</div>
 												</div>
 											</div>
@@ -148,12 +160,26 @@
 												<div id="aboutcollapse2-3" class="panel-collapse collapse">
 													<div class="panel-body">
 														<p>The goal of this section is to collect a list of
-															the genes you study. Genes are either Primary or
-															Secondary (non-Primary). You should designate as Primary
-															genes that you are most focused on in your work and for
-															which you feel you have the most immediate capabilities
-															for functional assays. If you can't decide, just
-															designate all genes as Primary.</p>
+															the genes you study. Genes that you are entering
+															directly into the system can be either Primary or
+															Secondary (non-Primary).</p>
+															
+															<ul>
+															<li><b>Primary genes</b> (tier 1) are those you currently
+																work on in a model organism. You must be able to
+																immediately, specifically and rapidly study them in your
+																laboratory. Genes you have recently published on are
+																especially good Primary genes. We expect this to
+																typically be between one and ten genes.</li>
+															<li><b>Secondary genes</b> (tier 2) are those you do not
+																mark as "Primary". Carefully choose genes which you are
+																not necessarily actively investigating but would be able
+																to work on rapidly and specifically with minimal set-up
+																time. These might be paralogs of Tier 1 genes, or
+																members of the same complexes or pathway. For most
+																registrants we expect there might be between one and 100
+																non-Primary genes entered.</li>
+														</ul>
 
 														<p>
 															For more detailed instructions, go <a data-toggle="collapse" href="#aboutcollapseAddGenes">here</a>
@@ -169,9 +195,9 @@
 																		src="images/AddGenes1.png" alt="AddGenes1">
 																	</a>
 
-																	<p>In the pop-up window, use the Search Gene field
-																		to search by symbol, name or alias. Select the gene
-																		and click 'Add'.</p>
+																	<p>In the pop-up window, use the "Search for Gene
+																		field" to search by gene symbol, name or alias. Select
+																		the gene and click "Add".</p>
 
 																	<a href="images/AddGenes2.png"
 																		data-lightbox="AddGenes2"> <img class="thumbnail"
@@ -179,8 +205,8 @@
 																	</a>
 
 																	<p>Alternatively, you can type or paste multiple
-																		genes into the 'Bulk Upload' field and click 'Add
-																		All'. You will see a warning if any of your
+																		genes into the "Bulk Upload" field and click "Add
+																		All". You will see a warning if any of your
 																		identifiers didn't match a gene in our database.</p>
 
 																	<a href="images/AddGenes3.png"
@@ -234,40 +260,53 @@
 															<div id="aboutcollapseGO" class="panel-collapse collapse">
 																<div class="panel-body">
 																	<p>To enter GO terms for an organism, click on the
-																		"Gene Ontology Terms" tab on the Manager page. Click
-																		on "Select GO Terms", which will cause a new popup to
-																		appear.</p>
+																		"Gene Ontology Terms" tab on the Model Organism
+																		Manager page. Click on "Suggest GO Terms", which will
+																		cause a new popup window to appear. You need to have
+																		at least two genes saved as Tier 1 and/or Tier 2 genes
+																		in order to use GO term suggestion functionality. To
+																		read about how the term suggestion tool works, go
+																		<a href="#" onclick='return utility.openAccordian($("#aboutcollapse2-5"))'>here</a>.</p>
 																	<a href="images/GO1.png" data-lightbox="GO1"> <img
 																		class="thumbnail" src="images/GO1.png" alt="GO1">
 																	</a>
 
-																	<p>You can search for terms similar to the way you
-																		search for genes, by GO Term ID (e.g., GO:0007638) or
-																		name (e.g., "mechanosensory behavior"). If you have
-																		already added some genes, you will also see Suggested
-																		Terms after a short delay.</p>
-																		
+																	<p>Suggested GO terms will appear in a table.(allow
+																		for a short delay especially if you have a lot of
+																		genes saved) that has the following columns:</p>
+
+																	<ul>
+																		<li>GO Aspect, which indicates one of three
+																			domains from which the GO term originates (biological
+																			process (BP), molecular function (MF), cellular
+																			component (CC)).</li>
+																		<li>GO term full name.</li>
+																		<li>Overlap, which indicates how many of your
+																			(tier 1 and 2) genes are annotated with that term</li>
+																		<li>Term Size, which indicates how many genes in
+																			the currently chosen model organism are annotated
+																			with that term and will be added as tier 3 genes if
+																			the term is selected (excluding the highlighted genes
+																			that are already in the system).</li>
+																	</ul>
+
 																	<a href="images/GO2.png" data-lightbox="GO2"> <img
 																		class="thumbnail" src="images/GO2.png" alt="GO2">
 																	</a>
 
-																	<p>The terms found appear in the table, with the
-																		Aspect and term name, as well a count for how many
-																		genes in this organism are annotated with that term
-																		("Term Size") and how many of your genes are annotated
-																		with that term ("Overlap").</p>
-
-																	<p>You can expand the row in the Term Size column
-																		to see the genes that have the annotation. Genes you
-																		have manually added are highlighted. The other genes
-																		will automatically be considered "third tier" genes
-																		associated with your profile.</p>
+																	<p>You can expand by clicking on the green arrow in the
+																		Term Size column to see the genes that are associated
+																		with the listed GO term. Genes that you have manually
+																		added (tier 1 and 2) are highlighted. If you choose to
+																		add a selected GO term to you profile, genes that are
+																		not highlighted will be associated with your profile
+																		as "third tier" genes.</p>
 
 																	<a href="images/GO3.png" data-lightbox="GO3"> <img
 																		class="thumbnail" src="images/GO3.png" alt="GO3">
 																	</a>
 
-																	<p>Once you are done, you can close the popup and
+																	<p>Once you are done, you can close the window and
 																		review the GO terms in the Manager. As with genes, you
 																		can select and then remove terms, or add more terms
 																		later</p>

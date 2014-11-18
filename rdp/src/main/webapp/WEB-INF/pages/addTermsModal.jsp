@@ -13,7 +13,7 @@
 				<div id="addTermsForm" class="custom-transition">
 					<form class="form-horizontal" role="form">
 
-						<div class="form-group">
+<!-- 						<div class="form-group">
 							<label for="searchTermsSelect" class="col-sm-2 control-label">Search for Term</label>
 							<div class="col-sm-8">
 								<input type="text" id="searchTermsSelect"
@@ -29,7 +29,7 @@
 							</div>
 						</div>
 
-						<hr>
+						<hr> -->
 
 
 						<div class="form-group">

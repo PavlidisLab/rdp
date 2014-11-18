@@ -75,7 +75,7 @@
 							<div class="publications col-sm-12">
 								<h3>
 									<a href="#" data-toggle="tooltip" data-placement="bottom" title="Edit"><i class="fa fa-edit yellow-icon"></i></a>
-									Publications (PubMed Ids) 
+									Publications (PubMed Ids) <a href="#" onclick='return utility.openAccordian($("#aboutcollapsePub"))'><i class="fa fa-question-circle"></i></a>
 								</h3>
 								<p custom-placeholder=pubmed data-ph="My lab studies ..."
 									class="data-editable data-paragraph publicationsList well"></p>

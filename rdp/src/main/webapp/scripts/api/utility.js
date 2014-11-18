@@ -3,6 +3,27 @@
  */
 (function( utility, $, undefined ) {
    
+   utility.openAccordian = function(el) {
+      el.collapse('show').parentsUntil('.help-page', '.panel-collapse').collapse('show');
+      $('#menu a[href="#help"]').tab('show');
+      $('#menu a[href="#help"]').trigger('click.metisMenu');
+      if  (el.parentsUntil('.help-page', '#about-tab').length ) {
+         $('.tab-pane a[href="#about-tab"]').tab('show');
+      } else if ( el.parentsUntil('.help-page', '#faq-tab').length ) {
+         $('.tab-pane a[href="#faq-tab"]').tab('show');
+      }
+      var a = el.siblings('a');
+      
+      if (!a.length) {
+         a = el.siblings('div').find('a');
+      }
+      console.log(a);
+      window.location.hash=a.attr('href');
+     
+      
+   }
+   
+   
    toggleTheme = function() {
       
       var theme_css = $('link.themes');
