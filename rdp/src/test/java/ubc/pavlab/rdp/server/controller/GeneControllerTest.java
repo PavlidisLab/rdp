@@ -227,7 +227,7 @@ public class GeneControllerTest extends BaseSpringContextTest {
                                 .param( "taxonId", Long.toString( taxonId ) ) ).andExpect( status().isOk() )
                 .andExpect( jsonPath( "$.success" ).value( true ) ).andExpect( jsonPath( "$.data[0].id" ).value( 1 ) )
                 .andExpect( jsonPath( "$.data[1].id" ).value( 2 ) ).andExpect( jsonPath( "$.data[2].id" ).value( 3 ) )
-                .andExpect( jsonPath( "$.data[3].id" ).value( 4 ) );
+                .andExpect( jsonPath( "$.data[3].id" ).value( 6 ) ).andExpect( jsonPath( "$.data[4].id" ).value( 4 ) );
 
         this.mockMvc
                 .perform(
