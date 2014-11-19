@@ -39,12 +39,12 @@
 	            </div>
 	        </div>
 
-            <%@ page import="ubc.pavlab.rdp.server.util.Settings"%>
+<%--             <%@ page import="ubc.pavlab.rdp.server.util.Settings"%>
             <div class="form-group">
                 <label class="recaptcha_only_if_image control-label col-sm-offset-2">Please enter the text below:</label>
                 <div class="col-sm-offset-2" id="captchadiv"></div>
                 <div id="captchaPublicKey" hidden="true"><%=Settings.getProperty( "rdp.recaptcha.publicKey" )%></div>
-            </div>
+            </div> --%>
 			
 			<div class="form-group">
 				<div class="col-sm-offset-3 col-sm-6 text-right">
