@@ -8,7 +8,7 @@
 		</div>
 	</div>
 	<div class="row">
-		<div class="col-md-4">
+		<div class="col-md-9">
 		<a data-toggle="collapse" href="#collapseReadFirst" class="read-first" >Read this first - how to decide which genes to add</a>
 		</div>
 		<div class="panel col-md-9">

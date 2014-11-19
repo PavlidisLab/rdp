@@ -45,7 +45,7 @@
             data-show="true">
             <div class="modal-content" data-backdrop="static" data-show="true">
                 <div class="modal-header">
-					<h3 class="modal-title text-center"><a href="#signin" data-toggle="tab">Rare Diseases</a></h3>
+					<h3 class="modal-title text-center"><a href="#signin" data-toggle="tab">Rare Diseases Researcher Registry</a></h3>
 					<h5 class="modal-title text-center">Models & Mechanisms Network</h5>
 	            </div>
                 <div class="modal-body">
