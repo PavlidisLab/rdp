@@ -25,7 +25,7 @@
 									aria-controls="aboutcollapse1" class="panel-heading" role="tab"
 									id="aboutheading1">
 									<h4 class="panel-title">
-										<a href="#"> My Account </a>
+										<a href="#"> Using 'My Account' </a>
 									</h4>
 								</div>
 								<div id="aboutcollapse1" class="panel-collapse collapse"
@@ -117,7 +117,7 @@
 									aria-controls="aboutcollapse2" class="panel-heading" role="tab"
 									id="aboutheading2">
 									<h4 class="panel-title">
-										<a href="#"> My Model Organisms </a>
+										<a href="#"> Using 'My Model Organisms' </a>
 									</h4>
 								</div>
 								<div id="aboutcollapse2" class="panel-collapse collapse"

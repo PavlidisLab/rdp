@@ -136,7 +136,7 @@ public class GeneCacheImpl extends SearchableEhcache<Gene> implements GeneCache 
         results.addAll( tmp );
 
         // 3. Prefix Gene name
-        Criteria nameCriteria = geneNameAttribute.ilike( regexQueryString );
+        Criteria nameCriteria = geneNameAttribute.ilike( "*" + queryString + "*" );
         tmp = fetchByCriteria( taxonCriteria.and( nameCriteria ) );
         tmp.removeAll( results );
         results.addAll( tmp );
@@ -146,13 +146,6 @@ public class GeneCacheImpl extends SearchableEhcache<Gene> implements GeneCache 
         regexQueryString = "*" + queryString + "*";
         Criteria aliasesCriteria = aliasesAttribute.ilike( regexQueryString );
         tmp = fetchByCriteria( taxonCriteria.and( aliasesCriteria ) );
-        tmp.removeAll( results );
-        results.addAll( tmp );
-
-        // 5. anywhere in Gene name
-        regexQueryString = "*" + queryString + "*";
-        nameCriteria = geneNameAttribute.ilike( regexQueryString );
-        tmp = fetchByCriteria( taxonCriteria.and( nameCriteria ) );
         tmp.removeAll( results );
         results.addAll( tmp );
 
