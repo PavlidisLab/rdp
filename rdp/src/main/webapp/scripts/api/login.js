@@ -40,7 +40,13 @@
             } else {
                // If the login credentials are not correct,
                // show our error state element.
-               utility.showMessage( "<strong>Warning!</strong> Login email/password incorrect.", $("#signinMessage"));
+               var msg;
+               try {
+                  msg = jQuery.parseJSON( response ).message;
+               } catch(err) {
+                  msg = "Login Failed."
+               }
+               utility.showMessage( msg, $("#signinMessage"));
             }
          },
          error : function(response, xhr) {

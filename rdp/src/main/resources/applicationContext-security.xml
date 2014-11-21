@@ -53,7 +53,7 @@
         <property name="alwaysUseDefaultTargetUrl" value="false"></property>
     </bean>
 
-    <bean id="ajaxAuthenticationFailureHandler" class="gemma.gsec.authentication.AjaxAuthenticationFailureHandler">
+    <bean id="ajaxAuthenticationFailureHandler" class="ubc.pavlab.rdp.server.security.authentication.AjaxAuthenticationFailureHandler">
         <property name="defaultFailureUrl" value="/login.jsp"></property>
     </bean>
 

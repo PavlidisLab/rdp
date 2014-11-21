@@ -63,15 +63,19 @@
          researcherModel.currentResearcher.pubMedIds.push( val );
          }
       });*/
-      
+      try {
       var ids = [];
-      var stringIds = profile.pubMedIds()[0].innerText.split('\n');
+      var separators = ['<div>','<br>'];
+      var stringIds = profile.pubMedIds().html().split(new RegExp(separators.join('|'), 'g'));
       for (var i=0; i<stringIds.length; i++) {
          var val = parseInt( stringIds[i] );
          if ( !isNaN(val) ) {
             ids.push( val );
          }
       }
+   } catch(err) {
+      console.log('Could not parse PubMedIds');
+   }
       
       researcherModel.currentResearcher.pubMedIds = ids;
 
@@ -99,14 +103,12 @@
 
       changed |= profile.description().text() != researcher.description;
 
-
+      try {
       if ( !changed && researcher.pubMedIds.length > 0 ) {
          researcher.pubMedIds.sort(function(a, b){return a-b});
          var ids = [];
-         var stringIds = profile.pubMedIds()[0].innerText.split('\n');
-         if (stringIds.length == 1 ) {
-            stringIds = profile.pubMedIds().html().split('<br>').join('').split('</div>').join('').split('<div>')
-         }
+         var separators = ['<div>','<br>'];
+         var stringIds = profile.pubMedIds().html().split(new RegExp(separators.join('|'), 'g'));
 /*         profile.pubMedIds().find( 'div' ).each(function(index) {
             var val = parseInt( $(this).text() );
             if ( !isNaN(val) ) {
@@ -129,6 +131,9 @@
                return true;
             }
          }
+      }
+      } catch(err) {
+         console.log('Could not parse PubMedIds');
       }
 
       return changed;

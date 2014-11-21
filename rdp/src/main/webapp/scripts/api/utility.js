@@ -104,16 +104,13 @@
    }
    
    utility.setConfirmChanges = function(tab, isDirty, fixSidebar) {
-      console.log('setConfirmChanges')
       tab.one('hide.bs.tab', function(e) {
-         console.log('hide.bs.tab');
          if ( isDirty() ) {
             console.log('isdirty');
             fixSidebar.trigger('click.metisMenu');
             e.preventDefault();
             var relatedTarget = e.relatedTarget;
             utility.confirmModal( function(result) {
-               console.log('callback');
                if ( result ) {
                   $(e.relatedTarget).trigger("click");
                   $(e.relatedTarget).tab('show');
