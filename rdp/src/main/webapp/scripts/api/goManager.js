@@ -189,7 +189,7 @@
          }
          var terms = promise.responseJSON.terms;
          //goManager.combineWithSavedTerms(terms);
-         console.log("GO Terms", terms);
+         //console.log("GO Terms", terms);
          
          goManager.fillTable(terms, dTable);
       });
@@ -380,13 +380,18 @@ return $(result);
                              if ( utility.isUndefined( aData[0].size ) ) {
                                 $('td:eq(4)', nRow).html('<img src="styles/select2-spinner.gif">');
                              } else {
-                                $('td:eq(4)', nRow).html('<i class="fa fa-caret-right fa-fw green-icon"></i> ' + aData[0].size );
+                                if ( $(nRow).hasClass('shown') ) {
+                                   $('td:eq(4)', nRow).html('<i class="fa fa-caret-down fa-fw red-icon"></i> ' + aData[0].size );
+                                } else {
+                                   $('td:eq(4)', nRow).html('<i class="fa fa-caret-right fa-fw green-icon"></i> ' + aData[0].size );
+                                }
+                                
                              }
                              
                              if ( utility.isUndefined( aData[0].frequency ) ) {
                                 $('td:eq(3)', nRow).html('<img src="styles/select2-spinner.gif">');
                              }
-
+                             
                              return nRow;
                           },
 
@@ -489,7 +494,7 @@ $( document ).ready( function() {
                 $.when(promise).done(function() {
                    term.size = promise.responseJSON.geneSize;
                    term.frequency = promise.responseJSON.frequency;
-                   row.invalidate().draw();
+                   row.invalidate().draw(false);
                 });
                 
              });
