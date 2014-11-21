@@ -22,6 +22,8 @@ package ubc.pavlab.rdp.server.service;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -253,6 +255,20 @@ public class GeneServiceImpl implements GeneService {
     @Transactional
     public Long countUniqueAssociations() {
         return geneDao.countUniqueAssociations();
+    }
+
+    @Override
+    @Transactional
+    public Map<String, Long> researcherCountByTaxon() {
+        List<Object[]> list = geneDao.researcherCountByTaxon();
+        Map<String, Long> countByTaxon = new HashMap<String, Long>();
+        for ( Object[] entity : list ) {
+            String taxonCommonName = ( String ) entity[0];
+            Long count = ( Long ) entity[1];
+            countByTaxon.put( taxonCommonName, count );
+
+        }
+        return countByTaxon;
     }
 
     @Override

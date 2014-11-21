@@ -3,6 +3,7 @@ package ubc.pavlab.rdp.server.controller;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
@@ -244,7 +245,8 @@ public class RegisterController extends BaseController {
             Long researchersRegisteredWithGenes = researcherService.countResearchersWithGenes();
             Long genesAdded = geneService.countAssociations();
             Long genesAddedUnique = geneService.countUniqueAssociations();
-            ;
+            Map<String, Long> countByTaxon = geneService.researcherCountByTaxon();
+
             JSONObject json = new JSONObject();
             json.put( "success", true );
             json.put( "message", "Statistics succesfully loaded" );
@@ -252,6 +254,7 @@ public class RegisterController extends BaseController {
             json.put( "researchers_registered_with_genes", researchersRegisteredWithGenes );
             json.put( "genes_added", genesAdded );
             json.put( "genes_added_unique", genesAddedUnique );
+            json.put( "researcher_counts_by_taxon", new JSONObject( countByTaxon ) );
             jsonText = json.toString();
         } catch ( Exception e ) {
             log.error( e.getLocalizedMessage(), e );
