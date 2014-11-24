@@ -17,7 +17,7 @@
          data : $( "#resetPasswordForm" ).serialize(),
          success : function(response, xhr) {
             btns.removeAttr("disabled");
-            //utility.showMessage( jQuery.parseJSON( response ).message, $("#resetPasswordMessage") );
+            utility.showMessage( jQuery.parseJSON( response ).message, $( "#resetPasswordForm .alert div" ) );
             if ( jQuery.parseJSON( response ).success == true ) {
                document.location = "register.html";
             }
@@ -25,7 +25,7 @@
          error : function(response, xhr) {
             btns.removeAttr("disabled");
             console.log( xhr.responseText );
-            utility.showMessage( "Error with request. Status is: " + xhr.status, $("#resetPasswordMessage") );
+            utility.showMessage( "Error with request. Status is: " + xhr.status, $( "#resetPasswordForm .alert div" ) );
          }
       } );
       
