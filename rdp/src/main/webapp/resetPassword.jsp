@@ -95,8 +95,8 @@
     <script src="scripts/lib/jquery.validate.min.js"></script>
 
     <!-- Our scripts -->
-    <script src="scripts/api/utility.js"></script>
-    <script src="scripts/api/resetPassword.js"></script>
+    <script src="scripts/api/utility.js?version=1"></script>
+    <script src="scripts/api/resetPassword.js?version=1"></script>
     
 </body>
 </html>
