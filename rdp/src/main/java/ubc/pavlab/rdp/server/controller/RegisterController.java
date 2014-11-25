@@ -87,7 +87,7 @@ public class RegisterController extends BaseController {
             researcher.setWebsite( website );
             researcher.setDescription( description );
 
-            researcher.setPublications( publications );
+            researcherService.updatePublications( researcher, publications );
 
             researcherService.update( researcher );
             log.info( "User: (" + userManager.getCurrentUsername() + ") updated profile" );

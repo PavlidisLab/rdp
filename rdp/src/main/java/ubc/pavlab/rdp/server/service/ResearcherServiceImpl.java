@@ -43,6 +43,7 @@ import ubc.pavlab.rdp.server.model.Gene;
 import ubc.pavlab.rdp.server.model.GeneAssociation;
 import ubc.pavlab.rdp.server.model.GeneAssociation.TierType;
 import ubc.pavlab.rdp.server.model.GeneOntologyTerm;
+import ubc.pavlab.rdp.server.model.Publication;
 import ubc.pavlab.rdp.server.model.Researcher;
 import ubc.pavlab.rdp.server.model.common.auditAndSecurity.User;
 
@@ -299,6 +300,25 @@ public class ResearcherServiceImpl implements ResearcherService {
         boolean modified = false;
         for ( GeneOntologyTerm term : goTerms ) {
             modified |= researcher.addGOTerm( term );
+        }
+        return modified;
+    }
+
+    @Override
+    @Transactional
+    public boolean updatePublications( Researcher researcher, Collection<Publication> publications ) {
+        researcher.getPublications().clear();
+        boolean added = AddPublications( researcher, publications );
+        researcherDao.update( researcher );
+        return added;
+    }
+
+    @Override
+    @Transactional
+    public boolean AddPublications( Researcher researcher, Collection<Publication> publications ) {
+        boolean modified = false;
+        for ( Publication pub : publications ) {
+            modified |= researcher.addPublication( pub );
         }
         return modified;
     }
