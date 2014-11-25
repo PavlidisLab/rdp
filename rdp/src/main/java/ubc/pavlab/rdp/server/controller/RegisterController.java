@@ -24,6 +24,7 @@ import ubc.pavlab.rdp.server.security.authentication.UserManager;
 import ubc.pavlab.rdp.server.service.GeneService;
 import ubc.pavlab.rdp.server.service.ResearcherService;
 import ubc.pavlab.rdp.server.util.JSONUtil;
+import ubc.pavlab.rdp.server.util.Settings;
 
 @Controller
 @RemoteProxy
@@ -40,6 +41,8 @@ public class RegisterController extends BaseController {
 
     @RequestMapping(value = { "", "/", "/register.html", "/home.html", "/index.html" })
     public String showRegister( ModelMap model ) {
+        model.put( "ga_tracker", Settings.getAnalyticsKey() );
+        model.put( "ga_domain", Settings.getAnalyticsDomain() );
         return "register";
     }
 
