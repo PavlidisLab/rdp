@@ -20,6 +20,7 @@
 package ubc.pavlab.rdp.server.dao;
 
 import java.util.Collection;
+import java.util.List;
 
 import ubc.pavlab.rdp.server.model.Gene;
 
@@ -48,5 +49,7 @@ public interface GeneDao extends DaoBase<Gene> {
     public Long countAssociations();
 
     public Long countUniqueAssociations();
+
+    public List<Object[]> researcherCountByTaxon();
 
 }

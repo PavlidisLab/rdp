@@ -25,6 +25,8 @@ import java.util.List;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.SessionFactory;
+import org.hibernate.type.LongType;
+import org.hibernate.type.StringType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -173,6 +175,20 @@ public class GeneDaoImpl extends DaoBaseImpl<Gene> implements GeneDao {
     public Long countUniqueAssociations() {
         String hql = "select count(distinct GeneID) FROM GeneAssociation WHERE tier<>'TIER3'";
         return ( Long ) this.getHibernateTemplate().find( hql ).get( 0 );
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public List<Object[]> researcherCountByTaxon() {
+        // select geneOntologyId, TAXON_ID, COUNT(*) FROM GENE_ANNOTATION GROUP BY geneOntologyId, TAXON_ID
+        List<Object[]> list = getHibernateTemplate()
+                .getSessionFactory()
+                .getCurrentSession()
+                .createSQLQuery(
+                        "select commonName as Organism, COUNT(distinct RESEARCHER_GENE.RESEARCHER_ID) as Count from RESEARCHER_GENE INNER JOIN GENE ON RESEARCHER_GENE.GeneID=GENE.GeneID LEFT JOIN TAXON ON GENE.tax_id=TAXON.tax_id GROUP BY commonName;" )
+                .addScalar( "Organism", StringType.INSTANCE ).addScalar( "Count", LongType.INSTANCE ).list();
+        return list;
+
     }
 
 }

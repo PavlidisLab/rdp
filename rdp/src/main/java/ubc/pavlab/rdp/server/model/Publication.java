@@ -35,6 +35,11 @@ import javax.persistence.Table;
 @Table(name = "PUBLICATION")
 public class Publication implements Serializable {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = -6726227110493838441L;
+
     public static Collection<Publication> emptyCollection() {
         return new ArrayList<Publication>();
     }
@@ -116,5 +121,23 @@ public class Publication implements Serializable {
 
     public void setAbstractText( String abstractText ) {
         this.abstractText = abstractText;
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + pubMedId;
+        return result;
+    }
+
+    @Override
+    public boolean equals( Object obj ) {
+        if ( this == obj ) return true;
+        if ( obj == null ) return false;
+        if ( getClass() != obj.getClass() ) return false;
+        Publication other = ( Publication ) obj;
+        if ( pubMedId != other.pubMedId ) return false;
+        return true;
     }
 }

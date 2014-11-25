@@ -28,6 +28,7 @@ import org.springframework.security.access.annotation.Secured;
 import ubc.pavlab.rdp.server.model.Gene;
 import ubc.pavlab.rdp.server.model.GeneAssociation.TierType;
 import ubc.pavlab.rdp.server.model.GeneOntologyTerm;
+import ubc.pavlab.rdp.server.model.Publication;
 import ubc.pavlab.rdp.server.model.Researcher;
 
 /**
@@ -115,5 +116,11 @@ public interface ResearcherService {
 
     @Secured({ "GROUP_USER" })
     public void refreshOverlaps( Researcher researcher, Long taxonId );
+
+    @Secured({ "GROUP_USER" })
+    public boolean AddPublications( Researcher researcher, Collection<Publication> publications );
+
+    @Secured({ "GROUP_USER" })
+    public boolean updatePublications( Researcher researcher, Collection<Publication> publications );
 
 }

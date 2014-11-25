@@ -20,6 +20,7 @@ package ubc.pavlab.rdp.server.controller;
 
 import gemma.gsec.authentication.LoginDetailsValueObject;
 import gemma.gsec.authentication.UserDetailsImpl;
+import gemma.gsec.authentication.UserExistsException;
 import gemma.gsec.util.JSONUtil;
 import gemma.gsec.util.SecurityUtil;
 
@@ -251,10 +252,13 @@ public class SignupController extends BaseController {
             /*
              * Most common cause: user exists already.
              */
-            log.error( e, e );
+            if ( e.getCause() instanceof UserExistsException ) {
+                log.info( e.getCause().getMessage() );
+            } else {
+                log.error( e, e );
+            }
             String errMsg = e.getCause() != null ? e.getCause().getMessage() : e.getMessage();
             jsonText = "{\"success\":false, \"message\":\"" + errMsg + "\"}";
-            log.info( jsonText );
         } finally {
             jsonUtil.writeToResponse( jsonText );
         }

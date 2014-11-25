@@ -23,6 +23,7 @@ import gemma.gsec.model.User;
 
 import org.springframework.security.core.AuthenticationException;
 
+import ubc.pavlab.rdp.server.exception.ValidationException;
 import ubc.pavlab.rdp.server.model.common.auditAndSecurity.PasswordResetToken;
 
 /**
@@ -37,7 +38,7 @@ public interface UserManager extends gemma.gsec.authentication.UserManager {
 
     public PasswordResetToken getPasswordResetToken( String username );
 
-    public boolean validatePasswordResetToken( String username, String key );
+    public boolean validatePasswordResetToken( String username, String key ) throws ValidationException;
 
     public void changePasswordForUser( String username, String newPassword ) throws AuthenticationException;
 

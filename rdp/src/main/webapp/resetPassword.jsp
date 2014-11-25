@@ -43,9 +43,9 @@
 	            </div>
                 <div class="modal-body">
                 	<form id="resetPasswordForm" class="form-horizontal" role="form">
-		           		<div class="alert alert-warning col-sm-offset-1 col-sm-10" id="resetPasswordFailed" hidden="true">
+						<div class="alert alert-warning col-sm-offset-1 col-sm-10"hidden="true">
 							<a href="#" class="close" data-hide="alert">&times;</a>
-							<div id="resetPasswordMessage" class="text-left"></div>
+							<div class="text-center"></div>
 						</div>
 						
 						<div class="form-group" hidden="true">
@@ -95,8 +95,8 @@
     <script src="scripts/lib/jquery.validate.min.js"></script>
 
     <!-- Our scripts -->
-    <script src="scripts/api/utility.js"></script>
-    <script src="scripts/api/resetPassword.js"></script>
+    <script src="scripts/api/utility.js?version=1"></script>
+    <script src="scripts/api/resetPassword.js?version=1"></script>
     
 </body>
 </html>

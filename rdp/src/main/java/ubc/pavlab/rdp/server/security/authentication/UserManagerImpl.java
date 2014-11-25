@@ -55,6 +55,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import ubc.pavlab.rdp.server.exception.ValidationException;
 import ubc.pavlab.rdp.server.model.common.auditAndSecurity.PasswordResetToken;
 import ubc.pavlab.rdp.server.service.ResearcherService;
 
@@ -179,27 +180,27 @@ public class UserManagerImpl implements UserManager {
     @Override
     @Secured({ "IS_AUTHENTICATED_ANONYMOUSLY", "RUN_AS_ADMIN" })
     @Transactional
-    public boolean validatePasswordResetToken( String username, String key ) throws RuntimeException {
+    public boolean validatePasswordResetToken( String username, String key ) throws ValidationException {
         User u = loadUser( username );
 
         PasswordResetToken token = ( ( ubc.pavlab.rdp.server.model.common.auditAndSecurity.User ) u )
                 .getPasswordResetToken();
 
         if ( token == null ) {
-            throw new RuntimeException( "User does not have a password reset token." );
+            throw new ValidationException( "User does not have a password reset token." );
         }
 
         Date creationDateStamp = token.getCreationDateStamp();
         String tokenKey = token.getTokenKey();
 
         if ( tokenKey == null || creationDateStamp == null ) {
-            throw new RuntimeException( "User has a malformed token, please reset again." );
+            throw new ValidationException( "User has a malformed token, please reset again." );
         }
 
         Date expirationDate = DateUtils.addHours( creationDateStamp, 2 );
 
         if ( !passwordEncoder.matches( key, tokenKey ) || expirationDate.before( new Date() ) ) {
-            throw new RuntimeException( "Invalid reset token." );
+            throw new ValidationException( "Invalid reset token." );
         }
 
         return true;

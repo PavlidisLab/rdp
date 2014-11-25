@@ -41,6 +41,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import ubc.pavlab.rdp.server.exception.ValidationException;
 import ubc.pavlab.rdp.server.security.authentication.UserManager;
 import ubc.pavlab.rdp.server.util.Settings;
 
@@ -204,14 +205,20 @@ public class UserFormMultiActionController extends BaseController {
 
             /* make sure the email has been set */
             if ( StringUtils.isEmpty( email ) ) {
-                throw new RuntimeException( "Email not specified.  This is a required field." );
+                log.info( "Email not specified.  This is a required field." );
+                jsonText = "{\"success\":false,\"message\":\"Email not specified.  This is a required field.\"}";
+                return;
+                // throw new RuntimeException( "Email not specified.  This is a required field." );
             }
 
             User user = userManager.findbyEmail( email );
 
             /* make sure the user exists */
             if ( user == null ) {
-                throw new RuntimeException( "User with specified email does not exist." );
+                log.info( "User with specified email does not exist: " + email );
+                jsonText = "{\"success\":false,\"message\":\"User with specified email does not exist.\"}";
+                return;
+                // throw new RuntimeException( "User with specified email does not exist." );
             }
 
             String username = user.getUserName();
@@ -270,15 +277,15 @@ public class UserFormMultiActionController extends BaseController {
         try {
 
             if ( StringUtils.isEmpty( password ) | StringUtils.isEmpty( passwordConfirm ) ) {
-                throw new RuntimeException( "Missing password." );
+                throw new ValidationException( "Missing password." );
             }
 
             if ( !password.equals( passwordConfirm ) ) {
-                throw new RuntimeException( "Passwords do not match." );
+                throw new ValidationException( "Passwords do not match." );
             }
 
             if ( password.length() < MIN_PASSWORD_LENGTH ) {
-                throw new RuntimeException( "Password must be at least " + MIN_PASSWORD_LENGTH
+                throw new ValidationException( "Password must be at least " + MIN_PASSWORD_LENGTH
                         + " characters in length" );
             }
 
@@ -304,8 +311,13 @@ public class UserFormMultiActionController extends BaseController {
             json.put( "message", "Password successfully reset for (" + username + ")." );
             jsonText = json.toString();
 
+        } catch ( ValidationException e ) {
+            log.info( username + ": " + e.getLocalizedMessage() );
+            json.put( "success", false );
+            json.put( "message", e.getLocalizedMessage() );
+            jsonText = json.toString();
         } catch ( Exception e ) {
-            log.error( e.getLocalizedMessage(), e );
+            log.error( username + ": " + e.getLocalizedMessage(), e );
             json.put( "success", false );
             json.put( "message", e.getLocalizedMessage() );
             jsonText = json.toString();

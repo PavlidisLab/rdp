@@ -266,7 +266,7 @@
 	<script src="scripts/lib/jquery.validate.min.js"></script>
 	<script src="scripts/lib/jquery.json-2.4.js"></script>
 	<!-- http://www.bootply.com/Wzv3JQreK5     http://ivaynberg.github.io/select2/select2-2.1/select2.css   -->
-	<script src="scripts/lib/select2.js"></script>
+	<script src="scripts/lib/select2.js?version=1"></script>
 	<!-- from http://www.datatables.net/examples/styling/bootstrap.html -->
 	<script type="text/javascript" charset="utf8"
 		src="scripts/lib/jquery.dataTables.min.js"></script>
@@ -278,16 +278,16 @@
 	
 	<script src="scripts/lib/lightbox.min.js"></script>
 
-	<script src="scripts/api/utility.js?version=12"></script>
-	<script src="scripts/api/researcherModel.js?version=12"></script>
-	<script src="scripts/api/profile.js?version=12"></script>
-	<script src="scripts/api/settings.js?version=12"></script>
-	<script src="scripts/api/modelOrganisms.js?version=12"></script>
-	<script src="scripts/api/geneManager.js?version=12"></script>
-	<script src="scripts/api/goManager.js?version=12"></script>
-	<script src="scripts/api/admin.js?version=12"></script>
-	<script src="scripts/api/register.js?version=12"></script>
-	<script src="scripts/api/navbar.js?version=12"></script>
+	<script src="scripts/api/utility.js?version=15"></script>
+	<script src="scripts/api/researcherModel.js?version=15"></script>
+	<script src="scripts/api/profile.js?version=15"></script>
+	<script src="scripts/api/settings.js?version=15"></script>
+	<script src="scripts/api/modelOrganisms.js?version=15"></script>
+	<script src="scripts/api/geneManager.js?version=15"></script>
+	<script src="scripts/api/goManager.js?version=15"></script>
+	<script src="scripts/api/admin.js?version=15"></script>
+	<script src="scripts/api/register.js?version=15"></script>
+	<script src="scripts/api/navbar.js?version=15"></script>
 
 </body>
 </html>

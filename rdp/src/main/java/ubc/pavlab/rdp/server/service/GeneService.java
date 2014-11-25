@@ -21,6 +21,7 @@ package ubc.pavlab.rdp.server.service;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Map;
 
 import org.json.JSONArray;
 import org.springframework.security.access.annotation.Secured;
@@ -89,5 +90,8 @@ public interface GeneService {
 
     @Secured({ "IS_AUTHENTICATED_ANONYMOUSLY" })
     public Long countAssociations();
+
+    @Secured({ "IS_AUTHENTICATED_ANONYMOUSLY" })
+    public Map<String, Long> researcherCountByTaxon();
 
 }

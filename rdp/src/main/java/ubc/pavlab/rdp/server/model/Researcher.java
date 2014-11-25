@@ -138,7 +138,7 @@ public class Researcher implements Serializable {
      * { @JoinColumn(name = "GENE_ID") }) private Set<Gene> genes = new HashSet<>();
      */
 
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
     @JoinColumn(name = "RESEARCHER_ID")
     private Set<Publication> publications = new HashSet<>();
 
