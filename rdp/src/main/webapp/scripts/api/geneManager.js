@@ -124,49 +124,76 @@
       geneManager.addGenesModal().modal('hide');
    }
    
-   geneManager.addGeneToTable = function( gene, draw ) {
-      draw = utility.isUndefined( draw ) ? true : draw;
+   geneManager.addGenesToTable = function(genes, tier) {
+      if ( utility.isUndefined(tier) || (tier!="TIER1" && tier!="TIER2") ) {
+         tier="TIER2";
+      }
+      if ( genes.length ) {
+         var results = {'failed':[],'added':[]};
+         for (var i = 0; i < genes.length; i++) {
+            var gene = new researcherModel.Gene( genes[i] );
+            gene.tier = tier;
+            var res = addToTable(gene)
+            if (!res.success) {
+               console.log(res)
+               console.log(results)
+               console.log(results[res.type])
+               results[res.type].push(res.data);
+            }
+         }
+
+         var delim = ", ";
+         var msg = [];
+         if (results['failed'].length) {
+            msg.push("<p><b>Failed to add</b>: " + results['failed'].join(delim) + "</p>");
+         }
+         
+         if (results['added'].length) {
+            msg.push("<p><b>Already added</b>: " + results['added'].join(delim) + "</p>");
+         }
+         
+         if (msg.length) {
+            msg = msg.join("\n");
+         } else {
+            msg = "<b>Successfully added</b> " + genes.length +" gene(s)."
+         }
+         
+         utility.showMessage( msg, $( "#modelOrganisms .main-header .alert div" ) );
+         geneManager.table().DataTable().rows().draw();
+      }
+   }
+   
+   addToTable = function(gene) {         
       if ( !(gene instanceof researcherModel.Gene ) ){
          console.log("Object is not a Gene", gene);
-         return;
+         return {success:false, msg:"Object is not a Gene", data:gene.officialSymbol, type:'failed' };
       }
-
-      if ( gene == null ) {
-         console.log("Please select a gene to add")
-         utility.showMessage( "Please select a gene to add", $( "#modelOrganisms .main-header .alert div" ) );
-         //utility.showMessage( "Please select a gene to add", $( "#geneManagerMessage" ) );
-         return;
-      } else {
-         
-         utility.hideMessage( $( "#modelOrganisms .main-header .alert div" ) );
-      }
-
+      
       var table = geneManager.table().DataTable();
       
       if ( table.column(1).data().indexOf(gene.officialSymbol) != -1 ) {
          console.log("Gene already added")
-         utility.showMessage( "Gene already added", $( "#modelOrganisms .main-header .alert div" ) );
-         //utility.showMessage( "Gene already added", $( "#geneManagerMessage" ) );
-         return;
+         return {success:false, msg:"Gene already added", data:gene.officialSymbol, type:'added' };
+         //utility.showMessage( "Gene already added", $( "#modelOrganisms .main-header .alert div" ) );
       }
+      
       geneRow = [gene];
-      var inst = table.row.add( geneRow );
-      if (draw) {
-         inst.draw();
-      }
-
+      table.row.add( geneRow ).draw(false);
+      
+      return {success:true};
+      
    }
-   
-   geneManager.addSelectedGene = function() {
+      
+   geneManager.addSelectedGenes = function() {
       var data = $( "#searchGenesSelect" ).select2( "data" );
-      if ( data ) {
-         var gene = new researcherModel.Gene( data );
-         if ( $('#selectGeneTierCheckbox').prop('checked') ) {
-            gene.tier = "TIER1";
-         }
+      var tier = "TIER2";
+      if ( $('#selectGeneTierCheckbox').prop('checked') ) {
+         tier = "TIER1";
       }
+      
+      geneManager.addGenesToTable(data, tier);
+      
       $( "#searchGenesSelect" ).select2("val", "");
-      geneManager.addGeneToTable(gene, true);
       //geneManager.closeAddGenesModal();
    }
    
@@ -188,17 +215,12 @@
             btn.removeAttr("disabled");
             btn.children('i').removeClass('fa-spin');
 
-            for (var i = 0; i < response.data[0].length; i++) {
-               gene = new researcherModel.Gene( response.data[0][i] );
-               if ( $('#bulkUploadTierCheckbox').prop('checked') ) {
-                  gene.tier = "TIER1";
-               }
-               geneManager.addGeneToTable( gene, false );
+            var tier = "TIER2";
+            if ( $('#bulkUploadTierCheckbox').prop('checked') ) {
+               tier = "TIER1";
             }
-            table.rows().draw();
-            console.log(response.message)
-            utility.showMessage( promise.responseJSON.message, $( "#modelOrganisms .main-header .alert div" ) );
-            //utility.showMessage( response.message, $( "#geneManagerMessage" ) );
+            
+            geneManager.addGenesToTable(response.data[0], tier);
 
          },
          error : function(response, xhr) {
@@ -217,8 +239,8 @@
    geneManager.initSelect2 = function() {
       // init search genes combo    
       geneManager.select2().select2( {
-/*         multiple: true,
-         closeOnSelect:false,*/
+         multiple: true,
+         closeOnSelect:false,
          id : function(data) {
             return data.officialSymbol;
          },
@@ -348,7 +370,7 @@
    }
    
    geneManager.init = function() {
-      $( "#addGeneButton" ).click( geneManager.addSelectedGene );
+      $( "#addGeneButton" ).click( geneManager.addSelectedGenes );
       $( "#clearImportGenesButton" ).click( function() {
          $( "#importGeneSymbolsTextArea" ).val( '' );
       } );
