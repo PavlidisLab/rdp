@@ -9,10 +9,10 @@
 	</div>
 	<div class="row">
 		<div class="col-md-9">
-		<a data-toggle="collapse" href="#collapseReadFirst" class="read-first" >Read this first - how to decide which genes to add</a>
+		<a data-toggle="collapse" href="#collapseReadFirst" class="read-first" aria-expanded="true">Read this first - how to decide which genes to add</a>
 		</div>
 		<div class="panel col-md-9">
-			<div id="collapseReadFirst" class="panel-collapse collapse">
+			<div id="collapseReadFirst" class="panel-collapse collapse in" aria-expanded="true">
 				<div class="panel-body"> 
 					<p>Use this Manager to enter genes you study. It is important that you choose the genes carefully. Complete instructions are available <a href="#" onclick='return utility.openAccordian($("#collapse8"))'>here</a>. Briefly:</p>
 					<ol>
