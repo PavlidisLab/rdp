@@ -434,6 +434,7 @@ div.sidebar-footer {
 	bottom: 20px;
 	height: 50px;
 	left: 15px;
+	cursor: pointer;
 }
 .sidebar-footer p{
 	font-size: 9px;

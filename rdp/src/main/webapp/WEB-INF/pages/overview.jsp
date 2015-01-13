@@ -34,7 +34,7 @@
 						</p>
 
 						<p>
-							All information in the Registry is confidential and will only be
+							All information in the Registry is <a href="#" onclick='return utility.openAccordian($("#collapse4"))'>confidential</a> and will only be
 							used by the Network administration for matching you to rare
 							disease research projects. Your information will <i>never</i> be
 							shared with any third party (including other registered

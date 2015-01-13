@@ -142,7 +142,7 @@
 				<nav class="sidebar-nav">
 					<ul id="menu">
 						<li style="display: none;"><a href="#admin" data-toggle="tab">
-								<span class="sidebar-nav-item-icon fa fa-fw fa-cogs fa-lg"></span>
+								<span class="sidebar-nav-item-icon fa fa-fw fa-cog fa-lg fa-spin"></span>
 								<span class="sidebar-nav-item">Administration</span>
 						</a></li>
 						<li class="active active-metis"><a href="#overview" data-toggle="tab">
@@ -197,7 +197,7 @@
 
 					</ul>
 				</nav>
-				<div class="sidebar-footer">
+				<div id="sidebar-brand-bottom" class="sidebar-footer">
 					<p>Models &amp; Mechanisms Network</p>
 					<h1>RARE DISEASES</h1>
 				</div>
@@ -323,16 +323,16 @@
 	
 	<script src="scripts/lib/lightbox.min.js"></script>
 
-	<script src="scripts/api/utility.js?version=15"></script>
-	<script src="scripts/api/researcherModel.js?version=15"></script>
-	<script src="scripts/api/profile.js?version=15"></script>
-	<script src="scripts/api/settings.js?version=15"></script>
-	<script src="scripts/api/modelOrganisms.js?version=15"></script>
-	<script src="scripts/api/geneManager.js?version=15"></script>
-	<script src="scripts/api/goManager.js?version=15"></script>
-	<script src="scripts/api/admin.js?version=15"></script>
-	<script src="scripts/api/register.js?version=15"></script>
-	<script src="scripts/api/navbar.js?version=15"></script>
+	<script src="scripts/api/utility.js?version=20"></script>
+	<script src="scripts/api/researcherModel.js?version=20"></script>
+	<script src="scripts/api/profile.js?version=20"></script>
+	<script src="scripts/api/settings.js?version=20"></script>
+	<script src="scripts/api/modelOrganisms.js?version=20"></script>
+	<script src="scripts/api/geneManager.js?version=20"></script>
+	<script src="scripts/api/goManager.js?version=20"></script>
+	<script src="scripts/api/admin.js?version=20"></script>
+	<script src="scripts/api/register.js?version=20"></script>
+	<script src="scripts/api/navbar.js?version=20"></script>
 
 </body>
 </html>

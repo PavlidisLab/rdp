@@ -50,6 +50,10 @@
       return utility.executeAjax( "getGOTermStats.html", {'geneOntologyId':geneOntologyId, 'taxonId':modelOrganisms.currentTaxonId()}, false );
    }
    
+   getGOTermsStats = function(geneOntologyIds) {
+      return utility.executeAjax( "getGOTermsStats.html", {'geneOntologyIds':geneOntologyIds, 'taxonId':modelOrganisms.currentTaxonId()}, false );
+   }
+   
    goManager.getGenePool = function(geneOntologyId) {
       return utility.executeAjax( "getGenePool.html", {'geneOntologyId':geneOntologyId, 'taxonId':modelOrganisms.currentTaxonId()}, false );
    }
@@ -172,6 +176,108 @@
 
    }
    
+   goManager.addSelectedTerms = function() {
+      var terms = goManager.select2().select2( "data" );
+      goManager.select2().select2( "val", "" );
+      
+      goManager.closeAddTermsModal();
+      
+      goManager.addGoTermsToTable(terms, true);
+
+   }
+   
+   goManager.addGoTermsToTable = function(terms, getStats) {
+
+      if ( terms.length ) {
+         var results = {'failed':[],'added':[], 'large':[]};
+         var refreshTerms = [];
+         var refreshIds = [];
+         for (var i = 0; i < terms.length; i++) {
+            var term = terms[i];
+            var res = addToTable(term)
+            if (!res.success) {
+               console.log(res)
+               console.log(results)
+               console.log(results[res.type])
+               results[res.type].push(res.data);
+            } else if ( getStats && res.row ) {
+               refreshTerms.push({term: term, row: res.row} );
+               refreshIds.push(term.geneOntologyId);
+            }
+         }
+         console.log(refreshTerms);
+         var promise = getGOTermsStats( refreshIds );
+         $.when(promise).done(function() {
+            console.log("promise: ", promise);
+            for (var i = 0; i < refreshTerms.length; i++) {
+               var term = refreshTerms[i].term;
+               var stats = promise.responseJSON[term.geneOntologyId];
+               if ( !utility.isUndefined(stats) ) {
+                  term.size = stats.geneSize;
+                  term.frequency = stats.frequency;
+                  refreshTerms[i].row.invalidate().draw(false);
+               } else {
+                  //Something went wrong.
+               }
+            }
+
+            
+         });
+
+         var delim = ", ";
+         var msg = [];
+         if (results['failed'].length) {
+            msg.push("<p><b>Failed to add</b>: " + results['failed'].join(delim) + "</p>");
+         }
+         
+         if (results['added'].length) {
+            msg.push("<p><b>Already added</b>: " + results['added'].join(delim) + "</p>");
+         }
+         
+         if (results['large'].length) {
+            msg.push("<p><b>Too large</b>: " + results['large'].join(delim) + "</p>");
+         }
+         
+         if (msg.length) {
+            msg = msg.join("\n");
+            var successCnt = terms.length - results['failed'].length -results['added'].length-results['large'].length
+            msg += "\n<b>Successfully added</b> " + successCnt +" term(s)."
+         } else {
+            msg = "<b>Successfully added</b> " + terms.length +" term(s)."
+         }
+         
+         utility.showMessage( msg, $( "#modelOrganisms .main-header .alert div" ) );
+         goManager.table().DataTable().rows().draw(false);
+      }
+   }
+   
+   addToTable = function(term) {
+      
+      if ( term == null ) {
+         console.log("Object is not a Term", term);
+         return {success:false, msg:"Object is not a Term", data:term, type:'failed' };
+      }
+            
+      var table = goManager.table().DataTable();
+      
+      if ( table.column(1).data().indexOf(term.geneOntologyId) != -1 ) {
+         console.log("GO Term already added")
+         return {success:false, msg:"GO Term already added", data:term.geneOntologyId, type:'added' };
+      }
+      
+      if (term.size > sizeLimit) {
+         console.log("GO Term too large")
+         return {success:false, msg:"GO Term too large", data:term.geneOntologyId, type:'large' };
+      }
+      
+      termRow = [term];
+      var inst = table.row.add( termRow );
+      inst.draw(false);
+      
+      return {success:true, row:inst};
+      
+   }
+   
    goManager.openAddTermsModal = function() {
       var dTable = goManager.suggestionTable().DataTable();
       dTable.clear();
@@ -283,7 +389,7 @@ return $(result);
       var dTable = goManager.suggestionTable().DataTable();
       var selectedNodes = dTable.rows( '.selected' );
       if ( selectedNodes.data().length == 0 ) {
-         console.log("Please select a terms to add")
+         console.log("Please select a term to add")
          //utility.showMessage( "Please select a gene to remove", $( "#geneManagerMessage" ) );
          return;
       } else {
@@ -410,6 +516,8 @@ return $(result);
    goManager.initSelect2 = function() {
       // init search genes combo    
       goManager.select2().select2( {
+         multiple: true,
+         closeOnSelect:false,
          id : function(data) {
             return data.geneOntologyId;
          },
@@ -438,6 +546,10 @@ return $(result);
 
          },
          formatResultCssClass: formatTerm,
+         formatSelection : function(item) {
+            item.text = item.text.split('</b>')[0] + '</b>';
+            return item.text
+         },
          formatAjaxError : function(response) {
             var msg = response.responseText;
             return msg;
@@ -451,6 +563,7 @@ return $(result);
 
    goManager.init = function() {
       //$( "#addTermButton" ).click( selectGoTerm );
+      $( "#addTermButton" ).click( goManager.addSelectedTerms );
       $('#term-tab-save').click(saveGoTerms);
       
 
@@ -461,7 +574,7 @@ return $(result);
 $( document ).ready( function() {
    goManager.init();
    goManager.initDataTable( goManager.table(), [ {"sExtends":    "text", "fnClick":function(){return utility.openAccordian($("#aboutcollapse2-4"))}, "sButtonText": '<a href="#"><i class="fa fa-question-circle"></i></a>' },
-                                                 {"sExtends":    "text", "fnClick":goManager.openAddTermsModal, "sButtonText": '<i class="fa fa-plus-circle green-icon"></i>&nbsp; Suggest GO Terms' },
+                                                 {"sExtends":    "text", "fnClick":goManager.openAddTermsModal, "sButtonText": '<i class="fa fa-plus-circle green-icon"></i>&nbsp; Add GO Term(s)' },
                                            {"sExtends":    "text", "fnClick":goManager.removeSelectedRows, "sButtonText": '<i class="fa fa-minus-circle red-icon"></i>&nbsp; Remove Selected' },
                                            "select_all", 
                                            "select_none" ] );
