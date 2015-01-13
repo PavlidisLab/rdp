@@ -309,6 +309,9 @@
          admin.initDataTable();
          admin.initSelect2();
          var promise = admin.getResearchers();
+         $.when(promise).done(function() {
+            $('#menu > li a[href="#admin"][data-toggle="tab"] span.fa-spin').removeClass("fa-spin");
+         });
          $('#menu > li a[href="#admin"][data-toggle="tab"]').on('shown.bs.tab',function() {
             oTable.fnAdjustColumnSizing();
          });

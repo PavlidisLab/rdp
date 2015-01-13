@@ -1,3 +1,4 @@
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE html>
 <html lang="en" class="no-js">
 <head>
@@ -36,6 +37,50 @@
 
 <!-- Custom CSS -->
 <!-- <link href="styles/rdp_dark.css" rel="alternate stylesheet" title="dark" class="themes" disabled=""> -->
+
+<c:if test='${ ga_tracker != ""}'>
+
+        <script type="text/javascript">
+      var _gaq = _gaq || [];
+      var pluginUrl = '//www.google-analytics.com/plugins/ga/inpage_linkid.js';
+      _gaq.push([ '_require', 'inpage_linkid', pluginUrl ]);
+      _gaq.push([ '_setAccount', '${ga_tracker}' ]);
+      _gaq.push([ '_setDomainName', '${ga_domain}' ]);
+      _gaq.push([ '_trackPageview' ]);
+
+      (function() {
+         var ga = document.createElement('script');
+         ga.type = 'text/javascript';
+         ga.async = true;
+         ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www')
+               + '.google-analytics.com/ga.js';
+         var s = document.getElementsByTagName('script')[0];
+         s.parentNode.insertBefore(ga, s);
+      })();
+
+      if ( typeof googleAnalyticsTrackPageviewIfConfigured === 'undefined' ) {
+         var googleAnalyticsTrackPageviewIfConfigured = googleAnalyticsTrackPageviewIfConfigured || function(pageURL) {
+            if ( typeof _gaq !== 'undefined' ) {
+               _gaq.push([ '_setAccount', '${ga_tracker}' ]);
+               _gaq.push([ '_trackPageview', pageURL ]);
+            }
+         };
+      }
+   </script>
+   
+</c:if>
+
+<c:if test='${ ga_tracker == ""}'>
+    <script type="text/javascript">
+        if ( typeof googleAnalyticsTrackPageviewIfConfigured === 'undefined' ) {
+            var googleAnalyticsTrackPageviewIfConfigured = function(pageURL) {/* no op, for sandbox and development */};
+        }
+    </script>
+</c:if>
+
+	<script>
+	googleAnalyticsTrackPageviewIfConfigured( "/rdp/register" );
+	</script>
 
 </head>
 
@@ -97,7 +142,7 @@
 				<nav class="sidebar-nav">
 					<ul id="menu">
 						<li style="display: none;"><a href="#admin" data-toggle="tab">
-								<span class="sidebar-nav-item-icon fa fa-fw fa-cogs fa-lg"></span>
+								<span class="sidebar-nav-item-icon fa fa-fw fa-cog fa-lg fa-spin"></span>
 								<span class="sidebar-nav-item">Administration</span>
 						</a></li>
 						<li class="active active-metis"><a href="#overview" data-toggle="tab">
@@ -152,7 +197,7 @@
 
 					</ul>
 				</nav>
-				<div class="sidebar-footer">
+				<div id="sidebar-brand-bottom" class="sidebar-footer">
 					<p>Models &amp; Mechanisms Network</p>
 					<h1>RARE DISEASES</h1>
 				</div>
@@ -278,16 +323,16 @@
 	
 	<script src="scripts/lib/lightbox.min.js"></script>
 
-	<script src="scripts/api/utility.js?version=15"></script>
-	<script src="scripts/api/researcherModel.js?version=15"></script>
-	<script src="scripts/api/profile.js?version=15"></script>
-	<script src="scripts/api/settings.js?version=15"></script>
-	<script src="scripts/api/modelOrganisms.js?version=15"></script>
-	<script src="scripts/api/geneManager.js?version=15"></script>
-	<script src="scripts/api/goManager.js?version=15"></script>
-	<script src="scripts/api/admin.js?version=15"></script>
-	<script src="scripts/api/register.js?version=15"></script>
-	<script src="scripts/api/navbar.js?version=15"></script>
+	<script src="scripts/api/utility.js?version=20"></script>
+	<script src="scripts/api/researcherModel.js?version=20"></script>
+	<script src="scripts/api/profile.js?version=20"></script>
+	<script src="scripts/api/settings.js?version=20"></script>
+	<script src="scripts/api/modelOrganisms.js?version=20"></script>
+	<script src="scripts/api/geneManager.js?version=20"></script>
+	<script src="scripts/api/goManager.js?version=20"></script>
+	<script src="scripts/api/admin.js?version=20"></script>
+	<script src="scripts/api/register.js?version=20"></script>
+	<script src="scripts/api/navbar.js?version=20"></script>
 
 </body>
 </html>

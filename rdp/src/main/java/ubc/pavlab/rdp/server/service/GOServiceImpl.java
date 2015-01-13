@@ -35,6 +35,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.StopWatch;
@@ -249,7 +250,7 @@ public class GOServiceImpl implements GOService {
                 continue;
             }
 
-            String pattern = "(.*)" + queryString + "(.*)";
+            String pattern = "(?i:.*" + Pattern.quote( queryString ) + ".*)";
             // Pattern r = Pattern.compile(pattern);
             String m = term.getTerm();
             // Matcher m = r.matcher( term.getTerm() );
@@ -267,7 +268,7 @@ public class GOServiceImpl implements GOService {
 
             String[] queryList = queryString.split( " " );
             for ( String q : queryList ) {
-                pattern = "(.*)" + q + "(.*)";
+                pattern = "(?i:.*" + Pattern.quote( q ) + ".*)";
                 // r = Pattern.compile(pattern);
                 m = term.getTerm();
                 // m = r.matcher( term.getTerm() );
@@ -282,7 +283,7 @@ public class GOServiceImpl implements GOService {
             if ( results.containsKey( term ) ) continue;
 
             for ( String q : queryList ) {
-                pattern = "(.*)" + q + "(.*)";
+                pattern = "(?i:.*" + Pattern.quote( q ) + ".*)";
                 // r = Pattern.compile(pattern);
                 // m = r.matcher( term.getDefinition() );
                 m = term.getDefinition();

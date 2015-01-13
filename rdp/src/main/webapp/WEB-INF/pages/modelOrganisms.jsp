@@ -9,10 +9,10 @@
 	</div>
 	<div class="row">
 		<div class="col-md-9">
-		<a data-toggle="collapse" href="#collapseReadFirst" class="read-first" >Read this first - how to decide which genes to add</a>
+		<a data-toggle="collapse" href="#collapseReadFirst" class="read-first" aria-expanded="true">Read this first - how to decide which genes to add</a>
 		</div>
 		<div class="panel col-md-9">
-			<div id="collapseReadFirst" class="panel-collapse collapse">
+			<div id="collapseReadFirst" class="panel-collapse collapse in" aria-expanded="true">
 				<div class="panel-body"> 
 					<p>Use this Manager to enter genes you study. It is important that you choose the genes carefully. Complete instructions are available <a href="#" onclick='return utility.openAccordian($("#collapse8"))'>here</a>. Briefly:</p>
 					<ol>
@@ -23,8 +23,9 @@
 					<li><b>Non-Primary (Tier 2) gene</b> are those you do not consider primary but would be able to work on rapidly and specifically with minimal set-up time. For most registrants we expect there might be between one and 100 non-Primary genes entered.</li>
 					</ul>
 					</li>
-					<li>Click the "Gene Ontology Terms" tab and click "Suggest GO Terms". By indicating the GO terms most related to your work, genes having those annotations will be considered as Tier 3 genes.</li>
+					<li>Click the "Gene Ontology Terms" tab and click "Add GO Term(s)". By indicating the GO terms most related to your work, genes having those annotations will be considered as Tier 3 genes.</li>
 					</ol>
+					<p><b><a href="#" onclick='return utility.openAccordian($("#collapse4"))'>All information provided is confidential.</a></b></p>
 				</div>
 			</div>
 		</div>

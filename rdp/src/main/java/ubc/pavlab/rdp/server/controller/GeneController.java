@@ -712,6 +712,52 @@ public class GeneController {
     }
 
     /*
+     * Used to calculate list of GO Term size on the fly
+     */
+    @RequestMapping("/getGOTermsStats.html")
+    public void getGOTermsStats( HttpServletRequest request, HttpServletResponse response ) throws IOException {
+
+        String jsonText = null;
+        JSONUtil jsonUtil = new JSONUtil( request, response );
+
+        Collection<String> geneOntologyIds = new HashSet<String>( Arrays.asList( request
+                .getParameterValues( "geneOntologyIds[]" ) ) );
+        Long taxonId = Long.parseLong( request.getParameter( "taxonId" ), 10 );
+        try {
+            String username = userManager.getCurrentUsername();
+
+            Researcher researcher = researcherService.findByUserName( username );
+            // Deserialize GO Terms
+            JSONObject results = new JSONObject();
+            for ( String id : geneOntologyIds ) {
+                Long size = gOService.getGeneSizeInTaxon( id, taxonId );
+
+                Collection<Gene> genes = researcher.getDirectGenesInTaxon( taxonId );
+                Long frequency = gOService.computeOverlapFrequency( id, genes );
+                JSONObject json = new JSONObject();
+                json.put( "geneSize", size );
+                json.put( "frequency", frequency );
+                results.put( id, json );
+            }
+
+            results.put( "success", true );
+            results.put( "message", "Stats calculated" );
+            jsonText = results.toString();
+
+        } catch ( Exception e ) {
+            log.error( e.getLocalizedMessage(), e );
+            JSONObject json = new JSONObject();
+            json.put( "success", false );
+            json.put( "message", e.getLocalizedMessage() );
+            jsonText = json.toString();
+            log.info( jsonText );
+        } finally {
+            jsonUtil.writeToResponse( jsonText );
+        }
+
+    }
+
+    /*
      * Used to get genes of a specific taxon in gene pool of a GO TERM
      */
     @RequestMapping("/getGenePool.html")

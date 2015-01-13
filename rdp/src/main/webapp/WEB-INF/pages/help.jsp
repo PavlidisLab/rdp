@@ -281,17 +281,23 @@
 															<a data-toggle="collapse" href="#aboutcollapseGO">Detailed Instructions » </a>
 															<div id="aboutcollapseGO" class="panel-collapse collapse">
 																<div class="panel-body">
-																	<p>To enter GO terms for an organism, click on the
-																		"Gene Ontology Terms" tab on the Model Organism
-																		Manager page. Click on "Suggest GO Terms", which will
-																		cause a new popup window to appear. You need to have
-																		at least two genes saved as Tier 1 and/or Tier 2 genes
-																		in order to use GO term suggestion functionality. To
-																		read about how the term suggestion tool works, go
-																		<a href="#" onclick='return utility.openAccordian($("#aboutcollapse2-5"))'>here</a>.</p>
+																	<p>
+																		To enter GO terms for an organism, click on the "Gene
+																		Ontology Terms" tab on the Model Organism Manager
+																		page. Click on "Add GO Term(s)", which will cause a
+																		new popup window to appear. From this window you may
+																		manually search for GO terms and/or select suggested
+																		terms (you need to have at least two genes saved as
+																		Tier 1 and/or Tier 2 genes in order to use GO term
+																		suggestion functionality). To read about how the term
+																		suggestion tool works, go <a href="#"
+																			onclick='return utility.openAccordian($("#aboutcollapse2-5"))'>here</a>.
+																	</p>
 																	<a href="images/GO1.png" data-lightbox="GO1"> <img
 																		class="thumbnail" src="images/GO1.png" alt="GO1">
 																	</a>
+
+																	<p></p>
 
 																	<p>Suggested GO terms will appear in a table (allow
 																		for a short delay especially if you have a lot of
@@ -316,13 +322,23 @@
 																		class="thumbnail" src="images/GO2.png" alt="GO2">
 																	</a>
 
-																	<p>You can expand by clicking on the green arrow in the
-																		Term Size column to see the genes that are associated
-																		with the listed GO term. Genes that you have manually
-																		added (Tier 1 and 2) are highlighted. If you choose to
-																		add a selected GO term to you profile, genes that are
-																		not highlighted will be associated with your profile
-																		as "third Tier" genes.</p>
+																	<p>Use the "Search for Term" field to search by GO
+																		ID, Name or description. Note that terms who have more
+																		than 100 associated genes will be greyed out and not
+																		available for addition to your profile. After selecting
+																		terms click "Add".</p>
+																		
+																	<a href="images/GOSearch.png" data-lightbox="GOSearch"> <img
+																		class="thumbnail" src="images/GOSearch.png" alt="GOSearch">
+																	</a>
+
+																	<p>You can expand by clicking on the green arrow in
+																		the Term Size column to see the genes that are
+																		associated with the listed GO term. Genes that you
+																		have manually added (Tier 1 and 2) are highlighted. If
+																		you choose to add a selected GO term to you profile,
+																		genes that are not highlighted will be associated with
+																		your profile as "third Tier" genes.</p>
 
 																	<a href="images/GO3.png" data-lightbox="GO3"> <img
 																		class="thumbnail" src="images/GO3.png" alt="GO3">
@@ -332,8 +348,10 @@
 																		review the GO terms in the Manager. As with genes, you
 																		can select and then remove terms, or add more terms
 																		later.</p>
-																		
-																	<p>Once again, don't forget to <b>Save Changes</b>.</p>
+
+																	<p>
+																		Once again, don't forget to <b>Save Changes</b>.
+																	</p>
 
 																</div>
 															</div>
