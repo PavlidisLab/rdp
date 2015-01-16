@@ -481,13 +481,19 @@ img.thumbnail {
 }
 
 .read-first {
-	color: red;
 	font-size: 18px;
 }
 
 .read-first:hover {
-	color: #ff4a4a;
 	font-size: 18px;
+}
+
+.red-link {
+	color: red;
+}
+
+.red-link:hover {
+	color: #ff4a4a;
 }
 
 div.registry-overview {
