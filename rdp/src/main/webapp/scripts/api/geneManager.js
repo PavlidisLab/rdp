@@ -133,7 +133,7 @@
          for (var i = 0; i < genes.length; i++) {
             var gene = new researcherModel.Gene( genes[i] );
             gene.tier = tier;
-            var res = addToTable(gene)
+            var res = geneManager.addToTable(gene)
             if (!res.success) {
                console.log(res)
                console.log(results)
@@ -163,7 +163,7 @@
       }
    }
    
-   addToTable = function(gene) {         
+   geneManager.addToTable = function(gene) {         
       if ( !(gene instanceof researcherModel.Gene ) ){
          console.log("Object is not a Gene", gene);
          return {success:false, msg:"Object is not a Gene", data:gene.officialSymbol, type:'failed' };

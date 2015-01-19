@@ -194,7 +194,7 @@
          var refreshIds = [];
          for (var i = 0; i < terms.length; i++) {
             var term = terms[i];
-            var res = addToTable(term)
+            var res = goManager.addToTable(term)
             if (!res.success) {
                console.log(res)
                console.log(results)
@@ -251,7 +251,7 @@
       }
    }
    
-   addToTable = function(term) {
+   goManager.addToTable = function(term) {
       
       if ( term == null ) {
          console.log("Object is not a Term", term);
