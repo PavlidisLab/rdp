@@ -23,7 +23,8 @@
       return $( "#searchGenesSelect" );
    };  
    
-   
+   //geneManager.alertFilter = "#modelOrganisms .main-header .alert div";
+   geneManager.alertFilter = "#modelOrganisms #gene-tab .alert div";
    
    geneManager.isChanged =  function() {
       var table = geneManager.table().DataTable();
@@ -62,11 +63,11 @@
       }
             
       $.when(promise).done(function() {
-         console.log("Saved Changes");
-         utility.showMessage( promise.responseJSON.message, $( "#modelOrganisms .main-header .alert div" ) );
+         //console.log("Saved Changes");
+         utility.showMessage( promise.responseJSON.message, $( geneManager.alertFilter ) );
          //utility.showMessage( promise.responseJSON.message, $( "#primaryContactMessage" ) );
       }).fail(function() {
-         utility.showMessage( "FAILED to save changes", $( "#modelOrganisms .main-header .alert div" ) );
+         utility.showMessage( "FAILED to save changes", $( geneManager.alertFilter ) );
       }).always(function() {
          btn.removeAttr("disabled");
          btn.children('i').removeClass('fa-spin');
@@ -161,7 +162,7 @@
             msg = "<b>Successfully added</b> " + genes.length +" gene(s)."
          }
          
-         utility.showMessage( msg, $( "#modelOrganisms .main-header .alert div" ) );
+         utility.showMessage( msg, $( geneManager.alertFilter ) );
          geneManager.table().DataTable().rows().draw();
       }
    }
@@ -177,7 +178,7 @@
       if ( table.column(1).data().indexOf(gene.officialSymbol) != -1 ) {
          console.log("Gene already added")
          return {success:false, msg:"Gene already added", data:gene.officialSymbol, type:'added' };
-         //utility.showMessage( "Gene already added", $( "#modelOrganisms .main-header .alert div" ) );
+         //utility.showMessage( "Gene already added", $( geneManager.alertFilter ) );
       }
       
       geneRow = [gene];
@@ -230,7 +231,7 @@
             btn.removeAttr("disabled");
             btn.children('i').removeClass('fa-spin');
             console.log(response.message)
-            utility.showMessage( promise.responseJSON.message, $( "#modelOrganisms .main-header .alert div" ) )
+            utility.showMessage( promise.responseJSON.message, $( geneManager.alertFilter ) )
             //utility.showMessage( response.message, $( "#geneManagerMessage" ) );
          }
 

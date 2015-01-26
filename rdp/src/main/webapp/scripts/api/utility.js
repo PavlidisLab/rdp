@@ -106,7 +106,7 @@
    utility.setConfirmChanges = function(tab, isDirty, fixSidebar) {
       tab.one('hide.bs.tab', function(e) {
          if ( isDirty() ) {
-            console.log('isdirty');
+            //console.log('isdirty');
             fixSidebar.trigger('click.metisMenu');
             e.preventDefault();
             var relatedTarget = e.relatedTarget;

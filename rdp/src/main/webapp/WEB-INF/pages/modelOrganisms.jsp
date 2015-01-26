@@ -65,6 +65,10 @@
 			<div class="tab-pane gene-manager active" id="gene-tab">
 				<div class="row">
 					<div class="col-md-12">
+						<div class="alert alert-warning col-sm-12" hidden="true">
+							<a href="#" class="close" data-hide="alert">&times;</a>
+							<div class="text-center"></div>
+						</div>
 						<%@ include file="geneTable.jsp"%>
 						<hr>
 						<div class="col-md-9">
@@ -81,6 +85,10 @@
 			<div class="tab-pane go-manager" id="go-tab">
 				<div class="row">
 					<div class="col-md-12">
+						<div class="alert alert-warning col-sm-12" hidden="true">
+							<a href="#" class="close" data-hide="alert">&times;</a>
+							<div class="text-center"></div>
+						</div>
 						<%@ include file="goTable.jsp"%>
 						<hr>
 						<div class="col-md-9">
