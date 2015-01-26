@@ -80,13 +80,18 @@
       researcherModel.currentResearcher.pubMedIds = ids;
 
       var promise = researcherModel.saveResearcherProfile();
-
       $.when(promise).done(function() {
-         btn.removeAttr("disabled");
-         btn.children('i').removeClass('fa-spin');
+
          console.log("Saved Changes");
          utility.showMessage( promise.responseJSON.message, $( "#myAccount .alert div" ) );
+      }).fail(function() {
+         console.log("Failed to Save Changes");
+         utility.showMessage( "FAILED to save changes", $( "#myAccount .alert div" ) );
+      }).always(function() {
+         btn.removeAttr("disabled");
+         btn.children('i').removeClass('fa-spin');
       });
+         
    }
 
    profile.isChanged = function() {

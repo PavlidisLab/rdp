@@ -62,11 +62,14 @@
       }
             
       $.when(promise).done(function() {
-         btn.removeAttr("disabled");
-         btn.children('i').removeClass('fa-spin');
          console.log("Saved Changes");
          utility.showMessage( promise.responseJSON.message, $( "#modelOrganisms .main-header .alert div" ) );
          //utility.showMessage( promise.responseJSON.message, $( "#primaryContactMessage" ) );
+      }).fail(function() {
+         utility.showMessage( "FAILED to save changes", $( "#modelOrganisms .main-header .alert div" ) );
+      }).always(function() {
+         btn.removeAttr("disabled");
+         btn.children('i').removeClass('fa-spin');
       });
       
    }

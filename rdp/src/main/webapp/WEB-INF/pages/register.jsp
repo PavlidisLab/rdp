@@ -68,6 +68,8 @@
       }
    </script>
    
+   
+   
 </c:if>
 
 <c:if test='${ ga_tracker == ""}'>
@@ -81,6 +83,7 @@
 	<script>
 	googleAnalyticsTrackPageviewIfConfigured( "/rdp/register" );
 	</script>
+	
 
 </head>
 
@@ -302,6 +305,7 @@
 	<%@ include file="addGenesModal.jsp"%>
 	<%@ include file="addTermsModal.jsp"%>
 	<%@ include file="confirmModal.jsp"%>
+	<%@ include file="sessionTimeoutModal.jsp"%>
 	<footer class="footer"> © Copyright 2014. "Rare Diseases: Models & Mechanisms Network" All rights reserved. <a href="mailto:registry-help@rare-diseases-catalyst-network.ca" class="pull-right">Contact Support</a></footer>
 
 
@@ -333,6 +337,32 @@
 	<script src="scripts/api/admin.js?version=22"></script>
 	<script src="scripts/api/register.js?version=22"></script>
 	<script src="scripts/api/navbar.js?version=22"></script>
+	
+	<script> 
+function ajaxSessionTimeout(e)
+{
+    // Handle Ajax session timeout here
+    console.log("Ajax session timeout");
+    console.log(e);
+ 	$('#sessionTimeoutModal').modal('show');
+	$('#sessionTimeoutModal').css('z-index',99999);
+}
+ 
+!function( $ )
+{
+    $.ajaxSetup({
+        statusCode: 
+        {
+            901: ajaxSessionTimeout
+        }
+    });
+    
+    $('#sessionTimeoutModal button.redirect').click(function() {
+       window.location.href = "/rdp/login.jsp";
+       return false;
+   });
+}(window.jQuery);
+</script>
 
 </body>
 </html>
