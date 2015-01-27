@@ -34,7 +34,7 @@
 
       var showingGenes = table.columns().data()[0]; 
       var focus = researcher.taxonDescriptions[taxonId] ? researcher.taxonDescriptions[taxonId]:"";
-      return ( modelOrganisms.focus().text().trim() != focus.trim()) || !researcher.compareGenes(showingGenes, oldGenes);
+      return ( modelOrganisms.focus().text().replace(/\u00a0/g, " ").trim() != focus) || !researcher.compareGenes(showingGenes, oldGenes);
    }
    
    saveGenes = function() {
@@ -51,7 +51,7 @@
       var newGenes = geneManager.table().DataTable().columns().data()[0];
       
       researcher.setGenesByTaxonId( newGenes, taxonId )
-      researcher.addTaxonDescription(taxonId, modelOrganisms.focus().text().trim() )
+      researcher.addTaxonDescription(taxonId, modelOrganisms.focus().text().replace(/\u00a0/g, " ").trim() )
 
       var promise = researcherModel.saveResearcherGenesByTaxon(taxonId);
       

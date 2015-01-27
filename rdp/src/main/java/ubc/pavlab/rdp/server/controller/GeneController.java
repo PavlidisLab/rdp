@@ -230,7 +230,7 @@ public class GeneController {
             Researcher researcher = researcherService.findByUserName( username );
 
             // Update Organism Description
-            researcher.updateTaxonDescription( taxonId, taxonDescription );
+            researcher.updateTaxonDescription( taxonId, taxonDescription.trim() );
 
             // remove genes not in specified taxon
             HashMap<Gene, TierType> genes = geneService.quickDeserializeGenes( genesJSON );
