@@ -60,11 +60,14 @@ $( document ).ready( function() {
       //$('a[href="#myAccount"]').trigger('show.bs.tab');
       $('#menu > li').has('a[href="#modelOrganisms"][data-toggle="tab"]').show();
       $('#navbar-username').html(researcherModel.currentResearcher.userName)
-      var taxonIds = researcherModel.currentResearcher.getTaxons();
+      
+      // Combination of both taxons from entered genes and from entered terms
+      var taxonIds = utility.uniqueSoft( researcherModel.currentResearcher.getTaxons().concat(Object.keys(researcherModel.currentResearcher.terms)) );
+      
       $('#myModelOrganismsList ul li').has('a[href="#modelOrganisms"]').each( function(index) {
          var taxonName = $('a',this).text()
          var taxonId = utility.taxonNameToId[ taxonName ];
-         if ( taxonIds.indexOf( taxonId ) == -1 ) {
+         if ( !utility.containsSoft(taxonIds, taxonId) ) {
             $(this).hide();
          } else {
             $('#myModelOrganismsList > ul > li > ul > li').has('a:contains("'+taxonName+'")').hide();

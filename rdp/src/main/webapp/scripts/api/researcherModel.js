@@ -358,7 +358,7 @@
 
 	      },
 	      error : function(response, xhr) {
-	    	  console.log(response.message);
+	    	  console.log(response);
 	      }
 	   } );
 	   
@@ -436,6 +436,7 @@
 
          data : {
             terms : researcherModel.currentResearcher.termsToJSON(taxId),
+            taxonDescription: researcherModel.currentResearcher.taxonDescriptions[taxId] || "",
             taxonId: taxId
          },
          dataType : "json"

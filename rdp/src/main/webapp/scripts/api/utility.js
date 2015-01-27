@@ -163,6 +163,33 @@
                             'Yeast':559292
                             }
    
+   utility.uniqueHard = function(a) {
+      var arr = [];
+      for(var i = 0; i < a.length; i++) {
+         if( arr.indexOf(a[i]) === -1 ) {
+            arr.push(a[i]);
+         }
+      }
+      return arr; 
+   }
+   
+   utility.uniqueSoft = function(a) {
+      var arr = [];
+      for(var i = 0; i < a.length; i++) {
+         if( !utility.containsSoft(arr, a[i]) ) {
+            arr.push(a[i]);
+         }
+      }
+      return arr; 
+   }
+   
+   utility.containsSoft = function(arr, v) {
+      for(var i = 0; i < arr.length; i++) {
+         if(arr[i] == v) return true;
+     }
+     return false;
+   }
+   
    $(function(){
       $("[data-hide]").on("click", function(){
          $(this).closest("." + $(this).attr("data-hide")).hide();

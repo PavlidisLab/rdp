@@ -46,13 +46,13 @@
       btn.attr("disabled", "disabled");
       btn.children('i').addClass('fa-spin');
       lockAll();
-      researcherModel.currentResearcher.firstName = profile.firstName().text();
-      researcherModel.currentResearcher.lastName = profile.lastName().text();
-      researcherModel.currentResearcher.department = profile.department().text();
-      researcherModel.currentResearcher.organization = profile.organization().text();
-      researcherModel.currentResearcher.website = profile.website().text();
-      researcherModel.currentResearcher.phone = profile.phone().text();
-      researcherModel.currentResearcher.description = profile.description().text();
+      researcherModel.currentResearcher.firstName = profile.firstName().text().trim();
+      researcherModel.currentResearcher.lastName = profile.lastName().text().trim();
+      researcherModel.currentResearcher.department = profile.department().text().trim();
+      researcherModel.currentResearcher.organization = profile.organization().text().trim();
+      researcherModel.currentResearcher.website = profile.website().text().trim();
+      researcherModel.currentResearcher.phone = profile.phone().text().trim();
+      researcherModel.currentResearcher.description = profile.description().text().trim();
 
 /*      researcherModel.currentResearcher.pubMedIds = [];
       console.log(profile.pubMedIds() );
@@ -98,15 +98,15 @@
       researcher = researcherModel.currentResearcher;
       var changed = false;
 
-      changed |= profile.firstName().text() != researcher.firstName;  
-      changed |= profile.lastName().text() != researcher.lastName;     
-      changed |= profile.organization().text() != researcher.organization; 
-      changed |= profile.department().text() != researcher.department;
-      changed |= profile.website().text() != researcher.website;
+      changed |= profile.firstName().text().trim() != researcher.firstName;  
+      changed |= profile.lastName().text().trim() != researcher.lastName;     
+      changed |= profile.organization().text().trim() != researcher.organization; 
+      changed |= profile.department().text().trim() != researcher.department;
+      changed |= profile.website().text().trim() != researcher.website;
 
-      changed |= profile.phone().text() != researcher.phone;
+      changed |= profile.phone().text().trim() != researcher.phone;
 
-      changed |= profile.description().text() != researcher.description;
+      changed |= profile.description().text().trim() != researcher.description;
 
       try {
       if ( !changed && researcher.pubMedIds.length > 0 ) {

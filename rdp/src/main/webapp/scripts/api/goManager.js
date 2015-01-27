@@ -76,7 +76,7 @@
       var taxonId = modelOrganisms.currentTaxonId();
       var newTerms = goManager.table().DataTable().columns().data()[0];
       
-      researcher.addTaxonDescription(taxonId, modelOrganisms.focus().text() )
+      researcher.addTaxonDescription(taxonId, modelOrganisms.focus().text().trim() )
       researcher.updateTermsForTaxon( newTerms, taxonId );
       var promise = researcherModel.saveResearcherTermsForTaxon( taxonId );
       
@@ -110,7 +110,7 @@
       var showingTerms = table.columns().data()[0]; 
       var focus = researcher.taxonDescriptions[taxonId] ? researcher.taxonDescriptions[taxonId]:"";
       
-      return ( modelOrganisms.focus().text() != focus) || !researcher.compareTerms(showingTerms, oldTerms);
+      return ( modelOrganisms.focus().text().trim() != focus.trim()) || !researcher.compareTerms(showingTerms, oldTerms);
    }
    
    goManager.loadTable = function() {
