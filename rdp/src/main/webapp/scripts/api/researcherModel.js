@@ -72,6 +72,67 @@
 
    }
    
+   researcherModel.Researcher.prototype.getTermsByPattern = function(term, id, tId, modifier) {
+      try {
+         var reTerm = new RegExp(term, modifier);
+         var reId = new RegExp(id, modifier);
+      } catch(err) {
+         
+         return {status:0, error:err}
+      }
+      
+      var allTerms = this.terms[tId] || [];
+      var terms = [];
+      
+      for (var i=0;i<allTerms.length;i++) {
+         if ( id != null && id != "" ) {
+            if ( reId.test( allTerms[i].geneOntologyId ) ) {
+               terms.push(allTerms[i]);
+               continue;
+            }
+         }
+         if ( term != null && term != "" ) {
+            if ( reTerm.test( allTerms[i].geneOntologyTerm ) ) {
+               terms.push(allTerms[i]);
+               continue;
+            }
+         }
+      }
+      
+      return {status:1, terms:terms};
+      
+   }
+   
+   researcherModel.Researcher.prototype.getGenesBySymbolPattern = function(s, tId, modifier) {
+      if ( s == null || s == "" ) {
+         console.log( "Not a valid pattern", s );
+         return null;
+      }
+      
+      var bool = utility.isUndefined(tId);
+      try {
+         var re = new RegExp(s, modifier);
+      } catch(err) {
+         
+         return {status:0, error:err}
+      }
+      
+      var genes = [];
+      
+      for (var i=0;i<this.genes.length;i++) {
+         if ( ( bool || tId == this.genes[i].taxonId ) && re.test( this.genes[i].officialSymbol ) ) {
+            genes.push(this.genes[i]);
+         }
+      }
+      for (var i=0;i<this.calculatedGenes.length;i++) {
+         if ( ( bool || tId == this.calculatedGenes[i].taxonId ) && re.test( this.calculatedGenes[i].officialSymbol ) ) {
+            genes.push(this.calculatedGenes[i]);
+         }
+      }
+      return {status:1, genes:genes};
+
+   }
+   
    researcherModel.Researcher.prototype.hasGeneBySymbolTaxonId = function(symbol, taxonId) {
       for (var i=0;i<this.genes.length;i++) {
          if ( this.genes[i].officialSymbol == symbol && this.genes[i].taxonId == taxonId ) {
@@ -86,6 +147,17 @@
       for (var i=0;i<this.genes.length;i++) {
          if ( this.genes[i].taxonId == taxonId ) {
             filter.push(this.genes[i])
+         }
+      }
+      return filter;
+
+   }
+   
+   researcherModel.Researcher.prototype.getCalculatedGenesByTaxonId = function(taxonId) {
+      var filter = [];
+      for (var i=0;i<this.calculatedGenes.length;i++) {
+         if ( this.calculatedGenes[i].taxonId == taxonId ) {
+            filter.push(this.calculatedGenes[i])
          }
       }
       return filter;
@@ -335,8 +407,8 @@
    researcherModel.loadResearcher = function() {
 	   
 	   var promise = $.ajax( {
-	      // cache : false,
-	      // type : 'GET',
+	      cache : false,
+	      type : 'GET',
 	      url : "loadResearcher.html",
 	      success : function(response, xhr) {
 	         
