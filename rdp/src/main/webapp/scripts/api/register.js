@@ -136,6 +136,12 @@ $( document ).ready( function() {
       $('#menu a[href="#help"]').trigger('click.metisMenu');
     });
    
+   $('a[href="#support"][data-toggle!="tab"]').click(function(){
+      
+      $('#menu a[href="#support"]').tab('show');
+      $('#menu a[href="#support"]').trigger('click.metisMenu');
+    });
+   
    $('#sidebar-brand-bottom').click(function(){
       window.open("http://www.rare-diseases-catalyst-network.ca/",'_blank');
     });

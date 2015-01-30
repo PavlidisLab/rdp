@@ -60,10 +60,14 @@
       
    }
    
-   utility.showMessage = function(message, messageEl ) {
+   utility.showMessage = function(message, messageEl, context ) {
       console.log( message );
       messageEl.html( message );
       var parent = messageEl.parent();
+      if ( !utility.isUndefined(context) ) {
+         parent.removeClass("alert-success alert-info alert-warning alert-danger");
+         parent.addClass(context);
+      }
          parent.show().addClass("pulse");
          parent.one(
             "webkitAnimationEnd oanimationend msAnimationEnd animationend",

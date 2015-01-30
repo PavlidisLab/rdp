@@ -32,6 +32,8 @@
 	
 <link href="styles/lightbox.css" rel="stylesheet" />
 
+<link href="styles/jasny-bootstrap.min.css" rel="stylesheet" />
+
 <!-- Custom CSS -->
 <link href="styles/rdp.css" rel="stylesheet" title="default" class="themes">
 
@@ -197,6 +199,11 @@
 								class="sidebar-nav-item-icon fa fa-fw fa-question-circle fa-lg"></span>
 								<span class="sidebar-nav-item">Help</span>
 						</a></li>
+						<li><a href="#support" data-toggle="tab"> <span
+								class="sidebar-nav-item-icon fa fa-fw fa-comment fa-lg"></span>
+								<span class="sidebar-nav-item">Support</span>
+						</a></li>
+						
 
 					</ul>
 				</nav>
@@ -295,6 +302,24 @@
 						
 						
 					</div>
+					
+					<div class="tab-pane" id="support">
+
+						<div class="col-xs-12">
+							<div class="row">
+								<div class="col-lg-4 ">
+									<ul class="breadcrumb">
+										<li class="active"><i class="fa fa-comment"></i><a
+											href="#support">Support</a></li>
+									</ul>
+								</div>
+
+							</div>
+							<%@ include file="support.jsp"%>
+						</div>
+						
+						
+					</div>
 
 				</div>
 
@@ -306,7 +331,7 @@
 	<%@ include file="addTermsModal.jsp"%>
 	<%@ include file="confirmModal.jsp"%>
 	<%@ include file="sessionTimeoutModal.jsp"%>
-	<footer class="footer"> © Copyright 2014. "Rare Diseases: Models & Mechanisms Network" All rights reserved. <a href="mailto:registry-help@rare-diseases-catalyst-network.ca" class="pull-right">Contact Support</a></footer>
+	<footer class="footer"> © Copyright 2014. "Rare Diseases: Models & Mechanisms Network" All rights reserved. <a href="#support" class="pull-right">Contact Support</a></footer>
 
 
 	<!-- include jQuery, and our script file -->
@@ -326,17 +351,22 @@
 	<script src="scripts/lib/metisMenu/metisMenu.js"></script>
 	
 	<script src="scripts/lib/lightbox.min.js"></script>
+	
+	<script src="scripts/lib/jasny-bootstrap.min.js"></script>
+	<script src="scripts/lib/jquery.form.min.js"></script>
+	
 
-	<script src="scripts/api/utility.js?version=22"></script>
-	<script src="scripts/api/researcherModel.js?version=22"></script>
-	<script src="scripts/api/profile.js?version=22"></script>
-	<script src="scripts/api/settings.js?version=22"></script>
-	<script src="scripts/api/modelOrganisms.js?version=22"></script>
-	<script src="scripts/api/geneManager.js?version=22"></script>
-	<script src="scripts/api/goManager.js?version=22"></script>
-	<script src="scripts/api/admin.js?version=22"></script>
-	<script src="scripts/api/register.js?version=22"></script>
-	<script src="scripts/api/navbar.js?version=22"></script>
+	<script src="scripts/api/utility.js?version=23"></script>
+	<script src="scripts/api/researcherModel.js?version=23"></script>
+	<script src="scripts/api/profile.js?version=23"></script>
+	<script src="scripts/api/settings.js?version=23"></script>
+	<script src="scripts/api/modelOrganisms.js?version=23"></script>
+	<script src="scripts/api/geneManager.js?version=23"></script>
+	<script src="scripts/api/goManager.js?version=23"></script>
+	<script src="scripts/api/admin.js?version=23"></script>
+	<script src="scripts/api/register.js?version=23"></script>
+	<script src="scripts/api/navbar.js?version=23"></script>
+	<script src="scripts/api/support.js?version=23"></script>
 	
 	<script> 
 function ajaxSessionTimeout(e)

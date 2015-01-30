@@ -496,7 +496,7 @@ img.thumbnail {
 	color: #ff4a4a;
 }
 
-div.registry-overview {
+div.registry-overview, div.registry-support {
 	padding-left:25px;
 }
 

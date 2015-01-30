@@ -2,6 +2,7 @@ package ubc.pavlab.rdp.server.controller;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -16,6 +17,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.commons.CommonsMultipartFile;
 
 import ubc.pavlab.rdp.server.model.Publication;
 import ubc.pavlab.rdp.server.model.Researcher;
@@ -272,4 +276,43 @@ public class RegisterController extends BaseController {
         }
     }
 
+    @RequestMapping(value = "/contactSupport.html", method = RequestMethod.POST)
+    public String contactSupport( HttpServletRequest request, final @RequestParam CommonsMultipartFile attachFile ) {
+        try {
+
+            String email = userManager.getCurrentUsername();
+
+            log.info( email + " is attempting to contact support, check debug for more information" );
+
+            // reads form input
+            // final String email = request.getParameter("email");
+            final String name = request.getParameter( "name" );
+            final String message = request.getParameter( "message" );
+
+            String userAgent = request.getHeader( "User-Agent" );
+
+            log.debug( email );
+            log.debug( name );
+            log.debug( message );
+            log.debug( userAgent );
+            log.debug( attachFile.getOriginalFilename() );
+
+            String templateName = "contactSupport.vm";
+
+            Map<String, Object> model = new HashMap<>();
+
+            model.put( "name", name );
+            model.put( "email", email );
+            model.put( "userAgent", userAgent );
+            model.put( "message", message );
+            model.put( "boolFile", !attachFile.getOriginalFilename().equals( "" ) );
+
+            sendSupportEmail( email, "Registry Help - Contact Support", templateName, model, attachFile );
+            return "success";
+        } catch ( Exception e ) {
+            //throw e;
+            return "error";
+        }
+
+    }
 }

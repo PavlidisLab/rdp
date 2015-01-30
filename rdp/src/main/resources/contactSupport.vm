@@ -1,0 +1,5 @@
+Name: ${name}
+Email: ${email}
+User-Agent: ${userAgent}
+Message: ${message}
+File Attached: ${boolFile}
