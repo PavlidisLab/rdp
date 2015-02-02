@@ -4,6 +4,11 @@
 <meta charset="UTF-8" />
 <title>Rare Diseases: Models & Mechanisms Network</title>
 
+<!--[if lte IE 9]>
+<link href="styles/ie-compat.css" rel="stylesheet">
+<![endif]-->
+
+<![if !(lte IE 9)]>
 <!-- Bootstrap core CSS -->
 <link href="styles/bootstrap.min.css" rel="stylesheet">
 
@@ -11,6 +16,8 @@
 <link href="data:text/css;charset=utf-8,"
     data-href="styles/bootstrap-theme.min.css" rel="stylesheet"
     id="bs-theme-stylesheet">
+
+
 
 <style>
 	/*Lighten placeholder text*/
@@ -31,10 +38,36 @@
 		-webkit-box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.3);
 		box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.3);
 	}
+	
 </style>
-
+ <![endif]>
 </head>
+
+<!--[if lte IE 9]>
+	<body>
+		<div class="ie-compat">
+			<div class="ie-compat-header">
+				<h1> <a href="http://www.rare-diseases-catalyst-network.ca/">Rare Diseases: Models & Mechanisms Network</a></h1>
+			</div>
+			<div>
+			<p>Sorry, this application does not support Internet Explorer versions before 10.0. Please try again with a more modern browser.
+			<img src="images/browser.png"/>
+			</div>
+			</p>
+			<div class="push"></div>
+		</div>
+		<div class="ie-compat-footer">
+			© Copyright 2014. "Rare Diseases: Models & Mechanisms Network" All rights reserved. <a href="mailto:registry-help@rare-diseases-catalyst-network.ca" style="font-size:15px">Contact Support</a>
+		</div>
+
+<![endif]-->
+
+	</body>
+
+
+<![if !(lte IE 9)]>
 <body>
+
 
 
     <!-- Modal -->
@@ -45,6 +78,7 @@
             data-show="true">
             <div class="modal-content" data-backdrop="static" data-show="true">
                 <div class="modal-header">
+                
 					<h3 class="modal-title text-center"><a href="#signin" data-toggle="tab">Rare Diseases Researcher Registry</a></h3>
 					<h5 class="modal-title text-center">Models & Mechanisms Network</h5>
 	            </div>
@@ -106,6 +140,7 @@
             </div>
         </div>
     </div>
+   
 
     <!-- include jQuery, jQuery UI, and our script file -->
     <script src="scripts/lib/jquery-1.11.1.js"></script>
@@ -139,4 +174,5 @@
     </script>
     
 </body>
+ <![endif]>
 </html>

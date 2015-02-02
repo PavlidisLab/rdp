@@ -35,6 +35,7 @@
         <s:intercept-url pattern="/fonts/**" access="permitAll" />
         <s:intercept-url pattern="/styles/**" access="permitAll" />
         <s:intercept-url pattern="/scripts/**" access="permitAll" />
+        <s:intercept-url pattern="/images/**" access="permitAll" />
         <s:intercept-url pattern="/**" access="hasAnyRole('GROUP_USER', 'GROUP_ADMIN')" />
         
         <s:custom-filter ref="ajaxTimeoutRedirectFilter" after="EXCEPTION_TRANSLATION_FILTER"/>
