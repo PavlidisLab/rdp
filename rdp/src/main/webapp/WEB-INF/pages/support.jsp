@@ -35,15 +35,10 @@
 			
 								<div class="form-group">
 									<div class="col-sm-offset-2 col-lg-offset-2 col-sm-7 col-lg-4 text-left">
-										<div class="fileinput fileinput-new" data-provides="fileinput">
-											<span class="btn btn-link btn-file">
-											<span class="fileinput-new">Add screenshot or attachment</span>
-											<span class="fileinput-exists">Change</span>
-											<input type="file" name="attachFile"></span> 
-											<span class="fileinput-filename"></span>
-											<a href="#" class="close fileinput-exists"
-												data-dismiss="fileinput" style="float: none">&times;</a>
-										</div>
+										<span id="file-upload">
+											Attachment: <input id="attachFile" type="file" name="attachFile">
+											<a href="#" class="close" style="display: none;float: none">&times;</a>
+										</span>
 									</div>
 									<div class="col-sm-3 col-lg-2 text-right">
 										<button type="submit" class="btn btn-success">Send</button>

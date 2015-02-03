@@ -137,11 +137,11 @@ public class MailEngineImpl implements MailEngine {
                 messageHelper.setText( msg.getText() );
 
                 // determines if there is an upload file, attach it to the e-mail
-                String attachName = attachFile.getOriginalFilename();
-                if ( !attachName.equals( "" ) ) {
+                // String attachName = attachFile.getOriginalFilename();
+                if ( attachFile != null && !attachFile.getOriginalFilename().equals( "" ) ) {
                     // log.info( "attaching a file" );
                     // log.info( attachName );
-                    messageHelper.addAttachment( attachName, new InputStreamSource() {
+                    messageHelper.addAttachment( attachFile.getOriginalFilename(), new InputStreamSource() {
 
                         @Override
                         public InputStream getInputStream() throws IOException {

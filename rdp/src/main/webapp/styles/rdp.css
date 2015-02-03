@@ -517,3 +517,10 @@ div.registry-overview, div.registry-support {
 	50% { -webkit-transform: translateY(2px); }
 	100% { -webkit-transform: translateY(-2px); }
 }
+a, a:hover, a:focus { 
+outline: 0;
+}
+
+input[type=file] {
+	display: inline-block;
+}

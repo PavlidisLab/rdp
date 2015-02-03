@@ -277,7 +277,8 @@ public class RegisterController extends BaseController {
     }
 
     @RequestMapping(value = "/contactSupport.html", method = RequestMethod.POST)
-    public String contactSupport( HttpServletRequest request, final @RequestParam CommonsMultipartFile attachFile ) {
+    public String contactSupport( HttpServletRequest request,
+            final @RequestParam(required = false) CommonsMultipartFile attachFile ) {
         try {
 
             String email = userManager.getCurrentUsername();
@@ -295,7 +296,7 @@ public class RegisterController extends BaseController {
             log.debug( name );
             log.debug( message );
             log.debug( userAgent );
-            log.debug( attachFile.getOriginalFilename() );
+            log.debug( attachFile );
 
             String templateName = "contactSupport.vm";
 
@@ -305,12 +306,12 @@ public class RegisterController extends BaseController {
             model.put( "email", email );
             model.put( "userAgent", userAgent );
             model.put( "message", message );
-            model.put( "boolFile", !attachFile.getOriginalFilename().equals( "" ) );
+            model.put( "boolFile", attachFile != null && !attachFile.getOriginalFilename().equals( "" ) );
 
             sendSupportEmail( email, "Registry Help - Contact Support", templateName, model, attachFile );
             return "success";
         } catch ( Exception e ) {
-            //throw e;
+            // throw e;
             return "error";
         }
 

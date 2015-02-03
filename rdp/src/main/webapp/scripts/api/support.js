@@ -43,7 +43,7 @@ $( document ).ready( function() {
    $('a[href="#support-attach"]').click(function(){
       $('#contact-form > div.form-group.file-group > div').show();
     });
-   $('#contact-form > div.form-group.file-group .fileinput').fileinput();
+   //$('#contact-form > div.form-group .fileinput').fileinput();
    
    (function() {
       
@@ -55,8 +55,8 @@ $( document ).ready( function() {
           beforeSerialize: function($form, options) {
              //console.log("form", $form)
              //console.log("options", options)
-             $form.find('input[type="hidden"]').remove();
-             $form.find('input[type="file"]').prop('name', 'attachFile');
+             //$form.find('input[type="hidden"]').remove();
+             //$form.find('input[type="file"]').prop('name', 'attachFile');
           },
           beforeSend: function() {
               utility.hideMessage(status);
@@ -113,6 +113,22 @@ $( document ).ready( function() {
       }); 
 
       })(); 
+   
+   $('#contact-form > div.form-group input[type=file]').on('change', function(e){
+      $(this)
+      if ( $(this).val() != "" ) {
+         console.log($(this).closest('span'))
+         $(this).siblings('a').show();
+      } else {
+         $(this).siblings('a').hide();
+      }
+   });
+   
+   $('#file-upload a.close').on('click', function(e){
+      $("#attachFile").val("");
+      $("#attachFile").replaceWith( $("#attachFile").clone( true ) )
+      $(this).hide();
+   });
    
    
 } );
