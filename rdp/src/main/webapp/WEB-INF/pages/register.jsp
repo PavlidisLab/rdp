@@ -68,6 +68,8 @@
       }
    </script>
    
+   
+   
 </c:if>
 
 <c:if test='${ ga_tracker == ""}'>
@@ -81,6 +83,7 @@
 	<script>
 	googleAnalyticsTrackPageviewIfConfigured( "/rdp/register" );
 	</script>
+	
 
 </head>
 
@@ -194,6 +197,11 @@
 								class="sidebar-nav-item-icon fa fa-fw fa-question-circle fa-lg"></span>
 								<span class="sidebar-nav-item">Help</span>
 						</a></li>
+						<li><a href="#support" data-toggle="tab"> <span
+								class="sidebar-nav-item-icon fa fa-fw fa-comment fa-lg"></span>
+								<span class="sidebar-nav-item">Support</span>
+						</a></li>
+						
 
 					</ul>
 				</nav>
@@ -292,6 +300,24 @@
 						
 						
 					</div>
+					
+					<div class="tab-pane" id="support">
+
+						<div class="col-xs-12">
+							<div class="row">
+								<div class="col-lg-4 ">
+									<ul class="breadcrumb">
+										<li class="active"><i class="fa fa-comment"></i><a
+											href="#support">Support</a></li>
+									</ul>
+								</div>
+
+							</div>
+							<%@ include file="support.jsp"%>
+						</div>
+						
+						
+					</div>
 
 				</div>
 
@@ -302,7 +328,8 @@
 	<%@ include file="addGenesModal.jsp"%>
 	<%@ include file="addTermsModal.jsp"%>
 	<%@ include file="confirmModal.jsp"%>
-	<footer class="footer"> © Copyright 2014. "Rare Diseases: Models & Mechanisms Network" All rights reserved. <a href="mailto:registry-help@rare-diseases-catalyst-network.ca" class="pull-right">Contact Support</a></footer>
+	<%@ include file="sessionTimeoutModal.jsp"%>
+	<footer class="footer"> © Copyright 2014. "Rare Diseases: Models & Mechanisms Network" All rights reserved. <a href="#support" class="pull-right">Contact Support</a></footer>
 
 
 	<!-- include jQuery, and our script file -->
@@ -322,17 +349,47 @@
 	<script src="scripts/lib/metisMenu/metisMenu.js"></script>
 	
 	<script src="scripts/lib/lightbox.min.js"></script>
+	
+	<script src="scripts/lib/jquery.form.min.js"></script>
+	
 
-	<script src="scripts/api/utility.js?version=20"></script>
-	<script src="scripts/api/researcherModel.js?version=20"></script>
-	<script src="scripts/api/profile.js?version=20"></script>
-	<script src="scripts/api/settings.js?version=20"></script>
-	<script src="scripts/api/modelOrganisms.js?version=20"></script>
-	<script src="scripts/api/geneManager.js?version=20"></script>
-	<script src="scripts/api/goManager.js?version=20"></script>
-	<script src="scripts/api/admin.js?version=20"></script>
-	<script src="scripts/api/register.js?version=20"></script>
-	<script src="scripts/api/navbar.js?version=20"></script>
+	<script src="scripts/api/utility.js?version=24"></script>
+	<script src="scripts/api/researcherModel.js?version=24"></script>
+	<script src="scripts/api/profile.js?version=24"></script>
+	<script src="scripts/api/settings.js?version=24"></script>
+	<script src="scripts/api/modelOrganisms.js?version=24"></script>
+	<script src="scripts/api/geneManager.js?version=24"></script>
+	<script src="scripts/api/goManager.js?version=24"></script>
+	<script src="scripts/api/admin.js?version=24"></script>
+	<script src="scripts/api/register.js?version=24"></script>
+	<script src="scripts/api/navbar.js?version=24"></script>
+	<script src="scripts/api/support.js?version=24"></script>
+	
+	<script> 
+function ajaxSessionTimeout(e)
+{
+    // Handle Ajax session timeout here
+    console.log("Ajax session timeout");
+    console.log(e);
+ 	$('#sessionTimeoutModal').modal('show');
+	$('#sessionTimeoutModal').css('z-index',99999);
+}
+ 
+!function( $ )
+{
+    $.ajaxSetup({
+        statusCode: 
+        {
+            901: ajaxSessionTimeout
+        }
+    });
+    
+    $('#sessionTimeoutModal button.redirect').click(function() {
+       window.location.href = "/rdp/login.jsp";
+       return false;
+   });
+}(window.jQuery);
+</script>
 
 </body>
 </html>

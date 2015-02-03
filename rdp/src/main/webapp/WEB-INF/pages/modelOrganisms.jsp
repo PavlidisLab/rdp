@@ -9,7 +9,7 @@
 	</div>
 	<div class="row">
 		<div class="col-md-9">
-		<a data-toggle="collapse" href="#collapseReadFirst" class="read-first" aria-expanded="true">Read this first - how to decide which genes to add</a>
+		<a data-toggle="collapse" href="#collapseReadFirst" class="read-first red-link" aria-expanded="true">Read this first - how to decide which genes to add</a>
 		</div>
 		<div class="panel col-md-9">
 			<div id="collapseReadFirst" class="panel-collapse collapse in" aria-expanded="true">
@@ -25,7 +25,7 @@
 					</li>
 					<li>Click the "Gene Ontology Terms" tab and click "Add GO Term(s)". By indicating the GO terms most related to your work, genes having those annotations will be considered as Tier 3 genes.</li>
 					</ol>
-					<p><b><a href="#" onclick='return utility.openAccordian($("#collapse4"))'>All information provided is confidential.</a></b></p>
+					<p><b>All information provided is <a href="#" onclick='return utility.openAccordian($("#collapse4"))'>confidential.</a></b></p>
 				</div>
 			</div>
 		</div>
@@ -65,6 +65,10 @@
 			<div class="tab-pane gene-manager active" id="gene-tab">
 				<div class="row">
 					<div class="col-md-12">
+						<div class="alert alert-warning col-sm-12" hidden="true">
+							<a href="#" class="close" data-hide="alert">&times;</a>
+							<div class="text-center"></div>
+						</div>
 						<%@ include file="geneTable.jsp"%>
 						<hr>
 						<div class="col-md-9">
@@ -81,6 +85,10 @@
 			<div class="tab-pane go-manager" id="go-tab">
 				<div class="row">
 					<div class="col-md-12">
+						<div class="alert alert-warning col-sm-12" hidden="true">
+							<a href="#" class="close" data-hide="alert">&times;</a>
+							<div class="text-center"></div>
+						</div>
 						<%@ include file="goTable.jsp"%>
 						<hr>
 						<div class="col-md-9">

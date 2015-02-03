@@ -54,7 +54,7 @@
 							More specific help & information can be found in the <a
 								href="#help">help section and FAQ</a>.
 						</p>
-						<p>If you have any questions or concerns please <a href="mailto:registry-help@rare-diseases-catalyst-network.ca">Contact Us</a></p>
+						<p>If you have any questions or concerns please <a href="#support">Contact Us</a></p>
 						<hr>
 						<p><i>The RDMMN Registry was developed by the <a href="http://www.chibi.ubc.ca/faculty/paul-pavlidis/" target="_blank">Pavlidis lab</a> at UBC</i></p>
 					</div>

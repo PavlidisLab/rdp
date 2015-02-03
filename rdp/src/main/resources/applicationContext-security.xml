@@ -35,7 +35,10 @@
         <s:intercept-url pattern="/fonts/**" access="permitAll" />
         <s:intercept-url pattern="/styles/**" access="permitAll" />
         <s:intercept-url pattern="/scripts/**" access="permitAll" />
+        <s:intercept-url pattern="/images/**" access="permitAll" />
         <s:intercept-url pattern="/**" access="hasAnyRole('GROUP_USER', 'GROUP_ADMIN')" />
+        
+        <s:custom-filter ref="ajaxTimeoutRedirectFilter" after="EXCEPTION_TRANSLATION_FILTER"/>
 
         <!-- TODO SSL Disabled for now until it works on sandbox -->
         <!-- <s:intercept-url pattern="/j_spring_security_check" access="IS_AUTHENTICATED_ANONYMOUSLY" requires-channel="https" 
@@ -48,6 +51,10 @@
         <s:logout invalidate-session="true" logout-success-url="/login.jsp" />
         
     </s:http>
+    
+    <bean id="ajaxTimeoutRedirectFilter" class="ubc.pavlab.rdp.server.security.authentication.AjaxTimeoutRedirectFilter">
+    	<property name="customSessionExpiredErrorCode" value="901"/>
+	</bean>
 
     <bean id="ajaxAuthenticationSuccessHandler" class="gemma.gsec.authentication.AjaxAuthenticationSuccessHandler">
         <property name="alwaysUseDefaultTargetUrl" value="false"></property>

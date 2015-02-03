@@ -60,10 +60,14 @@
       
    }
    
-   utility.showMessage = function(message, messageEl ) {
+   utility.showMessage = function(message, messageEl, context ) {
       console.log( message );
       messageEl.html( message );
       var parent = messageEl.parent();
+      if ( !utility.isUndefined(context) ) {
+         parent.removeClass("alert-success alert-info alert-warning alert-danger");
+         parent.addClass(context);
+      }
          parent.show().addClass("pulse");
          parent.one(
             "webkitAnimationEnd oanimationend msAnimationEnd animationend",
@@ -106,7 +110,7 @@
    utility.setConfirmChanges = function(tab, isDirty, fixSidebar) {
       tab.one('hide.bs.tab', function(e) {
          if ( isDirty() ) {
-            console.log('isdirty');
+            //console.log('isdirty');
             fixSidebar.trigger('click.metisMenu');
             e.preventDefault();
             var relatedTarget = e.relatedTarget;
@@ -162,6 +166,33 @@
                             'Rat': 10116,
                             'Yeast':559292
                             }
+   
+   utility.uniqueHard = function(a) {
+      var arr = [];
+      for(var i = 0; i < a.length; i++) {
+         if( arr.indexOf(a[i]) === -1 ) {
+            arr.push(a[i]);
+         }
+      }
+      return arr; 
+   }
+   
+   utility.uniqueSoft = function(a) {
+      var arr = [];
+      for(var i = 0; i < a.length; i++) {
+         if( !utility.containsSoft(arr, a[i]) ) {
+            arr.push(a[i]);
+         }
+      }
+      return arr; 
+   }
+   
+   utility.containsSoft = function(arr, v) {
+      for(var i = 0; i < arr.length; i++) {
+         if(arr[i] == v) return true;
+     }
+     return false;
+   }
    
    $(function(){
       $("[data-hide]").on("click", function(){

@@ -57,6 +57,9 @@
    goManager.getGenePool = function(geneOntologyId) {
       return utility.executeAjax( "getGenePool.html", {'geneOntologyId':geneOntologyId, 'taxonId':modelOrganisms.currentTaxonId()}, false );
    }
+   
+   //goManager.alertFilter = "#modelOrganisms .main-header .alert div";
+   goManager.alertFilter = "#modelOrganisms #go-tab .alert div";
 
    saveGoTerms = function() {      
       modelOrganisms.lockAll();
@@ -73,7 +76,7 @@
       var taxonId = modelOrganisms.currentTaxonId();
       var newTerms = goManager.table().DataTable().columns().data()[0];
       
-      researcher.addTaxonDescription(taxonId, modelOrganisms.focus().text() )
+      researcher.addTaxonDescription(taxonId, modelOrganisms.focus().text().replace(/\s/g, " ").trim() )
       researcher.updateTermsForTaxon( newTerms, taxonId );
       var promise = researcherModel.saveResearcherTermsForTaxon( taxonId );
       
@@ -85,11 +88,14 @@
       }
       
       $.when(promise).done(function() {
+         //console.log("Saved Changes");
+         utility.showMessage( promise.responseJSON.message, $( goManager.alertFilter  ) );
+         //utility.showMessage( promise.responseJSON.message, $( "#primaryContactMessage" ) );
+      }).fail(function() {
+         utility.showMessage( "FAILED to save changes", $( goManager.alertFilter  ) );
+      }).always(function() {
          btn.removeAttr("disabled");
          btn.children('i').removeClass('fa-spin');
-         console.log("Saved Changes");
-         utility.showMessage( promise.responseJSON.message, $( "#modelOrganisms .main-header .alert div" ) );
-         //utility.showMessage( promise.responseJSON.message, $( "#primaryContactMessage" ) );
       });
       
       
@@ -104,7 +110,7 @@
       var showingTerms = table.columns().data()[0]; 
       var focus = researcher.taxonDescriptions[taxonId] ? researcher.taxonDescriptions[taxonId]:"";
       
-      return ( modelOrganisms.focus().text() != focus) || !researcher.compareTerms(showingTerms, oldTerms);
+      return ( modelOrganisms.focus().text().replace(/\s/g, " ").trim() != focus.replace(/\s/g, " ").trim() ) || !researcher.compareTerms(showingTerms, oldTerms);
    }
    
    goManager.loadTable = function() {
@@ -130,7 +136,7 @@
       if (term.size <= sizeLimit) {
     	  var inst = goManager.addGoTermToTable(term, true)
       } else {
-    	  utility.showMessage( "GO Term is too large, please select another", $( "#modelOrganisms .main-header .alert div" ) );
+    	  utility.showMessage( "GO Term is too large, please select another", $( goManager.alertFilter  ) );
       }
       
       if (inst) {
@@ -153,17 +159,17 @@
 
       if ( term == null ) {
          console.log("Please select a GO Term to add")
-         utility.showMessage( "Please select a GO Term to add", $( "#modelOrganisms .main-header .alert div" ) );
+         utility.showMessage( "Please select a GO Term to add", $( goManager.alertFilter  ) );
          return;
       } else {
-         utility.hideMessage( $( "#modelOrganisms .main-header .alert div" ) );
+         utility.hideMessage( $( goManager.alertFilter  ) );
       }
 
       var table = goManager.table().DataTable();
       
       if ( table.column(1).data().indexOf(term.geneOntologyId) != -1 ) {
          console.log("GO Term already added")
-         utility.showMessage( "GO Term already added", $( "#modelOrganisms .main-header .alert div" ) );
+         utility.showMessage( "GO Term already added", $( goManager.alertFilter  ) );
          return;
       }
       var row = [term];
@@ -194,7 +200,7 @@
          var refreshIds = [];
          for (var i = 0; i < terms.length; i++) {
             var term = terms[i];
-            var res = addToTable(term)
+            var res = goManager.addToTable(term)
             if (!res.success) {
                console.log(res)
                console.log(results)
@@ -246,12 +252,12 @@
             msg = "<b>Successfully added</b> " + terms.length +" term(s)."
          }
          
-         utility.showMessage( msg, $( "#modelOrganisms .main-header .alert div" ) );
+         utility.showMessage( msg, $( goManager.alertFilter  ) );
          goManager.table().DataTable().rows().draw(false);
       }
    }
    
-   addToTable = function(term) {
+   goManager.addToTable = function(term) {
       
       if ( term == null ) {
          console.log("Object is not a Term", term);

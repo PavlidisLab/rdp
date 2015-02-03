@@ -30,6 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.NoSuchMessageException;
 import org.springframework.mail.SimpleMailMessage;
+import org.springframework.web.multipart.commons.CommonsMultipartFile;
 
 import ubc.pavlab.rdp.server.util.MailEngine;
 import ubc.pavlab.rdp.server.util.MessageUtil;
@@ -160,6 +161,16 @@ public abstract class BaseController {
         mailMessage.setSubject( subject );
         mailMessage.setTo( "<" + emailAddress + ">" );
         mailEngine.sendMessage( mailMessage, templateName, model );
+    }
+
+    protected void sendSupportEmail( String fromEmail, String subject, String templateName, Map<String, Object> model,
+            CommonsMultipartFile attachFile ) {
+        SimpleMailMessage mailMessage = new SimpleMailMessage();
+        // mailMessage.setTo( Settings.getAdminEmailAddress() );
+        mailMessage.setFrom( Settings.getAdminEmailAddress() );
+        mailMessage.setSubject( subject );
+        mailMessage.setTo( Settings.getAdminEmailAddress() );
+        mailEngine.sendMessage( mailMessage, templateName, model, attachFile );
     }
 
 }

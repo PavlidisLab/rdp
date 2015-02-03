@@ -481,16 +481,22 @@ img.thumbnail {
 }
 
 .read-first {
-	color: red;
 	font-size: 18px;
 }
 
 .read-first:hover {
-	color: #ff4a4a;
 	font-size: 18px;
 }
 
-div.registry-overview {
+.red-link {
+	color: red;
+}
+
+.red-link:hover {
+	color: #ff4a4a;
+}
+
+div.registry-overview, div.registry-support {
 	padding-left:25px;
 }
 
@@ -510,4 +516,11 @@ div.registry-overview {
 	25% { -webkit-transform: translateY(-2px); }
 	50% { -webkit-transform: translateY(2px); }
 	100% { -webkit-transform: translateY(-2px); }
+}
+a, a:hover, a:focus { 
+outline: 0;
+}
+
+input[type=file] {
+	display: inline-block;
 }

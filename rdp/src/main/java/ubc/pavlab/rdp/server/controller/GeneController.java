@@ -230,7 +230,7 @@ public class GeneController {
             Researcher researcher = researcherService.findByUserName( username );
 
             // Update Organism Description
-            researcher.updateTaxonDescription( taxonId, taxonDescription );
+            researcher.updateTaxonDescription( taxonId, taxonDescription.trim() );
 
             // remove genes not in specified taxon
             HashMap<Gene, TierType> genes = geneService.quickDeserializeGenes( genesJSON );
@@ -609,6 +609,7 @@ public class GeneController {
         String username = userManager.getCurrentUsername();
         Long taxonId = Long.parseLong( request.getParameter( "taxonId" ), 10 );
         String[] GOJSON = request.getParameterValues( "terms[]" );
+        String taxonDescription = request.getParameter( "taxonDescription" );
 
         if ( GOJSON == null ) {
             log.info( username + ": No terms to save" );
@@ -617,6 +618,9 @@ public class GeneController {
 
         try {
             Researcher researcher = researcherService.findByUserName( username );
+
+            // Update Organism Description
+            researcher.updateTaxonDescription( taxonId, taxonDescription );
 
             // Deserialize GO Terms
             // Collection<GeneOntologyTerm> goTermsInMemory = gOService.deserializeGOTerms( GOJSON );

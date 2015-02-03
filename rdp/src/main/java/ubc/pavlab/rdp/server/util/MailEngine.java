@@ -16,6 +16,7 @@ package ubc.pavlab.rdp.server.util;
 
 import java.util.Map;
 import org.springframework.mail.SimpleMailMessage;
+import org.springframework.web.multipart.commons.CommonsMultipartFile;
 
 /**
  * @author paul
@@ -40,5 +41,14 @@ public interface MailEngine {
      * @param model
      */
     public abstract void sendMessage( SimpleMailMessage msg, String templateName, Map<String, Object> model );
+
+    /**
+     * @param msg
+     * @param templateName
+     * @param model
+     * @param attachFile
+     */
+    public abstract void sendMessage( SimpleMailMessage msg, String templateName, Map<String, Object> model,
+            CommonsMultipartFile attachFile );
 
 }

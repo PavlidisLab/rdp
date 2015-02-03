@@ -18,7 +18,11 @@
  */
 package ubc.pavlab.rdp.server.util;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Map;
+
+import javax.mail.internet.MimeMessage;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -26,11 +30,15 @@ import org.apache.velocity.app.VelocityEngine;
 import org.apache.velocity.exception.VelocityException;
 import org.apache.velocity.runtime.RuntimeConstants;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamSource;
 import org.springframework.mail.MailException;
-import org.springframework.mail.MailSender;
 import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.mail.javamail.MimeMessagePreparator;
 import org.springframework.stereotype.Component;
 import org.springframework.ui.velocity.VelocityEngineUtils;
+import org.springframework.web.multipart.commons.CommonsMultipartFile;
 
 /**
  * @author pavlidis
@@ -42,7 +50,7 @@ public class MailEngineImpl implements MailEngine {
     protected static final Log log = LogFactory.getLog( MailEngineImpl.class );
 
     @Autowired
-    private MailSender mailSender;
+    private JavaMailSender mailSender;
 
     @Autowired
     private VelocityEngine velocityEngine;
@@ -102,5 +110,49 @@ public class MailEngineImpl implements MailEngine {
         msg.setSubject( subject );
         msg.setText( bodyText );
         this.send( msg );
+    }
+
+    @Override
+    public void sendMessage( final SimpleMailMessage msg, String templateName, Map<String, Object> model,
+            final CommonsMultipartFile attachFile ) {
+
+        String result = null;
+        try {
+            result = VelocityEngineUtils.mergeTemplateIntoString( velocityEngine, templateName,
+                    RuntimeConstants.ENCODING_DEFAULT, model );
+        } catch ( VelocityException e ) {
+            e.printStackTrace();
+        }
+
+        msg.setText( result );
+
+        mailSender.send( new MimeMessagePreparator() {
+
+            @Override
+            public void prepare( MimeMessage mimeMessage ) throws Exception {
+                MimeMessageHelper messageHelper = new MimeMessageHelper( mimeMessage, true, "UTF-8" );
+                messageHelper.setTo( msg.getTo() );
+                messageHelper.setFrom( msg.getFrom() );
+                messageHelper.setSubject( msg.getSubject() );
+                messageHelper.setText( msg.getText() );
+
+                // determines if there is an upload file, attach it to the e-mail
+                // String attachName = attachFile.getOriginalFilename();
+                if ( attachFile != null && !attachFile.getOriginalFilename().equals( "" ) ) {
+                    // log.info( "attaching a file" );
+                    // log.info( attachName );
+                    messageHelper.addAttachment( attachFile.getOriginalFilename(), new InputStreamSource() {
+
+                        @Override
+                        public InputStream getInputStream() throws IOException {
+                            return attachFile.getInputStream();
+                        }
+                    } );
+                }
+
+            }
+
+        } );
+
     }
 }

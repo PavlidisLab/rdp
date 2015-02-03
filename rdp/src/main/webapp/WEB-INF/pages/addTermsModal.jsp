@@ -13,6 +13,21 @@
 				<div id="addTermsForm" class="custom-transition">
 					<form class="form-horizontal" role="form">
 
+						<div class="form-group">
+							<div class="alert alert-warning col-sm-offset-1  col-sm-10">
+								<a href="#" class="close" data-hide="alert">&times;</a>
+								<div class="text-center">
+									<p>Based on the genes you selected, we suggest the
+										following GO terms as relevant to your work. Please select the
+										terms you approve and click on the "Add Highlighted Term(s)"
+										button.</p>
+									<p>You may also manually search for GO terms based on
+										ID, name and description. Note that terms with too many
+										associated genes will be greyed out.</p>
+								</div>
+							</div>
+						</div>
+
  						<div class="form-group">
 							<label for="searchTermsSelect" class="col-sm-2 control-label">Search for Term</label>
 							<div class="col-sm-8">
@@ -35,16 +50,6 @@
 						<div class="form-group">
 							<div class="col-sm-offset-3 col-sm-6 text-center">
 								<h4>Suggested Terms</h4>
-							</div>
-						</div>
-						
-						<div class="form-group">
-							<div class="alert alert-warning col-sm-offset-1  col-sm-10">
-								<a href="#" class="close" data-hide="alert">&times;</a>
-								<div class="text-center">Based on the genes you selected, we suggest the following GO terms as relevant to your work. Please select the terms you approve and click on the "Add Highlighted Term(s)" button. The terms you select will be used to infer "Tier 3" genes for your profile.</div>
-							</div>
-							<div class="col-sm-offset-1 col-sm-10">
-								<p></p>
 							</div>
 						</div>
 
