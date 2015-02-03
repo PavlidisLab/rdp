@@ -353,17 +353,17 @@
 	<script src="scripts/lib/jquery.form.min.js"></script>
 	
 
-	<script src="scripts/api/utility.js?version=23"></script>
-	<script src="scripts/api/researcherModel.js?version=23"></script>
-	<script src="scripts/api/profile.js?version=23"></script>
-	<script src="scripts/api/settings.js?version=23"></script>
-	<script src="scripts/api/modelOrganisms.js?version=23"></script>
-	<script src="scripts/api/geneManager.js?version=23"></script>
-	<script src="scripts/api/goManager.js?version=23"></script>
-	<script src="scripts/api/admin.js?version=23"></script>
-	<script src="scripts/api/register.js?version=23"></script>
-	<script src="scripts/api/navbar.js?version=23"></script>
-	<script src="scripts/api/support.js?version=23"></script>
+	<script src="scripts/api/utility.js?version=24"></script>
+	<script src="scripts/api/researcherModel.js?version=24"></script>
+	<script src="scripts/api/profile.js?version=24"></script>
+	<script src="scripts/api/settings.js?version=24"></script>
+	<script src="scripts/api/modelOrganisms.js?version=24"></script>
+	<script src="scripts/api/geneManager.js?version=24"></script>
+	<script src="scripts/api/goManager.js?version=24"></script>
+	<script src="scripts/api/admin.js?version=24"></script>
+	<script src="scripts/api/register.js?version=24"></script>
+	<script src="scripts/api/navbar.js?version=24"></script>
+	<script src="scripts/api/support.js?version=24"></script>
 	
 	<script> 
 function ajaxSessionTimeout(e)
