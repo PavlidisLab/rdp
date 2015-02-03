@@ -32,8 +32,6 @@
 	
 <link href="styles/lightbox.css" rel="stylesheet" />
 
-<link href="styles/jasny-bootstrap.min.css" rel="stylesheet" />
-
 <!-- Custom CSS -->
 <link href="styles/rdp.css" rel="stylesheet" title="default" class="themes">
 
@@ -352,7 +350,6 @@
 	
 	<script src="scripts/lib/lightbox.min.js"></script>
 	
-	<script src="scripts/lib/jasny-bootstrap.min.js"></script>
 	<script src="scripts/lib/jquery.form.min.js"></script>
 	
 
