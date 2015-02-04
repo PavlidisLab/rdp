@@ -339,6 +339,11 @@ public class ResearcherServiceImpl implements ResearcherService {
         calculatedGenes.keySet().removeAll( researcher.getGenesByTaxonId( taxonId ) );
 
         modified |= addGenes( researcher, calculatedGenes );
+        
+        if ( modified ) {
+            researcherDao.update( researcher );
+        }
+        
         return modified;
     }
 
