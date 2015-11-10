@@ -49,7 +49,7 @@
        table.clear().draw();
        $.each(researchers, function(index, researcher) {
            if ( tiers ) {
-        	   table.column(dTable.columns()[0].length - 1).visible(true);
+        	   table.column(table.columns()[0].length - 1).visible(true);
               var specificTier = tiers[index];
 //            for (var i=0;i<researcher.genes.length;i++) {
 //               if ( researcher.genes[i].equals(specificGene) ) {
@@ -58,7 +58,7 @@
 //
 //            }
            } else {
-        	   table.column(dTable.columns()[0].length - 1).visible(false);
+        	   table.column(table.columns()[0].length - 1).visible(false);
            }
             
            var termsLength = 0;
@@ -180,7 +180,7 @@
 	      return promise;
 	   } 
 
-   admin.findByLikeSymbol = function(symbol, tier) {
+   admin.findByLikeSymbol = function(taxonId, symbol, tier) {
 	      console.log(symbol);
 	      console.log(tier);
 	      var promise = $.ajax( {
@@ -189,7 +189,8 @@
 
 	         data : {
 	        	likeSymbol : symbol,
-	            tier: tier
+	            tier: tier, 
+	            taxonId: taxonId
 	         },
 	         dataType : "json", 
 	         success : function(response, xhr) {
@@ -273,7 +274,9 @@
        
        var tierSelect = admin.advancedTier().val();
        
-       var promise = admin.findByLikeSymbol(symbolPattern, tierSelect)
+       var tId = parseInt(admin.advancedTaxon().val());
+       
+       var promise = admin.findByLikeSymbol(tId, symbolPattern, tierSelect)
        
        $.when(promise).done(function() {
     	   $('#menu > li a[href="#admin"][data-toggle="tab"] span.fa-spin').removeClass("fa-spin");

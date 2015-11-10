@@ -81,25 +81,25 @@ public class ResearcherDaoImpl extends DaoBaseImpl<Researcher> implements Resear
 
     @Override
     public Collection<Researcher> findByGene( final Gene gene, final TierType tier ) {
-        String hql = "SELECT r FROM Researcher r INNER JOIN r.geneAssociations g WHERE g.pk.gene.id = :geneId and g.tier = :tierType";
+        String hql = "SELECT r FROM Researcher r INNER JOIN r.geneAssociations g WHERE ga.pk.gene.id = :geneId and g.tier = :tierType";
         Collection<Researcher> results = this.getHibernateTemplate().findByNamedParam( hql,
                 new String[] { "geneId", "tierType" }, new Object[] { gene.getId(), tier } );
         return results;
     }
 
     @Override
-    public Collection<Researcher> findByLikeSymbol( final String symbol ) {
-        String hql = "SELECT r FROM Researcher r INNER JOIN r.geneAssociations g WHERE g.pk.gene.officialSymbol LIKE ':symbol'";
-        Collection<Researcher> results = this.getHibernateTemplate().findByNamedParam( hql, "symbol",
-                "%" + symbol + "%" );
+    public Collection<Researcher> findByLikeSymbol( final Long taxonId, final String symbol ) {
+        String hql = "SELECT r FROM Researcher r INNER JOIN r.geneAssociations ga INNER JOIN ga.pk.gene g WHERE g.taxonId = :taxonId and g.officialSymbol LIKE ':symbol'";
+        Collection<Researcher> results = this.getHibernateTemplate().findByNamedParam( hql,
+                new String[] { "taxonId", "symbol" }, new Object[] { taxonId, "%" + symbol + "%" } );
         return results;
     }
 
     @Override
-    public Collection<Researcher> findByLikeSymbol( final String symbol, final TierType tier ) {
-        String hql = "SELECT r FROM Researcher r INNER JOIN r.geneAssociations g WHERE g.pk.gene.officialSymbol = :symbol and g.tier = :tierType";
+    public Collection<Researcher> findByLikeSymbol( final Long taxonId, final String symbol, final TierType tier ) {
+        String hql = "SELECT r FROM Researcher r INNER JOIN r.geneAssociations ga INNER JOIN g.pk.gene g WHERE g.taxonId = :taxonId and g.officialSymbol LIKE ':symbol' and ga.tier = :tierType";
         Collection<Researcher> results = this.getHibernateTemplate().findByNamedParam( hql,
-                new String[] { "symbol", "tierType" }, new Object[] { "%" + symbol + "%", tier } );
+                new String[] { "taxonId", "symbol", "tierType" }, new Object[] { taxonId, "%" + symbol + "%", tier } );
         return results;
     }
 

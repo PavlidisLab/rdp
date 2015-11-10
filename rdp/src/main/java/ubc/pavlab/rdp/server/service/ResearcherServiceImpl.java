@@ -370,13 +370,13 @@ public class ResearcherServiceImpl implements ResearcherService {
     }
 
     @Override
-    public Collection<Researcher> findByLikeSymbol( String symbol ) {
-        return researcherDao.findByLikeSymbol( symbol );
+    public Collection<Researcher> findByLikeSymbol( Long taxonId, String symbol ) {
+        return researcherDao.findByLikeSymbol( taxonId, symbol );
     }
 
     @Override
-    public Collection<Researcher> findByLikeSymbol( String symbol, TierType tier ) {
-        return researcherDao.findByLikeSymbol( symbol, tier );
+    public Collection<Researcher> findByLikeSymbol( Long taxonId, String symbol, TierType tier ) {
+        return researcherDao.findByLikeSymbol( taxonId, symbol, tier );
     }
 
     @Override

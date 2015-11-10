@@ -162,6 +162,65 @@ public class RegisterController extends BaseController {
     }
 
     /**
+     * AJAX entry point. Find Researchers based on like search parameters.
+     * 
+     * @param request
+     * @param response
+     */
+    @RequestMapping("/searchResearchersLike.html")
+    public void searchResearchersLike( HttpServletRequest request, HttpServletResponse response ) {
+
+        String jsonText = "";
+        JSONUtil jsonUtil = new JSONUtil( request, response );
+
+        try {
+            String tierSelection = request.getParameter( "tier" );
+            String likeSymbol = request.getParameter( "likeSymbol" );
+            log.info( tierSelection );
+            log.info( likeSymbol );
+            log.info( request.getParameter( "taxonId" ) );
+            TierType tier = StringUtils.isBlank( tierSelection ) ? null : TierType.valueOf( tierSelection );
+            Long taxonId = Long.parseLong( request.getParameter( "taxonId" ), 10 );
+
+            if ( StringUtils.isBlank( likeSymbol ) ) {
+                JSONObject json = new JSONObject();
+                json.put( "success", false );
+                json.put( "message", "Problem with query" );
+                jsonText = json.toString();
+                log.info( jsonText );
+            } else {
+                Collection<Researcher> researchers = new ArrayList<>();
+
+                if ( tier == null ) {
+                    researchers = researcherService.findByLikeSymbol( taxonId, likeSymbol );
+                } else {
+                    researchers = researcherService.findByLikeSymbol( taxonId, likeSymbol, tier );
+                }
+                Set<JSONObject> researchersJson = new HashSet<JSONObject>();
+                for ( Researcher r : researchers ) {
+                    researchersJson.add( researcherService.toJSON( r ) );
+                }
+                JSONObject json = new JSONObject();
+                json.put( "success", true );
+                json.put( "message", "Found " + researchers.size() + " researchers." );
+                json.put( "data", ( new JSONArray( researchersJson ) ) );
+                jsonText = json.toString();
+            }
+        } finally {
+            try {
+                jsonUtil.writeToResponse( jsonText );
+            } catch ( IOException e ) {
+                log.error( e.getLocalizedMessage(), e );
+                JSONObject json = new JSONObject();
+                json.put( "success", false );
+                json.put( "message", e.getLocalizedMessage() );
+                jsonText = json.toString();
+                log.info( jsonText );
+            }
+        }
+    }
+
+    /**
      * AJAX entry point. Find Researchers based on search parameters.
      * 
      * @param request
@@ -173,28 +232,19 @@ public class RegisterController extends BaseController {
         String jsonText = "";
         JSONUtil jsonUtil = new JSONUtil( request, response );
 
-        // Long taxonId = Long.parseLong( request.getParameter( "taxonId" ), 10 );
         try {
             String tierSelection = request.getParameter( "tier" );
             String geneIdStr = request.getParameter( "geneId" );
-            String likeSymbol = request.getParameter( "likeSymbol" );
             log.info( tierSelection );
             log.info( geneIdStr );
-            log.info( likeSymbol );
+
             TierType tier = StringUtils.isBlank( tierSelection ) ? null : TierType.valueOf( tierSelection );
 
-            Long geneId = null;
-            try {
-                geneId = Long.parseLong( geneIdStr, 10 );
-            } catch ( NumberFormatException e ) {
-                // If likeSymbol search being used
-            }
+            Long geneId = Long.parseLong( geneIdStr, 10 );
 
             Gene gene = geneService.findById( geneId );
 
-            boolean likeSymbolDNE = StringUtils.isBlank( likeSymbol );
-
-            if ( gene == null && likeSymbolDNE ) {
+            if ( gene == null ) {
                 JSONObject json = new JSONObject();
                 json.put( "success", false );
                 json.put( "message", "Problem with query" );
@@ -204,18 +254,10 @@ public class RegisterController extends BaseController {
                 Collection<Researcher> researchers = new ArrayList<>();
 
                 if ( tier == null ) {
-                    if ( likeSymbolDNE ) {
-                        researchers = researcherService.findByGene( gene );
-                    } else {
-                        researchers = researcherService.findByLikeSymbol( likeSymbol );
-                    }
+                    researchers = researcherService.findByGene( gene );
 
                 } else {
-                    if ( likeSymbolDNE ) {
-                        researchers = researcherService.findByGene( gene, tier );
-                    } else {
-                        researchers = researcherService.findByLikeSymbol( likeSymbol, tier );
-                    }
+                    researchers = researcherService.findByGene( gene, tier );
 
                 }
                 Set<JSONObject> researchersJson = new HashSet<JSONObject>();

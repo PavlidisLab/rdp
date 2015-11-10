@@ -41,9 +41,9 @@ public interface ResearcherDao extends DaoBase<Researcher> {
 
     public Collection<Researcher> findByGene( final Gene gene, final TierType tier );
 
-    public Collection<Researcher> findByLikeSymbol( String symbol );
+    public Collection<Researcher> findByLikeSymbol( final Long taxonId, final String symbol );
 
-    public Collection<Researcher> findByLikeSymbol( String symbol, TierType tier );
+    public Collection<Researcher> findByLikeSymbol( final Long taxonId, final String symbol, final TierType tier );
 
     public Researcher thaw( Researcher researcher );
 
