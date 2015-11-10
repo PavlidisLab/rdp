@@ -87,7 +87,7 @@
 						<div id="collapse-advanced" class="panel-collapse collapse"
 							role="tabpanel" aria-labelledby="advanced-heading">
 							<div class="panel-body">
-				<div class="row" id="admin-advanced">
+				<div class="row" id="admin-advanced" style="display:none;">
 					<div class="col-sm-12 col-lg-4">
 						<div class="input-group">
 							<div class="input-group-btn">
@@ -128,7 +128,7 @@
 				
 				<hr/>
 				
-				<div class="row" id="admin-advanced-term">
+				<div class="row" id="admin-advanced-term" style="display:none;">
 					<div class="col-sm-12 col-lg-4">
 						<div class="input-group">
 							<div class="input-group-btn">

@@ -21,6 +21,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.commons.CommonsMultipartFile;
 
+import ubc.pavlab.rdp.server.model.Gene;
+import ubc.pavlab.rdp.server.model.GeneAssociation.TierType;
 import ubc.pavlab.rdp.server.model.Publication;
 import ubc.pavlab.rdp.server.model.Researcher;
 import ubc.pavlab.rdp.server.model.common.auditAndSecurity.User;
@@ -144,6 +146,58 @@ public class RegisterController extends BaseController {
             // jsonText = jsonUtil.collectionToJson( researchers );
         } finally {
 
+            try {
+                jsonUtil.writeToResponse( jsonText );
+            } catch ( IOException e ) {
+                log.error( e.getLocalizedMessage(), e );
+                JSONObject json = new JSONObject();
+                json.put( "success", false );
+                json.put( "message", e.getLocalizedMessage() );
+                jsonText = json.toString();
+                log.info( jsonText );
+            }
+        }
+    }
+
+    /**
+     * AJAX entry point. Find Researchers based on search parameters.
+     * 
+     * @param request
+     * @param response
+     */
+    @RequestMapping("/searchResearchers.html")
+    public void searchResearchers( HttpServletRequest request, HttpServletResponse response ) {
+
+        String jsonText = "";
+        JSONUtil jsonUtil = new JSONUtil( request, response );
+
+        // Long taxonId = Long.parseLong( request.getParameter( "taxonId" ), 10 );
+        String tierSelection = request.getParameter( "tier" );
+        log.info( tierSelection );
+        TierType tier = TierType.valueOf( tierSelection );
+        Long geneId = Long.parseLong( request.getParameter( "geneId" ), 10 );
+
+        try {
+            Gene gene = geneService.findById( geneId );
+            if ( gene == null ) {
+                JSONObject json = new JSONObject();
+                json.put( "success", false );
+                json.put( "message", "Unknown Gene" );
+                jsonText = json.toString();
+                log.info( jsonText );
+            } else {
+                Collection<Researcher> researchers = researcherService.findByGene( gene, tier );
+                Set<JSONObject> researchersJson = new HashSet<JSONObject>();
+                for ( Researcher r : researchers ) {
+                    researchersJson.add( researcherService.toJSON( r ) );
+                }
+                JSONObject json = new JSONObject();
+                json.put( "success", true );
+                json.put( "message", "Found " + researchers.size() + " researchers." );
+                json.put( "data", ( new JSONArray( researchersJson ) ) );
+                jsonText = json.toString();
+            }
+        } finally {
             try {
                 jsonUtil.writeToResponse( jsonText );
             } catch ( IOException e ) {

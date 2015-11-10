@@ -339,11 +339,11 @@ public class ResearcherServiceImpl implements ResearcherService {
         calculatedGenes.keySet().removeAll( researcher.getGenesByTaxonId( taxonId ) );
 
         modified |= addGenes( researcher, calculatedGenes );
-        
+
         if ( modified ) {
             researcherDao.update( researcher );
         }
-        
+
         return modified;
     }
 
@@ -362,6 +362,11 @@ public class ResearcherServiceImpl implements ResearcherService {
     @Override
     public Collection<Researcher> findByGene( Gene gene ) {
         return researcherDao.findByGene( gene );
+    }
+
+    @Override
+    public Collection<Researcher> findByGene( Gene gene, TierType tier ) {
+        return researcherDao.findByGene( gene, tier );
     }
 
     @Override

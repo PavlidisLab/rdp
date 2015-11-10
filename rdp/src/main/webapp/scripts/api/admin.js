@@ -80,7 +80,7 @@
        
    }
    
-   admin.resetTable = function() {
+/*   admin.resetTable = function() {
       // TODO The updating of the spinner doesn't work
       $('#menu > li a[href="#admin"][data-toggle="tab"] span.fa-spin').addClass("fa-spin");
       var dTable = admin.table().DataTable();
@@ -88,13 +88,13 @@
       populateResearcherTable(allResearchers);
       $('#menu > li a[href="#admin"][data-toggle="tab"] span.fa-spin').removeClass("fa-spin");
       utility.hideMessage($("#researchers-tab .alert div"));
-   }
+   }*/
    
-   var testFunction = function() {
+/*   var testFunction = function() {
       
-   }
+   }*/
    
-   admin.getResearchers = function() {
+/*   admin.getResearchers = function() {
       //utility.hideMessage($("#listResearchersMessage"));
        var promise = $.ajax({
            cache : false,
@@ -128,17 +128,59 @@
            error : function(response, xhr) {
                console.log(xhr);
                console.log(response);
-/*               $("#listResearchersMessage").html(
+               $("#listResearchersMessage").html(
                        "Error with request. Status is: " + xhr.status + ". "
-                               + jQuery.parseJSON(response).message);*/
+                               + jQuery.parseJSON(response).message);
                //$("#listResearchersFailed").show();
            }
        });
        return promise;
-   }
+   }*/
+   
+   admin.findByGene = function(gene, tier) {
+	            
+	      var promise = $.ajax( {
+	         type: "POST",
+	         url : "searchResearchers.html",
+
+	         data : {
+	            genes : $.toJSON(gene),
+	            tier: tier,
+	            taxonId:taxonId
+	         },
+	         dataType : "json", 
+	         success : function(response, xhr) {
+	               response = $.parseJSON(response);
+	               if ( response.success != true ) {
+	                  console.log("Failed to load researchers", response);
+	                  return;
+	               }
+	               var researchers = [];
+	               var i = 0;
+	               $.each(response.data, function(index, r) {
+	                  var researcher = new researcherModel.Researcher();
+	                  researcher.parseResearcherObject( r )
+	                  researcher.index = i;
+	                  researchers.push( researcher );
+	                  i++;
+	               });
+	               console.log("Loaded Researchers:",researchers);
+	               allResearchers = researchers;
+	               
+	               
+	           },
+	           error : function(response, xhr) {
+	               console.log(xhr);
+	               console.log(response);
+	           }
+	      } );
+	      
+	      return promise;
+	   }  
    
    admin.findResearchersByGene = function() {
-      utility.hideMessage( $("#researchers-tab .alert div") );
+	   $('#menu > li a[href="#admin"][data-toggle="tab"] span.fa-spin').addClass("fa-spin");
+       utility.hideMessage( $("#researchers-tab .alert div") );
        var gene = admin.select2().select2("data")
    
        if (gene == null) {
@@ -150,26 +192,29 @@
        }
        
        gene = new researcherModel.Gene(gene);
+       
        var tierSelect = admin.tierSelect().val();
-       var researchers = [];
-       var tiers = [];
-       for (var i=0;i<allResearchers.length;i++) {
-          var specificGene = allResearchers[i].getGene(gene);
-          if ( specificGene !== null ) {
-             if ( !tierSelect || specificGene.tier == tierSelect ) {
-             researchers.push(allResearchers[i]);
-             tiers.push( specificGene.tier );
-             }
-          }
-       }
-       var dTable = admin.table().DataTable();
-       dTable.column(dTable.columns()[0].length - 1).visible(true);
-       utility.showMessage("Found " + researchers.length + " matching researchers", $("#researchers-tab .alert div"));
-       populateResearcherTable(researchers, tiers);
+       
+       var promise = admin.findByGene(gene, tierSelect)
+       
+       $.when(promise).done(function() {
+    	   $('#menu > li a[href="#admin"][data-toggle="tab"] span.fa-spin').removeClass("fa-spin");
+    	   var tiers = [];
+           for (var i=0;i<allResearchers.length;i++) {
+               var specificGene = allResearchers[i].getGene(gene);
+               if ( specificGene !== null ) {
+                  if ( !tierSelect || specificGene.tier == tierSelect ) {
+                  tiers.push( specificGene.tier );
+                  }
+               }
+            }
+           utility.showMessage("Found " + allResearchers.length + " matching researchers", $("#researchers-tab .alert div"));
+    	   populateResearcherTable(allResearchers, tiers);
+       });
 
    }
    
-   admin.advancedSymbolSearch = function() {
+/*   admin.advancedSymbolSearch = function() {
       utility.hideMessage( $("#researchers-tab .alert div") );
        var symbolPattern = admin.advancedSymbol().val();
    
@@ -256,7 +301,7 @@
        utility.showMessage("Found " + researchers.length + " matching researchers", $("#researchers-tab .alert div"));
        populateResearcherTable(researchers);
 
-   }
+   }*/
    
    admin.removeTab = function(tabId,  navbar) {
       navbar.find('a[href="'+tabId+'"]').closest('li').remove();
@@ -479,10 +524,10 @@
       admin.init = function(){
          admin.initDataTable();
          admin.initSelect2();
-         var promise = admin.getResearchers();
+/*         var promise = admin.getResearchers();
          $.when(promise).done(function() {
-            $('#menu > li a[href="#admin"][data-toggle="tab"] span.fa-spin').removeClass("fa-spin");
-         });
+        	 admin.searchComplete();
+         });*/
          $('#menu > li a[href="#admin"][data-toggle="tab"]').on('shown.bs.tab',function() {
             oTable.fnAdjustColumnSizing();
          });
@@ -491,9 +536,10 @@
          });
          //$("#adminResetResearchersButton").click(admin.resetTable)
          $("#adminFindResearchersByGeneButton").click(admin.findResearchersByGene)   
-         $("#admin-advanced button.submit").click(admin.advancedSymbolSearch)
-         $("#admin-advanced-term button.submit").click(admin.advancedTermSearch)
+/*         $("#admin-advanced button.submit").click(admin.advancedSymbolSearch)
+         $("#admin-advanced-term button.submit").click(admin.advancedTermSearch)*/
       };
+      
 }( window.admin = window.admin || {}, jQuery ));
 
 // Initialize document

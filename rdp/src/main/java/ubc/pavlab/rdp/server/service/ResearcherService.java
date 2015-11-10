@@ -87,6 +87,9 @@ public interface ResearcherService {
     @Secured({ "GROUP_ADMIN" })
     public Collection<Researcher> findByGene( Gene gene );
 
+    @Secured({ "GROUP_ADMIN" })
+    public Collection<Researcher> findByGene( Gene gene, TierType tier );
+
     @Secured({ "GROUP_USER" })
     public JSONObject toJSON( Researcher r );
 
