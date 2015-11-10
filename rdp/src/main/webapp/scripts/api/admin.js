@@ -185,7 +185,7 @@
 	      console.log(tier);
 	      var promise = $.ajax( {
 	         type: "POST",
-	         url : "searchResearchers.html",
+	         url : "searchResearchersLike.html",
 
 	         data : {
 	        	likeSymbol : symbol,
