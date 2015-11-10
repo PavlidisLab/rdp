@@ -1,6 +1,7 @@
 package ubc.pavlab.rdp.server.controller;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -10,6 +11,7 @@ import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang3.StringUtils;
 import org.directwebremoting.annotations.RemoteProxy;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -175,20 +177,47 @@ public class RegisterController extends BaseController {
         try {
             String tierSelection = request.getParameter( "tier" );
             String geneIdStr = request.getParameter( "geneId" );
+            String likeSymbol = request.getParameter( "likeSymbol" );
             log.info( tierSelection );
             log.info( geneIdStr );
-            TierType tier = TierType.valueOf( tierSelection );
-            Long geneId = Long.parseLong( geneIdStr, 10 );
+            log.info( likeSymbol );
+            TierType tier = StringUtils.isBlank( tierSelection ) ? null : TierType.valueOf( tierSelection );
+
+            Long geneId = null;
+            try {
+                geneId = Long.parseLong( geneIdStr, 10 );
+            } catch ( NumberFormatException e ) {
+                // If likeSymbol search being used
+            }
 
             Gene gene = geneService.findById( geneId );
-            if ( gene == null ) {
+
+            boolean likeSymbolDNE = StringUtils.isBlank( likeSymbol );
+
+            if ( gene == null && likeSymbolDNE ) {
                 JSONObject json = new JSONObject();
                 json.put( "success", false );
-                json.put( "message", "Unknown Gene" );
+                json.put( "message", "Problem with query" );
                 jsonText = json.toString();
                 log.info( jsonText );
             } else {
-                Collection<Researcher> researchers = researcherService.findByGene( gene, tier );
+                Collection<Researcher> researchers = new ArrayList<>();
+
+                if ( tier == null ) {
+                    if ( likeSymbolDNE ) {
+                        researchers = researcherService.findByGene( gene );
+                    } else {
+                        researchers = researcherService.findByLikeSymbol( likeSymbol );
+                    }
+
+                } else {
+                    if ( likeSymbolDNE ) {
+                        researchers = researcherService.findByGene( gene, tier );
+                    } else {
+                        researchers = researcherService.findByLikeSymbol( likeSymbol, tier );
+                    }
+
+                }
                 Set<JSONObject> researchersJson = new HashSet<JSONObject>();
                 for ( Researcher r : researchers ) {
                     researchersJson.add( researcherService.toJSON( r ) );

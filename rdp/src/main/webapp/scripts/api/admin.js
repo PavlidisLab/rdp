@@ -48,8 +48,8 @@
       table = admin.table().DataTable();
        table.clear().draw();
        $.each(researchers, function(index, researcher) {
-           
            if ( tiers ) {
+        	   table.column(dTable.columns()[0].length - 1).visible(true);
               var specificTier = tiers[index];
 //            for (var i=0;i<researcher.genes.length;i++) {
 //               if ( researcher.genes[i].equals(specificGene) ) {
@@ -57,6 +57,8 @@
 //               }
 //
 //            }
+           } else {
+        	   table.column(dTable.columns()[0].length - 1).visible(false);
            }
             
            var termsLength = 0;
@@ -150,7 +152,7 @@
 	         },
 	         dataType : "json", 
 	         success : function(response, xhr) {
-	               response = $.parseJSON(response);
+	               //response = $.parseJSON(response);
 	               if ( response.success != true ) {
 	                  console.log("Failed to load researchers", response);
 	                  return;
@@ -176,7 +178,48 @@
 	      } );
 	      
 	      return promise;
-	   }  
+	   } 
+
+   admin.findByLikeSymbol = function(symbol, tier) {
+	      console.log(symbol);
+	      console.log(tier);
+	      var promise = $.ajax( {
+	         type: "POST",
+	         url : "searchResearchers.html",
+
+	         data : {
+	        	likeSymbol : symbol,
+	            tier: tier
+	         },
+	         dataType : "json", 
+	         success : function(response, xhr) {
+	               //response = $.parseJSON(response);
+	               if ( response.success != true ) {
+	                  console.log("Failed to load researchers", response);
+	                  return;
+	               }
+	               var researchers = [];
+	               var i = 0;
+	               $.each(response.data, function(index, r) {
+	                  var researcher = new researcherModel.Researcher();
+	                  researcher.parseResearcherObject( r )
+	                  researcher.index = i;
+	                  researchers.push( researcher );
+	                  i++;
+	               });
+	               console.log("Loaded Researchers:",researchers);
+	               allResearchers = researchers;
+	               
+	               
+	           },
+	           error : function(response, xhr) {
+	               console.log(xhr);
+	               console.log(response);
+	           }
+	      } );
+	      
+	      return promise;
+	   }
    
    admin.findResearchersByGene = function() {
 	   $('#menu > li a[href="#admin"][data-toggle="tab"] span.fa-spin').addClass("fa-spin");
@@ -210,6 +253,32 @@
             }
            utility.showMessage("Found " + allResearchers.length + " matching researchers", $("#researchers-tab .alert div"));
     	   populateResearcherTable(allResearchers, tiers);
+       });
+
+   }
+   
+   admin.advancedSymbolSearch = function() {
+	   $('#menu > li a[href="#admin"][data-toggle="tab"] span.fa-spin').addClass("fa-spin");
+       utility.hideMessage( $("#researchers-tab .alert div") );
+       var symbolPattern = admin.advancedSymbol().val();
+   
+       if (symbolPattern == null || symbolPattern == "") {
+           //console.log("Please select a symbol pattern")
+           utility.showMessage("Please select a symbol pattern", $("#researchers-tab .alert div"));
+            return;
+        } else {
+           //utility.hideMessage( $("#listResearchersMessage") );
+        }
+      
+       
+       var tierSelect = admin.advancedTier().val();
+       
+       var promise = admin.findByLikeSymbol(symbolPattern, tierSelect)
+       
+       $.when(promise).done(function() {
+    	   $('#menu > li a[href="#admin"][data-toggle="tab"] span.fa-spin').removeClass("fa-spin");
+           utility.showMessage("Found " + allResearchers.length + " matching researchers", $("#researchers-tab .alert div"));
+    	   populateResearcherTable(allResearchers);
        });
 
    }
@@ -536,8 +605,8 @@
          });
          //$("#adminResetResearchersButton").click(admin.resetTable)
          $("#adminFindResearchersByGeneButton").click(admin.findResearchersByGene)   
-/*         $("#admin-advanced button.submit").click(admin.advancedSymbolSearch)
-         $("#admin-advanced-term button.submit").click(admin.advancedTermSearch)*/
+         $("#admin-advanced button.submit").click(admin.advancedSymbolSearch)
+ /*        $("#admin-advanced-term button.submit").click(admin.advancedTermSearch)*/
       };
       
 }( window.admin = window.admin || {}, jQuery ));

@@ -90,6 +90,12 @@ public interface ResearcherService {
     @Secured({ "GROUP_ADMIN" })
     public Collection<Researcher> findByGene( Gene gene, TierType tier );
 
+    @Secured({ "GROUP_ADMIN" })
+    public Collection<Researcher> findByLikeSymbol( String symbol );
+
+    @Secured({ "GROUP_ADMIN" })
+    public Collection<Researcher> findByLikeSymbol( String symbol, TierType tier );
+
     @Secured({ "GROUP_USER" })
     public JSONObject toJSON( Researcher r );
 
