@@ -172,12 +172,14 @@ public class RegisterController extends BaseController {
         JSONUtil jsonUtil = new JSONUtil( request, response );
 
         // Long taxonId = Long.parseLong( request.getParameter( "taxonId" ), 10 );
-        String tierSelection = request.getParameter( "tier" );
-        log.info( tierSelection );
-        TierType tier = TierType.valueOf( tierSelection );
-        Long geneId = Long.parseLong( request.getParameter( "geneId" ), 10 );
-
         try {
+            String tierSelection = request.getParameter( "tier" );
+            String geneIdStr = request.getParameter( "geneId" );
+            log.info( tierSelection );
+            log.info( geneIdStr );
+            TierType tier = TierType.valueOf( tierSelection );
+            Long geneId = Long.parseLong( geneIdStr, 10 );
+
             Gene gene = geneService.findById( geneId );
             if ( gene == null ) {
                 JSONObject json = new JSONObject();

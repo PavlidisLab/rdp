@@ -138,15 +138,15 @@
    }*/
    
    admin.findByGene = function(gene, tier) {
-	            
+	      console.log(gene);
+	      console.log(tier);
 	      var promise = $.ajax( {
 	         type: "POST",
 	         url : "searchResearchers.html",
 
 	         data : {
-	            genes : $.toJSON(gene),
-	            tier: tier,
-	            taxonId:taxonId
+	        	geneId : gene.id,
+	            tier: tier
 	         },
 	         dataType : "json", 
 	         success : function(response, xhr) {

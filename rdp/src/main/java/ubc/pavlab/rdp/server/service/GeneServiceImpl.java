@@ -120,6 +120,9 @@ public class GeneServiceImpl implements GeneService {
 
     @Override
     public Gene findById( Long id ) {
+        if ( id == null ) {
+            return null;
+        }
         return geneDao.findById( id );
     }
 
