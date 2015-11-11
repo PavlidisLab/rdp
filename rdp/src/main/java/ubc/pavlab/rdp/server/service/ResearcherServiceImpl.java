@@ -19,8 +19,6 @@
 
 package ubc.pavlab.rdp.server.service;
 
-import gemma.gsec.model.UserGroup;
-
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -35,6 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import gemma.gsec.model.UserGroup;
 import ubc.pavlab.rdp.server.dao.GeneDao;
 import ubc.pavlab.rdp.server.dao.ResearcherDao;
 import ubc.pavlab.rdp.server.dao.UserDao;
@@ -199,7 +198,8 @@ public class ResearcherServiceImpl implements ResearcherService {
 
         researcherDao.update( researcher );
 
-        log.info( "Removed " + ( numGenesBefore - researcher.getGenes().size() ) + " genes to Researcher " + researcher );
+        log.info(
+                "Removed " + ( numGenesBefore - researcher.getGenes().size() ) + " genes to Researcher " + researcher );
 
         return modified;
     }
@@ -339,11 +339,11 @@ public class ResearcherServiceImpl implements ResearcherService {
         calculatedGenes.keySet().removeAll( researcher.getGenesByTaxonId( taxonId ) );
 
         modified |= addGenes( researcher, calculatedGenes );
-        
+
         if ( modified ) {
             researcherDao.update( researcher );
         }
-        
+
         return modified;
     }
 
@@ -362,6 +362,26 @@ public class ResearcherServiceImpl implements ResearcherService {
     @Override
     public Collection<Researcher> findByGene( Gene gene ) {
         return researcherDao.findByGene( gene );
+    }
+
+    @Override
+    public Collection<Researcher> findByGene( Gene gene, TierType tier ) {
+        return researcherDao.findByGene( gene, tier );
+    }
+
+    @Override
+    public Collection<Researcher> findByLikeSymbol( Long taxonId, String symbol ) {
+        return researcherDao.findByLikeSymbol( taxonId, symbol );
+    }
+
+    @Override
+    public Collection<Researcher> findByLikeSymbol( Long taxonId, String symbol, TierType tier ) {
+        return researcherDao.findByLikeSymbol( taxonId, symbol, tier );
+    }
+
+    @Override
+    public Collection<Researcher> findByLikeName( String nameLike ) {
+        return researcherDao.findByLikeName( nameLike );
     }
 
     @Override

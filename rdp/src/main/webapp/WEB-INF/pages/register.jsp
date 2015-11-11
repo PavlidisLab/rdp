@@ -145,7 +145,7 @@
 				<nav class="sidebar-nav">
 					<ul id="menu">
 						<li style="display: none;"><a href="#admin" data-toggle="tab">
-								<span class="sidebar-nav-item-icon fa fa-fw fa-cog fa-lg fa-spin"></span>
+								<span class="sidebar-nav-item-icon fa fa-fw fa-cog fa-lg"></span>
 								<span class="sidebar-nav-item">Administration</span>
 						</a></li>
 						<li class="active active-metis"><a href="#overview" data-toggle="tab">
@@ -360,7 +360,7 @@
 	<script src="scripts/api/modelOrganisms.js?version=24"></script>
 	<script src="scripts/api/geneManager.js?version=24"></script>
 	<script src="scripts/api/goManager.js?version=24"></script>
-	<script src="scripts/api/admin.js?version=24"></script>
+	<script src="scripts/api/admin.js?version=25"></script>
 	<script src="scripts/api/register.js?version=24"></script>
 	<script src="scripts/api/navbar.js?version=24"></script>
 	<script src="scripts/api/support.js?version=24"></script>
