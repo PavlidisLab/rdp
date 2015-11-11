@@ -40,7 +40,7 @@ import ubc.pavlab.rdp.server.security.authentication.UserManager;
  * @version $Id$
  */
 @Repository
-public class ResearcherDaoImpl extends DaoBaseImpl<Researcher> implements ResearcherDao {
+public class ResearcherDaoImpl extends DaoBaseImpl<Researcher>implements ResearcherDao {
 
     @Autowired
     UserManager userManager;
@@ -100,6 +100,14 @@ public class ResearcherDaoImpl extends DaoBaseImpl<Researcher> implements Resear
         String hql = "SELECT r FROM Researcher r INNER JOIN r.geneAssociations ga INNER JOIN ga.pk.gene g WHERE g.taxonId = :taxonId and g.officialSymbol LIKE :symbol and ga.tier = :tierType";
         Collection<Researcher> results = this.getHibernateTemplate().findByNamedParam( hql,
                 new String[] { "taxonId", "symbol", "tierType" }, new Object[] { taxonId, "%" + symbol + "%", tier } );
+        return results;
+    }
+
+    @Override
+    public Collection<Researcher> findByLikeName( final String nameLike ) {
+        String hql = "SELECT r FROM Researcher r WHERE r.contact.firstName LIKE :nameLike or r.contact.lastName LIKE :nameLike";
+        Collection<Researcher> results = this.getHibernateTemplate().findByNamedParam( hql,
+                "nameLike", "%" + nameLike + "%" );
         return results;
     }
 

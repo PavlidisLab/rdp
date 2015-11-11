@@ -39,6 +39,9 @@
    admin.advancedTerm = function() {
       return $('#admin-advanced-term input.term-pattern');
    }
+   admin.nameInput = function() {
+      return $('#adminSearchNamesInput');
+   }
    
    var oTable;
    
@@ -47,9 +50,14 @@
    populateResearcherTable = function(researchers, tiers) {
       table = admin.table().DataTable();
        table.clear().draw();
+       if (utility.isUndefined( tiers )) {
+          table.column(table.columns()[0].length - 1).visible(false);
+          tiers = []; 
+       } else {
+          table.column(table.columns()[0].length - 1).visible(true);
+       }
        $.each(researchers, function(index, researcher) {
-           if ( tiers ) {
-        	   table.column(table.columns()[0].length - 1).visible(true);
+           if ( tiers.length > 0 ) {
               var specificTier = tiers[index];
 //            for (var i=0;i<researcher.genes.length;i++) {
 //               if ( researcher.genes[i].equals(specificGene) ) {
@@ -57,8 +65,6 @@
 //               }
 //
 //            }
-           } else {
-        	   table.column(table.columns()[0].length - 1).visible(false);
            }
             
            var termsLength = 0;
@@ -222,6 +228,45 @@
 	      return promise;
 	   }
    
+   admin.findByLikeName = function(nameLike) {
+      console.log(nameLike);
+      var promise = $.ajax( {
+         type: "POST",
+         url : "searchResearchersByName.html",
+
+         data : {
+            nameLike : nameLike
+         },
+         dataType : "json", 
+         success : function(response, xhr) {
+               //response = $.parseJSON(response);
+               if ( response.success != true ) {
+                  console.log("Failed to load researchers", response);
+                  return;
+               }
+               var researchers = [];
+               var i = 0;
+               $.each(response.data, function(index, r) {
+                  var researcher = new researcherModel.Researcher();
+                  researcher.parseResearcherObject( r )
+                  researcher.index = i;
+                  researchers.push( researcher );
+                  i++;
+               });
+               console.log("Loaded Researchers:",researchers);
+               allResearchers = researchers;
+               
+               
+           },
+           error : function(response, xhr) {
+               console.log(xhr);
+               console.log(response);
+           }
+      } );
+      
+      return promise;
+   }
+   
    admin.findResearchersByGene = function() {
 	   $('#menu > li a[href="#admin"][data-toggle="tab"] span.fa-spin').addClass("fa-spin");
        utility.hideMessage( $("#researchers-tab .alert div") );
@@ -282,6 +327,29 @@
     	   $('#menu > li a[href="#admin"][data-toggle="tab"] span.fa-spin').removeClass("fa-spin");
            utility.showMessage("Found " + allResearchers.length + " matching researchers", $("#researchers-tab .alert div"));
     	   populateResearcherTable(allResearchers);
+       });
+
+   }
+   
+   admin.nameSearch = function() {
+      $('#menu > li a[href="#admin"][data-toggle="tab"] span.fa-spin').addClass("fa-spin");
+       utility.hideMessage( $("#researchers-tab .alert div") );
+       var nameLike = admin.nameInput().val();
+   
+       if (nameLike == null || nameLike == "") {
+           //console.log("Please select a symbol pattern")
+           utility.showMessage("Please select a name pattern", $("#researchers-tab .alert div"));
+            return;
+        } else {
+           //utility.hideMessage( $("#listResearchersMessage") );
+        }
+       
+       var promise = admin.findByLikeName(nameLike)
+       
+       $.when(promise).done(function() {
+         $('#menu > li a[href="#admin"][data-toggle="tab"] span.fa-spin').removeClass("fa-spin");
+           utility.showMessage("Found " + allResearchers.length + " matching researchers", $("#researchers-tab .alert div"));
+         populateResearcherTable(allResearchers);
        });
 
    }
@@ -609,6 +677,7 @@
          //$("#adminResetResearchersButton").click(admin.resetTable)
          $("#adminFindResearchersByGeneButton").click(admin.findResearchersByGene)   
          $("#admin-advanced button.submit").click(admin.advancedSymbolSearch)
+         $("#adminFindResearchersByNameButton").click(admin.nameSearch)
  /*        $("#admin-advanced-term button.submit").click(admin.advancedTermSearch)*/
       };
       

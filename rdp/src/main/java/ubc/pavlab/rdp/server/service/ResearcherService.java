@@ -96,6 +96,9 @@ public interface ResearcherService {
     @Secured({ "GROUP_ADMIN" })
     public Collection<Researcher> findByLikeSymbol( Long taxonId, String symbol, TierType tier );
 
+    @Secured({ "GROUP_ADMIN" })
+    public Collection<Researcher> findByLikeName( String nameLike );
+
     @Secured({ "GROUP_USER" })
     public JSONObject toJSON( Researcher r );
 

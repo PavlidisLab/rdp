@@ -167,6 +167,56 @@ public class RegisterController extends BaseController {
      * @param request
      * @param response
      */
+    @RequestMapping("/searchResearchersByName.html")
+    public void searchResearchersByName( HttpServletRequest request, HttpServletResponse response ) {
+
+        String jsonText = "";
+        JSONUtil jsonUtil = new JSONUtil( request, response );
+
+        try {
+            String nameLike = request.getParameter( "nameLike" );
+
+            if ( StringUtils.isBlank( nameLike ) ) {
+                JSONObject json = new JSONObject();
+                json.put( "success", false );
+                json.put( "message", "Problem with query" );
+                jsonText = json.toString();
+                log.info( jsonText );
+            } else {
+                Collection<Researcher> researchers = new ArrayList<>();
+
+                researchers = researcherService.findByLikeName( nameLike );
+
+                Set<JSONObject> researchersJson = new HashSet<JSONObject>();
+                for ( Researcher r : researchers ) {
+                    researchersJson.add( researcherService.toJSON( r ) );
+                }
+                JSONObject json = new JSONObject();
+                json.put( "success", true );
+                json.put( "message", "Found " + researchers.size() + " researchers." );
+                json.put( "data", ( new JSONArray( researchersJson ) ) );
+                jsonText = json.toString();
+            }
+        } finally {
+            try {
+                jsonUtil.writeToResponse( jsonText );
+            } catch ( IOException e ) {
+                log.error( e.getLocalizedMessage(), e );
+                JSONObject json = new JSONObject();
+                json.put( "success", false );
+                json.put( "message", e.getLocalizedMessage() );
+                jsonText = json.toString();
+                log.info( jsonText );
+            }
+        }
+    }
+
+    /**
+     * AJAX entry point. Find Researchers based on like search parameters.
+     * 
+     * @param request
+     * @param response
+     */
     @RequestMapping("/searchResearchersLike.html")
     public void searchResearchersLike( HttpServletRequest request, HttpServletResponse response ) {
 
@@ -405,7 +455,7 @@ public class RegisterController extends BaseController {
 
     @RequestMapping(value = "/contactSupport.html", method = RequestMethod.POST)
     public String contactSupport( HttpServletRequest request,
-            final @RequestParam(required = false) CommonsMultipartFile attachFile ) {
+            final @RequestParam(required = false ) CommonsMultipartFile attachFile) {
         try {
 
             String email = userManager.getCurrentUsername();
