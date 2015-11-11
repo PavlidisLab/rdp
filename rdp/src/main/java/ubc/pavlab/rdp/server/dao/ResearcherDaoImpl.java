@@ -29,6 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import ubc.pavlab.rdp.server.model.Gene;
+import ubc.pavlab.rdp.server.model.GeneAssociation.TierType;
 import ubc.pavlab.rdp.server.model.Researcher;
 import ubc.pavlab.rdp.server.security.authentication.UserManager;
 
@@ -39,7 +40,7 @@ import ubc.pavlab.rdp.server.security.authentication.UserManager;
  * @version $Id$
  */
 @Repository
-public class ResearcherDaoImpl extends DaoBaseImpl<Researcher> implements ResearcherDao {
+public class ResearcherDaoImpl extends DaoBaseImpl<Researcher>implements ResearcherDao {
 
     @Autowired
     UserManager userManager;
@@ -75,6 +76,38 @@ public class ResearcherDaoImpl extends DaoBaseImpl<Researcher> implements Resear
     public Collection<Researcher> findByGene( final Gene gene ) {
         String hql = "SELECT r FROM Researcher r INNER JOIN r.geneAssociations g WHERE g.pk.gene.id = :geneId";
         Collection<Researcher> results = this.getHibernateTemplate().findByNamedParam( hql, "geneId", gene.getId() );
+        return results;
+    }
+
+    @Override
+    public Collection<Researcher> findByGene( final Gene gene, final TierType tier ) {
+        String hql = "SELECT r FROM Researcher r INNER JOIN r.geneAssociations g WHERE g.pk.gene.id = :geneId and g.tier = :tierType";
+        Collection<Researcher> results = this.getHibernateTemplate().findByNamedParam( hql,
+                new String[] { "geneId", "tierType" }, new Object[] { gene.getId(), tier } );
+        return results;
+    }
+
+    @Override
+    public Collection<Researcher> findByLikeSymbol( final Long taxonId, final String symbol ) {
+        String hql = "SELECT r FROM Researcher r INNER JOIN r.geneAssociations ga INNER JOIN ga.pk.gene g WHERE g.taxonId = :taxonId and g.officialSymbol LIKE :symbol";
+        Collection<Researcher> results = this.getHibernateTemplate().findByNamedParam( hql,
+                new String[] { "taxonId", "symbol" }, new Object[] { taxonId, "%" + symbol + "%" } );
+        return results;
+    }
+
+    @Override
+    public Collection<Researcher> findByLikeSymbol( final Long taxonId, final String symbol, final TierType tier ) {
+        String hql = "SELECT r FROM Researcher r INNER JOIN r.geneAssociations ga INNER JOIN ga.pk.gene g WHERE g.taxonId = :taxonId and g.officialSymbol LIKE :symbol and ga.tier = :tierType";
+        Collection<Researcher> results = this.getHibernateTemplate().findByNamedParam( hql,
+                new String[] { "taxonId", "symbol", "tierType" }, new Object[] { taxonId, "%" + symbol + "%", tier } );
+        return results;
+    }
+
+    @Override
+    public Collection<Researcher> findByLikeName( final String nameLike ) {
+        String hql = "SELECT r FROM Researcher r WHERE r.contact.firstName LIKE :nameLike or r.contact.lastName LIKE :nameLike";
+        Collection<Researcher> results = this.getHibernateTemplate().findByNamedParam( hql,
+                "nameLike", "%" + nameLike + "%" );
         return results;
     }
 

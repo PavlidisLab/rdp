@@ -21,6 +21,37 @@
 						<div data-toggle="collapse" data-target="#collapse-basic"
 							data-parent="#admin-accordion" aria-expanded="true"
 							aria-controls="collapse-basic" class="panel-heading" role="tab"
+							id="name-heading">
+							<h4 class="panel-title">
+								<a href="#"> Name Search: </a>
+							</h4>
+						</div>
+						<div id="collapse-basic" class="panel-collapse collapse in"
+							role="tabpanel" aria-labelledby="name-heading">
+							<div class="panel-body">
+				<div class="row">
+					<div class="col-sm-12 col-lg-4">
+						<div class="input-group">
+							<div class="input-group-btn">
+							<button type="button" id="adminFindResearchersByNameButton"
+								class="btn btn-default">
+								<span class="glyphicon glyphicon-search"></span>
+							</button>
+							</div>
+							<span class="input-group-addon">Name</span> <input
+								id="adminSearchNamesInput" name="adminSearchNamesInput"
+								class="form-control">
+						</div>
+					</div>
+				
+				</div>
+							</div>
+						</div>
+					</div>
+					<div class="panel panel-default">
+						<div data-toggle="collapse" data-target="#collapse-basic"
+							data-parent="#admin-accordion" aria-expanded="false"
+							aria-controls="collapse-basic" class="panel-heading" role="tab"
 							id="basic-heading">
 							<h4 class="panel-title">
 								<a href="#"> Basic Search: </a>
@@ -128,7 +159,7 @@
 				
 				<hr/>
 				
-				<div class="row" id="admin-advanced-term">
+				<div class="row" id="admin-advanced-term" style="display:none;">
 					<div class="col-sm-12 col-lg-4">
 						<div class="input-group">
 							<div class="input-group-btn">

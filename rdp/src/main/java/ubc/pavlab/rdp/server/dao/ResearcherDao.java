@@ -22,6 +22,7 @@ package ubc.pavlab.rdp.server.dao;
 import java.util.Collection;
 
 import ubc.pavlab.rdp.server.model.Gene;
+import ubc.pavlab.rdp.server.model.GeneAssociation.TierType;
 import ubc.pavlab.rdp.server.model.Researcher;
 
 /**
@@ -38,9 +39,18 @@ public interface ResearcherDao extends DaoBase<Researcher> {
 
     public Collection<Researcher> findByGene( final Gene gene );
 
+    public Collection<Researcher> findByGene( final Gene gene, final TierType tier );
+
+    public Collection<Researcher> findByLikeSymbol( final Long taxonId, final String symbol );
+
+    public Collection<Researcher> findByLikeSymbol( final Long taxonId, final String symbol, final TierType tier );
+
+    public Collection<Researcher> findByLikeName( final String nameLike );
+
     public Researcher thaw( Researcher researcher );
 
     public Long countResearchersWithGenes();
 
     public Long countResearchers();
+
 }
