@@ -18,15 +18,15 @@
 				<div class="panel-group" id="admin-accordion" role="tablist"
 					aria-multiselectable="true">
 					<div class="panel panel-default">
-						<div data-toggle="collapse" data-target="#collapse-basic"
+						<div data-toggle="collapse" data-target="#collapse-name"
 							data-parent="#admin-accordion" aria-expanded="true"
-							aria-controls="collapse-basic" class="panel-heading" role="tab"
+							aria-controls="collapse-name" class="panel-heading" role="tab"
 							id="name-heading">
 							<h4 class="panel-title">
 								<a href="#"> Name Search: </a>
 							</h4>
 						</div>
-						<div id="collapse-basic" class="panel-collapse collapse in"
+						<div id="collapse-name" class="panel-collapse collapse in"
 							role="tabpanel" aria-labelledby="name-heading">
 							<div class="panel-body">
 				<div class="row">
@@ -57,7 +57,7 @@
 								<a href="#"> Basic Search: </a>
 							</h4>
 						</div>
-						<div id="collapse-basic" class="panel-collapse collapse in"
+						<div id="collapse-basic" class="panel-collapse collapse"
 							role="tabpanel" aria-labelledby="basic-heading">
 							<div class="panel-body">
 				<div class="row">
