@@ -481,19 +481,23 @@
                   return;
                }
                index = parseInt(index);
+
+               var nextTab = $('#admin-nav-tabs li').size()+1;
                
-               if ( $('#researcherTab-'+index).length > 0 ) {
+               if ( $('#researcherTab-'+nextTab).length > 0 ) {
                   return;
                }
+
+               var r = allResearchers[index];
                
-               tabName = allResearchers[index].userName;
+               tabName = r.userName;
                
-              var nextTab = $('#admin-nav-tabs li').size()+1;
+              
               
               // create the tab
-              $('<li id="researcherView'+nextTab+'"><a href="#researcherTab-'+index+'" data-toggle="tab"><button class="close" title="Remove this page" type="button">&nbsp; <i class="fa fa-close red-icon"></i> </button><i class="fa fa-user"></i> '+tabName+'</a></li>').appendTo('#admin-nav-tabs');
-              $('#admin-nav-tabs a[href="#researcherTab-'+index+'"] button').click( function() {
-                 var tabId = '#researcherTab-'+index;
+              $('<li id="researcherView'+nextTab+'"><a href="#researcherTab-'+nextTab+'" data-toggle="tab"><button class="close" title="Remove this page" type="button">&nbsp; <i class="fa fa-close red-icon"></i> </button><i class="fa fa-user"></i> '+tabName+'</a></li>').appendTo('#admin-nav-tabs');
+              $('#admin-nav-tabs a[href="#researcherTab-'+nextTab+'"] button').click( function() {
+                 var tabId = '#researcherTab-'+nextTab;
                  var navbar = $('#admin-nav-tabs');
                  $('#admin-nav-tabs a:first').click();
                  admin.removeTab(tabId, navbar);
@@ -501,12 +505,12 @@
               })
               var clone = $('#profile-tab').children('.row').clone()
               clone.find('i').closest('a').replaceWith('<i class="fa fa-info-circle fa-fw"></i>');
-              $('#admin .tab-content').append('<div class="tab-pane profile" id="researcherTab-'+index+'"></div>')
-              $('#researcherTab-'+index).append( clone );
-              profile.setInfo( allResearchers[index], '#researcherTab-'+index );
+              $('#admin .tab-content').append('<div class="tab-pane profile" id="researcherTab-'+nextTab+'"></div>')
+              $('#researcherTab-'+nextTab).append( clone );
+              profile.setInfo( r, '#researcherTab-'+nextTab );
                             
               var accordion = $(
-                 '<div class="panel-group" id="admin-researcher-accordion-'+ index +'" role="tablist"\
+                 '<div class="panel-group" id="admin-researcher-accordion-'+ nextTab +'" role="tablist"\
                     aria-multiselectable="true">\
                  </div>'
                  
@@ -514,16 +518,16 @@
               
               var getPanel = function(id, title) {
                 return $('<div class="panel panel-default">\
-                   <div data-toggle="collapse" data-target="#admin-researcher-collapse-'+ index +'-'+id+'"\
-                   data-parent="#admin-researcher-accordion-'+ index +'" aria-expanded="false"\
-                   aria-controls="admin-researcher-collapse-'+ index +'-'+id+'" class="panel-heading" role="tab"\
-                   id="admin-researcher-heading-'+ index +'-'+id+'">\
+                   <div data-toggle="collapse" data-target="#admin-researcher-collapse-'+ nextTab +'-'+id+'"\
+                   data-parent="#admin-researcher-accordion-'+ nextTab +'" aria-expanded="false"\
+                   aria-controls="admin-researcher-collapse-'+ nextTab +'-'+id+'" class="panel-heading" role="tab"\
+                   id="admin-researcher-heading-'+ nextTab +'-'+id+'">\
                    <h4 class="panel-title">\
                       <a href="#"> '+title+': </a>\
                    </h4>\
                 </div>\
-                <div id="admin-researcher-collapse-'+ index +'-'+id+'" class="panel-collapse collapse"\
-                   role="tabpanel" aria-labelledby="admin-researcher-heading-'+ index +'-'+id+'">\
+                <div id="admin-researcher-collapse-'+ nextTab +'-'+id+'" class="panel-collapse collapse"\
+                   role="tabpanel" aria-labelledby="admin-researcher-heading-'+ nextTab +'-'+id+'">\
                    <div class="panel-body">\
                    </div>\
                 </div>\
@@ -562,8 +566,8 @@
                   </div>' 
                  );
               
-              var r = allResearchers[index];
-              var sortedTaxons = r.getTaxons().concat(Object.keys(allResearchers[index].terms));
+              
+              var sortedTaxons = r.getTaxons().concat(Object.keys(r.terms));
               sortedTaxons = utility.uniqueSoft(sortedTaxons).sort(function(a, b){return a-b});
               
               for (var i=0;i<sortedTaxons.length;i++) {
@@ -600,14 +604,14 @@
                  
               }
                          
-              $('#researcherTab-'+index).append(accordion);
+              $('#researcherTab-'+nextTab).append(accordion);
               
               // make the new tab active
               $('#admin-nav-tabs a:last').click();
            });
             
-            return nRow;
-         },
+            return nRow;           
+},
          
       } );
    }
