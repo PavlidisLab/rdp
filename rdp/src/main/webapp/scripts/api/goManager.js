@@ -17,7 +17,7 @@
             return "";
      }
 
-   }
+   };
    goManager.table = function() {
       return $( '#go-tab table');
    }; 
@@ -44,19 +44,19 @@
    
    goManager.loadSuggestedGOTerms = function() {
       return utility.executeAjax( "getRelatedTerms.html", {'minimumFrequency':2,'minimumTermSize':5,'maximumTermSize':100,'taxonId':modelOrganisms.currentTaxonId()} );
-   }
+   };
    
    getGOTermStats = function(geneOntologyId) {
       return utility.executeAjax( "getGOTermStats.html", {'geneOntologyId':geneOntologyId, 'taxonId':modelOrganisms.currentTaxonId()}, false );
-   }
+   };
    
    getGOTermsStats = function(geneOntologyIds) {
       return utility.executeAjax( "getGOTermsStats.html", {'geneOntologyIds':geneOntologyIds, 'taxonId':modelOrganisms.currentTaxonId()}, false );
-   }
+   };
    
    goManager.getGenePool = function(geneOntologyId) {
       return utility.executeAjax( "getGenePool.html", {'geneOntologyId':geneOntologyId, 'taxonId':modelOrganisms.currentTaxonId()}, false );
-   }
+   };
    
    //goManager.alertFilter = "#modelOrganisms .main-header .alert div";
    goManager.alertFilter = "#modelOrganisms #go-tab .alert div";
@@ -76,7 +76,7 @@
       var taxonId = modelOrganisms.currentTaxonId();
       var newTerms = goManager.table().DataTable().columns().data()[0];
       
-      researcher.addTaxonDescription(taxonId, modelOrganisms.focus().text().replace(/\s/g, " ").trim() )
+      researcher.addTaxonDescription(taxonId, modelOrganisms.focus().text().replace(/\s/g, " ").trim() );
       researcher.updateTermsForTaxon( newTerms, taxonId );
       var promise = researcherModel.saveResearcherTermsForTaxon( taxonId );
       
@@ -99,7 +99,7 @@
       });
       
       
-   }
+   };
    
    goManager.isChanged = function() {
       var table = goManager.table().DataTable();
@@ -111,13 +111,13 @@
       var focus = researcher.taxonDescriptions[taxonId] ? researcher.taxonDescriptions[taxonId]:"";
       
       return ( modelOrganisms.focus().text().replace(/\s/g, " ").trim() != focus.replace(/\s/g, " ").trim() ) || !researcher.compareTerms(showingTerms, oldTerms);
-   }
+   };
    
    goManager.loadTable = function() {
       var dTable = goManager.table().DataTable();
       var terms = researcherModel.currentResearcher.terms[ modelOrganisms.currentTaxonId() ] || [];
       goManager.fillTable(terms, dTable);
-   }
+   };
    
    goManager.fillTable = function(terms, dTable) {
       dTable.clear();
@@ -126,7 +126,7 @@
          dTable.row.add( termRow );
       }
       dTable.draw();
-   }
+   };
    
    selectGoTerm = function(terms) {
       var term = goManager.select2().select2( "data" );
@@ -152,13 +152,13 @@
       
       
       
-   }
+   };
    
    goManager.addGoTermToTable = function( term, draw ) {
       draw = utility.isUndefined( draw ) ? true : draw;
 
       if ( term == null ) {
-         console.log("Please select a GO Term to add")
+         console.log("Please select a GO Term to add");
          utility.showMessage( "Please select a GO Term to add", $( goManager.alertFilter  ) );
          return;
       } else {
@@ -168,7 +168,7 @@
       var table = goManager.table().DataTable();
       
       if ( table.column(1).data().indexOf(term.geneOntologyId) != -1 ) {
-         console.log("GO Term already added")
+         console.log("GO Term already added");
          utility.showMessage( "GO Term already added", $( goManager.alertFilter  ) );
          return;
       }
@@ -180,7 +180,7 @@
       
       return inst
 
-   }
+   };
    
    goManager.addSelectedTerms = function() {
       var terms = goManager.select2().select2( "data" );
@@ -190,7 +190,7 @@
       
       goManager.addGoTermsToTable(terms, true);
 
-   }
+   };
    
    goManager.addGoTermsToTable = function(terms, getStats) {
 
@@ -200,11 +200,11 @@
          var refreshIds = [];
          for (var i = 0; i < terms.length; i++) {
             var term = terms[i];
-            var res = goManager.addToTable(term)
+            var res = goManager.addToTable(term);
             if (!res.success) {
-               console.log(res)
-               console.log(results)
-               console.log(results[res.type])
+               console.log(res);
+               console.log(results);
+               console.log(results[res.type]);
                results[res.type].push(res.data);
             } else if ( getStats && res.row ) {
                refreshTerms.push({term: term, row: res.row} );
@@ -246,7 +246,7 @@
          
          if (msg.length) {
             msg = msg.join("\n");
-            var successCnt = terms.length - results['failed'].length -results['added'].length-results['large'].length
+            var successCnt = terms.length - results['failed'].length -results['added'].length-results['large'].length;
             msg += "\n<b>Successfully added</b> " + successCnt +" term(s)."
          } else {
             msg = "<b>Successfully added</b> " + terms.length +" term(s)."
@@ -255,7 +255,7 @@
          utility.showMessage( msg, $( goManager.alertFilter  ) );
          goManager.table().DataTable().rows().draw(false);
       }
-   }
+   };
    
    goManager.addToTable = function(term) {
       
@@ -267,12 +267,12 @@
       var table = goManager.table().DataTable();
       
       if ( table.column(1).data().indexOf(term.geneOntologyId) != -1 ) {
-         console.log("GO Term already added")
+         console.log("GO Term already added");
          return {success:false, msg:"GO Term already added", data:term.geneOntologyId, type:'added' };
       }
       
       if (term.size > sizeLimit) {
-         console.log("GO Term too large")
+         console.log("GO Term too large");
          return {success:false, msg:"GO Term too large", data:term.geneOntologyId, type:'large' };
       }
       
@@ -282,7 +282,7 @@
       
       return {success:true, row:inst};
       
-   }
+   };
    
    goManager.openAddTermsModal = function() {
       var dTable = goManager.suggestionTable().DataTable();
@@ -306,11 +306,11 @@
          goManager.fillTable(terms, dTable);
       });
       
-   }
+   };
    
    goManager.closeAddTermsModal =  function() {
       goManager.addTermsModal().modal('hide');
-   }
+   };
    
    formatGenePool = function( genes ) {
       var result = '<tr class="child-header">'+
@@ -341,7 +341,7 @@
             '</tr>'
       }
 return $(result);
-  }
+  };
    
    goManager.formatGenePool = function( genes ) {
       var result = '<table class="table table-bordered table-condensed stripe text-left display" cellpadding="5" cellspacing="0" border="0" width="100%">' +
@@ -350,7 +350,7 @@ return $(result);
                         '<th>Symbol</th>'+
                         '<th>Name</th>'+
                      '</tr>' +
-                     '</thead>'
+                     '</thead>';
                      
       genes.sort(function(a, b){
          if (a.officialSymbol < b.officialSymbol)
@@ -375,13 +375,13 @@ return $(result);
             '</tr>'
       }
       return result + '</table>';
-  }
+  };
    
    goManager.removeSelectedRows = function() {
       var table = goManager.table().DataTable();
       var selectedNodes = table.rows( '.selected' );
       if ( selectedNodes.data().length == 0 ) {
-         console.log("Please select a genes to remove")
+         console.log("Please select a genes to remove");
          //utility.showMessage( "Please select a gene to remove", $( "#geneManagerMessage" ) );
          return;
       } else {
@@ -389,13 +389,13 @@ return $(result);
       }
       var data = selectedNodes.data();
       selectedNodes.remove().draw( false );
-   }
+   };
    
    goManager.addHighlightedTerms = function() {
       var dTable = goManager.suggestionTable().DataTable();
       var selectedNodes = dTable.rows( '.selected' );
       if ( selectedNodes.data().length == 0 ) {
-         console.log("Please select a term to add")
+         console.log("Please select a term to add");
          //utility.showMessage( "Please select a gene to remove", $( "#geneManagerMessage" ) );
          return;
       } else {
@@ -409,7 +409,7 @@ return $(result);
       }
       goManager.table().DataTable().rows().draw();
       
-   }
+   };
 
    goManager.initDataTable = function(table, buttons) {
       // Initialize datatable
@@ -508,7 +508,7 @@ return $(result);
                           },
 
       } );
-   }
+   };
    
    formatTerm = function(term) {
 	   if ( term.size > sizeLimit ) {
@@ -517,7 +517,7 @@ return $(result);
 	   }
 	   //return term.text;
 	    
-   }
+   };
    
    goManager.initSelect2 = function() {
       // init search genes combo    
@@ -539,7 +539,7 @@ return $(result);
                }
             },
             results : function(data, page) {
-               var GOResults = []
+               var GOResults = [];
                for (var i = 0; i < data.data.length; i++) {
                   var term = data.data[i];
                   term.text = "<b>" + term.geneOntologyId + "</b> <i>" + goManager.aspectToString(term.aspect) + "</i> " + term.geneOntologyTerm + " (<i>Term Size:</i> " + term.size + ")";
@@ -565,7 +565,7 @@ return $(result);
             return m;
          },
       } );
-   }
+   };
 
    goManager.init = function() {
       //$( "#addTermButton" ).click( selectGoTerm );
@@ -603,8 +603,8 @@ $( document ).ready( function() {
        else {
            // Open this row
           if ( utility.isUndefined( row.child() ) ) {
-             var term = row.data()[0]
-             var promise = goManager.getGenePool( term.geneOntologyId )
+             var term = row.data()[0];
+             var promise = goManager.getGenePool( term.geneOntologyId );
              $.when(promise).done(function() {
                 row.child( goManager.formatGenePool( promise.responseJSON.genePool ), 'child-table' ).show();
 

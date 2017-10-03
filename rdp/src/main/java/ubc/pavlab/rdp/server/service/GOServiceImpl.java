@@ -62,7 +62,7 @@ import ubc.pavlab.rdp.server.model.GeneOntologyTerm;
 @Service("gOService")
 public class GOServiceImpl implements GOService {
 
-    public static enum GOAspect {
+    public enum GOAspect {
         BIOLOGICAL_PROCESS, CELLULAR_COMPONENT, MOLECULAR_FUNCTION
     }
 

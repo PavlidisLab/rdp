@@ -44,7 +44,7 @@
             //utility.showMessage( jQuery.parseJSON( response ).message, $( "#changePasswordMessage" ) );
          }
       } );
-   }
+   };
    
    settings.init = function() {
       settings.passwordForm().submit( changePassword );

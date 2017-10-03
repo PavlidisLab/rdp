@@ -61,24 +61,24 @@ $( document ).ready( function() {
           beforeSend: function() {
               utility.hideMessage(status);
               var percentVal = '0%';
-              progressbar.width(percentVal)
+              progressbar.width(percentVal);
               progressbar.html(percentVal);
               progressbar.attr('aria-valuenow', percentVal)
           },
           uploadProgress: function(event, position, total, percentComplete) {
               var percentVal = percentComplete + '%';
-              progressbar.width(percentVal)
+              progressbar.width(percentVal);
               progressbar.html(percentVal);
               progressbar.attr('aria-valuenow', percentVal)
           },
           success: function(responseText, statusText, xhr, $form) {
               var percentVal = '100%';
-              progressbar.width(percentVal)
+              progressbar.width(percentVal);
               progressbar.html(percentVal);
               progressbar.attr('aria-valuenow', percentVal)
           },
          complete: function(xhr, textStatus) {
-            console.log("xhr", xhr)
+            console.log("xhr", xhr);
             if ( xhr.responseText.match(/exception/i) || xhr.responseText.match(/http/i) || !xhr.responseText.match(/sent/i) ) {
                // We need to use this as the error catcher because the method this 
                // form plugin uses to make ajax file upload work is iframes.  Because of this
@@ -115,9 +115,9 @@ $( document ).ready( function() {
       })(); 
    
    $('#contact-form > div.form-group input[type=file]').on('change', function(e){
-      $(this)
+      $(this);
       if ( $(this).val() != "" ) {
-         console.log($(this).closest('span'))
+         console.log($(this).closest('span'));
          $(this).siblings('a').show();
       } else {
          $(this).siblings('a').hide();
@@ -126,7 +126,7 @@ $( document ).ready( function() {
    
    $('#file-upload a.close').on('click', function(e){
       $("#attachFile").val("");
-      $("#attachFile").replaceWith( $("#attachFile").clone( true ) )
+      $("#attachFile").replaceWith( $("#attachFile").clone( true ) );
       $(this).hide();
    });
    

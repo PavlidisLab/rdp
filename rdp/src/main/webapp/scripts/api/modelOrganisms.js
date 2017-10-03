@@ -5,7 +5,7 @@
    
    modelOrganisms.focus = function() {
       return $('#research-focus .research-focus p');
-   }
+   };
    
    modelOrganisms.currentTaxon = function() {
       return $( '#currentOrganismBreadcrumb').text();
@@ -24,21 +24,21 @@
       goManager.loadTable();
       
       $('a[href="#modelOrganisms"][data-toggle="tab"]').tab('show')
-   }
+   };
    
    modelOrganisms.isChanged = function() {
       return geneManager.isChanged() || goManager.isChanged();
-   }
+   };
    
    modelOrganisms.setFocus = function() {
       var focus = researcherModel.currentResearcher.taxonDescriptions[modelOrganisms.currentTaxonId()] || "";
       modelOrganisms.focus().text( focus );
       modelOrganisms.lockAll();
-   }
+   };
    
    modelOrganisms.lockAll = function() {
       $('#research-focus a i[class~="fa-check-square-o"]').trigger( "click" )
-   }
+   };
    
    editFocus = function(e) {
       e.stopPropagation();
@@ -56,7 +56,7 @@
       });
 
 
-   }
+   };
 
    lockFocus = function(e) {
       e.stopPropagation();
@@ -73,7 +73,7 @@
          $(this).removeClass('editable');
       });
 
-   }
+   };
    
    modelOrganisms.init = function() {
       $('#research-focus a').on('click', 'i[class~="fa-edit"]', editFocus );

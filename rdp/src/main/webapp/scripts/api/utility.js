@@ -39,18 +39,18 @@
             window.location.hash=a.attr('href');*/
      
       
-   }
+   };
    
    utility.scrollToElement = function(el) {
       $("section.content").scrollTop(el.offset().top);
-  }
+  };
    
    
    toggleTheme = function() {
       
       var theme_css = $('link.themes');
       theme_css.each(function(i, el ) {
-         console.log(el.disabled)
+         console.log(el.disabled);
          if ( el.disabled == true ) {
             el.disabled = false;
          } else {
@@ -58,7 +58,7 @@
          }
       });
       
-   }
+   };
    
    utility.showMessage = function(message, messageEl, context ) {
       console.log( message );
@@ -76,16 +76,16 @@
             }
         );
 
-   }
+   };
 
    utility.hideMessage = function( messageEl ) {
       messageEl.html( '' );
       messageEl.parent().hide();
-   }
+   };
    
    utility.isUndefined = function( variable ) {
       return ( typeof variable === 'undefined' );
-   }
+   };
       
    utility.confirmModal = function(callback) {
       var modal = $( "#confirmModal");
@@ -105,7 +105,7 @@
       
       return modal;
       
-   }
+   };
    
    utility.setConfirmChanges = function(tab, isDirty, fixSidebar) {
       tab.one('hide.bs.tab', function(e) {
@@ -124,7 +124,7 @@
             });
          }
       });
-   }
+   };
    
    utility.executeAjax = function(ajax_url, data, verbose) {
       data = utility.isUndefined( data ) ? {} : data;
@@ -143,7 +143,7 @@
       } );
       
       return promise;
-   }
+   };
    
    utility.taxonIdToName = {
                  562:'E. Coli',
@@ -154,7 +154,7 @@
                  10090:'Mouse',
                  10116:'Rat',
                  559292:'Yeast'                            
-   }
+   };
    
    utility.taxonNameToId = {
                             'E. Coli': 562, 
@@ -165,7 +165,7 @@
                             'Mouse': 10090,
                             'Rat': 10116,
                             'Yeast':559292
-                            }
+                            };
    
    utility.uniqueHard = function(a) {
       var arr = [];
@@ -175,7 +175,7 @@
          }
       }
       return arr; 
-   }
+   };
    
    utility.uniqueSoft = function(a) {
       var arr = [];
@@ -185,14 +185,14 @@
          }
       }
       return arr; 
-   }
+   };
    
    utility.containsSoft = function(arr, v) {
       for(var i = 0; i < arr.length; i++) {
          if(arr[i] == v) return true;
      }
      return false;
-   }
+   };
    
    $(function(){
       $("[data-hide]").on("click", function(){

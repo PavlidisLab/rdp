@@ -3,7 +3,7 @@ $( document ).ready( function() {
    
    $( '#menu' ).metisMenu({'toggle':false});
    var loadPromise = researcherModel.loadResearcher();
-   $('#navbar-username').html('<i class="fa fa-spinner fa-spin"></i>')
+   $('#navbar-username').html('<i class="fa fa-spinner fa-spin"></i>');
    $.ajax( {
 	      cache : false,
 	      type : 'GET',
@@ -59,13 +59,13 @@ $( document ).ready( function() {
    $.when(loadPromise).done(function() {
       //$('a[href="#myAccount"]').trigger('show.bs.tab');
       $('#menu > li').has('a[href="#modelOrganisms"][data-toggle="tab"]').show();
-      $('#navbar-username').html(researcherModel.currentResearcher.userName)
+      $('#navbar-username').html(researcherModel.currentResearcher.userName);
       
       // Combination of both taxons from entered genes and from entered terms
       var taxonIds = utility.uniqueSoft( researcherModel.currentResearcher.getTaxons().concat(Object.keys(researcherModel.currentResearcher.terms)) );
       
       $('#myModelOrganismsList ul li').has('a[href="#modelOrganisms"]').each( function(index) {
-         var taxonName = $('a',this).text()
+         var taxonName = $('a',this).text();
          var taxonId = utility.taxonNameToId[ taxonName ];
          if ( !utility.containsSoft(taxonIds, taxonId) ) {
             $(this).hide();
@@ -89,7 +89,7 @@ $( document ).ready( function() {
    $('#menu').on('click', 'a[href="#modelOrganisms"][data-toggle!="tab"]', function(){
       if ( $('#menu li.active > a').is('a[href="#modelOrganisms"]') && modelOrganisms.isChanged() ) {
          var $this = $(this);
-         $('#myModelOrganismsList > ul > li a[href="#modelOrganisms"]:contains("'+geneManager.currentTaxon()+'")').trigger('click.metisMenu')
+         $('#myModelOrganismsList > ul > li a[href="#modelOrganisms"]:contains("'+geneManager.currentTaxon()+'")').trigger('click.metisMenu');
          var taxonName = $(this).text();
          utility.confirmModal( function(result) {
             if ( result ) {

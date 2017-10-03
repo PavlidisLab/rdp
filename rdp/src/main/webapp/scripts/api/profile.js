@@ -92,7 +92,7 @@
          btn.children('i').removeClass('fa-spin');
       });
          
-   }
+   };
 
    profile.isChanged = function() {
       researcher = researcherModel.currentResearcher;
@@ -143,11 +143,11 @@
 
       return changed;
 
-   }
+   };
 
    profile.hideTab = function() {
       console.log('hide');
-   }
+   };
 
    profile.setInfo = function( researcher, idOverride ) {
       lockAll();
@@ -180,7 +180,7 @@
          //profile.pubMedIds(idOverride).append( '<li></li>'  )
       }
       //profile.pubMedIds(idOverride).append( '<div style="height: 1px;">'  )
-   }
+   };
 
 
 
@@ -200,7 +200,7 @@
       });
 
 
-   }
+   };
 
    lockProfile = function(e) {
       e.stopPropagation();
@@ -216,11 +216,11 @@
          $(this).removeClass('editable');
       });
 
-   }
+   };
 
    lockAll = function() {
       $('#profile-tab a i[class~="fa-check-square-o"]').trigger( "click" );
-   }
+   };
 
    profile.init = function() {
       $('#profile-tab a').on('click', 'i[class~="fa-edit"]', editProfile );

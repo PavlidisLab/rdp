@@ -96,10 +96,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public Collection<ubc.pavlab.rdp.server.model.common.auditAndSecurity.User> suggestUser( String queryString ) {
         Collection<ubc.pavlab.rdp.server.model.common.auditAndSecurity.User> ret = new ArrayList<>();
-        for ( ubc.pavlab.rdp.server.model.common.auditAndSecurity.User user : this.userDao
-                .suggestUser( queryString ) ) {
-            ret.add( user );
-        }
+        ret.addAll( this.userDao.suggestUser( queryString ) );
         return ret;
     }
 
@@ -157,29 +154,23 @@ public class UserServiceImpl implements UserService {
     @Override
     public Collection<UserGroup> findGroupsForUser( User user ) {
         Collection<UserGroup> ret = new ArrayList<>();
-        for ( UserGroup group : this.userGroupDao
-                .findGroupsForUser( ( ubc.pavlab.rdp.server.model.common.auditAndSecurity.User ) user ) ) {
-            ret.add( group );
-        }
+        ret.addAll( this.userGroupDao
+                .findGroupsForUser( (ubc.pavlab.rdp.server.model.common.auditAndSecurity.User) user ) );
         return ret;
     }
 
     @Override
     public Collection<UserGroup> listAvailableGroups() {
         Collection<UserGroup> ret = new ArrayList<>();
-        for ( UserGroup group : this.userGroupDao.loadAll() ) {
-            ret.add( group );
-        }
+        ret.addAll( this.userGroupDao.loadAll() );
         return ret;
     }
 
     @Override
     public Collection<GroupAuthority> loadGroupAuthorities( User u ) {
         Collection<GroupAuthority> ret = new ArrayList<>();
-        for ( GroupAuthority groupAuthority : this.userDao
-                .loadGroupAuthorities( ( ubc.pavlab.rdp.server.model.common.auditAndSecurity.User ) u ) ) {
-            ret.add( groupAuthority );
-        }
+        ret.addAll( this.userDao
+                .loadGroupAuthorities( (ubc.pavlab.rdp.server.model.common.auditAndSecurity.User) u ) );
         return ret;
     }
 
@@ -271,9 +262,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public java.util.Collection<User> loadAll() {
         Collection<User> ret = new ArrayList<>();
-        for ( User user : this.userDao.loadAll() ) {
-            ret.add( user );
-        }
+        ret.addAll( this.userDao.loadAll() );
         return ret;
 
     }

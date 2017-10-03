@@ -52,10 +52,6 @@ public class Researcher implements Serializable {
 
     private static Log log = LogFactory.getLog( Researcher.class );
 
-    @Autowired
-    @Transient
-    TaxonService taxonService;
-
     @Id
     @GeneratedValue
     @Column(name = "ID")

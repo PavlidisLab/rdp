@@ -5,43 +5,43 @@
    
    admin.table = function() {
       return $('#researchersTable');
-   }
+   };
    
    admin.select2 = function() {
       return $('#adminSearchGenesSelect');
-   }
+   };
    
    admin.taxonSelect = function() {
       return $('#adminTaxonCommonNameSelect');
-   }
+   };
    
    admin.tierSelect = function() {
       return $('#adminTierSelect');
-   }
+   };
    
    admin.advancedSymbol = function() {
       return $('#admin-advanced input.symbol-pattern');
-   }
+   };
    
    admin.advancedTaxon = function(override) {
       override = utility.isUndefined(override) ? "#admin-advanced" : override;
       return $(override + ' select.taxon');
-   }
+   };
    
    admin.advancedTier = function() {
       return $('#admin-advanced select.tier');
-   }
+   };
    
    admin.advancedId = function() {
       return $('#admin-advanced-term input.id-pattern');
-   }
+   };
    
    admin.advancedTerm = function() {
       return $('#admin-advanced-term input.term-pattern');
-   }
+   };
    admin.nameInput = function() {
       return $('#adminSearchNamesInput');
-   }
+   };
    
    var oTable;
    
@@ -80,13 +80,13 @@
                                  researcher.organization || "", 
                                  researcher.genes.length || 0,
                                  termsLength || 0,
-                                 specificTier || ""]
+                                 specificTier || ""];
            table.row.add(researcherRow);
        });
        table.draw();
        oTable.fnAdjustColumnSizing();
        
-   }
+   };
    
 /*   admin.resetTable = function() {
       // TODO The updating of the spinner doesn't work
@@ -167,7 +167,7 @@
 	               var i = 0;
 	               $.each(response.data, function(index, r) {
 	                  var researcher = new researcherModel.Researcher();
-	                  researcher.parseResearcherObject( r )
+	                  researcher.parseResearcherObject( r );
 	                  researcher.index = i;
 	                  researchers.push( researcher );
 	                  i++;
@@ -184,7 +184,7 @@
 	      } );
 	      
 	      return promise;
-	   } 
+	   }; 
 
    admin.findByLikeSymbol = function(taxonId, symbol, tier) {
 	      console.log(symbol);
@@ -209,7 +209,7 @@
 	               var i = 0;
 	               $.each(response.data, function(index, r) {
 	                  var researcher = new researcherModel.Researcher();
-	                  researcher.parseResearcherObject( r )
+	                  researcher.parseResearcherObject( r );
 	                  researcher.index = i;
 	                  researchers.push( researcher );
 	                  i++;
@@ -226,7 +226,7 @@
 	      } );
 	      
 	      return promise;
-	   }
+	   };
    
    admin.findByLikeName = function(nameLike) {
       console.log(nameLike);
@@ -248,7 +248,7 @@
                var i = 0;
                $.each(response.data, function(index, r) {
                   var researcher = new researcherModel.Researcher();
-                  researcher.parseResearcherObject( r )
+                  researcher.parseResearcherObject( r );
                   researcher.index = i;
                   researchers.push( researcher );
                   i++;
@@ -265,15 +265,15 @@
       } );
       
       return promise;
-   }
+   };
    
    admin.findResearchersByGene = function() {
 	   $('#menu > li a[href="#admin"][data-toggle="tab"] span.fa-spin').addClass("fa-spin");
        utility.hideMessage( $("#researchers-tab .alert div") );
-       var gene = admin.select2().select2("data")
+       var gene = admin.select2().select2("data");
    
        if (gene == null) {
-          console.log("Please select a gene")
+          console.log("Please select a gene");
           //utility.showMessage("Please select a gene", $("#listResearchersMessage"));
            return;
        } else {
@@ -284,7 +284,7 @@
        
        var tierSelect = admin.tierSelect().val();
        
-       var promise = admin.findByGene(gene, tierSelect)
+       var promise = admin.findByGene(gene, tierSelect);
        
        $.when(promise).done(function() {
     	   $('#menu > li a[href="#admin"][data-toggle="tab"] span.fa-spin').removeClass("fa-spin");
@@ -301,7 +301,7 @@
     	   populateResearcherTable(allResearchers, tiers);
        });
 
-   }
+   };
    
    admin.advancedSymbolSearch = function() {
 	   $('#menu > li a[href="#admin"][data-toggle="tab"] span.fa-spin').addClass("fa-spin");
@@ -321,7 +321,7 @@
        
        var tId = parseInt(admin.advancedTaxon().val());
        
-       var promise = admin.findByLikeSymbol(tId, symbolPattern, tierSelect)
+       var promise = admin.findByLikeSymbol(tId, symbolPattern, tierSelect);
        
        $.when(promise).done(function() {
     	   $('#menu > li a[href="#admin"][data-toggle="tab"] span.fa-spin').removeClass("fa-spin");
@@ -329,7 +329,7 @@
     	   populateResearcherTable(allResearchers);
        });
 
-   }
+   };
    
    admin.nameSearch = function() {
       $('#menu > li a[href="#admin"][data-toggle="tab"] span.fa-spin').addClass("fa-spin");
@@ -344,7 +344,7 @@
            //utility.hideMessage( $("#listResearchersMessage") );
         }
        
-       var promise = admin.findByLikeName(nameLike)
+       var promise = admin.findByLikeName(nameLike);
        
        $.when(promise).done(function() {
          $('#menu > li a[href="#admin"][data-toggle="tab"] span.fa-spin').removeClass("fa-spin");
@@ -352,7 +352,7 @@
          populateResearcherTable(allResearchers);
        });
 
-   }
+   };
    
 /*   admin.advancedSymbolSearch = function() {
       utility.hideMessage( $("#researchers-tab .alert div") );
@@ -446,7 +446,7 @@
    admin.removeTab = function(tabId,  navbar) {
       navbar.find('a[href="'+tabId+'"]').closest('li').remove();
       $(tabId).remove();
-   }
+   };
    
    admin.initDataTable = function() {
       // Initialize datatable
@@ -477,7 +477,7 @@
                var index = $(this).attr('href').substr(5); // Length of '#displayResearcher'
                if ( index ==="" ) {
                   // Something went wrong when trying to attach the researchers index to the hyperlink
-                  console.log("Cannot find researcher!")
+                  console.log("Cannot find researcher!");
                   return;
                }
                index = parseInt(index);
@@ -502,10 +502,10 @@
                  $('#admin-nav-tabs a:first').click();
                  admin.removeTab(tabId, navbar);
                  
-              })
-              var clone = $('#profile-tab').children('.row').clone()
+              });
+              var clone = $('#profile-tab').children('.row').clone();
               clone.find('i').closest('a').replaceWith('<i class="fa fa-info-circle fa-fw"></i>');
-              $('#admin .tab-content').append('<div class="tab-pane profile" id="researcherTab-'+nextTab+'"></div>')
+              $('#admin .tab-content').append('<div class="tab-pane profile" id="researcherTab-'+nextTab+'"></div>');
               $('#researcherTab-'+nextTab).append( clone );
               profile.setInfo( r, '#researcherTab-'+nextTab );
                             
@@ -533,7 +533,7 @@
                 </div>\
              </div>'              
              ); 
-              }
+              };
              
               var tables = $( 
                  '<div class="row">\
@@ -598,7 +598,7 @@
                  
                  var panel = getPanel(id, utility.taxonIdToName[id]);
                  var des = r.taxonDescriptions[id] ? r.taxonDescriptions[id] : "";
-                 panel.find('div.panel-body').append('<p class="data-paragraph"><b>Focus: </b>'+  des +'</p>')
+                 panel.find('div.panel-body').append('<p class="data-paragraph"><b>Focus: </b>'+  des +'</p>');
                  panel.find('div.panel-body').append(newTables);
                  accordion.append(panel);                
                  
@@ -614,7 +614,7 @@
 },
          
       } );
-   }
+   };
    
    admin.initSelect2 = function() {
       // init search genes combo    
@@ -636,12 +636,12 @@
             results : function(data, page) {
                // convert object to text symbol + text
                // select2 format result looks for the 'text' attr
-               var geneResults = []
+               var geneResults = [];
                for (var i = 0; i < data.data.length; i++) {
                   var gene = new researcherModel.Gene( data.data[i] );
                   var aliasStr = gene.aliasesToString();
                   aliasStr = aliasStr ? "(" + aliasStr + ") " : "";
-                  gene.text = "<b>" + gene.officialSymbol + "</b> " + aliasStr + gene.officialName
+                  gene.text = "<b>" + gene.officialSymbol + "</b> " + aliasStr + gene.officialName;
                   geneResults.push(gene);
                }
                return {
@@ -663,7 +663,7 @@
             return m;
          },
       } );
-   }
+   };
    
       admin.init = function(){
          admin.initDataTable();
@@ -679,8 +679,8 @@
             oTable.fnAdjustColumnSizing();
          });
          //$("#adminResetResearchersButton").click(admin.resetTable)
-         $("#adminFindResearchersByGeneButton").click(admin.findResearchersByGene)   
-         $("#admin-advanced button.submit").click(admin.advancedSymbolSearch)
+         $("#adminFindResearchersByGeneButton").click(admin.findResearchersByGene);   
+         $("#admin-advanced button.submit").click(admin.advancedSymbolSearch);
          $("#adminFindResearchersByNameButton").click(admin.nameSearch)
  /*        $("#admin-advanced-term button.submit").click(admin.advancedTermSearch)*/
       };

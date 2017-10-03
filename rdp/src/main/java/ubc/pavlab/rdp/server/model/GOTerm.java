@@ -37,7 +37,7 @@ public class GOTerm {
 
         public enum RelationshipType {
             IS_A, PART_OF
-        };
+        }
 
         private RelationshipType type;
 

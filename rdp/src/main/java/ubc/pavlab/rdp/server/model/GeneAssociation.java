@@ -49,7 +49,7 @@ public class GeneAssociation {
 
     public enum TierType {
         TIER1, TIER2, TIER3, UNKNOWN
-    };
+    }
 
     @Enumerated(EnumType.STRING)
     @Column

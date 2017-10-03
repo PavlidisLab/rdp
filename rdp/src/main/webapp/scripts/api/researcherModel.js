@@ -37,7 +37,7 @@
       this.calculatedGenes = [];
       this.terms = {};
       this.taxonDescriptions = {};
-   }
+   };
    
    researcherModel.Researcher.prototype.indexOfGene = function(gene) {
       if ( !(gene instanceof researcherModel.Gene) ) {
@@ -50,7 +50,7 @@
       }
       return -1;
       
-   }
+   };
    
    // Used to determine if a researcher has a gene in either saved or calculated genes
    researcherModel.Researcher.prototype.getGene = function(gene) {
@@ -70,7 +70,7 @@
       }
       return null;
 
-   }
+   };
    
    researcherModel.Researcher.prototype.getTermsByPattern = function(term, id, tId, modifier) {
       try {
@@ -101,7 +101,7 @@
       
       return {status:1, terms:terms};
       
-   }
+   };
    
    researcherModel.Researcher.prototype.getGenesBySymbolPattern = function(s, tId, modifier) {
       if ( s == null || s == "" ) {
@@ -131,7 +131,7 @@
       }
       return {status:1, genes:genes};
 
-   }
+   };
    
    researcherModel.Researcher.prototype.hasGeneBySymbolTaxonId = function(symbol, taxonId) {
       for (var i=0;i<this.genes.length;i++) {
@@ -140,7 +140,7 @@
          }
       }
       return false;
-   }
+   };
    
    researcherModel.Researcher.prototype.getGenesByTaxonId = function(taxonId) {
       var filter = [];
@@ -151,7 +151,7 @@
       }
       return filter;
 
-   }
+   };
    
    researcherModel.Researcher.prototype.getCalculatedGenesByTaxonId = function(taxonId) {
       var filter = [];
@@ -162,7 +162,7 @@
       }
       return filter;
 
-   }
+   };
    
    researcherModel.Researcher.prototype.setGenesByTaxonId = function(genes, taxonId) {
       var newGenes = [];
@@ -178,7 +178,7 @@
       }
       
       this.genes = newGenes;
-   }
+   };
    
    researcherModel.Researcher.prototype.getTaxons = function() {
       var taxons = [];
@@ -191,31 +191,31 @@
          }
       }
       return taxons;
-   }
+   };
    
    researcherModel.Researcher.prototype.shallowCopy = function() {
       // For some reason jquery AJAX doesn't like sending instances of Researcher
       // straight in the data
       return $.parseJSON($.toJSON(this));
-   }
+   };
    
    researcherModel.Researcher.prototype.fullName = function() { 
       return this.firstName && this.lastName ? this.firstName + " " + this.lastName : this.firstName + this.lastName;
-   }
+   };
    
    researcherModel.Researcher.prototype.setTaxonDescriptionsFromArray = function(taxonDescriptionsArr) {
       this.taxonDescriptions = {};
       for (var i=0;i<taxonDescriptionsArr.length;i++) {
          this.taxonDescriptions[taxonDescriptionsArr[i].taxonId] = taxonDescriptionsArr[i].description;
       }
-   }
+   };
    
    researcherModel.Researcher.prototype.setPubMedIdsFromPublications = function(publicationsArray) {
       this.pubMedIds = [];
       for (var i=0;i<publicationsArray.length;i++) {
          this.pubMedIds.push( publicationsArray[i].pubMedId );
       }
-   }
+   };
    
    researcherModel.Researcher.prototype.setTermsFromArray = function(goTermsArr) {
       this.terms = {};
@@ -228,7 +228,7 @@
          }
       }
       }
-   }
+   };
    
    researcherModel.Researcher.prototype.updateTermsForTaxon = function(goTermsArr, taxonId) {
       delete this.terms[taxonId];
@@ -236,11 +236,11 @@
       for (var i=0;i<goTermsArr.length;i++) {
          this.terms[taxonId].push( goTermsArr[i] );
       }
-   }
+   };
       
    researcherModel.Researcher.prototype.addTaxonDescription = function(taxon, taxonDescription) {
       this.taxonDescriptions[taxon] = taxonDescription;
-   }
+   };
    
    researcherModel.Researcher.prototype.genesToJSON = function(genes) {
       genes = ( typeof genes === 'undefined' ) ? this.genes : genes;
@@ -249,7 +249,7 @@
          jsonArr.push( $.toJSON( genes[i] ) );
       }
       return jsonArr;
-   }
+   };
    
    researcherModel.Researcher.prototype.termsToJSON = function(taxonId) {
       if ( !taxonId ) {
@@ -261,7 +261,7 @@
          jsonArr.push( $.toJSON( this.terms[taxonId][i] ) );
       }
       return jsonArr;
-   }
+   };
     
    researcherModel.Researcher.prototype.compareGenes = function(otherGenes, compareAgainst) {
       g1 = otherGenes.slice();
@@ -274,7 +274,7 @@
             }
           }
           return -1;
-      }
+      };
       
       for (var i=0; i<g1.length; i++) {
          var index = identicalIndexOf(g1[i], g2);
@@ -291,7 +291,7 @@
       }
       
       return true;
-   }
+   };
    
    researcherModel.Researcher.prototype.compareTerms = function(terms, compareAgainst) {
    
@@ -302,7 +302,7 @@
             }
           }
           return -1;
-      }
+      };
       
       for (var i=0; i<terms.length; i++) {
          var index = identicalIndexOf(terms[i], compareAgainst);
@@ -319,7 +319,7 @@
       }
       
       return true;
-   }
+   };
    
    researcherModel.Researcher.prototype.parseResearcherObject = function(data) {
       this.department = data.department || "";
@@ -359,7 +359,7 @@
       this.lastName = contact.lastName || "";
       this.email = contact.email || "";
       this.userName = contact.userName || "";
-   }
+   };
    
    researcherModel.Gene = function Gene(geneValueObject) {
       this.id = geneValueObject.id || null;
@@ -379,7 +379,7 @@
             this.aliases = geneValueObject.aliases.split("|");
          }
       }
-   }
+   };
    
    researcherModel.Gene.prototype.equals = function(otherGene) {
       if ( !(otherGene instanceof researcherModel.Gene) ) {
@@ -392,15 +392,15 @@
          return false;
       }
       
-   }
+   };
    
    researcherModel.Gene.prototype.aliasesToString = function() {
       return this.aliases.join( ', ' );
-   }
+   };
    
    researcherModel.Gene.prototype.clone = function() {
       return new researcherModel.Gene(this);
-   }
+   };
    
    researcherModel.currentResearcher = new researcherModel.Researcher();
    
@@ -436,7 +436,7 @@
 	   
 	   return promise;
 	   
-	}
+	};
    
    researcherModel.saveResearcherProfile = function() {
 	   var promise = $.ajax( {
@@ -459,10 +459,10 @@
 	   
 	   return promise;
 	  
-   }
+   };
    
    researcherModel.saveResearcherGenes = function() {
-	   console.log("saving genes: ", researcherModel.currentResearcher.genes)
+	   console.log("saving genes: ", researcherModel.currentResearcher.genes);
 	   	   
 	   var promise = $.ajax( {
 	      type: "POST",
@@ -476,10 +476,10 @@
 	   } );
 	   
 	   return promise;
-	}
+	};
    
    researcherModel.saveResearcherGenesByTaxon = function(taxonId) {
-      console.log("saving genes: ", researcherModel.currentResearcher.getGenesByTaxonId(taxonId))
+      console.log("saving genes: ", researcherModel.currentResearcher.getGenesByTaxonId(taxonId));
             
       var promise = $.ajax( {
          type: "POST",
@@ -494,13 +494,13 @@
       } );
       
       return promise;
-   }  
+   };  
    
    researcherModel.saveResearcherTermsForTaxon = function(taxId) {
       if ( !taxId ){
          return null;
       }
-      console.log("saving terms: ", researcherModel.currentResearcher.terms[taxId])
+      console.log("saving terms: ", researcherModel.currentResearcher.terms[taxId]);
             
       var promise = $.ajax( {
          type: "POST",

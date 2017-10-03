@@ -36,7 +36,7 @@
       var focus = researcher.taxonDescriptions[taxonId] ? researcher.taxonDescriptions[taxonId]:"";
       
       return ( modelOrganisms.focus().text().replace(/\s/g, " ").trim() != focus.replace(/\s/g, " ").trim() ) || !researcher.compareGenes(showingGenes, oldGenes);
-   }
+   };
    
    saveGenes = function() {
       modelOrganisms.lockAll();
@@ -51,8 +51,8 @@
       var taxonId = geneManager.currentTaxonId();
       var newGenes = geneManager.table().DataTable().columns().data()[0];
       
-      researcher.setGenesByTaxonId( newGenes, taxonId )
-      researcher.addTaxonDescription(taxonId, modelOrganisms.focus().text().replace(/\s/g, " ").trim() )
+      researcher.setGenesByTaxonId( newGenes, taxonId );
+      researcher.addTaxonDescription(taxonId, modelOrganisms.focus().text().replace(/\s/g, " ").trim() );
 
       var promise = researcherModel.saveResearcherGenesByTaxon(taxonId);
       
@@ -74,7 +74,7 @@
          btn.children('i').removeClass('fa-spin');
       });
       
-   }
+   };
    
    geneManager.loadTable = function() {
       var table = geneManager.table().DataTable();
@@ -94,7 +94,7 @@
          }
       }
       table.draw();
-   }
+   };
    
    geneManager.removeSelectedRows = function() {
       var table = geneManager.table().DataTable();
@@ -107,7 +107,7 @@
       }
       var data = selectedNodes.data();
       selectedNodes.remove().draw( false );
-   }
+   };
    
    //TODO make this work
    exportGenes  = function() {
@@ -119,15 +119,15 @@
       }
       text = text.join("\r\n");
       window.prompt("Copy to clipboard: Ctrl+C (Cmd+C) , Enter", text);
-   }
+   };
    
    geneManager.openAddGenesModal = function() {
       geneManager.addGenesModal().modal('show');
-   }
+   };
    
    geneManager.closeAddGenesModal =  function() {
       geneManager.addGenesModal().modal('hide');
-   }
+   };
    
    geneManager.addGenesToTable = function(genes, tier) {
       if ( utility.isUndefined(tier) || (tier!="TIER1" && tier!="TIER2") ) {
@@ -138,11 +138,11 @@
          for (var i = 0; i < genes.length; i++) {
             var gene = new researcherModel.Gene( genes[i] );
             gene.tier = tier;
-            var res = geneManager.addToTable(gene)
+            var res = geneManager.addToTable(gene);
             if (!res.success) {
-               console.log(res)
-               console.log(results)
-               console.log(results[res.type])
+               console.log(res);
+               console.log(results);
+               console.log(results[res.type]);
                results[res.type].push(res.data);
             }
          }
@@ -166,7 +166,7 @@
          utility.showMessage( msg, $( geneManager.alertFilter ) );
          geneManager.table().DataTable().rows().draw();
       }
-   }
+   };
    
    geneManager.addToTable = function(gene) {         
       if ( !(gene instanceof researcherModel.Gene ) ){
@@ -177,7 +177,7 @@
       var table = geneManager.table().DataTable();
       
       if ( table.column(1).data().indexOf(gene.officialSymbol) != -1 ) {
-         console.log("Gene already added")
+         console.log("Gene already added");
          return {success:false, msg:"Gene already added", data:gene.officialSymbol, type:'added' };
          //utility.showMessage( "Gene already added", $( geneManager.alertFilter ) );
       }
@@ -187,7 +187,7 @@
       
       return {success:true};
       
-   }
+   };
       
    geneManager.addSelectedGenes = function() {
       var data = $( "#searchGenesSelect" ).select2( "data" );
@@ -200,7 +200,7 @@
       
       $( "#searchGenesSelect" ).select2("val", "");
       //geneManager.closeAddGenesModal();
-   }
+   };
    
    geneManager.bulkImportGenes = function() {
       var btn = $(this);
@@ -231,7 +231,7 @@
          error : function(response, xhr) {
             btn.removeAttr("disabled");
             btn.children('i').removeClass('fa-spin');
-            console.log(response.message)
+            console.log(response.message);
             utility.showMessage( promise.responseJSON.message, $( geneManager.alertFilter ) )
             //utility.showMessage( response.message, $( "#geneManagerMessage" ) );
          }
@@ -239,7 +239,7 @@
       } );
       geneManager.closeAddGenesModal();
       return promise;
-   }
+   };
 
    geneManager.initSelect2 = function() {
       // init search genes combo    
@@ -263,12 +263,12 @@
             results : function(data, page) {
                // convert object to text symbol + text
                // select2 format result looks for the 'text' attr
-               var geneResults = []
+               var geneResults = [];
                for (var i = 0; i < data.data.length; i++) {
                   var gene = new researcherModel.Gene( data.data[i] );
                   var aliasStr = gene.aliasesToString();
                   aliasStr = aliasStr ? "(" + aliasStr + ") " : "";
-                  gene.text = "<b>" + gene.officialSymbol + "</b> " + aliasStr + gene.officialName
+                  gene.text = "<b>" + gene.officialSymbol + "</b> " + aliasStr + gene.officialName;
                   geneResults.push(gene);
                }
                return {
@@ -290,7 +290,7 @@
             return m;
          },
       } );
-   }
+   };
    
    geneManager.initDataTable = function() {
       geneManager.table().dataTable( {
@@ -355,7 +355,7 @@
             //$('td:eq(1)', nRow).html(researcherModel.aliasesToString( aData[0] ));
             //$('td:eq(2)', nRow).html(aData[0].officialName);
 
-            var inputHTML = '<input type="checkbox" value="TIER1"></input>'
+            var inputHTML = '<input type="checkbox" value="TIER1"></input>';
             $('td:eq(3)', nRow).html(inputHTML);
 
             if ( aData[0].tier === "TIER1" ) {
@@ -372,7 +372,7 @@
 
       } );
 
-   }
+   };
    
    geneManager.init = function() {
       $( "#addGeneButton" ).click( geneManager.addSelectedGenes );
