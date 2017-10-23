@@ -24,6 +24,7 @@ import gemma.gsec.authentication.UserExistsException;
 import gemma.gsec.util.JSONUtil;
 import gemma.gsec.util.SecurityUtil;
 
+import java.net.URLEncoder;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -109,6 +110,7 @@ public class SignupController extends BaseController {
     @RequestMapping("/confirmRegistration.html")
     public void confirmRegistration( HttpServletRequest request, HttpServletResponse response ) throws Exception {
         String username = request.getParameter( "username" );
+        log.info( "Attempting to confirm user:" + username );
         String key = request.getParameter( "key" );
 
         if ( StringUtils.isBlank( username ) || StringUtils.isBlank( key ) ) {
@@ -116,7 +118,12 @@ public class SignupController extends BaseController {
                     "The confirmation url was not valid; it must contain the key and username" );
         }
 
-        boolean ok = userManager.validateSignupToken( username, key );
+        boolean ok = false;
+        try {
+            ok = userManager.validateSignupToken( username, key );
+        } catch ( Exception e ) {
+            log.error( e, e );
+        }
 
         if ( ok ) {
             log.info( "Account Successfully Confirmed " + username );
@@ -124,6 +131,7 @@ public class SignupController extends BaseController {
             // response.setHeader( "Refresh", "5;url=/rdp/home.html" );
             response.sendRedirect( response.encodeRedirectURL( request.getContextPath() + "/login.jsp?confirmRegistration=true" ) );
         } else {
+            log.info( "Account Failed To Validate " + username );
             super.saveMessage( request, "Sorry, your registration could not be validated. Please register again." );
             response.sendRedirect( response.encodeRedirectURL( request.getContextPath() + "/login.jsp?confirmRegistration=false" ) );
         }
@@ -284,7 +292,7 @@ public class SignupController extends BaseController {
             // model.put( "username", u.getUsername() );
             model.put( "siteurl", Settings.getBaseUrl() );
             model.put( "confirmLink", Settings.getBaseUrl() + "confirmRegistration.html?key=" + u.getSignupToken()
-                    + "&username=" + u.getUsername() );
+                    + "&username=" + URLEncoder.encode(u.getUsername(), "UTF-8") );
             model.put( "contact", Settings.getString( "rdp.contact.email" ) );
 
             String templateName = "accountCreated.vm";
