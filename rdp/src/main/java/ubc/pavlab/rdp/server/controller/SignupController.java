@@ -122,10 +122,10 @@ public class SignupController extends BaseController {
             log.info( "Account Successfully Confirmed " + username );
             super.saveMessage( request, "Your account is now enabled. Log in to continue" );
             // response.setHeader( "Refresh", "5;url=/rdp/home.html" );
-            response.sendRedirect( response.encodeRedirectURL( "/rdp/login.jsp?confirmRegistration=true" ) );
+            response.sendRedirect( response.encodeRedirectURL( request.getContextPath() + "/login.jsp?confirmRegistration=true" ) );
         } else {
             super.saveMessage( request, "Sorry, your registration could not be validated. Please register again." );
-            response.sendRedirect( response.encodeRedirectURL( "/rdp/login.jsp?confirmRegistration=false" ) );
+            response.sendRedirect( response.encodeRedirectURL( request.getContextPath() + "/login.jsp?confirmRegistration=false" ) );
         }
 
     }

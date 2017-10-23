@@ -385,7 +385,7 @@ function ajaxSessionTimeout(e)
     });
     
     $('#sessionTimeoutModal button.redirect').click(function() {
-       window.location.href = "/rdp/login.jsp";
+       window.location.href = "${pageContext.request.contextPath}/login.jsp";
        return false;
    });
 }(window.jQuery);
