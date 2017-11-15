@@ -226,6 +226,7 @@
       $('#profile-tab a').on('click', 'i[class~="fa-edit"]', editProfile );
       $('#profile-tab a').on('click', 'i[class~="fa-check-square-o"]', lockProfile );
       $('a[href="#myAccount"]').on('show.bs.tab', function() {
+          gae( researcherModel.currentResearcher.user_id, 'My Account', '' );
          profile.setInfo(); 
          utility.setConfirmChanges($('a[href="#myAccount"]'), profile.isChanged, $('a[href="#myAccount"]'))
 

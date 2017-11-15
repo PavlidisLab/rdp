@@ -60,7 +60,7 @@ $( document ).ready( function() {
       //$('a[href="#myAccount"]').trigger('show.bs.tab');
       $('#menu > li').has('a[href="#modelOrganisms"][data-toggle="tab"]').show();
       $('#navbar-username').html(researcherModel.currentResearcher.userName);
-      
+       gae( researcherModel.currentResearcher.user_id, 'login', '' );
       // Combination of both taxons from entered genes and from entered terms
       var taxonIds = utility.uniqueSoft( researcherModel.currentResearcher.getTaxons().concat(Object.keys(researcherModel.currentResearcher.terms)) );
       
@@ -87,6 +87,7 @@ $( document ).ready( function() {
    });
 
    $('#menu').on('click', 'a[href="#modelOrganisms"][data-toggle!="tab"]', function(){
+       gae( researcherModel.currentResearcher.user_id, $(this).text(), '' );
       if ( $('#menu li.active > a').is('a[href="#modelOrganisms"]') && modelOrganisms.isChanged() ) {
          var $this = $(this);
          $('#myModelOrganismsList > ul > li a[href="#modelOrganisms"]:contains("'+geneManager.currentTaxon()+'")').trigger('click.metisMenu');
@@ -116,28 +117,39 @@ $( document ).ready( function() {
       modelOrganisms.setFocus();
       geneManager.fillTable();
     });*/
+
+    $('a[href="#overview"][data-toggle!="tab"]').click(function(){
+        gae( researcherModel.currentResearcher.user_id, 'Overview', '' );
+    });
+
+    $('a[href="#help"]').click(function(){
+        gae( researcherModel.currentResearcher.user_id, 'Help', '' );
+    });
+
+    $('a[href="#support"]').click(function(){
+        gae( researcherModel.currentResearcher.user_id, 'Support', '' );
+    });
    
    $('#settingsDropdown').click(function(){
+       gae( researcherModel.currentResearcher.user_id, 'Settings', '' );
       $('#menu a[href="#myAccount"]').tab('show');
       $('#menu a[href="#myAccount"]').trigger('click.metisMenu');
       $('.tab-pane a[href="#settings-tab"]').tab('show');
     });
    
    $('#profileDropdown').click(function(){
-      
+       gae( researcherModel.currentResearcher.user_id, 'Profile', '' );
       $('#menu a[href="#myAccount"]').tab('show');
       $('#menu a[href="#myAccount"]').trigger('click.metisMenu');
       $('.tab-pane a[href="#profile-tab"]').tab('show');
     });
    
    $('a[href="#help"][data-toggle!="tab"]').click(function(){
-      
       $('#menu a[href="#help"]').tab('show');
       $('#menu a[href="#help"]').trigger('click.metisMenu');
     });
    
    $('a[href="#support"][data-toggle!="tab"]').click(function(){
-      
       $('#menu a[href="#support"]').tab('show');
       $('#menu a[href="#support"]').trigger('click.metisMenu');
     });

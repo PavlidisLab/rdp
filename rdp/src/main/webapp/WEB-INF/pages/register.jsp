@@ -29,7 +29,7 @@
 
 <link rel="stylesheet"
 	href="styles/font-awesome-4.2.0/css/font-awesome.min.css">
-	
+
 <link href="styles/lightbox.css" rel="stylesheet" />
 
 <!-- Custom CSS -->
@@ -38,52 +38,40 @@
 <!-- Custom CSS -->
 <!-- <link href="styles/rdp_dark.css" rel="alternate stylesheet" title="dark" class="themes" disabled=""> -->
 
-<c:if test='${ ga_tracker != ""}'>
+	<c:if test='${ ga_tracker != ""}'>
 
-        <script type="text/javascript">
-      var _gaq = _gaq || [];
-      var pluginUrl = '//www.google-analytics.com/plugins/ga/inpage_linkid.js';
-      _gaq.push([ '_require', 'inpage_linkid', pluginUrl ]);
-      _gaq.push([ '_setAccount', '${ga_tracker}' ]);
-      _gaq.push([ '_setDomainName', '${ga_domain}' ]);
-      _gaq.push([ '_trackPageview' ]);
-
-      (function() {
-         var ga = document.createElement('script');
-         ga.type = 'text/javascript';
-         ga.async = true;
-         ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www')
-               + '.google-analytics.com/ga.js';
-         var s = document.getElementsByTagName('script')[0];
-         s.parentNode.insertBefore(ga, s);
-      })();
-
-      if ( typeof googleAnalyticsTrackPageviewIfConfigured === 'undefined' ) {
-         var googleAnalyticsTrackPageviewIfConfigured = googleAnalyticsTrackPageviewIfConfigured || function(pageURL) {
-            if ( typeof _gaq !== 'undefined' ) {
-               _gaq.push([ '_setAccount', '${ga_tracker}' ]);
-               _gaq.push([ '_trackPageview', pageURL ]);
+		<script type="text/javascript">
+            <!-- Google Analytics -->
+            (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+                    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+                m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+            })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+            ga('create', '${ga_tracker}', {
+                cookieDomain: '${ga_domain}'
+            });
+            ga('require', 'linkid', 'linkid.js');
+            ga('send', 'pageview');
+            <!-- End Google Analytics -->
+            if (typeof gae === 'undefined') {
+                var gae = gae || function (c,a,l) {
+                        if (typeof ga !== 'undefined') {
+                            ga('send', 'event', c, a, l);
+                        }
+                    };
             }
-         };
-      }
-   </script>
-   
-   
-   
-</c:if>
 
-<c:if test='${ ga_tracker == ""}'>
-    <script type="text/javascript">
-        if ( typeof googleAnalyticsTrackPageviewIfConfigured === 'undefined' ) {
-            var googleAnalyticsTrackPageviewIfConfigured = function(pageURL) {/* no op, for sandbox and development */};
-        }
-    </script>
-</c:if>
+		</script>
 
-	<script>
-	googleAnalyticsTrackPageviewIfConfigured( "/rdp/register" );
-	</script>
-	
+	</c:if>
+
+	<c:if test='${ ga_tracker == ""}'>
+		<script type="text/javascript">
+            if ( typeof gae === 'undefined' ) {
+                var gae = function(c,a,l) {/* no op, for sandbox and development */};
+            }
+		</script>
+	</c:if>
+
 
 </head>
 
@@ -201,7 +189,7 @@
 								class="sidebar-nav-item-icon fa fa-fw fa-comment fa-lg"></span>
 								<span class="sidebar-nav-item">Support</span>
 						</a></li>
-						
+
 
 					</ul>
 				</nav>
@@ -297,10 +285,10 @@
 							</div>
 							<%@ include file="help.jsp"%>
 						</div>
-						
-						
+
+
 					</div>
-					
+
 					<div class="tab-pane" id="support">
 
 						<div class="col-xs-12">
@@ -315,8 +303,8 @@
 							</div>
 							<%@ include file="support.jsp"%>
 						</div>
-						
-						
+
+
 					</div>
 
 				</div>
@@ -329,7 +317,7 @@
 	<%@ include file="addTermsModal.jsp"%>
 	<%@ include file="confirmModal.jsp"%>
 	<%@ include file="sessionTimeoutModal.jsp"%>
-	<footer class="footer"> © Copyright 2014. "Rare Diseases: Models & Mechanisms Network" All rights reserved. <a href="#support" class="pull-right">Contact Support</a></footer>
+	<footer class="footer"> &copy; Copyright 2014. "Rare Diseases: Models & Mechanisms Network" All rights reserved. <a href="#support" class="pull-right">Contact Support</a></footer>
 
 
 	<!-- include jQuery, and our script file -->
@@ -347,25 +335,25 @@
 	<!-- Metis Menu Plugin JavaScript -->
 	<!-- THIS HAS BEEN ALTERED DO NOT MINIFY WILLY-NILLY -->
 	<script src="scripts/lib/metisMenu/metisMenu.js"></script>
-	
-	<script src="scripts/lib/lightbox.min.js"></script>
-	
-	<script src="scripts/lib/jquery.form.min.js"></script>
-	
 
-	<script src="scripts/api/utility.js?version=24"></script>
-	<script src="scripts/api/researcherModel.js?version=24"></script>
-	<script src="scripts/api/profile.js?version=24"></script>
-	<script src="scripts/api/settings.js?version=24"></script>
-	<script src="scripts/api/modelOrganisms.js?version=24"></script>
-	<script src="scripts/api/geneManager.js?version=24"></script>
-	<script src="scripts/api/goManager.js?version=24"></script>
-	<script src="scripts/api/admin.js?version=25"></script>
-	<script src="scripts/api/register.js?version=24"></script>
-	<script src="scripts/api/navbar.js?version=24"></script>
-	<script src="scripts/api/support.js?version=24"></script>
-	
-	<script> 
+	<script src="scripts/lib/lightbox.min.js"></script>
+
+	<script src="scripts/lib/jquery.form.min.js"></script>
+
+
+	<script src="scripts/api/utility.js?version=26"></script>
+	<script src="scripts/api/researcherModel.js?version=26"></script>
+	<script src="scripts/api/profile.js?version=26"></script>
+	<script src="scripts/api/settings.js?version=26"></script>
+	<script src="scripts/api/modelOrganisms.js?version=26"></script>
+	<script src="scripts/api/geneManager.js?version=26"></script>
+	<script src="scripts/api/goManager.js?version=26"></script>
+	<script src="scripts/api/admin.js?version=26"></script>
+	<script src="scripts/api/register.js?version=26"></script>
+	<script src="scripts/api/navbar.js?version=26"></script>
+	<script src="scripts/api/support.js?version=26"></script>
+
+	<script>
 function ajaxSessionTimeout(e)
 {
     // Handle Ajax session timeout here
@@ -374,16 +362,16 @@ function ajaxSessionTimeout(e)
  	$('#sessionTimeoutModal').modal('show');
 	$('#sessionTimeoutModal').css('z-index',99999);
 }
- 
+
 !function( $ )
 {
     $.ajaxSetup({
-        statusCode: 
+        statusCode:
         {
             901: ajaxSessionTimeout
         }
     });
-    
+
     $('#sessionTimeoutModal button.redirect').click(function() {
        window.location.href = "${pageContext.request.contextPath}/login.jsp";
        return false;

@@ -397,6 +397,7 @@ public class ResearcherServiceImpl implements ResearcherService {
     @Override
     public JSONObject toJSON( Researcher r ) {
         JSONObject jsonObj = new JSONObject();
+        jsonObj.put( "user_id", r.getId() );
         jsonObj.put( "contact", r.getContact().toJSON() );
         jsonObj.put( "department", r.getDepartment() );
         jsonObj.put( "description", r.getDescription() );

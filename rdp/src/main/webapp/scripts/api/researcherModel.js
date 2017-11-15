@@ -322,6 +322,7 @@
    };
    
    researcherModel.Researcher.prototype.parseResearcherObject = function(data) {
+      this.user_id = data.user_id || "";
       this.department = data.department || "";
       this.organization = data.organization || "";
       this.website = data.website || "";
