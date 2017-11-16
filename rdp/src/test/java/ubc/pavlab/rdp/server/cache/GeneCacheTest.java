@@ -19,10 +19,14 @@
 
 package ubc.pavlab.rdp.server.cache;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.isOneOf;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 
 import org.junit.After;
 import org.junit.Before;
@@ -82,14 +86,19 @@ public class GeneCacheTest extends BaseSpringContextTest {
      */
     @Test
     public void testFetchByQuery() {
-        Collection<Gene> results = cache.fetchByQuery( "aaa", taxonId );
+        List<Gene> results = (List) cache.fetchByQuery( "aaa", taxonId );
         Long[] expectedNcbiGeneIds = new Long[] { 1L, 2L, 3L, 6L, 4L };
         assertEquals( expectedNcbiGeneIds.length, results.size() );
-        int i = 0;
-        for ( Gene g : results ) {
-            assertEquals( expectedNcbiGeneIds[i], g.getId() );
-            i++;
-        }
+        assertEquals( 1L, results.get( 0 ).getId().longValue() );
+        assertEquals( 2L, results.get( 1 ).getId().longValue() );
+
+        // position 3 and 4 should be 3L and 6L in no particular order
+        assertNotEquals( results.get( 2 ).getId(), results.get( 3 ).getId() );
+        assertThat(results.get( 2 ).getId(), isOneOf(3L, 6L));
+        assertThat(results.get( 3 ).getId(), isOneOf(3L, 6L));
+
+        assertEquals( 4L, results.get( 4 ).getId().longValue() );
+
     }
 
     @Test

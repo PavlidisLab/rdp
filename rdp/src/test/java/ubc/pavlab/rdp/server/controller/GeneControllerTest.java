@@ -29,6 +29,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 
+import org.hamcrest.Matchers;
 import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Before;
@@ -134,8 +135,6 @@ public class GeneControllerTest extends BaseSpringContextTest {
      * Initializes the cache and genes with sample data
      * 
      * @param cache
-     * @param genes
-     * @param taxon
      */
     private static void initCache( GeneCache cache ) {
         Collection<Gene> genes = new HashSet<>();
@@ -226,8 +225,8 @@ public class GeneControllerTest extends BaseSpringContextTest {
                         get( "/searchGenes.html" ).contentType( MediaType.APPLICATION_JSON ).param( "query", "aAa" )
                                 .param( "taxonId", Long.toString( taxonId ) ) ).andExpect( status().isOk() )
                 .andExpect( jsonPath( "$.success" ).value( true ) ).andExpect( jsonPath( "$.data[0].id" ).value( 1 ) )
-                .andExpect( jsonPath( "$.data[1].id" ).value( 2 ) ).andExpect( jsonPath( "$.data[2].id" ).value( 3 ) )
-                .andExpect( jsonPath( "$.data[3].id" ).value( 6 ) ).andExpect( jsonPath( "$.data[4].id" ).value( 4 ) );
+                .andExpect( jsonPath( "$.data[1].id" ).value( 2 ) ).andExpect( jsonPath( "$.data[2].id" ).value( Matchers.isOneOf( 3, 6 ) ) )
+                .andExpect( jsonPath( "$.data[3].id" ).value( Matchers.isOneOf( 3, 6 ) ) ).andExpect( jsonPath( "$.data[4].id" ).value( 4 ) );
 
         this.mockMvc
                 .perform(
