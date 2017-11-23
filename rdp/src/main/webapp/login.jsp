@@ -147,7 +147,7 @@
     <script src="scripts/lib/bootstrap.min.js"></script>
     <script src="scripts/lib/jquery.validate.min.js"></script>
     <script type="text/javascript"
-        src="http://www.google.com/recaptcha/api/js/recaptcha_ajax.js"></script>
+        src="//www.google.com/recaptcha/api/js/recaptcha_ajax.js"></script>
 	<script src="scripts/lib/modernizr.custom.31926.js"></script>
     <!-- Our scripts -->
     <script src="scripts/api/utility.js"></script>
