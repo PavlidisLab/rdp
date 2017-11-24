@@ -84,19 +84,19 @@ public interface ResearcherService {
     @Secured({ "GROUP_USER" })
     public boolean updateGenesByTaxon( Researcher researcher, Long taxonId, HashMap<Gene, TierType> genes );
 
-    @Secured({ "GROUP_ADMIN" })
+    @Secured({ "GROUP_USER" })
     public Collection<Researcher> findByGene( Gene gene );
 
-    @Secured({ "GROUP_ADMIN" })
+    @Secured({ "GROUP_USER" })
     public Collection<Researcher> findByGene( Gene gene, TierType tier );
 
-    @Secured({ "GROUP_ADMIN" })
+    @Secured({ "GROUP_USER" })
     public Collection<Researcher> findByLikeSymbol( Long taxonId, String symbol );
 
-    @Secured({ "GROUP_ADMIN" })
+    @Secured({ "GROUP_USER" })
     public Collection<Researcher> findByLikeSymbol( Long taxonId, String symbol, TierType tier );
 
-    @Secured({ "GROUP_ADMIN" })
+    @Secured({ "GROUP_USER" })
     public Collection<Researcher> findByLikeName( String nameLike );
 
     @Secured({ "GROUP_USER" })

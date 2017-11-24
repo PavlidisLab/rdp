@@ -133,7 +133,7 @@
 					<ul id="menu">
 						<li style="display: none;"><a href="#admin" data-toggle="tab">
 								<span class="sidebar-nav-item-icon fa fa-fw fa-cog fa-lg"></span>
-								<span class="sidebar-nav-item">Administration</span>
+								<span class="sidebar-nav-item">Find Researchers</span>
 						</a></li>
 						<li class="active active-metis"><a href="#overview" data-toggle="tab">
 								<span class="sidebar-nav-item-icon fa fa-fw fa-home fa-lg"></span>
@@ -262,7 +262,7 @@
 								<div class="col-lg-4 ">
 									<ul class="breadcrumb">
 										<li class="active"><i class="fa fa-cogs"></i><a
-											href="#admin">Administration</a></li>
+											href="#admin">Find Researchers</a></li>
 									</ul>
 								</div>
 

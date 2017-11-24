@@ -4,32 +4,11 @@ $( document ).ready( function() {
    $( '#menu' ).metisMenu({'toggle':false});
    var loadPromise = researcherModel.loadResearcher();
    $('#navbar-username').html('<i class="fa fa-spinner fa-spin"></i>');
-   $.ajax( {
-	      cache : false,
-	      type : 'GET',
-	      url : "ajaxLoginCheck.html",
-	      success : function(response, xhr) {
-	         //$( "#navbarUsername" ).text( jQuery.parseJSON( response ).user );
-	         //$( "#navbarIsAdmin" ).text( jQuery.parseJSON( response ).isAdmin );
-	         //$( "#navbarUsername" ).append( ' <span class="caret"></span>' );
-	         $( "body" ).trigger( "loginSuccess", response );
-	         var responseJSON = jQuery.parseJSON( response );
-	         console.log("successfully logged in as: " + responseJSON.user);
-	         
-	         if (responseJSON.isAdmin == 'true'){
-	            console.log("Is Admin");
-	            $('#menu > li').has('a[href="#admin"][data-toggle="tab"]').show();
-	            admin.init();
-	         }
-	         
-	      },
-	      error : function(response, xhr) {
-	         console.log( xhr.responseText );
-	         //$( "#navbarUsername" ).text( "Anonymous" );
-	         //$( "#navbarUsername" ).append( ' <span class="caret"></span>' );
-	      }
-	   } );
-   
+  
+   $('#menu > li').has('a[href="#admin"][data-toggle="tab"]').show();
+   admin.init();
+
+ 
    window.onbeforeunload = function (e) {
       e = e || window.event;
 

@@ -1,6 +1,6 @@
 <div>
 	<div class="main-header">
-		<h2>Administration</h2>
+		<h2>Find Researchers</h2>
 		<em>Utilities</em>
 	</div>
 
@@ -9,7 +9,7 @@
 		<!-- NAV TABS -->
 		<ul id="admin-nav-tabs" class="nav nav-tabs">
 			<li class="active"><a href="#researchers-tab" data-toggle="tab"><i
-					class="fa fa-group"></i> All Researchers</a></li>
+					class="fa fa-group"></i>Search</a></li>
 		</ul>
 		<!-- END NAV TABS -->
 
