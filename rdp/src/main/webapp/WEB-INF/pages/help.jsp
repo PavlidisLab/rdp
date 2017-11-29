@@ -407,13 +407,7 @@
 								</div>
 								<div id="collapse1" class="panel-collapse collapse in"
 									role="tabpanel" aria-labelledby="heading1">
-									<div class="panel-body">The ${ SETTINGS["rdp.shortname"]} registry is an online
-										registration tool and a database of Canadian model organism
-										researchers and the specific genes they study. The Scientific
-										Advisory Committee uses the ${ SETTINGS["rdp.shortname"]} registry to determine which
-										scientists are doing work relevant to a newly identified human
-										disease gene. Registrants who meet the criteria for a given
-										gene will be invited to apply for a Catalyst Grant.</div>
+									<div class="panel-body"><b>&lt;Insert Description Here&gt;</b></div>
 								</div>
 							</div>
 							<div class="panel panel-default">
@@ -427,13 +421,7 @@
 								</div>
 								<div id="collapse2" class="panel-collapse collapse"
 									role="tabpanel" aria-labelledby="heading2">
-									<div class="panel-body">The purpose of the ${ SETTINGS["rdp.shortname"]} registry
-										is to collect information about model organism researchers,
-										focusing on genes they are studying. The registry is used by
-										the Scientific Advisory Committee and the Bioinformatics Core
-										to look for orthologs of a newly identified human disease
-										gene. Model organism researchers studying the identified genes
-										may be invited to apply for a Catalyst Grant.</div>
+									<div class="panel-body"><b>&lt;Insert Description Here&gt;</b></div>
 								</div>
 							</div>
 							<div class="panel panel-default">
@@ -447,9 +435,7 @@
 								</div>
 								<div id="collapse3" class="panel-collapse collapse"
 									role="tabpanel" aria-labelledby="heading3">
-									<div class="panel-body">All model organism researchers
-										eligible for CIHR funds should register if they want to be
-										considered for a Network Catalyst Grant. (<a href="${ SETTINGS["rdp.mainsite.url"]}register-as-a-model-organism-investigator.html" target="_blank">Read more here</a>)</div>
+									<div class="panel-body"><b>&lt;Insert Description Here&gt;</b></div>
 								</div>
 							</div>
 							<div class="panel panel-default">
@@ -463,15 +449,7 @@
 								</div>
 								<div id="collapse4" class="panel-collapse collapse"
 									role="tabpanel" aria-labelledby="heading4">
-									<div class="panel-body">The Scientific Advisory Committee
-										and the Bioinformatics Core will use the registry to identify
-										candidates that will be invited to submit a Catalyst Grant
-										application. Your information will not be viewable by other
-										Registrants. The registry is password-protected and the
-										information you enter will be kept secure and strictly
-										confidential. You can think of it as how any information
-										provided to a funding agency for grant application purposes
-										would be used.</div>
+									<div class="panel-body"><b>&lt;Insert Description Here&gt;</b></div>
 								</div>
 							</div>
 							<div class="panel panel-default">
@@ -486,14 +464,7 @@
 								</div>
 								<div id="collapse5" class="panel-collapse collapse"
 									role="tabpanel" aria-labelledby="heading5">
-									<div class="panel-body">In response to a Connection
-										Application, the Scientific Advisory Committee will search the
-										registry for potential matches, based on the information
-										provided by registrants. If you emerge as a match and meet the
-										other criteria, you will be invited to apply for a Catalyst
-										Grant. There is no need to further contact the Network, though
-										you are welcome to revisit the registry at any time to update
-										your information.</div>
+									<div class="panel-body"><b>&lt;Insert Description Here&gt;</b></div>
 								</div>
 							</div>
 							<div class="panel panel-default">
@@ -502,24 +473,12 @@
 									aria-controls="collapse6" class="panel-heading" role="tab"
 									id="heading6">
 									<h4 class="panel-title">
-										<a href="#"> What is the process for making a catalyst
-											grant award? </a>
+										<a href="#"> What is the process for making a grant award? </a>
 									</h4>
 								</div>
 								<div id="collapse6" class="panel-collapse collapse"
 									role="tabpanel" aria-labelledby="heading6">
-									<div class="panel-body">Briefly, the Scientific Advisory
-										Committee (SAC) will attempt to match a new disease gene to as
-										many model organism researchers as possible, based on the
-										genes that model organism researchers have self-declared. The
-										SAC will then invite the model organism researcher to submit a
-										2-page application (receipt deadline within a week or two).
-										The SAC will review the applications (within a week), and for
-										those accepted, will invite the clinician scientist to
-										establish a connection with the corresponding model organism
-										researcher. Following a successful connection, the model
-										organism lab will be connected to the clinician scientist and
-										receive $25,000 to seed immediate collaborative experiments.</div>
+									<div class="panel-body"><b>&lt;Insert Description Here&gt;</b></div>
 								</div>
 							</div>
 							<div class="panel panel-default">
@@ -557,7 +516,7 @@
 											match human disease genes to model organism researchers who
 											can study those genes. We recognize that for any given human
 											gene, there is a limited chance that a model organism
-											researcher in Canada is actively studying that specific gene.
+											researcher is actively studying that specific gene.
 											Therefore we need to be able to cast a wider net. On the
 											other hand, we must strike a balance between restricting the
 											genes registered and assuming that every lab can study any
@@ -590,12 +549,12 @@
 										</p>
 
 										<p>Remember that entering genes into the registry is only
-											the first step in the Catalyst Granting process. For a given
+											the first step in the granting process. For a given
 											human gene needing a match, we will first look for
 											registrants who list an ortholog as a Primary (Tier 1) gene.
 											If no match is found, the other Tiers will be searched. If a
 											gene you entered comes up and you are invited to apply for a
-											Catalyst Grant, you will have to provide evidence of your
+											grant, you will have to provide evidence of your
 											readiness to study that gene. Keep that in mind as you select
 											your genes.</p>
 
@@ -635,7 +594,7 @@
 										contribute to the understanding of the identified human
 										disease genes. This might include biochemical assays or assays
 										based on cell lines. New research on human subjects is not
-										considered to be within the scope of ${ SETTINGS["rdp.shortname"]} Catalyst Grant projects.
+										considered to be within the scope of ${ SETTINGS["rdp.shortname"]} grant projects.
 										Do not register human genes merely because they are orthologs
 										of the genes you study in a model organism.</div>
 								</div>
@@ -663,7 +622,7 @@
 										done. Remember that the match will always be to a human gene,
 										so as long as we can identify you though a search of the
 										registry via an ortholog, you will be considered as a
-										potential Catalyst Grant applicant.</div>
+										potential grant applicant.</div>
 								</div>
 							</div>
 							<div class="panel panel-default">
