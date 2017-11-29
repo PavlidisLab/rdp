@@ -126,13 +126,6 @@ public class Settings {
             log.debug( "version.properties not found" );
         }
 
-        try {
-            PropertiesConfiguration pc = ConfigUtils.loadConfig( "geommtx.properties" );
-            config.addConfiguration( pc );
-        } catch ( Exception e ) {
-            // no big deal...hopefully.
-        }
-
         // step through the result and do a final round of variable substitution. FIXME is this needed?
         for ( Iterator<String> it = config.getKeys(); it.hasNext(); ) {
             String key = it.next();
@@ -188,15 +181,44 @@ public class Settings {
     }
 
     /**
-     * @return the configured base url (e.g., http://www.chibi.ubc.ca/rdp/). It will always end in a slash.
+     * @return the configured base url (e.g., http://register.rare-diseases-catalyst-network.ca/). It will always end in a slash.
      */
     public static String getBaseUrl() {
-        String url = getString( "rdp.base.url", "http://register.rare-diseases-catalyst-network.ca/rdp/" );
+        String url = getString( "rdp.baseurl", getHostUrl() + getRootContext() + "/" );
         if ( !url.endsWith( "/" ) ) {
             return url + "/";
         }
         return url;
     }
+    /**
+     * @return host url e.g. http://register.rare-diseases-catalyst-network.ca
+     */
+    public static String getHostUrl() {
+        String host = getString( "rdp.hosturl", "http://register.rare-diseases-catalyst-network.ca" );
+        if ( host.length() > 1 && host.endsWith( "/" ) ) {
+            return host.substring(0, host.length() - 1);
+        }
+        return host;
+    }
+
+    /**
+     * @return root context e.g. /rdp
+     */
+    public static String getRootContext() {
+        String ctx = getString( "rdp.rootcontext", "" );
+        if (ctx.isEmpty() || ctx.equals( "/" ) ) {
+            return "";
+        }
+        if ( !ctx.startsWith( "/" ) ) {
+            ctx = "/" + ctx;
+        }
+        if ( ctx.length() > 1 && ctx.endsWith( "/" ) ) {
+            return ctx.substring(0, ctx.length() - 1);
+        }
+        return ctx;
+    }
+
+
 
     /**
      * @param key
@@ -398,13 +420,6 @@ public class Settings {
      */
     public static Float getFloat( String key, Float defaultValue ) {
         return config.getFloat( key, defaultValue );
-    }
-
-    /**
-     * @return host url e.g. http://www.chibi.ubc.ca
-     */
-    public static String getHostUrl() {
-        return getString( "rdp.hosturl", "http://register.rare-diseases-catalyst-network.ca/" );
     }
 
     /**
