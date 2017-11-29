@@ -73,7 +73,7 @@ public class UserDaoImpl extends DaoBaseImpl<User> implements UserDao {
         HibernateTemplate t = new HibernateTemplate( this.getSessionFactory() );
         t.setAlwaysUseNewSession( true );
         t.setFlushMode( HibernateAccessor.FLUSH_NEVER );
-        List<?> r = t.findByNamedParam( "from User u where u.userName=:userName", "userName", userName );
+        List<?> r = t.findByNamedParam( "from User u where lower(u.userName)=lower(:userName)", "userName", userName );
         if ( r.isEmpty() ) {
             return null;
         } else if ( r.size() > 1 ) {
@@ -111,7 +111,7 @@ public class UserDaoImpl extends DaoBaseImpl<User> implements UserDao {
 
     @Override
     public User findByEmail( final java.lang.String email ) {
-        return this.findByEmail( "from User c where c.email = :email", email );
+        return this.findByEmail( "from User c where lower(c.email) = lower(:email)", email );
     }
 
     @Override

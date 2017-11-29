@@ -59,7 +59,7 @@ public class ResearcherDaoImpl extends DaoBaseImpl<Researcher>implements Researc
     @Override
     public Researcher findByEmail( final String email ) {
         Researcher researcher = null;
-        String hql = "FROM Researcher r WHERE r.contact.email = :email";
+        String hql = "FROM Researcher r WHERE lower(r.contact.email) = lower(:email)";
         Collection<Researcher> results = this.getHibernateTemplate().findByNamedParam( hql, "email", email );
         if ( results.size() > 1 ) {
             throw new org.springframework.dao.InvalidDataAccessResourceUsageException(
@@ -113,7 +113,7 @@ public class ResearcherDaoImpl extends DaoBaseImpl<Researcher>implements Researc
 
     @Override
     public Researcher findByUsername( final String username ) {
-        String hql = "FROM Researcher r WHERE r.contact.userName = :userName";
+        String hql = "FROM Researcher r WHERE lower(r.contact.userName) = lower(:userName)";
         Collection<Researcher> results = this.getHibernateTemplate().findByNamedParam( hql, "userName", username );
         if ( results.size() > 1 ) {
             throw new org.springframework.dao.InvalidDataAccessResourceUsageException(
