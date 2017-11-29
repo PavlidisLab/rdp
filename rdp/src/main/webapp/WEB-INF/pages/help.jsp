@@ -32,7 +32,7 @@
 									role="tabpanel" aria-labelledby="aboutheading1">
 									<div class="panel-body">
 										<div class="panel">
-											<a data-toggle="collapse" href="#aboutcollapseProfile">Fill out profile information » </a>
+											<a data-toggle="collapse" href="#aboutcollapseProfile">Fill out profile information &#187; </a>
 											<div id="aboutcollapseProfile"
 												class="panel-collapse collapse">
 												<div class="panel-body">
@@ -71,7 +71,7 @@
 
 										<div class="panel">
 											<a data-toggle="collapse" href="#aboutcollapsePub">Finding
-												PubMed IDs » </a>
+												PubMed IDs &#187; </a>
 											<div id="aboutcollapsePub" class="panel-collapse collapse">
 												<div class="panel-body">
 													<p>
@@ -127,7 +127,7 @@
 										<div class="panel-group" id="aboutaccordion2-1">
 											<div class="panel">
 												<a data-toggle="collapse" data-parent="#aboutaccordion2-1"
-													href="#aboutcollapse2-1">Add Model Organism » </a>
+													href="#aboutcollapse2-1">Add Model Organism &#187; </a>
 												<div id="aboutcollapse2-1" class="panel-collapse collapse">
 													<div class="panel-body">
 														<p>To add a model organism:</p>
@@ -155,7 +155,7 @@
 											</div>
 											<div class="panel">
 												<a data-toggle="collapse" data-parent="#aboutaccordion2-1"
-													href="#aboutcollapse2-2">Model Organism Manager » </a>
+													href="#aboutcollapse2-2">Model Organism Manager &#187; </a>
 												<div id="aboutcollapse2-2" class="panel-collapse collapse">
 													<div class="panel-body">
 														<p>
@@ -172,7 +172,7 @@
 											</div>
 											<div class="panel">
 												<a data-toggle="collapse" data-parent="#aboutaccordion2-1"
-													href="#aboutcollapse2-3">Adding Genes » </a>
+													href="#aboutcollapse2-3">Adding Genes &#187; </a>
 												<div id="aboutcollapse2-3" class="panel-collapse collapse">
 													<div class="panel-body">
 														<p>The main goal of the registry is to collect an accurate
@@ -207,7 +207,7 @@
 														</ul>
 
 														<div class="panel">
-															<a data-toggle="collapse" href="#aboutcollapseAddGenes">Detailed Instructions » </a>
+															<a data-toggle="collapse" href="#aboutcollapseAddGenes">Detailed Instructions &#187; </a>
 															<div id="aboutcollapseAddGenes"
 																class="panel-collapse collapse">
 																<div class="panel-body">
@@ -264,7 +264,7 @@
 											</div>
 											<div class="panel">
 												<a data-toggle="collapse" data-parent="#aboutaccordion2-1"
-													href="#aboutcollapse2-4">Gene Ontology Terms » </a>
+													href="#aboutcollapse2-4">Gene Ontology Terms &#187; </a>
 												<div id="aboutcollapse2-4" class="panel-collapse collapse">
 													<div class="panel-body">
 														<p>
@@ -278,7 +278,7 @@
 														</p>
 
 														<div class="panel">
-															<a data-toggle="collapse" href="#aboutcollapseGO">Detailed Instructions » </a>
+															<a data-toggle="collapse" href="#aboutcollapseGO">Detailed Instructions &#187; </a>
 															<div id="aboutcollapseGO" class="panel-collapse collapse">
 																<div class="panel-body">
 																	<p>
@@ -362,7 +362,7 @@
 											<div class="panel">
 												<a data-toggle="collapse" data-parent="#aboutaccordion2-1"
 													href="#aboutcollapse2-5">How does the Gene Ontology
-													Term suggestion work? » </a>
+													Term suggestion work? &#187; </a>
 												<div id="aboutcollapse2-5" class="panel-collapse collapse">
 													<div class="panel-body">
 														<p>
