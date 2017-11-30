@@ -11,9 +11,9 @@
 				<div class="col-md-7">
 					<div class="registry-overview">
 						<p>
-							The <b>RDMMN registry</b> collects information on Canadian model
+							The <b>${ SETTINGS["rdp.shortname"]} registry</b> collects information on Canadian model
 							organism researchers and the specific genes they study. The
-							registry is the mechanism by which the RDMM Network will find
+							registry is the mechanism by which the ${ SETTINGS["rdp.shortname"]} will find
 							potential matches of model organism researchers to human rare
 							disease researchers.
 						</p>
@@ -56,7 +56,7 @@
 						</p>
 						<p>If you have any questions or concerns please <a href="#support">Contact Us</a></p>
 						<hr>
-						<p><i>The RDMMN Registry was developed by the <a href="http://www.chibi.ubc.ca/faculty/paul-pavlidis/" target="_blank">Pavlidis lab</a> at UBC</i></p>
+						<p><i>The ${ SETTINGS["rdp.shortname"]} Registry was developed by the <a href="http://www.chibi.ubc.ca/faculty/paul-pavlidis/" target="_blank">Pavlidis lab</a> at UBC</i></p>
 					</div>
 				</div>
 			</div>

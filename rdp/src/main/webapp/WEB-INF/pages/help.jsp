@@ -147,7 +147,7 @@
 														<p>Also see relevant Frequently Asked Questions:</p>
 														<ul>
 														<li><a href="#" onclick='return utility.openAccordian($("#collapse9"))'>What if I study more than one model organism?</a></li>
-														<li><a href="#" onclick='return utility.openAccordian($("#collapse10"))'>Are humans a "model" for the purposes of the RDMMN registry?</a></li>
+														<li><a href="#" onclick='return utility.openAccordian($("#collapse10"))'>Are humans a "model" for the purposes of the ${ SETTINGS["rdp.shortname"]} registry?</a></li>
 														<li><a href="#" onclick='return utility.openAccordian($("#collapse11"))'>What if the organism I study is not listed?</a></li>
 														</ul>
 													</div>
@@ -377,7 +377,7 @@
 															The full process is a little more complicated than this,
 															as it makes use of the structure of the GO hierarchy and
 															several heuristics to provide useful results. <a
-																href="mailto:registry-help@rare-diseases-catalyst-network.ca">Contact
+																href="mailto:${ SETTINGS["rdp.contact.email"]}">Contact
 																us</a> if you want more details.
 														</p>
 													</div>
@@ -407,10 +407,10 @@
 								</div>
 								<div id="collapse1" class="panel-collapse collapse in"
 									role="tabpanel" aria-labelledby="heading1">
-									<div class="panel-body">The RDMMN registry is an online
+									<div class="panel-body">The ${ SETTINGS["rdp.shortname"]} registry is an online
 										registration tool and a database of Canadian model organism
 										researchers and the specific genes they study. The Scientific
-										Advisory Committee uses the RDMMN registry to determine which
+										Advisory Committee uses the ${ SETTINGS["rdp.shortname"]} registry to determine which
 										scientists are doing work relevant to a newly identified human
 										disease gene. Registrants who meet the criteria for a given
 										gene will be invited to apply for a Catalyst Grant.</div>
@@ -422,12 +422,12 @@
 									aria-controls="collapse2" class="panel-heading" role="tab"
 									id="heading2">
 									<h4 class="panel-title">
-										<a href="#"> What is the purpose of the RDMMN registry? </a>
+										<a href="#"> What is the purpose of the ${ SETTINGS["rdp.shortname"]} registry? </a>
 									</h4>
 								</div>
 								<div id="collapse2" class="panel-collapse collapse"
 									role="tabpanel" aria-labelledby="heading2">
-									<div class="panel-body">The purpose of the RDMMN registry
+									<div class="panel-body">The purpose of the ${ SETTINGS["rdp.shortname"]} registry
 										is to collect information about model organism researchers,
 										focusing on genes they are studying. The registry is used by
 										the Scientific Advisory Committee and the Bioinformatics Core
@@ -449,7 +449,7 @@
 									role="tabpanel" aria-labelledby="heading3">
 									<div class="panel-body">All model organism researchers
 										eligible for CIHR funds should register if they want to be
-										considered for a Network Catalyst Grant. (<a href="http://rare-diseases-catalyst-network.ca/register-as-a-model-organism-investigator.html" target="_blank">Read more here</a>)</div>
+										considered for a Network Catalyst Grant. (<a href="${ SETTINGS["rdp.mainsite.url"]}register-as-a-model-organism-investigator.html" target="_blank">Read more here</a>)</div>
 								</div>
 							</div>
 							<div class="panel panel-default">
@@ -625,7 +625,7 @@
 									id="heading10">
 									<h4 class="panel-title">
 										<a href="#"> Are humans a "model" for the purposes of the
-											RDMMN registry? </a>
+											${ SETTINGS["rdp.shortname"]} registry? </a>
 									</h4>
 								</div>
 								<div id="collapse10" class="panel-collapse collapse"
@@ -635,7 +635,7 @@
 										contribute to the understanding of the identified human
 										disease genes. This might include biochemical assays or assays
 										based on cell lines. New research on human subjects is not
-										considered to be within the scope of RDMMN Catalyst Grant projects.
+										considered to be within the scope of ${ SETTINGS["rdp.shortname"]} Catalyst Grant projects.
 										Do not register human genes merely because they are orthologs
 										of the genes you study in a model organism.</div>
 								</div>
@@ -708,7 +708,7 @@
 										discovered). You should register the genes that you can
 										specifically and rapidly study in your laboratory. See <a href="#"
 												onclick='return utility.openAccordian($("#collapse2"))'>What
-										is the purpose of the RDMMN registry</a> and <a href="#"
+										is the purpose of the ${ SETTINGS["rdp.shortname"]} registry</a> and <a href="#"
 												onclick='return utility.openAccordian($("#collapse8"))'>Which genes should
 										I enter into the registry?</a>.</div>
 								</div>

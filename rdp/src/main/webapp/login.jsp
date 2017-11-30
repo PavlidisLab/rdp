@@ -2,7 +2,7 @@
 <html lang="en" class="no-js">
 <head>
 <meta charset="UTF-8" />
-<title>Rare Diseases: Models & Mechanisms Network</title>
+<title>${ SETTINGS["rdp.fullname"]}</title>
 
 <!--[if lte IE 9]>
 <link href="styles/ie-compat.css" rel="stylesheet">
@@ -47,7 +47,7 @@
 	<body>
 		<div class="ie-compat">
 			<div class="ie-compat-header">
-				<h1> <a href="http://www.rare-diseases-catalyst-network.ca/">Rare Diseases: Models & Mechanisms Network</a></h1>
+				<h1> <a href="http://www.rare-diseases-catalyst-network.ca/">${ SETTINGS["rdp.fullname"]}</a></h1>
 			</div>
 			<div>
 			<p>Sorry, this application does not support Internet Explorer versions before 10.0. Please try again with a more modern browser.
@@ -57,7 +57,7 @@
 			<div class="push"></div>
 		</div>
 		<div class="ie-compat-footer">
-			© Copyright 2014. "Rare Diseases: Models & Mechanisms Network" All rights reserved. <a href="mailto:registry-help@rare-diseases-catalyst-network.ca" style="font-size:15px">Contact Support</a>
+			ï¿½ Copyright 2014. "${ SETTINGS["rdp.fullname"]}" All rights reserved. <a href="mailto:registry-help@rare-diseases-catalyst-network.ca" style="font-size:15px">Contact Support</a>
 		</div>
 
 <![endif]-->
@@ -79,8 +79,8 @@
             <div class="modal-content" data-backdrop="static" data-show="true">
                 <div class="modal-header">
                 
-					<h3 class="modal-title text-center"><a href="#signin" data-toggle="tab">Rare Diseases Researcher Registry</a></h3>
-					<h5 class="modal-title text-center">Models & Mechanisms Network</h5>
+					<h3 class="modal-title text-center"><a href="#signin" data-toggle="tab">${ SETTINGS["rdp.fullname"]}</a></h3>
+					<h5 class="modal-title text-center">Researcher Registry</h5>
 	            </div>
                 <div class="modal-body">
                 	<div class="tab-content">
@@ -132,7 +132,7 @@
 
 			    <div class="modal-footer">
 					<div class="col-sm-offset-9 col-sm-3 text-right">
-						<a href="mailto:registry-help@rare-diseases-catalyst-network.ca" style="font-size:15px">Contact Support</a>
+						<a href="mailto:${ SETTINGS["rdp.contact.email"]}" style="font-size:15px">Contact Support</a>
 					</div>
 			    </div>
 

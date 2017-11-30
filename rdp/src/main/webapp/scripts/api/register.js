@@ -154,10 +154,6 @@ $( document ).ready( function() {
       $('#menu a[href="#support"]').trigger('click.metisMenu');
     });
    
-   $('#sidebar-brand-bottom').click(function(){
-      window.open("http://www.rare-diseases-catalyst-network.ca/",'_blank');
-    });
-   
 /*   $('a[href="#profile"]').on('show.bs.tab', function() {
       $('a[href="#profile"]').parent('li').removeClass('active');
       $(this).parent('li').addClass('active');

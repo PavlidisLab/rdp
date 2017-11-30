@@ -294,9 +294,10 @@ public class SignupController extends BaseController {
             model.put( "confirmLink", Settings.getBaseUrl() + "confirmRegistration.html?key=" + u.getSignupToken()
                     + "&username=" + URLEncoder.encode(u.getUsername(), "UTF-8") );
             model.put( "contact", Settings.getString( "rdp.contact.email" ) );
+            model.put( "rdpname", Settings.getString( "rdp.fullname" ) );
 
             String templateName = "accountCreated.vm";
-            sendEmail( u.getUsername(), u.getEmail(), getText( "signup.email.subject", request.getLocale() ),
+            sendEmail( u.getUsername(), u.getEmail(), Settings.getString( "rdp.fullname" ) + " Account Confirmation",
                     templateName, model );
 
             // See if this comes from AjaxRegister.js, if it does don't save confirmation message

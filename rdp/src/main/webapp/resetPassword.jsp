@@ -2,7 +2,7 @@
 <html lang="en" class="no-js">
 <head>
 <meta charset="UTF-8" />
-<title>Rare Diseases: Models & Mechanisms Network</title>
+<title>${ SETTINGS["rdp.fullname"]}</title>
 
 <!-- Bootstrap core CSS -->
 <link href="styles/bootstrap.min.css" rel="stylesheet">
@@ -38,7 +38,7 @@
             data-show="true">
             <div class="modal-content" data-backdrop="static" data-show="true">
 	            <div class="modal-header">
-					<h4 class="modal-title text-center"><a href="${pageContext.request.contextPath}/login.jsp" >Rare Diseases: Models & Mechanisms Network</a></h4>
+					<h4 class="modal-title text-center"><a href="${pageContext.request.contextPath}/login.jsp" >${ SETTINGS["rdp.fullname"]}</a></h4>
 					<h5 class="modal-title text-center">Password Reset</h5>
 	            </div>
                 <div class="modal-body">

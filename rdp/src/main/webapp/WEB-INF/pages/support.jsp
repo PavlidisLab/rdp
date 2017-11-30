@@ -55,7 +55,7 @@
 								</div>
 		                    </form>
 
-						<p><b>Contact Email:</b> <i>registry-help@rare-diseases-catalyst-network.ca</i></p> 
+						<p><b>Contact Email:</b> <i>${ SETTINGS["rdp.contact.email"]}</i></p>
 							
 					</div>
 				</div>

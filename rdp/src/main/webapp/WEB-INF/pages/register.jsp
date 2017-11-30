@@ -3,7 +3,7 @@
 <html lang="en" class="no-js">
 <head>
 <meta charset="UTF-8" />
-<title>Rare Diseases: Models & Mechanisms Network</title>
+<title>${ SETTINGS["rdp.fullname"]}</title>
 
 <!-- Bootstrap core CSS -->
 <link href="styles/bootstrap.min.css" rel="stylesheet">
@@ -90,8 +90,7 @@
 								class="icon-bar"></span> <span class="icon-bar"></span> <span
 								class="icon-bar"></span>
 						</button>
-						<a class="navbar-brand" href="http://www.rare-diseases-catalyst-network.ca/" target="_blank">Rare Diseases:
-							Models & Mechanisms Network</a>
+						<a class="navbar-brand" href="${ SETTINGS["rdp.mainsite.url"]}" target="_blank">${ SETTINGS["rdp.fullname"]}</a>
 					</div>
 
 					<!-- Collect the nav links, forms, and other content for toggling -->
@@ -193,10 +192,12 @@
 
 					</ul>
 				</nav>
-				<div id="sidebar-brand-bottom" class="sidebar-footer">
-					<p>Models &amp; Mechanisms Network</p>
-					<h1>RARE DISEASES</h1>
-				</div>
+				<a href="${ SETTINGS["rdp.mainsite.url"]}" target="_blank">
+					<div id="sidebar-brand-bottom" class="sidebar-footer">
+						<p style="color: #555">Models &amp; Mechanisms Network</p>
+						<h1>RARE DISEASES</h1>
+					</div>
+				</a>
 			</aside>
 
 			<section class="content">
@@ -317,7 +318,7 @@
 	<%@ include file="addTermsModal.jsp"%>
 	<%@ include file="confirmModal.jsp"%>
 	<%@ include file="sessionTimeoutModal.jsp"%>
-	<footer class="footer"> &copy; Copyright 2014. "Rare Diseases: Models & Mechanisms Network" All rights reserved. <a href="#support" class="pull-right">Contact Support</a></footer>
+	<footer class="footer"> &copy; Copyright 2014. "${ SETTINGS["rdp.fullname"]}" All rights reserved. <a href="#support" class="pull-right">Contact Support</a></footer>
 
 
 	<!-- include jQuery, and our script file -->
