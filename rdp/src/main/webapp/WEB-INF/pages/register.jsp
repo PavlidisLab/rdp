@@ -318,7 +318,7 @@
 	<%@ include file="addTermsModal.jsp"%>
 	<%@ include file="confirmModal.jsp"%>
 	<%@ include file="sessionTimeoutModal.jsp"%>
-	<footer class="footer"> &copy; Copyright 2014. "${ SETTINGS["rdp.fullname"]}" All rights reserved. <a href="#support" class="pull-right">Contact Support</a></footer>
+	<footer class="footer"> &copy; Copyright 2017. "${ SETTINGS["rdp.fullname"]}" All rights reserved. <a href="#support" class="pull-right">Contact Support</a></footer>
 
 
 	<!-- include jQuery, and our script file -->
