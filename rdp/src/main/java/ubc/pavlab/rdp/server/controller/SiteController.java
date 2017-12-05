@@ -1,36 +1,12 @@
-/*
- * The RDP project
- * 
- * Copyright (c) 2006 University of British Columbia
- * 
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
 package ubc.pavlab.rdp.server.controller;
 
 import gemma.gsec.authentication.UserDetailsImpl;
 import gemma.gsec.model.User;
 import gemma.gsec.util.JSONUtil;
-
-import java.io.IOException;
-import java.net.URLEncoder;
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.directwebremoting.annotations.RemoteProxy;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -39,23 +15,30 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestMapping;
-
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.commons.CommonsMultipartFile;
 import ubc.pavlab.rdp.server.exception.ValidationException;
 import ubc.pavlab.rdp.server.security.authentication.UserManager;
 import ubc.pavlab.rdp.server.util.Settings;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.net.URLEncoder;
+import java.util.HashMap;
+import java.util.Map;
+
 /**
- * Controller to edit profile of users.
- * 
- * @author pavlidis
- * @author keshav
- * @version $Id: UserFormMultiActionController.java,v 1.22 2014/06/19 21:42:36 ptan Exp $
+ * Created by mjacobson on 05/12/17.
  */
 @Controller
-public class UserFormMultiActionController extends BaseController {
+@RemoteProxy
+public class SiteController extends BaseController {
 
-    public static final int MIN_PASSWORD_LENGTH = 6;
+    private static Log log = LogFactory.getLog( SiteController.class );
 
     @Autowired
     private UserManager userManager;
@@ -63,9 +46,57 @@ public class UserFormMultiActionController extends BaseController {
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
 
+    @RequestMapping(value = {"", "/", "/register.html", "/home.html", "/index.html"})
+    public String showRegister( ModelMap model ) {
+        model.put( "ga_tracker", Settings.getAnalyticsKey() );
+        model.put( "ga_domain", Settings.getAnalyticsDomain() );
+        return "register";
+    }
+
+    @RequestMapping(value = "/contactSupport.html", method = RequestMethod.POST)
+    public String contactSupport( HttpServletRequest request,
+                                  final @RequestParam(required = false) CommonsMultipartFile attachFile ) {
+        try {
+
+            String email = userManager.getCurrentUsername();
+
+            log.info( email + " is attempting to contact support, check debug for more information" );
+
+            // reads form input
+            // final String email = request.getParameter("email");
+            final String name = request.getParameter( "name" );
+            final String message = request.getParameter( "message" );
+
+            String userAgent = request.getHeader( "User-Agent" );
+
+            log.debug( email );
+            log.debug( name );
+            log.debug( message );
+            log.debug( userAgent );
+            log.debug( attachFile );
+
+            String templateName = "contactSupport.vm";
+
+            Map<String, Object> model = new HashMap<>();
+
+            model.put( "name", name );
+            model.put( "email", email );
+            model.put( "userAgent", userAgent );
+            model.put( "message", message );
+            model.put( "boolFile", attachFile != null && !attachFile.getOriginalFilename().equals( "" ) );
+
+            sendSupportEmail( email, "Registry Help - Contact Support", templateName, model, attachFile );
+            return "success";
+        } catch (Exception e) {
+            // throw e;
+            return "error";
+        }
+
+    }
+
     /**
      * Entry point for updates.
-     * 
+     *
      * @param request
      * @param response
      * @throws Exception
@@ -92,7 +123,7 @@ public class UserFormMultiActionController extends BaseController {
 
             userManager.reauthenticate( username, oldPassword );
 
-            UserDetailsImpl user = ( UserDetailsImpl ) userManager.loadUserByUsername( username );
+            UserDetailsImpl user = (UserDetailsImpl) userManager.loadUserByUsername( username );
 
             /*
              * if ( StringUtils.isNotBlank( email ) && !user.getEmail().equals( email ) ) { if ( !email.matches(
@@ -102,14 +133,14 @@ public class UserFormMultiActionController extends BaseController {
              * jsonText ); return; } user.setEmail( email ); changed = true; }
              */
 
-            if ( password.length() >= MIN_PASSWORD_LENGTH ) {
+            if ( password.length() >= SignupController.MIN_PASSWORD_LENGTH ) {
                 if ( !StringUtils.equals( password, passwordConfirm ) ) {
                     throw new RuntimeException( "Passwords do not match." );
                 }
                 String encryptedPassword = passwordEncoder.encode( password );
                 userManager.changePassword( oldPassword, encryptedPassword );
             } else {
-                throw new RuntimeException( "Password must be at least " + MIN_PASSWORD_LENGTH
+                throw new RuntimeException( "Password must be at least " + SignupController.MIN_PASSWORD_LENGTH
                         + " characters in length." );
             }
 
@@ -117,7 +148,7 @@ public class UserFormMultiActionController extends BaseController {
             saveMessage( request, "Changes saved." );
             jsonText = "{\"success\":true, \"message\":\"Changes saved.\"}";
 
-        } catch ( Exception e ) {
+        } catch (Exception e) {
             log.error( e.getLocalizedMessage(), e );
             // jsonText = jsonUtil.getJSONErrorMessage( e );
             jsonText = "{\"success\":false, \"message\":\"" + e.getLocalizedMessage() + "\"}";
@@ -128,66 +159,8 @@ public class UserFormMultiActionController extends BaseController {
     }
 
     /**
-     * AJAX entry point. Loads a user.
-     * 
-     * @param request
-     * @param response
-     */
-    @RequestMapping("/loadUser.html")
-    public void loadUser( HttpServletRequest request, HttpServletResponse response ) {
-
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        boolean isAuthenticated = authentication.isAuthenticated();
-
-        if ( !isAuthenticated ) {
-            log.error( "User not authenticated.  Cannot populate user data." );
-            return;
-        }
-
-        Object o = authentication.getPrincipal();
-        String username = null;
-
-        if ( o instanceof UserDetails ) {
-            username = ( ( UserDetails ) o ).getUsername();
-        } else {
-            username = o.toString();
-        }
-
-        User user = userManager.findByUserName( username );
-
-        JSONUtil jsonUtil = new JSONUtil( request, response );
-
-        String jsonText = null;
-        try {
-
-            if ( user == null ) {
-
-                // this shouldn't happen.
-                jsonText = "{\"success\":false,\"message\":\"No user with name " + username + "\"}";
-            } else {
-                // jsonText = "{\"success\":true, \"data\":{\"username\":" + "\"" + username + "\"" + ",\"email\":" +
-                // "\""
-                // + user.getEmail() + "\"" + "}}";
-                JSONObject json = new JSONObject( user );
-                jsonText = "{\"success\":true, \"data\":" + json.toString() + "}";
-                // log.debug( "Success! json=" + jsonText );
-            }
-
-        } catch ( Exception e ) {
-            jsonText = "{\"success\":false,\"message\":\"" + e.getLocalizedMessage() + "\"}";
-        } finally {
-            try {
-                jsonUtil.writeToResponse( jsonText );
-            } catch ( IOException e ) {
-                e.printStackTrace();
-            }
-        }
-
-    }
-
-    /**
      * Begins the process for user to choose new password without logging in.
-     * 
+     *
      * @param request
      * @param response
      * @throws IOException
@@ -231,7 +204,7 @@ public class UserFormMultiActionController extends BaseController {
 
             Map<String, Object> model = new HashMap<>();
 
-            String name = ( ( ubc.pavlab.rdp.server.model.common.auditAndSecurity.User ) user ).getFirstName();
+            String name = ((ubc.pavlab.rdp.server.model.common.auditAndSecurity.User) user).getFirstName();
             if ( StringUtils.isEmpty( name ) ) {
                 name = username;
             }
@@ -248,7 +221,7 @@ public class UserFormMultiActionController extends BaseController {
 
             jsonText = "{\"success\":true,\"message\":\"" + message + "\"}";
 
-        } catch ( Exception e ) {
+        } catch (Exception e) {
             log.error( e.getLocalizedMessage(), e );
             jsonText = "{\"success\":false,\"message\":\"" + e.getLocalizedMessage() + "\"}";
         } finally {
@@ -258,7 +231,7 @@ public class UserFormMultiActionController extends BaseController {
 
     /**
      * Check token-user against database, changes password if all goes well.
-     * 
+     *
      * @param request
      * @param response
      * @throws IOException
@@ -284,8 +257,8 @@ public class UserFormMultiActionController extends BaseController {
                 throw new ValidationException( "Passwords do not match." );
             }
 
-            if ( password.length() < MIN_PASSWORD_LENGTH ) {
-                throw new ValidationException( "Password must be at least " + MIN_PASSWORD_LENGTH
+            if ( password.length() < SignupController.MIN_PASSWORD_LENGTH ) {
+                throw new ValidationException( "Password must be at least " + SignupController.MIN_PASSWORD_LENGTH
                         + " characters in length" );
             }
 
@@ -311,12 +284,12 @@ public class UserFormMultiActionController extends BaseController {
             json.put( "message", "Password successfully reset for (" + username + ")." );
             jsonText = json.toString();
 
-        } catch ( ValidationException e ) {
+        } catch (ValidationException e) {
             log.info( username + ": " + e.getLocalizedMessage() );
             json.put( "success", false );
             json.put( "message", e.getLocalizedMessage() );
             jsonText = json.toString();
-        } catch ( Exception e ) {
+        } catch (Exception e) {
             log.error( username + ": " + e.getLocalizedMessage(), e );
             json.put( "success", false );
             json.put( "message", e.getLocalizedMessage() );

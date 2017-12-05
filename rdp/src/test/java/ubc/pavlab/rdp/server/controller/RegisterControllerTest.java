@@ -61,9 +61,6 @@ import ubc.pavlab.rdp.testing.BaseSpringContextTest;
 public class RegisterControllerTest extends BaseSpringContextTest {
 
     @Autowired
-    private RegisterController registerController;
-
-    @Autowired
     private ResearcherService researcherService;
 
     @Autowired

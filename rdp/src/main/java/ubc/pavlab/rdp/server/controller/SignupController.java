@@ -18,39 +18,33 @@
  */
 package ubc.pavlab.rdp.server.controller;
 
-import gemma.gsec.authentication.LoginDetailsValueObject;
 import gemma.gsec.authentication.UserDetailsImpl;
 import gemma.gsec.authentication.UserExistsException;
 import gemma.gsec.util.JSONUtil;
-import gemma.gsec.util.SecurityUtil;
-
-import java.net.URLEncoder;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import net.tanesha.recaptcha.ReCaptchaImpl;
 import net.tanesha.recaptcha.ReCaptchaResponse;
-
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-
 import ubc.pavlab.rdp.server.model.Researcher;
 import ubc.pavlab.rdp.server.model.common.auditAndSecurity.User;
 import ubc.pavlab.rdp.server.security.authentication.UserManager;
 import ubc.pavlab.rdp.server.service.ResearcherService;
 import ubc.pavlab.rdp.server.util.Settings;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.net.URLEncoder;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Controller to signup new users. See also the {@see UserListController}.
- * 
+ *
  * @author pavlidis
  * @author keshav
  * @version $Id: SignupController.java,v 1.32 2014/06/19 21:42:36 ptan Exp $
@@ -71,38 +65,9 @@ public class SignupController extends BaseController {
 
     private RecaptchaTester recaptchaTester = new DefaultRecaptchaTester();
 
-    @RequestMapping(value = "/ajaxLoginCheck.html")
-    public void ajaxLoginCheck( HttpServletRequest request, HttpServletResponse response ) throws Exception {
-
-        JSONUtil jsonUtil = new JSONUtil( request, response );
-
-        String jsonText = "{\"success\":false}";
-        String userName = null;
-
-        try {
-
-            if ( userManager.loggedIn() ) {
-                userName = userManager.getCurrentUsername();
-                log.info( userName + " has logged in." );
-                jsonText = "{\"success\":true,\"user\":\"" + userName + "\",\"isAdmin\":\""
-                        + SecurityUtil.isUserAdmin() + "\"}";
-            } else {
-                jsonText = "{\"success\":false}";
-            }
-        } catch ( Exception e ) {
-
-            log.error( e, e );
-            jsonText = jsonUtil.getJSONErrorMessage( e );
-            log.info( jsonText );
-        } finally {
-            jsonUtil.writeToResponse( jsonText );
-        }
-
-    }
-
     /**
      * This is hit when a user clicks on the confirmation link they received by email.
-     * 
+     *
      * @param request
      * @param response
      * @throws Exception
@@ -121,7 +86,7 @@ public class SignupController extends BaseController {
         boolean ok = false;
         try {
             ok = userManager.validateSignupToken( username, key );
-        } catch ( Exception e ) {
+        } catch (Exception e) {
             log.error( e, e );
         }
 
@@ -139,42 +104,8 @@ public class SignupController extends BaseController {
     }
 
     /**
-     * AJAX DWR
-     * 
-     * @return loginDetails
-     */
-    public LoginDetailsValueObject loginCheck() {
-
-        LoginDetailsValueObject ldvo = new LoginDetailsValueObject();
-
-        if ( userManager.loggedIn() ) {
-            ldvo.setUserName( userManager.getCurrentUsername() );
-            ldvo.setLoggedIn( true );
-        } else {
-            ldvo.setLoggedIn( false );
-        }
-
-        return ldvo;
-
-    }
-
-    /**
-     * @param passwordEncoder the passwordEncoder to set
-     */
-    public void setPasswordEncoder( BCryptPasswordEncoder passwordEncoder ) {
-        this.passwordEncoder = passwordEncoder;
-    }
-
-    /**
-     * @param userManager the userManager to set
-     */
-    public void setUserManager( UserManager userManager ) {
-        this.userManager = userManager;
-    }
-
-    /**
      * Used when a user signs themselves up.
-     * 
+     *
      * @param request
      * @param response
      * @throws Exception
@@ -248,7 +179,7 @@ public class SignupController extends BaseController {
             userManager.createUser( u );
 
             Researcher researcher = researcherService.createAsAdmin( new Researcher() );
-            researcher.setContact( ( User ) userManager.findByUserName( username ) );
+            researcher.setContact( (User) userManager.findByUserName( username ) );
             researcherService.updateAsAdmin( researcher );
 
             String msg = sendSignupConfirmationEmail( request, u );
@@ -256,7 +187,7 @@ public class SignupController extends BaseController {
             log.info( "New Signup " + username );
 
             jsonText = "{\"success\":true,\"message\":\"" + msg + "\"}";
-        } catch ( Exception e ) {
+        } catch (Exception e) {
             /*
              * Most common cause: user exists already.
              */
@@ -279,7 +210,7 @@ public class SignupController extends BaseController {
 
     /**
      * Send an email to request signup confirmation.
-     * 
+     *
      * @param request
      * @param u
      */
@@ -292,7 +223,7 @@ public class SignupController extends BaseController {
             // model.put( "username", u.getUsername() );
             model.put( "siteurl", Settings.getBaseUrl() );
             model.put( "confirmLink", Settings.getBaseUrl() + "confirmRegistration.html?key=" + u.getSignupToken()
-                    + "&username=" + URLEncoder.encode(u.getUsername(), "UTF-8") );
+                    + "&username=" + URLEncoder.encode( u.getUsername(), "UTF-8" ) );
             model.put( "contact", Settings.getString( "rdp.contact.email" ) );
             model.put( "rdpname", Settings.getString( "rdp.fullname" ) );
 
@@ -305,14 +236,14 @@ public class SignupController extends BaseController {
 
             if ( ajaxRegisterTrue == null || !ajaxRegisterTrue.equals( "true" ) ) {
                 String defaultMsg = "A confirmation email was sent. Please check your mail and click the link it contains";
-                msg = getText( "signup.email.sent", new Object[] { u.getEmail() }, request.getLocale() );
+                msg = getText( "signup.email.sent", new Object[]{u.getEmail()}, request.getLocale() );
                 if ( msg == null ) {
                     msg = defaultMsg;
                 }
                 this.saveMessage( request, "signup.email.sent", u.getEmail(), defaultMsg );
             }
 
-        } catch ( Exception e ) {
+        } catch (Exception e) {
             msg = "Couldn't send email to " + u.getEmail() + ". " + e.getMessage();
             log.error( msg );
         }
