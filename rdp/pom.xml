@@ -510,8 +510,8 @@
                         <!-- common configuration shared by all executions -->
                         <configuration>
                             <driver>com.mysql.jdbc.Driver</driver>
-                            <username>${rdp.db.build.user}</username>
-                            <password>${rdp.db.build.password}</password>
+                            <username>${rdp.testdb.user}</username>
+                            <password>${rdp.testdb.password}</password>
                             <onError>abort</onError>
                             <autocommit>true</autocommit>
                         </configuration>
@@ -524,8 +524,8 @@
                                 </goals>
                                 <configuration>
                                     <url>${bootstrap.db.url}</url>
-                                    <username>${rdp.db.build.user}</username>
-                                    <password>${rdp.db.build.password}</password>
+                                    <username>${rdp.testdb.user}</username>
+                                    <password>${rdp.testdb.password}</password>
                                     <autocommit>false</autocommit>
                                     <sqlCommand>
 									<![CDATA[
