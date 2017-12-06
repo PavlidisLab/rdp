@@ -9,7 +9,7 @@
         http://www.directwebremoting.org/schema/spring-dwr
     	http://www.directwebremoting.org/schema/spring-dwr-3.0.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
 
-    <context:component-scan base-package="ubc.pavlab.rdp.server" />
+    <context:component-scan base-package="ubc.pavlab.rdp.server.controller" />
     <tx:annotation-driven />
 
     <aop:aspectj-autoproxy />
@@ -21,12 +21,8 @@
     </bean>
 
     <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
-        <property name="prefix">
-            <value>/WEB-INF/pages/</value>
-        </property>
-        <property name="suffix">
-            <value>.jsp</value>
-        </property>
+        <property name="prefix" value="/WEB-INF/pages/"/>
+        <property name="suffix" value=".jsp"/>
     </bean>
 
     <dwr:controller id="dwrController" debug="true">
@@ -36,7 +32,7 @@
     </dwr:controller>
 
     <bean class="org.springframework.web.servlet.handler.SimpleUrlHandlerMapping">
-        <property value="true" name="alwaysUseFullPath"></property>
+        <property value="true" name="alwaysUseFullPath"/>
         <property name="mappings">
             <props>
                 <prop key="/dwr/**/*">dwrController</prop>
