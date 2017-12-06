@@ -19,36 +19,28 @@
 
 package ubc.pavlab.rdp.server.service;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map.Entry;
-import java.util.Set;
-
+import gemma.gsec.model.UserGroup;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import gemma.gsec.model.UserGroup;
 import ubc.pavlab.rdp.server.dao.GeneDao;
 import ubc.pavlab.rdp.server.dao.ResearcherDao;
 import ubc.pavlab.rdp.server.dao.UserDao;
 import ubc.pavlab.rdp.server.dao.UserGroupDao;
-import ubc.pavlab.rdp.server.model.Gene;
-import ubc.pavlab.rdp.server.model.GeneAssociation;
+import ubc.pavlab.rdp.server.model.*;
 import ubc.pavlab.rdp.server.model.GeneAssociation.TierType;
-import ubc.pavlab.rdp.server.model.GeneOntologyTerm;
-import ubc.pavlab.rdp.server.model.Publication;
-import ubc.pavlab.rdp.server.model.Researcher;
 import ubc.pavlab.rdp.server.model.common.auditAndSecurity.User;
+import ubc.pavlab.rdp.server.security.authentication.UserManager;
+
+import java.util.*;
+import java.util.Map.Entry;
 
 /**
  * TODO Document Me
- * 
+ *
  * @author ptan
  * @version $Id$
  */
@@ -77,6 +69,9 @@ public class ResearcherServiceImpl implements ResearcherService {
 
     @Autowired
     GeneDao geneDao;
+
+    @Autowired
+    UserManager userManager;
 
     @Override
     @Transactional
@@ -113,6 +108,11 @@ public class ResearcherServiceImpl implements ResearcherService {
     }
 
     @Override
+    public Researcher loadCurrentResearcher() {
+        return researcherDao.findByUsername( userManager.getCurrentUsername() );
+    }
+
+    @Override
     public void delete( Researcher researcher ) {
 
         /**
@@ -122,7 +122,7 @@ public class ResearcherServiceImpl implements ResearcherService {
             User contact = researcher.getContact();
             for ( UserGroup group : this.userDao.loadGroups( contact ) ) {
                 group.getGroupMembers().remove( contact );
-                this.userGroupDao.update( ( ubc.pavlab.rdp.server.model.common.auditAndSecurity.UserGroup ) group );
+                this.userGroupDao.update( (ubc.pavlab.rdp.server.model.common.auditAndSecurity.UserGroup) group );
             }
 
             researcherDao.remove( researcher );
@@ -136,7 +136,7 @@ public class ResearcherServiceImpl implements ResearcherService {
 
     @Override
     public Collection<Researcher> loadAll() {
-        return ( Collection<Researcher> ) researcherDao.loadAll();
+        return (Collection<Researcher>) researcherDao.loadAll();
     }
 
     @Override
@@ -165,7 +165,7 @@ public class ResearcherServiceImpl implements ResearcherService {
 
         if ( modified ) {
             researcherDao.update( researcher );
-            log.info( "Added " + ( researcher.getGenes().size() - numGenesBefore ) + " genes to Researcher "
+            log.info( "Added " + (researcher.getGenes().size() - numGenesBefore) + " genes to Researcher "
                     + researcher );
         }
 
@@ -199,7 +199,7 @@ public class ResearcherServiceImpl implements ResearcherService {
         researcherDao.update( researcher );
 
         log.info(
-                "Removed " + ( numGenesBefore - researcher.getGenes().size() ) + " genes to Researcher " + researcher );
+                "Removed " + (numGenesBefore - researcher.getGenes().size()) + " genes to Researcher " + researcher );
 
         return modified;
     }

@@ -69,7 +69,7 @@ public class ResearcherController {
 
         try {
             User contact = null;
-            Researcher researcher = researcherService.findByUserName( userManager.getCurrentUsername() );
+            Researcher researcher = researcherService.loadCurrentResearcher();
             if ( researcher == null ) {
                 researcher = researcherService.create( new Researcher() );
                 contact = (User) userManager.getCurrentUser();
@@ -160,14 +160,8 @@ public class ResearcherController {
      */
     @RequestMapping("/loadResearcher.html")
     public void loadUser( HttpServletRequest request, HttpServletResponse response ) throws IOException {
-        String username = userManager.getCurrentUsername();
 
-        /*
-         * Object user = researcherService.findByUserName( username ); if ( user == null ) { user =
-         * userManager.findByUserName( username ); } else { user = researcherService.thaw( ( Researcher ) user ); }
-         */
-
-        Researcher researcher = researcherService.findByUserName( username );
+        Researcher researcher = researcherService.loadCurrentResearcher();
 
         JSONUtil jsonUtil = new JSONUtil( request, response );
 
@@ -177,11 +171,11 @@ public class ResearcherController {
             if ( researcher == null ) {
 
                 // this shouldn't happen.
-                jsonText = "{\"success\":false,\"message\":\"No researcher with name " + username + "\"}";
+                jsonText = "{\"success\":false,\"message\":\"No researcher found\"}";
             } else {
                 // JSONObject json = new JSONObject( user );
                 JSONObject json = researcherService.toJSON( researcher );
-                log.info( "Loaded Researcher from account: (" + username + "). Account contains "
+                log.info( "Loaded Researcher from account: (" + researcher.getContact().getUserName() + "). Account contains "
                         + researcher.getGenes().size() + " Genes." );
                 jsonText = "{\"success\":true, \"data\":" + json.toString() + "}";
                 // log.debug( "Success! json=" + jsonText );
@@ -204,18 +198,17 @@ public class ResearcherController {
         String jsonText = null;
         JSONUtil jsonUtil = new JSONUtil( request, response );
 
-        String username = userManager.getCurrentUsername();
         // Long taxonId = Long.parseLong( request.getParameter( "taxonId" ), 10 );
         String[] genesJSON = request.getParameterValues( "genes[]" );
         String taxonDescriptions = request.getParameter( "taxonDescriptions" );
 
         if ( genesJSON == null ) {
-            log.info( username + ": No genes to save" );
+            log.info( "No genes to save" );
             genesJSON = new String[]{};
         }
 
         try {
-            Researcher researcher = researcherService.findByUserName( username );
+            Researcher researcher = researcherService.loadCurrentResearcher();
 
             // Update Organism Descriptions
             JSONObject jsonDescriptionSet = new JSONObject( taxonDescriptions );
@@ -256,18 +249,17 @@ public class ResearcherController {
         String jsonText = null;
         JSONUtil jsonUtil = new JSONUtil( request, response );
 
-        String username = userManager.getCurrentUsername();
         Long taxonId = Long.parseLong( request.getParameter( "taxonId" ), 10 );
         String[] genesJSON = request.getParameterValues( "genes[]" );
         String taxonDescription = request.getParameter( "taxonDescription" );
 
         if ( genesJSON == null ) {
-            log.info( username + ": No genes to save" );
+            log.info( "No genes to save" );
             genesJSON = new String[]{};
         }
 
         try {
-            Researcher researcher = researcherService.findByUserName( username );
+            Researcher researcher = researcherService.loadCurrentResearcher();
 
             // Update Organism Description
             researcher.updateTaxonDescription( taxonId, taxonDescription.trim() );
@@ -312,9 +304,7 @@ public class ResearcherController {
 
         String jsonText = null;
         try {
-            String username = userManager.getCurrentUsername();
-
-            Researcher researcher = researcherService.findByUserName( username );
+            Researcher researcher = researcherService.loadCurrentResearcher();
 
             Collection<GeneAssociation> geneAssociations = researcher.getGeneAssociations();
 
@@ -349,18 +339,17 @@ public class ResearcherController {
         String jsonText = null;
         JSONUtil jsonUtil = new JSONUtil( request, response );
 
-        String username = userManager.getCurrentUsername();
         Long taxonId = Long.parseLong( request.getParameter( "taxonId" ), 10 );
         String[] GOJSON = request.getParameterValues( "terms[]" );
         String taxonDescription = request.getParameter( "taxonDescription" );
 
         if ( GOJSON == null ) {
-            log.info( username + ": No terms to save" );
+            log.info( "No terms to save" );
             GOJSON = new String[]{};
         }
 
         try {
-            Researcher researcher = researcherService.findByUserName( username );
+            Researcher researcher = researcherService.loadCurrentResearcher();
 
             // Update Organism Description
             researcher.updateTaxonDescription( taxonId, taxonDescription );

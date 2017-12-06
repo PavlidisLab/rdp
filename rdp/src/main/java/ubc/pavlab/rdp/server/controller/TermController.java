@@ -46,9 +46,7 @@ public class TermController {
 
         String jsonText = null;
         try {
-            String username = userManager.getCurrentUsername();
-
-            Researcher researcher = researcherService.findByUserName( username );
+            Researcher researcher = researcherService.loadCurrentResearcher();
 
             String minimumFrequency = request.getParameter( "minimumFrequency" );
             String minimumTermSize = request.getParameter( "minimumTermSize" );
@@ -72,7 +70,7 @@ public class TermController {
                 minTerm = Integer.parseInt( minimumTermSize );
             }
 
-            log.debug( "Loading GO Terms for " + username );
+            log.debug( "Loading GO Terms for " + researcher.getContact().getUserName() );
             Map<GOTerm, Long> goTermsResult = gOService.calculateGoTermFrequency( genes, taxonId, minFreq, minTerm,
                     maxTerm );
             List<GeneOntologyTerm> goTerms = new ArrayList<GeneOntologyTerm>();
@@ -167,9 +165,7 @@ public class TermController {
                 .getParameterValues( "geneOntologyIds[]" ) ) );
         Long taxonId = Long.parseLong( request.getParameter( "taxonId" ), 10 );
         try {
-            String username = userManager.getCurrentUsername();
-
-            Researcher researcher = researcherService.findByUserName( username );
+            Researcher researcher = researcherService.loadCurrentResearcher();
             // Deserialize GO Terms
             JSONObject results = new JSONObject();
             for ( String id : geneOntologyIds ) {
