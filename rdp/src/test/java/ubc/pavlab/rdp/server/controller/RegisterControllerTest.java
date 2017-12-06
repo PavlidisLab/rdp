@@ -32,6 +32,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -165,8 +166,10 @@ public class RegisterControllerTest extends BaseSpringContextTest {
         }
     }
 
+    @Ignore
     @Test
     public void testLoadAllResearchers() throws Exception {
+        /* This Functionality No Longer Exists*/
         Researcher researcher2 = null;
         try {
             int numResearchers = researcherService.loadAll().size();
