@@ -89,7 +89,7 @@ public class ResearcherDaoImpl extends DaoBaseImpl<Researcher>implements Researc
 
     @Override
     public Collection<Researcher> findByLikeSymbol( final Long taxonId, final String symbol ) {
-        String hql = "SELECT r FROM Researcher r INNER JOIN r.geneAssociations ga INNER JOIN ga.pk.gene g WHERE g.taxonId = :taxonId and g.officialSymbol LIKE :symbol";
+        String hql = "SELECT r FROM Researcher r INNER JOIN r.geneAssociations ga INNER JOIN ga.pk.gene g WHERE g.taxon.id = :taxonId and g.officialSymbol LIKE :symbol";
         Collection<Researcher> results = this.getHibernateTemplate().findByNamedParam( hql,
                 new String[] { "taxonId", "symbol" }, new Object[] { taxonId, "%" + symbol + "%" } );
         return results;
@@ -97,7 +97,7 @@ public class ResearcherDaoImpl extends DaoBaseImpl<Researcher>implements Researc
 
     @Override
     public Collection<Researcher> findByLikeSymbol( final Long taxonId, final String symbol, final TierType tier ) {
-        String hql = "SELECT r FROM Researcher r INNER JOIN r.geneAssociations ga INNER JOIN ga.pk.gene g WHERE g.taxonId = :taxonId and g.officialSymbol LIKE :symbol and ga.tier = :tierType";
+        String hql = "SELECT r FROM Researcher r INNER JOIN r.geneAssociations ga INNER JOIN ga.pk.gene g WHERE g.taxon.id = :taxonId and g.officialSymbol LIKE :symbol and ga.tier = :tierType";
         Collection<Researcher> results = this.getHibernateTemplate().findByNamedParam( hql,
                 new String[] { "taxonId", "symbol", "tierType" }, new Object[] { taxonId, "%" + symbol + "%", tier } );
         return results;

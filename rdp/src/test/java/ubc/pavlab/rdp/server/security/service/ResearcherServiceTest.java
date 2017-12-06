@@ -39,6 +39,7 @@ import ubc.pavlab.rdp.server.dao.ResearcherDao;
 import ubc.pavlab.rdp.server.model.Gene;
 import ubc.pavlab.rdp.server.model.GeneAssociation.TierType;
 import ubc.pavlab.rdp.server.model.Researcher;
+import ubc.pavlab.rdp.server.model.Taxon;
 import ubc.pavlab.rdp.server.model.common.auditAndSecurity.User;
 import ubc.pavlab.rdp.server.security.authentication.UserManager;
 import ubc.pavlab.rdp.server.security.authentication.UserService;
@@ -77,14 +78,14 @@ public class ResearcherServiceTest extends BaseSpringContextTest {
     private String username = "foobar";
     private String department = "dept";
 
-    private Long taxonId = 9606L;
-    private Long taxonId2 = 562L;
+    private final static Taxon taxon = new Taxon( 9606L , "Homo sapiens", "human");
+    private final static Taxon taxon2 = new Taxon( 562L , "Escherichia coli", "e. coli");
 
     @Before
     public void setUp() {
         researcher = createResearcher( username, email, department );
-        gene1 = new Gene( 1L, taxonId, "aaa", "gene aa", "alias-a1,alias-a2" );
-        gene2 = new Gene( 7L, taxonId2, "aaafish", "gene aa", "alias-a1,alias-a2" );
+        gene1 = new Gene( 1L, taxon, "aaa", "gene aa", "alias-a1,alias-a2" );
+        gene2 = new Gene( 7L, taxon2, "aaafish", "gene aa", "alias-a1,alias-a2" );
         geneService.create( gene1 );
         geneService.create( gene2 );
 

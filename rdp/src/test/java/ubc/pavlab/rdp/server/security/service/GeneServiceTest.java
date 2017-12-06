@@ -38,6 +38,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import ubc.pavlab.rdp.server.dao.GeneDao;
 import ubc.pavlab.rdp.server.model.Gene;
 import ubc.pavlab.rdp.server.model.GeneAssociation.TierType;
+import ubc.pavlab.rdp.server.model.Taxon;
 import ubc.pavlab.rdp.server.service.GeneService;
 import ubc.pavlab.rdp.testing.BaseSpringContextTest;
 
@@ -50,25 +51,23 @@ import ubc.pavlab.rdp.testing.BaseSpringContextTest;
 public class GeneServiceTest extends BaseSpringContextTest {
 
     @Autowired
-    GeneDao geneDao;
-
-    @Autowired
     GeneService geneService;
 
     private Gene gene;
     private Gene gene2;
     private Gene gene3;
-    private String officialSymbol = "aaa";
-    private Long taxonId = 9606L;
 
+    private String officialSymbol = "aaa";
     private String officialSymbol2 = "aaafish";
-    private Long taxonId2 = 562L;
+
+    private final static Taxon taxon = new Taxon( 9606L , "Homo sapiens", "human");
+    private final static Taxon taxon2 = new Taxon( 562L , "Escherichia coli", "e. coli");
 
     @Before
     public void setUp() {
-        gene = new Gene( 1L, taxonId, officialSymbol, "gene aa", "alias-a1,alias-a2" );
-        gene2 = new Gene( 2L, taxonId2, officialSymbol2, "gene aa", "alias-a1,alias-a2" );
-        gene3 = new Gene( 3L, taxonId2, officialSymbol, "gene aa", "alias-a1,alias-a2" );
+        gene = new Gene( 1L, taxon, officialSymbol, "gene aa", "alias-a1,alias-a2" );
+        gene2 = new Gene( 2L, taxon2, officialSymbol2, "gene aa", "alias-a1,alias-a2" );
+        gene3 = new Gene( 3L, taxon2, officialSymbol, "gene aa", "alias-a1,alias-a2" );
     }
 
     @Test
@@ -77,22 +76,22 @@ public class GeneServiceTest extends BaseSpringContextTest {
         Gene savedGene2 = geneService.create( gene2 );
         Gene savedGene3 = geneService.create( gene3 );
 
-        assertEquals( savedGene.getOfficialSymbol(), geneService.findByOfficialSymbolAndTaxon( officialSymbol, taxonId )
+        assertEquals( savedGene.getOfficialSymbol(), geneService.findByOfficialSymbolAndTaxon( officialSymbol, taxon.getId() )
                 .getOfficialSymbol() );
         assertEquals( savedGene2.getOfficialSymbol(),
-                geneService.findByOfficialSymbolAndTaxon( officialSymbol2, taxonId2 ).getOfficialSymbol() );
+                geneService.findByOfficialSymbolAndTaxon( officialSymbol2, taxon2.getId() ).getOfficialSymbol() );
         assertEquals( savedGene3.getOfficialSymbol(),
-                geneService.findByOfficialSymbolAndTaxon( officialSymbol, taxonId2 ).getOfficialSymbol() );
+                geneService.findByOfficialSymbolAndTaxon( officialSymbol, taxon2.getId() ).getOfficialSymbol() );
 
         assertEquals( 2, geneService.findByOfficialSymbol( officialSymbol ).size() );
         assertEquals( 1, geneService.findByOfficialSymbol( officialSymbol2 ).size() );
 
         geneService.delete( savedGene );
-        assertNull( geneService.findByOfficialSymbolAndTaxon( officialSymbol, taxonId ) );
+        assertNull( geneService.findByOfficialSymbolAndTaxon( officialSymbol, taxon.getId() ) );
         geneService.delete( savedGene2 );
-        assertNull( geneService.findByOfficialSymbolAndTaxon( officialSymbol2, taxonId2 ) );
+        assertNull( geneService.findByOfficialSymbolAndTaxon( officialSymbol2, taxon2.getId() ) );
         geneService.delete( savedGene3 );
-        assertNull( geneService.findByOfficialSymbolAndTaxon( officialSymbol, taxonId2 ) );
+        assertNull( geneService.findByOfficialSymbolAndTaxon( officialSymbol, taxon2.getId() ) );
 
     }
 
@@ -169,23 +168,23 @@ public class GeneServiceTest extends BaseSpringContextTest {
         Gene savedGene2 = geneService.create( gene2 );
         Gene savedGene3 = geneService.create( gene3 );
 
-        Collection<Gene> res = geneService.findByTaxonId( taxonId );
+        Collection<Gene> res = geneService.findByTaxonId( taxon.getId() );
         assertTrue( res.contains( savedGene ) );
 
-        res = geneService.findByTaxonId( taxonId2 );
+        res = geneService.findByTaxonId( taxon2.getId() );
         assertTrue( res.contains( savedGene2 ) );
         assertTrue( res.contains( savedGene3 ) );
 
         geneService.delete( savedGene );
-        res = geneService.findByTaxonId( taxonId );
+        res = geneService.findByTaxonId( taxon.getId() );
         assertNull( res );
 
         geneService.delete( savedGene2 );
-        res = geneService.findByTaxonId( taxonId2 );
+        res = geneService.findByTaxonId( taxon2.getId() );
         assertTrue( res.contains( savedGene3 ) );
 
         geneService.delete( savedGene3 );
-        res = geneService.findByTaxonId( taxonId );
+        res = geneService.findByTaxonId( taxon.getId() );
         assertNull( res );
 
     }

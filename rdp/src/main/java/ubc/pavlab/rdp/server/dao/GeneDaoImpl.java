@@ -83,7 +83,7 @@ public class GeneDaoImpl extends DaoBaseImpl<Gene> implements GeneDao {
     @Override
     @SuppressWarnings("unchecked")
     public Collection<Gene> findByTaxonId( Long taxonId ) {
-        final String queryString = "from Gene g where g.taxonId=:taxonId";
+        final String queryString = "from Gene g where g.taxon.id=:taxonId";
         List<?> results = getHibernateTemplate().findByNamedParam( queryString, new String[] { "taxonId" },
                 new Object[] { taxonId } );
         if ( results.size() == 0 ) {
@@ -97,7 +97,7 @@ public class GeneDaoImpl extends DaoBaseImpl<Gene> implements GeneDao {
     protected Gene handleFindByOfficialSymbol( String symbol, Long taxonId ) {
         // final String queryString =
         // "select distinct g from GeneImpl as g inner join g.taxon t where g.officialSymbol = :symbol and t= :taxon";
-        final String queryString = "from Gene g where g.officialSymbol=:officialSymbol and g.taxonId=:taxonId";
+        final String queryString = "from Gene g where g.officialSymbol=:officialSymbol and g.taxon.id=:taxonId";
         List<?> results = getHibernateTemplate().findByNamedParam( queryString,
                 new String[] { "officialSymbol", "taxonId" }, new Object[] { symbol, taxonId } );
         if ( results.size() == 0 ) {

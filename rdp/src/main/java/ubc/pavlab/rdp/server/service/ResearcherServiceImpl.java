@@ -238,7 +238,7 @@ public class ResearcherServiceImpl implements ResearcherService {
         boolean modified = false;
         for ( Iterator<GeneAssociation> i = researcher.getGeneAssociations().iterator(); i.hasNext(); ) {
             GeneAssociation ga = i.next();
-            if ( tiers.contains( ga.getTier() ) && ga.getGene().getTaxonId().equals( taxonId ) ) {
+            if ( tiers.contains( ga.getTier() ) && ga.getGene().getTaxon().getId().equals( taxonId ) ) {
                 i.remove();
                 modified = true;
             }

@@ -14,10 +14,7 @@
  */
 package ubc.pavlab.rdp.server.model;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 /**
  * See gemma-model/src/main/java/ubic/gemma/model/genome/Gene.java
@@ -33,8 +30,9 @@ public class Gene implements Comparable<Gene> {
     @Column(name = "GeneID")
     private Long id;
 
-    @Column(name = "tax_id")
-    private Long taxonId;
+    @ManyToOne
+    @JoinColumn(name = "tax_id")
+    private Taxon taxon;
 
     @Column(name = "Symbol")
     private String officialSymbol;
@@ -62,7 +60,7 @@ public class Gene implements Comparable<Gene> {
 
     @Override
     public String toString() {
-        return "id=" + id + " symbol=" + officialSymbol + " taxon=" + taxonId + " hashCode=" + hashCode();
+        return "id=" + id + " symbol=" + officialSymbol + " taxon=" + taxon.getId() + " hashCode=" + hashCode();
     }
 
     /*
@@ -102,9 +100,9 @@ public class Gene implements Comparable<Gene> {
         this.officialSymbol = officialSymbol;
     }
 
-    public Gene( Long ncbiGeneId, Long taxonId, String officialSymbol, String officialName, String aliases ) {
+    public Gene( Long ncbiGeneId, Taxon taxon, String officialSymbol, String officialName, String aliases ) {
         this.id = ncbiGeneId;
-        this.taxonId = taxonId;
+        this.taxon = taxon;
         this.officialSymbol = officialSymbol;
         this.officialName = officialName;
         this.aliases = aliases;
@@ -126,12 +124,12 @@ public class Gene implements Comparable<Gene> {
         this.officialName = officialName;
     }
 
-    public Long getTaxonId() {
-        return taxonId;
+    public Taxon getTaxon() {
+        return taxon;
     }
 
-    public void setTaxonId( Long taxonId ) {
-        this.taxonId = taxonId;
+    public void setTaxon( Taxon taxon ) {
+        this.taxon = taxon;
     }
 
     public String getAliases() {

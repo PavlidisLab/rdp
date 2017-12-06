@@ -47,6 +47,10 @@ public class Taxon implements Serializable {
     public Taxon() {
     }
 
+    public Taxon( Long ncbiId ) {
+        this.id = ncbiId;
+    }
+
     public Taxon( Long ncbiId, String scientificName, String commonName ) {
         this.scientificName = scientificName;
         this.commonName = commonName;

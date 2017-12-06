@@ -1,4 +1,4 @@
-<ehcache xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="ehcache.xsd"
+<ehcache xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://ehcache.org/ehcache.xsd"
  updateCheck="true" monitoring="autodetect">
 
  <!-- File for use in non-clustered environments (no terracotta) -->
@@ -37,7 +37,7 @@
     <searchAttribute name="aliases" />
     <searchAttribute name="officialName" />
     <searchAttribute name="officialSymbol"/>
-	<searchAttribute name="taxonId" />
+	<searchAttribute name="taxonId" expression="value.getTaxon().getId()"/>
 	<searchAttribute name="modificationDate" />
    </searchable>
   </cache>

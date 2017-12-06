@@ -280,7 +280,7 @@ public class GeneServiceImpl implements GeneService {
 
         for ( GeneAssociation ga : geneAssociations ) {
             JSONObject geneValuesJson = ga.toJSON();
-            geneValuesJson.put( "taxonCommonName", taxonService.findById( ga.getGene().getTaxonId() ).getCommonName() );
+            geneValuesJson.put( "taxonCommonName", ga.getGene().getTaxon().getCommonName() );
             genesValuesJson.add( geneValuesJson );
         }
 

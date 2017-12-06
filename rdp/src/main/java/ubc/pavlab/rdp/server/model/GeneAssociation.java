@@ -88,7 +88,7 @@ public class GeneAssociation {
         JSONObject jsonObj = new JSONObject();
         Gene gene = this.pk.getGene();
         jsonObj.put( "id", gene.getId() );
-        jsonObj.put( "taxonId", gene.getTaxonId() );
+        jsonObj.put( "taxonId", gene.getTaxon().getId() );
         jsonObj.put( "officialSymbol", gene.getOfficialSymbol() );
         jsonObj.put( "officialName", gene.getOfficialName() );
         jsonObj.put( "aliases", gene.getAliases() );

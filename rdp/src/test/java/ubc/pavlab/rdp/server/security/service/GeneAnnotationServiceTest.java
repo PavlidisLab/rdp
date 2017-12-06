@@ -38,6 +38,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import ubc.pavlab.rdp.server.model.Gene;
 import ubc.pavlab.rdp.server.model.GeneAnnotation;
 import ubc.pavlab.rdp.server.model.GeneOntologyTerm;
+import ubc.pavlab.rdp.server.model.Taxon;
 import ubc.pavlab.rdp.server.service.GeneAnnotationService;
 import ubc.pavlab.rdp.server.service.GeneService;
 import ubc.pavlab.rdp.testing.BaseSpringContextTest;
@@ -56,16 +57,16 @@ public class GeneAnnotationServiceTest extends BaseSpringContextTest {
     @Autowired
     GeneService geneService;
 
-    private Long taxonId = 9606L;
-    private Long taxonId2 = 562L;
+    private final static Taxon taxon = new Taxon( 9606L , "Homo sapiens", "human");
+    private final static Taxon taxon2 = new Taxon( 562L , "Escherichia coli", "e. coli");
     private List<GeneAnnotation> geneAnnotations = new ArrayList<GeneAnnotation>();
     private List<Gene> genes = new ArrayList<Gene>();
 
     @Before
     public void setUp() {
-        genes.add( new Gene( 1L, taxonId, "AAA", "gene aaa", "alias-a1|alias-a2" ) );
-        genes.add( new Gene( 2L, taxonId, "BBB", "gene bbb", "alias-b1|alias-b2" ) );
-        genes.add( new Gene( 3L, taxonId2, "CCC", "gene ccc", "alias-c1|alias-c2" ) );
+        genes.add( new Gene( 1L, taxon, "AAA", "gene aaa", "alias-a1|alias-a2" ) );
+        genes.add( new Gene( 2L, taxon, "BBB", "gene bbb", "alias-b1|alias-b2" ) );
+        genes.add( new Gene( 3L, taxon2, "CCC", "gene ccc", "alias-c1|alias-c2" ) );
         for ( Gene gene : genes ) {
             geneService.create( gene );
         }
@@ -133,16 +134,16 @@ public class GeneAnnotationServiceTest extends BaseSpringContextTest {
 
     @Test
     public void testFindByGeneOntologyIdAndTaxon() {
-        Collection<GeneAnnotation> ga = geneAnnotationService.findByGeneOntologyIdAndTaxon( "GO:0000010", taxonId );
+        Collection<GeneAnnotation> ga = geneAnnotationService.findByGeneOntologyIdAndTaxon( "GO:0000010", taxon.getId() );
         assertEquals( 2, ga.size() );
         assertTrue( ga.contains( geneAnnotations.get( 12 ) ) );
         assertTrue( ga.contains( geneAnnotations.get( 14 ) ) );
 
-        ga = geneAnnotationService.findByGeneOntologyIdAndTaxon( "GO:0000010", taxonId2 );
+        ga = geneAnnotationService.findByGeneOntologyIdAndTaxon( "GO:0000010", taxon2.getId() );
         assertEquals( 1, ga.size() );
         assertTrue( ga.contains( geneAnnotations.get( 9 ) ) );
 
-        ga = geneAnnotationService.findByGeneOntologyIdAndTaxon( "GO:0000006", taxonId );
+        ga = geneAnnotationService.findByGeneOntologyIdAndTaxon( "GO:0000006", taxon.getId() );
         assertEquals( 1, ga.size() );
         assertTrue( ga.contains( geneAnnotations.get( 5 ) ) );
     }

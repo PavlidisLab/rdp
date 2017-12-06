@@ -70,7 +70,7 @@ public class GeneAnnotation {
     public GeneAnnotation( Gene gene, String geneOntologyId, String geneOntologyTerm, String category ) {
         this.pk.setGene( gene );
         this.pk.setGeneOntologyId( geneOntologyId );
-        this.taxonId = gene.getTaxonId();
+        this.taxonId = gene.getTaxon().getId();
         this.geneOntologyTerm = geneOntologyTerm;
         this.category = category;
     }

@@ -268,7 +268,7 @@ public class ResearcherController {
             HashMap<Gene, GeneAssociation.TierType> genes = geneService.quickDeserializeGenes( genesJSON );
             for ( Iterator<Gene> i = genes.keySet().iterator(); i.hasNext(); ) {
                 Gene gene = i.next();
-                if ( !gene.getTaxonId().equals( taxonId ) ) {
+                if ( !gene.getTaxon().getId().equals( taxonId ) ) {
                     i.remove();
                 }
             }

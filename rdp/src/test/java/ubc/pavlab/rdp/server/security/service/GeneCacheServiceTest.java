@@ -19,22 +19,25 @@
 
 package ubc.pavlab.rdp.server.security.service;
 
-import static org.junit.Assert.assertEquals;
-
+import com.google.common.collect.Lists;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
 import ubc.pavlab.rdp.server.model.Gene;
+import ubc.pavlab.rdp.server.model.Taxon;
 import ubc.pavlab.rdp.server.service.GeneCacheService;
 import ubc.pavlab.rdp.server.service.GeneService;
 import ubc.pavlab.rdp.testing.BaseSpringContextTest;
 
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+
 /**
  * TODO Document Me
- * 
+ *
  * @author mjacobson
  * @version $Id$
  */
@@ -46,7 +49,8 @@ public class GeneCacheServiceTest extends BaseSpringContextTest {
     @Autowired
     GeneService geneService;
 
-    private Long[] taxonIds = new Long[] { 9606L, 562L, 10090L, 559292L, 999999999L };
+    private List<Taxon> taxonIds = Lists.newArrayList( new Taxon( 9606L ), new Taxon( 562L ),
+            new Taxon( 10090L ), new Taxon( 559292L ), new Taxon( 999999999L ) );
     private long numberOfGenesPerTaxon = 20;
     private Long totalGenes;
 
@@ -65,12 +69,12 @@ public class GeneCacheServiceTest extends BaseSpringContextTest {
 
     private Long initGeneTable() {
         Long id = 0L;
-        for ( Long taxonId : taxonIds ) {
+        for ( Taxon taxon : taxonIds ) {
             for ( int count = 0; count < numberOfGenesPerTaxon; count++ ) {
                 String officialSymbol = RandomStringUtils.randomAlphabetic( 10 );
                 String officialName = RandomStringUtils.randomAlphabetic( 10 );
                 String aliases = RandomStringUtils.randomAlphabetic( 5 ) + "|" + RandomStringUtils.randomAlphabetic( 5 );
-                Gene gene = new Gene( id++, taxonId, officialSymbol, officialName, aliases );
+                Gene gene = new Gene( id++, taxon, officialSymbol, officialName, aliases );
                 geneService.create( gene );
             }
         }

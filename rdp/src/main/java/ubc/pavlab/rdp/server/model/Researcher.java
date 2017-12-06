@@ -282,7 +282,7 @@ public class Researcher implements Serializable {
         Collection<Gene> genes = new HashSet<Gene>();
         for ( GeneAssociation ga : geneAssociations ) {
             Gene g = ga.getGene();
-            if ( g.getTaxonId().equals( taxonId ) ) {
+            if ( g.getTaxon().getId().equals( taxonId ) ) {
                 genes.add( g );
             }
         }
@@ -294,7 +294,7 @@ public class Researcher implements Serializable {
         Collection<Gene> genes = new HashSet<Gene>();
         for ( GeneAssociation ga : geneAssociations ) {
             Gene g = ga.getGene();
-            if ( g.getTaxonId().equals( taxonId ) && tiers.contains( ga.getTier() ) ) {
+            if ( g.getTaxon().getId().equals( taxonId ) && tiers.contains( ga.getTier() ) ) {
                 genes.add( g );
             }
         }
@@ -306,7 +306,7 @@ public class Researcher implements Serializable {
         Collection<Gene> genes = new HashSet<Gene>();
         for ( GeneAssociation ga : geneAssociations ) {
             Gene g = ga.getGene();
-            if ( g.getTaxonId().equals( taxonId ) && !ga.getTier().equals( TierType.TIER3 ) ) {
+            if ( g.getTaxon().getId().equals( taxonId ) && !ga.getTier().equals( TierType.TIER3 ) ) {
                 genes.add( g );
             }
         }
