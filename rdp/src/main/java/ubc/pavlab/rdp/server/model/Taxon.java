@@ -18,6 +18,8 @@
  */
 package ubc.pavlab.rdp.server.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.io.Serializable;
 
 import javax.persistence.Column;
@@ -42,6 +44,7 @@ public class Taxon implements Serializable {
 
     private String commonName;
 
+    @JsonIgnore
     private boolean isActivated;
 
     public Taxon() {

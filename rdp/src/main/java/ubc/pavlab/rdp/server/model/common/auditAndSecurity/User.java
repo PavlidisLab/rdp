@@ -23,6 +23,7 @@ import javax.persistence.Id;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.json.JSONObject;
 
 /**
@@ -51,29 +52,37 @@ public class User implements gemma.gsec.model.User {
     @Column(name = "LASTNAME")
     private String lastName;
 
+    @JsonIgnore
     @Column(name = "PASSWORD")
     private String password;
 
+    @JsonIgnore
     @Column(name = "PASSWORD_HINT")
     private String passwordHint;
 
+    @JsonIgnore
     @Column(name = "ENABLED")
     private Boolean enabled;
 
+    @JsonIgnore
     @Column(name = "SIGNUP_TOKEN")
     private String signupToken;
 
+    @JsonIgnore
     @Column(name = "SIGNUP_TOKEN_DATESTAMP")
     private java.util.Date signupTokenDatestamp;
 
+    @JsonIgnore
     @Column(name = "NAME")
     private String name;
 
+    @JsonIgnore
     @Column(name = "DESCRIPTION")
     private String description;
 
     // This really should be orphanRemoval = true but a bug related to this HHH-5267
     // was only fixed in Hibernate 4.1.7
+    @JsonIgnore
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "user")
     private PasswordResetToken passwordResetToken;
 
@@ -85,10 +94,10 @@ public class User implements gemma.gsec.model.User {
         if ( this == object ) {
             return true;
         }
-        if ( !( object instanceof User ) ) {
+        if ( !(object instanceof User) ) {
             return false;
         }
-        final User that = ( User ) object;
+        final User that = (User) object;
         if ( this.id == null || that.getId() == null || !this.id.equals( that.getId() ) ) {
             return false;
         }
@@ -169,7 +178,7 @@ public class User implements gemma.gsec.model.User {
     @Override
     public int hashCode() {
         int hashCode = 0;
-        hashCode = 29 * hashCode + ( id == null ? 0 : id.hashCode() );
+        hashCode = 29 * hashCode + (id == null ? 0 : id.hashCode());
 
         return hashCode;
     }

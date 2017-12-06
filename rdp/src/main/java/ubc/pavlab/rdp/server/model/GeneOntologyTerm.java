@@ -27,6 +27,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import ubc.pavlab.rdp.server.service.GOServiceImpl.GOAspect;
 import ubic.basecode.ontology.model.OntologyTerm;
 
@@ -40,6 +41,7 @@ import ubic.basecode.ontology.model.OntologyTerm;
 @Table(name = "GOTERMS")
 public class GeneOntologyTerm {
 
+    @JsonIgnore
     @Id
     @GeneratedValue
     @Column(name = "ID")

@@ -34,6 +34,7 @@ import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -269,6 +270,7 @@ public class Researcher implements Serializable {
         this.publications.remove( publication );
     }
 
+    @JsonIgnore
     public Collection<Gene> getGenes() {
         Collection<Gene> genes = new HashSet<Gene>();
         for ( GeneAssociation g : geneAssociations ) {

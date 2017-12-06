@@ -29,6 +29,8 @@ import javax.persistence.Enumerated;
 import javax.persistence.JoinColumn;
 import javax.persistence.Table;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import org.json.JSONObject;
 
 /**
@@ -55,6 +57,7 @@ public class GeneAssociation {
     @Column
     private TierType tier;
 
+    @JsonIgnore
     public GeneAssociationID getPk() {
         return pk;
     }
@@ -68,10 +71,12 @@ public class GeneAssociation {
         this.tier = tier;
     }
 
+    @JsonUnwrapped
     public Gene getGene() {
         return this.pk.getGene();
     }
 
+    @JsonIgnore
     public Researcher getResearcher() {
         return this.pk.getResearcher();
     }
