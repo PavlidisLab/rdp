@@ -9,5 +9,5 @@ import java.util.List;
 @Repository
 public interface TaxonRepository extends JpaRepository<Taxon, Integer> {
     Taxon findByCommonName(String commonName);
-    List<Taxon> findByActivatedTrue();
+    List<Taxon> findByActiveTrue();
 }

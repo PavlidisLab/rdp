@@ -85,7 +85,8 @@ public class GeneServiceImpl implements GeneService {
 
     @Override
     public List<Gene> autocomplete( String query, Taxon taxon ) {
-        return geneRepository.autocomplete( query, taxon );
+        // Yes, I know... sue me.
+        return geneRepository.autocomplete( query, query, query, query, taxon );
     }
 
     @Override

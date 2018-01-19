@@ -10,7 +10,7 @@ import ubc.pavlab.rdp.model.Gene;
 import ubc.pavlab.rdp.model.GeneAnnotation;
 import ubc.pavlab.rdp.model.GeneOntologyTerm;
 import ubc.pavlab.rdp.model.Taxon;
-import ubc.pavlab.rdp.repositories.GeneAnnotationRepository.AggregateCount;
+import ubc.pavlab.rdp.util.AggregateCount;
 import ubc.pavlab.rdp.util.GOParser;
 import ubc.pavlab.rdp.util.GOTerm;
 import ubc.pavlab.rdp.util.GOTerm.Relationship;
@@ -361,12 +361,12 @@ public class GOServiceImpl implements GOService {
         Collection<GeneAnnotation> annotations = geneAnnotationService.findByGene( gene );
         if ( annotations != null ) {
             for ( GeneAnnotation ga : annotations ) {
-                if ( !termMap.containsKey( ga.getGeneOntologyId() ) ) {
-                    log.warn( "Term " + ga.getGeneOntologyId() + " not found in term map cant add to results" );
+                if ( !termMap.containsKey( ga.getGoId() ) ) {
+                    log.warn( "Term " + ga.getGoId() + " not found in term map cant add to results" );
                     continue;
                 }
 
-                GOTerm term = termMap.get( ga.getGeneOntologyId() );
+                GOTerm term = termMap.get( ga.getGoId() );
 
                 allGOTermSet.add( term );
 
@@ -489,7 +489,7 @@ public class GOServiceImpl implements GOService {
                 continue;
             }
 
-            directTermSizeByTaxon.computeIfAbsent( term, k -> new HashMap<>() ).put( ac.getTaxon(), ac.getCount() );
+            directTermSizeByTaxon.computeIfAbsent( term, k -> new HashMap<>() ).put( ac.getTaxon(), (int) ac.getCount() );
 
             // term.setSize(count, taxonId);
 

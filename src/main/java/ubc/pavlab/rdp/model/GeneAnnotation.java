@@ -1,5 +1,6 @@
 package ubc.pavlab.rdp.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 
 import javax.persistence.*;
@@ -9,17 +10,25 @@ import javax.persistence.*;
  */
 @Entity
 @Table(name = "gene_annotation")
-@AssociationOverrides({ @AssociationOverride(name = "pk.goId", joinColumns = @JoinColumn(name = "go_id")),
-        @AssociationOverride(name = "pk.gene", joinColumns = @JoinColumn(name = "gene_id")) })
 @Getter
 @Setter
 @NoArgsConstructor
-@EqualsAndHashCode(of = {"pk"})
+@EqualsAndHashCode(of = {"goId", "gene"})
 @ToString
 public class GeneAnnotation {
 
-    @EmbeddedId
-    private GeneAnnotationId pk = new GeneAnnotationId();
+    @JsonIgnore
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "id")
+    private int id;
+
+    @Column(name = "go_id")
+    private String goId;
+
+    @ManyToOne
+    @JoinColumn(name = "gene_id")
+    private Gene gene;
 
     @ManyToOne
     @JoinColumn(name = "taxon_id")
@@ -39,16 +48,6 @@ public class GeneAnnotation {
 
     @Column(name = "category", length = 64)
     private String category;
-
-    @Transient
-    public Gene getGene() {
-        return this.pk.getGene();
-    }
-
-    @Transient
-    public String getGeneOntologyId() {
-        return this.pk.getGoId();
-    }
 
 }
 

@@ -22,13 +22,13 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("select u from User u inner join u.geneAssociations ga where ga.pk.gene = :gene")
     Collection<User> findByGene( @Param("gene") Gene gene);
 
-    @Query("select u from User u inner join u.geneAssociations ga where ga.pk.gene = :gene and ga.pk.tier = :tier")
+    @Query("select u from User u inner join u.geneAssociations ga where ga.pk.gene = :gene and ga.tier = :tier")
     Collection<User> findByGene( @Param("gene") Gene gene, @Param("tier") TierType tier );
 
     @Query("select u from User u inner join u.geneAssociations ga where ga.pk.gene.symbol like %:symbol% and ga.pk.gene.taxon = :taxon")
     Collection<User> findByGeneSymbolLike( @Param("symbol") String symbol, @Param("taxon") Taxon taxon );
 
-    @Query("select u from User u inner join u.geneAssociations ga where ga.pk.gene.symbol like %:symbol% and ga.pk.gene.taxon = :taxon and ga.pk.tier = :tier")
+    @Query("select u from User u inner join u.geneAssociations ga where ga.pk.gene.symbol like %:symbol% and ga.pk.gene.taxon = :taxon and ga.tier = :tier")
     Collection<User> findByGeneSymbolLike( @Param("symbol") String symbol, @Param("taxon") Taxon taxon, @Param("tier") TierType tier );
 
 }

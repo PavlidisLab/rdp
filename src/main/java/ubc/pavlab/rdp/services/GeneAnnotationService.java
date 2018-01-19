@@ -4,7 +4,7 @@ import org.springframework.security.access.annotation.Secured;
 import ubc.pavlab.rdp.model.Gene;
 import ubc.pavlab.rdp.model.GeneAnnotation;
 import ubc.pavlab.rdp.model.Taxon;
-import ubc.pavlab.rdp.repositories.GeneAnnotationRepository.AggregateCount;
+import ubc.pavlab.rdp.util.AggregateCount;
 
 import java.util.Collection;
 import java.util.List;

@@ -29,5 +29,5 @@ public class Taxon {
     private String commonName;
 
     @JsonIgnore
-    private boolean isActivated;
+    private boolean active;
 }

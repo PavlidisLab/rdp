@@ -7,7 +7,7 @@ import ubc.pavlab.rdp.model.Gene;
 import ubc.pavlab.rdp.model.GeneAnnotation;
 import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.repositories.GeneAnnotationRepository;
-import ubc.pavlab.rdp.repositories.GeneAnnotationRepository.AggregateCount;
+import ubc.pavlab.rdp.util.AggregateCount;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -37,32 +37,32 @@ public class GeneAnnotationServiceImpl implements GeneAnnotationService {
 
     @Override
     public Collection<GeneAnnotation> findByGeneOntologyId( String geneOntologyId ) {
-        return geneAnnotationRepository.findByPkGoId( geneOntologyId );
+        return geneAnnotationRepository.findByGoId( geneOntologyId );
     }
 
     @Override
     public Collection<GeneAnnotation> findByGeneOntologyIdAndTaxon( String geneOntologyId, Taxon taxon ) {
-        return geneAnnotationRepository.findByPkGoIdAndPkGeneTaxon( geneOntologyId, taxon );
+        return geneAnnotationRepository.findByGoIdAndGeneTaxon( geneOntologyId, taxon );
     }
 
     @Override
     public Collection<GeneAnnotation> findByGene( Gene gene ) {
-        return geneAnnotationRepository.findByPkGene( gene );
+        return geneAnnotationRepository.findByGene( gene );
     }
 
     @Override
     public GeneAnnotation findByGeneAndGeneOntologyId( Gene gene, String geneOntologyId ) {
-        return geneAnnotationRepository.findByPkGoIdAndPkGene( geneOntologyId, gene );
+        return geneAnnotationRepository.findByGoIdAndGene( geneOntologyId, gene );
     }
 
     @Override
     public Integer countGenesForGeneOntologyId( String geneOntologyId ) {
-        return geneAnnotationRepository.countByPkGoId( geneOntologyId );
+        return geneAnnotationRepository.countByGoId( geneOntologyId );
     }
 
     @Override
     public Integer countGenesForGeneOntologyIdAndTaxon( String geneOntologyId, Taxon taxon ) {
-        return geneAnnotationRepository.countByPkGoIdAndPkGeneTaxon( geneOntologyId, taxon );
+        return geneAnnotationRepository.countByGoIdAndGeneTaxon( geneOntologyId, taxon );
     }
 
     @Override
@@ -71,7 +71,7 @@ public class GeneAnnotationServiceImpl implements GeneAnnotationService {
         for ( Iterator<GeneAnnotation> i = genesAnnotations.iterator(); i.hasNext(); ) {
             GeneAnnotation ga = i.next();
             // TODO: This might be slow...
-            Integer count = countGenesForGeneOntologyId( ga.getPk().getGoId() );
+            Integer count = countGenesForGeneOntologyId( ga.getGoId() );
             if ( count > limit ) {
                 i.remove();
             }

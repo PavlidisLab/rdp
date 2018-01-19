@@ -55,7 +55,7 @@ public class UserGeneServiceImpl implements UserGeneService {
     @Override
     public Map<String, Integer> researcherCountByTaxon() {
         Map<String, Integer> countByTaxon = new HashMap<>();
-        for ( Taxon taxon : taxonRepository.findByActivatedTrue() ) {
+        for ( Taxon taxon : taxonRepository.findByActiveTrue() ) {
             countByTaxon.put(taxon.getCommonName(), userGeneRepository.countDistinctUserByPkGeneTaxon( taxon ));
         }
 
