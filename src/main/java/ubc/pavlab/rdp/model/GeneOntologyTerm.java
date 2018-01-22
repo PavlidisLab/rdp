@@ -2,6 +2,7 @@ package ubc.pavlab.rdp.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
+import ubc.pavlab.rdp.util.GOTerm;
 
 import javax.persistence.*;
 
@@ -49,4 +50,11 @@ public class GeneOntologyTerm {
     @Enumerated(EnumType.STRING)
     @Column(name = "aspect")
     private GOAspect aspect;
+
+    public GeneOntologyTerm( GOTerm term ) {
+        this.geneOntologyId = term.getId();
+        this.name = term.getTerm();
+        this.definition = term.getDefinition();
+        this.aspect = GOAspect.valueOf( term.getAspect().toUpperCase() );
+    }
 }

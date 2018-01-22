@@ -8,14 +8,16 @@ import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.util.GOTerm;
 
 import java.util.Collection;
-import java.util.Map;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Created by mjacobson on 17/01/18.
  */
 public interface GOService extends InitializingBean {
-    Map<GOTerm, Long> calculateGoTermFrequency( Collection<Gene> genes, Long taxonId, int minimumFrequency,
-                                                int minimumTermSize, int maximumTermSize );
+    Collection<GeneOntologyTerm> convertTermTypes( Collection<GOTerm> goTerms, Taxon taxon, Set<Gene> genes );
+
+
 
     /**
      * @param entry
@@ -93,13 +95,17 @@ public interface GOService extends InitializingBean {
 
     Collection<Gene> getRelatedGenes( Collection<GeneOntologyTerm> goTerms, Taxon taxon );
 
-    Long computeOverlapFrequency( String id, Collection<Gene> genes );
+    Integer computeOverlapFrequency( GOTerm t, Set<Gene> genes );
 
     void init();
 
     Collection<GOTerm> deserializeGOTerms( String[] GOJSON );
 
+    GOTerm getTerm( String goId );
+
     JSONArray toJSON( Collection<GeneOntologyTerm> goTerms );
 
-    Collection<GOTerm> search( String queryString );
+    List<GOTerm> recommendTerms( Collection<Gene> genes );
+
+    List<GOTerm> search( String queryString );
 }

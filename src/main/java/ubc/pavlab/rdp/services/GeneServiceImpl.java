@@ -13,10 +13,7 @@ import ubc.pavlab.rdp.model.UserGene;
 import ubc.pavlab.rdp.model.UserGene.TierType;
 import ubc.pavlab.rdp.repositories.GeneRepository;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by mjacobson on 17/01/18.
@@ -89,86 +86,19 @@ public class GeneServiceImpl implements GeneService {
         return geneRepository.autocomplete( query, query, query, query, taxon );
     }
 
+
+
     @Override
-    public HashMap<Gene, TierType> deserializeGenes( String[] genesJSON ) {
-        HashMap<Gene, TierType> results = new HashMap<Gene, TierType>();
-        for ( String aGenesJSON : genesJSON ) {
-            JSONObject json = new JSONObject( aGenesJSON );
-            if ( !json.has( "id" ) ) {
-                throw new IllegalArgumentException( "Every gene must have an assigned ID." );
-            }
-            Integer id = json.getInt( "id" );
+    public Map<Gene, TierType> deserializeGenes( Map<Integer, TierType> genesTierMap) {
+        Map<Gene, TierType> results = new HashMap<>();
 
-            if ( id.equals( 0L ) ) {
-                throw new IllegalArgumentException( "Every gene must have an assigned ID." );
-            }
+        Collection<Gene> genes = load( genesTierMap.keySet() );
 
-            Gene geneFound = this.load( id );
-
-            if ( !(geneFound == null) ) {
-                results.put( geneFound, extractTierFromJSON( json ) );
-            } else {
-                // it doesn't exist in database
-                log.warn( "Cannot deserialize gene: " + id );
-            }
+        for ( Gene gene : genes ) {
+            results.put( gene, genesTierMap.get( gene.getId() ) );
         }
 
         return results;
-    }
-
-    @Override
-    public HashMap<Gene, TierType> quickDeserializeGenes( String[] genesJSON ) throws IllegalArgumentException {
-        HashMap<Gene, TierType> results = new HashMap<>();
-        HashMap<Integer, TierType> ids = new HashMap<>();
-        for ( String aGenesJSON : genesJSON ) {
-            JSONObject json = new JSONObject( aGenesJSON );
-            if ( !json.has( "id" ) ) {
-                throw new IllegalArgumentException( "Every gene must have an assigned ID." );
-            }
-            Integer id = json.getInt( "id" );
-
-            if ( id.equals( 0L ) ) {
-                throw new IllegalArgumentException( "Every gene must have an assigned ID." );
-            }
-
-            ids.put( id, extractTierFromJSON( json ) );
-        }
-
-        if ( ids.size() > 0 ) {
-            Collection<Gene> genes = load( ids.keySet() );
-
-            for ( Integer id : ids.keySet() ) {
-                boolean found = false;
-
-                for ( Gene g : genes ) {
-                    if ( id.equals( g.getId() ) ) {
-                        found = true;
-                        results.put( g, ids.get( id ) );
-                        break;
-                    }
-                }
-
-                if ( !found ) {
-                    log.warn( "Cannot deserialize gene: " + id );
-                }
-            }
-        }
-
-        return results;
-    }
-
-    private TierType extractTierFromJSON(JSONObject json) {
-        TierType tier = TierType.UNKNOWN;
-        if ( json.has( "tier" ) ) {
-            try {
-                tier = TierType.valueOf( json.getString( "tier" ) );
-            } catch ( IllegalArgumentException e ) {
-                log.warn( "Invalid tier: (" + json.getString( "tier" ) + ") for gene: " + json.getInt( "id" ) );
-            }
-        } else {
-            log.warn( "Missing tier for gene: " + json.getInt( "id" ) );
-        }
-        return tier;
     }
 
     @Override

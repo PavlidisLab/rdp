@@ -1,4 +1,5 @@
 target/
+application.properties
 !.mvn/wrapper/maven-wrapper.jar
 
 ### STS ###

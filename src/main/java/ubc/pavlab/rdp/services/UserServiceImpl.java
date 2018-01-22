@@ -3,18 +3,22 @@ package ubc.pavlab.rdp.services;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ubc.pavlab.rdp.exception.PasswordResetException;
 import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.UserGene.TierType;
+import ubc.pavlab.rdp.repositories.PasswordResetTokenRepository;
 import ubc.pavlab.rdp.repositories.RoleRepository;
 import ubc.pavlab.rdp.repositories.UserRepository;
+import ubc.pavlab.rdp.util.GOTerm;
 
+import javax.validation.ValidationException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Created by mjacobson on 16/01/18.
@@ -28,6 +32,8 @@ public class UserServiceImpl implements UserService {
     private UserRepository userRepository;
     @Autowired
     private RoleRepository roleRepository;
+    @Autowired
+    private PasswordResetTokenRepository passwordResetTokenRepository;
     @Autowired
     private BCryptPasswordEncoder bCryptPasswordEncoder;
     @Autowired
@@ -57,6 +63,22 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public void changePassword( String oldPassword, String newPassword ) throws BadCredentialsException, ValidationException {
+        User user = findCurrentUser();
+        if ( bCryptPasswordEncoder.matches( oldPassword, user.getPassword() ) ) {
+            if ( newPassword.length() >= 6 ) { //TODO: Tie in with hibernate constraint on User or not necessary?
+
+                user.setPassword( bCryptPasswordEncoder.encode( newPassword ) );
+                update( user );
+            } else {
+                throw new ValidationException( "Password must be a minimum of 6 characters" );
+            }
+        } else {
+            throw new BadCredentialsException( "Password incorrect" );
+        }
+    }
+
+    @Override
     public String getCurrentUserName() {
         return getCurrentEmail();
     }
@@ -70,6 +92,11 @@ public class UserServiceImpl implements UserService {
     @Override
     public User findCurrentUser() {
         return findUserByEmail( getCurrentEmail() );
+    }
+
+    @Override
+    public User findUserById( int id ) {
+        return userRepository.findOne( id );
     }
 
     @Override
@@ -99,7 +126,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Collection<User> findByLikeSymbol( String symbol, Taxon taxon ) {
-        return userRepository.findByGeneSymbolLike( symbol, taxon);
+        return userRepository.findByGeneSymbolLike( symbol, taxon );
     }
 
     @Override
@@ -109,7 +136,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Collection<User> findByLikeName( String nameLike ) {
-        return userRepository.findByNameContainingOrLastNameContaining( nameLike, nameLike );
+        return userRepository.findByProfileNameContainingOrProfileLastNameContaining( nameLike, nameLike );
     }
 
     @Override
@@ -179,6 +206,8 @@ public class UserServiceImpl implements UserService {
 
         Map<Gene, TierType> newGenes = new HashMap<>( genes );
 
+        newGenes.entrySet().removeIf( entries -> !entries.getKey().getTaxon().equals( taxon ) );
+
         removeGenesFromUserByTaxon( user, taxon );
 
         for ( Gene g : calculatedGenesInTaxon( user, taxon ) ) {
@@ -192,25 +221,66 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     @Override
-    public void updateGOTermsInTaxon( User user, Collection<GeneOntologyTerm> goTerms, Taxon taxon ) {
+    public void updateGOTermsInTaxon( User user, Taxon taxon, Collection<GOTerm> goTerms ) {
         removeTermsFromUserByTaxon( user, taxon );
-        for ( GeneOntologyTerm goTerm : goTerms ) {
-            if ( goTerm.getTaxon().equals( taxon ) ) {
-                user.getGoTerms().add( goTerm );
-            } else {
-                log.warn( "Attempting to add term with incorrect taxon. " + taxon + " vs " + goTerm.getTaxon() );
+
+        Set<Gene> genes = user.getGenesByTaxonAndTier( taxon, new HashSet<>( Arrays.asList( TierType.TIER1, TierType.TIER2 ) ) );
+
+        user.getGoTerms().addAll( goService.convertTermTypes( goTerms, taxon, genes ) );
+
+        removeGenesFromUserByTiersAndTaxon( user, taxon, Collections.singleton( TierType.TIER3 ) );
+
+        Map<Gene, TierType> genesToAdd = new HashMap<>();
+        for ( Gene g : calculatedGenesInTaxon( user, taxon ) ) {
+            if ( !genes.contains( g ) ) {
+                genesToAdd.put( g, TierType.TIER3 );
             }
         }
 
-        update( user );
+        addGenesToUser( user, genesToAdd );
     }
 
     @Transactional
     @Override
     public void updatePublications( User user, Collection<Publication> publications ) {
-        user.getPublications().clear();
-        user.getPublications().addAll( publications );
+        user.getProfile().getPublications().clear();
+        user.getProfile().getPublications().addAll( publications );
         update( user );
+    }
+
+    @Transactional
+    @Override
+    public void createPasswordResetTokenForUser( User user, String token ) {
+        PasswordResetToken userToken = new PasswordResetToken();
+        userToken.setUser( user );
+        userToken.updateToken( token );
+        passwordResetTokenRepository.save(userToken);
+    }
+
+    @Override
+    public void changePasswordByResetToken( int userId, String token, String newPassword ) throws PasswordResetException, ValidationException{
+        PasswordResetToken passToken = passwordResetTokenRepository.findByToken(token);
+        if ((passToken == null) || (passToken.getUser().getId() != userId)) {
+            throw new PasswordResetException( "Invalid Token");
+        }
+
+        Calendar cal = Calendar.getInstance();
+        if ((passToken.getExpiryDate()
+                .getTime() - cal.getTime()
+                .getTime()) <= 0) {
+            throw new PasswordResetException( "Expired");
+        }
+
+        if ( newPassword.length() >= 6 ) { //TODO: Tie in with hibernate constraint on User or not necessary?
+
+            // Preauthorize might cause trouble here if implemented, fix by setting manual authentication
+            User user = findUserById( userId );
+
+            user.setPassword( bCryptPasswordEncoder.encode( newPassword ) );
+            update( user );
+        } else {
+            throw new ValidationException( "Password must be a minimum of 6 characters" );
+        }
     }
 
 
@@ -222,21 +292,12 @@ public class UserServiceImpl implements UserService {
         return user.getGeneAssociations().removeIf( ga -> ga.getGene().getTaxon().equals( taxon ) );
     }
 
-    private boolean removeGenesFromUserByTiersAndTaxon( User user, Collection<TierType> tiers, Taxon taxon ) {
+    private boolean removeGenesFromUserByTiersAndTaxon( User user, Taxon taxon, Collection<TierType> tiers ) {
         return user.getGeneAssociations().removeIf( ga -> tiers.contains( ga.getTier() ) && ga.getGene().getTaxon().equals( taxon ) );
     }
 
     private boolean removeTermsFromUserByTaxon( User user, Taxon taxon ) {
         return user.getGoTerms().removeIf( term -> term.getTaxon().equals( taxon ) );
-    }
-
-    private Set<Gene> getUserGenes( User user ) {
-        return user.getGeneAssociations().stream().map( UserGene::getGene ).collect( Collectors.toSet() );
-    }
-
-    private Set<Gene> getUserGenesByTaxon( User user, Taxon taxon ) {
-        return user.getGeneAssociations().stream().map( UserGene::getGene )
-                .filter( gene -> gene.getTaxon().equals( taxon ) ).collect( Collectors.toSet() );
     }
 
 }

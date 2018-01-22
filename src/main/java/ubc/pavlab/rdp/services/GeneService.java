@@ -28,8 +28,8 @@ import ubc.pavlab.rdp.model.UserGene;
 import ubc.pavlab.rdp.model.UserGene.TierType;
 
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by mjacobson on 17/01/18.
@@ -62,9 +62,7 @@ public interface GeneService {
 
     List<Gene> autocomplete( String query, Taxon taxon );
 
-    HashMap<Gene, TierType> deserializeGenes( String[] genesJSON );
-
-    HashMap<Gene, TierType> quickDeserializeGenes( String[] genesJSON ) throws IllegalArgumentException;
+    Map<Gene, TierType> deserializeGenes( Map<Integer, TierType> genes);
 
     @Secured("ADMIN")
     void updateGeneTable( String filePath );

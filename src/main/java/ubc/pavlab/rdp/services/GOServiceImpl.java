@@ -22,6 +22,7 @@ import java.net.URL;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * Created by mjacobson on 17/01/18.
@@ -40,6 +41,8 @@ public class GOServiceImpl implements GOService {
 
     private static Map<GOTerm, Collection<GOTerm>> descendantsCache = new HashMap<>();
 
+    private static int GO_SIZE_LIMIT = 100;
+
     @Autowired
     private GeneAnnotationService geneAnnotationService;
 
@@ -48,29 +51,44 @@ public class GOServiceImpl implements GOService {
         this.init();
     }
 
-    @SuppressWarnings("unchecked")
     @Override
-    public Map<GOTerm, Long> calculateGoTermFrequency( Collection<Gene> genes, Long taxonId, int minimumFrequency,
-                                                       int minimumTermSize, int maximumTermSize ) {
-        Map<GOTerm, Long> frequencyMap = new HashMap<>();
-        for ( Gene g : genes ) {
-            // Collection<OntologyTerm> terms = new HashSet<OntologyTerm>();
-            Collection<GOTerm> directTerms = getGOTerms( g, true, true );
+    public Collection<GeneOntologyTerm> convertTermTypes( Collection<GOTerm> goTerms, Taxon taxon, Set<Gene> genes ) {
+        List<GeneOntologyTerm> newTerms = new ArrayList<>();
+        for ( GOTerm goTerm : goTerms ) {
+            GeneOntologyTerm term = new GeneOntologyTerm( goTerm );
+            if (taxon != null) {
+                term.setTaxon( taxon );
+                term.setSize( goTerm.getSize( taxon ) );
+            } else {
+                term.setSize( goTerm.getSize() );
+            }
 
-            // add all child terms
-            // for ( OntologyTerm term : directTerms ) {
-            // terms.addAll( getAllChildren( term ) );
-            // }
-
-            for ( GOTerm term : directTerms ) {
-                if ( frequencyMap.containsKey( term ) ) {
-                    frequencyMap.put( term, frequencyMap.get( term ) + 1 );
-                } else {
-                    frequencyMap.put( term, 1L );
+            if ( term.getSize() < GO_SIZE_LIMIT ) {
+                if ( genes != null ) {
+                    term.setFrequency( computeOverlapFrequency( goTerm, genes ) );
                 }
+                newTerms.add( term );
             }
 
         }
+        return newTerms;
+    }
+
+    @Override
+    public List<GOTerm> recommendTerms( Collection<Gene> genes ) {
+        return new ArrayList<>( calculateGoTermFrequency( genes, 2, 10, 100 ).keySet() );
+    }
+
+    private LinkedHashMap<GOTerm, Integer> calculateGoTermFrequency( Collection<Gene> genes, int minimumFrequency,
+                                                                     int minimumTermSize, int maximumTermSize ) {
+        Map<GOTerm, Integer> frequencyMap = new HashMap<>();
+        for ( Gene g : genes ) {
+            for ( GOTerm term : getGOTerms( g, true, true ) ) {
+                // Count
+                frequencyMap.merge( term, 1, ( oldValue, one ) -> oldValue + one );
+            }
+        }
+
         log.debug( "Calculate overlaps for each term with propagation done." );
         // Limit by minimum frequency
         if ( minimumFrequency > 0 ) {
@@ -80,15 +98,8 @@ public class GOServiceImpl implements GOService {
 
         // Limit by maximum gene pool size of go terms
         if ( maximumTermSize > 0 && minimumTermSize > 0 ) {
-            for ( Iterator<Map.Entry<GOTerm, Long>> i = frequencyMap.entrySet().iterator(); i.hasNext(); ) {
-                Map.Entry<GOTerm, Long> termEntry = i.next();
-                GOTerm term = termEntry.getKey();
-                // Limit to just a taxon?
-                Integer count = getGeneSize( term );
-                if ( count > maximumTermSize || count < minimumTermSize ) {
-                    i.remove();
-                }
-            }
+            // TODO: Restrict by size in taxon only?
+            frequencyMap.entrySet().removeIf( termEntry -> termEntry.getKey().getSize() < minimumTermSize || termEntry.getKey().getSize() > maximumTermSize );
         }
         log.debug( "Limit by size done." );
 
@@ -97,43 +108,19 @@ public class GOServiceImpl implements GOService {
 
         log.debug( "Reduce redundancy done." );
 
-        frequencyMap = sortByValue( frequencyMap );
-        log.debug( "Sort done." );
-
-        return frequencyMap;
+        return frequencyMap.entrySet().stream()
+                .sorted( Map.Entry.<GOTerm, Integer>comparingByValue().reversed() ).
+                        collect( Collectors.toMap( Map.Entry::getKey, Map.Entry::getValue,
+                                ( e1, e2 ) -> e1, LinkedHashMap::new ) );
     }
 
-    @SuppressWarnings("rawtypes")
-    private Map sortByValue( Map unsortMap ) {
-        return sortByValue( unsortMap, true );
-    }
-
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    private Map sortByValue( Map unsortMap, boolean reverse ) {
-        List list = new LinkedList( unsortMap.entrySet() );
-
-        list.sort( ( o1, o2 ) -> ((Comparable) ((Map.Entry) (o1)).getValue()).compareTo( ((Map.Entry) (o2))
-                .getValue() ) );
-
-        if ( reverse ) {
-            Collections.reverse( list );
-        }
-
-        Map sortedMap = new LinkedHashMap();
-        for ( Object aList : list ) {
-            Map.Entry entry = (Map.Entry) aList;
-            sortedMap.put( entry.getKey(), entry.getValue() );
-        }
-        return sortedMap;
-    }
-
-    private Map<GOTerm, Long> reduceRedundancies( Map<GOTerm, Long> frequencyMap ) {
+    private Map<GOTerm, Integer> reduceRedundancies( Map<GOTerm, Integer> frequencyMap ) {
         // Reduce GO TERM redundancies
         Collection<GOTerm> markedForDeletion = new HashSet<>();
-        Map<GOTerm, Long> fmap = new HashMap<>( frequencyMap );
-        for ( Map.Entry<GOTerm, Long> entry : fmap.entrySet() ) {
+        Map<GOTerm, Integer> fmap = new HashMap<>( frequencyMap );
+        for ( Map.Entry<GOTerm, Integer> entry : fmap.entrySet() ) {
             GOTerm term = entry.getKey();
-            Long frequency = entry.getValue();
+            Integer frequency = entry.getValue();
 
             if ( markedForDeletion.contains( term ) ) {
                 // Skip because a previous step would have taken care of this terms parents anyways
@@ -165,17 +152,17 @@ public class GOServiceImpl implements GOService {
         return fmap;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
-    public Collection<GOTerm> search( String queryString ) {
+    public List<GOTerm> search( String queryString ) {
+        //TODO: Rewrite this whole thing
         if ( queryString == null ) return new ArrayList<>();
 
         // ArrayList<GOTerm> results = new ArrayList<GOTerm>();
-        Map<GOTerm, Long> results = new HashMap<>();
+        Map<GOTerm, Integer> results = new HashMap<>();
         // log.info( "search: " + queryString );
         for ( GOTerm term : termMap.values() ) {
             if ( queryString.equals( term.getId() ) || ("GO:" + queryString).equals( term.getId() ) ) {
-                results.put( term, 1L );
+                results.put( term, 1 );
                 continue;
             }
 
@@ -184,14 +171,14 @@ public class GOServiceImpl implements GOService {
             String m = term.getTerm();
             // Matcher m = r.matcher( term.getTerm() );
             if ( m.matches( pattern ) ) {
-                results.put( term, 2L );
+                results.put( term, 2 );
                 continue;
             }
 
             m = term.getDefinition();
             // m = r.matcher( term.getDefinition() );
             if ( m.matches( pattern ) ) {
-                results.put( term, 3L );
+                results.put( term, 3 );
                 continue;
             }
 
@@ -203,7 +190,7 @@ public class GOServiceImpl implements GOService {
                 // m = r.matcher( term.getTerm() );
 
                 if ( m.matches( pattern ) ) {
-                    results.put( term, 4L );
+                    results.put( term, 4 );
                     break;
                 }
 
@@ -217,7 +204,7 @@ public class GOServiceImpl implements GOService {
                 // m = r.matcher( term.getDefinition() );
                 m = term.getDefinition();
                 if ( m.matches( pattern ) ) {
-                    results.put( term, 5L );
+                    results.put( term, 5 );
                     break;
                 }
 
@@ -228,10 +215,9 @@ public class GOServiceImpl implements GOService {
         // log.info( "search result size " + results.size() );
 
         // Now we have a set of terms with how well they match
-        results = sortByValue( results, false );
-
-        return results.keySet();
-
+        return results.entrySet().stream()
+                .sorted( Map.Entry.comparingByValue() )
+                .map( Map.Entry::getKey ).collect( Collectors.toList() );
     }
 
     @Override
@@ -411,9 +397,8 @@ public class GOServiceImpl implements GOService {
     }
 
     @Override
-    public Long computeOverlapFrequency( String id, Collection<Gene> genes ) {
-        GOTerm t = termMap.get( id );
-        Long frequency = 0L;
+    public Integer computeOverlapFrequency( GOTerm t, Set<Gene> genes ) {
+        Integer frequency = 0;
         for ( Gene g : genes ) {
             Collection<GOTerm> directTerms = getGOTerms( g, true, true );
 
@@ -563,6 +548,11 @@ public class GOServiceImpl implements GOService {
         }
 
         return results;
+    }
+
+    @Override
+    public GOTerm getTerm( String goId ) {
+        return termMap.get( goId );
     }
 
     @Override

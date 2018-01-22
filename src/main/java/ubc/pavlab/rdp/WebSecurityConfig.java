@@ -35,41 +35,46 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     private String rolesQuery;
 
     @Override
-    protected void configure(AuthenticationManagerBuilder auth)
+    protected void configure( AuthenticationManagerBuilder auth )
             throws Exception {
         auth.
                 jdbcAuthentication()
-                .usersByUsernameQuery(usersQuery)
-                .authoritiesByUsernameQuery(rolesQuery)
-                .dataSource(dataSource)
-                .passwordEncoder(bCryptPasswordEncoder);
+                .usersByUsernameQuery( usersQuery )
+                .authoritiesByUsernameQuery( rolesQuery )
+                .dataSource( dataSource )
+                .passwordEncoder( bCryptPasswordEncoder );
     }
 
 
     @Override
-    protected void configure(HttpSecurity http) throws Exception {
+    protected void configure( HttpSecurity http ) throws Exception {
 
         http.
                 authorizeRequests()
-                .antMatchers("/").permitAll()
-                .antMatchers("/login").permitAll()
-                .antMatchers("/registration").permitAll()
-                .antMatchers("/admin/**").hasAuthority("ADMIN").anyRequest()
+                .antMatchers( "/",
+                        "/login",
+                        "/registration",
+                        "/stats",
+                        "/stats.html",
+                        "/forgotPassword",
+                        "/resetPassword",
+                        "/updatePassword").permitAll()
+                .antMatchers( "/admin/**" ).hasAuthority( "ADMIN" ).anyRequest()
                 .authenticated().and().csrf().disable().formLogin()
-                .loginPage("/login").failureUrl("/login?error=true")
-                .defaultSuccessUrl("/admin/home")
-                .usernameParameter("email")
-                .passwordParameter("password")
+                .loginPage( "/login" ).failureUrl( "/login?error=true" )
+                .defaultSuccessUrl( "/admin/home" )
+                .usernameParameter( "email" )
+                .passwordParameter( "password" )
                 .and().logout()
-                .logoutRequestMatcher(new AntPathRequestMatcher("/logout"))
-                .logoutSuccessUrl("/").and().exceptionHandling()
-                .accessDeniedPage("/access-denied");
+                .logoutRequestMatcher( new AntPathRequestMatcher( "/logout" ) )
+                .logoutSuccessUrl( "/login" ).and().exceptionHandling()
+                .accessDeniedPage( "/access-denied" );
     }
 
     @Override
-    public void configure(WebSecurity web) throws Exception {
+    public void configure( WebSecurity web ) throws Exception {
         web
                 .ignoring()
-                .antMatchers("/resources/**", "/static/**", "/css/**", "/js/**", "/images/**");
+                .antMatchers( "/resources/**", "/static/**", "/css/**", "/js/**", "/images/**" );
     }
 }

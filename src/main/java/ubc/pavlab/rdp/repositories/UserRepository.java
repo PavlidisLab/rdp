@@ -12,9 +12,9 @@ import ubc.pavlab.rdp.model.UserGene.TierType;
 import java.util.Collection;
 
 @Repository
-public interface UserRepository extends JpaRepository<User, Long> {
+public interface UserRepository extends JpaRepository<User, Integer> {
     User findByEmail(String email);
-    Collection<User> findByNameContainingOrLastNameContaining( String nameLike, String lastNameLike );
+    Collection<User> findByProfileNameContainingOrProfileLastNameContaining( String nameLike, String lastNameLike );
 
     @Query("select count(distinct user_id) FROM UserGene")
     Integer countWithGenes();

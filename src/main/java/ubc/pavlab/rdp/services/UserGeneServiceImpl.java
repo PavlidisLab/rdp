@@ -21,6 +21,7 @@ package ubc.pavlab.rdp.services;
 
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.model.UserGene.TierType;
 import ubc.pavlab.rdp.repositories.TaxonRepository;
@@ -34,6 +35,7 @@ import java.util.Map;
 /**
  * Created by mjacobson on 17/01/18.
  */
+@Service("userGeneService")
 public class UserGeneServiceImpl implements UserGeneService {
 
     @Autowired
