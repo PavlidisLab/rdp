@@ -1,50 +1,89 @@
 <!DOCTYPE html>
-<html lang="en" xmlns="http://www.w3.org/1999/xhtml"
+<html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:th="http://www.thymeleaf.org">
+
 <head>
-    <title>Registration Form</title>
-    <link rel="stylesheet" type="text/css" th:href="@{/css/login.css}" />
-    <link rel="stylesheet" type="text/css" th:href="@{/css/registration.css}" />
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"/>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-    <script src='https://www.google.com/recaptcha/api.js'></script>
+    <title th:text="${@siteSettings.getFullname()}"></title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+          integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous"/>
+
+    <link rel="stylesheet" type="text/css" th:href="@{/css/login.css}"/>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+            integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+            crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+            integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+            crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+            integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+            crossorigin="anonymous"></script>
 </head>
+
 <body>
-<form th:action="@{/login}" method="get">
-    <button class="btn btn-md btn-warning btn-block" type="Submit">Go To Login Page</button>
-</form>
 
-<div class="container">
-    <img th:src="@{/images/login.jpg}" class="img-responsive center-block" width="300" height="300" alt="Logo" />
-    <form autocomplete="off" action="#" th:action="@{/registration}"
-          th:object="${user}" method="post" class="form-signup"
-          role="form">
-        <h3 class="form-signin-heading">Registration Form</h3>
-        <br/>
+<div class="wrapper d-flex justify-content-center align-items-center">
+    <div class="container">
+        <h4 class="form-signin-heading"><a th:href="@{/login}" th:text="${@siteSettings.getFullname()}"></a></h4>
+        <h6 class="form-signin-subheading">Researcher Registry</h6>
+        <form th:action="@{/registration}" th:object="${user}" method="POST" class="py-3">
+            <div class="form-group row">
+                <div class="offset-1 col-10">
+                    <label th:if="${#fields.hasErrors('profile.name')}" th:errors="*{profile.name}"
+                           class="validation-message"></label>
+                    <input type="text" th:field="*{profile.name}" placeholder="Name" class="form-control"/>
+                </div>
+            </div>
 
-        <label th:if="${#fields.hasErrors('profile.name')}" th:errors="*{profile.name}" class="validation-message"></label>
-        <input type="text" th:field="*{profile.name}" placeholder="Name" class="form-control" />
-        <br/>
+            <div class="form-group row">
+                <div class="offset-1 col-10">
+                    <label th:if="${#fields.hasErrors('profile.lastName')}" th:errors="*{profile.lastName}"
+                           class="validation-message"></label>
+                    <input type="text" th:field="*{profile.lastName}" placeholder="Last Name" class="form-control"/>
+                </div>
+            </div>
 
-        <label	th:if="${#fields.hasErrors('profile.lastName')}" th:errors="*{profile.lastName}" class="validation-message"></label>
-        <input type="text" th:field="*{profile.lastName}" placeholder="Last Name" class="form-control" />
-        <br />
+            <div class="form-group row">
+                <div class="offset-1 col-10">
+                    <input type="text" th:field="*{email}" placeholder="Email" class="form-control"/>
+                    <label th:if="${#fields.hasErrors('email')}" th:errors="*{email}"
+                           class="validation-message"></label>
+                </div>
+            </div>
 
-        <input type="text" th:field="*{email}" placeholder="Email" class="form-control" />
-        <label th:if="${#fields.hasErrors('email')}" th:errors="*{email}" class="validation-message"></label>
-        <br />
+            <div class="form-group row">
+                <div class="offset-1 col-10">
+                    <input type="password" th:field="*{password}" placeholder="Password" class="form-control"/>
+                    <label th:if="${#fields.hasErrors('password')}" th:errors="*{password}"
+                           class="validation-message"></label>
+                </div>
+            </div>
 
-        <input type="password" th:field="*{password}" placeholder="Password" class="form-control" />
-        <label th:if="${#fields.hasErrors('password')}" th:errors="*{password}" class="validation-message"></label>
-        <br />
+            <div class="form-group row" th:if="${param.error}">
+                <div class="offset-1 col-10 text-info text-center" th:text="${message}"></div>
+            </div>
 
-        <button class="btn btn-lg btn-primary btn-block" name="Submit" value="Register User" type="Submit">Register User</button>
+            <div class="form-group row">
+                <div class="offset-1 col-10">
+                    <button class="btn btn-primary btn-block" name="Submit" value="Register User" type="Submit" th:text="Register">Register</button>
+                </div>
+            </div>
 
-        <span th:utext="${message}"></span>
-    </form>
+            <div class="form-group row">
+            </div>
+
+            <div class="form-group row">
+                <div class="col-4 text-left">
+                    <a th:href="@{/login}">Return to login</a>
+                </div>
+                <div class="offset-4 col-4 text-right">
+                    <a th:href="${'mailto:' + @siteSettings.getContactEmail()}">Contact Support</a>
+                </div>
+            </div>
+
+        </form>
+    </div>
 
 </div>
-
 </body>
 </html>

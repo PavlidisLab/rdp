@@ -3,36 +3,69 @@
       xmlns:th="http://www.thymeleaf.org">
 
 <head>
-    <title>Spring Security Tutorial</title>
-    <link rel="stylesheet" type="text/css" th:href="@{/css/login.css}" />
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"/>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <title th:text="${@siteSettings.getFullname()}"></title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+          integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous"/>
+
+    <link rel="stylesheet" type="text/css" th:href="@{/css/login.css}"/>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+            integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+            crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+            integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+            crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+            integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+            crossorigin="anonymous"></script>
 </head>
 
 <body>
-<form th:action="@{/registration}" method="get">
-    <button class="btn btn-md btn-warning btn-block" type="Submit">Go To Registration Page</button>
-</form>
 
-<div class="container">
-    <img th:src="@{/images/login.jpg}" class="img-responsive center-block" width="300" height="300" alt="Logo" />
-    <form th:action="@{/login}" method="POST" class="form-signin">
-        <h3 class="form-signin-heading" th:text="Welcome"></h3>
-        <br/>
+<div class="wrapper d-flex justify-content-center align-items-center">
+    <div class="container">
+        <h4 class="form-signin-heading"><a th:href="@{/login}" th:text="${@siteSettings.getFullname()}"></a></h4>
+        <h6 class="form-signin-subheading">Researcher Registry</h6>
 
-        <input type="text" id="email" name="email"  th:placeholder="Email"
-               class="form-control" /> <br/>
-        <input type="password"  th:placeholder="Password"
-               id="password" name="password" class="form-control" /> <br />
+        <form th:action="@{/login}" method="POST" class="py-3">
+            <div class="form-group row">
+                <div class="offset-1 col-10">
+                <input type="text" id="email" name="email" th:placeholder="Email" class="form-control py-2"/>
+                </div>
+            </div>
+            <div class="form-group row">
+                <div class="offset-1 col-10">
+                <input type="password" th:placeholder="Password" id="password" name="password" class="form-control py-2"/>
+                </div>
+            </div>
+            <div class="form-group row" th:if="${param.error}">
+                <div class="offset-1 col-10 text-danger text-center" th:text="${session[SPRING_SECURITY_LAST_EXCEPTION].message}">
+                    error
+                </div>
+            </div>
 
-        <div align="center" style="font-size: 20; color: #FF1C19; margin-bottom:10px;" th:if="${session[SPRING_SECURITY_LAST_EXCEPTION]}" th:text="${session[SPRING_SECURITY_LAST_EXCEPTION].message}">error</div>
+            <div class="form-group row">
+                <div class="offset-1 col-4">
+                    <button class="btn btn-primary btn-block" name="Submit" value="Login" type="Submit" th:text="Login"></button>
+                </div>
+                <div class="col-5 d-flex align-items-center h100">
+                    <a th:href="@{/forgotPassword}">Forgot Password?</a>
+                </div>
 
-        <button class="btn btn-lg btn-primary btn-block" name="Submit" value="Login" type="Submit" th:text="Login"></button>
-        <div align="center">
-            <a th:href="@{/forgotPassword}">Reset Password</a>
-        </div>
-    </form>
+            </div>
+            <div class="form-group row">
+            </div>
+
+            <div class="form-group row">
+                <div class="col-4 text-left">
+                    <a th:href="@{/registration}">Create Account</a>
+                </div>
+                <div class="offset-4 col-4 text-right">
+                    <a th:href="${'mailto:' + @siteSettings.getContactEmail()}">Contact Support</a>
+                </div>
+            </div>
+        </form>
+    </div>
 
 </div>
 </body>

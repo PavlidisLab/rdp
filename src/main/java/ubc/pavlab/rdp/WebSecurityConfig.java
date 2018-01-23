@@ -1,6 +1,7 @@
 package ubc.pavlab.rdp;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -26,6 +27,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     private BCryptPasswordEncoder bCryptPasswordEncoder;
 
     @Autowired
+    @Qualifier("dataSource")
     private DataSource dataSource;
 
     @Value("${rdp.queries.users-query}")
@@ -59,7 +61,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                         "/stats.html",
                         "/forgotPassword",
                         "/resetPassword",
-                        "/updatePassword").permitAll()
+                        "/updatePassword",
+                        "/access-denied").permitAll()
                 .antMatchers( "/admin/**" ).hasRole( "ADMIN" )
                 .antMatchers( "/" ).hasAnyRole( "ADMIN","USER" ).anyRequest()
                 .authenticated().and().csrf().disable().formLogin()
