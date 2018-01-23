@@ -26,9 +26,8 @@
         <input type="password"  th:placeholder="Password"
                id="password" name="password" class="form-control" /> <br />
 
-        <div align="center" th:if="${param.error}">
-            <p style="font-size: 20; color: #FF1C19;">Email or Password invalid, please verify</p>
-        </div>
+        <div align="center" style="font-size: 20; color: #FF1C19; margin-bottom:10px;" th:if="${session[SPRING_SECURITY_LAST_EXCEPTION]}" th:text="${session[SPRING_SECURITY_LAST_EXCEPTION].message}">error</div>
+
         <button class="btn btn-lg btn-primary btn-block" name="Submit" value="Login" type="Submit" th:text="Login"></button>
         <div align="center">
             <a th:href="@{/forgotPassword}">Reset Password</a>

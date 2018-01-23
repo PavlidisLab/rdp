@@ -51,18 +51,20 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
         http.
                 authorizeRequests()
-                .antMatchers( "/",
+                .antMatchers(
                         "/login",
                         "/registration",
+                        "/registrationConfirm",
                         "/stats",
                         "/stats.html",
                         "/forgotPassword",
                         "/resetPassword",
                         "/updatePassword").permitAll()
-                .antMatchers( "/admin/**" ).hasAuthority( "ADMIN" ).anyRequest()
+                .antMatchers( "/admin/**" ).hasRole( "ADMIN" )
+                .antMatchers( "/" ).hasAnyRole( "ADMIN","USER" ).anyRequest()
                 .authenticated().and().csrf().disable().formLogin()
                 .loginPage( "/login" ).failureUrl( "/login?error=true" )
-                .defaultSuccessUrl( "/admin/home" )
+                .defaultSuccessUrl( "/" )
                 .usernameParameter( "email" )
                 .passwordParameter( "password" )
                 .and().logout()

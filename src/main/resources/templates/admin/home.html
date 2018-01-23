@@ -26,7 +26,7 @@
             <div class="panel-body">
                 <img th:src="@{/images/beer.jpg}" class="img-responsive center-block" width="400" height="400" alt="Beer" />
             </div>
-            <p class="admin-message-text text-center" th:utext="${message}"></p>
+            <p class="admin-message-text text-center" th:if="${message}" th:utext="${message}"></p>
         </div>
     </div>
 

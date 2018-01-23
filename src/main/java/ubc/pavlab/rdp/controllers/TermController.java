@@ -35,9 +35,6 @@ public class TermController {
     public Collection<GeneOntologyTerm> searchTermsByQueryAndTaxon( @PathVariable Integer taxonId, @PathVariable String query ) {
         Taxon taxon = taxonService.findById( taxonId );
 
-        log.info( taxon );
-        log.info(query);
-
         List<GOTerm> results = goService.search( query );
 
         // Only return max 100 hits

@@ -9,12 +9,13 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ubc.pavlab.rdp.exception.PasswordResetException;
+import ubc.pavlab.rdp.exception.TokenException;
 import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.UserGene.TierType;
 import ubc.pavlab.rdp.repositories.PasswordResetTokenRepository;
 import ubc.pavlab.rdp.repositories.RoleRepository;
 import ubc.pavlab.rdp.repositories.UserRepository;
+import ubc.pavlab.rdp.repositories.VerificationTokenRepository;
 import ubc.pavlab.rdp.util.GOTerm;
 
 import javax.validation.ValidationException;
@@ -35,6 +36,8 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private PasswordResetTokenRepository passwordResetTokenRepository;
     @Autowired
+    private VerificationTokenRepository tokenRepository;
+    @Autowired
     private BCryptPasswordEncoder bCryptPasswordEncoder;
     @Autowired
     private GOService goService;
@@ -43,8 +46,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public void create( User user ) {
         user.setPassword( bCryptPasswordEncoder.encode( user.getPassword() ) );
-        user.setActive( 1 ); //TODO activate here?
-        Role userRole = roleRepository.findByRole( "USER" );
+        Role userRole = roleRepository.findByRole( "ROLE_USER" );
 
         user.setRoles( Collections.singleton( userRole ) );
         userRepository.save( user );
@@ -59,6 +61,19 @@ public class UserServiceImpl implements UserService {
     @Transactional
     @Override
     public void delete( User user ) {
+
+        VerificationToken verificationToken = tokenRepository.findByUser( user );
+
+        if ( verificationToken != null ) {
+            tokenRepository.delete( verificationToken );
+        }
+
+        PasswordResetToken passwordToken = passwordResetTokenRepository.findByUser( user );
+
+        if ( passwordToken != null ) {
+            passwordResetTokenRepository.delete( passwordToken );
+        }
+
         userRepository.delete( user );
     }
 
@@ -254,21 +269,22 @@ public class UserServiceImpl implements UserService {
         PasswordResetToken userToken = new PasswordResetToken();
         userToken.setUser( user );
         userToken.updateToken( token );
-        passwordResetTokenRepository.save(userToken);
+        passwordResetTokenRepository.save( userToken );
     }
 
+    @Transactional
     @Override
-    public void changePasswordByResetToken( int userId, String token, String newPassword ) throws PasswordResetException, ValidationException{
-        PasswordResetToken passToken = passwordResetTokenRepository.findByToken(token);
-        if ((passToken == null) || (passToken.getUser().getId() != userId)) {
-            throw new PasswordResetException( "Invalid Token");
+    public void changePasswordByResetToken( int userId, String token, String newPassword ) throws TokenException, ValidationException {
+        PasswordResetToken passToken = passwordResetTokenRepository.findByToken( token );
+        if ( (passToken == null) || (passToken.getUser().getId() != userId) ) {
+            throw new TokenException( "Invalid Token" );
         }
 
         Calendar cal = Calendar.getInstance();
-        if ((passToken.getExpiryDate()
+        if ( (passToken.getExpiryDate()
                 .getTime() - cal.getTime()
-                .getTime()) <= 0) {
-            throw new PasswordResetException( "Expired");
+                .getTime()) <= 0 ) {
+            throw new TokenException( "Expired" );
         }
 
         if ( newPassword.length() >= 6 ) { //TODO: Tie in with hibernate constraint on User or not necessary?
@@ -283,6 +299,34 @@ public class UserServiceImpl implements UserService {
         }
     }
 
+    @Transactional
+    @Override
+    public void createVerificationTokenForUser( User user, String token ) {
+        VerificationToken userToken = new VerificationToken();
+        userToken.setUser( user );
+        userToken.updateToken( token );
+        tokenRepository.save( userToken );
+    }
+
+    @Transactional
+    @Override
+    public void confirmVerificationToken( String token ) {
+        VerificationToken verificationToken = tokenRepository.findByToken( token );
+        if ( verificationToken == null ) {
+            throw new TokenException( "Invalid Token" );
+        }
+
+        Calendar cal = Calendar.getInstance();
+        if ( (verificationToken.getExpiryDate()
+                .getTime() - cal.getTime()
+                .getTime()) <= 0 ) {
+            throw new TokenException( "Expired" );
+        }
+
+        User user = verificationToken.getUser();
+        user.setEnabled( true );
+        update( user );
+    }
 
     private Collection<Gene> calculatedGenesInTaxon( User user, Taxon taxon ) {
         return goService.getRelatedGenes( user.getGoTerms(), taxon );

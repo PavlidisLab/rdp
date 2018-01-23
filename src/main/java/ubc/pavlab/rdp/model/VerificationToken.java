@@ -7,18 +7,18 @@ import java.util.Calendar;
 import java.util.Date;
 
 /**
- * Created by mjacobson on 19/01/18.
+ * Created by mjacobson on 22/01/18.
  */
 @Entity
-@Table(name = "password_reset_token")
+@Table(name = "verification_token")
 @Getter
 @Setter
 @NoArgsConstructor
 @EqualsAndHashCode(of = {"token", "user"})
-@ToString(of = {"token", "expiryDate"})
-public class PasswordResetToken {
+@ToString(of = {"user", "token", "expiryDate"})
+public class VerificationToken {
 
-    public static final int EXPIRATION = 2;
+    public static final int EXPIRATION = 24;
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

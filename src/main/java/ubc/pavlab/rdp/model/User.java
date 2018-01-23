@@ -41,11 +41,11 @@ public class User {
 	@Transient
 	private String password;
 
-	@Column(name = "active")
+	@Column(name = "enabled")
     @JsonIgnore
-	private int active;
+	private boolean enabled;
 
-	@ManyToMany(cascade = CascadeType.ALL)
+	@ManyToMany
 	@JoinTable(name = "user_role", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
     @JsonIgnore
 	private Set<Role> roles = new HashSet<>();
@@ -56,7 +56,7 @@ public class User {
 
 	/* Research related information */
 
-	@ManyToMany(cascade = CascadeType.ALL)
+	@ManyToMany
 	@JoinTable(name = "user_taxon", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "taxon_id"))
 	private Set<Taxon> taxons = new HashSet<>();
 

@@ -65,12 +65,21 @@ public class UserController {
         }
     }
 
+    @RequestMapping(value = "/user/{id}/delete", method = RequestMethod.GET)
+    public String deleteUser( @PathVariable int id ) {
+        User user = userService.findUserById( id );
+        if ( user != null ) {
+            userService.delete( user );
+        }
+        return "Deleted.";
+    }
+
     @RequestMapping(value = "/user/password", method = RequestMethod.POST)
     public String changePassword( HttpServletResponse response, @RequestBody @Valid PasswordChange passwordChange ) {
         try {
             userService.changePassword( passwordChange.oldPassword, passwordChange.newPassword );
-        } catch ( BadCredentialsException e) {
-            response.setStatus( HttpServletResponse.SC_UNAUTHORIZED);
+        } catch (BadCredentialsException e) {
+            response.setStatus( HttpServletResponse.SC_UNAUTHORIZED );
             return e.getMessage();
         }
         return "Saved.";
@@ -78,7 +87,6 @@ public class UserController {
 
     @RequestMapping(value = "/user/profile", method = RequestMethod.POST)
     public String saveProfile( @RequestBody @Valid Profile profile ) {
-        log.info( "/user/profile/save" );
         User user = userService.findCurrentUser();
         user.getProfile().setDepartment( profile.getDepartment() );
         user.getProfile().setDescription( profile.getDescription() );

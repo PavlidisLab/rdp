@@ -16,14 +16,13 @@ import java.util.Map;
  */
 public interface UserService {
 
-    @Secured( "ADMIN" )
     @Transactional
     void create( User user );
 
     @Transactional
     void update( User user );
 
-    @Secured( "ADMIN" )
+    @Secured( "ROLE_ADMIN" )
     @Transactional
     void delete( User user );
 
@@ -79,4 +78,10 @@ public interface UserService {
 
     @Transactional
     void changePasswordByResetToken( int userId, String token, String newPassword );
+
+    @Transactional
+    void createVerificationTokenForUser( User user, String token );
+
+    @Transactional
+    void confirmVerificationToken( String token );
 }

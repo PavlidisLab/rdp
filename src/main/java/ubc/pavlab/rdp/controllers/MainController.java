@@ -9,7 +9,6 @@ import org.apache.commons.logging.LogFactory;
 import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -39,9 +38,6 @@ import java.util.UUID;
 public class MainController {
 
     private static Log log = LogFactory.getLog( MainController.class );
-
-    @Autowired
-    private Environment env;
 
     @Autowired
     private UserService userService;
@@ -85,8 +81,8 @@ public class MainController {
     @RequestMapping(value = {"/"}, method = RequestMethod.GET)
     public ModelAndView index() {
         ModelAndView modelAndView = new ModelAndView();
-        modelAndView.addObject( "ga_tracker", env.getProperty( "ga.tracker" ) );
-        modelAndView.addObject( "ga_domain", env.getProperty( "ga.domain" ) );
+        User user = userService.findCurrentUser();
+        modelAndView.addObject( "user", user );
         modelAndView.setViewName( "admin/home" );
         return modelAndView;
     }
