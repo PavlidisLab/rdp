@@ -14,12 +14,14 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.commons.CommonsMultipartFile;
 import org.springframework.web.servlet.ModelAndView;
+import ubc.pavlab.rdp.exception.TokenException;
 import ubc.pavlab.rdp.exception.UserNotFoundException;
 import ubc.pavlab.rdp.model.User;
 import ubc.pavlab.rdp.services.EmailService;
@@ -29,7 +31,6 @@ import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
-import javax.validation.constraints.AssertTrue;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.UUID;
@@ -68,14 +69,13 @@ public class MainController {
         @NotEmpty(message = "*Please provide a new password")
         String newPassword;
 
-        @Length(min = 6, message = "*Your password must have at least 6 characters")
-        @NotEmpty(message = "*Please confirm your password")
         String passwordConfirm;
 
-        @AssertTrue(message = "Passwords should match")
+
         private boolean isValid() {
             return this.newPassword.equals( this.passwordConfirm );
         }
+
     }
 
     @RequestMapping(value = {"/"}, method = RequestMethod.GET)
@@ -97,9 +97,18 @@ public class MainController {
     @RequestMapping(value = {"/updatePassword"}, method = RequestMethod.GET)
     public ModelAndView changePassword(@RequestParam("id") int id, @RequestParam("token") String token) {
         ModelAndView modelAndView = new ModelAndView();
+
+        try {
+            userService.verifyPasswordResetToken( id, token );
+        } catch (TokenException e) {
+            modelAndView.addObject("error", e.getMessage() );
+        }
+
+
         modelAndView.addObject("userId", id );
         modelAndView.addObject("token", token );
-        modelAndView.addObject("reset", new PasswordReset() );
+
+        modelAndView.addObject("passwordReset", new PasswordReset() );
         modelAndView.setViewName( "updatePassword" );
         return modelAndView;
     }
@@ -143,23 +152,40 @@ public class MainController {
 
     @RequestMapping(value = "/updatePassword", method = RequestMethod.POST)
     public ModelAndView showChangePasswordPage( @RequestParam("id") int id, @RequestParam("token") String token,
-                                          @Valid PasswordReset reset ) {
+                                          @Valid PasswordReset passwordReset, BindingResult bindingResult ) {
+        ModelAndView modelAndView = new ModelAndView();
 
+        if ( !passwordReset.isValid() ) {
+            bindingResult.rejectValue( "passwordConfirm", "error.passwordReset", "Passwords should match" );
+        }
 
-        userService.changePasswordByResetToken( id, token, reset.getNewPassword() );
+        if (bindingResult.hasErrors()) {
+            modelAndView.setViewName( "updatePassword" );
+            modelAndView.addObject("userId", id );
+            modelAndView.addObject("token", token );
+        } else {
+            try {
+                userService.changePasswordByResetToken( id, token, passwordReset.getNewPassword() );
+
+                User user = userService.findUserById( id );
+                Authentication auth = new UsernamePasswordAuthenticationToken(
+                        user, null, Collections.singletonList(
+                        new SimpleGrantedAuthority( "ROLE_USER" ) ) );
+
+                SecurityContextHolder.getContext().setAuthentication( auth );
+
+                modelAndView.setViewName( "admin/home" );
+                modelAndView.addObject( "user", user );
+                modelAndView.addObject( "message", "Password Updated" );
+
+            } catch (TokenException e) {
+                modelAndView.addObject( "message", e.getMessage() );
+                modelAndView.setViewName( "updatePassword" );
+            }
+        }
 
         // Log in
-        User user = userService.findUserById( id );
-        Authentication auth = new UsernamePasswordAuthenticationToken(
-                user, null, Collections.singletonList(
-                new SimpleGrantedAuthority( "ROLE_USER" ) ) );
 
-        SecurityContextHolder.getContext().setAuthentication(auth);
-
-        ModelAndView modelAndView = new ModelAndView();
-        modelAndView.setViewName( "admin/home" );
-        modelAndView.addObject("user", user);
-        modelAndView.addObject("message","Password Updated");
         return modelAndView;
     }
 

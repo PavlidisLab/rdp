@@ -3,6 +3,7 @@ package ubc.pavlab.rdp.services;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.transaction.annotation.Transactional;
+import ubc.pavlab.rdp.exception.TokenException;
 import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.util.GOTerm;
 
@@ -75,6 +76,8 @@ public interface UserService {
 
     @Transactional
     void createPasswordResetTokenForUser( User user, String token );
+
+    void verifyPasswordResetToken( int userId, String token ) throws TokenException;
 
     @Transactional
     void changePasswordByResetToken( int userId, String token, String newPassword );

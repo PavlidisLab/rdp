@@ -93,6 +93,24 @@ public class UserServiceImpl implements UserService {
         }
     }
 
+    @Transactional
+    @Override
+    public void changePasswordByResetToken( int userId, String token, String newPassword ) throws TokenException, ValidationException {
+
+        verifyPasswordResetToken( userId, token );
+
+        if ( newPassword.length() >= 6 ) { //TODO: Tie in with hibernate constraint on User or not necessary?
+
+            // Preauthorize might cause trouble here if implemented, fix by setting manual authentication
+            User user = findUserById( userId );
+
+            user.setPassword( bCryptPasswordEncoder.encode( newPassword ) );
+            update( user );
+        } else {
+            throw new ValidationException( "Password must be a minimum of 6 characters" );
+        }
+    }
+
     @Override
     public String getCurrentUserName() {
         return getCurrentEmail();
@@ -272,9 +290,8 @@ public class UserServiceImpl implements UserService {
         passwordResetTokenRepository.save( userToken );
     }
 
-    @Transactional
     @Override
-    public void changePasswordByResetToken( int userId, String token, String newPassword ) throws TokenException, ValidationException {
+    public void verifyPasswordResetToken( int userId, String token ) throws TokenException {
         PasswordResetToken passToken = passwordResetTokenRepository.findByToken( token );
         if ( (passToken == null) || (passToken.getUser().getId() != userId) ) {
             throw new TokenException( "Invalid Token" );
@@ -285,17 +302,6 @@ public class UserServiceImpl implements UserService {
                 .getTime() - cal.getTime()
                 .getTime()) <= 0 ) {
             throw new TokenException( "Expired" );
-        }
-
-        if ( newPassword.length() >= 6 ) { //TODO: Tie in with hibernate constraint on User or not necessary?
-
-            // Preauthorize might cause trouble here if implemented, fix by setting manual authentication
-            User user = findUserById( userId );
-
-            user.setPassword( bCryptPasswordEncoder.encode( newPassword ) );
-            update( user );
-        } else {
-            throw new ValidationException( "Password must be a minimum of 6 characters" );
         }
     }
 
