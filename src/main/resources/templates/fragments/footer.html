@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+<body>
+<footer class="footer">
+    <div class="text-center">
+        <span class="text-muted" th:text="${'&copy; Copyright 2017. &quot;' + @siteSettings.getFullname() + '&quot; All rights reserved.'}"></span>
+        <span><a class="px-1" th:href="@{/support}" href="/support">Contact Support</a></span>
+    </div>
+</footer>
+</body>
+</html>

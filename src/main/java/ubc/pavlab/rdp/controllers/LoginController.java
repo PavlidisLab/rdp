@@ -88,17 +88,5 @@ public class LoginController {
 
     }
 
-    @RequestMapping(value = "/admin/home", method = RequestMethod.GET)
-    public ModelAndView home() {
-        ModelAndView modelAndView = new ModelAndView();
-
-        User user = userService.findCurrentUser();
-
-        modelAndView.addObject( "user", user );
-        modelAndView.addObject( "message", "Content Available Only for Users with Admin Role" );
-        modelAndView.setViewName( "admin/home" );
-        return modelAndView;
-    }
-
 
 }

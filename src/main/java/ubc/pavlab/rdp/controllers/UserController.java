@@ -94,14 +94,10 @@ public class UserController {
         user.getProfile().setName( profile.getName() );
         user.getProfile().setOrganization( profile.getOrganization() );
         user.getProfile().setPhone( profile.getPhone() );
-
-        user.getProfile().getPublications().clear();
-        if ( profile.getPublications() != null ) {
-            user.getProfile().getPublications().addAll( profile.getPublications() );
-        }
         user.getProfile().setWebsite( profile.getWebsite() );
 
-        userService.update( user );
+        userService.updatePublications( user, profile.getPublications() );
+
         return "Saved.";
     }
 

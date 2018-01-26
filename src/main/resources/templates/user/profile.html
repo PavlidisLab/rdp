@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title th:text="${@siteSettings.getFullname()}"></title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+          integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous"/>
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/open-iconic/1.1.1/font/css/open-iconic-bootstrap.min.css"/>
+
+
+    <link rel="stylesheet" type="text/css" th:href="@{/css/common.css}"/>
+    <link rel="stylesheet" type="text/css" th:href="@{/css/profile.css}"/>
+
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"
+            integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+            crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+            integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+            crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+            integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+            crossorigin="anonymous"></script>
+
+    <script th:src="@{/js/profile.js}"></script>
+
+</head>
+
+<body>
+<div th:replace="fragments/header">...</div>
+<div class="container p-4">
+
+    <div th:replace="fragments/title :: title(title='My Account', subtitle='User Profile')" th:remove="tag">...</div>
+
+
+
+    <div class="main-content p-4">
+        <div class="row justify-content-center success-row" style="display: none;">
+            <div class="col my-3">
+                <div class="alert alert-success alert-dismissible fade show" role="alert">Profile Saved!
+                    <button type="button" class="close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="row justify-content-center error-row" style="display: none;">
+            <div class="col my-3">
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">Error Saving Profile!
+                    <button type="button" class="close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col my-3">
+                <div class="card basic-info">
+                    <div class="card-header">
+                        <div class="d-flex align-items-center">
+                            <h3 class="mb-0">Basic Information</h3>
+                        </div>
+                    </div>
+                    <table class="table mb-0">
+                        <tr class="edit-container">
+                            <td style="width: 120px;"><span class="text-muted">First Name</span></td>
+                            <td class="data-edit"><i class="editable"/><span th:text="${user.profile.name}"
+                                                                             th:remove="tag"></span></td>
+                        </tr>
+                        <tr class="edit-container">
+                            <td><span class="text-muted">Last Name</span></td>
+                            <td class="data-edit"><i class="editable"/><span th:text="${user.profile.lastName}"
+                                                                             th:remove="tag"></span></td>
+                        </tr>
+                        <tr class="edit-container">
+                            <td><span class="text-muted">Organization</span></td>
+                            <td class="data-edit"><i class="editable"/><span th:text="${user.profile.organization}"
+                                                                             th:remove="tag"></span></td>
+                        </tr>
+                        <tr class="edit-container">
+                            <td><span class="text-muted">Department</span></td>
+                            <td class="data-edit"><i class="editable"/><span th:text="${user.profile.department}"
+                                                                             th:remove="tag"></span></td>
+                        </tr>
+                        <tr class="edit-container">
+                            <td><span class="text-muted">Website</span></td>
+                            <td class="data-edit"><i class="editable"/><span th:text="${user.profile.website}"
+                                                                             th:remove="tag"></span></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="col my-3">
+                <div class="card contact-info">
+                    <div class="card-header">
+                        <h3 class="mb-0">Contact Information</h3>
+                    </div>
+                    <table class="table mb-0">
+                        <tr>
+                            <td style="width: 120px;"><span class="text-muted">Email</span></td>
+                            <td><span th:text="${user.email}" th:remove="tag"></span></td>
+                        </tr>
+                        <tr class="edit-container">
+                            <td><span class="text-muted">Phone</span></td>
+                            <td class="data-edit"><i class="editable"/><span th:text="${user.profile.phone}"
+                                                                             th:remove="tag"></span></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="w-100"></div>
+
+            <div class="col my-3">
+                <div class="card research-info edit-container">
+                    <div class="card-header d-flex align-items-center">
+                        <i class="editable"/>
+                        <h3 class="mb-0 d-inline-block">Research Description</h3>
+                    </div>
+                    <div class="p-2 data-edit" style="height: 80px;">
+                        <span th:text="${user.profile.description}" th:remove="tag"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="w-100"></div>
+
+            <div class="col my-3">
+                <div class="card publication-info">
+                    <div class="card-header">
+                        <h3 class="mb-0">Publications</h3>
+                    </div>
+                    <table class="table mb-0">
+                        <thead class=".thead-light">
+                        <tr>
+                            <th scope="col">PubMed</th>
+                            <th scope="col">Title</th>
+                        </tr>
+                        </thead>
+                        <th:block th:each="pub : ${user.profile.publications}">
+                            <tr>
+                                <td><i class="delete-row"/><span th:text="${pub.pmid}" th:remove="tag"></span></td>
+                                <td><a th:href="${pub.url}" target="_blank" th:text="${pub.title}"></a></td>
+                            </tr>
+                        </th:block>
+                        <tfoot>
+                        <tr>
+                            <td colspan="2">
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <div class="input-group-text text-success add-row">+</div>
+                                    </div>
+                                    <input type="text" class="form-control" placeholder="PubMed Id"/>
+                                </div>
+                            </td>
+                        </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="row justify-content-center">
+            <div class="col-4 my-3">
+                <button type="button" class="btn btn-primary btn-lg btn-block save-profile">Save</button>
+            </div>
+        </div>
+    </div>
+
+</div>
+<div th:replace="fragments/footer" th:remove="tag">...</div>
+</body>
+</html>

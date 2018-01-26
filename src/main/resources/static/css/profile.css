@@ -1,0 +1,9 @@
+.section {
+    width: 600px;
+    margin-bottom: 15px;
+}
+
+.pubmed-error:before {
+    content: "Issue obtaining metadata.";
+    color: red;
+}

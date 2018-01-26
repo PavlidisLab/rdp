@@ -275,8 +275,8 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     @Override
-    public void updatePublications( User user, Collection<Publication> publications ) {
-        user.getProfile().getPublications().clear();
+    public void updatePublications( User user, Set<Publication> publications ) {
+        user.getProfile().getPublications().retainAll( publications );
         user.getProfile().getPublications().addAll( publications );
         update( user );
     }

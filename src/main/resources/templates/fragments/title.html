@@ -1,0 +1,10 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+<body>
+<div class="title d-flex align-items-center mb-4" th:fragment="title (title,subtitle)" th:assert="${!#strings.isEmpty(title) and !#strings.isEmpty(subtitle)}">
+    <h1 class="d-inline-block border-right pr-3 mr-3 mb-0" th:text="${title}">...</h1>
+    <small th:text="${subtitle}">...</small>
+</div>
+</body>
+</html>

@@ -11,6 +11,7 @@ import javax.validation.ValidationException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Created by mjacobson on 16/01/18.
@@ -72,7 +73,7 @@ public interface UserService {
     void updateGOTermsInTaxon( User user, Taxon taxon, Collection<GOTerm> goTerms);
 
     @Transactional
-    void updatePublications( User user, Collection<Publication> publications );
+    void updatePublications( User user, Set<Publication> publications );
 
     @Transactional
     void createPasswordResetTokenForUser( User user, String token );

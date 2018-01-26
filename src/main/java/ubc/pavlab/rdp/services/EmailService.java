@@ -5,7 +5,7 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.commons.CommonsMultipartFile;
+import org.springframework.web.multipart.MultipartFile;
 import ubc.pavlab.rdp.model.PasswordResetToken;
 import ubc.pavlab.rdp.model.User;
 import ubc.pavlab.rdp.settings.SiteSettings;
@@ -26,7 +26,7 @@ public class EmailService {
     @Autowired
     private JavaMailSender emailSender;
 
-    public void sendSimpleMessage( String subject, String content, String to ) {
+    private void sendSimpleMessage( String subject, String content, String to ) {
 
         SimpleMailMessage email = new SimpleMailMessage();
 
@@ -39,26 +39,29 @@ public class EmailService {
 
     }
 
-    public void sendMessage( String subject, String content, String to, CommonsMultipartFile attachment ) throws MessagingException {
+    private void sendMessage( String subject, String content, String to, MultipartFile attachment ) throws MessagingException {
 
-        MimeMessage message = emailSender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper( message, true );
+        if ( attachment == null ) {
+            sendSimpleMessage( subject, content, to );
+        } else {
 
-        helper.setSubject( subject );
-        helper.setText( content );
-        helper.setTo( to );
-        helper.setFrom( siteSettings.getAdminEmail() );
+            MimeMessage message = emailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper( message, true );
 
-        if ( attachment != null ) {
+            helper.setSubject( subject );
+            helper.setText( content );
+            helper.setTo( to );
+            helper.setFrom( siteSettings.getAdminEmail() );
+
             helper.addAttachment( attachment.getOriginalFilename(), attachment );
-        }
 
-        emailSender.send( message );
+            emailSender.send( message );
+        }
 
     }
 
     public void sendSupportMessage( String message, String name, User user, HttpServletRequest request,
-                                    CommonsMultipartFile attachment ) throws MessagingException {
+                                    MultipartFile attachment ) throws MessagingException {
         String content =
                 "Name: " + name + "\r\n" +
                         "Email: " + user.getEmail() + "\r\n" +

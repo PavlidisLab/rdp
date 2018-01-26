@@ -1,0 +1,92 @@
+html {
+    position: relative;
+    min-height: 100%;
+    font-size: 14px;
+}
+
+body {
+    /* Margin bottom by footer height */
+    margin-bottom: 60px;
+}
+
+div.brand > p {
+    color: lightgrey;
+    margin-bottom: 2px;
+    font-size: 9px;
+}
+
+div.brand > h1 {
+    color: #333333;
+    font-family: 'Open Sans', sans-serif;
+    letter-spacing: 1px;
+    font-size: 18px;
+}
+
+.footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 60px;
+    line-height: 60px;
+    background-color: #f5f5f5;
+}
+
+.editbtn {
+    cursor: pointer;
+}
+
+[contenteditable="true"] {
+    outline: rgb(241, 132, 88) auto 5px;
+}
+
+.editable {
+    pointer-events: none;
+}
+
+.editable:before {
+    position: relative;
+    top: 1px;
+    margin-right: 5px;
+    cursor: pointer;
+    display: inline-block;
+    speak: none;
+    font-family: Icons;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    color: orange;
+    content: '\e02f';
+    pointer-events: all;
+}
+
+.saveable:before {
+    color: limegreen;
+    content: '\e033';
+}
+
+.delete-row {
+    pointer-events: none;
+}
+
+.delete-row:before {
+    position: relative;
+    margin-right: 5px;
+    cursor: pointer;
+    display: inline-block;
+    speak: none;
+    font-family: Icons;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    color: red;
+    content: '\e0db';
+    pointer-events: all;
+}
+
+.add-row {
+    cursor: pointer;
+}
