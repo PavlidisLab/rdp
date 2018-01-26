@@ -6,6 +6,8 @@
     <title th:text="${@siteSettings.getFullname()}"></title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
           integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous"/>
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/open-iconic/1.1.1/font/css/open-iconic-bootstrap.min.css"/>
 
     <link rel="stylesheet" type="text/css" th:href="@{/css/common.css}"/>
 
@@ -40,11 +42,11 @@
             study, for one or more model organisms ("<a th:href="@{/user/model}" href="/user/model">Model Organisms</a>"). Obtaining a correct and comprehensive list of
             genes is of key interest. In order to assist registrants in this
             regard we devised a three-tier gene model described. Please
-            <a th:href="@{/user/help#modelorganisms}" href="/user/profile#modelorganisms">read carefully</a> before you start adding genes to your profile.
+            <a th:href="@{/user/faq#genes}" href="/user/faq#genes">read carefully</a> before you start adding genes to your profile.
         </p>
 
         <p>
-            All information in the Registry is <a th:href="@{/user/help#confidential}" href="/user/profile#confidential">confidential</a>
+            All information in the Registry is <a th:href="@{/user/faq#privacy}" href="/user/faq#privacy">confidential</a>
             and will only be
             used by the Network administration for matching you to rare
             disease research projects. Your information will <i>never</i> be
@@ -62,7 +64,7 @@
         </p>
 
         <p>
-            More specific help &amp; information can be found in the <a th:href="@{/user/help}" href="/user/help">help section and FAQ</a>.
+            More specific help &amp; information can be found in the <a th:href="@{/user/documentation}" href="/user/documentation">Documentation</a> and <a th:href="@{/user/faq}" href="/user/faq">FAQ</a>.
         </p>
         <p>If you have any questions or concerns please <a th:href="@{/user/support}" href="/user/support">Contact Us</a></p>
         <hr/>

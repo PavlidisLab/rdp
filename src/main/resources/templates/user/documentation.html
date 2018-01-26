@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title th:text="${@siteSettings.getFullname()}"></title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+          integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous"/>
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/open-iconic/1.1.1/font/css/open-iconic-bootstrap.min.css"/>
+
+    <link rel="stylesheet" type="text/css" th:href="@{/css/common.css}"/>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+            integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+            crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+            integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+            crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+            integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+            crossorigin="anonymous"></script>
+</head>
+
+<body>
+<div th:replace="fragments/header">...</div>
+<div class="container p-4">
+
+
+    <div th:replace="fragments/title :: title(title='Support', subtitle='Documentation')" th:remove="tag">...</div>
+
+    <div class="main-content p-4">
+        <div class="card">
+            <div class="card-header">
+                <ul class="nav nav-tabs card-header-tabs" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link active" id="profile-tab" data-toggle="tab" href="#profile" role="tab"
+                           aria-controls="profile" aria-selected="true">Profile</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="model-tab" data-toggle="tab" href="#model" role="tab"
+                           aria-controls="model"
+                           aria-selected="true">Model Organisms</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-body">
+                <div class="tab-content">
+                    <div class="tab-pane fade show active" id="profile" role="tabpanel" aria-labelledby="profile-tab">
+                        <div id="profile-accordion">
+                            <div class="card my-3">
+                                <div class="card-header" id="profileinfo-heading">
+                                    <h5 class="mb-0">
+                                        <button class="btn btn-link" data-toggle="collapse" data-target="#profileinfo"
+                                                aria-expanded="false" aria-controls="profileinfo">
+                                            Fill out profile information
+                                        </button>
+                                    </h5>
+                                </div>
+
+                                <div id="profileinfo" class="collapse" aria-labelledby="profileinfo-heading"
+                                     data-parent="#profile-accordion">
+                                    <div class="card-body">
+                                        <p>
+                                            On the <b>Profile</b> tab under "<i>My Account</i>", use
+                                            the edit functions to provide basic information:
+                                        </p>
+                                        <ul>
+                                            <li>Name</li>
+                                            <li>Organization</li>
+                                            <li>Department</li>
+                                        </ul>
+
+                                        <p>Complete and accurate information is important to
+                                            ensure the Network can contact you.</p>
+
+                                        <p>You can also provide:</p>
+                                        <ul>
+                                            <li>A link to your home page (e.g., your lab site)</li>
+                                            <li>A phone number</li>
+                                            <li>A summary of your research interests (we
+                                                recommend 100-500 words)
+                                            </li>
+                                            <li>A list of PubMed IDs for your publications.</li>
+                                        </ul>
+
+                                        <p>
+                                            These fields are optional. Your email address is not
+                                            editable because it serves as your User ID. From the "<i>My
+                                            Account</i>" page you can also edit your account settings.
+                                            Currently the only editable setting is your password.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card my-3">
+                                <div class="card-header" id="profilepubmed-heading">
+                                    <h5 class="mb-0">
+                                        <button class="btn btn-link" data-toggle="collapse" data-target="#profilepubmed"
+                                                aria-expanded="false" aria-controls="profilepubmed">
+                                            Finding PubMed IDs
+                                        </button>
+                                    </h5>
+                                </div>
+
+                                <div id="profilepubmed" class="collapse" aria-labelledby="profilepubmed-heading"
+                                     data-parent="#profile-accordion">
+                                    <div class="card-body">
+                                        <p>
+                                            To rapidly get a list of your PubMed IDs, in a new browser
+                                            window use PubMed search (<a
+                                                href="http://www.ncbi.nlm.nih.gov/pubmed/"
+                                                target="_blank">http://www.ncbi.nlm.nih.gov/pubmed/</a>)
+                                            to find your publications. The citations are returned 20
+                                            per page by default, but you can change this by clicking
+                                            on "Display settings" and choosing a different setting for
+                                            "Items per page". You can select the publications you wish
+                                            to use by clicking on the checkboxes; to save all your
+                                            citations do not click any check boxes. After making a
+                                            selection click on "Display settings"; select "PMID List"
+                                            and click "Apply". Copy and paste the resulting list of
+                                            numeric IDs into the field in the Profile.
+                                        </p>
+                                        <p>If your search returns a long list of publications
+                                            and you would like to exclude only few of them click on
+                                            "Send to", select Clipboard and click on "Add to
+                                            Clipboard". In the top-right corner there will be a link
+                                            to items in the Clipboard. Within the Clipboard you can
+                                            remove any items you want and then export the PubMed IDs
+                                            as described above.</p>
+                                        <p>
+                                            <b>Note</b>: Currently the PubMed IDs are for future use
+                                            and are optional.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="model" role="tabpanel" aria-labelledby="model-tab">
+                        <div id="model-accordion">
+                            <div class="card my-3">
+                                <div class="card-header" id="modeladd-heading">
+                                    <h5 class="mb-0">
+                                        <button class="btn btn-link" data-toggle="collapse" data-target="#modeladd"
+                                                aria-expanded="false" aria-controls="modeladd">
+                                            Add Model Organism
+                                        </button>
+                                    </h5>
+                                </div>
+
+                                <div id="modeladd" class="collapse" aria-labelledby="modeladd-heading"
+                                     data-parent="#model-accordion">
+                                    <div class="card-body">
+                                        <p>To add a model organism:</p>
+                                        <ol>
+                                            <li>Click the side bar "<i>My Model Organisms</i>"
+                                            </li>
+                                            <li>Click on "<i>Add Organism</i>"
+                                            </li>
+                                            <li>Select the desired organism's name</li>
+                                        </ol>
+                                        <p>
+                                            It will be moved to the top section of "<i>My Model
+                                            Organisms</i>" and the main panel will show you the Manager
+                                            for that organism. You can have multiple Model Organisms
+                                            associated with your account.
+                                        </p>
+                                        <p>Also see relevant Frequently Asked Questions:</p>
+                                        <ul>
+                                            <li><a th:href="@{/user/faq#more}">What if I study more than one model
+                                                organism?</a>
+                                            </li>
+                                            <li><a th:href="@{/user/faq#human}">Are humans a "model" for the purposes of
+                                                the
+                                                registry?</a></li>
+                                            <li><a th:href="@{/user/faq#missing}">What if the organism I study is not
+                                                listed?</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card my-3">
+                                <div class="card-header" id="modelmanager-heading">
+                                    <h5 class="mb-0">
+                                        <button class="btn btn-link" data-toggle="collapse" data-target="#modelmanager"
+                                                aria-expanded="false" aria-controls="modelmanager">
+                                            Model Organism Manager
+                                        </button>
+                                    </h5>
+                                </div>
+
+                                <div id="modelmanager" class="collapse" aria-labelledby="modelmanager-heading"
+                                     data-parent="#model-accordion">
+                                    <div class="card-body">
+                                        <p>
+                                            In the manager, you can optionally enter a description of
+                                            your research on this organism (Organism Research Focus), if you feel it is
+                                            different from the description you may have provided in
+                                            the "<i>My Account</i>" section (About My Research).
+                                        </p>
+
+                                        <p>The most important functionality of the Manager is
+                                            the addition of genes, and then of Gene Ontology terms.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card my-3">
+                                <div class="card-header" id="modeladdgene-heading">
+                                    <h5 class="mb-0">
+                                        <button class="btn btn-link" data-toggle="collapse" data-target="#modeladdgene"
+                                                aria-expanded="false" aria-controls="modeladdgene">
+                                            Adding Genes
+                                        </button>
+                                    </h5>
+                                </div>
+
+                                <div id="modeladdgene" class="collapse" aria-labelledby="modeladdgene-heading"
+                                     data-parent="#model-accordion">
+                                    <div class="card-body">
+                                        <p>The main goal of the registry is to collect an accurate
+                                            and comprehensive list of the genes that you study or are
+                                            able to study. Genes that you are entering directly into
+                                            the system can be either Primary or Secondary
+                                            (non-Primary).</p>
+
+                                        <ul>
+                                            <li><b>Primary genes</b> (Tier 1) are those you currently
+                                                work on in a model organism. You must be able to
+                                                immediately, specifically and rapidly study them in your
+                                                laboratory. Genes you have recently published on are
+                                                especially good Primary genes. We expect this to
+                                                typically be between one and ten genes.
+                                            </li>
+                                            <li><b>Secondary genes</b> (Tier 2) are those you do not
+                                                mark as Primary. Carefully choose genes which you are
+                                                not necessarily actively investigating but would be able
+                                                to work on rapidly and specifically with minimal set-up
+                                                time. These might be paralogs of Tier 1 genes, or
+                                                members of the same complexes or pathway. For most
+                                                registrants we expect there might be between one and 100
+                                                non-Primary genes entered.
+                                            </li>
+                                        </ul>
+
+                                        <p>For more information, see the relevant <a
+                                                th:href="@{/user/faq#genes}">FAQ</a></p>
+
+                                        <p>Also see relevant Frequently Asked Questions:</p>
+                                        <ul>
+                                            <li><a th:href="@{/user/faq#ortholog}">Should I fill in the human orthologs
+                                                of genes
+                                                I study?</a></li>
+                                            <li><a th:href="@{/user/faq#genome}">I study the entire genome, or have the
+                                                ability
+                                                to assay the function of any gene. How do I select which genes I should
+                                                list?</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card my-3">
+                                <div class="card-header" id="modelterms-heading">
+                                    <h5 class="mb-0">
+                                        <button class="btn btn-link" data-toggle="collapse" data-target="#modelterms"
+                                                aria-expanded="false" aria-controls="modelterms">
+                                            Gene Ontology Terms
+                                        </button>
+                                    </h5>
+                                </div>
+
+                                <div id="modelterms" class="collapse" aria-labelledby="modelterms-heading"
+                                     data-parent="#model-accordion">
+                                    <div class="card-body">
+                                        <p>
+                                            Once you have added some genes, you can optionally
+                                            provide some Gene Ontology (GO) terms related to your
+                                            work. Genes associated with the GO terms you select will
+                                            be considered a "third Tier" of genes for possible use in
+                                            identifying researchers who can study a particular gene.
+                                            For more details about GO, please see <a href="http://geneontology.org/"
+                                                                                     target="_blank">geneontology.org</a>.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card my-3">
+                                <div class="card-header" id="modeltermsuggest-heading">
+                                    <h5 class="mb-0">
+                                        <button class="btn btn-link" data-toggle="collapse"
+                                                data-target="#modeltermsuggest"
+                                                aria-expanded="false" aria-controls="modeltermsuggest">
+                                            How does the Gene Ontology Term suggestion work?
+                                        </button>
+                                    </h5>
+                                </div>
+
+                                <div id="modeltermsuggest" class="collapse" aria-labelledby="modeltermsuggest-heading"
+                                     data-parent="#model-accordion">
+                                    <div class="card-body">
+                                        <p>
+                                            If you have already entered at least two genes, the
+                                            system can suggest related GO terms for you. The system
+                                            uses a very simple algorithm to do this. We look at GO
+                                            terms shared by the genes you have entered. If a term has
+                                            enough genes overlapping with your genes, it is
+                                            considered a candidate. We then prune terms that are too
+                                            big, too small or highly redundant with another candidate
+                                            term. The final list of terms is then sorted by overlap size for display.
+                                            The full process is a little more complicated than this,
+                                            as it makes use of the structure of the GO hierarchy and
+                                            several heuristics to provide useful results. <a th:href="@{/user/support}">Contact
+                                            Us</a> if you want more details.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div th:replace="fragments/footer" th:remove="tag">...</div>
+</body>
+</html>

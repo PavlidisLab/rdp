@@ -54,6 +54,24 @@ public class MainController {
         return modelAndView;
     }
 
+    @RequestMapping(value = {"/user/documentation"}, method = RequestMethod.GET)
+    public ModelAndView documentation() {
+        ModelAndView modelAndView = new ModelAndView();
+        User user = userService.findCurrentUser();
+        modelAndView.addObject( "user", user );
+        modelAndView.setViewName( "user/documentation" );
+        return modelAndView;
+    }
+
+    @RequestMapping(value = {"/user/faq"}, method = RequestMethod.GET)
+    public ModelAndView faq() {
+        ModelAndView modelAndView = new ModelAndView();
+        User user = userService.findCurrentUser();
+        modelAndView.addObject( "user", user );
+        modelAndView.setViewName( "user/faq" );
+        return modelAndView;
+    }
+
     @RequestMapping(value = {"/user/support"}, method = RequestMethod.GET)
     public ModelAndView support() {
         ModelAndView modelAndView = new ModelAndView();
