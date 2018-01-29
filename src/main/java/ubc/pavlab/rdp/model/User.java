@@ -7,6 +7,7 @@ import org.hibernate.validator.constraints.Email;
 import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.springframework.data.annotation.Transient;
+import ubc.pavlab.rdp.listeners.UserEntityListener;
 import ubc.pavlab.rdp.model.enums.TierType;
 
 import javax.persistence.*;
@@ -17,6 +18,7 @@ import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "user")
+@EntityListeners(UserEntityListener.class)
 @Getter
 @Setter
 @NoArgsConstructor
