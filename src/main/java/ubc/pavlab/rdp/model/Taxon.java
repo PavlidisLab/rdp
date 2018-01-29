@@ -17,7 +17,7 @@ import javax.persistence.Table;
 @Setter
 @NoArgsConstructor
 @EqualsAndHashCode(of = {"id"})
-@ToString
+@ToString(of = {"id", "scientificName"})
 public class Taxon {
 
     @Id
