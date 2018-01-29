@@ -5,7 +5,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.transaction.annotation.Transactional;
 import ubc.pavlab.rdp.exception.TokenException;
 import ubc.pavlab.rdp.model.*;
-import ubc.pavlab.rdp.util.GOTerm;
+import ubc.pavlab.rdp.model.enums.TierType;
 
 import javax.validation.ValidationException;
 import java.util.Collection;
@@ -48,11 +48,11 @@ public interface UserService {
 
     Collection<User> findByGene( Gene gene );
 
-    Collection<User> findByGene( Gene gene, UserGene.TierType tier );
+    Collection<User> findByGene( Gene gene, TierType tier );
 
     Collection<User> findByLikeSymbol( String symbol, Taxon taxon );
 
-    Collection<User> findByLikeSymbol( String symbol, Taxon taxon, UserGene.TierType tier );
+    Collection<User> findByLikeSymbol( String symbol, Taxon taxon, TierType tier );
 
     Collection<User> findByLikeName( String nameLike );
 
@@ -61,16 +61,16 @@ public interface UserService {
     Integer countResearchersWithGenes();
 
     @Transactional
-    void addGenesToUser( User user, Map<Gene, UserGene.TierType> genes );
+    void addGenesToUser( User user, Map<Gene, TierType> genes );
 
     @Transactional
     void removeGenesFromUser( User user, Collection<Gene> genes );
 
     @Transactional
-    void updateGenesInTaxon( User user, Taxon taxon, Map<Gene, UserGene.TierType> genes );
+    void updateGenesInTaxon( User user, Taxon taxon, Map<Gene, TierType> genes );
 
     @Transactional
-    void updateGOTermsInTaxon( User user, Taxon taxon, Collection<GOTerm> goTerms);
+    void updateGOTermsInTaxon( User user, Taxon taxon, Collection<GeneOntologyTerm> goTerms);
 
     @Transactional
     void updatePublications( User user, Set<Publication> publications );

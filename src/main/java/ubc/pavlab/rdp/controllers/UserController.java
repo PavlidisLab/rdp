@@ -12,12 +12,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.*;
 import ubc.pavlab.rdp.model.*;
-import ubc.pavlab.rdp.model.UserGene.TierType;
+import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.services.GOService;
 import ubc.pavlab.rdp.services.GeneService;
 import ubc.pavlab.rdp.services.TaxonService;
 import ubc.pavlab.rdp.services.UserService;
-import ubc.pavlab.rdp.util.GOTerm;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
@@ -108,17 +107,17 @@ public class UserController {
 
     @RequestMapping(value = "/user/taxon", method = RequestMethod.GET)
     public Set<Taxon> getTaxons() {
-        return userService.findCurrentUser().getTaxons();
+        return userService.findCurrentUser().getGenes().stream().map( Gene::getTaxon ).collect( Collectors.toSet() );
     }
 
     @RequestMapping(value = "/user/gene", method = RequestMethod.GET)
     public Set<UserGene> getGenes() {
-        return userService.findCurrentUser().getGeneAssociations();
+        return userService.findCurrentUser().getUserGenes();
     }
 
     @RequestMapping(value = "/user/term", method = RequestMethod.GET)
     public Set<GeneOntologyTerm> getTerms() {
-        return userService.findCurrentUser().getGoTerms();
+        return userService.findCurrentUser().getTerms();
     }
 
     @RequestMapping(value = "/user/taxon/{taxonId}/gene", method = RequestMethod.GET)
@@ -128,11 +127,11 @@ public class UserController {
     }
 
     @RequestMapping(value = "/user/taxon/{taxonId}/gene", method = RequestMethod.POST)
-    public String saveGenesForTaxon( @PathVariable Integer taxonId, @RequestBody Map<Integer, UserGene.TierType> geneTierMap ) {
+    public String saveGenesForTaxon( @PathVariable Integer taxonId, @RequestBody Map<Integer, TierType> geneTierMap ) {
         User user = userService.findCurrentUser();
         Taxon taxon = taxonService.findById( taxonId );
 
-        Map<Gene, UserGene.TierType> genes = geneService.deserializeGenes( geneTierMap );
+        Map<Gene, TierType> genes = geneService.deserializeGenes( geneTierMap );
 
         userService.updateGenesInTaxon( user, taxon, genes );
 
@@ -150,7 +149,7 @@ public class UserController {
         User user = userService.findCurrentUser();
         Taxon taxon = taxonService.findById( taxonId );
 
-        Set<GOTerm> terms = goIds.stream().map( s -> goService.getTerm( s ) ).collect( Collectors.toSet() );
+        Set<GeneOntologyTerm> terms = goIds.stream().map( s -> goService.getTerm( s ) ).collect( Collectors.toSet() );
 
         userService.updateGOTermsInTaxon( user, taxon, terms );
 
@@ -158,7 +157,7 @@ public class UserController {
     }
 
     @RequestMapping(value = "/user/taxon/{taxonId}/term/recommend", method = RequestMethod.GET)
-    public Collection<GeneOntologyTerm> getRecommendedTermsForTaxon( @PathVariable Integer taxonId ) {
+    public Collection<UserTerm> getRecommendedTermsForTaxon( @PathVariable Integer taxonId ) {
         User user = userService.findCurrentUser();
         Taxon taxon = taxonService.findById( taxonId );
 

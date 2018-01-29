@@ -1,5 +1,10 @@
 package ubc.pavlab.rdp.util;
 
+import ubc.pavlab.rdp.model.GeneOntologyTerm;
+import ubc.pavlab.rdp.model.Relationship;
+import ubc.pavlab.rdp.model.enums.Aspect;
+import ubc.pavlab.rdp.model.enums.RelationshipType;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -9,13 +14,13 @@ import java.util.Map;
 
 /**
  * Read in the GO OBO file provided by the Gene Ontology Consortium.
- *
+ * <p>
  * Created by mjacobson on 17/01/18.
  */
 
 public class GOParser {
 
-    private Map<String, GOTerm> termMap = new HashMap<>();
+    private Map<String, GeneOntologyTerm> termMap = new HashMap<>();
 
     public GOParser( InputStream i ) throws IOException {
         if ( i.available() == 0 ) {
@@ -23,8 +28,8 @@ public class GOParser {
         }
 
         BufferedReader br = new BufferedReader( new InputStreamReader( i ) );
-        GOTerm currentNode = null;
-        GOTerm parentNode;
+        GeneOntologyTerm currentNode = null;
+        GeneOntologyTerm parentNode;
         // while ( br.ready() ) {
         String line;
         while ((line = br.readLine()) != null) {
@@ -41,7 +46,7 @@ public class GOParser {
 
             } else if ( line.equals( "[Term]" ) ) {
                 // Starting a Term Stanza
-                currentNode = new GOTerm();
+                currentNode = new GeneOntologyTerm();
             } else if ( currentNode != null ) {
                 // Within a Term Stanza
                 String[] tagValuePair = line.split( ": ", 2 );
@@ -56,44 +61,41 @@ public class GOParser {
 
                         break;
                     case "name":
-                        currentNode.setTerm( tagValuePair[1] );
+                        currentNode.setName( tagValuePair[1] );
                         break;
                     case "namespace":
-                        currentNode.setAspect( tagValuePair[1] );
+                        currentNode.setAspect( Aspect.valueOf( tagValuePair[1] ) );
                         break;
                     case "def":
                         currentNode.setDefinition( tagValuePair[1].split( "\"" )[1] );
                         break;
                     case "is_a":
                         values = tagValuePair[1].split( " " );
-                        currentNode.addParent( new GOTerm.Relationship( values[0],
-                                GOTerm.Relationship.RelationshipType.IS_A ) );
                         if ( !termMap.containsKey( values[0] ) ) {
                             // parent exists in map
-                            parentNode = new GOTerm();
+                            parentNode = new GeneOntologyTerm();
                             parentNode.setId( values[0] );
                             termMap.put( values[0], parentNode );
                         } else {
                             parentNode = termMap.get( values[0] );
                         }
-                        parentNode.addChild( new GOTerm.Relationship( currentNode.getId(),
-                                GOTerm.Relationship.RelationshipType.IS_A ) );
+                        currentNode.addParent( new Relationship( parentNode, RelationshipType.IS_A ) );
+                        parentNode.addChild( new Relationship( currentNode, RelationshipType.IS_A ) );
                         break;
                     case "relationship":
                         values = tagValuePair[1].split( " " );
                         if ( values[0].equals( "part_of" ) ) {
-                            currentNode.addParent( new GOTerm.Relationship( values[1],
-                                    GOTerm.Relationship.RelationshipType.PART_OF ) );
+
                             if ( !termMap.containsKey( values[1] ) ) {
                                 // parent exists in map
-                                parentNode = new GOTerm();
+                                parentNode = new GeneOntologyTerm();
                                 parentNode.setId( values[1] );
                                 termMap.put( values[1], parentNode );
                             } else {
                                 parentNode = termMap.get( values[1] );
                             }
-                            parentNode.addChild( new GOTerm.Relationship( currentNode.getId(),
-                                    GOTerm.Relationship.RelationshipType.PART_OF ) );
+                            currentNode.addParent( new Relationship( parentNode, RelationshipType.PART_OF ) );
+                            parentNode.addChild( new Relationship( currentNode, RelationshipType.PART_OF ) );
                         }
                         break;
                     case "is_obsolete":
@@ -111,7 +113,7 @@ public class GOParser {
 
     }
 
-    public Map<String, GOTerm> getMap() {
+    public Map<String, GeneOntologyTerm> getMap() {
         return termMap;
     }
 

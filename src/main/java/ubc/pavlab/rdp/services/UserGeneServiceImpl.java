@@ -23,7 +23,7 @@ package ubc.pavlab.rdp.services;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ubc.pavlab.rdp.model.Taxon;
-import ubc.pavlab.rdp.model.UserGene.TierType;
+import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.repositories.TaxonRepository;
 import ubc.pavlab.rdp.repositories.UserGeneRepository;
 
@@ -58,7 +58,7 @@ public class UserGeneServiceImpl implements UserGeneService {
     public Map<String, Integer> researcherCountByTaxon() {
         Map<String, Integer> countByTaxon = new HashMap<>();
         for ( Taxon taxon : taxonRepository.findByActiveTrue() ) {
-            countByTaxon.put(taxon.getCommonName(), userGeneRepository.countDistinctUserByPkGeneTaxon( taxon ));
+            countByTaxon.put(taxon.getCommonName(), userGeneRepository.countDistinctUserByGeneTaxon( taxon ));
         }
 
         return countByTaxon;

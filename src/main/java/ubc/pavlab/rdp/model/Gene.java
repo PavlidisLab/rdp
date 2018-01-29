@@ -1,14 +1,16 @@
 package ubc.pavlab.rdp.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 
 import javax.persistence.*;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Created by mjacobson on 17/01/18.
  */
-@Entity
-@Table(name = "gene")
+@Embeddable
 @Getter
 @Setter
 @NoArgsConstructor
@@ -16,7 +18,6 @@ import javax.persistence.*;
 @ToString
 public class Gene {
 
-    @Id
     @Column(name = "gene_id")
     private int id;
 
@@ -35,4 +36,8 @@ public class Gene {
 
     @Column(name = "modification_date")
     private int modificationDate;
+
+    @Transient
+    @JsonIgnore
+    private Set<GeneOntologyTerm> terms = new HashSet<>();
 }

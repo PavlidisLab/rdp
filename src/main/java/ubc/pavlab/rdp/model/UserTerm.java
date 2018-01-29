@@ -3,21 +3,20 @@ package ubc.pavlab.rdp.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import lombok.*;
-import ubc.pavlab.rdp.model.enums.TierType;
 
 import javax.persistence.*;
 
 /**
- * Created by mjacobson on 17/01/18.
+ * Created by mjacobson on 28/01/18.
  */
 @Entity
-@Table(name = "gene")
+@Table(name = "go_term")
 @Getter
 @Setter
 @NoArgsConstructor
-@EqualsAndHashCode(of = {"gene"})
+@EqualsAndHashCode(of = {"taxon", "term"})
 @ToString
-public class UserGene {
+public class UserTerm {
 
     @JsonIgnore
     @Id
@@ -25,12 +24,18 @@ public class UserGene {
     @Column(name = "id")
     private int id;
 
-    @Enumerated(EnumType.STRING)
-    @Column
-    private TierType tier;
+    @ManyToOne
+    @JoinColumn(name = "taxon_id")
+    private Taxon taxon;
+
+    @Column(name = "frequency")
+    private int frequency;
+
+    @Column(name = "size")
+    private int size;
 
     @Embedded
     @JsonUnwrapped
-    private Gene gene;
+    private GeneOntologyTerm term;
 
 }

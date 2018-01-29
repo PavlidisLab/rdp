@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ehcache xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="http://www.ehcache.org/ehcache.xsd"
+         updateCheck="true"
+         monitoring="autodetect"
+         dynamicConfig="true">
+
+    <cache name="gene"
+           maxElementsInMemory="0"
+           eternal="true"
+           overflowToDisk="false"
+           transactionalMode="off">
+        <searchable>
+            <searchAttribute name="id" />
+            <searchAttribute name="taxonId" expression="value.getTaxon().getId()"/>
+            <searchAttribute name="name" />
+            <searchAttribute name="symbol"/>
+            <searchAttribute name="aliases"/>
+            <searchAttribute name="modificationDate" />
+        </searchable>
+    </cache>
+
+    <cache name="gene-annotation"
+           maxElementsInMemory="0"
+           eternal="true"
+           overflowToDisk="false"
+           transactionalMode="off">
+        <searchable>
+            <searchAttribute name="id" />
+            <searchAttribute name="taxonId" expression="value.getTaxon().getId()"/>
+            <searchAttribute name="goId" />
+            <searchAttribute name="geneId" expression="value.getGene().getId()"/>
+        </searchable>
+    </cache>
+
+</ehcache>

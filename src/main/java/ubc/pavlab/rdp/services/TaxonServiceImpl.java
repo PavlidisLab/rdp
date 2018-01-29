@@ -27,6 +27,11 @@ public class TaxonServiceImpl implements TaxonService {
     }
 
     @Override
+    public Collection<Taxon> findByActiveTrue() {
+        return taxonRepository.findByActiveTrue();
+    }
+
+    @Override
     public Collection<Taxon> loadAll() {
         return taxonRepository.findAll();
     }

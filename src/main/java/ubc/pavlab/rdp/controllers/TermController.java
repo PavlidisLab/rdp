@@ -10,9 +10,9 @@ import org.springframework.web.bind.annotation.RestController;
 import ubc.pavlab.rdp.model.Gene;
 import ubc.pavlab.rdp.model.GeneOntologyTerm;
 import ubc.pavlab.rdp.model.Taxon;
+import ubc.pavlab.rdp.model.UserTerm;
 import ubc.pavlab.rdp.services.GOService;
 import ubc.pavlab.rdp.services.TaxonService;
-import ubc.pavlab.rdp.util.GOTerm;
 
 import java.util.Collection;
 import java.util.List;
@@ -32,10 +32,10 @@ public class TermController {
     private TaxonService taxonService;
 
     @RequestMapping(value = "/taxon/{taxonId}/term/search/{query}", method = RequestMethod.GET)
-    public Collection<GeneOntologyTerm> searchTermsByQueryAndTaxon( @PathVariable Integer taxonId, @PathVariable String query ) {
+    public Collection<UserTerm> searchTermsByQueryAndTaxon( @PathVariable Integer taxonId, @PathVariable String query ) {
         Taxon taxon = taxonService.findById( taxonId );
 
-        List<GOTerm> results = goService.search( query );
+        List<GeneOntologyTerm> results = goService.search( query );
 
         // Only return max 100 hits
         try {
@@ -52,7 +52,7 @@ public class TermController {
     @RequestMapping(value = "/taxon/{taxonId}/term/{goId}/gene", method = RequestMethod.GET)
     public Collection<Gene> termGenes( @PathVariable Integer taxonId, @PathVariable String goId ) {
         Taxon taxon = taxonService.findById( taxonId );
-        GOTerm term = goService.getTerm( goId );
+        GeneOntologyTerm term = goService.getTerm( goId );
 
         return goService.getGenes( term, taxon );
     }

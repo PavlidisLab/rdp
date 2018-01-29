@@ -20,15 +20,12 @@
 package ubc.pavlab.rdp.services;
 
 
-import org.json.JSONArray;
-import org.springframework.security.access.annotation.Secured;
 import ubc.pavlab.rdp.model.Gene;
 import ubc.pavlab.rdp.model.Taxon;
-import ubc.pavlab.rdp.model.UserGene;
-import ubc.pavlab.rdp.model.UserGene.TierType;
+import ubc.pavlab.rdp.model.enums.TierType;
 
 import java.util.Collection;
-import java.util.List;
+import java.util.LinkedHashSet;
 import java.util.Map;
 
 /**
@@ -36,41 +33,19 @@ import java.util.Map;
  */
 public interface GeneService {
 
-    @Secured( "ADMIN" )
-    Gene create( final Gene gene );
-
-    @Secured("ADMIN")
-    void update( Gene gene );
-
     Gene load( Integer geneId );
 
     Collection<Gene> load( Collection<Integer> ids );
 
-    @Secured("ADMIN")
-    void delete( Gene gene );
-
-    @Secured("ADMIN")
-    Collection<Gene> loadAll();
-
-    Collection<Gene> findByOfficialSymbol( final String officialSymbol );
-
-    Gene findByOfficialSymbolAndTaxon( String officialSymbol, Taxon taxon );
-
-    Collection<Gene> findByTaxonId( final Integer id );
+    Gene findBySymbolAndTaxon( String officialSymbol, Taxon taxon );
 
     Collection<Gene> findBySymbolInAndTaxon( Collection<String> symbols, Taxon taxon );
 
-    List<Gene> autocomplete( String query, Taxon taxon );
+    LinkedHashSet<Gene> autocomplete( String query, Taxon taxon );
+
+    int size();
 
     Map<Gene, TierType> deserializeGenes( Map<Integer, TierType> genes);
 
-    @Secured("ADMIN")
-    void updateGeneTable( String filePath );
-
-    @Secured("ADMIN")
-    void truncateGeneTable();
-
-    @Secured("GROUP_USER")
-    JSONArray toJSON( Collection<UserGene> geneAssociations );
-
+    void addAll( Collection<Gene> genes );
 }

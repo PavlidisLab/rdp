@@ -29,5 +29,8 @@ public class Taxon {
     private String commonName;
 
     @JsonIgnore
+    private String geneUrl;
+
+    @JsonIgnore
     private boolean active;
 }

@@ -11,12 +11,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ubc.pavlab.rdp.exception.TokenException;
 import ubc.pavlab.rdp.model.*;
-import ubc.pavlab.rdp.model.UserGene.TierType;
+import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.repositories.PasswordResetTokenRepository;
 import ubc.pavlab.rdp.repositories.RoleRepository;
 import ubc.pavlab.rdp.repositories.UserRepository;
 import ubc.pavlab.rdp.repositories.VerificationTokenRepository;
-import ubc.pavlab.rdp.util.GOTerm;
 
 import javax.validation.ValidationException;
 import java.util.*;
@@ -185,22 +184,21 @@ public class UserServiceImpl implements UserService {
     @Transactional
     @Override
     public void addGenesToUser( User user, Map<Gene, TierType> genes ) {
-        int initialSize = user.getGeneAssociations().size();
+        int initialSize = user.getUserGenes().size();
 
         for ( Map.Entry<Gene, TierType> entry : genes.entrySet() ) {
             Gene gene = entry.getKey();
             TierType tier = entry.getValue();
 
             UserGene ug = new UserGene();
-            ug.setUser( user );
             ug.setTier( tier );
             ug.setGene( gene );
 
-            user.getGeneAssociations().remove( ug );
-            user.getGeneAssociations().add( ug );
+            user.getUserGenes().remove( ug );
+            user.getUserGenes().add( ug );
         }
 
-        int added = user.getGeneAssociations().size() - initialSize;
+        int added = user.getUserGenes().size() - initialSize;
 
         if ( added > 0 ) {
             log.info( "Added " + added + " genes to User " + user.getEmail() );
@@ -214,17 +212,11 @@ public class UserServiceImpl implements UserService {
     @Override
     public void removeGenesFromUser( User user, Collection<Gene> genes ) {
 
-        int initialSize = user.getGeneAssociations().size();
+        int initialSize = user.getUserGenes().size();
 
-        for ( Gene gene : genes ) {
-            UserGene ug = new UserGene();
-            ug.setUser( user );
-            ug.setGene( gene );
+        user.getUserGenes().removeIf( ga -> genes.contains( ga.getGene() ) );
 
-            user.getGeneAssociations().remove( ug );
-        }
-
-        int removed = initialSize - user.getGeneAssociations().size();
+        int removed = initialSize - user.getUserGenes().size();
 
         if ( removed > 0 ) {
             log.info( "Removed " + removed + " genes from User " + user.getEmail() );
@@ -254,12 +246,12 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     @Override
-    public void updateGOTermsInTaxon( User user, Taxon taxon, Collection<GOTerm> goTerms ) {
+    public void updateGOTermsInTaxon( User user, Taxon taxon, Collection<GeneOntologyTerm> goTerms ) {
         removeTermsFromUserByTaxon( user, taxon );
 
         Set<Gene> genes = user.getGenesByTaxonAndTier( taxon, new HashSet<>( Arrays.asList( TierType.TIER1, TierType.TIER2 ) ) );
 
-        user.getGoTerms().addAll( goService.convertTermTypes( goTerms, taxon, genes ) );
+        user.getUserTerms().addAll( goService.convertTermTypes( goTerms, taxon, genes ) );
 
         removeGenesFromUserByTiersAndTaxon( user, taxon, Collections.singleton( TierType.TIER3 ) );
 
@@ -335,19 +327,19 @@ public class UserServiceImpl implements UserService {
     }
 
     private Collection<Gene> calculatedGenesInTaxon( User user, Taxon taxon ) {
-        return goService.getRelatedGenes( user.getGoTerms(), taxon );
+        return goService.getRelatedGenes( user.getTerms(), taxon );
     }
 
     private boolean removeGenesFromUserByTaxon( User user, Taxon taxon ) {
-        return user.getGeneAssociations().removeIf( ga -> ga.getGene().getTaxon().equals( taxon ) );
+        return user.getUserGenes().removeIf( ga -> ga.getGene().getTaxon().equals( taxon ) );
     }
 
     private boolean removeGenesFromUserByTiersAndTaxon( User user, Taxon taxon, Collection<TierType> tiers ) {
-        return user.getGeneAssociations().removeIf( ga -> tiers.contains( ga.getTier() ) && ga.getGene().getTaxon().equals( taxon ) );
+        return user.getUserGenes().removeIf( ga -> tiers.contains( ga.getTier() ) && ga.getGene().getTaxon().equals( taxon ) );
     }
 
     private boolean removeTermsFromUserByTaxon( User user, Taxon taxon ) {
-        return user.getGoTerms().removeIf( term -> term.getTaxon().equals( taxon ) );
+        return user.getUserTerms().removeIf( ut -> ut.getTaxon().equals( taxon ) );
     }
 
 }

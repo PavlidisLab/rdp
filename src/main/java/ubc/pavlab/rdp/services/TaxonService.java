@@ -11,6 +11,9 @@ public interface TaxonService {
 
     Taxon findById( final Integer id );
     Taxon findByCommonName( final String commonName );
+
+    Collection<Taxon> findByActiveTrue();
+
     Collection<Taxon> loadAll();
 
 }

@@ -1,92 +1,103 @@
 package ubc.pavlab.rdp.services;
 
+import net.sf.ehcache.Ehcache;
+import net.sf.ehcache.search.Attribute;
+import net.sf.ehcache.search.expression.Criteria;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.json.JSONArray;
-import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.ehcache.EhCacheCacheManager;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import ubc.pavlab.rdp.model.Gene;
 import ubc.pavlab.rdp.model.Taxon;
-import ubc.pavlab.rdp.model.UserGene;
-import ubc.pavlab.rdp.model.UserGene.TierType;
-import ubc.pavlab.rdp.repositories.GeneRepository;
+import ubc.pavlab.rdp.model.enums.TierType;
+import ubc.pavlab.rdp.util.SearchableEhcache;
 
-import java.util.*;
+import javax.annotation.PostConstruct;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
 
 /**
  * Created by mjacobson on 17/01/18.
  */
 @Service("geneService")
-public class GeneServiceImpl implements GeneService {
+public class GeneServiceImpl extends SearchableEhcache<Integer, Gene> implements GeneService {
 
     private static Log log = LogFactory.getLog( GeneServiceImpl.class );
 
-    @Autowired
-    private GeneRepository geneRepository;
+    private static final String CACHE_NAME = "gene";
 
-    @Transactional
-    @Override
-    public Gene create( Gene gene ) {
-        return geneRepository.save(gene);
+    @SuppressWarnings("SpringJavaAutowiringInspection")
+    @Autowired
+    private EhCacheCacheManager cacheManager;
+
+    private Ehcache cache;
+
+    private Attribute<Integer> id;
+    private Attribute<String> name;
+    private Attribute<String> symbol;
+    private Attribute<Integer> taxonId;
+    private Attribute<String> aliases;
+    private Attribute<Integer> modificationDate;
+
+    @PostConstruct
+    private void initialize() {
+        this.cache = this.cacheManager.getCacheManager().getEhcache(CACHE_NAME );
+        id = new Attribute<> ("id");
+        name = new Attribute<> ("name");
+        symbol = new Attribute<> ("symbol");
+        taxonId = new Attribute<> ("taxonId");
+        aliases = new Attribute<> ("aliases");
+        modificationDate = new Attribute<> ("modificationDate");
     }
 
-    @Transactional
-    @Override
-    public void update( Gene gene ) {
-        geneRepository.save(gene);
+    public Ehcache getCache() {
+        return cache;
+    }
 
+    public Integer getKey( Gene gene ) {
+        return gene.getId();
     }
 
     @Override
     public Gene load( Integer id ) {
-        return geneRepository.findOne( id );
+        return fetchByKey( id );
     }
 
     @Override
     public Collection<Gene> load( Collection<Integer> ids ) {
-        return geneRepository.findByIdIn(ids);
-    }
-
-    @Transactional
-    @Override
-    public void delete( Gene gene ) {
-        geneRepository.delete( gene );
+        return fetchByKey( ids );
     }
 
     @Override
-    public Collection<Gene> loadAll() {
-        return geneRepository.findAll();
-    }
-
-    @Override
-    public Collection<Gene> findByOfficialSymbol( String officialSymbol ) {
-        return geneRepository.findBySymbol( officialSymbol );
-    }
-
-    @Override
-    public Gene findByOfficialSymbolAndTaxon( String officialSymbol, Taxon taxon ) {
-        return geneRepository.findBySymbolAndTaxon(officialSymbol, taxon);
-    }
-
-    @Override
-    public Collection<Gene> findByTaxonId( Integer id ) {
-        return geneRepository.findByTaxonId(id);
+    public Gene findBySymbolAndTaxon( String symbol, Taxon taxon ) {
+        return fetchOneByCriteria( this.taxonId.eq( taxon.getId() ).and( this.symbol.eq( symbol ) ) );
     }
 
     @Override
     public Collection<Gene> findBySymbolInAndTaxon( Collection<String> symbols, Taxon taxon ) {
-        return geneRepository.findBySymbolInAndTaxon(symbols, taxon);
+        return fetchByCriteria( this.taxonId.eq( taxon.getId() ).and( this.symbol.in( symbols ) ) );
     }
 
     @Override
-    public List<Gene> autocomplete( String query, Taxon taxon ) {
-        // Yes, I know... sue me.
-        return geneRepository.autocomplete( query, query, query, query, taxon );
+    public LinkedHashSet<Gene> autocomplete( String query, Taxon taxon ) {
+        LinkedHashSet<Gene> results = new LinkedHashSet<>();
+        Criteria taxonCrit = this.taxonId.eq( taxon.getId() );
+
+        results.addAll( fetchByCriteria( taxonCrit.and( symbol.ilike( query ) ) ) );
+        results.addAll( fetchByCriteria( taxonCrit.and( symbol.ilike( query + "*" ) ) ) );
+        results.addAll( fetchByCriteria( taxonCrit.and( name.ilike( "*" + query + "*" ) ) ) );
+        results.addAll( fetchByCriteria( taxonCrit.and( aliases.ilike( "*" + query + "*" ) ) ) );
+
+        return results;
     }
 
-
+    @Override
+    public int size() {
+        return this.cache.getSize();
+    }
 
     @Override
     public Map<Gene, TierType> deserializeGenes( Map<Integer, TierType> genesTierMap) {
@@ -102,25 +113,8 @@ public class GeneServiceImpl implements GeneService {
     }
 
     @Override
-    public void updateGeneTable( String filePath ) {
-        //TODO: MAKE ME
+    public void addAll( Collection<Gene> genes ) {
+        putAll( genes );
     }
 
-    @Override
-    public void truncateGeneTable() {
-        //TODO: MAKE ME
-    }
-
-    @Override
-    public JSONArray toJSON( Collection<UserGene> geneAssociations ) {
-        Collection<JSONObject> genesValuesJson = new HashSet<JSONObject>();
-
-        for ( UserGene ga : geneAssociations ) {
-            JSONObject geneValuesJson = ga.toJSON();
-            geneValuesJson.put( "taxonCommonName", ga.getGene().getTaxon().getCommonName() );
-            genesValuesJson.add( geneValuesJson );
-        }
-
-        return new JSONArray( genesValuesJson );
-    }
 }
