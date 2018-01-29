@@ -27,9 +27,7 @@ import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.repositories.TaxonRepository;
 import ubc.pavlab.rdp.repositories.UserGeneRepository;
 
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 
 /**
@@ -46,12 +44,12 @@ public class UserGeneServiceImpl implements UserGeneService {
 
     @Override
     public Integer countUniqueAssociations() {
-        return userGeneRepository.countDistinctGeneByTierIn( new HashSet<>( Arrays.asList( TierType.TIER1, TierType.TIER2)) );
+        return userGeneRepository.countDistinctGeneByTierIn( TierType.MANUAL_TIERS );
     }
 
     @Override
     public Integer countAssociations() {
-        return userGeneRepository.countByTierIn( new HashSet<>( Arrays.asList(TierType.TIER1, TierType.TIER2)) );
+        return userGeneRepository.countByTierIn( TierType.MANUAL_TIERS );
     }
 
     @Override

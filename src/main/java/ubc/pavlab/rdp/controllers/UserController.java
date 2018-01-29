@@ -161,7 +161,7 @@ public class UserController {
         User user = userService.findCurrentUser();
         Taxon taxon = taxonService.findById( taxonId );
 
-        Set<Gene> genes = user.getGenesByTaxonAndTier( taxon, new HashSet<>( Arrays.asList( TierType.TIER1, TierType.TIER2 ) ) );
+        Set<Gene> genes = user.getGenesByTaxonAndTier( taxon, TierType.MANUAL_TIERS );
         return goService.convertTermTypes( goService.recommendTerms( genes ), taxon, genes );
     }
 

@@ -249,7 +249,7 @@ public class UserServiceImpl implements UserService {
     public void updateGOTermsInTaxon( User user, Taxon taxon, Collection<GeneOntologyTerm> goTerms ) {
         removeTermsFromUserByTaxon( user, taxon );
 
-        Set<Gene> genes = user.getGenesByTaxonAndTier( taxon, new HashSet<>( Arrays.asList( TierType.TIER1, TierType.TIER2 ) ) );
+        Set<Gene> genes = user.getGenesByTaxonAndTier( taxon, TierType.MANUAL_TIERS );
 
         user.getUserTerms().addAll( goService.convertTermTypes( goTerms, taxon, genes ) );
 
