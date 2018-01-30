@@ -36,15 +36,6 @@ $(document).ready(function () {
     // Create initial profile
     var initialProfile = collectProfile();
 
-    $(document).on("click", '.editable', function () {
-        var row = $(this).closest(".edit-container").find(".data-edit");
-        var state = row.prop('contenteditable') === 'true';
-        row.prop('contenteditable', !state);
-        $(this).toggleClass("saveable", !state);
-    });
-    $(document).on("click", '.delete-row', function () {
-        $(this).closest('tr').remove();
-    });
     $(document).on("click", ".add-row", function () {
         var newRow = $("<tr></tr>");
         var cols = "";
@@ -98,9 +89,6 @@ $(document).ready(function () {
                 $('.error-row').show();
             }
         });
-    });
-    $(document).on("click", ".close", function () {
-        $(this).closest('.row').hide();
     });
 
 });

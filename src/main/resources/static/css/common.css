@@ -90,3 +90,7 @@ div.brand > h1 {
 .add-row {
     cursor: pointer;
 }
+
+.research-info .data-edit {
+    overflow-y: auto;
+}
