@@ -11,7 +11,9 @@ import ubc.pavlab.rdp.listeners.UserEntityListener;
 import ubc.pavlab.rdp.model.enums.TierType;
 
 import javax.persistence.*;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -58,10 +60,11 @@ public class User {
     private Profile profile;
 
 	/* Research related information */
-
-	@OneToMany(cascade = CascadeType.ALL)
-	@JoinColumn(name = "user_id")
-	private Set<TaxonDescription> taxonDescriptions = new HashSet<>();
+    @ElementCollection
+    @CollectionTable(name = "descriptions", joinColumns = @JoinColumn(name = "user_id"))
+	@MapKeyJoinColumn(name="taxon_id")
+    @Column(name = "description", columnDefinition = "TEXT")
+    private Map<Taxon, String> taxonDescriptions = new HashMap<>();
 
 	@OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
 	@JoinColumn(name = "user_id")
