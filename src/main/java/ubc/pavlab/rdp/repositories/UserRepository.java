@@ -19,16 +19,16 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     @Query("select count(distinct user_id) FROM UserGene")
     Integer countWithGenes();
 
-    @Query("select u from User u inner join u.userGenes ug where ug.gene = :gene")
+    @Query("select u from User u inner join u.userGenes ug where ug = :gene")
     Collection<User> findByGene( @Param("gene") Gene gene);
 
-    @Query("select u from User u inner join u.userGenes ug where ug.gene = :gene and ug.tier = :tier")
+    @Query("select u from User u inner join u.userGenes ug where ug = :gene and ug.tier = :tier")
     Collection<User> findByGene( @Param("gene") Gene gene, @Param("tier") TierType tier );
 
-    @Query("select u from User u inner join u.userGenes ug where ug.gene.symbol like %:symbol% and ug.gene.taxon = :taxon")
+    @Query("select u from User u inner join u.userGenes ug where ug.symbol like %:symbol% and ug.taxon = :taxon")
     Collection<User> findByGeneSymbolLike( @Param("symbol") String symbol, @Param("taxon") Taxon taxon );
 
-    @Query("select u from User u inner join u.userGenes ug where ug.gene.symbol like %:symbol% and ug.gene.taxon = :taxon and ug.tier = :tier")
+    @Query("select u from User u inner join u.userGenes ug where ug.symbol like %:symbol% and ug.taxon = :taxon and ug.tier = :tier")
     Collection<User> findByGeneSymbolLike( @Param("symbol") String symbol, @Param("taxon") Taxon taxon, @Param("tier") TierType tier );
 
 }

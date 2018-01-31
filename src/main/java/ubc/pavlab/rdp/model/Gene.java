@@ -10,14 +10,16 @@ import java.util.Set;
 /**
  * Created by mjacobson on 17/01/18.
  */
-@Embeddable
+@MappedSuperclass
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
 @EqualsAndHashCode(of = {"id"})
 @ToString
 public class Gene {
 
+    @Id
     @Column(name = "gene_id")
     private int id;
 

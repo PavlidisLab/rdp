@@ -10,12 +10,15 @@ import org.springframework.cache.ehcache.EhCacheCacheManager;
 import org.springframework.stereotype.Service;
 import ubc.pavlab.rdp.model.Gene;
 import ubc.pavlab.rdp.model.Taxon;
+import ubc.pavlab.rdp.model.UserGene;
+import ubc.pavlab.rdp.model.enums.MatchType;
 import ubc.pavlab.rdp.model.enums.TierType;
+import ubc.pavlab.rdp.util.SearchResult;
 import ubc.pavlab.rdp.util.SearchableEhcache;
 
 import javax.annotation.PostConstruct;
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Map;
 
@@ -82,16 +85,38 @@ public class GeneServiceImpl extends SearchableEhcache<Integer, Gene> implements
     }
 
     @Override
-    public LinkedHashSet<Gene> autocomplete( String query, Taxon taxon ) {
-        LinkedHashSet<Gene> results = new LinkedHashSet<>();
+    public Collection<SearchResult<Gene>> autocomplete( String query, Taxon taxon, int maxResults ) {
+        Collection<SearchResult<Gene>> results = new LinkedHashSet<>();
         Criteria taxonCrit = this.taxonId.eq( taxon.getId() );
 
-        results.addAll( fetchByCriteria( taxonCrit.and( symbol.ilike( query ) ) ) );
-        results.addAll( fetchByCriteria( taxonCrit.and( symbol.ilike( query + "*" ) ) ) );
-        results.addAll( fetchByCriteria( taxonCrit.and( name.ilike( "*" + query + "*" ) ) ) );
-        results.addAll( fetchByCriteria( taxonCrit.and( aliases.ilike( "*" + query + "*" ) ) ) );
+        if (addAll( results, fetchByCriteria( taxonCrit.and( symbol.ilike( query ) ) ), MatchType.EXACT_SYMBOL, maxResults ) ) {
+            return results;
+        }
+
+        if (addAll( results, fetchByCriteria( taxonCrit.and( symbol.ilike( query + "*" ) ) ), MatchType.SIMILAR_SYMBOL, maxResults ) ) {
+            return results;
+        }
+
+        if (addAll( results, fetchByCriteria( taxonCrit.and( name.ilike( "*" + query + "*" ) ) ), MatchType.SIMILAR_NAME, maxResults ) ) {
+            return results;
+        }
+
+        addAll( results, fetchByCriteria( taxonCrit.and( aliases.ilike( "*" + query + "*" ) ) ), MatchType.SIMILAR_ALIAS, maxResults );
 
         return results;
+    }
+
+    private <T> boolean addAll( Collection<SearchResult<T>> container, Collection<T> newValues, MatchType match, int maxSize ) {
+
+        for ( T newValue : newValues ) {
+            if ( maxSize == -1 || container.size() < maxSize ) {
+                container.add( new SearchResult<>( match, newValue ) );
+            } else {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     @Override
@@ -100,13 +125,13 @@ public class GeneServiceImpl extends SearchableEhcache<Integer, Gene> implements
     }
 
     @Override
-    public Map<Gene, TierType> deserializeGenes( Map<Integer, TierType> genesTierMap) {
-        Map<Gene, TierType> results = new HashMap<>();
+    public Collection<UserGene> deserializeGenes( Map<Integer, TierType> genesTierMap ) {
+        Collection<UserGene> results = new HashSet<>();
 
         Collection<Gene> genes = load( genesTierMap.keySet() );
 
         for ( Gene gene : genes ) {
-            results.put( gene, genesTierMap.get( gene.getId() ) );
+            results.add( new UserGene( gene, genesTierMap.get( gene.getId() ) ) );
         }
 
         return results;

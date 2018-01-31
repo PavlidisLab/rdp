@@ -183,20 +183,10 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     @Override
-    public void addGenesToUser( User user, Map<Gene, TierType> genes ) {
+    public void addGenesToUser( User user, Collection<UserGene> genes ) {
         int initialSize = user.getUserGenes().size();
-
-        for ( Map.Entry<Gene, TierType> entry : genes.entrySet() ) {
-            Gene gene = entry.getKey();
-            TierType tier = entry.getValue();
-
-            UserGene ug = new UserGene();
-            ug.setTier( tier );
-            ug.setGene( gene );
-
-            user.getUserGenes().remove( ug );
-            user.getUserGenes().add( ug );
-        }
+//        user.getUserGenes().removeAll( genes );
+        user.getUserGenes().addAll( genes );
 
         int added = user.getUserGenes().size() - initialSize;
 
@@ -214,7 +204,7 @@ public class UserServiceImpl implements UserService {
 
         int initialSize = user.getUserGenes().size();
 
-        user.getUserGenes().removeIf( ga -> genes.contains( ga.getGene() ) );
+        user.getUserGenes().removeIf( genes::contains );
 
         int removed = initialSize - user.getUserGenes().size();
 
@@ -227,20 +217,14 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     @Override
-    public void updateGenesInTaxon( User user, Taxon taxon, Map<Gene, TierType> genes ) {
+    public void updateGenesInTaxon( User user, Taxon taxon, Collection<UserGene> genes ) {
 
-        Map<Gene, TierType> newGenes = new HashMap<>( genes );
+        Collection<UserGene> newGenes = new HashSet<>( genes );
 
-        newGenes.entrySet().removeIf( entries -> !entries.getKey().getTaxon().equals( taxon ) );
+        newGenes.removeIf( g -> !g.getTaxon().equals( taxon ) );
+        newGenes.addAll( calculatedGenesInTaxon( user, taxon ) );
 
         removeGenesFromUserByTaxon( user, taxon );
-
-        for ( Gene g : calculatedGenesInTaxon( user, taxon ) ) {
-            if ( !newGenes.containsKey( g ) ) {
-                newGenes.put( g, TierType.TIER3 );
-            }
-        }
-
         addGenesToUser( user, newGenes );
     }
 
@@ -254,15 +238,7 @@ public class UserServiceImpl implements UserService {
         user.getUserTerms().addAll( goService.convertTermTypes( goTerms, taxon, genes ) );
 
         removeGenesFromUserByTiersAndTaxon( user, taxon, Collections.singleton( TierType.TIER3 ) );
-
-        Map<Gene, TierType> genesToAdd = new HashMap<>();
-        for ( Gene g : calculatedGenesInTaxon( user, taxon ) ) {
-            if ( !genes.contains( g ) ) {
-                genesToAdd.put( g, TierType.TIER3 );
-            }
-        }
-
-        addGenesToUser( user, genesToAdd );
+        addGenesToUser( user, calculatedGenesInTaxon( user, taxon ) );
     }
 
     @Transactional
@@ -326,16 +302,16 @@ public class UserServiceImpl implements UserService {
         update( user );
     }
 
-    private Collection<Gene> calculatedGenesInTaxon( User user, Taxon taxon ) {
+    private Collection<UserGene> calculatedGenesInTaxon( User user, Taxon taxon ) {
         return goService.getRelatedGenes( user.getTerms(), taxon );
     }
 
     private boolean removeGenesFromUserByTaxon( User user, Taxon taxon ) {
-        return user.getUserGenes().removeIf( ga -> ga.getGene().getTaxon().equals( taxon ) );
+        return user.getUserGenes().removeIf( ga -> ga.getTaxon().equals( taxon ) );
     }
 
     private boolean removeGenesFromUserByTiersAndTaxon( User user, Taxon taxon, Collection<TierType> tiers ) {
-        return user.getUserGenes().removeIf( ga -> tiers.contains( ga.getTier() ) && ga.getGene().getTaxon().equals( taxon ) );
+        return user.getUserGenes().removeIf( ga -> tiers.contains( ga.getTier() ) && ga.getTaxon().equals( taxon ) );
     }
 
     private boolean removeTermsFromUserByTaxon( User user, Taxon taxon ) {

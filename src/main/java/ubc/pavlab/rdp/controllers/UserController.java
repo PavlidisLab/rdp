@@ -64,6 +64,17 @@ public class UserController {
         }
     }
 
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    static class Model {
+
+        private Map<Integer, TierType> geneTierMap;
+        private String description;
+
+    }
+
     @RequestMapping(value = "/user/{id}/delete", method = RequestMethod.GET)
     public String deleteUser( @PathVariable int id ) {
         User user = userService.findUserById( id );
@@ -107,7 +118,7 @@ public class UserController {
 
     @RequestMapping(value = "/user/taxon", method = RequestMethod.GET)
     public Set<Taxon> getTaxons() {
-        return userService.findCurrentUser().getGenes().stream().map( Gene::getTaxon ).collect( Collectors.toSet() );
+        return userService.findCurrentUser().getUserGenes().stream().map( UserGene::getTaxon ).collect( Collectors.toSet() );
     }
 
     @RequestMapping(value = "/user/gene", method = RequestMethod.GET)
@@ -120,22 +131,25 @@ public class UserController {
         return userService.findCurrentUser().getTerms();
     }
 
-    @RequestMapping(value = "/user/taxon/{taxonId}/gene", method = RequestMethod.GET)
-    public Set<UserGene> getGenesForTaxon( @PathVariable Integer taxonId ) {
-        Taxon taxon = taxonService.findById( taxonId );
-        return userService.findCurrentUser().getGenesAssociationsByTaxon( taxon );
-    }
-
-    @RequestMapping(value = "/user/taxon/{taxonId}/gene", method = RequestMethod.POST)
-    public String saveGenesForTaxon( @PathVariable Integer taxonId, @RequestBody Map<Integer, TierType> geneTierMap ) {
+    @RequestMapping(value = "/user/model/{taxonId}", method = RequestMethod.POST)
+    public String saveModelForTaxon( @PathVariable Integer taxonId, @RequestBody Model model ) {
         User user = userService.findCurrentUser();
         Taxon taxon = taxonService.findById( taxonId );
 
-        Map<Gene, TierType> genes = geneService.deserializeGenes( geneTierMap );
+        user.getTaxonDescriptions().put( taxon, model.getDescription() );
+
+        Collection<UserGene> genes = geneService.deserializeGenes( model.getGeneTierMap() );
 
         userService.updateGenesInTaxon( user, taxon, genes );
 
-        return "Done.";
+        return "Saved.";
+    }
+
+    @RequestMapping(value = "/user/taxon/{taxonId}/gene", method = RequestMethod.GET)
+    public Set<UserGene> getGenesForTaxon( @PathVariable Integer taxonId ) {
+        Taxon taxon = taxonService.findById( taxonId );
+        return userService.findCurrentUser().getUserGenes().stream()
+                .filter( gene -> gene.getTaxon().equals( taxon ) ).collect(Collectors.toSet());
     }
 
     @RequestMapping(value = "/user/taxon/{taxonId}/term", method = RequestMethod.GET)

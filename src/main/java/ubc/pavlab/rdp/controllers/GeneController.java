@@ -10,11 +10,12 @@ import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.services.GOService;
 import ubc.pavlab.rdp.services.GeneService;
 import ubc.pavlab.rdp.services.TaxonService;
+import ubc.pavlab.rdp.util.SearchResult;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
+import java.util.Map;
 
 /**
  * Created by mjacobson on 22/01/18.
@@ -34,30 +35,32 @@ public class GeneController {
     private TaxonService taxonService;
 
     @RequestMapping(value = "/taxon/{taxonId}/gene/search", method = RequestMethod.POST)
-    public Collection<Gene> searchGenesByTaxonAndSymbols( @PathVariable Integer taxonId, @RequestBody List<String> symbols ) {
+    public Map<String, Gene> searchGenesByTaxonAndSymbols( @PathVariable Integer taxonId, @RequestBody List<String> symbols ) {
         Taxon taxon = taxonService.findById( taxonId );
-        return symbols.stream().map( s -> geneService.findBySymbolAndTaxon( s, taxon ) ).filter( Objects::nonNull).collect( Collectors.toSet() );
+        return symbols.stream().collect( HashMap::new, ( m, s)->m.put(s, geneService.findBySymbolAndTaxon( s, taxon )), HashMap::putAll);
+//        return symbols.stream().collect(Collectors.toMap( Function.identity(), s -> geneService.findBySymbolAndTaxon( s, taxon )));
     }
 
     @RequestMapping(value = "/taxon/{taxonId}/gene/search/{query}", method = RequestMethod.GET)
-    public Collection<Gene> searchGenesByTaxonAndQuery( @PathVariable Integer taxonId, @PathVariable String query) {
+    public Collection<SearchResult<Gene>> searchGenesByTaxonAndQuery( @PathVariable Integer taxonId, @PathVariable String query,
+                                                                      @RequestParam(value = "max", required = false, defaultValue = "-1") int max ) {
         Taxon taxon = taxonService.findById( taxonId );
-        return geneService.autocomplete( query, taxon );
+        return geneService.autocomplete( query, taxon, max );
     }
 
     @RequestMapping(value = "/gene/{geneId}", method = RequestMethod.GET)
-    public Gene getGene( @PathVariable Integer geneId) {
+    public Gene getGene( @PathVariable Integer geneId ) {
         return geneService.load( geneId );
     }
 
     @RequestMapping(value = "/gene/{geneId}/term", method = RequestMethod.GET)
-    public Collection<GeneOntologyTerm> getGeneTerms( @PathVariable Integer geneId) {
-        Gene gene=  geneService.load( geneId );
+    public Collection<GeneOntologyTerm> getGeneTerms( @PathVariable Integer geneId ) {
+        Gene gene = geneService.load( geneId );
         return goService.getGOTerms( gene );
     }
 
     @RequestMapping(value = "/taxon/{taxonId}/gene/{symbol}", method = RequestMethod.GET)
-    public Gene getGeneByTaxonAndSymbol( @PathVariable Integer taxonId, @PathVariable String symbol) {
+    public Gene getGeneByTaxonAndSymbol( @PathVariable Integer taxonId, @PathVariable String symbol ) {
         Taxon taxon = taxonService.findById( taxonId );
         return geneService.findBySymbolAndTaxon( symbol, taxon );
     }

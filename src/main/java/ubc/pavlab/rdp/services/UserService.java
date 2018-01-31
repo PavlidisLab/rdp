@@ -10,7 +10,6 @@ import ubc.pavlab.rdp.model.enums.TierType;
 import javax.validation.ValidationException;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -61,13 +60,13 @@ public interface UserService {
     Integer countResearchersWithGenes();
 
     @Transactional
-    void addGenesToUser( User user, Map<Gene, TierType> genes );
+    void addGenesToUser( User user, Collection<UserGene> genes );
 
     @Transactional
     void removeGenesFromUser( User user, Collection<Gene> genes );
 
     @Transactional
-    void updateGenesInTaxon( User user, Taxon taxon, Map<Gene, TierType> genes );
+    void updateGenesInTaxon( User user, Taxon taxon, Collection<UserGene> genes );
 
     @Transactional
     void updateGOTermsInTaxon( User user, Taxon taxon, Collection<GeneOntologyTerm> goTerms);

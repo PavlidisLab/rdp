@@ -3,12 +3,9 @@ package ubc.pavlab.rdp.services;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.stereotype.Service;
-import ubc.pavlab.rdp.model.Gene;
-import ubc.pavlab.rdp.model.GeneOntologyTerm;
-import ubc.pavlab.rdp.model.Taxon;
-import ubc.pavlab.rdp.model.UserTerm;
+import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.RelationshipType;
-import ubc.pavlab.rdp.model.Relationship;
+import ubc.pavlab.rdp.model.enums.TierType;
 
 import java.util.*;
 import java.util.regex.Pattern;
@@ -328,11 +325,11 @@ public class GOServiceImpl implements GOService {
     }
 
     @Override
-    public Collection<Gene> getRelatedGenes( Collection<GeneOntologyTerm> goTerms, Taxon taxon ) {
-        Collection<Gene> results = new HashSet<>();
+    public Collection<UserGene> getRelatedGenes( Collection<GeneOntologyTerm> goTerms, Taxon taxon ) {
+        Collection<UserGene> results = new HashSet<>();
 
         for ( GeneOntologyTerm term : goTerms ) {
-            results.addAll( getGenes( termMap.get( term.getId() ), taxon ) );
+            results.addAll( getGenes( termMap.get( term.getId() ), taxon ).stream().map(g -> new UserGene( g, TierType.TIER3 )).collect( Collectors.toSet()) );
         }
 
         return results;

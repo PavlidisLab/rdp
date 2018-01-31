@@ -22,10 +22,11 @@ package ubc.pavlab.rdp.services;
 
 import ubc.pavlab.rdp.model.Gene;
 import ubc.pavlab.rdp.model.Taxon;
+import ubc.pavlab.rdp.model.UserGene;
 import ubc.pavlab.rdp.model.enums.TierType;
+import ubc.pavlab.rdp.util.SearchResult;
 
 import java.util.Collection;
-import java.util.LinkedHashSet;
 import java.util.Map;
 
 /**
@@ -41,11 +42,11 @@ public interface GeneService {
 
     Collection<Gene> findBySymbolInAndTaxon( Collection<String> symbols, Taxon taxon );
 
-    LinkedHashSet<Gene> autocomplete( String query, Taxon taxon );
+    Collection<SearchResult<Gene>> autocomplete( String query, Taxon taxon, int maxResults );
 
     int size();
 
-    Map<Gene, TierType> deserializeGenes( Map<Integer, TierType> genes);
+    Collection<UserGene> deserializeGenes( Map<Integer, TierType> genes);
 
     void addAll( Collection<Gene> genes );
 }

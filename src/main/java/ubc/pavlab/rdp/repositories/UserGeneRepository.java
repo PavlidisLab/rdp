@@ -12,5 +12,5 @@ import java.util.Collection;
 public interface UserGeneRepository extends JpaRepository<UserGene, Integer> {
     Integer countByTierIn( Collection<TierType> tiers );
     Integer countDistinctGeneByTierIn( Collection<TierType> tiers );
-    Integer countDistinctUserByGeneTaxon( Taxon taxon );
+    Integer countDistinctUserByTaxon( Taxon taxon );
 }

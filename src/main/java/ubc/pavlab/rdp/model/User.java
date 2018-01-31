@@ -76,12 +76,6 @@ public class User {
 
     @JsonIgnore
     @Transient
-    public Set<Gene> getGenes() {
-        return this.getUserGenes().stream().map( UserGene::getGene ).collect( Collectors.toSet() );
-    }
-
-    @JsonIgnore
-    @Transient
     public Set<GeneOntologyTerm> getTerms() {
         return this.userTerms.stream().map( UserTerm::getTerm ).collect( Collectors.toSet() );
     }
@@ -89,22 +83,14 @@ public class User {
     @JsonIgnore
     @Transient
     public Set<Gene> getGenesByTaxon( Taxon taxon ) {
-        return this.getUserGenes().stream().map( UserGene::getGene )
-                .filter( gene -> gene.getTaxon().equals( taxon ) ).collect( Collectors.toSet() );
+        return this.getUserGenes().stream().filter( gene -> gene.getTaxon().equals( taxon ) ).collect( Collectors.toSet() );
     }
 
     @JsonIgnore
     @Transient
     public Set<Gene> getGenesByTaxonAndTier( Taxon taxon, Set<TierType> tiers) {
         return this.getUserGenes().stream()
-                .filter( ga -> ga.getGene().getTaxon().equals( taxon ) && tiers.contains( ga.getTier()) )
-                .map( UserGene::getGene ).collect( Collectors.toSet() );
-    }
-
-    @JsonIgnore
-    @Transient
-    public Set<UserGene> getGenesAssociationsByTaxon( Taxon taxon ) {
-        return this.getUserGenes().stream().filter( ga -> ga.getGene().getTaxon().equals( taxon ) ).collect( Collectors.toSet() );
+                .filter( gene -> gene.getTaxon().equals( taxon ) && tiers.contains( gene.getTier()) ).collect( Collectors.toSet() );
     }
 
     @JsonIgnore

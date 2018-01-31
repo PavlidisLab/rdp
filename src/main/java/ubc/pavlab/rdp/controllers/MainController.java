@@ -4,13 +4,16 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
+import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.model.User;
 import ubc.pavlab.rdp.services.EmailService;
+import ubc.pavlab.rdp.services.TaxonService;
 import ubc.pavlab.rdp.services.UserService;
 
 import javax.mail.MessagingException;
@@ -25,6 +28,9 @@ public class MainController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private TaxonService taxonService;
 
     @Autowired
     private EmailService emailService;
@@ -43,6 +49,18 @@ public class MainController {
     @RequestMapping(value = "/stats.html")
     public void handleStatsHTMLEndpoint( HttpServletResponse response ) throws IOException {
         response.sendRedirect( "/stats" );
+    }
+
+    @RequestMapping(value = {"/user/model/{taxonId}"}, method = RequestMethod.GET)
+    public ModelAndView model( @PathVariable Integer taxonId ) {
+        ModelAndView modelAndView = new ModelAndView();
+        User user = userService.findCurrentUser();
+        Taxon taxon = taxonService.findById( taxonId );
+
+        modelAndView.addObject( "user", user );
+        modelAndView.addObject( "taxon", taxon );
+        modelAndView.setViewName( "user/model" );
+        return modelAndView;
     }
 
     @RequestMapping(value = {"/user/profile"}, method = RequestMethod.GET)

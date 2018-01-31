@@ -1,9 +1,6 @@
 package ubc.pavlab.rdp.services;
 
-import ubc.pavlab.rdp.model.Gene;
-import ubc.pavlab.rdp.model.GeneOntologyTerm;
-import ubc.pavlab.rdp.model.Taxon;
-import ubc.pavlab.rdp.model.UserTerm;
+import ubc.pavlab.rdp.model.*;
 
 import java.util.Collection;
 import java.util.List;
@@ -89,7 +86,7 @@ public interface GOService {
 
     Collection<GeneOntologyTerm> getGOTerms( Gene gene, boolean includePartOf, boolean propagateUpwards );
 
-    Collection<Gene> getRelatedGenes( Collection<GeneOntologyTerm> goTerms, Taxon taxon );
+    Collection<UserGene> getRelatedGenes( Collection<GeneOntologyTerm> goTerms, Taxon taxon );
 
     Integer computeOverlapFrequency( GeneOntologyTerm t, Set<Gene> genes );
 

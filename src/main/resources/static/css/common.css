@@ -94,3 +94,8 @@ div.brand > h1 {
 .research-info .data-edit {
     overflow-y: auto;
 }
+
+.gene-error:before {
+    content: "Could Not Find Gene.";
+    color: red;
+}
