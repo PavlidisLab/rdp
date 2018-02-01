@@ -318,7 +318,7 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     @Override
-    public void confirmVerificationToken( String token ) {
+    public User confirmVerificationToken( String token ) {
         VerificationToken verificationToken = tokenRepository.findByToken( token );
         if ( verificationToken == null ) {
             throw new TokenException( "Invalid Token" );
@@ -334,6 +334,7 @@ public class UserServiceImpl implements UserService {
         User user = verificationToken.getUser();
         user.setEnabled( true );
         update( user );
+        return user;
     }
 
     private Collection<UserGene> calculatedGenesInTaxon( User user, Taxon taxon ) {

@@ -126,8 +126,8 @@ public class PasswordController {
 
                 User user = userService.findUserById( id );
                 Authentication auth = new UsernamePasswordAuthenticationToken(
-                        user, null, Collections.singletonList(
-                        new SimpleGrantedAuthority( "ROLE_USER" ) ) );
+                        user.getEmail(), null, Collections.singletonList(
+                        new SimpleGrantedAuthority( user.getRoles().iterator().next().getRole() ) ) );
 
                 SecurityContextHolder.getContext().setAuthentication( auth );
 

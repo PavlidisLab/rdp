@@ -4,6 +4,10 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -17,6 +21,7 @@ import ubc.pavlab.rdp.model.User;
 import ubc.pavlab.rdp.services.UserService;
 
 import javax.validation.Valid;
+import java.util.Collections;
 
 /**
  * Created by mjacobson on 16/01/18.
@@ -64,7 +69,7 @@ public class LoginController {
             userService.create( user );
             try {
                 eventPublisher.publishEvent( new OnRegistrationCompleteEvent( user ) );
-                modelAndView.addObject( "message", "User has been registered successfully" );
+                modelAndView.addObject( "message", "User has been registered successfully, we have sent you an email in order to confirm your account." );
             } catch (Exception me) {
                 log.error(me);
                 modelAndView.addObject( "message", "There was a problem sending the confirmation email." );
@@ -80,10 +85,16 @@ public class LoginController {
 
     @RequestMapping(value = "/registrationConfirm", method = RequestMethod.GET)
     public ModelAndView confirmRegistration( WebRequest request, Model model, @RequestParam("token") String token) {
-        userService.confirmVerificationToken( token );
+        User user = userService.confirmVerificationToken( token );
+
+        Authentication auth = new UsernamePasswordAuthenticationToken(
+                user.getEmail(), null, Collections.singletonList(
+                new SimpleGrantedAuthority( user.getRoles().iterator().next().getRole() ) ) );
+
+        SecurityContextHolder.getContext().setAuthentication( auth );
 
         ModelAndView modelAndView = new ModelAndView();
-        modelAndView.setViewName( "redirect:login" );
+        modelAndView.setViewName( "redirect:user/home" );
         return modelAndView;
 
     }

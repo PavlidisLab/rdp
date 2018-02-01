@@ -95,5 +95,5 @@ public interface UserService {
     void createVerificationTokenForUser( User user, String token );
 
     @Transactional
-    void confirmVerificationToken( String token );
+    User confirmVerificationToken( String token );
 }
