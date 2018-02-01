@@ -36,6 +36,12 @@ $(document).ready(function () {
     // Create initial profile
     var initialProfile = collectProfile();
 
+    // Enable navigation prompt
+    window.onbeforeunload = function() {
+        return JSON.stringify(initialProfile)!==JSON.stringify(collectProfile()) ?  true : undefined;
+    };
+
+
     $(document).on("click", ".add-row", function () {
         var newRow = $("<tr></tr>");
         var cols = "";

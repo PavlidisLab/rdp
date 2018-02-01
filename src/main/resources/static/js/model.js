@@ -71,6 +71,11 @@ $(document).ready(function () {
 
     var initialModel = collectModel();
 
+    // Enable navigation prompt
+    window.onbeforeunload = function() {
+        return JSON.stringify(initialModel)!==JSON.stringify(collectModel()) ?  true : undefined;
+    };
+
     $(document).on("click", ".save-model", function () {
         var model = collectModel();
 
