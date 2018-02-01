@@ -3,17 +3,17 @@ function collectProfile() {
 
     // Basic Information
     var values = $('.basic-info').find('.data-edit');
-    profile.name = $.trim(values[0].innerText);
-    profile.lastName = $.trim(values[1].innerText);
-    profile.organization = $.trim(values[2].innerText);
-    profile.department = $.trim(values[3].innerText);
-    profile.website = $.trim(values[4].innerText);
+    profile.name = $.trim(values[0].value);
+    profile.lastName = $.trim(values[1].value);
+    profile.organization = $.trim(values[2].value);
+    profile.department = $.trim(values[3].value);
+    profile.website = $.trim(values[4].value);
 
     // Contact Information
-    profile.phone = $.trim($('.contact-info').find('.data-edit')[0].innerText);
+    profile.phone = $.trim($('.contact-info').find('.data-edit')[0].value);
 
     // Research Information
-    profile.description = $.trim($('.research-info').find('.data-edit')[0].innerText);
+    profile.description = $.trim($('.research-info').find('.data-edit')[0].value);
 
     // Publication Information
     var publications = [];

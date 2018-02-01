@@ -2,7 +2,7 @@ function collectModel() {
     var model = {};
 
     // Research Information
-    model.description = $.trim($('.research-info').find('.data-edit')[0].innerText);
+    model.description = $.trim($('.research-info').find('.data-edit')[0].value);
 
     // Gene Information
     var geneTierMap = {};
@@ -10,8 +10,9 @@ function collectModel() {
         var tds = $(this).find('td');
 
         // If id column contains an integer
-        if (tds[1].innerText == parseInt(tds[1].innerText, 10) ) {
-            geneTierMap[tds[1].innerText] = $(tds[3]).find('input[type=checkbox]').prop('checked') ? "TIER1" : "TIER2";
+        var geneId =  parseInt(tds[1].innerText, 10);
+        if (tds[1].innerText == geneId ) {
+            geneTierMap[geneId] = $(tds[3]).find('input[type=checkbox]').prop('checked') ? "TIER1" : "TIER2";
         }
     });
     model.geneTierMap = geneTierMap;
@@ -19,7 +20,7 @@ function collectModel() {
     // Term Information
     var goIds = [];
     $('#terms').find('.term-table').find('tbody > tr').each(function(idx) {
-        goIds.push($(this).find('td')[0].innerText);
+        goIds.push($.trim($(this).find('td')[0].innerText));
     });
     model.goIds = goIds;
 

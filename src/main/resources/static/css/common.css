@@ -39,10 +39,6 @@ div.brand > h1 {
     outline: rgb(241, 132, 88) auto 5px;
 }
 
-.editable {
-    pointer-events: none;
-}
-
 .editable:before {
     position: relative;
     top: 1px;
@@ -57,8 +53,18 @@ div.brand > h1 {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     color: orange;
-    content: '\e02f';
-    pointer-events: all;
+    content: '\e0a3';
+}
+
+textarea.data-edit {
+    height: 100%;
+    width: 100%;
+    resize: none;
+}
+
+.data-edit:disabled {
+    border-color: transparent;
+    background: transparent;
 }
 
 .saveable:before {

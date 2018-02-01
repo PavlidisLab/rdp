@@ -1,10 +1,17 @@
 $(document).ready(function () {
 
-    $(document).on("click", '.editable', function () {
-        var row = $(this).closest(".edit-container").find(".data-edit");
-        var state = row.prop('contenteditable') === 'true';
-        row.prop('contenteditable', !state);
-        $(this).toggleClass("saveable", !state);
+    $(document).on("click", '.editable', function (e) {
+        var inputs = $(this).closest(".edit-container").find(".data-edit");
+        var disabled = inputs.prop('disabled');
+
+        inputs.prop('disabled', !disabled);
+        $(this).toggleClass("saveable", disabled);
+        inputs.focus();
+
+    });
+
+    $(document).on("mousedown", '.editable', function (e) {
+        e.preventDefault();
     });
     $(document).on("click", '.delete-row', function () {
         $(this).closest('tr').remove();
@@ -19,5 +26,16 @@ $(document).ready(function () {
     });
 
     $('[data-toggle="tooltip"]').tooltip()
+
+    $(document).on("focusout", ".edit-container", function (e) {
+        $(this).find('.data-edit').prop('disabled', true);
+        $(this).find('.editable').removeClass("saveable");
+    });
+
+    $(document).on("keypress", "input.data-edit", function (e) {
+        if(e.which == 13) {
+            $(this).focusout();
+        }
+    });
 
 });
