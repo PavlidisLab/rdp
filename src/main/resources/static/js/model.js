@@ -121,6 +121,17 @@ $(document).ready(function () {
                 }
 
                 $.getJSON("/taxon/" + currentTaxon.id + "/gene/search/" + term + "?max=10", request, function (data, status, xhr) {
+
+                    if (!data.length) {
+                        data = [
+                            {
+                                noresults: true,
+                                label: 'No matches found',
+                                value: term
+                            }
+                        ];
+                    }
+
                     cache[term] = data;
                     response(data);
                 });
@@ -142,6 +153,12 @@ $(document).ready(function () {
         autocomplete.autocomplete( "instance" )._renderMenu = function(ul, items) {
             var that = this,
                 currentCategory = "";
+
+            if(items.length === 1 && items[0].noresults ){
+                ul.append( "<li aria-label='noresults' class='ui-autocomplete-category my-1 p-2 font-weight-bold' style='background-color: #fddce5; font-size: 1rem;'>No Results</li>" );
+                return;
+            }
+
             $.each( items, function( index, item ) {
                 var li;
                 var label = item.matchType + " : " + item.match.symbol;
@@ -210,6 +227,17 @@ $(document).ready(function () {
                     return;
                 }
                 $.getJSON("/taxon/" + currentTaxon.id + "/term/search/" + term + "?max=10", request, function (data, status, xhr) {
+
+                    if (!data.length) {
+                        data = [
+                            {
+                                noresults: true,
+                                label: 'No matches found',
+                                value: term
+                            }
+                        ];
+                    }
+
                     cache[term] = data;
                     response(data);
                 });
@@ -231,6 +259,12 @@ $(document).ready(function () {
         autocomplete.autocomplete( "instance" )._renderMenu = function(ul, items) {
             var that = this,
                 currentCategory = "";
+
+            if(items.length === 1 && items[0].noresults ){
+                ul.append( "<li aria-label='noresults' class='ui-autocomplete-category my-1 p-2 font-weight-bold' style='background-color: #fddce5; font-size: 1rem;'>No Results</li>" );
+                return;
+            }
+
             $.each( items, function( index, item ) {
                 var li;
                 var label = item.matchType + " : " + item.match.id;
