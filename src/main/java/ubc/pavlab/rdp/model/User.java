@@ -92,4 +92,10 @@ public class User {
     public Set<UserTerm> getTermsByTaxon( Taxon taxon ) {
         return this.getUserTerms().stream().filter( term -> term.getTaxon().equals( taxon ) ).collect( Collectors.toSet() );
     }
+
+    @JsonIgnore
+    @Transient
+    public boolean hasTaxon( Taxon taxon ) {
+        return this.getUserGenes().stream().anyMatch( g -> g.getTaxon().equals( taxon ) );
+    }
 }
