@@ -64,7 +64,7 @@ public class Gene2GoParser {
                 GeneOntologyTerm term = goService.getTerm( values[2] );
                 Gene gene = geneService.load( Integer.valueOf( values[1] ));
 
-                term.getGenes().add( gene );
+                term.getDirectGenes().add( gene );
                 gene.getTerms().add( term );
 
             } );

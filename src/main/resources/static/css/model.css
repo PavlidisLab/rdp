@@ -1,0 +1,9 @@
+.gene-error:before {
+    content: "Could Not Find Gene.";
+    color: red;
+}
+
+.term-error:before {
+    content: "Could Not Find Term.";
+    color: red;
+}

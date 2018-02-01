@@ -56,7 +56,7 @@ public class GeneController {
     @RequestMapping(value = "/gene/{geneId}/term", method = RequestMethod.GET)
     public Collection<GeneOntologyTerm> getGeneTerms( @PathVariable Integer geneId ) {
         Gene gene = geneService.load( geneId );
-        return goService.getGOTerms( gene );
+        return gene.getAllTerms( true, true );
     }
 
     @RequestMapping(value = "/taxon/{taxonId}/gene/{symbol}", method = RequestMethod.GET)

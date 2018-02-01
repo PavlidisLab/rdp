@@ -3,16 +3,14 @@ package ubc.pavlab.rdp.controllers;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import ubc.pavlab.rdp.model.Gene;
 import ubc.pavlab.rdp.model.GeneOntologyTerm;
 import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.model.UserTerm;
 import ubc.pavlab.rdp.services.GOService;
 import ubc.pavlab.rdp.services.TaxonService;
+import ubc.pavlab.rdp.util.SearchResult;
 
 import java.util.Collection;
 import java.util.List;
@@ -32,21 +30,17 @@ public class TermController {
     private TaxonService taxonService;
 
     @RequestMapping(value = "/taxon/{taxonId}/term/search/{query}", method = RequestMethod.GET)
-    public Collection<UserTerm> searchTermsByQueryAndTaxon( @PathVariable Integer taxonId, @PathVariable String query ) {
+    public List<SearchResult<UserTerm>> searchTermsByQueryAndTaxon( @PathVariable Integer taxonId, @PathVariable String query,
+                                                                    @RequestParam(value = "max", required = false, defaultValue = "-1") int max) {
         Taxon taxon = taxonService.findById( taxonId );
 
-        List<GeneOntologyTerm> results = goService.search( query );
+        return goService.search( query, taxon, max );
 
-        // Only return max 100 hits
-        try {
-            results = results.subList( 0, 20 );
-        } catch (IndexOutOfBoundsException e) {
-            // ignore
-        }
+    }
 
-        // Don't need frequency here
-        return goService.convertTermTypes( results, taxon, null );
-
+    @RequestMapping(value = "/term/{goId}", method = RequestMethod.GET)
+    public GeneOntologyTerm getTerm( @PathVariable String goId ) {
+        return goService.getTerm( goId );
     }
 
     @RequestMapping(value = "/taxon/{taxonId}/term/{goId}/gene", method = RequestMethod.GET)

@@ -1,5 +1,3 @@
-var currentTaxon = 9606;
-
 function collectModel() {
     var model = {};
 
@@ -8,7 +6,7 @@ function collectModel() {
 
     // Gene Information
     var geneTierMap = {};
-    $('.gene-table').find('tbody > tr').each(function(idx) {
+    $('#genes').find('.gene-table').find('tbody > tr').each(function(idx) {
         var tds = $(this).find('td');
 
         // If id column contains an integer
@@ -18,19 +16,98 @@ function collectModel() {
     });
     model.geneTierMap = geneTierMap;
 
+    // Term Information
+    var goIds = [];
+    $('#terms').find('.term-table').find('tbody > tr').each(function(idx) {
+        goIds.push($(this).find('td')[0].innerText);
+    });
+    model.goIds = goIds;
+
     return model;
+}
+
+function addGeneRow(table, gene, backupSymbol) {
+    var newRow = $("<tr class='new-row'></tr>");
+    var cols = "";
+    if ( gene === null ) {
+        console.log("Issue obtaining metadata for: " + backupSymbol);
+        cols += '<td><span class="align-middle"><i class="delete-row align-middle"/>' + backupSymbol + '</span></td>';
+        cols += '<td style="display: none;"></td>';
+        cols += '<td class="gene-error" colspan="2"></td>';
+    } else {
+        cols += '<td><span class="align-middle"><i class="delete-row align-middle"/><a href="https://www.ncbi.nlm.nih.gov/gene/' + gene.id + '" target="_blank" class="align-middle">' + gene.symbol + '</a></span></td>';
+        cols += '<td style="display: none;">' + gene.id + '</td>';
+        cols += '<td><span class="align-middle">' + gene.name + '</span></td>';
+        cols += '<td class="text-center"><input class="align-middle" type="checkbox"/></td>';
+    }
+    newRow.append(cols);
+    table.append(newRow);
+}
+
+function addTermRow(table, term, backupId) {
+    var newRow = $("<tr class='new-row'></tr>");
+    var cols = "";
+    if ( term === null ) {
+        console.log("Issue obtaining metadata for: " + backupId);
+        cols += '<td><span class="align-middle"><i class="delete-row align-middle"/>' + backupId + '</span></td>';
+        cols += '<td class="term-error" colspan="4"></td>';
+    } else {
+        cols += '<td><span class="align-middle">' +
+            '<i class="delete-row"/>' +
+            '<a href="http://www.ebi.ac.uk/QuickGO/GTerm?id=' + term.id + '" ' +
+            'target="_blank" data-toggle="tooltip" class="align-middle" title="' + term.definition +'">' + term.id + '</a></span></td>';
+        cols += '<td><span class="align-middle">' + term.name + '</span></td>';
+        cols += '<td><span class="align-middle">' + term.aspect + '</span></td>';
+        cols += '<td><a href="#" class="align-middle overlap-show-modal" data-toggle="modal" data-target="#overlapModal">' + term.frequency + '</a></td>';
+        cols += '<td><span class="align-middle">' + term.size + '</span></td>';
+    }
+    newRow.append(cols);
+    table.append(newRow);
+    newRow.find('[data-toggle="tooltip"]').tooltip()
 }
 
 $(document).ready(function () {
 
     var initialModel = collectModel();
 
+    $(document).on("click", ".save-model", function () {
+        var model = collectModel();
+
+        var spinner = $(this).find('.spinner');
+        spinner.removeClass("d-none");
+
+        $.ajax({
+            type: "POST",
+            url: window.location.href,
+            data: JSON.stringify(model),
+            contentType: "application/json",
+            success: function(r) {
+                $('.success-row').show();
+                $('.error-row').hide();
+                spinner.addClass("d-none");
+            },
+            error: function(r) {
+                $('.success-row').hide();
+                $('.error-row').show();
+                spinner.addClass("d-none");
+            }
+        });
+    });
+
+    $(document).on("keypress", ".autocomplete", function (e) {
+        if(e.which == 13) {
+            $(this).closest('.input-group').find('button.add-row').click();
+        }
+    });
+
+    // Genes
+
     $(function () {
         var cache = {};
         var autocomplete = $("#genes").find(".autocomplete");
         autocomplete.autocomplete({
             minLength: 2,
-            delay: 1000,
+            delay: 500,
             source: function (request, response) {
                 var term = request.term;
                 if (term in cache) {
@@ -42,7 +119,7 @@ $(document).ready(function () {
                     return;
                 }
 
-                $.getJSON("/taxon/" + currentTaxon + "/gene/search/" + term + "?max=10", request, function (data, status, xhr) {
+                $.getJSON("/taxon/" + currentTaxon.id + "/gene/search/" + term + "?max=10", request, function (data, status, xhr) {
                     cache[term] = data;
                     response(data);
                 });
@@ -80,12 +157,6 @@ $(document).ready(function () {
 
     });
 
-    $(document).on("keypress", ".autocomplete", function (e) {
-        if(e.which == 13) {
-            $(this).closest('.input-group').find('button').click();
-        }
-    });
-
     $("#genes").on("click", ".add-row", function () {
 
         var line = $.trim($(this).closest('.input-group').find('input').val());
@@ -95,55 +166,136 @@ $(document).ready(function () {
         });
 
         var self = $(this);
+        var spinner = self.find('.spinner');
+        spinner.removeClass("d-none");
+
+
         $.ajax({
             type: "POST",
-            url: '/taxon/' + currentTaxon + '/gene/search',
+            url: '/taxon/' + currentTaxon.id + '/gene/search',
             data: JSON.stringify(symbols),
             contentType: "application/json",
             success: function(data) {
 
                 for (var symbol in data) {
                     if (data.hasOwnProperty(symbol)) {
-                        var gene = data[symbol];
-                        var newRow = $("<tr></tr>");
-                        var cols = "";
-                        if ( gene === null ) {
-                            console.log("Issue obtaining metadata for: " + symbol);
-                            cols += '<td><i class="delete-row"/>' + symbol + '</td>';
-                            cols += '<td style="display: none;"></td>';
-                            cols += '<td class="gene-error" colspan="2"></td>';
-                        } else {
-                            cols += '<td><i class="delete-row"/><a href="https://www.ncbi.nlm.nih.gov/gene/' + gene.id + '" target="_blank">' + gene.symbol + '</a></td>';
-                            cols += '<td style="display: none;">' + gene.id + '</td>';
-                            cols += '<td>' + gene.name + '</td>';
-                            cols += '<td class="text-center"><input type="checkbox"/></td>';
-                        }
-                        newRow.append(cols);
-                        self.closest('table').append(newRow);
+                        addGeneRow(self.closest('table'), data[symbol], symbol);
                     }
                 }
             }
 
+        }).always(function() {
+            spinner.addClass("d-none");
         });
         $(this).closest('.input-group').find('input').val("")
     });
 
-    $(document).on("click", ".save-model", function () {
-        var model = collectModel();
+    // Terms
+
+    $(function () {
+        var cache = {};
+        var autocomplete = $("#terms").find(".autocomplete");
+        autocomplete.autocomplete({
+            minLength: 2,
+            delay: 500,
+            source: function (request, response) {
+                var term = request.term;
+                if (term in cache) {
+                    response(cache[term]);
+                    return;
+                }
+
+                if (term.includes(",")) {
+                    return;
+                }
+                $.getJSON("/taxon/" + currentTaxon.id + "/term/search/" + term + "?max=10", request, function (data, status, xhr) {
+                    cache[term] = data;
+                    response(data);
+                });
+            },
+            select: function( event, ui ) {
+                autocomplete.val( ui.item.match.id );
+                return false;
+            }
+        });
+        autocomplete.autocomplete( "instance" )._renderItem = function( ul, item ) {
+            return $( "<li>" )
+                .append( "<div class='pl-3'><b>" + item.match.id + "</b>: " + item.match.name + " (Size: " + item.match.size + ")</div>" )
+                .appendTo( ul );
+        };
+        autocomplete.autocomplete( "instance" )._create = function() {
+            this._super();
+            this.widget().menu( "option", "items", "> :not(.ui-autocomplete-category)" );
+        };
+        autocomplete.autocomplete( "instance" )._renderMenu = function(ul, items) {
+            var that = this,
+                currentCategory = "";
+            $.each( items, function( index, item ) {
+                var li;
+                var label = item.matchType + " : " + item.match.id;
+                if ( item.matchType !== currentCategory ) {
+                    ul.append( "<li aria-label='" + label + "' class='ui-autocomplete-category my-1 p-2 font-weight-bold' style='background-color: #e3f2fd; font-size: 1rem;'>" + item.matchType + "</li>" );
+                    currentCategory = item.matchType;
+                }
+                li = that._renderItemData( ul, item );
+                if ( item.matchType ) {
+                    li.attr( "aria-label", label );
+                }
+            });
+        };
+
+    });
+
+    $("#terms").on("click", ".add-row", function () {
+
+        var line = $.trim($(this).closest('.input-group').find('input').val());
+
+        var ids = line.split(",").map(function(item) {
+            return item.trim();
+        });
+
+        var self = $(this);
+
+        var spinner = self.find('.spinner');
+        spinner.removeClass("d-none");
+
 
         $.ajax({
             type: "POST",
-            url: window.location.href,
-            data: JSON.stringify(model),
+            url: '/user/taxon/' + currentTaxon.id + '/term/search',
+            data: JSON.stringify(ids),
             contentType: "application/json",
-            success: function(r) {
-                $('.success-row').show();
-                $('.error-row').hide();
-            },
-            error: function(r) {
-                $('.success-row').hide();
-                $('.error-row').show();
+            success: function(data) {
+                for (var goId in data) {
+                    if (data.hasOwnProperty(goId)) {
+                        addTermRow(self.closest('table'), data[goId], goId);
+                    }
+                }
+            }
+
+        }).always(function() {
+            spinner.addClass("d-none");
+        });
+        $(this).closest('.input-group').find('input').val("")
+    });
+
+    $('.recommend-terms').click(function(e) {
+        var spinner = $(this).find('.spinner');
+        spinner.removeClass("d-none");
+        $.getJSON("/user/taxon/" + currentTaxon.id + "/term/recommend?top=true", function (data, status, xhr) {
+            try {
+                var table = $('#terms').find('.term-table');
+                $.each(data, function (index, item) {
+                    addTermRow(table, item, "-")
+                });
+            } finally {
+                spinner.addClass("d-none");
             }
         });
     });
+
+    $('#overlapModal').on('show.bs.modal', function (e) {
+        var goId = $(e.relatedTarget).closest('tr').find('td')[0].innerText;
+        $("#overlapModal").find(".modal-body").load("/user/taxon/" + currentTaxon.id + "/term/" + goId + "/gene/view");
+    })
 });

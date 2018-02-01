@@ -75,6 +75,9 @@ $(document).ready(function () {
     $(document).on("click", ".save-profile", function () {
         var profile = collectProfile();
 
+        var spinner = $(this).find('.spinner');
+        spinner.removeClass("d-none");
+
         $.ajax({
             type: "POST",
             url: window.location.href,
@@ -83,10 +86,12 @@ $(document).ready(function () {
             success: function(r) {
                 $('.success-row').show();
                 $('.error-row').hide();
+                spinner.addClass("d-none");
             },
             error: function(r) {
                 $('.success-row').hide();
                 $('.error-row').show();
+                spinner.addClass("d-none");
             }
         });
     });

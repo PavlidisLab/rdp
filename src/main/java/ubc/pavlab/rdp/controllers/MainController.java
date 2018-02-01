@@ -10,9 +10,12 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
+import ubc.pavlab.rdp.model.Gene;
 import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.model.User;
+import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.services.EmailService;
+import ubc.pavlab.rdp.services.GOService;
 import ubc.pavlab.rdp.services.TaxonService;
 import ubc.pavlab.rdp.services.UserService;
 
@@ -20,6 +23,8 @@ import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Collection;
+import java.util.stream.Collectors;
 
 @Controller
 public class MainController {
@@ -31,6 +36,9 @@ public class MainController {
 
     @Autowired
     private TaxonService taxonService;
+
+    @Autowired
+    private GOService goService;
 
     @Autowired
     private EmailService emailService;
@@ -60,6 +68,33 @@ public class MainController {
         modelAndView.addObject( "user", user );
         modelAndView.addObject( "taxon", taxon );
         modelAndView.setViewName( "user/model" );
+        return modelAndView;
+    }
+
+    @RequestMapping(value = "/user/taxon/{taxonId}/term/recommend/view", method = RequestMethod.GET)
+    public ModelAndView getRecommendedTermsForTaxon( @PathVariable Integer taxonId ) {
+        ModelAndView modelAndView = new ModelAndView();
+        User user = userService.findCurrentUser();
+        Taxon taxon = taxonService.findById( taxonId );
+
+        modelAndView.addObject( "userTerms",  userService.recommendTerms(user, taxon) );
+        modelAndView.addObject( "tableOnly", true);
+        modelAndView.setViewName( "fragments/term-table :: term-table" );
+        return modelAndView;
+    }
+
+    @RequestMapping(value = "/user/taxon/{taxonId}/term/{goId}/gene/view", method = RequestMethod.GET)
+    public ModelAndView getTermsGenesForTaxon( @PathVariable Integer taxonId, @PathVariable String goId ) {
+        ModelAndView modelAndView = new ModelAndView();
+        User user = userService.findCurrentUser();
+        Taxon taxon = taxonService.findById( taxonId );
+
+        Collection<Gene> genes = goService.getGenes( goService.getTerm( goId ) );
+
+        modelAndView.addObject( "genes", user.getGenesByTaxonAndTier( taxon, TierType.MANUAL_TIERS )
+                .stream().filter( genes::contains ).collect( Collectors.toSet() ));
+        modelAndView.addObject( "tableOnly", true);
+        modelAndView.setViewName( "fragments/gene-table :: gene-table" );
         return modelAndView;
     }
 

@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 import ubc.pavlab.rdp.model.Gene;
 import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.model.UserGene;
-import ubc.pavlab.rdp.model.enums.MatchType;
+import ubc.pavlab.rdp.model.enums.GeneMatchType;
 import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.util.SearchResult;
 import ubc.pavlab.rdp.util.SearchableEhcache;
@@ -89,24 +89,24 @@ public class GeneServiceImpl extends SearchableEhcache<Integer, Gene> implements
         Collection<SearchResult<Gene>> results = new LinkedHashSet<>();
         Criteria taxonCrit = this.taxonId.eq( taxon.getId() );
 
-        if (addAll( results, fetchByCriteria( taxonCrit.and( symbol.ilike( query ) ) ), MatchType.EXACT_SYMBOL, maxResults ) ) {
+        if (addAll( results, fetchByCriteria( taxonCrit.and( symbol.ilike( query ) ) ), GeneMatchType.EXACT_SYMBOL, maxResults ) ) {
             return results;
         }
 
-        if (addAll( results, fetchByCriteria( taxonCrit.and( symbol.ilike( query + "*" ) ) ), MatchType.SIMILAR_SYMBOL, maxResults ) ) {
+        if (addAll( results, fetchByCriteria( taxonCrit.and( symbol.ilike( query + "*" ) ) ), GeneMatchType.SIMILAR_SYMBOL, maxResults ) ) {
             return results;
         }
 
-        if (addAll( results, fetchByCriteria( taxonCrit.and( name.ilike( "*" + query + "*" ) ) ), MatchType.SIMILAR_NAME, maxResults ) ) {
+        if (addAll( results, fetchByCriteria( taxonCrit.and( name.ilike( "*" + query + "*" ) ) ), GeneMatchType.SIMILAR_NAME, maxResults ) ) {
             return results;
         }
 
-        addAll( results, fetchByCriteria( taxonCrit.and( aliases.ilike( "*" + query + "*" ) ) ), MatchType.SIMILAR_ALIAS, maxResults );
+        addAll( results, fetchByCriteria( taxonCrit.and( aliases.ilike( "*" + query + "*" ) ) ), GeneMatchType.SIMILAR_ALIAS, maxResults );
 
         return results;
     }
 
-    private <T> boolean addAll( Collection<SearchResult<T>> container, Collection<T> newValues, MatchType match, int maxSize ) {
+    private <T> boolean addAll( Collection<SearchResult<T>> container, Collection<T> newValues, GeneMatchType match, int maxSize ) {
 
         for ( T newValue : newValues ) {
             if ( maxSize == -1 || container.size() < maxSize ) {

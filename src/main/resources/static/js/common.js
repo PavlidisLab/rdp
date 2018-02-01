@@ -10,8 +10,14 @@ $(document).ready(function () {
         $(this).closest('tr').remove();
     });
 
+    $(document).on("click", '.reset-table', function () {
+        $(this).closest('table').find('tr.new-row').remove();
+    });
+
     $(document).on("click", ".close", function () {
         $(this).closest('.row').hide();
     });
+
+    $('[data-toggle="tooltip"]').tooltip()
 
 });

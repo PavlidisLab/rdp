@@ -68,11 +68,12 @@ div.brand > h1 {
 
 .delete-row {
     pointer-events: none;
+    font-size: 0.8em;
 }
 
 .delete-row:before {
     position: relative;
-    margin-right: 5px;
+    margin-right: 10px;
     cursor: pointer;
     display: inline-block;
     speak: none;
@@ -95,7 +96,37 @@ div.brand > h1 {
     overflow-y: auto;
 }
 
-.gene-error:before {
-    content: "Could Not Find Gene.";
-    color: red;
+tr.new-row {
+    background-color: #d7ffc4;
+}
+
+@keyframes anim-rotate {
+    0% {
+        transform: rotate(0);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.spinner {
+    display: inline-block;
+    height: 1em;
+    line-height: 1;
+    animation: anim-rotate 1.5s infinite linear;
+}
+
+.spinner:before {
+    /*top: -7px;*/
+    /*content: '\e007';*/
+    content: '\e0b3';
+    position: relative;
+    display: inline-block;
+    speak: none;
+    font-family: Icons;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 1;
+    -webkit-font-smoothing: antialiased;
+
 }

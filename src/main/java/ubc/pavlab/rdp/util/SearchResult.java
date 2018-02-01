@@ -1,7 +1,9 @@
 package ubc.pavlab.rdp.util;
 
-import lombok.*;
-import ubc.pavlab.rdp.model.enums.MatchType;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
 
 /**
  * Created by mjacobson on 30/01/18.

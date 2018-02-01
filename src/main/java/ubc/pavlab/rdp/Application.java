@@ -70,7 +70,7 @@ public class Application implements CommandLineRunner {
         log.info( "Finished loading annotations" );
 
         for ( GeneOntologyTerm goTerm : goService.getAllTerms() ) {
-            goTerm.setSizesByTaxon( goTerm.getGenes().stream().collect(
+            goTerm.setSizesByTaxon( goService.getGenes( goTerm ).stream().collect(
                     Collectors.groupingBy(
                             Gene::getTaxon, Collectors.counting()
                     ) ) );

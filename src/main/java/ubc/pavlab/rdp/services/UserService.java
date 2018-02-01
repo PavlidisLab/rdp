@@ -59,6 +59,12 @@ public interface UserService {
 
     Integer countResearchersWithGenes();
 
+    Collection<UserTerm> convertTerms( User user, Taxon taxon, Collection<GeneOntologyTerm> terms );
+
+    UserTerm convertTerms( User user, Taxon taxon, GeneOntologyTerm term );
+
+    Collection<UserTerm> recommendTerms( User user, Taxon taxon );
+
     @Transactional
     void addGenesToUser( User user, Collection<UserGene> genes );
 
@@ -70,6 +76,9 @@ public interface UserService {
 
     @Transactional
     void updateGOTermsInTaxon( User user, Taxon taxon, Collection<GeneOntologyTerm> goTerms);
+
+    @Transactional
+    void updateTermsAndGenesInTaxon( User user, Taxon taxon, Collection<UserGene> genes, Collection<GeneOntologyTerm> goTerms );
 
     @Transactional
     void updatePublications( User user, Set<Publication> publications );

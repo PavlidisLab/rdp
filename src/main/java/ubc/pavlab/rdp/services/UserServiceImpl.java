@@ -19,6 +19,7 @@ import ubc.pavlab.rdp.repositories.VerificationTokenRepository;
 
 import javax.validation.ValidationException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Created by mjacobson on 16/01/18.
@@ -181,6 +182,27 @@ public class UserServiceImpl implements UserService {
         return userRepository.countWithGenes();
     }
 
+    @Override
+    public Collection<UserTerm> convertTerms( User user, Taxon taxon, Collection<GeneOntologyTerm> terms ) {
+        Set<Gene> genes = user.getGenesByTaxonAndTier( taxon, TierType.MANUAL_TIERS );
+
+        return goService.convertTermTypes( terms, taxon, genes );
+    }
+
+    @Override
+    public UserTerm convertTerms( User user, Taxon taxon, GeneOntologyTerm term ) {
+        Set<Gene> genes = user.getGenesByTaxonAndTier( taxon, TierType.MANUAL_TIERS );
+
+        return goService.convertTermTypes( term, taxon, genes );
+    }
+
+    @Override
+    public Collection<UserTerm> recommendTerms( User user, Taxon taxon ) {
+        Set<Gene> genes = user.getGenesByTaxonAndTier( taxon, TierType.MANUAL_TIERS );
+
+        return goService.convertTermTypes( goService.recommendTerms( genes ), taxon, genes );
+    }
+
     @Transactional
     @Override
     public void addGenesToUser( User user, Collection<UserGene> genes ) {
@@ -233,12 +255,24 @@ public class UserServiceImpl implements UserService {
     public void updateGOTermsInTaxon( User user, Taxon taxon, Collection<GeneOntologyTerm> goTerms ) {
         removeTermsFromUserByTaxon( user, taxon );
 
-        Set<Gene> genes = user.getGenesByTaxonAndTier( taxon, TierType.MANUAL_TIERS );
-
-        user.getUserTerms().addAll( goService.convertTermTypes( goTerms, taxon, genes ) );
+        user.getUserTerms().addAll( convertTerms( user, taxon, goTerms ) );
 
         removeGenesFromUserByTiersAndTaxon( user, taxon, Collections.singleton( TierType.TIER3 ) );
         addGenesToUser( user, calculatedGenesInTaxon( user, taxon ) );
+    }
+
+    @Transactional
+    @Override
+    public void updateTermsAndGenesInTaxon( User user, Taxon taxon, Collection<UserGene> genes, Collection<GeneOntologyTerm> goTerms ) {
+        Collection<UserGene> newGenes = genes.stream().filter( g -> g.getTaxon().equals( taxon ) ).collect( Collectors.toSet());
+
+        removeTermsFromUserByTaxon( user, taxon );
+        user.getUserTerms().addAll( convertTerms( user, taxon, goTerms ) );
+
+        newGenes.addAll( calculatedGenesInTaxon( user, taxon ) );
+
+        removeGenesFromUserByTaxon( user, taxon );
+        addGenesToUser( user, newGenes );
     }
 
     @Transactional
@@ -303,7 +337,7 @@ public class UserServiceImpl implements UserService {
     }
 
     private Collection<UserGene> calculatedGenesInTaxon( User user, Taxon taxon ) {
-        return goService.getRelatedGenes( user.getTerms(), taxon );
+        return goService.getRelatedGenes( user.getUserTerms(), taxon );
     }
 
     private boolean removeGenesFromUserByTaxon( User user, Taxon taxon ) {

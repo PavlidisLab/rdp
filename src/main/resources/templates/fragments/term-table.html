@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+<body>
+<table class="term-table table table-sm mb-0" th:fragment="term-table (userTerms)">
+    <thead class="thead-light">
+    <tr>
+        <th scope="col">Id</th>
+        <th scope="col">Name</th>
+        <th scope="col">Aspect</th>
+        <th scope="col">Overlap</th>
+        <th scope="col">Size</th>
+    </tr>
+    </thead>
+    <tbody>
+    <th:block th:each="ut : ${userTerms}">
+        <tr>
+            <td><span class="align-middle">
+                <i th:if="${tableOnly == null}" class="delete-row align-middle"/><a th:href="'http://www.ebi.ac.uk/QuickGO/GTerm?id=' + ${ut.id}"
+                   target="_blank" th:text="${ut.id}"
+                   data-toggle="tooltip" class="align-middle"
+                   th:title="${ut.definition}"></a></span></td>
+            <td><span class="align-middle" th:text="${ut.name}"></span></td>
+            <td><span class="align-middle" th:text="${ut.aspect.label}"></span></td>
+            <td><a href="#" class="align-middle overlap-show-modal" data-toggle="modal" data-target="#overlapModal" th:text="${ut.frequency}"></a></td>
+            <td><span class="align-middle" th:text="${ut.size}"></span></td>
+        </tr>
+    </th:block>
+    </tbody>
+    <tfoot th:if="${tableOnly == null}">
+    <tr>
+        <td colspan="5">
+            <div class="input-group">
+                <div class="input-group-prepend" style="background: lightgrey;">
+                    <button class="btn btn-outline-secondary reset-table text-danger" type="button">Reset</button>
+                    <button class="btn btn-outline-secondary add-row text-success" type="button"><i class="mx-2 d-none spinner"></i>+</button>
+                </div>
+                <input type="text" class="form-control autocomplete"
+                       placeholder="Search Term"/>
+            </div>
+        </td>
+    </tr>
+    </tfoot>
+</table>
+</body>
+</html>

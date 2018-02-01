@@ -60,14 +60,12 @@ public class UserEntityListener {
         }
 
         for ( UserTerm userTerm : user.getUserTerms() ) {
-            GeneOntologyTerm term = userTerm.getTerm();
-            GeneOntologyTerm cachedTerm = goService.getTerm( term.getId() );
+            GeneOntologyTerm cachedTerm = goService.getTerm( userTerm.getId() );
 
             if ( cachedTerm != null ) {
-                userTerm.setTerm( cachedTerm );
+                userTerm.updateTerm( cachedTerm );
             }
         }
-
         // We don't save the user, we leave that up to the user.
     }
 

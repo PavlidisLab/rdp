@@ -11,6 +11,7 @@
     <link rel="stylesheet" type="text/css" th:href="@{/css/jquery-ui.min.css}"/>
 
     <link rel="stylesheet" type="text/css" th:href="@{/css/common.css}"/>
+    <link rel="stylesheet" type="text/css" th:href="@{/css/model.css}"/>
 
     <script src="https://code.jquery.com/jquery-3.3.1.min.js"
             integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
@@ -24,6 +25,13 @@
     <script th:src="@{/js/jquery-ui.min.js}"></script>
 
     <script th:src="@{/js/common.js}"></script>
+
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        var currentTaxon = [[${taxon}]];
+
+        /*]]>*/
+    </script>
     <script th:src="@{/js/model.js}"></script>
 
 </head>
@@ -58,7 +66,7 @@
         </div>
         <div class="row justify-content-center">
             <div class="col-4 mb-4">
-                <button type="button" class="btn btn-primary btn-lg btn-block save-model">Save</button>
+                <button type="button" class="btn btn-primary btn-lg btn-block save-model"><i class="mx-2 d-none spinner"></i>Save</button>
             </div>
         </div>
         <div class="row">
@@ -93,48 +101,20 @@
                         <div class="tab-content">
                             <div class="tab-pane fade show active" id="genes" role="tabpanel"
                                  aria-labelledby="genes-tab">
-                                <table class="gene-table table table-sm mb-0">
-                                    <thead class="thead-light">
-                                    <tr>
-                                        <th scope="col">Symbol</th>
-                                        <th scope="col" style="display: none;">Id</th>
-                                        <th scope="col">Name</th>
-                                        <th class="text-center" scope="col">Primary</th>
-                                    </tr>
-                                    </thead>
-                                    <th:block th:each="gene : ${user.userGenes}">
-                                        <tr>
-                                            <td><i class="delete-row"/><a
-                                                    th:href="'https://www.ncbi.nlm.nih.gov/gene/' + ${gene.id}"
-                                                    target="_blank" th:text="${gene.symbol}"></a></td>
-                                            <td style="display: none;"><span th:text="${gene.id}"
-                                                                             th:remove="tag"></span></td>
-                                            <td><span th:text="${gene.name}" th:remove="tag"></span></td>
-                                            <td class="text-center"><input type="checkbox"
-                                                                           th:checked="${gene.tier == T(ubc.pavlab.rdp.model.enums.TierType).TIER1}"/>
-                                            </td>
-                                        </tr>
-                                    </th:block>
-                                    <tfoot>
-                                    <tr>
-                                        <td colspan="3">
-                                            <div class="input-group">
-                                                <div class="input-group-prepend" style="background: lightgrey;">
-                                                    <button class="btn btn-outline-secondary add-row text-success"
-                                                            type="button">+
-                                                    </button>
-                                                </div>
-                                                <input type="text" class="form-control autocomplete"
-                                                       placeholder="ex. GRIN1, BRCA1, FOXP2"/>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    </tfoot>
-                                </table>
+                                <div th:replace="fragments/gene-table :: gene-table(genes=${user.getGenesByTaxonAndTier(taxon, T(ubc.pavlab.rdp.model.enums.TierType).MANUAL_TIERS)})"
+                                     th:remove="tag">...
+                                </div>
                             </div>
-                            <div class="tab-pane fade show active" id="terms" role="tabpanel" aria-labelledby="terms-tab">
-                                <table class="term-table table table-sm mb-0">
-                                </table>
+                            <div class="tab-pane fade" id="terms" role="tabpanel" aria-labelledby="terms-tab">
+                                <div class="row justify-content-center">
+                                    <div class="mb-3">
+                                        <button type="button" class="btn btn-primary recommend-terms"><i class="mx-2 d-none spinner"></i>Recommend Terms</button>
+                                    </div>
+                                </div>
+
+                                <div th:replace="fragments/term-table :: term-table(userTerms=${user.getTermsByTaxon(taxon)})"
+                                     th:remove="tag">...
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -143,6 +123,20 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="overlapModal" tabindex="-1" role="dialog" aria-labelledby="overlapModal" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-body">
+                ...
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div th:replace="fragments/footer" th:remove="tag">...</div>
 </body>
 </html>

@@ -5,11 +5,14 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.stereotype.Service;
 import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.RelationshipType;
+import ubc.pavlab.rdp.model.enums.TermMatchType;
 import ubc.pavlab.rdp.model.enums.TierType;
+import ubc.pavlab.rdp.util.SearchResult;
 
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Created by mjacobson on 17/01/18.
@@ -44,37 +47,36 @@ public class GOServiceImpl implements GOService {
     public Collection<UserTerm> convertTermTypes( Collection<GeneOntologyTerm> goTerms, Taxon taxon, Set<Gene> genes ) {
         List<UserTerm> newTerms = new ArrayList<>();
         for ( GeneOntologyTerm goTerm : goTerms ) {
-            UserTerm term = new UserTerm();
-            term.setTerm( goTerm );
-            term.setTaxon( taxon );
-            if ( taxon != null ) {
-                term.setTaxon( taxon );
-                term.setSize( goTerm.getSize( taxon ).intValue() );
-            } else {
-                term.setSize( goTerm.getSize().intValue() );
-            }
-
-            if ( term.getSize() < GO_SIZE_LIMIT ) {
-                if ( genes != null ) {
-                    term.setFrequency( computeOverlapFrequency( goTerm, genes ) );
-                }
+            UserTerm term = convertTermTypes( goTerm, taxon, genes );
+            if ( term != null ) {
                 newTerms.add( term );
             }
-
         }
         return newTerms;
     }
 
     @Override
+    public UserTerm convertTermTypes( GeneOntologyTerm goTerm, Taxon taxon, Set<Gene> genes ) {
+        if ( goTerm != null ) {
+            UserTerm term = new UserTerm( goTerm, taxon, genes );
+            if ( term.getSize() < GO_SIZE_LIMIT ) {
+                return term;
+            }
+        }
+
+        return null;
+    }
+
+    @Override
     public List<GeneOntologyTerm> recommendTerms( Collection<Gene> genes ) {
-        return new ArrayList<>( calculateGoTermFrequency( genes, 2, 10, 100 ).keySet() );
+        return new ArrayList<>( calculateGoTermFrequency( genes, 2, 10, GO_SIZE_LIMIT ).keySet() );
     }
 
     private LinkedHashMap<GeneOntologyTerm, Integer> calculateGoTermFrequency( Collection<Gene> genes, int minimumFrequency,
-                                                                     int minimumTermSize, int maximumTermSize ) {
+                                                                               int minimumTermSize, int maximumTermSize ) {
         Map<GeneOntologyTerm, Integer> frequencyMap = new HashMap<>();
         for ( Gene g : genes ) {
-            for ( GeneOntologyTerm term : getGOTerms( g, true, true ) ) {
+            for ( GeneOntologyTerm term : g.getAllTerms( true, true ) ) {
                 // Count
                 frequencyMap.merge( term, 1, ( oldValue, one ) -> oldValue + one );
             }
@@ -90,7 +92,7 @@ public class GOServiceImpl implements GOService {
         // Limit by maximum gene pool size of go terms
         if ( maximumTermSize > 0 && minimumTermSize > 0 ) {
             // TODO: Restrict by size in taxon only?
-            frequencyMap.entrySet().removeIf( termEntry -> termEntry.getKey().getSize() < minimumTermSize || termEntry.getKey().getSize() > maximumTermSize );
+            frequencyMap.entrySet().removeIf( termEntry -> termEntry.getKey().getTotalSize() < minimumTermSize || termEntry.getKey().getTotalSize() > maximumTermSize );
         }
         log.debug( "Limit by size done." );
 
@@ -118,9 +120,7 @@ public class GOServiceImpl implements GOService {
                 continue;
             }
 
-            Collection<GeneOntologyTerm> parents = getAncestors( term, true );
-
-            for ( GeneOntologyTerm parent : parents ) {
+            for ( GeneOntologyTerm parent : term.getAncestors( true ) ) {
                 if ( fmap.containsKey( parent ) ) {
                     if ( fmap.get( parent ) > frequency ) {
                         // keep parent
@@ -143,72 +143,51 @@ public class GOServiceImpl implements GOService {
         return fmap;
     }
 
-    @Override
-    public List<GeneOntologyTerm> search( String queryString ) {
-        //TODO: Rewrite this whole thing
-        if ( queryString == null ) return new ArrayList<>();
-
-        // ArrayList<GeneOntologyTerm> results = new ArrayList<GeneOntologyTerm>();
-        Map<GeneOntologyTerm, Integer> results = new HashMap<>();
-        // log.info( "search: " + queryString );
-        for ( GeneOntologyTerm term : termMap.values() ) {
-            if ( queryString.equals( term.getId() ) || ("GO:" + queryString).equals( term.getId() ) ) {
-                results.put( term, 1 );
-                continue;
-            }
-
-            String pattern = "(?i:.*" + Pattern.quote( queryString ) + ".*)";
-            // Pattern r = Pattern.compile(pattern);
-            String m = term.getName();
-            // Matcher m = r.matcher( term.getTerm() );
-            if ( m.matches( pattern ) ) {
-                results.put( term, 2 );
-                continue;
-            }
-
-            m = term.getDefinition();
-            // m = r.matcher( term.getDefinition() );
-            if ( m.matches( pattern ) ) {
-                results.put( term, 3 );
-                continue;
-            }
-
-            String[] queryList = queryString.split( " " );
-            for ( String q : queryList ) {
-                pattern = "(?i:.*" + Pattern.quote( q ) + ".*)";
-                // r = Pattern.compile(pattern);
-                m = term.getName();
-                // m = r.matcher( term.getTerm() );
-
-                if ( m.matches( pattern ) ) {
-                    results.put( term, 4 );
-                    break;
-                }
-
-            }
-
-            if ( results.containsKey( term ) ) continue;
-
-            for ( String q : queryList ) {
-                pattern = "(?i:.*" + Pattern.quote( q ) + ".*)";
-                // r = Pattern.compile(pattern);
-                // m = r.matcher( term.getDefinition() );
-                m = term.getDefinition();
-                if ( m.matches( pattern ) ) {
-                    results.put( term, 5 );
-                    break;
-                }
-
-            }
-
+    private SearchResult<GeneOntologyTerm> queryTerm( String queryString, GeneOntologyTerm term ) {
+        if ( term.getId().equalsIgnoreCase( queryString ) || term.getId().equalsIgnoreCase( "GO:" + queryString ) ) {
+            return new SearchResult<>( TermMatchType.EXACT_ID, term );
         }
 
-        // log.info( "search result size " + results.size() );
+        String pattern = "(?i:.*" + Pattern.quote( queryString ) + ".*)";
+        if ( term.getName().matches( pattern ) ) {
+            return new SearchResult<>( TermMatchType.NAME_CONTAINS, term );
+        }
 
-        // Now we have a set of terms with how well they match
-        return results.entrySet().stream()
-                .sorted( Map.Entry.comparingByValue() )
-                .map( Map.Entry::getKey ).collect( Collectors.toList() );
+        if ( term.getDefinition().matches( pattern ) ) {
+            return new SearchResult<>( TermMatchType.DEFINITION_CONTAINS, term );
+        }
+
+        List<String> splitPatternlist = Arrays.stream( queryString.split( " " ) )
+                .filter( s -> !s.equals( "" ) )
+                .map( s -> "(?i:.*" + Pattern.quote( s ) + ".*)" ).collect( Collectors.toList() );
+
+        for ( String splitPattern : splitPatternlist ) {
+            if ( term.getName().matches( splitPattern ) ) {
+                return new SearchResult<>( TermMatchType.NAME_CONTAINS_PART, term );
+            }
+        }
+
+        for ( String splitPattern : splitPatternlist ) {
+            if ( term.getDefinition().matches( splitPattern ) ) {
+                return new SearchResult<>( TermMatchType.DEFINITION_CONTAINS_PART, term );
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public List<SearchResult<UserTerm>> search( String queryString, Taxon taxon, int max ) {
+        Stream<SearchResult<UserTerm>> stream = termMap.values().stream().filter( t -> t.getSize( taxon ) <= GO_SIZE_LIMIT )
+                .map( t -> queryTerm( queryString, t ) )
+                .filter( Objects::nonNull )
+                .map(sr -> new SearchResult<>( sr.getMatchType(), new UserTerm( sr.getMatch(), taxon, null )))
+                .sorted( Comparator.comparingInt( sr -> sr.getMatchType().getOrder() ) );
+
+        if ( max > -1 ) {
+            stream = stream.limit( max );
+        }
+
+        return stream.collect( Collectors.toList() );
     }
 
     @Override
@@ -219,19 +198,6 @@ public class GOServiceImpl implements GOService {
     @Override
     public Collection<GeneOntologyTerm> getChildren( GeneOntologyTerm entry, boolean includePartOf ) {
         return entry.getChildren().stream()
-                .filter( r -> includePartOf || r.getType().equals( RelationshipType.IS_A ) )
-                .map( Relationship::getTerm )
-                .collect( Collectors.toSet() );
-    }
-
-    @Override
-    public Collection<GeneOntologyTerm> getParents( GeneOntologyTerm entry ) {
-        return getParents( entry, true );
-    }
-
-    @Override
-    public Collection<GeneOntologyTerm> getParents( GeneOntologyTerm entry, boolean includePartOf ) {
-        return entry.getParents().stream()
                 .filter( r -> includePartOf || r.getType().equals( RelationshipType.IS_A ) )
                 .map( Relationship::getTerm )
                 .collect( Collectors.toSet() );
@@ -265,25 +231,6 @@ public class GOServiceImpl implements GOService {
     }
 
     @Override
-    public Collection<GeneOntologyTerm> getAncestors( GeneOntologyTerm entry ) {
-        return getAncestors( entry, true );
-    }
-
-    @Override
-    public Collection<GeneOntologyTerm> getAncestors( GeneOntologyTerm entry, boolean includePartOf ) {
-        Collection<GeneOntologyTerm> ancestors = new HashSet<>();
-
-        for ( GeneOntologyTerm parent : getParents( entry, includePartOf ) ) {
-            ancestors.add( parent );
-            ancestors.addAll( getAncestors( parent, includePartOf ) );
-        }
-
-        ancestors = Collections.unmodifiableCollection( ancestors );
-
-        return new HashSet<>( ancestors );
-    }
-
-    @Override
     public Collection<Gene> getGenes( String id, Taxon taxon ) {
         return getGenes( termMap.get( id ), taxon );
     }
@@ -295,62 +242,28 @@ public class GOServiceImpl implements GOService {
 
         descendants.add( t );
 
-        return descendants.stream().flatMap(term -> term.getGenes().stream()).filter(g -> g.getTaxon().equals( taxon )).collect(Collectors.toSet());
+        return descendants.stream().flatMap( term -> term.getDirectGenes().stream() ).filter( g -> g.getTaxon().equals( taxon ) ).collect( Collectors.toSet() );
     }
 
     @Override
-    public Collection<GeneOntologyTerm> getGOTerms( Gene gene ) {
-        return getGOTerms( gene, true, true );
+    public Collection<Gene> getGenes( GeneOntologyTerm t ) {
+        if ( t == null ) return null;
+        Collection<GeneOntologyTerm> descendants = getDescendants( t );
+
+        descendants.add( t );
+
+        return descendants.stream().flatMap( term -> term.getDirectGenes().stream() ).collect( Collectors.toSet() );
     }
 
     @Override
-    public Collection<GeneOntologyTerm> getGOTerms( Gene gene, boolean includePartOf ) {
-        return getGOTerms( gene, includePartOf, true );
-    }
-
-    @Override
-    public Collection<GeneOntologyTerm> getGOTerms( Gene gene, boolean includePartOf, boolean propagateUpwards ) {
-
-        Collection<GeneOntologyTerm> allGOTermSet = new HashSet<>();
-
-        for (GeneOntologyTerm term : gene.getTerms()) {
-            allGOTermSet.add( term );
-
-            if ( propagateUpwards ) {
-                allGOTermSet.addAll( getAncestors( term, includePartOf ) );
-            }
-        }
-
-        return Collections.unmodifiableCollection( allGOTermSet );
-    }
-
-    @Override
-    public Collection<UserGene> getRelatedGenes( Collection<GeneOntologyTerm> goTerms, Taxon taxon ) {
+    public Collection<UserGene> getRelatedGenes( Collection<? extends GeneOntologyTerm> goTerms, Taxon taxon ) {
         Collection<UserGene> results = new HashSet<>();
 
         for ( GeneOntologyTerm term : goTerms ) {
-            results.addAll( getGenes( termMap.get( term.getId() ), taxon ).stream().map(g -> new UserGene( g, TierType.TIER3 )).collect( Collectors.toSet()) );
+            results.addAll( getGenes( term, taxon ).stream().map( g -> new UserGene( g, TierType.TIER3 ) ).collect( Collectors.toSet() ) );
         }
 
         return results;
-    }
-
-    @Override
-    public Integer computeOverlapFrequency( GeneOntologyTerm t, Set<Gene> genes ) {
-        Integer frequency = 0;
-        for ( Gene g : genes ) {
-            Collection<GeneOntologyTerm> directTerms = getGOTerms( g, true, true );
-
-            for ( GeneOntologyTerm term : directTerms ) {
-                if ( term.equals( t ) ) {
-                    frequency++;
-                    // Can break because a gene cannot (and shouldn't) have duplicate terms
-                    break;
-                }
-            }
-
-        }
-        return frequency;
     }
 
     @Override

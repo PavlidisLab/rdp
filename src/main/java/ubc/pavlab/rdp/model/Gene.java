@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 
 import javax.persistence.*;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -42,4 +44,19 @@ public class Gene {
     @Transient
     @JsonIgnore
     private Set<GeneOntologyTerm> terms = new HashSet<>();
+
+    public Collection<GeneOntologyTerm> getAllTerms(boolean includePartOf, boolean propagateUpwards ) {
+
+        Collection<GeneOntologyTerm> allGOTermSet = new HashSet<>();
+
+        for ( GeneOntologyTerm term : terms ) {
+            allGOTermSet.add( term );
+
+            if ( propagateUpwards ) {
+                allGOTermSet.addAll( term.getAncestors( includePartOf ) );
+            }
+        }
+
+        return Collections.unmodifiableCollection( allGOTermSet );
+    }
 }

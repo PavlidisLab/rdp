@@ -1,6 +1,7 @@
 package ubc.pavlab.rdp.services;
 
 import ubc.pavlab.rdp.model.*;
+import ubc.pavlab.rdp.util.SearchResult;
 
 import java.util.Collection;
 import java.util.List;
@@ -31,70 +32,25 @@ public interface GOService {
      */
     Collection<GeneOntologyTerm> getDescendants( GeneOntologyTerm entry, boolean includePartOf );
 
-    /**
-     * @param entry NOTE terms that are in this collection are NOT explicitly included; however, some of them may be
-     *              included incidentally if they are parents of other terms in the collection.
-     * @return
-     */
-    Collection<GeneOntologyTerm> getAncestors( GeneOntologyTerm entry );
-
-    /**
-     * @param entry
-     * @param includePartOf
-     * @return
-     */
-    Collection<GeneOntologyTerm> getAncestors( GeneOntologyTerm entry, boolean includePartOf );
+    List<SearchResult<UserTerm>> search( String queryString, Taxon taxon, int max );
 
     Collection<GeneOntologyTerm> getChildren( GeneOntologyTerm entry );
 
     Collection<GeneOntologyTerm> getChildren( GeneOntologyTerm entry, boolean includePartOf );
 
-    /**
-     * Return the immediate parent(s) of the given entry. The root node is never returned.
-     *
-     * @param entry
-     * @return collection, because entries can have multiple parents. (only allroot is excluded)
-     */
-    Collection<GeneOntologyTerm> getParents( GeneOntologyTerm entry );
-
-    /**
-     * @param entry
-     * @param includePartOf
-     * @return the immediate parents of the given ontology term. includePartOf determins if part of relationships are
-     * included in the returned information
-     */
-    Collection<GeneOntologyTerm> getParents( GeneOntologyTerm entry, boolean includePartOf );
-
     Collection<Gene> getGenes( String id, Taxon taxon );
 
     Collection<Gene> getGenes( GeneOntologyTerm t, Taxon taxon );
 
-    /**
-     * @param gene a gene and return a set of all GO terms including the parents of each GO term
-     */
-    Collection<GeneOntologyTerm> getGOTerms( Gene gene );
+    Collection<Gene> getGenes( GeneOntologyTerm t );
 
-    /**
-     * Get all GO terms for a gene, including parents of terms via is-a relationships; and optionally also parents via
-     * part-of relationships.
-     *
-     * @param gene
-     * @param includePartOf
-     * @return
-     */
-    Collection<GeneOntologyTerm> getGOTerms( Gene gene, boolean includePartOf );
-
-    Collection<GeneOntologyTerm> getGOTerms( Gene gene, boolean includePartOf, boolean propagateUpwards );
-
-    Collection<UserGene> getRelatedGenes( Collection<GeneOntologyTerm> goTerms, Taxon taxon );
-
-    Integer computeOverlapFrequency( GeneOntologyTerm t, Set<Gene> genes );
+    Collection<UserGene> getRelatedGenes( Collection<? extends GeneOntologyTerm> goTerms, Taxon taxon );
 
     GeneOntologyTerm getTerm( String goId );
 
     Collection<UserTerm> convertTermTypes( Collection<GeneOntologyTerm> goTerms, Taxon taxon, Set<Gene> genes );
 
-    List<GeneOntologyTerm> recommendTerms( Collection<Gene> genes );
+    UserTerm convertTermTypes( GeneOntologyTerm goTerm, Taxon taxon, Set<Gene> genes );
 
-    List<GeneOntologyTerm> search( String queryString );
+    List<GeneOntologyTerm> recommendTerms( Collection<Gene> genes );
 }

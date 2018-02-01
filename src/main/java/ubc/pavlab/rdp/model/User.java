@@ -76,12 +76,6 @@ public class User {
 
     @JsonIgnore
     @Transient
-    public Set<GeneOntologyTerm> getTerms() {
-        return this.userTerms.stream().map( UserTerm::getTerm ).collect( Collectors.toSet() );
-    }
-
-    @JsonIgnore
-    @Transient
     public Set<Gene> getGenesByTaxon( Taxon taxon ) {
         return this.getUserGenes().stream().filter( gene -> gene.getTaxon().equals( taxon ) ).collect( Collectors.toSet() );
     }
@@ -95,7 +89,7 @@ public class User {
 
     @JsonIgnore
     @Transient
-    public Set<GeneOntologyTerm> getTermsByTaxon( Taxon taxon ) {
-        return this.getUserTerms().stream().filter( term -> term.getTaxon().equals( taxon ) ).map(UserTerm::getTerm).collect( Collectors.toSet() );
+    public Set<UserTerm> getTermsByTaxon( Taxon taxon ) {
+        return this.getUserTerms().stream().filter( term -> term.getTaxon().equals( taxon ) ).collect( Collectors.toSet() );
     }
 }

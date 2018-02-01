@@ -22,7 +22,10 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import javax.validation.constraints.AssertTrue;
 import java.util.*;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
+
+import static java.util.Comparator.comparing;
 
 @RestController
 public class UserController {
@@ -71,6 +74,7 @@ public class UserController {
     static class Model {
 
         private Map<Integer, TierType> geneTierMap;
+        private List<String> goIds;
         private String description;
 
     }
@@ -127,8 +131,8 @@ public class UserController {
     }
 
     @RequestMapping(value = "/user/term", method = RequestMethod.GET)
-    public Set<GeneOntologyTerm> getTerms() {
-        return userService.findCurrentUser().getTerms();
+    public Set<UserTerm> getTerms() {
+        return userService.findCurrentUser().getUserTerms();
     }
 
     @RequestMapping(value = "/user/model/{taxonId}", method = RequestMethod.POST)
@@ -139,8 +143,9 @@ public class UserController {
         user.getTaxonDescriptions().put( taxon, model.getDescription() );
 
         Collection<UserGene> genes = geneService.deserializeGenes( model.getGeneTierMap() );
+        Set<GeneOntologyTerm> terms = model.getGoIds().stream().map( s -> goService.getTerm( s ) ).collect( Collectors.toSet() );
 
-        userService.updateGenesInTaxon( user, taxon, genes );
+        userService.updateTermsAndGenesInTaxon( user, taxon, genes, terms );
 
         return "Saved.";
     }
@@ -153,9 +158,18 @@ public class UserController {
     }
 
     @RequestMapping(value = "/user/taxon/{taxonId}/term", method = RequestMethod.GET)
-    public Set<GeneOntologyTerm> getTermsForTaxon( @PathVariable Integer taxonId ) {
+    public Set<UserTerm> getTermsForTaxon( @PathVariable Integer taxonId ) {
         Taxon taxon = taxonService.findById( taxonId );
         return userService.findCurrentUser().getTermsByTaxon( taxon );
+    }
+
+    @RequestMapping(value = "/user/taxon/{taxonId}/term/search", method = RequestMethod.POST)
+    public Map<String, UserTerm> getTermsForTaxon( @PathVariable Integer taxonId, @RequestBody List<String> goIds ) {
+        User user = userService.findCurrentUser();
+        Taxon taxon = taxonService.findById( taxonId );
+        Set<Gene> genes = user.getGenesByTaxonAndTier( taxon, TierType.MANUAL_TIERS );
+
+        return goIds.stream().collect( HashMap::new, ( m, s)->m.put(s, goService.convertTermTypes( goService.getTerm( s ), taxon, genes )), HashMap::putAll);
     }
 
     @RequestMapping(value = "/user/taxon/{taxonId}/term", method = RequestMethod.POST)
@@ -171,12 +185,50 @@ public class UserController {
     }
 
     @RequestMapping(value = "/user/taxon/{taxonId}/term/recommend", method = RequestMethod.GET)
-    public Collection<UserTerm> getRecommendedTermsForTaxon( @PathVariable Integer taxonId ) {
+    public Collection<UserTerm> getRecommendedTermsForTaxon( @PathVariable Integer taxonId, @RequestParam(value = "top", required = false, defaultValue = "false") boolean top ) {
         User user = userService.findCurrentUser();
         Taxon taxon = taxonService.findById( taxonId );
+        Collection<UserTerm> terms = userService.recommendTerms( user, taxon );
 
-        Set<Gene> genes = user.getGenesByTaxonAndTier( taxon, TierType.MANUAL_TIERS );
-        return goService.convertTermTypes( goService.recommendTerms( genes ), taxon, genes );
+        // Remove terms already added
+        terms.removeAll( user.getTermsByTaxon( taxon ) );
+        ;
+        if ( top ) {
+            return terms.stream().collect(maxList(comparing(UserTerm::getFrequency)));
+        }
+
+        return terms;
+    }
+
+    static <T> Collector<T,?,List<T>> maxList( Comparator<? super T> comp) {
+        return Collector.of(
+                ArrayList::new,
+                (list, t) -> {
+                    int c;
+                    if (list.isEmpty() || (c = comp.compare(t, list.get(0))) == 0) {
+                        list.add(t);
+                    } else if (c > 0) {
+                        list.clear();
+                        list.add(t);
+                    }
+                },
+                (list1, list2) -> {
+                    if (list1.isEmpty()) {
+                        return list2;
+                    }
+                    if (list2.isEmpty()) {
+                        return list1;
+                    }
+                    int r = comp.compare(list1.get(0), list2.get(0));
+                    if (r < 0) {
+                        return list2;
+                    } else if (r > 0) {
+                        return list1;
+                    } else {
+                        list1.addAll(list2);
+                        return list1;
+                    }
+                });
     }
 
 }
