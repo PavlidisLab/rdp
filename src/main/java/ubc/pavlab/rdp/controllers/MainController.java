@@ -134,6 +134,13 @@ public class MainController {
         return modelAndView;
     }
 
+    @RequestMapping(value = {"/maintenance"}, method = RequestMethod.GET)
+    public ModelAndView maintenance() {
+        ModelAndView modelAndView = new ModelAndView();
+        modelAndView.setViewName( "error/maintenance" );
+        return modelAndView;
+    }
+
     @RequestMapping(value = {"/user/support"}, method = RequestMethod.POST)
     public ModelAndView supportPost(HttpServletRequest request, @RequestParam("name") String name, @RequestParam("message") String message,
                                     @RequestParam(required = false) MultipartFile attachment ) {
