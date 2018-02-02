@@ -86,6 +86,9 @@ public class GOParser {
                         case "namespace":
                             currentNode.setAspect( Aspect.valueOf( tagValuePair[1] ) );
                             break;
+                        case "alt_id":
+                            termMap.put( tagValuePair[1], currentNode );
+                            break;
                         case "def":
                             currentNode.setDefinition( tagValuePair[1].split( "\"" )[1] );
                             break;
