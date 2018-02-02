@@ -10,10 +10,7 @@ import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.services.GOService;
 import ubc.pavlab.rdp.services.GeneService;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.MalformedURLException;
+import java.io.*;
 import java.net.URL;
 import java.text.ParseException;
 import java.util.Collection;
@@ -33,21 +30,46 @@ public class Gene2GoParser {
 
     private static final String EXPECTED_HEADER = "#tax_id\tGeneID\tGO_ID\tEvidence\tQualifier\tGO_term\tPubMed\tCategory";
 
-    public static void populateAnnotations( String url, Collection<Taxon> acceptableTaxons, GeneService geneService, GOService goService ) throws ParseException, MalformedURLException {
-        Map<Integer, Taxon> fastMap = acceptableTaxons.stream().collect( Collectors.toMap( Taxon::getId, t -> t) );
-        URL u = new URL( url );
+    public static void populateAnnotations( URL url, Collection<Taxon> acceptableTaxons, GeneService geneService, GOService goService ) throws ParseException {
 
         FTPClient ftp = new FTPClient();
 
         try {
 
-            ftp.connect(u.getHost());
-            ftp.login("anonymous", "");
+            ftp.connect( url.getHost() );
+            ftp.login( "anonymous", "" );
             ftp.enterLocalPassiveMode();
-            ftp.setFileType( FTP.BINARY_FILE_TYPE);
-            ftp.setBufferSize(1024*1024);
+            ftp.setFileType( FTP.BINARY_FILE_TYPE );
+            ftp.setBufferSize( 1024 * 1024 );
 
-            BufferedReader br = new BufferedReader( new InputStreamReader( new GZIPInputStream(ftp.retrieveFileStream(u.getPath())) ) );;
+            populateAnnotations( new GZIPInputStream( ftp.retrieveFileStream( url.getPath() ) ), acceptableTaxons, geneService, goService );
+
+        } catch (IOException e) {
+            throw new ParseException( e.getMessage(), 0 );
+        } finally {
+            try {
+                if ( ftp.isConnected() ) {
+                    ftp.disconnect();
+                }
+            } catch (IOException ex) {
+                log.error( ex.getMessage() );
+            }
+        }
+    }
+
+    public static void populateAnnotations( File file, Collection<Taxon> acceptableTaxons, GeneService geneService, GOService goService ) throws ParseException {
+        try {
+            populateAnnotations( new GZIPInputStream( new FileInputStream( file ) ), acceptableTaxons, geneService, goService );
+        } catch (IOException e) {
+            throw new ParseException( e.getMessage(), 0 );
+        }
+    }
+
+    private static void populateAnnotations( InputStream input, Collection<Taxon> acceptableTaxons, GeneService geneService, GOService goService ) throws ParseException {
+        Map<Integer, Taxon> fastMap = acceptableTaxons.stream().collect( Collectors.toMap( Taxon::getId, t -> t ) );
+        try {
+
+            BufferedReader br = new BufferedReader( new InputStreamReader( input ) );
 
             String header = br.readLine();
 
@@ -59,26 +81,30 @@ public class Gene2GoParser {
                 throw new ParseException( "Unexpected Header Line!", 0 );
             }
 
-            br.lines().map( line -> line.split( "\t" ) ).filter( values -> fastMap.containsKey( Integer.valueOf(values[0]) ) ).forEach( values -> {
+            br.lines().map( line -> line.split( "\t" ) ).filter( values -> fastMap.containsKey( Integer.valueOf( values[0] ) ) ).forEach( values -> {
 
                 GeneOntologyTerm term = goService.getTerm( values[2] );
-                Gene gene = geneService.load( Integer.valueOf( values[1] ));
+                Gene gene = geneService.load( Integer.valueOf( values[1] ) );
 
-                term.getDirectGenes().add( gene );
-                gene.getTerms().add( term );
+                try {
+                    term.getDirectGenes().add( gene );
+                    gene.getTerms().add( term );
+                } catch (NullPointerException nullE) {
+                    log.warn( "Problem finding data for gene (" + values[1] + ") and term (" + values[2] + ")" );
+                }
 
             } );
-
         } catch (IOException e) {
             throw new ParseException( e.getMessage(), 0 );
         } finally {
             try {
-                if (ftp.isConnected()) {
-                    ftp.disconnect();
+                if ( input != null ) {
+                    input.close();
                 }
             } catch (IOException ex) {
                 log.error( ex.getMessage() );
             }
         }
     }
+
 }

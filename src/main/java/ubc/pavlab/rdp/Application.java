@@ -13,12 +13,15 @@ import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.services.GOService;
 import ubc.pavlab.rdp.services.GeneService;
 import ubc.pavlab.rdp.services.TaxonService;
+import ubc.pavlab.rdp.settings.CacheSettings;
 import ubc.pavlab.rdp.util.GOParser;
 import ubc.pavlab.rdp.util.Gene2GoParser;
 import ubc.pavlab.rdp.util.GeneInfoParser;
 
-import java.io.InputStream;
+import java.io.File;
 import java.net.URL;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -40,6 +43,9 @@ public class Application implements CommandLineRunner {
     @Autowired
     GOService goService;
 
+    @Autowired
+    private CacheSettings cacheSettings;
+
     public static void main( String[] args ) {
         SpringApplication.run( Application.class, args );
     }
@@ -51,21 +57,40 @@ public class Application implements CommandLineRunner {
 
         log.info( "Loading genes" );
         for ( Taxon taxon : taxonService.findByActiveTrue() ) {
-            log.info( "Loading genes for " + taxon.toString() );
-            Set<Gene> data = new GeneInfoParser( taxon ).getParsedData();
+
+
+            Set<Gene> data;
+            if (cacheSettings.isLoadFromDisk()) {
+                Path path = Paths.get(cacheSettings.getGeneFilesLocation(), taxon.getId() + ".gene_info.gz");
+                log.info( "Loading genes for " + taxon.toString() + " from disk: " + path.toAbsolutePath() );
+                data = GeneInfoParser.parse( taxon, path.toFile() );
+            } else {
+                log.info( "Loading genes for " + taxon.toString() + " from URL: " + taxon.getGeneUrl() );
+                data = GeneInfoParser.parse( taxon, new URL( taxon.getGeneUrl() ) );
+            }
             log.info( "Done parsing." );
             geneService.addAll( data );
         }
         log.info( "Finished loading genes: " + geneService.size() );
 
-        log.info( "Loading GO Terms" );
-        InputStream input = new URL( GO_URL ).openStream();
-        GOParser gOParser = new GOParser( input );
-        goService.setTerms( gOParser.getMap() );
+        if (cacheSettings.isLoadFromDisk()) {
+            log.info( "Loading GO Terms from disk: " + cacheSettings.getTermFile() );
+            goService.setTerms( GOParser.parse( new File( cacheSettings.getTermFile() ) ) );
+        } else {
+            log.info( "Loading GO Terms from URL: " + GO_URL );
+            goService.setTerms( GOParser.parse( new URL( GO_URL ) ) );
+        }
+
         log.info( "Gene Ontology loaded, total of " + goService.size() + " items." );
 
-        log.info( "Loading Annotations" );
-        Gene2GoParser.populateAnnotations( GENE2GO_URL, taxonService.findByActiveTrue(), geneService, goService );
+
+        if (cacheSettings.isLoadFromDisk()) {
+            log.info( "Loading annotations from disk: " + cacheSettings.getAnnotationFile() );
+            Gene2GoParser.populateAnnotations( new File( cacheSettings.getAnnotationFile() ), taxonService.findByActiveTrue(), geneService, goService );
+        } else {
+            log.info( "Loading annotations from URL: " + GENE2GO_URL );
+            Gene2GoParser.populateAnnotations( new URL(GENE2GO_URL), taxonService.findByActiveTrue(), geneService, goService );
+        }
 
         log.info( "Finished loading annotations" );
 
