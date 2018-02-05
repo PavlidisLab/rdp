@@ -91,6 +91,7 @@ $(document).ready(function () {
                 $('.success-row').show();
                 $('.error-row').hide();
                 spinner.addClass("d-none");
+                initialModel = collectModel();
             },
             error: function(r) {
                 $('.success-row').hide();
