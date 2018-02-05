@@ -148,13 +148,13 @@
                         <thead class=".thead-light">
                         <tr>
                             <th scope="col">PubMed</th>
-                            <th scope="col">Title</th>
+                            <!--<th scope="col">Title</th>-->
                         </tr>
                         </thead>
                         <th:block th:each="pub : ${user.profile.publications}">
                             <tr>
                                 <td><i class="delete-row"/><span th:text="${pub.pmid}" th:remove="tag"></span></td>
-                                <td><a th:href="${pub.url}" target="_blank" th:text="${pub.title}"></a></td>
+                                <!--<td><a th:href="${pub.url}" target="_blank" th:text="${pub.title}"></a></td>-->
                             </tr>
                         </th:block>
                         <tfoot>

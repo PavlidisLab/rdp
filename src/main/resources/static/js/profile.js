@@ -53,30 +53,35 @@ $(document).ready(function () {
         }
 
         cols += '<td><i class="delete-row"/>' + pubmed + '</td>';
-        var col = '<td class="pubmed-error"></td>';
-        var self = $(this);
-        $.get('https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=pmc&amp;id='+pubmed+'&amp;retmode=json', function(data) {
-            try {
 
-                var title = data['result'][pubmed]['title'];
+        newRow.append(cols);
+        $(this).closest('table').append(newRow);
 
-                var doi = '';
-                data['result'][pubmed]['articleids'].forEach(function (aid) {
-                    if (aid['idtype'] === "doi") {
-                        doi = aid['value'];
-                    }
-                });
 
-                col = '<td><a href="https://doi.org/' + doi + '" target="_blank">' + title + '</a></td>';
-
-            } catch (e) {
-                console.log("Issue obtaining metadata for: " + pubmed);
-            }
-            cols += col;
-
-            newRow.append(cols);
-            self.closest('table').append(newRow);
-        });
+        // var col = '<td class="pubmed-error"></td>';
+        // var self = $(this);
+        // $.get('https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=pmc&amp;id='+pubmed+'&amp;retmode=json', function(data) {
+        //     try {
+        //
+        //         var title = data['result'][pubmed]['title'];
+        //
+        //         var doi = '';
+        //         data['result'][pubmed]['articleids'].forEach(function (aid) {
+        //             if (aid['idtype'] === "doi") {
+        //                 doi = aid['value'];
+        //             }
+        //         });
+        //
+        //         col = '<td><a href="https://doi.org/' + doi + '" target="_blank">' + title + '</a></td>';
+        //
+        //     } catch (e) {
+        //         console.log("Issue obtaining metadata for: " + pubmed);
+        //     }
+        //     cols += col;
+        //
+        //     newRow.append(cols);
+        //     self.closest('table').append(newRow);
+        // });
     });
     $(document).on("click", ".save-profile", function () {
         var profile = collectProfile();
