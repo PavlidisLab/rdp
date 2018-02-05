@@ -63,8 +63,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                         "/resetPassword",
                         "/updatePassword",
                         "/access-denied").permitAll()
+                .antMatchers( "/manager/**" ).hasAnyRole( "MANAGER", "ADMIN" )
                 .antMatchers( "/admin/**" ).hasRole( "ADMIN" )
-                .antMatchers( "/", "/user/**" ).hasAnyRole( "ADMIN","USER" ).anyRequest()
+                .antMatchers( "/", "/user/**" ).authenticated().anyRequest()
                 .authenticated().and().csrf().disable().formLogin()
                 .loginPage( "/login" ).failureUrl( "/login?error=true" )
                 .defaultSuccessUrl( "/" )

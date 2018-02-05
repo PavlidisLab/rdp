@@ -36,13 +36,16 @@ public interface UserService {
 
     User findCurrentUser();
 
+    @Secured( {"ROLE_ADMIN", "ROLE_MANAGER"} )
     User findUserById( int id );
+
+    User findUserByIdNoAuth( int id );
 
     User findUserByEmail( String email );
 
     User findUserByUserName( String email );
 
-    @Secured( "ADMIN" )
+    @Secured( {"ROLE_ADMIN", "ROLE_MANAGER"} )
     List<User> findAll();
 
     Collection<User> findByGene( Gene gene );
@@ -53,7 +56,10 @@ public interface UserService {
 
     Collection<User> findByLikeSymbol( String symbol, Taxon taxon, TierType tier );
 
+    @Secured( {"ROLE_ADMIN", "ROLE_MANAGER"} )
     Collection<User> findByLikeName( String nameLike );
+
+    Collection<User> findByDescription( String descriptionLike );
 
     long countResearchers();
 

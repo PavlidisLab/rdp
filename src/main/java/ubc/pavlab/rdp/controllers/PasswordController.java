@@ -124,7 +124,7 @@ public class PasswordController {
             try {
                 userService.changePasswordByResetToken( id, token, passwordReset.getNewPassword() );
 
-                User user = userService.findUserById( id );
+                User user = userService.findUserByIdNoAuth( id );
                 Authentication auth = new UsernamePasswordAuthenticationToken(
                         user.getEmail(), null, Collections.singletonList(
                         new SimpleGrantedAuthority( user.getRoles().iterator().next().getRole() ) ) );

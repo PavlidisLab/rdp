@@ -78,7 +78,7 @@ public class MainController {
         Taxon taxon = taxonService.findById( taxonId );
 
         modelAndView.addObject( "userTerms",  userService.recommendTerms(user, taxon) );
-        modelAndView.addObject( "tableOnly", true);
+        modelAndView.addObject( "viewOnly", true);
         modelAndView.setViewName( "fragments/term-table :: term-table" );
         return modelAndView;
     }
@@ -93,8 +93,33 @@ public class MainController {
 
         modelAndView.addObject( "genes", user.getGenesByTaxonAndTier( taxon, TierType.MANUAL_TIERS )
                 .stream().filter( genes::contains ).collect( Collectors.toSet() ));
-        modelAndView.addObject( "tableOnly", true);
+        modelAndView.addObject( "viewOnly", true);
         modelAndView.setViewName( "fragments/gene-table :: gene-table" );
+        return modelAndView;
+    }
+
+    @RequestMapping(value = "/user/{userId}/profile", method = RequestMethod.GET)
+    public ModelAndView viewUserProfile( @PathVariable Integer userId ) {
+        ModelAndView modelAndView = new ModelAndView();
+        User user = userService.findUserById( userId );
+
+        modelAndView.addObject( "user", user );
+        modelAndView.addObject( "viewOnly", true);
+        modelAndView.setViewName( "user/profile" );
+        return modelAndView;
+    }
+
+    @RequestMapping(value = "/user/{userId}/model/{taxonId}", method = RequestMethod.GET)
+    public ModelAndView viewUserModel( @PathVariable Integer userId, @PathVariable Integer taxonId ) {
+        ModelAndView modelAndView = new ModelAndView();
+        User user = userService.findUserById( userId );
+
+        Taxon taxon = taxonService.findById( taxonId );
+
+        modelAndView.addObject( "user", user );
+        modelAndView.addObject( "taxon", taxon );
+        modelAndView.addObject( "viewOnly", true);
+        modelAndView.setViewName( "user/model" );
         return modelAndView;
     }
 
@@ -131,6 +156,15 @@ public class MainController {
         User user = userService.findCurrentUser();
         modelAndView.addObject( "user", user );
         modelAndView.setViewName( "user/support" );
+        return modelAndView;
+    }
+
+    @RequestMapping(value = {"/manager/search"}, method = RequestMethod.GET)
+    public ModelAndView managerSearch() {
+        ModelAndView modelAndView = new ModelAndView();
+        User user = userService.findCurrentUser();
+        modelAndView.addObject( "user", user );
+        modelAndView.setViewName( "manager/search" );
         return modelAndView;
     }
 

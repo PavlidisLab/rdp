@@ -55,6 +55,19 @@ public class UserServiceImpl implements UserService {
     @Transactional
     @Override
     public void update( User user ) {
+        // Currently restrict to updating your own user. Can make this better with
+        // Pre-Post authorized annotations.
+        String currentUsername = getCurrentEmail();
+        if ( user.getEmail().equals( currentUsername ) ) {
+            userRepository.save( user );
+        } else {
+            log.warn( currentUsername + " attempted to update a user that is not their own: " + user.getEmail() );
+        }
+
+    }
+
+    @Transactional
+    private void updateNoAuth( User user ) {
         userRepository.save( user );
     }
 
@@ -102,10 +115,10 @@ public class UserServiceImpl implements UserService {
         if ( newPassword.length() >= 6 ) { //TODO: Tie in with hibernate constraint on User or not necessary?
 
             // Preauthorize might cause trouble here if implemented, fix by setting manual authentication
-            User user = findUserById( userId );
+            User user = findUserByIdNoAuth( userId );
 
             user.setPassword( bCryptPasswordEncoder.encode( newPassword ) );
-            update( user );
+            updateNoAuth( user );
         } else {
             throw new ValidationException( "Password must be a minimum of 6 characters" );
         }
@@ -129,6 +142,12 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User findUserById( int id ) {
+        return userRepository.findOne( id );
+    }
+
+    @Override
+    public User findUserByIdNoAuth( int id ) {
+        // Only use this in placed where no authentication of user is needed
         return userRepository.findOne( id );
     }
 
@@ -170,6 +189,11 @@ public class UserServiceImpl implements UserService {
     @Override
     public Collection<User> findByLikeName( String nameLike ) {
         return userRepository.findByProfileNameContainingOrProfileLastNameContaining( nameLike, nameLike );
+    }
+
+    @Override
+    public Collection<User> findByDescription( String descriptionLike ) {
+        return userRepository.findByDescription( descriptionLike );
     }
 
     @Override
@@ -333,7 +357,7 @@ public class UserServiceImpl implements UserService {
 
         User user = verificationToken.getUser();
         user.setEnabled( true );
-        update( user );
+        updateNoAuth( user );
         return user;
     }
 

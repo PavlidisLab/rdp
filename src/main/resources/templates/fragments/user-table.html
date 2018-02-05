@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+<body>
+<table class="user-table table table-sm mb-0" th:fragment="user-table (users)">
+    <thead class="thead-light">
+    <tr>
+        <th scope="col">Email</th>
+        <th scope="col">Name</th>
+        <th scope="col">Last Name</th>
+        <th scope="col">Organization</th>
+        <th scope="col">Department</th>
+        <th scope="col">Website</th>
+    </tr>
+    </thead>
+    <tbody>
+    <th:block th:each="ut : ${users}">
+        <tr>
+            <td><a th:href="@{'/user/' + ${ut.id} + '/profile'}" th:text="${ut.email}" target="_blank"></a></td>
+            <td><span th:text="${ut.profile.name}" th:remove="tag"></span></td>
+            <td><span th:text="${ut.profile.lastName}" th:remove="tag"></span></td>
+            <td><span th:text="${ut.profile.organization}" th:remove="tag"></span></td>
+            <td><span th:text="${ut.profile.department}" th:remove="tag"></span></td>
+            <td><span th:text="${ut.profile.website}" th:remove="tag"></span></td>
+        </tr>
+    </th:block>
+    </tbody>
+</table>
+</body>
+</html>
