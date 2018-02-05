@@ -56,6 +56,8 @@ public interface UserService {
 
     Collection<User> findByLikeSymbol( String symbol, Taxon taxon, TierType tier );
 
+    Collection<User> findByLikeSymbol( String symbol, Taxon taxon, Set<TierType> tiers );
+
     @Secured( {"ROLE_ADMIN", "ROLE_MANAGER"} )
     Collection<User> findByLikeName( String nameLike );
 

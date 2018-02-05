@@ -14,6 +14,8 @@ import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.services.TaxonService;
 import ubc.pavlab.rdp.services.UserService;
 
+import java.util.Collection;
+
 /**
  * Created by mjacobson on 05/02/18.
  */
@@ -66,32 +68,35 @@ public class ManagerController {
     }
 
     @RequestMapping(value = "/manager/search", method = RequestMethod.GET, params = {"symbolLike", "taxonId", "tier"})
-    public ModelAndView searchUsersByGeneSymbol( @RequestParam String symbolLike,  @RequestParam Integer taxonId, @RequestParam TierType tier ) {
+    public ModelAndView searchUsersByGeneSymbol( @RequestParam String symbolLike, @RequestParam Integer taxonId, @RequestParam TierType tier ) {
         User user = userService.findCurrentUser();
         Taxon taxon = taxonService.findById( taxonId );
 
         ModelAndView modelAndView = new ModelAndView();
         modelAndView.addObject( "user", user );
-        if (tier.equals( TierType.UNKNOWN )) {
-            modelAndView.addObject( "users", userService.findByLikeSymbol( symbolLike, taxon ) );
-        } else {
-            modelAndView.addObject( "users", userService.findByLikeSymbol( symbolLike, taxon, tier ) );
-        }
+        modelAndView.addObject( "users", handleGeneSearch( symbolLike, tier, taxon ) );
 
         modelAndView.setViewName( "manager/search" );
         return modelAndView;
     }
 
     @RequestMapping(value = "/manager/search/view", method = RequestMethod.GET, params = {"symbolLike", "taxonId", "tier"})
-    public ModelAndView searchUsersByGeneSymbolView(@RequestParam String symbolLike,  @RequestParam Integer taxonId, @RequestParam TierType tier ) {
+    public ModelAndView searchUsersByGeneSymbolView( @RequestParam String symbolLike, @RequestParam Integer taxonId, @RequestParam TierType tier ) {
         Taxon taxon = taxonService.findById( taxonId );
         ModelAndView modelAndView = new ModelAndView();
-        if (tier.equals( TierType.UNKNOWN )) {
-            modelAndView.addObject( "users", userService.findByLikeSymbol( symbolLike, taxon ) );
-        } else {
-            modelAndView.addObject( "users", userService.findByLikeSymbol( symbolLike, taxon, tier ) );
-        }
+
+        modelAndView.addObject( "users", handleGeneSearch( symbolLike, tier, taxon ) );
         modelAndView.setViewName( "fragments/user-table :: user-table" );
         return modelAndView;
+    }
+
+    private Collection<User> handleGeneSearch( String symbolLike, TierType tier, Taxon taxon) {
+        if ( tier.equals( TierType.ANY ) ) {
+            return userService.findByLikeSymbol( symbolLike, taxon );
+        } else if ( tier.equals( TierType.MANUAL ) ) {
+            return userService.findByLikeSymbol( symbolLike, taxon, TierType.MANUAL_TIERS );
+        } else {
+            return userService.findByLikeSymbol( symbolLike, taxon, tier );
+        }
     }
 }

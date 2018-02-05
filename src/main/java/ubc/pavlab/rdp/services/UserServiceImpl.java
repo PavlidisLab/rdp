@@ -187,6 +187,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public Collection<User> findByLikeSymbol( String symbol, Taxon taxon, Set<TierType> tiers ) {
+        return userRepository.findByGeneSymbolLike( symbol, taxon, tiers );
+    }
+
+    @Override
     public Collection<User> findByLikeName( String nameLike ) {
         return userRepository.findByProfileNameContainingOrProfileLastNameContaining( nameLike, nameLike );
     }

@@ -14,7 +14,10 @@
     </tr>
     </thead>
     <tbody>
-    <th:block th:each="ut : ${users}">
+    <tr th:if="${#lists.isEmpty(users)}">
+        <td colspan="6">No Users Found</td>
+    </tr>
+    <th:block th:each="ut : ${users}" th:if="${not #lists.isEmpty(users)}">
         <tr>
             <td><a th:href="@{'/user/' + ${ut.id} + '/profile'}" th:text="${ut.email}" target="_blank"></a></td>
             <td><span th:text="${ut.profile.name}" th:remove="tag"></span></td>

@@ -6,6 +6,8 @@
     <title th:text="${@siteSettings.getFullname()}"></title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
           integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous"/>
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/open-iconic/1.1.1/font/css/open-iconic-bootstrap.min.css"/>
 
 
     <link rel="stylesheet" type="text/css" th:href="@{/css/common.css}"/>
@@ -21,15 +23,7 @@
             crossorigin="anonymous"></script>
 
     <script th:src="@{/js/common.js}"></script>
-
-    <script>
-        $(document).ready(function () {
-            $("form").submit(function (event) {
-                $("#userTable").load("/manager/search/view", $(this).serialize());
-                event.preventDefault();
-            });
-        });
-    </script>
+    <script th:src="@{/js/search.js}"></script>
 
 </head>
 
@@ -68,20 +62,21 @@
                         <input type="text" class="form-control" name="symbolLike" placeholder="Part of symbol"/>
                         <select name="taxonId" class="custom-select">
                             <th:block th:each="taxon : ${@taxonService.loadAll()}">
-                                <option th:value="${taxon.id}" th:text="${#strings.capitalizeWords(taxon.commonName)}"></option>
+                                <option th:value="${taxon.id}" th:text="${#strings.capitalizeWords(taxon.commonName)}" th:selected="${taxon.id == 9606}"></option>
                             </th:block>
                         </select>
                         <select name="tier" class="custom-select">
                             <option th:each="tier : ${T(ubc.pavlab.rdp.model.enums.TierType).values()}"
                                     th:value="${tier}"
-                                    th:text="${tier}">
+                                    th:text="${tier}"
+                                    th:selected="${tier == T(ubc.pavlab.rdp.model.enums.TierType).ANY}">
                             </option>
                         </select>
                     </div>
                 </div>
             </form>
             <div id="userTable">
-
+                <div th:if="${users != null}" th:replace="fragments/user-table :: user-table(users=${users})" th:remove="tag">...</div>
             </div>
             <!--<div th:replace="fragments/user-table :: user-table(users=${@userService.findAll()})" th:remove="tag">...</div>-->
             <!--<div th:if="${users != null}" th:replace="fragments/user-table :: user-table(users=${users})" th:remove="tag">...</div>-->

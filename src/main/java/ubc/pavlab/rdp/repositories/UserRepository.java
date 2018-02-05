@@ -10,6 +10,7 @@ import ubc.pavlab.rdp.model.User;
 import ubc.pavlab.rdp.model.enums.TierType;
 
 import java.util.Collection;
+import java.util.Set;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Integer> {
@@ -33,5 +34,8 @@ public interface UserRepository extends JpaRepository<User, Integer> {
 
     @Query("select distinct u from User u inner join u.userGenes ug where ug.symbol like %:symbol% and ug.taxon = :taxon and ug.tier = :tier")
     Collection<User> findByGeneSymbolLike( @Param("symbol") String symbol, @Param("taxon") Taxon taxon, @Param("tier") TierType tier );
+
+    @Query("select distinct u from User u inner join u.userGenes ug where ug.symbol like %:symbol% and ug.taxon = :taxon and ug.tier in (:tiers)")
+    Collection<User> findByGeneSymbolLike( @Param("symbol") String symbol, @Param("taxon") Taxon taxon, @Param("tiers") Set<TierType> tiers );
 
 }
