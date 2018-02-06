@@ -28,7 +28,7 @@
                     <span th:text="${viewOnly == null} ? 'Model Organisms' : 'View Model Organisms'" th:remove="tag"></span>
                 </a>
                 <div class="dropdown-menu" aria-labelledby="navbarDropdownModel">
-                    <th:block th:each="taxon : ${@taxonService.loadAll()}">
+                    <th:block th:each="taxon : ${@taxonService.findByActiveTrue()}">
                         <a th:if="${viewOnly != null}" class="dropdown-item text-capitalize" th:classappend="${user.hasTaxon(taxon)} ? 'hastaxon' : ''" th:href="@{'/user/' + ${user.id} + '/model/' + ${taxon.id}}" th:text="${taxon.commonName} " href="#"></a>
                         <a th:if="${viewOnly == null}" class="dropdown-item text-capitalize" th:classappend="${user.hasTaxon(taxon)} ? 'hastaxon' : ''" th:href="@{'/user/model/' + ${taxon.id}}" th:text="${taxon.commonName} " href="#"></a>
                     </th:block>

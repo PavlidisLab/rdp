@@ -61,7 +61,7 @@
                         </div>
                         <input type="text" class="form-control" name="symbolLike" placeholder="Part of symbol"/>
                         <select name="taxonId" class="custom-select">
-                            <th:block th:each="taxon : ${@taxonService.loadAll()}">
+                            <th:block th:each="taxon : ${@taxonService.findByActiveTrue()}">
                                 <option th:value="${taxon.id}" th:text="${#strings.capitalizeWords(taxon.commonName)}" th:selected="${taxon.id == 9606}"></option>
                             </th:block>
                         </select>
