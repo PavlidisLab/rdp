@@ -21,6 +21,7 @@ package ubc.pavlab.rdp.services;
 
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.model.enums.TierType;
@@ -42,16 +43,19 @@ public class UserGeneServiceImpl implements UserGeneService {
     @Autowired
     private UserGeneRepository userGeneRepository;
 
+    @Cacheable(cacheNames="stats", key = "#root.methodName")
     @Override
     public Integer countUniqueAssociations() {
         return userGeneRepository.countDistinctGeneByTierIn( TierType.MANUAL_TIERS );
     }
 
+    @Cacheable(cacheNames="stats", key = "#root.methodName")
     @Override
     public Integer countAssociations() {
         return userGeneRepository.countByTierIn( TierType.MANUAL_TIERS );
     }
 
+    @Cacheable(cacheNames="stats", key = "#root.methodName")
     @Override
     public Map<String, Integer> researcherCountByTaxon() {
         Map<String, Integer> countByTaxon = new HashMap<>();

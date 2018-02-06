@@ -42,7 +42,7 @@ public class Profile {
     @URL
     private String website;
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
     @JoinColumn(name = "user_id")
     private Set<Publication> publications = new HashSet<>();
 }

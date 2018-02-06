@@ -60,7 +60,7 @@ public class User {
     private Profile profile;
 
 	/* Research related information */
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "descriptions", joinColumns = @JoinColumn(name = "user_id"))
 	@MapKeyJoinColumn(name="taxon_id")
     @Column(name = "description", columnDefinition = "TEXT")
