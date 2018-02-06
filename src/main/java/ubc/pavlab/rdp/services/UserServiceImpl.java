@@ -177,6 +177,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public Collection<User> findByGene( Gene gene, Set<TierType> tiers ) {
+        return userRepository.findByGene( gene, tiers );
+    }
+
+    @Override
     public Collection<User> findByLikeSymbol( String symbol, Taxon taxon ) {
         return userRepository.findByGeneSymbolLike( symbol, taxon );
     }

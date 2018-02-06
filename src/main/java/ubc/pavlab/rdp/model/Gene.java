@@ -18,7 +18,7 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(of = {"id"})
-@ToString
+@ToString(of = {"id", "symbol", "taxon"})
 public class Gene {
 
     @Id

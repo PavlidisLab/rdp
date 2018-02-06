@@ -52,6 +52,8 @@ public interface UserService {
 
     Collection<User> findByGene( Gene gene, TierType tier );
 
+    Collection<User> findByGene( Gene gene, Set<TierType> tiers );
+
     Collection<User> findByLikeSymbol( String symbol, Taxon taxon );
 
     Collection<User> findByLikeSymbol( String symbol, Taxon taxon, TierType tier );

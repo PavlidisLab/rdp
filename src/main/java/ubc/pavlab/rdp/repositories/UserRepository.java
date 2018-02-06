@@ -46,6 +46,10 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     Collection<User> findByGene( @Param("gene") Gene gene, @Param("tier") TierType tier );
 
     @Cacheable(cacheNames="user-gene-search")
+    @Query("select distinct u from User u inner join u.userGenes ug where ug = :gene and ug.tier in (:tiers)")
+    Collection<User> findByGene( @Param("gene") Gene gene, @Param("tiers") Set<TierType> tiers );
+
+    @Cacheable(cacheNames="user-gene-search")
     @Query("select distinct u from User u inner join u.userGenes ug where ug.symbol like %:symbol% and ug.taxon = :taxon")
     Collection<User> findByGeneSymbolLike( @Param("symbol") String symbol, @Param("taxon") Taxon taxon );
 

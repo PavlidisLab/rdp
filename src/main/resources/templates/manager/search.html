@@ -8,6 +8,7 @@
           integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous"/>
     <link rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/open-iconic/1.1.1/font/css/open-iconic-bootstrap.min.css"/>
+    <link rel="stylesheet" type="text/css" th:href="@{/css/jquery-ui.min.css}"/>
 
 
     <link rel="stylesheet" type="text/css" th:href="@{/css/common.css}"/>
@@ -21,6 +22,7 @@
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
             integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
             crossorigin="anonymous"></script>
+    <script th:src="@{/js/jquery-ui.min.js}"></script>
 
     <script th:src="@{/js/common.js}"></script>
     <script th:src="@{/js/search.js}"></script>
@@ -53,7 +55,7 @@
                     </div>
                 </div>
             </form>
-            <form>
+            <form class="d-none">
                 <div class="form-group row">
                     <div class="input-group mb-3">
                         <div class="input-group-prepend">
@@ -75,7 +77,30 @@
                     </div>
                 </div>
             </form>
+            <form>
+                <div class="form-group row">
+                    <div class="input-group mb-3">
+                        <div class="input-group-prepend">
+                            <button class="btn btn-outline-secondary" type="submit">Search</button>
+                        </div>
+                        <input type="text" class="form-control gene-autocomplete" name="symbol" placeholder="Symbol"/>
+                        <select name="taxonId" class="custom-select">
+                            <th:block th:each="taxon : ${@taxonService.findByActiveTrue()}">
+                                <option th:value="${taxon.id}" th:text="${#strings.capitalizeWords(taxon.commonName)}" th:selected="${taxon.id == 9606}"></option>
+                            </th:block>
+                        </select>
+                        <select name="tier" class="custom-select">
+                            <option th:each="tier : ${T(ubc.pavlab.rdp.model.enums.TierType).values()}"
+                                    th:value="${tier}"
+                                    th:text="${tier}"
+                                    th:selected="${tier == T(ubc.pavlab.rdp.model.enums.TierType).ANY}">
+                            </option>
+                        </select>
+                    </div>
+                </div>
+            </form>
             <div id="userTable">
+                <div th:if="${errorMessage != null}" th:replace="fragments/error :: message" th:remove="tag">...</div>
                 <div th:if="${users != null}" th:replace="fragments/user-table :: user-table(users=${users})" th:remove="tag">...</div>
             </div>
             <!--<div th:replace="fragments/user-table :: user-table(users=${@userService.findAll()})" th:remove="tag">...</div>-->

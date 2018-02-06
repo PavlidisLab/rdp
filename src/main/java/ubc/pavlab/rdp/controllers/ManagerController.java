@@ -8,9 +8,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
+import ubc.pavlab.rdp.model.Gene;
 import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.model.User;
+import ubc.pavlab.rdp.model.UserGene;
 import ubc.pavlab.rdp.model.enums.TierType;
+import ubc.pavlab.rdp.services.GeneService;
 import ubc.pavlab.rdp.services.TaxonService;
 import ubc.pavlab.rdp.services.UserService;
 
@@ -29,6 +32,9 @@ public class ManagerController {
 
     @Autowired
     private TaxonService taxonService;
+
+    @Autowired
+    private GeneService geneService;
 
     @RequestMapping(value = "/manager/search", method = RequestMethod.GET, params = {"nameLike"})
     public ModelAndView searchUsersByName( @RequestParam String nameLike ) {
@@ -74,7 +80,7 @@ public class ManagerController {
 
         ModelAndView modelAndView = new ModelAndView();
         modelAndView.addObject( "user", user );
-        modelAndView.addObject( "users", handleGeneSearch( symbolLike, tier, taxon ) );
+        modelAndView.addObject( "users", handleGeneSymbolSearch( symbolLike, tier, taxon ) );
 
         modelAndView.setViewName( "manager/search" );
         return modelAndView;
@@ -85,18 +91,66 @@ public class ManagerController {
         Taxon taxon = taxonService.findById( taxonId );
         ModelAndView modelAndView = new ModelAndView();
 
-        modelAndView.addObject( "users", handleGeneSearch( symbolLike, tier, taxon ) );
+        modelAndView.addObject( "users", handleGeneSymbolSearch( symbolLike, tier, taxon ) );
         modelAndView.setViewName( "fragments/user-table :: user-table" );
         return modelAndView;
     }
 
-    private Collection<User> handleGeneSearch( String symbolLike, TierType tier, Taxon taxon) {
+    @RequestMapping(value = "/manager/search", method = RequestMethod.GET, params = {"symbol", "taxonId", "tier"})
+    public ModelAndView searchUsersByGene( @RequestParam String symbol, @RequestParam Integer taxonId, @RequestParam TierType tier ) {
+        User user = userService.findCurrentUser();
+        Taxon taxon = taxonService.findById( taxonId );
+        Gene gene = geneService.findBySymbolAndTaxon( symbol, taxon );
+
+        ModelAndView modelAndView = new ModelAndView();
+        modelAndView.setViewName( "manager/search" );
+        if (gene == null) {
+//            modelAndView.addObject( "users", new ArrayList<>() );
+            modelAndView.addObject( "errorMessage", "Unknown Gene: " + symbol );
+        } else {
+            modelAndView.addObject( "users", handleGeneSearch( gene, tier ) );
+        }
+
+        return modelAndView;
+    }
+
+    @RequestMapping(value = "/manager/search/view", method = RequestMethod.GET, params = {"symbol", "taxonId", "tier"})
+    public ModelAndView searchUsersByGeneView( @RequestParam String symbol, @RequestParam Integer taxonId, @RequestParam TierType tier ) {
+        Taxon taxon = taxonService.findById( taxonId );
+        Gene gene = geneService.findBySymbolAndTaxon( symbol, taxon );
+
+        ModelAndView modelAndView = new ModelAndView();
+
+        if (gene == null) {
+//            modelAndView.addObject( "users", new ArrayList<>() );
+            modelAndView.setViewName( "fragments/error :: message" );
+            modelAndView.addObject( "errorMessage", "Unknown Gene: " + symbol );
+        } else {
+            modelAndView.setViewName( "fragments/user-table :: user-table" );
+            modelAndView.addObject( "users", handleGeneSearch( gene, tier ) );
+        }
+
+        return modelAndView;
+    }
+
+    private Collection<User> handleGeneSymbolSearch( String symbolLike, TierType tier, Taxon taxon) {
         if ( tier.equals( TierType.ANY ) ) {
             return userService.findByLikeSymbol( symbolLike, taxon );
         } else if ( tier.equals( TierType.MANUAL ) ) {
             return userService.findByLikeSymbol( symbolLike, taxon, TierType.MANUAL_TIERS );
         } else {
             return userService.findByLikeSymbol( symbolLike, taxon, tier );
+        }
+    }
+
+    private Collection<User> handleGeneSearch( Gene gene, TierType tier) {
+        // TODO: Also search by exact symbol?
+        if ( tier.equals( TierType.ANY ) ) {
+            return userService.findByGene( new UserGene( gene, null) );
+        } else if ( tier.equals( TierType.MANUAL ) ) {
+            return userService.findByGene(  new UserGene( gene, null), TierType.MANUAL_TIERS );
+        } else {
+            return userService.findByGene(  new UserGene( gene, null), tier );
         }
     }
 }

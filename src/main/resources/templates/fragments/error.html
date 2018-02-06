@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+<body>
+<div class="row justify-content-center error-row" th:fragment="message" th:if="${errorMessage != null}">
+    <div class="col my-3">
+        <div class="alert alert-danger alert-dismissible fade show" role="alert" th:text="${errorMessage}">
+            <button type="button" class="close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    </div>
+</div>
+</body>
+</html>
