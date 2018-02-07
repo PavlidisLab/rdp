@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 import ubc.pavlab.rdp.model.enums.TierType;
 
 import javax.persistence.*;
@@ -13,6 +14,8 @@ import javax.persistence.*;
  */
 @Entity
 @Table(name = "gene")
+@Cacheable
+@org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @Getter
 @Setter
 @NoArgsConstructor

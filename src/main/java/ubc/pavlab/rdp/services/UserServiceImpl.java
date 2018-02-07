@@ -137,7 +137,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User findCurrentUser() {
-        return findUserByEmail( getCurrentEmail() );
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return findUserByIdNoAuth( ((UserPrinciple) auth.getPrincipal()).getId() );
     }
 
     @Override

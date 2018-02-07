@@ -1,6 +1,7 @@
 package ubc.pavlab.rdp.model;
 
 import lombok.*;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import javax.persistence.*;
 
@@ -9,6 +10,8 @@ import javax.persistence.*;
  */
 @Entity
 @Table(name = "publication")
+@Cacheable
+@org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @Getter
 @Setter
 @NoArgsConstructor

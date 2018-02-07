@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -18,10 +17,10 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.ModelAndView;
 import ubc.pavlab.rdp.events.OnRegistrationCompleteEvent;
 import ubc.pavlab.rdp.model.User;
+import ubc.pavlab.rdp.model.UserPrinciple;
 import ubc.pavlab.rdp.services.UserService;
 
 import javax.validation.Valid;
-import java.util.Collections;
 
 /**
  * Created by mjacobson on 16/01/18.
@@ -87,10 +86,8 @@ public class LoginController {
     public ModelAndView confirmRegistration( WebRequest request, Model model, @RequestParam("token") String token) {
         User user = userService.confirmVerificationToken( token );
 
-        Authentication auth = new UsernamePasswordAuthenticationToken(
-                user.getEmail(), null, Collections.singletonList(
-                new SimpleGrantedAuthority( user.getRoles().iterator().next().getRole() ) ) );
-
+        UserPrinciple principle = new UserPrinciple(user);
+        Authentication auth = new UsernamePasswordAuthenticationToken( principle, null, principle.getAuthorities() );
         SecurityContextHolder.getContext().setAuthentication( auth );
 
         ModelAndView modelAndView = new ModelAndView();

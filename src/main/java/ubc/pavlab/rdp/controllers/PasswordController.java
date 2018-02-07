@@ -11,7 +11,6 @@ import org.hibernate.validator.constraints.NotEmpty;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
@@ -22,12 +21,12 @@ import org.springframework.web.servlet.ModelAndView;
 import ubc.pavlab.rdp.exception.TokenException;
 import ubc.pavlab.rdp.exception.UserNotFoundException;
 import ubc.pavlab.rdp.model.User;
+import ubc.pavlab.rdp.model.UserPrinciple;
 import ubc.pavlab.rdp.services.EmailService;
 import ubc.pavlab.rdp.services.UserService;
 
 import javax.mail.MessagingException;
 import javax.validation.Valid;
-import java.util.Collections;
 import java.util.UUID;
 
 /**
@@ -125,16 +124,12 @@ public class PasswordController {
                 userService.changePasswordByResetToken( id, token, passwordReset.getNewPassword() );
 
                 User user = userService.findUserByIdNoAuth( id );
-                Authentication auth = new UsernamePasswordAuthenticationToken(
-                        user.getEmail(), null, Collections.singletonList(
-                        new SimpleGrantedAuthority( user.getRoles().iterator().next().getRole() ) ) );
-
+                UserPrinciple principle = new UserPrinciple(user);
+                Authentication auth = new UsernamePasswordAuthenticationToken( principle, null, principle.getAuthorities() );
                 SecurityContextHolder.getContext().setAuthentication( auth );
 
-                modelAndView.setViewName( "user/home" );
+                modelAndView.setViewName( "redirect:user/home" );
                 modelAndView.addObject( "user", user );
-                modelAndView.addObject( "message", "Password Updated" );
-
             } catch (TokenException e) {
                 modelAndView.addObject( "message", e.getMessage() );
                 modelAndView.setViewName( "updatePassword" );

@@ -6,7 +6,7 @@
          dynamicConfig="true">
 
     <defaultCache
-           maxElementsInMemory="100"
+           maxElementsInMemory="20"
            eternal="false"
            overflowToDisk="false"
            timeToLiveSeconds="600"
@@ -60,15 +60,15 @@
         </searchable>
     </cache>
 
-    <cache name="ubc.pavlab.rdp.model.User"
+<!--    <cache name="ubc.pavlab.rdp.model.User"
            maxElementsInMemory="20"
            eternal="false"
            overflowToDisk="false"
            timeToLiveSeconds="600"
            timeToIdleSeconds="0"
-           memoryStoreEvictionPolicy="LFU"
+           memoryStoreEvictionPolicy="LRU"
            transactionalMode="off">
-    </cache>
+    </cache>-->
 
     <cache name="ubc.pavlab.rdp.model.Taxon"
            maxElementsInMemory="20"
@@ -76,21 +76,36 @@
            overflowToDisk="false"
            timeToLiveSeconds="3600"
            timeToIdleSeconds="0"
-           memoryStoreEvictionPolicy="LFU"
+           memoryStoreEvictionPolicy="LRU"
            transactionalMode="off">
     </cache>
 
-    <!-- Special Query Caches -->
+    <cache name="ubc.pavlab.rdp.model.Role"
+           maxElementsInMemory="0"
+           eternal="true">
+    </cache>
 
-    <cache name="user"
+<!--    <cache name="ubc.pavlab.rdp.model.UserGene"
            maxElementsInMemory="20"
            eternal="false"
            overflowToDisk="false"
            timeToLiveSeconds="600"
            timeToIdleSeconds="0"
-           memoryStoreEvictionPolicy="LFU"
+           memoryStoreEvictionPolicy="LRU"
            transactionalMode="off">
     </cache>
+
+    <cache name="ubc.pavlab.rdp.model.UserTerm"
+           maxElementsInMemory="20"
+           eternal="false"
+           overflowToDisk="false"
+           timeToLiveSeconds="600"
+           timeToIdleSeconds="0"
+           memoryStoreEvictionPolicy="LRU"
+           transactionalMode="off">
+    </cache>-->
+
+    <!-- Special Query Caches -->
 
     <cache name="taxon-list"
            maxElementsInMemory="1"

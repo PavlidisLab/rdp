@@ -44,7 +44,7 @@ public class UserEntityListener {
 
     @PostLoad
     void onPostLoad( User user ) {
-        log.info( "onPostLoad: " + user );
+        log.debug( "onPostLoad: " + user );
 
         if ( geneService == null || goService == null ) {
             log.error( "Services not autowiring in User Entity Listener!" );

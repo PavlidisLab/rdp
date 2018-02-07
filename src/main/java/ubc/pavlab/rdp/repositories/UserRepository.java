@@ -22,14 +22,7 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     @Cacheable(cacheNames="stats", key = "#root.methodName")
     long count();
 
-    @Cacheable("user")
     User findByEmail(String email);
-
-    @CacheEvict(value = "user", key = "#p0.email")
-    User save( User user);
-
-    @CacheEvict(value = "user", key = "#p0.email")
-    void delete( User user);
 
     @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
     Collection<User> findByProfileNameContainingOrProfileLastNameContaining( String nameLike, String lastNameLike );

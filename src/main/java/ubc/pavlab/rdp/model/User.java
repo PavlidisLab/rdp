@@ -53,7 +53,8 @@ public class User {
     @JsonIgnore
 	private boolean enabled;
 
-	@ManyToMany
+    @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_ONLY)
+	@ManyToMany(fetch = FetchType.EAGER)
 	@JoinTable(name = "user_role", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
     @JsonIgnore
 	private Set<Role> roles = new HashSet<>();
@@ -63,16 +64,20 @@ public class User {
     private Profile profile;
 
 	/* Research related information */
+
+    @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "descriptions", joinColumns = @JoinColumn(name = "user_id"))
 	@MapKeyJoinColumn(name="taxon_id")
     @Column(name = "description", columnDefinition = "TEXT")
     private Map<Taxon, String> taxonDescriptions = new HashMap<>();
 
+    @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 	@OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
 	@JoinColumn(name = "user_id")
 	private Set<UserTerm> userTerms = new HashSet<>();
 
+    @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "user_id")
 	private Set<UserGene> userGenes = new HashSet<>();

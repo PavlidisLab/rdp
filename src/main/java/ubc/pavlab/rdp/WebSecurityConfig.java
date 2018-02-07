@@ -1,8 +1,6 @@
 package ubc.pavlab.rdp;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
@@ -10,10 +8,9 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-
-import javax.sql.DataSource;
 
 /**
  * Created by mjacobson on 16/01/18.
@@ -27,23 +24,13 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     private BCryptPasswordEncoder bCryptPasswordEncoder;
 
     @Autowired
-    @Qualifier("dataSource")
-    private DataSource dataSource;
-
-    @Value("${rdp.queries.users-query}")
-    private String usersQuery;
-
-    @Value("${rdp.queries.roles-query}")
-    private String rolesQuery;
+    private UserDetailsService userDetailsService;
 
     @Override
     protected void configure( AuthenticationManagerBuilder auth )
             throws Exception {
-        auth.
-                jdbcAuthentication()
-                .usersByUsernameQuery( usersQuery )
-                .authoritiesByUsernameQuery( rolesQuery )
-                .dataSource( dataSource )
+        auth
+                .userDetailsService(userDetailsService)
                 .passwordEncoder( bCryptPasswordEncoder );
     }
 
