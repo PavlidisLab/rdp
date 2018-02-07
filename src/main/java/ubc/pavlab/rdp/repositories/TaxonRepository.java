@@ -9,11 +9,6 @@ import java.util.List;
 
 @Repository
 public interface TaxonRepository extends JpaRepository<Taxon, Integer> {
-    @Cacheable("taxon")
-    Taxon findOne(Integer id);
-
-    @Cacheable("taxon")
-    Taxon findByCommonName(String commonName);
 
     @Cacheable("taxon-list")
     List<Taxon> findByActiveTrue();

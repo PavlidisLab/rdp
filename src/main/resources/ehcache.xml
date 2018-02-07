@@ -5,18 +5,45 @@
          monitoring="autodetect"
          dynamicConfig="true">
 
+    <defaultCache
+           maxElementsInMemory="100"
+           eternal="false"
+           overflowToDisk="false"
+           timeToLiveSeconds="600"
+           timeToIdleSeconds="600"
+           memoryStoreEvictionPolicy="LRU"
+           transactionalMode="off">
+    </defaultCache>
+
+    <cache name="org.hibernate.cache.internal.StandardQueryCache"
+           maxElementsInMemory="100"
+           eternal="false"
+           overflowToDisk="false"
+           timeToLiveSeconds="300"
+           timeToIdleSeconds="0"
+           memoryStoreEvictionPolicy="LFU"
+           transactionalMode="off">
+    </cache>
+
+    <cache name="org.hibernate.cache.spi.UpdateTimestampsCache"
+           maxElementsInMemory="5000"
+           eternal="true">
+    </cache>
+
+
+
     <cache name="gene"
            maxElementsInMemory="0"
            eternal="true"
            overflowToDisk="false"
            transactionalMode="off">
         <searchable>
-            <searchAttribute name="id" />
+            <searchAttribute name="id"/>
             <searchAttribute name="taxonId" expression="value.getTaxon().getId()"/>
-            <searchAttribute name="name" />
+            <searchAttribute name="name"/>
             <searchAttribute name="symbol"/>
             <searchAttribute name="aliases"/>
-            <searchAttribute name="modificationDate" />
+            <searchAttribute name="modificationDate"/>
         </searchable>
     </cache>
 
@@ -26,15 +53,15 @@
            overflowToDisk="false"
            transactionalMode="off">
         <searchable>
-            <searchAttribute name="id" />
+            <searchAttribute name="id"/>
             <searchAttribute name="taxonId" expression="value.getTaxon().getId()"/>
-            <searchAttribute name="goId" />
+            <searchAttribute name="goId"/>
             <searchAttribute name="geneId" expression="value.getGene().getId()"/>
         </searchable>
     </cache>
 
-    <cache name="user"
-           maxElementsInMemory="10"
+    <cache name="ubc.pavlab.rdp.model.User"
+           maxElementsInMemory="20"
            eternal="false"
            overflowToDisk="false"
            timeToLiveSeconds="600"
@@ -43,11 +70,23 @@
            transactionalMode="off">
     </cache>
 
-    <cache name="taxon"
-           maxElementsInMemory="0"
+    <cache name="ubc.pavlab.rdp.model.Taxon"
+           maxElementsInMemory="20"
            eternal="false"
            overflowToDisk="false"
            timeToLiveSeconds="3600"
+           timeToIdleSeconds="0"
+           memoryStoreEvictionPolicy="LFU"
+           transactionalMode="off">
+    </cache>
+
+    <!-- Special Query Caches -->
+
+    <cache name="user"
+           maxElementsInMemory="20"
+           eternal="false"
+           overflowToDisk="false"
+           timeToLiveSeconds="600"
            timeToIdleSeconds="0"
            memoryStoreEvictionPolicy="LFU"
            transactionalMode="off">
@@ -63,16 +102,6 @@
            transactionalMode="off">
     </cache>
 
-    <cache name="user-gene-search"
-           maxElementsInMemory="10"
-           eternal="false"
-           overflowToDisk="false"
-           timeToLiveSeconds="300"
-           timeToIdleSeconds="0"
-           memoryStoreEvictionPolicy="LFU"
-           transactionalMode="off">
-    </cache>
-
     <cache name="stats"
            maxElementsInMemory="0"
            eternal="false"
@@ -82,5 +111,6 @@
            memoryStoreEvictionPolicy="LFU"
            transactionalMode="off">
     </cache>
+
 
 </ehcache>

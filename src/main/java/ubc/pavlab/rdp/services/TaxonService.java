@@ -10,7 +10,6 @@ import java.util.Collection;
 public interface TaxonService {
 
     Taxon findById( final Integer id );
-    Taxon findByCommonName( final String commonName );
 
     Collection<Taxon> findByActiveTrue();
 

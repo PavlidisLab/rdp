@@ -47,7 +47,7 @@ public class GeneServiceImpl extends SearchableEhcache<Integer, Gene> implements
 
     @PostConstruct
     private void initialize() {
-        this.cache = this.cacheManager.getCacheManager().getEhcache(CACHE_NAME );
+        this.cache = this.cacheManager.getCacheManager().getEhcache( CACHE_NAME );
         id = new Attribute<> ("id");
         name = new Attribute<> ("name");
         symbol = new Attribute<> ("symbol");

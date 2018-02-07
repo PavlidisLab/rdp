@@ -22,11 +22,6 @@ public class TaxonServiceImpl implements TaxonService {
     }
 
     @Override
-    public Taxon findByCommonName( String commonName ) {
-        return taxonRepository.findByCommonName( commonName );
-    }
-
-    @Override
     public Collection<Taxon> findByActiveTrue() {
         return taxonRepository.findByActiveTrue();
     }

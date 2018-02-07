@@ -240,18 +240,10 @@ public class UserServiceImpl implements UserService {
     @Transactional
     @Override
     public void addGenesToUser( User user, Collection<UserGene> genes ) {
-        int initialSize = user.getUserGenes().size();
 //        user.getUserGenes().removeAll( genes );
         user.getUserGenes().addAll( genes );
 
-        int added = user.getUserGenes().size() - initialSize;
-
-        if ( added > 0 ) {
-            log.info( "Added " + added + " genes to User " + user.getEmail() );
-        }
-
         update( user );
-
     }
 
     @Transactional
@@ -305,8 +297,15 @@ public class UserServiceImpl implements UserService {
 
         newGenes.addAll( calculatedGenesInTaxon( user, taxon ) );
 
+        int initialSize = user.getUserGenes().size();
         removeGenesFromUserByTaxon( user, taxon );
         addGenesToUser( user, newGenes );
+
+        int added = user.getUserGenes().size() - initialSize;
+
+        if ( added > 0 ) {
+            log.info( "Added " + added + " genes to User " + user.getEmail() );
+        }
     }
 
     @Transactional
