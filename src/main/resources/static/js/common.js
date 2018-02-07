@@ -25,7 +25,7 @@ $(document).ready(function () {
         $(this).closest('.row').hide();
     });
 
-    $('[data-toggle="tooltip"]').tooltip()
+    $('[data-toggle="tooltip"]').tooltip();
 
     $(document).on("focusout", ".edit-container", function (e) {
         $(this).find('.data-edit').prop('disabled', true);

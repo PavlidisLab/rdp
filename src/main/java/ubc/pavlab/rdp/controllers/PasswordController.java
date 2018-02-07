@@ -9,6 +9,7 @@ import org.apache.commons.logging.LogFactory;
 import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -56,9 +57,20 @@ public class PasswordController {
         String passwordConfirm;
 
 
-        private boolean isValid() {
+        boolean isValid() {
             return this.newPassword.equals( this.passwordConfirm );
         }
+
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    static class PasswordChange extends PasswordReset {
+
+        @NotEmpty(message = "*Please provide your current password")
+        String oldPassword;
 
     }
 
@@ -137,6 +149,47 @@ public class PasswordController {
         }
 
         // Log in
+
+        return modelAndView;
+    }
+
+    @RequestMapping(value = {"/user/password"}, method = RequestMethod.GET)
+    public ModelAndView changePassword() {
+        ModelAndView modelAndView = new ModelAndView();
+        User user = userService.findCurrentUser();
+        modelAndView.addObject( "user", user );
+
+        modelAndView.addObject("passwordChange", new PasswordChange() );
+        modelAndView.setViewName( "user/password" );
+        return modelAndView;
+    }
+
+    @RequestMapping(value = "/user/password", method = RequestMethod.POST)
+    public ModelAndView changePassword( @Valid PasswordChange passwordChange, BindingResult bindingResult ) {
+        ModelAndView modelAndView = new ModelAndView();
+        modelAndView.setViewName( "user/password" );
+        User user = userService.findCurrentUser();
+        modelAndView.addObject( "user", user );
+
+        if ( !passwordChange.isValid() ) {
+            bindingResult.rejectValue( "passwordConfirm", "error.passwordChange", "Passwords should match" );
+        }
+
+        if (bindingResult.hasErrors()) {
+            // Short circuit before testing password.
+            return modelAndView;
+        }
+
+        try {
+            userService.changePassword( passwordChange.oldPassword, passwordChange.newPassword );
+        } catch (BadCredentialsException e) {
+            bindingResult.rejectValue( "oldPassword", "error.passwordChange", "Incorrect password" );
+        }
+
+        if (!bindingResult.hasErrors()) {
+            modelAndView.addObject("passwordChange", new PasswordChange() );
+            modelAndView.addObject( "message", "Password Updated" );
+        }
 
         return modelAndView;
     }

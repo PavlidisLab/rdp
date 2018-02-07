@@ -6,10 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hibernate.validator.constraints.Length;
-import org.hibernate.validator.constraints.NotEmpty;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.*;
 import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.TierType;
@@ -18,9 +15,7 @@ import ubc.pavlab.rdp.services.GeneService;
 import ubc.pavlab.rdp.services.TaxonService;
 import ubc.pavlab.rdp.services.UserService;
 
-import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
-import javax.validation.constraints.AssertTrue;
 import java.util.*;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
@@ -48,29 +43,6 @@ public class UserController {
     @Setter
     @NoArgsConstructor
     @AllArgsConstructor
-    static class PasswordChange {
-
-        @NotEmpty(message = "*Please provide your current password")
-        String oldPassword;
-
-        @Length(min = 6, message = "*Your password must have at least 6 characters")
-        @NotEmpty(message = "*Please provide a new password")
-        String newPassword;
-
-        @Length(min = 6, message = "*Your password must have at least 6 characters")
-        @NotEmpty(message = "*Please confirm your password")
-        String passwordConfirm;
-
-        @AssertTrue(message = "Passwords should match")
-        private boolean isValid() {
-            return this.newPassword.equals( this.passwordConfirm );
-        }
-    }
-
-    @Getter
-    @Setter
-    @NoArgsConstructor
-    @AllArgsConstructor
     static class Model {
 
         private Map<Integer, TierType> geneTierMap;
@@ -86,17 +58,6 @@ public class UserController {
             userService.delete( user );
         }
         return "Deleted.";
-    }
-
-    @RequestMapping(value = "/user/password", method = RequestMethod.POST)
-    public String changePassword( HttpServletResponse response, @RequestBody @Valid PasswordChange passwordChange ) {
-        try {
-            userService.changePassword( passwordChange.oldPassword, passwordChange.newPassword );
-        } catch (BadCredentialsException e) {
-            response.setStatus( HttpServletResponse.SC_UNAUTHORIZED );
-            return e.getMessage();
-        }
-        return "Saved.";
     }
 
     @RequestMapping(value = "/user/profile", method = RequestMethod.POST)

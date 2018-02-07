@@ -154,3 +154,9 @@ tr.new-row {
     color: limegreen;
     content: '\e094';
 }
+
+.validation-message {
+    font-style: normal;
+    font-size: 12px;
+    color: #FF1C19;
+}

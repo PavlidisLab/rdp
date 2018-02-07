@@ -53,6 +53,7 @@
                     <span th:text="${@userService.getCurrentUserName()}"/>
                 </a>
                 <div class="dropdown-menu" aria-labelledby="navbarDropdownUser">
+                    <a class="dropdown-item" th:href="@{/user/password}" href="/user/password">Change Password</a>
                     <a class="dropdown-item" th:href="@{/logout}" href="/logout">Logout</a>
                 </div>
             </li>
