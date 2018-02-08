@@ -28,6 +28,8 @@ public class SiteSettings {
     @Email
     private String adminEmail;
 
+    private String logohtml;
+
     public String getFullUrl() {
         return host + context + (context.endsWith( "/" ) ? "" : "/");
     }
