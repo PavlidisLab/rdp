@@ -7,6 +7,7 @@ import ubc.pavlab.rdp.events.OnRegistrationCompleteEvent;
 import ubc.pavlab.rdp.model.User;
 import ubc.pavlab.rdp.services.EmailService;
 import ubc.pavlab.rdp.services.UserService;
+import ubc.pavlab.rdp.settings.ApplicationSettings;
 
 import java.util.UUID;
 
@@ -22,15 +23,23 @@ public class RegistrationListener implements ApplicationListener<OnRegistrationC
     @Autowired
     private EmailService emailService;
 
+    @Autowired
+    ApplicationSettings applicationSettings;
+
     @Override
-    public void onApplicationEvent(OnRegistrationCompleteEvent event) {
-        this.confirmRegistration(event);
+    public void onApplicationEvent( OnRegistrationCompleteEvent event ) {
+
+        if ( applicationSettings.isSendEmailOnRegistration() ) {
+            emailService.sendUserRegisteredEmail( event.getUser() );
+        }
+
+        this.confirmRegistration( event );
     }
 
-    private void confirmRegistration(OnRegistrationCompleteEvent event) {
+    private void confirmRegistration( OnRegistrationCompleteEvent event ) {
         User user = event.getUser();
         String token = UUID.randomUUID().toString();
-        userService.createVerificationTokenForUser(user, token);
+        userService.createVerificationTokenForUser( user, token );
         emailService.sendRegistrationMessage( user, token );
     }
 }

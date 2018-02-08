@@ -13,7 +13,7 @@ import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.services.GOService;
 import ubc.pavlab.rdp.services.GeneService;
 import ubc.pavlab.rdp.services.TaxonService;
-import ubc.pavlab.rdp.settings.CacheSettings;
+import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.util.GOParser;
 import ubc.pavlab.rdp.util.Gene2GoParser;
 import ubc.pavlab.rdp.util.GeneInfoParser;
@@ -44,7 +44,7 @@ public class Application implements CommandLineRunner {
     GOService goService;
 
     @Autowired
-    private CacheSettings cacheSettings;
+    private ApplicationSettings applicationSettings;
 
     public static void main( String[] args ) {
         SpringApplication.run( Application.class, args );
@@ -54,6 +54,8 @@ public class Application implements CommandLineRunner {
     public void run( String... args ) throws Exception {
 
         log.info( "Application Start." );
+
+        ApplicationSettings.CacheSettings cacheSettings = applicationSettings.getCache();
 
         log.info( "Loading genes" );
         for ( Taxon taxon : taxonService.findByActiveTrue() ) {

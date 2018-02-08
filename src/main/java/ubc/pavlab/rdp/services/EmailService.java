@@ -99,4 +99,8 @@ public class EmailService {
         sendSimpleMessage( subject, message, recipientAddress );
     }
 
+    public void sendUserRegisteredEmail( User user ) {
+        sendSimpleMessage( siteSettings.getShortname() + " - User Registered", "New user registration: " + user.getEmail(), siteSettings.getAdminEmail() );
+    }
+
 }
