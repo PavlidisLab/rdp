@@ -115,6 +115,8 @@
                                         <button type="button" class="btn btn-primary recommend-terms"><i class="mx-2 d-none spinner"></i>Recommend Terms</button>
                                     </div>
                                 </div>
+                                <div class="row justify-content-center recommend-message" th:if="${viewOnly == null}">
+                                </div>
 
                                 <div th:replace="fragments/term-table :: term-table(userTerms=${user.getTermsByTaxon(taxon)})"
                                      th:remove="tag">...

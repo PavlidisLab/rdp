@@ -329,6 +329,13 @@ $(document).ready(function () {
                 $.each(data, function (index, item) {
                     addTermRow(table, item, "-")
                 });
+
+                if (data.length > 0) {
+                    $('#terms').find('.recommend-message').html("<p class='text-success'>Recommended " + data.length + " terms.</p>");
+                } else {
+                    $('#terms').find('.recommend-message').html("<p class='text-danger'>Could not recommend terms based on your genes. Please add more genes.</p>");
+                }
+
             } finally {
                 spinner.addClass("d-none");
             }
