@@ -43,8 +43,15 @@ public class MainController {
     @Autowired
     private EmailService emailService;
 
-    @RequestMapping(value = {"/", "/user/home"}, method = RequestMethod.GET)
+    @RequestMapping(value = {"/"}, method = RequestMethod.GET)
     public ModelAndView index() {
+        ModelAndView modelAndView = new ModelAndView();
+        modelAndView.setViewName( "redirect:user/home" );
+        return modelAndView;
+    }
+
+    @RequestMapping(value = {"/user/home"}, method = RequestMethod.GET)
+    public ModelAndView userHome() {
         ModelAndView modelAndView = new ModelAndView();
         User user = userService.findCurrentUser();
         modelAndView.addObject( "user", user );

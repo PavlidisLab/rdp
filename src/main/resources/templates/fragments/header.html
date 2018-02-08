@@ -4,7 +4,7 @@
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <body>
 <nav th:style="'background-image:url(\'' + @{/images/header.jpg} + '\'); background-size: cover;'" class="navbar navbar-expand-lg navbar-dark bg-primary">
-    <a class="navbar-brand" th:href="@{/}" href="/">
+    <a class="navbar-brand" th:href="@{/user/home}" href="/">
         <div class="brand">
             <p  class="text-uppercase">Models &amp; Mechanisms Network</p>
             <h1 class="text-uppercase font-weight-bold m-0">Rare Diseases</h1>
@@ -17,7 +17,7 @@
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
         <ul class="navbar-nav mr-auto">
             <li class="nav-item">
-                <a class="nav-link" th:href="@{/}" href="/">Home</a>
+                <a class="nav-link" th:href="@{/user/home}" href="/">Home</a>
             </li>
             <li class="nav-item">
                 <a th:if="${viewOnly != null}" class="nav-link" th:href="@{'/user/' + ${user.id} + '/profile'}">View Profile</a>
