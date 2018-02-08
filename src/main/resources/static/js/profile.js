@@ -111,6 +111,7 @@ $(document).ready(function () {
                 $('.error-row').hide();
                 spinner.addClass("d-none");
                 initialProfile = collectProfile();
+                $('.new-row').removeClass("new-row");
             },
             error: function(r) {
                 $('.success-row').hide();
