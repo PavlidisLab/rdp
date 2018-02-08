@@ -25,7 +25,7 @@ public class WebMvcConfig extends WebMvcConfigurerAdapter {
     @Bean
     public MessageSource messageSource() {
         ReloadableResourceBundleMessageSource messageSource = new ReloadableResourceBundleMessageSource();
-        messageSource.addBasenames("classpath:messages", "file:messages");
+        messageSource.addBasenames("classpath:login", "file:login");
         return messageSource;
     }
 

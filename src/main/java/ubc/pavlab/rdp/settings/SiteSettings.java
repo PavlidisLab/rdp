@@ -16,6 +16,13 @@ import org.springframework.stereotype.Component;
 @Setter
 public class SiteSettings {
 
+    @Getter
+    @Setter
+    public static class EmailMessages {
+        private String registrationWelcome;
+        private String registrationEnding;
+    }
+
     @URL
     private String host;
     private String context;
@@ -29,6 +36,10 @@ public class SiteSettings {
     private String adminEmail;
 
     private String logohtml;
+
+    private String welcome;
+
+    private EmailMessages email;
 
     public String getFullUrl() {
         return host + context + (context.endsWith( "/" ) ? "" : "/");

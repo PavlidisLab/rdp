@@ -31,7 +31,7 @@
 
     <div class="main-content p-4" >
 
-        <span th:utext="#{welcome}" th:remove="tag"></span>
+        <span th:utext="${@siteSettings.welcome}" th:remove="tag"></span>
 
         <hr/>
 

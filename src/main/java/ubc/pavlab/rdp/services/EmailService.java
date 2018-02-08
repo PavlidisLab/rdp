@@ -91,12 +91,11 @@ public class EmailService {
         String recipientAddress = user.getEmail();
         String subject = "Registration Confirmation";
         String confirmationUrl = siteSettings.getFullUrl() + "registrationConfirm?token=" + token;
-        String message =
-                "Thank you for registering for the " + siteSettings.getFullname() + " as a model organism researcher. (" + siteSettings.getFullUrl() + ").\r\n\r\n" +
-                        "Please confirm your registration by clicking on the following link:\r\n\r\n" +
-                        confirmationUrl + "\r\n\r\n" +
-                        "You will then be able to log in using the password you provided, and start filling in your profile.\r\n\r\n" +
-                        "If you have questions or difficulties with registration please feel free to contact us: " + siteSettings.getContactEmail();
+        String message = siteSettings.getEmail().getRegistrationWelcome() +
+                "\r\n\r\nPlease confirm your registration by clicking on the following link:\r\n\r\n" +
+                confirmationUrl +
+                "\r\n\r\n" +
+                siteSettings.getEmail().getRegistrationEnding();
         sendSimpleMessage( subject, message, recipientAddress );
     }
 
