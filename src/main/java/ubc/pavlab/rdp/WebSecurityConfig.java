@@ -11,6 +11,7 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import ubc.pavlab.rdp.settings.SiteSettings;
 
 /**
  * Created by mjacobson on 16/01/18.
@@ -25,6 +26,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     private UserDetailsService userDetailsService;
+
+    @Autowired
+    private SiteSettings siteSettings;
 
     @Override
     protected void configure( AuthenticationManagerBuilder auth )
@@ -59,6 +63,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .defaultSuccessUrl( "/" )
                 .usernameParameter( "email" )
                 .passwordParameter( "password" )
+                .and().rememberMe()
+                .rememberMeCookieName(siteSettings.getShortname() + "-remember-me")
+                .tokenValiditySeconds(7 * 24 * 60 * 60)
                 .and().logout()
                 .logoutRequestMatcher( new AntPathRequestMatcher( "/logout" ) )
                 .logoutSuccessUrl( "/login" ).and().exceptionHandling()
