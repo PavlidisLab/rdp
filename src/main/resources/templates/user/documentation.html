@@ -62,8 +62,8 @@
                                      data-parent="#profile-accordion">
                                     <div class="card-body">
                                         <p>
-                                            On the <b>Profile</b> tab under "<i>My Account</i>", use
-                                            the edit functions to provide basic information:
+                                            On your <b><a th:href="@{/user/profile}">Profile</a></b>, use
+                                            the edit [<i class="oi oi-pencil" style="color: orange;"></i>] functions to provide basic information:
                                         </p>
                                         <ul>
                                             <li>Name</li>
@@ -72,9 +72,9 @@
                                         </ul>
 
                                         <p>Complete and accurate information is important to
-                                            ensure the Network can contact you.</p>
+                                            ensure we can contact you.</p>
 
-                                        <p>You can also provide:</p>
+                                        <p>You can also choose to provide:</p>
                                         <ul>
                                             <li>A link to your home page (e.g., your lab site)</li>
                                             <li>A phone number</li>
@@ -86,9 +86,7 @@
 
                                         <p>
                                             These fields are optional. Your email address is not
-                                            editable because it serves as your User ID. From the "<i>My
-                                            Account</i>" page you can also edit your account settings.
-                                            Currently the only editable setting is your password.
+                                            editable because it serves as your User ID.
                                         </p>
                                     </div>
                                 </div>
@@ -140,47 +138,6 @@
                     <div class="tab-pane fade" id="model" role="tabpanel" aria-labelledby="model-tab">
                         <div id="model-accordion">
                             <div class="card my-3">
-                                <div class="card-header" id="modeladd-heading">
-                                    <h5 class="mb-0">
-                                        <button class="btn btn-link" data-toggle="collapse" data-target="#modeladd"
-                                                aria-expanded="false" aria-controls="modeladd">
-                                            Add Model Organism
-                                        </button>
-                                    </h5>
-                                </div>
-
-                                <div id="modeladd" class="collapse" aria-labelledby="modeladd-heading"
-                                     data-parent="#model-accordion">
-                                    <div class="card-body">
-                                        <p>To add a model organism:</p>
-                                        <ol>
-                                            <li>Click the side bar "<i>My Model Organisms</i>"
-                                            </li>
-                                            <li>Click on "<i>Add Organism</i>"
-                                            </li>
-                                            <li>Select the desired organism's name</li>
-                                        </ol>
-                                        <p>
-                                            It will be moved to the top section of "<i>My Model
-                                            Organisms</i>" and the main panel will show you the Manager
-                                            for that organism. You can have multiple Model Organisms
-                                            associated with your account.
-                                        </p>
-                                        <p>Also see relevant Frequently Asked Questions:</p>
-                                        <ul>
-                                            <li><a th:href="@{/user/faq#more}">What if I study more than one model
-                                                organism?</a>
-                                            </li>
-                                            <li><a th:href="@{/user/faq#human}">Are humans a "model" for the purposes of
-                                                the
-                                                registry?</a></li>
-                                            <li><a th:href="@{/user/faq#missing}">What if the organism I study is not
-                                                listed?</a></li>
-                                        </ul>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="card my-3">
                                 <div class="card-header" id="modelmanager-heading">
                                     <h5 class="mb-0">
                                         <button class="btn btn-link" data-toggle="collapse" data-target="#modelmanager"
@@ -196,8 +153,7 @@
                                         <p>
                                             In the manager, you can optionally enter a description of
                                             your research on this organism (Organism Research Focus), if you feel it is
-                                            different from the description you may have provided in
-                                            the "<i>My Account</i>" section (About My Research).
+                                            different from the description you may have provided in your <b><a th:href="@{/user/profile}">Profile</a></b> (About My Research).
                                         </p>
 
                                         <p>The most important functionality of the Manager is
@@ -246,6 +202,16 @@
                                         <p>For more information, see the relevant <a
                                                 th:href="@{/user/faq#genes}">FAQ</a></p>
 
+                                        <p>In the input box below the table you may search genes one by one or type
+                                            in a comma separated list of gene symbols. Add them by pressing the enter
+                                            key or the + symbol.</p>
+                                        <p>The added genes will appear at the bottom of the table. You can remove genes
+                                            by clicking the red X on the desired row. You can also change the Primary
+                                            status of genes using the checkbox.</p>
+
+                                        <p>Finally, be sure to <b>Save</b>. If you navigate away from the page without
+                                            doing so, you will be prompted to confirm.</p>
+
                                         <p>Also see relevant Frequently Asked Questions:</p>
                                         <ul>
                                             <li><a th:href="@{/user/faq#ortholog}">Should I fill in the human orthologs
@@ -281,6 +247,45 @@
                                             For more details about GO, please see <a href="http://geneontology.org/"
                                                                                      target="_blank">geneontology.org</a>.
                                         </p>
+
+                                        <p>To enter GO terms for an organism, click on the "Terms" tab on the Model
+                                            Organism Manager page. From here you may let us suggest terms for you or
+                                            input terms manually using the input box below the table.</p>
+
+                                        <p><b>Note:</b> You need to have at least two genes saved in order for us to succesfully recommend terms.</p>
+
+                                        <p>Suggested GO terms will appear in a table (allow
+                                            for a short delay especially if you have a lot of
+                                            genes saved) that has the following columns:</p>
+
+                                        <ul>
+                                            <li>GO term full name</li>
+                                            <li>GO Aspect, which indicates one of three
+                                                domains from which the GO term originates (biological
+                                                process (BP), molecular function (MF), cellular
+                                                component (CC))</li>
+                                            <li>Overlap, which indicates how many of your
+                                                (Tier 1 and 2) genes are annotated with that term. Clicking this
+                                                number will show which of your genes these are.</li>
+                                            <li>Term Size, which indicates how many genes in
+                                                the currently chosen model organism are annotated
+                                                with that term and will be added as Tier 3 genes if
+                                                the term is selected (excluding the genes
+                                                that are already added as Tier 1 or 2)</li>
+                                        </ul>
+
+                                        <p>You may also manually search by GO
+                                            ID, Name or description. Add them by pressing the enter
+                                            key or the + symbol</p>
+
+                                        <p><b>Note:</b> that terms who have more
+                                            than 100 associated genes will not be
+                                            available for addition to your profile.</p>
+
+                                        <p>
+                                            Once again, don't forget to <b>Save</b>.
+                                        </p>
+
                                     </div>
                                 </div>
                             </div>
@@ -306,11 +311,11 @@
                                             enough genes overlapping with your genes, it is
                                             considered a candidate. We then prune terms that are too
                                             big, too small or highly redundant with another candidate
-                                            term. The final list of terms is then sorted by overlap size for display.
-                                            The full process is a little more complicated than this,
+                                            term. A selection of the top candidates is then provided.
+                                            The full process is a little more involved than this,
                                             as it makes use of the structure of the GO hierarchy and
-                                            several heuristics to provide useful results. <a th:href="@{/user/support}">Contact
-                                            Us</a> if you want more details.
+                                            several heuristics to provide useful results. Please <a th:href="@{/user/support}">Contact
+                                            Us</a> if you would like more details.
                                         </p>
                                     </div>
                                 </div>
