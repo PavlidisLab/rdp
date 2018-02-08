@@ -41,22 +41,34 @@ $(document).ready(function () {
         return JSON.stringify(initialProfile)!==JSON.stringify(collectProfile()) ?  true : undefined;
     };
 
+    $(document).on("keypress", ".pub-input", function (e) {
+        if(e.which == 13) {
+            $(this).closest('.input-group').find('button.add-row').click();
+        }
+    });
+
 
     $(document).on("click", ".add-row", function () {
-        var newRow = $("<tr></tr>");
-        var cols = "";
+        var line = $.trim($(this).closest('.input-group').find('input').val());
 
-        var pubmed = $.trim($(this).closest('.input-group').find('input').val());
+        var ids = line.split(",").map(function(item) {
+            return item.trim();
+        });
 
-        if (pubmed != parseInt(pubmed, 10)) {
-            return false;
-        }
+        var table = $(this).closest('table');
 
-        cols += '<td><i class="delete-row"/>' + pubmed + '</td>';
+        $.each(ids, function (index, pubmed) {
+            if (pubmed != parseInt(pubmed, 10)) {
+                return true;
+            }
+            var newRow = $("<tr class='new-row'></tr>");
+            var cols = "";
+            cols += '<td><i class="delete-row"/>' + pubmed + '</td>';
 
-        newRow.append(cols);
-        $(this).closest('table').append(newRow);
+            newRow.append(cols);
+            table.append(newRow);
 
+        });
 
         // var col = '<td class="pubmed-error"></td>';
         // var self = $(this);
