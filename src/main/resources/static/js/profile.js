@@ -53,6 +53,8 @@ $(document).ready(function () {
 
         var ids = line.split(",").map(function(item) {
             return item.trim();
+        }).filter(function(item) {
+            return item;
         });
 
         var table = $(this).closest('table');

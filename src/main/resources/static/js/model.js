@@ -188,7 +188,13 @@ $(document).ready(function () {
 
         var symbols = line.split(",").map(function(item) {
             return item.trim();
+        }).filter(function(item) {
+            return item;
         });
+
+        if (symbols.length === 0) {
+            return;
+        }
 
         var self = $(this);
         var spinner = self.find('.spinner');
@@ -294,7 +300,13 @@ $(document).ready(function () {
 
         var ids = line.split(",").map(function(item) {
             return item.trim();
+        }).filter(function(item) {
+            return item;
         });
+
+        if (ids.length === 0) {
+            return;
+        }
 
         var self = $(this);
 
