@@ -71,7 +71,7 @@ public class LoginController {
                 modelAndView.addObject( "message", "User has been registered successfully, we have sent you an email in order to confirm your account." );
             } catch (Exception me) {
                 log.error(me);
-                modelAndView.addObject( "message", "There was a problem sending the confirmation email." );
+                modelAndView.addObject( "message", "There was a problem sending the confirmation email. Please try again later." );
             }
 
 
@@ -79,6 +79,41 @@ public class LoginController {
             modelAndView.setViewName( "registration" );
 
         }
+        return modelAndView;
+    }
+
+    @RequestMapping(value = {"/resendConfirmation"}, method = RequestMethod.GET)
+    public ModelAndView resendConfirmation() {
+        ModelAndView modelAndView = new ModelAndView();
+        modelAndView.setViewName( "resendConfirmation" );
+        return modelAndView;
+    }
+
+    @RequestMapping(value = "/resendConfirmation", method = RequestMethod.POST)
+    public ModelAndView resendConfirmation( @RequestParam("email") String email ) {
+        ModelAndView modelAndView = new ModelAndView();
+        modelAndView.setViewName( "resendConfirmation" );
+        User user = userService.findUserByEmail( email );
+
+        if ( user == null ) {
+//            modelAndView.addObject( "message", "User does not exist." );
+            modelAndView.addObject( "message", "Confirmation email sent." );
+            return modelAndView;
+        } else if ( user.isEnabled() ) {
+//            modelAndView.addObject( "message", "Account already enabled." );
+            modelAndView.addObject( "message", "Confirmation email sent." );
+            return modelAndView;
+        } else {
+
+            try {
+                eventPublisher.publishEvent( new OnRegistrationCompleteEvent( user ) );
+                modelAndView.addObject( "message", "Confirmation email sent." );
+            } catch (Exception me) {
+                log.error( me );
+                modelAndView.addObject( "message", "There was a problem sending the confirmation email. Please try again later." );
+            }
+        }
+
         return modelAndView;
     }
 

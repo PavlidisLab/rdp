@@ -49,6 +49,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                         "/forgotPassword",
                         "/resetPassword",
                         "/updatePassword",
+                        "/resendConfirmation",
                         "/access-denied").permitAll()
                 .antMatchers( "/manager/**" ).hasAnyRole( "MANAGER", "ADMIN" )
                 .antMatchers( "/admin/**" ).hasRole( "ADMIN" )
