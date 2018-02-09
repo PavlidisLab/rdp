@@ -6,68 +6,135 @@ function collectModel() {
 
     // Gene Information
     var geneTierMap = {};
-    $('#genes').find('.gene-table').find('tbody > tr').each(function(idx) {
-        var tds = $(this).find('td');
-
-        // If id column contains an integer
-        var geneId =  parseInt(tds[1].innerText, 10);
-        if (tds[1].innerText == geneId ) {
-            geneTierMap[geneId] = $(tds[3]).find('input[type=checkbox]').prop('checked') ? "TIER1" : "TIER2";
+    $('#gene-table').DataTable().rows().every( function ( rowIdx, tableLoop, rowLoop ) {
+        var data = this.data();
+        var geneId =  parseInt(data[1], 10);
+        if (data[1] == geneId ) {
+            geneTierMap[geneId] = $(this.node()).find('input[type=checkbox]').prop('checked') ? "TIER1" : "TIER2";
         }
-    });
+    } );
     model.geneTierMap = geneTierMap;
 
     // Term Information
     var goIds = [];
-    $('#terms').find('.term-table').find('tbody > tr').each(function(idx) {
-        goIds.push($.trim($(this).find('td')[0].innerText));
-    });
+    $('#term-table').DataTable().rows().every( function ( rowIdx, tableLoop, rowLoop ) {
+        var data = this.data();
+        goIds.push($.trim($(data[0]).text()));
+    } );
+    goIds.sort();
     model.goIds = goIds;
 
     return model;
 }
 
-function addGeneRow(table, gene, backupSymbol) {
-    var newRow = $("<tr class='new-row'></tr>");
-    var cols = "";
-    if ( gene === null ) {
-        console.log("Issue obtaining metadata for: " + backupSymbol);
-        cols += '<td><span class="align-middle"><i class="delete-row align-middle"/>' + backupSymbol + '</span></td>';
-        cols += '<td style="display: none;"></td>';
-        cols += '<td class="gene-error" colspan="2"></td>';
-    } else {
-        cols += '<td><span class="align-middle"><i class="delete-row align-middle"/><a href="https://www.ncbi.nlm.nih.gov/gene/' + gene.id + '" target="_blank" class="align-middle">' + gene.symbol + '</a></span></td>';
-        cols += '<td style="display: none;">' + gene.id + '</td>';
-        cols += '<td><span class="align-middle">' + gene.name + '</span></td>';
-        cols += '<td class="text-center"><input class="align-middle" type="checkbox"/></td>';
+function addGeneRow(data) {
+
+    var table = $('#gene-table').DataTable();
+    var rows = [];
+
+    for (var symbol in data) {
+        if (data.hasOwnProperty(symbol)) {
+
+            var gene = data[symbol];
+            var row = [];
+
+            if ( gene === null ) {
+                console.log("Issue obtaining metadata for: " + symbol);
+                row.push('<span class="align-middle text-danger"><i class="delete-row align-middle"></i>' + symbol + '</span>');
+                row.push('');
+                row.push('<span class="align-middle text-danger">Could Not Find Gene.</span>');
+                row.push('');
+            } else {
+                row.push('<span class="align-middle"><i class="delete-row align-middle"></i><a href="https://www.ncbi.nlm.nih.gov/gene/' + gene.id + '" target="_blank" class="align-middle">' + gene.symbol + '</a></span>')
+                row.push(gene.id);
+                row.push('<span class="align-middle">' + gene.name + '</span>');
+                row.push('<input class="align-middle" type="checkbox"/>');
+            }
+            rows.push(row);
+        }
     }
-    newRow.append(cols);
-    table.append(newRow);
+
+    table.rows.add(rows).nodes()
+        .to$()
+        .addClass( 'new-row' );
+
+    table.columns.adjust().draw();
 }
 
-function addTermRow(table, term, backupId) {
-    var newRow = $("<tr class='new-row'></tr>");
-    var cols = "";
-    if ( term === null ) {
-        console.log("Issue obtaining metadata for: " + backupId);
-        cols += '<td><span class="align-middle"><i class="delete-row align-middle"/>' + backupId + '</span></td>';
-        cols += '<td class="term-error" colspan="4"></td>';
-    } else {
-        cols += '<td><span class="align-middle">' +
-            '<i class="delete-row"/>' +
-            '<a href="http://www.ebi.ac.uk/QuickGO/GTerm?id=' + term.id + '" ' +
-            'target="_blank" data-toggle="tooltip" class="align-middle" title="' + term.definition +'">' + term.id + '</a></span></td>';
-        cols += '<td><span class="align-middle">' + term.name + '</span></td>';
-        cols += '<td><span class="align-middle">' + term.aspect + '</span></td>';
-        cols += '<td><a href="#" class="align-middle overlap-show-modal" data-toggle="modal" data-target="#overlapModal">' + term.frequency + '</a></td>';
-        cols += '<td><span class="align-middle">' + term.size + '</span></td>';
+function addTermRow(data) {
+
+    var table = $('#term-table').DataTable();
+    var rows = [];
+
+    for (var goId in data) {
+        if (data.hasOwnProperty(goId)) {
+
+            var term = data[goId];
+            var row = [];
+
+            if ( term === null ) {
+                console.log("Issue obtaining metadata for: " + goId);
+                row.push( '<span class="align-middle text-danger"><i class="delete-row align-middle"></i>' + goId + '</span>');
+                row.push( '<span class="align-middle text-danger">Could Not Find Term.</span>' );
+                row.push( '' );
+                row.push( '' );
+                row.push( '' );
+            } else {
+                row.push( '<span class="align-middle">' +
+                    '<i class="delete-row"></i>' +
+                    '<a href="http://www.ebi.ac.uk/QuickGO/GTerm?id=' + term.id + '" ' +
+                    'target="_blank" data-toggle="tooltip" class="align-middle" title="' + term.definition +'">' + term.id + '</a></span>');
+                row.push( '<span class="align-middle">' + term.name + '</span>');
+                row.push( '<span class="align-middle">' + term.aspect + '</span>');
+                row.push( '<a href="#" class="align-middle overlap-show-modal" data-toggle="modal" data-target="#overlapModal">' + term.frequency + '</a>');
+                row.push( '<span class="align-middle">' + term.size + '</span>');
+            }
+
+            rows.push(row);
+
+        }
     }
-    newRow.append(cols);
-    table.append(newRow);
-    newRow.find('[data-toggle="tooltip"]').tooltip()
+
+    table.rows.add(rows).nodes()
+        .to$()
+        .addClass( 'new-row' );
+        // .find('[data-toggle="tooltip"]').tooltip();
+
+    table.columns.adjust().draw();
 }
 
 $(document).ready(function () {
+
+    $.fn.dataTable.ext.order['dom-checkbox'] = function  ( settings, col )
+    {
+        return this.api().column( col, {order:'index'} ).nodes().map( function ( td, i ) {
+            return $('input', td).prop('checked') ? '1' : '0';
+        } );
+    };
+
+    $('#gene-table').DataTable({
+        "scrollY":        "200px",
+        "scrollCollapse": true,
+        "paging":         false,
+        "searching": false,
+        "info": false,
+        "order": [[ 0, "desc" ]],
+        "columnDefs": [
+            { "name": "Symbol",   "targets": 0},
+            { "name": "Id",  "targets": 1, "visible": false },
+            { "name": "Name", "targets": 2},
+            { "name": "Primary",  "targets": 3, "className": "text-center", "orderDataType": "dom-checkbox"}
+        ]
+    });
+
+    $('#term-table').DataTable({
+        "scrollY":        "200px",
+        "scrollCollapse": true,
+        "paging":         false,
+        "searching": false,
+        "info": false,
+        "order": [[ 0, "desc" ]]
+    });
 
     var initialModel = collectModel();
 
@@ -128,7 +195,6 @@ $(document).ready(function () {
                 }
 
                 $.getJSON("/taxon/" + currentTaxon.id + "/gene/search/" + term + "?max=10", request, function (data, status, xhr) {
-
                     if (!data.length) {
                         data = [
                             {
@@ -207,12 +273,7 @@ $(document).ready(function () {
             data: JSON.stringify(symbols),
             contentType: "application/json",
             success: function(data) {
-
-                for (var symbol in data) {
-                    if (data.hasOwnProperty(symbol)) {
-                        addGeneRow(self.closest('table'), data[symbol], symbol);
-                    }
-                }
+                addGeneRow(data);
             }
 
         }).always(function() {
@@ -320,11 +381,7 @@ $(document).ready(function () {
             data: JSON.stringify(ids),
             contentType: "application/json",
             success: function(data) {
-                for (var goId in data) {
-                    if (data.hasOwnProperty(goId)) {
-                        addTermRow(self.closest('table'), data[goId], goId);
-                    }
-                }
+                addTermRow(data);
             }
 
         }).always(function() {
@@ -338,10 +395,8 @@ $(document).ready(function () {
         spinner.removeClass("d-none");
         $.getJSON("/user/taxon/" + currentTaxon.id + "/term/recommend?top=true", function (data, status, xhr) {
             try {
-                var table = $('#terms').find('.term-table');
-                $.each(data, function (index, item) {
-                    addTermRow(table, item, "-")
-                });
+
+                addTermRow(data);
 
                 if (data.length > 0) {
                     $('#terms').find('.recommend-message').html("<p class='text-success'>Recommended " + data.length + " terms.</p>");
@@ -358,5 +413,10 @@ $(document).ready(function () {
     $('#overlapModal').on('show.bs.modal', function (e) {
         var goId = $(e.relatedTarget).closest('tr').find('td')[0].innerText;
         $("#overlapModal").find(".modal-body").load("/user/taxon/" + currentTaxon.id + "/term/" + goId + "/gene/view");
+    });
+
+    $('#terms-tab').on('shown.bs.tab', function (e) {
+        $('#term-table').DataTable().draw();
     })
+
 });

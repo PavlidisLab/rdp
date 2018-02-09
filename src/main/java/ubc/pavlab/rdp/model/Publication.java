@@ -30,7 +30,4 @@ public class Publication {
     @Column(name = "title")
     private String title;
 
-    @Column(name = "url")
-    private String url;
-
 }

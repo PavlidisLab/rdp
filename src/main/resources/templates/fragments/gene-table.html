@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:th="http://www.thymeleaf.org">
 <body>
-<table class="gene-table table table-sm mb-0" th:fragment="gene-table (genes)">
+<table th:id="${viewOnly == null} ? 'gene-table' : ''" class="gene-table table table-sm mb-0" th:fragment="gene-table (genes)">
     <thead class="thead-light">
     <tr>
         <th scope="col">Symbol</th>
@@ -17,7 +17,7 @@
             <td><span class="align-middle"><i th:if="${viewOnly == null}" class="delete-row align-middle"/><a
                     th:href="'https://www.ncbi.nlm.nih.gov/gene/' + ${gene.id}"
                     target="_blank" class="align-middle" th:text="${gene.symbol}"></a></span></td>
-            <td style="display: none;"><span th:text="${gene.id}"></span></td>
+            <td style="display: none;"><span th:text="${gene.id}" th:remove="tag"></span></td>
             <td><span class="align-middle" th:text="${gene.name}"></span></td>
             <td class="text-center"><input type="checkbox" class="align-middle" th:disabled="${viewOnly != null}"
                                            th:checked="${gene.tier == T(ubc.pavlab.rdp.model.enums.TierType).TIER1}"/>
@@ -25,20 +25,6 @@
         </tr>
     </th:block>
     </tbody>
-    <tfoot th:if="${viewOnly == null}" >
-    <tr>
-        <td colspan="3">
-            <div class="input-group">
-                <div class="input-group-prepend" style="background: lightgrey;">
-                    <button class="btn btn-outline-secondary reset-table text-danger d-none" type="button">-</button>
-                    <button class="btn btn-outline-secondary add-row text-success" type="button"><i class="mx-2 d-none spinner"></i>+</button>
-                </div>
-                <input type="text" class="form-control autocomplete"
-                       placeholder="ex. GRIN1, BRCA1, FOXP2"/>
-            </div>
-        </td>
-    </tr>
-    </tfoot>
 </table>
 </body>
 </html>

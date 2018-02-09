@@ -8,6 +8,7 @@
           integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous"/>
     <link rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/open-iconic/1.1.1/font/css/open-iconic-bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.16/css/dataTables.bootstrap4.min.css"/>
     <link rel="stylesheet" type="text/css" th:href="@{/css/jquery-ui.min.css}"/>
 
     <link rel="stylesheet" type="text/css" th:href="@{/css/common.css}"/>
@@ -22,6 +23,8 @@
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
             integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
             crossorigin="anonymous"></script>
+    <script src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.16/js/dataTables.bootstrap4.min.js"></script>
     <script th:src="@{/js/jquery-ui.min.js}"></script>
 
     <script th:src="@{/js/common.js}"></script>
@@ -108,6 +111,14 @@
                                 <div th:replace="fragments/gene-table :: gene-table(genes=${user.getGenesByTaxonAndTier(taxon, T(ubc.pavlab.rdp.model.enums.TierType).MANUAL_TIERS)})"
                                      th:remove="tag">...
                                 </div>
+                                <div class="input-group mt-2">
+                                    <div class="input-group-prepend" style="background: lightgrey;">
+                                        <button class="btn btn-outline-secondary reset-table text-danger d-none" type="button">-</button>
+                                        <button class="btn btn-outline-secondary add-row text-success" type="button"><i class="mx-2 d-none spinner"></i>+</button>
+                                    </div>
+                                    <input type="text" class="form-control autocomplete"
+                                           placeholder="ex. GRIN1, BRCA1, FOXP2"/>
+                                </div>
                             </div>
                             <div class="tab-pane fade" id="terms" role="tabpanel" aria-labelledby="terms-tab">
                                 <div class="row justify-content-center" th:if="${viewOnly == null}">
@@ -121,6 +132,16 @@
                                 <div th:replace="fragments/term-table :: term-table(userTerms=${user.getTermsByTaxon(taxon)})"
                                      th:remove="tag">...
                                 </div>
+
+                                <div class="input-group mt-2">
+                                    <div class="input-group-prepend" style="background: lightgrey;">
+                                        <button class="btn btn-outline-secondary reset-table text-danger d-none" type="button">-</button>
+                                        <button class="btn btn-outline-secondary add-row text-success" type="button"><i class="mx-2 d-none spinner"></i>+</button>
+                                    </div>
+                                    <input type="text" class="form-control autocomplete"
+                                           placeholder="Search Terms"/>
+                                </div>
+
                             </div>
                         </div>
                     </div>

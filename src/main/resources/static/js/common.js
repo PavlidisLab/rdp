@@ -13,19 +13,18 @@ $(document).ready(function () {
     $(document).on("mousedown", '.editable', function (e) {
         e.preventDefault();
     });
-    $(document).on("click", '.delete-row', function () {
-        $(this).closest('tr').remove();
+    $(document).on("click", 'table.dataTable .delete-row', function () {
+        var table = $(this).closest('table').DataTable();
+        table.row($(this).closest('tr')).remove().draw();
     });
 
-    $(document).on("click", '.reset-table', function () {
-        $(this).closest('table').find('tr.new-row').remove();
-    });
+    // $(document).on("click", '.reset-table', function () {
+    //     $(this).closest('table').find('tr.new-row').remove();
+    // });
 
     $(document).on("click", ".close", function () {
         $(this).closest('.row').hide();
     });
-
-    $('[data-toggle="tooltip"]').tooltip();
 
     $(document).on("focusout", ".edit-container", function (e) {
         $(this).find('.data-edit').prop('disabled', true);
@@ -37,5 +36,7 @@ $(document).ready(function () {
             $(this).focusout();
         }
     });
+
+
 
 });

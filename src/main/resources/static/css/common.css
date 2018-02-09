@@ -160,3 +160,8 @@ tr.new-row {
     font-size: 12px;
     color: #FF1C19;
 }
+
+/* Fix duplicate scroll icons on datatable with scrollY enabled*/
+.dataTables_scrollBody thead {
+    visibility: hidden;
+}

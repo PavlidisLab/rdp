@@ -8,6 +8,7 @@
           integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous"/>
     <link rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/open-iconic/1.1.1/font/css/open-iconic-bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.16/css/dataTables.bootstrap4.min.css"/>
 
 
     <link rel="stylesheet" type="text/css" th:href="@{/css/common.css}"/>
@@ -22,6 +23,9 @@
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
             integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
             crossorigin="anonymous"></script>
+    <script src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.16/js/dataTables.bootstrap4.min.js"></script>
+
 
     <script th:src="@{/js/common.js}"></script>
     <script th:src="@{/js/profile.js}"></script>
@@ -146,18 +150,18 @@
                     <div class="card-header">
                         <h3 class="mb-0">Publications</h3>
                     </div>
-                    <table class="table mb-0">
+                    <table id="publication-table" class="table mb-0">
                         <thead class=".thead-light">
                         <tr>
                             <th scope="col">PubMed</th>
-                            <!--<th scope="col">Title</th>-->
+                            <th scope="col">Title</th>
                         </tr>
                         </thead>
                         <tbody>
                         <th:block th:each="pub : ${user.profile.publications}">
                             <tr>
                                 <td><i class="delete-row" th:if="${viewOnly == null}"/><span th:text="${pub.pmid}" th:remove="tag"></span></td>
-                                <!--<td><a th:href="${pub.url}" target="_blank" th:text="${pub.title}"></a></td>-->
+                                <td><a th:href="${'https://www.ncbi.nlm.nih.gov/pubmed/' + pub.pmid}" target="_blank" th:text="${pub.title != ''} ? ${pub.title} : 'Unknown Title'"></a></td>
                             </tr>
                         </th:block>
                         </tbody>

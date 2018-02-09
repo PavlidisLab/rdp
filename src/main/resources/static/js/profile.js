@@ -17,15 +17,15 @@ function collectProfile() {
 
     // Publication Information
     var publications = [];
-    $('.publication-info').find('tbody > tr').each(function(idx) {
+    $('#publication-table').find('tbody > tr').each(function(idx) {
         var tds = $(this).find('td');
         var a = $(tds[1]).find('a')[0];
         publications.push({
             pmid:  parseInt(tds[0].innerText, 10),
-            url: a ? a.href : "",
             title: a ? a.innerText : ""
         })
     });
+    publications.sort(function(a, b){return b.pmid-a.pmid});
     profile.publications = publications;
 
     return profile;
@@ -57,45 +57,39 @@ $(document).ready(function () {
             return item;
         });
 
-        var table = $(this).closest('table');
+        // Try to get metadata for the articles
+        var metadata = {};
+        var rows = [];
+        $.get('https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=pubmed&amp;id=' + ids.join(",") + '&amp;retmode=json', function(data) {
+            $.each(ids, function(idx, pubmed) {
 
-        $.each(ids, function (index, pubmed) {
-            if (pubmed != parseInt(pubmed, 10)) {
-                return true;
-            }
-            var newRow = $("<tr class='new-row'></tr>");
-            var cols = "";
-            cols += '<td><i class="delete-row"/>' + pubmed + '</td>';
+                var row = [];
 
-            newRow.append(cols);
-            table.append(newRow);
+                row.push('<i class="delete-row"></i>' + pubmed);
 
+                try {
+                    var title = data['result'][pubmed]['title'];
+                } catch (e) {
+                    console.log("Issue obtaining metadata for: " + pubmed, e);
+                }
+
+                title = title.length > 100 ?
+                    title.substring(0, 100 - 3) + "..." :
+                    title;
+
+                row.push('<a href="https://www.ncbi.nlm.nih.gov/pubmed/' + pubmed + '" target="_blank">' + (title ? title : 'Unknown Title') + '</a>');
+
+                rows.push(row);
+            });
+        }).done(function() {
+
+            var table = $('#publication-table').DataTable();
+
+            table.rows.add(rows).draw().nodes()
+                .to$()
+                .addClass( 'new-row' );
         });
 
-        // var col = '<td class="pubmed-error"></td>';
-        // var self = $(this);
-        // $.get('https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=pmc&amp;id='+pubmed+'&amp;retmode=json', function(data) {
-        //     try {
-        //
-        //         var title = data['result'][pubmed]['title'];
-        //
-        //         var doi = '';
-        //         data['result'][pubmed]['articleids'].forEach(function (aid) {
-        //             if (aid['idtype'] === "doi") {
-        //                 doi = aid['value'];
-        //             }
-        //         });
-        //
-        //         col = '<td><a href="https://doi.org/' + doi + '" target="_blank">' + title + '</a></td>';
-        //
-        //     } catch (e) {
-        //         console.log("Issue obtaining metadata for: " + pubmed);
-        //     }
-        //     cols += col;
-        //
-        //     newRow.append(cols);
-        //     self.closest('table').append(newRow);
-        // });
     });
     $(document).on("click", ".save-profile", function () {
         var profile = collectProfile();
@@ -121,6 +115,15 @@ $(document).ready(function () {
                 spinner.addClass("d-none");
             }
         });
+    });
+
+    $('#publication-table').DataTable({
+        "scrollY":        "200px",
+        "scrollCollapse": true,
+        "paging":         false,
+        "searching": false,
+        "info": false,
+        "order": [[ 0, "desc" ]]
     });
 
 });
