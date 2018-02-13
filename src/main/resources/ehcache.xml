@@ -85,25 +85,25 @@
            eternal="true">
     </cache>
 
-<!--    <cache name="ubc.pavlab.rdp.model.UserGene"
-           maxElementsInMemory="20"
+    <cache name="ubc.pavlab.rdp.model.UserGene"
+           maxElementsInMemory="200"
            eternal="false"
            overflowToDisk="false"
            timeToLiveSeconds="600"
-           timeToIdleSeconds="0"
+           timeToIdleSeconds="600"
            memoryStoreEvictionPolicy="LRU"
            transactionalMode="off">
     </cache>
 
     <cache name="ubc.pavlab.rdp.model.UserTerm"
-           maxElementsInMemory="20"
+           maxElementsInMemory="100"
            eternal="false"
            overflowToDisk="false"
            timeToLiveSeconds="600"
-           timeToIdleSeconds="0"
+           timeToIdleSeconds="600"
            memoryStoreEvictionPolicy="LRU"
            transactionalMode="off">
-    </cache>-->
+    </cache>
 
     <!-- Special Query Caches -->
 
