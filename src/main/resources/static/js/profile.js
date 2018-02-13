@@ -110,9 +110,20 @@ $(document).ready(function () {
                 $('.new-row').removeClass("new-row");
             },
             error: function(r) {
-                $('.success-row').hide();
-                $('.error-row').show();
-                spinner.addClass("d-none");
+                var errorMessages = [];
+                try {
+                    $.each(r.responseJSON.errors, function(idx, item) {
+                        errorMessages.push(item.field + " - " + item.defaultMessage)
+                    })
+                } finally {
+                    var message = "Profile Not Saved: " + errorMessages.join(", ");
+
+                    $('.success-row').hide();
+                    var $error = $('.error-row');
+                    $error.find('div.alert').text(message);
+                    $error.show();
+                    spinner.addClass("d-none");
+                }
             }
         });
     });
