@@ -13,14 +13,16 @@ import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.model.UserGene;
 import ubc.pavlab.rdp.model.enums.GeneMatchType;
 import ubc.pavlab.rdp.model.enums.TierType;
+import ubc.pavlab.rdp.settings.ApplicationSettings;
+import ubc.pavlab.rdp.util.GeneInfoParser;
 import ubc.pavlab.rdp.util.SearchResult;
 import ubc.pavlab.rdp.util.SearchableEhcache;
 
 import javax.annotation.PostConstruct;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.Map;
+import java.net.URL;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.*;
 
 /**
  * Created by mjacobson on 17/01/18.
@@ -35,6 +37,12 @@ public class GeneServiceImpl extends SearchableEhcache<Integer, Gene> implements
     @SuppressWarnings("SpringJavaAutowiringInspection")
     @Autowired
     private EhCacheCacheManager cacheManager;
+
+    @Autowired
+    TaxonService taxonService;
+
+    @Autowired
+    private ApplicationSettings applicationSettings;
 
     private Ehcache cache;
 
@@ -54,6 +62,31 @@ public class GeneServiceImpl extends SearchableEhcache<Integer, Gene> implements
         taxonId = new Attribute<> ("taxonId");
         aliases = new Attribute<> ("aliases");
         modificationDate = new Attribute<> ("modificationDate");
+
+        ApplicationSettings.CacheSettings cacheSettings = applicationSettings.getCache();
+
+        log.info( "Loading genes" );
+        for ( Taxon taxon : taxonService.findByActiveTrue() ) {
+
+            try {
+                Set<Gene> data;
+                if ( cacheSettings.isLoadFromDisk() ) {
+                    Path path = Paths.get( cacheSettings.getGeneFilesLocation(), taxon.getId() + ".gene_info.gz" );
+                    log.info( "Loading genes for " + taxon.toString() + " from disk: " + path.toAbsolutePath() );
+                    data = GeneInfoParser.parse( taxon, path.toFile() );
+                } else {
+                    log.info( "Loading genes for " + taxon.toString() + " from URL: " + taxon.getGeneUrl() );
+                    data = GeneInfoParser.parse( taxon, new URL( taxon.getGeneUrl() ) );
+                }
+                log.info( "Done parsing." );
+                addAll( data );
+            } catch (Exception e) {
+                log.error( "Issue loading genes for: " + taxon, e );
+            }
+        }
+        log.info( "Finished loading genes: " + size() );
+
+
     }
 
     public Ehcache getCache() {

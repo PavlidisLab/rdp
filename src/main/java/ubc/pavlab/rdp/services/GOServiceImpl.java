@@ -2,13 +2,20 @@ package ubc.pavlab.rdp.services;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.RelationshipType;
 import ubc.pavlab.rdp.model.enums.TermMatchType;
 import ubc.pavlab.rdp.model.enums.TierType;
+import ubc.pavlab.rdp.settings.ApplicationSettings;
+import ubc.pavlab.rdp.util.GOParser;
+import ubc.pavlab.rdp.util.Gene2GoParser;
 import ubc.pavlab.rdp.util.SearchResult;
 
+import javax.annotation.PostConstruct;
+import java.io.File;
+import java.net.URL;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -22,11 +29,64 @@ public class GOServiceImpl implements GOService {
 
     private static Log log = LogFactory.getLog( GOServiceImpl.class );
 
+    private static final String GO_URL = "http://purl.obolibrary.org/obo/go.obo";
+    private static final String GENE2GO_URL = "ftp://ftp.ncbi.nlm.nih.gov/gene/DATA/gene2go.gz";
+
     private Map<String, GeneOntologyTerm> termMap = new HashMap<>();
 
     private static Map<GeneOntologyTerm, Collection<GeneOntologyTerm>> descendantsCache = new HashMap<>();
 
     private static int GO_SIZE_LIMIT = 100;
+
+    @Autowired
+    private ApplicationSettings applicationSettings;
+
+    @Autowired
+    TaxonService taxonService;
+
+    @Autowired
+    GeneService geneService;
+
+    @PostConstruct
+    private void initialize() {
+
+        ApplicationSettings.CacheSettings cacheSettings = applicationSettings.getCache();
+        try {
+            if (cacheSettings.isLoadFromDisk()) {
+                log.info( "Loading GO Terms from disk: " + cacheSettings.getTermFile() );
+                setTerms( GOParser.parse( new File( cacheSettings.getTermFile() ) ) );
+            } else {
+                log.info( "Loading GO Terms from URL: " + GO_URL );
+                setTerms( GOParser.parse( new URL( GO_URL ) ) );
+            }
+
+            log.info( "Gene Ontology loaded, total of " + size() + " items." );
+
+            if (cacheSettings.isLoadFromDisk()) {
+                log.info( "Loading annotations from disk: " + cacheSettings.getAnnotationFile() );
+                Gene2GoParser.populateAnnotations( new File( cacheSettings.getAnnotationFile() ), taxonService.findByActiveTrue(), geneService, this );
+            } else {
+                log.info( "Loading annotations from URL: " + GENE2GO_URL );
+                Gene2GoParser.populateAnnotations( new URL(GENE2GO_URL), taxonService.findByActiveTrue(), geneService, this );
+            }
+
+            log.info( "Finished loading annotations" );
+
+            for ( GeneOntologyTerm goTerm : getAllTerms() ) {
+                goTerm.setSizesByTaxon( getGenes( goTerm ).stream().collect(
+                        Collectors.groupingBy(
+                                Gene::getTaxon, Collectors.counting()
+                        ) ) );
+            }
+
+            log.info( "Finished precomputing gene annotation sizes" );
+
+        } catch (Exception e) {
+            log.error( "Issue loading terms and/or annotations", e );
+        }
+
+
+    }
 
     @Override
     public void setTerms( Map<String, GeneOntologyTerm> termMap ) {
