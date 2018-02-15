@@ -16,6 +16,7 @@ import ubc.pavlab.rdp.repositories.PasswordResetTokenRepository;
 import ubc.pavlab.rdp.repositories.RoleRepository;
 import ubc.pavlab.rdp.repositories.UserRepository;
 import ubc.pavlab.rdp.repositories.VerificationTokenRepository;
+import ubc.pavlab.rdp.settings.ApplicationSettings;
 
 import javax.validation.ValidationException;
 import java.util.*;
@@ -41,34 +42,38 @@ public class UserServiceImpl implements UserService {
     private BCryptPasswordEncoder bCryptPasswordEncoder;
     @Autowired
     private GOService goService;
+    @Autowired
+    ApplicationSettings applicationSettings;
 
     @Transactional
     @Override
-    public void create( User user ) {
+    public User create( User user ) {
         user.setPassword( bCryptPasswordEncoder.encode( user.getPassword() ) );
-        Role userRole = roleRepository.findByRole( "ROLE_USER" );
+        Role userRole = roleRepository.findByRole( applicationSettings.isDefaultNewUserRoleAsManager() ? "ROLE_MANAGER" : "ROLE_USER" );
 
         user.setRoles( Collections.singleton( userRole ) );
-        userRepository.save( user );
+        return userRepository.save( user );
     }
 
     @Transactional
     @Override
-    public void update( User user ) {
+    public User update( User user ) {
         // Currently restrict to updating your own user. Can make this better with
         // Pre-Post authorized annotations.
         String currentUsername = getCurrentEmail();
         if ( user.getEmail().equals( currentUsername ) ) {
-            userRepository.save( user );
+            return userRepository.save( user );
         } else {
             log.warn( currentUsername + " attempted to update a user that is not their own: " + user.getEmail() );
         }
 
+        return null;
+
     }
 
     @Transactional
-    private void updateNoAuth( User user ) {
-        userRepository.save( user );
+    private User updateNoAuth( User user ) {
+        return userRepository.save( user );
     }
 
     @Transactional
@@ -91,13 +96,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void changePassword( String oldPassword, String newPassword ) throws BadCredentialsException, ValidationException {
+    public User changePassword( String oldPassword, String newPassword ) throws BadCredentialsException, ValidationException {
         User user = findCurrentUser();
         if ( bCryptPasswordEncoder.matches( oldPassword, user.getPassword() ) ) {
             if ( newPassword.length() >= 6 ) { //TODO: Tie in with hibernate constraint on User or not necessary?
 
                 user.setPassword( bCryptPasswordEncoder.encode( newPassword ) );
-                update( user );
+                return update( user );
             } else {
                 throw new ValidationException( "Password must be a minimum of 6 characters" );
             }
@@ -108,7 +113,7 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     @Override
-    public void changePasswordByResetToken( int userId, String token, String newPassword ) throws TokenException, ValidationException {
+    public User changePasswordByResetToken( int userId, String token, String newPassword ) throws TokenException, ValidationException {
 
         verifyPasswordResetToken( userId, token );
 
@@ -118,7 +123,7 @@ public class UserServiceImpl implements UserService {
             User user = findUserByIdNoAuth( userId );
 
             user.setPassword( bCryptPasswordEncoder.encode( newPassword ) );
-            updateNoAuth( user );
+            return updateNoAuth( user );
         } else {
             throw new ValidationException( "Password must be a minimum of 6 characters" );
         }
@@ -239,8 +244,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Transactional
-    @Override
-    public void addGenesToUser( User user, Collection<UserGene> genes ) {
+    private void addGenesToUser( User user, Collection<UserGene> genes ) {
 //        user.getUserGenes().removeAll( genes );
         user.getUserGenes().addAll( genes );
 
@@ -248,8 +252,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Transactional
-    @Override
-    public void removeGenesFromUser( User user, Collection<Gene> genes ) {
+    private void removeGenesFromUser( User user, Collection<Gene> genes ) {
 
         int initialSize = user.getUserGenes().size();
 

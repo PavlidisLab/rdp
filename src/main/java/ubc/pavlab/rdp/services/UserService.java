@@ -18,17 +18,17 @@ import java.util.Set;
 public interface UserService {
 
     @Transactional
-    void create( User user );
+    User create( User user );
 
     @Transactional
-    void update( User user );
+    User update( User user );
 
     @Secured( "ROLE_ADMIN" )
     @Transactional
     void delete( User user );
 
     @Transactional
-    void changePassword( String oldPassword, String newPassword ) throws BadCredentialsException, ValidationException;
+    User changePassword( String oldPassword, String newPassword ) throws BadCredentialsException, ValidationException;
 
     String getCurrentUserName();
 
@@ -48,21 +48,28 @@ public interface UserService {
     @Secured( {"ROLE_ADMIN", "ROLE_MANAGER"} )
     List<User> findAll();
 
+    @Secured( {"ROLE_ADMIN", "ROLE_MANAGER"} )
     Collection<User> findByGene( Gene gene );
 
+    @Secured( {"ROLE_ADMIN", "ROLE_MANAGER"} )
     Collection<User> findByGene( Gene gene, TierType tier );
 
+    @Secured( {"ROLE_ADMIN", "ROLE_MANAGER"} )
     Collection<User> findByGene( Gene gene, Set<TierType> tiers );
 
+    @Secured( {"ROLE_ADMIN", "ROLE_MANAGER"} )
     Collection<User> findByLikeSymbol( String symbol, Taxon taxon );
 
+    @Secured( {"ROLE_ADMIN", "ROLE_MANAGER"} )
     Collection<User> findByLikeSymbol( String symbol, Taxon taxon, TierType tier );
 
+    @Secured( {"ROLE_ADMIN", "ROLE_MANAGER"} )
     Collection<User> findByLikeSymbol( String symbol, Taxon taxon, Set<TierType> tiers );
 
     @Secured( {"ROLE_ADMIN", "ROLE_MANAGER"} )
     Collection<User> findByLikeName( String nameLike );
 
+    @Secured( {"ROLE_ADMIN", "ROLE_MANAGER"} )
     Collection<User> findByDescription( String descriptionLike );
 
     long countResearchers();
@@ -74,12 +81,6 @@ public interface UserService {
     UserTerm convertTerms( User user, Taxon taxon, GeneOntologyTerm term );
 
     Collection<UserTerm> recommendTerms( User user, Taxon taxon );
-
-    @Transactional
-    void addGenesToUser( User user, Collection<UserGene> genes );
-
-    @Transactional
-    void removeGenesFromUser( User user, Collection<Gene> genes );
 
     @Transactional
     void updateGenesInTaxon( User user, Taxon taxon, Collection<UserGene> genes );
@@ -99,7 +100,7 @@ public interface UserService {
     void verifyPasswordResetToken( int userId, String token ) throws TokenException;
 
     @Transactional
-    void changePasswordByResetToken( int userId, String token, String newPassword );
+    User changePasswordByResetToken( int userId, String token, String newPassword );
 
     @Transactional
     void createVerificationTokenForUser( User user, String token );

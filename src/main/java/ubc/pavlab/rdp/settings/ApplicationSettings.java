@@ -27,5 +27,6 @@ public class ApplicationSettings {
 
     private CacheSettings cache;
     private boolean sendEmailOnRegistration;
+    private boolean defaultNewUserRoleAsManager = false;
 
 }
