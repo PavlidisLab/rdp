@@ -28,7 +28,7 @@ public class Gene {
     @JoinColumn(name = "taxon_id")
     private Taxon taxon;
 
-    @Column(name = "symbol")
+    @Column(name = "symbol", length = 63)
     private String symbol;
 
     @Column(name = "description", columnDefinition = "TEXT")
@@ -44,7 +44,7 @@ public class Gene {
     @JsonIgnore
     private Set<GeneOntologyTerm> terms = new HashSet<>();
 
-    public Collection<GeneOntologyTerm> getAllTerms(boolean includePartOf, boolean propagateUpwards ) {
+    public Collection<GeneOntologyTerm> getAllTerms( boolean includePartOf, boolean propagateUpwards ) {
 
         Collection<GeneOntologyTerm> allGOTermSet = new HashSet<>();
 

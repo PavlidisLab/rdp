@@ -15,10 +15,10 @@ import javax.persistence.*;
  */
 @Entity
 @Table(name = "gene",
-        uniqueConstraints={@UniqueConstraint(columnNames={"user_id", "gene_id"})},
+        uniqueConstraints = {@UniqueConstraint(columnNames = {"user_id", "gene_id"})},
         indexes = {@Index(columnList = "gene_id, tier", name = "gene_id_tier_hidx"),
                 @Index(columnList = "symbol, taxon_id, tier", name = "symbol_taxon_id_tier_hidx")}
-        )
+)
 @Cacheable
 @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @Getter
@@ -34,10 +34,10 @@ public class UserGene extends Gene {
     private int id;
 
     @Enumerated(EnumType.STRING)
-    @Column
+    @Column(length = 5)
     private TierType tier;
 
-    public void updateGene(Gene gene) {
+    public void updateGene( Gene gene ) {
         this.setGeneId( gene.getGeneId() );
         this.setSymbol( gene.getSymbol() );
         this.setTaxon( gene.getTaxon() );
@@ -47,7 +47,7 @@ public class UserGene extends Gene {
         this.setTerms( gene.getTerms() );
     }
 
-    public UserGene(Gene gene, TierType tier) {
+    public UserGene( Gene gene, TierType tier ) {
         super();
         this.tier = tier;
         this.updateGene( gene );
