@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 import ubc.pavlab.rdp.model.Gene;
+import ubc.pavlab.rdp.model.GeneOntologyTerm;
 import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.model.User;
 import ubc.pavlab.rdp.model.enums.TierType;
@@ -24,6 +25,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.stream.Collectors;
 
 @Controller
@@ -96,10 +98,16 @@ public class MainController {
         User user = userService.findCurrentUser();
         Taxon taxon = taxonService.findById( taxonId );
 
-        Collection<Gene> genes = goService.getGenes( goService.getTerm( goId ) );
+        GeneOntologyTerm term = goService.getTerm( goId );
 
-        modelAndView.addObject( "genes", user.getGenesByTaxonAndTier( taxon, TierType.MANUAL_TIERS )
-                .stream().filter( genes::contains ).collect( Collectors.toSet() ));
+        if (term != null) {
+            Collection<Gene> genes = goService.getGenes( term );
+
+            modelAndView.addObject( "genes", user.getGenesByTaxonAndTier( taxon, TierType.MANUAL_TIERS )
+                    .stream().filter( genes::contains ).collect( Collectors.toSet() ) );
+        } else {
+            modelAndView.addObject( "genes", Collections.EMPTY_SET);
+        }
         modelAndView.addObject( "viewOnly", true);
         modelAndView.setViewName( "fragments/gene-table :: gene-table" );
         return modelAndView;
