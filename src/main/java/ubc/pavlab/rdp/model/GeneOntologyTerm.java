@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 public class GeneOntologyTerm {
 
     @Id
-    @Column(name = "go_id")
+    @Column(name = "go_id", length=10)
     private String id;
 
     @Column(name = "name", columnDefinition = "TEXT")
