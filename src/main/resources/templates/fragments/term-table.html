@@ -16,8 +16,8 @@
     <th:block th:each="ut : ${userTerms}">
         <tr>
             <td><span class="align-middle">
-                <i th:if="${viewOnly == null}" class="delete-row align-middle"/><a th:href="'http://www.ebi.ac.uk/QuickGO/GTerm?id=' + ${ut.id}"
-                   target="_blank" th:text="${ut.id}" class="align-middle"
+                <i th:if="${viewOnly == null}" class="delete-row align-middle"/><a th:href="'http://www.ebi.ac.uk/QuickGO/GTerm?id=' + ${ut.goId}"
+                   target="_blank" th:text="${ut.goId}" class="align-middle"
                     data-toggle="tooltip" th:title="${ut.definition}"></a></span></td>
             <td><span class="align-middle" th:text="${ut.name}"></span></td>
             <td><span class="align-middle" th:text="${ut.aspect.label}"></span></td>

@@ -82,8 +82,8 @@ function addTermRow(data) {
             } else {
                 row.push( '<span class="align-middle">' +
                     '<i class="delete-row"></i>' +
-                    '<a href="http://www.ebi.ac.uk/QuickGO/GTerm?id=' + term.id + '" ' +
-                    'target="_blank" data-toggle="tooltip" class="align-middle" title="' + term.definition +'">' + term.id + '</a></span>');
+                    '<a href="http://www.ebi.ac.uk/QuickGO/GTerm?id=' + term.goId + '" ' +
+                    'target="_blank" data-toggle="tooltip" class="align-middle" title="' + term.definition +'">' + term.goId + '</a></span>');
                 row.push( '<span class="align-middle">' + term.name + '</span>');
                 row.push( '<span class="align-middle">' + term.aspect + '</span>');
                 row.push( '<a href="#" class="align-middle overlap-show-modal" data-toggle="modal" data-target="#overlapModal">' + term.frequency + '</a>');
@@ -317,13 +317,13 @@ $(document).ready(function () {
                 });
             },
             select: function( event, ui ) {
-                autocomplete.val( ui.item.match.id );
+                autocomplete.val( ui.item.match.goId );
                 return false;
             }
         });
         autocomplete.autocomplete( "instance" )._renderItem = function( ul, item ) {
             return $( "<li>" )
-                .append( "<div class='pl-3'><b>" + item.match.id + "</b>: " + item.match.name + " (Size: " + item.match.size + ")</div>" )
+                .append( "<div class='pl-3'><b>" + item.match.goId + "</b>: " + item.match.name + " (Size: " + item.match.size + ")</div>" )
                 .appendTo( ul );
         };
         autocomplete.autocomplete( "instance" )._create = function() {
@@ -341,7 +341,7 @@ $(document).ready(function () {
 
             $.each( items, function( index, item ) {
                 var li;
-                var label = item.matchType + " : " + item.match.id;
+                var label = item.matchType + " : " + item.match.goId;
                 if ( item.matchType !== currentCategory ) {
                     ul.append( "<li aria-label='" + label + "' class='ui-autocomplete-category my-1 p-2 font-weight-bold' style='background-color: #e3f2fd; font-size: 1rem;'>" + item.matchType + "</li>" );
                     currentCategory = item.matchType;

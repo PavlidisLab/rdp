@@ -204,7 +204,7 @@ public class GOServiceImpl implements GOService {
     }
 
     private SearchResult<GeneOntologyTerm> queryTerm( String queryString, GeneOntologyTerm term ) {
-        if ( term.getId().equalsIgnoreCase( queryString ) || term.getId().equalsIgnoreCase( "GO:" + queryString ) ) {
+        if ( term.getGoId().equalsIgnoreCase( queryString ) || term.getGoId().equalsIgnoreCase( "GO:" + queryString ) ) {
             return new SearchResult<>( TermMatchType.EXACT_ID, term );
         }
 

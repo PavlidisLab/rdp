@@ -16,13 +16,12 @@ import java.util.stream.Collectors;
 @Getter
 @Setter
 @NoArgsConstructor
-@EqualsAndHashCode(of = {"id"})
-@ToString(of={"id", "name"})
+@EqualsAndHashCode(of = {"goId"})
+@ToString(of={"goId", "name"})
 public class GeneOntologyTerm {
 
-    @Id
     @Column(name = "go_id", length=10)
-    private String id;
+    private String goId;
 
     @Column(name = "name", columnDefinition = "TEXT")
     private String name;

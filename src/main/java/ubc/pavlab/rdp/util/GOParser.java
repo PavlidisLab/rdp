@@ -60,7 +60,7 @@ public class GOParser {
                     if ( currentNode != null ) {
                         // Just finished Term Stanza
                         // Create Node
-                        termMap.put( currentNode.getId(), currentNode );
+                        termMap.put( currentNode.getGoId(), currentNode );
                         currentNode = null;
                     } // Else Finished unimportant Stanza
 
@@ -74,7 +74,7 @@ public class GOParser {
                     switch (tagValuePair[0]) {
                         case "id":
                             if ( !termMap.containsKey( tagValuePair[1] ) ) {
-                                currentNode.setId( tagValuePair[1] );
+                                currentNode.setGoId( tagValuePair[1] );
                             } else {
                                 currentNode = termMap.get( tagValuePair[1] );
                             }
@@ -97,7 +97,7 @@ public class GOParser {
                             if ( !termMap.containsKey( values[0] ) ) {
                                 // parent exists in map
                                 parentNode = new GeneOntologyTerm();
-                                parentNode.setId( values[0] );
+                                parentNode.setGoId( values[0] );
                                 termMap.put( values[0], parentNode );
                             } else {
                                 parentNode = termMap.get( values[0] );
@@ -112,7 +112,7 @@ public class GOParser {
                                 if ( !termMap.containsKey( values[1] ) ) {
                                     // parent exists in map
                                     parentNode = new GeneOntologyTerm();
-                                    parentNode.setId( values[1] );
+                                    parentNode.setGoId( values[1] );
                                     termMap.put( values[1], parentNode );
                                 } else {
                                     parentNode = termMap.get( values[1] );

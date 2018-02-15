@@ -1,5 +1,6 @@
 package ubc.pavlab.rdp.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -13,13 +14,22 @@ import java.util.Set;
  * Created by mjacobson on 28/01/18.
  */
 @Entity
-@Table(name = "term")
+@Table(name = "term",
+        uniqueConstraints={@UniqueConstraint(columnNames={"user_id", "taxon_id", "go_id"})},
+        indexes = {@Index(columnList = "go_id", name = "go_id_hidx")}
+)
 @Cacheable
 @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @Getter
 @Setter
 @NoArgsConstructor
 public class UserTerm extends GeneOntologyTerm {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column
+    @JsonIgnore
+    private int id;
 
     @ManyToOne
     @JoinColumn(name = "taxon_id")
@@ -32,7 +42,7 @@ public class UserTerm extends GeneOntologyTerm {
     private int size;
 
     public void updateTerm(GeneOntologyTerm term) {
-        this.setId( term.getId() );
+        this.setGoId( term.getGoId() );
         this.setName( term.getName() );
         this.setDefinition( term.getDefinition() );
         this.setAspect( term.getAspect() );
