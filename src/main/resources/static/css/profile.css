@@ -7,3 +7,7 @@
     content: "Issue obtaining metadata.";
     color: red;
 }
+
+input.data-edit {
+    width: 90%;
+}
