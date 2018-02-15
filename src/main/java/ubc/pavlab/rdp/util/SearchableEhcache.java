@@ -22,11 +22,15 @@ public abstract class SearchableEhcache<K, T> {
     public abstract K getKey( T object );
 
     public T fetchByKey( K key ) {
-        return (T) getCache().get( key ).getObjectValue();
+        Element res = getCache().get( key );
+        if (res != null) {
+            return (T) res.getObjectValue();
+        }
+        return null;
     }
 
     public Collection<T> fetchByKey( Collection<K> keys ) {
-        return getCache().getAll( keys ).values().stream().map(e -> (T) e.getObjectValue()).collect( Collectors.toList() );
+        return getCache().getAll( keys ).values().stream().map(e -> e != null ? (T) e.getObjectValue() : null).collect( Collectors.toList() );
     }
 
     public Collection<T> fetchByCriteria( Criteria criteria ) {
