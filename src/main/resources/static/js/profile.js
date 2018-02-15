@@ -17,14 +17,19 @@ function collectProfile() {
 
     // Publication Information
     var publications = [];
-    $('#publication-table').find('tbody > tr').each(function(idx) {
-        var tds = $(this).find('td');
-        var a = $(tds[1]).find('a')[0];
-        publications.push({
-            pmid:  parseInt(tds[0].innerText, 10),
-            title: a ? a.innerText : ""
-        })
-    });
+    $('#publication-table').DataTable().rows().every( function ( rowIdx, tableLoop, rowLoop ) {
+        var node = $(this.node());
+        var pmidstr = node.find('td')[0].innerText;
+        var pmid =  parseInt(pmidstr, 10);
+
+        if (pmidstr == pmid ) {
+            var a = node.find('a')[0];
+            publications.push({
+                pmid:  pmid,
+                title: a ? a.innerText : ""
+            });
+        }
+    } );
     publications.sort(function(a, b){return b.pmid-a.pmid});
     profile.publications = publications;
 
@@ -32,6 +37,15 @@ function collectProfile() {
 }
 
 $(document).ready(function () {
+
+    $('#publication-table').DataTable({
+        "scrollY":        "200px",
+        "scrollCollapse": true,
+        "paging":         false,
+        "searching": false,
+        "info": false,
+        "order": [[ 0, "desc" ]]
+    });
 
     // Create initial profile
     var initialProfile = collectProfile();
@@ -126,15 +140,6 @@ $(document).ready(function () {
                 }
             }
         });
-    });
-
-    $('#publication-table').DataTable({
-        "scrollY":        "200px",
-        "scrollCollapse": true,
-        "paging":         false,
-        "searching": false,
-        "info": false,
-        "order": [[ 0, "desc" ]]
     });
 
 });
