@@ -173,18 +173,18 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Collection<User> findByGene( Gene gene ) {
-        return userRepository.findByGene( gene );
+    public Collection<User> findByGene( int geneId ) {
+        return userRepository.findByGene( geneId );
     }
 
     @Override
-    public Collection<User> findByGene( Gene gene, TierType tier ) {
-        return userRepository.findByGene( gene, tier );
+    public Collection<User> findByGene( int geneId, TierType tier ) {
+        return userRepository.findByGene( geneId, tier );
     }
 
     @Override
-    public Collection<User> findByGene( Gene gene, Set<TierType> tiers ) {
-        return userRepository.findByGene( gene, tiers );
+    public Collection<User> findByGene( int geneId, Set<TierType> tiers ) {
+        return userRepository.findByGene( geneId, tiers );
     }
 
     @Override

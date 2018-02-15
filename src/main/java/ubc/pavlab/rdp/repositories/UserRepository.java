@@ -36,16 +36,16 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     Integer countWithGenes();
 
     @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
-    @Query("select distinct u from User u inner join u.userGenes ug where ug = :gene")
-    Collection<User> findByGene( @Param("gene") Gene gene);
+    @Query("select distinct u from User u inner join u.userGenes ug where ug.geneId = :geneId")
+    Collection<User> findByGene( @Param("geneId") int geneId);
 
     @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
-    @Query("select distinct u from User u inner join u.userGenes ug where ug = :gene and ug.tier = :tier")
-    Collection<User> findByGene( @Param("gene") Gene gene, @Param("tier") TierType tier );
+    @Query("select distinct u from User u inner join u.userGenes ug where ug.geneId = :geneId and ug.tier = :tier")
+    Collection<User> findByGene( @Param("geneId") int geneId, @Param("tier") TierType tier);
 
     @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
-    @Query("select distinct u from User u inner join u.userGenes ug where ug = :gene and ug.tier in (:tiers)")
-    Collection<User> findByGene( @Param("gene") Gene gene, @Param("tiers") Set<TierType> tiers );
+    @Query("select distinct u from User u inner join u.userGenes ug where ug.geneId = :geneId and ug.tier in (:tiers)")
+    Collection<User> findByGene( @Param("geneId") int geneId, @Param("tiers") Set<TierType> tiers);
 
     @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
     @Query("select distinct u from User u inner join u.userGenes ug where ug.symbol like %:symbol% and ug.taxon = :taxon")

@@ -11,7 +11,6 @@ import org.springframework.web.servlet.ModelAndView;
 import ubc.pavlab.rdp.model.Gene;
 import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.model.User;
-import ubc.pavlab.rdp.model.UserGene;
 import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.services.GeneService;
 import ubc.pavlab.rdp.services.TaxonService;
@@ -146,11 +145,11 @@ public class ManagerController {
     private Collection<User> handleGeneSearch( Gene gene, TierType tier) {
         // TODO: Also search by exact symbol?
         if ( tier.equals( TierType.ANY ) ) {
-            return userService.findByGene( new UserGene( gene, null) );
+            return userService.findByGene( gene.getGeneId() );
         } else if ( tier.equals( TierType.MANUAL ) ) {
-            return userService.findByGene(  new UserGene( gene, null), TierType.MANUAL_TIERS );
+            return userService.findByGene(  gene.getGeneId(), TierType.MANUAL_TIERS );
         } else {
-            return userService.findByGene(  new UserGene( gene, null), tier );
+            return userService.findByGene(  gene.getGeneId(), tier );
         }
     }
 }

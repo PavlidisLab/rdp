@@ -49,13 +49,13 @@ public interface UserService {
     List<User> findAll();
 
     @Secured( {"ROLE_ADMIN", "ROLE_MANAGER"} )
-    Collection<User> findByGene( Gene gene );
+    Collection<User> findByGene( int geneId );
 
     @Secured( {"ROLE_ADMIN", "ROLE_MANAGER"} )
-    Collection<User> findByGene( Gene gene, TierType tier );
+    Collection<User> findByGene( int geneId, TierType tier );
 
     @Secured( {"ROLE_ADMIN", "ROLE_MANAGER"} )
-    Collection<User> findByGene( Gene gene, Set<TierType> tiers );
+    Collection<User> findByGene( int geneId, Set<TierType> tiers );
 
     @Secured( {"ROLE_ADMIN", "ROLE_MANAGER"} )
     Collection<User> findByLikeSymbol( String symbol, Taxon taxon );
