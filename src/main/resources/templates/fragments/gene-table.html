@@ -15,9 +15,9 @@
     <th:block th:each="gene : ${genes}">
         <tr>
             <td><span class="align-middle"><i th:if="${viewOnly == null}" class="delete-row align-middle"/><a
-                    th:href="'https://www.ncbi.nlm.nih.gov/gene/' + ${gene.id}"
+                    th:href="'https://www.ncbi.nlm.nih.gov/gene/' + ${gene.geneId}"
                     target="_blank" class="align-middle" th:text="${gene.symbol}"></a></span></td>
-            <td style="display: none;"><span th:text="${gene.id}" th:remove="tag"></span></td>
+            <td style="display: none;"><span th:text="${gene.geneId}" th:remove="tag"></span></td>
             <td><span class="align-middle" th:text="${gene.name}"></span></td>
             <td class="text-center"><input type="checkbox" class="align-middle" th:disabled="${viewOnly != null}"
                                            th:checked="${gene.tier == T(ubc.pavlab.rdp.model.enums.TierType).TIER1}"/>

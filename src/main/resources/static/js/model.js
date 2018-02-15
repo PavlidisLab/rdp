@@ -45,8 +45,8 @@ function addGeneRow(data) {
                 row.push('<span class="align-middle text-danger">Could Not Find Gene.</span>');
                 row.push('');
             } else {
-                row.push('<span class="align-middle"><i class="delete-row align-middle"></i><a href="https://www.ncbi.nlm.nih.gov/gene/' + gene.id + '" target="_blank" class="align-middle">' + gene.symbol + '</a></span>')
-                row.push(gene.id);
+                row.push('<span class="align-middle"><i class="delete-row align-middle"></i><a href="https://www.ncbi.nlm.nih.gov/gene/' + gene.geneId + '" target="_blank" class="align-middle">' + gene.symbol + '</a></span>')
+                row.push(gene.geneId);
                 row.push('<span class="align-middle">' + gene.name + '</span>');
                 row.push('<input class="align-middle" type="checkbox"/>');
             }

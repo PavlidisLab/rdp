@@ -38,7 +38,7 @@
            overflowToDisk="false"
            transactionalMode="off">
         <searchable>
-            <searchAttribute name="id"/>
+            <searchAttribute name="geneId"/>
             <searchAttribute name="taxonId" expression="value.getTaxon().getId()"/>
             <searchAttribute name="name"/>
             <searchAttribute name="symbol"/>

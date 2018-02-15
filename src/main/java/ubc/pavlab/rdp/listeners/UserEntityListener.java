@@ -52,7 +52,7 @@ public class UserEntityListener {
         }
 
         for ( UserGene userGene : user.getUserGenes() ) {
-            Gene cachedGene = geneService.load( userGene.getId() );
+            Gene cachedGene = geneService.load( userGene.getGeneId() );
 
             if ( cachedGene != null ) {
                 userGene.updateGene( cachedGene );

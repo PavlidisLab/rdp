@@ -17,13 +17,12 @@ import java.util.Set;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(of = {"id"})
-@ToString(of = {"id", "symbol", "taxon"})
+@EqualsAndHashCode(of = {"geneId"})
+@ToString(of = {"geneId", "symbol", "taxon"})
 public class Gene {
 
-    @Id
     @Column(name = "gene_id")
-    private int id;
+    private int geneId;
 
     @ManyToOne
     @JoinColumn(name = "taxon_id")

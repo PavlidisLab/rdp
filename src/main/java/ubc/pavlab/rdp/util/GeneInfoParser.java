@@ -79,7 +79,7 @@ public class GeneInfoParser {
             return br.lines().map( line -> line.split( "\t" ) ).filter( values -> Integer.valueOf( values[0] ).equals( taxon.getId() ) ).map( values -> {
                 Gene gene = new Gene();
                 gene.setTaxon( taxon );
-                gene.setId( Integer.valueOf( values[1] ) );
+                gene.setGeneId( Integer.valueOf( values[1] ) );
                 gene.setSymbol( values[2] );
                 gene.setAliases( values[4] );
                 gene.setName( values[8] );

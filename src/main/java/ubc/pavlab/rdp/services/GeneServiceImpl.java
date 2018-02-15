@@ -56,7 +56,7 @@ public class GeneServiceImpl extends SearchableEhcache<Integer, Gene> implements
     @PostConstruct
     private void initialize() {
         this.cache = this.cacheManager.getCacheManager().getEhcache( CACHE_NAME );
-        id = new Attribute<> ("id");
+        id = new Attribute<> ("geneId");
         name = new Attribute<> ("name");
         symbol = new Attribute<> ("symbol");
         taxonId = new Attribute<> ("taxonId");
@@ -94,7 +94,7 @@ public class GeneServiceImpl extends SearchableEhcache<Integer, Gene> implements
     }
 
     public Integer getKey( Gene gene ) {
-        return gene.getId();
+        return gene.getGeneId();
     }
 
     @Override
@@ -164,7 +164,7 @@ public class GeneServiceImpl extends SearchableEhcache<Integer, Gene> implements
         Collection<Gene> genes = load( genesTierMap.keySet() );
 
         for ( Gene gene : genes ) {
-            results.add( new UserGene( gene, genesTierMap.get( gene.getId() ) ) );
+            results.add( new UserGene( gene, genesTierMap.get( gene.getGeneId() ) ) );
         }
 
         return results;

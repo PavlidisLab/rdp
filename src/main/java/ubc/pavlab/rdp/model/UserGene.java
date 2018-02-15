@@ -1,5 +1,6 @@
 package ubc.pavlab.rdp.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -13,7 +14,11 @@ import javax.persistence.*;
  * Created by mjacobson on 17/01/18.
  */
 @Entity
-@Table(name = "gene")
+@Table(name = "gene",
+        uniqueConstraints={@UniqueConstraint(columnNames={"user_id", "gene_id"})},
+        indexes = {@Index(columnList = "gene_id, tier", name = "gene_id_tier_hidx"),
+                @Index(columnList = "symbol, taxon_id, tier", name = "symbol_taxon_id_tier_hidx")}
+        )
 @Cacheable
 @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @Getter
@@ -22,12 +27,18 @@ import javax.persistence.*;
 @ToString
 public class UserGene extends Gene {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column
+    @JsonIgnore
+    private int id;
+
     @Enumerated(EnumType.STRING)
     @Column
     private TierType tier;
 
     public void updateGene(Gene gene) {
-        this.setId( gene.getId() );
+        this.setGeneId( gene.getGeneId() );
         this.setSymbol( gene.getSymbol() );
         this.setTaxon( gene.getTaxon() );
         this.setName( gene.getName() );
