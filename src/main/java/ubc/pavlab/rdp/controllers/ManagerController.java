@@ -11,9 +11,11 @@ import org.springframework.web.servlet.ModelAndView;
 import ubc.pavlab.rdp.model.Gene;
 import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.model.User;
+import ubc.pavlab.rdp.model.UserGene;
 import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.services.GeneService;
 import ubc.pavlab.rdp.services.TaxonService;
+import ubc.pavlab.rdp.services.UserGeneService;
 import ubc.pavlab.rdp.services.UserService;
 
 import java.util.Collection;
@@ -34,6 +36,9 @@ public class ManagerController {
 
     @Autowired
     private GeneService geneService;
+
+    @Autowired
+    private UserGeneService userGeneService;
 
     @RequestMapping(value = "/manager/search", method = RequestMethod.GET, params = {"nameLike"})
     public ModelAndView searchUsersByName( @RequestParam String nameLike ) {
@@ -79,7 +84,7 @@ public class ManagerController {
 
         ModelAndView modelAndView = new ModelAndView();
         modelAndView.addObject( "user", user );
-        modelAndView.addObject( "users", handleGeneSymbolSearch( symbolLike, tier, taxon ) );
+        modelAndView.addObject( "usergenes", handleGeneSymbolSearch( symbolLike, tier, taxon ) );
 
         modelAndView.setViewName( "manager/search" );
         return modelAndView;
@@ -90,8 +95,8 @@ public class ManagerController {
         Taxon taxon = taxonService.findById( taxonId );
         ModelAndView modelAndView = new ModelAndView();
 
-        modelAndView.addObject( "users", handleGeneSymbolSearch( symbolLike, tier, taxon ) );
-        modelAndView.setViewName( "fragments/user-table :: user-table" );
+        modelAndView.addObject( "usergenes", handleGeneSymbolSearch( symbolLike, tier, taxon ) );
+        modelAndView.setViewName( "fragments/user-table :: usergenes-table" );
         return modelAndView;
     }
 
@@ -107,7 +112,7 @@ public class ManagerController {
 //            modelAndView.addObject( "users", new ArrayList<>() );
             modelAndView.addObject( "errorMessage", "Unknown Gene: " + symbol );
         } else {
-            modelAndView.addObject( "users", handleGeneSearch( gene, tier ) );
+            modelAndView.addObject( "usergenes", handleGeneSearch( gene, tier ) );
         }
 
         return modelAndView;
@@ -125,31 +130,31 @@ public class ManagerController {
             modelAndView.setViewName( "fragments/error :: message" );
             modelAndView.addObject( "errorMessage", "Unknown Gene: " + symbol );
         } else {
-            modelAndView.setViewName( "fragments/user-table :: user-table" );
-            modelAndView.addObject( "users", handleGeneSearch( gene, tier ) );
+            modelAndView.setViewName( "fragments/user-table :: usergenes-table" );
+            modelAndView.addObject( "usergenes", handleGeneSearch( gene, tier ) );
         }
 
         return modelAndView;
     }
 
-    private Collection<User> handleGeneSymbolSearch( String symbolLike, TierType tier, Taxon taxon) {
+    private Collection<UserGene> handleGeneSymbolSearch( String symbolLike, TierType tier, Taxon taxon) {
         if ( tier.equals( TierType.ANY ) ) {
-            return userService.findByLikeSymbol( symbolLike, taxon );
+            return userGeneService.findByLikeSymbol( symbolLike, taxon );
         } else if ( tier.equals( TierType.MANUAL ) ) {
-            return userService.findByLikeSymbol( symbolLike, taxon, TierType.MANUAL_TIERS );
+            return userGeneService.findByLikeSymbol( symbolLike, taxon, TierType.MANUAL_TIERS );
         } else {
-            return userService.findByLikeSymbol( symbolLike, taxon, tier );
+            return userGeneService.findByLikeSymbol( symbolLike, taxon, tier );
         }
     }
 
-    private Collection<User> handleGeneSearch( Gene gene, TierType tier) {
+    private Collection<UserGene> handleGeneSearch( Gene gene, TierType tier) {
         // TODO: Also search by exact symbol?
         if ( tier.equals( TierType.ANY ) ) {
-            return userService.findByGene( gene.getGeneId() );
+            return userGeneService.findByGene( gene.getGeneId() );
         } else if ( tier.equals( TierType.MANUAL ) ) {
-            return userService.findByGene(  gene.getGeneId(), TierType.MANUAL_TIERS );
+            return userGeneService.findByGene(  gene.getGeneId(), TierType.MANUAL_TIERS );
         } else {
-            return userService.findByGene(  gene.getGeneId(), tier );
+            return userGeneService.findByGene(  gene.getGeneId(), tier );
         }
     }
 }

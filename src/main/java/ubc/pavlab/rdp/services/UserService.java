@@ -50,24 +50,6 @@ public interface UserService {
     List<User> findAll();
 
     @Secured( {"ROLE_ADMIN", "ROLE_MANAGER"} )
-    Collection<User> findByGene( int geneId );
-
-    @Secured( {"ROLE_ADMIN", "ROLE_MANAGER"} )
-    Collection<User> findByGene( int geneId, TierType tier );
-
-    @Secured( {"ROLE_ADMIN", "ROLE_MANAGER"} )
-    Collection<User> findByGene( int geneId, Set<TierType> tiers );
-
-    @Secured( {"ROLE_ADMIN", "ROLE_MANAGER"} )
-    Collection<User> findByLikeSymbol( String symbol, Taxon taxon );
-
-    @Secured( {"ROLE_ADMIN", "ROLE_MANAGER"} )
-    Collection<User> findByLikeSymbol( String symbol, Taxon taxon, TierType tier );
-
-    @Secured( {"ROLE_ADMIN", "ROLE_MANAGER"} )
-    Collection<User> findByLikeSymbol( String symbol, Taxon taxon, Set<TierType> tiers );
-
-    @Secured( {"ROLE_ADMIN", "ROLE_MANAGER"} )
     Collection<User> findByLikeName( String nameLike );
 
     @Secured( {"ROLE_ADMIN", "ROLE_MANAGER"} )

@@ -20,7 +20,14 @@
 package ubc.pavlab.rdp.services;
 
 
+import org.springframework.security.access.annotation.Secured;
+import ubc.pavlab.rdp.model.Taxon;
+import ubc.pavlab.rdp.model.UserGene;
+import ubc.pavlab.rdp.model.enums.TierType;
+
+import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Created by mjacobson on 17/01/18.
@@ -31,4 +38,16 @@ public interface UserGeneService {
     Integer countAssociations();
     Map<String, Integer> researcherCountByTaxon();
 
+    @Secured( {"ROLE_ADMIN", "ROLE_MANAGER"} )
+    Collection<UserGene> findByGene( int geneId );
+    @Secured( {"ROLE_ADMIN", "ROLE_MANAGER"} )
+    Collection<UserGene> findByGene( int geneId, TierType tier );
+    @Secured( {"ROLE_ADMIN", "ROLE_MANAGER"} )
+    Collection<UserGene> findByGene( int geneId, Set<TierType> tiers );
+    @Secured( {"ROLE_ADMIN", "ROLE_MANAGER"} )
+    Collection<UserGene> findByLikeSymbol( String symbol, Taxon taxon );
+    @Secured( {"ROLE_ADMIN", "ROLE_MANAGER"} )
+    Collection<UserGene> findByLikeSymbol( String symbol, Taxon taxon, TierType tier );
+    @Secured( {"ROLE_ADMIN", "ROLE_MANAGER"} )
+    Collection<UserGene> findByLikeSymbol( String symbol, Taxon taxon, Set<TierType> tiers );
 }

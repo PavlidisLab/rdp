@@ -24,12 +24,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import ubc.pavlab.rdp.model.Taxon;
+import ubc.pavlab.rdp.model.UserGene;
 import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.repositories.TaxonRepository;
 import ubc.pavlab.rdp.repositories.UserGeneRepository;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Created by mjacobson on 17/01/18.
@@ -64,6 +67,36 @@ public class UserGeneServiceImpl implements UserGeneService {
         }
 
         return countByTaxon;
+    }
+
+    @Override
+    public Collection<UserGene> findByGene( int geneId ) {
+        return userGeneRepository.findByGeneId( geneId );
+    }
+
+    @Override
+    public Collection<UserGene> findByGene( int geneId, TierType tier ) {
+        return userGeneRepository.findByGeneIdAndTier( geneId, tier );
+    }
+
+    @Override
+    public Collection<UserGene> findByGene( int geneId, Set<TierType> tiers ) {
+        return userGeneRepository.findByGeneIdAndTierIn( geneId, tiers );
+    }
+
+    @Override
+    public Collection<UserGene> findByLikeSymbol( String symbol, Taxon taxon ) {
+        return userGeneRepository.findBySymbolContainingAndTaxon( symbol, taxon );
+    }
+
+    @Override
+    public Collection<UserGene> findByLikeSymbol( String symbol, Taxon taxon, TierType tier ) {
+        return userGeneRepository.findBySymbolContainingAndTaxonAndTier( symbol, taxon, tier );
+    }
+
+    @Override
+    public Collection<UserGene> findByLikeSymbol( String symbol, Taxon taxon, Set<TierType> tiers ) {
+        return userGeneRepository.findBySymbolContainingAndTaxonAndTierIn( symbol, taxon, tiers );
     }
 
 }

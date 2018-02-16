@@ -29,5 +29,35 @@
     </th:block>
     </tbody>
 </table>
+
+<table class="user-table table table-sm mb-0" th:fragment="usergenes-table (usergenes)">
+    <thead class="thead-light">
+    <tr>
+        <th scope="col">Email</th>
+        <th scope="col">Name</th>
+        <th scope="col">Last Name</th>
+        <th scope="col">Organization</th>
+        <th scope="col">Department</th>
+        <th scope="col">Website</th>
+        <th scope="col">Tier</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:if="${#lists.isEmpty(usergenes)}">
+        <td colspan="6">No Users Found</td>
+    </tr>
+    <th:block th:each="ug : ${usergenes}" th:if="${not #lists.isEmpty(usergenes)}">
+        <tr>
+            <td><a th:href="@{'/user/' + ${ug.user.id} + '/profile'}" th:text="${ug.user.email}" target="_blank"></a></td>
+            <td><span th:text="${ug.user.profile.name}" th:remove="tag"></span></td>
+            <td><span th:text="${ug.user.profile.lastName}" th:remove="tag"></span></td>
+            <td><span th:text="${ug.user.profile.organization}" th:remove="tag"></span></td>
+            <td><span th:text="${ug.user.profile.department}" th:remove="tag"></span></td>
+            <td><a th:href="${ug.user.profile.website}" th:text="${ug.user.profile.website}"></a></td>
+            <td><span th:text="${ug.tier}" th:remove="tag"></span></td>
+        </tr>
+    </th:block>
+    </tbody>
+</table>
 </body>
 </html>

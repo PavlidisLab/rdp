@@ -173,36 +173,6 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Collection<User> findByGene( int geneId ) {
-        return userRepository.findByGene( geneId );
-    }
-
-    @Override
-    public Collection<User> findByGene( int geneId, TierType tier ) {
-        return userRepository.findByGene( geneId, tier );
-    }
-
-    @Override
-    public Collection<User> findByGene( int geneId, Set<TierType> tiers ) {
-        return userRepository.findByGene( geneId, tiers );
-    }
-
-    @Override
-    public Collection<User> findByLikeSymbol( String symbol, Taxon taxon ) {
-        return userRepository.findByGeneSymbolLike( symbol, taxon );
-    }
-
-    @Override
-    public Collection<User> findByLikeSymbol( String symbol, Taxon taxon, TierType tier ) {
-        return userRepository.findByGeneSymbolLike( symbol, taxon, tier );
-    }
-
-    @Override
-    public Collection<User> findByLikeSymbol( String symbol, Taxon taxon, Set<TierType> tiers ) {
-        return userRepository.findByGeneSymbolLike( symbol, taxon, tiers );
-    }
-
-    @Override
     public Collection<User> findByLikeName( String nameLike ) {
         return userRepository.findByProfileNameContainingOrProfileLastNameContaining( nameLike, nameLike );
     }

@@ -35,28 +35,4 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     @Query("select count(distinct user_id) FROM UserGene")
     Integer countWithGenes();
 
-    @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
-    @Query("select distinct u from User u inner join u.userGenes ug where ug.geneId = :geneId")
-    Collection<User> findByGene( @Param("geneId") int geneId);
-
-    @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
-    @Query("select distinct u from User u inner join u.userGenes ug where ug.geneId = :geneId and ug.tier = :tier")
-    Collection<User> findByGene( @Param("geneId") int geneId, @Param("tier") TierType tier);
-
-    @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
-    @Query("select distinct u from User u inner join u.userGenes ug where ug.geneId = :geneId and ug.tier in (:tiers)")
-    Collection<User> findByGene( @Param("geneId") int geneId, @Param("tiers") Set<TierType> tiers);
-
-    @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
-    @Query("select distinct u from User u inner join u.userGenes ug where ug.symbol like %:symbol% and ug.taxon = :taxon")
-    Collection<User> findByGeneSymbolLike( @Param("symbol") String symbol, @Param("taxon") Taxon taxon );
-
-    @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
-    @Query("select distinct u from User u inner join u.userGenes ug where ug.symbol like %:symbol% and ug.taxon = :taxon and ug.tier = :tier")
-    Collection<User> findByGeneSymbolLike( @Param("symbol") String symbol, @Param("taxon") Taxon taxon, @Param("tier") TierType tier );
-
-    @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
-    @Query("select distinct u from User u inner join u.userGenes ug where ug.symbol like %:symbol% and ug.taxon = :taxon and ug.tier in (:tiers)")
-    Collection<User> findByGeneSymbolLike( @Param("symbol") String symbol, @Param("taxon") Taxon taxon, @Param("tiers") Set<TierType> tiers );
-
 }
