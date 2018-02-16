@@ -10,6 +10,7 @@ import ubc.pavlab.rdp.model.enums.TierType;
 import javax.validation.ValidationException;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -83,13 +84,7 @@ public interface UserService {
     Collection<UserTerm> recommendTerms( User user, Taxon taxon );
 
     @Transactional
-    void updateGenesInTaxon( User user, Taxon taxon, Collection<UserGene> genes );
-
-    @Transactional
-    void updateGOTermsInTaxon( User user, Taxon taxon, Collection<GeneOntologyTerm> goTerms);
-
-    @Transactional
-    void updateTermsAndGenesInTaxon( User user, Taxon taxon, Collection<UserGene> genes, Collection<GeneOntologyTerm> goTerms );
+    void updateTermsAndGenesInTaxon( User user, Taxon taxon, Map<Gene, TierType> genesToTierMap, Collection<GeneOntologyTerm> goTerms );
 
     @Transactional
     void updatePublications( User user, Set<Publication> publications );

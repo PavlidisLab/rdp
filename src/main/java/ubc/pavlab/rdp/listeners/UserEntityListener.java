@@ -51,7 +51,7 @@ public class UserEntityListener {
             return;
         }
 
-        for ( UserGene userGene : user.getUserGenes() ) {
+        for ( UserGene userGene : user.getUserGenes().values() ) {
             Gene cachedGene = geneService.load( userGene.getGeneId() );
 
             if ( cachedGene != null ) {

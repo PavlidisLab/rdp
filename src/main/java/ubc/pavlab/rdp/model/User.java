@@ -78,20 +78,21 @@ public class User {
 	private Set<UserTerm> userTerms = new HashSet<>();
 
     @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "user_id")
-	private Set<UserGene> userGenes = new HashSet<>();
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "user")
+    @MapKey(name = "geneId")
+//    @JoinColumn(name = "user_id")
+	private Map<Integer, UserGene> userGenes = new HashMap<>();
 
     @JsonIgnore
     @Transient
     public Set<Gene> getGenesByTaxon( Taxon taxon ) {
-        return this.getUserGenes().stream().filter( gene -> gene.getTaxon().equals( taxon ) ).collect( Collectors.toSet() );
+        return this.getUserGenes().values().stream().filter( gene -> gene.getTaxon().equals( taxon ) ).collect( Collectors.toSet() );
     }
 
     @JsonIgnore
     @Transient
     public Set<Gene> getGenesByTaxonAndTier( Taxon taxon, Set<TierType> tiers) {
-        return this.getUserGenes().stream()
+        return this.getUserGenes().values().stream()
                 .filter( gene -> gene.getTaxon().equals( taxon ) && tiers.contains( gene.getTier()) ).collect( Collectors.toSet() );
     }
 
@@ -104,6 +105,6 @@ public class User {
     @JsonIgnore
     @Transient
     public boolean hasTaxon( Taxon taxon ) {
-        return this.getUserGenes().stream().anyMatch( g -> g.getTaxon().equals( taxon ) );
+        return this.getUserGenes().values().stream().anyMatch( g -> g.getTaxon().equals( taxon ) );
     }
 }

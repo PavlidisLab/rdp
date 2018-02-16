@@ -7,7 +7,6 @@ import org.springframework.stereotype.Service;
 import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.RelationshipType;
 import ubc.pavlab.rdp.model.enums.TermMatchType;
-import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.util.GOParser;
 import ubc.pavlab.rdp.util.Gene2GoParser;
@@ -35,8 +34,6 @@ public class GOServiceImpl implements GOService {
     private Map<String, GeneOntologyTerm> termMap = new HashMap<>();
 
     private static Map<GeneOntologyTerm, Collection<GeneOntologyTerm>> descendantsCache = new HashMap<>();
-
-    private static int GO_SIZE_LIMIT = 100;
 
     @Autowired
     private ApplicationSettings applicationSettings;
@@ -104,32 +101,8 @@ public class GOServiceImpl implements GOService {
     }
 
     @Override
-    public Collection<UserTerm> convertTermTypes( Collection<GeneOntologyTerm> goTerms, Taxon taxon, Set<Gene> genes ) {
-        List<UserTerm> newTerms = new ArrayList<>();
-        for ( GeneOntologyTerm goTerm : goTerms ) {
-            UserTerm term = convertTermTypes( goTerm, taxon, genes );
-            if ( term != null ) {
-                newTerms.add( term );
-            }
-        }
-        return newTerms;
-    }
-
-    @Override
-    public UserTerm convertTermTypes( GeneOntologyTerm goTerm, Taxon taxon, Set<Gene> genes ) {
-        if ( goTerm != null ) {
-            UserTerm term = new UserTerm( goTerm, taxon, genes );
-            if ( term.getSize() < GO_SIZE_LIMIT ) {
-                return term;
-            }
-        }
-
-        return null;
-    }
-
-    @Override
     public List<GeneOntologyTerm> recommendTerms( Collection<Gene> genes ) {
-        return new ArrayList<>( calculateGoTermFrequency( genes, 2, 10, GO_SIZE_LIMIT ).keySet() );
+        return new ArrayList<>( calculateGoTermFrequency( genes, 2, 10, applicationSettings.getGoTermSizeLimit() ).keySet() );
     }
 
     private LinkedHashMap<GeneOntologyTerm, Integer> calculateGoTermFrequency( Collection<Gene> genes, int minimumFrequency,
@@ -237,7 +210,7 @@ public class GOServiceImpl implements GOService {
 
     @Override
     public List<SearchResult<UserTerm>> search( String queryString, Taxon taxon, int max ) {
-        Stream<SearchResult<UserTerm>> stream = termMap.values().stream().filter( t -> t.getSize( taxon ) <= GO_SIZE_LIMIT )
+        Stream<SearchResult<UserTerm>> stream = termMap.values().stream().filter( t -> t.getSize( taxon ) <= applicationSettings.getGoTermSizeLimit() )
                 .map( t -> queryTerm( queryString, t ) )
                 .filter( Objects::nonNull )
                 .map(sr -> new SearchResult<>( sr.getMatchType(), new UserTerm( sr.getMatch(), taxon, null )))
@@ -316,14 +289,8 @@ public class GOServiceImpl implements GOService {
     }
 
     @Override
-    public Collection<UserGene> getRelatedGenes( Collection<? extends GeneOntologyTerm> goTerms, Taxon taxon ) {
-        Collection<UserGene> results = new HashSet<>();
-
-        for ( GeneOntologyTerm term : goTerms ) {
-            results.addAll( getGenes( term, taxon ).stream().map( g -> new UserGene( g, TierType.TIER3 ) ).collect( Collectors.toSet() ) );
-        }
-
-        return results;
+    public Collection<Gene> getRelatedGenes( Collection<? extends GeneOntologyTerm> goTerms, Taxon taxon ) {
+        return goTerms.stream().flatMap( t -> getGenes( t, taxon ).stream() ).collect( Collectors.toSet() );
     }
 
     @Override

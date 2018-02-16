@@ -22,7 +22,6 @@ package ubc.pavlab.rdp.services;
 
 import ubc.pavlab.rdp.model.Gene;
 import ubc.pavlab.rdp.model.Taxon;
-import ubc.pavlab.rdp.model.UserGene;
 import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.util.SearchResult;
 
@@ -46,7 +45,7 @@ public interface GeneService {
 
     int size();
 
-    Collection<UserGene> deserializeGenes( Map<Integer, TierType> genes);
+    Map<Gene, TierType> deserializeGenes( Map<Integer, TierType> genesTierMap );
 
     void addAll( Collection<Gene> genes );
 }

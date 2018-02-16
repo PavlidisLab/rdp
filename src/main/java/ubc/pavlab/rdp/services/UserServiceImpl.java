@@ -226,90 +226,109 @@ public class UserServiceImpl implements UserService {
     public Collection<UserTerm> convertTerms( User user, Taxon taxon, Collection<GeneOntologyTerm> terms ) {
         Set<Gene> genes = user.getGenesByTaxonAndTier( taxon, TierType.MANUAL_TIERS );
 
-        return goService.convertTermTypes( terms, taxon, genes );
+        return convertTermTypes( terms, taxon, genes );
     }
 
     @Override
     public UserTerm convertTerms( User user, Taxon taxon, GeneOntologyTerm term ) {
         Set<Gene> genes = user.getGenesByTaxonAndTier( taxon, TierType.MANUAL_TIERS );
 
-        return goService.convertTermTypes( term, taxon, genes );
+        return convertTermTypes( term, taxon, genes );
+    }
+
+    private Collection<UserTerm> convertTermTypes( Collection<GeneOntologyTerm> goTerms, Taxon taxon, Set<Gene> genes ) {
+        List<UserTerm> newTerms = new ArrayList<>();
+        for ( GeneOntologyTerm goTerm : goTerms ) {
+            UserTerm term = convertTermTypes( goTerm, taxon, genes );
+            if ( term != null ) {
+                newTerms.add( term );
+            }
+        }
+        return newTerms;
+    }
+
+    private UserTerm convertTermTypes( GeneOntologyTerm goTerm, Taxon taxon, Set<Gene> genes ) {
+        if ( goTerm != null ) {
+            UserTerm term = new UserTerm( goTerm, taxon, genes );
+            if ( term.getSize() <= applicationSettings.getGoTermSizeLimit() ) {
+                return term;
+            }
+        }
+
+        return null;
     }
 
     @Override
     public Collection<UserTerm> recommendTerms( User user, Taxon taxon ) {
         Set<Gene> genes = user.getGenesByTaxonAndTier( taxon, TierType.MANUAL_TIERS );
 
-        return goService.convertTermTypes( goService.recommendTerms( genes ), taxon, genes );
+        return convertTermTypes( goService.recommendTerms( genes ), taxon, genes );
     }
 
-    @Transactional
-    private void addGenesToUser( User user, Collection<UserGene> genes ) {
-//        user.getUserGenes().removeAll( genes );
-        user.getUserGenes().addAll( genes );
-
-        update( user );
-    }
-
-    @Transactional
-    private void removeGenesFromUser( User user, Collection<Gene> genes ) {
-
-        int initialSize = user.getUserGenes().size();
-
-        user.getUserGenes().removeIf( genes::contains );
-
-        int removed = initialSize - user.getUserGenes().size();
-
-        if ( removed > 0 ) {
-            log.info( "Removed " + removed + " genes from User " + user.getEmail() );
+    private boolean updateOrInsert( User user, Gene gene, TierType tier ) {
+        if ( user == null || gene == null || tier == null ) {
+            return false;
         }
 
-        update( user );
+        UserGene existing = user.getUserGenes().get( gene.getGeneId() );
+
+        boolean updated = false;
+        if ( existing != null ) {
+            // Only set tier because the rest of it's information is updated PreLoad
+            updated = !existing.getTier().equals( tier );
+            existing.setTier( tier );
+        } else {
+            user.getUserGenes().put( gene.getGeneId(), new UserGene( gene, user, tier ) );
+        }
+
+        return updated;
     }
 
     @Transactional
     @Override
-    public void updateGenesInTaxon( User user, Taxon taxon, Collection<UserGene> genes ) {
-
-        Collection<UserGene> newGenes = new HashSet<>( genes );
-
-        newGenes.removeIf( g -> !g.getTaxon().equals( taxon ) );
-        newGenes.addAll( calculatedGenesInTaxon( user, taxon ) );
-
-        removeGenesFromUserByTaxon( user, taxon );
-        addGenesToUser( user, newGenes );
-    }
-
-    @Transactional
-    @Override
-    public void updateGOTermsInTaxon( User user, Taxon taxon, Collection<GeneOntologyTerm> goTerms ) {
-        removeTermsFromUserByTaxon( user, taxon );
-
-        user.getUserTerms().addAll( convertTerms( user, taxon, goTerms ) );
-
-        removeGenesFromUserByTiersAndTaxon( user, taxon, Collections.singleton( TierType.TIER3 ) );
-        addGenesToUser( user, calculatedGenesInTaxon( user, taxon ) );
-    }
-
-    @Transactional
-    @Override
-    public void updateTermsAndGenesInTaxon( User user, Taxon taxon, Collection<UserGene> genes, Collection<GeneOntologyTerm> goTerms ) {
-        Collection<UserGene> newGenes = genes.stream().filter( g -> g.getTaxon().equals( taxon ) ).collect( Collectors.toSet());
-
-        removeTermsFromUserByTaxon( user, taxon );
-        user.getUserTerms().addAll( convertTerms( user, taxon, goTerms ) );
-
-        newGenes.addAll( calculatedGenesInTaxon( user, taxon ) );
-
+    public void updateTermsAndGenesInTaxon( User user, Taxon taxon, Map<Gene, TierType> genesToTierMap, Collection<GeneOntologyTerm> goTerms ) {
+        // Remove genes from other taxons (they shouldn't be here but just incase)
+        genesToTierMap.keySet().removeIf( e -> !e.getTaxon().equals( taxon ) );
         int initialSize = user.getUserGenes().size();
-        removeGenesFromUserByTaxon( user, taxon );
-        addGenesToUser( user, newGenes );
+
+        log.info( "updatedGenes " + genesToTierMap.size() );
+        for ( Map.Entry<Gene, TierType> entry : genesToTierMap.entrySet() ) {
+            log.info( entry.getKey() + " : " + entry.getValue() );
+        }
+
+        // Update terms
+
+        // Inform Hibernate of similar entities
+        Map<String, Integer> goIdToHibernateId = user.getUserTerms().stream()
+                .filter( t -> t.getTaxon().equals( taxon ) )
+                .collect( Collectors.toMap( GeneOntologyTerm::getGoId, UserTerm::getId ) );
+        Collection<UserTerm> updatedTerms = convertTerms( user, taxon, goTerms );
+        updatedTerms.forEach( t -> {
+            t.setId( goIdToHibernateId.get( t.getGoId() ) );
+        } );
+
+        removeTermsFromUserByTaxon( user, taxon );
+        user.getUserTerms().addAll( updatedTerms );
+
+        for ( Gene gene : calculatedGenesInTaxon( user, taxon ) ) {
+            genesToTierMap.putIfAbsent( gene, TierType.TIER3 );
+        }
+
+        int updated = 0;
+        for ( Map.Entry<Gene, TierType> entry : genesToTierMap.entrySet() ) {
+            updated += updateOrInsert( user, entry.getKey(), entry.getValue() ) ? 1 : 0;
+        }
 
         int added = user.getUserGenes().size() - initialSize;
 
-        if ( added > 0 ) {
-            log.info( "Added " + added + " genes to User " + user.getEmail() );
-        }
+        // Remove genes that no longer belong in this taxon
+        user.getUserGenes().values().removeIf( g -> g.getTaxon().equals( taxon ) && !genesToTierMap.containsKey( g ) );
+
+        int removed = user.getUserGenes().size() - (initialSize + added);
+
+        log.info( "Added: " + added + ", removed: " + removed + ", updated: " + updated + " genes, User " + user.getEmail() );
+
+        update( user );
     }
 
     @Transactional
@@ -374,16 +393,16 @@ public class UserServiceImpl implements UserService {
         return user;
     }
 
-    private Collection<UserGene> calculatedGenesInTaxon( User user, Taxon taxon ) {
+    private Collection<Gene> calculatedGenesInTaxon( User user, Taxon taxon ) {
         return goService.getRelatedGenes( user.getUserTerms(), taxon );
     }
 
     private boolean removeGenesFromUserByTaxon( User user, Taxon taxon ) {
-        return user.getUserGenes().removeIf( ga -> ga.getTaxon().equals( taxon ) );
+        return user.getUserGenes().values().removeIf( ga -> ga.getTaxon().equals( taxon ) );
     }
 
     private boolean removeGenesFromUserByTiersAndTaxon( User user, Taxon taxon, Collection<TierType> tiers ) {
-        return user.getUserGenes().removeIf( ga -> tiers.contains( ga.getTier() ) && ga.getTaxon().equals( taxon ) );
+        return user.getUserGenes().values().removeIf( ga -> tiers.contains( ga.getTier() ) && ga.getTaxon().equals( taxon ) );
     }
 
     private boolean removeTermsFromUserByTaxon( User user, Taxon taxon ) {

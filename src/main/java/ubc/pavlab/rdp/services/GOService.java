@@ -1,12 +1,14 @@
 package ubc.pavlab.rdp.services;
 
-import ubc.pavlab.rdp.model.*;
+import ubc.pavlab.rdp.model.Gene;
+import ubc.pavlab.rdp.model.GeneOntologyTerm;
+import ubc.pavlab.rdp.model.Taxon;
+import ubc.pavlab.rdp.model.UserTerm;
 import ubc.pavlab.rdp.util.SearchResult;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Created by mjacobson on 17/01/18.
@@ -44,13 +46,9 @@ public interface GOService {
 
     Collection<Gene> getGenes( GeneOntologyTerm t );
 
-    Collection<UserGene> getRelatedGenes( Collection<? extends GeneOntologyTerm> goTerms, Taxon taxon );
+    Collection<Gene> getRelatedGenes( Collection<? extends GeneOntologyTerm> goTerms, Taxon taxon );
 
     GeneOntologyTerm getTerm( String goId );
-
-    Collection<UserTerm> convertTermTypes( Collection<GeneOntologyTerm> goTerms, Taxon taxon, Set<Gene> genes );
-
-    UserTerm convertTermTypes( GeneOntologyTerm goTerm, Taxon taxon, Set<Gene> genes );
 
     List<GeneOntologyTerm> recommendTerms( Collection<Gene> genes );
 }

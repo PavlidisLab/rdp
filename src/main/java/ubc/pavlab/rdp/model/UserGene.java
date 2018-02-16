@@ -37,6 +37,11 @@ public class UserGene extends Gene {
     @Column(length = 5)
     private TierType tier;
 
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    @JsonIgnore
+    private User user;
+
     public void updateGene( Gene gene ) {
         this.setGeneId( gene.getGeneId() );
         this.setSymbol( gene.getSymbol() );
@@ -47,9 +52,10 @@ public class UserGene extends Gene {
         this.setTerms( gene.getTerms() );
     }
 
-    public UserGene( Gene gene, TierType tier ) {
+    public UserGene( Gene gene, User user, TierType tier ) {
         super();
         this.tier = tier;
+        this.user = user;
         this.updateGene( gene );
     }
 

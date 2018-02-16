@@ -83,12 +83,12 @@ public class UserController {
 
     @RequestMapping(value = "/user/taxon", method = RequestMethod.GET)
     public Set<Taxon> getTaxons() {
-        return userService.findCurrentUser().getUserGenes().stream().map( UserGene::getTaxon ).collect( Collectors.toSet() );
+        return userService.findCurrentUser().getUserGenes().values().stream().map( UserGene::getTaxon ).collect( Collectors.toSet() );
     }
 
     @RequestMapping(value = "/user/gene", method = RequestMethod.GET)
-    public Set<UserGene> getGenes() {
-        return userService.findCurrentUser().getUserGenes();
+    public Collection<UserGene> getGenes() {
+        return userService.findCurrentUser().getUserGenes().values();
     }
 
     @RequestMapping(value = "/user/term", method = RequestMethod.GET)
@@ -103,7 +103,7 @@ public class UserController {
 
         user.getTaxonDescriptions().put( taxon, model.getDescription() );
 
-        Collection<UserGene> genes = geneService.deserializeGenes( model.getGeneTierMap() );
+        Map<Gene, TierType> genes = geneService.deserializeGenes( model.getGeneTierMap() );
         Set<GeneOntologyTerm> terms = model.getGoIds().stream().map( s -> goService.getTerm( s ) ).collect( Collectors.toSet() );
 
         userService.updateTermsAndGenesInTaxon( user, taxon, genes, terms );
@@ -114,7 +114,7 @@ public class UserController {
     @RequestMapping(value = "/user/taxon/{taxonId}/gene", method = RequestMethod.GET)
     public Set<UserGene> getGenesForTaxon( @PathVariable Integer taxonId ) {
         Taxon taxon = taxonService.findById( taxonId );
-        return userService.findCurrentUser().getUserGenes().stream()
+        return userService.findCurrentUser().getUserGenes().values().stream()
                 .filter( gene -> gene.getTaxon().equals( taxon ) ).collect(Collectors.toSet());
     }
 
@@ -128,21 +128,8 @@ public class UserController {
     public Map<String, UserTerm> getTermsForTaxon( @PathVariable Integer taxonId, @RequestBody List<String> goIds ) {
         User user = userService.findCurrentUser();
         Taxon taxon = taxonService.findById( taxonId );
-        Set<Gene> genes = user.getGenesByTaxonAndTier( taxon, TierType.MANUAL_TIERS );
 
-        return goIds.stream().collect( HashMap::new, ( m, s)->m.put(s, goService.convertTermTypes( goService.getTerm( s ), taxon, genes )), HashMap::putAll);
-    }
-
-    @RequestMapping(value = "/user/taxon/{taxonId}/term", method = RequestMethod.POST)
-    public String saveTermsForTaxon( @PathVariable Integer taxonId, @RequestBody List<String> goIds ) {
-        User user = userService.findCurrentUser();
-        Taxon taxon = taxonService.findById( taxonId );
-
-        Set<GeneOntologyTerm> terms = goIds.stream().map( s -> goService.getTerm( s ) ).collect( Collectors.toSet() );
-
-        userService.updateGOTermsInTaxon( user, taxon, terms );
-
-        return "Done.";
+        return goIds.stream().collect( HashMap::new, ( m, s)->m.put(s, userService.convertTerms( user, taxon, goService.getTerm( s ) )), HashMap::putAll);
     }
 
     @RequestMapping(value = "/user/taxon/{taxonId}/term/recommend", method = RequestMethod.GET)
