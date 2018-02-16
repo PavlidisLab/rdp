@@ -17,14 +17,14 @@
     <tr th:if="${#lists.isEmpty(users)}">
         <td colspan="6">No Users Found</td>
     </tr>
-    <th:block th:each="ut : ${users}" th:if="${not #lists.isEmpty(users)}">
+    <th:block th:each="u : ${users}" th:if="${not #lists.isEmpty(users)}">
         <tr>
-            <td><a th:href="@{'/user/' + ${ut.id} + '/profile'}" th:text="${ut.email}" target="_blank"></a></td>
-            <td><span th:text="${ut.profile.name}" th:remove="tag"></span></td>
-            <td><span th:text="${ut.profile.lastName}" th:remove="tag"></span></td>
-            <td><span th:text="${ut.profile.organization}" th:remove="tag"></span></td>
-            <td><span th:text="${ut.profile.department}" th:remove="tag"></span></td>
-            <td><span th:text="${ut.profile.website}" th:remove="tag"></span></td>
+            <td><a th:href="@{'/user/' + ${u.id} + '/profile'}" th:text="${u.email}" target="_blank"></a></td>
+            <td><span th:text="${u.profile.name}" th:remove="tag"></span></td>
+            <td><span th:text="${u.profile.lastName}" th:remove="tag"></span></td>
+            <td><span th:text="${u.profile.organization}" th:remove="tag"></span></td>
+            <td><span th:text="${u.profile.department}" th:remove="tag"></span></td>
+            <td><a th:href="${u.profile.website}" th:text="${u.profile.website}"></a></td>
         </tr>
     </th:block>
     </tbody>
