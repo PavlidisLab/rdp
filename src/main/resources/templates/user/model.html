@@ -113,7 +113,7 @@
                                 <div th:replace="fragments/gene-table :: gene-table(genes=${user.getGenesByTaxonAndTier(taxon, T(ubc.pavlab.rdp.model.enums.TierType).MANUAL_TIERS)})"
                                      th:remove="tag">...
                                 </div>
-                                <div class="input-group mt-2">
+                                <div class="input-group mt-2" th:if="${viewOnly == null}">
                                     <div class="input-group-prepend" style="background: lightgrey;">
                                         <button class="btn btn-outline-secondary reset-table text-danger d-none" type="button">-</button>
                                         <button class="btn btn-outline-secondary add-row text-success" type="button"><i class="mx-2 d-none spinner"></i>+</button>
@@ -135,7 +135,7 @@
                                      th:remove="tag">...
                                 </div>
 
-                                <div class="input-group mt-2">
+                                <div class="input-group mt-2" th:if="${viewOnly == null}">
                                     <div class="input-group-prepend" style="background: lightgrey;">
                                         <button class="btn btn-outline-secondary reset-table text-danger d-none" type="button">-</button>
                                         <button class="btn btn-outline-secondary add-row text-success" type="button"><i class="mx-2 d-none spinner"></i>+</button>
