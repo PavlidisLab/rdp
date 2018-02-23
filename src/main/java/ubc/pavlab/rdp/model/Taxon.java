@@ -24,7 +24,7 @@ public class Taxon {
 
     @Id
     @Column(name = "taxon_id")
-    private int id;
+    private Integer id;
 
     private String scientificName;
 

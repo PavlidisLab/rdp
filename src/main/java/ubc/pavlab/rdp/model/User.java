@@ -35,7 +35,7 @@ public class User {
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	@Column(name = "user_id")
     @JsonIgnore
-	private int id;
+	private Integer id;
 
 	@Column(name = "email")
 	@Email(message = "*Please provide a valid Email")
