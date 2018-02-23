@@ -1,6 +1,6 @@
 target/
-application.properties
-application-prod.properties
+/application.properties
+/application-prod.properties
 !.mvn/wrapper/maven-wrapper.jar
 
 ### STS ###
