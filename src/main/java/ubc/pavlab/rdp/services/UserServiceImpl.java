@@ -261,11 +261,6 @@ public class UserServiceImpl implements UserService {
         genesToTierMap.keySet().removeIf( e -> !e.getTaxon().equals( taxon ) );
         int initialSize = user.getUserGenes().size();
 
-        log.info( "updatedGenes " + genesToTierMap.size() );
-        for ( Map.Entry<Gene, TierType> entry : genesToTierMap.entrySet() ) {
-            log.info( entry.getKey() + " : " + entry.getValue() );
-        }
-
         // Update terms
 
         // Inform Hibernate of similar entities
@@ -273,9 +268,7 @@ public class UserServiceImpl implements UserService {
                 .filter( t -> t.getTaxon().equals( taxon ) )
                 .collect( Collectors.toMap( GeneOntologyTerm::getGoId, UserTerm::getId ) );
         Collection<UserTerm> updatedTerms = convertTerms( user, taxon, goTerms );
-        updatedTerms.forEach( t -> {
-            t.setId( goIdToHibernateId.get( t.getGoId() ) );
-        } );
+        updatedTerms.forEach( t -> t.setId( goIdToHibernateId.get( t.getGoId() ) ) );
 
         removeTermsFromUserByTaxon( user, taxon );
         user.getUserTerms().addAll( updatedTerms );
@@ -303,25 +296,25 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     @Override
-    public void updatePublications( User user, Set<Publication> publications ) {
+    public User updatePublications( User user, Set<Publication> publications ) {
         user.getProfile().getPublications().retainAll( publications );
         user.getProfile().getPublications().addAll( publications );
-        update( user );
+        return update( user );
     }
 
     @Transactional
     @Override
-    public void createPasswordResetTokenForUser( User user, String token ) {
+    public PasswordResetToken createPasswordResetTokenForUser( User user, String token ) {
         PasswordResetToken userToken = new PasswordResetToken();
         userToken.setUser( user );
         userToken.updateToken( token );
-        passwordResetTokenRepository.save( userToken );
+        return passwordResetTokenRepository.save( userToken );
     }
 
     @Override
     public void verifyPasswordResetToken( int userId, String token ) throws TokenException {
         PasswordResetToken passToken = passwordResetTokenRepository.findByToken( token );
-        if ( (passToken == null) || (passToken.getUser().getId() != userId) ) {
+        if ( (passToken == null) || (!passToken.getUser().getId().equals( userId )) ) {
             throw new TokenException( "Invalid Token" );
         }
 
@@ -335,11 +328,11 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     @Override
-    public void createVerificationTokenForUser( User user, String token ) {
+    public VerificationToken createVerificationTokenForUser( User user, String token ) {
         VerificationToken userToken = new VerificationToken();
         userToken.setUser( user );
         userToken.updateToken( token );
-        tokenRepository.save( userToken );
+        return tokenRepository.save( userToken );
     }
 
     @Transactional
