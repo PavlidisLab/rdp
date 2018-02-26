@@ -2,7 +2,6 @@ package ubc.pavlab.rdp.repositories;
 
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.stereotype.Repository;
 import ubc.pavlab.rdp.model.User;
@@ -23,9 +22,5 @@ public interface UserRepository extends JpaRepository<User, Integer> {
 
     @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
     Collection<User> findByProfileDescriptionContainingIgnoreCaseOrTaxonDescriptionsContainingIgnoreCase( String descriptionLike, String taxonDescriptionLike );
-
-    @Cacheable(cacheNames="stats", key = "#root.methodName")
-    @Query("select count(distinct user_id) FROM UserGene")
-    Integer countWithGenes();
 
 }

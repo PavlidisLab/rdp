@@ -38,6 +38,8 @@ public interface UserGeneService {
     Integer countAssociations();
     Map<String, Integer> researcherCountByTaxon();
 
+    Integer countUsersWithGenes();
+
     @Secured( {"ROLE_ADMIN", "ROLE_MANAGER"} )
     Collection<UserGene> findByGene( int geneId );
     @Secured( {"ROLE_ADMIN", "ROLE_MANAGER"} )

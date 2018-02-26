@@ -39,8 +39,8 @@ public class StatsController {
         stats.put( "success", true );
         stats.put( "message", "Statistics successfully loaded" );
 
-        stats.put( "researchers_registered", (int) userService.countResearchers() );
-        stats.put( "researchers_registered_with_genes", userService.countResearchersWithGenes() );
+        stats.put( "researchers_registered", userService.countResearchers() );
+        stats.put( "researchers_registered_with_genes", userGeneService.countUsersWithGenes() );
         stats.put( "genes_added", userGeneService.countAssociations() );
         stats.put( "genes_added_unique", userGeneService.countUniqueAssociations() );
         stats.put( "researcher_counts_by_taxon", userGeneService.researcherCountByTaxon() );

@@ -188,11 +188,6 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Integer countResearchersWithGenes() {
-        return userRepository.countWithGenes();
-    }
-
-    @Override
     public Collection<UserTerm> convertTerms( User user, Taxon taxon, Collection<GeneOntologyTerm> terms ) {
         Set<Gene> genes = user.getGenesByTaxonAndTier( taxon, TierType.MANUAL_TIERS );
 

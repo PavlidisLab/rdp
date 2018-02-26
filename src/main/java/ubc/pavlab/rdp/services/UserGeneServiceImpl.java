@@ -69,6 +69,12 @@ public class UserGeneServiceImpl implements UserGeneService {
         return countByTaxon;
     }
 
+    @Cacheable(cacheNames="stats", key = "#root.methodName")
+    @Override
+    public Integer countUsersWithGenes() {
+        return userGeneRepository.countDistinctUser();
+    }
+
     @Override
     public Collection<UserGene> findByGene( int geneId ) {
         return userGeneRepository.findByGeneId( geneId );
