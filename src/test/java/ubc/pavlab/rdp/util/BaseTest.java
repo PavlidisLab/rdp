@@ -14,6 +14,15 @@ import static org.mockito.Mockito.when;
  */
 public class BaseTest {
 
+    protected static final String EMAIL = "bruce@wayne.com";
+    protected static final String ENCODED_PASSWORD = "$2a$10$ny8JDrJGVcf27xs7RqsHh.ytcFQYhXqr4vI9Kq57HE1tQgePfQXyC";
+    protected static final String PASSWORD = "imbatman";
+    protected static final String NAME = "Bruce";
+    protected static final String LAST_NAME = "Wayne";
+
+
+    protected static final String TAXON_COMMON_NAME = "Honey Bee";
+    protected static final String TAXON_SCIENTIFIC_NAME = "Apis mellifera";
 
     protected void becomeUser( User user ) {
         UserPrinciple up = new UserPrinciple( user );
@@ -27,12 +36,12 @@ public class BaseTest {
 
     protected User createUnpersistedUser() {
         User user = new User();
-        user.setEmail( "bruce@wayne.com" );
-        user.setPassword( "$2a$10$ny8JDrJGVcf27xs7RqsHh.ytcFQYhXqr4vI9Kq57HE1tQgePfQXyC" ); // imbatman
+        user.setEmail( EMAIL );
+        user.setPassword( ENCODED_PASSWORD ); // imbatman
 
         Profile profile = new Profile();
-        profile.setName( "Bruce" );
-        profile.setLastName( "Wayne" );
+        profile.setName( NAME );
+        profile.setLastName( LAST_NAME );
         user.setProfile( profile );
 
         return user;
@@ -45,18 +54,12 @@ public class BaseTest {
         return user;
     }
 
-    protected Taxon createUnpersistedTaxon() {
+    protected Taxon createTaxon( int id ) {
         Taxon taxon = new Taxon();
         taxon.setActive( true );
-        taxon.setCommonName( "Honey Bee" );
-        taxon.setScientificName( "Apis mellifera" );
+        taxon.setCommonName( TAXON_COMMON_NAME );
+        taxon.setScientificName( TAXON_SCIENTIFIC_NAME );
         taxon.setGeneUrl( "" );
-
-        return taxon;
-    }
-
-    protected Taxon createTaxon( int id ) {
-        Taxon taxon = createUnpersistedTaxon();
         taxon.setId( id );
 
         return taxon;

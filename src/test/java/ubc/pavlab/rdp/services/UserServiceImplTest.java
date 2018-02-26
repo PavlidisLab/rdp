@@ -343,7 +343,7 @@ public class UserServiceImplTest extends BaseTest {
     @Test
     public void findUserByEmail_whenValidEmail_thenUserShouldBeFound() {
         User user = createUser( 1 );
-        Mockito.when( userRepository.findByEmail( user.getEmail() ) ).thenReturn( user );
+        Mockito.when( userRepository.findByEmailIgnoreCase( user.getEmail() ) ).thenReturn( user );
 
         User found = userService.findUserByEmail( user.getEmail() );
         assertThat( found.getEmail() )
