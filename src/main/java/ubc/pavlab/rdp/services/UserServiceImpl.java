@@ -159,7 +159,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User findUserByEmail( String email ) {
-        return userRepository.findByEmail( email );
+        return userRepository.findByEmailIgnoreCase( email );
     }
 
     @Override
@@ -174,12 +174,12 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Collection<User> findByLikeName( String nameLike ) {
-        return userRepository.findByProfileNameContainingOrProfileLastNameContaining( nameLike, nameLike );
+        return userRepository.findByProfileNameContainingIgnoreCaseOrProfileLastNameContainingIgnoreCase( nameLike, nameLike );
     }
 
     @Override
     public Collection<User> findByDescription( String descriptionLike ) {
-        return userRepository.findByDescription( descriptionLike );
+        return userRepository.findByProfileDescriptionContainingIgnoreCaseOrTaxonDescriptionsContainingIgnoreCase( descriptionLike, descriptionLike );
     }
 
     @Override

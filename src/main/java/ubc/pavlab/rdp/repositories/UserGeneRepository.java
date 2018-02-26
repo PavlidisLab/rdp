@@ -24,10 +24,10 @@ public interface UserGeneRepository extends JpaRepository<UserGene, Integer> {
     @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
     Collection<UserGene> findByGeneIdAndTierIn(int geneId, Set<TierType> tiers);
     @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
-    Collection<UserGene> findBySymbolContainingAndTaxon(String symbolContaining, Taxon taxon);
+    Collection<UserGene> findBySymbolContainingIgnoreCaseAndTaxon(String symbolContaining, Taxon taxon);
     @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
-    Collection<UserGene> findBySymbolContainingAndTaxonAndTier(String symbolContaining, Taxon taxon, TierType tier);
+    Collection<UserGene> findBySymbolContainingIgnoreCaseAndTaxonAndTier(String symbolContaining, Taxon taxon, TierType tier);
     @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
-    Collection<UserGene> findBySymbolContainingAndTaxonAndTierIn(String symbolContaining, Taxon taxon, Set<TierType> tiers);
+    Collection<UserGene> findBySymbolContainingIgnoreCaseAndTaxonAndTierIn(String symbolContaining, Taxon taxon, Set<TierType> tiers);
 
 }
