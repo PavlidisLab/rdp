@@ -21,10 +21,7 @@ import javax.annotation.PostConstruct;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collection;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -162,12 +159,17 @@ public class GeneServiceImpl extends SearchableEhcache<Integer, Gene> implements
 
     @Override
     public Map<Gene, TierType> deserializeGenes( Map<Integer, TierType> genesTierMap ) {
-        return load( genesTierMap.keySet() ).stream().collect( Collectors.toMap( g -> g, g -> genesTierMap.get( g.getGeneId() ) ) );
+        return load( genesTierMap.keySet() ).stream().filter( Objects::nonNull ).collect( Collectors.toMap( g -> g, g -> genesTierMap.get( g.getGeneId() ) ) );
     }
 
     @Override
     public void addAll( Collection<Gene> genes ) {
         putAll( genes );
+    }
+
+    @Override
+    public void clear() {
+        removeAll();
     }
 
 }
