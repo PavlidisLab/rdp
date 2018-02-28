@@ -48,15 +48,6 @@ public class UserController {
 
     }
 
-    @RequestMapping(value = "/user/{id}/delete", method = RequestMethod.GET)
-    public String deleteUser( @PathVariable int id ) {
-        User user = userService.findUserById( id );
-        if ( user != null ) {
-            userService.delete( user );
-        }
-        return "Deleted.";
-    }
-
     @RequestMapping(value = "/user/profile", method = RequestMethod.POST)
     public String saveProfile( @RequestBody @Valid Profile profile ) {
         User user = userService.findCurrentUser();

@@ -6,6 +6,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.TierType;
 
+import java.util.Arrays;
+import java.util.stream.Collectors;
+
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -34,6 +37,13 @@ public class BaseTest {
         when( SecurityContextHolder.getContext().getAuthentication().getName() ).thenReturn( user.getEmail() );
     }
 
+    protected Role createRole( int id, String role ) {
+        Role r = new Role();
+        r.setId( id );
+        r.setRole( role );
+        return r;
+    }
+
     protected User createUnpersistedUser() {
         User user = new User();
         user.setEmail( EMAIL );
@@ -50,6 +60,15 @@ public class BaseTest {
     protected User createUser( int id ) {
         User user = createUnpersistedUser();
         user.setId( id );
+
+        return user;
+    }
+
+    protected User createUserWithRole( int id, String... role ) {
+        User user = createUnpersistedUser();
+        user.setId( id );
+
+        user.setRoles( Arrays.stream(role).map( r -> createRole( r.length(), r ) ).collect( Collectors.toSet() ) );
 
         return user;
     }
