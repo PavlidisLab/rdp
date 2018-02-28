@@ -14,25 +14,18 @@ import java.util.Map;
  * Created by mjacobson on 17/01/18.
  */
 public interface GOService {
+
     void setTerms( Map<String, GeneOntologyTerm> termMap );
 
     Collection<GeneOntologyTerm> getAllTerms();
 
     int size();
 
-
-    /**
-     * @param entry
-     * @return children, NOT including part-of relations.
-     */
     Collection<GeneOntologyTerm> getDescendants( GeneOntologyTerm entry );
 
-    /**
-     * @param entry
-     * @param includePartOf
-     * @return
-     */
     Collection<GeneOntologyTerm> getDescendants( GeneOntologyTerm entry, boolean includePartOf );
+
+    Map<GeneOntologyTerm, Long> termFrequencyMap( Collection<Gene> genes );
 
     List<SearchResult<UserTerm>> search( String queryString, Taxon taxon, int max );
 
@@ -46,9 +39,7 @@ public interface GOService {
 
     Collection<Gene> getGenes( GeneOntologyTerm t );
 
-    Collection<Gene> getRelatedGenes( Collection<? extends GeneOntologyTerm> goTerms, Taxon taxon );
+    Collection<Gene> getGenes( Collection<? extends GeneOntologyTerm> goTerms, Taxon taxon );
 
     GeneOntologyTerm getTerm( String goId );
-
-    List<GeneOntologyTerm> recommendTerms( Collection<Gene> genes );
 }

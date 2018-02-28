@@ -20,7 +20,11 @@ import ubc.pavlab.rdp.settings.ApplicationSettings;
 
 import javax.validation.ValidationException;
 import java.util.*;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static java.util.Comparator.comparing;
 
 /**
  * Created by mjacobson on 16/01/18.
@@ -225,9 +229,40 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Collection<UserTerm> recommendTerms( User user, Taxon taxon ) {
+        return recommendTerms( user, taxon, 10, applicationSettings.getGoTermSizeLimit(), 2 );
+    }
+
+    @Override
+    public Collection<UserTerm> recommendTerms( User user, Taxon taxon, int minSize, int maxSize, int minFrequency ) {
+        if (user == null || taxon == null) return null;
+
         Set<Gene> genes = user.getGenesByTaxonAndTier( taxon, TierType.MANUAL_TIERS );
 
-        return convertTermTypes( goService.recommendTerms( genes ), taxon, genes );
+        Map<GeneOntologyTerm, Long> fmap = goService.termFrequencyMap( genes );
+
+        Stream<Map.Entry<GeneOntologyTerm, Long>> resultStream = fmap.entrySet().stream();
+
+        // Filter out terms without enough overlap or that are too broad/specific
+        if ( minFrequency > 0 ) {
+            resultStream = resultStream.filter( e -> e.getValue() >= minFrequency );
+        }
+
+        if ( minSize > 0 ) {
+            resultStream = resultStream.filter( e -> e.getKey().getSize( taxon ) >= minSize );
+        }
+
+        if ( maxSize > 0 ) {
+            resultStream = resultStream.filter( e -> e.getKey().getSize( taxon ) <= maxSize );
+        }
+        // Then keep only those terms with the highest frequency
+        Set<UserTerm> topResults = resultStream.map( e -> {
+            UserTerm ut = new UserTerm( e.getKey(), taxon, null );
+            ut.setFrequency( e.getValue().intValue() );
+            return ut;
+        } ).collect( maxSet( comparing( UserTerm::getFrequency ) ) );
+
+        // Keep only leafiest of remaining terms (keep if it has no descendants in results)
+        return topResults.stream().filter( ut -> Collections.disjoint( topResults, goService.getDescendants( ut ) ) ).collect( Collectors.toSet() );
     }
 
     private boolean updateOrInsert( User user, Gene gene, TierType tier ) {
@@ -352,7 +387,7 @@ public class UserServiceImpl implements UserService {
     }
 
     private Collection<Gene> calculatedGenesInTaxon( User user, Taxon taxon ) {
-        return goService.getRelatedGenes( user.getUserTerms(), taxon );
+        return goService.getGenes( user.getUserTerms(), taxon );
     }
 
     private boolean removeGenesFromUserByTaxon( User user, Taxon taxon ) {
@@ -365,6 +400,68 @@ public class UserServiceImpl implements UserService {
 
     private boolean removeTermsFromUserByTaxon( User user, Taxon taxon ) {
         return user.getUserTerms().removeIf( ut -> ut.getTaxon().equals( taxon ) );
+    }
+
+    static <T> Collector<T,?,List<T>> maxList( Comparator<? super T> comp) {
+        return Collector.of(
+                ArrayList::new,
+                (list, t) -> {
+                    int c;
+                    if (list.isEmpty() || (c = comp.compare(t, list.get(0))) == 0) {
+                        list.add(t);
+                    } else if (c > 0) {
+                        list.clear();
+                        list.add(t);
+                    }
+                },
+                (list1, list2) -> {
+                    if (list1.isEmpty()) {
+                        return list2;
+                    }
+                    if (list2.isEmpty()) {
+                        return list1;
+                    }
+                    int r = comp.compare(list1.get(0), list2.get(0));
+                    if (r < 0) {
+                        return list2;
+                    } else if (r > 0) {
+                        return list1;
+                    } else {
+                        list1.addAll(list2);
+                        return list1;
+                    }
+                });
+    }
+
+    static <T> Collector<T,?,Set<T>> maxSet( Comparator<? super T> comp) {
+        return Collector.of(
+                HashSet::new,
+                (set, t) -> {
+                    int c;
+                    if (set.isEmpty() || (c = comp.compare(t, set.iterator().next())) == 0) {
+                        set.add(t);
+                    } else if (c > 0) {
+                        set.clear();
+                        set.add(t);
+                    }
+                },
+                (set1, set2) -> {
+                    if (set1.isEmpty()) {
+                        return set2;
+                    }
+                    if (set2.isEmpty()) {
+                        return set1;
+                    }
+                    int r = comp.compare(set1.iterator().next(), set2.iterator().next());
+                    if (r < 0) {
+                        return set2;
+                    } else if (r > 0) {
+                        return set1;
+                    } else {
+                        set1.addAll(set2);
+                        return set1;
+                    }
+                });
     }
 
 }

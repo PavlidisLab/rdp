@@ -63,6 +63,8 @@ public interface UserService {
 
     Collection<UserTerm> recommendTerms( User user, Taxon taxon );
 
+    Collection<UserTerm> recommendTerms( User user, Taxon taxon, int minSize, int maxSize, int minFrequency );
+
     @Transactional
     void updateTermsAndGenesInTaxon( User user, Taxon taxon, Map<Gene, TierType> genesToTierMap, Collection<GeneOntologyTerm> goTerms );
 

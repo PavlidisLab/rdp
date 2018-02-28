@@ -137,6 +137,32 @@ public class UserServiceImplTest extends BaseTest {
         Mockito.when( tokenRepository.findByToken( "tokenBad" ) ).thenReturn( null );
     }
 
+    private void setUpRecomendTermsMocks() {
+        Map<GeneOntologyTerm, Long> expected = new HashMap<>();
+        Taxon taxon = createTaxon( 1 );
+
+        expected.put( createTerm( toGOId( 0 ) ), 2L );
+        expected.put( createTerm( toGOId( 1 ) ), 3L );
+        expected.put( createTerm( toGOId( 2 ) ), 1L );
+        expected.put( createTerm( toGOId( 3 ) ), 1L );
+        expected.put( createTerm( toGOId( 4 ) ), 2L );
+        expected.put( createTerm( toGOId( 5 ) ), 1L );
+        expected.put( createTerm( toGOId( 6 ) ), 2L );
+        expected.put( createTerm( toGOId( 7 ) ), 3L );
+        expected.put( createTerm( toGOId( 8 ) ), 3L );
+
+        // These will make sure we remove redundant terms
+        GeneOntologyTerm t98 = createTerm( toGOId( 98 ) );
+        GeneOntologyTerm t99 = createTerm( toGOId( 99 ) );
+        expected.put( t98, 1L );
+        expected.put( t99, 1L );
+        Mockito.when( goService.getDescendants( t98 ) ).thenReturn( Collections.singleton( t99 ) );
+
+        expected.forEach( ( key, value ) -> key.getSizesByTaxon().put( taxon, value + 10 ) );
+
+        Mockito.when( goService.termFrequencyMap( Mockito.anyCollectionOf(Gene.class) ) ).thenReturn( expected );
+    }
+
 
     @Test
     public void create_whenValidUser_thenPasswordEncodedAndRoleAssigned() {
@@ -484,6 +510,7 @@ public class UserServiceImplTest extends BaseTest {
     @Test
     public void updatePublications_whenPublications_thenReplaceAll() {
         User user = createUser( 1 );
+        becomeUser( user );
         Publication oldPub = new Publication();
         oldPub.setId( -1 );
         user.getProfile().getPublications().add( oldPub );
@@ -499,6 +526,32 @@ public class UserServiceImplTest extends BaseTest {
         User updatedUser = userService.updatePublications( user, newPublications );
 
         assertThat( updatedUser.getProfile().getPublications() ).containsExactlyElementsOf( newPublications );
+
+    }
+
+    @Test
+    public void updatePublications_whenWrongUser_thenFail() {
+        User user = createUser( 1 );
+
+        User otherUser = createUser( 2 );
+        otherUser.setEmail( "wrongemail@email.ca" );
+        becomeUser( otherUser );
+
+        Publication oldPub = new Publication();
+        oldPub.setId( -1 );
+        user.getProfile().getPublications().add( oldPub );
+
+        Set<Publication> newPublications = IntStream.range( 1, 10 ).boxed().map(
+                nbr -> {
+                    Publication pub = new Publication();
+                    pub.setId( nbr );
+                    return pub;
+                }
+        ).collect( Collectors.toSet() );
+
+        User updatedUser = userService.updatePublications( user, newPublications );
+
+        assertThat( updatedUser ).isNull();
 
     }
 
@@ -648,7 +701,7 @@ public class UserServiceImplTest extends BaseTest {
         Collection<Gene> calculatedGenes = IntStream.range( 101, 110 ).boxed().map(
                 nbr -> createGene( nbr, taxon )
         ).collect( Collectors.toList() );
-        Mockito.when( goService.getRelatedGenes( Mockito.any(), Mockito.any() ) ).thenReturn( calculatedGenes );
+        Mockito.when( goService.getGenes( Mockito.anyCollectionOf(GeneOntologyTerm.class), Mockito.any() ) ).thenReturn( calculatedGenes );
 
         Collection<GeneOntologyTerm> terms = IntStream.range( 1, 10 ).boxed().map(
                 nbr -> createTermWithGene( toGOId( nbr ), createGene( nbr, taxon ) )
@@ -690,7 +743,7 @@ public class UserServiceImplTest extends BaseTest {
         Collection<Gene> calculatedGenes = IntStream.range( 101, 110 ).boxed().map(
                 nbr -> createGene( nbr, taxon )
         ).collect( Collectors.toList() );
-        Mockito.when( goService.getRelatedGenes( Mockito.any(), Mockito.any() ) ).thenReturn( calculatedGenes );
+        Mockito.when( goService.getGenes( Mockito.anyCollectionOf(GeneOntologyTerm.class), Mockito.any() ) ).thenReturn( calculatedGenes );
 
         Collection<GeneOntologyTerm> terms = IntStream.range( 1, 10 ).boxed().map(
                 nbr -> createTermWithGene( toGOId( nbr ), createGene( nbr, taxon ) )
@@ -721,7 +774,7 @@ public class UserServiceImplTest extends BaseTest {
         Collection<Gene> calculatedGenes = IntStream.range( 5, 14 ).boxed().map(
                 nbr -> createGene( nbr, taxon )
         ).collect( Collectors.toList() );
-        Mockito.when( goService.getRelatedGenes( Mockito.any(), Mockito.any() ) ).thenReturn( calculatedGenes );
+        Mockito.when( goService.getGenes( Mockito.anyCollectionOf(GeneOntologyTerm.class), Mockito.any() ) ).thenReturn( calculatedGenes );
 
         Collection<GeneOntologyTerm> terms = IntStream.range( 1, 10 ).boxed().map(
                 nbr -> createTermWithGene( toGOId( nbr ), createGene( nbr, taxon ) )
@@ -761,7 +814,7 @@ public class UserServiceImplTest extends BaseTest {
 
         // Mock goService.getRelatedGenes
         Collection<Gene> calculatedGenes = Collections.singleton( createGene( 105, taxon ) );
-        Mockito.when( goService.getRelatedGenes( Mockito.any(), Mockito.any() ) ).thenReturn( calculatedGenes );
+        Mockito.when( goService.getGenes( Mockito.anyCollectionOf(GeneOntologyTerm.class), Mockito.any() ) ).thenReturn( calculatedGenes );
 
         Collection<GeneOntologyTerm> terms = Collections.singleton( createTermWithGene( toGOId( 5 ), createGene( 5, taxon ) ) );
 
@@ -795,6 +848,111 @@ public class UserServiceImplTest extends BaseTest {
                 .containsExactlyElementsOf( expectedGenes.keySet().stream().map( Gene::getGeneId )
                         .collect( Collectors.toSet() ) );
         expectedGenes.forEach( ( g, tier ) -> assertThat( user.getUserGenes().get( g.getGeneId() ).getTier() ).isEqualTo( tier ) );
+    }
+
+
+    @Test
+    public void recommendTerms_thenReturnBestResultsOnly() {
+        setUpRecomendTermsMocks();
+
+        User user = createUser( 1 );
+        Taxon taxon = createTaxon( 1 );
+        Collection<UserTerm> found = userService.recommendTerms( user, taxon );
+        assertThat( found.stream().map( GeneOntologyTerm::getGoId ).collect( Collectors.toList() ) ).containsExactlyInAnyOrder( toGOId( 1 ), toGOId( 7 ), toGOId( 8 ) );
+    }
+
+    @Test
+    public void recommendTerms_whenMinSizeLimited_thenReturnBestLimitedResultsOnly() {
+        setUpRecomendTermsMocks();
+
+        User user = createUser( 1 );
+        Taxon taxon = createTaxon( 1 );
+        Collection<UserTerm> found = userService.recommendTerms( user, taxon, 12, -1, -1 );
+        assertThat( found.stream().map( GeneOntologyTerm::getGoId ).collect( Collectors.toList() ) ).containsExactlyInAnyOrder( toGOId( 1 ), toGOId( 7 ), toGOId( 8 ) );
+
+        found = userService.recommendTerms( user, taxon, 20, -1, -1 );
+        assertThat( found ).isEmpty();
+    }
+
+    @Test
+    public void recommendTerms_whenMaxSizeLimited_thenReturnBestLimitedResultsOnly() {
+        setUpRecomendTermsMocks();
+
+        User user = createUser( 1 );
+        Taxon taxon = createTaxon( 1 );
+        Collection<UserTerm> found = userService.recommendTerms( user, taxon, -1, 12, -1 );
+        assertThat( found.stream().map( GeneOntologyTerm::getGoId ).collect( Collectors.toList() ) ).containsExactlyInAnyOrder( toGOId( 0 ), toGOId( 4 ), toGOId( 6 ) );
+
+        found = userService.recommendTerms( user, taxon, -1, 1, -1 );
+        assertThat( found ).isEmpty();
+    }
+
+    @Test
+    public void recommendTerms_whenFrequencyLimited_thenReturnBestLimitedResultsOnly() {
+        setUpRecomendTermsMocks();
+
+        User user = createUser( 1 );
+        Taxon taxon = createTaxon( 1 );
+        Collection<UserTerm> found = userService.recommendTerms( user, taxon, -1, -1, 3);
+        assertThat( found.stream().map( GeneOntologyTerm::getGoId ).collect( Collectors.toList() ) ).containsExactlyInAnyOrder( toGOId( 1 ), toGOId( 7 ), toGOId( 8 ) );
+
+        found = userService.recommendTerms( user, taxon, -1, -1, 4 );
+        assertThat( found ).isEmpty();
+    }
+
+    @Test
+    public void recommendTerms_whenFrequencyLimitedAndSizeLimited_thenReturnBestLimitedResultsOnly() {
+        setUpRecomendTermsMocks();
+
+        User user = createUser( 1 );
+        Taxon taxon = createTaxon( 1 );
+        Collection<UserTerm> found = userService.recommendTerms( user, taxon, 11, 12, 2);
+        assertThat( found.stream().map( GeneOntologyTerm::getGoId ).collect( Collectors.toList() ) ).containsExactlyInAnyOrder( toGOId( 0 ), toGOId( 4 ), toGOId( 6 ) );
+
+        found = userService.recommendTerms( user, taxon, 1, 11, 2 );
+        assertThat( found ).isEmpty();
+    }
+
+    @Test
+    public void recommendTerms_whenRedundantTerms_thenReturnOnlyMostSpecific() {
+        setUpRecomendTermsMocks();
+
+        User user = createUser( 1 );
+        Taxon taxon = createTaxon( 1 );
+        Collection<UserTerm> found = userService.recommendTerms( user, taxon, 11, 11, 1);
+        assertThat( found.stream().map( GeneOntologyTerm::getGoId ).collect( Collectors.toList() ) ).containsExactlyInAnyOrder( toGOId( 2 ), toGOId( 3 ), toGOId( 5 ), toGOId( 99 ) );
+
+        found = userService.recommendTerms( user, taxon, 1, 11, 2 );
+        assertThat( found ).isEmpty();
+    }
+
+    @Test
+    public void recommendTerms_whenUserHasNoGenes_thenReturnEmpty() {
+        Map<GeneOntologyTerm, Long> empyFMap = new HashMap<>();
+        Mockito.when( goService.termFrequencyMap( Mockito.anyCollectionOf(Gene.class) ) ).thenReturn( empyFMap );
+
+        User user = createUser( 1 );
+        Taxon taxon = createTaxon( 1 );
+        Collection<UserTerm> found = userService.recommendTerms( user, taxon, -1, -1, -1);
+        assertThat( found ).isEmpty();
+    }
+
+    @Test
+    public void recommendTerms_whenUserNull_thenReturnNull() {
+        setUpRecomendTermsMocks();
+
+        Taxon taxon = createTaxon( 1 );
+        Collection<UserTerm> found = userService.recommendTerms( null, taxon, -1, -1, -1);
+        assertThat( found ).isNull();
+    }
+
+    @Test
+    public void recommendTerms_whenTaxonNull_thenReturnNull() {
+        setUpRecomendTermsMocks();
+
+        User user = createUser( 1 );
+        Collection<UserTerm> found = userService.recommendTerms( user, null, -1, -1, -1);
+        assertThat( found ).isNull();
     }
 
 

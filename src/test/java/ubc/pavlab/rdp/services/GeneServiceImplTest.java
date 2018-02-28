@@ -41,6 +41,15 @@ public class GeneServiceImplTest extends BaseTest {
     static class GeneServiceImplTestContextConfiguration {
 
         @Bean
+        public ApplicationSettings applicationSettings() {
+            ApplicationSettings a = new ApplicationSettings();
+            ApplicationSettings.CacheSettings cacheSettings = new ApplicationSettings.CacheSettings();
+            cacheSettings.setEnabled( false );
+            a.setCache( cacheSettings );
+            return a;
+        }
+
+        @Bean
         public GeneService geneService() {
             return new GeneServiceImpl();
         }
@@ -58,7 +67,7 @@ public class GeneServiceImplTest extends BaseTest {
     @Autowired
     private EhCacheCacheManager cacheManager;
 
-    @MockBean
+    @Autowired
     private ApplicationSettings applicationSettings;
 
     @MockBean
