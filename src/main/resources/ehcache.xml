@@ -6,7 +6,7 @@
          dynamicConfig="true">
 
     <defaultCache
-           maxElementsInMemory="20"
+           maxEntriesLocalHeap="20"
            eternal="false"
            overflowToDisk="false"
            timeToLiveSeconds="600"
@@ -16,7 +16,7 @@
     </defaultCache>
 
     <cache name="org.hibernate.cache.internal.StandardQueryCache"
-           maxElementsInMemory="100"
+           maxEntriesLocalHeap="100"
            eternal="false"
            overflowToDisk="false"
            timeToLiveSeconds="300"
@@ -26,14 +26,14 @@
     </cache>
 
     <cache name="org.hibernate.cache.spi.UpdateTimestampsCache"
-           maxElementsInMemory="5000"
+           maxEntriesLocalHeap="5000"
            eternal="true">
     </cache>
 
 
 
     <cache name="gene"
-           maxElementsInMemory="0"
+           maxEntriesLocalHeap="0"
            eternal="true"
            overflowToDisk="false"
            transactionalMode="off">
@@ -48,7 +48,7 @@
     </cache>
 
 <!--    <cache name="ubc.pavlab.rdp.model.User"
-           maxElementsInMemory="20"
+           maxEntriesLocalHeap="20"
            eternal="false"
            overflowToDisk="false"
            timeToLiveSeconds="600"
@@ -58,7 +58,7 @@
     </cache>-->
 
     <cache name="ubc.pavlab.rdp.model.Taxon"
-           maxElementsInMemory="20"
+           maxEntriesLocalHeap="20"
            eternal="false"
            overflowToDisk="false"
            timeToLiveSeconds="3600"
@@ -68,12 +68,12 @@
     </cache>
 
     <cache name="ubc.pavlab.rdp.model.Role"
-           maxElementsInMemory="0"
+           maxEntriesLocalHeap="200"
            eternal="true">
     </cache>
 
     <cache name="ubc.pavlab.rdp.model.UserGene"
-           maxElementsInMemory="200"
+           maxEntriesLocalHeap="200"
            eternal="false"
            overflowToDisk="false"
            timeToLiveSeconds="600"
@@ -83,7 +83,7 @@
     </cache>
 
     <cache name="ubc.pavlab.rdp.model.UserTerm"
-           maxElementsInMemory="100"
+           maxEntriesLocalHeap="100"
            eternal="false"
            overflowToDisk="false"
            timeToLiveSeconds="600"
@@ -95,7 +95,7 @@
     <!-- Special Query Caches -->
 
     <cache name="taxon-list"
-           maxElementsInMemory="1"
+           maxEntriesLocalHeap="10"
            eternal="false"
            overflowToDisk="false"
            timeToLiveSeconds="3600"
@@ -105,7 +105,7 @@
     </cache>
 
     <cache name="stats"
-           maxElementsInMemory="0"
+           maxEntriesLocalHeap="100"
            eternal="false"
            overflowToDisk="false"
            timeToLiveSeconds="600"

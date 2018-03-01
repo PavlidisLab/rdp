@@ -22,7 +22,7 @@ public class Publication {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "publication_id")
-    private int id;
+    private Integer id;
 
     @Column(name = "pmid")
     private int pmid;

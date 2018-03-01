@@ -18,6 +18,7 @@ public class ApplicationSettings {
     @Setter
     public static class CacheSettings {
 
+        private boolean enabled = true;
         private boolean loadFromDisk;
         private String geneFilesLocation;
         private String termFile;

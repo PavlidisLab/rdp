@@ -55,4 +55,8 @@ public abstract class SearchableEhcache<K, T> {
     public void putAll( Collection<T> objects ) {
         getCache().putAll( objects.stream().map( o -> new Element( getKey(o), o ) ).collect( Collectors.toList()) );
     }
+
+    public void removeAll() {
+        getCache().removeAll();
+    }
 }

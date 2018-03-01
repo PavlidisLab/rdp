@@ -19,7 +19,7 @@ public class UserPrinciple implements UserDetails {
         this.authorities = user.getRoles().stream().map( r -> new SimpleGrantedAuthority( r.getRole() ) ).collect( Collectors.toSet() );
     }
 
-    public int getId() {
+    public Integer getId() {
         return user.getId();
     }
 

@@ -69,6 +69,12 @@ public class UserGeneServiceImpl implements UserGeneService {
         return countByTaxon;
     }
 
+    @Cacheable(cacheNames="stats", key = "#root.methodName")
+    @Override
+    public Integer countUsersWithGenes() {
+        return userGeneRepository.countDistinctUser();
+    }
+
     @Override
     public Collection<UserGene> findByGene( int geneId ) {
         return userGeneRepository.findByGeneId( geneId );
@@ -86,17 +92,17 @@ public class UserGeneServiceImpl implements UserGeneService {
 
     @Override
     public Collection<UserGene> findByLikeSymbol( String symbol, Taxon taxon ) {
-        return userGeneRepository.findBySymbolContainingAndTaxon( symbol, taxon );
+        return userGeneRepository.findBySymbolContainingIgnoreCaseAndTaxon( symbol, taxon );
     }
 
     @Override
     public Collection<UserGene> findByLikeSymbol( String symbol, Taxon taxon, TierType tier ) {
-        return userGeneRepository.findBySymbolContainingAndTaxonAndTier( symbol, taxon, tier );
+        return userGeneRepository.findBySymbolContainingIgnoreCaseAndTaxonAndTier( symbol, taxon, tier );
     }
 
     @Override
     public Collection<UserGene> findByLikeSymbol( String symbol, Taxon taxon, Set<TierType> tiers ) {
-        return userGeneRepository.findBySymbolContainingAndTaxonAndTierIn( symbol, taxon, tiers );
+        return userGeneRepository.findBySymbolContainingIgnoreCaseAndTaxonAndTierIn( symbol, taxon, tiers );
     }
 
 }

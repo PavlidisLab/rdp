@@ -80,18 +80,6 @@ public class MainController {
         return modelAndView;
     }
 
-    @RequestMapping(value = "/user/taxon/{taxonId}/term/recommend/view", method = RequestMethod.GET)
-    public ModelAndView getRecommendedTermsForTaxon( @PathVariable Integer taxonId ) {
-        ModelAndView modelAndView = new ModelAndView();
-        User user = userService.findCurrentUser();
-        Taxon taxon = taxonService.findById( taxonId );
-
-        modelAndView.addObject( "userTerms",  userService.recommendTerms(user, taxon) );
-        modelAndView.addObject( "viewOnly", true);
-        modelAndView.setViewName( "fragments/term-table :: term-table" );
-        return modelAndView;
-    }
-
     @RequestMapping(value = "/user/taxon/{taxonId}/term/{goId}/gene/view", method = RequestMethod.GET)
     public ModelAndView getTermsGenesForTaxon( @PathVariable Integer taxonId, @PathVariable String goId ) {
         ModelAndView modelAndView = new ModelAndView();

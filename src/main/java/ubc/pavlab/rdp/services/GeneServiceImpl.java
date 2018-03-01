@@ -21,10 +21,7 @@ import javax.annotation.PostConstruct;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collection;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -68,26 +65,28 @@ public class GeneServiceImpl extends SearchableEhcache<Integer, Gene> implements
 
         ApplicationSettings.CacheSettings cacheSettings = applicationSettings.getCache();
 
-        log.info( "Loading genes" );
-        for ( Taxon taxon : taxonService.findByActiveTrue() ) {
+        if ( cacheSettings.isEnabled() ) {
+            log.info( "Loading genes" );
+            for ( Taxon taxon : taxonService.findByActiveTrue() ) {
 
-            try {
-                Set<Gene> data;
-                if ( cacheSettings.isLoadFromDisk() ) {
-                    Path path = Paths.get( cacheSettings.getGeneFilesLocation(), taxon.getId() + ".gene_info.gz" );
-                    log.info( "Loading genes for " + taxon.toString() + " from disk: " + path.toAbsolutePath() );
-                    data = GeneInfoParser.parse( taxon, path.toFile() );
-                } else {
-                    log.info( "Loading genes for " + taxon.toString() + " from URL: " + taxon.getGeneUrl() );
-                    data = GeneInfoParser.parse( taxon, new URL( taxon.getGeneUrl() ) );
+                try {
+                    Set<Gene> data;
+                    if ( cacheSettings.isLoadFromDisk() ) {
+                        Path path = Paths.get( cacheSettings.getGeneFilesLocation(), taxon.getId() + ".gene_info.gz" );
+                        log.info( "Loading genes for " + taxon.toString() + " from disk: " + path.toAbsolutePath() );
+                        data = GeneInfoParser.parse( taxon, path.toFile() );
+                    } else {
+                        log.info( "Loading genes for " + taxon.toString() + " from URL: " + taxon.getGeneUrl() );
+                        data = GeneInfoParser.parse( taxon, new URL( taxon.getGeneUrl() ) );
+                    }
+                    log.info( "Done parsing." );
+                    addAll( data );
+                } catch (Exception e) {
+                    log.error( "Issue loading genes for: " + taxon, e );
                 }
-                log.info( "Done parsing." );
-                addAll( data );
-            } catch (Exception e) {
-                log.error( "Issue loading genes for: " + taxon, e );
             }
+            log.info( "Finished loading genes: " + size() );
         }
-        log.info( "Finished loading genes: " + size() );
 
 
     }
@@ -162,12 +161,17 @@ public class GeneServiceImpl extends SearchableEhcache<Integer, Gene> implements
 
     @Override
     public Map<Gene, TierType> deserializeGenes( Map<Integer, TierType> genesTierMap ) {
-        return load( genesTierMap.keySet() ).stream().collect( Collectors.toMap( g -> g, g -> genesTierMap.get( g.getGeneId() ) ) );
+        return load( genesTierMap.keySet() ).stream().filter( Objects::nonNull ).collect( Collectors.toMap( g -> g, g -> genesTierMap.get( g.getGeneId() ) ) );
     }
 
     @Override
     public void addAll( Collection<Gene> genes ) {
         putAll( genes );
+    }
+
+    @Override
+    public void clear() {
+        removeAll();
     }
 
 }

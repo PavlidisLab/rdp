@@ -29,7 +29,7 @@ public class UserTerm extends GeneOntologyTerm {
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column
     @JsonIgnore
-    private int id;
+    private Integer id;
 
     @ManyToOne
     @JoinColumn(name = "taxon_id")

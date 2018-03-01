@@ -48,4 +48,6 @@ public interface GeneService {
     Map<Gene, TierType> deserializeGenes( Map<Integer, TierType> genesTierMap );
 
     void addAll( Collection<Gene> genes );
+
+    void clear();
 }

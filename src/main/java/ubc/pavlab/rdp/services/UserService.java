@@ -57,22 +57,22 @@ public interface UserService {
 
     long countResearchers();
 
-    Integer countResearchersWithGenes();
-
     Collection<UserTerm> convertTerms( User user, Taxon taxon, Collection<GeneOntologyTerm> terms );
 
     UserTerm convertTerms( User user, Taxon taxon, GeneOntologyTerm term );
 
     Collection<UserTerm> recommendTerms( User user, Taxon taxon );
 
+    Collection<UserTerm> recommendTerms( User user, Taxon taxon, int minSize, int maxSize, int minFrequency );
+
     @Transactional
     void updateTermsAndGenesInTaxon( User user, Taxon taxon, Map<Gene, TierType> genesToTierMap, Collection<GeneOntologyTerm> goTerms );
 
     @Transactional
-    void updatePublications( User user, Set<Publication> publications );
+    User updatePublications( User user, Set<Publication> publications );
 
     @Transactional
-    void createPasswordResetTokenForUser( User user, String token );
+    PasswordResetToken createPasswordResetTokenForUser( User user, String token );
 
     void verifyPasswordResetToken( int userId, String token ) throws TokenException;
 
@@ -80,7 +80,7 @@ public interface UserService {
     User changePasswordByResetToken( int userId, String token, String newPassword );
 
     @Transactional
-    void createVerificationTokenForUser( User user, String token );
+    VerificationToken createVerificationTokenForUser( User user, String token );
 
     @Transactional
     User confirmVerificationToken( String token );

@@ -393,7 +393,7 @@ $(document).ready(function () {
     $('.recommend-terms').click(function(e) {
         var spinner = $(this).find('.spinner');
         spinner.removeClass("d-none");
-        $.getJSON("/user/taxon/" + currentTaxon.id + "/term/recommend?top=true", function (data, status, xhr) {
+        $.getJSON("/user/taxon/" + currentTaxon.id + "/term/recommend", function (data, status, xhr) {
             try {
 
                 addTermRow(data);

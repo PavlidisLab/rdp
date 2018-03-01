@@ -31,7 +31,7 @@ public class UserGene extends Gene {
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column
     @JsonIgnore
-    private int id;
+    private Integer id;
 
     @Enumerated(EnumType.STRING)
     @Column(length = 5)
