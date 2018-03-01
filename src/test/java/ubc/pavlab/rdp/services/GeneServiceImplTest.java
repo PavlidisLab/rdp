@@ -10,7 +10,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.cache.ehcache.EhCacheCacheManager;
+import org.springframework.cache.ehcache.EhCacheManagerUtils;
 import org.springframework.context.annotation.Bean;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import ubc.pavlab.rdp.model.Gene;
 import ubc.pavlab.rdp.model.Taxon;
@@ -33,6 +35,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Created by mjacobson on 26/02/18.
  */
 @RunWith(SpringRunner.class)
+@TestPropertySource(properties = {"spring.jpa.properties.hibernate.ejb.entitymanager_factory_name = test"})
 public class GeneServiceImplTest extends BaseTest {
 
     private static Log log = LogFactory.getLog( GeneServiceImplTest.class );
@@ -56,7 +59,7 @@ public class GeneServiceImplTest extends BaseTest {
 
         @Bean
         public EhCacheCacheManager cacheManager() {
-            return new EhCacheCacheManager();
+            return new EhCacheCacheManager( EhCacheManagerUtils.buildCacheManager( "test" ) );
         }
 
     }
@@ -231,10 +234,10 @@ public class GeneServiceImplTest extends BaseTest {
         genes.put( 12, createGene( 12, taxon ) );
         genes.put( 13, createGene( 13, taxon ) );
 
-        genes.get(10).setSymbol( "Match" );
-        genes.get(11).setSymbol( "MatchSimilar" );
-        genes.get(12).setName( "Match" );
-        genes.get(13).setAliases( "Match" );
+        genes.get( 10 ).setSymbol( "Match" );
+        genes.get( 11 ).setSymbol( "MatchSimilar" );
+        genes.get( 12 ).setName( "Match" );
+        genes.get( 13 ).setAliases( "Match" );
 
         geneService.addAll( genes.values() );
 
@@ -242,7 +245,7 @@ public class GeneServiceImplTest extends BaseTest {
 
         assertThat( matches ).hasSize( 4 );
         assertThat( matches.stream().map( SearchResult::getMatch ).collect( Collectors.toList() ) )
-                .containsExactly( genes.get(10), genes.get(11), genes.get(12), genes.get(13) );
+                .containsExactly( genes.get( 10 ), genes.get( 11 ), genes.get( 12 ), genes.get( 13 ) );
         assertThat( matches.stream().map( SearchResult::getMatchType ).collect( Collectors.toList() ) )
                 .containsExactly( GeneMatchType.EXACT_SYMBOL, GeneMatchType.SIMILAR_SYMBOL, GeneMatchType.SIMILAR_NAME, GeneMatchType.SIMILAR_ALIAS );
     }
