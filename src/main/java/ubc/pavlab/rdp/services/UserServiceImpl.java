@@ -297,7 +297,7 @@ public class UserServiceImpl implements UserService {
         Map<String, Integer> goIdToHibernateId = user.getUserTerms().stream()
                 .filter( t -> t.getTaxon().equals( taxon ) )
                 .collect( Collectors.toMap( GeneOntologyTerm::getGoId, UserTerm::getId ) );
-        Collection<UserTerm> updatedTerms = convertTerms( user, taxon, goTerms );
+        Collection<UserTerm> updatedTerms = convertTermTypes( goTerms, taxon, genesToTierMap.keySet() );
         updatedTerms.forEach( t -> t.setId( goIdToHibernateId.get( t.getGoId() ) ) );
 
         removeTermsFromUserByTaxon( user, taxon );

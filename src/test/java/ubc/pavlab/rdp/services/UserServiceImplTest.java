@@ -2,10 +2,12 @@ package ubc.pavlab.rdp.services;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.assertj.core.util.Maps;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+import org.mockito.internal.util.collections.Sets;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -160,7 +162,7 @@ public class UserServiceImplTest extends BaseTest {
 
         expected.forEach( ( key, value ) -> key.getSizesByTaxon().put( taxon, value + 10 ) );
 
-        Mockito.when( goService.termFrequencyMap( Mockito.anyCollectionOf(Gene.class) ) ).thenReturn( expected );
+        Mockito.when( goService.termFrequencyMap( Mockito.anyCollectionOf( Gene.class ) ) ).thenReturn( expected );
     }
 
 
@@ -701,7 +703,7 @@ public class UserServiceImplTest extends BaseTest {
         Collection<Gene> calculatedGenes = IntStream.range( 101, 110 ).boxed().map(
                 nbr -> createGene( nbr, taxon )
         ).collect( Collectors.toList() );
-        Mockito.when( goService.getGenes( Mockito.anyCollectionOf(GeneOntologyTerm.class), Mockito.any() ) ).thenReturn( calculatedGenes );
+        Mockito.when( goService.getGenes( Mockito.anyCollectionOf( GeneOntologyTerm.class ), Mockito.any() ) ).thenReturn( calculatedGenes );
 
         Collection<GeneOntologyTerm> terms = IntStream.range( 1, 10 ).boxed().map(
                 nbr -> createTermWithGene( toGOId( nbr ), createGene( nbr, taxon ) )
@@ -743,7 +745,7 @@ public class UserServiceImplTest extends BaseTest {
         Collection<Gene> calculatedGenes = IntStream.range( 101, 110 ).boxed().map(
                 nbr -> createGene( nbr, taxon )
         ).collect( Collectors.toList() );
-        Mockito.when( goService.getGenes( Mockito.anyCollectionOf(GeneOntologyTerm.class), Mockito.any() ) ).thenReturn( calculatedGenes );
+        Mockito.when( goService.getGenes( Mockito.anyCollectionOf( GeneOntologyTerm.class ), Mockito.any() ) ).thenReturn( calculatedGenes );
 
         Collection<GeneOntologyTerm> terms = IntStream.range( 1, 10 ).boxed().map(
                 nbr -> createTermWithGene( toGOId( nbr ), createGene( nbr, taxon ) )
@@ -774,7 +776,7 @@ public class UserServiceImplTest extends BaseTest {
         Collection<Gene> calculatedGenes = IntStream.range( 5, 14 ).boxed().map(
                 nbr -> createGene( nbr, taxon )
         ).collect( Collectors.toList() );
-        Mockito.when( goService.getGenes( Mockito.anyCollectionOf(GeneOntologyTerm.class), Mockito.any() ) ).thenReturn( calculatedGenes );
+        Mockito.when( goService.getGenes( Mockito.anyCollectionOf( GeneOntologyTerm.class ), Mockito.any() ) ).thenReturn( calculatedGenes );
 
         Collection<GeneOntologyTerm> terms = IntStream.range( 1, 10 ).boxed().map(
                 nbr -> createTermWithGene( toGOId( nbr ), createGene( nbr, taxon ) )
@@ -814,7 +816,7 @@ public class UserServiceImplTest extends BaseTest {
 
         // Mock goService.getRelatedGenes
         Collection<Gene> calculatedGenes = Collections.singleton( createGene( 105, taxon ) );
-        Mockito.when( goService.getGenes( Mockito.anyCollectionOf(GeneOntologyTerm.class), Mockito.any() ) ).thenReturn( calculatedGenes );
+        Mockito.when( goService.getGenes( Mockito.anyCollectionOf( GeneOntologyTerm.class ), Mockito.any() ) ).thenReturn( calculatedGenes );
 
         Collection<GeneOntologyTerm> terms = Collections.singleton( createTermWithGene( toGOId( 5 ), createGene( 5, taxon ) ) );
 
@@ -837,13 +839,47 @@ public class UserServiceImplTest extends BaseTest {
         assertThat( user.getUserGenes().values().iterator().next().getId() ).isEqualTo( 1 );
     }
 
+    @Test
+    public void updateTermsAndGenesInTaxon_whenUserHasGenesAndTerms_thenUpdateFrequency() {
+        User user = createUser( 1 );
+        Taxon taxon = createTaxon( 1 );
+
+        Gene geneWillBeRemoved = createGene( 999, taxon );
+        GeneOntologyTerm termWillBeRemoved = createTermWithGene( toGOId( geneWillBeRemoved.getGeneId() ), geneWillBeRemoved );
+        user.getUserTerms().add( createUserTerm( 1, termWillBeRemoved, taxon ) );
+        user.getUserGenes().put( geneWillBeRemoved.getGeneId(), createUserGene( 1, geneWillBeRemoved, user, TierType.TIER1 ) );
+
+        Gene geneWillChangeTier = createGene( 5, taxon );
+        user.getUserGenes().put( geneWillChangeTier.getGeneId(), createUserGene( 2, geneWillChangeTier, user, TierType.TIER2 ) );
+
+        UserTerm termWillUpdateFrequency = createUserTerm( 3,
+                createTermWithGene( toGOId( geneWillChangeTier.getGeneId() ), geneWillBeRemoved, geneWillChangeTier ),
+                taxon );
+        // Should have frequency of 2
+        termWillUpdateFrequency.setFrequency( 2 );
+        user.getUserTerms().add( termWillUpdateFrequency );
+
+        becomeUser( user );
+
+        Mockito.when( goService.getGenes( Mockito.anyCollectionOf( GeneOntologyTerm.class ), Mockito.any() ) ).thenReturn( Collections.emptySet() );
+
+        Map<Gene, TierType> geneTierMap = Maps.newHashMap( geneWillChangeTier, TierType.TIER1 );
+
+        userService.updateTermsAndGenesInTaxon( user, taxon, geneTierMap, Sets.newSet( termWillUpdateFrequency) );
+
+        assertThat( user.getUserTerms() ).hasSize( 1 );
+        assertThat( user.getUserTerms().iterator().next() ).isEqualTo( termWillUpdateFrequency );
+        assertThat( user.getUserTerms().iterator().next().getFrequency() ).isEqualTo( 1 );
+
+    }
+
     private void assertThatUserTermsAreEqualTo( User user, Collection<GeneOntologyTerm> terms ) {
         assertThat( user.getUserTerms() ).hasSize( terms.size() );
         assertThat( user.getUserTerms().stream().map( GeneOntologyTerm::getGoId ).collect( Collectors.toSet() ) )
                 .isEqualTo( terms.stream().map( GeneOntologyTerm::getGoId ).collect( Collectors.toSet() ) );
     }
 
-    private void assertThatUserGenesAreEqualTo( User user,  Map<Gene, TierType> expectedGenes ) {
+    private void assertThatUserGenesAreEqualTo( User user, Map<Gene, TierType> expectedGenes ) {
         assertThat( user.getUserGenes().keySet() )
                 .containsExactlyElementsOf( expectedGenes.keySet().stream().map( Gene::getGeneId )
                         .collect( Collectors.toSet() ) );
@@ -893,7 +929,7 @@ public class UserServiceImplTest extends BaseTest {
 
         User user = createUser( 1 );
         Taxon taxon = createTaxon( 1 );
-        Collection<UserTerm> found = userService.recommendTerms( user, taxon, -1, -1, 3);
+        Collection<UserTerm> found = userService.recommendTerms( user, taxon, -1, -1, 3 );
         assertThat( found.stream().map( GeneOntologyTerm::getGoId ).collect( Collectors.toList() ) ).containsExactlyInAnyOrder( toGOId( 1 ), toGOId( 7 ), toGOId( 8 ) );
 
         found = userService.recommendTerms( user, taxon, -1, -1, 4 );
@@ -906,7 +942,7 @@ public class UserServiceImplTest extends BaseTest {
 
         User user = createUser( 1 );
         Taxon taxon = createTaxon( 1 );
-        Collection<UserTerm> found = userService.recommendTerms( user, taxon, 11, 12, 2);
+        Collection<UserTerm> found = userService.recommendTerms( user, taxon, 11, 12, 2 );
         assertThat( found.stream().map( GeneOntologyTerm::getGoId ).collect( Collectors.toList() ) ).containsExactlyInAnyOrder( toGOId( 0 ), toGOId( 4 ), toGOId( 6 ) );
 
         found = userService.recommendTerms( user, taxon, 1, 11, 2 );
@@ -919,7 +955,7 @@ public class UserServiceImplTest extends BaseTest {
 
         User user = createUser( 1 );
         Taxon taxon = createTaxon( 1 );
-        Collection<UserTerm> found = userService.recommendTerms( user, taxon, 11, 11, 1);
+        Collection<UserTerm> found = userService.recommendTerms( user, taxon, 11, 11, 1 );
         assertThat( found.stream().map( GeneOntologyTerm::getGoId ).collect( Collectors.toList() ) ).containsExactlyInAnyOrder( toGOId( 2 ), toGOId( 3 ), toGOId( 5 ), toGOId( 99 ) );
 
         found = userService.recommendTerms( user, taxon, 1, 11, 2 );
@@ -929,11 +965,11 @@ public class UserServiceImplTest extends BaseTest {
     @Test
     public void recommendTerms_whenUserHasNoGenes_thenReturnEmpty() {
         Map<GeneOntologyTerm, Long> empyFMap = new HashMap<>();
-        Mockito.when( goService.termFrequencyMap( Mockito.anyCollectionOf(Gene.class) ) ).thenReturn( empyFMap );
+        Mockito.when( goService.termFrequencyMap( Mockito.anyCollectionOf( Gene.class ) ) ).thenReturn( empyFMap );
 
         User user = createUser( 1 );
         Taxon taxon = createTaxon( 1 );
-        Collection<UserTerm> found = userService.recommendTerms( user, taxon, -1, -1, -1);
+        Collection<UserTerm> found = userService.recommendTerms( user, taxon, -1, -1, -1 );
         assertThat( found ).isEmpty();
     }
 
@@ -942,7 +978,7 @@ public class UserServiceImplTest extends BaseTest {
         setUpRecomendTermsMocks();
 
         Taxon taxon = createTaxon( 1 );
-        Collection<UserTerm> found = userService.recommendTerms( null, taxon, -1, -1, -1);
+        Collection<UserTerm> found = userService.recommendTerms( null, taxon, -1, -1, -1 );
         assertThat( found ).isNull();
     }
 
@@ -951,7 +987,7 @@ public class UserServiceImplTest extends BaseTest {
         setUpRecomendTermsMocks();
 
         User user = createUser( 1 );
-        Collection<UserTerm> found = userService.recommendTerms( user, null, -1, -1, -1);
+        Collection<UserTerm> found = userService.recommendTerms( user, null, -1, -1, -1 );
         assertThat( found ).isNull();
     }
 
