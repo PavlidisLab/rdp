@@ -7,6 +7,7 @@ import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.TierType;
 
 import java.util.Arrays;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.mockito.Mockito.mock;
@@ -92,13 +93,15 @@ public class BaseTest {
         return term;
     }
 
-    protected GeneOntologyTerm createTermWithGene( String id, Gene gene ) {
+    protected GeneOntologyTerm createTermWithGene( String id, Gene... genes ) {
         GeneOntologyTerm term = new GeneOntologyTerm();
         term.setGoId( id );
         term.setObsolete( false );
 
-        term.getDirectGenes().add( gene );
-        gene.getTerms().add( term );
+        Arrays.stream(genes).forEach( g -> {
+            term.getDirectGenes().add( g );
+            g.getTerms().add( term );
+        } );
 
         return term;
     }
@@ -113,6 +116,12 @@ public class BaseTest {
 
     protected UserTerm createUserTerm( int id, GeneOntologyTerm term, Taxon taxon ) {
         UserTerm ut = new UserTerm(term, taxon, null );
+        ut.setId( id );
+        return ut;
+    }
+
+    protected UserTerm createUserTerm( int id, GeneOntologyTerm term, Taxon taxon, Set<Gene> genes ) {
+        UserTerm ut = new UserTerm(term, taxon, genes );
         ut.setId( id );
         return ut;
     }
