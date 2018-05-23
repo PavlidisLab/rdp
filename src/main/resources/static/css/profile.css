@@ -10,4 +10,6 @@
 
 input.data-edit {
     width: 90%;
+    -ms-text-overflow: ellipsis;
+    text-overflow: ellipsis;
 }
