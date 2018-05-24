@@ -4,6 +4,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
+import org.apache.commons.net.ftp.FTPHTTPClient;
 import ubc.pavlab.rdp.model.Gene;
 import ubc.pavlab.rdp.model.Taxon;
 
@@ -28,7 +29,17 @@ public class GeneInfoParser {
 
     public static Set<Gene> parse( Taxon taxon, URL url ) throws ParseException {
 
-        FTPClient ftp = new FTPClient();
+        String proxyHost = System.getProperty( "ftp.proxyHost" );
+
+        FTPClient ftp;
+
+        if ( proxyHost != null ) {
+            Integer proxyPort = Integer.parseInt( System.getProperty( "ftp.proxyPort" ) );
+            log.info( "Using HTTP proxy server: " + proxyHost + ":" + proxyPort.toString() );
+            ftp = new FTPHTTPClient( proxyHost, proxyPort );
+        } else {
+            ftp = new FTPClient();
+        }
 
         try {
 

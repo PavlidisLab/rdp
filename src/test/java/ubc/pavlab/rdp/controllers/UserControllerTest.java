@@ -355,45 +355,6 @@ public class UserControllerTest extends BaseTest {
                 .andExpect( jsonPath( "$[*].taxon.id", contains( taxon2.getId(), taxon2.getId() ) ) );
     }
 
-    @Test
-    @WithMockUser
-    public void givenLoggedInAndHasTerms_whenRecommendTerms_thenDontReturnJsonOfAlreadyAddedTerms()
-            throws Exception {
-
-        User user = createUser( 1 );
-
-        Taxon taxon = createTaxon( 1 );
-        UserTerm t1 = new UserTerm( createTerm( toGOId( 1 ) ), taxon, null );
-        UserTerm t2 = new UserTerm( createTerm( toGOId( 2 ) ), taxon, null );
-
-        user.getUserTerms().add( t2 );
-
-        Taxon taxon2 = createTaxon( 2 );
-        UserTerm t3 = new UserTerm( createTerm( toGOId( 3 ) ), taxon2, null );
-        UserTerm t4 = new UserTerm( createTerm( toGOId( 4 ) ), taxon2, null );
-
-        user.getUserTerms().add( t4 );
-
-
-        given( userService.findCurrentUser() ).willReturn( user );
-        given( userService.recommendTerms( Mockito.any(), Mockito.eq( taxon ) ) ).willReturn( Sets.newSet( t1, t2 ) );
-        given( userService.recommendTerms( Mockito.any(), Mockito.eq( taxon2 ) ) ).willReturn( Sets.newSet( t3, t4 ) );
-
-        mvc.perform( get( "/user/taxon/1/term/recommend" )
-                .contentType( MediaType.APPLICATION_JSON ) )
-                .andExpect( status().isOk() )
-                .andExpect( jsonPath( "$", hasSize( 1 ) ) )
-                .andExpect( jsonPath( "$[0].goId", is( t1.getGoId() ) ) )
-                .andExpect( jsonPath( "$[0].taxon.id", is( taxon.getId() ) ) );
-
-        mvc.perform( get( "/user/taxon/2/term/recommend" )
-                .contentType( MediaType.APPLICATION_JSON ) )
-                .andExpect( status().isOk() )
-                .andExpect( jsonPath( "$", hasSize( 1 ) ) )
-                .andExpect( jsonPath( "$[0].goId", is( t3.getGoId() ) ) )
-                .andExpect( jsonPath( "$[0].taxon.id", is( taxon2.getId() ) ) );
-    }
-
     // POST
 
     @Test

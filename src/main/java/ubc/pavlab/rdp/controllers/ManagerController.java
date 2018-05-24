@@ -4,6 +4,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -134,6 +135,23 @@ public class ManagerController {
             modelAndView.addObject( "usergenes", handleGeneSearch( gene, tier ) );
         }
 
+        return modelAndView;
+    }
+
+    @RequestMapping(value = "/manager/view/{userId}", method = RequestMethod.GET)
+    public ModelAndView viewUser( @PathVariable Integer userId ) {
+        ModelAndView modelAndView = new ModelAndView();
+        User user = userService.findCurrentUser();
+        User viewUser = userService.findUserById( userId );
+
+        if ( viewUser == null) {
+            modelAndView.setViewName( "error/404" );
+        } else {
+            modelAndView.addObject( "user", user );
+            modelAndView.addObject( "viewUser", viewUser );
+            modelAndView.addObject( "viewOnly", true );
+            modelAndView.setViewName( "manager/view" );
+        }
         return modelAndView;
     }
 

@@ -21,17 +21,13 @@
                 <a class="nav-link" th:href="@{/user/home}" href="/">Home</a>
             </li>
             <li class="nav-item">
-                <a th:if="${viewOnly != null}" class="nav-link" th:href="@{'/user/' + ${user.id} + '/profile'}">View Profile</a>
-                <a th:if="${viewOnly == null}" class="nav-link" th:href="@{/user/profile}" href="/user/profile">Profile</a>
+                <a class="nav-link" th:href="@{/user/profile}" href="/user/profile">Profile</a>
             </li>
             <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" href="/user/model" id="navbarDropdownModel" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    <span th:text="${viewOnly == null} ? 'Model Organisms' : 'View Model Organisms'" th:remove="tag"></span>
-                </a>
+                <a class="nav-link dropdown-toggle" href="/user/model" id="navbarDropdownModel" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Model Organisms</a>
                 <div class="dropdown-menu" aria-labelledby="navbarDropdownModel">
                     <th:block th:each="taxon : ${@taxonService.findByActiveTrue()}">
-                        <a th:if="${viewOnly != null}" class="dropdown-item text-capitalize" th:classappend="${user.hasTaxon(taxon)} ? 'hastaxon' : ''" th:href="@{'/user/' + ${user.id} + '/model/' + ${taxon.id}}" th:text="${taxon.commonName} " href="#"></a>
-                        <a th:if="${viewOnly == null}" class="dropdown-item text-capitalize" th:classappend="${user.hasTaxon(taxon)} ? 'hastaxon' : ''" th:href="@{'/user/model/' + ${taxon.id}}" th:text="${taxon.commonName} " href="#"></a>
+                        <a class="dropdown-item text-capitalize" th:classappend="${user.hasTaxon(taxon)} ? 'hastaxon' : ''" th:href="@{'/user/model/' + ${taxon.id}}" th:text="${taxon.commonName} " href="#"></a>
                     </th:block>
                 </div>
             </li>

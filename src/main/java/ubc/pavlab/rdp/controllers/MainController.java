@@ -101,31 +101,6 @@ public class MainController {
         return modelAndView;
     }
 
-    @RequestMapping(value = "/user/{userId}/profile", method = RequestMethod.GET)
-    public ModelAndView viewUserProfile( @PathVariable Integer userId ) {
-        ModelAndView modelAndView = new ModelAndView();
-        User user = userService.findUserById( userId );
-
-        modelAndView.addObject( "user", user );
-        modelAndView.addObject( "viewOnly", true);
-        modelAndView.setViewName( "user/profile" );
-        return modelAndView;
-    }
-
-    @RequestMapping(value = "/user/{userId}/model/{taxonId}", method = RequestMethod.GET)
-    public ModelAndView viewUserModel( @PathVariable Integer userId, @PathVariable Integer taxonId ) {
-        ModelAndView modelAndView = new ModelAndView();
-        User user = userService.findUserById( userId );
-
-        Taxon taxon = taxonService.findById( taxonId );
-
-        modelAndView.addObject( "user", user );
-        modelAndView.addObject( "taxon", taxon );
-        modelAndView.addObject( "viewOnly", true);
-        modelAndView.setViewName( "user/model" );
-        return modelAndView;
-    }
-
     @RequestMapping(value = {"/user/profile"}, method = RequestMethod.GET)
     public ModelAndView profile() {
         ModelAndView modelAndView = new ModelAndView();

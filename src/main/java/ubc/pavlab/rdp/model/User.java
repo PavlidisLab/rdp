@@ -107,4 +107,10 @@ public class User {
     public boolean hasTaxon( Taxon taxon ) {
         return this.getUserGenes().values().stream().anyMatch( g -> g.getTaxon().equals( taxon ) );
     }
+
+    @JsonIgnore
+    @Transient
+    public Set<Taxon> getTaxons() {
+        return this.getUserGenes().values().stream().map( Gene::getTaxon ).collect( Collectors.toSet() );
+    }
 }

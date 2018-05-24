@@ -30,7 +30,7 @@
 
 
     <script th:src="@{/js/common.js}"></script>
-    <script th:src="@{/js/profile.js}"></script>
+    <script th:src="@{/js/view.js}"></script>
 
 </head>
 
@@ -38,11 +38,7 @@
 <div th:replace="fragments/header">...</div>
 <div class="container p-4">
 
-    <div th:replace="fragments/title :: title(title='My Account', subtitle='User Profile')" th:remove="tag">...</div>
-
-    <div class="d-flex align-items-center justify-content-center" th:if="${viewOnly != null}">
-        <h3 class="d-inline-block pr-3 mr-3 mb-0" th:text="${user.email}"></h3>
-    </div>
+    <div th:replace="fragments/title :: title(title='View Account', subtitle=${viewUser.email})" th:remove="tag">...</div>
 
     <div class="main-content p-4">
         <div class="row justify-content-center success-row" style="display: none;">
@@ -63,11 +59,7 @@
                 </div>
             </div>
         </div>
-        <div class="row justify-content-center" th:if="${viewOnly == null}">
-            <div class="col-4 my-3">
-                <button type="button" class="btn btn-primary btn-lg btn-block save-profile"><i class="mx-2 d-none spinner"></i>Save</button>
-            </div>
-        </div>
+
         <div class="row">
             <div class="col my-3">
                 <div class="card basic-info">
@@ -79,32 +71,32 @@
                     <table class="table mb-0">
                         <tr class="edit-container">
                             <td class="align-middle" style="width: 120px;"><span class="text-muted align-middle">First Name</span></td>
-                            <td><i class="editable" th:if="${viewOnly == null}"/>
-                                <input class="data-edit" type="text" name="name" th:value="${user.profile.name}" disabled="true"/>
+                            <td>
+                                <input class="data-edit" type="text" name="name" th:value="${viewUser.profile.name}" disabled="true"/>
                             </td>
                         </tr>
                         <tr class="edit-container">
                             <td class="align-middle"><span class="text-muted align-middle">Last Name</span></td>
-                            <td><i class="editable" th:if="${viewOnly == null}"/>
-                                <input class="data-edit" type="text" name="lastName" th:value="${user.profile.lastName}" disabled="true"/>
+                            <td>
+                                <input class="data-edit" type="text" name="lastName" th:value="${viewUser.profile.lastName}" disabled="true"/>
                             </td>
                         </tr>
                         <tr class="edit-container">
                             <td class="align-middle"><span class="text-muted align-middle">Organization</span></td>
-                            <td><i class="editable" th:if="${viewOnly == null}"/>
-                                <input class="data-edit" type="text" name="organization" th:value="${user.profile.organization}" disabled="true"/>
+                            <td>
+                                <input class="data-edit" type="text" name="organization" th:value="${viewUser.profile.organization}" disabled="true"/>
                             </td>
                         </tr>
                         <tr class="edit-container">
                             <td class="align-middle"><span class="text-muted align-middle">Department</span></td>
-                            <td><i class="editable" th:if="${viewOnly == null}"/>
-                                <input class="data-edit" type="text" name="department" th:value="${user.profile.department}" disabled="true"/>
+                            <td>
+                                <input class="data-edit" type="text" name="department" th:value="${viewUser.profile.department}" disabled="true"/>
                             </td>
                         </tr>
                         <tr class="edit-container">
                             <td class="align-middle"><span class="text-muted align-middle">Website</span></td>
-                            <td><i class="editable" th:if="${viewOnly == null}"/>
-                                <input class="data-edit" type="text" name="website" th:value="${user.profile.website}" disabled="true"/>
+                            <td>
+                                <input class="data-edit" type="text" name="website" th:value="${viewUser.profile.website}" disabled="true"/>
                             </td>
                         </tr>
                     </table>
@@ -120,12 +112,12 @@
                     <table class="table mb-0">
                         <tr>
                             <td class="align-middle" style="width: 120px;"><span class="text-muted align-middle">Email</span></td>
-                            <td><span th:text="${user.email}" th:remove="tag"></span></td>
+                            <td><span th:text="${viewUser.email}" th:remove="tag"></span></td>
                         </tr>
                         <tr class="edit-container">
                             <td class="align-middle"><span class="text-muted align-middle">Phone</span></td>
-                            <td><i class="editable" th:if="${viewOnly == null}"/>
-                                <input class="data-edit" type="text" name="phone" th:value="${user.profile.phone}" disabled="true"/>
+                            <td>
+                                <input class="data-edit" type="text" name="phone" th:value="${viewUser.profile.phone}" disabled="true"/>
                             </td>
                         </tr>
                     </table>
@@ -137,11 +129,10 @@
             <div class="col my-3">
                 <div class="card research-info edit-container">
                     <div class="card-header d-flex align-items-center">
-                        <i class="editable" th:if="${viewOnly == null}"/>
                         <h3 class="mb-0 d-inline-block">About My Research</h3>
                     </div>
                     <div class="p-2" style="height: 120px;">
-                        <textarea class="data-edit" name="description" th:text="${user.profile.description}" disabled="true"></textarea>
+                        <textarea class="data-edit" name="description" th:text="${viewUser.profile.description}" disabled="true"></textarea>
                     </div>
                 </div>
             </div>
@@ -161,32 +152,95 @@
                         </tr>
                         </thead>
                         <tbody>
-                        <th:block th:each="pub : ${user.profile.publications}">
+                        <th:block th:each="pub : ${viewUser.profile.publications}">
                             <tr>
-                                <td><i class="delete-row" th:if="${viewOnly == null}"/><span th:text="${pub.pmid}" th:remove="tag"></span></td>
+                                <td><span th:text="${pub.pmid}" th:remove="tag"></span></td>
                                 <td><a th:href="${'https://www.ncbi.nlm.nih.gov/pubmed/' + pub.pmid}" target="_blank" th:text="${pub.title != ''} ? ${pub.title} : 'Unknown Title'"></a></td>
                             </tr>
                         </th:block>
                         </tbody>
-                        <tfoot th:if="${viewOnly == null}">
-                        <tr>
-                            <td colspan="2">
-                                <div class="input-group">
-                                    <div class="input-group-prepend">
-                                        <button class="btn btn-outline-secondary add-row text-success" type="button">+</button>
-                                    </div>
-                                    <input type="text" class="pub-input form-control" placeholder="PubMed Ids: 25363768, 25418537"/>
-                                </div>
-                            </td>
-                        </tr>
-                        </tfoot>
                     </table>
                 </div>
             </div>
+            <th:block th:each="taxon : ${viewUser.taxons}">
+                    <div class="w-100"></div>
+
+                    <div class="col my-3">
+                        <div class="card research-info edit-container">
+                            <div class="card-header d-flex align-items-center">
+                                <h3 class="mb-0 d-inline-block text-capitalize"><span
+                                        th:text="${taxon.commonName + ' Research Focus'}" th:remove="tag"></span></h3>
+                            </div>
+                            <div class="p-2" style="height: 80px;">
+                                <textarea class="data-edit" name="description"
+                                          th:text="${viewUser.taxonDescriptions.get(taxon)}" disabled="true"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="w-100"></div>
+
+                    <div class="col my-3">
+                        <div class="card">
+                            <div class="card-header">
+                                <!--<h3 class="mb-2 text-capitalize"><span th:text="${taxon.commonName}" th:remove="tag"></span></h3>-->
+                                <ul class="nav nav-tabs card-header-tabs" role="tablist">
+                                    <li class="nav-item">
+                                        <a class="nav-link active genes-tab" data-toggle="tab"
+                                           th:href="${'#genes-' + taxon.id}" role="tab"
+                                           aria-controls="profile" aria-selected="true">Genes</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link terms-tab" data-toggle="tab"
+                                           th:href="${'#terms-' + taxon.id}" role="tab"
+                                           aria-controls="model"
+                                           aria-selected="true">Terms</a>
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <div class="card-body">
+                                <div class="tab-content">
+                                    <div class="tab-pane fade show active" th:id="${'genes-' + taxon.id}"
+                                         role="tabpanel">
+                                        <div th:replace="fragments/gene-table :: gene-table(genes=${viewUser.getGenesByTaxon(taxon)})"
+                                             th:remove="tag">...
+                                        </div>
+                                    </div>
+                                    <div class="tab-pane fade" th:id="${'terms-' + taxon.id}" role="tabpanel">
+
+                                        <div th:replace="fragments/term-table :: term-table(userTerms=${viewUser.getTermsByTaxon(taxon)})"
+                                             th:remove="tag">...
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+            </th:block>
+
+
+
         </div>
     </div>
 
 </div>
+
+<div class="modal fade" id="overlapModal" tabindex="-1" role="dialog" aria-labelledby="overlapModal" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-body pb-0">
+                ...
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div th:replace="fragments/footer" th:remove="tag">...</div>
 </body>
 </html>

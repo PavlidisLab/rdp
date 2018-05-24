@@ -6,9 +6,9 @@
     <thead class="thead-light">
     <tr>
         <th scope="col">Symbol</th>
-        <th scope="col" style="display: none;">Id</th>
+        <th scope="col" style="display: none;" th:if="${viewOnly == null}">Id</th>
         <th scope="col">Name</th>
-        <th class="text-center" scope="col">Primary</th>
+        <th class="text-center" scope="col" th:text="${viewOnly == null} ? 'Primary' : 'Tier'">Primary</th>
     </tr>
     </thead>
     <tbody>
@@ -17,14 +17,20 @@
             <td><span class="align-middle"><i th:if="${viewOnly == null}" class="delete-row align-middle"/><a
                     th:href="'https://www.ncbi.nlm.nih.gov/gene/' + ${gene.geneId}"
                     target="_blank" class="align-middle" th:text="${gene.symbol}"></a></span></td>
-            <td style="display: none;"><span th:text="${gene.geneId}" th:remove="tag"></span></td>
+            <td style="display: none;" th:if="${viewOnly == null}"><span th:text="${gene.geneId}" th:remove="tag"></span></td>
             <td><span class="align-middle" th:text="${gene.name}"></span></td>
-            <td class="text-center"><input type="checkbox" class="align-middle" th:disabled="${viewOnly != null}"
-                                           th:checked="${gene.tier == T(ubc.pavlab.rdp.model.enums.TierType).TIER1}"/>
-            </td>
+            <td class="text-center" th:if="${viewOnly != null}"><span th:text="${gene.tier}" th:remove="tag"></span></td>
+            <td class="text-center" th:if="${viewOnly == null}"><input type="checkbox" class="align-middle" th:checked="${gene.tier == T(ubc.pavlab.rdp.model.enums.TierType).TIER1}"/></td>
         </tr>
     </th:block>
     </tbody>
+    <tfoot th:if="${viewOnly != null}">
+    <tr>
+        <td colspan="3">
+
+        </td>
+    </tr>
+    </tfoot>
 </table>
 </body>
 </html>

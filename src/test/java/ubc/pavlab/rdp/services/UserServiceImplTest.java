@@ -963,6 +963,34 @@ public class UserServiceImplTest extends BaseTest {
     }
 
     @Test
+    public void recommendTerms_whenUserHasSomeTopTerms_thenReturnNewBestResultsOnly() {
+        setUpRecomendTermsMocks();
+
+        User user = createUser( 1 );
+        Taxon taxon = createTaxon( 1 );
+
+        user.getUserTerms().add( new UserTerm( createTerm( toGOId( 1 ) ), taxon, null ) );
+
+        Collection<UserTerm> found = userService.recommendTerms( user, taxon );
+        assertThat( found.stream().map( GeneOntologyTerm::getGoId ).collect( Collectors.toList() ) ).containsExactlyInAnyOrder( toGOId( 7 ), toGOId( 8 ) );
+    }
+
+    @Test
+    public void recommendTerms_whenUserHasAllTopTerms_thenReturnNextBestResultsOnly() {
+        setUpRecomendTermsMocks();
+
+        User user = createUser( 1 );
+        Taxon taxon = createTaxon( 1 );
+
+        user.getUserTerms().add( new UserTerm( createTerm( toGOId( 1 ) ), taxon, null ) );
+        user.getUserTerms().add( new UserTerm( createTerm( toGOId( 7 ) ), taxon, null ) );
+        user.getUserTerms().add( new UserTerm( createTerm( toGOId( 8 ) ), taxon, null ) );
+
+        Collection<UserTerm> found = userService.recommendTerms( user, taxon );
+        assertThat( found.stream().map( GeneOntologyTerm::getGoId ).collect( Collectors.toList() ) ).containsExactlyInAnyOrder( toGOId( 0 ), toGOId( 4 ), toGOId( 6 ) );
+    }
+
+    @Test
     public void recommendTerms_whenUserHasNoGenes_thenReturnEmpty() {
         Map<GeneOntologyTerm, Long> empyFMap = new HashMap<>();
         Mockito.when( goService.termFrequencyMap( Mockito.anyCollectionOf( Gene.class ) ) ).thenReturn( empyFMap );

@@ -19,7 +19,7 @@
     </tr>
     <th:block th:each="u : ${users}" th:if="${not #lists.isEmpty(users)}">
         <tr>
-            <td><a th:href="@{'/user/' + ${u.id} + '/profile'}" th:text="${u.email}" target="_blank"></a></td>
+            <td><a th:href="@{'/manager/view/' + ${u.id}}" th:text="${u.email}" target="_blank"></a></td>
             <td><span th:text="${u.profile.name}" th:remove="tag"></span></td>
             <td><span th:text="${u.profile.lastName}" th:remove="tag"></span></td>
             <td><span th:text="${u.profile.organization}" th:remove="tag"></span></td>
@@ -48,7 +48,7 @@
     </tr>
     <th:block th:each="ug : ${usergenes}" th:if="${not #lists.isEmpty(usergenes)}">
         <tr>
-            <td><a th:href="@{'/user/' + ${ug.user.id} + '/profile'}" th:text="${ug.user.email}" target="_blank"></a></td>
+            <td><a th:href="@{'/manager/view/' + ${ug.user.id}}" th:text="${ug.user.email}" target="_blank"></a></td>
             <td><span th:text="${ug.user.profile.name}" th:remove="tag"></span></td>
             <td><span th:text="${ug.user.profile.lastName}" th:remove="tag"></span></td>
             <td><span th:text="${ug.user.profile.organization}" th:remove="tag"></span></td>

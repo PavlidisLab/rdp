@@ -254,15 +254,20 @@ public class UserServiceImpl implements UserService {
         if ( maxSize > 0 ) {
             resultStream = resultStream.filter( e -> e.getKey().getSize( taxon ) <= maxSize );
         }
-        // Then keep only those terms with the highest frequency
+
+        Set<UserTerm> userTerms = user.getTermsByTaxon( taxon );
+
+        // Then keep only those terms not already added and with the highest frequency
         Set<UserTerm> topResults = resultStream.map( e -> {
             UserTerm ut = new UserTerm( e.getKey(), taxon, null );
             ut.setFrequency( e.getValue().intValue() );
             return ut;
-        } ).collect( maxSet( comparing( UserTerm::getFrequency ) ) );
+        } ).filter( ut -> !userTerms.contains( ut ))
+                .collect( maxSet( comparing( UserTerm::getFrequency ) ) );
 
         // Keep only leafiest of remaining terms (keep if it has no descendants in results)
-        return topResults.stream().filter( ut -> Collections.disjoint( topResults, goService.getDescendants( ut ) ) ).collect( Collectors.toSet() );
+        return topResults.stream().filter( ut -> Collections.disjoint( topResults, goService.getDescendants( ut ) ) )
+                .collect( Collectors.toSet() );
     }
 
     private boolean updateOrInsert( User user, Gene gene, TierType tier ) {
