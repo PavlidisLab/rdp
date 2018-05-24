@@ -126,9 +126,6 @@ public class UserController {
         Taxon taxon = taxonService.findById( taxonId );
         Collection<UserTerm> terms = userService.recommendTerms( user, taxon );
 
-        // Remove terms already added
-        terms.removeAll( user.getTermsByTaxon( taxon ) );
-
         return terms;
     }
 
