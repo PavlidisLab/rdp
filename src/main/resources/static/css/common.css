@@ -165,3 +165,24 @@ tr.new-row {
 .dataTables_scrollBody thead {
     visibility: hidden;
 }
+
+/* Fixed header scrollable table */
+
+table.table-fixed tr {
+    width: 100%;
+    display: inline-table;
+    /*height:60px;*/
+    table-layout: fixed;
+
+}
+
+table.table-fixed {
+    height:220px;
+    display: -moz-groupbox;
+}
+table.table-fixed tbody{
+    overflow-y: scroll;
+    height: 200px;
+    /*width: 100%;*/
+    position: absolute;
+}
