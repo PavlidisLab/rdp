@@ -24,7 +24,7 @@ import javax.persistence.*;
 @Getter
 @Setter
 @NoArgsConstructor
-@ToString
+@ToString(callSuper = true)
 public class UserGene extends Gene {
 
     @Id

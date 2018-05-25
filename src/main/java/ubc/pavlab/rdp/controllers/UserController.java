@@ -80,7 +80,7 @@ public class UserController {
     }
 
     @RequestMapping(value = "/user/term", method = RequestMethod.GET)
-    public Set<UserTerm> getTerms() {
+    public List<UserTerm> getTerms() {
         return userService.findCurrentUser().getUserTerms();
     }
 

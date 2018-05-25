@@ -392,7 +392,7 @@ public class UserServiceImpl implements UserService {
     }
 
     private Collection<Gene> calculatedGenesInTaxon( User user, Taxon taxon ) {
-        return goService.getGenes( user.getUserTerms(), taxon );
+        return goService.getGenes( user.getTermsByTaxon( taxon ), taxon );
     }
 
     private boolean removeGenesFromUserByTaxon( User user, Taxon taxon ) {

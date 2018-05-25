@@ -715,12 +715,12 @@ public class UserServiceImplTest extends BaseTest {
 
         userService.updateTermsAndGenesInTaxon( user, taxon, geneTierMap, terms );
 
-        assertThatUserTermsAreEqualTo( user, terms );
+        assertThatUserTermsAreEqualTo( user, taxon, terms );
 
         Map<Gene, TierType> expectedGenes = new HashMap<>( geneTierMap );
         calculatedGenes.forEach( g -> expectedGenes.putIfAbsent( g, TierType.TIER3 ) );
 
-        assertThatUserGenesAreEqualTo( user, expectedGenes );
+        assertThatUserGenesAreEqualTo( user, taxon, expectedGenes );
 
     }
 
@@ -757,12 +757,70 @@ public class UserServiceImplTest extends BaseTest {
 
         userService.updateTermsAndGenesInTaxon( user, taxon, geneTierMap, terms );
 
-        assertThatUserTermsAreEqualTo( user, terms );
+        assertThatUserTermsAreEqualTo( user, taxon, terms );
 
         Map<Gene, TierType> expectedGenes = new HashMap<>( geneTierMap );
         calculatedGenes.forEach( g -> expectedGenes.putIfAbsent( g, TierType.TIER3 ) );
 
-        assertThatUserGenesAreEqualTo( user, expectedGenes );
+        assertThatUserGenesAreEqualTo( user, taxon, expectedGenes );
+
+    }
+
+    @Test
+    public void updateTermsAndGenesInTaxon_whenUserHasGenesAndTermsInMultipleTaxons() {
+        User user = createUser( 1 );
+
+        Taxon taxon = createTaxon( 1 );
+        Gene geneWillBeRemoved = createGene( 999, taxon );
+        GeneOntologyTerm termWillBeRemoved = createTermWithGene( toGOId( geneWillBeRemoved.getGeneId() ), geneWillBeRemoved );
+        user.getUserTerms().add( createUserTerm( 1, termWillBeRemoved, taxon ) );
+        user.getUserGenes().put( geneWillBeRemoved.getGeneId(), createUserGene( 1, geneWillBeRemoved, user, TierType.TIER1 ) );
+
+        Gene geneWillChangeTier = createGene( 5, taxon );
+        GeneOntologyTerm termWillRemain = createTermWithGene( toGOId( geneWillChangeTier.getGeneId() ), geneWillChangeTier );
+        user.getUserTerms().add( createUserTerm( 2, termWillRemain, taxon ) );
+        user.getUserGenes().put( geneWillChangeTier.getGeneId(), createUserGene( 2, geneWillChangeTier, user, TierType.TIER3 ) );
+
+        // Taxon 2
+        Taxon taxon2 = createTaxon( 2 );
+        Gene geneOtherTaxon = createGene( 9999, taxon2 );
+        GeneOntologyTerm termOtherTaxon = createTermWithGene( toGOId( geneOtherTaxon.getGeneId() ), geneOtherTaxon );
+        user.getUserTerms().add( createUserTerm( 3, termOtherTaxon, taxon2 ) );
+        user.getUserGenes().put( geneOtherTaxon.getGeneId(), createUserGene( 3, geneOtherTaxon, user, TierType.TIER1 ) );
+
+        Gene geneOtherTaxon2 = createGene( 5555, taxon2 );
+        GeneOntologyTerm termOtherTaxon2 = createTermWithGene( toGOId( geneOtherTaxon2.getGeneId() ), geneOtherTaxon2 );
+        user.getUserTerms().add( createUserTerm( 4, termOtherTaxon2, taxon2 ) );
+        user.getUserGenes().put( geneOtherTaxon2.getGeneId(), createUserGene( 4, geneOtherTaxon2, user, TierType.TIER3 ) );
+
+        becomeUser( user );
+
+        Collection<GeneOntologyTerm> terms = IntStream.range( 1, 10 ).boxed().map(
+                nbr -> createTermWithGene( toGOId( nbr ), createGene( nbr, taxon ) )
+        ).collect( Collectors.toSet() );
+
+        Mockito.when( goService.getGenes( Mockito.anyCollectionOf( GeneOntologyTerm.class ), Mockito.any() ) )
+                .then( i -> {
+                    Collection<GeneOntologyTerm> givenTerms = i.getArgumentAt( 0, Collection.class );
+                    return givenTerms.stream().flatMap( t -> t.getDirectGenes().stream() ).collect( Collectors.toSet() );
+                } );
+
+        Map<Gene, TierType> geneTierMap = Maps.newHashMap( geneWillChangeTier, TierType.TIER1 );
+
+        userService.updateTermsAndGenesInTaxon( user, taxon, geneTierMap, terms );
+
+        assertThatUserTermsAreEqualTo( user, taxon, terms );
+        assertThatUserTermsAreEqualTo( user, taxon2, Sets.newSet( termOtherTaxon, termOtherTaxon2 ) );
+
+        Map<Gene, TierType> expectedGenes = new HashMap<>( geneTierMap );
+        terms.stream().flatMap( t -> t.getDirectGenes().stream() ).forEach( g -> expectedGenes.putIfAbsent( g, TierType.TIER3 ) );
+
+        Map<Gene, TierType> expectedGenesTaxon2 = new HashMap<>();
+        expectedGenesTaxon2.put( geneOtherTaxon, TierType.TIER1 );
+        expectedGenesTaxon2.put( geneOtherTaxon2, TierType.TIER3 );
+
+        assertThatUserGenesAreEqualTo( user, taxon, expectedGenes );
+        assertThatUserGenesAreEqualTo( user, taxon2, expectedGenesTaxon2 );
 
     }
 
@@ -788,12 +846,12 @@ public class UserServiceImplTest extends BaseTest {
 
         userService.updateTermsAndGenesInTaxon( user, taxon, geneTierMap, terms );
 
-        assertThatUserTermsAreEqualTo( user, terms );
+        assertThatUserTermsAreEqualTo( user, taxon, terms );
 
         Map<Gene, TierType> expectedGenes = new HashMap<>( geneTierMap );
         calculatedGenes.forEach( g -> expectedGenes.putIfAbsent( g, TierType.TIER3 ) );
 
-        assertThatUserGenesAreEqualTo( user, expectedGenes );
+        assertThatUserGenesAreEqualTo( user, taxon, expectedGenes );
     }
 
     @Test
@@ -827,12 +885,12 @@ public class UserServiceImplTest extends BaseTest {
         userService.updateTermsAndGenesInTaxon( user, taxon, geneTierMap, terms );
 
         // Might as well test this
-        assertThatUserTermsAreEqualTo( user, terms );
+        assertThatUserTermsAreEqualTo( user, taxon, terms );
 
         Map<Gene, TierType> expectedGenes = new HashMap<>( geneTierMap );
         calculatedGenes.forEach( g -> expectedGenes.putIfAbsent( g, TierType.TIER3 ) );
 
-        assertThatUserGenesAreEqualTo( user, expectedGenes );
+        assertThatUserGenesAreEqualTo( user, taxon, expectedGenes );
 
         // This is really why we're here
         assertThat( user.getUserTerms().iterator().next().getId() ).isEqualTo( 1 );
@@ -873,16 +931,60 @@ public class UserServiceImplTest extends BaseTest {
 
     }
 
-    private void assertThatUserTermsAreEqualTo( User user, Collection<GeneOntologyTerm> terms ) {
-        assertThat( user.getUserTerms() ).hasSize( terms.size() );
-        assertThat( user.getUserTerms().stream().map( GeneOntologyTerm::getGoId ).collect( Collectors.toSet() ) )
+    @Test
+    public void updateTermsAndGenesInTaxon_whenTermsOverlapInDifferentSpecies_thenKeepBothTerms() {
+        User user = createUser( 1 );
+        Taxon taxon = createTaxon( 1 );
+        Taxon taxon2 = createTaxon( 2 );
+
+        // These should retain ids so that Hibernate does not delete and re insert rows
+        Gene geneInTaxon1 = createGene( 5, taxon );
+        GeneOntologyTerm termInTaxon1 = createTermWithGene( toGOId( geneInTaxon1.getGeneId() ), geneInTaxon1 );
+        user.getUserTerms().add( createUserTerm( 1, termInTaxon1, taxon ) );
+        user.getUserGenes().put( geneInTaxon1.getGeneId(), createUserGene( 1, geneInTaxon1, user, TierType.TIER3 ) );
+
+        Gene geneInTaxon2 = createGene( 105, taxon2 );
+        GeneOntologyTerm termInTaxon2 = createTermWithGene( toGOId( geneInTaxon2.getGeneId() ), geneInTaxon2 );
+        user.getUserTerms().add( createUserTerm( 2, termInTaxon2, taxon2 ) );
+        user.getUserGenes().put( geneInTaxon2.getGeneId(), createUserGene( 2, geneInTaxon2, user, TierType.TIER3 ) );
+
+        becomeUser( user );
+
+        // Mock goService.getRelatedGenes
+        Collection<Gene> calculatedGenes = Collections.singleton( createGene( 205, taxon ) );
+        Mockito.when( goService.getGenes( Mockito.anyCollectionOf( GeneOntologyTerm.class ), Mockito.eq( taxon ) ) ).thenReturn( calculatedGenes );
+        Mockito.when( goService.getGenes( Mockito.anyCollectionOf( GeneOntologyTerm.class ), Mockito.eq( taxon2 ) ) ).thenReturn( Collections.emptySet() );
+
+        // Attempting to add term to taxon 1 that is already present in taxon 2
+        Collection<GeneOntologyTerm> terms = Collections.singleton( createTermWithGene( toGOId( 105 ), createGene( 1005, taxon ) ) );
+
+        Map<Gene, TierType> geneTierMap = terms.stream()
+                .flatMap( t -> t.getDirectGenes().stream() )
+                .collect( Collectors.toMap( Function.identity(), g -> TierType.TIER1 ) );
+
+        userService.updateTermsAndGenesInTaxon( user, taxon, geneTierMap, terms );
+
+        // Why we are here
+        assertThatUserTermsAreEqualTo( user, taxon, terms );
+        assertThatUserTermsAreEqualTo( user, taxon2, Collections.singleton( termInTaxon2 ));
+
+        Map<Gene, TierType> expectedGenes = new HashMap<>( geneTierMap );
+        calculatedGenes.forEach( g -> expectedGenes.putIfAbsent( g, TierType.TIER3 ) );
+
+        assertThatUserGenesAreEqualTo( user, taxon, expectedGenes );
+        assertThatUserGenesAreEqualTo( user, taxon2, Maps.newHashMap( geneInTaxon2, TierType.TIER3 ) );
+
+    }
+
+    private void assertThatUserTermsAreEqualTo( User user, Taxon taxon, Collection<GeneOntologyTerm> terms ) {
+        assertThat( user.getUserTerms().stream().filter( t -> t.getTaxon().equals( taxon ) ).count() ).isEqualTo( terms.size() );
+        assertThat( user.getUserTerms().stream().filter( t -> t.getTaxon().equals( taxon ) ).map( GeneOntologyTerm::getGoId ).collect( Collectors.toSet() ) )
                 .isEqualTo( terms.stream().map( GeneOntologyTerm::getGoId ).collect( Collectors.toSet() ) );
     }
 
-    private void assertThatUserGenesAreEqualTo( User user, Map<Gene, TierType> expectedGenes ) {
-        assertThat( user.getUserGenes().keySet() )
-                .containsExactlyElementsOf( expectedGenes.keySet().stream().map( Gene::getGeneId )
-                        .collect( Collectors.toSet() ) );
+    private void assertThatUserGenesAreEqualTo( User user, Taxon taxon, Map<Gene, TierType> expectedGenes ) {
+        assertThat( user.getGenesByTaxon( taxon ) )
+                .containsExactlyElementsOf( expectedGenes.keySet() );
         expectedGenes.forEach( ( g, tier ) -> assertThat( user.getUserGenes().get( g.getGeneId() ).getTier() ).isEqualTo( tier ) );
     }
 

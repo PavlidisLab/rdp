@@ -12,10 +12,7 @@ import ubc.pavlab.rdp.listeners.UserEntityListener;
 import ubc.pavlab.rdp.model.enums.TierType;
 
 import javax.persistence.*;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -75,7 +72,7 @@ public class User {
     @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 	@OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
 	@JoinColumn(name = "user_id")
-	private Set<UserTerm> userTerms = new HashSet<>();
+	private List<UserTerm> userTerms = new ArrayList<>();
 
     @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "user")
