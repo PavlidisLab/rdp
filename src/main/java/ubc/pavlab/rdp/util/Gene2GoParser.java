@@ -95,14 +95,21 @@ public class Gene2GoParser {
             br.lines().map( line -> line.split( "\t" ) ).filter( values -> fastMap.containsKey( Integer.valueOf( values[0] ) ) ).forEach( values -> {
 
                 GeneOntologyTerm term = goService.getTerm( values[2] );
+
+                if ( term == null ) {
+                    log.warn( "Problem finding data for term (" + values[2] + ")" );
+                    return;
+                }
+
                 Gene gene = geneService.load( Integer.valueOf( values[1] ) );
 
-                try {
-                    term.getDirectGenes().add( gene );
-                    gene.getTerms().add( term );
-                } catch (NullPointerException nullE) {
-                    log.warn( "Problem finding data for gene (" + values[1] + ") and term (" + values[2] + ")" );
+                if ( gene == null ) {
+                    log.warn( "Problem finding data for gene (" + values[1] + ")" );
+                    return;
                 }
+
+                term.getDirectGenes().add( gene );
+                gene.getTerms().add( term );
 
             } );
         } catch (IOException e) {

@@ -73,7 +73,7 @@
     </cache>
 
     <cache name="ubc.pavlab.rdp.model.UserGene"
-           maxEntriesLocalHeap="200"
+           maxEntriesLocalHeap="500"
            eternal="false"
            overflowToDisk="false"
            timeToLiveSeconds="600"
