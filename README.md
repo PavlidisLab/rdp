@@ -158,7 +158,7 @@ After=syslog.target
 User=tomcat
 Group=tomcat
 WorkingDirectory=/project/directory
-ExecStart=/bin/java -Dserver.port=8083 -Dspring.config.location=file:faq.properties -Djava.security.egd=file:/dev/./urandom -jar rdp-x.x.x.jar
+ExecStart=/bin/java -Xms256m -Xmx3g -Dserver.port=8083 -Dspring.config.location=file:faq.properties -Djava.security.egd=file:/dev/./urandom -jar rdp-x.x.x.jar
 SuccessExitStatus=143
 
 [Install]
