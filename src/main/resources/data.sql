@@ -1,6 +1,5 @@
 INSERT IGNORE INTO role VALUES (1,'ROLE_ADMIN');
 INSERT IGNORE INTO role VALUES (2,'ROLE_USER');
-INSERT IGNORE INTO role VALUES (3,'ROLE_MANAGER');
 
 INSERT IGNORE INTO taxon (taxon_id, common_name, scientific_name, gene_url, active) VALUES (9606, "human", "Homo sapiens", "ftp://ftp.ncbi.nlm.nih.gov/gene/DATA/GENE_INFO/Mammalia/Homo_sapiens.gene_info.gz", true);
 INSERT IGNORE INTO taxon (taxon_id, common_name, scientific_name, gene_url, active) VALUES (10090, "mouse", "Mus musculus", "ftp://ftp.ncbi.nlm.nih.gov/gene/DATA/GENE_INFO/Mammalia/Mus_musculus.gene_info.gz", false);

@@ -79,20 +79,6 @@ public class AdminControllerTest extends BaseTest {
     }
 
     @Test
-    @WithMockUser(roles = {"MANAGER"})
-    public void givenLoggedInAsManager_whenDeleteUser_thenReturn403()
-            throws Exception {
-
-        User me = createUser( 1 );
-
-        given( userService.findUserById( Matchers.eq( 1 ) ) ).willReturn( me );
-
-        mvc.perform( get( "/admin/user/1/delete" )
-                .contentType( MediaType.APPLICATION_JSON ) )
-                .andExpect( status().isForbidden() );
-    }
-
-    @Test
     @WithMockUser(roles = {"ADMIN"})
     public void givenLoggedInAsAdmin_whenDeleteUser_thenSucceed()
             throws Exception {

@@ -17,6 +17,18 @@ import java.util.Set;
  * Created by mjacobson on 16/01/18.
  */
 public interface UserService {
+    /**
+     * Privacy level designating that only the administrator can access the users data.
+     */
+    Integer PRIVACY_PRIVATE = 0;
+    /**
+     * Privacy level designating that only the locally registered users can access the users data.
+     */
+    Integer PRIVACY_REGISTERED = 0;
+    /**
+     * Privacy level designating that everybody can access the users data.
+     */
+    Integer PRIVACY_PUBLIC = 0;
 
     @Transactional
     User create( User user );
@@ -37,7 +49,6 @@ public interface UserService {
 
     User findCurrentUser();
 
-    @Secured( {"ROLE_ADMIN", "ROLE_MANAGER"} )
     User findUserById( int id );
 
     User findUserByIdNoAuth( int id );
@@ -46,13 +57,10 @@ public interface UserService {
 
     User findUserByUserName( String email );
 
-    @Secured( {"ROLE_ADMIN", "ROLE_MANAGER"} )
     List<User> findAll();
 
-    @Secured( {"ROLE_ADMIN", "ROLE_MANAGER"} )
     Collection<User> findByLikeName( String nameLike );
 
-    @Secured( {"ROLE_ADMIN", "ROLE_MANAGER"} )
     Collection<User> findByDescription( String descriptionLike );
 
     long countResearchers();
@@ -66,7 +74,8 @@ public interface UserService {
     Collection<UserTerm> recommendTerms( User user, Taxon taxon, int minSize, int maxSize, int minFrequency );
 
     @Transactional
-    void updateTermsAndGenesInTaxon( User user, Taxon taxon, Map<Gene, TierType> genesToTierMap, Collection<GeneOntologyTerm> goTerms );
+    void updateTermsAndGenesInTaxon( User user, Taxon taxon, Map<Gene, TierType> genesToTierMap,
+            Collection<GeneOntologyTerm> goTerms );
 
     @Transactional
     User updatePublications( User user, Set<Publication> publications );
@@ -84,4 +93,9 @@ public interface UserService {
 
     @Transactional
     User confirmVerificationToken( String token );
+
+    boolean checkCurrentUserCanSee(User user);
+
+    boolean checkCurrentUserCanSee(UserGene userGene);
+
 }

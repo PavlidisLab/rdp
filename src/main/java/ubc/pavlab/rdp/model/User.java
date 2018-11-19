@@ -50,6 +50,12 @@ public class User {
     @JsonIgnore
 	private boolean enabled;
 
+    @Column(name = "privacy_level")
+    private Integer privacyLevel;
+
+    @Column(name = "shared")
+    private boolean shared;
+
     @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 	@ManyToMany(fetch = FetchType.EAGER)
 	@JoinTable(name = "user_role", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))

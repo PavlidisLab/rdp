@@ -29,10 +29,7 @@ import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.repositories.TaxonRepository;
 import ubc.pavlab.rdp.repositories.UserGeneRepository;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Created by mjacobson on 17/01/18.
@@ -45,6 +42,9 @@ public class UserGeneServiceImpl implements UserGeneService {
 
     @Autowired
     private UserGeneRepository userGeneRepository;
+
+    @Autowired
+    private UserService userService;
 
     @Cacheable(cacheNames="stats", key = "#root.methodName")
     @Override
@@ -77,32 +77,46 @@ public class UserGeneServiceImpl implements UserGeneService {
 
     @Override
     public Collection<UserGene> findByGene( int geneId ) {
-        return userGeneRepository.findByGeneId( geneId );
+        return securityFilter(userGeneRepository.findByGeneId( geneId ));
     }
 
     @Override
     public Collection<UserGene> findByGene( int geneId, TierType tier ) {
-        return userGeneRepository.findByGeneIdAndTier( geneId, tier );
+        return securityFilter(userGeneRepository.findByGeneIdAndTier( geneId, tier ));
     }
 
     @Override
     public Collection<UserGene> findByGene( int geneId, Set<TierType> tiers ) {
-        return userGeneRepository.findByGeneIdAndTierIn( geneId, tiers );
+        return securityFilter(userGeneRepository.findByGeneIdAndTierIn( geneId, tiers ));
     }
 
     @Override
     public Collection<UserGene> findByLikeSymbol( String symbol, Taxon taxon ) {
-        return userGeneRepository.findBySymbolContainingIgnoreCaseAndTaxon( symbol, taxon );
+        return securityFilter(userGeneRepository.findBySymbolContainingIgnoreCaseAndTaxon( symbol, taxon ));
     }
 
     @Override
     public Collection<UserGene> findByLikeSymbol( String symbol, Taxon taxon, TierType tier ) {
-        return userGeneRepository.findBySymbolContainingIgnoreCaseAndTaxonAndTier( symbol, taxon, tier );
+        return securityFilter(userGeneRepository.findBySymbolContainingIgnoreCaseAndTaxonAndTier( symbol, taxon, tier ));
     }
 
     @Override
     public Collection<UserGene> findByLikeSymbol( String symbol, Taxon taxon, Set<TierType> tiers ) {
-        return userGeneRepository.findBySymbolContainingIgnoreCaseAndTaxonAndTierIn( symbol, taxon, tiers );
+        return securityFilter(userGeneRepository.findBySymbolContainingIgnoreCaseAndTaxonAndTierIn( symbol, taxon, tiers ));
+    }
+
+    private Collection<UserGene> securityFilter( Collection<UserGene> userGenes ) {
+
+        Collection<UserGene> filteredUserGenes = new LinkedList<>();
+        for ( UserGene userGene : userGenes ) {
+            if ( userService.checkCurrentUserCanSee( userGene ) ) {
+                filteredUserGenes.add( userGene );
+            }else{
+                System.out.println("Filtered out found gene "+userGene.getSymbol());
+            }
+        }
+
+        return filteredUserGenes;
     }
 
 }

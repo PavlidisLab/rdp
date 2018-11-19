@@ -58,8 +58,10 @@ public class UserServiceImplTest extends BaseTest {
 
     }
 
+    @SuppressWarnings("SpringJavaAutowiredMembersInspection")
     @Autowired
     private UserService userService;
+    @SuppressWarnings("SpringJavaAutowiredMembersInspection")
     @Autowired
     private BCryptPasswordEncoder bCryptPasswordEncoder;
 
@@ -93,11 +95,6 @@ public class UserServiceImplTest extends BaseTest {
         role.setId( 2 );
         role.setRole( "ROLE_USER" );
         Mockito.when( roleRepository.findByRole( "ROLE_USER" ) ).thenReturn( role );
-
-        role = new Role();
-        role.setId( 3 );
-        role.setRole( "ROLE_MANAGER" );
-        Mockito.when( roleRepository.findByRole( "ROLE_MANAGER" ) ).thenReturn( role );
     }
 
     private void setUpPasswordResetTokenMocks() {
@@ -169,7 +166,6 @@ public class UserServiceImplTest extends BaseTest {
     @Test
     public void create_whenValidUser_thenPasswordEncodedAndRoleAssigned() {
         setUpRoleMocks();
-        Mockito.when( applicationSettings.isDefaultNewUserRoleAsManager() ).thenReturn( false );
 
         User user = createUser( 1 );
         String oldPassword = "imbatman";
@@ -181,25 +177,6 @@ public class UserServiceImplTest extends BaseTest {
         Role role = new Role();
         role.setId( 2 );
         role.setRole( "ROLE_USER" );
-        assertThat( persistedUser.getRoles() ).containsExactly( role );
-        assertThat( bCryptPasswordEncoder.matches( oldPassword, persistedUser.getPassword() ) ).isTrue();
-    }
-
-    @Test
-    public void create_whenValidUserAndDefaultManager_thenPasswordEncodedAndRoleAssigned() {
-        setUpRoleMocks();
-        Mockito.when( applicationSettings.isDefaultNewUserRoleAsManager() ).thenReturn( true );
-
-        User user = createUser( 1 );
-        String oldPassword = "imbatman";
-        user.setPassword( oldPassword ); // unencode
-
-        User persistedUser = userService.create( user );
-
-        assertThat( persistedUser.getEmail() ).isEqualTo( user.getEmail() );
-        Role role = new Role();
-        role.setId( 3 );
-        role.setRole( "ROLE_MANAGER" );
         assertThat( persistedUser.getRoles() ).containsExactly( role );
         assertThat( bCryptPasswordEncoder.matches( oldPassword, persistedUser.getPassword() ) ).isTrue();
     }
@@ -395,6 +372,7 @@ public class UserServiceImplTest extends BaseTest {
 
     @Test
     public void convertTerms_whenTermsEmpty_thenReturnEmptySet() {
+        //noinspection unchecked
         assertThat( userService.convertTerms( createUser( 1 ), createTaxon( 1 ), Collections.EMPTY_SET ) ).isEmpty();
     }
 
@@ -801,7 +779,7 @@ public class UserServiceImplTest extends BaseTest {
 
         Mockito.when( goService.getGenes( Mockito.anyCollectionOf( GeneOntologyTerm.class ), Mockito.any() ) )
                 .then( i -> {
-                    Collection<GeneOntologyTerm> givenTerms = i.getArgumentAt( 0, Collection.class );
+                    @SuppressWarnings("unchecked") Collection<GeneOntologyTerm> givenTerms = i.getArgumentAt( 0, Collection.class );
                     return givenTerms.stream().flatMap( t -> t.getDirectGenes().stream() ).collect( Collectors.toSet() );
                 } );
 

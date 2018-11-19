@@ -12,6 +12,8 @@ import java.util.Collection;
 @Repository
 public interface UserRepository extends JpaRepository<User, Integer> {
 
+    @SuppressWarnings("SpringCacheAnnotationsOnInterfaceInspection")
+    @Override
     @Cacheable(cacheNames="stats", key = "#root.methodName")
     long count();
 
@@ -20,7 +22,10 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
     Collection<User> findByProfileNameContainingIgnoreCaseOrProfileLastNameContainingIgnoreCase( String nameLike, String lastNameLike );
 
+    @SuppressWarnings("SpringDataRepositoryMethodParametersInspection")
     @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
     Collection<User> findByProfileDescriptionContainingIgnoreCaseOrTaxonDescriptionsContainingIgnoreCase( String descriptionLike, String taxonDescriptionLike );
+
+
 
 }

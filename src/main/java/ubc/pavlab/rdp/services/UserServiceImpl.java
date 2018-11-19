@@ -1,5 +1,6 @@
 package ubc.pavlab.rdp.services;
 
+import lombok.Builder;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,13 +50,16 @@ public class UserServiceImpl implements UserService {
     @Autowired
     ApplicationSettings applicationSettings;
 
+    private Role roleAdmin;
+
     @Transactional
     @Override
     public User create( User user ) {
         user.setPassword( bCryptPasswordEncoder.encode( user.getPassword() ) );
-        Role userRole = roleRepository.findByRole( applicationSettings.isDefaultNewUserRoleAsManager() ? "ROLE_MANAGER" : "ROLE_USER" );
+        Role userRole = roleRepository.findByRole( "ROLE_USER" );
 
         user.setRoles( Collections.singleton( userRole ) );
+        user.setPrivacyLevel( PRIVACY_PUBLIC );
         return userRepository.save( user );
     }
 
@@ -76,7 +80,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Transactional
-    private User updateNoAuth( User user ) {
+    protected User updateNoAuth( User user ) {
         return userRepository.save( user );
     }
 
@@ -147,12 +151,13 @@ public class UserServiceImpl implements UserService {
     @Override
     public User findCurrentUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        return findUserByIdNoAuth( ((UserPrinciple) auth.getPrincipal()).getId() );
+        return auth != null ? findUserByIdNoAuth( ((UserPrinciple) auth.getPrincipal()).getId() ) : null;
     }
 
     @Override
     public User findUserById( int id ) {
-        return userRepository.findOne( id );
+        User user = userRepository.findOne( id );
+        return user == null ? null : checkCurrentUserCanSee( user ) ? user : null;
     }
 
     @Override
@@ -173,17 +178,17 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<User> findAll() {
-        return userRepository.findAll();
+        return userRepository.findAll().stream().filter( this::checkCurrentUserCanSee ).collect( Collectors.toList());
     }
 
     @Override
     public Collection<User> findByLikeName( String nameLike ) {
-        return userRepository.findByProfileNameContainingIgnoreCaseOrProfileLastNameContainingIgnoreCase( nameLike, nameLike );
+        return securityFilter(userRepository.findByProfileNameContainingIgnoreCaseOrProfileLastNameContainingIgnoreCase( nameLike, nameLike ));
     }
 
     @Override
     public Collection<User> findByDescription( String descriptionLike ) {
-        return userRepository.findByProfileDescriptionContainingIgnoreCaseOrTaxonDescriptionsContainingIgnoreCase( descriptionLike, descriptionLike );
+        return securityFilter(userRepository.findByProfileDescriptionContainingIgnoreCaseOrTaxonDescriptionsContainingIgnoreCase( descriptionLike, descriptionLike ));
     }
 
     @Override
@@ -391,6 +396,24 @@ public class UserServiceImpl implements UserService {
         return user;
     }
 
+    @Override
+    public boolean checkCurrentUserCanSee( User user ) {
+        User currentUser = findCurrentUser();
+        if(roleAdmin == null ){
+            roleAdmin = roleRepository.findByRole( "ROLE_ADMIN" );
+        }
+
+        // Either the user is public, shared with registered users - check for any logged-in user, or private - check for admin.
+        return user.getPrivacyLevel().equals( PRIVACY_PUBLIC ) || ( user.getPrivacyLevel().equals( PRIVACY_REGISTERED )
+                && currentUser != null ) || ( user.getPrivacyLevel().equals( PRIVACY_PRIVATE ) && currentUser != null
+                && currentUser.getRoles().contains( roleAdmin ) );
+    }
+
+    @Override
+    public boolean checkCurrentUserCanSee( UserGene userGene ) {
+        return checkCurrentUserCanSee( userGene.getUser() );
+    }
+
     private Collection<Gene> calculatedGenesInTaxon( User user, Taxon taxon ) {
         return goService.getGenes( user.getTermsByTaxon( taxon ), taxon );
     }
@@ -407,7 +430,12 @@ public class UserServiceImpl implements UserService {
         return user.getUserTerms().removeIf( ut -> ut.getTaxon().equals( taxon ) );
     }
 
-    static <T> Collector<T,?,List<T>> maxList( Comparator<? super T> comp) {
+    private Collection<User> securityFilter(Collection<User> users){
+        return users.stream().filter( this::checkCurrentUserCanSee ).collect( Collectors.toList() );
+    }
+
+    @SuppressWarnings("unused") // Keeping for future use
+    private static <T> Collector<T,?,List<T>> maxList( Comparator<? super T> comp) {
         return Collector.of(
                 ArrayList::new,
                 (list, t) -> {
@@ -438,7 +466,7 @@ public class UserServiceImpl implements UserService {
                 });
     }
 
-    static <T> Collector<T,?,Set<T>> maxSet( Comparator<? super T> comp) {
+    private static <T> Collector<T,?,Set<T>> maxSet( Comparator<? super T> comp ) {
         return Collector.of(
                 HashSet::new,
                 (set, t) -> {

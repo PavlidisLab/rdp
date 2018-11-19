@@ -55,11 +55,6 @@ spring.mail.port=587
 # = Application Specific Defaults
 # ==============================================================
 
-# Default user will be ROLE_MANAGER instead of ROLE_USER
-# Set to true if you want the default newly created user
-# to be able to search and view other users' profile.
-rdp.settings.send-email-on-registration=true
-
 ### Host of your production website (No Trailing Slash) ###
 rdp.site.host=http://register.rare-diseases-catalyst-network.ca
 

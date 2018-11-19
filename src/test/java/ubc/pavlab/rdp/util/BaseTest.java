@@ -12,10 +12,12 @@ import java.util.stream.Collectors;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static ubc.pavlab.rdp.services.UserService.PRIVACY_PUBLIC;
 
 /**
  * Created by mjacobson on 14/02/18.
  */
+@SuppressWarnings("WeakerAccess")
 public class BaseTest {
 
     protected static final String EMAIL = "bruce@wayne.com";
@@ -47,6 +49,7 @@ public class BaseTest {
 
     protected User createUnpersistedUser() {
         User user = new User();
+        user.setPrivacyLevel( PRIVACY_PUBLIC );
         user.setEmail( EMAIL );
         user.setPassword( ENCODED_PASSWORD ); // imbatman
 
@@ -61,6 +64,7 @@ public class BaseTest {
     protected User createUser( int id ) {
         User user = createUnpersistedUser();
         user.setId( id );
+        user.setPrivacyLevel( PRIVACY_PUBLIC );
 
         return user;
     }
@@ -68,6 +72,7 @@ public class BaseTest {
     protected User createUserWithRole( int id, String... role ) {
         User user = createUnpersistedUser();
         user.setId( id );
+        user.setPrivacyLevel( PRIVACY_PUBLIC );
 
         user.setRoles( Arrays.stream(role).map( r -> createRole( r.length(), r ) ).collect( Collectors.toSet() ) );
 

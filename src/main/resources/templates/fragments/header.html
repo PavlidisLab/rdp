@@ -40,7 +40,7 @@
             <li class="nav-item">
                 <a class="nav-link" th:href="@{/user/support}" href="/user/support">Contact</a>
             </li>
-            <li class="nav-item" sec:authorize="hasAnyRole('ROLE_MANAGER', 'ROLE_ADMIN')">
+            <li class="nav-item" sec:authorize="hasRole('ROLE_ADMIN')">
                 <a class="nav-link" th:href="@{/manager/search}" href="/manager/search">Search</a>
             </li>
         </ul>

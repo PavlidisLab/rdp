@@ -55,7 +55,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                         "/updatePassword",
                         "/resendConfirmation",
                         "/access-denied").permitAll()
-                .antMatchers( "/manager/**" ).hasAnyRole( "MANAGER", "ADMIN" )
+                .antMatchers( "/manager/**" ).hasAnyRole( "USER", "ADMIN" )
                 .antMatchers( "/admin/**" ).hasRole( "ADMIN" )
                 .antMatchers( "/", "/user/**" ).authenticated().anyRequest()
                 .authenticated().and().csrf().disable().formLogin()
@@ -73,7 +73,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Override
-    public void configure( WebSecurity web ) throws Exception {
+    public void configure( WebSecurity web ) {
         web
                 .ignoring()
                 .antMatchers( "/resources/**", "/static/**", "/css/**", "/js/**", "/images/**" );

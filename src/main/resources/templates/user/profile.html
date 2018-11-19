@@ -149,6 +149,36 @@
             <div class="w-100"></div>
 
             <div class="col my-3">
+                <div class="card research-info edit-container">
+                    <div class="card-header d-flex align-items-center">
+                        <h3 class="mb-0 d-inline-block">Data Privacy Settings</h3>
+                    </div>
+                    <div class="p-2">
+                        <div class="radio">
+                            <label><input id="privacyLevelPrivate" type="radio" name="privacy" th:checked="${user.privacyLevel == 0}"/>Private - only your local BIC admin will see your data.</label>
+                        </div>
+                        <div class="radio">
+                            <label><input id="privacyLevelShared" type="radio" name="privacy" th:checked="${user.privacyLevel == 1}"/>Shared with other registered users.</label>
+                        </div>
+                        <div class="radio">
+                            <label><input id="privacyLevelPublic" type="radio" name="privacy" th:checked="${user.privacyLevel == 2}"/>Visible to anyone.</label>
+                        </div>
+                    </div>
+                    <hr/>
+                    <div class="p-2">
+                        <div class="form-check">
+                            <label class="form-check-label">
+                                <input type="checkbox" class="form-check-input" th:value="${user.shared}"/>Share confidentially with
+                                managers of other similar applications in other nations.
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="w-100"></div>
+
+            <div class="col my-3">
                 <div class="card publication-info">
                     <div class="card-header">
                         <h3 class="mb-0">Publications</h3>
