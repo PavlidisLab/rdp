@@ -15,6 +15,9 @@ function collectProfile() {
     // Research Information
     profile.description = $.trim($('.research-info').find('.data-edit')[0].value);
 
+    profile.privacyLevel = $('input[name=privacy]:checked').val();
+    profile.shared = $('#privacySharing').prop('checked');
+
     // Publication Information
     var publications = [];
     $('#publication-table').DataTable().rows().every( function ( rowIdx, tableLoop, rowLoop ) {
@@ -34,6 +37,13 @@ function collectProfile() {
     profile.publications = publications;
 
     return profile;
+}
+
+function collectPrivacy(){
+    var privacy = {};
+    privacy.level = $('input[name=privacy]:checked').val();
+    privacy.sharing = $('#privacySharing').prop('checked');
+    return privacy;
 }
 
 $(document).ready(function () {

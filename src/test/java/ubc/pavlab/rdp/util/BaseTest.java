@@ -49,13 +49,13 @@ public class BaseTest {
 
     protected User createUnpersistedUser() {
         User user = new User();
-        user.setPrivacyLevel( PRIVACY_PUBLIC );
         user.setEmail( EMAIL );
         user.setPassword( ENCODED_PASSWORD ); // imbatman
 
         Profile profile = new Profile();
         profile.setName( NAME );
         profile.setLastName( LAST_NAME );
+        profile.setPrivacyLevel( PRIVACY_PUBLIC );
         user.setProfile( profile );
 
         return user;
@@ -64,7 +64,6 @@ public class BaseTest {
     protected User createUser( int id ) {
         User user = createUnpersistedUser();
         user.setId( id );
-        user.setPrivacyLevel( PRIVACY_PUBLIC );
 
         return user;
     }
@@ -72,7 +71,6 @@ public class BaseTest {
     protected User createUserWithRole( int id, String... role ) {
         User user = createUnpersistedUser();
         user.setId( id );
-        user.setPrivacyLevel( PRIVACY_PUBLIC );
 
         user.setRoles( Arrays.stream(role).map( r -> createRole( r.length(), r ) ).collect( Collectors.toSet() ) );
 

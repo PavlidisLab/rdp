@@ -43,6 +43,12 @@ public class Profile {
     @URL
     private String website;
 
+    @Column(name = "privacy_level")
+    private Integer privacyLevel;
+
+    @Column(name = "shared")
+    private Boolean shared;
+
     @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
     @JoinColumn(name = "user_id")

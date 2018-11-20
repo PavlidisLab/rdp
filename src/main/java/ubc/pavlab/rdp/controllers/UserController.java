@@ -58,6 +58,8 @@ public class UserController {
         user.getProfile().setOrganization( profile.getOrganization() );
         user.getProfile().setPhone( profile.getPhone() );
         user.getProfile().setWebsite( profile.getWebsite() );
+        user.getProfile().setPrivacyLevel( profile.getPrivacyLevel() );
+        user.getProfile().setShared( profile.getShared() );
 
         userService.updatePublications( user, profile.getPublications() );
 

@@ -24,11 +24,11 @@ public interface UserService {
     /**
      * Privacy level designating that only the locally registered users can access the users data.
      */
-    Integer PRIVACY_REGISTERED = 0;
+    Integer PRIVACY_REGISTERED = 1;
     /**
      * Privacy level designating that everybody can access the users data.
      */
-    Integer PRIVACY_PUBLIC = 0;
+    Integer PRIVACY_PUBLIC = 2;
 
     @Transactional
     User create( User user );

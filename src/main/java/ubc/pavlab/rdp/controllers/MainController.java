@@ -106,6 +106,7 @@ public class MainController {
         ModelAndView modelAndView = new ModelAndView();
         User user = userService.findCurrentUser();
         modelAndView.addObject( "user", user );
+        modelAndView.addObject( "viewOnly", null );
         modelAndView.setViewName( "user/profile" );
         return modelAndView;
     }

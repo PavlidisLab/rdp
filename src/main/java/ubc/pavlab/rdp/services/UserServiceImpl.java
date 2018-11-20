@@ -59,7 +59,6 @@ public class UserServiceImpl implements UserService {
         Role userRole = roleRepository.findByRole( "ROLE_USER" );
 
         user.setRoles( Collections.singleton( userRole ) );
-        user.setPrivacyLevel( PRIVACY_PUBLIC );
         return userRepository.save( user );
     }
 
@@ -403,9 +402,11 @@ public class UserServiceImpl implements UserService {
             roleAdmin = roleRepository.findByRole( "ROLE_ADMIN" );
         }
 
+        Profile profile = user.getProfile();
+
         // Either the user is public, shared with registered users - check for any logged-in user, or private - check for admin.
-        return user.getPrivacyLevel().equals( PRIVACY_PUBLIC ) || ( user.getPrivacyLevel().equals( PRIVACY_REGISTERED )
-                && currentUser != null ) || ( user.getPrivacyLevel().equals( PRIVACY_PRIVATE ) && currentUser != null
+        return profile.getPrivacyLevel().equals( PRIVACY_PUBLIC ) || ( profile.getPrivacyLevel().equals( PRIVACY_REGISTERED )
+                && currentUser != null ) || ( profile.getPrivacyLevel().equals( PRIVACY_PRIVATE ) && currentUser != null
                 && currentUser.getRoles().contains( roleAdmin ) );
     }
 

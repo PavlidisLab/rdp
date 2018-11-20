@@ -13,3 +13,11 @@ input.data-edit {
     -ms-text-overflow: ellipsis;
     text-overflow: ellipsis;
 }
+
+#privacy-levels .radio{
+    margin: 12px 12px 0;
+}
+
+#privacy-sharing div{
+    margin: 0 12px 12px;
+}
