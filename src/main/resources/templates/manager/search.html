@@ -41,9 +41,7 @@
             <div class="d-flex w-100 isearch-settings" th:if="${@applicationSettings.getIsearch().isEnabled()}">
                 <span class="col-12">
                     <label>
-                        <input type="checkbox" id="iSearch" name="iSearch" value="1"
-                               th:checked="${@applicationSettings.getIsearch().isDefaultOn()}"/>
-                        <input type="hidden" id="iSearchOff" name="iSearch" value="0"/>
+                        <input id="isearch-checkbox" type="checkbox" th:checked="${@applicationSettings.getIsearch().isDefaultOn()}"/>
                         <span class="label-text">International search</span>
                     </label>
                 </span>
@@ -55,6 +53,7 @@
                             <button class="btn btn-outline-secondary" type="submit">Search</button>
                         </div>
                         <input type="text" class="form-control" name="nameLike" placeholder="Part of researcher name"/>
+                        <input type="hidden" name="iSearch"/>
                     </div>
                 </div>
             </form>
@@ -65,6 +64,7 @@
                             <button class="btn btn-outline-secondary" type="submit">Search</button>
                         </div>
                         <input type="text" class="form-control" name="descriptionLike" placeholder="Keyword in research description"/>
+                        <input type="hidden" name="iSearch"/>
                     </div>
                 </div>
             </form>
@@ -115,11 +115,15 @@
                 </div>
             </form>
             <div id="userTable">
-                <div th:if="${errorMessage != null}" th:replace="fragments/error :: message" th:remove="tag">...</div>
-                <div th:if="${users != null}" th:replace="fragments/user-table :: user-table(users=${users})" th:remove="tag">...</div>
+                <div th:if="${users != null}" th:replace="fragments/user-table :: user-table(users=${users}, remote=false)" th:remove="tag">...</div>
             </div>
-            <!--<div th:replace="fragments/user-table :: user-table(users=${@userService.findAll()})" th:remove="tag">...</div>-->
-            <!--<div th:if="${users != null}" th:replace="fragments/user-table :: user-table(users=${users})" th:remove="tag">...</div>-->
+            <div id="itlResults" th:if="${@applicationSettings.getIsearch().isEnabled()}">
+                <hr/>
+                <h4>International results</h4>
+                <div id="itlUserTable">
+                    <div th:if="${itlUsers != null}" th:replace="fragments/user-table :: user-table(users=${itlUsers}, remote=true)" th:remove="tag">...</div>
+                </div>
+            </div>
         </div>
 
     </div>

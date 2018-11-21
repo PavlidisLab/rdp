@@ -168,7 +168,7 @@
                     <div id="privacy-sharing" class="d-flex w-100 p-2" th:if="${@applicationSettings.getPrivacy().isCustomizableSharing()}">
                         <div class="col-12">
                             <label class="form-check-label">
-                                <input id="privacySharing" type="checkbox" class="form-check-input" th:checked="${user.profile.shared}"/>Include data in international search
+                                <input id="privacy-sharing-checkbox" type="checkbox" class="form-check-input" th:checked="${user.profile.shared}"/>Include data in international search
                             </label>
                         </div>
                     </div>

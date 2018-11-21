@@ -1,14 +1,43 @@
+function checkAndHide(itlChbox){
+    if(itlChbox.prop("checked")){
+        $("#itlResults").show();
+        $("[name=iSearch]").val(true);
+    }else{
+        $("#itlResults").hide();
+        $('[name="iSearch"]').val(false);
+    }
+}
+
 $(document).ready(function () {
     $("form").submit(function (event) {
         var tableContainer = $("#userTable");
         tableContainer.html($('<i class="mx-2 spinner"></i>'));
+
+        // noinspection JSUnusedLocalSymbols
         tableContainer.load("/manager/search/view", $(this).serialize(), function(responseText, textStatus, req) {
             if (textStatus !== "success") {
                 tableContainer.html($('<span class="mx-2 text-danger">Something went wrong! Please try again.</span>'));
             }
         });
 
+        if($("#isearch-checkbox").is(":checked")){
+            var itlTableContainer = $("#itlUserTable");
+            itlTableContainer.html($('<i class="mx-2 spinner"></i>'));
+            // noinspection JSUnusedLocalSymbols
+            itlTableContainer.load("/manager/search/view/international", $(this).serialize(), function(responseText, textStatus, req) {
+                if (textStatus !== "success") {
+                    itlTableContainer.html($('<span class="mx-2 text-danger">Something went wrong! Please try again.</span>'));
+                }
+            });
+        }
+
         event.preventDefault();
+    });
+
+    var itlChbox = $("#isearch-checkbox");
+    checkAndHide(itlChbox);
+    itlChbox.click(function(){
+        checkAndHide(itlChbox);
     });
 
     $(function () {
@@ -37,6 +66,7 @@ $(document).ready(function () {
                     return;
                 }
 
+                // noinspection JSUnusedLocalSymbols
                 $.getJSON("/taxon/" + taxonId  + "/gene/search/" + term + "?max=10", request, function (data, status, xhr) {
 
                     if (!data.length) {

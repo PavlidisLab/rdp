@@ -1,7 +1,5 @@
 package ubc.pavlab.rdp.controllers;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -14,10 +12,8 @@ import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.model.User;
 import ubc.pavlab.rdp.model.UserGene;
 import ubc.pavlab.rdp.model.enums.TierType;
-import ubc.pavlab.rdp.services.GeneService;
-import ubc.pavlab.rdp.services.TaxonService;
-import ubc.pavlab.rdp.services.UserGeneService;
-import ubc.pavlab.rdp.services.UserService;
+import ubc.pavlab.rdp.services.*;
+import ubc.pavlab.rdp.settings.ApplicationSettings;
 
 import java.util.Collection;
 
@@ -26,8 +22,6 @@ import java.util.Collection;
  */
 @Controller
 public class ManagerController {
-
-    private static Log log = LogFactory.getLog( ManagerController.class );
 
     @Autowired
     private UserService userService;
@@ -41,18 +35,25 @@ public class ManagerController {
     @Autowired
     private UserGeneService userGeneService;
 
-    @RequestMapping(value = "/manager/search", method = RequestMethod.GET, params = {"nameLike"})
-    public ModelAndView searchUsersByName( @RequestParam String nameLike ) {
+    @Autowired
+    private ApplicationSettings applicationSettings;
+
+    @Autowired
+    private RemoteResourceService remoteResourceService;
+
+    @RequestMapping(value = "/manager/search", method = RequestMethod.GET, params = { "nameLike", "iSearch" })
+    public ModelAndView searchUsersByName( @RequestParam String nameLike, @RequestParam Boolean iSearch ) {
         User user = userService.findCurrentUser();
         ModelAndView modelAndView = new ModelAndView();
         modelAndView.addObject( "user", user );
         modelAndView.addObject( "users", userService.findByLikeName( nameLike ) );
-//        modelAndView.setViewName( "fragments/user-table :: user-table" );
+        if ( iSearch )
+            modelAndView.addObject( "itlUsers", remoteResourceService.findUsersByLikeName( nameLike ) );
         modelAndView.setViewName( "manager/search" );
         return modelAndView;
     }
 
-    @RequestMapping(value = "/manager/search/view", method = RequestMethod.GET, params = {"nameLike"})
+    @RequestMapping(value = "/manager/search/view", method = RequestMethod.GET, params = { "nameLike", })
     public ModelAndView searchUsersByNameView( @RequestParam String nameLike ) {
         ModelAndView modelAndView = new ModelAndView();
         modelAndView.addObject( "users", userService.findByLikeName( nameLike ) );
@@ -60,17 +61,33 @@ public class ManagerController {
         return modelAndView;
     }
 
-    @RequestMapping(value = "/manager/search", method = RequestMethod.GET, params = {"descriptionLike"})
-    public ModelAndView searchUsersByDescription( @RequestParam String descriptionLike ) {
+    @RequestMapping(value = "/manager/search/view/international", method = RequestMethod.GET, params = { "nameLike" })
+    public ModelAndView searchItlUsersByNameView( @RequestParam String nameLike ) {
+        if ( !applicationSettings.getIsearch().isEnabled() )
+            return null;
+        ModelAndView modelAndView = new ModelAndView();
+
+        modelAndView.addObject( "users", remoteResourceService.findUsersByLikeName( nameLike ) );
+        modelAndView.setViewName( "fragments/user-table :: user-table" );
+        modelAndView.addObject( "remote", true );
+
+        return modelAndView;
+    }
+
+    @RequestMapping(value = "/manager/search", method = RequestMethod.GET, params = { "descriptionLike", "iSearch" })
+    public ModelAndView searchUsersByDescription( @RequestParam String descriptionLike,
+            @RequestParam Boolean iSearch ) {
         User user = userService.findCurrentUser();
         ModelAndView modelAndView = new ModelAndView();
         modelAndView.addObject( "user", user );
         modelAndView.addObject( "users", userService.findByDescription( descriptionLike ) );
+        if ( iSearch )
+            modelAndView.addObject( "itlUsers", remoteResourceService.findUsersByDescription( descriptionLike ) );
         modelAndView.setViewName( "manager/search" );
         return modelAndView;
     }
 
-    @RequestMapping(value = "/manager/search/view", method = RequestMethod.GET, params = {"descriptionLike"})
+    @RequestMapping(value = "/manager/search/view", method = RequestMethod.GET, params = { "descriptionLike" })
     public ModelAndView searchUsersByDescriptionView( @RequestParam String descriptionLike ) {
         ModelAndView modelAndView = new ModelAndView();
         modelAndView.addObject( "users", userService.findByDescription( descriptionLike ) );
@@ -78,62 +95,77 @@ public class ManagerController {
         return modelAndView;
     }
 
-    @RequestMapping(value = "/manager/search", method = RequestMethod.GET, params = {"symbolLike", "taxonId", "tier"})
-    public ModelAndView searchUsersByGeneSymbol( @RequestParam String symbolLike, @RequestParam Integer taxonId, @RequestParam TierType tier ) {
-        User user = userService.findCurrentUser();
-        Taxon taxon = taxonService.findById( taxonId );
-
+    @RequestMapping(value = "/manager/search/view/international", method = RequestMethod.GET, params = {
+            "descriptionLike" })
+    public ModelAndView searchItlUsersByDescriptionView( @RequestParam String descriptionLike ) {
+        if ( !applicationSettings.getIsearch().isEnabled() )
+            return null;
         ModelAndView modelAndView = new ModelAndView();
-        modelAndView.addObject( "user", user );
-        modelAndView.addObject( "usergenes", handleGeneSymbolSearch( symbolLike, tier, taxon ) );
 
-        modelAndView.setViewName( "manager/search" );
+        modelAndView.addObject( "users", remoteResourceService.findUsersByDescription( descriptionLike ) );
+        modelAndView.setViewName( "fragments/user-table :: user-table" );
+        modelAndView.addObject( "remote", true );
+
         return modelAndView;
     }
 
-    @RequestMapping(value = "/manager/search/view", method = RequestMethod.GET, params = {"symbolLike", "taxonId", "tier"})
-    public ModelAndView searchUsersByGeneSymbolView( @RequestParam String symbolLike, @RequestParam Integer taxonId, @RequestParam TierType tier ) {
+    @RequestMapping(value = "/manager/search", method = RequestMethod.GET, params = { "symbol", "taxonId", "tier",
+            "iSearch" })
+    public ModelAndView searchUsersByGene( @RequestParam String symbol, @RequestParam Integer taxonId,
+            @RequestParam TierType tier, @RequestParam Boolean iSearch ) {
+        User user = userService.findCurrentUser();
         Taxon taxon = taxonService.findById( taxonId );
+        Gene gene = geneService.findBySymbolAndTaxon( symbol, taxon );
+        Collection<UserGene> genes;
+        if ( gene == null ) {
+            genes = handleGeneSymbolSearch( symbol, tier, taxon );
+        } else {
+            genes = handleGeneSearch( gene, tier );
+        }
+
+        ModelAndView modelAndView = new ModelAndView();
+        modelAndView.setViewName( "manager/search" );
+
+        modelAndView.addObject( "usergenes", genes );
+        if ( iSearch )
+            modelAndView.addObject( "itlUsergenes", remoteResourceService.findGenesBySymbol( symbol, taxon, tier ) );
+        return modelAndView;
+    }
+
+    @RequestMapping(value = "/manager/search/view", method = RequestMethod.GET, params = { "symbol", "taxonId",
+            "tier" })
+    public ModelAndView searchUsersByGeneView( @RequestParam String symbol, @RequestParam Integer taxonId,
+            @RequestParam TierType tier ) {
+        Taxon taxon = taxonService.findById( taxonId );
+        Gene gene = geneService.findBySymbolAndTaxon( symbol, taxon );
+        Collection<UserGene> genes;
+        if ( gene == null ) {
+            genes = handleGeneSymbolSearch( symbol, tier, taxon );
+        } else {
+            genes = handleGeneSearch( gene, tier );
+        }
+
         ModelAndView modelAndView = new ModelAndView();
 
-        modelAndView.addObject( "usergenes", handleGeneSymbolSearch( symbolLike, tier, taxon ) );
+        modelAndView.addObject( "usergenes", genes );
         modelAndView.setViewName( "fragments/user-table :: usergenes-table" );
-        return modelAndView;
-    }
-
-    @RequestMapping(value = "/manager/search", method = RequestMethod.GET, params = {"symbol", "taxonId", "tier"})
-    public ModelAndView searchUsersByGene( @RequestParam String symbol, @RequestParam Integer taxonId, @RequestParam TierType tier ) {
-        User user = userService.findCurrentUser();
-        Taxon taxon = taxonService.findById( taxonId );
-        Gene gene = geneService.findBySymbolAndTaxon( symbol, taxon );
-
-        ModelAndView modelAndView = new ModelAndView();
-        modelAndView.setViewName( "manager/search" );
-        if (gene == null) {
-//            modelAndView.addObject( "users", new ArrayList<>() );
-            modelAndView.addObject( "errorMessage", "Unknown Gene: " + symbol );
-        } else {
-            modelAndView.addObject( "usergenes", handleGeneSearch( gene, tier ) );
-        }
 
         return modelAndView;
     }
 
-    @RequestMapping(value = "/manager/search/view", method = RequestMethod.GET, params = {"symbol", "taxonId", "tier"})
-    public ModelAndView searchUsersByGeneView( @RequestParam String symbol, @RequestParam Integer taxonId, @RequestParam TierType tier ) {
+    @RequestMapping(value = "/manager/search/view/international", method = RequestMethod.GET, params = { "symbol",
+            "taxonId", "tier" })
+    public ModelAndView searchItlUsersByGeneView( @RequestParam String symbol, @RequestParam Integer taxonId,
+            @RequestParam TierType tier ) {
+        if ( !applicationSettings.getIsearch().isEnabled() )
+            return null;
         Taxon taxon = taxonService.findById( taxonId );
-        Gene gene = geneService.findBySymbolAndTaxon( symbol, taxon );
 
         ModelAndView modelAndView = new ModelAndView();
 
-        if (gene == null) {
-//            modelAndView.addObject( "users", new ArrayList<>() );
-            modelAndView.setViewName( "fragments/error :: message" );
-            modelAndView.addObject( "errorMessage", "Unknown Gene: " + symbol );
-        } else {
-            modelAndView.setViewName( "fragments/user-table :: usergenes-table" );
-            modelAndView.addObject( "usergenes", handleGeneSearch( gene, tier ) );
-        }
+        modelAndView.addObject( "usergenes", remoteResourceService.findGenesByLikeSymbol( symbol, taxon, tier ) );
+        modelAndView.addObject( "remote", true );
+        modelAndView.setViewName( "fragments/user-table :: usergenes-table" );
 
         return modelAndView;
     }
@@ -144,7 +176,7 @@ public class ManagerController {
         User user = userService.findCurrentUser();
         User viewUser = userService.findUserById( userId );
 
-        if ( viewUser == null) {
+        if ( viewUser == null ) {
             modelAndView.setViewName( "error/404" );
         } else {
             modelAndView.addObject( "user", user );
@@ -155,7 +187,7 @@ public class ManagerController {
         return modelAndView;
     }
 
-    private Collection<UserGene> handleGeneSymbolSearch( String symbolLike, TierType tier, Taxon taxon) {
+    Collection<UserGene> handleGeneSymbolSearch( String symbolLike, TierType tier, Taxon taxon ) {
         if ( tier.equals( TierType.ANY ) ) {
             return userGeneService.findByLikeSymbol( symbolLike, taxon );
         } else if ( tier.equals( TierType.MANUAL ) ) {
@@ -165,14 +197,15 @@ public class ManagerController {
         }
     }
 
-    private Collection<UserGene> handleGeneSearch( Gene gene, TierType tier) {
+    Collection<UserGene> handleGeneSearch( Gene gene, TierType tier ) {
         // TODO: Also search by exact symbol?
         if ( tier.equals( TierType.ANY ) ) {
             return userGeneService.findByGene( gene.getGeneId() );
         } else if ( tier.equals( TierType.MANUAL ) ) {
-            return userGeneService.findByGene(  gene.getGeneId(), TierType.MANUAL_TIERS );
+            return userGeneService.findByGene( gene.getGeneId(), TierType.MANUAL_TIERS );
         } else {
-            return userGeneService.findByGene(  gene.getGeneId(), tier );
+            return userGeneService.findByGene( gene.getGeneId(), tier );
         }
     }
+
 }

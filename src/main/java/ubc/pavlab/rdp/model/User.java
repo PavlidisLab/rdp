@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 @EqualsAndHashCode(of = {"id"})
 @ToString( of = {"id", "email", "enabled"})
-public class User {
+public class User{
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
@@ -60,6 +60,9 @@ public class User {
     @JsonUnwrapped
     private Profile profile;
 
+    @Transient
+    private String origin;
+
 	/* Research related information */
 
     @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
@@ -67,6 +70,7 @@ public class User {
     @CollectionTable(name = "descriptions", joinColumns = @JoinColumn(name = "user_id"))
 	@MapKeyJoinColumn(name="taxon_id")
     @Column(name = "description", columnDefinition = "TEXT")
+    @JsonIgnore
     private Map<Taxon, String> taxonDescriptions = new HashMap<>();
 
     @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
@@ -77,7 +81,6 @@ public class User {
     @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "user")
     @MapKey(name = "geneId")
-//    @JoinColumn(name = "user_id")
 	private Map<Integer, UserGene> userGenes = new HashMap<>();
 
     @JsonIgnore
