@@ -40,12 +40,13 @@ public class ApplicationSettings {
     @SuppressWarnings("WeakerAccess") //Used in frontend
     @Getter
     @Setter
-    public static class InternationSharingSettings {
+    public static class InternationalSearchSettings {
         private boolean enabled = false;
+        private boolean defaultOn = false;
         private String[] apis;
     }
 
-    private InternationSharingSettings isharing;
+    private InternationalSearchSettings isearch;
     private PrivacySettings privacy;
     private CacheSettings cache;
     private boolean sendEmailOnRegistration;

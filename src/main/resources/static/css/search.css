@@ -1,0 +1,19 @@
+.isearch-settings{
+    margin-left: -15px;
+}
+.isearch-settings *{
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.5;
+    vertical-align: center;
+
+    margin: 0 0 7px;
+    padding: 0;
+}
+.isearch-settings .label-text{
+    position: relative;
+    bottom: 1px;
+}
+.isearch-settings #iSearch{
+    transform: scale(1.2);
+}
