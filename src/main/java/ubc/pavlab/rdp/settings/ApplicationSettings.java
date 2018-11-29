@@ -35,6 +35,8 @@ public class ApplicationSettings {
         private boolean defaultSharing = false;
         private boolean customizableLevel = true;
         private boolean customizableSharing = true;
+        private boolean publicSearch = false;
+        private boolean registeredSearch = false;
     }
 
     @SuppressWarnings("WeakerAccess") //Used in frontend

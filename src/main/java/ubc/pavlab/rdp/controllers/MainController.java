@@ -10,15 +10,10 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
-import ubc.pavlab.rdp.model.Gene;
-import ubc.pavlab.rdp.model.GeneOntologyTerm;
-import ubc.pavlab.rdp.model.Taxon;
-import ubc.pavlab.rdp.model.User;
+import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.TierType;
-import ubc.pavlab.rdp.services.EmailService;
-import ubc.pavlab.rdp.services.GOService;
-import ubc.pavlab.rdp.services.TaxonService;
-import ubc.pavlab.rdp.services.UserService;
+import ubc.pavlab.rdp.services.*;
+import ubc.pavlab.rdp.settings.ApplicationSettings;
 
 import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
@@ -37,6 +32,9 @@ public class MainController {
     private UserService userService;
 
     @Autowired
+    private UserGeneService userGeneService;
+
+    @Autowired
     private TaxonService taxonService;
 
     @Autowired
@@ -45,14 +43,17 @@ public class MainController {
     @Autowired
     private EmailService emailService;
 
-    @RequestMapping(value = {"/"}, method = RequestMethod.GET)
+    @Autowired
+    private ApplicationSettings applicationSettings;
+
+    @RequestMapping(value = { "/" }, method = RequestMethod.GET)
     public ModelAndView index() {
         ModelAndView modelAndView = new ModelAndView();
         modelAndView.setViewName( "redirect:user/home" );
         return modelAndView;
     }
 
-    @RequestMapping(value = {"/user/home"}, method = RequestMethod.GET)
+    @RequestMapping(value = { "/user/home" }, method = RequestMethod.GET)
     public ModelAndView userHome() {
         ModelAndView modelAndView = new ModelAndView();
         User user = userService.findCurrentUser();
@@ -61,14 +62,31 @@ public class MainController {
         return modelAndView;
     }
 
+    @RequestMapping(value = { "/publicSearch" }, method = RequestMethod.GET)
+    public ModelAndView publicSearch() {
+        if(!applicationSettings.getPrivacy().isPublicSearch()) return null;
+        ModelAndView modelAndView = new ModelAndView();
+        modelAndView.addObject( "stats", this.getStats() );
+        modelAndView.setViewName( "publicSearch" );
+        return modelAndView;
+    }
 
+    @RequestMapping(value = { "/user/userSearch" }, method = RequestMethod.GET)
+    public ModelAndView userSearch() {
+        if(!applicationSettings.getPrivacy().isRegisteredSearch()) return null;
+        ModelAndView modelAndView = new ModelAndView();
+        modelAndView.addObject( "stats", this.getStats() );
+        modelAndView.addObject( "user", userService.findCurrentUser() );
+        modelAndView.setViewName( "user/userSearch" );
+        return modelAndView;
+    }
 
     @RequestMapping(value = "/stats.html")
     public void handleStatsHTMLEndpoint( HttpServletResponse response ) throws IOException {
         response.sendRedirect( "/stats" );
     }
 
-    @RequestMapping(value = {"/user/model/{taxonId}"}, method = RequestMethod.GET)
+    @RequestMapping(value = { "/user/model/{taxonId}" }, method = RequestMethod.GET)
     public ModelAndView model( @PathVariable Integer taxonId ) {
         ModelAndView modelAndView = new ModelAndView();
         User user = userService.findCurrentUser();
@@ -88,20 +106,21 @@ public class MainController {
 
         GeneOntologyTerm term = goService.getTerm( goId );
 
-        if (term != null) {
+        if ( term != null ) {
             Collection<Gene> genes = goService.getGenes( term );
 
-            modelAndView.addObject( "genes", user.getGenesByTaxonAndTier( taxon, TierType.MANUAL_TIERS )
-                    .stream().filter( genes::contains ).collect( Collectors.toSet() ) );
+            modelAndView.addObject( "genes",
+                    user.getGenesByTaxonAndTier( taxon, TierType.MANUAL_TIERS ).stream().filter( genes::contains )
+                            .collect( Collectors.toSet() ) );
         } else {
-            modelAndView.addObject( "genes", Collections.EMPTY_SET);
+            modelAndView.addObject( "genes", Collections.EMPTY_SET );
         }
-        modelAndView.addObject( "viewOnly", true);
+        modelAndView.addObject( "viewOnly", true );
         modelAndView.setViewName( "fragments/gene-table :: gene-table" );
         return modelAndView;
     }
 
-    @RequestMapping(value = {"/user/profile"}, method = RequestMethod.GET)
+    @RequestMapping(value = { "/user/profile" }, method = RequestMethod.GET)
     public ModelAndView profile() {
         ModelAndView modelAndView = new ModelAndView();
         User user = userService.findCurrentUser();
@@ -111,7 +130,7 @@ public class MainController {
         return modelAndView;
     }
 
-    @RequestMapping(value = {"/user/documentation"}, method = RequestMethod.GET)
+    @RequestMapping(value = { "/user/documentation" }, method = RequestMethod.GET)
     public ModelAndView documentation() {
         ModelAndView modelAndView = new ModelAndView();
         User user = userService.findCurrentUser();
@@ -120,7 +139,7 @@ public class MainController {
         return modelAndView;
     }
 
-    @RequestMapping(value = {"/user/faq"}, method = RequestMethod.GET)
+    @RequestMapping(value = { "/user/faq" }, method = RequestMethod.GET)
     public ModelAndView faq() {
         ModelAndView modelAndView = new ModelAndView();
         User user = userService.findCurrentUser();
@@ -129,7 +148,7 @@ public class MainController {
         return modelAndView;
     }
 
-    @RequestMapping(value = {"/user/support"}, method = RequestMethod.GET)
+    @RequestMapping(value = { "/user/support" }, method = RequestMethod.GET)
     public ModelAndView support() {
         ModelAndView modelAndView = new ModelAndView();
         User user = userService.findCurrentUser();
@@ -138,7 +157,7 @@ public class MainController {
         return modelAndView;
     }
 
-    @RequestMapping(value = {"/manager/search"}, method = RequestMethod.GET)
+    @RequestMapping(value = { "/manager/search" }, method = RequestMethod.GET)
     public ModelAndView managerSearch() {
         ModelAndView modelAndView = new ModelAndView();
         User user = userService.findCurrentUser();
@@ -147,37 +166,42 @@ public class MainController {
         return modelAndView;
     }
 
-    @RequestMapping(value = {"/maintenance"}, method = RequestMethod.GET)
+    @RequestMapping(value = { "/maintenance" }, method = RequestMethod.GET)
     public ModelAndView maintenance() {
         ModelAndView modelAndView = new ModelAndView();
         modelAndView.setViewName( "error/maintenance" );
         return modelAndView;
     }
 
-    @RequestMapping(value = {"/user/support"}, method = RequestMethod.POST)
-    public ModelAndView supportPost(HttpServletRequest request, @RequestParam("name") String name, @RequestParam("message") String message,
-                                    @RequestParam(required = false) MultipartFile attachment ) {
+    @RequestMapping(value = { "/user/support" }, method = RequestMethod.POST)
+    public ModelAndView supportPost( HttpServletRequest request, @RequestParam("name") String name,
+            @RequestParam("message") String message, @RequestParam(required = false) MultipartFile attachment ) {
         ModelAndView modelAndView = new ModelAndView();
         User user = userService.findCurrentUser();
         modelAndView.addObject( "user", user );
 
-        log.info( user.getProfile().getLastName() + ", " + user.getProfile().getName() + " (" + user.getEmail() +
-                ") is attempting to contact support." );
+        log.info( user.getProfile().getLastName() + ", " + user.getProfile().getName() + " (" + user.getEmail()
+                + ") is attempting to contact support." );
 
         try {
             emailService.sendSupportMessage( message, name, user, request, attachment );
             modelAndView.addObject( "message", "Sent. We will get back to you shortly." );
             modelAndView.addObject( "success", true );
-        } catch (MessagingException e) {
-            log.error(e);
-            modelAndView.addObject( "message", "There was a problem sending the support request. Please try again later." );
+        } catch ( MessagingException e ) {
+            log.error( e );
+            modelAndView
+                    .addObject( "message", "There was a problem sending the support request. Please try again later." );
             modelAndView.addObject( "success", false );
         }
 
-
-
         modelAndView.setViewName( "user/support" );
         return modelAndView;
+    }
+
+    private Stats getStats() {
+        return new Stats( userService.countResearchers(), userGeneService.countUsersWithGenes(),
+                userGeneService.countAssociations(), userGeneService.countUniqueAssociations(),
+                userGeneService.researcherCountByTaxon() );
     }
 
 }

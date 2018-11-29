@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<!--suppress ThymeleafVariablesResolveInspection java variables not visible in fragments-->
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+    <body>
+        <ul th:fragment="stats (data)">
+            <li><span th:text="${data.users}" th:remove="tag"></span>&nbsp;<span class="label">researchers</span></li>
+            <li><span th:text="${data.uniqueUserGenes}" th:remove="tag"></span>&nbsp;<span class="label">registered genes in</span></li>
+            <!--suppress HtmlUnknownTag browsers render this better-->
+            <ul th:each="instance : ${data.researchersByTaxa}">
+                <li><span th:text="${instance.key}"></span>(<span th:text="${instance.value}"></span>)</li>
+            </ul>
+        </ul>
+    </body>
+</html>

@@ -68,7 +68,11 @@
                 <div class="col-4 text-left">
                     <a th:href="@{/registration}">Create Account</a>
                 </div>
-                <div class="offset-4 col-4 text-right">
+                <div class="col-4 text-center" th:if="${@applicationSettings.getPrivacy().isPublicSearch()}">
+                    <a th:href="@{/publicSearch}">Public search</a>
+                </div>
+                <div class="col-4 text-center" th:if="!${@applicationSettings.getPrivacy().isPublicSearch()}"></div>
+                <div class="col-4 text-right">
                     <a th:href="${'mailto:' + @siteSettings.getContactEmail()}">Contact Support</a>
                 </div>
             </div>

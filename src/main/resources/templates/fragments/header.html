@@ -24,6 +24,7 @@
                 <a class="nav-link" th:href="@{/user/profile}" href="/user/profile">Profile</a>
             </li>
             <li class="nav-item dropdown">
+                <!--suppress HtmlUnknownTarget -->
                 <a class="nav-link dropdown-toggle" href="/user/model" id="navbarDropdownModel" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Model Organisms</a>
                 <div class="dropdown-menu" aria-labelledby="navbarDropdownModel">
                     <th:block th:each="taxon : ${@taxonService.findByActiveTrue()}">
@@ -42,6 +43,9 @@
             </li>
             <li class="nav-item" sec:authorize="hasRole('ROLE_ADMIN')">
                 <a class="nav-link" th:href="@{/manager/search}" href="/manager/search">Search</a>
+            </li>
+            <li class="nav-item" sec:authorize="!hasRole('ROLE_ADMIN')" th:if="${@applicationSettings.getPrivacy().isRegisteredSearch()}">
+                <a class="nav-link" th:href="@{/user/userSearch}" href="/user/userSearch">Search</a>
             </li>
         </ul>
         <ul class="navbar-nav">
