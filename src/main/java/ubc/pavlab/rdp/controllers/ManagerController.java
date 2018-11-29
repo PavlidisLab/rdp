@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
+import ubc.pavlab.rdp.exception.RemoteException;
 import ubc.pavlab.rdp.model.Gene;
 import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.model.User;
@@ -47,8 +48,13 @@ public class ManagerController {
         ModelAndView modelAndView = new ModelAndView();
         modelAndView.addObject( "user", user );
         modelAndView.addObject( "users", userService.findByLikeName( nameLike ) );
-        if ( iSearch )
-            modelAndView.addObject( "itlUsers", remoteResourceService.findUsersByLikeName( nameLike ) );
+        if ( iSearch ) {
+            try {
+                modelAndView.addObject( "itlUsers", remoteResourceService.findUsersByLikeName( nameLike ) );
+            } catch ( RemoteException e ) {
+                modelAndView.addObject( "itlErrorMessage", e.getMessage() );
+            }
+        }
         modelAndView.setViewName( "manager/search" );
         return modelAndView;
     }
@@ -67,9 +73,14 @@ public class ManagerController {
             return null;
         ModelAndView modelAndView = new ModelAndView();
 
-        modelAndView.addObject( "users", remoteResourceService.findUsersByLikeName( nameLike ) );
-        modelAndView.setViewName( "fragments/user-table :: user-table" );
-        modelAndView.addObject( "remote", true );
+        try {
+            modelAndView.addObject( "users", remoteResourceService.findUsersByLikeName( nameLike ) );
+            modelAndView.setViewName( "fragments/user-table :: user-table" );
+            modelAndView.addObject( "remote", true );
+        } catch ( RemoteException e ) {
+            modelAndView.setViewName( "fragments/error :: message" );
+            modelAndView.addObject( "errorMessage", e.getMessage() );
+        }
 
         return modelAndView;
     }
@@ -81,8 +92,13 @@ public class ManagerController {
         ModelAndView modelAndView = new ModelAndView();
         modelAndView.addObject( "user", user );
         modelAndView.addObject( "users", userService.findByDescription( descriptionLike ) );
-        if ( iSearch )
-            modelAndView.addObject( "itlUsers", remoteResourceService.findUsersByDescription( descriptionLike ) );
+        if ( iSearch ) {
+            try {
+                modelAndView.addObject( "itlUsers", remoteResourceService.findUsersByDescription( descriptionLike ) );
+            } catch ( RemoteException e ) {
+                modelAndView.addObject( "itlErrorMessage", e.getMessage() );
+            }
+        }
         modelAndView.setViewName( "manager/search" );
         return modelAndView;
     }
@@ -102,9 +118,14 @@ public class ManagerController {
             return null;
         ModelAndView modelAndView = new ModelAndView();
 
-        modelAndView.addObject( "users", remoteResourceService.findUsersByDescription( descriptionLike ) );
-        modelAndView.setViewName( "fragments/user-table :: user-table" );
-        modelAndView.addObject( "remote", true );
+        try {
+            modelAndView.addObject( "users", remoteResourceService.findUsersByDescription( descriptionLike ) );
+            modelAndView.setViewName( "fragments/user-table :: user-table" );
+            modelAndView.addObject( "remote", true );
+        } catch ( RemoteException e ) {
+            modelAndView.setViewName( "fragments/error :: message" );
+            modelAndView.addObject( "errorMessage", e.getMessage() );
+        }
 
         return modelAndView;
     }
@@ -127,8 +148,14 @@ public class ManagerController {
         modelAndView.setViewName( "manager/search" );
 
         modelAndView.addObject( "usergenes", genes );
-        if ( iSearch )
-            modelAndView.addObject( "itlUsergenes", remoteResourceService.findGenesBySymbol( symbol, taxon, tier ) );
+        if ( iSearch ) {
+            try {
+                modelAndView
+                        .addObject( "itlUsergenes", remoteResourceService.findGenesBySymbol( symbol, taxon, tier ) );
+            } catch ( RemoteException e ) {
+                modelAndView.addObject( "itlErrorMessage", e.getMessage() );
+            }
+        }
         return modelAndView;
     }
 
@@ -163,9 +190,14 @@ public class ManagerController {
 
         ModelAndView modelAndView = new ModelAndView();
 
-        modelAndView.addObject( "usergenes", remoteResourceService.findGenesByLikeSymbol( symbol, taxon, tier ) );
-        modelAndView.addObject( "remote", true );
-        modelAndView.setViewName( "fragments/user-table :: usergenes-table" );
+        try {
+            modelAndView.addObject( "usergenes", remoteResourceService.findGenesByLikeSymbol( symbol, taxon, tier ) );
+            modelAndView.addObject( "remote", true );
+            modelAndView.setViewName( "fragments/user-table :: usergenes-table" );
+        } catch ( RemoteException e ) {
+            modelAndView.setViewName( "fragments/error :: message" );
+            modelAndView.addObject( "errorMessage", e.getMessage() );
+        }
 
         return modelAndView;
     }

@@ -1,5 +1,6 @@
 package ubc.pavlab.rdp.services;
 
+import ubc.pavlab.rdp.exception.RemoteException;
 import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.model.User;
 import ubc.pavlab.rdp.model.UserGene;
@@ -12,11 +13,11 @@ import java.util.Collection;
  * fetches the results from remote origins.
  */
 public interface RemoteResourceService {
-    Collection<User> findUsersByLikeName( String nameLike );
+    Collection<User> findUsersByLikeName( String nameLike ) throws RemoteException;
 
-    Collection<User> findUsersByDescription( String descriptionLike );
+    Collection<User> findUsersByDescription( String descriptionLike ) throws RemoteException;
 
-    Collection<UserGene> findGenesBySymbol( String symbol, Taxon taxon, TierType tier );
+    Collection<UserGene> findGenesBySymbol( String symbol, Taxon taxon, TierType tier ) throws RemoteException;
 
-    Collection<UserGene> findGenesByLikeSymbol( String symbol, Taxon taxon, TierType tier );
+    Collection<UserGene> findGenesByLikeSymbol( String symbol, Taxon taxon, TierType tier ) throws RemoteException;
 }

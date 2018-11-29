@@ -121,6 +121,7 @@
                 <hr/>
                 <h4>International results</h4>
                 <div id="itlUserTable">
+                    <div th:if="${itlErrorMessage != null}" th:replace="fragments/error :: message" th:remove="tag">...</div>
                     <div th:if="${itlUsers != null}" th:replace="fragments/user-table :: user-table(users=${itlUsers}, remote=true)" th:remove="tag">...</div>
                 </div>
             </div>

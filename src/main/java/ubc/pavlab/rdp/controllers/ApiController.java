@@ -1,12 +1,14 @@
 package ubc.pavlab.rdp.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import ubc.pavlab.rdp.exception.TierException;
 import ubc.pavlab.rdp.model.Gene;
 import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.model.User;
@@ -31,6 +33,8 @@ public class ApiController {
 
     private static final String API_VERSION = "1.0.0";
     private static final Map<String, String> ROOT_DATA;
+    private static final ResponseEntity<String> TIER3_RESPONSE = new ResponseEntity<>(
+            "Tier3 genes not published internationally.", null, HttpStatus.NOT_FOUND );
 
     static {
         ROOT_DATA = new HashMap<>();
@@ -124,7 +128,11 @@ public class ApiController {
             return ResponseEntity.notFound().build();
         }
         Taxon taxon = taxonService.findById( taxonId );
-        return initGeneUsers( managerController.handleGeneSymbolSearch( symbolLike, tier, taxon ) );
+        try {
+            return initGeneUsers( managerController.handleGeneSymbolSearch( symbolLike, restrictTiers( tier), taxon ) );
+        } catch ( TierException e ) {
+            return TIER3_RESPONSE;
+        }
     }
 
     @RequestMapping(value = "/api/genes/search", method = RequestMethod.GET, params = { "symbol", "taxonId",
@@ -137,7 +145,11 @@ public class ApiController {
         }
         Taxon taxon = taxonService.findById( taxonId );
         Gene gene = geneService.findBySymbolAndTaxon( symbol, taxon );
-        return initGeneUsers( managerController.handleGeneSearch( gene, tier ) );
+        try {
+            return initGeneUsers( managerController.handleGeneSearch( gene, restrictTiers( tier ) ) );
+        } catch ( TierException e ) {
+            return TIER3_RESPONSE;
+        }
     }
 
     private Collection<UserGene> initGeneUsers( Collection<UserGene> genes ) {
@@ -156,6 +168,20 @@ public class ApiController {
             user.setOrigin( siteSettings.getShortname() );
         }
         return users;
+    }
+
+    /**
+     * We do not want to query TIER3 genes internationally, so if such request arrives, we have to either
+     * try to transform it to only include TIER1&2, or prevent the search.
+     * @param tier the tier type to be restricted to not include tier 3.
+     * @return manual (tier1&2) for tier type ANY, or throws an exception if tier type was specifically 3.
+     */
+    private TierType restrictTiers(TierType tier) throws TierException {
+        switch(tier){
+            case ANY: return TierType.MANUAL;
+            case TIER3: throw new TierException( "TIER3 not allowed for international search" );
+            default: return tier;
+        }
     }
 
 }

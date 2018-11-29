@@ -10,12 +10,14 @@ import org.jboss.resteasy.plugins.providers.jackson.ResteasyJackson2Provider;
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ubc.pavlab.rdp.exception.RemoteException;
 import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.model.User;
 import ubc.pavlab.rdp.model.UserGene;
 import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 
+import javax.ws.rs.core.Response;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.*;
@@ -37,21 +39,21 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
     private ApplicationSettings applicationSettings;
 
     @Override
-    public Collection<User> findUsersByLikeName( String nameLike ) {
+    public Collection<User> findUsersByLikeName( String nameLike ) throws RemoteException {
         return getRemoteEntities( User[].class, API_USERS_SEARCH_URI, new HashMap<String, String>() {{
             put( "nameLike", nameLike );
         }} );
     }
 
     @Override
-    public Collection<User> findUsersByDescription( String descriptionLike ) {
+    public Collection<User> findUsersByDescription( String descriptionLike ) throws RemoteException {
         return getRemoteEntities( User[].class, API_USERS_SEARCH_URI, new HashMap<String, String>() {{
             put( "descriptionLike", descriptionLike );
         }} );
     }
 
     @Override
-    public Collection<UserGene> findGenesBySymbol( String symbol, Taxon taxon, TierType tier ) {
+    public Collection<UserGene> findGenesBySymbol( String symbol, Taxon taxon, TierType tier ) throws RemoteException {
         return convertRemoteGenes(
                 getRemoteEntities( UserGene[].class, API_GENES_SEARCH_URI, new HashMap<String, String>() {{
                     put( "symbol", symbol );
@@ -61,7 +63,8 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
     }
 
     @Override
-    public Collection<UserGene> findGenesByLikeSymbol( String symbolLike, Taxon taxon, TierType tier ) {
+    public Collection<UserGene> findGenesByLikeSymbol( String symbolLike, Taxon taxon, TierType tier )
+            throws RemoteException {
         return convertRemoteGenes(
                 getRemoteEntities( UserGene[].class, API_GENES_SEARCH_URI, new HashMap<String, String>() {{
                     put( "symbolLike", symbolLike );
@@ -70,7 +73,8 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
                 }} ) );
     }
 
-    private <T> Collection<T> getRemoteEntities( Class<T[]> arrCls, String uri, Map<String, String> args ) {
+    private <T> Collection<T> getRemoteEntities( Class<T[]> arrCls, String uri, Map<String, String> args )
+            throws RemoteException {
         Collection<T> entities = new HashSet<>();
 
         // Call all APIs
@@ -83,11 +87,16 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
         return entities;
     }
 
-    private <T> Collection<T> remoteRequest( Class<T[]> arrCls, String remoteUrl, Map<String, String> args ) {
+    private <T> Collection<T> remoteRequest( Class<T[]> arrCls, String remoteUrl, Map<String, String> args )
+            throws RemoteException {
         ResteasyClient client = new ResteasyClientBuilder().build();
         ResteasyWebTarget target = client.target( remoteUrl + encodeParams( args ) );
+        Response response = target.request().get();
+        if(response.getStatus() != 200){
+            throw new RemoteException("No data received: "+response.readEntity( String.class ));
+        }
 
-        T[] arr = target.request().get().readEntity( arrCls );
+        T[] arr = response.readEntity( arrCls );
         return Arrays.asList( arr );
     }
 
