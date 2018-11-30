@@ -49,6 +49,9 @@ public class Profile {
     @Column(name = "shared")
     private Boolean shared;
 
+    @Column(name= "hide_genelist")
+    private Boolean hideGenelist;
+
     @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
     @JoinColumn(name = "user_id")

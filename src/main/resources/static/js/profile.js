@@ -17,6 +17,7 @@ function collectProfile() {
 
     profile.privacyLevel = $('input[name=privacy]:checked').val();
     profile.shared = $('#privacy-sharing-checkbox').prop('checked');
+    profile.hideGenelist = $('#privacy-genelist-checkbox').prop('checked');
 
     // Publication Information
     var publications = [];
@@ -39,13 +40,6 @@ function collectProfile() {
     profile.publications = publications;
 
     return profile;
-}
-
-function collectPrivacy(){
-    var privacy = {};
-    privacy.level = $('input[name=privacy]:checked').val();
-    privacy.sharing = $('#privacySharing').prop('checked');
-    return privacy;
 }
 
 $(document).ready(function () {

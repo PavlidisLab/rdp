@@ -154,10 +154,10 @@
                         <h3 class="mb-0 d-inline-block">Data Privacy Settings</h3>
                     </div>
                     <div id="privacy-levels" class="d-flex w-100 p-2" th:if="${@applicationSettings.getPrivacy().isCustomizableLevel()}">
-                        <span class="radio">
+                        <span class="radio" th:if="${@applicationSettings.getPrivacy().getMinLevel() &lt; 1}">
                             <label><input id="privacyLevelPrivate" type="radio" name="privacy" th:checked="${user.profile.privacyLevel == 0}" value="0"/>Private</label>
                         </span>
-                        <span class="radio">
+                        <span class="radio" th:if="${@applicationSettings.getPrivacy().getMinLevel() &lt; 2}">
                             <label><input id="privacyLevelRegistered" type="radio" name="privacy" th:checked="${user.profile.privacyLevel == 1}" value="1"/>Registered users</label>
                         </span>
                         <span class="radio">
@@ -165,10 +165,18 @@
                         </span>
                     </div>
                     <hr th:if="${@applicationSettings.getPrivacy().isCustomizableLevel() == (@applicationSettings.getPrivacy().isCustomizableSharing() == true)}"/>
-                    <div id="privacy-sharing" class="d-flex w-100 p-2" th:if="${@applicationSettings.getPrivacy().isCustomizableSharing()}">
+                    <div id="privacy-sharing" class="d-flex w-100 p-2 margin-chbox" th:if="${@applicationSettings.getPrivacy().isCustomizableSharing()}">
                         <div class="col-12">
                             <label class="form-check-label">
                                 <input id="privacy-sharing-checkbox" type="checkbox" class="form-check-input" th:checked="${user.profile.shared}"/>Include data in international search
+                            </label>
+                        </div>
+                    </div>
+                    <hr th:if="${@applicationSettings.getPrivacy().isAllowHideGenelist() == ((@applicationSettings.getPrivacy().isCustomizableLevel() || (@applicationSettings.getPrivacy().isCustomizableSharing()) == true))}"/>
+                    <div id="privacy-genelist" class="d-flex w-100 p-2 margin-chbox" th:if="${@applicationSettings.getPrivacy().isAllowHideGenelist()}">
+                        <div class="col-12">
+                            <label class="form-check-label">
+                                <input id="privacy-genelist-checkbox" type="checkbox" class="form-check-input" th:checked="${user.profile.hideGenelist}"/>Hide genelist for non-administrative users
                             </label>
                         </div>
                     </div>

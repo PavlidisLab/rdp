@@ -15,9 +15,16 @@ input.data-edit {
 }
 
 #privacy-levels .radio{
-    margin: 12px 12px 0;
+    margin: 12px 0 0 12px;
+}
+#privacy-levels .radio input{
+    margin-right: 3px;
 }
 
-#privacy-sharing div{
-    margin: 0 12px 12px;
+.margin-chbox div{
+    margin: 0 12px 12px 14px;
+}
+
+hr{
+    margin: 0 0 10px;
 }

@@ -32,11 +32,13 @@ public class ApplicationSettings {
     @Setter
     public static class PrivacySettings {
         private Integer defaultLevel = UserService.PRIVACY_PRIVATE;
+        private Integer minLevel = UserService.PRIVACY_PRIVATE;
         private boolean defaultSharing = false;
         private boolean customizableLevel = true;
         private boolean customizableSharing = true;
         private boolean publicSearch = false;
         private boolean registeredSearch = false;
+        private boolean allowHideGenelist = false;
     }
 
     @SuppressWarnings("WeakerAccess") //Used in frontend
