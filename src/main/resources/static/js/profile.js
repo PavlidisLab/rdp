@@ -16,7 +16,7 @@ function collectProfile() {
     profile.description = $.trim($('.research-info').find('.data-edit')[0].value);
 
     profile.privacyLevel = $('input[name=privacy]:checked').val();
-    profile.shared = $('#privacySharing').prop('checked');
+    profile.shared = $('#privacy-sharing-checkbox').prop('checked');
 
     // Publication Information
     var publications = [];
@@ -70,17 +70,20 @@ $(document).ready(function () {
     // Auto-check international sharing with public privacy setting
     var itlChbox = $("#privacy-sharing-checkbox");
     var origItlState = itlChbox.is(":checked");
+    if($("#privacyLevelPublic").is(":checked")){
+        itlChbox.prop('checked', true);
+        itlChbox.prop('readonly', true);
+        itlChbox.prop('disabled', true);
+    }
     $("input[name='privacy']").click(function () {
         if($("#privacyLevelPublic").is(":checked")){
             itlChbox.prop('checked', true);
             itlChbox.prop('readonly', true);
-            itlChbox.prop('onclick', 'return false;');
-            itlChbox.prop('style', 'filter: opacity(.5)')
+            itlChbox.prop('disabled', true);
         }else{
             itlChbox.prop('checked', origItlState);
             itlChbox.prop('readonly', false);
-            itlChbox.prop('onclick', '');
-            itlChbox.prop('style', '')
+            itlChbox.prop('disabled', false);
         }
     });
     itlChbox.click(function(){
