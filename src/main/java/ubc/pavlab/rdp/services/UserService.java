@@ -17,6 +17,8 @@ import java.util.Set;
  * Created by mjacobson on 16/01/18.
  */
 public interface UserService {
+
+
     /**
      * Privacy level designating that only the administrator can access the users data.
      */
@@ -55,7 +57,7 @@ public interface UserService {
 
     User findUserByEmail( String email );
 
-    User findUserByUserName( String email );
+    User getRemoteAdmin();
 
     List<User> findAll();
 

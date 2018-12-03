@@ -6,6 +6,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 import ubc.pavlab.rdp.services.UserService;
 
+import java.util.List;
+
 /**
  * Created by mjacobson on 22/01/18.
  */
@@ -47,7 +49,10 @@ public class ApplicationSettings {
     public static class InternationalSearchSettings {
         private boolean enabled = false;
         private boolean defaultOn = false;
+        private Integer userId = 1;
         private String[] apis;
+        private List<String> authTokens;
+        private String searchToken;
     }
 
     private InternationalSearchSettings isearch;

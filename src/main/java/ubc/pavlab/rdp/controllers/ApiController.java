@@ -1,18 +1,19 @@
 package ubc.pavlab.rdp.controllers;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import ubc.pavlab.rdp.exception.TierException;
-import ubc.pavlab.rdp.model.Gene;
-import ubc.pavlab.rdp.model.Taxon;
-import ubc.pavlab.rdp.model.User;
-import ubc.pavlab.rdp.model.UserGene;
+import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.services.GeneService;
 import ubc.pavlab.rdp.services.TaxonService;
@@ -31,7 +32,9 @@ import java.util.Map;
 @Controller
 public class ApiController {
 
+    private static final Log log = LogFactory.getLog( ApiController.class );
     private static final String API_VERSION = "1.0.0";
+    private static final String MISCONF_REMOTE_ADMIN = "The remote admin account is misconfigured! Remote searches won't be able to authenticate even with valid security tokens!";
     private static final Map<String, String> ROOT_DATA;
     private static final ResponseEntity<String> TIER3_RESPONSE = new ResponseEntity<>(
             "Tier3 genes not published internationally.", null, HttpStatus.NOT_FOUND );
@@ -102,20 +105,24 @@ public class ApiController {
     @RequestMapping(value = "/api/users/search", method = RequestMethod.GET, params = {
             "nameLike" }, produces = MediaType.APPLICATION_JSON)
     @ResponseBody
-    public Object searchUsersByName( @RequestParam String nameLike ) {
+    public Object searchUsersByName( @RequestParam String nameLike,
+            @RequestParam(name = "auth", required = false) String auth ) {
         if ( !applicationSettings.getIsearch().isEnabled() ) {
             return ResponseEntity.notFound().build();
         }
+        checkAuth( auth );
         return initUsers( userService.findByLikeName( nameLike ) );
     }
 
     @RequestMapping(value = "/api/users/search", method = RequestMethod.GET, params = {
             "descriptionLike" }, produces = MediaType.APPLICATION_JSON)
     @ResponseBody
-    public Object searchUsersByDescription( @RequestParam String descriptionLike ) {
+    public Object searchUsersByDescription( @RequestParam String descriptionLike,
+            @RequestParam(name = "auth", required = false) String auth ) {
         if ( !applicationSettings.getIsearch().isEnabled() ) {
             return ResponseEntity.notFound().build();
         }
+        checkAuth( auth );
         return initUsers( userService.findByDescription( descriptionLike ) );
     }
 
@@ -123,13 +130,15 @@ public class ApiController {
             "tier" }, produces = MediaType.APPLICATION_JSON)
     @ResponseBody
     public Object searchUsersByGeneLikeSymbol( @RequestParam String symbolLike, @RequestParam Integer taxonId,
-            @RequestParam TierType tier ) {
+            @RequestParam TierType tier, @RequestParam(name = "auth", required = false) String auth ) {
         if ( !applicationSettings.getIsearch().isEnabled() ) {
             return ResponseEntity.notFound().build();
         }
+        checkAuth( auth );
         Taxon taxon = taxonService.findById( taxonId );
         try {
-            return initGeneUsers( managerController.handleGeneSymbolSearch( symbolLike, restrictTiers( tier), taxon ) );
+            return initGeneUsers(
+                    managerController.handleGeneSymbolSearch( symbolLike, restrictTiers( tier ), taxon ) );
         } catch ( TierException e ) {
             return TIER3_RESPONSE;
         }
@@ -139,16 +148,33 @@ public class ApiController {
             "tier" }, produces = MediaType.APPLICATION_JSON)
     @ResponseBody
     public Object searchUsersByGeneSymbol( @RequestParam String symbol, @RequestParam Integer taxonId,
-            @RequestParam TierType tier ) {
+            @RequestParam TierType tier, @RequestParam(name = "auth", required = false) String auth ) {
         if ( !applicationSettings.getIsearch().isEnabled() ) {
             return ResponseEntity.notFound().build();
         }
+        checkAuth( auth );
         Taxon taxon = taxonService.findById( taxonId );
         Gene gene = geneService.findBySymbolAndTaxon( symbol, taxon );
         try {
             return initGeneUsers( managerController.handleGeneSearch( gene, restrictTiers( tier ) ) );
         } catch ( TierException e ) {
             return TIER3_RESPONSE;
+        }
+    }
+
+    private void checkAuth( String auth ) {
+        if ( auth == null || auth.length() < 1 || applicationSettings.getIsearch().getAuthTokens() == null
+                || !applicationSettings.getIsearch().getAuthTokens().contains( auth ) ) {
+            SecurityContextHolder.getContext().setAuthentication( null );
+        } else if ( applicationSettings.getIsearch().getAuthTokens().contains( auth ) ) {
+            User u = userService.getRemoteAdmin();
+            if ( u == null ) {
+                log.error( MISCONF_REMOTE_ADMIN );
+                return;
+            }
+            UserPrinciple principle = new UserPrinciple( u );
+            SecurityContextHolder.getContext().setAuthentication(
+                    new UsernamePasswordAuthenticationToken( principle, null, principle.getAuthorities() ) );
         }
     }
 
@@ -173,6 +199,7 @@ public class ApiController {
     /**
      * We do not want to query TIER3 genes internationally, so if such request arrives, we have to either
      * try to transform it to only include TIER1&2, or prevent the search.
+     *
      * @param tier the tier type to be restricted to not include tier 3.
      * @return manual (tier1&2) for tier type ANY, or throws an exception if tier type was specifically 3.
      */

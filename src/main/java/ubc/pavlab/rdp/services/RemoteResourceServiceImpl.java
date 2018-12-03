@@ -15,6 +15,7 @@ import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.model.User;
 import ubc.pavlab.rdp.model.UserGene;
 import ubc.pavlab.rdp.model.enums.TierType;
+import ubc.pavlab.rdp.repositories.RoleRepository;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 
 import javax.ws.rs.core.Response;
@@ -37,6 +38,12 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
 
     @Autowired
     private ApplicationSettings applicationSettings;
+
+    @Autowired
+    private UserService userService;
+
+    @Autowired
+    private RoleRepository roleRepository;
 
     @Override
     public Collection<User> findUsersByLikeName( String nameLike ) throws RemoteException {
@@ -75,12 +82,12 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
 
     private <T> Collection<T> getRemoteEntities( Class<T[]> arrCls, String uri, Map<String, String> args )
             throws RemoteException {
-        Collection<T> entities = new HashSet<>();
+        Collection<T> entities = new LinkedList<>();
 
         // Call all APIs
         for ( String api : applicationSettings.getIsearch().getApis() ) {
             @SuppressWarnings("unchecked") // Should be guaranteed when response is 200 and versions match.
-                    Collection<T> received = remoteRequest( arrCls, api + uri, args );
+                    Collection<T> received = remoteRequest( arrCls, api + uri, addAuthParamIfAdmin( args ) );
             entities.addAll( received );
         }
 
@@ -124,6 +131,14 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
             gene.setUser( gene.getRemoteUser() );
         }
         return genes;
+    }
+
+    private Map<String, String> addAuthParamIfAdmin( Map<String, String> args ) {
+        User user = userService.findCurrentUser();
+        if ( user != null && user.getRoles().contains( roleRepository.findByRole( "ROLE_ADMIN" ) ) ) {
+            args.put( "auth", applicationSettings.getIsearch().getSearchToken() );
+        }
+        return args;
     }
 
 }

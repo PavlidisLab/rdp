@@ -163,6 +163,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public User getRemoteAdmin(){
+        return userRepository.findOne( applicationSettings.getIsearch().getUserId() );
+    }
+
+    @Override
     public User findUserByIdNoAuth( int id ) {
         // Only use this in placed where no authentication of user is needed
         return userRepository.findOne( id );
@@ -171,11 +176,6 @@ public class UserServiceImpl implements UserService {
     @Override
     public User findUserByEmail( String email ) {
         return userRepository.findByEmailIgnoreCase( email );
-    }
-
-    @Override
-    public User findUserByUserName( String email ) {
-        return findUserByEmail( email );
     }
 
     @Override
@@ -407,10 +407,18 @@ public class UserServiceImpl implements UserService {
 
         Profile profile = user.getProfile();
 
-        // Either the user is public, shared with registered users - check for any logged-in user, or private - check for admin.
-        return profile.getPrivacyLevel().equals( PRIVACY_PUBLIC ) || ( profile.getPrivacyLevel().equals( PRIVACY_REGISTERED )
-                && currentUser != null ) || ( profile.getPrivacyLevel().equals( PRIVACY_PRIVATE ) && currentUser != null
-                && currentUser.getRoles().contains( roleAdmin ) );
+        if( profile == null ){
+            log.error( "!! User without a profile: " +user.getId()+" / "+user.getEmail());
+            return false;
+        }
+
+        // Either the user is looking at himself, or the user is public, or shared with registered users - check for any logged-in user, or private - check for admin; If logged-in user is admin, we have to
+        // check whether this user is the designated actor for the authenticated remote search, in which case we have to check for remote search privileges on the user.
+        return user.equals( currentUser ) // User is looking at himself
+                || ( profile.getPrivacyLevel().equals( PRIVACY_PUBLIC ) ) // Data is public
+                || ( profile.getPrivacyLevel().equals( PRIVACY_REGISTERED ) && currentUser != null && !currentUser.getId().equals( applicationSettings.getIsearch().getUserId() )  ) // data is accessible for registerd users and there is a user logged in who is not the remote admin
+                || ( profile.getPrivacyLevel().equals( PRIVACY_PRIVATE ) && currentUser != null && currentUser.getRoles().contains( roleAdmin ) && !currentUser.getId().equals( applicationSettings.getIsearch().getUserId() ) ) // data is private and there is an admin logged in who is not the remote admin
+                || ( profile.getShared() && currentUser != null && currentUser.getRoles().contains( roleAdmin ) && currentUser.getId().equals( applicationSettings.getIsearch().getUserId() ) ); // data is designated as remotely shared and there is an admin logged in who is the remote admin
     }
 
     @Override
