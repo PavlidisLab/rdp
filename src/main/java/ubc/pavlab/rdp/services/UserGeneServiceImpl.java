@@ -1,8 +1,8 @@
 /*
  * The rdp project
- * 
+ *
  * Copyright (c) 2014 University of British Columbia
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,7 +18,6 @@
  */
 
 package ubc.pavlab.rdp.services;
-
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
@@ -46,30 +45,30 @@ public class UserGeneServiceImpl implements UserGeneService {
     @Autowired
     private UserService userService;
 
-    @Cacheable(cacheNames="stats", key = "#root.methodName")
+    @Cacheable(cacheNames = "stats", key = "#root.methodName")
     @Override
     public Integer countUniqueAssociations() {
         return userGeneRepository.countDistinctGeneByTierIn( TierType.MANUAL_TIERS );
     }
 
-    @Cacheable(cacheNames="stats", key = "#root.methodName")
+    @Cacheable(cacheNames = "stats", key = "#root.methodName")
     @Override
     public Integer countAssociations() {
         return userGeneRepository.countByTierIn( TierType.MANUAL_TIERS );
     }
 
-    @Cacheable(cacheNames="stats", key = "#root.methodName")
+    @Cacheable(cacheNames = "stats", key = "#root.methodName")
     @Override
     public Map<String, Integer> researcherCountByTaxon() {
         Map<String, Integer> countByTaxon = new HashMap<>();
         for ( Taxon taxon : taxonRepository.findByActiveTrue() ) {
-            countByTaxon.put(taxon.getCommonName(), userGeneRepository.countDistinctUserByTaxon( taxon ));
+            countByTaxon.put( taxon.getCommonName(), userGeneRepository.countDistinctUserByTaxon( taxon ) );
         }
 
         return countByTaxon;
     }
 
-    @Cacheable(cacheNames="stats", key = "#root.methodName")
+    @Cacheable(cacheNames = "stats", key = "#root.methodName")
     @Override
     public Integer countUsersWithGenes() {
         return userGeneRepository.countDistinctUser();
@@ -77,32 +76,34 @@ public class UserGeneServiceImpl implements UserGeneService {
 
     @Override
     public Collection<UserGene> findByGene( int geneId ) {
-        return securityFilter(userGeneRepository.findByGeneId( geneId ));
+        return securityFilter( userGeneRepository.findByGeneId( geneId ) );
     }
 
     @Override
     public Collection<UserGene> findByGene( int geneId, TierType tier ) {
-        return securityFilter(userGeneRepository.findByGeneIdAndTier( geneId, tier ));
+        return securityFilter( userGeneRepository.findByGeneIdAndTier( geneId, tier ) );
     }
 
     @Override
     public Collection<UserGene> findByGene( int geneId, Set<TierType> tiers ) {
-        return securityFilter(userGeneRepository.findByGeneIdAndTierIn( geneId, tiers ));
+        return securityFilter( userGeneRepository.findByGeneIdAndTierIn( geneId, tiers ) );
     }
 
     @Override
     public Collection<UserGene> findByLikeSymbol( String symbol, Taxon taxon ) {
-        return securityFilter(userGeneRepository.findBySymbolContainingIgnoreCaseAndTaxon( symbol, taxon ));
+        return securityFilter( userGeneRepository.findBySymbolContainingIgnoreCaseAndTaxon( symbol, taxon ) );
     }
 
     @Override
     public Collection<UserGene> findByLikeSymbol( String symbol, Taxon taxon, TierType tier ) {
-        return securityFilter(userGeneRepository.findBySymbolContainingIgnoreCaseAndTaxonAndTier( symbol, taxon, tier ));
+        return securityFilter(
+                userGeneRepository.findBySymbolContainingIgnoreCaseAndTaxonAndTier( symbol, taxon, tier ) );
     }
 
     @Override
     public Collection<UserGene> findByLikeSymbol( String symbol, Taxon taxon, Set<TierType> tiers ) {
-        return securityFilter(userGeneRepository.findBySymbolContainingIgnoreCaseAndTaxonAndTierIn( symbol, taxon, tiers ));
+        return securityFilter(
+                userGeneRepository.findBySymbolContainingIgnoreCaseAndTaxonAndTierIn( symbol, taxon, tiers ) );
     }
 
     private Collection<UserGene> securityFilter( Collection<UserGene> userGenes ) {
@@ -111,8 +112,8 @@ public class UserGeneServiceImpl implements UserGeneService {
         for ( UserGene userGene : userGenes ) {
             if ( userService.checkCurrentUserCanSee( userGene ) ) {
                 filteredUserGenes.add( userGene );
-            }else{
-                System.out.println("Filtered out found gene "+userGene.getSymbol());
+            } else {
+                System.out.println( "Filtered out found gene " + userGene.getSymbol() );
             }
         }
 

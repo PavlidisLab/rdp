@@ -18,7 +18,6 @@ import java.util.Set;
  */
 public interface UserService {
 
-
     /**
      * Privacy level designating that only the administrator can access the users data.
      */
@@ -38,7 +37,7 @@ public interface UserService {
     @Transactional
     User update( User user );
 
-    @Secured( "ROLE_ADMIN" )
+    @Secured("ROLE_ADMIN")
     @Transactional
     void delete( User user );
 
@@ -96,8 +95,8 @@ public interface UserService {
     @Transactional
     User confirmVerificationToken( String token );
 
-    boolean checkCurrentUserCanSee(User user);
+    boolean checkCurrentUserCanSee( User user );
 
-    boolean checkCurrentUserCanSee(UserGene userGene);
+    boolean checkCurrentUserCanSee( UserGene userGene );
 
 }

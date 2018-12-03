@@ -1,6 +1,5 @@
 package ubc.pavlab.rdp.services;
 
-import lombok.Builder;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,7 +33,8 @@ import static java.util.Comparator.comparing;
 public class UserServiceImpl implements UserService {
 
     private static Log log = LogFactory.getLog( UserServiceImpl.class );
-
+    @Autowired
+    ApplicationSettings applicationSettings;
     @Autowired
     private UserRepository userRepository;
     @Autowired
@@ -47,10 +47,64 @@ public class UserServiceImpl implements UserService {
     private BCryptPasswordEncoder bCryptPasswordEncoder;
     @Autowired
     private GOService goService;
-    @Autowired
-    ApplicationSettings applicationSettings;
-
     private Role roleAdmin;
+
+    @SuppressWarnings("unused") // Keeping for future use
+    private static <T> Collector<T, ?, List<T>> maxList( Comparator<? super T> comp ) {
+        return Collector.of( ArrayList::new, ( list, t ) -> {
+            int c;
+            if ( list.isEmpty() || ( c = comp.compare( t, list.get( 0 ) ) ) == 0 ) {
+                list.add( t );
+            } else if ( c > 0 ) {
+                list.clear();
+                list.add( t );
+            }
+        }, ( list1, list2 ) -> {
+            if ( list1.isEmpty() ) {
+                return list2;
+            }
+            if ( list2.isEmpty() ) {
+                return list1;
+            }
+            int r = comp.compare( list1.get( 0 ), list2.get( 0 ) );
+            if ( r < 0 ) {
+                return list2;
+            } else if ( r > 0 ) {
+                return list1;
+            } else {
+                list1.addAll( list2 );
+                return list1;
+            }
+        } );
+    }
+
+    private static <T> Collector<T, ?, Set<T>> maxSet( Comparator<? super T> comp ) {
+        return Collector.of( HashSet::new, ( set, t ) -> {
+            int c;
+            if ( set.isEmpty() || ( c = comp.compare( t, set.iterator().next() ) ) == 0 ) {
+                set.add( t );
+            } else if ( c > 0 ) {
+                set.clear();
+                set.add( t );
+            }
+        }, ( set1, set2 ) -> {
+            if ( set1.isEmpty() ) {
+                return set2;
+            }
+            if ( set2.isEmpty() ) {
+                return set1;
+            }
+            int r = comp.compare( set1.iterator().next(), set2.iterator().next() );
+            if ( r < 0 ) {
+                return set2;
+            } else if ( r > 0 ) {
+                return set1;
+            } else {
+                set1.addAll( set2 );
+                return set1;
+            }
+        } );
+    }
 
     @Transactional
     @Override
@@ -79,11 +133,6 @@ public class UserServiceImpl implements UserService {
     }
 
     @Transactional
-    protected User updateNoAuth( User user ) {
-        return userRepository.save( user );
-    }
-
-    @Transactional
     @Override
     public void delete( User user ) {
 
@@ -103,7 +152,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User changePassword( String oldPassword, String newPassword ) throws BadCredentialsException, ValidationException {
+    public User changePassword( String oldPassword, String newPassword )
+            throws BadCredentialsException, ValidationException {
         User user = findCurrentUser();
         if ( bCryptPasswordEncoder.matches( oldPassword, user.getPassword() ) ) {
             if ( newPassword.length() >= 6 ) { //TODO: Tie in with hibernate constraint on User or not necessary?
@@ -115,24 +165,6 @@ public class UserServiceImpl implements UserService {
             }
         } else {
             throw new BadCredentialsException( "Password incorrect" );
-        }
-    }
-
-    @Transactional
-    @Override
-    public User changePasswordByResetToken( int userId, String token, String newPassword ) throws TokenException, ValidationException {
-
-        verifyPasswordResetToken( userId, token );
-
-        if ( newPassword.length() >= 6 ) { //TODO: Tie in with hibernate constraint on User or not necessary?
-
-            // Preauthorize might cause trouble here if implemented, fix by setting manual authentication
-            User user = findUserByIdNoAuth( userId );
-
-            user.setPassword( bCryptPasswordEncoder.encode( newPassword ) );
-            return updateNoAuth( user );
-        } else {
-            throw new ValidationException( "Password must be a minimum of 6 characters" );
         }
     }
 
@@ -150,21 +182,16 @@ public class UserServiceImpl implements UserService {
     @Override
     public User findCurrentUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if(auth == null || auth.getPrincipal().equals( "anonymousUser" )){
+        if ( auth == null || auth.getPrincipal().equals( "anonymousUser" ) ) {
             return null;
         }
-        return findUserByIdNoAuth( ((UserPrinciple) auth.getPrincipal()).getId() );
+        return findUserByIdNoAuth( ( ( UserPrinciple ) auth.getPrincipal() ).getId() );
     }
 
     @Override
     public User findUserById( int id ) {
         User user = userRepository.findOne( id );
         return user == null ? null : checkCurrentUserCanSee( user ) ? user : null;
-    }
-
-    @Override
-    public User getRemoteAdmin(){
-        return userRepository.findOne( applicationSettings.getIsearch().getUserId() );
     }
 
     @Override
@@ -179,18 +206,26 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public User getRemoteAdmin() {
+        return userRepository.findOne( applicationSettings.getIsearch().getUserId() );
+    }
+
+    @Override
     public List<User> findAll() {
-        return userRepository.findAll().stream().filter( this::checkCurrentUserCanSee ).collect( Collectors.toList());
+        return userRepository.findAll().stream().filter( this::checkCurrentUserCanSee ).collect( Collectors.toList() );
     }
 
     @Override
     public Collection<User> findByLikeName( String nameLike ) {
-        return securityFilter(userRepository.findByProfileNameContainingIgnoreCaseOrProfileLastNameContainingIgnoreCase( nameLike, nameLike ));
+        return securityFilter( userRepository
+                .findByProfileNameContainingIgnoreCaseOrProfileLastNameContainingIgnoreCase( nameLike, nameLike ) );
     }
 
     @Override
     public Collection<User> findByDescription( String descriptionLike ) {
-        return securityFilter(userRepository.findByProfileDescriptionContainingIgnoreCaseOrTaxonDescriptionsContainingIgnoreCase( descriptionLike, descriptionLike ));
+        return securityFilter( userRepository
+                .findByProfileDescriptionContainingIgnoreCaseOrTaxonDescriptionsContainingIgnoreCase( descriptionLike,
+                        descriptionLike ) );
     }
 
     @Override
@@ -212,28 +247,6 @@ public class UserServiceImpl implements UserService {
         return convertTermTypes( term, taxon, genes );
     }
 
-    private Collection<UserTerm> convertTermTypes( Collection<GeneOntologyTerm> goTerms, Taxon taxon, Set<Gene> genes ) {
-        List<UserTerm> newTerms = new ArrayList<>();
-        for ( GeneOntologyTerm goTerm : goTerms ) {
-            UserTerm term = convertTermTypes( goTerm, taxon, genes );
-            if ( term != null ) {
-                newTerms.add( term );
-            }
-        }
-        return newTerms;
-    }
-
-    private UserTerm convertTermTypes( GeneOntologyTerm goTerm, Taxon taxon, Set<Gene> genes ) {
-        if ( goTerm != null ) {
-            UserTerm term = new UserTerm( goTerm, taxon, genes );
-            if ( term.getSize() <= applicationSettings.getGoTermSizeLimit() ) {
-                return term;
-            }
-        }
-
-        return null;
-    }
-
     @Override
     public Collection<UserTerm> recommendTerms( User user, Taxon taxon ) {
         return recommendTerms( user, taxon, 10, applicationSettings.getGoTermSizeLimit(), 2 );
@@ -241,7 +254,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Collection<UserTerm> recommendTerms( User user, Taxon taxon, int minSize, int maxSize, int minFrequency ) {
-        if (user == null || taxon == null) return null;
+        if ( user == null || taxon == null )
+            return null;
 
         Set<Gene> genes = user.getGenesByTaxonAndTier( taxon, TierType.MANUAL_TIERS );
 
@@ -269,36 +283,17 @@ public class UserServiceImpl implements UserService {
             UserTerm ut = new UserTerm( e.getKey(), taxon, null );
             ut.setFrequency( e.getValue().intValue() );
             return ut;
-        } ).filter( ut -> !userTerms.contains( ut ))
-                .collect( maxSet( comparing( UserTerm::getFrequency ) ) );
+        } ).filter( ut -> !userTerms.contains( ut ) ).collect( maxSet( comparing( UserTerm::getFrequency ) ) );
 
         // Keep only leafiest of remaining terms (keep if it has no descendants in results)
         return topResults.stream().filter( ut -> Collections.disjoint( topResults, goService.getDescendants( ut ) ) )
                 .collect( Collectors.toSet() );
     }
 
-    private boolean updateOrInsert( User user, Gene gene, TierType tier ) {
-        if ( user == null || gene == null || tier == null ) {
-            return false;
-        }
-
-        UserGene existing = user.getUserGenes().get( gene.getGeneId() );
-
-        boolean updated = false;
-        if ( existing != null ) {
-            // Only set tier because the rest of it's information is updated PreLoad
-            updated = !existing.getTier().equals( tier );
-            existing.setTier( tier );
-        } else {
-            user.getUserGenes().put( gene.getGeneId(), new UserGene( gene, user, tier ) );
-        }
-
-        return updated;
-    }
-
     @Transactional
     @Override
-    public void updateTermsAndGenesInTaxon( User user, Taxon taxon, Map<Gene, TierType> genesToTierMap, Collection<GeneOntologyTerm> goTerms ) {
+    public void updateTermsAndGenesInTaxon( User user, Taxon taxon, Map<Gene, TierType> genesToTierMap,
+            Collection<GeneOntologyTerm> goTerms ) {
         // Remove genes from other taxons (they shouldn't be here but just incase)
         genesToTierMap.keySet().removeIf( e -> !e.getTaxon().equals( taxon ) );
         int initialSize = user.getUserGenes().size();
@@ -329,9 +324,10 @@ public class UserServiceImpl implements UserService {
         // Remove genes that no longer belong in this taxon
         user.getUserGenes().values().removeIf( g -> g.getTaxon().equals( taxon ) && !genesToTierMap.containsKey( g ) );
 
-        int removed = user.getUserGenes().size() - (initialSize + added);
+        int removed = user.getUserGenes().size() - ( initialSize + added );
 
-        log.info( "Added: " + added + ", removed: " + removed + ", updated: " + updated + " genes, User " + user.getEmail() );
+        log.info( "Added: " + added + ", removed: " + removed + ", updated: " + updated + " genes, User " + user
+                .getEmail() );
 
         update( user );
     }
@@ -356,15 +352,32 @@ public class UserServiceImpl implements UserService {
     @Override
     public void verifyPasswordResetToken( int userId, String token ) throws TokenException {
         PasswordResetToken passToken = passwordResetTokenRepository.findByToken( token );
-        if ( (passToken == null) || (!passToken.getUser().getId().equals( userId )) ) {
+        if ( ( passToken == null ) || ( !passToken.getUser().getId().equals( userId ) ) ) {
             throw new TokenException( "Invalid Token" );
         }
 
         Calendar cal = Calendar.getInstance();
-        if ( (passToken.getExpiryDate()
-                .getTime() - cal.getTime()
-                .getTime()) <= 0 ) {
+        if ( ( passToken.getExpiryDate().getTime() - cal.getTime().getTime() ) <= 0 ) {
             throw new TokenException( "Expired" );
+        }
+    }
+
+    @Transactional
+    @Override
+    public User changePasswordByResetToken( int userId, String token, String newPassword )
+            throws TokenException, ValidationException {
+
+        verifyPasswordResetToken( userId, token );
+
+        if ( newPassword.length() >= 6 ) { //TODO: Tie in with hibernate constraint on User or not necessary?
+
+            // Preauthorize might cause trouble here if implemented, fix by setting manual authentication
+            User user = findUserByIdNoAuth( userId );
+
+            user.setPassword( bCryptPasswordEncoder.encode( newPassword ) );
+            return updateNoAuth( user );
+        } else {
+            throw new ValidationException( "Password must be a minimum of 6 characters" );
         }
     }
 
@@ -386,9 +399,7 @@ public class UserServiceImpl implements UserService {
         }
 
         Calendar cal = Calendar.getInstance();
-        if ( (verificationToken.getExpiryDate()
-                .getTime() - cal.getTime()
-                .getTime()) <= 0 ) {
+        if ( ( verificationToken.getExpiryDate().getTime() - cal.getTime().getTime() ) <= 0 ) {
             throw new TokenException( "Expired" );
         }
 
@@ -401,14 +412,14 @@ public class UserServiceImpl implements UserService {
     @Override
     public boolean checkCurrentUserCanSee( User user ) {
         User currentUser = findCurrentUser();
-        if(roleAdmin == null ){
+        if ( roleAdmin == null ) {
             roleAdmin = roleRepository.findByRole( "ROLE_ADMIN" );
         }
 
         Profile profile = user.getProfile();
 
-        if( profile == null ){
-            log.error( "!! User without a profile: " +user.getId()+" / "+user.getEmail());
+        if ( profile == null ) {
+            log.error( "!! User without a profile: " + user.getId() + " / " + user.getEmail() );
             return false;
         }
 
@@ -416,14 +427,68 @@ public class UserServiceImpl implements UserService {
         // check whether this user is the designated actor for the authenticated remote search, in which case we have to check for remote search privileges on the user.
         return user.equals( currentUser ) // User is looking at himself
                 || ( profile.getPrivacyLevel().equals( PRIVACY_PUBLIC ) ) // Data is public
-                || ( profile.getPrivacyLevel().equals( PRIVACY_REGISTERED ) && currentUser != null && !currentUser.getId().equals( applicationSettings.getIsearch().getUserId() )  ) // data is accessible for registerd users and there is a user logged in who is not the remote admin
-                || ( profile.getPrivacyLevel().equals( PRIVACY_PRIVATE ) && currentUser != null && currentUser.getRoles().contains( roleAdmin ) && !currentUser.getId().equals( applicationSettings.getIsearch().getUserId() ) ) // data is private and there is an admin logged in who is not the remote admin
-                || ( profile.getShared() && currentUser != null && currentUser.getRoles().contains( roleAdmin ) && currentUser.getId().equals( applicationSettings.getIsearch().getUserId() ) ); // data is designated as remotely shared and there is an admin logged in who is the remote admin
+                || ( profile.getPrivacyLevel().equals( PRIVACY_REGISTERED ) && currentUser != null && !currentUser
+                .getId().equals( applicationSettings.getIsearch().getUserId() ) )
+                // data is accessible for registerd users and there is a user logged in who is not the remote admin
+                || ( profile.getPrivacyLevel().equals( PRIVACY_PRIVATE ) && currentUser != null && currentUser
+                .getRoles().contains( roleAdmin ) && !currentUser.getId()
+                .equals( applicationSettings.getIsearch().getUserId() ) )
+                // data is private and there is an admin logged in who is not the remote admin
+                || ( profile.getShared() && currentUser != null && currentUser.getRoles().contains( roleAdmin )
+                && currentUser.getId().equals( applicationSettings.getIsearch()
+                .getUserId() ) ); // data is designated as remotely shared and there is an admin logged in who is the remote admin
     }
 
     @Override
     public boolean checkCurrentUserCanSee( UserGene userGene ) {
         return checkCurrentUserCanSee( userGene.getUser() );
+    }
+
+    @Transactional
+    protected User updateNoAuth( User user ) {
+        return userRepository.save( user );
+    }
+
+    private Collection<UserTerm> convertTermTypes( Collection<GeneOntologyTerm> goTerms, Taxon taxon,
+            Set<Gene> genes ) {
+        List<UserTerm> newTerms = new ArrayList<>();
+        for ( GeneOntologyTerm goTerm : goTerms ) {
+            UserTerm term = convertTermTypes( goTerm, taxon, genes );
+            if ( term != null ) {
+                newTerms.add( term );
+            }
+        }
+        return newTerms;
+    }
+
+    private UserTerm convertTermTypes( GeneOntologyTerm goTerm, Taxon taxon, Set<Gene> genes ) {
+        if ( goTerm != null ) {
+            UserTerm term = new UserTerm( goTerm, taxon, genes );
+            if ( term.getSize() <= applicationSettings.getGoTermSizeLimit() ) {
+                return term;
+            }
+        }
+
+        return null;
+    }
+
+    private boolean updateOrInsert( User user, Gene gene, TierType tier ) {
+        if ( user == null || gene == null || tier == null ) {
+            return false;
+        }
+
+        UserGene existing = user.getUserGenes().get( gene.getGeneId() );
+
+        boolean updated = false;
+        if ( existing != null ) {
+            // Only set tier because the rest of it's information is updated PreLoad
+            updated = !existing.getTier().equals( tier );
+            existing.setTier( tier );
+        } else {
+            user.getUserGenes().put( gene.getGeneId(), new UserGene( gene, user, tier ) );
+        }
+
+        return updated;
     }
 
     private Collection<Gene> calculatedGenesInTaxon( User user, Taxon taxon ) {
@@ -435,78 +500,16 @@ public class UserServiceImpl implements UserService {
     }
 
     private boolean removeGenesFromUserByTiersAndTaxon( User user, Taxon taxon, Collection<TierType> tiers ) {
-        return user.getUserGenes().values().removeIf( ga -> tiers.contains( ga.getTier() ) && ga.getTaxon().equals( taxon ) );
+        return user.getUserGenes().values()
+                .removeIf( ga -> tiers.contains( ga.getTier() ) && ga.getTaxon().equals( taxon ) );
     }
 
     private boolean removeTermsFromUserByTaxon( User user, Taxon taxon ) {
         return user.getUserTerms().removeIf( ut -> ut.getTaxon().equals( taxon ) );
     }
 
-    private Collection<User> securityFilter(Collection<User> users){
+    private Collection<User> securityFilter( Collection<User> users ) {
         return users.stream().filter( this::checkCurrentUserCanSee ).collect( Collectors.toList() );
-    }
-
-    @SuppressWarnings("unused") // Keeping for future use
-    private static <T> Collector<T,?,List<T>> maxList( Comparator<? super T> comp) {
-        return Collector.of(
-                ArrayList::new,
-                (list, t) -> {
-                    int c;
-                    if (list.isEmpty() || (c = comp.compare(t, list.get(0))) == 0) {
-                        list.add(t);
-                    } else if (c > 0) {
-                        list.clear();
-                        list.add(t);
-                    }
-                },
-                (list1, list2) -> {
-                    if (list1.isEmpty()) {
-                        return list2;
-                    }
-                    if (list2.isEmpty()) {
-                        return list1;
-                    }
-                    int r = comp.compare(list1.get(0), list2.get(0));
-                    if (r < 0) {
-                        return list2;
-                    } else if (r > 0) {
-                        return list1;
-                    } else {
-                        list1.addAll(list2);
-                        return list1;
-                    }
-                });
-    }
-
-    private static <T> Collector<T,?,Set<T>> maxSet( Comparator<? super T> comp ) {
-        return Collector.of(
-                HashSet::new,
-                (set, t) -> {
-                    int c;
-                    if (set.isEmpty() || (c = comp.compare(t, set.iterator().next())) == 0) {
-                        set.add(t);
-                    } else if (c > 0) {
-                        set.clear();
-                        set.add(t);
-                    }
-                },
-                (set1, set2) -> {
-                    if (set1.isEmpty()) {
-                        return set2;
-                    }
-                    if (set2.isEmpty()) {
-                        return set1;
-                    }
-                    int r = comp.compare(set1.iterator().next(), set2.iterator().next());
-                    if (r < 0) {
-                        return set2;
-                    } else if (r > 0) {
-                        return set1;
-                    } else {
-                        set1.addAll(set2);
-                        return set1;
-                    }
-                });
     }
 
 }

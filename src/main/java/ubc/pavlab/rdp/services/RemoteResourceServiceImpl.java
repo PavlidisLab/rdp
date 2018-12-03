@@ -99,8 +99,8 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
         ResteasyClient client = new ResteasyClientBuilder().build();
         ResteasyWebTarget target = client.target( remoteUrl + encodeParams( args ) );
         Response response = target.request().get();
-        if(response.getStatus() != 200){
-            throw new RemoteException("No data received: "+response.readEntity( String.class ));
+        if ( response.getStatus() != 200 ) {
+            throw new RemoteException( "No data received: " + response.readEntity( String.class ) );
         }
 
         T[] arr = response.readEntity( arrCls );

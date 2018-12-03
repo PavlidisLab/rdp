@@ -203,11 +203,14 @@ public class ApiController {
      * @param tier the tier type to be restricted to not include tier 3.
      * @return manual (tier1&2) for tier type ANY, or throws an exception if tier type was specifically 3.
      */
-    private TierType restrictTiers(TierType tier) throws TierException {
-        switch(tier){
-            case ANY: return TierType.MANUAL;
-            case TIER3: throw new TierException( "TIER3 not allowed for international search" );
-            default: return tier;
+    private TierType restrictTiers( TierType tier ) throws TierException {
+        switch ( tier ) {
+            case ANY:
+                return TierType.MANUAL;
+            case TIER3:
+                throw new TierException( "TIER3 not allowed for international search" );
+            default:
+                return tier;
         }
     }
 
