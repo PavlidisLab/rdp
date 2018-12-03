@@ -112,8 +112,6 @@ public class UserGeneServiceImpl implements UserGeneService {
         for ( UserGene userGene : userGenes ) {
             if ( userService.checkCurrentUserCanSee( userGene ) ) {
                 filteredUserGenes.add( userGene );
-            } else {
-                System.out.println( "Filtered out found gene " + userGene.getSymbol() );
             }
         }
 
