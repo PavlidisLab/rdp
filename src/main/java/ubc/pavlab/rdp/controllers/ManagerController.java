@@ -138,22 +138,22 @@ public class ManagerController {
         Taxon taxon = taxonService.findById( taxonId );
         Gene gene = geneService.findBySymbolAndTaxon( symbol, taxon );
         Collection<UserGene> genes;
-        if ( gene == null ) {
-            genes = handleGeneSymbolSearch( symbol, tier, taxon );
-        } else {
-            genes = handleGeneSearch( gene, tier );
-        }
 
         ModelAndView modelAndView = new ModelAndView();
         modelAndView.setViewName( "manager/search" );
 
-        modelAndView.addObject( "usergenes", genes );
-        if ( iSearch ) {
-            try {
-                modelAndView
-                        .addObject( "itlUsergenes", remoteResourceService.findGenesBySymbol( symbol, taxon, tier ) );
-            } catch ( RemoteException e ) {
-                modelAndView.addObject( "itlErrorMessage", e.getMessage() );
+        if ( gene == null ) {
+            modelAndView.setViewName( "fragments/error :: message" );
+            modelAndView.addObject( "errorMessage", "Unknown Gene: " + symbol );
+        } else {
+            modelAndView.addObject( "usergenes", handleGeneSearch( gene, tier ) );
+            if ( iSearch ) {
+                try {
+                    modelAndView
+                            .addObject( "itlUsergenes", remoteResourceService.findGenesBySymbol( symbol, taxon, tier ) );
+                } catch ( RemoteException e ) {
+                    modelAndView.addObject( "itlErrorMessage", e.getMessage() );
+                }
             }
         }
         return modelAndView;
@@ -166,16 +166,14 @@ public class ManagerController {
         Taxon taxon = taxonService.findById( taxonId );
         Gene gene = geneService.findBySymbolAndTaxon( symbol, taxon );
         Collection<UserGene> genes;
-        if ( gene == null ) {
-            genes = handleGeneSymbolSearch( symbol, tier, taxon );
-        } else {
-            genes = handleGeneSearch( gene, tier );
-        }
-
         ModelAndView modelAndView = new ModelAndView();
-
-        modelAndView.addObject( "usergenes", genes );
-        modelAndView.setViewName( "fragments/user-table :: usergenes-table" );
+        if ( gene == null ) {
+            modelAndView.setViewName( "fragments/error :: message" );
+            modelAndView.addObject( "errorMessage", "Unknown Gene: " + symbol );
+        } else {
+            modelAndView.addObject( "usergenes", handleGeneSearch( gene, tier ) );
+            modelAndView.setViewName( "fragments/user-table :: usergenes-table" );
+        }
 
         return modelAndView;
     }
@@ -191,7 +189,7 @@ public class ManagerController {
         ModelAndView modelAndView = new ModelAndView();
 
         try {
-            modelAndView.addObject( "usergenes", remoteResourceService.findGenesByLikeSymbol( symbol, taxon, tier ) );
+            modelAndView.addObject( "usergenes", remoteResourceService.findGenesBySymbol( symbol, taxon, tier ) );
             modelAndView.addObject( "remote", true );
             modelAndView.setViewName( "fragments/user-table :: usergenes-table" );
         } catch ( RemoteException e ) {
@@ -217,16 +215,6 @@ public class ManagerController {
             modelAndView.setViewName( "manager/view" );
         }
         return modelAndView;
-    }
-
-    Collection<UserGene> handleGeneSymbolSearch( String symbolLike, TierType tier, Taxon taxon ) {
-        if ( tier.equals( TierType.ANY ) ) {
-            return userGeneService.findByLikeSymbol( symbolLike, taxon );
-        } else if ( tier.equals( TierType.MANUAL ) ) {
-            return userGeneService.findByLikeSymbol( symbolLike, taxon, TierType.MANUAL_TIERS );
-        } else {
-            return userGeneService.findByLikeSymbol( symbolLike, taxon, tier );
-        }
     }
 
     Collection<UserGene> handleGeneSearch( Gene gene, TierType tier ) {

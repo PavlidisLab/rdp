@@ -69,17 +69,6 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
                 }} ) );
     }
 
-    @Override
-    public Collection<UserGene> findGenesByLikeSymbol( String symbolLike, Taxon taxon, TierType tier )
-            throws RemoteException {
-        return convertRemoteGenes(
-                getRemoteEntities( UserGene[].class, API_GENES_SEARCH_URI, new HashMap<String, String>() {{
-                    put( "symbolLike", symbolLike );
-                    put( "taxonId", taxon.getId().toString() );
-                    put( "tier", tier.toString() );
-                }} ) );
-    }
-
     private <T> Collection<T> getRemoteEntities( Class<T[]> arrCls, String uri, Map<String, String> args )
             throws RemoteException {
         Collection<T> entities = new LinkedList<>();

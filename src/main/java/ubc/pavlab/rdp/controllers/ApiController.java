@@ -38,6 +38,8 @@ public class ApiController {
     private static final Map<String, String> ROOT_DATA;
     private static final ResponseEntity<String> TIER3_RESPONSE = new ResponseEntity<>(
             "Tier3 genes not published internationally.", null, HttpStatus.NOT_FOUND );
+    private static final ResponseEntity<String> GENE_NULL_RESPONSE = new ResponseEntity<>(
+            "Unknown gene", null, HttpStatus.NOT_FOUND );
 
     static {
         ROOT_DATA = new HashMap<>();
@@ -126,24 +128,6 @@ public class ApiController {
         return initUsers( userService.findByDescription( descriptionLike ) );
     }
 
-    @RequestMapping(value = "/api/genes/search", method = RequestMethod.GET, params = { "symbolLike", "taxonId",
-            "tier" }, produces = MediaType.APPLICATION_JSON)
-    @ResponseBody
-    public Object searchUsersByGeneLikeSymbol( @RequestParam String symbolLike, @RequestParam Integer taxonId,
-            @RequestParam TierType tier, @RequestParam(name = "auth", required = false) String auth ) {
-        if ( !applicationSettings.getIsearch().isEnabled() ) {
-            return ResponseEntity.notFound().build();
-        }
-        checkAuth( auth );
-        Taxon taxon = taxonService.findById( taxonId );
-        try {
-            return initGeneUsers(
-                    managerController.handleGeneSymbolSearch( symbolLike, restrictTiers( tier ), taxon ) );
-        } catch ( TierException e ) {
-            return TIER3_RESPONSE;
-        }
-    }
-
     @RequestMapping(value = "/api/genes/search", method = RequestMethod.GET, params = { "symbol", "taxonId",
             "tier" }, produces = MediaType.APPLICATION_JSON)
     @ResponseBody
@@ -155,6 +139,10 @@ public class ApiController {
         checkAuth( auth );
         Taxon taxon = taxonService.findById( taxonId );
         Gene gene = geneService.findBySymbolAndTaxon( symbol, taxon );
+        if(gene == null){
+            return GENE_NULL_RESPONSE;
+        }
+
         try {
             return initGeneUsers( managerController.handleGeneSearch( gene, restrictTiers( tier ) ) );
         } catch ( TierException e ) {
