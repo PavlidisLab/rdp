@@ -92,6 +92,7 @@ public class MainController {
         User user = userService.findCurrentUser();
         Taxon taxon = taxonService.findById( taxonId );
 
+        modelAndView.addObject( "viewOnly", false );
         modelAndView.addObject( "user", user );
         modelAndView.addObject( "taxon", taxon );
         modelAndView.setViewName( "user/model" );

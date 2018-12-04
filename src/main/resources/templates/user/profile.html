@@ -146,9 +146,8 @@
                 </div>
             </div>
 
-            <div class="w-100"></div>
-
-            <div class="col my-3">
+            <div class="w-100" th:if="${@applicationSettings.getPrivacy().isCustomizableLevel()} or ${@applicationSettings.getPrivacy().isCustomizableSharing()} or ${@applicationSettings.getPrivacy().isAllowHideGenelist()}"></div>
+            <div class="col my-3" th:if="${@applicationSettings.getPrivacy().isCustomizableLevel()} or ${@applicationSettings.getPrivacy().isCustomizableSharing()} or ${@applicationSettings.getPrivacy().isAllowHideGenelist()}">
                 <div class="card privacy-settings edit-container">
                     <div class="card-header d-flex align-items-center">
                         <h3 class="mb-0 d-inline-block">Data Privacy Settings</h3>
