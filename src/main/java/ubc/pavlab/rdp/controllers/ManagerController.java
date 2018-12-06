@@ -276,7 +276,7 @@ public class ManagerController {
 
     Collection<Gene> getHomologuesIfRequested( Integer homologueTaxonId, Gene gene ) {
         if ( homologueTaxonId != null ) {
-            return geneService.findHomologues( gene, homologueTaxonId );
+            return userGeneService.findHomologues( gene, homologueTaxonId );
         }
         //noinspection unchecked
         return Collections.EMPTY_LIST;

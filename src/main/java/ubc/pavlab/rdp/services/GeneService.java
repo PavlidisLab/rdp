@@ -50,6 +50,4 @@ public interface GeneService {
     void addAll( Collection<Gene> genes );
 
     void clear();
-
-    Collection<Gene> findHomologues( Gene gene, Integer homologueTaxonId );
 }

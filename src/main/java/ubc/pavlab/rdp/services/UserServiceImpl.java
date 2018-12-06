@@ -417,7 +417,8 @@ public class UserServiceImpl implements UserService {
         }
 
         // Never show the remote admin profile (or accidental null users)
-        if( user == null || user.getId().equals( applicationSettings.getIsearch().getUserId() ) ){
+        if ( user == null || ( applicationSettings.getIsearch() != null && user.getId()
+                .equals( applicationSettings.getIsearch().getUserId() ) ) ) {
             return false;
         }
 

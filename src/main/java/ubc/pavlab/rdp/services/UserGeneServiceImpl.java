@@ -22,6 +22,7 @@ package ubc.pavlab.rdp.services;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+import ubc.pavlab.rdp.model.Gene;
 import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.model.UserGene;
 import ubc.pavlab.rdp.model.enums.TierType;
@@ -41,6 +42,9 @@ public class UserGeneServiceImpl implements UserGeneService {
 
     @Autowired
     private UserGeneRepository userGeneRepository;
+
+    @Autowired
+    private GeneService geneService;
 
     @Autowired
     private UserService userService;
@@ -72,6 +76,11 @@ public class UserGeneServiceImpl implements UserGeneService {
     @Override
     public Integer countUsersWithGenes() {
         return userGeneRepository.countDistinctUser();
+    }
+
+    @Override
+    public Collection<Integer> findHomologues( Integer sourceGene, Integer targetTaxon ){
+        return userGeneRepository.findHomologues( sourceGene, targetTaxon );
     }
 
     @Override
@@ -116,6 +125,22 @@ public class UserGeneServiceImpl implements UserGeneService {
         }
 
         return filteredUserGenes;
+    }
+
+    @Override
+    public Collection<Gene> findHomologues( Gene gene, Integer homologueTaxonId ) {
+        Taxon targetTaxon = taxonRepository.findOne( homologueTaxonId );
+        if(gene == null || targetTaxon == null) {
+            //noinspection unchecked
+            return Collections.EMPTY_LIST;
+        }
+        Collection<Integer> geneIds = findHomologues( gene.getGeneId(), homologueTaxonId);
+        if(geneIds == null || geneIds.isEmpty()){
+            //noinspection unchecked
+            return Collections.EMPTY_LIST;
+        }
+        return geneService.load( geneIds );
+
     }
 
 }

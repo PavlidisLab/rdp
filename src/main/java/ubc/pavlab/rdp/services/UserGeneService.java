@@ -19,6 +19,7 @@
 
 package ubc.pavlab.rdp.services;
 
+import ubc.pavlab.rdp.model.Gene;
 import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.model.UserGene;
 import ubc.pavlab.rdp.model.enums.TierType;
@@ -38,6 +39,8 @@ public interface UserGeneService {
 
     Integer countUsersWithGenes();
 
+    Collection<Integer> findHomologues(Integer source_gene, Integer targetTaxon);
+
     Collection<UserGene> findByGene( int geneId );
 
     Collection<UserGene> findByGene( int geneId, TierType tier );
@@ -49,4 +52,6 @@ public interface UserGeneService {
     Collection<UserGene> findByLikeSymbol( String symbol, Taxon taxon, TierType tier );
 
     Collection<UserGene> findByLikeSymbol( String symbol, Taxon taxon, Set<TierType> tiers );
+
+    Collection<Gene> findHomologues( Gene gene, Integer homologueTaxonId );
 }
