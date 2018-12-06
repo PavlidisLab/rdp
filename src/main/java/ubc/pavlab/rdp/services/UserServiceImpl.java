@@ -416,6 +416,11 @@ public class UserServiceImpl implements UserService {
             roleAdmin = roleRepository.findByRole( "ROLE_ADMIN" );
         }
 
+        // Never show the remote admin profile (or accidental null users)
+        if( user == null || user.getId().equals( applicationSettings.getIsearch().getUserId() ) ){
+            return false;
+        }
+
         Profile profile = user.getProfile();
 
         if ( profile == null ) {
