@@ -18,4 +18,6 @@ public interface RemoteResourceService {
     Collection<User> findUsersByDescription( String descriptionLike ) throws RemoteException;
 
     Collection<UserGene> findGenesBySymbol( String symbol, Taxon taxon, TierType tier, Integer homologueTaxonId ) throws RemoteException;
+
+    User getRemoteUser( Integer userId, String remoteHost ) throws RemoteException;
 }

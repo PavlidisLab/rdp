@@ -27,6 +27,7 @@ import java.util.*;
 public class RemoteResourceServiceImpl implements RemoteResourceService {
 
     private static final String API_USERS_SEARCH_URI = "/api/users/search";
+    private static final String API_USER_GET_URI = "/api/users/%s";
     private static final String API_GENES_SEARCH_URI = "/api/genes/search";
     private static Log log = LogFactory.getLog( RemoteResourceServiceImpl.class );
 
@@ -73,6 +74,16 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
                 }} ) );
     }
 
+    @Override
+    public User getRemoteUser( Integer userId, String remoteHost ) throws RemoteException {
+        // Check that the remoteHost is one of our known APIs and call it if it is.
+        if ( Arrays.stream( applicationSettings.getIsearch().getApis() ).noneMatch( remoteHost::equals ) ) {
+            return remoteRequest( User.class, remoteHost + String.format( API_USER_GET_URI, userId ),
+                    addAuthParamIfAdmin( new HashMap<>() ) );
+        }
+        return null;
+    }
+
     private <T> Collection<T> getRemoteEntities( Class<T[]> arrCls, String uri, Map<String, String> args )
             throws RemoteException {
         Collection<T> entities = new LinkedList<>();
@@ -80,15 +91,15 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
         // Call all APIs
         for ( String api : applicationSettings.getIsearch().getApis() ) {
             @SuppressWarnings("unchecked") // Should be guaranteed when response is 200 and versions match.
-                    Collection<T> received = remoteRequest( arrCls, api + uri, addAuthParamIfAdmin( args ) );
+                    Collection<T> received = Arrays
+                    .asList( remoteRequest( arrCls, api + uri, addAuthParamIfAdmin( args ) ) );
             entities.addAll( received );
         }
 
         return entities;
     }
 
-    private <T> Collection<T> remoteRequest( Class<T[]> arrCls, String remoteUrl, Map<String, String> args )
-            throws RemoteException {
+    private <T> T remoteRequest( Class<T> cls, String remoteUrl, Map<String, String> args ) throws RemoteException {
         ResteasyClient client = new ResteasyClientBuilder().build();
         ResteasyWebTarget target = client.target( remoteUrl + encodeParams( args ) );
         Response response = target.request().get();
@@ -96,8 +107,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
             throw new RemoteException( "No data received: " + response.readEntity( String.class ) );
         }
 
-        T[] arr = response.readEntity( arrCls );
-        return Arrays.asList( arr );
+        return response.readEntity( cls );
     }
 
     private String encodeParams( Map<String, String> args ) {

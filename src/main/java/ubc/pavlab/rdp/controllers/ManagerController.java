@@ -1,5 +1,7 @@
 package ubc.pavlab.rdp.controllers;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -28,6 +30,8 @@ public class ManagerController {
 
     private static final String ERR_NO_HOMOLOGUES = "No homologues of %s for specified taxon.";
     private static final String ERR_NO_GENE = "Unknown gene: %s";
+
+    private static Log log = LogFactory.getLog( ManagerController.class );
 
     @Autowired
     private UserService userService;
@@ -224,10 +228,22 @@ public class ManagerController {
     }
 
     @RequestMapping(value = "/manager/view/{userId}", method = RequestMethod.GET)
-    public ModelAndView viewUser( @PathVariable Integer userId ) {
+    public ModelAndView viewUser( @PathVariable Integer userId,
+            @RequestParam(name = "remoteHost", required = false) String remoteHost ) {
         ModelAndView modelAndView = new ModelAndView();
         User user = userService.findCurrentUser();
-        User viewUser = userService.findUserById( userId );
+        User viewUser;
+        if ( remoteHost != null && !remoteHost.isEmpty() ) {
+            try {
+                viewUser = remoteResourceService.getRemoteUser(userId, remoteHost);
+            } catch ( RemoteException e ) {
+                log.error( "Could not fetch the remote user id "+userId+" from "+remoteHost );
+                e.printStackTrace();
+                return null;
+            }
+        } else {
+            viewUser = userService.findUserById( userId );
+        }
 
         if ( viewUser == null ) {
             modelAndView.setViewName( "error/404" );
@@ -243,7 +259,6 @@ public class ManagerController {
     Collection<UserGene> handleGeneSearch( Gene gene, TierType tier, Collection<Gene> homologues ) {
         Collection<UserGene> uGenes = new LinkedList<>();
         if ( homologues != null && !homologues.isEmpty() ) {
-            System.out.println("homologues exist: "+homologues.size());
             for ( Gene homologue : homologues ) {
                 uGenes.addAll( handleGeneSearch( homologue, tier, null ) );
             }

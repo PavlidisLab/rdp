@@ -23,7 +23,7 @@
         <tr>
             <td th:if="${remote}"><span th:text="${u.origin}" th:remove="tag"></span></td>
             <td th:if="!${remote}"><a th:href="@{'/manager/view/' + ${u.id}}" th:text="${u.email}" target="_blank"></a></td>
-            <td th:if="${remote}"><span th:text="${u.email}"></span></td>
+            <td th:if="${remote}" ><a th:href="@{'/manager/view/' + ${u.id} + '?remoteHost=' + ${u.originUrl}}" th:text="${u.email}" target="_blank"></a></td>
             <td><span th:text="${u.profile.name}" th:remove="tag"></span></td>
             <td><span th:text="${u.profile.lastName}" th:remove="tag"></span></td>
             <td><span th:text="${u.profile.organization}" th:remove="tag"></span></td>
@@ -57,7 +57,7 @@
         <tr>
             <td th:if="${remote}"><span th:text="${ug.user.origin}" th:remove="tag"></span></td>
             <td th:if="!${remote}"><a th:href="@{'/manager/view/' + ${ug.user.id}}" th:text="${ug.user.email}" target="_blank"></a></td>
-            <td th:if="${remote}"><span th:text="${ug.user.email}"></span></td>
+            <td th:if="${remote}" ><a th:href="@{'/manager/view/' + ${ug.user.id} + '?remoteHost=' + ${ug.user.originUrl}}" th:text="${ug.user.email}" target="_blank"></a></td>
             <td><span th:text="${ug.user.profile.name}" th:remove="tag"></span></td>
             <td><span th:text="${ug.user.profile.lastName}" th:remove="tag"></span></td>
             <td><span th:text="${ug.user.profile.organization}" th:remove="tag"></span></td>

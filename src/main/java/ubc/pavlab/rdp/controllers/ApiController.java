@@ -162,7 +162,6 @@ public class ApiController {
     @ResponseBody
     public Object getUserById( @PathVariable Integer userId,
             @RequestParam(name = "auth", required = false) String auth ) {
-        log.info( "API received "+userId );
         if ( !applicationSettings.getIsearch().isEnabled() ) {
             return ResponseEntity.notFound().build();
         }
@@ -171,8 +170,7 @@ public class ApiController {
         if(user == null){
             return ResponseEntity.notFound().build();
         }
-        user.setOrigin( siteSettings.getShortname() );
-        return user;
+        return initUser( user );
     }
 
     private void checkAuth( String auth ) {
@@ -194,7 +192,7 @@ public class ApiController {
     private Collection<UserGene> initGeneUsers( Collection<UserGene> genes ) {
         for ( UserGene gene : genes ) {
             //noinspection ResultOfMethodCallIgnored // Initializing for the json serializer.
-            gene.getUser().setOrigin( siteSettings.getShortname() );
+            initUser( gene.getUser() );
             gene.getUser().setUserGenes( new HashMap<>() );
             gene.setRemoteUser( gene.getUser() );
         }
@@ -203,10 +201,15 @@ public class ApiController {
 
     private Collection<User> initUsers( Collection<User> users ) {
         for ( User user : users ) {
-            //noinspection ResultOfMethodCallIgnored // Initializing for the json serializer.
-            user.setOrigin( siteSettings.getShortname() );
+            this.initUser( user );
         }
         return users;
+    }
+
+    private User initUser(User user){
+        user.setOrigin( siteSettings.getShortname() );
+        user.setOriginUrl( siteSettings.getFullUrl() );
+        return user;
     }
 
     /**

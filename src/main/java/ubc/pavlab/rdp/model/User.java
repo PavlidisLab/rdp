@@ -28,11 +28,10 @@ import java.util.stream.Collectors;
 @ToString( of = {"id", "email", "enabled"})
 public class User{
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
-	@Column(name = "user_id")
-    @JsonIgnore
-	private Integer id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "user_id")
+    private Integer id;
 
 	@Column(name = "email")
 	@Email(message = "*Please provide a valid Email")
@@ -63,7 +62,10 @@ public class User{
     @Transient
     private String origin;
 
-	/* Research related information */
+    @Transient
+    private String originUrl;
+
+    /* Research related information */
 
     @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     @ElementCollection(fetch = FetchType.EAGER)
