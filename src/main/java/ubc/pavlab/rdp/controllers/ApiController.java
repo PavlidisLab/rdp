@@ -8,10 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 import ubc.pavlab.rdp.exception.TierException;
 import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.TierType;
@@ -159,6 +156,23 @@ public class ApiController {
         } catch ( TierException e ) {
             return TIER3_RESPONSE;
         }
+    }
+
+    @RequestMapping(value = "/api/users/{userId}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON)
+    @ResponseBody
+    public Object getUserById( @PathVariable Integer userId,
+            @RequestParam(name = "auth", required = false) String auth ) {
+        log.info( "API received "+userId );
+        if ( !applicationSettings.getIsearch().isEnabled() ) {
+            return ResponseEntity.notFound().build();
+        }
+        checkAuth( auth );
+        User user = userService.findUserById( userId );
+        if(user == null){
+            return ResponseEntity.notFound().build();
+        }
+        user.setOrigin( siteSettings.getShortname() );
+        return user;
     }
 
     private void checkAuth( String auth ) {
