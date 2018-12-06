@@ -17,12 +17,17 @@ import ubc.pavlab.rdp.services.*;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedList;
 
 /**
  * Created by mjacobson on 05/02/18.
  */
 @Controller
 public class ManagerController {
+
+    private static final String ERR_NO_HOMOLOGUES = "No homologues of %s for specified taxon.";
+    private static final String ERR_NO_GENE = "Unknown gene: %s";
 
     @Autowired
     private UserService userService;
@@ -133,24 +138,31 @@ public class ManagerController {
     @RequestMapping(value = "/manager/search", method = RequestMethod.GET, params = { "symbol", "taxonId", "tier",
             "iSearch" })
     public ModelAndView searchUsersByGene( @RequestParam String symbol, @RequestParam Integer taxonId,
-            @RequestParam TierType tier, @RequestParam Boolean iSearch ) {
-        User user = userService.findCurrentUser();
+            @RequestParam TierType tier, @RequestParam Boolean iSearch,
+            @RequestParam(name = "homologueTaxonId", required = false) Integer homologueTaxonId ) {
         Taxon taxon = taxonService.findById( taxonId );
         Gene gene = geneService.findBySymbolAndTaxon( symbol, taxon );
-        Collection<UserGene> genes;
+        Collection<Gene> homologues = getHomologuesIfRequested( homologueTaxonId, gene );
 
         ModelAndView modelAndView = new ModelAndView();
         modelAndView.setViewName( "manager/search" );
 
         if ( gene == null ) {
             modelAndView.setViewName( "fragments/error :: message" );
-            modelAndView.addObject( "errorMessage", "Unknown Gene: " + symbol );
+            modelAndView.addObject( "errorMessage", String.format( ERR_NO_GENE, symbol ) );
+        } else if (
+            // Check if there is a homologue request for a different taxon than the original gene
+                ( homologueTaxonId != null && !homologueTaxonId.equals( gene.getTaxon().getId() ) )
+                        // Check if we got some homologue results
+                        && ( homologues == null || homologues.isEmpty() ) ) {
+            modelAndView.setViewName( "fragments/error :: message" );
+            modelAndView.addObject( "errorMessage", String.format( ERR_NO_HOMOLOGUES, symbol ) );
         } else {
-            modelAndView.addObject( "usergenes", handleGeneSearch( gene, tier ) );
+            modelAndView.addObject( "usergenes", handleGeneSearch( gene, tier, homologues ) );
             if ( iSearch ) {
                 try {
-                    modelAndView
-                            .addObject( "itlUsergenes", remoteResourceService.findGenesBySymbol( symbol, taxon, tier ) );
+                    modelAndView.addObject( "itlUsergenes",
+                            remoteResourceService.findGenesBySymbol( symbol, taxon, tier, homologueTaxonId ) );
                 } catch ( RemoteException e ) {
                     modelAndView.addObject( "itlErrorMessage", e.getMessage() );
                 }
@@ -162,16 +174,25 @@ public class ManagerController {
     @RequestMapping(value = "/manager/search/view", method = RequestMethod.GET, params = { "symbol", "taxonId",
             "tier" })
     public ModelAndView searchUsersByGeneView( @RequestParam String symbol, @RequestParam Integer taxonId,
-            @RequestParam TierType tier ) {
+            @RequestParam TierType tier,
+            @RequestParam(name = "homologueTaxonId", required = false) Integer homologueTaxonId ) {
         Taxon taxon = taxonService.findById( taxonId );
         Gene gene = geneService.findBySymbolAndTaxon( symbol, taxon );
-        Collection<UserGene> genes;
+        Collection<Gene> homologues = getHomologuesIfRequested( homologueTaxonId, gene );
+
         ModelAndView modelAndView = new ModelAndView();
         if ( gene == null ) {
             modelAndView.setViewName( "fragments/error :: message" );
-            modelAndView.addObject( "errorMessage", "Unknown Gene: " + symbol );
+            modelAndView.addObject( "errorMessage", String.format( ERR_NO_GENE, symbol ) );
+        } else if (
+            // Check if there is a homologue request for a different taxon than the original gene
+                ( homologueTaxonId != null && !homologueTaxonId.equals( gene.getTaxon().getId() ) )
+                        // Check if we got some homologue results
+                        && ( homologues == null || homologues.isEmpty() ) ) {
+            modelAndView.setViewName( "fragments/error :: message" );
+            modelAndView.addObject( "errorMessage", String.format( ERR_NO_HOMOLOGUES, symbol ) );
         } else {
-            modelAndView.addObject( "usergenes", handleGeneSearch( gene, tier ) );
+            modelAndView.addObject( "usergenes", handleGeneSearch( gene, tier, homologues ) );
             modelAndView.setViewName( "fragments/user-table :: usergenes-table" );
         }
 
@@ -181,7 +202,8 @@ public class ManagerController {
     @RequestMapping(value = "/manager/search/view/international", method = RequestMethod.GET, params = { "symbol",
             "taxonId", "tier" })
     public ModelAndView searchItlUsersByGeneView( @RequestParam String symbol, @RequestParam Integer taxonId,
-            @RequestParam TierType tier ) {
+            @RequestParam TierType tier,
+            @RequestParam(name = "homologueTaxonId", required = false) Integer homologueTaxonId ) {
         if ( !applicationSettings.getIsearch().isEnabled() )
             return null;
         Taxon taxon = taxonService.findById( taxonId );
@@ -189,7 +211,8 @@ public class ManagerController {
         ModelAndView modelAndView = new ModelAndView();
 
         try {
-            modelAndView.addObject( "usergenes", remoteResourceService.findGenesBySymbol( symbol, taxon, tier ) );
+            modelAndView.addObject( "usergenes",
+                    remoteResourceService.findGenesBySymbol( symbol, taxon, tier, homologueTaxonId ) );
             modelAndView.addObject( "remote", true );
             modelAndView.setViewName( "fragments/user-table :: usergenes-table" );
         } catch ( RemoteException e ) {
@@ -217,15 +240,31 @@ public class ManagerController {
         return modelAndView;
     }
 
-    Collection<UserGene> handleGeneSearch( Gene gene, TierType tier ) {
-        // TODO: Also search by exact symbol?
-        if ( tier.equals( TierType.ANY ) ) {
-            return userGeneService.findByGene( gene.getGeneId() );
-        } else if ( tier.equals( TierType.MANUAL ) ) {
-            return userGeneService.findByGene( gene.getGeneId(), TierType.MANUAL_TIERS );
+    Collection<UserGene> handleGeneSearch( Gene gene, TierType tier, Collection<Gene> homologues ) {
+        Collection<UserGene> uGenes = new LinkedList<>();
+        if ( homologues != null && !homologues.isEmpty() ) {
+            System.out.println("homologues exist: "+homologues.size());
+            for ( Gene homologue : homologues ) {
+                uGenes.addAll( handleGeneSearch( homologue, tier, null ) );
+            }
+            return uGenes;
         } else {
-            return userGeneService.findByGene( gene.getGeneId(), tier );
+            if ( tier.equals( TierType.ANY ) ) {
+                return userGeneService.findByGene( gene.getGeneId() );
+            } else if ( tier.equals( TierType.MANUAL ) ) {
+                return userGeneService.findByGene( gene.getGeneId(), TierType.MANUAL_TIERS );
+            } else {
+                return userGeneService.findByGene( gene.getGeneId(), tier );
+            }
         }
+    }
+
+    Collection<Gene> getHomologuesIfRequested( Integer homologueTaxonId, Gene gene ) {
+        if ( homologueTaxonId != null ) {
+            return geneService.findHomologues( gene, homologueTaxonId );
+        }
+        //noinspection unchecked
+        return Collections.EMPTY_LIST;
     }
 
 }

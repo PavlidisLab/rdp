@@ -68,50 +68,35 @@
                     </div>
                 </div>
             </form>
-            <form class="d-none">
+            <form id="gene-search-box">
                 <div class="form-group row">
                     <div class="input-group mb-3">
                         <div class="input-group-prepend">
                             <button class="btn btn-outline-secondary" type="submit">Search</button>
                         </div>
-                        <input type="text" class="form-control" name="symbolLike" placeholder="Part of symbol"/>
-                        <select name="taxonId" class="custom-select">
+                        <input type="text" class="form-control gene-autocomplete" name="symbol" placeholder="Symbol" title="Gene official symbol to look for"/>
+                        <select id="taxonId" name="taxonId" class="custom-select" title="Taxon to run primary search on">
                             <th:block th:each="taxon : ${@taxonService.findByActiveTrue()}">
                                 <option th:value="${taxon.id}" th:text="${#strings.capitalizeWords(taxon.commonName)}" th:selected="${taxon.id == 9606}"></option>
                             </th:block>
                         </select>
-                        <select name="tier" class="custom-select">
+                        <select name="tier" class="custom-select" title="Show any tier, a specific tier, or manual tiers only (tiers 1 &amp; 2)">
                             <!--suppress ThymeleafVariablesResolveInspection -->
                             <option th:each="tier : ${T(ubc.pavlab.rdp.model.enums.TierType).values()}"
                                     th:value="${tier}"
-                                    th:text="${tier}"
+                                    th:text="'Tier: ' + ${tier}"
                                     th:selected="${tier == T(ubc.pavlab.rdp.model.enums.TierType).ANY}">
                             </option>
                         </select>
                     </div>
                 </div>
-            </form>
-            <form>
-                <div class="form-group row">
-                    <div class="input-group mb-3">
-                        <div class="input-group-prepend">
-                            <button class="btn btn-outline-secondary" type="submit">Search</button>
-                        </div>
-                        <input type="text" class="form-control gene-autocomplete" name="symbol" placeholder="Symbol"/>
-                        <select name="taxonId" class="custom-select">
-                            <th:block th:each="taxon : ${@taxonService.findByActiveTrue()}">
-                                <option th:value="${taxon.id}" th:text="${#strings.capitalizeWords(taxon.commonName)}" th:selected="${taxon.id == 9606}"></option>
-                            </th:block>
-                        </select>
-                        <select name="tier" class="custom-select">
-                            <!--suppress ThymeleafVariablesResolveInspection -->
-                            <option th:each="tier : ${T(ubc.pavlab.rdp.model.enums.TierType).values()}"
-                                    th:value="${tier}"
-                                    th:text="${tier}"
-                                    th:selected="${tier == T(ubc.pavlab.rdp.model.enums.TierType).ANY}">
-                            </option>
-                        </select>
-                    </div>
+                <div id="homologue-box" class="row">
+                    <span class="col-4 my-4 text-right">Search for homologues of selected gene for</span>
+                    <select name="homologueTaxonId" class="custom-select homologue-select col-4 my-3" title="Homologue taxon">
+                        <th:block th:each="taxon : ${@taxonService.findByActiveTrue()}">
+                            <option th:value="${taxon.id}" th:text="${#strings.capitalizeWords(taxon.commonName)}" th:selected="${taxon.id == 9606}"></option>
+                        </th:block>
+                    </select>
                 </div>
             </form>
             <div id="userTable">

@@ -60,12 +60,16 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
     }
 
     @Override
-    public Collection<UserGene> findGenesBySymbol( String symbol, Taxon taxon, TierType tier ) throws RemoteException {
+    public Collection<UserGene> findGenesBySymbol( String symbol, Taxon taxon, TierType tier, Integer homologueTaxonId )
+            throws RemoteException {
         return convertRemoteGenes(
                 getRemoteEntities( UserGene[].class, API_GENES_SEARCH_URI, new HashMap<String, String>() {{
                     put( "symbol", symbol );
                     put( "taxonId", taxon.getId().toString() );
                     put( "tier", tier.toString() );
+                    if ( homologueTaxonId != null ) {
+                        put( "homologueTaxonId", homologueTaxonId.toString() );
+                    }
                 }} ) );
     }
 

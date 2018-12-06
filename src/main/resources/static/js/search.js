@@ -1,10 +1,19 @@
-function checkAndHide(itlChbox){
+function checkItl(itlChbox){
     if(itlChbox.prop("checked")){
         $("#itlResults").show();
         $("[name=iSearch]").val(true);
     }else{
         $("#itlResults").hide();
         $('[name="iSearch"]').val(false);
+    }
+}
+
+function checkTaxon(taxonSelect){
+    // noinspection EqualityComparisonWithCoercionJS // multi-browser support
+    if(taxonSelect.val() == 9606){
+        $("#homologue-box").show();
+    }else{
+        $("#homologue-box").hide();
     }
 }
 
@@ -34,10 +43,18 @@ $(document).ready(function () {
         event.preventDefault();
     });
 
+    // International search property setting
     var itlChbox = $("#isearch-checkbox");
-    checkAndHide(itlChbox);
+    checkItl(itlChbox);
     itlChbox.click(function(){
-        checkAndHide(itlChbox);
+        checkItl(itlChbox);
+    });
+
+    // Homologue selection show&hide
+    var taxonSelect = $("#taxonId");
+    checkTaxon(taxonSelect);
+    taxonSelect.on("change", function(){
+        checkTaxon(taxonSelect);
     });
 
     $(function () {

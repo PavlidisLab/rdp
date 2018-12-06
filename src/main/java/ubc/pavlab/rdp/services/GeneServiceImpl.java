@@ -12,6 +12,7 @@ import ubc.pavlab.rdp.model.Gene;
 import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.model.enums.GeneMatchType;
 import ubc.pavlab.rdp.model.enums.TierType;
+import ubc.pavlab.rdp.repositories.UserGeneRepository;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.util.GeneInfoParser;
 import ubc.pavlab.rdp.util.SearchResult;
@@ -39,29 +40,28 @@ public class GeneServiceImpl extends SearchableEhcache<Integer, Gene> implements
     private EhCacheCacheManager cacheManager;
 
     @Autowired
-    TaxonService taxonService;
+    private TaxonService taxonService;
+
+    @Autowired
+    private UserGeneRepository userGeneRepository;
 
     @Autowired
     private ApplicationSettings applicationSettings;
 
     private Ehcache cache;
 
-    private Attribute<Integer> id;
     private Attribute<String> name;
     private Attribute<String> symbol;
     private Attribute<Integer> taxonId;
     private Attribute<String> aliases;
-    private Attribute<Integer> modificationDate;
 
     @PostConstruct
     private void initialize() {
         this.cache = this.cacheManager.getCacheManager().getEhcache( CACHE_NAME );
-        id = new Attribute<>( "geneId" );
         name = new Attribute<>( "name" );
         symbol = new Attribute<>( "symbol" );
         taxonId = new Attribute<>( "taxonId" );
         aliases = new Attribute<>( "aliases" );
-        modificationDate = new Attribute<>( "modificationDate" );
 
         ApplicationSettings.CacheSettings cacheSettings = applicationSettings.getCache();
 
@@ -91,10 +91,12 @@ public class GeneServiceImpl extends SearchableEhcache<Integer, Gene> implements
 
     }
 
+    @Override
     public Ehcache getCache() {
         return cache;
     }
 
+    @Override
     public Integer getKey( Gene gene ) {
         return gene.getGeneId();
     }
@@ -174,4 +176,19 @@ public class GeneServiceImpl extends SearchableEhcache<Integer, Gene> implements
         removeAll();
     }
 
+    @Override
+    public Collection<Gene> findHomologues( Gene gene, Integer homologueTaxonId ) {
+        Taxon targetTaxon = taxonService.findById( homologueTaxonId );
+        if(gene == null || targetTaxon == null) {
+            //noinspection unchecked
+            return Collections.EMPTY_LIST;
+        }
+        Collection<Integer> geneIds = userGeneRepository.findHomologues( gene.getGeneId(), homologueTaxonId);
+        if(geneIds == null || geneIds.isEmpty()){
+            //noinspection unchecked
+            return Collections.EMPTY_LIST;
+        }
+        return this.load( geneIds );
+
+    }
 }

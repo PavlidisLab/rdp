@@ -38,8 +38,10 @@ public class ApiController {
     private static final Map<String, String> ROOT_DATA;
     private static final ResponseEntity<String> TIER3_RESPONSE = new ResponseEntity<>(
             "Tier3 genes not published internationally.", null, HttpStatus.NOT_FOUND );
-    private static final ResponseEntity<String> GENE_NULL_RESPONSE = new ResponseEntity<>(
-            "Unknown gene", null, HttpStatus.NOT_FOUND );
+    private static final ResponseEntity<String> GENE_NULL_RESPONSE = new ResponseEntity<>( "Unknown gene.", null,
+            HttpStatus.NOT_FOUND );
+    private static final ResponseEntity<String> HOMOLOGUE_NULL_RESPONSE = new ResponseEntity<>(
+            "Could not find any homologues with given parameters.", null, HttpStatus.NOT_FOUND );
 
     static {
         ROOT_DATA = new HashMap<>();
@@ -132,19 +134,28 @@ public class ApiController {
             "tier" }, produces = MediaType.APPLICATION_JSON)
     @ResponseBody
     public Object searchUsersByGeneSymbol( @RequestParam String symbol, @RequestParam Integer taxonId,
-            @RequestParam TierType tier, @RequestParam(name = "auth", required = false) String auth ) {
+            @RequestParam TierType tier, @RequestParam(name = "auth", required = false) String auth,
+            @RequestParam(name = "homologueTaxonId", required = false) Integer homologueTaxonId ) {
         if ( !applicationSettings.getIsearch().isEnabled() ) {
             return ResponseEntity.notFound().build();
         }
         checkAuth( auth );
         Taxon taxon = taxonService.findById( taxonId );
         Gene gene = geneService.findBySymbolAndTaxon( symbol, taxon );
-        if(gene == null){
+        Collection<Gene> homologues = managerController.getHomologuesIfRequested( homologueTaxonId, gene );
+
+        if ( gene == null ) {
             return GENE_NULL_RESPONSE;
+        } else if (
+            // Check if there is a homologue request for a different taxon than the original gene
+                ( homologueTaxonId != null && !homologueTaxonId.equals( gene.getTaxon().getId() ) )
+                        // Check if we got some homologue results
+                        && ( homologues == null || homologues.isEmpty() ) ) {
+            return HOMOLOGUE_NULL_RESPONSE;
         }
 
         try {
-            return initGeneUsers( managerController.handleGeneSearch( gene, restrictTiers( tier ) ) );
+            return initGeneUsers( managerController.handleGeneSearch( gene, restrictTiers( tier ), homologues ) );
         } catch ( TierException e ) {
             return TIER3_RESPONSE;
         }

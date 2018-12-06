@@ -46,6 +46,7 @@
         <th scope="col">Website</th>
         <th scope="col">Gene</th>
         <th scope="col">Tier</th>
+        <th scope="col">Organism</th>
     </tr>
     </thead>
     <tbody>
@@ -64,6 +65,7 @@
             <td><a th:href="${ug.user.profile.website}" th:text="${ug.user.profile.website}"></a></td>
             <td><span th:text="${ug.symbol}" th:remove="tag"></span></td>
             <td><span th:text="${ug.tier}" th:remove="tag"></span></td>
+            <td><span th:text="${ug.taxon.commonName}" th:remove="tag"></span></td>
         </tr>
     </th:block>
     </tbody>
