@@ -57,7 +57,7 @@ public class ApiController {
     @Autowired
     private SiteSettings siteSettings;
     @Autowired
-    private ManagerController managerController;
+    private SearchController searchController;
 
     /**
      * Root endpoint with welcome message and api version.
@@ -139,7 +139,7 @@ public class ApiController {
         checkAuth( auth );
         Taxon taxon = taxonService.findById( taxonId );
         Gene gene = geneService.findBySymbolAndTaxon( symbol, taxon );
-        Collection<Gene> homologues = managerController.getHomologuesIfRequested( homologueTaxonId, gene );
+        Collection<Gene> homologues = searchController.getHomologuesIfRequested( homologueTaxonId, gene );
 
         if ( gene == null ) {
             return GENE_NULL_RESPONSE;
@@ -152,7 +152,7 @@ public class ApiController {
         }
 
         try {
-            return initGeneUsers( managerController.handleGeneSearch( gene, restrictTiers( tier ), homologues ) );
+            return initGeneUsers( searchController.handleGeneSearch( gene, restrictTiers( tier ), homologues ) );
         } catch ( TierException e ) {
             return TIER3_RESPONSE;
         }

@@ -10,11 +10,9 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 import ubc.pavlab.rdp.exception.RemoteException;
-import ubc.pavlab.rdp.model.Gene;
-import ubc.pavlab.rdp.model.Taxon;
-import ubc.pavlab.rdp.model.User;
-import ubc.pavlab.rdp.model.UserGene;
+import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.TierType;
+import ubc.pavlab.rdp.repositories.RoleRepository;
 import ubc.pavlab.rdp.services.*;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 
@@ -26,12 +24,13 @@ import java.util.LinkedList;
  * Created by mjacobson on 05/02/18.
  */
 @Controller
-public class ManagerController {
+public class SearchController {
 
     private static final String ERR_NO_HOMOLOGUES = "No homologues of %s for specified taxon.";
     private static final String ERR_NO_GENE = "Unknown gene: %s";
 
-    private static Log log = LogFactory.getLog( ManagerController.class );
+    private static Log log = LogFactory.getLog( SearchController.class );
+    private static Role adminRole;
 
     @Autowired
     private UserService userService;
@@ -51,9 +50,15 @@ public class ManagerController {
     @Autowired
     private RemoteResourceService remoteResourceService;
 
-    @RequestMapping(value = "/manager/search", method = RequestMethod.GET, params = { "nameLike", "iSearch" })
+    @Autowired
+    private RoleRepository roleRepository;
+
+    @RequestMapping(value = "/search", method = RequestMethod.GET, params = { "nameLike", "iSearch" })
     public ModelAndView searchUsersByName( @RequestParam String nameLike, @RequestParam Boolean iSearch ) {
         User user = userService.findCurrentUser();
+        if(!searchAuthorized( user, false )){
+            return null;
+        }
         ModelAndView modelAndView = new ModelAndView();
         modelAndView.addObject( "user", user );
         modelAndView.addObject( "users", userService.findByLikeName( nameLike ) );
@@ -64,22 +69,26 @@ public class ManagerController {
                 modelAndView.addObject( "itlErrorMessage", e.getMessage() );
             }
         }
-        modelAndView.setViewName( "manager/search" );
+        modelAndView.setViewName( "search" );
         return modelAndView;
     }
 
-    @RequestMapping(value = "/manager/search/view", method = RequestMethod.GET, params = { "nameLike", })
+    @RequestMapping(value = "/search/view", method = RequestMethod.GET, params = { "nameLike", })
     public ModelAndView searchUsersByNameView( @RequestParam String nameLike ) {
+        if(!searchAuthorized( userService.findCurrentUser(), false )){
+            return null;
+        }
         ModelAndView modelAndView = new ModelAndView();
         modelAndView.addObject( "users", userService.findByLikeName( nameLike ) );
         modelAndView.setViewName( "fragments/user-table :: user-table" );
         return modelAndView;
     }
 
-    @RequestMapping(value = "/manager/search/view/international", method = RequestMethod.GET, params = { "nameLike" })
+    @RequestMapping(value = "/search/view/international", method = RequestMethod.GET, params = { "nameLike" })
     public ModelAndView searchItlUsersByNameView( @RequestParam String nameLike ) {
-        if ( !applicationSettings.getIsearch().isEnabled() )
+        if(!searchAuthorized( userService.findCurrentUser(), true )){
             return null;
+        }
         ModelAndView modelAndView = new ModelAndView();
 
         try {
@@ -94,10 +103,13 @@ public class ManagerController {
         return modelAndView;
     }
 
-    @RequestMapping(value = "/manager/search", method = RequestMethod.GET, params = { "descriptionLike", "iSearch" })
+    @RequestMapping(value = "/search", method = RequestMethod.GET, params = { "descriptionLike", "iSearch" })
     public ModelAndView searchUsersByDescription( @RequestParam String descriptionLike,
             @RequestParam Boolean iSearch ) {
         User user = userService.findCurrentUser();
+        if(!searchAuthorized( user, false )){
+            return null;
+        }
         ModelAndView modelAndView = new ModelAndView();
         modelAndView.addObject( "user", user );
         modelAndView.addObject( "users", userService.findByDescription( descriptionLike ) );
@@ -108,23 +120,26 @@ public class ManagerController {
                 modelAndView.addObject( "itlErrorMessage", e.getMessage() );
             }
         }
-        modelAndView.setViewName( "manager/search" );
+        modelAndView.setViewName( "search" );
         return modelAndView;
     }
 
-    @RequestMapping(value = "/manager/search/view", method = RequestMethod.GET, params = { "descriptionLike" })
+    @RequestMapping(value = "/search/view", method = RequestMethod.GET, params = { "descriptionLike" })
     public ModelAndView searchUsersByDescriptionView( @RequestParam String descriptionLike ) {
+        if(!searchAuthorized( userService.findCurrentUser(), false )){
+            return null;
+        }
         ModelAndView modelAndView = new ModelAndView();
         modelAndView.addObject( "users", userService.findByDescription( descriptionLike ) );
         modelAndView.setViewName( "fragments/user-table :: user-table" );
         return modelAndView;
     }
 
-    @RequestMapping(value = "/manager/search/view/international", method = RequestMethod.GET, params = {
-            "descriptionLike" })
+    @RequestMapping(value = "/search/view/international", method = RequestMethod.GET, params = { "descriptionLike" })
     public ModelAndView searchItlUsersByDescriptionView( @RequestParam String descriptionLike ) {
-        if ( !applicationSettings.getIsearch().isEnabled() )
+        if(!searchAuthorized( userService.findCurrentUser(), true )){
             return null;
+        }
         ModelAndView modelAndView = new ModelAndView();
 
         try {
@@ -139,17 +154,20 @@ public class ManagerController {
         return modelAndView;
     }
 
-    @RequestMapping(value = "/manager/search", method = RequestMethod.GET, params = { "symbol", "taxonId", "tier",
-            "iSearch" })
+    @RequestMapping(value = "/search", method = RequestMethod.GET, params = { "symbol", "taxonId", "tier", "iSearch" })
     public ModelAndView searchUsersByGene( @RequestParam String symbol, @RequestParam Integer taxonId,
             @RequestParam TierType tier, @RequestParam Boolean iSearch,
             @RequestParam(name = "homologueTaxonId", required = false) Integer homologueTaxonId ) {
+        if(!searchAuthorized( userService.findCurrentUser(), false )){
+            return null;
+        }
+
         Taxon taxon = taxonService.findById( taxonId );
         Gene gene = geneService.findBySymbolAndTaxon( symbol, taxon );
         Collection<Gene> homologues = getHomologuesIfRequested( homologueTaxonId, gene );
 
         ModelAndView modelAndView = new ModelAndView();
-        modelAndView.setViewName( "manager/search" );
+        modelAndView.setViewName( "search" );
 
         if ( gene == null ) {
             modelAndView.setViewName( "fragments/error :: message" );
@@ -175,11 +193,13 @@ public class ManagerController {
         return modelAndView;
     }
 
-    @RequestMapping(value = "/manager/search/view", method = RequestMethod.GET, params = { "symbol", "taxonId",
-            "tier" })
+    @RequestMapping(value = "/search/view", method = RequestMethod.GET, params = { "symbol", "taxonId", "tier" })
     public ModelAndView searchUsersByGeneView( @RequestParam String symbol, @RequestParam Integer taxonId,
             @RequestParam TierType tier,
             @RequestParam(name = "homologueTaxonId", required = false) Integer homologueTaxonId ) {
+        if(!searchAuthorized( userService.findCurrentUser(), false )){
+            return null;
+        }
         Taxon taxon = taxonService.findById( taxonId );
         Gene gene = geneService.findBySymbolAndTaxon( symbol, taxon );
         Collection<Gene> homologues = getHomologuesIfRequested( homologueTaxonId, gene );
@@ -203,13 +223,14 @@ public class ManagerController {
         return modelAndView;
     }
 
-    @RequestMapping(value = "/manager/search/view/international", method = RequestMethod.GET, params = { "symbol",
-            "taxonId", "tier" })
+    @RequestMapping(value = "/search/view/international", method = RequestMethod.GET, params = { "symbol", "taxonId",
+            "tier" })
     public ModelAndView searchItlUsersByGeneView( @RequestParam String symbol, @RequestParam Integer taxonId,
             @RequestParam TierType tier,
             @RequestParam(name = "homologueTaxonId", required = false) Integer homologueTaxonId ) {
-        if ( !applicationSettings.getIsearch().isEnabled() )
+        if(!searchAuthorized( userService.findCurrentUser(), true )){
             return null;
+        }
         Taxon taxon = taxonService.findById( taxonId );
 
         ModelAndView modelAndView = new ModelAndView();
@@ -227,17 +248,20 @@ public class ManagerController {
         return modelAndView;
     }
 
-    @RequestMapping(value = "/manager/view/{userId}", method = RequestMethod.GET)
+    @RequestMapping(value = "/userView/{userId}", method = RequestMethod.GET)
     public ModelAndView viewUser( @PathVariable Integer userId,
             @RequestParam(name = "remoteHost", required = false) String remoteHost ) {
+        if(!searchAuthorized( userService.findCurrentUser(), false )){
+            return null;
+        }
         ModelAndView modelAndView = new ModelAndView();
         User user = userService.findCurrentUser();
         User viewUser;
-        if ( remoteHost != null && !remoteHost.isEmpty() ) {
+        if ( remoteHost != null && !remoteHost.isEmpty() && searchAuthorized( userService.findCurrentUser(), true ) ) {
             try {
-                viewUser = remoteResourceService.getRemoteUser(userId, remoteHost);
+                viewUser = remoteResourceService.getRemoteUser( userId, remoteHost );
             } catch ( RemoteException e ) {
-                log.error( "Could not fetch the remote user id "+userId+" from "+remoteHost );
+                log.error( "Could not fetch the remote user id " + userId + " from " + remoteHost );
                 e.printStackTrace();
                 return null;
             }
@@ -251,7 +275,7 @@ public class ManagerController {
             modelAndView.addObject( "user", user );
             modelAndView.addObject( "viewUser", viewUser );
             modelAndView.addObject( "viewOnly", true );
-            modelAndView.setViewName( "manager/view" );
+            modelAndView.setViewName( "userView" );
         }
         return modelAndView;
     }
@@ -280,6 +304,18 @@ public class ManagerController {
         }
         //noinspection unchecked
         return Collections.EMPTY_LIST;
+    }
+
+    private boolean searchAuthorized( User user, boolean international ) {
+        if ( adminRole == null ) {
+            adminRole = roleRepository.findByRole( "ROLE_ADMIN" );
+        }
+
+        return ( applicationSettings.getPrivacy().isPublicSearch() // Search is public
+                || ( applicationSettings.getPrivacy().isRegisteredSearch() && user != null ) // Search is registered and there is user logged
+                || ( user != null && adminRole != null && user.getRoles().contains( adminRole ) ) ) // User is admin
+
+                && ( !international || applicationSettings.getIsearch().isEnabled() ); // International search enabled
     }
 
 }

@@ -23,7 +23,7 @@ $(document).ready(function () {
         tableContainer.html($('<i class="mx-2 spinner"></i>'));
 
         // noinspection JSUnusedLocalSymbols
-        tableContainer.load("/manager/search/view", $(this).serialize(), function(responseText, textStatus, req) {
+        tableContainer.load("/search/view", $(this).serialize(), function(responseText, textStatus, req) {
             if (textStatus !== "success") {
                 tableContainer.html($('<span class="mx-2 text-danger">Something went wrong! Please try again.</span>'));
             }
@@ -33,7 +33,7 @@ $(document).ready(function () {
             var itlTableContainer = $("#itlUserTable");
             itlTableContainer.html($('<i class="mx-2 spinner"></i>'));
             // noinspection JSUnusedLocalSymbols
-            itlTableContainer.load("/manager/search/view/international", $(this).serialize(), function(responseText, textStatus, req) {
+            itlTableContainer.load("/search/view/international", $(this).serialize(), function(responseText, textStatus, req) {
                 if (textStatus !== "success") {
                     itlTableContainer.html($('<span class="mx-2 text-danger">Something went wrong! Please try again.</span>'));
                 }

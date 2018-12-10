@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!--suppress ThymeleafVariablesResolveInspection checking for null -->
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:th="http://www.thymeleaf.org">
 
@@ -69,7 +70,7 @@
                     <a th:href="@{/registration}">Create Account</a>
                 </div>
                 <div class="col-4 text-center" th:if="${@applicationSettings.getPrivacy().isPublicSearch()}">
-                    <a th:href="@{/publicSearch}">Public search</a>
+                    <a th:href="@{/search}">Public search</a>
                 </div>
                 <div class="col-4 text-center" th:if="!${@applicationSettings.getPrivacy().isPublicSearch()}"></div>
                 <div class="col-4 text-right">

@@ -54,10 +54,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                         "/resetPassword",
                         "/updatePassword",
                         "/resendConfirmation",
-                        "/publicSearch",
+                        "/search/**",
+                        "/userView/**",
                         "/api/**",
                         "/access-denied").permitAll()
-                .antMatchers( "/manager/**" ).hasAnyRole( "ADMIN" )
                 .antMatchers( "/admin/**" ).hasRole( "ADMIN" )
                 .antMatchers( "/", "/user/**" ).authenticated().anyRequest()
                 .authenticated().and().csrf().disable().formLogin()

@@ -12,6 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.TierType;
+import ubc.pavlab.rdp.repositories.RoleRepository;
 import ubc.pavlab.rdp.services.*;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 
@@ -27,6 +28,7 @@ import java.util.stream.Collectors;
 public class MainController {
 
     private static Log log = LogFactory.getLog( MainController.class );
+    private static Role adminRole;
 
     @Autowired
     private UserService userService;
@@ -46,6 +48,9 @@ public class MainController {
     @Autowired
     private ApplicationSettings applicationSettings;
 
+    @Autowired
+    private RoleRepository roleRepository;
+
     @RequestMapping(value = { "/" }, method = RequestMethod.GET)
     public ModelAndView index() {
         ModelAndView modelAndView = new ModelAndView();
@@ -59,25 +64,6 @@ public class MainController {
         User user = userService.findCurrentUser();
         modelAndView.addObject( "user", user );
         modelAndView.setViewName( "user/home" );
-        return modelAndView;
-    }
-
-    @RequestMapping(value = { "/publicSearch" }, method = RequestMethod.GET)
-    public ModelAndView publicSearch() {
-        if(!applicationSettings.getPrivacy().isPublicSearch()) return null;
-        ModelAndView modelAndView = new ModelAndView();
-        modelAndView.addObject( "stats", this.getStats() );
-        modelAndView.setViewName( "publicSearch" );
-        return modelAndView;
-    }
-
-    @RequestMapping(value = { "/user/userSearch" }, method = RequestMethod.GET)
-    public ModelAndView userSearch() {
-        if(!applicationSettings.getPrivacy().isRegisteredSearch()) return null;
-        ModelAndView modelAndView = new ModelAndView();
-        modelAndView.addObject( "stats", this.getStats() );
-        modelAndView.addObject( "user", userService.findCurrentUser() );
-        modelAndView.setViewName( "user/userSearch" );
         return modelAndView;
     }
 
@@ -158,13 +144,20 @@ public class MainController {
         return modelAndView;
     }
 
-    @RequestMapping(value = { "/manager/search" }, method = RequestMethod.GET)
-    public ModelAndView managerSearch() {
-        ModelAndView modelAndView = new ModelAndView();
+    @RequestMapping(value = { "/search" }, method = RequestMethod.GET)
+    public ModelAndView search() {
         User user = userService.findCurrentUser();
-        modelAndView.addObject( "user", user );
-        modelAndView.setViewName( "manager/search" );
-        return modelAndView;
+        if ( searchAuthorized(user) ) {
+            ModelAndView modelAndView = new ModelAndView();
+            modelAndView.addObject( "user", user );
+            modelAndView.setViewName( "search" );
+            return modelAndView;
+        } else {
+            ModelAndView modelAndView = new ModelAndView();
+            modelAndView.setViewName( "login" );
+            return modelAndView;
+        }
+
     }
 
     @RequestMapping(value = { "/maintenance" }, method = RequestMethod.GET)
@@ -197,6 +190,15 @@ public class MainController {
 
         modelAndView.setViewName( "user/support" );
         return modelAndView;
+    }
+
+    private boolean searchAuthorized(User user){
+        if(adminRole == null) {
+            adminRole = roleRepository.findByRole( "ROLE_ADMIN" );
+        }
+        return applicationSettings.getPrivacy().isPublicSearch() // Search is public
+                || ( applicationSettings.getPrivacy().isRegisteredSearch() && user != null ) // Search is registered and there is user logged
+                || ( user != null && adminRole != null && user.getRoles().contains( adminRole ) ); // User is admin
     }
 
     private Stats getStats() {
