@@ -401,7 +401,7 @@ $(document).ready(function () {
                 if (data.length > 0) {
                     $('#terms').find('.recommend-message').html("<p class='text-success'>Recommended " + data.length + " terms.</p>");
                 } else {
-                    $('#terms').find('.recommend-message').html("<p class='text-danger'>Could not recommend terms based on your genes. Please add more genes and make sure you click the save button.</p>");
+                    $('#terms').find('.recommend-message').html("<p class='text-danger'>Could not recommend new terms. Try adding more genes and make sure you click the save button.</p>");
                 }
 
             } finally {

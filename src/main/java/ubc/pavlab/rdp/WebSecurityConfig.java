@@ -57,6 +57,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                         "/search/**",
                         "/userView/**",
                         "/api/**",
+                        "/taxon/**",
                         "/access-denied").permitAll()
                 .antMatchers( "/admin/**" ).hasRole( "ADMIN" )
                 .antMatchers( "/", "/user/**" ).authenticated().anyRequest()
