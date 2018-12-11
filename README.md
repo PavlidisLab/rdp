@@ -202,3 +202,34 @@ WantedBy=multi-user.target
 * Create a standard virtualhost with the following proxies:
   - `ProxyPass / http://localhost:<port>/`
   - `ProxyPassReverse / http://localhost:<port>/`
+  
+## Migration from version 1.1.x to 1.2
+Your current data should not be lost in this step, but you should have a database backup in case things go wrong for any reason.
+
+Obtain the latest jar file and replace your old jar file with it.
+Run the application, but do not allow users to connect to it (you can shut it down immediately after it has successfully started up). This should add new properties to the mysql database that are required for the new version to run properly.
+
+There are new security settings that can be added to your application-prod.properties file. See the section 'Privacy and search Defaults' in the 'Customize Settings' example file.
+
+The new security settings will have to be back-filled for the users that have registered prior to this update. This can be done by directly editing the database entries like so:
+```mysql
+UPDATE user SET 
+hide_genelist = 0, 
+privacy_level = 0, 
+shared = 1;
+```
+The values of these settings should correspond with the defaults you have set in your `application-prod.properties` file.
+Specifically:
+ - `hide_genelist = X` if X =1, hides users gene list from public searches. is only effective when the setting `rdp.settings.privacy.allow-hide-genelist` is enabled.
+ - `privacy_level = X` where X is the privacy level. Should have the same value as `rdp.settings.privacy.default-level`, or whatever the users prior to this update agreed to.
+ - `shared = X` where X is 1 or 0. Corresponds to `rdp.settings.privacy.default-sharing`
+
+#### Registered user search in previous version 
+If you previously had search enabled for registered users, you want to set `privacy_level` to `1` and `rdp.settings.privacy.default-level` to `true`.
+The original system for enabling registered users to use the search function was based on assigning a different role to all users. This has been discontinued, and need to be manually switched for all existing users.
+This can be easily done by running the following command on your database (provided you have the original set of roles, where ROLE_USER has id 2, and ROLE_MANAGER has id 3):
+```mysql
+UPDATE user_role SET role_id = 2 WHERE role_id = 3;
+DELETE FROM role WHERE role_id = 3;
+```
+If you get any errors during this process, please contact us.
