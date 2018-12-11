@@ -62,6 +62,8 @@ public interface UserService {
 
     Collection<User> findByLikeName( String nameLike );
 
+    Collection<User> findByStartsName( String startsName );
+
     Collection<User> findByDescription( String descriptionLike );
 
     long countResearchers();
@@ -99,4 +101,5 @@ public interface UserService {
 
     boolean checkCurrentUserCanSee( UserGene userGene );
 
+    Set<String> getChars();
 }

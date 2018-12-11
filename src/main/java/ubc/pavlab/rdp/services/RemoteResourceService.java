@@ -13,7 +13,7 @@ import java.util.Collection;
  * fetches the results from remote origins.
  */
 public interface RemoteResourceService {
-    Collection<User> findUsersByLikeName( String nameLike ) throws RemoteException;
+    Collection<User> findUsersByLikeName( String nameLike, Boolean prefix ) throws RemoteException;
 
     Collection<User> findUsersByDescription( String descriptionLike ) throws RemoteException;
 

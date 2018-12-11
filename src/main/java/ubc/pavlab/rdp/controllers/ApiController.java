@@ -106,13 +106,13 @@ public class ApiController {
     @RequestMapping(value = "/api/users/search", method = RequestMethod.GET, params = {
             "nameLike" }, produces = MediaType.APPLICATION_JSON)
     @ResponseBody
-    public Object searchUsersByName( @RequestParam String nameLike,
+    public Object searchUsersByName( @RequestParam String nameLike, @RequestParam Boolean prefix,
             @RequestParam(name = "auth", required = false) String auth ) {
         if ( !applicationSettings.getIsearch().isEnabled() ) {
             return ResponseEntity.notFound().build();
         }
         checkAuth( auth );
-        return initUsers( userService.findByLikeName( nameLike ) );
+        return initUsers( prefix ? userService.findByStartsName( nameLike ) : userService.findByLikeName( nameLike ) );
     }
 
     @RequestMapping(value = "/api/users/search", method = RequestMethod.GET, params = {

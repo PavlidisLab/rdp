@@ -47,9 +47,10 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
     private RoleRepository roleRepository;
 
     @Override
-    public Collection<User> findUsersByLikeName( String nameLike ) throws RemoteException {
+    public Collection<User> findUsersByLikeName( String nameLike, Boolean prefix ) throws RemoteException {
         return getRemoteEntities( User[].class, API_USERS_SEARCH_URI, new HashMap<String, String>() {{
             put( "nameLike", nameLike );
+            put( "prefix", prefix.toString() );
         }} );
     }
 

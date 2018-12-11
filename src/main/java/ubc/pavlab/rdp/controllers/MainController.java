@@ -149,6 +149,7 @@ public class MainController {
         User user = userService.findCurrentUser();
         if ( searchAuthorized(user) ) {
             ModelAndView modelAndView = new ModelAndView();
+            modelAndView.addObject( "chars", userService.getChars() );
             modelAndView.addObject( "user", user );
             modelAndView.setViewName( "search" );
             return modelAndView;

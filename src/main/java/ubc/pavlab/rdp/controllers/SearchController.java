@@ -54,17 +54,17 @@ public class SearchController {
     private RoleRepository roleRepository;
 
     @RequestMapping(value = "/search", method = RequestMethod.GET, params = { "nameLike", "iSearch" })
-    public ModelAndView searchUsersByName( @RequestParam String nameLike, @RequestParam Boolean iSearch ) {
+    public ModelAndView searchUsersByName( @RequestParam String nameLike, @RequestParam Boolean iSearch, @RequestParam Boolean prefix ) {
         User user = userService.findCurrentUser();
         if(!searchAuthorized( user, false )){
             return null;
         }
         ModelAndView modelAndView = new ModelAndView();
         modelAndView.addObject( "user", user );
-        modelAndView.addObject( "users", userService.findByLikeName( nameLike ) );
+        modelAndView.addObject( "users", prefix ? userService.findByStartsName( nameLike ) : userService.findByLikeName( nameLike ) );
         if ( iSearch ) {
             try {
-                modelAndView.addObject( "itlUsers", remoteResourceService.findUsersByLikeName( nameLike ) );
+                modelAndView.addObject( "itlUsers", remoteResourceService.findUsersByLikeName( nameLike, prefix ) );
             } catch ( RemoteException e ) {
                 modelAndView.addObject( "itlErrorMessage", e.getMessage() );
             }
@@ -74,25 +74,25 @@ public class SearchController {
     }
 
     @RequestMapping(value = "/search/view", method = RequestMethod.GET, params = { "nameLike", })
-    public ModelAndView searchUsersByNameView( @RequestParam String nameLike ) {
+    public ModelAndView searchUsersByNameView( @RequestParam String nameLike, @RequestParam Boolean prefix ) {
         if(!searchAuthorized( userService.findCurrentUser(), false )){
             return null;
         }
         ModelAndView modelAndView = new ModelAndView();
-        modelAndView.addObject( "users", userService.findByLikeName( nameLike ) );
+        modelAndView.addObject( "users", prefix ? userService.findByStartsName( nameLike ) : userService.findByLikeName( nameLike ) );
         modelAndView.setViewName( "fragments/user-table :: user-table" );
         return modelAndView;
     }
 
     @RequestMapping(value = "/search/view/international", method = RequestMethod.GET, params = { "nameLike" })
-    public ModelAndView searchItlUsersByNameView( @RequestParam String nameLike ) {
+    public ModelAndView searchItlUsersByNameView( @RequestParam String nameLike, @RequestParam Boolean prefix ) {
         if(!searchAuthorized( userService.findCurrentUser(), true )){
             return null;
         }
         ModelAndView modelAndView = new ModelAndView();
 
         try {
-            modelAndView.addObject( "users", remoteResourceService.findUsersByLikeName( nameLike ) );
+            modelAndView.addObject( "users", remoteResourceService.findUsersByLikeName( nameLike, prefix ) );
             modelAndView.setViewName( "fragments/user-table :: user-table" );
             modelAndView.addObject( "remote", true );
         } catch ( RemoteException e ) {

@@ -32,6 +32,7 @@ import static java.util.Comparator.comparing;
 @Service("userService")
 public class UserServiceImpl implements UserService {
 
+    private static final int MAX_CHARS_SHOW = 30;
     private static Log log = LogFactory.getLog( UserServiceImpl.class );
     @Autowired
     ApplicationSettings applicationSettings;
@@ -219,6 +220,11 @@ public class UserServiceImpl implements UserService {
     public Collection<User> findByLikeName( String nameLike ) {
         return securityFilter( userRepository
                 .findByProfileNameContainingIgnoreCaseOrProfileLastNameContainingIgnoreCase( nameLike, nameLike ) );
+    }
+
+    @Override
+    public Collection<User> findByStartsName( String startsName ){
+        return securityFilter( userRepository.findByProfileNameStartsWithIgnoreCaseOrProfileLastNameStartsWithIgnoreCase( startsName, startsName ) );
     }
 
     @Override
@@ -448,6 +454,20 @@ public class UserServiceImpl implements UserService {
     @Override
     public boolean checkCurrentUserCanSee( UserGene userGene ) {
         return checkCurrentUserCanSee( userGene.getUser() );
+    }
+
+    @Override
+    public Set<String> getChars() {
+        List<User> users = this.findAll();
+        Set<String> chars = new HashSet<>(  );
+        for(User u : users){
+            if(checkCurrentUserCanSee( u )){
+                chars.add( u.getProfile().getName().substring( 0,1 ) );
+                chars.add( u.getProfile().getLastName().substring( 0,1 ) );
+            }
+            if(chars.size() > MAX_CHARS_SHOW ) break;
+        }
+        return chars;
     }
 
     @Transactional
