@@ -32,7 +32,7 @@ import static java.util.Comparator.comparing;
 @Service("userService")
 public class UserServiceImpl implements UserService {
 
-    private static final int MAX_CHARS_SHOW = 30;
+    private static final int MAX_CHARS_SHOW = 26;
     private static Log log = LogFactory.getLog( UserServiceImpl.class );
     @Autowired
     ApplicationSettings applicationSettings;
@@ -465,7 +465,7 @@ public class UserServiceImpl implements UserService {
                 chars.add( u.getProfile().getName().substring( 0,1 ) );
                 chars.add( u.getProfile().getLastName().substring( 0,1 ) );
             }
-            if(chars.size() > MAX_CHARS_SHOW ) break;
+            if(chars.size() >= MAX_CHARS_SHOW ) break;
         }
         return chars;
     }
