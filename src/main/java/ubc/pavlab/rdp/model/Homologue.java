@@ -5,6 +5,7 @@ import lombok.*;
 import org.hibernate.annotations.Immutable;
 
 import javax.persistence.*;
+import java.io.Serializable;
 
 @Entity
 @Table(name = "homologue")
@@ -14,21 +15,25 @@ import javax.persistence.*;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(of = {"id"})
+@EqualsAndHashCode(of = {"sourceGene", "targetGene", "targetTaxon"})
+@IdClass(HomoKey.class)
 @ToString(of = {"sourceGene", "targetGene"})
 public class Homologue {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column
-    @JsonIgnore
-    private Integer id;
-
     private Integer sourceGene;
 
+    @Id
     private Integer targetGene;
 
+    @Id
     private Integer targetTaxon;
 
+}
 
+@EqualsAndHashCode(of = {"sourceGene", "targetGene", "targetTaxon"})
+class HomoKey implements Serializable {
+    private Integer sourceGene;
+    private Integer targetGene;
+    private Integer targetTaxon;
 }

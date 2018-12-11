@@ -70,6 +70,42 @@ rdp.site.contact-email=registry-help@example.ca
 rdp.site.admin-email=registry-help@example.ca
 
 # ==============================================================
+# = Privacy and search Defaults
+# ==============================================================
+
+# Privacy settings
+## Whether public search is allowed
+rdp.settings.privacy.public-search=true
+## Whether registered user search is allowed
+rdp.settings.privacy.registered-search=true
+## 0 = private, 1 = shared with registered users, 2 = public
+rdp.settings.privacy.default-level=0
+## Minimum allowed privacy level
+rdp.settings.privacy.min-level=0
+## share with international instances
+rdp.settings.privacy.default-sharing=false
+## whether users are allowed to change their privacy settings
+rdp.settings.privacy.customizable-level=false
+## whether users are allowed to change their sharing setting
+rdp.settings.privacy.customizable-sharing=false
+## whether users are allowed to hide their gene-list when their data is shared or public
+rdp.settings.privacy.allow-hide-genelist=false
+
+# international search settings
+## whether to enable international searching
+rdp.settings.isearch.enabled=true
+## whether international search is selected by default
+rdp.settings.isearch.default-on=true
+## urls of international instances to search when enabled. Separate with a comma
+rdp.settings.isearch.apis=http://local.net:8080
+## Admin user id used for authenticated remote search. Not using 1 or 2 because those are IDs frequently used in tests. If changed, also update data.sql
+rdp.settings.isearch.user-id=3
+## Tokens for remote requests that authorize administrative access
+rdp.settings.isearch.auth-tokens=
+## Token used for remote search with administrative rights
+rdp.settings.isearch.search-token=
+
+# ==============================================================
 # = Custom Messages
 # ==============================================================
 
