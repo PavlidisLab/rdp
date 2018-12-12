@@ -100,10 +100,10 @@ rdp.settings.isearch.default-on=true
 rdp.settings.isearch.apis=http://local.net:8080
 ## Admin user id used for authenticated remote search. Not using 1 or 2 because those are IDs frequently used in tests. If changed, also update data.sql
 rdp.settings.isearch.user-id=3
-## Tokens for remote requests that authorize administrative access
-rdp.settings.isearch.auth-tokens=
-## Token used for remote search with administrative rights
+## Token used for remote search with administrative rights. Obtain from RDMM program coordinator.
 rdp.settings.isearch.search-token=
+## Tokens for remote requests that authorize administrative access. Usually equal to the search-token, but can contain multiple entries separated by comma.
+rdp.settings.isearch.auth-tokens=
 
 # ==============================================================
 # = Custom Messages
