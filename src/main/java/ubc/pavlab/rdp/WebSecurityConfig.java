@@ -11,7 +11,6 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.settings.SiteSettings;
 
 /**
@@ -31,62 +30,31 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     private SiteSettings siteSettings;
 
-    @Autowired
-    private ApplicationSettings applicationSettings;
-
     @Override
-    protected void configure( AuthenticationManagerBuilder auth )
-            throws Exception {
-        auth
-                .userDetailsService(userDetailsService)
-                .passwordEncoder( bCryptPasswordEncoder );
+    protected void configure( AuthenticationManagerBuilder auth ) throws Exception {
+        auth.userDetailsService( userDetailsService ).passwordEncoder( bCryptPasswordEncoder );
     }
 
+    @Override
+    public void configure( WebSecurity web ) {
+        web.ignoring().antMatchers( "/resources/**", "/static/**", "/css/**", "/js/**", "/images/**" );
+    }
 
     @Override
     protected void configure( HttpSecurity http ) throws Exception {
 
         http.
                 authorizeRequests()
-                .antMatchers("/",
-                        "/login",
-                        "/registration",
-                        "/registrationConfirm",
-                        "/stats",
-                        "/stats.html",
-                        "/forgotPassword",
-                        "/resetPassword",
-                        "/updatePassword",
-                        "/resendConfirmation",
-                        "/search/**",
-                        "/userView/**",
-                        "/api/**",
-                        "/taxon/**",
-                        "/access-denied").permitAll()
-                .antMatchers( "/admin/**" ).hasRole( "ADMIN" )
-                .antMatchers(  "/user/**" ).authenticated().anyRequest()
-                .authenticated().and().csrf().disable().formLogin()
-                .loginPage( "/login" ).failureUrl( "/login?error=true" )
-                .defaultSuccessUrl( "/" )
-                .usernameParameter( "email" )
-                .passwordParameter( "password" )
-                .and().rememberMe()
-                .rememberMeCookieName(siteSettings.getShortname() + "-remember-me")
-                .tokenValiditySeconds(7 * 24 * 60 * 60)
-                .and().logout()
-                .logoutRequestMatcher( new AntPathRequestMatcher( "/logout" ) )
-                .logoutSuccessUrl( getLandingPage() ).and().exceptionHandling()
-                .accessDeniedPage( getLandingPage() );
-    }
-
-    @Override
-    public void configure( WebSecurity web ) {
-        web
-                .ignoring()
-                .antMatchers( "/resources/**", "/static/**", "/css/**", "/js/**", "/images/**" );
-    }
-
-    private String getLandingPage(){
-        return applicationSettings.getPrivacy().isPublicSearch() ? "/search" :  "/login";
+                .antMatchers( "/", "/login", "/registration", "/registrationConfirm", "/stats", "/stats.html",
+                        "/forgotPassword", "/resetPassword", "/updatePassword", "/resendConfirmation", "/search/**",
+                        "/userView/**", "/api/**", "/taxon/**", "/access-denied" ).permitAll()
+                .antMatchers( "/admin/**" ).hasRole( "ADMIN" ).antMatchers( "/user/**" ).authenticated().anyRequest()
+                .authenticated().and().csrf().disable().formLogin().loginPage( "/login" )
+                .failureUrl( "/login?error=true" ).defaultSuccessUrl( "/" ).usernameParameter( "email" )
+                .passwordParameter( "password" ).and().rememberMe()
+                .rememberMeCookieName( siteSettings.getShortname() + "-remember-me" )
+                .tokenValiditySeconds( 7 * 24 * 60 * 60 ).and().logout()
+                .logoutRequestMatcher( new AntPathRequestMatcher( "/logout" ) ).logoutSuccessUrl( "/" )
+                .and().exceptionHandling().accessDeniedPage( "/accessDenied" );
     }
 }
