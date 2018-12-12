@@ -223,8 +223,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Collection<User> findByStartsName( String startsName ){
-        return securityFilter( userRepository.findByProfileNameStartsWithIgnoreCaseOrProfileLastNameStartsWithIgnoreCase( startsName, startsName ) );
+    public Collection<User> findByStartsName( String startsName ) {
+        return securityFilter( userRepository
+                .findByProfileNameStartsWithIgnoreCaseOrProfileLastNameStartsWithIgnoreCase( startsName, startsName ) );
     }
 
     @Override
@@ -430,8 +431,9 @@ public class UserServiceImpl implements UserService {
 
         Profile profile = user.getProfile();
 
-        if ( profile == null ) {
-            log.error( "!! User without a profile: " + user.getId() + " / " + user.getEmail() );
+        if ( profile == null || profile.getPrivacyLevel() == null || profile.getShared() == null ) {
+            log.error( "!! User without a profile, privacy levels or sharing set: " + user.getId() + " / " + user
+                    .getEmail() );
             return false;
         }
 
@@ -459,15 +461,18 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<String> getChars() {
         List<User> users = this.findAll();
-        Set<String> chars = new HashSet<>(  );
-        for(User u : users){
-            if(checkCurrentUserCanSee( u )){
-                chars.add( u.getProfile().getName().substring( 0,1 ) );
-                chars.add( u.getProfile().getLastName().substring( 0,1 ) );
+        Set<String> chars = new HashSet<>();
+        for ( User u : users ) {
+            if ( checkCurrentUserCanSee( u ) ) {
+                if ( u.getProfile().getName() != null )
+                    chars.add( u.getProfile().getName().substring( 0, 1 ) );
+                if ( u.getProfile().getLastName() != null )
+                    chars.add( u.getProfile().getLastName().substring( 0, 1 ) );
             }
-            if(chars.size() >= MAX_CHARS_SHOW ) break;
+            if ( chars.size() >= MAX_CHARS_SHOW )
+                break;
         }
-        List<String> sorted = new ArrayList<>(chars);
+        List<String> sorted = new ArrayList<>( chars );
         sorted.sort( String.CASE_INSENSITIVE_ORDER );
         return sorted;
     }
