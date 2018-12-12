@@ -56,6 +56,7 @@ public class BaseTest {
         profile.setName( NAME );
         profile.setLastName( LAST_NAME );
         profile.setPrivacyLevel( PRIVACY_PUBLIC );
+        profile.setShared( false );
         user.setProfile( profile );
 
         return user;
