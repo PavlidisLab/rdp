@@ -101,5 +101,5 @@ public interface UserService {
 
     boolean checkCurrentUserCanSee( UserGene userGene );
 
-    Set<String> getChars();
+    List<String> getChars();
 }

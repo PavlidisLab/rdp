@@ -117,6 +117,8 @@
                 <div id="homologue-box" class="row">
                     <span class="col-4 my-4 text-right">Search for homologues of selected gene for</span>
                     <select name="homologueTaxonId" class="custom-select homologue-select col-4 my-3" title="Homologue taxon">
+                        <!-- The 'All taxa' id is defined in UserGeneServiceImpl -->
+                        <option th:value="-99">All taxa</option>
                         <th:block th:each="taxon : ${@taxonService.findByActiveTrue()}">
                             <option th:value="${taxon.id}" th:text="${#strings.capitalizeWords(taxon.commonName)}" th:selected="${taxon.id == 9606}"></option>
                         </th:block>

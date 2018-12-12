@@ -457,7 +457,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Set<String> getChars() {
+    public List<String> getChars() {
         List<User> users = this.findAll();
         Set<String> chars = new HashSet<>(  );
         for(User u : users){
@@ -467,7 +467,9 @@ public class UserServiceImpl implements UserService {
             }
             if(chars.size() >= MAX_CHARS_SHOW ) break;
         }
-        return chars;
+        List<String> sorted = new ArrayList<>(chars);
+        sorted.sort( String.CASE_INSENSITIVE_ORDER );
+        return sorted;
     }
 
     @Transactional
