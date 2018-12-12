@@ -11,6 +11,7 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.settings.SiteSettings;
 
 /**
@@ -30,6 +31,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     private SiteSettings siteSettings;
 
+    @Autowired
+    private ApplicationSettings applicationSettings;
+
     @Override
     protected void configure( AuthenticationManagerBuilder auth )
             throws Exception {
@@ -44,7 +48,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
         http.
                 authorizeRequests()
-                .antMatchers(
+                .antMatchers("/",
                         "/login",
                         "/registration",
                         "/registrationConfirm",
@@ -60,7 +64,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                         "/taxon/**",
                         "/access-denied").permitAll()
                 .antMatchers( "/admin/**" ).hasRole( "ADMIN" )
-                .antMatchers( "/", "/user/**" ).authenticated().anyRequest()
+                .antMatchers(  "/user/**" ).authenticated().anyRequest()
                 .authenticated().and().csrf().disable().formLogin()
                 .loginPage( "/login" ).failureUrl( "/login?error=true" )
                 .defaultSuccessUrl( "/" )
@@ -71,8 +75,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .tokenValiditySeconds(7 * 24 * 60 * 60)
                 .and().logout()
                 .logoutRequestMatcher( new AntPathRequestMatcher( "/logout" ) )
-                .logoutSuccessUrl( "/login" ).and().exceptionHandling()
-                .accessDeniedPage( "/access-denied" );
+                .logoutSuccessUrl( getLandingPage() ).and().exceptionHandling()
+                .accessDeniedPage( getLandingPage() );
     }
 
     @Override
@@ -80,5 +84,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         web
                 .ignoring()
                 .antMatchers( "/resources/**", "/static/**", "/css/**", "/js/**", "/images/**" );
+    }
+
+    private String getLandingPage(){
+        return applicationSettings.getPrivacy().isPublicSearch() ? "/search" :  "/login";
     }
 }

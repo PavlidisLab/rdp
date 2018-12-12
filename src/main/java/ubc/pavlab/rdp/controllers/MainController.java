@@ -54,7 +54,13 @@ public class MainController {
     @RequestMapping(value = { "/" }, method = RequestMethod.GET)
     public ModelAndView index() {
         ModelAndView modelAndView = new ModelAndView();
-        modelAndView.setViewName( "redirect:user/home" );
+        if(userService.findCurrentUser() == null){
+            System.out.println("no user, redirecting to " + (applicationSettings.getPrivacy().isPublicSearch() ? "/search" :  "/login"));
+            modelAndView.setViewName( "redirect:" + (applicationSettings.getPrivacy().isPublicSearch() ? "/search" :  "/login") );
+        }else{
+            System.out.println("user found, going to user/home ");
+            modelAndView.setViewName( "redirect:user/home" );
+        }
         return modelAndView;
     }
 
