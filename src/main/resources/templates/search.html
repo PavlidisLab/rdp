@@ -37,6 +37,18 @@
 
     <div class="container p-4">
         <div th:replace="fragments/title :: title(title='Search', subtitle='researchers &amp; genes')" th:remove="tag">...</div>
+
+        <div class="main-content collapse show" id="welcome">
+            <div class="p-4 row">
+                <div class="col-1 text-right">
+                    <button type="button" class="inline btn btn-outline-info btn-sm" data-toggle="collapse" data-target="#welcome"><i class="oi oi-x"/></button>
+                </div>
+                <div class="col-11">
+                    <span th:utext="${@siteSettings.welcomePublic}" th:remove="tag"></span>
+                </div>
+            </div>
+            <hr/>
+        </div>
         <div class="main-content p-4" th:if="${chars.isEmpty()}">
             <div class="alert alert-danger" role="alert">
                 Unfortunately, there are currently no data available.

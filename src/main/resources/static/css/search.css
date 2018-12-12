@@ -19,6 +19,10 @@
     padding: 0;
 }
 
+.text-right{
+    text-align: right;
+}
+
 #homologue-box{
     margin-top: -40px;
     margin-left: 37px;
