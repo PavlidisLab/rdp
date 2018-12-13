@@ -138,4 +138,15 @@ $(document).ready(function () {
         };
 
     });
+
+    // Show results for first available character
+
+    var charBtns = $('#alpha-grp [name="nameLikeBtn"]');
+    $('[type="submit"]').click(function(){
+        charBtns.removeClass("active");
+    });
+    charBtns.click(function() {
+        $(this).toggleClass("active");
+    });
+    charBtns.first().click();
 });

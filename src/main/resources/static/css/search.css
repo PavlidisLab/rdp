@@ -1,6 +1,13 @@
-.isearch-settings{
-    margin-left: -15px;
+.input-group{
+    width: 99%;
 }
+
+.isearch-settings, .form-group.row {
+    margin-left: 0 !important;
+    padding-left: 12px;
+    padding-right: 12px;
+}
+
 .isearch-settings *{
     font-size: 1rem;
     font-weight: 400;
@@ -10,10 +17,12 @@
     margin: 0 0 7px;
     padding: 0;
 }
+
 .isearch-settings .label-text{
     position: relative;
     bottom: 1px;
 }
+
 .isearch-settings #isearch-checkbox{
     transform: scale(1.2);
     padding: 0;
@@ -23,7 +32,21 @@
     text-align: right;
 }
 
+.tab-content{
+    padding-top: 21px;
+    margin-top: -1px;
+    border: lightgray 1px solid;
+    border-bottom-right-radius: 3px;
+    border-bottom-left-radius: 3px;
+    border-top: none;
+}
+
 #homologue-box{
     margin-top: -40px;
     margin-left: 37px;
+}
+
+#alpha-grp button:active, #alpha-grp button.active {
+    background-color: dodgerblue;
+    border-color: dodgerblue;
 }
