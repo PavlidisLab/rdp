@@ -56,6 +56,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .tokenValiditySeconds( 7 * 24 * 60 * 60 ).and().logout()
                 .logoutRequestMatcher( new AntPathRequestMatcher( "/logout" ) ).logoutSuccessUrl( "/" )
                 .and().exceptionHandling().accessDeniedPage( "/accessDenied" )
-                .and().cors().disable();
+                .and().cors();
     }
 }
