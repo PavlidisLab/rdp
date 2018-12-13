@@ -106,6 +106,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
         Response response = target.request().get();
         if ( response.getStatus() != 200 ) {
             log.error( "For request "+remoteUrl + encodeParams( args ) );
+            log.error( "Error headers: "+response.getHeaders() );
             throw new RemoteException( "No data received: " + response.readEntity( String.class ) );
         }
 
