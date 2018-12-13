@@ -88,13 +88,29 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
     private <T> Collection<T> getRemoteEntities( Class<T[]> arrCls, String uri, Map<String, String> args )
             throws RemoteException {
         Collection<T> entities = new LinkedList<>();
+        List<RemoteException> errs = new LinkedList<>();
 
         // Call all APIs
         for ( String api : applicationSettings.getIsearch().getApis() ) {
-            @SuppressWarnings("unchecked") // Should be guaranteed when response is 200 and versions match.
-                    Collection<T> received = Arrays
-                    .asList( remoteRequest( arrCls, api + uri, addAuthParamIfAdmin( args ) ) );
-            entities.addAll( received );
+            try {
+                @SuppressWarnings("unchecked") // Should be guaranteed when response is 200 and versions match.
+                        Collection<T> received = Arrays
+                        .asList( remoteRequest( arrCls, api + uri, addAuthParamIfAdmin( args ) ) );
+                entities.addAll( received );
+            } catch ( RemoteException e ) {
+                errs.add( e );
+            }
+        }
+
+        if ( !errs.isEmpty() ) {
+            if(entities.isEmpty()) {
+                // Only throw when there are no results to be displayed
+                throw errs.get( 0 );
+            }
+            // Always log errors
+            for(RemoteException e : errs) {
+                log.error(e);
+            }
         }
 
         return entities;
