@@ -465,9 +465,9 @@ public class UserServiceImpl implements UserService {
         for ( User u : users ) {
             if ( checkCurrentUserCanSee( u ) ) {
                 if ( u.getProfile().getName() != null && !u.getProfile().getName().isEmpty() )
-                    chars.add( u.getProfile().getName().substring( 0, 1 ) );
+                    chars.add( u.getProfile().getName().substring( 0, 1 ).toUpperCase() );
                 if ( u.getProfile().getLastName() != null && !u.getProfile().getLastName().isEmpty() )
-                    chars.add( u.getProfile().getLastName().substring( 0, 1 ) );
+                    chars.add( u.getProfile().getLastName().substring( 0, 1 ).toUpperCase() );
             }
             if ( chars.size() >= MAX_CHARS_SHOW )
                 break;
