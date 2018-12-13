@@ -55,7 +55,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .rememberMeCookieName( siteSettings.getShortname() + "-remember-me" )
                 .tokenValiditySeconds( 7 * 24 * 60 * 60 ).and().logout()
                 .logoutRequestMatcher( new AntPathRequestMatcher( "/logout" ) ).logoutSuccessUrl( "/" )
-                .and().exceptionHandling().accessDeniedPage( "/accessDenied" )
-                .and().cors();
+                .and().exceptionHandling().accessDeniedPage( "/accessDenied" );
     }
 }
