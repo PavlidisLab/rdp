@@ -146,6 +146,36 @@
 
             <div class="w-100"></div>
 
+            <div class="col my-3" th:if="${user.getRoles().contains(@roleRepository.findByRole('ROLE_ADMIN'))}">
+                <div class="card">
+                    <div class="card-header">
+                        <h4>Data privacy</h4>
+                        <div>This users data privacy is set to
+                            <b th:if="${viewUser.getProfile().privacyLevel} == 0">private.</b>
+                            <b th:if="${viewUser.getProfile().privacyLevel} == 1">shared with registered users.</b>
+                            <b th:if="${viewUser.getProfile().privacyLevel} == 2">public.</b>
+                        </div>
+                        <div>
+                            Non-administrative users that can see this users data
+                            <b th:if="${viewUser.getProfile().getHideGenelist()}">can not</b>
+                            <b th:if="not ${viewUser.getProfile().getHideGenelist()}">can</b>
+                            see this users gene and terms lists.
+                        </div>
+                        <div>
+                            International sharing of this users data is
+                            <b th:if="${viewUser.getProfile().getShared()}">enabled.</b>
+                            <b th:if="not ${viewUser.getProfile().getShared()}">disabled.</b>
+                        </div>
+                        <hr/>
+                        <div>
+                            To change your settings, please see the <b>Data privacy Settings</b> section in your <a th:href="@{/viewUser/profile}">profile settings.</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="w-100"></div>
+
             <div class="col my-3">
                 <div class="card publication-info">
                     <div class="card-header">

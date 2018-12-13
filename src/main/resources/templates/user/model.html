@@ -102,16 +102,16 @@
                             <b th:if="${user.getProfile().privacyLevel} == 1">shared with registered users.</b>
                             <b th:if="${user.getProfile().privacyLevel} == 2">public.</b>
                         </div>
+                        <div th:if="(${user.getProfile().privacyLevel} gt 0) and ${@applicationSettings.getPrivacy().isAllowHideGenelist()}">
+                            Non-administrative users that can see your data
+                            <b th:if="${user.getProfile().getHideGenelist()}">can not</b>
+                            <b th:if="not ${user.getProfile().getHideGenelist()}">can</b>
+                            see your gene and terms lists.
+                        </div>
                         <div th:if="${@applicationSettings.getIsearch().isEnabled()} and ${@applicationSettings.getPrivacy().isCustomizableSharing()}">
                             International sharing of your data is
                             <b th:if="${user.getProfile().getShared()}">enabled.</b>
                             <b th:if="not ${user.getProfile().getShared()}">disabled.</b>
-                        </div>
-                        <div th:if="${@applicationSettings.getPrivacy().isAllowHideGenelist()}">
-                            Non-administrative users
-                            <b th:if="${user.getProfile().getHideGenelist()}">can not</b>
-                            <b th:if="not ${user.getProfile().getShared()}">can</b>
-                            see your gene and terms lists.
                         </div>
                         <hr/>
                         <div>
