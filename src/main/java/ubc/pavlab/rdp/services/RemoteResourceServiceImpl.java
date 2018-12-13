@@ -105,6 +105,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
         ResteasyWebTarget target = client.target( remoteUrl + encodeParams( args ) );
         Response response = target.request().get();
         if ( response.getStatus() != 200 ) {
+            log.error( "For request "+remoteUrl + encodeParams( args ) );
             throw new RemoteException( "No data received: " + response.readEntity( String.class ) );
         }
 
