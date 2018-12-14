@@ -290,7 +290,7 @@ public class SearchController {
         } else {
             if ( tier.equals( TierType.ANY ) ) {
                 return userGeneService.findByGene( gene.getGeneId() );
-            } else if ( tier.equals( TierType.MANUAL ) ) {
+            } else if ( tier.equals( TierType.TIERS1_2 ) ) {
                 return userGeneService.findByGene( gene.getGeneId(), TierType.MANUAL_TIERS );
             } else {
                 return userGeneService.findByGene( gene.getGeneId(), tier );

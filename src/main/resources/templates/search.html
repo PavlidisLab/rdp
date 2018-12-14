@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!--suppress HtmlUnknownTarget css and js folders not recognised after build-->
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:th="http://www.thymeleaf.org">
 
@@ -26,6 +27,8 @@
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
                 integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
                 crossorigin="anonymous"></script>
+        <script src="/js/opentip-jquery.min.js"></script>
+        <link href="/css/opentip.css" rel="stylesheet" type="text/css"/>
         <script th:src="@{/js/jquery-ui.min.js}"></script>
 
         <script th:src="@{/js/common.js}"></script>
@@ -53,12 +56,7 @@
                 </div>
                 <hr/>
             </div>
-            <div class="main-content p-4" th:if="${chars.isEmpty()}">
-                <div class="alert alert-danger" role="alert">
-                    Unfortunately, there are currently no data available.
-                </div>
-            </div>
-            <div class="main-content p-4" th:if="not ${chars.isEmpty()}">
+            <div class="main-content p-4">
                 <ul class="nav nav-tabs">
                     <li class="nav-item"><a class="nav-link active" id="res-tab" data-toggle="tab"
                                             href="#user-search-name">Researcher</a></li>
@@ -67,24 +65,29 @@
                 </ul>
                 <div class="tab-content">
 
-                    <div id="user-search-name" role="tabpanel" aria-labelledby="res-tab" class="tab-pane fade show active">
+                    <div id="user-search-name" role="tabpanel" aria-labelledby="res-tab"
+                         class="tab-pane fade show active">
                         <!--Researchers alphabetically-->
-                        <div class="form-group row">
-                            <div class="btn-group inline" id="alpha-grp"
-                                 title="Look for users whose name or last name starts with this letter.">
-                                <th:block th:each="char : ${chars}">
-                                    <form>
-                                        <input type="hidden" name="iSearch"/>
-                                        <input type="hidden" name="prefix" value="true"/>
-                                        <input type="hidden" name="nameLike" th:value="${char}"/>
-                                        <button class="btn btn-outline-secondary" type="submit" name="nameLikeBtn"
-                                                th:text="${char}"/>
-                                    </form>
-                                </th:block>
+                        <div th:if="not ${chars.isEmpty()}">
+                            <h5>Browse alphabetically:</h5>
+                            <div class="form-group row">
+                                <div class="btn-group inline" id="alpha-grp"
+                                     title="Look for users whose name or last name starts with this letter.">
+                                    <th:block th:each="char : ${chars}">
+                                        <form>
+                                            <input type="hidden" name="iSearch"/>
+                                            <input type="hidden" name="prefix" value="true"/>
+                                            <input type="hidden" name="nameLike" th:value="${char}"/>
+                                            <button class="btn btn-outline-secondary" type="submit" name="nameLikeBtn"
+                                                    th:text="${char}"/>
+                                        </form>
+                                    </th:block>
+                                </div>
                             </div>
                         </div>
                         <!--Researchers by name-->
                         <form>
+                            <h5>Search by name:</h5>
                             <div class="form-group row">
                                 <div class="input-group mb-3">
                                     <div class="input-group-prepend">
@@ -102,6 +105,7 @@
                         </form>
                         <!--Researchers by description-->
                         <form>
+                            <h5>Search by research interests:</h5>
                             <div class="form-group row">
                                 <div class="input-group mb-3">
                                     <div class="input-group-prepend">
@@ -171,7 +175,14 @@
                             <label>
                                 <input id="isearch-checkbox" type="checkbox"
                                        th:checked="${@applicationSettings.getIsearch().isDefaultOn()}"/>
-                                <span class="label-text">International search</span>
+                                <span class="label-text">Include international search results
+                                    <i class="tip oi oi-question-mark"
+                                       data-ot-background="cornflowerblue"
+                                       data-ot-border-color="white"
+                                       data-ot-shadow-color="lightgray"
+                                       data-ot="If enabled, the application will try to contact other similar websites around the globe to retrieve more results.">
+                                    </i>
+                                </span>
                             </label>
                         </span>
                     </div>

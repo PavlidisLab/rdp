@@ -31,10 +31,4 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
     Collection<User> findByProfileDescriptionContainingIgnoreCaseOrTaxonDescriptionsContainingIgnoreCase(
             String descriptionLike, String taxonDescriptionLike );
-
-    //    @Query("select distinct substring(u.profile.name, 1, 1) FROM User u where u.profile.name is not null and length(u.profile.name) > 0")
-    //    Set<String> getNameChars();
-    //
-    //    @Query("select distinct substring(u.profile.lastName, 1, 1) FROM User u where u.profile.lastName is not null and length(u.profile.lastName) > 0")
-    //    Set<String> getLastNmeChars();
 }

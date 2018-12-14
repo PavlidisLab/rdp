@@ -222,7 +222,7 @@ public class ApiController {
     private TierType restrictTiers( TierType tier ) throws TierException {
         switch ( tier ) {
             case ANY:
-                return TierType.MANUAL;
+                return TierType.TIERS1_2;
             case TIER3:
                 throw new TierException( "TIER3 not allowed for international search" );
             default:

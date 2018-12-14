@@ -46,7 +46,24 @@
     margin-left: 37px;
 }
 
-#alpha-grp button:active, #alpha-grp button.active {
+#alpha-grp button:active, #alpha-grp button.active, .input-group-prepend button[type='submit'] {
     background-color: dodgerblue;
     border-color: dodgerblue;
+    color: whitesmoke;
+}
+
+.tab-content h5{
+    margin-left: 12px;
+}
+
+.tip{
+    font-size: x-small;
+    background: cornflowerblue;
+    color: whitesmoke;
+    width: 16px;
+    height: 16px;
+    margin-left: 6px;
+    border-radius: 8px;
+    text-align: center;
+    vertical-align: middle;
 }
