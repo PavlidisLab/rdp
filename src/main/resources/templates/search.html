@@ -126,6 +126,7 @@
                     <!--Genes-->
                     <div id="gene-search" role="tabpanel" aria-labelledby="gene-tab" class="tab-pane fade">
                         <form>
+                            <h5>Search for researchers that study the following organism-specific gene:</h5>
                             <div class="form-group row">
                                 <div class="input-group mb-3">
                                     <div class="input-group-prepend">
@@ -155,8 +156,8 @@
                                 </div>
                             </div>
                             <div id="homologue-box" class="row">
-                                <span class="col-4 my-4 text-right">Search for homologues of selected gene for</span>
-                                <select name="homologueTaxonId" class="custom-select homologue-select col-4 my-3"
+                                <span class="col-5 my-4 text-right">In this model organism (based on ortholog mapping): </span>
+                                <select name="homologueTaxonId" class="custom-select homologue-select col-3 my-3"
                                         title="Homologue taxon">
                                     <!-- The 'All taxa' id is defined in UserGeneServiceImpl -->
                                     <option th:value="-99">All taxa</option>
@@ -166,6 +167,14 @@
                                                 th:selected="${taxon.id == 9606}"></option>
                                     </th:block>
                                 </select>
+                                <span class="col-1 my-4">
+                                    <i class="tip oi oi-question-mark"
+                                       data-ot-background="cornflowerblue"
+                                       data-ot-border-color="white"
+                                       data-ot-shadow-color="lightgray"
+                                       data-ot="When a human gene is entered, you can search for researchers studying that gene's ortholog(s) in one or all of the supported model organisms.">
+                                    </i>
+                                </span>
                             </div>
                         </form>
                     </div>
@@ -180,7 +189,7 @@
                                        data-ot-background="cornflowerblue"
                                        data-ot-border-color="white"
                                        data-ot-shadow-color="lightgray"
-                                       data-ot="If enabled, the application will try to contact other similar websites around the globe to retrieve more results.">
+                                       data-ot="If enabled, the search will include matches found in registries of our international partners.">
                                     </i>
                                 </span>
                             </label>

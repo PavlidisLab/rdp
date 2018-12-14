@@ -43,7 +43,11 @@
 
 #homologue-box{
     margin-top: -40px;
-    margin-left: 37px;
+    margin-left: 20px;
+}
+
+#homologue-box span{
+    padding-left: 0;
 }
 
 #alpha-grp button:active, #alpha-grp button.active, .input-group-prepend button[type='submit'] {
@@ -66,4 +70,6 @@
     border-radius: 8px;
     text-align: center;
     vertical-align: middle;
+    line-height: 1.5em;
+    line-snap: baseline;
 }
