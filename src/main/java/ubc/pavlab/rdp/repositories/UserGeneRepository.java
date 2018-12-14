@@ -26,6 +26,7 @@ public interface UserGeneRepository extends JpaRepository<UserGene, Integer> {
     @Query("select count(distinct user) FROM UserGene")
     Integer countDistinctUser();
 
+    @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
     @Query("select targetGene FROM Homologue where sourceGene = :source_gene and targetTaxon = :target_taxon ")
     Collection<Integer> findHomologues(@Param("source_gene") Integer sourceGene, @Param( "target_taxon" ) Integer targetTaxon);
 
