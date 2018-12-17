@@ -146,7 +146,7 @@
 
             <div class="w-100"></div>
 
-            <div class="col my-3" th:if="${user.getRoles().contains(@roleRepository.findByRole('ROLE_ADMIN'))}">
+            <div class="col my-3" th:if="(${user} != null) and ${user.getRoles().contains(@roleRepository.findByRole('ROLE_ADMIN'))}">
                 <div class="card">
                     <div class="card-header">
                         <h4>Data privacy</h4>
@@ -217,7 +217,11 @@
 
                     <div class="w-100"></div>
 
-                    <div class="col my-3" th:if="not ${viewUser.getProfile().getHideGenelist()} or ${user.getId() == viewUser.getId()} or ${user.getRoles().contains(@roleRepository.findByRole('ROLE_ADMIN'))}">
+                    <div class="col my-3" th:if="
+                    not ${viewUser.getProfile().getHideGenelist()}
+                    or ((${user} != null) and ${user.getId() == viewUser.getId()})
+                    or ((${user} != null) and ${user.getRoles().contains(@roleRepository.findByRole('ROLE_ADMIN'))})
+                    ">
                         <div class="card">
                             <div class="card-header">
                                 <!--<h3 class="mb-2 text-capitalize"><span th:text="${taxon.commonName}" th:remove="tag"></span></h3>-->
