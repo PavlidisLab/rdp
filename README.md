@@ -204,10 +204,17 @@ WantedBy=multi-user.target
   - `ProxyPassReverse / http://localhost:<port>/`
   
 ## Migration from version 1.1.x to 1.2
-Your current data should not be lost in this step, but you should have a database backup in case things go wrong for any reason.
+Your current data should not be lost in this step, but you should definitely have a database backup in case things go wrong for any reason.
 
 Obtain the latest jar file and replace your old jar file with it.
+Add this line to your application-prod.properties:
+```Ini
+spring.datasource.initialization-mode=always
+```
 Run the application, but do not allow users to connect to it (you can shut it down immediately after it has successfully started up). This should add new properties to the mysql database that are required for the new version to run properly.
+
+Remove the line you added from the application-prod.properties file again. 
+Keeping it should not have any adverse effect, but it will slow down further startup times of the application.
 
 There are new security settings that can be added to your application-prod.properties file. See the section 'Privacy and search Defaults' in the 'Customize Settings' example file.
 
