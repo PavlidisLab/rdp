@@ -162,6 +162,11 @@ public class SearchController {
             return null;
         }
 
+        // Only look for homologues when taxon is human
+        if(taxonId != 9606){
+            homologueTaxonId = null;
+        }
+
         Taxon taxon = taxonService.findById( taxonId );
         Gene gene = geneService.findBySymbolAndTaxon( symbol, taxon );
         Collection<Gene> homologues = getHomologuesIfRequested( homologueTaxonId, gene );
@@ -200,6 +205,12 @@ public class SearchController {
         if(!searchAuthorized( userService.findCurrentUser(), false )){
             return null;
         }
+
+        // Only look for homologues when taxon is human
+        if(taxonId != 9606){
+            homologueTaxonId = null;
+        }
+
         Taxon taxon = taxonService.findById( taxonId );
         Gene gene = geneService.findBySymbolAndTaxon( symbol, taxon );
         Collection<Gene> homologues = getHomologuesIfRequested( homologueTaxonId, gene );
@@ -231,8 +242,13 @@ public class SearchController {
         if(!searchAuthorized( userService.findCurrentUser(), true )){
             return null;
         }
-        Taxon taxon = taxonService.findById( taxonId );
 
+        // Only look for homologues when taxon is human
+        if(taxonId != 9606){
+            homologueTaxonId = null;
+        }
+
+        Taxon taxon = taxonService.findById( taxonId );
         ModelAndView modelAndView = new ModelAndView();
 
         try {

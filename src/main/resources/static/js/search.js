@@ -9,7 +9,7 @@ function checkItl(itlChbox){
 }
 
 function checkTaxon(taxonSelect){
-    // noinspection EqualityComparisonWithCoercionJS // multi-browser support
+    // noinspection EqualityComparisonWithCoercionJS // multi-browser support // Taxon also checked in SearchController.java
     if(taxonSelect.val() == 9606){
         $("#homologue-box").show();
     }else{
@@ -140,7 +140,6 @@ $(document).ready(function () {
     });
 
     // Show results for first available character
-
     var charBtns = $('#alpha-grp [name="nameLikeBtn"]');
     $('[type="submit"]').click(function(){
         charBtns.removeClass("active");

@@ -129,6 +129,7 @@ public class UserGeneServiceImpl implements UserGeneService {
                 Collection<Gene> taxonGenes = findHomologuesForTaxon( gene, taxon.getId() );
                 genes.addAll(taxonGenes.stream().filter(Objects::nonNull).collect( Collectors.toList()) );
             }
+            genes.add( gene ); // Add original gene so it shows up in the results as well.
             return genes;
         } else { // Only looking for one taxon
             if ( taxonRepository.findOne( homologueTaxonId ) == null ) {
