@@ -152,30 +152,46 @@
                     <div class="card-header d-flex align-items-center">
                         <h3 class="mb-0 d-inline-block">Data Privacy Settings</h3>
                     </div>
-                    <div id="privacy-levels" class="d-flex w-100 p-2" th:if="${@applicationSettings.getPrivacy().isCustomizableLevel()}">
-                        <span class="radio" th:if="${@applicationSettings.getPrivacy().getMinLevel() &lt; 1}">
-                            <label><input id="privacyLevelPrivate" type="radio" name="privacy" th:checked="${user.profile.privacyLevel == 0}" value="0" title="Do not share your data with anyone except for the local match-making administrators."/>Private</label>
-                        </span>
-                        <span class="radio" th:if="${@applicationSettings.getPrivacy().getMinLevel() &lt; 2}">
-                            <label><input id="privacyLevelRegistered" type="radio" name="privacy" th:checked="${user.profile.privacyLevel == 1}" value="1" title="Share your data with other users registered at this website."/>Registered users</label>
-                        </span>
-                        <span class="radio">
-                            <label><input id="privacyLevelPublic" type="radio" name="privacy" th:checked="${user.profile.privacyLevel == 2}" value="2" title="Share with anyone."/>Public</label>
-                        </span>
+                    <div id="privacy-levels" class="w-100 p-2" th:if="${@applicationSettings.getPrivacy().isCustomizableLevel()}">
+                        <div class="radio" th:if="${@applicationSettings.getPrivacy().getMinLevel() &lt; 1}"
+                             title="Your information will only be accessible by the RDMM Network administration for matching you to rare disease research projects.">
+                            <label>
+                                <input id="privacyLevelPrivate" type="radio" name="privacy" th:checked="${user.profile.privacyLevel == 0}" value="0" />
+                                Private
+                            </label>
+                        </div>
+                        <div class="radio" th:if="${@applicationSettings.getPrivacy().getMinLevel() &lt; 2}"
+                             title="Your information will be accessible by other registered users of the registry.">
+                            <label>
+                                <input id="privacyLevelRegistered" type="radio" name="privacy" th:checked="${user.profile.privacyLevel == 1}" value="1" />
+                                Shared
+                            </label>
+                        </div>
+                        <div class="radio"
+                             title="Your information will be accessible by other registered users as well as by non-registered users through the registry’s public search webpage.">
+                            <label>
+                                <input id="privacyLevelPublic" type="radio" name="privacy" th:checked="${user.profile.privacyLevel == 2}" value="2" />
+                                Public
+                            </label>
+                        </div>
                     </div>
                     <hr th:if="${@applicationSettings.getPrivacy().isCustomizableLevel() == (@applicationSettings.getPrivacy().isCustomizableSharing() == true)}"/>
                     <div id="privacy-sharing" class="d-flex w-100 p-2 margin-chbox" th:if="${@applicationSettings.getPrivacy().isCustomizableSharing()}">
-                        <div class="col-12">
+                        <div class="col-12"
+                             title="Administrators of applications similar to this website will be able to query for your data. If you also set the privacy to 'public', anyone will be able to access your data through our public API.">
                             <label class="form-check-label">
-                                <input id="privacy-sharing-checkbox" type="checkbox" class="form-check-input" th:checked="${user.profile.shared}" title="Match-maker administrators of applications similar to this website will be able to query for your data. If you also set the privacy to 'public', anyone will be able to access your data through our public API."/>Include data in international search
+                                <input id="privacy-sharing-checkbox" type="checkbox" class="form-check-input" th:checked="${user.profile.shared}"/>
+                                Share data with our international partners
                             </label>
                         </div>
                     </div>
                     <hr th:if="${@applicationSettings.getPrivacy().isAllowHideGenelist() == ((@applicationSettings.getPrivacy().isCustomizableLevel() || (@applicationSettings.getPrivacy().isCustomizableSharing()) == true))}"/>
                     <div id="privacy-genelist" class="d-flex w-100 p-2 margin-chbox" th:if="${@applicationSettings.getPrivacy().isAllowHideGenelist()}">
-                        <div class="col-12">
+                        <div class="col-12"
+                             title="Hide your gene list when sharing your profile with others.">
                             <label class="form-check-label">
-                                <input id="privacy-genelist-checkbox" type="checkbox" class="form-check-input" th:checked="${user.profile.hideGenelist}" title="Hide your gene list when sharing your profile with others."/>Hide genelist for non-administrative users
+                                <input id="privacy-genelist-checkbox" type="checkbox" class="form-check-input" th:checked="${user.profile.hideGenelist}" />
+                                Hide genelist for non-administrative users
                             </label>
                         </div>
                     </div>

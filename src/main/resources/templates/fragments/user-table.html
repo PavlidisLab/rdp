@@ -11,8 +11,6 @@
         <th scope="col">Name</th>
         <th scope="col">Last Name</th>
         <th scope="col">Organization</th>
-        <th scope="col">Department</th>
-        <th scope="col">Website</th>
     </tr>
     </thead>
     <tbody>
@@ -27,8 +25,6 @@
             <td><span th:text="${u.profile.name}" th:remove="tag"></span></td>
             <td><span th:text="${u.profile.lastName}" th:remove="tag"></span></td>
             <td><span th:text="${u.profile.organization}" th:remove="tag"></span></td>
-            <td><span th:text="${u.profile.department}" th:remove="tag"></span></td>
-            <td><a th:href="${u.profile.website}" th:text="${u.profile.website}"></a></td>
         </tr>
     </th:block>
     </tbody>
@@ -42,8 +38,6 @@
         <th scope="col">Name</th>
         <th scope="col">Last Name</th>
         <th scope="col">Organization</th>
-        <th scope="col">Department</th>
-        <th scope="col">Website</th>
         <th scope="col">Gene</th>
         <th scope="col">Tier</th>
         <th scope="col">Organism</th>
@@ -61,8 +55,6 @@
             <td><span th:text="${ug.user.profile.name}" th:remove="tag"></span></td>
             <td><span th:text="${ug.user.profile.lastName}" th:remove="tag"></span></td>
             <td><span th:text="${ug.user.profile.organization}" th:remove="tag"></span></td>
-            <td><span th:text="${ug.user.profile.department}" th:remove="tag"></span></td>
-            <td><a th:href="${ug.user.profile.website}" th:text="${ug.user.profile.website}"></a></td>
             <td><span th:text="${ug.symbol}" th:remove="tag"></span></td>
             <td><span th:text="${ug.tier}" th:remove="tag"></span></td>
             <td><span th:text="${#strings.capitalizeWords(ug.taxon.commonName)}" th:remove="tag"></span></td>

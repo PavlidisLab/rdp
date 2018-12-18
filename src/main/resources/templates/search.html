@@ -159,8 +159,8 @@
                                 <span class="col-5 my-4 text-right">In this model organism (based on ortholog mapping): </span>
                                 <select name="orthologTaxonId" class="custom-select ortholog-select col-3 my-3"
                                         title="Ortholog taxon">
-                                    <!-- The 'All taxa' id is defined in UserGeneServiceImpl -->
-                                    <option th:value="-99">All taxa</option>
+                                    <!-- The 'All' id is defined in UserGeneServiceImpl -->
+                                    <option th:value="-99">All</option>
                                     <th:block th:each="taxon : ${@taxonService.findByActiveTrue()}">
                                         <option th:value="${taxon.id}"
                                                 th:text="${#strings.capitalizeWords(taxon.commonName)}"
