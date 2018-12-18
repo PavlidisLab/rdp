@@ -233,10 +233,19 @@ Specifically:
 
 #### Registered user search in previous version 
 If you previously had search enabled for registered users, you want to set `privacy_level` to `1` and `rdp.settings.privacy.default-level` to `true`.
-The original system for enabling registered users to use the search function was based on assigning a different role to all users. This has been discontinued, and need to be manually switched for all existing users.
+
+The original system for enabling registered users to use the search function was based on assigning a different role to all users. This has been discontinued, and needs to be manually switched for all existing users.
 This can be easily done by running the following command on your database (provided you have the original set of roles, where ROLE_USER has id 2, and ROLE_MANAGER has id 3):
 ```mysql
 UPDATE user_role SET role_id = 2 WHERE role_id = 3;
 DELETE FROM role WHERE role_id = 3;
 ```
 If you get any errors during this process, please contact us.
+
+## Ortholog mapping
+There is a static ortholog mapping included with the application, that will automatically populate the database on startup.
+
+For future updates of the ortholog mapping, you can watch the file 
+https://github.com/PavlidisLab/modinvreg/blob/development/src/main/resources/data.sql
+for changes, and the ortholog part over your database when that happens.
+
