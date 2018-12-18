@@ -39,7 +39,7 @@ public interface UserGeneService {
 
     Integer countUsersWithGenes();
 
-    Collection<Integer> findHomologues(Integer source_gene, Integer targetTaxon);
+    Collection<Integer> findOrthologs(Integer source_gene, Integer targetTaxon);
 
     Collection<UserGene> findByGene( int geneId );
 
@@ -53,5 +53,5 @@ public interface UserGeneService {
 
     Collection<UserGene> findByLikeSymbol( String symbol, Taxon taxon, Set<TierType> tiers );
 
-    Collection<Gene> findHomologues( Gene gene, Integer homologueTaxonId );
+    Collection<Gene> findOrthologs( Gene gene, Integer orthologTaxonId );
 }

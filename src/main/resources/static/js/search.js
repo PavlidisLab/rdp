@@ -11,9 +11,9 @@ function checkItl(itlChbox){
 function checkTaxon(taxonSelect){
     // noinspection EqualityComparisonWithCoercionJS // multi-browser support // Taxon also checked in SearchController.java
     if(taxonSelect.val() == 9606){
-        $("#homologue-box").show();
+        $("#ortholog-box").show();
     }else{
-        $("#homologue-box").hide();
+        $("#ortholog-box").hide();
     }
 }
 
@@ -50,7 +50,7 @@ $(document).ready(function () {
         checkItl(itlChbox);
     });
 
-    // Homologue selection show&hide
+    // Ortholog selection show&hide
     var taxonSelect = $("#taxonId");
     checkTaxon(taxonSelect);
     taxonSelect.on("change", function(){

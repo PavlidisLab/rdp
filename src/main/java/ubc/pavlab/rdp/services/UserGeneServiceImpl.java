@@ -81,8 +81,8 @@ public class UserGeneServiceImpl implements UserGeneService {
     }
 
     @Override
-    public Collection<Integer> findHomologues( Integer sourceGene, Integer targetTaxon ) {
-        return userGeneRepository.findHomologues( sourceGene, targetTaxon );
+    public Collection<Integer> findOrthologs( Integer sourceGene, Integer targetTaxon ) {
+        return userGeneRepository.findOrthologs( sourceGene, targetTaxon );
     }
 
     @Override
@@ -118,25 +118,25 @@ public class UserGeneServiceImpl implements UserGeneService {
     }
 
     @Override
-    public Collection<Gene> findHomologues( Gene gene, Integer homologueTaxonId ) {
-        if ( gene == null || homologueTaxonId == null ) {
+    public Collection<Gene> findOrthologs( Gene gene, Integer orthologTaxonId ) {
+        if ( gene == null || orthologTaxonId == null ) {
             //noinspection unchecked
             return Collections.EMPTY_LIST;
         }
-        if ( ALL_TAXON_ID.equals( homologueTaxonId ) ) { // Looking for all taxa
+        if ( ALL_TAXON_ID.equals( orthologTaxonId ) ) { // Looking for all taxa
             Collection<Gene> genes = new LinkedList<>();
             for ( Taxon taxon : taxonRepository.findAll() ) {
-                Collection<Gene> taxonGenes = findHomologuesForTaxon( gene, taxon.getId() );
+                Collection<Gene> taxonGenes = findOrthologsForTaxon( gene, taxon.getId() );
                 genes.addAll(taxonGenes.stream().filter(Objects::nonNull).collect( Collectors.toList()) );
             }
             genes.add( gene ); // Add original gene so it shows up in the results as well.
             return genes;
         } else { // Only looking for one taxon
-            if ( taxonRepository.findOne( homologueTaxonId ) == null ) {
+            if ( taxonRepository.findOne( orthologTaxonId ) == null ) {
                 //noinspection unchecked
                 return Collections.EMPTY_LIST;
             }
-            return findHomologuesForTaxon( gene, homologueTaxonId );
+            return findOrthologsForTaxon( gene, orthologTaxonId );
         }
 
     }
@@ -153,8 +153,8 @@ public class UserGeneServiceImpl implements UserGeneService {
         return filteredUserGenes;
     }
 
-    private Collection<Gene> findHomologuesForTaxon( Gene gene, Integer targetTaxonId ) {
-        Collection<Integer> geneIds = findHomologues( gene.getGeneId(), targetTaxonId );
+    private Collection<Gene> findOrthologsForTaxon( Gene gene, Integer targetTaxonId ) {
+        Collection<Integer> geneIds = findOrthologs( gene.getGeneId(), targetTaxonId );
         if ( geneIds == null || geneIds.isEmpty() ) {
             //noinspection unchecked
             return Collections.EMPTY_LIST;

@@ -26,7 +26,7 @@ import java.util.LinkedList;
 @Controller
 public class SearchController {
 
-    private static final String ERR_NO_HOMOLOGUES = "No homologues of %s for specified taxon.";
+    private static final String ERR_NO_ORTHOLOGS = "No orthologs of %s for specified taxon.";
     private static final String ERR_NO_GENE = "Unknown gene: %s";
 
     private static Log log = LogFactory.getLog( SearchController.class );
@@ -157,19 +157,19 @@ public class SearchController {
     @RequestMapping(value = "/search", method = RequestMethod.GET, params = { "symbol", "taxonId", "tier", "iSearch" })
     public ModelAndView searchUsersByGene( @RequestParam String symbol, @RequestParam Integer taxonId,
             @RequestParam TierType tier, @RequestParam Boolean iSearch,
-            @RequestParam(name = "homologueTaxonId", required = false) Integer homologueTaxonId ) {
+            @RequestParam(name = "orthologTaxonId", required = false) Integer orthologTaxonId ) {
         if(!searchAuthorized( userService.findCurrentUser(), false )){
             return null;
         }
 
-        // Only look for homologues when taxon is human
+        // Only look for orthologs when taxon is human
         if(taxonId != 9606){
-            homologueTaxonId = null;
+            orthologTaxonId = null;
         }
 
         Taxon taxon = taxonService.findById( taxonId );
         Gene gene = geneService.findBySymbolAndTaxon( symbol, taxon );
-        Collection<Gene> homologues = getHomologuesIfRequested( homologueTaxonId, gene );
+        Collection<Gene> orthologs = getOrthologsIfRequested( orthologTaxonId, gene );
 
         ModelAndView modelAndView = new ModelAndView();
         modelAndView.setViewName( "search" );
@@ -178,18 +178,18 @@ public class SearchController {
             modelAndView.setViewName( "fragments/error :: message" );
             modelAndView.addObject( "errorMessage", String.format( ERR_NO_GENE, symbol ) );
         } else if (
-            // Check if there is a homologue request for a different taxon than the original gene
-                ( homologueTaxonId != null && !homologueTaxonId.equals( gene.getTaxon().getId() ) )
-                        // Check if we got some homologue results
-                        && ( homologues == null || homologues.isEmpty() ) ) {
+            // Check if there is a ortholog request for a different taxon than the original gene
+                ( orthologTaxonId != null && !orthologTaxonId.equals( gene.getTaxon().getId() ) )
+                        // Check if we got some ortholog results
+                        && ( orthologs == null || orthologs.isEmpty() ) ) {
             modelAndView.setViewName( "fragments/error :: message" );
-            modelAndView.addObject( "errorMessage", String.format( ERR_NO_HOMOLOGUES, symbol ) );
+            modelAndView.addObject( "errorMessage", String.format( ERR_NO_ORTHOLOGS, symbol ) );
         } else {
-            modelAndView.addObject( "usergenes", handleGeneSearch( gene, tier, homologues ) );
+            modelAndView.addObject( "usergenes", handleGeneSearch( gene, tier, orthologs ) );
             if ( iSearch ) {
                 try {
                     modelAndView.addObject( "itlUsergenes",
-                            remoteResourceService.findGenesBySymbol( symbol, taxon, tier, homologueTaxonId ) );
+                            remoteResourceService.findGenesBySymbol( symbol, taxon, tier, orthologTaxonId ) );
                 } catch ( RemoteException e ) {
                     modelAndView.addObject( "itlErrorMessage", e.getMessage() );
                 }
@@ -201,33 +201,33 @@ public class SearchController {
     @RequestMapping(value = "/search/view", method = RequestMethod.GET, params = { "symbol", "taxonId", "tier" })
     public ModelAndView searchUsersByGeneView( @RequestParam String symbol, @RequestParam Integer taxonId,
             @RequestParam TierType tier,
-            @RequestParam(name = "homologueTaxonId", required = false) Integer homologueTaxonId ) {
+            @RequestParam(name = "orthologTaxonId", required = false) Integer orthologTaxonId ) {
         if(!searchAuthorized( userService.findCurrentUser(), false )){
             return null;
         }
 
-        // Only look for homologues when taxon is human
+        // Only look for orthologs when taxon is human
         if(taxonId != 9606){
-            homologueTaxonId = null;
+            orthologTaxonId = null;
         }
 
         Taxon taxon = taxonService.findById( taxonId );
         Gene gene = geneService.findBySymbolAndTaxon( symbol, taxon );
-        Collection<Gene> homologues = getHomologuesIfRequested( homologueTaxonId, gene );
+        Collection<Gene> orthologs = getOrthologsIfRequested( orthologTaxonId, gene );
 
         ModelAndView modelAndView = new ModelAndView();
         if ( gene == null ) {
             modelAndView.setViewName( "fragments/error :: message" );
             modelAndView.addObject( "errorMessage", String.format( ERR_NO_GENE, symbol ) );
         } else if (
-            // Check if there is a homologue request for a different taxon than the original gene
-                ( homologueTaxonId != null && !homologueTaxonId.equals( gene.getTaxon().getId() ) )
-                        // Check if we got some homologue results
-                        && ( homologues == null || homologues.isEmpty() ) ) {
+            // Check if there is a ortholog request for a different taxon than the original gene
+                ( orthologTaxonId != null && !orthologTaxonId.equals( gene.getTaxon().getId() ) )
+                        // Check if we got some ortholog results
+                        && ( orthologs == null || orthologs.isEmpty() ) ) {
             modelAndView.setViewName( "fragments/error :: message" );
-            modelAndView.addObject( "errorMessage", String.format( ERR_NO_HOMOLOGUES, symbol ) );
+            modelAndView.addObject( "errorMessage", String.format( ERR_NO_ORTHOLOGS, symbol ) );
         } else {
-            modelAndView.addObject( "usergenes", handleGeneSearch( gene, tier, homologues ) );
+            modelAndView.addObject( "usergenes", handleGeneSearch( gene, tier, orthologs ) );
             modelAndView.setViewName( "fragments/user-table :: usergenes-table" );
         }
 
@@ -238,14 +238,14 @@ public class SearchController {
             "tier" })
     public ModelAndView searchItlUsersByGeneView( @RequestParam String symbol, @RequestParam Integer taxonId,
             @RequestParam TierType tier,
-            @RequestParam(name = "homologueTaxonId", required = false) Integer homologueTaxonId ) {
+            @RequestParam(name = "orthologTaxonId", required = false) Integer orthologTaxonId ) {
         if(!searchAuthorized( userService.findCurrentUser(), true )){
             return null;
         }
 
-        // Only look for homologues when taxon is human
+        // Only look for orthologs when taxon is human
         if(taxonId != 9606){
-            homologueTaxonId = null;
+            orthologTaxonId = null;
         }
 
         Taxon taxon = taxonService.findById( taxonId );
@@ -253,7 +253,7 @@ public class SearchController {
 
         try {
             modelAndView.addObject( "usergenes",
-                    remoteResourceService.findGenesBySymbol( symbol, taxon, tier, homologueTaxonId ) );
+                    remoteResourceService.findGenesBySymbol( symbol, taxon, tier, orthologTaxonId ) );
             modelAndView.addObject( "remote", true );
             modelAndView.setViewName( "fragments/user-table :: usergenes-table" );
         } catch ( RemoteException e ) {
@@ -296,11 +296,11 @@ public class SearchController {
         return modelAndView;
     }
 
-    Collection<UserGene> handleGeneSearch( Gene gene, TierType tier, Collection<Gene> homologues ) {
+    Collection<UserGene> handleGeneSearch( Gene gene, TierType tier, Collection<Gene> orthologs ) {
         Collection<UserGene> uGenes = new LinkedList<>();
-        if ( homologues != null && !homologues.isEmpty() ) {
-            for ( Gene homologue : homologues ) {
-                uGenes.addAll( handleGeneSearch( homologue, tier, null ) );
+        if ( orthologs != null && !orthologs.isEmpty() ) {
+            for ( Gene ortholog : orthologs ) {
+                uGenes.addAll( handleGeneSearch( ortholog, tier, null ) );
             }
             return uGenes;
         } else {
@@ -314,9 +314,9 @@ public class SearchController {
         }
     }
 
-    Collection<Gene> getHomologuesIfRequested( Integer homologueTaxonId, Gene gene ) {
-        if ( homologueTaxonId != null ) {
-            return userGeneService.findHomologues( gene, homologueTaxonId );
+    Collection<Gene> getOrthologsIfRequested( Integer orthologTaxonId, Gene gene ) {
+        if ( orthologTaxonId != null ) {
+            return userGeneService.findOrthologs( gene, orthologTaxonId );
         }
         //noinspection unchecked
         return Collections.EMPTY_LIST;

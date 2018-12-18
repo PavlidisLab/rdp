@@ -41,12 +41,12 @@
     border-top: none;
 }
 
-#homologue-box{
+#ortholog-box{
     margin-top: -40px;
     margin-left: 20px;
 }
 
-#homologue-box span{
+#ortholog-box span{
     padding-left: 0;
 }
 

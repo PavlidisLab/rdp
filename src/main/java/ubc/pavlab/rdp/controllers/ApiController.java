@@ -37,8 +37,8 @@ public class ApiController {
             "Tier3 genes not published internationally.", null, HttpStatus.NOT_FOUND );
     private static final ResponseEntity<String> GENE_NULL_RESPONSE = new ResponseEntity<>( "Unknown gene.", null,
             HttpStatus.NOT_FOUND );
-    private static final ResponseEntity<String> HOMOLOGUE_NULL_RESPONSE = new ResponseEntity<>(
-            "Could not find any homologues with given parameters.", null, HttpStatus.NOT_FOUND );
+    private static final ResponseEntity<String> ORTHOLOG_NULL_RESPONSE = new ResponseEntity<>(
+            "Could not find any orthologs with given parameters.", null, HttpStatus.NOT_FOUND );
 
     static {
         ROOT_DATA = new HashMap<>();
@@ -132,27 +132,27 @@ public class ApiController {
     @ResponseBody
     public Object searchUsersByGeneSymbol( @RequestParam String symbol, @RequestParam Integer taxonId,
             @RequestParam TierType tier, @RequestParam(name = "auth", required = false) String auth,
-            @RequestParam(name = "homologueTaxonId", required = false) Integer homologueTaxonId ) {
+            @RequestParam(name = "orthologTaxonId", required = false) Integer orthologTaxonId ) {
         if ( !applicationSettings.getIsearch().isEnabled() ) {
             return ResponseEntity.notFound().build();
         }
         checkAuth( auth );
         Taxon taxon = taxonService.findById( taxonId );
         Gene gene = geneService.findBySymbolAndTaxon( symbol, taxon );
-        Collection<Gene> homologues = searchController.getHomologuesIfRequested( homologueTaxonId, gene );
+        Collection<Gene> orthologs = searchController.getOrthologsIfRequested( orthologTaxonId, gene );
 
         if ( gene == null ) {
             return GENE_NULL_RESPONSE;
         } else if (
-            // Check if there is a homologue request for a different taxon than the original gene
-                ( homologueTaxonId != null && !homologueTaxonId.equals( gene.getTaxon().getId() ) )
-                        // Check if we got some homologue results
-                        && ( homologues == null || homologues.isEmpty() ) ) {
-            return HOMOLOGUE_NULL_RESPONSE;
+            // Check if there is a ortholog request for a different taxon than the original gene
+                ( orthologTaxonId != null && !orthologTaxonId.equals( gene.getTaxon().getId() ) )
+                        // Check if we got some ortholog results
+                        && ( orthologs == null || orthologs.isEmpty() ) ) {
+            return ORTHOLOG_NULL_RESPONSE;
         }
 
         try {
-            return initGeneUsers( searchController.handleGeneSearch( gene, restrictTiers( tier ), homologues ) );
+            return initGeneUsers( searchController.handleGeneSearch( gene, restrictTiers( tier ), orthologs ) );
         } catch ( TierException e ) {
             return TIER3_RESPONSE;
         }
