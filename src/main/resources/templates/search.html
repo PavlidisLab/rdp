@@ -44,17 +44,13 @@
                  th:remove="tag">...
             </div>
 
-            <div class="main-content collapse show" id="welcome" th:if="${user == null}">
-                <div class="p-4 row">
-                    <div class="col-1 text-right">
-                        <button type="button" class="inline btn btn-outline-info btn-sm" data-toggle="collapse"
-                                data-target="#welcome"><i class="oi oi-x"/></button>
-                    </div>
-                    <div class="col-11">
-                        <span th:utext="${@siteSettings.welcomePublic}" th:remove="tag"></span>
+            <div class="row justify-content-center error-row" th:if="${user == null}">
+                <div class="col my-3">
+                    <div class="alert alert-info alert-dismissible fade show" role="alert">
+                        <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+                        <p th:text="${@siteSettings.welcomePublic}"/>
                     </div>
                 </div>
-                <hr/>
             </div>
             <div class="main-content p-4">
                 <ul class="nav nav-tabs">

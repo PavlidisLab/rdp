@@ -42,7 +42,7 @@ public class ApiController {
 
     static {
         ROOT_DATA = new HashMap<>();
-        ROOT_DATA.put( "message", "This is the RDMM REST API. Please see documentation." );
+        ROOT_DATA.put( "message", "This is this applications API. Please see documentation." );
         ROOT_DATA.put( "version", API_VERSION );
     }
 
