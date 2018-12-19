@@ -59,17 +59,3 @@
 .tab-content h5{
     margin-left: 12px;
 }
-
-.tip{
-    font-size: x-small;
-    background: cornflowerblue;
-    color: whitesmoke;
-    width: 16px;
-    height: 16px;
-    margin-left: 6px;
-    border-radius: 8px;
-    text-align: center;
-    vertical-align: middle;
-    line-height: 1.5em;
-    line-snap: baseline;
-}

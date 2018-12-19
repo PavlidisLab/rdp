@@ -29,3 +29,7 @@ input.data-edit {
 hr{
     margin: 0 0 10px;
 }
+
+.tip{
+    margin-top: -4px;
+}
