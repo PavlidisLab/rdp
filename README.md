@@ -203,6 +203,13 @@ WantedBy=multi-user.target
   - `ProxyPass / http://localhost:<port>/`
   - `ProxyPassReverse / http://localhost:<port>/`
   
+## Ortholog mapping
+There is a static ortholog mapping included with the application, that will automatically populate the database on startup.
+
+For future updates of the ortholog mapping, you can watch the file 
+https://github.com/PavlidisLab/modinvreg/blob/development/src/main/resources/data.sql
+for changes, and the ortholog part over your database when that happens.
+  
 ## Migration from version 1.1.x to 1.2
 Your current data should not be lost in this step, but you should definitely have a 
 database backup in case things go wrong for any reason.
@@ -214,20 +221,25 @@ Add this line to your application-prod.properties:
 ```Ini
 spring.datasource.initialization-mode=always
 ```
-Run the application, but do not allow users to connect to it (you can shut it down immediately after it has successfully started up). This should add new properties to the mysql database that are required for the new version to run properly.
+Run the application, but do not allow users to connect to it (you can shut it down immediately after it has successfully started up). 
+This should add new properties to the database, that are required for the new version to run properly, and 
+fill the ortholog mapping table.
 
 Remove the line you added from the application-prod.properties file again. 
 Keeping it should not have any adverse effect, but it will slow down further startup times of the application.
 
-There are new security settings that can be added to your application-prod.properties file. See the section 'Privacy and search Defaults' in the 'Customize Settings' example file.
+There are new security settings that can be added to your application-prod.properties file. 
+See the section 'Privacy and search Defaults' in the 'Customize Settings' example file.
 
-The new security settings will have to be back-filled for the users that have registered prior to this update. This can be done by directly editing the database entries like so:
+The new security settings will have to be back-filled for the users that have registered prior to this update. 
+This can be done by directly editing the database entries like so:
 ```mysql
 UPDATE user SET 
 hide_genelist = 0, 
 privacy_level = 0, 
 shared = 1;
 ```
+
 The values of these settings should correspond with the defaults you have set in your `application-prod.properties` file.
 Specifically:
  - `hide_genelist = X` if X =1, hides users gene list from public searches. is only effective when the setting `rdp.settings.privacy.allow-hide-genelist` is enabled.
@@ -243,12 +255,59 @@ This can be easily done by running the following command on your database (provi
 UPDATE user_role SET role_id = 2 WHERE role_id = 3;
 DELETE FROM role WHERE role_id = 3;
 ```
-If you get any errors during this process, please contact us.
 
-## Ortholog mapping
-There is a static ortholog mapping included with the application, that will automatically populate the database on startup.
+### International search
+There are few steps that need to be taken in order to make the international search available when
+migrating your old application to the new version that supports it.
 
-For future updates of the ortholog mapping, you can watch the file 
-https://github.com/PavlidisLab/modinvreg/blob/development/src/main/resources/data.sql
-for changes, and the ortholog part over your database when that happens.
+Firstly, a special user has to be created that will provide access to the remote instances. 
+To do this, run the following command on your database. 
+Note that in order for this command to be guaranteed to work, the RDMM application connected to this database must be shut down.
+
+```mysql
+INSERT INTO user ( email, enabled, password, privacy_level, description, last_name, name, shared, hide_genelist)
+VALUES("admin@rdmm.com", 0, "$2a$10$222ubeXaukjv5G.7mAXrXedhkzSp0gCEuFv4msqcjwbikvljQFdX2", 0, "Remote admin profile", "", "", false, false);
+INSERT INTO user_role (user_id,role_id) VALUES ((select max(user_id) from user), 1);
+INSERT INTO user_role (user_id,role_id) VALUES ((select max(user_id) from user), 2);
+SELECT max(user_id) from user;
+```
+
+The last command will output an information that you will need in the next step. It will look like this:
+```Ini
++--------------+
+| max(user_id) |
++--------------+
+|          550 |
++--------------+
+1 row in set (0.00 sec)
+```
+Make note of the number in the box (550 in the above example).
+
+With this information in hand, you will need to update your application-prod.properties file:
+
+```Ini
+## whether to enable international searching
+rdp.settings.isearch.enabled=true
+## whether international search is selected by default
+rdp.settings.isearch.default-on=false
+## urls of international instances to search when enabled. Separate with a comma
+rdp.settings.isearch.apis=
+## Admin user id used for authenticated remote search. Not using 1 or 2 because those are IDs frequently used in tests. If changed, also update data.sql
+rdp.settings.isearch.user-id=550
+## Token used for remote search with administrative rights. Obtain from RDMM program coordinator.
+rdp.settings.isearch.search-token=XXXX
+## Tokens for remote requests that authorize administrative access. Usually equal to the search-token, but can contain multiple entries separated by comma.
+rdp.settings.isearch.auth-tokens=XXXX
+```
+Use the number you noted in the previous step for the `rdp.settings.isearch.user-id` line.
+
+You can obtain the values for lines `rdp.settings.isearch.apis`, `rdp.settings.isearch.search-token` and `rdp.settings.isearch.auth-tokens` from the central network
+administrator. The search-token and auth-tokens are highly confidential information, and we ask you to not
+share them with anyone, since if would compromise the security of the whole network.
+
+It is possible that as new international partners register to the network, we will provide you with
+updated values for the `rdp.settings.isearch.apis` line. Or in case of a security breach,
+we might ask you to update your search-token and auth-tokens.
+
+If you get any errors during any part of this process, please contact us.
 
