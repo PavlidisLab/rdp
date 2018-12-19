@@ -204,7 +204,10 @@ WantedBy=multi-user.target
   - `ProxyPassReverse / http://localhost:<port>/`
   
 ## Migration from version 1.1.x to 1.2
-Your current data should not be lost in this step, but you should definitely have a database backup in case things go wrong for any reason.
+Your current data should not be lost in this step, but you should definitely have a 
+database backup in case things go wrong for any reason.
+
+Read about database backup options for mysql here: https://dev.mysql.com/doc/refman/5.7/en/backup-methods.html
 
 Obtain the latest jar file and replace your old jar file with it.
 Add this line to your application-prod.properties:
