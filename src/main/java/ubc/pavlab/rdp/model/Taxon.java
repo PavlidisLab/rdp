@@ -35,4 +35,6 @@ public class Taxon {
 
     @JsonIgnore
     private boolean active;
+
+    private Integer ordering;
 }

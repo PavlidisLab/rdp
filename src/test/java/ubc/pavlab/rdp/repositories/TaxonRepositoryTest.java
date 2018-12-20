@@ -41,7 +41,7 @@ public class TaxonRepositoryTest extends BaseTest {
 
         entityManager.flush();
 
-        Collection<Taxon> taxons = taxonRepository.findByActiveTrue();
+        Collection<Taxon> taxons = taxonRepository.findByActiveTrueOrderByOrdering();
 
         assertThat( taxons ).containsExactly( taxon2, taxon3 );
 

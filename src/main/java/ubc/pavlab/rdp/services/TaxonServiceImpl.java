@@ -23,7 +23,7 @@ public class TaxonServiceImpl implements TaxonService {
 
     @Override
     public Collection<Taxon> findByActiveTrue() {
-        return taxonRepository.findByActiveTrue();
+        return taxonRepository.findByActiveTrueOrderByOrdering();
     }
 
     @Override

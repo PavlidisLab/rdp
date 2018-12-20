@@ -150,18 +150,17 @@
                 <div class="card">
                     <div class="card-header">
                         <h4>Data privacy</h4>
-                        <div>This users data privacy is set to
+                        <div>Data privacy:
                             <b th:if="${viewUser.getProfile().privacyLevel} == 0">private.</b>
-                            <b th:if="${viewUser.getProfile().privacyLevel} == 1">shared with registered users.</b>
+                            <b th:if="${viewUser.getProfile().privacyLevel} == 1">shared.</b>
                             <b th:if="${viewUser.getProfile().privacyLevel} == 2">public.</b>
                         </div>
                         <div>
-                            Non-administrative users that can see this users data
-                            <b th:if="${viewUser.getProfile().getHideGenelist()}">can not</b>
-                            <b th:if="not ${viewUser.getProfile().getHideGenelist()}">can</b>
-                            see this users gene and terms lists.
+                            International sharing:
+                            <b th:if="${viewUser.getProfile().getHideGenelist()}">disabled.</b>
+                            <b th:if="not ${viewUser.getProfile().getHideGenelist()}">enabled.</b>
                         </div>
-                        <div>
+                        <div th:if="${@applicationSettings.getPrivacy().isAllowHideGenelist()}">
                             International sharing of this users data is
                             <b th:if="${viewUser.getProfile().getShared()}">enabled.</b>
                             <b th:if="not ${viewUser.getProfile().getShared()}">disabled.</b>
