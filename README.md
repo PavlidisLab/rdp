@@ -216,6 +216,8 @@ database backup in case things go wrong for any reason.
 
 Read about database backup options for mysql here: https://dev.mysql.com/doc/refman/5.7/en/backup-methods.html
 
+If you get any errors during any part of the following process, please contact us.
+
 Obtain the latest jar file and replace your old jar file with it.
 Add this line to your application-prod.properties:
 ```Ini
@@ -309,5 +311,19 @@ It is possible that as new international partners register to the network, we wi
 updated values for the `rdp.settings.isearch.apis` line. Or in case of a security breach,
 we might ask you to update your search-token and auth-tokens.
 
-If you get any errors during any part of this process, please contact us.
+### Custom taxon ordering
+A new property for taxa has been introduced, that allows a custom order of taxa in the dropdown menus.
 
+You can customize the order by running the following commands on your database.
+Just edit the `ordering=X` number to represent what position you would like the taxon to be on. You can skip taxa that you
+do not use (i.e. that are not active):
+```mysql
+update taxon set ordering = 1 where common_name = "human";
+update taxon set ordering = 2 where common_name = "mouse";
+update taxon set ordering = 3 where common_name = "rat";
+update taxon set ordering = 4 where common_name = "zebrafish";
+update taxon set ordering = 5 where common_name = "fruit fly";
+update taxon set ordering = 6 where common_name = "roundworm";
+update taxon set ordering = 7 where common_name = "yeast";
+update taxon set ordering = 8 where common_name = "e. coli";
+```
