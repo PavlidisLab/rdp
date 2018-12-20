@@ -44,6 +44,12 @@ function collectProfile() {
 
 $(document).ready(function () {
 
+    // auto-hide save message
+    $('#saved-button').blur(function(){
+        console.log( "Handler for .blur() called." );
+        $('.success-row').hide();
+    });
+
     $('#publication-table').DataTable({
         "scrollY":        "200px",
         "scrollCollapse": true,
@@ -153,6 +159,7 @@ $(document).ready(function () {
                 spinner.addClass("d-none");
                 initialProfile = collectProfile();
                 $('.new-row').removeClass("new-row");
+                $('#saved-button').focus();
             },
             error: function(r) {
                 var errorMessages = [];
