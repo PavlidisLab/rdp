@@ -44,6 +44,11 @@
                            aria-controls="model"
                            aria-selected="true">Model Organisms</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="search-tab" data-toggle="tab" href="#search" role="tab"
+                           aria-controls="search"
+                           aria-selected="true">Search</a>
+                    </li>
                 </ul>
             </div>
             <div class="card-body">
@@ -89,6 +94,28 @@
                                         <p>
                                             These fields are optional. Your email address is not
                                             editable because it serves as your User ID.
+                                        </p>
+
+                                        <p>Data Privacy Settings section lets you choose your data sharing preferences.
+                                            The default setting, "private", is pre-selected, but can be changed.
+                                            The options are:
+                                        </p>
+                                        <ul>
+                                            <li><b>private (admin-only)</b> - your information will only be accessible by the
+                                                RDMM Network administration for matching you to rare disease research projects.</li>
+                                            <li><b>shared</b> - your information will be accessible by other registered users of
+                                                the registry.</li>
+                                            <li><b>public</b> - your information will be accessible by other registered users as
+                                                well as by non-registered users through the registry’s public search webpage.</li>
+                                        </ul>
+                                        <p>
+                                            International Sharing section gives you the option to set your preference for
+                                            sharing your data with the Network’s international partners for the purposes of
+                                            establishing connections between international clinician sciences and Canadian model
+                                            organism researchers. The internationally shared data will only be visible to the
+                                            administrators of remote registries. The default setting, that the data is
+                                            shared internationally, is pre-selected, but can be changed. If your data privacy
+                                            level is set to "public", the "international sharing" will be automatic.
                                         </p>
                                     </div>
                                 </div>
@@ -318,6 +345,57 @@
                                             as it makes use of the structure of the GO hierarchy and
                                             several heuristics to provide useful results. Please <a th:href="@{/user/support}">Contact
                                             Us</a> if you would like more details.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="search" role="tabpanel" aria-labelledby="model-tab">
+                        <div id="search-accordion">
+                            <div class="card my-3">
+                                <div class="card-header" id="searchmanager-heading">
+                                    <h5 class="mb-0">
+                                        <button class="btn btn-link" data-toggle="collapse" data-target="#modelmanager"
+                                                aria-expanded="false" aria-controls="modelcrd">
+                                            Search
+                                        </button>
+                                    </h5>
+                                </div>
+
+                                <div id="searchcrd" class="collapse show" aria-labelledby="searchcrd-heading"
+                                     data-parent="#model-accordion">
+                                    <div class="card-body">
+                                        <p>
+                                            The Search page allows you to browse or search for other registered users
+                                            who chose to share their data by selecting "shared" or "public" data privacy setting.
+                                            If "Include international search results" option is selected,
+                                            the registry will connect to remote registries of the RDMM international
+                                            partners and display/search their "public" users.
+                                        </p>
+                                        <p>
+                                            There are two ways to search for users: using their name and profile information
+                                            ("researcher" tab) or using gene search ("Gene" tab). In the "researcher" tab you can search in the following ways:
+                                        </p>
+                                        <ul>
+                                            <li>Click on letters of the alphabet to retrieve all users whose first or last letter begin with that letter</li>
+                                            <li>Enter one or more letters of the user"s name in "Search by name" box</li>
+                                            <li>Search for keywords in the user"s research description</li>
+                                        </ul>
+                                        <p>
+                                            After clicking on the Search button (or a letter of the alphabet) the list of
+                                            results will be displayed at the bottom of the page. If "Include international search results" is selected,
+                                            the international results will be displayed in a separate section with the
+                                            indication from which international registry the matches are coming from ("Origin").
+                                            Clicking on a user"s email address will open a new tab with the user"s profile and gene information.
+                                        </p>
+                                        <p>
+                                            "Gene" tab allows you to search for registered users based on genes they study. 
+                                            Gene symbols are organism-specific and will be matched against the list of known gene 
+                                            symbols for the selected organism (selection made in a dropdown menu). 
+                                            If you want to search for a match using a human gene, but consider orthologs in other model organisms, 
+                                            you would use the secondary dropdown menu to indicate the preferred organism. 
+                                            The ortholog mapping is based on DIOPT results (link), filtered for DIOPT score >5 and Rank = "high".
                                         </p>
                                     </div>
                                 </div>
