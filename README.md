@@ -74,9 +74,9 @@ rdp.site.admin-email=registry-help@example.ca
 # ==============================================================
 
 # Privacy settings
-## Whether public search is allowed
+## Whether the search page is accessible by visitors (i.e. non-registered users)
 rdp.settings.privacy.public-search=true
-## Whether registered user search is allowed
+## Whether the search page is accessible by registered users
 rdp.settings.privacy.registered-search=true
 ## 0 = private, 1 = shared with registered users, 2 = public
 rdp.settings.privacy.default-level=0
@@ -86,7 +86,7 @@ rdp.settings.privacy.min-level=0
 rdp.settings.privacy.default-sharing=false
 ## whether users are allowed to change their privacy settings
 rdp.settings.privacy.customizable-level=false
-## whether users are allowed to change their sharing setting
+## whether users are allowed to change their international sharing setting
 rdp.settings.privacy.customizable-sharing=false
 ## whether users are allowed to hide their gene-list when their data is shared or public
 rdp.settings.privacy.allow-hide-genelist=false
@@ -252,10 +252,10 @@ Specifically:
 If you previously had search enabled for registered users, you want to set `privacy_level` to `1` and `rdp.settings.privacy.default-level` to `true`.
 
 The original system for enabling registered users to use the search function was based on assigning a different role to all users. This has been discontinued, and needs to be manually switched for all existing users.
-This can be easily done by running the following command on your database (provided you have the original set of roles, where ROLE_USER has id 2, and ROLE_MANAGER has id 3):
+This can be easily done by running the following command on your database (provided you have the original set of roles that came with the application, 
+where ROLE_USER has id 2, and ROLE_MANAGER has id 3):
 ```mysql
 UPDATE user_role SET role_id = 2 WHERE role_id = 3;
-DELETE FROM role WHERE role_id = 3;
 ```
 
 ### International search
@@ -263,12 +263,15 @@ There are few steps that need to be taken in order to make the international sea
 migrating your old application to the new version that supports it.
 
 Firstly, a special user has to be created that will provide access to the remote instances. 
-To do this, run the following command on your database. 
+To do this, run the following command on your database. This account
+should not be used for any other purpose, which is why it's username and password are randomly generated
+by the following script.
+
 Note that in order for this command to be guaranteed to work, the RDMM application connected to this database must be shut down.
 
 ```mysql
 INSERT INTO user ( email, enabled, password, privacy_level, description, last_name, name, shared, hide_genelist)
-VALUES("admin@rdmm.com", 0, "$2a$10$222ubeXaukjv5G.7mAXrXedhkzSp0gCEuFv4msqcjwbikvljQFdX2", 0, "Remote admin profile", "", "", false, false);
+VALUES(CONCAT(RAND(),"@rdmm.com"), 0, MD5(RAND()), 0, "Remote admin profile", "", "", false, false);
 INSERT INTO user_role (user_id,role_id) VALUES ((select max(user_id) from user), 1);
 INSERT INTO user_role (user_id,role_id) VALUES ((select max(user_id) from user), 2);
 SELECT max(user_id) from user;

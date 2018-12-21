@@ -20,8 +20,7 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     User findByEmailIgnoreCase( String email );
 
     @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
-    Collection<User> findByProfileNameStartsWithIgnoreCaseOrProfileLastNameStartsWithIgnoreCase( String nameLike,
-            String lastNameLike );
+    Collection<User> findByProfileLastNameStartsWithIgnoreCase( String lastNameLike );
 
     @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
     Collection<User> findByProfileNameContainingIgnoreCaseOrProfileLastNameContainingIgnoreCase( String nameLike,

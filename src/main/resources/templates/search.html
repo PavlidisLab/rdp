@@ -140,13 +140,13 @@
                                                     th:selected="${taxon.id == 9606}"></option>
                                         </th:block>
                                     </select>
-                                    <select name="tier" class="custom-select"
-                                            title="Show any tier, a specific tier, or manual tiers only (tiers 1 &amp; 2)">
+                                    <select name="tier" title="Show any tier, or specific tiers."
+                                        th:class="${user == null} ? 'hide' : 'custom-select' ">
                                         <!--suppress ThymeleafVariablesResolveInspection -->
                                         <option th:each="tier : ${T(ubc.pavlab.rdp.model.enums.TierType).values()}"
                                                 th:value="${tier}"
-                                                th:text="'Tier: ' + ${tier}"
-                                                th:selected="${tier == T(ubc.pavlab.rdp.model.enums.TierType).ANY}">
+                                                th:text="${tier == T(ubc.pavlab.rdp.model.enums.TierType).TIERS1_2} ? 'TIER1 and TIER2' : ${tier}"
+                                                th:selected="${tier == T(ubc.pavlab.rdp.model.enums.TierType).TIERS1_2}">
                                         </option>
                                     </select>
                                 </div>
@@ -180,7 +180,7 @@
                             <label>
                                 <input id="isearch-checkbox" type="checkbox"
                                        th:checked="${@applicationSettings.getIsearch().isDefaultOn()}"/>
-                                <span class="label-text">Include international search results
+                                <span class="label-text">Include results from partner registries
                                     <i class="tip oi oi-question-mark"
                                        data-ot-background="cornflowerblue"
                                        data-ot-border-color="white"
@@ -197,6 +197,7 @@
 
                 <!--Results-->
                 <div id="userTable">
+                    <h4>Researchers registered in this instance</h4>
                     <div th:if="${users != null}"
                          th:replace="fragments/user-table :: user-table(users=${users}, remote=false)" th:remove="tag">
                         ...
@@ -206,7 +207,7 @@
                 <!--International results-->
                 <div id="itlResults" th:if="${@applicationSettings.getIsearch().isEnabled()}">
                     <hr/>
-                    <h4>International results</h4>
+                    <h4>Partner registry results</h4>
                     <div id="itlUserTable">
                         <div th:if="${itlErrorMessage != null}" th:replace="fragments/error :: message" th:remove="tag">
                             ...

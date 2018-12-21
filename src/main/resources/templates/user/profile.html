@@ -155,6 +155,9 @@
                         <h3 class="mb-0 d-inline-block">Data Privacy Settings</h3>
                     </div>
                     <div id="privacy-levels" class="w-100 p-2" th:if="${@applicationSettings.getPrivacy().isCustomizableLevel()}">
+                        <p class="radio">
+                            Read more about these settings in the <a href="faq#privacy-settings" target="_blank">faq</a>
+                        </p>
                         <div class="radio" th:if="${@applicationSettings.getPrivacy().getMinLevel() &lt; 1}" >
                             <label>
                                 <input id="privacyLevelPrivate" type="radio" name="privacy" th:checked="${user.profile.privacyLevel == 0}" value="0" />
@@ -164,7 +167,7 @@
                                data-ot-background="cornflowerblue"
                                data-ot-border-color="white"
                                data-ot-shadow-color="lightgray"
-                               data-ot="Your information will only be accessible by the the application administration for matching you to rare disease research projects.">
+                               data-ot="Your information will only be accessible by administrators.">
                             </i>
                         </div>
                         <div class="radio" th:if="${@applicationSettings.getPrivacy().getMinLevel() &lt; 2}">
@@ -176,7 +179,7 @@
                                data-ot-background="cornflowerblue"
                                data-ot-border-color="white"
                                data-ot-shadow-color="lightgray"
-                               data-ot="Your information will be accessible by other registered users of the registry.">
+                               data-ot="Your information will be accessible by other researchers who are registered.">
                             </i>
                         </div>
                         <div class="radio">
@@ -188,22 +191,25 @@
                                data-ot-background="cornflowerblue"
                                data-ot-border-color="white"
                                data-ot-shadow-color="lightgray"
-                               data-ot="Your information will be accessible by other registered users as well as by non-registered users through the registry’s public search webpage.">
+                               data-ot="Your information will be visible publicly.">
                             </i>
                         </div>
                     </div>
                     <hr th:if="${@applicationSettings.getPrivacy().isCustomizableLevel() == (@applicationSettings.getPrivacy().isCustomizableSharing() == true)}"/>
-                    <div id="privacy-sharing" class="d-flex w-100 p-2 margin-chbox" th:if="${@applicationSettings.getPrivacy().isCustomizableSharing()}">
+                    <div id="privacy-sharing" class="w-100 p-2 margin-chbox" th:if="${@applicationSettings.getPrivacy().isCustomizableSharing()}">
+                        <div class="radio">
+                            Read more about these settings in the <a href="faq#isearch" target="_blank">faq</a>
+                        </div>
                         <div class="col-12">
                             <label class="form-check-label">
                                 <input id="privacy-sharing-checkbox" type="checkbox" class="form-check-input" th:checked="${user.profile.shared}"/>
-                                Share data with our international partners
+                                Share data with partner registries
                             </label>
                             <i class="tip oi oi-question-mark"
                                data-ot-background="cornflowerblue"
                                data-ot-border-color="white"
                                data-ot-shadow-color="lightgray"
-                               data-ot="Administrators of applications similar to this website will be able to query for your data. If you also set the privacy to 'public', anyone will be able to access your data through our public API.">
+                               data-ot="Administrators of partner registries will be able to view your data. If you also set the privacy to 'public', anyone will be able to access your data through our public API.">
                             </i>
                         </div>
                     </div>

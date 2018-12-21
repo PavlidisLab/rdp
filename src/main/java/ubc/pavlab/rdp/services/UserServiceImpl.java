@@ -225,7 +225,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public Collection<User> findByStartsName( String startsName ) {
         return securityFilter( userRepository
-                .findByProfileNameStartsWithIgnoreCaseOrProfileLastNameStartsWithIgnoreCase( startsName, startsName ) );
+                .findByProfileLastNameStartsWithIgnoreCase( startsName ) );
     }
 
     @Override
