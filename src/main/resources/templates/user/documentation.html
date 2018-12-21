@@ -106,7 +106,7 @@
                                             <li><b>shared</b> - your information will be accessible by other researchers who are registered.
                                                 Registered users will be able to access your information through the provided search interface.</li>
                                             <li><b>public</b> - your information will be visible publicly. Your information will be shared (see above)
-                                                with registered users and will be accessible to non-registered users through the registry’s public search webpage.</li>
+                                                with registered users and will be accessible to non-registered users through the registry’s public search webpage (<i th:text="${@siteSettings.getFullUrl()}"></i>).</li>
                                         </ul>
                                         <p>
                                             International Sharing section gives you the option to set your preference for
@@ -396,7 +396,7 @@
                                             If you want to search for a match using a human gene, but consider orthologs in other model organisms, 
                                             you would use the secondary dropdown menu to indicate the preferred organism. 
                                             The ortholog mapping is based on <a href="https://www.flyrnai.org/diopt" target="_blank">
-                                            DIOPT results</a>, filtered for DIOPT score >5 and Rank = "high".
+                                            DIOPT</a> results, filtered for DIOPT score >5 and Rank = "high".
                                         </p>
                                     </div>
                                 </div>

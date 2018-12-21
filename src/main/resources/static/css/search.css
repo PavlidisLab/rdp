@@ -41,13 +41,17 @@
     border-top: none;
 }
 
-#ortholog-box{
-    margin-top: -40px;
-    margin-left: 20px;
+#gene-search-btn{
+    margin-left: 4px;
+    margin-right: -4px;
 }
 
-#ortholog-box span{
-    padding-left: 0;
+#ortholog-box{
+    margin-top: -17px;
+}
+
+.ortholog-select{
+    margin-left: -2px;
 }
 
 #alpha-grp button:active, #alpha-grp button.active, .input-group-prepend button[type='submit'] {
