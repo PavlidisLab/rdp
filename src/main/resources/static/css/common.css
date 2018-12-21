@@ -188,7 +188,7 @@ table.table-fixed tbody{
 }
 
 .tip{
-    font-size: x-small;
+    font-size: x-small !important;
     background: cornflowerblue;
     color: whitesmoke;
     width: 16px;
