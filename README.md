@@ -331,6 +331,12 @@ update taxon set ordering = 7 where common_name = "yeast";
 update taxon set ordering = 8 where common_name = "e. coli";
 ```
 
+### New FAQs
+
+There are new categories talking about the now available privacy and sharing options. You can use our updated
+faq file (see the faq.properties file in our github repository), or add the new categories manually to your existing file.
+
+
 ### Start the application
 
 After finishing all the steps, you can start your RDMM application again and test if everything works as expected.
