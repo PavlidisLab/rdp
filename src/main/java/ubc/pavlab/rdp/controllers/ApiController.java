@@ -30,7 +30,7 @@ import java.util.Map;
 public class ApiController {
 
     private static final Log log = LogFactory.getLog( ApiController.class );
-    private static final String API_VERSION = "1.0.0";
+    private static final String API_VERSION = "1.0.0"; //TODO update every time there is any change in how the API works.
     private static final String MISCONF_REMOTE_ADMIN = "The remote admin account is misconfigured! Remote searches won't be able to authenticate even with valid security tokens!";
     private static final Map<String, String> ROOT_DATA;
     private static final ResponseEntity<String> TIER3_RESPONSE = new ResponseEntity<>(
