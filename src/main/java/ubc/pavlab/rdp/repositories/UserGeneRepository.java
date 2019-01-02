@@ -27,6 +27,10 @@ public interface UserGeneRepository extends JpaRepository<UserGene, Integer> {
     Integer countDistinctUser();
 
     @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
+    @Query("select targetGene FROM Ortholog where sourceGene = :source_gene and targetTaxon = :target_taxon ")
+    Collection<Integer> findOrthologs(@Param("source_gene") Integer sourceGene, @Param( "target_taxon" ) Integer targetTaxon);
+
+    @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
     Collection<UserGene> findByGeneId(int geneId);
     @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
     Collection<UserGene> findByGeneIdAndTier(int geneId, TierType tier);

@@ -12,15 +12,22 @@ import java.util.Collection;
 @Repository
 public interface UserRepository extends JpaRepository<User, Integer> {
 
-    @Cacheable(cacheNames="stats", key = "#root.methodName")
+    @SuppressWarnings("SpringCacheAnnotationsOnInterfaceInspection")
+    @Override
+    @Cacheable(cacheNames = "stats", key = "#root.methodName")
     long count();
 
-    User findByEmailIgnoreCase(String email);
+    User findByEmailIgnoreCase( String email );
 
     @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
-    Collection<User> findByProfileNameContainingIgnoreCaseOrProfileLastNameContainingIgnoreCase( String nameLike, String lastNameLike );
+    Collection<User> findByProfileLastNameStartsWithIgnoreCase( String lastNameLike );
 
     @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
-    Collection<User> findByProfileDescriptionContainingIgnoreCaseOrTaxonDescriptionsContainingIgnoreCase( String descriptionLike, String taxonDescriptionLike );
+    Collection<User> findByProfileNameContainingIgnoreCaseOrProfileLastNameContainingIgnoreCase( String nameLike,
+            String lastNameLike );
 
+    @SuppressWarnings("SpringDataRepositoryMethodParametersInspection")
+    @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
+    Collection<User> findByProfileDescriptionContainingIgnoreCaseOrTaxonDescriptionsContainingIgnoreCase(
+            String descriptionLike, String taxonDescriptionLike );
 }

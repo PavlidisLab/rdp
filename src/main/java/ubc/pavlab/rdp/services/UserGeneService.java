@@ -1,8 +1,8 @@
 /*
  * The rdp project
- * 
+ *
  * Copyright (c) 2014 University of British Columbia
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,8 +19,7 @@
 
 package ubc.pavlab.rdp.services;
 
-
-import org.springframework.security.access.annotation.Secured;
+import ubc.pavlab.rdp.model.Gene;
 import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.model.UserGene;
 import ubc.pavlab.rdp.model.enums.TierType;
@@ -40,16 +39,19 @@ public interface UserGeneService {
 
     Integer countUsersWithGenes();
 
-    @Secured( {"ROLE_ADMIN", "ROLE_MANAGER"} )
+    Collection<Integer> findOrthologs(Integer source_gene, Integer targetTaxon);
+
     Collection<UserGene> findByGene( int geneId );
-    @Secured( {"ROLE_ADMIN", "ROLE_MANAGER"} )
+
     Collection<UserGene> findByGene( int geneId, TierType tier );
-    @Secured( {"ROLE_ADMIN", "ROLE_MANAGER"} )
+
     Collection<UserGene> findByGene( int geneId, Set<TierType> tiers );
-    @Secured( {"ROLE_ADMIN", "ROLE_MANAGER"} )
+
     Collection<UserGene> findByLikeSymbol( String symbol, Taxon taxon );
-    @Secured( {"ROLE_ADMIN", "ROLE_MANAGER"} )
+
     Collection<UserGene> findByLikeSymbol( String symbol, Taxon taxon, TierType tier );
-    @Secured( {"ROLE_ADMIN", "ROLE_MANAGER"} )
+
     Collection<UserGene> findByLikeSymbol( String symbol, Taxon taxon, Set<TierType> tiers );
+
+    Collection<Gene> findOrthologs( Gene gene, Integer orthologTaxonId );
 }

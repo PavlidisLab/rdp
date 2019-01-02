@@ -12,10 +12,12 @@ import java.util.stream.Collectors;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static ubc.pavlab.rdp.services.UserService.PRIVACY_PUBLIC;
 
 /**
  * Created by mjacobson on 14/02/18.
  */
+@SuppressWarnings("WeakerAccess")
 public class BaseTest {
 
     protected static final String EMAIL = "bruce@wayne.com";
@@ -53,6 +55,8 @@ public class BaseTest {
         Profile profile = new Profile();
         profile.setName( NAME );
         profile.setLastName( LAST_NAME );
+        profile.setPrivacyLevel( PRIVACY_PUBLIC );
+        profile.setShared( false );
         user.setProfile( profile );
 
         return user;

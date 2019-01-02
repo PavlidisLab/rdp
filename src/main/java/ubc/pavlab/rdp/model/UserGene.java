@@ -42,6 +42,9 @@ public class UserGene extends Gene {
     @JsonIgnore
     private User user;
 
+    @Transient
+    private User remoteUser;
+
     public void updateGene( Gene gene ) {
         this.setGeneId( gene.getGeneId() );
         this.setSymbol( gene.getSymbol() );

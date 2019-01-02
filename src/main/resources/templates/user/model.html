@@ -33,6 +33,7 @@
 
     <script th:inline="javascript">
         /*<![CDATA[*/
+        // noinspection JSUnusedLocalSymbols used in model.js
         var currentTaxon = [[${taxon}]];
 
         /*]]>*/
@@ -86,10 +87,40 @@
                         <h3 class="mb-0 d-inline-block">Organism Research Focus</h3>
                     </div>
                     <div class="p-2" style="height: 80px;">
-                        <textarea class="data-edit" name="description" th:text="${user.taxonDescriptions.get(taxon)}" disabled="true"></textarea>
+                        <textarea class="data-edit" name="description" th:text="${user.taxonDescriptions.get(taxon)}" disabled="disabled"></textarea>
                     </div>
                 </div>
             </div>
+
+            <div class="w-100" th:if="${@applicationSettings.getPrivacy().isCustomizableLevel()} or ${@applicationSettings.getPrivacy().isCustomizableSharing()} or ${@applicationSettings.getPrivacy().isAllowHideGenelist()}"></div>
+            <div class="col my-3" th:if="${@applicationSettings.getPrivacy().isCustomizableLevel()} or ${@applicationSettings.getPrivacy().isCustomizableSharing()} or ${@applicationSettings.getPrivacy().isAllowHideGenelist()}">
+                <div class="card">
+                    <div class="card-header">
+                        <h4>Data privacy</h4>
+                        <div th:if="${@applicationSettings.getPrivacy().isCustomizableLevel()}">Data privacy is set to
+                            <b th:if="${user.getProfile().privacyLevel} == 0">private.</b>
+                            <b th:if="${user.getProfile().privacyLevel} == 1">shared with registered users.</b>
+                            <b th:if="${user.getProfile().privacyLevel} == 2">public.</b>
+                        </div>
+                        <div th:if="(${user.getProfile().privacyLevel} gt 0) and ${@applicationSettings.getPrivacy().isAllowHideGenelist()}">
+                            Non-administrative users that can see your data
+                            <b th:if="${user.getProfile().getHideGenelist()}">can not</b>
+                            <b th:if="not ${user.getProfile().getHideGenelist()}">can</b>
+                            see your gene and terms lists.
+                        </div>
+                        <div th:if="${@applicationSettings.getIsearch().isEnabled()} and ${@applicationSettings.getPrivacy().isCustomizableSharing()}">
+                            International sharing of your data is
+                            <b th:if="${user.getProfile().getShared()}">enabled.</b>
+                            <b th:if="not ${user.getProfile().getShared()}">disabled.</b>
+                        </div>
+                        <hr/>
+                        <div>
+                            To change your settings, please see the <b>Data privacy Settings</b> section in your <a th:href="@{/user/profile}">profile settings.</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="w-100"></div>
             <div class="col my-3">
                 <div class="card">

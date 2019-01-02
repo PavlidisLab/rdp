@@ -1,8 +1,8 @@
 /*
  * The rdp project
- * 
+ *
  * Copyright (c) 2014 University of British Columbia
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,20 +19,18 @@
 
 package ubc.pavlab.rdp.services;
 
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+import ubc.pavlab.rdp.model.Gene;
 import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.model.UserGene;
 import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.repositories.TaxonRepository;
 import ubc.pavlab.rdp.repositories.UserGeneRepository;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Created by mjacobson on 17/01/18.
@@ -40,69 +38,128 @@ import java.util.Set;
 @Service("userGeneService")
 public class UserGeneServiceImpl implements UserGeneService {
 
+    private static final Integer ALL_TAXON_ID = -99;
     @Autowired
     private TaxonRepository taxonRepository;
 
     @Autowired
     private UserGeneRepository userGeneRepository;
 
-    @Cacheable(cacheNames="stats", key = "#root.methodName")
+    @Autowired
+    private GeneService geneService;
+
+    @Autowired
+    private UserService userService;
+
+    @Cacheable(cacheNames = "stats", key = "#root.methodName")
     @Override
     public Integer countUniqueAssociations() {
         return userGeneRepository.countDistinctGeneByTierIn( TierType.MANUAL_TIERS );
     }
 
-    @Cacheable(cacheNames="stats", key = "#root.methodName")
+    @Cacheable(cacheNames = "stats", key = "#root.methodName")
     @Override
     public Integer countAssociations() {
         return userGeneRepository.countByTierIn( TierType.MANUAL_TIERS );
     }
 
-    @Cacheable(cacheNames="stats", key = "#root.methodName")
+    @Cacheable(cacheNames = "stats", key = "#root.methodName")
     @Override
     public Map<String, Integer> researcherCountByTaxon() {
         Map<String, Integer> countByTaxon = new HashMap<>();
-        for ( Taxon taxon : taxonRepository.findByActiveTrue() ) {
-            countByTaxon.put(taxon.getCommonName(), userGeneRepository.countDistinctUserByTaxon( taxon ));
+        for ( Taxon taxon : taxonRepository.findByActiveTrueOrderByOrdering() ) {
+            countByTaxon.put( taxon.getCommonName(), userGeneRepository.countDistinctUserByTaxon( taxon ) );
         }
 
         return countByTaxon;
     }
 
-    @Cacheable(cacheNames="stats", key = "#root.methodName")
+    @Cacheable(cacheNames = "stats", key = "#root.methodName")
     @Override
     public Integer countUsersWithGenes() {
         return userGeneRepository.countDistinctUser();
     }
 
     @Override
+    public Collection<Integer> findOrthologs( Integer sourceGene, Integer targetTaxon ) {
+        return userGeneRepository.findOrthologs( sourceGene, targetTaxon );
+    }
+
+    @Override
     public Collection<UserGene> findByGene( int geneId ) {
-        return userGeneRepository.findByGeneId( geneId );
+        return securityFilter( userGeneRepository.findByGeneId( geneId ) );
     }
 
     @Override
     public Collection<UserGene> findByGene( int geneId, TierType tier ) {
-        return userGeneRepository.findByGeneIdAndTier( geneId, tier );
+        return securityFilter( userGeneRepository.findByGeneIdAndTier( geneId, tier ) );
     }
 
     @Override
     public Collection<UserGene> findByGene( int geneId, Set<TierType> tiers ) {
-        return userGeneRepository.findByGeneIdAndTierIn( geneId, tiers );
+        return securityFilter( userGeneRepository.findByGeneIdAndTierIn( geneId, tiers ) );
     }
 
     @Override
     public Collection<UserGene> findByLikeSymbol( String symbol, Taxon taxon ) {
-        return userGeneRepository.findBySymbolContainingIgnoreCaseAndTaxon( symbol, taxon );
+        return securityFilter( userGeneRepository.findBySymbolContainingIgnoreCaseAndTaxon( symbol, taxon ) );
     }
 
     @Override
     public Collection<UserGene> findByLikeSymbol( String symbol, Taxon taxon, TierType tier ) {
-        return userGeneRepository.findBySymbolContainingIgnoreCaseAndTaxonAndTier( symbol, taxon, tier );
+        return securityFilter(
+                userGeneRepository.findBySymbolContainingIgnoreCaseAndTaxonAndTier( symbol, taxon, tier ) );
     }
 
     @Override
     public Collection<UserGene> findByLikeSymbol( String symbol, Taxon taxon, Set<TierType> tiers ) {
-        return userGeneRepository.findBySymbolContainingIgnoreCaseAndTaxonAndTierIn( symbol, taxon, tiers );
+        return securityFilter(
+                userGeneRepository.findBySymbolContainingIgnoreCaseAndTaxonAndTierIn( symbol, taxon, tiers ) );
+    }
+
+    @Override
+    public Collection<Gene> findOrthologs( Gene gene, Integer orthologTaxonId ) {
+        if ( gene == null || orthologTaxonId == null ) {
+            //noinspection unchecked
+            return Collections.EMPTY_LIST;
+        }
+        if ( ALL_TAXON_ID.equals( orthologTaxonId ) ) { // Looking for all taxa
+            Collection<Gene> genes = new LinkedList<>();
+            for ( Taxon taxon : taxonRepository.findAll() ) {
+                Collection<Gene> taxonGenes = findOrthologsForTaxon( gene, taxon.getId() );
+                genes.addAll(taxonGenes.stream().filter(Objects::nonNull).collect( Collectors.toList()) );
+            }
+            genes.add( gene ); // Add original gene so it shows up in the results as well.
+            return genes;
+        } else { // Only looking for one taxon
+            if ( taxonRepository.findOne( orthologTaxonId ) == null ) {
+                //noinspection unchecked
+                return Collections.EMPTY_LIST;
+            }
+            return findOrthologsForTaxon( gene, orthologTaxonId );
+        }
+
+    }
+
+    private Collection<UserGene> securityFilter( Collection<UserGene> userGenes ) {
+
+        Collection<UserGene> filteredUserGenes = new LinkedList<>();
+        for ( UserGene userGene : userGenes ) {
+            if ( userService.checkCurrentUserCanSee( userGene ) ) {
+                filteredUserGenes.add( userGene );
+            }
+        }
+
+        return filteredUserGenes;
+    }
+
+    private Collection<Gene> findOrthologsForTaxon( Gene gene, Integer targetTaxonId ) {
+        Collection<Integer> geneIds = findOrthologs( gene.getGeneId(), targetTaxonId );
+        if ( geneIds == null || geneIds.isEmpty() ) {
+            //noinspection unchecked
+            return Collections.EMPTY_LIST;
+        }
+        return geneService.load( geneIds );
     }
 
 }

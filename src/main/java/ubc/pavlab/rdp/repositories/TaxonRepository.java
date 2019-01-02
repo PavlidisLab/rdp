@@ -11,5 +11,5 @@ import java.util.List;
 public interface TaxonRepository extends JpaRepository<Taxon, Integer> {
 
     @Cacheable("taxon-list")
-    List<Taxon> findByActiveTrue();
+    List<Taxon> findByActiveTrueOrderByOrdering();
 }

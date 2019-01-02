@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<!--suppress HtmlUnknownTarget css and js folders not recognised after build-->
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+
+    <head>
+        <title th:text="${@siteSettings.getFullname()}"></title>
+        <link rel="icon" type="image/png" sizes="16x16" th:href="@{/images/favicon-16x16.png}"/>
+        <link rel="icon" type="image/png" sizes="32x32" th:href="@{/images/favicon-32x32.png}"/>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+              integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+              crossorigin="anonymous"/>
+        <link rel="stylesheet"
+              href="https://cdnjs.cloudflare.com/ajax/libs/open-iconic/1.1.1/font/css/open-iconic-bootstrap.min.css"/>
+        <link rel="stylesheet" type="text/css" th:href="@{/css/jquery-ui.min.css}"/>
+
+
+        <link rel="stylesheet" type="text/css" th:href="@{/css/common.css}"/>
+        <link rel="stylesheet" type="text/css" th:href="@{/css/search.css}"/>
+
+        <script src="https://code.jquery.com/jquery-3.3.1.min.js"
+                integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+                crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+                integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+                crossorigin="anonymous"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+                integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+                crossorigin="anonymous"></script>
+        <script src="/js/opentip-jquery.min.js"></script>
+        <link href="/css/opentip.css" rel="stylesheet" type="text/css"/>
+        <script th:src="@{/js/jquery-ui.min.js}"></script>
+
+        <script th:src="@{/js/common.js}"></script>
+        <script th:src="@{/js/search.js}"></script>
+
+    </head>
+
+    <body>
+        <div th:replace="fragments/header">...</div>
+
+        <div class="container p-4">
+            <div th:replace="fragments/title :: title(title='Search', subtitle='researchers &amp; genes')"
+                 th:remove="tag">...
+            </div>
+
+            <div class="row justify-content-center error-row" th:if="${user == null}">
+                <div class="col my-3">
+                    <div class="alert alert-info alert-dismissible fade show" role="alert">
+                        <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+                        <p th:text="${@siteSettings.welcomePublic}"/>
+                    </div>
+                </div>
+            </div>
+            <div class="main-content p-4">
+                <ul class="nav nav-tabs">
+                    <li class="nav-item"><a class="nav-link active" id="res-tab" data-toggle="tab"
+                                            href="#user-search-name">Researcher</a></li>
+                    <li class="nav-item"><a class="nav-link" id="gene-tab" data-toggle="tab"
+                                            href="#gene-search">Genes</a></li>
+                </ul>
+                <div class="tab-content">
+
+                    <div id="user-search-name" role="tabpanel" aria-labelledby="res-tab"
+                         class="tab-pane fade show active">
+                        <!--Researchers alphabetically-->
+                        <div th:if="not ${chars.isEmpty()}">
+                            <h5>Browse alphabetically:</h5>
+                            <div class="form-group row">
+                                <div class="btn-group inline" id="alpha-grp"
+                                     title="Look for users whose name or last name starts with this letter.">
+                                    <th:block th:each="char : ${chars}">
+                                        <form>
+                                            <input type="hidden" name="iSearch"/>
+                                            <input type="hidden" name="prefix" value="true"/>
+                                            <input type="hidden" name="nameLike" th:value="${char}"/>
+                                            <button class="btn btn-outline-secondary" type="submit" name="nameLikeBtn"
+                                                    th:text="${char}"/>
+                                        </form>
+                                    </th:block>
+                                </div>
+                            </div>
+                        </div>
+                        <!--Researchers by name-->
+                        <form>
+                            <h5>Search by name:</h5>
+                            <div class="form-group row">
+                                <div class="input-group mb-3">
+                                    <div class="input-group-prepend">
+                                        <button class="btn btn-outline-secondary" type="submit"
+                                                title="Look for researchers whose name or last name contains this string.">
+                                            Search
+                                        </button>
+                                    </div>
+                                    <input type="text" class="form-control" name="nameLike"
+                                           placeholder="Part of researcher name"/>
+                                    <input type="hidden" name="iSearch"/>
+                                    <input type="hidden" name="prefix" value="false"/>
+                                </div>
+                            </div>
+                        </form>
+                        <!--Researchers by description-->
+                        <form>
+                            <h5>Search by research interests:</h5>
+                            <div class="form-group row">
+                                <div class="input-group mb-3">
+                                    <div class="input-group-prepend">
+                                        <button class="btn btn-outline-secondary" type="submit"
+                                                title="Look for researches whose description contains these keywords.">
+                                            Search
+                                        </button>
+                                    </div>
+                                    <input type="text" class="form-control" name="descriptionLike"
+                                           placeholder="Keyword in research description"/>
+                                    <input type="hidden" name="iSearch"/>
+                                    <input type="hidden" name="prefix" value="false"/>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!--Genes-->
+                    <div id="gene-search" role="tabpanel" aria-labelledby="gene-tab" class="tab-pane fade">
+                        <form>
+                            <h5>Search for researchers that study the following organism-specific gene:</h5>
+                            <div class="form-group row">
+                                <div class="input-group mb-3">
+                                    <div class="input-group-prepend col-1">
+                                        <button class="btn btn-outline-secondary pull-right" type="submit" id="gene-search-btn"
+                                                title="Look for researchers that focus on the specified gene.">Search
+                                        </button>
+                                    </div>
+                                    <input type="text" class="form-control gene-autocomplete col-4" name="symbol"
+                                           placeholder="Symbol" title="Gene official symbol to look for"/>
+                                    <select id="taxonId" name="taxonId" class="custom-select col-4"
+                                            title="Taxon to run primary search on">
+                                        <th:block th:each="taxon : ${@taxonService.findByActiveTrue()}">
+                                            <option th:value="${taxon.id}"
+                                                    th:text="${#strings.capitalizeWords(taxon.commonName)}"
+                                                    th:selected="${taxon.id == 9606}"></option>
+                                        </th:block>
+                                    </select>
+                                    <select name="tier" title="Show any tier, or specific tiers."
+                                        th:class="${user == null} ? 'hide' : 'custom-select col-3' ">
+                                        <!--suppress ThymeleafVariablesResolveInspection -->
+                                        <option th:each="tier : ${T(ubc.pavlab.rdp.model.enums.TierType).values()}"
+                                                th:value="${tier}"
+                                                th:text="${tier == T(ubc.pavlab.rdp.model.enums.TierType).TIERS1_2} ? 'TIER1 and TIER2' : ${tier}"
+                                                th:selected="${tier == T(ubc.pavlab.rdp.model.enums.TierType).TIERS1_2}">
+                                        </option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div id="ortholog-box" class="form-group row mb-3">
+                                <div class="input-group mb-3">
+                                    <div class="col-5 text-right">
+                                        In this model organism (based on ortholog mapping):
+                                    </div>
+                                    <select name="orthologTaxonId" class="form-control custom-select col-4 ortholog-select"
+                                            title="Taxon to run primary search on">
+                                        <!-- The 'All' id is defined in UserGeneServiceImpl -->
+                                        <option th:value="-99">All</option>
+                                        <th:block th:each="taxon : ${@taxonService.findByActiveTrue()}">
+                                            <option th:value="${taxon.id}"
+                                                    th:text="${#strings.capitalizeWords(taxon.commonName)}"
+                                                    th:selected="${taxon.id == 9606}"></option>
+                                        </th:block>
+                                    </select>
+                                    <span class="col-3">
+                                        <i class="tip oi oi-question-mark"
+                                           data-ot-background="cornflowerblue"
+                                           data-ot-border-color="white"
+                                           data-ot-shadow-color="lightgray"
+                                           data-ot="When a human gene is entered, you can search for researchers studying that gene's ortholog(s) in one or all of the supported model organisms">
+                                        </i>
+                                    </span>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <!--International toggle-->
+                    <div class="d-flex w-100 isearch-settings" th:if="${@applicationSettings.getIsearch().isEnabled()}">
+                        <span class="col-12">
+                            <label>
+                                <input id="isearch-checkbox" type="checkbox"
+                                       th:checked="${@applicationSettings.getIsearch().isDefaultOn()}"/>
+                                <span class="label-text">Include results from partner registries
+                                    <i class="tip oi oi-question-mark"
+                                       data-ot-background="cornflowerblue"
+                                       data-ot-border-color="white"
+                                       data-ot-shadow-color="lightgray"
+                                       data-ot="If enabled, the search will include matches found in registries of our international partners">
+                                    </i>
+                                </span>
+                            </label>
+                        </span>
+                    </div>
+                </div>
+
+                <hr/>
+
+                <!--Results-->
+                <h4 th:text="'Researchers registered in ' + ${@siteSettings.shortname}"></h4>
+                <div id="userTable">
+                    <div th:if="${users != null}"
+                         th:replace="fragments/user-table :: user-table(users=${users}, remote=false)" th:remove="tag">
+                        ...
+                    </div>
+                </div>
+
+                <!--International results-->
+                <div id="itlResults" th:if="${@applicationSettings.getIsearch().isEnabled()}">
+                    <hr/>
+                    <h4>Partner registry results</h4>
+                    <div id="itlUserTable">
+                        <div th:if="${itlErrorMessage != null}" th:replace="fragments/error :: message" th:remove="tag">
+                            ...
+                        </div>
+                        <div th:if="${itlUsers != null}"
+                             th:replace="fragments/user-table :: user-table(users=${itlUsers}, remote=true)"
+                             th:remove="tag">...
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <div th:replace="fragments/footer" th:remove="tag">...</div>
+    </body>
+</html>

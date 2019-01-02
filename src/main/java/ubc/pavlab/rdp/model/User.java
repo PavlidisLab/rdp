@@ -26,13 +26,12 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 @EqualsAndHashCode(of = {"id"})
 @ToString( of = {"id", "email", "enabled"})
-public class User {
+public class User{
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
-	@Column(name = "user_id")
-    @JsonIgnore
-	private Integer id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "user_id")
+    private Integer id;
 
 	@Column(name = "email")
 	@Email(message = "*Please provide a valid Email")
@@ -60,13 +59,20 @@ public class User {
     @JsonUnwrapped
     private Profile profile;
 
-	/* Research related information */
+    @Transient
+    private String origin;
+
+    @Transient
+    private String originUrl;
+
+    /* Research related information */
 
     @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "descriptions", joinColumns = @JoinColumn(name = "user_id"))
 	@MapKeyJoinColumn(name="taxon_id")
     @Column(name = "description", columnDefinition = "TEXT")
+    @JsonIgnore
     private Map<Taxon, String> taxonDescriptions = new HashMap<>();
 
     @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
@@ -77,7 +83,6 @@ public class User {
     @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "user")
     @MapKey(name = "geneId")
-//    @JoinColumn(name = "user_id")
 	private Map<Integer, UserGene> userGenes = new HashMap<>();
 
     @JsonIgnore

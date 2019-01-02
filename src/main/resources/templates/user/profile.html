@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!--suppress HtmlUnknownTarget css and js folders not recognised after build-->
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:th="http://www.thymeleaf.org">
 
@@ -27,7 +28,8 @@
             crossorigin="anonymous"></script>
     <script src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.10.16/js/dataTables.bootstrap4.min.js"></script>
-
+    <script src="/js/opentip-jquery.min.js"></script>
+    <link href="/css/opentip.css" rel="stylesheet" type="text/css"/>
 
     <script th:src="@{/js/common.js}"></script>
     <script th:src="@{/js/profile.js}"></script>
@@ -48,7 +50,7 @@
         <div class="row justify-content-center success-row" style="display: none;">
             <div class="col my-3">
                 <div class="alert alert-success alert-dismissible fade show" role="alert">Profile Saved!
-                    <button type="button" class="close">
+                    <button type="button" class="close" id="saved-button">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
@@ -80,31 +82,31 @@
                         <tr class="edit-container">
                             <td class="align-middle" style="width: 120px;"><span class="text-muted align-middle">First Name</span></td>
                             <td><i class="editable" th:if="${viewOnly == null}"/>
-                                <input class="data-edit" type="text" name="name" th:value="${user.profile.name}" disabled="true"/>
+                                <input class="data-edit" type="text" name="name" th:value="${user.profile.name}" disabled="disabled"/>
                             </td>
                         </tr>
                         <tr class="edit-container">
                             <td class="align-middle"><span class="text-muted align-middle">Last Name</span></td>
                             <td><i class="editable" th:if="${viewOnly == null}"/>
-                                <input class="data-edit" type="text" name="lastName" th:value="${user.profile.lastName}" disabled="true"/>
+                                <input class="data-edit" type="text" name="lastName" th:value="${user.profile.lastName}" disabled="disabled"/>
                             </td>
                         </tr>
                         <tr class="edit-container">
                             <td class="align-middle"><span class="text-muted align-middle">Organization</span></td>
                             <td><i class="editable" th:if="${viewOnly == null}"/>
-                                <input class="data-edit" type="text" name="organization" th:value="${user.profile.organization}" disabled="true"/>
+                                <input class="data-edit" type="text" name="organization" th:value="${user.profile.organization}" disabled="disabled"/>
                             </td>
                         </tr>
                         <tr class="edit-container">
                             <td class="align-middle"><span class="text-muted align-middle">Department</span></td>
                             <td><i class="editable" th:if="${viewOnly == null}"/>
-                                <input class="data-edit" type="text" name="department" th:value="${user.profile.department}" disabled="true"/>
+                                <input class="data-edit" type="text" name="department" th:value="${user.profile.department}" disabled="disabled"/>
                             </td>
                         </tr>
                         <tr class="edit-container">
                             <td class="align-middle"><span class="text-muted align-middle">Website</span></td>
                             <td><i class="editable" th:if="${viewOnly == null}"/>
-                                <input class="data-edit" type="text" name="website" th:value="${user.profile.website}" disabled="true"/>
+                                <input class="data-edit" type="text" name="website" th:value="${user.profile.website}" disabled="disabled"/>
                             </td>
                         </tr>
                     </table>
@@ -125,7 +127,7 @@
                         <tr class="edit-container">
                             <td class="align-middle"><span class="text-muted align-middle">Phone</span></td>
                             <td><i class="editable" th:if="${viewOnly == null}"/>
-                                <input class="data-edit" type="text" name="phone" th:value="${user.profile.phone}" disabled="true"/>
+                                <input class="data-edit" type="text" name="phone" th:value="${user.profile.phone}" disabled="disabled"/>
                             </td>
                         </tr>
                     </table>
@@ -141,7 +143,91 @@
                         <h3 class="mb-0 d-inline-block">About My Research</h3>
                     </div>
                     <div class="p-2" style="height: 120px;">
-                        <textarea class="data-edit" name="description" th:text="${user.profile.description}" disabled="true"></textarea>
+                        <textarea class="data-edit" name="description" th:text="${user.profile.description}" disabled="disabled"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="w-100" th:if="${@applicationSettings.getPrivacy().isCustomizableLevel()} or ${@applicationSettings.getPrivacy().isCustomizableSharing()} or ${@applicationSettings.getPrivacy().isAllowHideGenelist()}"></div>
+            <div class="col my-3" th:if="${@applicationSettings.getPrivacy().isCustomizableLevel()} or ${@applicationSettings.getPrivacy().isCustomizableSharing()} or ${@applicationSettings.getPrivacy().isAllowHideGenelist()}">
+                <div class="card privacy-settings edit-container">
+                    <div class="card-header d-flex align-items-center">
+                        <h3 class="mb-0 d-inline-block">Data Privacy Settings</h3>
+                    </div>
+                    <div id="privacy-levels" class="w-100 p-2" th:if="${@applicationSettings.getPrivacy().isCustomizableLevel()}">
+                        <p class="radio">
+                            Read more about these settings in the <a href="faq#privacy-settings" target="_blank">FAQ</a>
+                        </p>
+                        <div class="radio" th:if="${@applicationSettings.getPrivacy().getMinLevel() &lt; 1}" >
+                            <label>
+                                <input id="privacyLevelPrivate" type="radio" name="privacy" th:checked="${user.profile.privacyLevel == 0}" value="0" />
+                                Private
+                            </label>
+                            <i class="tip oi oi-question-mark"
+                               data-ot-background="cornflowerblue"
+                               data-ot-border-color="white"
+                               data-ot-shadow-color="lightgray"
+                               data-ot="Your information will only be accessible by administrators">
+                            </i>
+                        </div>
+                        <div class="radio" th:if="${@applicationSettings.getPrivacy().getMinLevel() &lt; 2}">
+                            <label>
+                                <input id="privacyLevelRegistered" type="radio" name="privacy" th:checked="${user.profile.privacyLevel == 1}" value="1" />
+                                Shared
+                            </label>
+                            <i class="tip oi oi-question-mark"
+                               data-ot-background="cornflowerblue"
+                               data-ot-border-color="white"
+                               data-ot-shadow-color="lightgray"
+                               data-ot="Your information will be accessible by other researchers who are registered">
+                            </i>
+                        </div>
+                        <div class="radio">
+                            <label>
+                                <input id="privacyLevelPublic" type="radio" name="privacy" th:checked="${user.profile.privacyLevel == 2}" value="2" />
+                                Public
+                            </label>
+                            <i class="tip oi oi-question-mark"
+                               data-ot-background="cornflowerblue"
+                               data-ot-border-color="white"
+                               data-ot-shadow-color="lightgray"
+                               data-ot="Your information will be visible publicly">
+                            </i>
+                        </div>
+                    </div>
+                    <hr th:if="${@applicationSettings.getPrivacy().isCustomizableLevel() == (@applicationSettings.getPrivacy().isCustomizableSharing() == true)}"/>
+                    <div id="privacy-sharing" class="w-100 p-2 margin-chbox" th:if="${@applicationSettings.getPrivacy().isCustomizableSharing()}">
+                        <div class="radio">
+                            Read more about these settings in the <a href="faq#isearch" target="_blank">FAQ</a>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-check-label">
+                                <input id="privacy-sharing-checkbox" type="checkbox" class="form-check-input" th:checked="${user.profile.shared}"/>
+                                Share data with partner registries
+                            </label>
+                            <i class="tip oi oi-question-mark"
+                               data-ot-background="cornflowerblue"
+                               data-ot-border-color="white"
+                               data-ot-shadow-color="lightgray"
+                               data-ot="Administrators of partner registries will be able to view your data">
+                            </i>
+                        </div>
+                    </div>
+                    <hr th:if="${@applicationSettings.getPrivacy().isAllowHideGenelist() == ((@applicationSettings.getPrivacy().isCustomizableLevel() || (@applicationSettings.getPrivacy().isCustomizableSharing()) == true))}"/>
+                    <div id="privacy-genelist" class="d-flex w-100 p-2 margin-chbox" th:if="${@applicationSettings.getPrivacy().isAllowHideGenelist()}">
+                        <div class="col-12"
+                             title="">
+                            <label class="form-check-label">
+                                <input id="privacy-genelist-checkbox" type="checkbox" class="form-check-input" th:checked="${user.profile.hideGenelist}" />
+                                Hide genelist for non-administrative users
+                            </label>
+                            <i class="tip oi oi-question-mark"
+                               data-ot-background="cornflowerblue"
+                               data-ot-border-color="white"
+                               data-ot-shadow-color="lightgray"
+                               data-ot="Hide your gene list when sharing your profile with others">
+                            </i>
+                        </div>
                     </div>
                 </div>
             </div>

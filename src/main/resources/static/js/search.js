@@ -1,14 +1,60 @@
+function checkItl(itlChbox){
+    if(itlChbox.prop("checked")){
+        $("#itlResults").show();
+        $("[name=iSearch]").val(true);
+    }else{
+        $("#itlResults").hide();
+        $('[name="iSearch"]').val(false);
+    }
+}
+
+function checkTaxon(taxonSelect){
+    // noinspection EqualityComparisonWithCoercionJS // multi-browser support // Taxon also checked in SearchController.java
+    if(taxonSelect.val() == 9606){
+        $("#ortholog-box").show();
+    }else{
+        $("#ortholog-box").hide();
+    }
+}
+
 $(document).ready(function () {
     $("form").submit(function (event) {
         var tableContainer = $("#userTable");
         tableContainer.html($('<i class="mx-2 spinner"></i>'));
-        tableContainer.load("/manager/search/view", $(this).serialize(), function(responseText, textStatus, req) {
+
+        // noinspection JSUnusedLocalSymbols
+        tableContainer.load("/search/view", $(this).serialize(), function(responseText, textStatus, req) {
             if (textStatus !== "success") {
                 tableContainer.html($('<span class="mx-2 text-danger">Something went wrong! Please try again.</span>'));
             }
         });
 
+        if($("#isearch-checkbox").is(":checked")){
+            var itlTableContainer = $("#itlUserTable");
+            itlTableContainer.html($('<i class="mx-2 spinner"></i>'));
+            // noinspection JSUnusedLocalSymbols
+            itlTableContainer.load("/search/view/international", $(this).serialize(), function(responseText, textStatus, req) {
+                if (textStatus !== "success") {
+                    itlTableContainer.html($('<span class="mx-2 text-danger">Something went wrong! Please try again.</span>'));
+                }
+            });
+        }
+
         event.preventDefault();
+    });
+
+    // International search property setting
+    var itlChbox = $("#isearch-checkbox");
+    checkItl(itlChbox);
+    itlChbox.click(function(){
+        checkItl(itlChbox);
+    });
+
+    // Ortholog selection show&hide
+    var taxonSelect = $("#taxonId");
+    checkTaxon(taxonSelect);
+    taxonSelect.on("change", function(){
+        checkTaxon(taxonSelect);
     });
 
     $(function () {
@@ -37,6 +83,7 @@ $(document).ready(function () {
                     return;
                 }
 
+                // noinspection JSUnusedLocalSymbols
                 $.getJSON("/taxon/" + taxonId  + "/gene/search/" + term + "?max=10", request, function (data, status, xhr) {
 
                     if (!data.length) {
@@ -91,4 +138,14 @@ $(document).ready(function () {
         };
 
     });
+
+    // Show results for first available character
+    var charBtns = $('#alpha-grp [name="nameLikeBtn"]');
+    $('[type="submit"]').click(function(){
+        charBtns.removeClass("active");
+    });
+    charBtns.click(function() {
+        $(this).toggleClass("active");
+    });
+    charBtns.first().click();
 });

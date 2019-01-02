@@ -46,7 +46,7 @@ div.brand > h1 {
     cursor: pointer;
     display: inline-block;
     speak: none;
-    font-family: Icons;
+    font-family: Icons, sans-serif;
     font-style: normal;
     font-weight: 400;
     line-height: 1;
@@ -83,7 +83,7 @@ textarea.data-edit {
     cursor: pointer;
     display: inline-block;
     speak: none;
-    font-family: Icons;
+    font-family: Icons, sans-serif;
     font-style: normal;
     font-weight: 400;
     line-height: 1;
@@ -129,7 +129,7 @@ tr.new-row {
     position: relative;
     display: inline-block;
     speak: none;
-    font-family: Icons;
+    font-family: Icons, sans-serif;
     font-style: normal;
     font-weight: 400;
     line-height: 1;
@@ -145,7 +145,7 @@ tr.new-row {
     cursor: pointer;
     display: inline-block;
     speak: none;
-    font-family: Icons;
+    font-family: Icons, sans-serif;
     font-style: normal;
     font-weight: 400;
     line-height: 1;
@@ -185,4 +185,17 @@ table.table-fixed tbody{
     height: 200px;
     /*width: 100%;*/
     position: absolute;
+}
+
+.tip{
+    font-size: x-small !important;
+    background: cornflowerblue;
+    color: whitesmoke;
+    width: 16px;
+    height: 16px;
+    margin-left: 6px;
+    border-radius: 8px;
+    text-align: center;
+    vertical-align: middle;
+    line-height: 1.5em;
 }

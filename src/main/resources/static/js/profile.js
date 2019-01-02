@@ -15,13 +15,19 @@ function collectProfile() {
     // Research Information
     profile.description = $.trim($('.research-info').find('.data-edit')[0].value);
 
+    profile.privacyLevel = $('input[name=privacy]:checked').val();
+    profile.shared = $('#privacy-sharing-checkbox').prop('checked');
+    profile.hideGenelist = $('#privacy-genelist-checkbox').prop('checked');
+
     // Publication Information
     var publications = [];
+    // noinspection JSUnusedLocalSymbols
     $('#publication-table').DataTable().rows().every( function ( rowIdx, tableLoop, rowLoop ) {
         var node = $(this.node());
         var pmidstr = node.find('td')[0].innerText;
         var pmid =  parseInt(pmidstr, 10);
 
+        // noinspection EqualityComparisonWithCoercionJS
         if (pmidstr == pmid ) {
             var a = node.find('a')[0];
             publications.push({
@@ -37,6 +43,12 @@ function collectProfile() {
 }
 
 $(document).ready(function () {
+
+    // auto-hide save message
+    $('#saved-button').blur(function(){
+        console.log( "Handler for .blur() called." );
+        $('.success-row').hide();
+    });
 
     $('#publication-table').DataTable({
         "scrollY":        "200px",
@@ -55,7 +67,31 @@ $(document).ready(function () {
         return JSON.stringify(initialProfile)!==JSON.stringify(collectProfile()) ?  true : undefined;
     };
 
+    // Auto-check international sharing with public privacy setting
+    var itlChbox = $("#privacy-sharing-checkbox");
+    var origItlState = itlChbox.is(":checked");
+    if($("#privacyLevelPublic").is(":checked")){
+        itlChbox.prop('checked', true);
+        itlChbox.prop('readonly', true);
+        itlChbox.prop('disabled', true);
+    }
+    $("input[name='privacy']").click(function () {
+        if($("#privacyLevelPublic").is(":checked")){
+            itlChbox.prop('checked', true);
+            itlChbox.prop('readonly', true);
+            itlChbox.prop('disabled', true);
+        }else{
+            itlChbox.prop('checked', origItlState);
+            itlChbox.prop('readonly', false);
+            itlChbox.prop('disabled', false);
+        }
+    });
+    itlChbox.click(function(){
+       origItlState = itlChbox.is(":checked");
+    });
+
     $(document).on("keypress", ".pub-input", function (e) {
+        // noinspection EqualityComparisonWithCoercionJS
         if(e.which == 13) {
             $(this).closest('.input-group').find('button.add-row').click();
         }
@@ -72,7 +108,6 @@ $(document).ready(function () {
         });
 
         // Try to get metadata for the articles
-        var metadata = {};
         var rows = [];
         $.get('https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=pubmed&amp;id=' + ids.join(",") + '&amp;retmode=json', function(data) {
             $.each(ids, function(idx, pubmed) {
@@ -105,12 +140,14 @@ $(document).ready(function () {
         });
 
     });
+
     $(document).on("click", ".save-profile", function () {
         var profile = collectProfile();
 
         var spinner = $(this).find('.spinner');
         spinner.removeClass("d-none");
 
+        // noinspection JSUnusedLocalSymbols
         $.ajax({
             type: "POST",
             url: window.location.href,
@@ -122,6 +159,7 @@ $(document).ready(function () {
                 spinner.addClass("d-none");
                 initialProfile = collectProfile();
                 $('.new-row').removeClass("new-row");
+                $('#saved-button').focus();
             },
             error: function(r) {
                 var errorMessages = [];

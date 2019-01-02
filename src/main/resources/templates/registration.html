@@ -61,6 +61,10 @@
                 </div>
             </div>
 
+            <input type="hidden" id="privacyLevel" value="0" th:name="profile.privacyLevel" th:value="${@applicationSettings.getPrivacy().getDefaultLevel()}"/>
+            <input type="hidden" id="privacySharing" th:name="profile.shared" th:value="${@applicationSettings.getPrivacy().isDefaultSharing()}"/>
+            <input type="hidden" id="privacyGenelist" th:name="profile.hideGenelist" th:value="false"/>
+
             <div class="form-group row" th:if="${message}">
                 <div class="offset-1 col-10 text-info text-center" th:text="${message}"></div>
             </div>

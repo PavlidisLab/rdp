@@ -30,71 +30,31 @@ import java.util.stream.Collectors;
 @Service("geneService")
 public class GeneServiceImpl extends SearchableEhcache<Integer, Gene> implements GeneService {
 
-    private static Log log = LogFactory.getLog( GeneServiceImpl.class );
-
     private static final String CACHE_NAME = "gene";
-
+    private static Log log = LogFactory.getLog( GeneServiceImpl.class );
     @SuppressWarnings("SpringJavaAutowiringInspection")
     @Autowired
     private EhCacheCacheManager cacheManager;
 
     @Autowired
-    TaxonService taxonService;
+    private TaxonService taxonService;
 
     @Autowired
     private ApplicationSettings applicationSettings;
 
     private Ehcache cache;
 
-    private Attribute<Integer> id;
     private Attribute<String> name;
     private Attribute<String> symbol;
     private Attribute<Integer> taxonId;
     private Attribute<String> aliases;
-    private Attribute<Integer> modificationDate;
 
-    @PostConstruct
-    private void initialize() {
-        this.cache = this.cacheManager.getCacheManager().getEhcache( CACHE_NAME );
-        id = new Attribute<>( "geneId" );
-        name = new Attribute<>( "name" );
-        symbol = new Attribute<>( "symbol" );
-        taxonId = new Attribute<>( "taxonId" );
-        aliases = new Attribute<>( "aliases" );
-        modificationDate = new Attribute<>( "modificationDate" );
-
-        ApplicationSettings.CacheSettings cacheSettings = applicationSettings.getCache();
-
-        if ( cacheSettings.isEnabled() ) {
-            log.info( "Loading genes" );
-            for ( Taxon taxon : taxonService.findByActiveTrue() ) {
-
-                try {
-                    Set<Gene> data;
-                    if ( cacheSettings.isLoadFromDisk() ) {
-                        Path path = Paths.get( cacheSettings.getGeneFilesLocation(), taxon.getId() + ".gene_info.gz" );
-                        log.info( "Loading genes for " + taxon.toString() + " from disk: " + path.toAbsolutePath() );
-                        data = GeneInfoParser.parse( taxon, path.toFile() );
-                    } else {
-                        log.info( "Loading genes for " + taxon.toString() + " from URL: " + taxon.getGeneUrl() );
-                        data = GeneInfoParser.parse( taxon, new URL( taxon.getGeneUrl() ) );
-                    }
-                    log.info( "Done parsing." );
-                    addAll( data );
-                } catch (Exception e) {
-                    log.error( "Issue loading genes for: " + taxon, e );
-                }
-            }
-            log.info( "Finished loading genes: " + size() );
-        }
-
-
-    }
-
+    @Override
     public Ehcache getCache() {
         return cache;
     }
 
+    @Override
     public Integer getKey( Gene gene ) {
         return gene.getGeneId();
     }
@@ -124,34 +84,25 @@ public class GeneServiceImpl extends SearchableEhcache<Integer, Gene> implements
         Collection<SearchResult<Gene>> results = new LinkedHashSet<>();
         Criteria taxonCrit = this.taxonId.eq( taxon.getId() );
 
-        if ( addAll( results, fetchByCriteria( taxonCrit.and( symbol.ilike( query ) ) ), GeneMatchType.EXACT_SYMBOL, maxResults ) ) {
+        if ( addAll( results, fetchByCriteria( taxonCrit.and( symbol.ilike( query ) ) ), GeneMatchType.EXACT_SYMBOL,
+                maxResults ) ) {
             return results;
         }
 
-        if ( addAll( results, fetchByCriteria( taxonCrit.and( symbol.ilike( query + "*" ) ) ), GeneMatchType.SIMILAR_SYMBOL, maxResults ) ) {
+        if ( addAll( results, fetchByCriteria( taxonCrit.and( symbol.ilike( query + "*" ) ) ),
+                GeneMatchType.SIMILAR_SYMBOL, maxResults ) ) {
             return results;
         }
 
-        if ( addAll( results, fetchByCriteria( taxonCrit.and( name.ilike( "*" + query + "*" ) ) ), GeneMatchType.SIMILAR_NAME, maxResults ) ) {
+        if ( addAll( results, fetchByCriteria( taxonCrit.and( name.ilike( "*" + query + "*" ) ) ),
+                GeneMatchType.SIMILAR_NAME, maxResults ) ) {
             return results;
         }
 
-        addAll( results, fetchByCriteria( taxonCrit.and( aliases.ilike( "*" + query + "*" ) ) ), GeneMatchType.SIMILAR_ALIAS, maxResults );
+        addAll( results, fetchByCriteria( taxonCrit.and( aliases.ilike( "*" + query + "*" ) ) ),
+                GeneMatchType.SIMILAR_ALIAS, maxResults );
 
         return results;
-    }
-
-    private <T> boolean addAll( Collection<SearchResult<T>> container, Collection<T> newValues, GeneMatchType match, int maxSize ) {
-
-        for ( T newValue : newValues ) {
-            if ( maxSize == -1 || container.size() < maxSize ) {
-                container.add( new SearchResult<>( match, newValue ) );
-            } else {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     @Override
@@ -161,7 +112,8 @@ public class GeneServiceImpl extends SearchableEhcache<Integer, Gene> implements
 
     @Override
     public Map<Gene, TierType> deserializeGenes( Map<Integer, TierType> genesTierMap ) {
-        return load( genesTierMap.keySet() ).stream().filter( Objects::nonNull ).collect( Collectors.toMap( g -> g, g -> genesTierMap.get( g.getGeneId() ) ) );
+        return load( genesTierMap.keySet() ).stream().filter( Objects::nonNull )
+                .collect( Collectors.toMap( g -> g, g -> genesTierMap.get( g.getGeneId() ) ) );
     }
 
     @Override
@@ -174,4 +126,52 @@ public class GeneServiceImpl extends SearchableEhcache<Integer, Gene> implements
         removeAll();
     }
 
+    @PostConstruct
+    private void initialize() {
+        this.cache = this.cacheManager.getCacheManager().getEhcache( CACHE_NAME );
+        name = new Attribute<>( "name" );
+        symbol = new Attribute<>( "symbol" );
+        taxonId = new Attribute<>( "taxonId" );
+        aliases = new Attribute<>( "aliases" );
+
+        ApplicationSettings.CacheSettings cacheSettings = applicationSettings.getCache();
+
+        if ( cacheSettings.isEnabled() ) {
+            log.info( "Loading genes" );
+            for ( Taxon taxon : taxonService.findByActiveTrue() ) {
+
+                try {
+                    Set<Gene> data;
+                    if ( cacheSettings.isLoadFromDisk() ) {
+                        Path path = Paths.get( cacheSettings.getGeneFilesLocation(), taxon.getId() + ".gene_info.gz" );
+                        log.info( "Loading genes for " + taxon.toString() + " from disk: " + path.toAbsolutePath() );
+                        data = GeneInfoParser.parse( taxon, path.toFile() );
+                    } else {
+                        log.info( "Loading genes for " + taxon.toString() + " from URL: " + taxon.getGeneUrl() );
+                        data = GeneInfoParser.parse( taxon, new URL( taxon.getGeneUrl() ) );
+                    }
+                    log.info( "Done parsing." );
+                    addAll( data );
+                } catch ( Exception e ) {
+                    log.error( "Issue loading genes for: " + taxon, e );
+                }
+            }
+            log.info( "Finished loading genes: " + size() );
+        }
+
+    }
+
+    private <T> boolean addAll( Collection<SearchResult<T>> container, Collection<T> newValues, GeneMatchType match,
+            int maxSize ) {
+
+        for ( T newValue : newValues ) {
+            if ( maxSize == -1 || container.size() < maxSize ) {
+                container.add( new SearchResult<>( match, newValue ) );
+            } else {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }

@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 @Setter
 public class SiteSettings {
 
+    @SuppressWarnings("WeakerAccess")
     @Getter
     @Setter
     public static class EmailMessages {
@@ -38,6 +39,8 @@ public class SiteSettings {
     private String logohtml;
 
     private String welcome;
+
+    private String welcomePublic;
 
     private EmailMessages email;
 

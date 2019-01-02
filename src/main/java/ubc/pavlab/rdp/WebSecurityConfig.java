@@ -31,51 +31,30 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     private SiteSettings siteSettings;
 
     @Override
-    protected void configure( AuthenticationManagerBuilder auth )
-            throws Exception {
-        auth
-                .userDetailsService(userDetailsService)
-                .passwordEncoder( bCryptPasswordEncoder );
+    protected void configure( AuthenticationManagerBuilder auth ) throws Exception {
+        auth.userDetailsService( userDetailsService ).passwordEncoder( bCryptPasswordEncoder );
     }
 
+    @Override
+    public void configure( WebSecurity web ) {
+        web.ignoring().antMatchers( "/resources/**", "/static/**", "/css/**", "/js/**", "/images/**" );
+    }
 
     @Override
     protected void configure( HttpSecurity http ) throws Exception {
 
         http.
                 authorizeRequests()
-                .antMatchers(
-                        "/login",
-                        "/registration",
-                        "/registrationConfirm",
-                        "/stats",
-                        "/stats.html",
-                        "/forgotPassword",
-                        "/resetPassword",
-                        "/updatePassword",
-                        "/resendConfirmation",
-                        "/access-denied").permitAll()
-                .antMatchers( "/manager/**" ).hasAnyRole( "MANAGER", "ADMIN" )
-                .antMatchers( "/admin/**" ).hasRole( "ADMIN" )
-                .antMatchers( "/", "/user/**" ).authenticated().anyRequest()
-                .authenticated().and().csrf().disable().formLogin()
-                .loginPage( "/login" ).failureUrl( "/login?error=true" )
-                .defaultSuccessUrl( "/" )
-                .usernameParameter( "email" )
-                .passwordParameter( "password" )
-                .and().rememberMe()
-                .rememberMeCookieName(siteSettings.getShortname() + "-remember-me")
-                .tokenValiditySeconds(7 * 24 * 60 * 60)
-                .and().logout()
-                .logoutRequestMatcher( new AntPathRequestMatcher( "/logout" ) )
-                .logoutSuccessUrl( "/login" ).and().exceptionHandling()
-                .accessDeniedPage( "/access-denied" );
-    }
-
-    @Override
-    public void configure( WebSecurity web ) throws Exception {
-        web
-                .ignoring()
-                .antMatchers( "/resources/**", "/static/**", "/css/**", "/js/**", "/images/**" );
+                .antMatchers( "/", "/login", "/registration", "/registrationConfirm", "/stats", "/stats.html",
+                        "/forgotPassword", "/resetPassword", "/updatePassword", "/resendConfirmation", "/search/**",
+                        "/userView/**", "/api/**", "/taxon/**", "/access-denied" ).permitAll()
+                .antMatchers( "/admin/**" ).hasRole( "ADMIN" ).antMatchers( "/user/**" ).authenticated().anyRequest()
+                .authenticated().and().csrf().disable().formLogin().loginPage( "/login" )
+                .failureUrl( "/login?error=true" ).defaultSuccessUrl( "/" ).usernameParameter( "email" )
+                .passwordParameter( "password" ).and().rememberMe()
+                .rememberMeCookieName( siteSettings.getShortname() + "-remember-me" )
+                .tokenValiditySeconds( 7 * 24 * 60 * 60 ).and().logout()
+                .logoutRequestMatcher( new AntPathRequestMatcher( "/logout" ) ).logoutSuccessUrl( "/" )
+                .and().exceptionHandling().accessDeniedPage( "/accessDenied" );
     }
 }

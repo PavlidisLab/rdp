@@ -104,16 +104,21 @@ public class PasswordController {
     public ModelAndView resetPassword( @RequestParam("email") String userEmail ) throws MessagingException {
         //TODO: require captcha?
         User user = userService.findUserByEmail( userEmail );
+
+        ModelAndView modelAndView = new ModelAndView();
+        modelAndView.setViewName( "forgotPassword" );
+
         if ( user == null ) {
-            throw new UserNotFoundException();
+            modelAndView.addObject( "message", "User not found" );
+            modelAndView.addObject( "error", true );
+            return modelAndView;
         }
         String token = UUID.randomUUID().toString();
         userService.createPasswordResetTokenForUser( user, token );
         emailService.sendResetTokenMessage( token, user );
 
-        ModelAndView modelAndView = new ModelAndView();
         modelAndView.addObject( "message", "Password reset instructions have been sent." );
-        modelAndView.setViewName( "forgotPassword" );
+        modelAndView.addObject( "error", false );
 
         return modelAndView;
     }
