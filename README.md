@@ -208,7 +208,7 @@ There is a static ortholog mapping included with the application, that will auto
 
 For future updates of the ortholog mapping, you can watch the file 
 https://github.com/PavlidisLab/modinvreg/blob/development/src/main/resources/data.sql
-for changes, and the ortholog part over your database when that happens.
+for changes, and run the ortholog part on your database when that happens.
   
 ## Migration from version 1.1.x to 1.2
 Your current data should not be lost in this step, but you should definitely have a 
