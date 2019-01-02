@@ -91,24 +91,26 @@
                                             <li>A list of PubMed IDs for your publications.</li>
                                         </ul>
 
-                                        <p>
-                                            These fields are optional. Your email address is not
-                                            editable because it serves as your User ID.
-                                        </p>
+                                        <div  th:if="${@applicationSettings.getPrivacy().isCustomizableLevel()}">
+                                            <p>
+                                                These fields are optional. Your email address is not
+                                                editable because it serves as your User ID.
+                                            </p>
 
-                                        <p>Data Privacy Settings section lets you choose your data sharing preferences.
-                                            The default setting, "private", is pre-selected, but can be changed.
-                                            The options are:
-                                        </p>
-                                        <ul>
-                                            <li><b>private (admin-only)</b> - your information will only be accessible by
-                                                Network administrators for matching you to a new rare disease gene and considering you for funding opportunities.</li>
-                                            <li><b>shared</b> - your information will be accessible by other researchers who are registered.
-                                                Registered users will be able to access your information through the provided search interface.</li>
-                                            <li><b>public</b> - your information will be visible publicly. Your information will be shared (see above)
-                                                with registered users and will be accessible to non-registered users through the registry’s public search webpage (<i th:text="${@siteSettings.getFullUrl()}"></i>).</li>
-                                        </ul>
-                                        <p>
+                                            <p>Data Privacy Settings section lets you choose your data sharing preferences.
+                                                The default setting, "private", is pre-selected, but can be changed.
+                                                The options are:
+                                            </p>
+                                            <ul>
+                                                <li><b>private (admin-only)</b> - your information will only be accessible by
+                                                    Network administrators for matching you to a new rare disease gene and considering you for funding opportunities.</li>
+                                                <li><b>shared</b> - your information will be accessible by other researchers who are registered.
+                                                    Registered users will be able to access your information through the provided search interface.</li>
+                                                <li><b>public</b> - your information will be visible publicly. Your information will be shared (see above)
+                                                    with registered users and will be accessible to non-registered users through the registry’s public search webpage (<i th:text="${@siteSettings.getFullUrl()}"></i>).</li>
+                                            </ul>
+                                        </div>
+                                        <p th:if="${@applicationSettings.getPrivacy().isCustomizableSharing()}">
                                             International Sharing section gives you the option to set your preference for
                                             sharing your data with the Network’s international partners for the purposes of
                                             establishing connections between international clinician sciences and Canadian model

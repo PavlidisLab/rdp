@@ -330,3 +330,7 @@ update taxon set ordering = 6 where common_name = "roundworm";
 update taxon set ordering = 7 where common_name = "yeast";
 update taxon set ordering = 8 where common_name = "e. coli";
 ```
+
+### Start the application
+
+After finishing all the steps, you can start your RDMM application again and test if everything works as expected.
