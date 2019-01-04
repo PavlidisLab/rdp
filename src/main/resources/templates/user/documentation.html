@@ -102,7 +102,7 @@
                                                 The options are:
                                             </p>
                                             <ul>
-                                                <li><b>private (admin-only)</b> - your information will only be accessible by
+                                                <li><b>private</b> - your information will only be accessible by
                                                     Network administrators for matching you to a new rare disease gene and considering you for funding opportunities.</li>
                                                 <li><b>shared</b> - your information will be accessible by other researchers who are registered.
                                                     Registered users will be able to access your information through the provided search interface.</li>
@@ -112,11 +112,12 @@
                                         </div>
                                         <p th:if="${@applicationSettings.getPrivacy().isCustomizableSharing()}">
                                             Furthermore this section gives you the option to set your preference for
-                                            sharing your data with the network’s partner registries for the purposes of
-                                            establishing connections between partner clinician sciences and Canadian model
-                                            organism researchers. The data shared with partner registries will only be visible to the
-                                            administrators of the partner registries. If your data privacy
-                                            level is set to "public", partner registries will gain access automatically.
+                                            sharing your data with the network’s partner registries for the purposes
+                                            of establishing connections between clinician sciences who are submitting
+                                            their rare disease genes to partner registries and Canadian model organism
+                                            researchers. The data shared with partner registries will only be visible to
+                                            the administrators of those registries. If your data privacy level is set to "public",
+                                            partner registries will gain access automatically.
                                         </p>
                                     </div>
                                 </div>
@@ -379,7 +380,7 @@
                                             ("researcher" tab) or using gene search ("Gene" tab). In the "researcher" tab you can search in the following ways:
                                         </p>
                                         <ul>
-                                            <li>Click on letters of the alphabet to retrieve all users whose first or last letter begin with that letter</li>
+                                            <li>Click on letters of the alphabet to retrieve all users whose last name begins with that letter</li>
                                             <li>Enter one or more letters of the user's name in "Search by name" box</li>
                                             <li>Search for keywords in the user's research description</li>
                                         </ul>
