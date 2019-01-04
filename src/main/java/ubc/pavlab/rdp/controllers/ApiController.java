@@ -34,7 +34,7 @@ public class ApiController {
     private static final String MISCONF_REMOTE_ADMIN = "The remote admin account is misconfigured! Remote searches won't be able to authenticate even with valid security tokens!";
     private static final Map<String, String> ROOT_DATA;
     private static final ResponseEntity<String> TIER3_RESPONSE = new ResponseEntity<>(
-            "Tier3 genes not published internationally.", null, HttpStatus.NOT_FOUND );
+            "Tier3 genes not published to partner registires.", null, HttpStatus.NOT_FOUND );
     private static final ResponseEntity<String> GENE_NULL_RESPONSE = new ResponseEntity<>( "Unknown gene.", null,
             HttpStatus.NOT_FOUND );
     private static final ResponseEntity<String> ORTHOLOG_NULL_RESPONSE = new ResponseEntity<>(
@@ -224,7 +224,7 @@ public class ApiController {
             case ANY:
                 return TierType.TIERS1_2;
             case TIER3:
-                throw new TierException( "TIER3 not allowed for international search" );
+                throw new TierException( "TIER3 not allowed for partner search" );
             default:
                 return tier;
         }
