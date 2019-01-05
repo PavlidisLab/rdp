@@ -102,7 +102,7 @@
                                                 The options are:
                                             </p>
                                             <ul>
-                                                <li><b>private (admin-only)</b> - your information will only be accessible by
+                                                <li><b>private</b> - your information will only be accessible by
                                                     Network administrators for matching you to a new rare disease gene and considering you for funding opportunities.</li>
                                                 <li><b>shared</b> - your information will be accessible by other researchers who are registered.
                                                     Registered users will be able to access your information through the provided search interface.</li>
@@ -111,13 +111,13 @@
                                             </ul>
                                         </div>
                                         <p th:if="${@applicationSettings.getPrivacy().isCustomizableSharing()}">
-                                            International Sharing section gives you the option to set your preference for
-                                            sharing your data with the Network’s international partners for the purposes of
-                                            establishing connections between international clinician sciences and Canadian model
-                                            organism researchers. The internationally shared data will only be visible to the
-                                            administrators of remote registries. The default setting, that the data is
-                                            shared internationally, is pre-selected, but can be changed. If your data privacy
-                                            level is set to "public", the "international sharing" will be automatic.
+                                            Furthermore this section gives you the option to set your preference for
+                                            sharing your data with the network’s partner registries for the purposes
+                                            of establishing connections between clinician sciences who are submitting
+                                            their rare disease genes to partner registries and Canadian model organism
+                                            researchers. The data shared with partner registries will only be visible to
+                                            the administrators of those registries. If your data privacy level is set to "public",
+                                            partner registries will gain access automatically.
                                         </p>
                                     </div>
                                 </div>
@@ -371,8 +371,8 @@
                                         <p>
                                             The Search page allows you to browse or search for other registered users
                                             who chose to share their data by selecting "shared" or "public" data privacy setting.
-                                            If "Include international search results" option is selected,
-                                            the registry will connect to remote registries of the RDMM international
+                                            If "Include results from partner registries" option is selected,
+                                            the registry will connect to remote registries of the RDMM
                                             partners and display/search their "public" users.
                                         </p>
                                         <p>
@@ -380,16 +380,16 @@
                                             ("researcher" tab) or using gene search ("Gene" tab). In the "researcher" tab you can search in the following ways:
                                         </p>
                                         <ul>
-                                            <li>Click on letters of the alphabet to retrieve all users whose first or last letter begin with that letter</li>
-                                            <li>Enter one or more letters of the user"s name in "Search by name" box</li>
-                                            <li>Search for keywords in the user"s research description</li>
+                                            <li>Click on letters of the alphabet to retrieve all users whose last name begins with that letter</li>
+                                            <li>Enter one or more letters of the user's name in "Search by name" box</li>
+                                            <li>Search for keywords in the user's research description</li>
                                         </ul>
                                         <p>
                                             After clicking on the Search button (or a letter of the alphabet) the list of
-                                            results will be displayed at the bottom of the page. If "Include international search results" is selected,
-                                            the international results will be displayed in a separate section with the
-                                            indication from which international registry the matches are coming from ("Origin").
-                                            Clicking on a user"s email address will open a new tab with the user"s profile and gene information.
+                                            results will be displayed at the bottom of the page. If "Include results from partner registries" is selected,
+                                            the partner registries results will be displayed in a separate section with the
+                                            indication from which registry the matches are coming from ("Origin").
+                                            Clicking on a user's email address will open a new tab with the user's profile and gene information.
                                         </p>
                                         <p>
                                             "Gene" tab allows you to search for registered users based on genes they study. 

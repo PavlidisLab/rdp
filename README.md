@@ -149,6 +149,9 @@ The webserver will start initialising, create any missing required tables in the
 #### Notes
 * The organisms table is prepopulated on creation however all but human are turned off. Set the active column to 1 in the database to turn on an organism (Example (this will activate mouse): `update taxon set active=1 where taxon_id=10090`)
 * If a required table is not found in the database upon application startup it will create it, it will NOT delete existing data.
+* In order to access the RDMMN shared data system (international search), your application must use HTTPs. If you do not have HTTPs setup for you domain, you can consult the following guides on how to set it up: 
+    - [medium.com/@raupach/how-to-install-lets-encrypt-with-tomcat-3db8a469e3d2](https://medium.com/@raupach/how-to-install-lets-encrypt-with-tomcat-3db8a469e3d2)
+    - [community.letsencrypt.org/t/configuring-lets-encrypt-with-tomcat-6-x-and-7-x/32416](https://community.letsencrypt.org/t/configuring-lets-encrypt-with-tomcat-6-x-and-7-x/32416)
 
 ## Building From Source
 
