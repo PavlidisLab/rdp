@@ -124,7 +124,28 @@ public class UserServiceImpl implements UserService {
         // Pre-Post authorized annotations.
         String currentUsername = getCurrentEmail();
         if ( user.getEmail().equals( currentUsername ) ) {
+	    if (applicationSettings.getPrivacy() == null){
+		log.warn( currentUsername + " attempted to updated, but applicationSettings is null. ");
+	    } else {
+		Integer defaultPrivacyLevel = applicationSettings.getPrivacy().getDefaultLevel();
+		boolean defaultSharing = applicationSettings.getPrivacy().isDefaultSharing();
+		boolean defaultGenelist = applicationSettings.getPrivacy().isAllowHideGenelist();
+		
+		if (user.getProfile().getPrivacyLevel() == null){		
+		    log.warn("Received a null 'privacyLevel' value in profile.");
+		    user.getProfile().setPrivacyLevel(defaultPrivacyLevel);
+		}
+		if (user.getProfile().getShared() == null){	
+		    log.warn("Received a null 'shared' value in profile.");
+		    user.getProfile().setShared(defaultSharing);
+		}
+		if (user.getProfile().getHideGenelist() == null){
+		    log.warn("Received a null 'hideGeneList' value in profile.");
+		    user.getProfile().setHideGenelist(defaultGenelist);
+		}	
+	    }
             return userRepository.save( user );
+	    
         } else {
             log.warn( currentUsername + " attempted to update a user that is not their own: " + user.getEmail() );
         }
