@@ -17,7 +17,7 @@ Create database and associated user that the application will use to connect.
 
 Ex.
 ```SQL
-CREATE DATABASE afg CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE rdp CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 CREATE USER  'rdpuser'@'%' identified by 'rdppassword';
 grant all on rdp.* to 'rdpuser'@'%';
 ```
