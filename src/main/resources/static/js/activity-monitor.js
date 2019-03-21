@@ -139,7 +139,7 @@ $(document).ready(function () {
 	    }
 	    
 	    timeToWarning = getTimeToWarning();
-	    console.log("Warning expected in: " + timeToWarning + "ms | " + timeToWarning/1000 + "s");    
+	    //console.log("Warning expected in: " + timeToWarning + "ms | " + timeToWarning/1000 + "s");    
 	    if (timeToWarning < 0) {
 		if(confirm(timeoutWarningMessage) && getTimeToWarning() > (-1 * timeoutWindow) ) {
 		    // Reset the timeout
