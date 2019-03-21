@@ -33,7 +33,7 @@
 
         <script th:src="@{/js/common.js}"></script>
         <script th:src="@{/js/search.js}"></script>
-
+	<script th:if="${user != null}" th:src="@{/js/activity-monitor.js}"></script>	
     </head>
 
     <body>

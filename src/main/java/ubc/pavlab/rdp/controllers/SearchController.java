@@ -336,7 +336,7 @@ public class SearchController {
         }
 
 	if ( user == null ){
-	    log.error( "User is null in searchAuthorized(); search will not be authorized." );
+	    log.info( "User is null in searchAuthorized(); Non-public search will not be authorized." );
 	}
 	
 	
