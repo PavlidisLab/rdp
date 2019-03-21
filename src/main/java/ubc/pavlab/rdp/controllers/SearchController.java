@@ -3,9 +3,12 @@ package ubc.pavlab.rdp.controllers;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;    
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
@@ -19,6 +22,10 @@ import ubc.pavlab.rdp.settings.ApplicationSettings;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
+
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * Created by mjacobson on 05/02/18.
@@ -321,16 +328,21 @@ public class SearchController {
         //noinspection unchecked
         return Collections.EMPTY_LIST;
     }
-
+    
     private boolean searchAuthorized( User user, boolean international ) {
+
         if ( adminRole == null ) {
             adminRole = roleRepository.findByRole( "ROLE_ADMIN" );
         }
 
-        return ( applicationSettings.getPrivacy().isPublicSearch() // Search is public
-                || ( applicationSettings.getPrivacy().isRegisteredSearch() && user != null ) // Search is registered and there is user logged
-                || ( user != null && adminRole != null && user.getRoles().contains( adminRole ) ) ) // User is admin
-
+	if ( user == null ){
+	    log.error( "User is null in searchAuthorized(); search will not be authorized." );
+	}
+	
+	
+        return ( applicationSettings.getPrivacy().isPublicSearch() // Search is public		 
+		 || ( user != null && applicationSettings.getPrivacy().isRegisteredSearch()  ) // Search is registered and there is user logged
+		 || ( user != null && adminRole != null && user.getRoles().contains( adminRole ) ) ) // User is admin
                 && ( !international || applicationSettings.getIsearch().isEnabled() ); // International search enabled
     }
 

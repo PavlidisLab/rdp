@@ -2,6 +2,15 @@
 <!--suppress ThymeleafVariablesResolveInspection is applied even when there is no user logged in-->
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:th="http://www.thymeleaf.org">
+  <head>
+
+    <!-- Include jQuery -->
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"
+            integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+            crossorigin="anonymous"></script>
+    
+    <script th:if="${user != null}" th:src="@{/js/activity-monitor.js}"></script>
+  </head>
 <body>
 <nav th:style="'background-image:url(\'' + @{/images/header.jpg} + '\'); background-size: cover;'" class="navbar navbar-expand-lg navbar-dark bg-primary">
     <a class="navbar-brand" th:href="@{/user/home}" href="/">
