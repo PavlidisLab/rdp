@@ -3,8 +3,11 @@ package ubc.pavlab.rdp.controllers;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -17,6 +20,7 @@ import ubc.pavlab.rdp.services.*;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 
 import javax.mail.MessagingException;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -195,6 +199,41 @@ public class MainController {
 
         modelAndView.setViewName( "user/support" );
         return modelAndView;
+    }
+
+    
+    @RequestMapping(value="/gettimeout", method = RequestMethod.GET, produces = "application/json")
+    @ResponseBody
+    public ModelAndView getTimeout(HttpServletRequest servletRequest, HttpServletResponse servletResponse) {
+    // public ResponseEntity<Object> getTimeout(HttpServletRequest servletRequest, HttpServletResponse servletResponse) {
+	// Set cookie
+	addTimeoutCookies(servletRequest, servletResponse);
+
+	ModelAndView modelAndView = new ModelAndView();
+	modelAndView.addObject( "message", "Session timeout refreshed." );
+
+	//return new ResponseEntity<Object>(HttpStatus.OK);
+	return modelAndView;
+    }
+
+    private void addTimeoutCookies(HttpServletRequest servletRequest, HttpServletResponse servletResponse) {
+        User user = userService.findCurrentUser();
+	if ( user != null ) {
+	    // Only set timeout cookie if the user is authenticated.	    
+	    long currTime = System.currentTimeMillis();	    
+	    int TIMEOUT_IN_SECONDS = servletRequest.getSession().getMaxInactiveInterval() - 60; // Subtracting by 60s to give an extra minute client-side.
+	    long expiryTime = currTime + TIMEOUT_IN_SECONDS * 1000;
+
+	    // Get cookie for server current time.
+	    Cookie serverTimeCookie = new Cookie("serverTime", "" + currTime);
+	    serverTimeCookie.setPath("/");
+	    servletResponse.addCookie(serverTimeCookie);
+
+	    // Get cookie for expiration time (consistent with serverTime cookie).
+	    Cookie expiryCookie = new Cookie("sessionExpiry", "" + expiryTime);
+	    expiryCookie.setPath("/");
+	    servletResponse.addCookie(expiryCookie);
+	}
     }
 
     private boolean searchAuthorized(User user){

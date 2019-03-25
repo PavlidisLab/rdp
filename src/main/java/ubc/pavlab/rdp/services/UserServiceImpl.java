@@ -203,10 +203,11 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User findCurrentUser() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();	
         if ( auth == null || auth.getPrincipal().equals( "anonymousUser" ) ) {
             return null;
         }
+	
         return findUserByIdNoAuth( ( ( UserPrinciple ) auth.getPrincipal() ).getId() );
     }
 

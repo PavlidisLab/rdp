@@ -3,9 +3,12 @@ package ubc.pavlab.rdp.controllers;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;    
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
@@ -19,6 +22,14 @@ import ubc.pavlab.rdp.settings.ApplicationSettings;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.List;
+import java.util.ArrayList;
+
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * Created by mjacobson on 05/02/18.
@@ -227,15 +238,61 @@ public class SearchController {
             modelAndView.setViewName( "fragments/error :: message" );
             modelAndView.addObject( "errorMessage", String.format( ERR_NO_ORTHOLOGS, symbol ) );
         } else {
-            modelAndView.addObject( "usergenes", handleGeneSearch( gene, tier, orthologs ) );
+	    modelAndView.addObject( "usergenes", handleGeneSearch( gene, tier, orthologs ) );
             modelAndView.setViewName( "fragments/user-table :: usergenes-table" );
         }
 
         return modelAndView;
     }
 
-    @RequestMapping(value = "/search/view/international", method = RequestMethod.GET, params = { "symbol", "taxonId",
-            "tier" })
+    @RequestMapping(value = "/search/view/orthologs", method = RequestMethod.GET, params = { "symbol", "taxonId", "tier" })
+    public ModelAndView searchOrthologsForGene(@RequestParam String symbol, @RequestParam Integer taxonId,
+					       @RequestParam TierType tier,
+					       @RequestParam(name = "orthologTaxonId", required = false) Integer orthologTaxonId ) {
+        if(!searchAuthorized( userService.findCurrentUser(), false )){
+            return null;
+        }
+
+        // Only look for orthologs when taxon is human
+        if(taxonId != 9606){
+            orthologTaxonId = null;
+        }
+
+        Taxon taxon = taxonService.findById( taxonId );
+        Gene gene = geneService.findBySymbolAndTaxon( symbol, taxon );
+        Collection<Gene> orthologs = getOrthologsIfRequested( orthologTaxonId, gene );
+	Map<String, List<Gene>> orthologMap = null;
+	
+        ModelAndView modelAndView = new ModelAndView();
+
+        if ( gene == null ) {
+            modelAndView.setViewName( "fragments/error :: message" );
+            modelAndView.addObject( "errorMessage", String.format( ERR_NO_GENE, symbol ) );
+        } else if (
+		   // Check if there is a ortholog request for a different taxon than the original gene
+		   ( orthologTaxonId != null && !orthologTaxonId.equals( gene.getTaxon().getId() ) )
+		   // Check if we got some ortholog results
+		   && ( orthologs == null || orthologs.isEmpty() ) ) {
+            modelAndView.setViewName( "fragments/error :: message" );
+            modelAndView.addObject( "errorMessage", String.format( ERR_NO_ORTHOLOGS, symbol ) );
+        } else {
+	    orthologMap = new HashMap<>();
+	    for (Gene o : orthologs){
+		String name = o.getTaxon().getCommonName();
+		if (!orthologMap.containsKey(name)) {
+		    orthologMap.put(name, new ArrayList<Gene>());
+		} 
+		orthologMap.get(name).add(o);		
+	    }	    
+            modelAndView.addObject( "orthologs", orthologMap );	 
+            modelAndView.setViewName( "fragments/ortholog-table :: ortholog-table" );
+        }
+        return modelAndView;
+    }
+
+
+    
+    @RequestMapping(value = "/search/view/international", method = RequestMethod.GET, params = { "symbol", "taxonId", "tier" })
     public ModelAndView searchItlUsersByGeneView( @RequestParam String symbol, @RequestParam Integer taxonId,
             @RequestParam TierType tier,
             @RequestParam(name = "orthologTaxonId", required = false) Integer orthologTaxonId ) {
@@ -321,16 +378,21 @@ public class SearchController {
         //noinspection unchecked
         return Collections.EMPTY_LIST;
     }
-
+    
     private boolean searchAuthorized( User user, boolean international ) {
+
         if ( adminRole == null ) {
             adminRole = roleRepository.findByRole( "ROLE_ADMIN" );
         }
 
-        return ( applicationSettings.getPrivacy().isPublicSearch() // Search is public
-                || ( applicationSettings.getPrivacy().isRegisteredSearch() && user != null ) // Search is registered and there is user logged
-                || ( user != null && adminRole != null && user.getRoles().contains( adminRole ) ) ) // User is admin
-
+	if ( user == null ){
+	    log.info( "User is null in searchAuthorized(); Non-public search will not be authorized." );
+	}
+	
+	
+        return ( applicationSettings.getPrivacy().isPublicSearch() // Search is public		 
+		 || ( user != null && applicationSettings.getPrivacy().isRegisteredSearch()  ) // Search is registered and there is user logged
+		 || ( user != null && adminRole != null && user.getRoles().contains( adminRole ) ) ) // User is admin
                 && ( !international || applicationSettings.getIsearch().isEnabled() ); // International search enabled
     }
 

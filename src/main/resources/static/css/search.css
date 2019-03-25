@@ -68,3 +68,8 @@
     height: 0 !important;
     display: none;
 }
+
+.ortholog-search-text{
+    font-style: italic;
+    color: steelblue;
+}

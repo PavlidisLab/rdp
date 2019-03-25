@@ -33,7 +33,7 @@
 
         <script th:src="@{/js/common.js}"></script>
         <script th:src="@{/js/search.js}"></script>
-
+	<script th:if="${user != null}" th:src="@{/js/activity-monitor.js}"></script>	
     </head>
 
     <body>
@@ -53,19 +53,78 @@
                 </div>
             </div>
             <div class="main-content p-4">
-                <ul class="nav nav-tabs">
-                    <li class="nav-item"><a class="nav-link active" id="res-tab" data-toggle="tab"
-                                            href="#user-search-name">Researcher</a></li>
-                    <li class="nav-item"><a class="nav-link" id="gene-tab" data-toggle="tab"
+              <ul class="nav nav-tabs">
+		    <li class="nav-item"><a class="nav-link active" id="gene-tab" data-toggle="tab"
                                             href="#gene-search">Genes</a></li>
+                    <li class="nav-item"><a class="nav-link" id="res-tab" data-toggle="tab"
+                                            href="#user-search-name">Researcher</a></li>
+                    
                 </ul>
                 <div class="tab-content">
+		  <!--Genes-->
+                    <div id="gene-search" role="tabpanel" aria-labelledby="gene-tab" class="tab-pane fade show active">
+                        <form>
+                            <h5>Search for researchers that study the following organism-specific gene:</h5>
+                            <div class="form-group row">
+                                <div class="input-group mb-3">
+                                    <div class="input-group-prepend col-1">
+                                        <button class="btn btn-outline-secondary pull-right" type="submit" id="gene-search-btn"
+                                                title="Look for researchers that focus on the specified gene.">Search
+                                        </button>
+                                    </div>
+                                    <input type="text" class="form-control gene-autocomplete col-4" id="symbolInput" name="symbol"  placeholder="Symbol" title="Gene official symbol to look for"/>
+                                    <select id="taxonId" name="taxonId" class="custom-select col-4"
+                                            title="Taxon to run primary search on">
+                                        <th:block th:each="taxon : ${@taxonService.findByActiveTrue()}">
+                                            <option th:value="${taxon.id}"
+                                                    th:text="${#strings.capitalizeWords(taxon.commonName)}"
+                                                    th:selected="${taxon.id == 9606}"></option>
+                                        </th:block>
+                                    </select>
+                                    <select name="tier" title="Show any tier, or specific tiers."
+                                        th:class="${user == null} ? 'hide' : 'custom-select col-3' ">
+                                        <!--suppress ThymeleafVariablesResolveInspection -->
+                                        <option th:each="tier : ${T(ubc.pavlab.rdp.model.enums.TierType).values()}"
+                                                th:value="${tier}"
+                                                th:text="${tier == T(ubc.pavlab.rdp.model.enums.TierType).TIERS1_2} ? 'TIER1 and TIER2' : ${tier}"
+                                                th:selected="${tier == T(ubc.pavlab.rdp.model.enums.TierType).ANY}">
+                                        </option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div id="ortholog-box" class="form-group row mb-3">
+                                <div class="input-group mb-3">
+                                    <div class="col-5 text-right">
+                                        In this model organism (based on ortholog mapping):
+                                    </div>
+                                    <select name="orthologTaxonId" class="form-control custom-select col-4 ortholog-select"
+                                            title="Taxon to run primary search on">
+                                        <!-- The 'All' id is defined in UserGeneServiceImpl -->
+                                        <option th:value="-99">All</option>
+                                        <th:block th:each="taxon : ${@taxonService.findByActiveTrue()}">
+                                            <option th:value="${taxon.id}"
+                                                    th:text="${#strings.capitalizeWords(taxon.commonName)}"
+                                                    th:selected="${taxon.id == 9606}"></option>
+                                        </th:block>
+                                    </select>
+                                    <span class="col-3">
+                                        <i class="tip oi oi-question-mark"
+                                           data-ot-background="cornflowerblue"
+                                           data-ot-border-color="white"
+                                           data-ot-shadow-color="lightgray"
+                                           data-ot="When a human gene is entered, you can search for researchers studying that gene's ortholog(s) in one or all of the supported model organisms">
+                                        </i>
+                                    </span>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
 
                     <div id="user-search-name" role="tabpanel" aria-labelledby="res-tab"
-                         class="tab-pane fade show active">
+                         class="tab-pane fade">
                         <!--Researchers alphabetically-->
                         <div th:if="not ${chars.isEmpty()}">
-                            <h5>Browse alphabetically:</h5>
+                          <h5>Browse alphabetically:</h5>
                             <div class="form-group row">
                                 <div class="btn-group inline" id="alpha-grp"
                                      title="Look for users whose name or last name starts with this letter.">
@@ -119,65 +178,6 @@
                         </form>
                     </div>
 
-                    <!--Genes-->
-                    <div id="gene-search" role="tabpanel" aria-labelledby="gene-tab" class="tab-pane fade">
-                        <form>
-                            <h5>Search for researchers that study the following organism-specific gene:</h5>
-                            <div class="form-group row">
-                                <div class="input-group mb-3">
-                                    <div class="input-group-prepend col-1">
-                                        <button class="btn btn-outline-secondary pull-right" type="submit" id="gene-search-btn"
-                                                title="Look for researchers that focus on the specified gene.">Search
-                                        </button>
-                                    </div>
-                                    <input type="text" class="form-control gene-autocomplete col-4" name="symbol"
-                                           placeholder="Symbol" title="Gene official symbol to look for"/>
-                                    <select id="taxonId" name="taxonId" class="custom-select col-4"
-                                            title="Taxon to run primary search on">
-                                        <th:block th:each="taxon : ${@taxonService.findByActiveTrue()}">
-                                            <option th:value="${taxon.id}"
-                                                    th:text="${#strings.capitalizeWords(taxon.commonName)}"
-                                                    th:selected="${taxon.id == 9606}"></option>
-                                        </th:block>
-                                    </select>
-                                    <select name="tier" title="Show any tier, or specific tiers."
-                                        th:class="${user == null} ? 'hide' : 'custom-select col-3' ">
-                                        <!--suppress ThymeleafVariablesResolveInspection -->
-                                        <option th:each="tier : ${T(ubc.pavlab.rdp.model.enums.TierType).values()}"
-                                                th:value="${tier}"
-                                                th:text="${tier == T(ubc.pavlab.rdp.model.enums.TierType).TIERS1_2} ? 'TIER1 and TIER2' : ${tier}"
-                                                th:selected="${tier == T(ubc.pavlab.rdp.model.enums.TierType).TIERS1_2}">
-                                        </option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div id="ortholog-box" class="form-group row mb-3">
-                                <div class="input-group mb-3">
-                                    <div class="col-5 text-right">
-                                        In this model organism (based on ortholog mapping):
-                                    </div>
-                                    <select name="orthologTaxonId" class="form-control custom-select col-4 ortholog-select"
-                                            title="Taxon to run primary search on">
-                                        <!-- The 'All' id is defined in UserGeneServiceImpl -->
-                                        <option th:value="-99">All</option>
-                                        <th:block th:each="taxon : ${@taxonService.findByActiveTrue()}">
-                                            <option th:value="${taxon.id}"
-                                                    th:text="${#strings.capitalizeWords(taxon.commonName)}"
-                                                    th:selected="${taxon.id == 9606}"></option>
-                                        </th:block>
-                                    </select>
-                                    <span class="col-3">
-                                        <i class="tip oi oi-question-mark"
-                                           data-ot-background="cornflowerblue"
-                                           data-ot-border-color="white"
-                                           data-ot-shadow-color="lightgray"
-                                           data-ot="When a human gene is entered, you can search for researchers studying that gene's ortholog(s) in one or all of the supported model organisms">
-                                        </i>
-                                    </span>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
                     <!--International toggle-->
                     <div class="d-flex w-100 isearch-settings" th:if="${@applicationSettings.getIsearch().isEnabled()}">
                         <span class="col-12">
@@ -199,6 +199,16 @@
 
                 <hr/>
 
+		<!--Orthologs -->
+		<div id="orthologsResults">
+		  <div th:if="${orthologs != null} "
+                       th:replace="fragments/user-table :: ortholog-table(users=${users}, orthologs=${orthologs}, remote=false)"
+		       th:remove="tag">
+                    ...
+                  </div>		 
+		</div>
+		<br/>
+		
                 <!--Results-->
                 <h4 th:text="'Researchers registered in ' + ${@siteSettings.shortname}"></h4>
                 <div id="userTable">
