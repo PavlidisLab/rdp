@@ -19,6 +19,8 @@ function checkTaxon(taxonSelect){
 
 $(document).ready(function () {
     $("form").submit(function (event) {
+
+	// Show search results
         var tableContainer = $("#userTable");
         tableContainer.html($('<i class="mx-2 spinner"></i>'));
 
@@ -29,6 +31,22 @@ $(document).ready(function () {
             }
         });
 
+	// Show orthologs
+	//$("#orthologsResults").fadeOut("slow", function(){
+	$(".ortholog-search-text").html(""); // Clear existing results.
+	//});	
+	if ( $("#symbolInput").val() !== "" && $("#ortholog-box").is( ":visible" ) ) {
+	    var orthologContainer = $("#orthologsResults");
+	    orthologContainer.html($('<i class="mx-2 spinner"></i>'));
+	    orthologContainer.load("/search/view/orthologs", $(this).serialize(), function(responseText, textStatus, req) {
+		if (textStatus === "error") {
+		    orthologContainer.html($('<span class="mx-2 text-danger">Something went wrong! Please try again.</span>'));
+		}
+		//$("#orthologsResults").fadeIn(1500);
+	    });	    	
+	}
+					   
+	// Show international search results
         if($("#isearch-checkbox").is(":checked")){
             var itlTableContainer = $("#itlUserTable");
             itlTableContainer.html($('<i class="mx-2 spinner"></i>'));

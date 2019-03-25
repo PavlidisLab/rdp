@@ -2,53 +2,63 @@
 <!--suppress ThymeleafVariablesResolveInspection java variables not visible in fragments-->
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:th="http://www.thymeleaf.org">
-<body>
-<table class="user-table table table-sm mb-0" th:fragment="user-table (users, remote)">
-    <thead class="thead-light">
-    <tr>
-        <th th:if="${remote}" scope="col">Origin</th>
-        <th scope="col">Email</th>
-        <th scope="col">Name</th>
-        <th scope="col">Last Name</th>
-        <th scope="col">Organization</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr th:if="${#lists.isEmpty(users)}">
-        <td colspan="6">No Users Found</td>
-    </tr>
-    <th:block th:each="u : ${users}" th:if="${not #lists.isEmpty(users)}">
-        <tr>
+  <body>    
+    <!-- User table -->    
+    <table class="user-table table table-sm mb-0" th:fragment="user-table (users, remote)">
+      <thead class="thead-light">
+	<tr>
+          <th th:if="${remote}" scope="col">Origin</th>
+          <th scope="col">Email</th>
+          <th scope="col">Name</th>
+          <th scope="col">Last Name</th>
+          <th scope="col">Organization</th>
+	</tr>
+      </thead>
+      <tbody>
+	<tr th:if="${#lists.isEmpty(users)}">
+          <td colspan="6">No Users Found</td>
+	</tr>
+	<th:block th:each="u : ${users}" th:if="${not #lists.isEmpty(users)}">
+          <tr>
             <td th:if="${remote}"><span th:text="${u.origin}" th:remove="tag"></span></td>
             <td th:if="!${remote}"><a th:href="@{'/userView/' + ${u.id}}" th:text="${u.email}" target="_blank"></a></td>
             <td th:if="${remote}" ><a th:href="@{'/userView/' + ${u.id} + '?remoteHost=' + ${u.originUrl}}" th:text="${u.email}" target="_blank"></a></td>
             <td><span th:text="${u.profile.name}" th:remove="tag"></span></td>
             <td><span th:text="${u.profile.lastName}" th:remove="tag"></span></td>
             <td><span th:text="${u.profile.organization}" th:remove="tag"></span></td>
-        </tr>
-    </th:block>
-    </tbody>
-</table>
+          </tr>
+	</th:block>
+      </tbody>
+    </table>
 
-<table class="user-table table table-sm mb-0" th:fragment="usergenes-table (usergenes, remote)">
-    <thead class="thead-light">
-    <tr>
-        <th th:if="${remote}" scope="col">Origin</th>
-        <th scope="col">Email</th>
-        <th scope="col">Name</th>
-        <th scope="col">Last Name</th>
-        <th scope="col">Organization</th>
-        <th scope="col">Gene</th>
-        <th scope="col">Tier</th>
-        <th scope="col">Organism</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr th:if="${#lists.isEmpty(usergenes)}">
-        <td colspan="6">No Users Found</td>
-    </tr>
-    <th:block th:each="ug : ${usergenes}" th:if="${not #lists.isEmpty(usergenes)}">
-        <tr>
+    <table class="user-table table table-sm mb-0" th:fragment="usergenes-table (usergenes, remote)">
+      
+      <tr th:each="map : ${mapsList}" >
+	<td colspan="6" th:each="mapEntry : ${map}">
+	    <span th:text="${mapEntry.key}"></span>
+	    <span th:text="${mapEntry.value}"></span>
+	</td>
+      </tr>
+      
+      <!-- User genes -->
+      <thead class="thead-light">
+	<tr>
+	  <th th:if="${remote}" scope="col">Origin</th>
+	  <th scope="col">Email</th>
+	  <th scope="col">Name</th>
+	  <th scope="col">Last Name</th>
+	  <th scope="col">Organization</th>
+	  <th scope="col">Gene</th>
+	  <th scope="col">Tier</th>
+	  <th scope="col">Organism</th>
+	</tr>
+      </thead>
+      <tbody>
+	<tr th:if="${#lists.isEmpty(usergenes)}">
+	  <td colspan="6">No Users Found</td>
+	</tr>
+	<th:block th:each="ug : ${usergenes}" th:if="${not #lists.isEmpty(usergenes)}">
+          <tr>
             <td th:if="${remote}"><span th:text="${ug.user.origin}" th:remove="tag"></span></td>
             <td th:if="!${remote}"><a th:href="@{'/userView/' + ${ug.user.id}}" th:text="${ug.user.email}" target="_blank"></a></td>
             <td th:if="${remote}" ><a th:href="@{'/userView/' + ${ug.user.id} + '?remoteHost=' + ${ug.user.originUrl}}" th:text="${ug.user.email}" target="_blank"></a></td>
@@ -58,9 +68,9 @@
             <td><span th:text="${ug.symbol}" th:remove="tag"></span></td>
             <td><span th:text="${ug.tier}" th:remove="tag"></span></td>
             <td><span th:text="${#strings.capitalizeWords(ug.taxon.commonName)}" th:remove="tag"></span></td>
-        </tr>
-    </th:block>
-    </tbody>
-</table>
-</body>
+          </tr>
+	</th:block>
+      </tbody>
+    </table>
+  </body>
 </html>

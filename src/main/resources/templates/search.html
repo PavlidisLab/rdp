@@ -72,8 +72,7 @@
                                                 title="Look for researchers that focus on the specified gene.">Search
                                         </button>
                                     </div>
-                                    <input type="text" class="form-control gene-autocomplete col-4" name="symbol"
-                                           placeholder="Symbol" title="Gene official symbol to look for"/>
+                                    <input type="text" class="form-control gene-autocomplete col-4" id="symbolInput" name="symbol"  placeholder="Symbol" title="Gene official symbol to look for"/>
                                     <select id="taxonId" name="taxonId" class="custom-select col-4"
                                             title="Taxon to run primary search on">
                                         <th:block th:each="taxon : ${@taxonService.findByActiveTrue()}">
@@ -125,7 +124,7 @@
                          class="tab-pane fade">
                         <!--Researchers alphabetically-->
                         <div th:if="not ${chars.isEmpty()}">
-                            <h5>Browse alphabetically:</h5>
+                          <h5>Browse alphabetically:</h5>
                             <div class="form-group row">
                                 <div class="btn-group inline" id="alpha-grp"
                                      title="Look for users whose name or last name starts with this letter.">
@@ -200,6 +199,16 @@
 
                 <hr/>
 
+		<!--Orthologs -->
+		<div id="orthologsResults">
+		  <div th:if="${orthologs != null} "
+                       th:replace="fragments/user-table :: ortholog-table(users=${users}, orthologs=${orthologs}, remote=false)"
+		       th:remove="tag">
+                    ...
+                  </div>		 
+		</div>
+		<br/>
+		
                 <!--Results-->
                 <h4 th:text="'Researchers registered in ' + ${@siteSettings.shortname}"></h4>
                 <div id="userTable">

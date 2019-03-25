@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<!--suppress ThymeleafVariablesResolveInspection java variables not visible in fragments-->
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+  <body>
+    <!-- Orthologs mapped -->
+    <section class="ortholog-search-text" th:fragment="ortholog-table (orthologs)">      
+      <span th:if="${orthologs != null}"
+	    th:each="ortholog, iterOrtholog : ${orthologs}">
+	
+	<span th:if="${ iterOrtholog.first }">
+	  Showing the results for the specified human gene and the following orthologs:
+	</span>
+	
+	<span th:text="${ortholog.key}" th:if="${ortholog.key} != 'human'"> </span>
+	<span th:if="${ortholog.key} != 'human'"
+	        th:each="orthologGene, iterGene: ${ortholog.value}"
+		th:text="${iterGene.last} and 
+			 ${iterGene.first} and 
+			 ${iterOrtholog.last} ? '('+${orthologGene.symbol}+')' : 
+			   ( 
+			   ${iterGene.last} and 
+			   ${iterGene.first} and 
+			   !${iterOrtholog.last} ? '('+${orthologGene.symbol}+'),' :
+			     (
+			     ${iterGene.first} ? '('+${orthologGene.symbol}+',' :
+			       (
+			       ${iterGene.last} and 
+			       ${iterOrtholog.last} ? ${orthologGene.symbol}+')' : 
+			         ( 
+				 ${iterGene.last} and 
+				 !${iterOrtholog.last} ? ${orthologGene.symbol}+'),' :  
+				   ${orthologGene.symbol}+','
+				 )
+			      )
+			    )
+			  )">
+	  </span>	
+      </span>
+    </section>    
+  </body>
+</html>
