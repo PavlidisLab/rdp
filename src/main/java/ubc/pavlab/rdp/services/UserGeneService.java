@@ -38,6 +38,8 @@ public interface UserGeneService {
     Map<String, Integer> researcherCountByTaxon();
 
     Integer countUsersWithGenes();
+    Integer countUniqueAssociationsAllTiers();
+    Integer countUniqueAssociationsToHumanAllTiers();
 
     Collection<Integer> findOrthologs(Integer source_gene, Integer targetTaxon);
 
