@@ -80,6 +80,31 @@ public class UserGeneServiceImpl implements UserGeneService {
         return userGeneRepository.countDistinctUser();
     }
 
+    @Cacheable(cacheNames = "stats", key = "#root.methodName")
+    @Override
+    public Integer countUniqueAssociationsAllTiers() {
+        return userGeneRepository.countDistinctGeneByTierIn( TierType.ALL_TIERS   );
+    }
+
+    @Cacheable(cacheNames = "stats", key = "#root.methodName")
+    @Override
+    public Integer countUniqueAssociationsToHumanAllTiers() {
+	/* This is also called the "human gene coverage" */
+
+        Collection<Integer> humanGenes = new HashSet<Integer>();
+
+        // Add orthologs mapped to humans
+        humanGenes.addAll( userGeneRepository.findHumanGenesForTarget(
+                userGeneRepository.findDistinctGeneByTierIn( TierType.ALL_TIERS   )
+        ));
+
+        // Add directly entered human genes
+        humanGenes.addAll( userGeneRepository.findAllHumanGenes() );
+
+        return humanGenes.size();
+    }
+
+    @Cacheable(cacheNames = "stats", key = "#root.methodName")
     @Override
     public Collection<Integer> findOrthologs( Integer sourceGene, Integer targetTaxon ) {
         return userGeneRepository.findOrthologs( sourceGene, targetTaxon );

@@ -7,6 +7,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.model.UserGene;
+import ubc.pavlab.rdp.model.Gene;
 import ubc.pavlab.rdp.model.enums.TierType;
 
 import javax.persistence.QueryHint;
@@ -43,4 +44,18 @@ public interface UserGeneRepository extends JpaRepository<UserGene, Integer> {
     @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
     Collection<UserGene> findBySymbolContainingIgnoreCaseAndTaxonAndTierIn(String symbolContaining, Taxon taxon, Set<TierType> tiers);
 
+    // Return gene IDs of all associations in tiers
+    @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
+    @Query("select distinct geneId FROM UserGene WHERE tier IN (:tiers)")
+    Collection<Integer> findDistinctGeneByTierIn( @Param("tiers") Collection<TierType> tiers );
+
+    // Return the reverse-mapped human gene(s) for a given ortholog target. 
+    @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
+    @Query("select sourceGene FROM Ortholog where targetGene IN (:target_gene) ")
+    Collection<Integer> findHumanGenesForTarget(@Param("target_gene") Collection<Integer> targetGene);
+
+    // Return all human genes.
+    @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
+    @Query("select geneId FROM UserGene where taxon = '9606'")
+    Collection<Integer> findAllHumanGenes();
 }

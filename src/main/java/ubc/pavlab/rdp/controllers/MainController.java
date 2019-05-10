@@ -246,8 +246,13 @@ public class MainController {
     }
 
     private Stats getStats() {
-        return new Stats( userService.countResearchers(), userGeneService.countUsersWithGenes(),
-                userGeneService.countAssociations(), userGeneService.countUniqueAssociations(),
+        return new Stats(
+                userService.countResearchers(),
+                userGeneService.countUsersWithGenes(),
+                userGeneService.countAssociations(),
+                userGeneService.countUniqueAssociations(),
+                userGeneService.countUniqueAssociationsAllTiers(),
+                userGeneService.countUniqueAssociationsToHumanAllTiers(),
                 userGeneService.researcherCountByTaxon() );
     }
 

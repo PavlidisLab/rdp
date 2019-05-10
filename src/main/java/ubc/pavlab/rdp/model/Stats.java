@@ -18,5 +18,7 @@ public class Stats {
     private Integer usersWithGenes;
     private Integer userGenes;
     private Integer uniqueUserGenes;
+    private Integer uniqueUserGenesTAll; // Unique genes added, counting all TIERs
+    private Integer uniqueUserGenesHumanTAll; // Unique genes mapped back to human, counting all TIERs
     private Map<String, Integer> researchersByTaxa;
 }
