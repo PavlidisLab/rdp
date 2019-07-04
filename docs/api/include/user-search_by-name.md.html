@@ -1,0 +1,180 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><title>user-search_by-name.md</title><style></style></head><body id="preview">
+<h2><a id="User_search_by_name_0"></a><strong>User search by name</strong></h2>
+<p>Search for public users by name.</p>
+<ul>
+<li>
+<p><strong>URL</strong></p>
+<p><code>/api/users/search</code></p>
+</li>
+<li>
+<p><strong>Method:</strong></p>
+<p><code>GET</code></p>
+</li>
+<li>
+<p><strong>URL Params</strong></p>
+<p><strong>Required:</strong><br>
+<code>nameLike=[alphanumeric]</code> : Substring to search in names.<br>
+<code>prefix=[boolean]</code> : Whether the string is a prefix or not.</p>
+<p><strong>Optional:</strong></p>
+<p><code>auth=[alphanumeric]</code> : Authentication string.</p>
+</li>
+<li>
+<p><strong>Success Response:</strong></p>
+<p>Returns a list of users.</p>
+<ul>
+<li><strong>Code:</strong> 200<br>
+<strong>Content:</strong><pre><code>[
+   {
+      &quot;id&quot;:551,
+      &quot;email&quot;:&quot;manuel.belmadani+RDMAPI@gmail.com&quot;,
+      ...,
+      &quot;publications&quot;:[
+
+      ],
+      &quot;origin&quot;:&quot;RDMMN&quot;,
+      &quot;originUrl&quot;:&quot;https://register.rare-diseases-catalyst-network.ca/&quot;,
+      &quot;userTerms&quot;:[
+
+      ],
+      &quot;userGenes&quot;:{
+         &quot;100533695&quot;:{
+            &quot;geneId&quot;:100533695,
+            &quot;taxon&quot;:{
+               &quot;id&quot;:9606,
+               &quot;scientificName&quot;:&quot;Homo sapiens&quot;,
+               &quot;commonName&quot;:&quot;human&quot;,
+               &quot;ordering&quot;:1
+            },
+            &quot;symbol&quot;:&quot;RLIMP1&quot;,
+            &quot;name&quot;:&quot;ring finger protein, LIM domain interacting pseudogene 1&quot;,
+            ...
+         },
+         &quot;100505876&quot;:{
+            ...
+         },
+         &quot;394269&quot;:{
+            ...
+        }
+      }
+   }
+]
+</code></pre>
+</li>
+</ul>
+</li>
+<li>
+<p><strong>Error Response:</strong></p>
+<ul>
+<li>
+<p><strong>Code:</strong> 404 NOT FOUND<br>
+<strong>Content:</strong> <code>NO CONTENT</code><br>
+<strong>Reason:</strong> Invalid endpoint.</p>
+</li>
+<li>
+<p><strong>Code:</strong> 302 FOUND<br>
+<strong>Content:</strong> <code>NO CONTENT</code><br>
+<strong>Reason:</strong> Could not follow redirects. For cURL, this is fixed by using the <code>-L</code> option.</p>
+</li>
+<li>
+<p><strong>Code:</strong> 400 BAD REQUEST<br>
+<strong>Content:</strong></p>
+<pre><code>{
+    &quot;timestamp&quot;: 1562186167149,
+    &quot;status&quot;: 400,
+    &quot;error&quot;: &quot;Bad Request&quot;,
+    &quot;exception&quot;: &quot;org.springframework.web.method.annotation.MethodArgumentTypeMismatchException&quot;,
+    &quot;message&quot;: &quot;Failed to convert value of type 'java.lang.String' to required type 'java.lang.Boolean'; nested exception is java.lang.IllegalArgumentException: Invalid boolean value [not_a_boolean]&quot;,
+    &quot;path&quot;: &quot;/api/users/search/&quot;
+}
+</code></pre>
+<p><strong>Reason:</strong> Did not use a valid boolean (true|false) for the prefix parameter.</p>
+</li>
+</ul>
+</li>
+<li>
+<p><strong>Sample Call:</strong><br>
+Using cURL:</p>
+<pre><code class="language-bash">curl -L -v <span class="hljs-string">"http://register.rare-diseases-catalyst-network.ca/api/users/search/?nameLike=TestAccount&amp;prefix=false"</span> <span class="hljs-number">2</span>&gt; /dev/null 
+</code></pre>
+<p>Output:</p>
+<pre><code>[
+  {
+    &quot;id&quot;: 551,
+    &quot;email&quot;: &quot;manuel.belmadani+RDMAPI@gmail.com&quot;,
+    &quot;name&quot;: &quot;API&quot;,
+    &quot;lastName&quot;: &quot;TestAccount&quot;,
+    &quot;description&quot;: &quot;This is a test account for the API.\n\nSee documentation or contact registry-help@rare-diseases-catalyst-network.ca for additional inquiries.&quot;,
+    &quot;organization&quot;: &quot;UBC&quot;,
+    &quot;department&quot;: &quot;Support&quot;,
+    &quot;phone&quot;: &quot;&quot;,
+    &quot;website&quot;: &quot;http://register.rare-diseases-catalyst-network.ca&quot;,
+    &quot;privacyLevel&quot;: 2,
+    &quot;shared&quot;: true,
+    &quot;hideGenelist&quot;: false,
+    &quot;publications&quot;: [],
+    &quot;origin&quot;: &quot;RDMMN&quot;,
+    &quot;originUrl&quot;: &quot;https://register.rare-diseases-catalyst-network.ca/&quot;,
+    &quot;userTerms&quot;: [],
+    &quot;userGenes&quot;: {
+      &quot;100533695&quot;: {
+        &quot;geneId&quot;: 100533695,
+        &quot;taxon&quot;: {
+          &quot;id&quot;: 9606,
+          &quot;scientificName&quot;: &quot;Homo sapiens&quot;,
+          &quot;commonName&quot;: &quot;human&quot;,
+          &quot;ordering&quot;: 1
+        },
+        &quot;symbol&quot;: &quot;RLIMP1&quot;,
+        &quot;name&quot;: &quot;ring finger protein, LIM domain interacting pseudogene 1&quot;,
+        &quot;aliases&quot;: &quot;-&quot;,
+        &quot;modificationDate&quot;: 20190213,
+        &quot;tier&quot;: &quot;TIER2&quot;,
+        &quot;remoteUser&quot;: null
+      },
+      &quot;100505876&quot;: {
+        &quot;geneId&quot;: 100505876,
+        &quot;taxon&quot;: {
+          &quot;id&quot;: 9606,
+          &quot;scientificName&quot;: &quot;Homo sapiens&quot;,
+          &quot;commonName&quot;: &quot;human&quot;,
+          &quot;ordering&quot;: 1
+        },
+        &quot;symbol&quot;: &quot;CEBPZOS&quot;,
+        &quot;name&quot;: &quot;CEBPZ opposite strand&quot;,
+        &quot;aliases&quot;: &quot;CEBPZ-AS1&quot;,
+        &quot;modificationDate&quot;: 20190415,
+        &quot;tier&quot;: &quot;TIER2&quot;,
+        &quot;remoteUser&quot;: null
+      },
+      &quot;394269&quot;: {
+        &quot;geneId&quot;: 394269,
+        &quot;taxon&quot;: {
+          &quot;id&quot;: 9606,
+          &quot;scientificName&quot;: &quot;Homo sapiens&quot;,
+          &quot;commonName&quot;: &quot;human&quot;,
+          &quot;ordering&quot;: 1
+        },
+        &quot;symbol&quot;: &quot;BRCA1P1&quot;,
+        &quot;name&quot;: &quot;BRCA1 pseudogene 1&quot;,
+        &quot;aliases&quot;: &quot;LBRCA1|PsiBRCA1|pseudo-BRCA1&quot;,
+        &quot;modificationDate&quot;: 20190213,
+        &quot;tier&quot;: &quot;TIER2&quot;,
+        &quot;remoteUser&quot;: null
+      }
+    }
+  }
+]
+</code></pre>
+</li>
+<li>
+<p><strong>Notes:</strong></p>
+</li>
+<li>
+<p>The cURL option <code>-L</code> might be required to follow redirects.</p>
+</li>
+<li>
+<p>Redirecting the cURL standard error output to <code>/dev/null</code> with <code>2&gt;</code> keeps only the response object and prevents cURL messages from mangling the output.</p>
+</li>
+</ul>
+
+</body></html>
