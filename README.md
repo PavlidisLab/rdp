@@ -105,6 +105,10 @@ rdp.settings.isearch.search-token=
 ## Tokens for remote requests that authorize administrative access. Usually equal to the search-token, but can contain multiple entries separated by comma.
 rdp.settings.isearch.auth-tokens=
 
+### Proxy settings (optional) ### 
+rdp.settings.isearch.host=
+rdp.settings.isearch.port=
+
 # ==============================================================
 # = Custom Messages
 # ==============================================================
@@ -134,6 +138,15 @@ rdp.site.email.registration-ending=You will then be able to log in using the pas
   - Location: Working directory of running jar
   - Defaults: https://github.com/PavlidisLab/modinvreg/blob/master/src/main/resources/application.properties
   - Contents: Create this file if you would like to customise spring specific messages such as incorrect username/password.
+
+### Using a proxy server for international search
+Configure by adding the follow `application.properties` configuration.
+```
+### Proxy settings (optional) ### 
+rdp.settings.isearch.host=
+rdp.settings.isearch.port=
+```
+Where `rdp.settings.isearch.host` is the proxy host address, and `rdp.settings.isearch.port` is the required proxy port. No change is required if not using a proxy server.
 
 ### Running Application
 To start the application the simplest command is: java -jar rdp-x.x.x.jar
