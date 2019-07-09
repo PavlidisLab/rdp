@@ -48,4 +48,8 @@ public class SiteSettings {
         return host + context + (context.endsWith( "/" ) ? "" : "/");
     }
 
+    @URL
+    private String proxyHost;
+    private String proxyPort;
+
 }

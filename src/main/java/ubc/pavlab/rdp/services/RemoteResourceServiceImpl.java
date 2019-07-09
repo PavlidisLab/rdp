@@ -18,6 +18,7 @@ import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.repositories.RoleRepository;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 
+import javax.ws.rs.client.Client;
 import javax.ws.rs.core.Response;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -117,7 +118,23 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
     }
 
     private <T> T remoteRequest( Class<T> cls, String remoteUrl, Map<String, String> args ) throws RemoteException {
-        ResteasyClient client = new ResteasyClientBuilder().build();
+
+        String proxyHost = applicationSettings.getIsearch().getHost();
+        String proxyPort = applicationSettings.getIsearch().getPort();
+        ResteasyClient client = null;
+
+        if (proxyHost != null && proxyPort != null &&
+                !proxyHost.equals("") && !proxyPort.equals("") ) {
+            client = new ResteasyClientBuilder().defaultProxy(
+                    proxyHost,
+                    Integer.parseInt( proxyPort )
+            ).build();
+            log.info( "Using " +proxyHost + ":" + proxyPort+ " as proxy for rest client." );
+        } else {
+            client = new ResteasyClientBuilder().build();
+            log.info( "Using default proxy for rest client." );
+        }
+
         ResteasyWebTarget target = client.target( remoteUrl + encodeParams( args ) );
         Response response = target.request().get();
         if ( response.getStatus() != 200 ) {

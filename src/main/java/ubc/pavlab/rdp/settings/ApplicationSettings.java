@@ -2,6 +2,7 @@ package ubc.pavlab.rdp.settings;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.validator.constraints.URL;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 import ubc.pavlab.rdp.services.UserService;
@@ -53,6 +54,9 @@ public class ApplicationSettings {
         private String[] apis;
         private List<String> authTokens;
         private String searchToken;
+        @URL
+        private String host = null;
+        private String port = null;
     }
 
     private InternationalSearchSettings isearch;
@@ -60,5 +64,14 @@ public class ApplicationSettings {
     private CacheSettings cache;
     private boolean sendEmailOnRegistration;
     private int goTermSizeLimit = 100;
+
+//    @Getter
+//    @Setter
+//    public static class ProxySettings {
+//        @URL
+//        private String host = null;
+//        private String port = null;
+//    }
+//    private ProxySettings proxy;
 
 }
