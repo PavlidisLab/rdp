@@ -1,5 +1,8 @@
-# Rare Disease Project
-Registry for model organism researchers, developed for the Canadian Rare Disease Models &amp; Mechanisms Network
+# Researcher Gene Registry
+
+RGR is a web application to support networks of scientists studying the mechanisms of genetic diseases. 
+
+The software was originally developed for the [Canadian Rare Disease Models &amp; Mechanisms Network](http://rare-diseases-catalyst-network.ca/) and is currently used by a number of similar initiatives internationally.
 
 ## Setup Instructions
 
