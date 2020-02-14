@@ -94,10 +94,11 @@
                             </div>
                             <div id="ortholog-box" class="form-group row mb-3">
                                 <div class="input-group mb-3">
-                                    <div class="col-5 text-right">
+                                    <label class="col-5 col-form-label text-right" for="ortholog-select">
                                         In this model organism (based on ortholog mapping):
-                                    </div>
+                                    </label>
                                     <select name="orthologTaxonId" class="form-control custom-select col-4 ortholog-select"
+                                            id="ortholog-select"
                                             title="Taxon to run primary search on">
                                         <!-- The 'All' id is defined in UserGeneServiceImpl -->
                                         <option th:value="-99">All</option>
@@ -107,14 +108,14 @@
                                                     th:selected="${taxon.id == 9606}"></option>
                                         </th:block>
                                     </select>
-                                    <span class="col-3">
+                                    <label class="col-3 col-form-label" for="ortholog-select">
                                         <i class="tip oi oi-question-mark"
                                            data-ot-background="cornflowerblue"
                                            data-ot-border-color="white"
                                            data-ot-shadow-color="lightgray"
                                            data-ot="When a human gene is entered, you can search for researchers studying that gene's ortholog(s) in one or all of the supported model organisms">
                                         </i>
-                                    </span>
+                                    </label>
                                 </div>
                             </div>
                         </form>
@@ -205,10 +206,10 @@
                        th:replace="fragments/user-table :: ortholog-table(users=${users}, orthologs=${orthologs}, remote=false)"
 		       th:remove="tag">
                     ...
-                  </div>		 
+                  </div>
 		</div>
 		<br/>
-		
+
                 <!--Results-->
                 <h4 th:text="'Researchers registered in ' + ${@siteSettings.shortname}"></h4>
                 <div id="userTable">
