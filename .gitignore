@@ -16,6 +16,8 @@ out/
 .idea
 *.iws
 *.ipr
+!.idea/codeStyles/Project.xml
+!.idea/codeStyles/codeStyleConfig.xml
 
 ### NetBeans ###
 nbproject/private/
