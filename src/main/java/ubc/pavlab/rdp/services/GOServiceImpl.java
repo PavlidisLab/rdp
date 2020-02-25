@@ -108,7 +108,7 @@ public class GOServiceImpl implements GOService {
 
 
     @Override
-    public Map<GeneOntologyTerm, Long> termFrequencyMap( Collection<Gene> genes ) {
+    public Map<GeneOntologyTerm, Long> termFrequencyMap( Collection<? extends Gene> genes ) {
         if ( genes == null ) {
             return null;
         }

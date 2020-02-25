@@ -54,7 +54,7 @@ public class UserTerm extends GeneOntologyTerm {
         this.setDirectGenes( term.getDirectGenes() );
     }
 
-    public UserTerm(GeneOntologyTerm term, Taxon taxon, Set<Gene> overlapGenes) {
+    public UserTerm( GeneOntologyTerm term, Taxon taxon, Set<? extends Gene> overlapGenes ) {
         super();
         this.updateTerm( term );
         this.taxon = taxon;
@@ -65,7 +65,7 @@ public class UserTerm extends GeneOntologyTerm {
         }
     }
 
-    private Integer computeOverlapFrequency( Set<Gene> genes ) {
+    private Integer computeOverlapFrequency( Set<? extends Gene> genes ) {
         Integer frequency = 0;
         for ( Gene g : genes ) {
             Collection<GeneOntologyTerm> directTerms = g.getAllTerms( true, true );

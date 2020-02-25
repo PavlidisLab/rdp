@@ -20,6 +20,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import ubc.pavlab.rdp.WebSecurityConfig;
 import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.Aspect;
+import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.services.GOService;
 import ubc.pavlab.rdp.services.GeneService;
@@ -120,7 +121,7 @@ public class UserControllerTest extends BaseTest {
 
         User user = createUser( 1 );
         Taxon taxon = createTaxon( 1 );
-        user.getUserGenes().put( 1, new UserGene( createGene( 1, taxon ), user, TierType.TIER1 ) );
+        user.getUserGenes().put( 1, new UserGene( createGene( 1, taxon ), user, TierType.TIER1, PrivacyLevelType.PUBLIC ) );
 
         given( userService.findCurrentUser() ).willReturn( user );
 
@@ -154,7 +155,7 @@ public class UserControllerTest extends BaseTest {
         Taxon taxon = createTaxon( 1 );
         Gene gene = createGene( 1, taxon );
         gene.setSymbol( "bat" );
-        user.getUserGenes().put( 1, new UserGene( gene, user, TierType.TIER1 ) );
+        user.getUserGenes().put( 1, new UserGene( gene, user, TierType.TIER1, PrivacyLevelType.PRIVATE ) );
 
         given( userService.findCurrentUser() ).willReturn( user );
 
@@ -228,12 +229,12 @@ public class UserControllerTest extends BaseTest {
         Taxon taxon = createTaxon( 1 );
         Gene gene = createGene( 1, taxon );
         gene.setSymbol( "bat" );
-        user.getUserGenes().put( 1, new UserGene( gene, user, TierType.TIER1 ) );
+        user.getUserGenes().put( 1, new UserGene( gene, user, TierType.TIER1, PrivacyLevelType.PRIVATE ) );
 
         Taxon taxon2 = createTaxon( 2 );
         Gene gene2 = createGene( 2, taxon2 );
         gene2.setSymbol( "bat2" );
-        user.getUserGenes().put( 2, new UserGene( gene2, user, TierType.TIER3 ) );
+        user.getUserGenes().put( 2, new UserGene( gene2, user, TierType.TIER3, PrivacyLevelType.PRIVATE ) );
 
         given( userService.findCurrentUser() ).willReturn( user );
 

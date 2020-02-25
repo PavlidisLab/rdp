@@ -11,6 +11,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.model.User;
 import ubc.pavlab.rdp.model.UserGene;
+import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.util.BaseTest;
 
@@ -45,15 +46,15 @@ public class UserGeneRepositoryTest extends BaseTest {
 
     private User createUserWithGenes( Taxon taxon ) {
         User user = createUnpersistedUser();
-        UserGene ug = new UserGene( createGene( 1, taxon ), user, TierType.TIER1 );
+        UserGene ug = new UserGene( createGene( 1, taxon ), user, TierType.TIER1, PrivacyLevelType.PRIVATE );
         ug.setSymbol( "Gene1" );
         user.getUserGenes().put( ug.getGeneId(), ug );
 
-        ug = new UserGene( createGene( 2, taxon ), user, TierType.TIER2 );
+        ug = new UserGene( createGene( 2, taxon ), user, TierType.TIER2, PrivacyLevelType.PRIVATE );
         ug.setSymbol( "Gene2" );
         user.getUserGenes().put( ug.getGeneId(), ug );
 
-        ug = new UserGene( createGene( 3, taxon ), user, TierType.TIER3 );
+        ug = new UserGene( createGene( 3, taxon ), user, TierType.TIER3, PrivacyLevelType.PRIVATE );
         ug.setSymbol( "Gene3" );
         user.getUserGenes().put( ug.getGeneId(), ug );
 
@@ -87,7 +88,7 @@ public class UserGeneRepositoryTest extends BaseTest {
     @Test
     public void countByTierIn_whenMultipleMatches_thenCountAll() {
 
-        UserGene ug = new UserGene( createGene( 99, taxon ), user, TierType.TIER1 );
+        UserGene ug = new UserGene( createGene( 99, taxon ), user, TierType.TIER1, PrivacyLevelType.PRIVATE );
         user.getUserGenes().put( ug.getGeneId(), ug );
         entityManager.persist( user );
         entityManager.flush();
@@ -135,7 +136,7 @@ public class UserGeneRepositoryTest extends BaseTest {
     @Test
     public void countDistinctGeneByTierIn_whenMultipleMatches_thenCountDistinct() {
 
-        UserGene ug = new UserGene( createGene( 99, taxon ), user, TierType.TIER1 );
+        UserGene ug = new UserGene( createGene( 99, taxon ), user, TierType.TIER1, PrivacyLevelType.PRIVATE );
         user.getUserGenes().put( ug.getGeneId(), ug );
         entityManager.persist( user );
         entityManager.flush();
@@ -176,7 +177,7 @@ public class UserGeneRepositoryTest extends BaseTest {
     @Test
     public void countDistinctUserByTaxon_whenMultipleMatches_thenCountDistinct() {
 
-        UserGene ug = new UserGene( createGene( 99, taxon ), user, TierType.TIER1 );
+        UserGene ug = new UserGene( createGene( 99, taxon ), user, TierType.TIER1, PrivacyLevelType.PRIVATE );
         user.getUserGenes().put( ug.getGeneId(), ug );
         entityManager.persist( user );
         entityManager.flush();
@@ -297,7 +298,7 @@ public class UserGeneRepositoryTest extends BaseTest {
     public void findByGeneIdAndTierIn_whenValidIdAndTierManualMatch_ReturnUserGene() {
 
         User user2 = createUnpersistedUser();
-        UserGene ug = new UserGene( createGene( 1, taxon ), user2, TierType.TIER2 );
+        UserGene ug = new UserGene( createGene( 1, taxon ), user2, TierType.TIER2, PrivacyLevelType.PRIVATE );
         user2.getUserGenes().put( ug.getGeneId(), ug );
         entityManager.persist( user2 );
         entityManager.flush();

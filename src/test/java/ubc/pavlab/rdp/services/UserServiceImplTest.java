@@ -17,6 +17,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.context.junit4.SpringRunner;
 import ubc.pavlab.rdp.exception.TokenException;
 import ubc.pavlab.rdp.model.*;
+import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.repositories.PasswordResetTokenRepository;
 import ubc.pavlab.rdp.repositories.RoleRepository;
@@ -45,6 +46,9 @@ public class UserServiceImplTest extends BaseTest {
 
     @TestConfiguration
     static class UserServiceImplTestContextConfiguration {
+
+        @Bean
+        public PrivacyService privacyService() { return new PrivacyServiceImpl(); }
 
         @Bean
         public UserService userService() {
@@ -439,7 +443,7 @@ public class UserServiceImplTest extends BaseTest {
         gene.getTerms().add( term );
         term.getDirectGenes().add( gene );
 
-        user.getUserGenes().put( gene.getGeneId(), new UserGene( gene, user, TierType.TIER1 ) );
+        user.getUserGenes().put( gene.getGeneId(), new UserGene( gene, user, TierType.TIER1, PrivacyLevelType.PRIVATE ) );
 
         Collection<UserTerm> userTerms = userService.convertTerms( user, taxon, Collections.singleton( term ) );
 
@@ -477,7 +481,7 @@ public class UserServiceImplTest extends BaseTest {
         gene.getTerms().add( term );
         term.getDirectGenes().add( gene );
 
-        user.getUserGenes().put( gene.getGeneId(), new UserGene( gene, user, TierType.TIER1 ) );
+        user.getUserGenes().put( gene.getGeneId(), new UserGene( gene, user, TierType.TIER1, PrivacyLevelType.PRIVATE ) );
 
         UserTerm ut = userService.convertTerms( user, taxon, term );
 
@@ -691,7 +695,11 @@ public class UserServiceImplTest extends BaseTest {
                 .flatMap( t -> t.getDirectGenes().stream() )
                 .collect( Collectors.toMap( Function.identity(), g -> TierType.TIER1 ) );
 
-        userService.updateTermsAndGenesInTaxon( user, taxon, geneTierMap, terms );
+        Map<Gene, Optional<PrivacyLevelType>> privacyLevelMap = terms.stream()
+                .flatMap( t -> t.getDirectGenes().stream() )
+                .collect( Collectors.toMap( Function.identity(), g -> Optional.of( PrivacyLevelType.PUBLIC ) ) );
+
+        userService.updateTermsAndGenesInTaxon( user, taxon, geneTierMap, privacyLevelMap, terms );
 
         assertThatUserTermsAreEqualTo( user, taxon, terms );
 
@@ -733,7 +741,11 @@ public class UserServiceImplTest extends BaseTest {
                 .flatMap( t -> t.getDirectGenes().stream() )
                 .collect( Collectors.toMap( Function.identity(), g -> TierType.TIER1 ) );
 
-        userService.updateTermsAndGenesInTaxon( user, taxon, geneTierMap, terms );
+        Map<Gene, Optional<PrivacyLevelType>> privacyLevelMap = terms.stream()
+                .flatMap( t -> t.getDirectGenes().stream() )
+                .collect( Collectors.toMap( Function.identity(), g -> Optional.of( PrivacyLevelType.PUBLIC ) ) );
+
+        userService.updateTermsAndGenesInTaxon( user, taxon, geneTierMap, privacyLevelMap, terms );
 
         assertThatUserTermsAreEqualTo( user, taxon, terms );
 
@@ -785,7 +797,12 @@ public class UserServiceImplTest extends BaseTest {
 
         Map<Gene, TierType> geneTierMap = Maps.newHashMap( geneWillChangeTier, TierType.TIER1 );
 
-        userService.updateTermsAndGenesInTaxon( user, taxon, geneTierMap, terms );
+
+        Map<Gene, Optional<PrivacyLevelType>> privacyLevelMap = terms.stream()
+                .flatMap( t -> t.getDirectGenes().stream() )
+                .collect( Collectors.toMap( Function.identity(), g -> Optional.of( PrivacyLevelType.PUBLIC ) ) );
+
+        userService.updateTermsAndGenesInTaxon( user, taxon, geneTierMap, privacyLevelMap, terms );
 
         assertThatUserTermsAreEqualTo( user, taxon, terms );
         assertThatUserTermsAreEqualTo( user, taxon2, Sets.newSet( termOtherTaxon, termOtherTaxon2 ) );
@@ -822,7 +839,12 @@ public class UserServiceImplTest extends BaseTest {
                 .flatMap( t -> t.getDirectGenes().stream() )
                 .collect( Collectors.toMap( Function.identity(), g -> TierType.TIER1 ) );
 
-        userService.updateTermsAndGenesInTaxon( user, taxon, geneTierMap, terms );
+
+        Map<Gene, Optional<PrivacyLevelType>> privacyLevelMap = terms.stream()
+                .flatMap( t -> t.getDirectGenes().stream() )
+                .collect( Collectors.toMap( Function.identity(), g -> Optional.of( PrivacyLevelType.PUBLIC ) ) );
+
+        userService.updateTermsAndGenesInTaxon( user, taxon, geneTierMap, privacyLevelMap, terms );
 
         assertThatUserTermsAreEqualTo( user, taxon, terms );
 
@@ -860,7 +882,7 @@ public class UserServiceImplTest extends BaseTest {
                 .flatMap( t -> t.getDirectGenes().stream() )
                 .collect( Collectors.toMap( Function.identity(), g -> TierType.TIER1 ) );
 
-        userService.updateTermsAndGenesInTaxon( user, taxon, geneTierMap, terms );
+        userService.updateTermsAndGenesInTaxon( user, taxon, geneTierMap, new HashMap<>(), terms );
 
         // Might as well test this
         assertThatUserTermsAreEqualTo( user, taxon, terms );
@@ -900,8 +922,9 @@ public class UserServiceImplTest extends BaseTest {
         Mockito.when( goService.getGenes( Mockito.anyCollectionOf( GeneOntologyTerm.class ), Mockito.any() ) ).thenReturn( Collections.emptySet() );
 
         Map<Gene, TierType> geneTierMap = Maps.newHashMap( geneWillChangeTier, TierType.TIER1 );
+        Map<Gene, Optional<PrivacyLevelType>> genePrivacyLevelTypeMap = Maps.newHashMap(geneWillChangeTier, Optional.of(PrivacyLevelType.PRIVATE) );
 
-        userService.updateTermsAndGenesInTaxon( user, taxon, geneTierMap, Sets.newSet( termWillUpdateFrequency) );
+        userService.updateTermsAndGenesInTaxon( user, taxon, geneTierMap, genePrivacyLevelTypeMap, Sets.newSet( termWillUpdateFrequency) );
 
         assertThat( user.getUserTerms() ).hasSize( 1 );
         assertThat( user.getUserTerms().iterator().next() ).isEqualTo( termWillUpdateFrequency );
@@ -940,7 +963,11 @@ public class UserServiceImplTest extends BaseTest {
                 .flatMap( t -> t.getDirectGenes().stream() )
                 .collect( Collectors.toMap( Function.identity(), g -> TierType.TIER1 ) );
 
-        userService.updateTermsAndGenesInTaxon( user, taxon, geneTierMap, terms );
+        Map<Gene, Optional<PrivacyLevelType>> privacyLevelMap = terms.stream()
+                .flatMap( t -> t.getDirectGenes().stream() )
+                .collect( Collectors.toMap( Function.identity(), g -> Optional.of(PrivacyLevelType.PRIVATE) ) );
+
+        userService.updateTermsAndGenesInTaxon( user, taxon, geneTierMap, privacyLevelMap, terms );
 
         // Why we are here
         assertThatUserTermsAreEqualTo( user, taxon, terms );
@@ -961,7 +988,7 @@ public class UserServiceImplTest extends BaseTest {
     }
 
     private void assertThatUserGenesAreEqualTo( User user, Taxon taxon, Map<Gene, TierType> expectedGenes ) {
-        assertThat( user.getGenesByTaxon( taxon ) )
+        assertThat( user.getGenesByTaxon( taxon ).stream().map(e -> (Gene) e).collect(Collectors.toSet()) )
                 .containsExactlyElementsOf( expectedGenes.keySet() );
         expectedGenes.forEach( ( g, tier ) -> assertThat( user.getUserGenes().get( g.getGeneId() ).getTier() ).isEqualTo( tier ) );
     }

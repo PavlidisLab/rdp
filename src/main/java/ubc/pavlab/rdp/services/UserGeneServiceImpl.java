@@ -24,7 +24,9 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import ubc.pavlab.rdp.model.Gene;
 import ubc.pavlab.rdp.model.Taxon;
+import ubc.pavlab.rdp.model.User;
 import ubc.pavlab.rdp.model.UserGene;
+import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.repositories.TaxonRepository;
 import ubc.pavlab.rdp.repositories.UserGeneRepository;
@@ -50,6 +52,9 @@ public class UserGeneServiceImpl implements UserGeneService {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private PrivacyService privacyService;
 
     @Cacheable(cacheNames = "stats", key = "#root.methodName")
     @Override
@@ -167,15 +172,7 @@ public class UserGeneServiceImpl implements UserGeneService {
     }
 
     private Collection<UserGene> securityFilter( Collection<UserGene> userGenes ) {
-
-        Collection<UserGene> filteredUserGenes = new LinkedList<>();
-        for ( UserGene userGene : userGenes ) {
-            if ( userService.checkCurrentUserCanSee( userGene ) ) {
-                filteredUserGenes.add( userGene );
-            }
-        }
-
-        return filteredUserGenes;
+        return userGenes.stream().filter(privacyService::checkCurrentUserCanSee).collect(Collectors.toList());
     }
 
     private Collection<Gene> findOrthologsForTaxon( Gene gene, Integer targetTaxonId ) {

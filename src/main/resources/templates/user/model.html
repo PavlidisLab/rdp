@@ -98,11 +98,9 @@
                     <div class="card-header">
                         <h4>Data privacy</h4>
                         <div th:if="${@applicationSettings.getPrivacy().isCustomizableLevel()}">Data privacy is set to
-                            <b th:if="${user.getProfile().privacyLevel} == 0">private.</b>
-                            <b th:if="${user.getProfile().privacyLevel} == 1">shared with registered users.</b>
-                            <b th:if="${user.getProfile().privacyLevel} == 2">public.</b>
+                            <b th:text="${user.getEffectivePrivacyLevel().getLabel()}"></b>
                         </div>
-                        <div th:if="(${user.getProfile().privacyLevel} gt 0) and ${@applicationSettings.getPrivacy().isAllowHideGenelist()}">
+                        <div th:if="(${user.getEffectivePrivacyLevel().ordinal()} gt 0) and ${@applicationSettings.getPrivacy().isAllowHideGenelist()}">
                             Non-administrative users that can see your data
                             <b th:if="${user.getProfile().getHideGenelist()}">can not</b>
                             <b th:if="not ${user.getProfile().getHideGenelist()}">can</b>
@@ -141,7 +139,7 @@
                         <div class="tab-content">
                             <div class="tab-pane fade show active" id="genes" role="tabpanel"
                                  aria-labelledby="genes-tab">
-                                <div th:replace="fragments/gene-table :: gene-table(genes=${user.getGenesByTaxonAndTier(taxon, T(ubc.pavlab.rdp.model.enums.TierType).MANUAL_TIERS)})"
+                                <div th:replace="fragments/gene-table :: gene-table(genes=${user.getGenesByTaxonAndTier(taxon, T(ubc.pavlab.rdp.model.enums.TierType).MANUAL_TIERS)}, defaultPrivacyLevel=${user.getEffectivePrivacyLevel()})"
                                      th:remove="tag">...
                                 </div>
                                 <div class="input-group mt-2" th:if="${viewOnly == null}">

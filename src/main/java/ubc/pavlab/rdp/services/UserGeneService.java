@@ -56,4 +56,6 @@ public interface UserGeneService {
     Collection<UserGene> findByLikeSymbol( String symbol, Taxon taxon, Set<TierType> tiers );
 
     Collection<Gene> findOrthologs( Gene gene, Integer orthologTaxonId );
+
+    boolean checkCurrentUserCanSee( UserGene userGene );
 }

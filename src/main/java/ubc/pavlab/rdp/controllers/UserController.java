@@ -9,6 +9,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import ubc.pavlab.rdp.model.*;
+import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.services.GOService;
 import ubc.pavlab.rdp.services.GeneService;
@@ -35,18 +36,6 @@ public class UserController {
 
     @Autowired
     private GOService goService;
-
-    @Getter
-    @Setter
-    @NoArgsConstructor
-    @AllArgsConstructor
-    static class Model {
-
-        private Map<Integer, TierType> geneTierMap;
-        private List<String> goIds;
-        private String description;
-
-    }
 
     @RequestMapping(value = "/user/profile", method = RequestMethod.POST)
     public String saveProfile( @RequestBody @Valid Profile profile ) {
@@ -87,6 +76,19 @@ public class UserController {
         return userService.findCurrentUser().getUserTerms();
     }
 
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    static class Model {
+
+        private Map<Integer, TierType> geneTierMap;
+        private Map<Integer, PrivacyLevelType> genePrivacyLevelMap;
+        private List<String> goIds;
+        private String description;
+
+    }
+
     @RequestMapping(value = "/user/model/{taxonId}", method = RequestMethod.POST)
     public String saveModelForTaxon( @PathVariable Integer taxonId, @RequestBody Model model ) {
         User user = userService.findCurrentUser();
@@ -94,10 +96,12 @@ public class UserController {
 
         user.getTaxonDescriptions().put( taxon, model.getDescription() );
 
-        Map<Gene, TierType> genes = geneService.deserializeGenes( model.getGeneTierMap() );
+        Map<Gene, TierType> genes = geneService.deserializeGenesTiers( model.getGeneTierMap() );
+        Map<Gene, Optional<PrivacyLevelType>> privacyLevels = geneService.deserializeGenesPrivacyLevels( model.getGenePrivacyLevelMap() );
         Set<GeneOntologyTerm> terms = model.getGoIds().stream().map( s -> goService.getTerm( s ) ).collect( Collectors.toSet() );
 
-        userService.updateTermsAndGenesInTaxon( user, taxon, genes, terms );
+        log.info( privacyLevels );
+        userService.updateTermsAndGenesInTaxon( user, taxon, genes, privacyLevels, terms );
 
         return "Saved.";
     }

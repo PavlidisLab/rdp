@@ -25,7 +25,7 @@ public interface GOService {
 
     Collection<GeneOntologyTerm> getDescendants( GeneOntologyTerm entry, boolean includePartOf );
 
-    Map<GeneOntologyTerm, Long> termFrequencyMap( Collection<Gene> genes );
+    Map<GeneOntologyTerm, Long> termFrequencyMap( Collection<? extends Gene> genes );
 
     List<SearchResult<UserTerm>> search( String queryString, Taxon taxon, int max );
 

@@ -6,14 +6,19 @@ function collectModel() {
 
     // Gene Information
     var geneTierMap = {};
+    var genePrivacyLevelMap = {};
+
     $('#gene-table').DataTable().rows().every( function ( rowIdx, tableLoop, rowLoop ) {
         var data = this.data();
         var geneId =  parseInt(data[1], 10);
         if (data[1] == geneId ) {
             geneTierMap[geneId] = $(this.node()).find('input[type=checkbox]').prop('checked') ? "TIER1" : "TIER2";
         }
+        var selectedPrivacyLevelOption = $(this.node()).find('select option:selected')[0];
+        genePrivacyLevelMap[geneId] = (selectedPrivacyLevelOption.value == '') ? null : parseInt(selectedPrivacyLevelOption.value);
     } );
     model.geneTierMap = geneTierMap;
+    model.genePrivacyLevelMap = genePrivacyLevelMap;
 
     // Term Information
     var goIds = [];
@@ -44,11 +49,19 @@ function addGeneRow(data) {
                 row.push('');
                 row.push('<span class="align-middle text-danger">Could Not Find Gene.</span>');
                 row.push('');
+                row.push('');
             } else {
                 row.push('<span class="align-middle"><i class="delete-row align-middle"></i><a href="https://www.ncbi.nlm.nih.gov/gene/' + gene.geneId + '" target="_blank" class="align-middle">' + gene.symbol + '</a></span>')
                 row.push(gene.geneId);
                 row.push('<span class="align-middle">' + gene.name + '</span>');
-                row.push('<input class="align-middle" type="checkbox"/>');
+                row.push('<input name="primary" class="align-middle" type="checkbox"/>');
+                // TODO: add missing privacy options
+                row.push('<select class="form-control">' +
+                    '<option value="">Default (Public)</option>' +
+                    '<option value="0">Private</option>' +
+                    '<option value="1">Shared</option>' +
+                    '<option value="2">Public</option>' +
+                    '</select>')
             }
             rows.push(row);
         }
@@ -123,7 +136,8 @@ $(document).ready(function () {
             { "name": "Symbol",   "targets": 0},
             { "name": "Id",  "targets": 1, "visible": false },
             { "name": "Name", "targets": 2},
-            { "name": "Primary",  "targets": 3, "className": "text-center", "orderDataType": "dom-checkbox"}
+            {"name": "Primary", "targets": 3, "className": "text-center", "orderDataType": "dom-checkbox"},
+            {"name": "PrivacyLevel", "targets": 4, "className": "text-center", "orderDataType": "dom-select"}
         ]
     });
 

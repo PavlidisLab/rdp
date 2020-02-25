@@ -5,6 +5,7 @@ import lombok.Setter;
 import org.hibernate.validator.constraints.URL;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
+import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.services.UserService;
 
 import java.util.List;
@@ -34,8 +35,18 @@ public class ApplicationSettings {
     @Getter
     @Setter
     public static class PrivacySettings {
-        private Integer defaultLevel = UserService.PRIVACY_PRIVATE;
-        private Integer minLevel = UserService.PRIVACY_PRIVATE;
+        /**
+         * Must be one of enabledLevels
+         */
+        private Integer defaultLevel = PrivacyLevelType.PRIVATE.ordinal();
+        private List<String> enabledLevels;
+        /**
+         * Minimum level of privacy.
+         * @deprecated The setting is still honored, but you should use enabledLevels instead.
+         */
+        @Deprecated
+        private Integer minLevel = PrivacyLevelType.PRIVATE.ordinal();
+        private boolean enableGenePrivacy = false;
         private boolean defaultSharing = false;
         private boolean customizableLevel = true;
         private boolean customizableSharing = true;

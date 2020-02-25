@@ -1,5 +1,6 @@
 package ubc.pavlab.rdp.services;
 
+import lombok.NonNull;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ubc.pavlab.rdp.exception.TokenException;
 import ubc.pavlab.rdp.model.*;
+import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.repositories.PasswordResetTokenRepository;
 import ubc.pavlab.rdp.repositories.RoleRepository;
@@ -48,6 +50,10 @@ public class UserServiceImpl implements UserService {
     private BCryptPasswordEncoder bCryptPasswordEncoder;
     @Autowired
     private GOService goService;
+
+    @Autowired
+    PrivacyService privacyService;
+
     private Role roleAdmin;
 
     @SuppressWarnings("unused") // Keeping for future use
@@ -127,7 +133,7 @@ public class UserServiceImpl implements UserService {
 	    if (applicationSettings.getPrivacy() == null){
 		log.warn( currentUsername + " attempted to updated, but applicationSettings is null. ");
 	    } else {
-		Integer defaultPrivacyLevel = applicationSettings.getPrivacy().getDefaultLevel();
+                PrivacyLevelType defaultPrivacyLevel = PrivacyLevelType.values()[applicationSettings.getPrivacy().getDefaultLevel()];
 		boolean defaultSharing = applicationSettings.getPrivacy().isDefaultSharing();
 		boolean defaultGenelist = applicationSettings.getPrivacy().isAllowHideGenelist();
 		
@@ -144,6 +150,22 @@ public class UserServiceImpl implements UserService {
 		    user.getProfile().setHideGenelist(defaultGenelist);
 		}	
 	    }
+
+            PrivacyLevelType userPrivacyLevel = user.getProfile().getPrivacyLevel();
+
+            // We cap the user gene privacy level to its new profile setting
+            for ( UserGene gene : user.getUserGenes().values() ) {
+                PrivacyLevelType genePrivacyLevel = gene.getPrivacyLevel();
+                // in case any of the user or gene privacy level is null, we already have a cascading value
+                if ( userPrivacyLevel == null || genePrivacyLevel == null ) {
+                    continue;
+                }
+                if ( userPrivacyLevel.ordinal() < genePrivacyLevel.ordinal() ) {
+                    gene.setPrivacyLevel( userPrivacyLevel );
+                    log.info( "Privacy level of " + gene + " will be capped to " + userPrivacyLevel + " (was " + genePrivacyLevel + ")." );
+                }
+            }
+
             return userRepository.save( user );
 	    
         } else {
@@ -214,7 +236,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public User findUserById( int id ) {
         User user = userRepository.findOne( id );
-        return user == null ? null : checkCurrentUserCanSee( user ) ? user : null;
+        return user == null ? null : privacyService.checkCurrentUserCanSee( user ) ? user : null;
     }
 
     @Override
@@ -235,26 +257,35 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<User> findAll() {
-        return userRepository.findAll().stream().filter( this::checkCurrentUserCanSee ).collect( Collectors.toList() );
+        return userRepository.findAll().stream()
+                .filter(privacyService::checkCurrentUserCanSee)
+                .collect( Collectors.toList() );
     }
 
     @Override
     public Collection<User> findByLikeName( String nameLike ) {
-        return securityFilter( userRepository
-                .findByProfileNameContainingIgnoreCaseOrProfileLastNameContainingIgnoreCase( nameLike, nameLike ) );
+        return userRepository.findByProfileNameContainingIgnoreCaseOrProfileLastNameContainingIgnoreCase( nameLike, nameLike )
+                .stream()
+                .filter(privacyService::checkCurrentUserCanSee)
+                .collect( Collectors.toList() );
     }
 
     @Override
     public Collection<User> findByStartsName( String startsName ) {
-        return securityFilter( userRepository
-                .findByProfileLastNameStartsWithIgnoreCase( startsName ) );
+        return userRepository
+                .findByProfileLastNameStartsWithIgnoreCase( startsName )
+                .stream()
+                .filter(privacyService::checkCurrentUserCanSee)
+                .collect( Collectors.toList() );
     }
 
     @Override
     public Collection<User> findByDescription( String descriptionLike ) {
-        return securityFilter( userRepository
-                .findByProfileDescriptionContainingIgnoreCaseOrTaxonDescriptionsContainingIgnoreCase( descriptionLike,
-                        descriptionLike ) );
+        return userRepository
+                .findByProfileDescriptionContainingIgnoreCaseOrTaxonDescriptionsContainingIgnoreCase( descriptionLike, descriptionLike )
+                .stream()
+                .filter(privacyService::checkCurrentUserCanSee)
+                .collect( Collectors.toList() );
     }
 
     @Override
@@ -264,14 +295,14 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Collection<UserTerm> convertTerms( User user, Taxon taxon, Collection<GeneOntologyTerm> terms ) {
-        Set<Gene> genes = user.getGenesByTaxonAndTier( taxon, TierType.MANUAL_TIERS );
+        Set<UserGene> genes = user.getGenesByTaxonAndTier( taxon, TierType.MANUAL_TIERS );
 
         return convertTermTypes( terms, taxon, genes );
     }
 
     @Override
     public UserTerm convertTerms( User user, Taxon taxon, GeneOntologyTerm term ) {
-        Set<Gene> genes = user.getGenesByTaxonAndTier( taxon, TierType.MANUAL_TIERS );
+        Set<UserGene> genes = user.getGenesByTaxonAndTier( taxon, TierType.MANUAL_TIERS );
 
         return convertTermTypes( term, taxon, genes );
     }
@@ -286,7 +317,7 @@ public class UserServiceImpl implements UserService {
         if ( user == null || taxon == null )
             return null;
 
-        Set<Gene> genes = user.getGenesByTaxonAndTier( taxon, TierType.MANUAL_TIERS );
+        Set<UserGene> genes = user.getGenesByTaxonAndTier( taxon, TierType.MANUAL_TIERS );
 
         Map<GeneOntologyTerm, Long> fmap = goService.termFrequencyMap( genes );
 
@@ -322,6 +353,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     @Override
     public void updateTermsAndGenesInTaxon( User user, Taxon taxon, Map<Gene, TierType> genesToTierMap,
+                                            Map<Gene, Optional<PrivacyLevelType>> genesToPrivacyLevelMap,
             Collection<GeneOntologyTerm> goTerms ) {
         // Remove genes from other taxons (they shouldn't be here but just incase)
         genesToTierMap.keySet().removeIf( e -> !e.getTaxon().equals( taxon ) );
@@ -345,7 +377,8 @@ public class UserServiceImpl implements UserService {
 
         int updated = 0;
         for ( Map.Entry<Gene, TierType> entry : genesToTierMap.entrySet() ) {
-            updated += updateOrInsert( user, entry.getKey(), entry.getValue() ) ? 1 : 0;
+            Optional<PrivacyLevelType> privacyLevel = genesToPrivacyLevelMap.get( entry.getKey() );
+            updated += updateOrInsert( user, entry.getKey(), entry.getValue(), privacyLevel ) ? 1 : 0;
         }
 
         int added = user.getUserGenes().size() - initialSize;
@@ -439,53 +472,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public boolean checkCurrentUserCanSee( User user ) {
-        User currentUser = findCurrentUser();
-        if ( roleAdmin == null ) {
-            roleAdmin = roleRepository.findByRole( "ROLE_ADMIN" );
-        }
-
-        // Never show the remote admin profile (or accidental null users)
-        if ( user == null || ( applicationSettings.getIsearch() != null && user.getId()
-                .equals( applicationSettings.getIsearch().getUserId() ) ) ) {
-            return false;
-        }
-
-        Profile profile = user.getProfile();
-
-        if ( profile == null || profile.getPrivacyLevel() == null || profile.getShared() == null ) {
-            log.error( "!! User without a profile, privacy levels or sharing set: " + user.getId() + " / " + user
-                    .getEmail() );
-            return false;
-        }
-
-        // Either the user is looking at himself, or the user is public, or shared with registered users - check for any logged-in user, or private - check for admin; If logged-in user is admin, we have to
-        // check whether this user is the designated actor for the authenticated remote search, in which case we have to check for remote search privileges on the user.
-        return user.equals( currentUser ) // User is looking at himself
-                || ( profile.getPrivacyLevel().equals( PRIVACY_PUBLIC ) ) // Data is public
-                || ( profile.getPrivacyLevel().equals( PRIVACY_REGISTERED ) && currentUser != null && !currentUser
-                .getId().equals( applicationSettings.getIsearch().getUserId() ) )
-                // data is accessible for registerd users and there is a user logged in who is not the remote admin
-                || ( profile.getPrivacyLevel().equals( PRIVACY_PRIVATE ) && currentUser != null && currentUser
-                .getRoles().contains( roleAdmin ) && !currentUser.getId()
-                .equals( applicationSettings.getIsearch().getUserId() ) )
-                // data is private and there is an admin logged in who is not the remote admin
-                || ( profile.getShared() && currentUser != null && currentUser.getRoles().contains( roleAdmin )
-                && currentUser.getId().equals( applicationSettings.getIsearch()
-                .getUserId() ) ); // data is designated as remotely shared and there is an admin logged in who is the remote admin
-    }
-
-    @Override
-    public boolean checkCurrentUserCanSee( UserGene userGene ) {
-        return checkCurrentUserCanSee( userGene.getUser() );
-    }
-
-    @Override
     public List<String> getChars() {
         List<User> users = this.findAll();
         Set<String> chars = new HashSet<>();
         for ( User u : users ) {
-            if ( checkCurrentUserCanSee( u ) ) {
+            if ( privacyService.checkCurrentUserCanSee( u ) ) {
                 if ( u.getProfile().getLastName() != null && !u.getProfile().getLastName().isEmpty() )
                     chars.add( u.getProfile().getLastName().substring( 0, 1 ).toUpperCase() );
             }
@@ -503,7 +494,7 @@ public class UserServiceImpl implements UserService {
     }
 
     private Collection<UserTerm> convertTermTypes( Collection<GeneOntologyTerm> goTerms, Taxon taxon,
-            Set<Gene> genes ) {
+                                                   Set<? extends Gene> genes ) {
         List<UserTerm> newTerms = new ArrayList<>();
         for ( GeneOntologyTerm goTerm : goTerms ) {
             UserTerm term = convertTermTypes( goTerm, taxon, genes );
@@ -514,7 +505,7 @@ public class UserServiceImpl implements UserService {
         return newTerms;
     }
 
-    private UserTerm convertTermTypes( GeneOntologyTerm goTerm, Taxon taxon, Set<Gene> genes ) {
+    private UserTerm convertTermTypes( GeneOntologyTerm goTerm, Taxon taxon, Set<? extends Gene> genes ) {
         if ( goTerm != null ) {
             UserTerm term = new UserTerm( goTerm, taxon, genes );
             if ( term.getSize() <= applicationSettings.getGoTermSizeLimit() ) {
@@ -525,20 +516,17 @@ public class UserServiceImpl implements UserService {
         return null;
     }
 
-    private boolean updateOrInsert( User user, Gene gene, TierType tier ) {
-        if ( user == null || gene == null || tier == null ) {
-            return false;
-        }
-
+    private boolean updateOrInsert( @NonNull User user, @NonNull Gene gene, @NonNull TierType tier, Optional<PrivacyLevelType> privacyLevel ) {
         UserGene existing = user.getUserGenes().get( gene.getGeneId() );
 
         boolean updated = false;
         if ( existing != null ) {
             // Only set tier because the rest of it's information is updated PreLoad
-            updated = !existing.getTier().equals( tier );
+            updated = !existing.getTier().equals( tier ) || !Optional.ofNullable( existing.getPrivacyLevel() ).equals( privacyLevel );
             existing.setTier( tier );
+            existing.setPrivacyLevel( privacyLevel.orElse( null ) );
         } else {
-            user.getUserGenes().put( gene.getGeneId(), new UserGene( gene, user, tier ) );
+            user.getUserGenes().put( gene.getGeneId(), new UserGene( gene, user, tier, privacyLevel.orElse( null ) ) );
         }
 
         return updated;
@@ -559,10 +547,6 @@ public class UserServiceImpl implements UserService {
 
     private boolean removeTermsFromUserByTaxon( User user, Taxon taxon ) {
         return user.getUserTerms().removeIf( ut -> ut.getTaxon().equals( taxon ) );
-    }
-
-    private Collection<User> securityFilter( Collection<User> users ) {
-        return users.stream().filter( this::checkCurrentUserCanSee ).collect( Collectors.toList() );
     }
 
 }

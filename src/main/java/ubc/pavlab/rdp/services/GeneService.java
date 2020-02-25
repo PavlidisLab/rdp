@@ -22,11 +22,13 @@ package ubc.pavlab.rdp.services;
 
 import ubc.pavlab.rdp.model.Gene;
 import ubc.pavlab.rdp.model.Taxon;
+import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.util.SearchResult;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Created by mjacobson on 17/01/18.
@@ -45,7 +47,9 @@ public interface GeneService {
 
     int size();
 
-    Map<Gene, TierType> deserializeGenes( Map<Integer, TierType> genesTierMap );
+    Map<Gene, TierType> deserializeGenesTiers( Map<Integer, TierType> genesTierMap );
+
+    Map<Gene, Optional<PrivacyLevelType>> deserializeGenesPrivacyLevels( Map<Integer, PrivacyLevelType> genesPrivacyLevelMap );
 
     void addAll( Collection<Gene> genes );
 

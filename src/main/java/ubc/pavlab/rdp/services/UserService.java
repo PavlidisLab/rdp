@@ -5,31 +5,16 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.transaction.annotation.Transactional;
 import ubc.pavlab.rdp.exception.TokenException;
 import ubc.pavlab.rdp.model.*;
+import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.TierType;
 
 import javax.validation.ValidationException;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Created by mjacobson on 16/01/18.
  */
 public interface UserService {
-
-    /**
-     * Privacy level designating that only the administrator can access the users data.
-     */
-    Integer PRIVACY_PRIVATE = 0;
-    /**
-     * Privacy level designating that only the locally registered users can access the users data.
-     */
-    Integer PRIVACY_REGISTERED = 1;
-    /**
-     * Privacy level designating that everybody can access the users data.
-     */
-    Integer PRIVACY_PUBLIC = 2;
 
     @Transactional
     User create( User user );
@@ -78,6 +63,7 @@ public interface UserService {
 
     @Transactional
     void updateTermsAndGenesInTaxon( User user, Taxon taxon, Map<Gene, TierType> genesToTierMap,
+                                     Map<Gene, Optional<PrivacyLevelType>> genesToPrivacyLevelMap,
             Collection<GeneOntologyTerm> goTerms );
 
     @Transactional
@@ -96,10 +82,6 @@ public interface UserService {
 
     @Transactional
     User confirmVerificationToken( String token );
-
-    boolean checkCurrentUserCanSee( User user );
-
-    boolean checkCurrentUserCanSee( UserGene userGene );
 
     List<String> getChars();
 }

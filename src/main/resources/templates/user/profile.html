@@ -143,135 +143,138 @@
                         <h3 class="mb-0 d-inline-block">About My Research</h3>
                     </div>
                     <div class="p-2" style="height: 120px;">
-                        <textarea class="data-edit" name="description" th:text="${user.profile.description}" disabled="disabled"></textarea>
+            <textarea class="data-edit" name="description" th:text="${user.profile.description}"
+                      disabled="disabled"></textarea>
                     </div>
                 </div>
             </div>
 
-            <div class="w-100" th:if="${@applicationSettings.getPrivacy().isCustomizableLevel()} or ${@applicationSettings.getPrivacy().isCustomizableSharing()} or ${@applicationSettings.getPrivacy().isAllowHideGenelist()}"></div>
-            <div class="col my-3" th:if="${@applicationSettings.getPrivacy().isCustomizableLevel()} or ${@applicationSettings.getPrivacy().isCustomizableSharing()} or ${@applicationSettings.getPrivacy().isAllowHideGenelist()}">
+            <div class="w-100"
+                 th:if="${@applicationSettings.getPrivacy().isCustomizableLevel()} or ${@applicationSettings.getPrivacy().isCustomizableSharing()} or ${@applicationSettings.getPrivacy().isAllowHideGenelist()}"></div>
+            <div class="col my-3"
+                 th:if="${@applicationSettings.getPrivacy().isCustomizableLevel()} or ${@applicationSettings.getPrivacy().isCustomizableSharing()} or ${@applicationSettings.getPrivacy().isAllowHideGenelist()}">
                 <div class="card privacy-settings edit-container">
                     <div class="card-header d-flex align-items-center">
                         <h3 class="mb-0 d-inline-block">Data Privacy Settings</h3>
                     </div>
-                    <div id="privacy-levels" class="w-100 p-2" th:if="${@applicationSettings.getPrivacy().isCustomizableLevel()}">
-                        <p class="radio">
-                            Read more about these settings in the <a href="faq#privacy-settings" target="_blank">FAQ</a>
-                        </p>
-                        <div class="radio" th:if="${@applicationSettings.getPrivacy().getMinLevel() &lt; 1}" >
-                            <label>
-                                <input id="privacyLevelPrivate" type="radio" name="privacy" th:checked="${user.profile.privacyLevel == 0}" value="0" />
-                                Private
-                            </label>
-                            <i class="tip oi oi-question-mark"
-                               data-ot-background="cornflowerblue"
-                               data-ot-border-color="white"
-                               data-ot-shadow-color="lightgray"
-                               data-ot="Your information will only be accessible by administrators">
-                            </i>
-                        </div>
-                        <div class="radio" th:if="${@applicationSettings.getPrivacy().getMinLevel() &lt; 2}">
-                            <label>
-                                <input id="privacyLevelRegistered" type="radio" name="privacy" th:checked="${user.profile.privacyLevel == 1}" value="1" />
-                                Shared
-                            </label>
-                            <i class="tip oi oi-question-mark"
-                               data-ot-background="cornflowerblue"
-                               data-ot-border-color="white"
-                               data-ot-shadow-color="lightgray"
-                               data-ot="Your information will be accessible by other researchers who are registered">
-                            </i>
-                        </div>
-                        <div class="radio">
-                            <label>
-                                <input id="privacyLevelPublic" type="radio" name="privacy" th:checked="${user.profile.privacyLevel == 2}" value="2" />
-                                Public
-                            </label>
-                            <i class="tip oi oi-question-mark"
-                               data-ot-background="cornflowerblue"
-                               data-ot-border-color="white"
-                               data-ot-shadow-color="lightgray"
-                               data-ot="Your information will be visible publicly">
-                            </i>
-                        </div>
-                    </div>
-                    <hr th:if="${@applicationSettings.getPrivacy().isCustomizableLevel() == (@applicationSettings.getPrivacy().isCustomizableSharing() == true)}"/>
-                    <div id="privacy-sharing" class="w-100 p-2 margin-chbox" th:if="${@applicationSettings.getPrivacy().isCustomizableSharing()}">
-                        <div class="radio">
-                            Read more about these settings in the <a href="faq#isearch" target="_blank">FAQ</a>
-                        </div>
-                        <div class="col-12">
-                            <label class="form-check-label">
-                                <input id="privacy-sharing-checkbox" type="checkbox" class="form-check-input" th:checked="${user.profile.shared}"/>
-                                Share data with partner registries
-                            </label>
-                            <i class="tip oi oi-question-mark"
-                               data-ot-background="cornflowerblue"
-                               data-ot-border-color="white"
-                               data-ot-shadow-color="lightgray"
-                               data-ot="Administrators of partner registries will be able to view your data">
-                            </i>
-                        </div>
-                    </div>
-                    <hr th:if="${@applicationSettings.getPrivacy().isAllowHideGenelist() == ((@applicationSettings.getPrivacy().isCustomizableLevel() || (@applicationSettings.getPrivacy().isCustomizableSharing()) == true))}"/>
-                    <div id="privacy-genelist" class="d-flex w-100 p-2 margin-chbox" th:if="${@applicationSettings.getPrivacy().isAllowHideGenelist()}">
-                        <div class="col-12"
-                             title="">
-                            <label class="form-check-label">
-                                <input id="privacy-genelist-checkbox" type="checkbox" class="form-check-input" th:checked="${user.profile.hideGenelist}" />
-                                Hide genelist for non-administrative users
-                            </label>
-                            <i class="tip oi oi-question-mark"
-                               data-ot-background="cornflowerblue"
-                               data-ot-border-color="white"
-                               data-ot-shadow-color="lightgray"
-                               data-ot="Hide your gene list when sharing your profile with others">
-                            </i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="w-100"></div>
-
-            <div class="col my-3">
-                <div class="card publication-info">
-                    <div class="card-header">
-                        <h3 class="mb-0">Publications</h3>
-                    </div>
-                    <table id="publication-table" class="table mb-0">
-                        <thead class=".thead-light">
-                        <tr>
-                            <th scope="col">PubMed</th>
-                            <th scope="col">Title</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <th:block th:each="pub : ${user.profile.publications}">
-                            <tr>
-                                <td><i class="delete-row" th:if="${viewOnly == null}"/><span th:text="${pub.pmid}" th:remove="tag"></span></td>
-                                <td><a th:href="${'https://www.ncbi.nlm.nih.gov/pubmed/' + pub.pmid}" target="_blank" th:text="${pub.title != ''} ? ${pub.title} : 'Unknown Title'"></a></td>
-                            </tr>
-                        </th:block>
-                        </tbody>
-                        <tfoot th:if="${viewOnly == null}">
-                        <tr>
-                            <td colspan="2">
-                                <div class="input-group">
-                                    <div class="input-group-prepend">
-                                        <button class="btn btn-outline-secondary add-row text-success" type="button">+</button>
-                                    </div>
-                                    <input type="text" class="pub-input form-control" placeholder="PubMed Ids: 25363768, 25418537"/>
+                    <div class="list-group list-group-flush">
+                        <div id="privacy-levels" class="list-group-item"
+                             th:if="${@applicationSettings.getPrivacy().isCustomizableLevel()}">
+                            <h5>Privacy Level</h5>
+                            <div class="form-group">
+                                <div class="form-check-inline"
+                                     th:each="privacyLevel : ${T(ubc.pavlab.rdp.model.enums.PrivacyLevelType).values()}"
+                                     th:if="${@privacyService.isPrivacyLevelEnabled(privacyLevel)}">
+                                    <input class="form-check-input" type="radio" name="privacy"
+                                           th:id="${'privacy-level-' + privacyLevel.getLabel()}"
+                                           th:checked="${user.profile.privacyLevel == privacyLevel}"
+                                           th:value="${privacyLevel.ordinal()}"/>
+                                    <label class="form-check-label" th:for="${'privacy-level-' + privacyLevel.getLabel()}">
+                                        <span th:text="${privacyLevel.getLabel()}"></span>
+                                        <i class="tip oi oi-question-mark"
+                                           data-ot-background="cornflowerblue"
+                                           data-ot-border-color="white"
+                                           data-ot-shadow-color="lightgray"
+                                           th:attr="data-ot=${privacyLevel.getDescription()}"/>
+                                    </label>
                                 </div>
-                            </td>
-                        </tr>
-                        </tfoot>
-                    </table>
+                            </div>
+
+                            <div class="alert alert-warning" role="alert" th:if="${@applicationSettings.getPrivacy().isEnableGenePrivacy()}">
+                                If you lower your privacy level, all of your genes privacy levels will be capped.
+                            </div>
+                            <div>
+                                Read more about these settings in the <a th:href="@{/user/faq#privacy-settings}" target="_blank">FAQ</a>.
+                            </div>
+                        </div>
+                        <div id="privacy-sharing" class="list-group-item"
+                             th:if="${@applicationSettings.getPrivacy().isCustomizableSharing()}">
+                            <h5>Partner registry</h5>
+                            <div class="form-group">
+                                <div class="form-check form-check-inline">
+                                    <input id="privacy-sharing-checkbox" type="checkbox" class="form-check-input"
+                                           th:checked="${user.profile.shared}"/>
+                                    <label class="form-check-label" for="privacy-sharing-checkbox">
+                                        Share data with partner registries
+                                        <i class="tip oi oi-question-mark"
+                                           data-ot-background="cornflowerblue"
+                                           data-ot-border-color="white"
+                                           data-ot-shadow-color="lightgray"
+                                           data-ot="Administrators of partner registries will be able to view your data">
+                                        </i>
+                                    </label>
+                                </div>
+                            </div>
+                            <div>
+                                Read more about these settings in the <a th:href="@{/user/faq#isearch}" target="_blank">FAQ</a>.
+                            </div>
+                        </div>
+                        <div id="privacy-genelist" class="list-group-item"
+                             th:if="${@applicationSettings.getPrivacy().isAllowHideGenelist()}">
+                            <h5>Content displayed on your profile</h5>
+                            <div class="form-check form-check-inline">
+                                <input id="privacy-genelist-checkbox" type="checkbox" class="form-check-input"
+                                       th:checked="${user.profile.hideGenelist}"/>
+                                <label class="form-check-label" for="privacy-genelist-checkbox">
+                                    Hide genelist for non-administrative users
+                                    <i class="tip oi oi-question-mark"
+                                       data-ot-background="cornflowerblue"
+                                       data-ot-border-color="white"
+                                       data-ot-shadow-color="lightgray"
+                                       data-ot="Hide your gene list when sharing your profile with others">
+                                    </i>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
+        <div class="w-100"></div>
+
+        <div class="card publication-info">
+            <div class="card-header">
+                <h3 class="mb-0">Publications</h3>
+            </div>
+            <table id="publication-table" class="table mb-0">
+                <thead class=".thead-light">
+                <tr>
+                    <th scope="col">PubMed</th>
+                    <th scope="col">Title</th>
+                </tr>
+                </thead>
+                <tbody>
+                <th:block th:each="pub : ${user.profile.publications}">
+                    <tr>
+                        <td><i class="delete-row" th:if="${viewOnly == null}"/><span
+                                th:text="${pub.pmid}"
+                                th:remove="tag"></span>
+                        </td>
+                        <td><a th:href="${'https://www.ncbi.nlm.nih.gov/pubmed/' + pub.pmid}"
+                               target="_blank"
+                               th:text="${pub.title != ''} ? ${pub.title} : 'Unknown Title'"></a></td>
+                    </tr>
+                </th:block>
+                </tbody>
+                <tfoot th:if="${viewOnly == null}">
+                <tr>
+                    <td colspan="2">
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <button class="btn btn-outline-secondary add-row text-success"
+                                        type="button">+
+                                </button>
+                            </div>
+                            <input type="text" class="pub-input form-control"
+                                   placeholder="PubMed Ids: 25363768, 25418537"/>
+                        </div>
+                    </td>
+                </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
 </div>
 <div th:replace="fragments/footer" th:remove="tag">...</div>
 </body>

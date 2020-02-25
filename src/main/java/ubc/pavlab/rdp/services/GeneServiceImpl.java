@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import ubc.pavlab.rdp.model.Gene;
 import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.model.enums.GeneMatchType;
+import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.util.GeneInfoParser;
@@ -111,9 +112,15 @@ public class GeneServiceImpl extends SearchableEhcache<Integer, Gene> implements
     }
 
     @Override
-    public Map<Gene, TierType> deserializeGenes( Map<Integer, TierType> genesTierMap ) {
+    public Map<Gene, TierType> deserializeGenesTiers( Map<Integer, TierType> genesTierMap ) {
         return load( genesTierMap.keySet() ).stream().filter( Objects::nonNull )
                 .collect( Collectors.toMap( g -> g, g -> genesTierMap.get( g.getGeneId() ) ) );
+    }
+
+    @Override
+    public Map<Gene, Optional<PrivacyLevelType>> deserializeGenesPrivacyLevels( Map<Integer, PrivacyLevelType> genesPrivacyLevelMap ) {
+        return load( genesPrivacyLevelMap.keySet() ).stream().filter( Objects::nonNull )
+                .collect( Collectors.toMap( g -> g, g -> Optional.ofNullable( genesPrivacyLevelMap.get( g.getGeneId() ) ) ) );
     }
 
     @Override

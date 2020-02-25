@@ -9,6 +9,7 @@ import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.springframework.data.annotation.Transient;
 import ubc.pavlab.rdp.listeners.UserEntityListener;
+import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.TierType;
 
 import javax.persistence.*;
@@ -26,7 +27,7 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 @EqualsAndHashCode(of = {"id"})
 @ToString( of = {"id", "email", "enabled"})
-public class User{
+public class User implements PrivacySensitive {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -87,13 +88,13 @@ public class User{
 
     @JsonIgnore
     @Transient
-    public Set<Gene> getGenesByTaxon( Taxon taxon ) {
+    public Set<UserGene> getGenesByTaxon( Taxon taxon ) {
         return this.getUserGenes().values().stream().filter( gene -> gene.getTaxon().equals( taxon ) ).collect( Collectors.toSet() );
     }
 
     @JsonIgnore
     @Transient
-    public Set<Gene> getGenesByTaxonAndTier( Taxon taxon, Set<TierType> tiers) {
+    public Set<UserGene> getGenesByTaxonAndTier( Taxon taxon, Set<TierType> tiers ) {
         return this.getUserGenes().values().stream()
                 .filter( gene -> gene.getTaxon().equals( taxon ) && tiers.contains( gene.getTier()) ).collect( Collectors.toSet() );
     }
@@ -114,5 +115,19 @@ public class User{
     @Transient
     public Set<Taxon> getTaxons() {
         return this.getUserGenes().values().stream().map( Gene::getTaxon ).collect( Collectors.toSet() );
+    }
+
+    @Override
+    public Optional<User> getOwner() {
+        return Optional.of(this);
+    }
+
+    @Override
+    public PrivacyLevelType getEffectivePrivacyLevel() {
+        // this is a fallback
+        if (getProfile() == null || getProfile().getPrivacyLevel() == null) {
+            return PrivacyLevelType.PRIVATE;
+        }
+        return getProfile().getPrivacyLevel();
     }
 }

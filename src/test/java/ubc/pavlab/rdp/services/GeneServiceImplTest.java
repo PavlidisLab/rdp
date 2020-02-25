@@ -281,7 +281,7 @@ public class GeneServiceImplTest extends BaseTest {
         geneTierMap.put( 3, TierType.TIER3 );
         geneTierMap.put( 4, TierType.TIER3 );
         geneTierMap.put( 5, TierType.TIER3 );
-        Map<Gene, TierType> found = geneService.deserializeGenes( geneTierMap );
+        Map<Gene, TierType> found = geneService.deserializeGenesTiers( geneTierMap );
         assertThat( found.keySet() ).containsExactly( genes.get( 1 ), genes.get( 2 ), genes.get( 3 ) );
         assertThat( found.values() ).containsExactly( TierType.TIER1, TierType.TIER2, TierType.TIER3 );
     }

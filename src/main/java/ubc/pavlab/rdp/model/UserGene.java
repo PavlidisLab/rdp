@@ -1,14 +1,14 @@
 package ubc.pavlab.rdp.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.annotations.ColumnDefault;
+import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.TierType;
 
 import javax.persistence.*;
+import java.util.Optional;
 
 /**
  * Created by mjacobson on 17/01/18.
@@ -25,7 +25,7 @@ import javax.persistence.*;
 @Setter
 @NoArgsConstructor
 @ToString(callSuper = true)
-public class UserGene extends Gene {
+public class UserGene extends Gene implements PrivacySensitive {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -45,6 +45,11 @@ public class UserGene extends Gene {
     @Transient
     private User remoteUser;
 
+    @Column(name = "user_privacy_level", nullable = true)
+    @ColumnDefault("NULL")
+    @Enumerated(EnumType.ORDINAL)
+    private PrivacyLevelType privacyLevel;
+
     public void updateGene( Gene gene ) {
         this.setGeneId( gene.getGeneId() );
         this.setSymbol( gene.getSymbol() );
@@ -55,11 +60,25 @@ public class UserGene extends Gene {
         this.setTerms( gene.getTerms() );
     }
 
-    public UserGene( Gene gene, User user, TierType tier ) {
+    public UserGene( Gene gene, User user, TierType tier, PrivacyLevelType privacyLevel ) {
         super();
         this.tier = tier;
         this.user = user;
+        this.privacyLevel = privacyLevel;
         this.updateGene( gene );
     }
 
+    public Optional<User> getOwner() {
+        return Optional.of(getUser());
+    }
+
+    /**
+     * Get the effective privacy level for this gene.
+     *
+     * This value cascades down to the user profile or the application default in case it is not set.
+     */
+    @Override
+    public PrivacyLevelType getEffectivePrivacyLevel() {
+        return Optional.ofNullable(getPrivacyLevel()).orElse(getUser().getProfile().getPrivacyLevel());
+    }
 }

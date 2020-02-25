@@ -4,6 +4,7 @@ import lombok.*;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.hibernate.validator.constraints.URL;
+import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 
 import javax.persistence.*;
 import java.util.HashSet;
@@ -43,8 +44,9 @@ public class Profile {
     @URL
     private String website;
 
+    @Enumerated(EnumType.ORDINAL)
     @Column(name = "privacy_level")
-    private Integer privacyLevel;
+    private PrivacyLevelType privacyLevel;
 
     @Column(name = "shared")
     private Boolean shared;

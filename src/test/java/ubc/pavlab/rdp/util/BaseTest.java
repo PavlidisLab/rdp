@@ -4,6 +4,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import ubc.pavlab.rdp.model.*;
+import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.TierType;
 
 import java.util.Arrays;
@@ -12,7 +13,6 @@ import java.util.stream.Collectors;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static ubc.pavlab.rdp.services.UserService.PRIVACY_PUBLIC;
 
 /**
  * Created by mjacobson on 14/02/18.
@@ -55,7 +55,7 @@ public class BaseTest {
         Profile profile = new Profile();
         profile.setName( NAME );
         profile.setLastName( LAST_NAME );
-        profile.setPrivacyLevel( PRIVACY_PUBLIC );
+        profile.setPrivacyLevel( PrivacyLevelType.PUBLIC );
         profile.setShared( false );
         user.setProfile( profile );
 
@@ -131,7 +131,7 @@ public class BaseTest {
     }
 
     protected UserGene createUserGene( int id, Gene gene, User user, TierType tier ) {
-        UserGene ug = new UserGene( gene, user, tier );
+        UserGene ug = new UserGene( gene, user, tier, PrivacyLevelType.PRIVATE );
         ug.setId( id );
         return ug;
     }
