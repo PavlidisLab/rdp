@@ -39,13 +39,13 @@
     <body>
         <div th:replace="fragments/header">...</div>
 
-        <div class="container p-4">
+        <div class="container">
             <div th:replace="fragments/title :: title(title='Search', subtitle='Researchers &amp; genes')"
                  th:remove="tag">...
             </div>
 
-            <div class="row justify-content-center error-row" th:if="${user == null}">
-                <div class="col my-3">
+            <div class="row justify-content-center error-row my-4" th:if="${user == null}">
+                <div class="col">
                     <div class="alert alert-info alert-dismissible fade show" role="alert">
                         <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
                         <p th:text="${@siteSettings.welcomePublic}"/>

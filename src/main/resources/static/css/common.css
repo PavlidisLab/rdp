@@ -11,15 +11,15 @@ body {
 
 div.brand > p {
     color: lightgrey;
-    margin-bottom: 2px;
-    font-size: 9px;
+    margin-bottom: 0;
+    font-size: 0.7rem;
 }
 
 div.brand > h1 {
-    color: #333333;
+    color: white;
     font-family: 'Open Sans', sans-serif;
-    letter-spacing: 1px;
-    font-size: 18px;
+    letter-spacing: 0.1rem;
+    font-size: 1rem;
 }
 
 .footer {

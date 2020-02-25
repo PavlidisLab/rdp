@@ -38,7 +38,7 @@
 
 <body>
 <div th:replace="fragments/header">...</div>
-<div class="container p-4">
+<div class="container">
 
     <div th:replace="fragments/title :: title(title='My Account', subtitle='User Profile')" th:remove="tag">...</div>
 
@@ -46,7 +46,7 @@
         <h3 class="d-inline-block pr-3 mr-3 mb-0" th:text="${user.email}"></h3>
     </div>
 
-    <div class="main-content p-4">
+    <div class="main-content">
         <div class="row justify-content-center success-row" style="display: none;">
             <div class="col my-3">
                 <div class="alert alert-success alert-dismissible fade show" role="alert">Profile Saved!

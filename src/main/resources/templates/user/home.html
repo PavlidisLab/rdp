@@ -26,12 +26,12 @@
 
 <body>
 <div th:replace="fragments/header">...</div>
-<div class="container p-4">
+<div class="container">
 
 
     <div th:replace="fragments/title :: title(title='Welcome', subtitle='Overview')" th:remove="tag">...</div>
 
-    <div class="main-content p-4" >
+    <div class="main-content">
 
         <span th:utext="${@siteSettings.welcome}" th:remove="tag"></span>
 
