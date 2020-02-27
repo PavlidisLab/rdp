@@ -31,7 +31,7 @@ This is done by creating the following properties files
   - Location: Working directory of running jar
   - Contents: Majority of the properties related to the running of the application (including database connection information) and message customisation.
   
-View [application.properties](src/main/resource/application.properties) for detailed documentation and default values.
+View [application.properties](src/main/resources/application.properties) for detailed documentation and default values.
 
 #### faq.properties
 
