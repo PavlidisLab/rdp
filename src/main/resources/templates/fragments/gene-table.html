@@ -10,7 +10,7 @@
         <th scope="col" style="display: none;" th:if="${viewOnly == null}">Id</th>
         <th scope="col">Name</th>
         <th class="text-center" scope="col" th:text="${viewOnly == null} ? 'Primary' : 'Tier'">Primary</th>
-        <th class="text-center" scope="col">Privacy Level</th>
+        <th class="text-center" scope="col"  th:style="${@applicationSettings.privacy.enableGenePrivacy} ? '' : 'display: none;'">Privacy Level</th>
     </tr>
     </thead>
     <tbody>
@@ -29,17 +29,19 @@
                 <input name="primary" type="checkbox" class="align-middle"
                        th:checked="${gene.tier == T(ubc.pavlab.rdp.model.enums.TierType).TIER1}"/>
             </td>
-            <td class="text-center">
+            <td class="text-center" th:style="${@applicationSettings.privacy.enableGenePrivacy} ? '' : 'display: none'">
                 <span th:if="${viewOnly != null}"
-                      th:text="${gene.getEffectivePrivacyLevel().getLabel()}" th:remove="tag">...</span>
-                <span th:if="${viewOnly != null and gene.getPrivacyLevel() == null}">(inherited from profile)</span>
+                      th:text="${gene.getEffectivePrivacyLevel().label}" th:remove="tag">...</span>
+                <span th:if="${viewOnly != null and gene.privacyLevel == null}">(inherited from profile)</span>
                 <select th:if="${viewOnly == null}"
                         name="privacyLevel" class="form-control">
-                    <option value="">Inherited from profile (<span th:text="${defaultPrivacyLevel.getLabel()}">...</span>)</option>
+                    <option value="" th:selected="${gene.privacyLevel} == null">
+                        Inherited from profile (<span th:text="${defaultPrivacyLevel.label}">...</span>)
+                    </option>
                     <option th:each="privacyLevel : ${T(ubc.pavlab.rdp.model.enums.PrivacyLevelType).values()}"
                             th:if="${@privacyService.isPrivacyLevelEnabled(privacyLevel) and (privacyLevel.ordinal() le defaultPrivacyLevel.ordinal())}"
                             th:value="${privacyLevel.ordinal()}"
-                            th:selected="${privacyLevel == gene.privacyLevel}"
+                            th:selected="${gene.privacyLevel == privacyLevel}"
                             th:text="${privacyLevel.getLabel()}"></option>
                 </select>
             </td>
