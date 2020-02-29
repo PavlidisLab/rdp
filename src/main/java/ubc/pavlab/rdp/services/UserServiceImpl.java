@@ -1,9 +1,9 @@
 package ubc.pavlab.rdp.services;
 
 import lombok.NonNull;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -32,10 +32,9 @@ import static java.util.Comparator.comparing;
  * Created by mjacobson on 16/01/18.
  */
 @Service("userService")
+@CommonsLog
 public class UserServiceImpl implements UserService {
 
-    private static final int MAX_CHARS_SHOW = 26;
-    private static Log log = LogFactory.getLog( UserServiceImpl.class );
     @Autowired
     ApplicationSettings applicationSettings;
     @Autowired
@@ -472,20 +471,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<String> getChars() {
-        List<User> users = this.findAll();
-        Set<String> chars = new HashSet<>();
-        for ( User u : users ) {
-            if ( privacyService.checkCurrentUserCanSee( u ) ) {
-                if ( u.getProfile().getLastName() != null && !u.getProfile().getLastName().isEmpty() )
-                    chars.add( u.getProfile().getLastName().substring( 0, 1 ).toUpperCase() );
-            }
-            if ( chars.size() >= MAX_CHARS_SHOW )
-                break;
-        }
-        List<String> sorted = new ArrayList<>( chars );
-        sorted.sort( String.CASE_INSENSITIVE_ORDER );
-        return sorted;
+    @Cacheable("chars")
+    public SortedSet<String> getChars() {
+        return userRepository.findAll().stream()
+                .filter(privacyService::checkCurrentUserCanSee)
+                .filter(u -> u.getProfile().getLastName() != null && !u.getProfile().getLastName().isEmpty())
+                .map(u -> u.getProfile().getLastName().substring(0, 1).toUpperCase())
+                .collect(Collectors.toCollection(TreeSet::new));
     }
 
     @Transactional

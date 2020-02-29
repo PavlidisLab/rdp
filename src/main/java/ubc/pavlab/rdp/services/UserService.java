@@ -1,5 +1,6 @@
 package ubc.pavlab.rdp.services;
 
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.transaction.annotation.Transactional;
@@ -83,5 +84,5 @@ public interface UserService {
     @Transactional
     User confirmVerificationToken( String token );
 
-    List<String> getChars();
+    SortedSet<String> getChars();
 }

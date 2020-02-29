@@ -12,8 +12,7 @@
            timeToLiveSeconds="600"
            timeToIdleSeconds="600"
            memoryStoreEvictionPolicy="LRU"
-           transactionalMode="off">
-    </defaultCache>
+           transactionalMode="off"/>
 
     <cache name="org.hibernate.cache.internal.StandardQueryCache"
            maxEntriesLocalHeap="100"
@@ -22,30 +21,12 @@
            timeToLiveSeconds="300"
            timeToIdleSeconds="0"
            memoryStoreEvictionPolicy="LFU"
-           transactionalMode="off">
-    </cache>
+           transactionalMode="off"/>
 
     <cache name="org.hibernate.cache.spi.UpdateTimestampsCache"
            maxEntriesLocalHeap="5000"
-           eternal="true">
-    </cache>
+           eternal="true"/>
 
-
-
-    <cache name="gene"
-           maxEntriesLocalHeap="0"
-           eternal="true"
-           overflowToDisk="false"
-           transactionalMode="off">
-        <searchable>
-            <searchAttribute name="geneId"/>
-            <searchAttribute name="taxonId" expression="value.getTaxon().getId()"/>
-            <searchAttribute name="name"/>
-            <searchAttribute name="symbol"/>
-            <searchAttribute name="aliases"/>
-            <searchAttribute name="modificationDate"/>
-        </searchable>
-    </cache>
 
 <!--    <cache name="ubc.pavlab.rdp.model.User"
            maxEntriesLocalHeap="20"
@@ -64,13 +45,11 @@
            timeToLiveSeconds="3600"
            timeToIdleSeconds="0"
            memoryStoreEvictionPolicy="LRU"
-           transactionalMode="off">
-    </cache>
+           transactionalMode="off"/>
 
     <cache name="ubc.pavlab.rdp.model.Role"
            maxEntriesLocalHeap="200"
-           eternal="true">
-    </cache>
+           eternal="true"/>
 
     <cache name="ubc.pavlab.rdp.model.UserGene"
            maxEntriesLocalHeap="500"
@@ -79,8 +58,7 @@
            timeToLiveSeconds="600"
            timeToIdleSeconds="600"
            memoryStoreEvictionPolicy="LRU"
-           transactionalMode="off">
-    </cache>
+           transactionalMode="off"/>
 
     <cache name="ubc.pavlab.rdp.model.UserTerm"
            maxEntriesLocalHeap="100"
@@ -89,8 +67,7 @@
            timeToLiveSeconds="600"
            timeToIdleSeconds="600"
            memoryStoreEvictionPolicy="LRU"
-           transactionalMode="off">
-    </cache>
+           transactionalMode="off"/>
 
     <cache name="ubc.pavlab.rdp.model.Ortholog"
            maxEntriesLocalHeap="500"
@@ -99,10 +76,24 @@
            timeToLiveSeconds="600"
            timeToIdleSeconds="600"
            memoryStoreEvictionPolicy="LRU"
-           transactionalMode="off">
-    </cache>
+           transactionalMode="off"/>
 
     <!-- Special Query Caches -->
+
+    <cache name="gene"
+           maxEntriesLocalHeap="0"
+           eternal="true"
+           overflowToDisk="false"
+           transactionalMode="off">
+        <searchable>
+            <searchAttribute name="geneId"/>
+            <searchAttribute name="taxonId" expression="value.getTaxon().getId()"/>
+            <searchAttribute name="name"/>
+            <searchAttribute name="symbol"/>
+            <searchAttribute name="aliases"/>
+            <searchAttribute name="modificationDate"/>
+        </searchable>
+    </cache>
 
     <cache name="taxon-list"
            maxEntriesLocalHeap="10"
@@ -111,8 +102,7 @@
            timeToLiveSeconds="3600"
            timeToIdleSeconds="0"
            memoryStoreEvictionPolicy="LFU"
-           transactionalMode="off">
-    </cache>
+           transactionalMode="off"/>
 
     <cache name="stats"
            maxEntriesLocalHeap="100"
@@ -121,8 +111,8 @@
            timeToLiveSeconds="600"
            timeToIdleSeconds="0"
            memoryStoreEvictionPolicy="LFU"
-           transactionalMode="off">
-    </cache>
+           transactionalMode="off"/>
 
-
+    <cache name="chars"
+           maxEntriesLocalHeap="100"/>
 </ehcache>
