@@ -57,7 +57,11 @@ function addGeneRow(data) {
                 row.push('<input name="primary" class="align-middle" type="checkbox"/>');
                 var privacyOptions = enabledPrivacyLevels.map(function (k) {
                     var privacyLevel = privacyLevels[k];
-                    return '<option value="' + privacyLevel.ordinal + '">' + privacyLevel.label + '</option>';
+                    if (privacyLevel.ordinal <= userPrivacyLevel.ordinal) {
+                        return '<option value="' + privacyLevel.ordinal + '">' + privacyLevel.label + '</option>';
+                    } else {
+                        return '';
+                    }
                 }).join('');
                 row.push('<select class="form-control">' +
                     '<option value="">Inherited from profile (' + userPrivacyLevel.label + ')</option>' +
