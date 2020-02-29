@@ -1,5 +1,6 @@
 package ubc.pavlab.rdp.services;
 
+import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,9 +28,8 @@ import static java.util.stream.Collectors.counting;
  * Created by mjacobson on 17/01/18.
  */
 @Service("goService")
+@CommonsLog
 public class GOServiceImpl implements GOService {
-
-    private static Log log = LogFactory.getLog( GOServiceImpl.class );
 
     private static final String GO_URL = "http://purl.obolibrary.org/obo/go.obo";
     private static final String GENE2GO_URL = "ftp://ftp.ncbi.nlm.nih.gov/gene/DATA/gene2go.gz";

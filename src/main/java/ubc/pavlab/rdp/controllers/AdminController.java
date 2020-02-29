@@ -1,5 +1,6 @@
 package ubc.pavlab.rdp.controllers;
 
+import lombok.extern.apachecommons.CommonsLog;
 import lombok.extern.java.Log;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -11,7 +12,7 @@ import ubc.pavlab.rdp.model.User;
 import ubc.pavlab.rdp.services.UserService;
 
 @RestController
-@Log
+@CommonsLog
 public class AdminController {
 
     @Autowired

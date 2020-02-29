@@ -1,5 +1,6 @@
 package ubc.pavlab.rdp.controllers;
 
+import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,9 +20,9 @@ import java.util.List;
  * Created by mjacobson on 18/01/18.
  */
 @RestController
+@CommonsLog
 public class TermController {
 
-    private static Log log = LogFactory.getLog( TermController.class );
     private static Role adminRole;
 
     @Autowired

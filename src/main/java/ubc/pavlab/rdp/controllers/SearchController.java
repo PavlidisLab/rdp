@@ -1,5 +1,6 @@
 package ubc.pavlab.rdp.controllers;
 
+import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,12 +36,12 @@ import javax.servlet.http.HttpServletResponse;
  * Created by mjacobson on 05/02/18.
  */
 @Controller
+@CommonsLog
 public class SearchController {
 
     private static final String ERR_NO_ORTHOLOGS = "No orthologs of %s for specified taxon.";
     private static final String ERR_NO_GENE = "Unknown gene: %s";
 
-    private static Log log = LogFactory.getLog( SearchController.class );
     private static Role adminRole;
 
     @Autowired

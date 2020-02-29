@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.validator.constraints.Length;
@@ -34,9 +35,8 @@ import java.util.UUID;
  * Created by mjacobson on 23/01/18.
  */
 @Controller
+@CommonsLog
 public class PasswordController {
-
-    private static Log log = LogFactory.getLog( PasswordController.class );
 
     @Autowired
     private UserService userService;

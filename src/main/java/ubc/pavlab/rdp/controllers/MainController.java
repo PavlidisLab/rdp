@@ -1,5 +1,6 @@
 package ubc.pavlab.rdp.controllers;
 
+import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,14 +25,15 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.stream.Collectors;
 
 @Controller
+@CommonsLog
 public class MainController {
 
-    private static Log log = LogFactory.getLog( MainController.class );
     private static Role adminRole;
 
     @Autowired

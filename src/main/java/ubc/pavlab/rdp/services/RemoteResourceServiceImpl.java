@@ -1,5 +1,6 @@
 package ubc.pavlab.rdp.services;
 
+import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jboss.resteasy.client.jaxrs.ResteasyClient;
@@ -25,12 +26,12 @@ import java.net.URLEncoder;
 import java.util.*;
 
 @Service("RemoteResourceService")
+@CommonsLog
 public class RemoteResourceServiceImpl implements RemoteResourceService {
 
     private static final String API_USERS_SEARCH_URI = "/api/users/search";
     private static final String API_USER_GET_URI = "/api/users/%s";
     private static final String API_GENES_SEARCH_URI = "/api/genes/search";
-    private static Log log = LogFactory.getLog( RemoteResourceServiceImpl.class );
 
     static {
         ResteasyProviderFactory instance = ResteasyProviderFactory.getInstance();

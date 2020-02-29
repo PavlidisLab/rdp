@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,9 +22,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
+@CommonsLog
 public class UserController {
-
-    private static Log log = LogFactory.getLog( UserController.class );
 
     @Autowired
     private UserService userService;

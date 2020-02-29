@@ -1,5 +1,6 @@
 package ubc.pavlab.rdp.controllers;
 
+import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,9 +28,8 @@ import javax.validation.Valid;
  * Created by mjacobson on 16/01/18.
  */
 @Controller
+@CommonsLog
 public class LoginController {
-
-    private static Log log = LogFactory.getLog( LoginController.class );
 
     @Autowired
     private UserService userService;
