@@ -55,13 +55,14 @@ function addGeneRow(data) {
                 row.push(gene.geneId);
                 row.push('<span class="align-middle">' + gene.name + '</span>');
                 row.push('<input name="primary" class="align-middle" type="checkbox"/>');
-                // TODO: add missing privacy options
+                var privacyOptions = enabledPrivacyLevels.map(function (k) {
+                    var privacyLevel = privacyLevels[k];
+                    return '<option value="' + privacyLevel.ordinal + '">' + privacyLevel.label + '</option>';
+                }).join('');
                 row.push('<select class="form-control">' +
-                    '<option value="">Default (Public)</option>' +
-                    '<option value="0">Private</option>' +
-                    '<option value="1">Shared</option>' +
-                    '<option value="2">Public</option>' +
-                    '</select>')
+                    '<option value="">Inherited from profile (' + userPrivacyLevel.label + ')</option>' +
+                    privacyOptions +
+                    '</select>');
             }
             rows.push(row);
         }

@@ -35,7 +35,16 @@
         /*<![CDATA[*/
         // noinspection JSUnusedLocalSymbols used in model.js
         var currentTaxon = [[${taxon}]];
-
+        var userProfile = [[${user.profile}]];
+        // TODO: serialize and use PrivacyLevelType instead of hardcoded values
+        var PrivacyLevelType = [[${T(ubc.pavlab.rdp.model.enums.PrivacyLevelType).values()}]];
+        var privacyLevels = {
+            'PUBLIC': {'label': 'Public', 'ordinal': 2},
+            'SHARED': {'label': 'Shared', 'ordinal': 1},
+            'PRIVATE': {'label': 'Private', 'ordinal': 0}
+        };
+        var enabledPrivacyLevels = [[${@applicationSettings.privacy.enabledLevels}]];
+        var userPrivacyLevel = privacyLevels[userProfile.privacyLevel['$name']];
         /*]]>*/
     </script>
     <script th:src="@{/js/model.js}"></script>
