@@ -19,12 +19,13 @@ import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.settings.SiteSettings;
 
 import javax.ws.rs.core.MediaType;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * This class provides API access for remote applications
+ *
+ * It's worth mentioning that the '/api' endpoint is delegated to springdoc OpenAPI JSON generator and welcome the
+ * client with a specification of the endpoints of this API.
  */
 @Controller
 @CommonsLog
@@ -32,19 +33,12 @@ public class ApiController {
 
     private static final String API_VERSION = "1.0.0"; //TODO update every time there is any change in how the API works.
     private static final String MISCONF_REMOTE_ADMIN = "The remote admin account is misconfigured! Remote searches won't be able to authenticate even with valid security tokens!";
-    private static final Map<String, String> ROOT_DATA;
     private static final ResponseEntity<String> TIER3_RESPONSE = new ResponseEntity<>(
             "Tier3 genes not published to partner registires.", null, HttpStatus.NOT_FOUND );
     private static final ResponseEntity<String> GENE_NULL_RESPONSE = new ResponseEntity<>( "Unknown gene.", null,
             HttpStatus.NOT_FOUND );
     private static final ResponseEntity<String> ORTHOLOG_NULL_RESPONSE = new ResponseEntity<>(
             "Could not find any orthologs with given parameters.", null, HttpStatus.NOT_FOUND );
-
-    static {
-        ROOT_DATA = new HashMap<>();
-        ROOT_DATA.put( "message", "This is this applications API. Please see documentation." );
-        ROOT_DATA.put( "version", API_VERSION );
-    }
 
     @Autowired
     private UserService userService;
@@ -61,17 +55,6 @@ public class ApiController {
 
     @Autowired
     MessageSource messageSource;
-
-    /**
-     * Root endpoint with welcome message and api version.
-     *
-     * @return 200 and welcome object.
-     */
-    @RequestMapping(value = "/api", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON)
-    @ResponseBody
-    public Object apiInfo() {
-        return ROOT_DATA;
-    }
 
     /**
      * Fallback for unmapped sub-paths.

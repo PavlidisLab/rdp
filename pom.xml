@@ -106,6 +106,12 @@
             <version>3.6.2.Final</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-core</artifactId>
+            <version>1.1.44</version>
+        </dependency>
+
         <!-- Development Time Resources -->
 
         <!--<dependency>-->
