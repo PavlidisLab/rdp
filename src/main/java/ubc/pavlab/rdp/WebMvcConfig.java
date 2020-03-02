@@ -1,7 +1,5 @@
 package ubc.pavlab.rdp;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,7 +21,9 @@ public class WebMvcConfig extends WebMvcConfigurerAdapter {
     @Bean
     public MessageSource messageSource() {
         ReloadableResourceBundleMessageSource messageSource = new ReloadableResourceBundleMessageSource();
-        messageSource.addBasenames("classpath:login", "file:login");
+        // application-prod is there for backward compatibility since we use to pull locale strings from there, and we
+        // also want to offer the possibility of loading messages from an external file.
+        messageSource.setBasenames( "file:messages", "file:application-prod", "classpath:messages" );
         return messageSource;
     }
 

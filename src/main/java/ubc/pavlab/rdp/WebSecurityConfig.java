@@ -1,6 +1,7 @@
 package ubc.pavlab.rdp;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
@@ -12,6 +13,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import ubc.pavlab.rdp.settings.SiteSettings;
+
+import java.util.Locale;
 
 /**
  * Created by mjacobson on 16/01/18.
@@ -28,7 +31,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     private UserDetailsService userDetailsService;
 
     @Autowired
-    private SiteSettings siteSettings;
+    private MessageSource messageSource;
 
     @Override
     protected void configure( AuthenticationManagerBuilder auth ) throws Exception {
@@ -52,7 +55,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .authenticated().and().csrf().disable().formLogin().loginPage( "/login" )
                 .failureUrl( "/login?error=true" ).defaultSuccessUrl( "/" ).usernameParameter( "email" )
                 .passwordParameter( "password" ).and().rememberMe()
-                .rememberMeCookieName( siteSettings.getShortname() + "-remember-me" )
+                .rememberMeCookieName( messageSource.getMessage("rdp.site.shortname", null, Locale.getDefault()) + "-remember-me" )
                 .tokenValiditySeconds( 7 * 24 * 60 * 60 ).and().logout()
                 .logoutRequestMatcher( new AntPathRequestMatcher( "/logout" ) ).logoutSuccessUrl( "/" )
                 .and().exceptionHandling().accessDeniedPage( "/accessDenied" );

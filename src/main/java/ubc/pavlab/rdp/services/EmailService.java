@@ -1,6 +1,7 @@
 package ubc.pavlab.rdp.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -13,6 +14,7 @@ import ubc.pavlab.rdp.settings.SiteSettings;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 import javax.servlet.http.HttpServletRequest;
+import java.util.Locale;
 
 /**
  * Created by mjacobson on 19/01/18.
@@ -25,6 +27,9 @@ public class EmailService {
 
     @Autowired
     private JavaMailSender emailSender;
+
+    @Autowired
+    MessageSource messageSource;
 
     private void sendSimpleMessage( String subject, String content, String to ) {
 
@@ -88,19 +93,21 @@ public class EmailService {
     }
 
     public void sendRegistrationMessage( User user, String token ) {
+        String registrationWelcome = messageSource.getMessage( "rdp.site.email.registration-welcome", new String[] {siteSettings.getFullUrl()}, Locale.getDefault() );
+        String registrationEnding = messageSource.getMessage( "rdp.site.email.registration-ending", new String[] {siteSettings.getContactEmail()}, Locale.getDefault() );
         String recipientAddress = user.getEmail();
         String subject = "Registration Confirmation";
         String confirmationUrl = siteSettings.getFullUrl() + "registrationConfirm?token=" + token;
-        String message = siteSettings.getEmail().getRegistrationWelcome() +
+        String message = registrationWelcome +
                 "\r\n\r\nPlease confirm your registration by clicking on the following link:\r\n\r\n" +
                 confirmationUrl +
                 "\r\n\r\n" +
-                siteSettings.getEmail().getRegistrationEnding();
+                registrationEnding;
         sendSimpleMessage( subject, message, recipientAddress );
     }
 
     public void sendUserRegisteredEmail( User user ) {
-        sendSimpleMessage( siteSettings.getShortname() + " - User Registered", "New user registration: " + user.getEmail(), siteSettings.getAdminEmail() );
+        sendSimpleMessage( messageSource.getMessage( "rdp.site.shortname", null, Locale.getDefault() ) + " - User Registered", "New user registration: " + user.getEmail(), siteSettings.getAdminEmail() );
     }
 
 }

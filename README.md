@@ -29,9 +29,24 @@ This is done by creating the following properties files
 #### application-prod.properties
 
   - Location: Working directory of running jar
-  - Contents: Majority of the properties related to the running of the application (including database connection information) and message customisation.
-  
-View [application.properties](src/main/resources/application.properties) for detailed documentation and default values.
+  - Contents: Majority of the properties related to the running of the application (including database connection information).
+
+View [application.properties](src/main/resources/application.properties) for
+detailed documentation and default values.
+
+#### messages.properties
+
+  - Location: Working directory of running jar
+  - Contents: Customized messages
+
+View [messages.properties](src/main/resources/messages.properties) for default
+values.
+
+You can use suffixed like `message_en_CA.properties` for region-specific
+localization.
+
+Note that `application-prod.properties` is also used for messages for backward
+compatibility. New and existing messages should be moved to `messages.properties`.
 
 #### faq.properties
 

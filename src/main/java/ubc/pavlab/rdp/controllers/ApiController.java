@@ -2,6 +2,7 @@ package ubc.pavlab.rdp.controllers;
 
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -57,6 +58,9 @@ public class ApiController {
     private SiteSettings siteSettings;
     @Autowired
     private SearchController searchController;
+
+    @Autowired
+    MessageSource messageSource;
 
     /**
      * Root endpoint with welcome message and api version.
@@ -206,7 +210,7 @@ public class ApiController {
     }
 
     private User initUser(User user){
-        user.setOrigin( siteSettings.getShortname() );
+        user.setOrigin( messageSource.getMessage( "rdp.site.shortname", null, Locale.getDefault() ) );
         user.setOriginUrl( siteSettings.getFullUrl() );
         return user;
     }
