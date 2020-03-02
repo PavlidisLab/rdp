@@ -4,7 +4,7 @@
       xmlns:th="http://www.thymeleaf.org">
 
 <head>
-    <title th:text="${@siteSettings.getFullname()}"></title>
+    <title th:text="#{rdp.site.fullname}"></title>
     <link rel="icon" type="image/png" sizes="16x16" th:href="@{/images/favicon-16x16.png}"/>
     <link rel="icon" type="image/png" sizes="32x32" th:href="@{/images/favicon-32x32.png}"/>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
@@ -27,7 +27,7 @@
 
 <div class="wrapper d-flex justify-content-center align-items-center">
     <div class="container">
-        <h4 class="form-signin-heading"><a th:href="@{/login}" th:text="${@siteSettings.getFullname()}"></a></h4>
+        <h4 class="form-signin-heading"><a th:href="@{/login}" th:text="#{rdp.site.fullname}"/></h4>
         <h6 class="form-signin-subheading">Researcher Registry</h6>
 
         <form th:action="@{/login}" method="POST" class="py-3">
@@ -74,7 +74,7 @@
                 </div>
                 <div class="col-4 text-center" th:if="!${@applicationSettings.getPrivacy().isPublicSearch()}"></div>
                 <div class="col-4 text-right">
-                    <a th:href="${'mailto:' + @siteSettings.getContactEmail()}">Contact Support</a>
+                    <a th:href="'mailto:' + #{rdp.site.contact-email}">Contact Support</a>
                 </div>
             </div>
         </form>

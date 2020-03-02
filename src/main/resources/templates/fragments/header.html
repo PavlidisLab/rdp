@@ -7,11 +7,7 @@
      class="navbar navbar-expand-lg navbar-dark bg-primary">
     <div class="container">
         <a class="navbar-brand" th:href="@{/user/home}" href="/">
-            <span th:if="${@siteSettings.logohtml != null}" th:utext="${@siteSettings.logohtml}" th:remove="tag"></span>
-            <div th:if="${@siteSettings.logohtml == null}" class="brand">
-                <p class="text-uppercase">Models &amp; Mechanisms Network</p>
-                <h1 class="text-uppercase font-weight-bold m-0">Rare Diseases</h1>
-            </div>
+            <div th:utext="#{rdp.site.logohtml}" th:remove="tag"/>
         </a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
                 aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">

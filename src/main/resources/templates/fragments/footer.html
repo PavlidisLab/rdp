@@ -4,7 +4,7 @@
 <body>
 <footer class="footer">
     <div class="text-center">
-        <span class="text-muted" th:text="${'&copy; Copyright 2018. &quot;' + @siteSettings.getFullname() + '&quot; All rights reserved.'}"></span>
+        <span class="text-muted" th:text="'&copy; Copyright 2018. &quot;' + #{rdp.site.fullname} + '&quot; All rights reserved.'"></span>
         <span><a class="px-1" th:href="@{/user/support}" href="/user/support">Contact Support</a></span>
     </div>
 </footer>

@@ -4,7 +4,7 @@
       xmlns:th="http://www.thymeleaf.org">
 
 <head>
-    <title th:text="${@siteSettings.getFullname()}"></title>
+    <title th:text="#{rdp.site.fullname}"></title>
     <link rel="icon" type="image/png" sizes="16x16" th:href="@{/images/favicon-16x16.png}"/>
     <link rel="icon" type="image/png" sizes="32x32" th:href="@{/images/favicon-32x32.png}"/>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
@@ -44,14 +44,7 @@
          th:remove="tag">...
     </div>
 
-    <div class="row justify-content-center error-row my-3" th:if="${user == null}">
-        <div class="col">
-            <div class="alert alert-info alert-dismissible fade show" role="alert">
-                <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
-                <p th:text="${@siteSettings.welcomePublic}"/>
-            </div>
-        </div>
-    </div>
+    <p class="lead mt-3" th:text="#{rdp.site.welcome-public}"/>
 
     <ul class="nav nav-tabs mt-3">
         <li class="nav-item"><a class="nav-link active" id="gene-tab" data-toggle="tab"
@@ -237,7 +230,7 @@
 
     <!--Results-->
     <div class="my-4">
-        <h4 th:text="'Researchers registered in ' + ${@siteSettings.shortname}"></h4>
+        <h4 th:text="'Researchers registered in ' + #{rdp.site.shortname}"></h4>
         <div id="userTable">
             <div th:if="${users != null}"
                  th:replace="fragments/user-table :: user-table(users=${users}, remote=false)"
