@@ -62,7 +62,7 @@ public class GOServiceImplTest extends BaseTest {
     private TaxonService taxonService;
 
     @MockBean
-    private GeneService geneService;
+    private GeneInfoService geneService;
 
     private Taxon taxon;
     private Map<Integer, Gene> genes;

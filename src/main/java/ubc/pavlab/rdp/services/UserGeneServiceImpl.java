@@ -23,15 +23,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import ubc.pavlab.rdp.model.Gene;
+import ubc.pavlab.rdp.model.GeneInfo;
 import ubc.pavlab.rdp.model.Taxon;
-import ubc.pavlab.rdp.model.User;
 import ubc.pavlab.rdp.model.UserGene;
-import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.TierType;
+import ubc.pavlab.rdp.repositories.GeneInfoRepository;
 import ubc.pavlab.rdp.repositories.TaxonRepository;
 import ubc.pavlab.rdp.repositories.UserGeneRepository;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
@@ -48,7 +49,7 @@ public class UserGeneServiceImpl implements UserGeneService {
     private UserGeneRepository userGeneRepository;
 
     @Autowired
-    private GeneService geneService;
+    private GeneInfoService geneService;
 
     @Autowired
     private UserService userService;
@@ -109,10 +110,17 @@ public class UserGeneServiceImpl implements UserGeneService {
         return humanGenes.size();
     }
 
+    @Autowired
+    private GeneInfoRepository geneInfoRepository;
+
     @Cacheable(cacheNames = "stats", key = "#root.methodName")
     @Override
-    public Collection<Integer> findOrthologs( Integer sourceGene, Integer targetTaxon ) {
-        return userGeneRepository.findOrthologs( sourceGene, targetTaxon );
+    public Collection<Gene> findOrthologs( Integer sourceGene, Integer targetTaxon ) {
+        Taxon taxon = taxonRepository.findOne( targetTaxon );
+        return geneInfoRepository.findByGeneId( sourceGene )
+                .getOrthologs().stream()
+                .filter( userGene -> userGene.getTaxon().equals( taxon ) )
+                .collect( Collectors.toSet() );
     }
 
     @Override
@@ -148,7 +156,7 @@ public class UserGeneServiceImpl implements UserGeneService {
     }
 
     @Override
-    public Collection<Gene> findOrthologs( Gene gene, Integer orthologTaxonId ) {
+    public Collection<? extends Gene> findOrthologs( Gene gene, Integer orthologTaxonId ) {
         if ( gene == null || orthologTaxonId == null ) {
             //noinspection unchecked
             return Collections.EMPTY_LIST;
@@ -156,7 +164,7 @@ public class UserGeneServiceImpl implements UserGeneService {
         if ( ALL_TAXON_ID.equals( orthologTaxonId ) ) { // Looking for all taxa
             Collection<Gene> genes = new LinkedList<>();
             for ( Taxon taxon : taxonRepository.findAll() ) {
-                Collection<Gene> taxonGenes = findOrthologsForTaxon( gene, taxon.getId() );
+                Collection<? extends Gene> taxonGenes = findOrthologs( gene, taxon.getId() );
                 genes.addAll(taxonGenes.stream().filter(Objects::nonNull).collect( Collectors.toList()) );
             }
             genes.add( gene ); // Add original gene so it shows up in the results as well.
@@ -166,7 +174,7 @@ public class UserGeneServiceImpl implements UserGeneService {
                 //noinspection unchecked
                 return Collections.EMPTY_LIST;
             }
-            return findOrthologsForTaxon( gene, orthologTaxonId );
+            return findOrthologs ( gene, orthologTaxonId );
         }
 
     }

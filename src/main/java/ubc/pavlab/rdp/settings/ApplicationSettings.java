@@ -28,6 +28,7 @@ public class ApplicationSettings {
         private String geneFilesLocation;
         private String termFile;
         private String annotationFile;
+        private String orthologFile;
 
     }
 

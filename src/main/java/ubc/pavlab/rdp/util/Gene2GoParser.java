@@ -9,7 +9,7 @@ import ubc.pavlab.rdp.model.Gene;
 import ubc.pavlab.rdp.model.GeneOntologyTerm;
 import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.services.GOService;
-import ubc.pavlab.rdp.services.GeneService;
+import ubc.pavlab.rdp.services.GeneInfoService;
 
 import java.io.*;
 import java.net.URL;
@@ -31,7 +31,7 @@ public class Gene2GoParser {
 
     private static final String EXPECTED_HEADER = "#tax_id\tGeneID\tGO_ID\tEvidence\tQualifier\tGO_term\tPubMed\tCategory";
 
-    public static void populateAnnotations( URL url, Collection<Taxon> acceptableTaxons, GeneService geneService, GOService goService ) throws ParseException {
+    public static void populateAnnotations( URL url, Collection<Taxon> acceptableTaxons, GeneInfoService geneService, GOService goService ) throws ParseException {
 
         String proxyHost = System.getProperty( "ftp.proxyHost" );
 
@@ -68,7 +68,7 @@ public class Gene2GoParser {
         }
     }
 
-    public static void populateAnnotations( File file, Collection<Taxon> acceptableTaxons, GeneService geneService, GOService goService ) throws ParseException {
+    public static void populateAnnotations( File file, Collection<Taxon> acceptableTaxons, GeneInfoService geneService, GOService goService ) throws ParseException {
         try {
             populateAnnotations( new GZIPInputStream( new FileInputStream( file ) ), acceptableTaxons, geneService, goService );
         } catch (IOException e) {
@@ -76,7 +76,7 @@ public class Gene2GoParser {
         }
     }
 
-    private static void populateAnnotations( InputStream input, Collection<Taxon> acceptableTaxons, GeneService geneService, GOService goService ) throws ParseException {
+    private static void populateAnnotations( InputStream input, Collection<Taxon> acceptableTaxons, GeneInfoService geneService, GOService goService ) throws ParseException {
         Map<Integer, Taxon> fastMap = acceptableTaxons.stream().collect( Collectors.toMap( Taxon::getId, t -> t ) );
         try {
 

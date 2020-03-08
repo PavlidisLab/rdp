@@ -5,15 +5,13 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.extern.apachecommons.CommonsLog;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.services.GOService;
-import ubc.pavlab.rdp.services.GeneService;
+import ubc.pavlab.rdp.services.GeneInfoService;
 import ubc.pavlab.rdp.services.TaxonService;
 import ubc.pavlab.rdp.services.UserService;
 
@@ -32,7 +30,7 @@ public class UserController {
     private TaxonService taxonService;
 
     @Autowired
-    private GeneService geneService;
+    private GeneInfoService geneService;
 
     @Autowired
     private GOService goService;
@@ -96,8 +94,8 @@ public class UserController {
 
         user.getTaxonDescriptions().put( taxon, model.getDescription() );
 
-        Map<Gene, TierType> genes = geneService.deserializeGenesTiers( model.getGeneTierMap() );
-        Map<Gene, Optional<PrivacyLevelType>> privacyLevels = geneService.deserializeGenesPrivacyLevels( model.getGenePrivacyLevelMap() );
+        Map<GeneInfo, TierType> genes = geneService.deserializeGenesTiers( model.getGeneTierMap() );
+        Map<GeneInfo, Optional<PrivacyLevelType>> privacyLevels = geneService.deserializeGenesPrivacyLevels( model.getGenePrivacyLevelMap() );
         Set<GeneOntologyTerm> terms = model.getGoIds().stream().map( s -> goService.getTerm( s ) ).collect( Collectors.toSet() );
 
         log.info( privacyLevels );

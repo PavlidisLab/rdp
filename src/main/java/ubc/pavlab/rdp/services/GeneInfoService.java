@@ -1,8 +1,8 @@
 /*
  * The rdp project
- * 
+ *
  * Copyright (c) 2014 University of British Columbia
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,8 +19,7 @@
 
 package ubc.pavlab.rdp.services;
 
-
-import ubc.pavlab.rdp.model.Gene;
+import ubc.pavlab.rdp.model.GeneInfo;
 import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.TierType;
@@ -33,25 +32,19 @@ import java.util.Optional;
 /**
  * Created by mjacobson on 17/01/18.
  */
-public interface GeneService {
+public interface GeneInfoService {
 
-    Gene load( Integer geneId );
+    GeneInfo load( Integer geneId );
 
-    Collection<Gene> load( Collection<Integer> ids );
+    Collection<GeneInfo> load( Collection<Integer> ids );
 
-    Gene findBySymbolAndTaxon( String officialSymbol, Taxon taxon );
+    GeneInfo findBySymbolAndTaxon( String officialSymbol, Taxon taxon );
 
-    Collection<Gene> findBySymbolInAndTaxon( Collection<String> symbols, Taxon taxon );
+    Collection<GeneInfo> findBySymbolInAndTaxon( Collection<String> symbols, Taxon taxon );
 
-    Collection<SearchResult<Gene>> autocomplete( String query, Taxon taxon, int maxResults );
+    Collection<SearchResult<GeneInfo>> autocomplete( String query, Taxon taxon, int maxResults );
 
-    int size();
+    Map<GeneInfo, TierType> deserializeGenesTiers( Map<Integer, TierType> genesTierMap );
 
-    Map<Gene, TierType> deserializeGenesTiers( Map<Integer, TierType> genesTierMap );
-
-    Map<Gene, Optional<PrivacyLevelType>> deserializeGenesPrivacyLevels( Map<Integer, PrivacyLevelType> genesPrivacyLevelMap );
-
-    void addAll( Collection<Gene> genes );
-
-    void clear();
+    Map<GeneInfo, Optional<PrivacyLevelType>> deserializeGenesPrivacyLevels( Map<Integer, PrivacyLevelType> genesPrivacyLevelMap );
 }

@@ -12,9 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import ubc.pavlab.rdp.exception.TierException;
 import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.TierType;
-import ubc.pavlab.rdp.services.GeneService;
-import ubc.pavlab.rdp.services.TaxonService;
-import ubc.pavlab.rdp.services.UserService;
+import ubc.pavlab.rdp.services.*;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.settings.SiteSettings;
 
@@ -45,7 +43,7 @@ public class ApiController {
     @Autowired
     private TaxonService taxonService;
     @Autowired
-    private GeneService geneService;
+    private GeneInfoService geneService;
     @Autowired
     private ApplicationSettings applicationSettings;
     @Autowired
@@ -125,7 +123,7 @@ public class ApiController {
         checkAuth( auth );
         Taxon taxon = taxonService.findById( taxonId );
         Gene gene = geneService.findBySymbolAndTaxon( symbol, taxon );
-        Collection<Gene> orthologs = searchController.getOrthologsIfRequested( orthologTaxonId, gene );
+        Collection<? extends Gene> orthologs = searchController.getOrthologsIfRequested( orthologTaxonId, gene );
 
         if ( gene == null ) {
             return GENE_NULL_RESPONSE;

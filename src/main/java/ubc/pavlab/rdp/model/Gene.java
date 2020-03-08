@@ -19,7 +19,7 @@ import java.util.Set;
 @AllArgsConstructor
 @EqualsAndHashCode(of = {"geneId"})
 @ToString(of = {"geneId", "symbol", "taxon"})
-public class Gene {
+public abstract class Gene {
 
     @Column(name = "gene_id")
     private int geneId;

@@ -1,15 +1,14 @@
 package ubc.pavlab.rdp.controllers;
 
 import lombok.extern.apachecommons.CommonsLog;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import ubc.pavlab.rdp.model.Gene;
+import ubc.pavlab.rdp.model.GeneInfo;
 import ubc.pavlab.rdp.model.GeneOntologyTerm;
 import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.services.GOService;
-import ubc.pavlab.rdp.services.GeneService;
+import ubc.pavlab.rdp.services.GeneInfoService;
 import ubc.pavlab.rdp.services.TaxonService;
 import ubc.pavlab.rdp.util.SearchResult;
 
@@ -26,7 +25,7 @@ import java.util.Map;
 public class GeneController {
 
     @Autowired
-    GeneService geneService;
+    GeneInfoService geneService;
 
     @Autowired
     GOService goService;
@@ -42,8 +41,8 @@ public class GeneController {
     }
 
     @RequestMapping(value = "/taxon/{taxonId}/gene/search/{query}", method = RequestMethod.GET)
-    public Collection<SearchResult<Gene>> searchGenesByTaxonAndQuery( @PathVariable Integer taxonId, @PathVariable String query,
-                                                                      @RequestParam(value = "max", required = false, defaultValue = "-1") int max ) {
+    public Collection<SearchResult<GeneInfo>> searchGenesByTaxonAndQuery( @PathVariable Integer taxonId, @PathVariable String query,
+                                                                          @RequestParam(value = "max", required = false, defaultValue = "-1") int max ) {
         Taxon taxon = taxonService.findById( taxonId );
         return geneService.autocomplete( query, taxon, max );
     }

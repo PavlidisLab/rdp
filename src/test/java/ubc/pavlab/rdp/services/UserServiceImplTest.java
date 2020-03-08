@@ -443,7 +443,7 @@ public class UserServiceImplTest extends BaseTest {
         gene.getTerms().add( term );
         term.getDirectGenes().add( gene );
 
-        user.getUserGenes().put( gene.getGeneId(), new UserGene( gene, user, TierType.TIER1, PrivacyLevelType.PRIVATE ) );
+        user.getUserGenes().put( gene.getGeneId(), UserGene.createUserGeneFromGene( gene, user, TierType.TIER1, PrivacyLevelType.PRIVATE ) );
 
         Collection<UserTerm> userTerms = userService.convertTerms( user, taxon, Collections.singleton( term ) );
 
@@ -481,7 +481,7 @@ public class UserServiceImplTest extends BaseTest {
         gene.getTerms().add( term );
         term.getDirectGenes().add( gene );
 
-        user.getUserGenes().put( gene.getGeneId(), new UserGene( gene, user, TierType.TIER1, PrivacyLevelType.PRIVATE ) );
+        user.getUserGenes().put( gene.getGeneId(), UserGene.createUserGeneFromGene( gene, user, TierType.TIER1, PrivacyLevelType.PRIVATE ) );
 
         UserTerm ut = userService.convertTerms( user, taxon, term );
 

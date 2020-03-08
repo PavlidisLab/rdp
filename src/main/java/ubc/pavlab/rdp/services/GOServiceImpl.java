@@ -45,7 +45,7 @@ public class GOServiceImpl implements GOService {
     TaxonService taxonService;
 
     @Autowired
-    GeneService geneService;
+    GeneInfoService geneService;
 
     @PostConstruct
     private void initialize() {

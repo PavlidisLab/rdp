@@ -110,8 +110,8 @@ public class BaseTest {
         return term;
     }
 
-    protected Gene createGene( int id, Taxon taxon ) {
-        Gene gene = new Gene();
+    protected GeneInfo createGene( int id, Taxon taxon ) {
+        GeneInfo gene = new GeneInfo();
         gene.setGeneId( id );
         gene.setTaxon( taxon );
 
@@ -131,7 +131,7 @@ public class BaseTest {
     }
 
     protected UserGene createUserGene( int id, Gene gene, User user, TierType tier ) {
-        UserGene ug = new UserGene( gene, user, tier, PrivacyLevelType.PRIVATE );
+        UserGene ug = UserGene.createUserGeneFromGene( gene, user, tier, PrivacyLevelType.PRIVATE );
         ug.setId( id );
         return ug;
     }

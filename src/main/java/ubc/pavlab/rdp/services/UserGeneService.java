@@ -41,7 +41,7 @@ public interface UserGeneService {
     Integer countUniqueAssociationsAllTiers();
     Integer countUniqueAssociationsToHumanAllTiers();
 
-    Collection<Integer> findOrthologs(Integer source_gene, Integer targetTaxon);
+    Collection<Gene> findOrthologs( Integer source_gene, Integer targetTaxon);
 
     Collection<UserGene> findByGene( int geneId );
 
@@ -55,7 +55,15 @@ public interface UserGeneService {
 
     Collection<UserGene> findByLikeSymbol( String symbol, Taxon taxon, Set<TierType> tiers );
 
-    Collection<Gene> findOrthologs( Gene gene, Integer orthologTaxonId );
+    /**
+     * The ? extends Gene is necessary because this function returns a mixture of UserGene and GeneInfo object if
+     * it was called using a GeneInfo.
+     *
+     * @param gene
+     * @param orthologTaxonId
+     * @return a collection of gene-like object. This is
+     */
+    Collection<? extends Gene> findOrthologs( Gene gene, Integer orthologTaxonId );
 
     boolean checkCurrentUserCanSee( UserGene userGene );
 }

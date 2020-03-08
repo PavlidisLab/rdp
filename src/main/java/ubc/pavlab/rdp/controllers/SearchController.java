@@ -1,36 +1,21 @@
 package ubc.pavlab.rdp.controllers;
 
 import lombok.extern.apachecommons.CommonsLog;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;    
-import org.springframework.http.ResponseEntity;
+import org.springframework.context.MessageSource;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 import ubc.pavlab.rdp.exception.RemoteException;
 import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.TierType;
-import ubc.pavlab.rdp.repositories.RoleRepository;
 import ubc.pavlab.rdp.services.*;
-import ubc.pavlab.rdp.settings.ApplicationSettings;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.List;
-import java.util.ArrayList;
-
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import java.util.*;
 
 /**
  * Created by mjacobson on 05/02/18.
@@ -39,10 +24,8 @@ import javax.servlet.http.HttpServletResponse;
 @CommonsLog
 public class SearchController {
 
-    private static final String ERR_NO_ORTHOLOGS = "No orthologs of %s for specified taxon.";
-    private static final String ERR_NO_GENE = "Unknown gene: %s";
-
-    private static Role adminRole;
+    @Autowired
+    MessageSource messageSource;
 
     @Autowired
     private UserService userService;
@@ -51,13 +34,10 @@ public class SearchController {
     private TaxonService taxonService;
 
     @Autowired
-    private GeneService geneService;
+    private GeneInfoService geneService;
 
     @Autowired
     private UserGeneService userGeneService;
-
-    @Autowired
-    private ApplicationSettings applicationSettings;
 
     @Autowired
     private RemoteResourceService remoteResourceService;
@@ -181,7 +161,7 @@ public class SearchController {
 
         Taxon taxon = taxonService.findById( taxonId );
         Gene gene = geneService.findBySymbolAndTaxon( symbol, taxon );
-        Collection<Gene> orthologs = getOrthologsIfRequested( orthologTaxonId, gene );
+        Collection<? extends Gene> orthologs = getOrthologsIfRequested( orthologTaxonId, gene );
 
         ModelAndView modelAndView = new ModelAndView();
         modelAndView.setViewName( "search" );
@@ -225,7 +205,7 @@ public class SearchController {
 
         Taxon taxon = taxonService.findById( taxonId );
         Gene gene = geneService.findBySymbolAndTaxon( symbol, taxon );
-        Collection<Gene> orthologs = getOrthologsIfRequested( orthologTaxonId, gene );
+        Collection<? extends Gene> orthologs = getOrthologsIfRequested( orthologTaxonId, gene );
 
         ModelAndView modelAndView = new ModelAndView();
         if ( gene == null ) {
@@ -261,9 +241,9 @@ public class SearchController {
 
         Taxon taxon = taxonService.findById( taxonId );
         Gene gene = geneService.findBySymbolAndTaxon( symbol, taxon );
-        Collection<Gene> orthologs = getOrthologsIfRequested( orthologTaxonId, gene );
-	Map<String, List<Gene>> orthologMap = null;
-	
+        Collection<? extends Gene> orthologs = getOrthologsIfRequested( orthologTaxonId, gene );
+        Map<String, List<Gene>> orthologMap = null;
+
         ModelAndView modelAndView = new ModelAndView();
 
         if ( gene == null ) {

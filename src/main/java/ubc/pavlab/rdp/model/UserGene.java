@@ -50,6 +50,15 @@ public class UserGene extends Gene implements PrivacySensitive {
     @Enumerated(EnumType.ORDINAL)
     private PrivacyLevelType privacyLevel;
 
+    public static UserGene createUserGeneFromGene( Gene gene, User user, TierType tier, PrivacyLevelType privacyLevel ) {
+        UserGene userGene = new UserGene();
+        userGene.updateGene(gene);
+        userGene.setUser(user);
+        userGene.setTier(tier);
+        userGene.setPrivacyLevel( privacyLevel );
+        return userGene;
+    }
+
     public void updateGene( Gene gene ) {
         this.setGeneId( gene.getGeneId() );
         this.setSymbol( gene.getSymbol() );
@@ -58,14 +67,6 @@ public class UserGene extends Gene implements PrivacySensitive {
         this.setAliases( gene.getAliases() );
         this.setModificationDate( gene.getModificationDate() );
         this.setTerms( gene.getTerms() );
-    }
-
-    public UserGene( Gene gene, User user, TierType tier, PrivacyLevelType privacyLevel ) {
-        super();
-        this.tier = tier;
-        this.user = user;
-        this.privacyLevel = privacyLevel;
-        this.updateGene( gene );
     }
 
     public Optional<User> getOwner() {

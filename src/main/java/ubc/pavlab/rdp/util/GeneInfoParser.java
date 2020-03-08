@@ -1,12 +1,16 @@
 package ubc.pavlab.rdp.util;
 
+import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPHTTPClient;
-import ubc.pavlab.rdp.model.Gene;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import ubc.pavlab.rdp.model.GeneInfo;
 import ubc.pavlab.rdp.model.Taxon;
+import ubc.pavlab.rdp.repositories.GeneInfoRepository;
 
 import java.io.*;
 import java.net.URL;
@@ -21,13 +25,16 @@ import java.util.zip.GZIPInputStream;
  * Created by mjacobson on 17/01/18.
  */
 
+@Component
+@CommonsLog
 public class GeneInfoParser {
 
-    private static Log log = LogFactory.getLog( GeneInfoParser.class );
+    private static final String EXPECTED_HEADER = "#tax_id\tGeneID\tSymbol\tLocusTag\tSynonyms\tdbXrefs\tchromosome\tmap_location\tdescription\ttype_of_gene\tSymbol_from_nomenclature_authority\tFull_name_from_nomenclature_authority\tNomenclature_status\tOther_designations\tModification_date\tFeature_type";
 
-    private static String EXPECTED_HEADER = "#tax_id\tGeneID\tSymbol\tLocusTag\tSynonyms\tdbXrefs\tchromosome\tmap_location\tdescription\ttype_of_gene\tSymbol_from_nomenclature_authority\tFull_name_from_nomenclature_authority\tNomenclature_status\tOther_designations\tModification_date\tFeature_type";
+    @Autowired
+    private GeneInfoRepository geneInfoRepository;
 
-    public static Set<Gene> parse( Taxon taxon, URL url ) throws ParseException {
+    public Set<GeneInfo> parse( Taxon taxon, URL url ) throws ParseException {
 
         String proxyHost = System.getProperty( "ftp.proxyHost" );
 
@@ -64,7 +71,7 @@ public class GeneInfoParser {
         }
     }
 
-    public static Set<Gene> parse( Taxon taxon, File file ) throws ParseException {
+    public Set<GeneInfo> parse( Taxon taxon, File file ) throws ParseException {
         try {
             return parse( taxon, new GZIPInputStream( new FileInputStream( file ) ) );
         } catch (IOException e) {
@@ -72,7 +79,7 @@ public class GeneInfoParser {
         }
     }
 
-    private static Set<Gene> parse( Taxon taxon, InputStream input ) throws ParseException {
+    private Set<GeneInfo> parse( Taxon taxon, InputStream input ) throws ParseException {
         try {
 
             BufferedReader br = new BufferedReader( new InputStreamReader( input ) );
@@ -88,7 +95,10 @@ public class GeneInfoParser {
             }
 
             return br.lines().map( line -> line.split( "\t" ) ).filter( values -> Integer.valueOf( values[0] ).equals( taxon.getId() ) ).map( values -> {
-                Gene gene = new Gene();
+                GeneInfo gene = geneInfoRepository.findByGeneIdAndTaxon( Integer.valueOf (values[1]), taxon );
+                if (gene == null) {
+                    gene = new GeneInfo();
+                }
                 gene.setTaxon( taxon );
                 gene.setGeneId( Integer.valueOf( values[1] ) );
                 gene.setSymbol( values[2] );
