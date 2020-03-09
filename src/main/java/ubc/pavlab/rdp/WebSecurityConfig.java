@@ -46,18 +46,39 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure( HttpSecurity http ) throws Exception {
 
-        http.
-                authorizeRequests()
-                .antMatchers( "/", "/login", "/registration", "/registrationConfirm", "/stats", "/stats.html",
-                        "/forgotPassword", "/resetPassword", "/updatePassword", "/resendConfirmation", "/search/**",
-                        "/userView/**", "/api/**", "/taxon/**", "/access-denied" ).permitAll()
-                .antMatchers( "/admin/**" ).hasRole( "ADMIN" ).antMatchers( "/user/**" ).authenticated().anyRequest()
-                .authenticated().and().csrf().disable().formLogin().loginPage( "/login" )
-                .failureUrl( "/login?error=true" ).defaultSuccessUrl( "/" ).usernameParameter( "email" )
-                .passwordParameter( "password" ).and().rememberMe()
-                .rememberMeCookieName( messageSource.getMessage("rdp.site.shortname", null, Locale.getDefault()) + "-remember-me" )
-                .tokenValiditySeconds( 7 * 24 * 60 * 60 ).and().logout()
-                .logoutRequestMatcher( new AntPathRequestMatcher( "/logout" ) ).logoutSuccessUrl( "/" )
-                .and().exceptionHandling().accessDeniedPage( "/accessDenied" );
+        http
+                .authorizeRequests()
+                    // public endpoints
+                    .antMatchers( "/", "/login", "/registration", "/registrationConfirm", "/stats", "/stats.html",
+                            "/forgotPassword", "/resetPassword", "/updatePassword", "/resendConfirmation", "/search/**",
+                            "/userView/**", "/request-match/**", "/api/**", "/taxon/**", "/access-denied" )
+                        .permitAll()
+                    // adninistrative endpoints
+                    .antMatchers( "/admin/**" )
+                        .hasRole( "ADMIN" )
+                    // user endpoints
+                    .antMatchers( "/user/**" )
+                        .authenticated()
+                    .and()
+                // TODO: we should fully comply with CSRF
+                .csrf()
+                    .disable()
+                .formLogin()
+                    .loginPage( "/login" )
+                    .usernameParameter( "email" )
+                    .passwordParameter( "password" )
+                    .defaultSuccessUrl( "/" )
+                    .failureUrl( "/login?error=true" )
+                    .and()
+                .rememberMe()
+                    .rememberMeCookieName( messageSource.getMessage("rdp.site.shortname", null, Locale.getDefault()) + "-remember-me" )
+                    .tokenValiditySeconds( 7 * 24 * 60 * 60 )
+                    .and()
+                .logout()
+                    .logoutRequestMatcher( new AntPathRequestMatcher( "/logout" ) )
+                    .logoutSuccessUrl( "/" )
+                    .and()
+                .exceptionHandling()
+                    .accessDeniedPage( "/access-denied" );
     }
 }
