@@ -6,7 +6,6 @@
          dynamicConfig="true">
 
     <defaultCache
-           maxEntriesLocalHeap="20"
            eternal="false"
            overflowToDisk="false"
            timeToLiveSeconds="600"
@@ -15,7 +14,6 @@
            transactionalMode="off"/>
 
     <cache name="org.hibernate.cache.internal.StandardQueryCache"
-           maxEntriesLocalHeap="100"
            eternal="false"
            overflowToDisk="false"
            timeToLiveSeconds="300"
@@ -24,22 +22,17 @@
            transactionalMode="off"/>
 
     <cache name="org.hibernate.cache.spi.UpdateTimestampsCache"
-           maxEntriesLocalHeap="5000"
            eternal="true"/>
 
-
-<!--    <cache name="ubc.pavlab.rdp.model.User"
-           maxEntriesLocalHeap="20"
+    <cache name="ubc.pavlab.rdp.model.User"
            eternal="false"
            overflowToDisk="false"
            timeToLiveSeconds="600"
            timeToIdleSeconds="0"
            memoryStoreEvictionPolicy="LRU"
-           transactionalMode="off">
-    </cache>-->
+           transactionalMode="off"/>
 
     <cache name="ubc.pavlab.rdp.model.Taxon"
-           maxEntriesLocalHeap="20"
            eternal="false"
            overflowToDisk="false"
            timeToLiveSeconds="3600"
@@ -48,11 +41,9 @@
            transactionalMode="off"/>
 
     <cache name="ubc.pavlab.rdp.model.Role"
-           maxEntriesLocalHeap="200"
            eternal="true"/>
 
     <cache name="ubc.pavlab.rdp.model.UserGene"
-           maxEntriesLocalHeap="500"
            eternal="false"
            overflowToDisk="false"
            timeToLiveSeconds="600"
@@ -61,7 +52,6 @@
            transactionalMode="off"/>
 
     <cache name="ubc.pavlab.rdp.model.UserTerm"
-           maxEntriesLocalHeap="100"
            eternal="false"
            overflowToDisk="false"
            timeToLiveSeconds="600"
@@ -69,34 +59,19 @@
            memoryStoreEvictionPolicy="LRU"
            transactionalMode="off"/>
 
+    <!--
     <cache name="ubc.pavlab.rdp.model.Ortholog"
-           maxEntriesLocalHeap="500"
            eternal="false"
            overflowToDisk="false"
            timeToLiveSeconds="600"
            timeToIdleSeconds="600"
            memoryStoreEvictionPolicy="LRU"
            transactionalMode="off"/>
+           -->
 
     <!-- Special Query Caches -->
 
-    <cache name="gene"
-           maxEntriesLocalHeap="0"
-           eternal="true"
-           overflowToDisk="false"
-           transactionalMode="off">
-        <searchable>
-            <searchAttribute name="geneId"/>
-            <searchAttribute name="taxonId" expression="value.getTaxon().getId()"/>
-            <searchAttribute name="name"/>
-            <searchAttribute name="symbol"/>
-            <searchAttribute name="aliases"/>
-            <searchAttribute name="modificationDate"/>
-        </searchable>
-    </cache>
-
     <cache name="taxon-list"
-           maxEntriesLocalHeap="10"
            eternal="false"
            overflowToDisk="false"
            timeToLiveSeconds="3600"
@@ -105,14 +80,10 @@
            transactionalMode="off"/>
 
     <cache name="stats"
-           maxEntriesLocalHeap="100"
            eternal="false"
            overflowToDisk="false"
            timeToLiveSeconds="600"
            timeToIdleSeconds="0"
            memoryStoreEvictionPolicy="LFU"
            transactionalMode="off"/>
-
-    <cache name="chars"
-           maxEntriesLocalHeap="100"/>
 </ehcache>

@@ -58,12 +58,6 @@ public class GeneInfoServiceImplTest extends BaseTest {
         public GeneInfoService geneService() {
             return new GeneInfoServiceImpl();
         }
-
-        @Bean
-        public EhCacheCacheManager cacheManager() {
-            return new EhCacheCacheManager( EhCacheManagerUtils.buildCacheManager( "test" ) );
-        }
-
     }
 
     @Autowired

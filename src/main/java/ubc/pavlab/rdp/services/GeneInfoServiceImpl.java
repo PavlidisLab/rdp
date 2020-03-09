@@ -2,16 +2,8 @@ package ubc.pavlab.rdp.services;
 
 import lombok.SneakyThrows;
 import lombok.extern.apachecommons.CommonsLog;
-import net.sf.ehcache.Cache;
-import net.sf.ehcache.Element;
-import net.sf.ehcache.search.Results;
 import org.apache.commons.io.FilenameUtils;
-import net.sf.ehcache.search.Attribute;
-import net.sf.ehcache.search.expression.Criteria;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.ehcache.EhCacheCacheManager;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import ubc.pavlab.rdp.model.*;
