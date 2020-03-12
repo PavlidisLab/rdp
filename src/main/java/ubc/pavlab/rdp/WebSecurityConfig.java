@@ -1,8 +1,10 @@
 package ubc.pavlab.rdp;
 
+import lombok.Builder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -11,17 +13,20 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-import ubc.pavlab.rdp.settings.SiteSettings;
+import ubc.pavlab.rdp.security.PermissionEvaluatorImpl;
 
 import java.util.Locale;
 
 /**
  * Created by mjacobson on 16/01/18.
+ *
+ * @see PermissionEvaluatorImpl for details on how hasPermission is defined for pre/post filtering.
  */
 @Configuration
 @EnableWebSecurity
-@EnableGlobalMethodSecurity(securedEnabled = true)
+@EnableGlobalMethodSecurity(securedEnabled = true, prePostEnabled = true)
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
@@ -38,14 +43,22 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         auth.userDetailsService( userDetailsService ).passwordEncoder( bCryptPasswordEncoder );
     }
 
+    @Autowired
+    PermissionEvaluator permissionEvaluator;
+
     @Override
     public void configure( WebSecurity web ) {
-        web.ignoring().antMatchers( "/resources/**", "/static/**", "/css/**", "/js/**", "/images/**" );
+        DefaultWebSecurityExpressionHandler expressionHandler = new DefaultWebSecurityExpressionHandler();
+        expressionHandler.setPermissionEvaluator( permissionEvaluator );
+        web
+                .ignoring()
+                    .antMatchers( "/resources/**", "/static/**", "/css/**", "/js/**", "/images/**" )
+                    .and()
+                .expressionHandler( expressionHandler );
     }
 
     @Override
     protected void configure( HttpSecurity http ) throws Exception {
-
         http
                 .authorizeRequests()
                     // public endpoints
