@@ -6,6 +6,7 @@ import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPHTTPClient;
 import ubc.pavlab.rdp.model.Gene;
+import ubc.pavlab.rdp.model.GeneInfo;
 import ubc.pavlab.rdp.model.GeneOntologyTerm;
 import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.services.GOService;
@@ -101,7 +102,7 @@ public class Gene2GoParser {
                     return;
                 }
 
-                Gene gene = geneService.load( Integer.valueOf( values[1] ) );
+                GeneInfo gene = geneService.load( Integer.valueOf( values[1] ) );
 
                 if ( gene == null ) {
                     log.warn( "Problem finding data for gene (" + values[1] + ")" );

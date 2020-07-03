@@ -33,14 +33,17 @@
 }
 
 .tab-content{
+    /*
     padding-top: 21px;
     margin-top: -1px;
     border: lightgray 1px solid;
     border-bottom-right-radius: 3px;
     border-bottom-left-radius: 3px;
     border-top: none;
+    */
 }
 
+/*
 #gene-search-btn{
     margin-left: 4px;
     margin-right: -4px;
@@ -53,6 +56,7 @@
 .ortholog-select{
     margin-left: -2px;
 }
+*/
 
 #alpha-grp button:active, #alpha-grp button.active, .input-group-prepend button[type='submit'] {
     background-color: dodgerblue;
@@ -60,9 +64,11 @@
     color: whitesmoke;
 }
 
+/*
 .tab-content h5{
     margin-left: 12px;
 }
+*/
 
 .hide{
     height: 0 !important;

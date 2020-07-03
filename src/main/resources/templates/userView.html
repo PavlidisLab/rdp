@@ -36,7 +36,7 @@
 
 <body>
 <div th:replace="fragments/header">...</div>
-<div class="container p-4">
+<div class="container py-4">
 
     <div th:replace="fragments/title :: title(title='View Account', subtitle=${viewUser.email})" th:remove="tag">...</div>
 
@@ -118,8 +118,10 @@
                     </div>
                     <table class="table mb-0">
                         <tr>
-                            <td class="align-middle" style="width: 120px;"><span class="text-muted align-middle">Email</span></td>
-                            <td><span th:text="${viewUser.email}" th:remove="tag"></span></td>
+                            <td class="align-middle" style="width: 120px;"><span
+                                    class="text-muted align-middle">Email</span></td>
+                            <td><a th:href="${'mailto://' + viewUser.email}" th:text="${viewUser.email}"></a>
+                            </td>
                         </tr>
                         <tr class="edit-container">
                             <td class="align-middle"><span class="text-muted align-middle">Phone</span></td>

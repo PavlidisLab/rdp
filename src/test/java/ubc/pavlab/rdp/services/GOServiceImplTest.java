@@ -65,7 +65,7 @@ public class GOServiceImplTest extends BaseTest {
     private GeneInfoService geneService;
 
     private Taxon taxon;
-    private Map<Integer, Gene> genes;
+    private Map<Integer, GeneInfo> genes;
     private Map<Integer, GeneOntologyTerm> terms;
 
     @Before
@@ -82,8 +82,8 @@ public class GOServiceImplTest extends BaseTest {
 
         genes = new HashMap<>();
 
-        Gene g1 = createGene( 1, taxon );
-        Gene g2 = createGene( 2, taxon );
+        GeneInfo g1 = createGene( 1, taxon );
+        GeneInfo g2 = createGene( 2, taxon );
 
         genes.put( g1.getGeneId(), g1 );
         genes.put( g2.getGeneId(), g2 );

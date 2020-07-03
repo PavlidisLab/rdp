@@ -1,9 +1,8 @@
 package ubc.pavlab.rdp.services;
 
 import lombok.extern.apachecommons.CommonsLog;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.RelationshipType;
@@ -13,7 +12,6 @@ import ubc.pavlab.rdp.util.GOParser;
 import ubc.pavlab.rdp.util.Gene2GoParser;
 import ubc.pavlab.rdp.util.SearchResult;
 
-import javax.annotation.PostConstruct;
 import java.io.File;
 import java.net.URL;
 import java.util.*;
@@ -47,8 +45,12 @@ public class GOServiceImpl implements GOService {
     @Autowired
     GeneInfoService geneService;
 
-    @PostConstruct
-    private void initialize() {
+    @Autowired
+    UserService userService;
+
+    @Override
+    @Scheduled(fixedRate = 2592000000L)
+    public void updateGoTerms() {
 
         ApplicationSettings.CacheSettings cacheSettings = applicationSettings.getCache();
 
@@ -86,8 +88,19 @@ public class GOServiceImpl implements GOService {
             } catch (Exception e) {
                 log.error( "Issue loading terms and/or annotations", e );
             }
-        }
 
+            log.info( "Now updating user GO terms..." );
+            for ( User user : userService.findAll()) {
+                for ( UserTerm userTerm : user.getUserTerms() ) {
+                    GeneOntologyTerm cachedTerm = getTerm( userTerm.getGoId() );
+                    if ( cachedTerm != null ) {
+                        userTerm.updateTerm( cachedTerm );
+                    }
+                }
+            }
+
+            log.info( "Done updating GO terms. Next update is scheduled in 30 days from now." );
+        }
 
     }
 
@@ -154,7 +167,7 @@ public class GOServiceImpl implements GOService {
         Stream<SearchResult<UserTerm>> stream = termMap.values().stream().filter( t -> t.getSize( taxon ) <= applicationSettings.getGoTermSizeLimit() )
                 .map( t -> queryTerm( queryString, t ) )
                 .filter( Objects::nonNull )
-                .map( sr -> new SearchResult<>( sr.getMatchType(), new UserTerm( sr.getMatch(), taxon, null ) ) )
+                .map( sr -> new SearchResult<>( sr.getMatchType(), UserTerm.createUserTerm( sr.getMatch(), taxon, null ) ) )
                 .sorted( Comparator.comparingInt( sr -> sr.getMatchType().getOrder() ) );
 
         if ( max > -1 ) {

@@ -1,11 +1,7 @@
 package ubc.pavlab.rdp.controllers;
 
 import lombok.extern.apachecommons.CommonsLog;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -25,7 +21,6 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.stream.Collectors;
@@ -107,7 +102,7 @@ public class MainController {
             Collection<Gene> genes = goService.getGenes( term );
 
             modelAndView.addObject( "genes",
-                    user.getGenesByTaxonAndTier( taxon, TierType.MANUAL_TIERS ).stream().filter( genes::contains )
+                    user.getGenesByTaxonAndTier( taxon, TierType.MANUAL ).stream().filter( genes::contains )
                             .collect( Collectors.toSet() ) );
         } else {
             modelAndView.addObject( "genes", Collections.EMPTY_SET );
@@ -159,7 +154,7 @@ public class MainController {
         User user = userService.findCurrentUser();
         if ( searchAuthorized(user) ) {
             ModelAndView modelAndView = new ModelAndView();
-            modelAndView.addObject( "chars", userService.getChars() );
+            modelAndView.addObject( "chars", userService.getLastNamesFirstChar() );
             modelAndView.addObject( "user", user );
             modelAndView.setViewName( "search" );
             return modelAndView;

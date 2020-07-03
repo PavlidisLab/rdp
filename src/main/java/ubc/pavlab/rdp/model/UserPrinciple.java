@@ -1,5 +1,6 @@
 package ubc.pavlab.rdp.model;
 
+import lombok.AllArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -10,14 +11,9 @@ import java.util.stream.Collectors;
 /**
  * Created by mjacobson on 07/02/18.
  */
+@AllArgsConstructor
 public class UserPrinciple implements UserDetails {
     private User user;
-    private Collection<? extends GrantedAuthority> authorities;
-
-    public UserPrinciple(User user) {
-        this.user = user;
-        this.authorities = user.getRoles().stream().map( r -> new SimpleGrantedAuthority( r.getRole() ) ).collect( Collectors.toSet() );
-    }
 
     public Integer getId() {
         return user.getId();
@@ -25,7 +21,10 @@ public class UserPrinciple implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return authorities;
+        return user.getRoles()
+                .stream()
+                .map( r -> new SimpleGrantedAuthority( r.getRole() ) )
+                .collect( Collectors.toSet() );
     }
 
     @Override

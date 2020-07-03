@@ -1,11 +1,9 @@
 package ubc.pavlab.rdp.services;
 
 import lombok.extern.apachecommons.CommonsLog;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ubc.pavlab.rdp.model.PrivacySensitive;
+import ubc.pavlab.rdp.security.PrivacySensitive;
 import ubc.pavlab.rdp.model.Profile;
 import ubc.pavlab.rdp.model.Role;
 import ubc.pavlab.rdp.model.User;
@@ -13,7 +11,7 @@ import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.repositories.RoleRepository;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 
-import java.util.Optional;
+import java.util.Collection;
 
 /**
  * Logic regarding privacy
@@ -34,11 +32,6 @@ public class PrivacyServiceImpl implements PrivacyService {
     @Override
     public boolean checkUserCanSee( User user, PrivacySensitive content ) {
         return checkUserCanSeeOtherUserContentWithPrivacyLevel( user, content.getOwner().orElse( null ), content.getEffectivePrivacyLevel() );
-    }
-
-    @Override
-    public boolean checkCurrentUserCanSee( PrivacySensitive content ) {
-        return checkUserCanSee( userService.findCurrentUser(), content );
     }
 
     @Override

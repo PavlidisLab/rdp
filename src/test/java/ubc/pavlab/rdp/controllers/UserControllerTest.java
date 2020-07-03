@@ -191,7 +191,7 @@ public class UserControllerTest extends BaseTest {
         Taxon taxon = createTaxon( 1 );
         GeneOntologyTerm term = createTerm( toGOId( 1 ) );
         term.setName( "cave" );
-        UserTerm ut = new UserTerm( term, taxon, null );
+        UserTerm ut = UserTerm.createUserTerm( term, taxon, null );
         ut.getSizesByTaxon().put( taxon, 99L );
         user.getUserTerms().add( ut );
 
@@ -279,13 +279,13 @@ public class UserControllerTest extends BaseTest {
         GeneOntologyTerm term = createTerm( toGOId( 1 ) );
         term.setName( "term name1" );
         term.setAspect( Aspect.biological_process );
-        user.getUserTerms().add( new UserTerm( term, taxon, null ) );
+        user.getUserTerms().add( UserTerm.createUserTerm( term, taxon, null ) );
 
         Taxon taxon2 = createTaxon( 2 );
         GeneOntologyTerm term2 = createTerm( toGOId( 2 ) );
         term2.setName( "term name2" );
         term2.setAspect( Aspect.molecular_function );
-        user.getUserTerms().add( new UserTerm( term2, taxon2, null ) );
+        user.getUserTerms().add( UserTerm.createUserTerm( term2, taxon2, null ) );
 
         given( userService.findCurrentUser() ).willReturn( user );
 
@@ -329,12 +329,12 @@ public class UserControllerTest extends BaseTest {
         User user = createUser( 1 );
 
         Taxon taxon = createTaxon( 1 );
-        UserTerm t1 = new UserTerm( createTerm( toGOId( 1 ) ), taxon, null );
-        UserTerm t2 = new UserTerm( createTerm( toGOId( 2 ) ), taxon, null );
+        UserTerm t1 = UserTerm.createUserTerm( createTerm( toGOId( 1 ) ), taxon, null );
+        UserTerm t2 = UserTerm.createUserTerm( createTerm( toGOId( 2 ) ), taxon, null );
 
         Taxon taxon2 = createTaxon( 2 );
-        UserTerm t3 = new UserTerm( createTerm( toGOId( 3 ) ), taxon2, null );
-        UserTerm t4 = new UserTerm( createTerm( toGOId( 4 ) ), taxon2, null );
+        UserTerm t3 = UserTerm.createUserTerm( createTerm( toGOId( 3 ) ), taxon2, null );
+        UserTerm t4 = UserTerm.createUserTerm( createTerm( toGOId( 4 ) ), taxon2, null );
 
 
         given( userService.findCurrentUser() ).willReturn( user );
@@ -438,7 +438,7 @@ public class UserControllerTest extends BaseTest {
         Taxon taxon = createTaxon( 1 );
 
         Mockito.when( userService.convertTerms( Mockito.any(), Mockito.eq( taxon ), Mockito.any( GeneOntologyTerm.class ) ) )
-                .then( i -> new UserTerm( i.getArgumentAt( 2, GeneOntologyTerm.class ), taxon, null ) );
+                .then( i -> UserTerm.createUserTerm( i.getArgumentAt( 2, GeneOntologyTerm.class ), taxon, null ) );
         Mockito.when( goService.getTerm( Mockito.any() ) )
                 .then( i -> createTerm( i.getArgumentAt( 0, String.class ) ) );
 

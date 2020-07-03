@@ -29,7 +29,7 @@
                     <div class="dropdown-menu" aria-labelledby="navbarDropdownModel">
                         <th:block th:each="taxon : ${@taxonService.findByActiveTrue()}">
                             <a class="dropdown-item text-capitalize"
-                               th:classappend="(${user != null }and ${user.hasTaxon(taxon)}) ? 'hastaxon' : ''"
+                               th:classappend="(${user != null} and ${user.hasTaxon(taxon)}) ? 'hastaxon' : ''"
                                th:href="@{'/user/model/' + ${taxon.id}}" th:text="${taxon.commonName} " href="#"></a>
                         </th:block>
                     </div>

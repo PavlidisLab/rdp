@@ -38,40 +38,40 @@
 
 <body>
 <div th:replace="fragments/header">...</div>
-<div class="container">
+<div class="container py-4">
 
-    <div th:replace="fragments/title :: title(title='My Account', subtitle='User Profile')" th:remove="tag">...</div>
-
-    <div class="d-flex align-items-center justify-content-center" th:if="${viewOnly != null}">
-        <h3 class="d-inline-block pr-3 mr-3 mb-0" th:text="${user.email}"></h3>
+    <div class="row">
+        <div class="col">
+            <div th:replace="fragments/title :: title(title='My Account', subtitle='User Profile')" th:remove="tag">...</div>
+        </div>
+        <div class="d-flex align-items-center justify-content-center" th:if="${viewOnly != null}">
+            <h3 class="d-inline-block pr-3 mr-3 mb-0" th:text="${user.email}"></h3>
+        </div>
+        <div class="col text-right" th:if="${viewOnly == null}">
+            <button type="button" class="btn btn-primary btn-lg save-profile">
+                <i class="mx-2 d-none spinner"></i>
+                Save
+            </button>
+        </div>
     </div>
 
     <div class="main-content">
-        <div class="row justify-content-center success-row" style="display: none;">
-            <div class="col my-3">
-                <div class="alert alert-success alert-dismissible fade show" role="alert">Profile Saved!
-                    <button type="button" class="close" id="saved-button">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-            </div>
+        <div class="alert alert-success alert-dismissible fade show success-row my-3" role="alert" style="display: none;">
+            Profile Saved!
+            <button type="button" class="close" id="saved-button">
+                <span aria-hidden="true">&times;</span>
+            </button>
         </div>
-        <div class="row justify-content-center error-row" style="display: none;">
-            <div class="col my-3">
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">Error Saving Profile!
-                    <button type="button" class="close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-            </div>
+
+        <div class="alert alert-danger alert-dismissible fade show error-row my-3" role="alert" style="display: none;">
+            Error Saving Profile!
+            <button type="button" class="close">
+                <span aria-hidden="true">&times;</span>
+            </button>
         </div>
-        <div class="row justify-content-center" th:if="${viewOnly == null}">
-            <div class="col-4 my-3">
-                <button type="button" class="btn btn-primary btn-lg btn-block save-profile"><i class="mx-2 d-none spinner"></i>Save</button>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col my-3">
+
+        <div class="row my-3">
+            <div class="col">
                 <div class="card basic-info">
                     <div class="card-header">
                         <div class="d-flex align-items-center">
@@ -113,8 +113,9 @@
                 </div>
             </div>
         </div>
-        <div class="row">
-            <div class="col my-3">
+
+        <div class="row my-3">
+            <div class="col">
                 <div class="card contact-info">
                     <div class="card-header">
                         <h3 class="mb-0">Contact Information</h3>
@@ -133,69 +134,94 @@
                     </table>
                 </div>
             </div>
+        </div>
 
-            <div class="w-100"></div>
-
-            <div class="col my-3">
+        <div class="row my-3">
+            <div class="col">
                 <div class="card research-info edit-container">
                     <div class="card-header d-flex align-items-center">
                         <i class="editable" th:if="${viewOnly == null}"/>
                         <h3 class="mb-0 d-inline-block">About My Research</h3>
                     </div>
                     <div class="p-2" style="height: 120px;">
-            <textarea class="data-edit" name="description" th:text="${user.profile.description}"
-                      disabled="disabled"></textarea>
+                        <textarea class="data-edit" name="description" th:text="${user.profile.description}" disabled="disabled"></textarea>
                     </div>
                 </div>
             </div>
+        </div>
 
+        <div class="row my-3">
             <div class="w-100"
                  th:if="${@applicationSettings.getPrivacy().isCustomizableLevel()} or ${@applicationSettings.getPrivacy().isCustomizableSharing()} or ${@applicationSettings.getPrivacy().isAllowHideGenelist()}"></div>
-            <div class="col my-3"
+            <div class="col"
                  th:if="${@applicationSettings.getPrivacy().isCustomizableLevel()} or ${@applicationSettings.getPrivacy().isCustomizableSharing()} or ${@applicationSettings.getPrivacy().isAllowHideGenelist()}">
                 <div class="card privacy-settings edit-container">
                     <div class="card-header d-flex align-items-center">
-                        <h3 class="mb-0 d-inline-block">Data Privacy Settings</h3>
+                        <h3 id="data-privacy-settings" class="mb-0 d-inline-block">Data Privacy Settings</h3>
                     </div>
                     <div class="list-group list-group-flush">
+                        <!-- TODO: also check if more than one option is available to display this section -->
                         <div id="privacy-levels" class="list-group-item"
                              th:if="${@applicationSettings.getPrivacy().isCustomizableLevel()}">
-                            <h5>Privacy Level</h5>
-                            <div class="form-group">
-                                <div class="form-check-inline"
-                                     th:each="privacyLevel : ${T(ubc.pavlab.rdp.model.enums.PrivacyLevelType).values()}"
-                                     th:if="${@privacyService.isPrivacyLevelEnabled(privacyLevel)}">
-                                    <input class="form-check-input" type="radio" name="privacy"
-                                           th:id="${'privacy-level-' + privacyLevel.getLabel()}"
-                                           th:checked="${user.profile.privacyLevel == privacyLevel}"
-                                           th:value="${privacyLevel.ordinal()}"/>
-                                    <label class="form-check-label" th:for="${'privacy-level-' + privacyLevel.getLabel()}">
-                                        <span th:text="${privacyLevel.getLabel()}"></span>
-                                        <i class="tip oi oi-question-mark"
-                                           data-ot-background="cornflowerblue"
-                                           data-ot-border-color="white"
-                                           data-ot-shadow-color="lightgray"
-                                           th:attr="data-ot=${privacyLevel.getDescription()}"/>
-                                    </label>
+                            <h4>Privacy Level</h4>
+
+                            <p>These settings determine how other users in the system can see your data.</p>
+
+                            <h5>User Profile Privacy Level</h5>
+
+                            <div class="alert alert-warning" role="alert">
+                                <div class="form-group">
+                                    <div class="form-check-inline"
+                                         th:each="privacyLevel : ${T(ubc.pavlab.rdp.model.enums.PrivacyLevelType).values()}"
+                                         th:if="${@privacyService.isPrivacyLevelEnabled(privacyLevel)}">
+                                        <input class="form-check-input" type="radio" name="privacy"
+                                               th:id="${'privacy-level-' + privacyLevel.label}"
+                                               th:checked="${user.profile.privacyLevel == privacyLevel}"
+                                               th:value="${privacyLevel.ordinal()}"/>
+                                        <label class="form-check-label" th:for="${'privacy-level-' + privacyLevel.label}">
+                                            <span th:text="${privacyLevel.label}"></span>
+                                            <i class="tip oi oi-question-mark"
+                                               data-ot-background="cornflowerblue"
+                                               data-ot-border-color="white"
+                                               data-ot-shadow-color="lightgray"
+                                               th:attr="data-ot=${privacyLevel.description}"/>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div th:if="${@applicationSettings.getPrivacy().isCustomizableGeneLevel()}">
+                                    If you lower your privacy level, all the genes privacy levels you have set will be
+                                    capped by this value.
                                 </div>
                             </div>
 
-                            <div class="alert alert-warning" role="alert" th:if="${@applicationSettings.getPrivacy().isEnableGenePrivacy()}">
-                                If you lower your privacy level, all of your genes privacy levels will be capped.
+                            <div class="alert alert-danger" th:if="${@applicationSettings.getPrivacy().isCustomizableGeneLevel()}">
+                                <div class="form-group">
+                                    <div class="form-check">
+                                        <input id="updateAllGenePrivacyLevels"
+                                               class="form-check-input"
+                                               name="updateAllGenePrivacyLevels"
+                                               type="checkbox"/>
+                                        <label for="updateAllGenePrivacyLevels" class="form-check-label">
+                                            I want all my gene to be set to <b th:text="${user.effectivePrivacyLevel.label}"></b> as well.
+                                        </label>
+                                    </div>
+                                </div>
+                                This option apply regardless of the current privacy level of your genes, so you should
+                                revise your genes to make sure no unintended leakage occurs.
                             </div>
-                            <div>
-                                Read more about these settings in the <a th:href="@{/user/faq#privacy-settings}" target="_blank">FAQ</a>.
-                            </div>
+                            Read more about these settings in the <a th:href="@{/user/faq#privacy-settings}" target="_blank">FAQ</a>.
                         </div>
+
                         <div id="privacy-sharing" class="list-group-item"
                              th:if="${@applicationSettings.getPrivacy().isCustomizableSharing()}">
-                            <h5>Partner registry</h5>
+                            <h4>Partner Registry</h4>
+                            <p>These settings determine users from other systems can see your data.</p>
                             <div class="form-group">
                                 <div class="form-check form-check-inline">
                                     <input id="privacy-sharing-checkbox" type="checkbox" class="form-check-input"
                                            th:checked="${user.profile.shared}"/>
                                     <label class="form-check-label" for="privacy-sharing-checkbox">
-                                        Share data with partner registries
+                                        Share my data with partner registries
                                         <i class="tip oi oi-question-mark"
                                            data-ot-background="cornflowerblue"
                                            data-ot-border-color="white"
@@ -211,12 +237,13 @@
                         </div>
                         <div id="privacy-genelist" class="list-group-item"
                              th:if="${@applicationSettings.getPrivacy().isAllowHideGenelist()}">
-                            <h5>Content displayed on your profile</h5>
+                            <h5>Content displayed on my profile</h5>
+                            <p>These settings determine which parts of your user profile are visible to other users.</p>
                             <div class="form-check form-check-inline">
                                 <input id="privacy-genelist-checkbox" type="checkbox" class="form-check-input"
                                        th:checked="${user.profile.hideGenelist}"/>
                                 <label class="form-check-label" for="privacy-genelist-checkbox">
-                                    Hide genelist for non-administrative users
+                                    Hide my gene listing for non-administrative users
                                     <i class="tip oi oi-question-mark"
                                        data-ot-background="cornflowerblue"
                                        data-ot-border-color="white"
@@ -231,9 +258,7 @@
             </div>
         </div>
 
-        <div class="w-100"></div>
-
-        <div class="card publication-info">
+        <div class="card publication-info my-3">
             <div class="card-header">
                 <h3 class="mb-0">Publications</h3>
             </div>

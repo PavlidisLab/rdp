@@ -882,7 +882,7 @@ public class UserServiceImplTest extends BaseTest {
                 .flatMap( t -> t.getDirectGenes().stream() )
                 .collect( Collectors.toMap( Function.identity(), g -> TierType.TIER1 ) );
 
-        userService.updateTermsAndGenesInTaxon( user, taxon, geneTierMap, new HashMap<>(), terms );
+        userService.updateTermsAndGenesInTaxon( user, taxon, geneTierMap, new HashMap<Gene, Optional<PrivacyLevelType>>(), terms );
 
         // Might as well test this
         assertThatUserTermsAreEqualTo( user, taxon, terms );
@@ -1076,7 +1076,7 @@ public class UserServiceImplTest extends BaseTest {
         User user = createUser( 1 );
         Taxon taxon = createTaxon( 1 );
 
-        user.getUserTerms().add( new UserTerm( createTerm( toGOId( 1 ) ), taxon, null ) );
+        user.getUserTerms().add( UserTerm.createUserTerm( createTerm( toGOId( 1 ) ), taxon, null ) );
 
         Collection<UserTerm> found = userService.recommendTerms( user, taxon );
         assertThat( found.stream().map( GeneOntologyTerm::getGoId ).collect( Collectors.toList() ) ).containsExactlyInAnyOrder( toGOId( 7 ), toGOId( 8 ) );
@@ -1089,9 +1089,9 @@ public class UserServiceImplTest extends BaseTest {
         User user = createUser( 1 );
         Taxon taxon = createTaxon( 1 );
 
-        user.getUserTerms().add( new UserTerm( createTerm( toGOId( 1 ) ), taxon, null ) );
-        user.getUserTerms().add( new UserTerm( createTerm( toGOId( 7 ) ), taxon, null ) );
-        user.getUserTerms().add( new UserTerm( createTerm( toGOId( 8 ) ), taxon, null ) );
+        user.getUserTerms().add( UserTerm.createUserTerm( createTerm( toGOId( 1 ) ), taxon, null ) );
+        user.getUserTerms().add( UserTerm.createUserTerm( createTerm( toGOId( 7 ) ), taxon, null ) );
+        user.getUserTerms().add( UserTerm.createUserTerm( createTerm( toGOId( 8 ) ), taxon, null ) );
 
         Collection<UserTerm> found = userService.recommendTerms( user, taxon );
         assertThat( found.stream().map( GeneOntologyTerm::getGoId ).collect( Collectors.toList() ) ).containsExactlyInAnyOrder( toGOId( 0 ), toGOId( 4 ), toGOId( 6 ) );

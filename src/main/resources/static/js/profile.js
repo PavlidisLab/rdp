@@ -154,6 +154,7 @@ $(document).ready(function () {
             data: JSON.stringify(profile),
             contentType: "application/json",
             success: function(r) {
+                console.log('Yep!');
                 $('.success-row').show();
                 $('.error-row').hide();
                 spinner.addClass("d-none");

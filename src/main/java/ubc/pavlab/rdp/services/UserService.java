@@ -1,6 +1,5 @@
 package ubc.pavlab.rdp.services;
 
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +18,10 @@ public interface UserService {
 
     @Transactional
     User create( User user );
+
+    @Secured("ROLE_ADMIN")
+    @Transactional
+    void createAdmin( User admin );
 
     @Transactional
     User update( User user );
@@ -63,9 +66,11 @@ public interface UserService {
     Collection<UserTerm> recommendTerms( User user, Taxon taxon, int minSize, int maxSize, int minFrequency );
 
     @Transactional
-    void updateTermsAndGenesInTaxon( User user, Taxon taxon, Map<Gene, TierType> genesToTierMap,
-                                     Map<Gene, Optional<PrivacyLevelType>> genesToPrivacyLevelMap,
-            Collection<GeneOntologyTerm> goTerms );
+    void updateTermsAndGenesInTaxon( User user,
+                                     Taxon taxon,
+                                     Map<? extends Gene, TierType> genesToTierMapFrom,
+                                     Map<? extends Gene, Optional<PrivacyLevelType>> genesToPrivacyLevelMap,
+                                     Collection<? extends GeneOntologyTerm> goTerms );
 
     @Transactional
     User updatePublications( User user, Set<Publication> publications );
@@ -84,5 +89,9 @@ public interface UserService {
     @Transactional
     User confirmVerificationToken( String token );
 
-    SortedSet<String> getChars();
+    SortedSet<String> getLastNamesFirstChar();
+
+    UUID getHiddenIdForUser( User user );
+
+    User findUserByHiddenId( UUID hiddenId );
 }

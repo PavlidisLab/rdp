@@ -1,5 +1,6 @@
 package ubc.pavlab.rdp.services;
 
+import org.springframework.scheduling.annotation.Scheduled;
 import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.util.SearchResult;
 
@@ -39,4 +40,7 @@ public interface GOService {
     Collection<Gene> getGenes( Collection<? extends GeneOntologyTerm> goTerms, Taxon taxon );
 
     GeneOntologyTerm getTerm( String goId );
+
+    @Scheduled(fixedRate = 2592000000L)
+    void updateGoTerms ();
 }

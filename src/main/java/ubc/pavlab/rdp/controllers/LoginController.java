@@ -5,6 +5,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -12,15 +13,20 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.View;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.servlet.view.RedirectView;
 import ubc.pavlab.rdp.events.OnRegistrationCompleteEvent;
+import ubc.pavlab.rdp.model.Profile;
 import ubc.pavlab.rdp.model.User;
 import ubc.pavlab.rdp.model.UserPrinciple;
+import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
+import ubc.pavlab.rdp.services.PrivacyService;
 import ubc.pavlab.rdp.services.UserService;
+import ubc.pavlab.rdp.settings.ApplicationSettings;
 
 import javax.validation.Valid;
 
@@ -37,7 +43,7 @@ public class LoginController {
     @Autowired
     ApplicationEventPublisher eventPublisher;
 
-    @RequestMapping(value = {"/login"}, method = RequestMethod.GET)
+    @GetMapping("/login")
     public ModelAndView login() {
         ModelAndView modelAndView = new ModelAndView();
 
@@ -53,42 +59,61 @@ public class LoginController {
     }
 
 
-    @RequestMapping(value = "/registration", method = RequestMethod.GET)
+    @GetMapping("/registration")
     public ModelAndView registration() {
         ModelAndView modelAndView = new ModelAndView();
-        User user = new User();
-        modelAndView.addObject( "user", user );
+        modelAndView.addObject( "user", new User() );
         modelAndView.setViewName( "registration" );
         return modelAndView;
     }
 
-    @RequestMapping(value = "/registration", method = RequestMethod.POST)
-    public ModelAndView createNewUser( @Valid User user, BindingResult bindingResult ) {
-        ModelAndView modelAndView = new ModelAndView();
+    @Autowired
+    PrivacyService privacyService;
+
+    @Autowired
+    ApplicationSettings applicationSettings;
+
+    @PostMapping("/registration")
+    public String createNewUser( @Valid User user,
+                                 BindingResult bindingResult,
+                                 RedirectAttributes redirectAttributes ) {
         User userExists = userService.findUserByEmail( user.getEmail() );
+
+        // initialize a basic user profile
+        Profile userProfile = new Profile();
+        userProfile.setPrivacyLevel( privacyService.getDefaultPrivacyLevel() );
+        userProfile.setShared( applicationSettings.getPrivacy().isDefaultSharing() );
+        userProfile.setHideGenelist( false );
+
+        user.setProfile(userProfile);
+
         if ( userExists != null ) {
             bindingResult
-                    .rejectValue( "email", "error.user",
-                            "There is already a user registered with the email provided" );
+                    .rejectValue( "user.email", "error.user",
+                            "There is already a user registered with the email provided." );
+            log.warn("Trying to register an already registered email.");
         }
-        if ( bindingResult.hasErrors() ) {
-            modelAndView.setViewName( "registration" );
-        } else {
-            userService.create( user );
+
+        log.info(bindingResult);
+
+        if ( !bindingResult.hasErrors() ) {
+            if ( true ) {
+                userService.createAdmin( user );
+            } else {
+                userService.create( user );
+            }
             try {
                 eventPublisher.publishEvent( new OnRegistrationCompleteEvent( user ) );
-                modelAndView.addObject( "message", "User has been registered successfully, we have sent you an email in order to confirm your account." );
+                redirectAttributes.addAttribute( "message", "Your user account was registered successfully. Please check your email for completing the completing the registration process." );
             } catch (Exception me) {
                 log.error(me);
-                modelAndView.addObject( "message", "There was a problem sending the confirmation email. Please try again later." );
+                redirectAttributes.addAttribute( "message", "Your user account was registered successfully, but we couldn't send you a confirmation email." );
+            } finally {
+                return "redirect:/login";
             }
-
-
-            modelAndView.addObject( "user", new User() );
-            modelAndView.setViewName( "registration" );
-
         }
-        return modelAndView;
+
+        return "registration";
     }
 
     @RequestMapping(value = {"/resendConfirmation"}, method = RequestMethod.GET)

@@ -72,7 +72,7 @@ public class UserController {
     }
 
     @RequestMapping(value = "/user/term", method = RequestMethod.GET)
-    public List<UserTerm> getTerms() {
+    public Collection<UserTerm> getTerms() {
         return userService.findCurrentUser().getUserTerms();
     }
 
@@ -100,7 +100,6 @@ public class UserController {
         Map<GeneInfo, Optional<PrivacyLevelType>> privacyLevels = geneService.deserializeGenesPrivacyLevels( model.getGenePrivacyLevelMap() );
         Set<GeneOntologyTerm> terms = model.getGoIds().stream().map( s -> goService.getTerm( s ) ).collect( Collectors.toSet() );
 
-        log.info( privacyLevels );
         userService.updateTermsAndGenesInTaxon( user, taxon, genes, privacyLevels, terms );
 
         return "Saved.";
@@ -135,5 +134,4 @@ public class UserController {
 
         return terms;
     }
-
 }

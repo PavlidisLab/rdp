@@ -111,8 +111,9 @@ $(document).ready(function () {
 	    contentType: "application/json",
 	    success: function(r) {
 		// Confirm session is renewed.
-		$('.success-row').show();
-		$('.error-row').hide();
+			console.log('dat timeout!');
+		// $('.success-row').show();
+		// $('.error-row').hide();
 	    },
 	    error: function(r) {
 		// Logout because response failed.

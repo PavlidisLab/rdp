@@ -1,5 +1,6 @@
 package ubc.pavlab.rdp.util;
 
+import lombok.SneakyThrows;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -7,6 +8,7 @@ import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.TierType;
 
+import java.net.URL;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -78,12 +80,13 @@ public class BaseTest {
         return user;
     }
 
+    @SneakyThrows
     protected Taxon createTaxon( int id ) {
         Taxon taxon = new Taxon();
         taxon.setActive( true );
         taxon.setCommonName( TAXON_COMMON_NAME );
         taxon.setScientificName( TAXON_SCIENTIFIC_NAME );
-        taxon.setGeneUrl( "" );
+        taxon.setGeneUrl( new URL("ftp://ftp.ncbi.nlm.nih.gov/gene/DATA/GENE_INFO/Invertebrates/Caenorhabditis_elegans.gene_info.gz") );
         taxon.setId( id );
 
         return taxon;
@@ -119,13 +122,13 @@ public class BaseTest {
     }
 
     protected UserTerm createUserTerm( int id, GeneOntologyTerm term, Taxon taxon ) {
-        UserTerm ut = new UserTerm(term, taxon, null );
+        UserTerm ut = UserTerm.createUserTerm(term, taxon, null );
         ut.setId( id );
         return ut;
     }
 
     protected UserTerm createUserTerm( int id, GeneOntologyTerm term, Taxon taxon, Set<Gene> genes ) {
-        UserTerm ut = new UserTerm(term, taxon, genes );
+        UserTerm ut = UserTerm.createUserTerm(term, taxon, genes );
         ut.setId( id );
         return ut;
     }

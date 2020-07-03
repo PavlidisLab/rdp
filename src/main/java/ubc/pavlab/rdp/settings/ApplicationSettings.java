@@ -1,5 +1,6 @@
 package ubc.pavlab.rdp.settings;
 
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.validator.constraints.URL;
@@ -40,16 +41,32 @@ public class ApplicationSettings {
          * Must be one of enabledLevels
          */
         private Integer defaultLevel = PrivacyLevelType.PRIVATE.ordinal();
-        private List<String> enabledLevels;
         /**
-         * Minimum level of privacy.
+         * Minimum level of privacy for user profiles.
          * @deprecated The setting is still honored, but you should use enabledLevels instead.
          */
         @Deprecated
         private Integer minLevel = PrivacyLevelType.PRIVATE.ordinal();
-        private boolean enableGenePrivacy = false;
+        /**
+         * List of enabled privacy levels for user profiles.
+         */
+        private List<String> enabledLevels;
+        /**
+         * List of enabled privacy levels for user-associated genes.
+         */
+        private List<String> enabledGeneLevels;
+        private boolean displayMatchAnonymously = false;
         private boolean defaultSharing = false;
+        /**
+         * Whether or not privacy settings are customizable at profile-level.
+         */
         private boolean customizableLevel = true;
+        /**
+         * Whether or not privacy settings are customizable at gene-level.
+         *
+         * It's possible to customize gene privacy even if the profile levels are not customizable.
+         */
+        private boolean customizableGeneLevel = false;
         private boolean customizableSharing = true;
         private boolean publicSearch = false;
         private boolean registeredSearch = false;
@@ -76,6 +93,8 @@ public class ApplicationSettings {
     private CacheSettings cache;
     private boolean sendEmailOnRegistration;
     private int goTermSizeLimit = 100;
+    public List<String> enabledTiers;
+    public boolean enableOrganSystems;
 
 //    @Getter
 //    @Setter

@@ -2,6 +2,7 @@ package ubc.pavlab.rdp.repositories;
 
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.stereotype.Repository;
 import ubc.pavlab.rdp.model.User;
@@ -18,6 +19,10 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     long count();
 
     User findByEmailIgnoreCase( String email );
+
+    @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
+    @Query("select u from User u where u.profile.lastName is not NULL and u.profile.lastName <> ''")
+    Collection<User> findAllWithNonEmptyProfileLastName();
 
     @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
     Collection<User> findByProfileLastNameStartsWithIgnoreCase( String lastNameLike );

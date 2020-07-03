@@ -2,6 +2,7 @@ package ubc.pavlab.rdp.model;
 
 import lombok.*;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
+import ubc.pavlab.rdp.security.PrivacySensitive;
 
 import javax.persistence.*;
 import java.util.Calendar;

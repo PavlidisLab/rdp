@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title th:text="#{rdp.site.fullname}"></title>
+    <link rel="icon" type="image/png" sizes="16x16" th:href="@{/images/favicon-16x16.png}"/>
+    <link rel="icon" type="image/png" sizes="32x32" th:href="@{/images/favicon-32x32.png}"/>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+          integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+          crossorigin="anonymous"/>
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/open-iconic/1.1.1/font/css/open-iconic-bootstrap.min.css"/>
+    <link rel="stylesheet" type="text/css" th:href="@{/css/jquery-ui.min.css}"/>
+
+
+    <link rel="stylesheet" type="text/css" th:href="@{/css/common.css}"/>
+    <link rel="stylesheet" type="text/css" th:href="@{/css/search.css}"/>
+
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"
+            integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+            crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+            integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+            crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+            integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+            crossorigin="anonymous"></script>
+    <script src="/js/opentip-jquery.min.js"></script>
+    <link href="/css/opentip.css" rel="stylesheet" type="text/css"/>
+    <script th:src="@{/js/jquery-ui.min.js}"></script>
+
+    <script th:src="@{/js/common.js}"></script>
+    <script th:src="@{/js/search.js}"></script>
+    <script th:if="${user != null}" th:src="@{/js/activity-monitor.js}"></script>
+</head>
+<body>
+<div th:replace="fragments/header">...</div>
+<div class="container py-4">
+    <div th:replace="fragments/title :: title(title='Request a match', subtitle='Researchers &amp; genes')"
+         th:remove="tag">...
+    </div>
+    <section class="my-3">
+        <p>
+            This is just a prototype of action to get in touch with
+            <b th:text="${hiddenUser.profile.name}"></b>
+            <b th:text="${hiddenUser.profile.lastName}"></b> (note that we would not display this information...).
+        </p>
+        <p>Note that the URL does not reveal the user identifier.</p>
+        <div th:if="${hiddenUserGene}">
+            This request is mediated by the following gene:
+            <b th:text="${hiddenUserGene.symbol}"></b>.
+        </div>
+    </section>
+    <section class="my-3">
+        <form method="post">
+            <div class="form-row">
+                <div class="form-group col-md-4">
+                    <label for="name">Name</label>
+                    <input id="name" class="form-control" type="text"/>
+                </div>
+                <div class="form-group col-md-4">
+                    <label for="lastName">Last Name</label>
+                    <input id="lastName" class="form-control" type="text"/>
+                </div>
+                <div class="form-group col-md-4">
+                    <label for="email">Email</label>
+                    <input id="email" class="form-control" type="email"/>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label for="moreAboutYourself">Tell us more about yourself</label>
+                    <textarea id="moreAboutYourself" class="form-control"></textarea>
+                </div>
+            </div>
+            <button class="btn btn-primary">Request a match</button>
+        </form>
+    </section>
+    <section class="my-3">
+        <p>For registered users, we can prefill with the profile information, or avoid having a form at all.</p>
+    </section>
+</div>
+</body>
+</html>

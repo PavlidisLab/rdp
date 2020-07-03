@@ -3,7 +3,8 @@ package ubc.pavlab.rdp.services;
 import lombok.NonNull;
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
+import org.springframework.security.access.prepost.PostAuthorize;
+import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -14,14 +15,12 @@ import ubc.pavlab.rdp.exception.TokenException;
 import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.TierType;
-import ubc.pavlab.rdp.repositories.PasswordResetTokenRepository;
-import ubc.pavlab.rdp.repositories.RoleRepository;
-import ubc.pavlab.rdp.repositories.UserRepository;
-import ubc.pavlab.rdp.repositories.VerificationTokenRepository;
+import ubc.pavlab.rdp.repositories.*;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 
 import javax.validation.ValidationException;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -49,11 +48,8 @@ public class UserServiceImpl implements UserService {
     private BCryptPasswordEncoder bCryptPasswordEncoder;
     @Autowired
     private GOService goService;
-
     @Autowired
-    PrivacyService privacyService;
-
-    private Role roleAdmin;
+    private PrivacyService privacyService;
 
     @SuppressWarnings("unused") // Keeping for future use
     private static <T> Collector<T, ?, List<T>> maxList( Comparator<? super T> comp ) {
@@ -120,6 +116,16 @@ public class UserServiceImpl implements UserService {
 
         user.setRoles( Collections.singleton( userRole ) );
         return userRepository.save( user );
+    }
+
+    @Transactional
+    @Override
+    public void createAdmin( User admin ) {
+        admin.setPassword( bCryptPasswordEncoder.encode( admin.getPassword() ) );
+        Role adminRole = roleRepository.findByRole( "ROLE_ADMIN" );
+
+        admin.setRoles( Collections.singleton( adminRole ) );
+        userRepository.save( admin );
     }
 
     @Transactional
@@ -233,9 +239,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @PostAuthorize("hasPermission(returnObject, 'read')")
     public User findUserById( int id ) {
-        User user = userRepository.findOne( id );
-        return user == null ? null : privacyService.checkCurrentUserCanSee( user ) ? user : null;
+        return userRepository.findOne( id );
     }
 
     @Override
@@ -256,35 +262,25 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<User> findAll() {
-        return userRepository.findAll().stream()
-                .filter(privacyService::checkCurrentUserCanSee)
-                .collect( Collectors.toList() );
+        return userRepository.findAll();
     }
 
     @Override
+    @PostFilter("hasPermission(filteredObject, 'read')")
     public Collection<User> findByLikeName( String nameLike ) {
-        return userRepository.findByProfileNameContainingIgnoreCaseOrProfileLastNameContainingIgnoreCase( nameLike, nameLike )
-                .stream()
-                .filter(privacyService::checkCurrentUserCanSee)
-                .collect( Collectors.toList() );
+        return userRepository.findByProfileNameContainingIgnoreCaseOrProfileLastNameContainingIgnoreCase( nameLike, nameLike );
     }
 
     @Override
+    @PostFilter("hasPermission(filteredObject, 'read')")
     public Collection<User> findByStartsName( String startsName ) {
-        return userRepository
-                .findByProfileLastNameStartsWithIgnoreCase( startsName )
-                .stream()
-                .filter(privacyService::checkCurrentUserCanSee)
-                .collect( Collectors.toList() );
+        return userRepository.findByProfileLastNameStartsWithIgnoreCase( startsName );
     }
 
     @Override
+    @PostFilter("hasPermission(filteredObject, 'read')")
     public Collection<User> findByDescription( String descriptionLike ) {
-        return userRepository
-                .findByProfileDescriptionContainingIgnoreCaseOrTaxonDescriptionsContainingIgnoreCase( descriptionLike, descriptionLike )
-                .stream()
-                .filter(privacyService::checkCurrentUserCanSee)
-                .collect( Collectors.toList() );
+        return userRepository.findByProfileDescriptionContainingIgnoreCaseOrTaxonDescriptionsContainingIgnoreCase( descriptionLike, descriptionLike );
     }
 
     @Override
@@ -294,16 +290,16 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Collection<UserTerm> convertTerms( User user, Taxon taxon, Collection<GeneOntologyTerm> terms ) {
-        Set<UserGene> genes = user.getGenesByTaxonAndTier( taxon, TierType.MANUAL_TIERS );
+        Set<UserGene> genes = user.getGenesByTaxonAndTier( taxon, TierType.MANUAL );
 
-        return convertTermTypes( terms, taxon, genes );
+        return convertTermTypes( user, terms, taxon, genes );
     }
 
     @Override
     public UserTerm convertTerms( User user, Taxon taxon, GeneOntologyTerm term ) {
-        Set<UserGene> genes = user.getGenesByTaxonAndTier( taxon, TierType.MANUAL_TIERS );
+        Set<UserGene> genes = user.getGenesByTaxonAndTier( taxon, TierType.MANUAL );
 
-        return convertTermTypes( term, taxon, genes );
+        return convertTermTypes( user, term, taxon, genes );
     }
 
     @Override
@@ -316,7 +312,7 @@ public class UserServiceImpl implements UserService {
         if ( user == null || taxon == null )
             return null;
 
-        Set<UserGene> genes = user.getGenesByTaxonAndTier( taxon, TierType.MANUAL_TIERS );
+        Set<UserGene> genes = user.getGenesByTaxonAndTier( taxon, TierType.MANUAL );
 
         Map<GeneOntologyTerm, Long> fmap = goService.termFrequencyMap( genes );
 
@@ -339,7 +335,7 @@ public class UserServiceImpl implements UserService {
 
         // Then keep only those terms not already added and with the highest frequency
         Set<UserTerm> topResults = resultStream.map( e -> {
-            UserTerm ut = new UserTerm( e.getKey(), taxon, null );
+            UserTerm ut = UserTerm.createUserTerm( e.getKey(), taxon, null );
             ut.setFrequency( e.getValue().intValue() );
             return ut;
         } ).filter( ut -> !userTerms.contains( ut ) ).collect( maxSet( comparing( UserTerm::getFrequency ) ) );
@@ -349,46 +345,42 @@ public class UserServiceImpl implements UserService {
                 .collect( Collectors.toSet() );
     }
 
+    @Autowired
+    UserGeneRepository userGeneRepository;
+
+    private UserGene fromGene( User user, Gene gene, TierType tierType, PrivacyLevelType privacyLevelType ) {
+        UserGene userGene = user.getUserGenes().getOrDefault( gene.getGeneId(), new UserGene () );
+        userGene.updateGene( gene );
+        userGene.setUser(user);
+        userGene.setTier(tierType);
+        userGene.setPrivacyLevel( privacyLevelType );
+        return userGene;
+    }
+
     @Transactional
     @Override
-    public void updateTermsAndGenesInTaxon( User user, Taxon taxon, Map<Gene, TierType> genesToTierMap,
-                                            Map<Gene, Optional<PrivacyLevelType>> genesToPrivacyLevelMap,
-            Collection<GeneOntologyTerm> goTerms ) {
-        // Remove genes from other taxons (they shouldn't be here but just incase)
-        genesToTierMap.keySet().removeIf( e -> !e.getTaxon().equals( taxon ) );
-        int initialSize = user.getUserGenes().size();
+    public void updateTermsAndGenesInTaxon( User user,
+                                            Taxon taxon,
+                                            Map<? extends Gene, TierType> genesToTierMap,
+                                            Map<? extends Gene, Optional<PrivacyLevelType>> genesToPrivacyLevelMap,
+                                            Collection<? extends GeneOntologyTerm> goTerms ) {
+        Map<Integer, UserGene> userGenes = genesToTierMap.keySet()
+                .stream()
+                .filter( g -> g.getTaxon().equals( taxon ) )
+                .map( g -> fromGene( user, g, genesToTierMap.get( g ), genesToPrivacyLevelMap.get( g ).orElse( null ) ) )
+                .collect( Collectors.toMap( g -> g.getGeneId(), g->g ) );
 
-        // Update terms
+        // remove all genes from the taxon
+        user.getUserGenes().entrySet().removeIf(e -> e.getValue().getTaxon().equals(taxon));
+        user.getUserGenes().putAll(userGenes);
 
-        // Inform Hibernate of similar entities
-        Map<String, Integer> goIdToHibernateId = user.getUserTerms().stream()
-                .filter( t -> t.getTaxon().equals( taxon ) )
-                .collect( Collectors.toMap( GeneOntologyTerm::getGoId, UserTerm::getId ) );
-        Collection<UserTerm> updatedTerms = convertTermTypes( goTerms, taxon, genesToTierMap.keySet() );
-        updatedTerms.forEach( t -> t.setId( goIdToHibernateId.get( t.getGoId() ) ) );
+        // update terms
+        // go terms with the same identifier will be replaced
+        Set<UserTerm> userTerms = convertTermTypes(user, goTerms, taxon, genesToTierMap.keySet());
+        user.getUserTerms().removeIf(e -> e.getTaxon().equals(taxon));
 
-        removeTermsFromUserByTaxon( user, taxon );
-        user.getUserTerms().addAll( updatedTerms );
-
-        for ( Gene gene : calculatedGenesInTaxon( user, taxon ) ) {
-            genesToTierMap.putIfAbsent( gene, TierType.TIER3 );
-        }
-
-        int updated = 0;
-        for ( Map.Entry<Gene, TierType> entry : genesToTierMap.entrySet() ) {
-            Optional<PrivacyLevelType> privacyLevel = genesToPrivacyLevelMap.get( entry.getKey() );
-            updated += updateOrInsert( user, entry.getKey(), entry.getValue(), privacyLevel ) ? 1 : 0;
-        }
-
-        int added = user.getUserGenes().size() - initialSize;
-
-        // Remove genes that no longer belong in this taxon
-        user.getUserGenes().values().removeIf( g -> g.getTaxon().equals( taxon ) && !genesToTierMap.containsKey( g ) );
-
-        int removed = user.getUserGenes().size() - ( initialSize + added );
-
-        log.info( "Added: " + added + ", removed: " + removed + ", updated: " + updated + " genes, User " + user
-                .getEmail() );
+        // add all genes from the taxon
+        user.getUserTerms().addAll(userTerms);
 
         update( user );
     }
@@ -470,12 +462,15 @@ public class UserServiceImpl implements UserService {
         return user;
     }
 
+    @PostFilter("hasPermission(filteredObject, 'read')")
+    private Collection<User>findAllWithNonEmptyProfileLastName() {
+        return userRepository.findAllWithNonEmptyProfileLastName();
+    }
+
     @Override
-    @Cacheable("chars")
-    public SortedSet<String> getChars() {
-        return userRepository.findAll().stream()
-                .filter(privacyService::checkCurrentUserCanSee)
-                .filter(u -> u.getProfile().getLastName() != null && !u.getProfile().getLastName().isEmpty())
+    public SortedSet<String> getLastNamesFirstChar() {
+        return findAllWithNonEmptyProfileLastName()
+                .stream()
                 .map(u -> u.getProfile().getLastName().substring(0, 1).toUpperCase())
                 .collect(Collectors.toCollection(TreeSet::new));
     }
@@ -485,21 +480,17 @@ public class UserServiceImpl implements UserService {
         return userRepository.save( user );
     }
 
-    private Collection<UserTerm> convertTermTypes( Collection<GeneOntologyTerm> goTerms, Taxon taxon,
+    private Set<UserTerm> convertTermTypes( User user, Collection<? extends GeneOntologyTerm> goTerms, Taxon taxon,
                                                    Set<? extends Gene> genes ) {
-        List<UserTerm> newTerms = new ArrayList<>();
-        for ( GeneOntologyTerm goTerm : goTerms ) {
-            UserTerm term = convertTermTypes( goTerm, taxon, genes );
-            if ( term != null ) {
-                newTerms.add( term );
-            }
-        }
-        return newTerms;
+        return goTerms.stream()
+                .map(term -> convertTermTypes( user, term, taxon, genes ))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
     }
 
-    private UserTerm convertTermTypes( GeneOntologyTerm goTerm, Taxon taxon, Set<? extends Gene> genes ) {
+    private UserTerm convertTermTypes( User user, GeneOntologyTerm goTerm, Taxon taxon, Set<? extends Gene> genes ) {
         if ( goTerm != null ) {
-            UserTerm term = new UserTerm( goTerm, taxon, genes );
+            UserTerm term = UserTerm.createUserTerm( goTerm, taxon, genes );
             if ( term.getSize() <= applicationSettings.getGoTermSizeLimit() ) {
                 return term;
             }
@@ -518,7 +509,7 @@ public class UserServiceImpl implements UserService {
             existing.setTier( tier );
             existing.setPrivacyLevel( privacyLevel.orElse( null ) );
         } else {
-            user.getUserGenes().put( gene.getGeneId(), new UserGene( gene, user, tier, privacyLevel.orElse( null ) ) );
+            user.getUserGenes().put( gene.getGeneId(), UserGene.createUserGeneFromGene( gene, user, tier, privacyLevel.orElse( null ) ) );
         }
 
         return updated;
@@ -541,4 +532,17 @@ public class UserServiceImpl implements UserService {
         return user.getUserTerms().removeIf( ut -> ut.getTaxon().equals( taxon ) );
     }
 
+    private Map<UUID, Integer> userHiddenIds = new ConcurrentHashMap<>();
+
+    @Override
+    public UUID getHiddenIdForUser( User user ) {
+        UUID hiddenId = UUID.randomUUID();
+        userHiddenIds.put( hiddenId, user.getId() );
+        return hiddenId;
+    }
+
+    @Override
+    public User findUserByHiddenId( UUID hiddenId ) {
+        return findUserById( userHiddenIds.get( hiddenId ) );
+    }
 }

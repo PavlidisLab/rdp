@@ -1,11 +1,13 @@
 package ubc.pavlab.rdp.model.enums;
 
 import com.fasterxml.jackson.annotation.JsonValue;
+import lombok.AllArgsConstructor;
 import ubc.pavlab.rdp.util.MatchType;
 
 /**
  * Created by mjacobson on 30/01/18.
  */
+@AllArgsConstructor
 public enum GeneMatchType implements MatchType {
 
     EXACT_SYMBOL( "Exact Symbol", 0 ),
@@ -16,11 +18,6 @@ public enum GeneMatchType implements MatchType {
 
     private String label;
     private int order;
-
-    private GeneMatchType( String label, int order ) {
-        this.label = label;
-        this.order = order;
-    }
 
     @JsonValue
     public String getLabel() {

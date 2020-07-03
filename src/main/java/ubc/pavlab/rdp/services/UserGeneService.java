@@ -19,6 +19,7 @@
 
 package ubc.pavlab.rdp.services;
 
+import lombok.NonNull;
 import ubc.pavlab.rdp.model.Gene;
 import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.model.UserGene;
@@ -27,6 +28,7 @@ import ubc.pavlab.rdp.model.enums.TierType;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * Created by mjacobson on 17/01/18.
@@ -41,13 +43,19 @@ public interface UserGeneService {
     Integer countUniqueAssociationsAllTiers();
     Integer countUniqueAssociationsToHumanAllTiers();
 
-    Collection<Gene> findOrthologs( Integer source_gene, Integer targetTaxon);
-
     Collection<UserGene> findByGene( int geneId );
 
     Collection<UserGene> findByGene( int geneId, TierType tier );
 
     Collection<UserGene> findByGene( int geneId, Set<TierType> tiers );
+
+    Collection<UserGene> findByGeneWithoutSecurityFilter( int geneId );
+
+    Collection<UserGene> findByGeneWithoutSecurityFilter( int geneId, TierType tier );
+
+    Collection<UserGene> findByGeneWithoutSecurityFilter( int geneId, Set<TierType> tiers );
+
+    UserGene findBySymbolAndTaxon( String symbol, Taxon taxon );
 
     Collection<UserGene> findByLikeSymbol( String symbol, Taxon taxon );
 
@@ -55,15 +63,21 @@ public interface UserGeneService {
 
     Collection<UserGene> findByLikeSymbol( String symbol, Taxon taxon, Set<TierType> tiers );
 
-    /**
-     * The ? extends Gene is necessary because this function returns a mixture of UserGene and GeneInfo object if
-     * it was called using a GeneInfo.
-     *
-     * @param gene
-     * @param orthologTaxonId
-     * @return a collection of gene-like object. This is
-     */
-    Collection<? extends Gene> findOrthologs( Gene gene, Integer orthologTaxonId );
+    Collection<UserGene> findOrthologs ( Gene gene, Set<TierType> tiers );
 
-    boolean checkCurrentUserCanSee( UserGene userGene );
+    Collection<UserGene> findOrthologsWithTaxon ( Gene gene, Set<TierType> tiers, Taxon orthologTaxon );
+
+    Collection<UserGene> findOrthologsWithoutSecurityFilter( Gene gene, Set<TierType> tiers );
+
+    Collection<UserGene> findOrthologsWithTaxonWithoutSecurityFilter( Gene gene, Set<TierType> tiers, Taxon orthologTaxon );
+
+    UUID getHiddenIdForUserGene( UserGene userGene );
+
+    UserGene findUserGeneByHiddenId( UUID hiddenUserGeneId );
+
+    Collection<UserGene> findByGene( Gene gene, Set<TierType> tiers );
+
+    Collection<UserGene> handleGeneSearch( Gene gene, Set<TierType> tiers, Collection<UserGene> orthologs );
+
+    Collection<UserGene> handleGeneSearchWithoutSecurityFilter( Gene gene, Set<TierType> tiers, Collection<UserGene> orthologs );
 }

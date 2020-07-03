@@ -13,10 +13,12 @@ import ubc.pavlab.rdp.model.User;
 import ubc.pavlab.rdp.model.UserGene;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.TierType;
+import ubc.pavlab.rdp.services.TierService;
 import ubc.pavlab.rdp.util.BaseTest;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumSet;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -32,6 +34,9 @@ public class UserGeneRepositoryTest extends BaseTest {
 
     @Autowired
     private UserGeneRepository userGeneRepository;
+
+    @Autowired
+    TierService tierService;
 
     private User user;
     private Taxon taxon;
@@ -72,7 +77,7 @@ public class UserGeneRepositoryTest extends BaseTest {
     @Test
     public void countByTierIn_whenTierManualMatch_thenCount() {
 
-        int count = userGeneRepository.countByTierIn( TierType.MANUAL_TIERS );
+        int count = userGeneRepository.countByTierIn( TierType.MANUAL );
 
         assertThat( count ).isEqualTo( 2 );
     }
@@ -80,7 +85,7 @@ public class UserGeneRepositoryTest extends BaseTest {
     @Test
     public void countByTierIn_whenTierNotMatch_thenDontCount() {
 
-        int count = userGeneRepository.countByTierIn( Collections.singleton( TierType.ANY ) );
+        int count = userGeneRepository.countByTierIn( tierService.getEnabledTiers());
 
         assertThat( count ).isEqualTo( 0 );
     }
@@ -88,12 +93,12 @@ public class UserGeneRepositoryTest extends BaseTest {
     @Test
     public void countByTierIn_whenMultipleMatches_thenCountAll() {
 
-        UserGene ug = new UserGene( createGene( 99, taxon ), user, TierType.TIER1, PrivacyLevelType.PRIVATE );
+        UserGene ug = UserGene.createUserGeneFromGene( createGene( 99, taxon ), user, TierType.TIER1, PrivacyLevelType.PRIVATE );
         user.getUserGenes().put( ug.getGeneId(), ug );
         entityManager.persist( user );
         entityManager.flush();
 
-        int count = userGeneRepository.countByTierIn( Collections.singleton( TierType.TIER1 ) );
+        int count = userGeneRepository.countByTierIn( EnumSet.of ( TierType.TIER1 ) );
 
         assertThat( count ).isEqualTo( 2 );
     }
@@ -104,7 +109,7 @@ public class UserGeneRepositoryTest extends BaseTest {
         entityManager.persist( createUserWithGenes( taxon ) );
         entityManager.flush();
 
-        int count = userGeneRepository.countByTierIn( Collections.singleton( TierType.TIER1 ) );
+        int count = userGeneRepository.countByTierIn( EnumSet.of ( TierType.TIER1 ) );
 
         assertThat( count ).isEqualTo( 2 );
     }
@@ -112,7 +117,7 @@ public class UserGeneRepositoryTest extends BaseTest {
     @Test
     public void countDistinctGeneByTierIn_whenTierExactMatch_thenCount() {
 
-        int count = userGeneRepository.countDistinctGeneByTierIn( Collections.singleton( TierType.TIER1 ) );
+        int count = userGeneRepository.countDistinctGeneByTierIn( EnumSet.of( TierType.TIER1) );
 
         assertThat( count ).isEqualTo( 1 );
     }
@@ -120,7 +125,7 @@ public class UserGeneRepositoryTest extends BaseTest {
     @Test
     public void countDistinctGeneByTierIn_whenTierManualMatch_thenCount() {
 
-        int count = userGeneRepository.countDistinctGeneByTierIn( TierType.MANUAL_TIERS );
+        int count = userGeneRepository.countDistinctGeneByTierIn( TierType.MANUAL );
 
         assertThat( count ).isEqualTo( 2 );
     }
@@ -128,7 +133,7 @@ public class UserGeneRepositoryTest extends BaseTest {
     @Test
     public void countDistinctGeneByTierIn_whenTierNotMatch_thenDontCount() {
 
-        int count = userGeneRepository.countDistinctGeneByTierIn( Collections.singleton( TierType.ANY ) );
+        int count = userGeneRepository.countDistinctGeneByTierIn( tierService.getEnabledTiers());
 
         assertThat( count ).isEqualTo( 0 );
     }
@@ -153,7 +158,7 @@ public class UserGeneRepositoryTest extends BaseTest {
         entityManager.persist( createUserWithGenes( taxon ) );
         entityManager.flush();
 
-        int count = userGeneRepository.countDistinctGeneByTierIn( TierType.MANUAL_TIERS );
+        int count = userGeneRepository.countDistinctGeneByTierIn( TierType.MANUAL );
 
         assertThat( count ).isEqualTo( 2 );
     }
@@ -303,7 +308,7 @@ public class UserGeneRepositoryTest extends BaseTest {
         entityManager.persist( user2 );
         entityManager.flush();
 
-        Collection<UserGene> ugs = userGeneRepository.findByGeneIdAndTierIn( 1, TierType.MANUAL_TIERS );
+        Collection<UserGene> ugs = userGeneRepository.findByGeneIdAndTierIn( 1, TierType.MANUAL );
 
         assertThat( ugs ).containsExactly( user.getUserGenes().get( 1 ),  user2.getUserGenes().get( 1 ) );
     }
@@ -456,7 +461,7 @@ public class UserGeneRepositoryTest extends BaseTest {
 
     @Test
     public void findBySymbolContainingIgnoreCaseAndTaxonAndTierIn_whenValidSymbolAndTaxonAndManualTier_ReturnUserGenes() {
-        Collection<UserGene> ugs = userGeneRepository.findBySymbolContainingIgnoreCaseAndTaxonAndTierIn( "Gene", taxon, TierType.MANUAL_TIERS );
+        Collection<UserGene> ugs = userGeneRepository.findBySymbolContainingIgnoreCaseAndTaxonAndTierIn( "Gene", taxon, TierType.MANUAL );
         assertThat( ugs ).containsExactly( user.getUserGenes().get( 1 ), user.getUserGenes().get( 2 ) );
     }
 
@@ -509,7 +514,7 @@ public class UserGeneRepositoryTest extends BaseTest {
         User user2 = entityManager.persist( createUserWithGenes( taxon ) );
         entityManager.flush();
 
-        Collection<UserGene> ugs = userGeneRepository.findBySymbolContainingIgnoreCaseAndTaxonAndTierIn( "Gene", taxon, TierType.MANUAL_TIERS );
+        Collection<UserGene> ugs = userGeneRepository.findBySymbolContainingIgnoreCaseAndTaxonAndTierIn( "Gene", taxon, TierType.MANUAL );
         assertThat( ugs ).containsExactly( user.getUserGenes().get( 1 ), user.getUserGenes().get( 2 ), user2.getUserGenes().get( 1 ), user2.getUserGenes().get( 2 ) );
     }
 

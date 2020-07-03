@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 @Setter
 @NoArgsConstructor
 @EqualsAndHashCode(of = {"goId"})
-@ToString(of={"goId", "name"})
+@ToString(of={"goId"})
 public class GeneOntologyTerm {
 
     @Column(name = "go_id", length=10)
@@ -50,7 +50,7 @@ public class GeneOntologyTerm {
 
     @JsonIgnore
     @Transient
-    private Set<Gene> directGenes = new HashSet<>();
+    private Set<Gene> directGenes = new HashSet<Gene>();
 
     public void addChild( Relationship child ) {
         this.children.add( child );

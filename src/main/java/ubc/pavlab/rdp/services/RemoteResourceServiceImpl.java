@@ -24,6 +24,8 @@ import javax.ws.rs.core.Response;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service("RemoteResourceService")
 @CommonsLog
@@ -64,17 +66,22 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
     }
 
     @Override
-    public Collection<UserGene> findGenesBySymbol( String symbol, Taxon taxon, TierType tier, Integer orthologTaxonId )
+    public Collection<UserGene> findGenesBySymbol( String symbol, Taxon taxon, Set<TierType> tiers, Integer orthologTaxonId )
             throws RemoteException {
-        return convertRemoteGenes(
-                getRemoteEntities( UserGene[].class, API_GENES_SEARCH_URI, new HashMap<String, String>() {{
-                    put( "symbol", symbol );
-                    put( "taxonId", taxon.getId().toString() );
-                    put( "tier", tier.toString() );
-                    if ( orthologTaxonId != null ) {
-                        put( "orthologTaxonId", orthologTaxonId.toString() );
-                    }
-                }} ) );
+        List<UserGene> intlUsergenes = new LinkedList<>();
+        // TODO: use the tiers field for the v1.4 API
+        for ( TierType tier : tiers ) {
+            intlUsergenes.addAll( convertRemoteGenes(
+                    getRemoteEntities( UserGene[].class, API_GENES_SEARCH_URI, new HashMap<String, String>() {{
+                        put( "symbol", symbol );
+                        put( "taxonId", taxon.getId().toString() );
+                        put( "tier", tier.toString() );
+                        if ( orthologTaxonId != null ) {
+                            put( "orthologTaxonId", orthologTaxonId.toString() );
+                        }
+                    }} ) ) );
+        }
+        return intlUsergenes;
     }
 
     @Override

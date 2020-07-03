@@ -37,6 +37,8 @@ $(document).ready(function () {
         }
     });
 
-
-
+    /* we use a hide behaviour on alert instead of bootstrap defaults to remove the element from DOM */
+    $('.alert .close').on('click',function(){
+        $(this).parent().hide();
+    });
 });

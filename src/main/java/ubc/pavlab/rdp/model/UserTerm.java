@@ -1,6 +1,7 @@
 package ubc.pavlab.rdp.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -11,17 +12,20 @@ import java.util.Collection;
 import java.util.Set;
 
 /**
+ * Represents an association between a user and a GO term.
+ *
  * Created by mjacobson on 28/01/18.
  */
 @Entity
 @Table(name = "term",
-        uniqueConstraints={@UniqueConstraint(columnNames={"user_id", "taxon_id", "go_id"})},
-        indexes = {@Index(columnList = "go_id", name = "go_id_hidx")}
+        uniqueConstraints = { @UniqueConstraint(columnNames = { "user_id", "taxon_id", "go_id" }) },
+        indexes = { @Index(columnList = "go_id", name = "go_id_hidx") }
 )
 @Cacheable
 @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @Getter
 @Setter
+@EqualsAndHashCode(of = { "user", "taxon", "goId" })
 @NoArgsConstructor
 public class UserTerm extends GeneOntologyTerm {
 
@@ -41,7 +45,19 @@ public class UserTerm extends GeneOntologyTerm {
     @Column(name = "size")
     private int size;
 
-    public void updateTerm(GeneOntologyTerm term) {
+    public static UserTerm createUserTerm( GeneOntologyTerm term, Taxon taxon, Set<? extends Gene> overlapGenes ) {
+        UserTerm userTerm = new UserTerm();
+        userTerm.updateTerm( term );
+        userTerm.taxon = taxon;
+
+        userTerm.size = userTerm.getSize( taxon );
+        if ( overlapGenes != null ) {
+            userTerm.frequency = userTerm.computeOverlapFrequency( overlapGenes );
+        }
+        return userTerm;
+    }
+
+    public void updateTerm( GeneOntologyTerm term ) {
         this.setGoId( term.getGoId() );
         this.setName( term.getName() );
         this.setDefinition( term.getDefinition() );
@@ -52,17 +68,6 @@ public class UserTerm extends GeneOntologyTerm {
         this.setChildren( term.getChildren() );
         this.setSizesByTaxon( term.getSizesByTaxon() );
         this.setDirectGenes( term.getDirectGenes() );
-    }
-
-    public UserTerm( GeneOntologyTerm term, Taxon taxon, Set<? extends Gene> overlapGenes ) {
-        super();
-        this.updateTerm( term );
-        this.taxon = taxon;
-
-        this.size = this.getSize( taxon );
-        if (overlapGenes != null) {
-            this.frequency = computeOverlapFrequency( overlapGenes );
-        }
     }
 
     private Integer computeOverlapFrequency( Set<? extends Gene> genes ) {

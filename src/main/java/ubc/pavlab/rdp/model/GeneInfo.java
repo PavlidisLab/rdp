@@ -3,8 +3,10 @@ package ubc.pavlab.rdp.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.util.Set;
 
 /**
@@ -19,8 +21,8 @@ import java.util.Set;
                 @Index(columnList = "gene_id, taxon_id"),
                 @Index(columnList = "symbol, taxon_id") })
 @Getter
-@EqualsAndHashCode(of = "id")
-public class GeneInfo extends Gene {
+@Transactional
+public class GeneInfo extends Gene implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -28,7 +30,7 @@ public class GeneInfo extends Gene {
     @JsonIgnore
     private Integer id;
 
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinTable(name = "ortholog",
             joinColumns = @JoinColumn(name = "source_gene"),
             inverseJoinColumns = @JoinColumn(name = "target_gene")

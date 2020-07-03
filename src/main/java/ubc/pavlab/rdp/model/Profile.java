@@ -21,11 +21,11 @@ import java.util.Set;
 @ToString
 public class Profile {
     @Column(name = "name")
-    @NotEmpty(message = "*Please provide your name")
+    @NotEmpty(message = "Please provide your name.")
     private String name;
 
     @Column(name = "last_name")
-    @NotEmpty(message = "*Please provide your last name")
+    @NotEmpty(message = "Please provide your last name.")
     private String lastName;
 
     @Column(name = "description", columnDefinition = "TEXT")
@@ -55,7 +55,7 @@ public class Profile {
     private Boolean hideGenelist;
 
     @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "user_id")
     private Set<Publication> publications = new HashSet<>();
 }

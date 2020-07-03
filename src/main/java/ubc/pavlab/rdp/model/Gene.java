@@ -22,7 +22,7 @@ public abstract class Gene {
     private int geneId;
 
     @ManyToOne
-    @JoinColumn(name = "taxon_id")
+    @JoinColumn(name = "taxon_id", nullable = false)
     private Taxon taxon;
 
     @Column(name = "symbol", length = 63)

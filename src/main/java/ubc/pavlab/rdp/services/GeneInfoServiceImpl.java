@@ -1,6 +1,5 @@
 package ubc.pavlab.rdp.services;
 
-import lombok.SneakyThrows;
 import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,17 +14,13 @@ import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.util.GeneInfoParser;
 import ubc.pavlab.rdp.util.SearchResult;
 
-import javax.annotation.PostConstruct;
-import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
 import java.io.*;
 import java.net.URL;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.MessageFormat;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -48,6 +43,12 @@ public class GeneInfoServiceImpl implements GeneInfoService {
 
     @Autowired
     private ApplicationSettings applicationSettings;
+
+    @Autowired
+    GeneInfoParser geneInfoParser;
+
+    @Autowired
+    UserService userService;
 
     @Override
     public GeneInfo load( Integer id ) {
@@ -95,28 +96,23 @@ public class GeneInfoServiceImpl implements GeneInfoService {
 
     @Override
     public Map<GeneInfo, TierType> deserializeGenesTiers( Map<Integer, TierType> genesTierMap ) {
-        return load( genesTierMap.keySet() ).stream().filter( Objects::nonNull )
-                .collect( Collectors.toMap( g -> g, g -> genesTierMap.get( g.getGeneId() ) ) );
+        return genesTierMap.keySet().stream()
+                .map(geneId -> geneInfoRepository.findByGeneId(geneId))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toMap(g -> g, g -> genesTierMap.get(g.getGeneId())));
     }
 
     @Override
     public Map<GeneInfo, Optional<PrivacyLevelType>> deserializeGenesPrivacyLevels( Map<Integer, PrivacyLevelType> genesPrivacyLevelMap ) {
-        return load( genesPrivacyLevelMap.keySet() ).stream().filter( Objects::nonNull )
+        return genesPrivacyLevelMap.keySet().stream()
+                .map( geneId -> geneInfoRepository.findByGeneId( geneId ) )
+                .filter( Objects::nonNull )
                 .collect( Collectors.toMap( g -> g, g -> Optional.ofNullable( genesPrivacyLevelMap.get( g.getGeneId() ) ) ) );
     }
 
-    @Autowired
-    GeneInfoParser geneInfoParser;
-
-    @Autowired
-    UserService userService;
-
-    /**
-     * Genes are updated every month or so.
-     */
+    @Override
     @Scheduled(fixedRate = 2592000000L)
-    @Transactional
-    void updateGenes() {
+    public void updateGenes() {
         ApplicationSettings.CacheSettings cacheSettings = applicationSettings.getCache();
 
         if ( cacheSettings.isEnabled() ) {
@@ -157,12 +153,9 @@ public class GeneInfoServiceImpl implements GeneInfoService {
         }
     }
 
-    /**
-     * Update gene orthologs.
-     */
-    @Transactional
+    @Override
     @Scheduled(fixedRate = 2592000000L)
-    void updateGeneOrthologs() {
+    public void updateGeneOrthologs() {
         if (applicationSettings.getCache().isEnabled()) {
             InputStream is;
             if (applicationSettings.getCache().isLoadFromDisk()) {
@@ -190,8 +183,15 @@ public class GeneInfoServiceImpl implements GeneInfoService {
                     .map(taxon -> taxon.getId())
                     .collect(Collectors.toSet());
 
-            new BufferedReader (new InputStreamReader(new GZIPInputStream(is)))
-                    .lines()
+            BufferedReader br;
+            try {
+                br = new BufferedReader(new InputStreamReader(new GZIPInputStream(is)));
+            } catch ( IOException e ) {
+                log.error(e);
+                return;
+            }
+
+            br.lines()
                     .skip(1) // skip the TSV header
                     .map(line -> line.split ("\t"))
                     .forEach(line -> {
@@ -213,13 +213,16 @@ public class GeneInfoServiceImpl implements GeneInfoService {
                         GeneInfo ortholog = geneInfoRepository.findByGeneId( orthologId );
 
                         // skip genes or orthologs not stored in the database
-                        if (gene == null || ortholog == null)
+                        if (gene == null || ortholog == null) {
+                            log.info(MessageFormat.format("Cannot add ortholog relationship between {0} and {1} since either or both gene are missing from the database.",
+                                    geneId, orthologId));
                             return;
+                        }
 
                         gene.getOrthologs().add(ortholog);
                         geneInfoRepository.save(gene);
                     });
-            log.info("Done updating gene orthologs.");
+            log.info( "Done updating gene orthologs. Next update is scheduled in 30 days from now." );
         }
     }
 

@@ -16,7 +16,7 @@ function collectModel() {
         }
         var selectedPrivacyLevelOption = $(this.node()).find('select option:selected')[0];
         genePrivacyLevelMap[geneId] = (selectedPrivacyLevelOption.value == '') ? null : parseInt(selectedPrivacyLevelOption.value);
-    } );
+    });
     model.geneTierMap = geneTierMap;
     model.genePrivacyLevelMap = genePrivacyLevelMap;
 
@@ -55,18 +55,20 @@ function addGeneRow(data) {
                 row.push(gene.geneId);
                 row.push('<span class="align-middle">' + gene.name + '</span>');
                 row.push('<input name="primary" class="align-middle" type="checkbox"/>');
-                var privacyOptions = enabledPrivacyLevels.map(function (k) {
+                var privacyOptions = enabledGenePrivacyLevels.map(function (k) {
                     var privacyLevel = privacyLevels[k];
                     if (privacyLevel.ordinal <= userPrivacyLevel.ordinal) {
-                        return '<option value="' + privacyLevel.ordinal + '">' + privacyLevel.label + '</option>';
+                        return '<option' +
+                            ' value="' + privacyLevel.ordinal + '"' +
+                            (privacyLevel.ordinal === userPrivacyLevel.ordinal ? ' checked="checked"' : '') + '>' +
+                            privacyLevel.label +
+                            '</option>';
                     } else {
                         return '';
                     }
                 }).join('');
-                row.push('<select class="form-control">' +
-                    '<option value="">Inherited from profile (' + userPrivacyLevel.label + ')</option>' +
-                    privacyOptions +
-                    '</select>');
+                console.log(privacyOptions);
+                row.push('<select class="form-control">' + privacyOptions + '</select>');
             }
             rows.push(row);
         }
