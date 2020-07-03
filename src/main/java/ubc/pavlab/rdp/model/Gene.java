@@ -4,10 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 
 import javax.persistence.*;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Created by mjacobson on 17/01/18.
@@ -37,8 +34,9 @@ public abstract class Gene {
     @Column(name = "synonyms", columnDefinition = "TEXT")
     private String aliases;
 
+    @Temporal(TemporalType.DATE)
     @Column(name = "modification_date")
-    private int modificationDate;
+    private Date modificationDate;
 
     @Transient
     @JsonIgnore

@@ -14,7 +14,10 @@ import ubc.pavlab.rdp.repositories.GeneInfoRepository;
 
 import java.io.*;
 import java.net.URL;
+import java.sql.Date;
+import java.text.MessageFormat;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
@@ -104,7 +107,12 @@ public class GeneInfoParser {
                 gene.setSymbol( values[2] );
                 gene.setAliases( values[4] );
                 gene.setName( values[8] );
-                gene.setModificationDate( Integer.valueOf( values[14] ) );
+                SimpleDateFormat ncbiDateFormat = new SimpleDateFormat("YYYYMMDD");
+                try {
+                    gene.setModificationDate( ncbiDateFormat.parse( values[14] ) );
+                } catch ( ParseException e ) {
+                    log.warn( MessageFormat.format("Could not parse date {0} for gene {1}.", values[14], values[1]), e);
+                }
                 return gene;
             } ).collect( Collectors.toSet() );
         } catch (IOException e) {
