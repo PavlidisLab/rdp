@@ -1,0 +1,1 @@
+alter table gene modify column modification_date date;
