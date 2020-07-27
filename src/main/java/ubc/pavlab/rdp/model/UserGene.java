@@ -31,7 +31,7 @@ import java.util.Set;
 @Setter
 @NoArgsConstructor
 @ToString(callSuper = true)
-@EqualsAndHashCode(of = { "user", "geneId" })
+@EqualsAndHashCode(of = { "user", "geneId" }, callSuper = false)
 @CommonsLog
 public class UserGene extends Gene implements PrivacySensitive {
 

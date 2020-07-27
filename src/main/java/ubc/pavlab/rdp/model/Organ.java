@@ -7,15 +7,18 @@ import javax.persistence.*;
 
 @Data
 @MappedSuperclass
-@EqualsAndHashCode(of = { "organId", "taxon" })
+@EqualsAndHashCode(of = { "symbol", "taxon" })
 public abstract class Organ {
-
-    @Column(name = "organ_id")
-    private Integer organId;
 
     @ManyToOne
     @JoinColumn(name = "taxon_id")
     private Taxon taxon;
+
+    @Column
+    private String symbol;
+
+    @Column
+    private String name;
 
     @Column
     private String description;

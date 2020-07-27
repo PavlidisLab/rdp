@@ -8,8 +8,9 @@ import javax.persistence.*;
 import java.util.Optional;
 
 @Entity
-@Table(name = "organ", uniqueConstraints = { @UniqueConstraint(columnNames = { "user_id", "organ_id", "taxon_id" }) })
-@EqualsAndHashCode(of = { "user", "organId", "taxon" })
+@Table(name = "organ",
+        uniqueConstraints = { @UniqueConstraint(columnNames = { "user_id", "symbol", "taxon_id" }) })
+@EqualsAndHashCode(of = { "user", "symbol", "taxon" }, callSuper = false)
 public class UserOrgan extends Organ implements PrivacySensitive {
 
     @Id

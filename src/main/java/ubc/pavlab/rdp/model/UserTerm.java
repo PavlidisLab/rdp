@@ -25,7 +25,7 @@ import java.util.Set;
 @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @Getter
 @Setter
-@EqualsAndHashCode(of = { "user", "taxon", "goId" })
+@EqualsAndHashCode(of = { "user", "taxon", "goId" }, callSuper = false)
 @NoArgsConstructor
 public class UserTerm extends GeneOntologyTerm {
 

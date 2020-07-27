@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.services.GOService;
-import ubc.pavlab.rdp.services.GeneService;
+import ubc.pavlab.rdp.services.GeneInfoService;
 
 import javax.annotation.PostConstruct;
 import javax.persistence.PostLoad;
@@ -20,7 +20,7 @@ public class UserEntityListener {
 
     private static Log log = LogFactory.getLog( UserEntityListener.class );
 
-    static private GeneService geneService;
+    static private GeneInfoService geneService;
     static private GOService goService;
 
     @PostConstruct
@@ -30,7 +30,7 @@ public class UserEntityListener {
 
     @Autowired(required = true)
     @Qualifier("geneService")
-    public void setGeneService(GeneService geneService)
+    public void setGeneService(GeneInfoService geneService)
     {
         UserEntityListener.geneService = geneService;
     }
