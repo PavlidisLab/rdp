@@ -163,11 +163,12 @@ public class GOServiceImpl implements GOService {
     }
 
     @Override
-    public List<SearchResult<UserTerm>> search( String queryString, Taxon taxon, int max ) {
-        Stream<SearchResult<UserTerm>> stream = termMap.values().stream().filter( t -> t.getSize( taxon ) <= applicationSettings.getGoTermSizeLimit() )
+    public List<SearchResult<GeneOntologyTerm>> search( String queryString, Taxon taxon, int max ) {
+        Stream<SearchResult<GeneOntologyTerm>> stream = termMap.values().stream()
+                .filter( t -> t.getSize( taxon ) <= applicationSettings.getGoTermSizeLimit() )
                 .map( t -> queryTerm( queryString, t ) )
                 .filter( Objects::nonNull )
-                .map( sr -> new SearchResult<>( sr.getMatchType(), UserTerm.createUserTerm( sr.getMatch(), taxon, null ) ) )
+                .map( sr -> new SearchResult<>( sr.getMatchType(), sr.getMatch() ) )
                 .sorted( Comparator.comparingInt( sr -> sr.getMatchType().getOrder() ) );
 
         if ( max > -1 ) {
@@ -226,7 +227,7 @@ public class GOServiceImpl implements GOService {
     }
 
     @Override
-    public Collection<Gene> getGenes( String id, Taxon taxon ) {
+    public Collection<GeneInfo> getGenes( String id, Taxon taxon ) {
         if ( id == null || taxon == null ) return null;
 
         GeneOntologyTerm term = termMap.get( id );
@@ -236,7 +237,7 @@ public class GOServiceImpl implements GOService {
     }
 
     @Override
-    public Collection<Gene> getGenes( GeneOntologyTerm t, Taxon taxon ) {
+    public Collection<GeneInfo> getGenes( GeneOntologyTerm t, Taxon taxon ) {
         if ( t == null || taxon == null ) return null;
         Collection<GeneOntologyTerm> descendants = getDescendants( t );
 
@@ -246,7 +247,7 @@ public class GOServiceImpl implements GOService {
     }
 
     @Override
-    public Collection<Gene> getGenes( GeneOntologyTerm t ) {
+    public Collection<GeneInfo> getGenes( GeneOntologyTerm t ) {
         if ( t == null ) return null;
         Collection<GeneOntologyTerm> descendants = getDescendants( t );
 
@@ -256,7 +257,7 @@ public class GOServiceImpl implements GOService {
     }
 
     @Override
-    public Collection<Gene> getGenes( Collection<? extends GeneOntologyTerm> goTerms, Taxon taxon ) {
+    public Collection<GeneInfo> getGenes( Collection<? extends GeneOntologyTerm> goTerms, Taxon taxon ) {
         if (goTerms == null || taxon == null) return null;
         return goTerms.stream().flatMap( t -> getGenes( t, taxon ).stream() ).collect( Collectors.toSet() );
     }

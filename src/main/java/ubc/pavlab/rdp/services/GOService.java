@@ -25,19 +25,19 @@ public interface GOService {
 
     Map<GeneOntologyTerm, Long> termFrequencyMap( Collection<? extends Gene> genes );
 
-    List<SearchResult<UserTerm>> search( String queryString, Taxon taxon, int max );
+    List<SearchResult<GeneOntologyTerm>> search( String queryString, Taxon taxon, int max );
 
     Collection<GeneOntologyTerm> getChildren( GeneOntologyTerm entry );
 
     Collection<GeneOntologyTerm> getChildren( GeneOntologyTerm entry, boolean includePartOf );
 
-    Collection<Gene> getGenes( String id, Taxon taxon );
+    Collection<GeneInfo> getGenes( String id, Taxon taxon );
 
-    Collection<Gene> getGenes( GeneOntologyTerm t, Taxon taxon );
+    Collection<GeneInfo> getGenes( GeneOntologyTerm t, Taxon taxon );
 
-    Collection<Gene> getGenes( GeneOntologyTerm t );
+    Collection<GeneInfo> getGenes( GeneOntologyTerm t );
 
-    Collection<Gene> getGenes( Collection<? extends GeneOntologyTerm> goTerms, Taxon taxon );
+    Collection<GeneInfo> getGenes( Collection<? extends GeneOntologyTerm> goTerms, Taxon taxon );
 
     GeneOntologyTerm getTerm( String goId );
 

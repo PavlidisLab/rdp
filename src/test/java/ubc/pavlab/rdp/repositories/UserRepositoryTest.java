@@ -8,18 +8,20 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.test.context.junit4.SpringRunner;
 import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.model.User;
-import ubc.pavlab.rdp.util.BaseTest;
+import ubc.pavlab.rdp.util.TestUtils;
 
 import java.util.Collection;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static ubc.pavlab.rdp.util.TestUtils.createTaxon;
+import static ubc.pavlab.rdp.util.TestUtils.createUnpersistedUser;
 
 /**
  * Created by mjacobson on 13/02/18.
  */
 @RunWith(SpringRunner.class)
 @DataJpaTest
-public class UserRepositoryTest extends BaseTest {
+public class UserRepositoryTest {
 
     @Autowired
     private TestEntityManager entityManager;

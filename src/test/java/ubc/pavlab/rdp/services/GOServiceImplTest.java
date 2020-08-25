@@ -15,7 +15,7 @@ import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.RelationshipType;
 import ubc.pavlab.rdp.model.enums.TermMatchType;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
-import ubc.pavlab.rdp.util.BaseTest;
+import ubc.pavlab.rdp.util.TestUtils;
 import ubc.pavlab.rdp.util.SearchResult;
 
 import java.util.*;
@@ -24,12 +24,13 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static ubc.pavlab.rdp.util.TestUtils.*;
 
 /**
  * Created by mjacobson on 26/02/18.
  */
 @RunWith(SpringRunner.class)
-public class GOServiceImplTest extends BaseTest {
+public class GOServiceImplTest {
 
     private static Log log = LogFactory.getLog( GOServiceImplTest.class );
 
@@ -55,8 +56,8 @@ public class GOServiceImplTest extends BaseTest {
     @Autowired
     private GOService goService;
 
-    @Autowired
-    private ApplicationSettings applicationSettings;
+    @MockBean
+    private UserService userService;
 
     @MockBean
     private TaxonService taxonService;
@@ -162,52 +163,52 @@ public class GOServiceImplTest extends BaseTest {
 
     @Test
     public void search_whenExactID_thenReturnCorrectMatch() {
-        List<SearchResult<UserTerm>> matches = goService.search( toGOId( 0 ), taxon, -1 );
+        List<SearchResult<GeneOntologyTerm>> matches = goService.search( toGOId( 0 ), taxon, -1 );
         assertThat( matches ).hasSize( 1 );
-        SearchResult<UserTerm> match = matches.iterator().next();
+        SearchResult<GeneOntologyTerm> match = matches.iterator().next();
         assertThat( match.getMatch() ).isEqualTo( terms.get( 0 ) );
         assertThat( match.getMatchType() ).isEqualTo( TermMatchType.EXACT_ID );
     }
 
     @Test
     public void search_whenNameContains_thenReturnCorrectMatch() {
-        List<SearchResult<UserTerm>> matches = goService.search( "1_Name", taxon, -1 );
+        List<SearchResult<GeneOntologyTerm>> matches = goService.search( "1_Name", taxon, -1 );
         assertThat( matches ).hasSize( 1 );
-        SearchResult<UserTerm> match = matches.iterator().next();
+        SearchResult<GeneOntologyTerm> match = matches.iterator().next();
         assertThat( match.getMatch() ).isEqualTo( terms.get( 1 ) );
         assertThat( match.getMatchType() ).isEqualTo( TermMatchType.NAME_CONTAINS );
     }
 
     @Test
     public void search_whenDefinitionContains_thenReturnCorrectMatch() {
-        List<SearchResult<UserTerm>> matches = goService.search( "3_Definition", taxon, -1 );
+        List<SearchResult<GeneOntologyTerm>> matches = goService.search( "3_Definition", taxon, -1 );
         assertThat( matches ).hasSize( 1 );
-        SearchResult<UserTerm> match = matches.iterator().next();
+        SearchResult<GeneOntologyTerm> match = matches.iterator().next();
         assertThat( match.getMatch() ).isEqualTo( terms.get( 3 ) );
         assertThat( match.getMatchType() ).isEqualTo( TermMatchType.DEFINITION_CONTAINS );
     }
 
     @Test
     public void search_whenNameContainsPart_thenReturnCorrectMatch() {
-        List<SearchResult<UserTerm>> matches = goService.search( "xyz 4_Name", taxon, -1 );
+        List<SearchResult<GeneOntologyTerm>> matches = goService.search( "xyz 4_Name", taxon, -1 );
         assertThat( matches ).hasSize( 1 );
-        SearchResult<UserTerm> match = matches.iterator().next();
+        SearchResult<GeneOntologyTerm> match = matches.iterator().next();
         assertThat( match.getMatch() ).isEqualTo( terms.get( 4 ) );
         assertThat( match.getMatchType() ).isEqualTo( TermMatchType.NAME_CONTAINS_PART );
     }
 
     @Test
     public void search_whenDefinitionContainsPart_thenReturnCorrectMatch() {
-        List<SearchResult<UserTerm>> matches = goService.search( "xyz 5_Definition", taxon, -1 );
+        List<SearchResult<GeneOntologyTerm>> matches = goService.search( "xyz 5_Definition", taxon, -1 );
         assertThat( matches ).hasSize( 1 );
-        SearchResult<UserTerm> match = matches.iterator().next();
+        SearchResult<GeneOntologyTerm> match = matches.iterator().next();
         assertThat( match.getMatch() ).isEqualTo( terms.get( 5 ) );
         assertThat( match.getMatchType() ).isEqualTo( TermMatchType.DEFINITION_CONTAINS_PART );
     }
 
     @Test
     public void search_whenMultipleMatches_thenReturnAll() {
-        List<SearchResult<UserTerm>> matches = goService.search( "_Name", taxon, -1 );
+        List<SearchResult<GeneOntologyTerm>> matches = goService.search( "_Name", taxon, -1 );
         assertThat( matches ).hasSize( 6 );
         assertThat( matches.stream().map( sr -> sr.getMatch().getGoId() ).collect( Collectors.toSet() ) )
                 .containsExactlyElementsOf( terms.values().stream().map( GeneOntologyTerm::getGoId ).collect( Collectors.toSet() ) );
@@ -222,7 +223,7 @@ public class GOServiceImplTest extends BaseTest {
         terms.get( 3 ).setName( "Match" );
         terms.get( 4 ).setDefinition( "This" );
 
-        List<SearchResult<UserTerm>> matches = goService.search( "Match This", taxon, -1 );
+        List<SearchResult<GeneOntologyTerm>> matches = goService.search( "Match This", taxon, -1 );
 
         assertThat( matches ).hasSize( 5 );
         assertThat( matches.stream().map( sr -> sr.getMatch().getGoId() ).collect( Collectors.toList() ) )
@@ -242,7 +243,7 @@ public class GOServiceImplTest extends BaseTest {
 
     @Test
     public void search_whenMultipleMatchesAndResultsLimited_thenReturnSome() {
-        List<SearchResult<UserTerm>> matches = goService.search( "Term", taxon, 2 );
+        List<SearchResult<GeneOntologyTerm>> matches = goService.search( "Term", taxon, 2 );
         assertThat( matches ).hasSize( 2 );
     }
 
@@ -251,12 +252,12 @@ public class GOServiceImplTest extends BaseTest {
 
         goService.setTerms(
                 IntStream.range( 10, 100 ).boxed().collect(
-                        Collectors.toMap( this::toGOId,
+                        Collectors.toMap( TestUtils::toGOId,
                                 nbr -> initializeTerm( createTerm( toGOId( nbr ) ) ) )
                 )
         );
 
-        List<SearchResult<UserTerm>> matches = goService.search( "Term", taxon, -1 );
+        List<SearchResult<GeneOntologyTerm>> matches = goService.search( "Term", taxon, -1 );
 
         assertThat( matches ).hasSize( 90 );
 
@@ -312,89 +313,89 @@ public class GOServiceImplTest extends BaseTest {
 
     @Test
     public void getGenes_whenValidStringAndTaxon_thenReturnGenes() {
-        Collection<Gene> found = goService.getGenes( terms.get( 0 ).getGoId(), taxon );
+        Collection<GeneInfo> found = goService.getGenes( terms.get( 0 ).getGoId(), taxon );
         assertThat( found ).containsExactlyInAnyOrder( genes.get( 1 ), genes.get( 2 ) );
 
     }
 
     @Test
     public void getGenes_whenInvalidString_thenReturnEmpty() {
-        Collection<Gene> found = goService.getGenes( "xyz", taxon );
+        Collection<GeneInfo> found = goService.getGenes( "xyz", taxon );
         assertThat( found ).isEmpty();
     }
 
     @Test
     public void getGenes_whenValidStringAndInvalidTaxon_thenReturnEmpty() {
-        Collection<Gene> found = goService.getGenes( terms.get( 0 ).getGoId(), createTaxon( 2 ) );
+        Collection<GeneInfo> found = goService.getGenes( terms.get( 0 ).getGoId(), createTaxon( 2 ) );
         assertThat( found ).isEmpty();
     }
 
     @Test
     public void getGenes_whenNullString_thenReturnNull() {
         String goId = null;
-        Collection<Gene> found = goService.getGenes( goId, taxon );
+        Collection<GeneInfo> found = goService.getGenes( goId, taxon );
         assertThat( found ).isNull();
     }
 
     @Test
     public void getGenes_whenValidStringAndNullTaxon_thenReturnNull() {
-        Collection<Gene> found = goService.getGenes( terms.get( 0 ).getGoId(), null );
+        Collection<GeneInfo> found = goService.getGenes( terms.get( 0 ).getGoId(), null );
         assertThat( found ).isNull();
     }
 
     @Test
     public void getGenes_whenValidTerm_thenReturnGenes() {
-        Collection<Gene> found = goService.getGenes( terms.get( 0 ) );
+        Collection<GeneInfo> found = goService.getGenes( terms.get( 0 ) );
         assertThat( found ).containsExactlyInAnyOrder( genes.get( 1 ), genes.get( 2 ) );
     }
 
     @Test
     public void getGenes_whenValidTermHasNoDescendantGenes_thenReturnDirectGenes() {
-        Collection<Gene> found = goService.getGenes( terms.get( 2 ) );
+        Collection<GeneInfo> found = goService.getGenes( terms.get( 2 ) );
         assertThat( found ).containsExactly( genes.get( 2 ) );
     }
 
     @Test
     public void getGenes_whenInvalidTerm_thenReturnEmpty() {
-        Collection<Gene> found = goService.getGenes( createTerm( toGOId( 999 ) ) );
+        Collection<GeneInfo> found = goService.getGenes( createTerm( toGOId( 999 ) ) );
         assertThat( found ).isEmpty();
     }
 
     @Test
     public void getGenes_whenNullTerm_thenReturnNull() {
         GeneOntologyTerm term = null;
-        Collection<Gene> found = goService.getGenes( term );
+        Collection<GeneInfo> found = goService.getGenes( term );
         assertThat( found ).isNull();
     }
 
     @Test
     public void getGenes_whenValidTermAndTaxon_thenReturnGenes() {
-        Collection<Gene> found = goService.getGenes( terms.get( 0 ), taxon );
+        Collection<GeneInfo> found = goService.getGenes( terms.get( 0 ), taxon );
         assertThat( found ).containsExactlyInAnyOrder( genes.get( 1 ), genes.get( 2 ) );
     }
 
     @Test
     public void getGenes_whenInvalidTermAndValidTaxon_thenReturnEmpty() {
-        Collection<Gene> found = goService.getGenes( createTerm( toGOId( 999 ) ), taxon );
+        Collection<GeneInfo> found = goService.getGenes( createTerm( toGOId( 999 ) ), taxon );
         assertThat( found ).isEmpty();
     }
 
     @Test
     public void getGenes_whenInvalidTaxon_thenReturnEmpty() {
-        Collection<Gene> found = goService.getGenes( terms.get( 0 ), createTaxon( 2 ) );
+        Collection<GeneInfo> found = goService.getGenes( terms.get( 0 ), createTaxon( 2 ) );
         assertThat( found ).isEmpty();
     }
 
     @Test
     public void getGenes_whenNullTermAndTaxon_thenReturnNull() {
         GeneOntologyTerm term = null;
-        Collection<Gene> found = goService.getGenes( term, taxon );
+        Collection<GeneInfo> found = goService.getGenes( term, taxon );
         assertThat( found ).isNull();
     }
 
     @Test
     public void getGenes_whenNullTaxon_thenReturnNull() {
-        Collection<Gene> found = goService.getGenes( terms.get( 0 ), null );
+        Collection<GeneInfo> found = goService.getGenes( terms.get( 0 ), null );
         assertThat( found ).isNull();
     }
 
@@ -402,7 +403,7 @@ public class GOServiceImplTest extends BaseTest {
 
     @Test
     public void getGenes_whenMultipleTermsAndTaxon_thenReturnGenes() {
-        Collection<Gene> found = goService.getGenes( Sets.newSet( terms.get( 1 ), terms.get( 4 ) ), taxon );
+        Collection<GeneInfo> found = goService.getGenes( Sets.newSet( terms.get( 1 ), terms.get( 4 ) ), taxon );
         assertThat( found ).containsExactlyInAnyOrder( genes.get( 1 ), genes.get( 2 ) );
 
         found = goService.getGenes( Sets.newSet( terms.get( 3 ), terms.get( 5 ) ), taxon );
@@ -411,26 +412,26 @@ public class GOServiceImplTest extends BaseTest {
 
     @Test
     public void getGenes_whenMultipleTermsWithSomeInvalidAndValidTaxon_thenReturnGenes() {
-        Collection<Gene> found = goService.getGenes( Sets.newSet( terms.get( 1 ), createTerm( toGOId( 999 ) ) ), taxon );
+        Collection<GeneInfo> found = goService.getGenes( Sets.newSet( terms.get( 1 ), createTerm( toGOId( 999 ) ) ), taxon );
         assertThat( found ).containsExactlyInAnyOrder( genes.get( 1 ), genes.get( 2 ) );
     }
 
     @Test
     public void getGenes_whenMultipleTermsAndInvalidTaxon_thenReturnEmpty() {
-        Collection<Gene> found = goService.getGenes( Sets.newSet( terms.get( 1 ), terms.get( 4 ) ), createTaxon( 2 ) );
+        Collection<GeneInfo> found = goService.getGenes( Sets.newSet( terms.get( 1 ), terms.get( 4 ) ), createTaxon( 2 ) );
         assertThat( found ).isEmpty();
     }
 
     @Test
     public void getGenes_whenNullTermsAndTaxon_thenReturnNull() {
         Collection<GeneOntologyTerm> terms = null;
-        Collection<Gene> found = goService.getGenes( terms, taxon );
+        Collection<GeneInfo> found = goService.getGenes( terms, taxon );
         assertThat( found ).isNull();
     }
 
     @Test
     public void getGenes_whenMultipleTermsAndNullTaxon_thenReturnNull() {
-        Collection<Gene> found = goService.getGenes( Sets.newSet( terms.get( 1 ), terms.get( 4 ) ), null );
+        Collection<GeneInfo> found = goService.getGenes( Sets.newSet( terms.get( 1 ), terms.get( 4 ) ), null );
         assertThat( found ).isNull();
     }
 

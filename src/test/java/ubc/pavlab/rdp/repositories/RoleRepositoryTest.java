@@ -7,7 +7,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.test.context.junit4.SpringRunner;
 import ubc.pavlab.rdp.model.Role;
-import ubc.pavlab.rdp.util.BaseTest;
+import ubc.pavlab.rdp.util.TestUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -16,7 +16,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @RunWith(SpringRunner.class)
 @DataJpaTest
-public class RoleRepositoryTest extends BaseTest {
+public class RoleRepositoryTest {
 
     @Autowired
     private TestEntityManager entityManager;

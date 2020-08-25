@@ -25,7 +25,6 @@ import java.util.Set;
 @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @Getter
 @Setter
-@EqualsAndHashCode(of = { "user", "taxon", "goId" }, callSuper = false)
 @NoArgsConstructor
 public class UserTerm extends GeneOntologyTerm {
 
@@ -34,6 +33,11 @@ public class UserTerm extends GeneOntologyTerm {
     @Column
     @JsonIgnore
     private Integer id;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    @JsonIgnore
+    private User user;
 
     @ManyToOne
     @JoinColumn(name = "taxon_id")
@@ -45,9 +49,10 @@ public class UserTerm extends GeneOntologyTerm {
     @Column(name = "size")
     private int size;
 
-    public static UserTerm createUserTerm( GeneOntologyTerm term, Taxon taxon, Set<? extends Gene> overlapGenes ) {
+    public static UserTerm createUserTerm( User user, GeneOntologyTerm term, Taxon taxon, Set<? extends Gene> overlapGenes ) {
         UserTerm userTerm = new UserTerm();
         userTerm.updateTerm( term );
+        userTerm.user = user;
         userTerm.taxon = taxon;
 
         userTerm.size = userTerm.getSize( taxon );

@@ -5,9 +5,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-import ubc.pavlab.rdp.model.Gene;
-import ubc.pavlab.rdp.model.Taxon;
-import ubc.pavlab.rdp.model.UserGene;
+import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.TierType;
 
 import javax.persistence.QueryHint;
@@ -43,6 +41,9 @@ public interface UserGeneRepository extends JpaRepository<UserGene, Integer> {
     @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
     Collection<UserGene> findBySymbolContainingIgnoreCaseAndTaxonAndTierIn(String symbolContaining, Taxon taxon, Set<TierType> tiers);
     UserGene findBySymbolAndTaxon( String symbol, Taxon taxon );
+
+    Collection<UserGene> findByGeneIdAndTierAndUserUserOrgansIn( int geneId, TierType tier, Collection<UserOrgan> organs );
+    Collection<UserGene> findByGeneIdAndTierInAndUserUserOrgansIn( int geneId, Set<TierType> tiers, Collection<UserOrgan> organs );
 
     /**
      * Find all user genes ortholog to a given gene.

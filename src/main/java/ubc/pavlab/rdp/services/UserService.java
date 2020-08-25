@@ -1,8 +1,6 @@
 package ubc.pavlab.rdp.services;
 
-import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.transaction.annotation.Transactional;
 import ubc.pavlab.rdp.exception.TokenException;
 import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
@@ -16,21 +14,14 @@ import java.util.*;
  */
 public interface UserService {
 
-    @Transactional
     User create( User user );
 
-    @Secured("ROLE_ADMIN")
-    @Transactional
-    void createAdmin( User admin );
+    User createAdmin( User admin );
 
-    @Transactional
     User update( User user );
 
-    @Secured("ROLE_ADMIN")
-    @Transactional
     void delete( User user );
 
-    @Transactional
     User changePassword( String oldPassword, String newPassword ) throws BadCredentialsException, ValidationException;
 
     String getCurrentUserName();
@@ -43,11 +34,11 @@ public interface UserService {
 
     User findUserByIdNoAuth( int id );
 
-    User findUserByEmail( String email );
+    User findUserByEmailNoAuth( String email );
 
     User getRemoteAdmin();
 
-    List<User> findAll();
+    Collection<User> findAll();
 
     Collection<User> findByLikeName( String nameLike );
 
@@ -65,28 +56,22 @@ public interface UserService {
 
     Collection<UserTerm> recommendTerms( User user, Taxon taxon, int minSize, int maxSize, int minFrequency );
 
-    @Transactional
     void updateTermsAndGenesInTaxon( User user,
                                      Taxon taxon,
                                      Map<? extends Gene, TierType> genesToTierMapFrom,
                                      Map<? extends Gene, Optional<PrivacyLevelType>> genesToPrivacyLevelMap,
                                      Collection<? extends GeneOntologyTerm> goTerms );
 
-    @Transactional
-    User updatePublications( User user, Set<Publication> publications );
+    User updateUserProfileAndPublications( User user, Set<Publication> publications );
 
-    @Transactional
     PasswordResetToken createPasswordResetTokenForUser( User user, String token );
 
     void verifyPasswordResetToken( int userId, String token ) throws TokenException;
 
-    @Transactional
     User changePasswordByResetToken( int userId, String token, String newPassword );
 
-    @Transactional
     VerificationToken createVerificationTokenForUser( User user, String token );
 
-    @Transactional
     User confirmVerificationToken( String token );
 
     SortedSet<String> getLastNamesFirstChar();
@@ -94,4 +79,6 @@ public interface UserService {
     UUID getHiddenIdForUser( User user );
 
     User findUserByHiddenId( UUID hiddenId );
+
+    boolean hasRole( User user, String role );
 }

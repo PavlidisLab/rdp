@@ -50,7 +50,7 @@ public class GeneOntologyTerm {
 
     @JsonIgnore
     @Transient
-    private Set<Gene> directGenes = new HashSet<Gene>();
+    private Set<GeneInfo> directGenes = new HashSet<>();
 
     public void addChild( Relationship child ) {
         this.children.add( child );

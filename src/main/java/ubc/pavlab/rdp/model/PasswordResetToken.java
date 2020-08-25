@@ -2,7 +2,6 @@ package ubc.pavlab.rdp.model;
 
 import lombok.*;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
-import ubc.pavlab.rdp.security.PrivacySensitive;
 
 import javax.persistence.*;
 import java.util.Calendar;
@@ -19,7 +18,7 @@ import java.util.Optional;
 @NoArgsConstructor
 @EqualsAndHashCode(of = {"token", "user"})
 @ToString(of = {"token", "expiryDate"})
-public class PasswordResetToken implements PrivacySensitive {
+public class PasswordResetToken implements UserContent {
 
     public static final int EXPIRATION = 2;
 

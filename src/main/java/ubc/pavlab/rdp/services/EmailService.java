@@ -72,7 +72,7 @@ public class EmailService {
                         "Email: " + user.getEmail() + "\r\n" +
                         "User-Agent: " + request.getHeader( "User-Agent" ) + "\r\n" +
                         "Message: " + message + "\r\n" +
-                        "File Attached: " + String.valueOf( attachment != null && !attachment.getOriginalFilename().equals( "" ) );
+                        "File Attached: " + ( attachment != null && !attachment.getOriginalFilename().equals( "" ) );
 
         sendMessage( "Registry Help - Contact Support", content, siteSettings.getAdminEmail(), attachment );
     }

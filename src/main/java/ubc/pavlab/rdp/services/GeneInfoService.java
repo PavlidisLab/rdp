@@ -52,17 +52,11 @@ public interface GeneInfoService {
 
     /**
      * Update gene informations in the database.
-     *
-     * This task is scheduled when the instance is started and then every month.
      */
-    @Scheduled(fixedRate = 2592000000L)
     void updateGenes();
 
     /**
      * Update gene orthologs in the database.
-     *
-     * This task is scheduled when the instance is started and then every month.
      */
-    @Scheduled(fixedRate = 2592000000L)
     void updateGeneOrthologs();
 }

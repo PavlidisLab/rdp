@@ -7,6 +7,7 @@ import ubc.pavlab.rdp.model.UserGene;
 import ubc.pavlab.rdp.model.enums.TierType;
 
 import java.util.Collection;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -14,11 +15,11 @@ import java.util.Set;
  * fetches the results from remote origins.
  */
 public interface RemoteResourceService {
-    Collection<User> findUsersByLikeName( String nameLike, Boolean prefix ) throws RemoteException;
+    Collection<User> findUsersByLikeName( String nameLike, Boolean prefix, Optional<Collection<String>> organUberonIds ) throws RemoteException;
 
-    Collection<User> findUsersByDescription( String descriptionLike ) throws RemoteException;
+    Collection<User> findUsersByDescription( String descriptionLike, Optional<Collection<String>> organUberonIds ) throws RemoteException;
 
-    Collection<UserGene> findGenesBySymbol( String symbol, Taxon taxon, Set<TierType> tier, Integer orthologTaxonId ) throws RemoteException;
+    Collection<UserGene> findGenesBySymbol( String symbol, Taxon taxon, Set<TierType> tier, Integer orthologTaxonId, Optional<Collection<String>> organUberonIds ) throws RemoteException;
 
     User getRemoteUser( Integer userId, String remoteHost ) throws RemoteException;
 }

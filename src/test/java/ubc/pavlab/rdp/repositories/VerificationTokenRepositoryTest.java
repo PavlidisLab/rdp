@@ -10,19 +10,21 @@ import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.test.context.junit4.SpringRunner;
 import ubc.pavlab.rdp.model.User;
 import ubc.pavlab.rdp.model.VerificationToken;
-import ubc.pavlab.rdp.util.BaseTest;
+import ubc.pavlab.rdp.util.TestUtils;
 
 import java.util.Date;
 
 import static junit.framework.TestCase.fail;
 import static org.assertj.core.api.Assertions.assertThat;
+import static ubc.pavlab.rdp.util.TestUtils.createUnpersistedUser;
+import static ubc.pavlab.rdp.util.TestUtils.createUser;
 
 /**
  * Created by mjacobson on 26/02/18.
  */
 @RunWith(SpringRunner.class)
 @DataJpaTest
-public class VerificationTokenRepositoryTest extends BaseTest {
+public class VerificationTokenRepositoryTest {
 
     @Autowired
     private TestEntityManager entityManager;

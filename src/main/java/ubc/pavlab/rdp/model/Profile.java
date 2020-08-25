@@ -28,6 +28,11 @@ public class Profile {
     @NotEmpty(message = "Please provide your last name.")
     private String lastName;
 
+    @Transient
+    public String getFullName() {
+        return name + " " + lastName;
+    }
+
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 

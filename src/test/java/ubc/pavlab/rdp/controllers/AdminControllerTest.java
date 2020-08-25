@@ -9,6 +9,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -18,11 +19,11 @@ import ubc.pavlab.rdp.WebSecurityConfig;
 import ubc.pavlab.rdp.model.User;
 import ubc.pavlab.rdp.services.UserService;
 import ubc.pavlab.rdp.settings.SiteSettings;
-import ubc.pavlab.rdp.util.BaseTest;
 
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static ubc.pavlab.rdp.util.TestUtils.createUser;
 
 /**
  * Created by mjacobson on 13/02/18.
@@ -30,7 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @RunWith(SpringRunner.class)
 @WebMvcTest(AdminController.class)
 @Import(WebSecurityConfig.class)
-public class AdminControllerTest extends BaseTest {
+public class AdminControllerTest {
 
     @Autowired
     private MockMvc mvc;
@@ -46,6 +47,9 @@ public class AdminControllerTest extends BaseTest {
 
     @MockBean
     private SiteSettings siteSettings;
+
+    @MockBean
+    private PermissionEvaluator permissionEvaluator;
 
     @Before
     public void setUp() {

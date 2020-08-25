@@ -5,8 +5,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
+import ubc.pavlab.rdp.model.Role;
 import ubc.pavlab.rdp.model.User;
+import ubc.pavlab.rdp.model.UserContent;
 import ubc.pavlab.rdp.model.UserPrinciple;
+import ubc.pavlab.rdp.repositories.RoleRepository;
 import ubc.pavlab.rdp.services.PrivacyService;
 import ubc.pavlab.rdp.services.UserService;
 
@@ -20,16 +23,21 @@ public class PermissionEvaluatorImpl implements PermissionEvaluator {
     UserService userService;
 
     @Autowired
+    RoleRepository roleRepository;
+
+    @Autowired
     PrivacyService privacyService;
 
     @Override
     public boolean hasPermission( Authentication authentication, Object targetDomainObject, Object permission ) {
         User user = authentication.getPrincipal().equals( "anonymousUser" ) ? null : userService.findUserByIdNoAuth( ( (UserPrinciple) authentication.getPrincipal() ).getId() );
-        if ( targetDomainObject instanceof PrivacySensitive ) {
+        if ( targetDomainObject instanceof UserContent ) {
             if ( permission.equals( "search" ) ) {
                 return privacyService.checkUserCanSearch( user, false );
             } else if ( permission.equals( "read" ) ) {
-                return privacyService.checkUserCanSee( user, (PrivacySensitive) targetDomainObject );
+                return privacyService.checkUserCanSee( user, (UserContent) targetDomainObject );
+            } else if (permission.equals ("update") ) {
+                return userService.hasRole( user, "ROLE_ADMIN" ) || ( (UserContent) targetDomainObject ).getOwner().map( u -> u.equals( user ) ).orElse( false );
             }
         }
 

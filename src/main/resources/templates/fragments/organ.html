@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="organs-selection">
+    <div class="form-row">
+        <div th:each="organInfo, iter : ${@organInfoService.findByActiveTrueOrderByOrdering()}"
+             class="form-group col-3 col-md-2 col-xl-1">
+            <div class="form-check"
+                 th:attr="data-ot=${organInfo.name}"
+                 data-ot-background="cornflowerblue"
+                 data-ot-border-color="white"
+                 data-ot-shadow-color="lightgray">
+                <input type="checkbox"
+                       name="organUberonIds"
+                       th:id="${#ids.seq('organUberonIds')}"
+                       th:value="${organInfo.uberonId}"
+                       th:checked="${checkedOrgans != null} and ${#lists.contains(checkedOrgans, organInfo)}"
+                       class="form-check-input"/>
+                <label th:for="${#ids.prev('organUberonIds')}"
+                       class="form-check-label">
+                    <img th:src="@{/images/organs/{uberonId}.svg(uberonId=${organInfo.uberonId})}"
+                         th:alt="${organInfo.name}"
+                         class="img-fluid"/>
+                </label>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

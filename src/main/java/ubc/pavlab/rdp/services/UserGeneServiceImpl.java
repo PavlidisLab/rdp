@@ -21,13 +21,11 @@ package ubc.pavlab.rdp.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.stereotype.Service;
-import ubc.pavlab.rdp.model.Gene;
-import ubc.pavlab.rdp.model.Taxon;
-import ubc.pavlab.rdp.model.UserGene;
+import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.TierType;
-import ubc.pavlab.rdp.repositories.GeneInfoRepository;
 import ubc.pavlab.rdp.repositories.TaxonRepository;
 import ubc.pavlab.rdp.repositories.UserGeneRepository;
 
@@ -46,9 +44,6 @@ public class UserGeneServiceImpl implements UserGeneService {
 
     @Autowired
     private UserGeneRepository userGeneRepository;
-
-    @Autowired
-    private PrivacyService privacyService;
 
     @Autowired
     TierService tierService;
@@ -85,13 +80,13 @@ public class UserGeneServiceImpl implements UserGeneService {
     @Cacheable(cacheNames = "stats", key = "#root.methodName")
     @Override
     public Integer countUniqueAssociationsAllTiers() {
-        return userGeneRepository.countDistinctGeneByTierIn( tierService.getEnabledTiers());
+        return userGeneRepository.countDistinctGeneByTierIn( tierService.getEnabledTiers() );
     }
 
     @Cacheable(cacheNames = "stats", key = "#root.methodName")
     @Override
     public Integer countUniqueAssociationsToHumanAllTiers() {
-	/* This is also called the "human gene coverage" */
+        /* This is also called the "human gene coverage" */
 
         Collection<Integer> humanGenes = new HashSet<Integer>();
 
@@ -107,50 +102,70 @@ public class UserGeneServiceImpl implements UserGeneService {
         return humanGenes.size();
     }
 
-    @Autowired
-    private GeneInfoRepository geneInfoRepository;
-
     @Override
     @PostFilter("hasPermission(filterObject, 'read')")
-    public Collection<UserGene> findByGene( int geneId ) {
+    public Collection<UserGene> findByGeneId( int geneId ) {
         return userGeneRepository.findByGeneId( geneId );
     }
 
     @Override
     @PostFilter("hasPermission(filterObject, 'read')")
-    public Collection<UserGene> findByGene( int geneId, TierType tier ) {
+    public Collection<UserGene> findByGeneIdAndTier( int geneId, TierType tier ) {
         return userGeneRepository.findByGeneIdAndTier( geneId, tier );
     }
 
     @Override
     @PostFilter("hasPermission(filterObject, 'read')")
-    public Collection<UserGene> findByGene( int geneId, Set<TierType> tiers ) {
+    public Collection<UserGene> findByGeneIdAndTierAndUserOrgansIn( int geneId, TierType tier, Collection<UserOrgan> organs ) {
+        return userGeneRepository.findByGeneIdAndTierAndUserUserOrgansIn( geneId, tier, organs );
+    }
+
+    @Override
+    @PostFilter("hasPermission(filterObject, 'read')")
+    public Collection<UserGene> findByGeneIdAndTierIn( int geneId, Set<TierType> tiers ) {
         return userGeneRepository.findByGeneIdAndTierIn( geneId, tiers );
     }
 
     @Override
-    public Collection<UserGene> findByGeneWithoutSecurityFilter( int geneId ) {
-        return ( userGeneRepository.findByGeneId( geneId ) );
+    @PostFilter("hasPermission(filterObject, 'read')")
+    public Collection<UserGene> findByGeneIdAndTierInAndUserOrgansIn( int geneId, Set<TierType> tiers, Collection<UserOrgan> organs ) {
+        return userGeneRepository.findByGeneIdAndTierInAndUserUserOrgansIn( geneId, tiers, organs );
     }
 
     @Override
-    public Collection<UserGene> findByGeneWithoutSecurityFilter( int geneId, TierType tier ) {
-        return ( userGeneRepository.findByGeneIdAndTier( geneId, tier ) );
+    public Collection<UserGene> findByGeneIdWithoutSecurityFilter( int geneId ) {
+        return userGeneRepository.findByGeneId( geneId );
     }
 
     @Override
-    public Collection<UserGene> findByGeneWithoutSecurityFilter( int geneId, Set<TierType> tiers ) {
-        return ( userGeneRepository.findByGeneIdAndTierIn( geneId, tiers ) );
+    public Collection<UserGene> findByGeneIdAndTierWithoutSecurityFilter( int geneId, TierType tier ) {
+        return userGeneRepository.findByGeneIdAndTier( geneId, tier );
+    }
+
+    @Override
+    public Collection<UserGene> findByGeneIdAndTierAndUserOrgansInWithoutSecurityFilter( int geneId, TierType tier, Collection<UserOrgan> organs ) {
+        return userGeneRepository.findByGeneIdAndTierAndUserUserOrgansIn( geneId, tier, organs );
+    }
+
+    @Override
+    public Collection<UserGene> findByGeneIdAndTierInWithoutSecurityFilter( int geneId, Set<TierType> tiers ) {
+        return userGeneRepository.findByGeneIdAndTierIn( geneId, tiers );
+    }
+
+    @Override
+    public Collection<UserGene> findByGeneIdAndTierInAndUserOrgansInWithoutSecurityFilter( int geneId, Set<TierType> tiers, Collection<UserOrgan> organs ) {
+        return userGeneRepository.findByGeneIdAndTierInAndUserUserOrgansIn( geneId, tiers, organs );
     }
 
     @Override
     public UserGene findBySymbolAndTaxon( String symbol, Taxon taxon ) {
-        return userGeneRepository.findBySymbolAndTaxon(symbol, taxon);
+        return userGeneRepository.findBySymbolAndTaxon( symbol, taxon );
     }
 
     @Override
+    @PostFilter("hasPermission(filterObject, 'read')")
     public Collection<UserGene> findByLikeSymbol( String symbol, Taxon taxon ) {
-        return ( userGeneRepository.findBySymbolContainingIgnoreCaseAndTaxon( symbol, taxon ) );
+        return userGeneRepository.findBySymbolContainingIgnoreCaseAndTaxon( symbol, taxon );
     }
 
     @Override
@@ -178,7 +193,7 @@ public class UserGeneServiceImpl implements UserGeneService {
                 .stream()
                 .map( userGene -> userGeneRepository.findOrthologsByGeneId( userGene.getGeneId() ) )
                 .flatMap( orthologs -> orthologs.stream() )
-                .filter( ortholog -> tiers.contains (ortholog.getTier()) )
+                .filter( ortholog -> tiers.contains( ortholog.getTier() ) )
                 .collect( Collectors.toSet() );
     }
 
@@ -196,7 +211,7 @@ public class UserGeneServiceImpl implements UserGeneService {
                 .stream()
                 .map( userGene -> userGeneRepository.findOrthologsByGeneIdAndTaxon( userGene.getGeneId(), orthologTaxon ) )
                 .flatMap( orthologs -> orthologs.stream() )
-                .filter( ortholog -> tiers.contains (ortholog.getTier()) )
+                .filter( ortholog -> tiers.contains( ortholog.getTier() ) )
                 .collect( Collectors.toSet() );
     }
 
@@ -206,17 +221,17 @@ public class UserGeneServiceImpl implements UserGeneService {
                 .stream()
                 .map( userGene -> userGeneRepository.findOrthologsByGeneId( userGene.getGeneId() ) )
                 .flatMap( orthologs -> orthologs.stream() )
-                .filter( ortholog -> tiers.contains (ortholog.getTier()) )
+                .filter( ortholog -> tiers.contains( ortholog.getTier() ) )
                 .collect( Collectors.toSet() );
     }
 
     @Override
-    public Collection<UserGene> findOrthologsWithTaxonWithoutSecurityFilter( Gene gene, Set<TierType> tiers, Taxon orthologTaxon ) {
+    public Collection<UserGene> findOrthologsWithTaxonWithoutSecurityFilter( Gene gene, Set<TierType> tiers, Taxon orthologTaxon, Optional<Collection<UserOrgan>> organs ) {
         return userGeneRepository.findByGeneId( gene.getGeneId() )
                 .stream()
                 .map( userGene -> userGeneRepository.findOrthologsByGeneIdAndTaxon( userGene.getGeneId(), orthologTaxon ) )
                 .flatMap( orthologs -> orthologs.stream() )
-                .filter( ortholog -> tiers.contains (ortholog.getTier()) )
+                .filter( ortholog -> tiers.contains( ortholog.getTier() ) )
                 .collect( Collectors.toSet() );
     }
 
@@ -230,27 +245,32 @@ public class UserGeneServiceImpl implements UserGeneService {
     }
 
     @Override
+    @PostAuthorize("hasPermission(returnObject, 'read')")
     public UserGene findUserGeneByHiddenId( UUID hiddenUserGeneId ) {
-        return userGeneRepository.findById (userGeneHiddenIds.get(hiddenUserGeneId));
+        return userGeneRepository.findById( userGeneHiddenIds.get( hiddenUserGeneId ) );
     }
 
     @Override
-    public Collection<UserGene> findByGene( Gene gene, Set<TierType> tiers ) {
-        return null;
-    }
-
-    @Override
-    public Collection<UserGene> handleGeneSearch( Gene gene, Set<TierType> tiers, Collection<UserGene> orthologs ) {
-        Collection<UserGene> uGenes = new LinkedList<>();
-        uGenes.addAll( findByGene( gene.getGeneId(), tiers ) );
+    @PostFilter("hasPermission(filterObject, 'read')")
+    public Collection<UserGene> handleGeneSearch( Gene gene, Set<TierType> tiers, Collection<UserGene> orthologs, Optional<Collection<UserOrgan>> organs ) {
+        Collection<UserGene> uGenes = new LinkedHashSet<>();
+        if ( organs.isPresent() ) {
+            uGenes.addAll( findByGeneIdAndTierInAndUserOrgansIn( gene.getGeneId(), tiers, organs.get() ) );
+        } else {
+            uGenes.addAll( findByGeneIdAndTierIn( gene.getGeneId(), tiers ) );
+        }
         uGenes.addAll( orthologs );
         return uGenes;
     }
 
     @Override
-    public Collection<UserGene> handleGeneSearchWithoutSecurityFilter( Gene gene, Set<TierType> tiers, Collection<UserGene> orthologs ) {
-        Collection<UserGene> uGenes = new LinkedList<>();
-        uGenes.addAll( findByGeneWithoutSecurityFilter( gene.getGeneId(), tiers ) );
+    public Collection<UserGene> handleGeneSearchWithoutSecurityFilter( Gene gene, Set<TierType> tiers, Collection<UserGene> orthologs, Optional<Collection<UserOrgan>> organs ) {
+        Collection<UserGene> uGenes = new LinkedHashSet<>();
+        if ( organs.isPresent() ) {
+            uGenes.addAll( findByGeneIdAndTierInAndUserOrgansInWithoutSecurityFilter( gene.getGeneId(), tiers, organs.get() ) );
+        } else {
+            uGenes.addAll( findByGeneIdAndTierInWithoutSecurityFilter( gene.getGeneId(), tiers ) );
+        }
         uGenes.addAll( orthologs );
         return uGenes;
     }

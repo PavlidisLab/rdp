@@ -39,7 +39,7 @@
                       th:text="${gene.getEffectivePrivacyLevel().label}" th:remove="tag">...</span>
                 <select th:if="${viewOnly == null}"
                         name="privacyLevel" class="form-control">
-                    <option value="" th:selected="${gene.privacyLevel} == null"></option>
+                    <option value="" th:selected="${gene.privacyLevel} == null">Identical to your profile</option>
                     <option th:each="privacyLevel : ${T(ubc.pavlab.rdp.model.enums.PrivacyLevelType).values()}"
                             th:if="${@privacyService.isGenePrivacyLevelEnabled(privacyLevel) and (privacyLevel.ordinal() le defaultPrivacyLevel.ordinal())}"
                             th:value="${privacyLevel.ordinal()}"

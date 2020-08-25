@@ -6,9 +6,12 @@ import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.model.UserOrgan;
 
 import java.util.Collection;
+import java.util.Set;
 
 @Repository
 public interface UserOrganRepository extends JpaRepository<UserOrgan, Integer> {
 
-    Collection<UserOrgan> findByDescriptionContainingIgnoreCaseAndTaxon( String description, Taxon taxon );
+    Collection<UserOrgan> findByDescriptionContainingIgnoreCase( String description );
+
+    Collection<UserOrgan> findByUberonIdIn( Collection<String> organUberonIds );
 }

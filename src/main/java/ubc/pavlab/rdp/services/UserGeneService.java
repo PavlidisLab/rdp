@@ -19,16 +19,11 @@
 
 package ubc.pavlab.rdp.services;
 
-import lombok.NonNull;
-import ubc.pavlab.rdp.model.Gene;
-import ubc.pavlab.rdp.model.Taxon;
-import ubc.pavlab.rdp.model.UserGene;
+import org.springframework.security.access.prepost.PostFilter;
+import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.TierType;
 
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Created by mjacobson on 17/01/18.
@@ -36,24 +31,37 @@ import java.util.UUID;
 public interface UserGeneService {
 
     Integer countUniqueAssociations();
+
     Integer countAssociations();
+
     Map<String, Integer> researcherCountByTaxon();
 
     Integer countUsersWithGenes();
+
     Integer countUniqueAssociationsAllTiers();
+
     Integer countUniqueAssociationsToHumanAllTiers();
 
-    Collection<UserGene> findByGene( int geneId );
+    Collection<UserGene> findByGeneId( int geneId );
 
-    Collection<UserGene> findByGene( int geneId, TierType tier );
+    Collection<UserGene> findByGeneIdAndTier( int geneId, TierType tier );
 
-    Collection<UserGene> findByGene( int geneId, Set<TierType> tiers );
+    @PostFilter("hasPermission(filterObject, 'read')")
+    Collection<UserGene> findByGeneIdAndTierAndUserOrgansIn( int geneId, TierType tier, Collection<UserOrgan> organs );
 
-    Collection<UserGene> findByGeneWithoutSecurityFilter( int geneId );
+    Collection<UserGene> findByGeneIdAndTierIn( int geneId, Set<TierType> tiers );
 
-    Collection<UserGene> findByGeneWithoutSecurityFilter( int geneId, TierType tier );
+    Collection<UserGene> findByGeneIdAndTierInAndUserOrgansIn( int geneId, Set<TierType> tiers, Collection<UserOrgan> organs );
 
-    Collection<UserGene> findByGeneWithoutSecurityFilter( int geneId, Set<TierType> tiers );
+    Collection<UserGene> findByGeneIdWithoutSecurityFilter( int geneId );
+
+    Collection<UserGene> findByGeneIdAndTierWithoutSecurityFilter( int geneId, TierType tier );
+
+    Collection<UserGene> findByGeneIdAndTierAndUserOrgansInWithoutSecurityFilter( int geneId, TierType tier, Collection<UserOrgan> organs );
+
+    Collection<UserGene> findByGeneIdAndTierInWithoutSecurityFilter( int geneId, Set<TierType> tiers );
+
+    Collection<UserGene> findByGeneIdAndTierInAndUserOrgansInWithoutSecurityFilter( int geneId, Set<TierType> tiers, Collection<UserOrgan> organs );
 
     UserGene findBySymbolAndTaxon( String symbol, Taxon taxon );
 
@@ -63,21 +71,19 @@ public interface UserGeneService {
 
     Collection<UserGene> findByLikeSymbol( String symbol, Taxon taxon, Set<TierType> tiers );
 
-    Collection<UserGene> findOrthologs ( Gene gene, Set<TierType> tiers );
+    Collection<UserGene> findOrthologs( Gene gene, Set<TierType> tiers );
 
-    Collection<UserGene> findOrthologsWithTaxon ( Gene gene, Set<TierType> tiers, Taxon orthologTaxon );
+    Collection<UserGene> findOrthologsWithTaxon( Gene gene, Set<TierType> tiers, Taxon orthologTaxon );
 
     Collection<UserGene> findOrthologsWithoutSecurityFilter( Gene gene, Set<TierType> tiers );
 
-    Collection<UserGene> findOrthologsWithTaxonWithoutSecurityFilter( Gene gene, Set<TierType> tiers, Taxon orthologTaxon );
+    Collection<UserGene> findOrthologsWithTaxonWithoutSecurityFilter( Gene gene, Set<TierType> tiers, Taxon orthologTaxon, Optional<Collection<UserOrgan>> organs );
 
     UUID getHiddenIdForUserGene( UserGene userGene );
 
     UserGene findUserGeneByHiddenId( UUID hiddenUserGeneId );
 
-    Collection<UserGene> findByGene( Gene gene, Set<TierType> tiers );
+    Collection<UserGene> handleGeneSearch( Gene gene, Set<TierType> tiers, Collection<UserGene> orthologs, Optional<Collection<UserOrgan>> organs );
 
-    Collection<UserGene> handleGeneSearch( Gene gene, Set<TierType> tiers, Collection<UserGene> orthologs );
-
-    Collection<UserGene> handleGeneSearchWithoutSecurityFilter( Gene gene, Set<TierType> tiers, Collection<UserGene> orthologs );
+    Collection<UserGene> handleGeneSearchWithoutSecurityFilter( Gene gene, Set<TierType> tiers, Collection<UserGene> orthologs, Optional<Collection<UserOrgan>> organs );
 }

@@ -64,9 +64,12 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                     // public endpoints
                     .antMatchers( "/", "/login", "/registration", "/registrationConfirm", "/stats", "/stats.html",
                             "/forgotPassword", "/resetPassword", "/updatePassword", "/resendConfirmation", "/search/**",
-                            "/userView/**", "/request-match/**", "/api/**", "/taxon/**", "/access-denied" )
+                            "/userView/**", "/request-match/**", "/taxon/**", "/access-denied" )
                         .permitAll()
-                    // adninistrative endpoints
+                    // API for international search
+                    .antMatchers("/api/**")
+                        .permitAll()
+                    // administrative endpoints
                     .antMatchers( "/admin/**" )
                         .hasRole( "ADMIN" )
                     // user endpoints

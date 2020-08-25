@@ -16,12 +16,10 @@ import java.util.List;
  */
 @Component
 @ConfigurationProperties(prefix = "rdp.settings")
-@Getter
-@Setter
+@Data
 public class ApplicationSettings {
 
-    @Getter
-    @Setter
+    @Data
     public static class CacheSettings {
 
         private boolean enabled = true;
@@ -33,9 +31,16 @@ public class ApplicationSettings {
 
     }
 
+    @Data
+    public static class OrganSettings {
+        /**
+         * Enable organ systems.
+         */
+        private Boolean enabled;
+    }
+
     @SuppressWarnings("WeakerAccess") //Used in frontend
-    @Getter
-    @Setter
+    @Data
     public static class PrivacySettings {
         /**
          * Must be one of enabledLevels
@@ -43,6 +48,7 @@ public class ApplicationSettings {
         private Integer defaultLevel = PrivacyLevelType.PRIVATE.ordinal();
         /**
          * Minimum level of privacy for user profiles.
+         *
          * @deprecated The setting is still honored, but you should use enabledLevels instead.
          */
         @Deprecated
@@ -63,7 +69,7 @@ public class ApplicationSettings {
         private boolean customizableLevel = true;
         /**
          * Whether or not privacy settings are customizable at gene-level.
-         *
+         * <p>
          * It's possible to customize gene privacy even if the profile levels are not customizable.
          */
         private boolean customizableGeneLevel = false;
@@ -74,8 +80,7 @@ public class ApplicationSettings {
     }
 
     @SuppressWarnings("WeakerAccess") //Used in frontend
-    @Getter
-    @Setter
+    @Data
     public static class InternationalSearchSettings {
         private boolean enabled = false;
         private boolean defaultOn = false;
@@ -94,7 +99,7 @@ public class ApplicationSettings {
     private boolean sendEmailOnRegistration;
     private int goTermSizeLimit = 100;
     public List<String> enabledTiers;
-    public boolean enableOrganSystems;
+    private OrganSettings organs;
 
 //    @Getter
 //    @Setter

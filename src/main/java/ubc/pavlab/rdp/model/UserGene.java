@@ -7,12 +7,10 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.ColumnDefault;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.TierType;
-import ubc.pavlab.rdp.security.PrivacySensitive;
 
 import javax.persistence.*;
 import java.text.MessageFormat;
 import java.util.Optional;
-import java.util.Set;
 
 /**
  * Created by mjacobson on 17/01/18.
@@ -31,9 +29,8 @@ import java.util.Set;
 @Setter
 @NoArgsConstructor
 @ToString(callSuper = true)
-@EqualsAndHashCode(of = { "user", "geneId" }, callSuper = false)
 @CommonsLog
-public class UserGene extends Gene implements PrivacySensitive {
+public class UserGene extends Gene implements UserContent {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -56,6 +53,7 @@ public class UserGene extends Gene implements PrivacySensitive {
     @Column(name = "user_privacy_level")
     @ColumnDefault("NULL")
     @Enumerated(EnumType.ORDINAL)
+    @JsonIgnore
     private PrivacyLevelType privacyLevel;
 
     @ManyToOne

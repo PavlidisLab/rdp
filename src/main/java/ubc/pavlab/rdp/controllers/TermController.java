@@ -39,7 +39,7 @@ public class TermController {
     private RoleRepository roleRepository;
 
     @RequestMapping(value = "/taxon/{taxonId}/term/search/{query}", method = RequestMethod.GET)
-    public List<SearchResult<UserTerm>> searchTermsByQueryAndTaxon( @PathVariable Integer taxonId, @PathVariable String query,
+    public List<SearchResult<GeneOntologyTerm>> searchTermsByQueryAndTaxon( @PathVariable Integer taxonId, @PathVariable String query,
                                                                     @RequestParam(value = "max", required = false, defaultValue = "-1") int max) {
         if( searchNotAuthorized() ){
             return null;
@@ -59,7 +59,7 @@ public class TermController {
     }
 
     @RequestMapping(value = "/taxon/{taxonId}/term/{goId}/gene", method = RequestMethod.GET)
-    public Collection<Gene> termGenes( @PathVariable Integer taxonId, @PathVariable String goId ) {
+    public Collection<GeneInfo> termGenes( @PathVariable Integer taxonId, @PathVariable String goId ) {
         if( searchNotAuthorized() ){
             return null;
         }

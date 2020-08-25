@@ -1,63 +1,20 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:th="http://www.thymeleaf.org">
+      xmlns:th="http://www.thymeleaf.org"
+      lang="en">
 
-<head>
-    <title th:text="#{rdp.site.fullname}"></title>
-    <link rel="icon" type="image/png" sizes="16x16" th:href="@{/images/favicon-16x16.png}"/>
-    <link rel="icon" type="image/png" sizes="32x32" th:href="@{/images/favicon-32x32.png}"/>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
-          integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous"/>
-    <link rel="stylesheet"
-          href="https://cdnjs.cloudflare.com/ajax/libs/open-iconic/1.1.1/font/css/open-iconic-bootstrap.min.css"/>
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.16/css/dataTables.bootstrap4.min.css"/>
-    <link rel="stylesheet" type="text/css" th:href="@{/css/jquery-ui.min.css}"/>
-
-    <link rel="stylesheet" type="text/css" th:href="@{/css/common.css}"/>
-    <link rel="stylesheet" type="text/css" th:href="@{/css/model.css}"/>
-
-    <script src="https://code.jquery.com/jquery-3.3.1.min.js"
-            integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
-            crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
-            integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
-            crossorigin="anonymous"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
-            integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
-            crossorigin="anonymous"></script>
-    <script src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.10.16/js/dataTables.bootstrap4.min.js"></script>
-    <script th:src="@{/js/jquery-ui.min.js}"></script>
-
-    <script th:src="@{/js/common.js}"></script>
-
-    <script th:inline="javascript">
-        /*<![CDATA[*/
-        // noinspection JSUnusedLocalSymbols used in model.js
-        var currentTaxon = [[${taxon}]];
-        var userProfile = [[${user.profile}]];
-        // TODO: serialize and use PrivacyLevelType instead of hardcoded values
-        var PrivacyLevelType = [[${T(ubc.pavlab.rdp.model.enums.PrivacyLevelType).values()}]];
-        var privacyLevels = {
-            'PUBLIC': {'label': 'Public', 'ordinal': 2},
-            'SHARED': {'label': 'Shared', 'ordinal': 1},
-            'PRIVATE': {'label': 'Private', 'ordinal': 0}
-        };
-        var enabledGenePrivacyLevels = [[${@applicationSettings.privacy.enabledGeneLevels}]];
-        var userPrivacyLevel = privacyLevels[userProfile.privacyLevel['$name']];
-        /*]]>*/
-    </script>
-    <script th:src="@{/js/model.js}"></script>
-
+<head th:replace="layouts/common::head(title=${#strings.capitalizeWords(taxon.commonName)})">
+    <meta charset="UTF-8"/>
+    <title>...</title>
 </head>
 
 <body>
-<div th:replace="fragments/header">...</div>
+<div th:replace="layouts/common::header">...</div>
 <div class="container py-4">
 
     <div class="row">
         <div class="col-10">
-            <div th:replace="fragments/title :: title(title='Model Organisms', subtitle=${#strings.capitalizeWords(taxon.commonName)})"
+            <div th:replace="layouts/common::title(title='Model Organisms', subtitle=${#strings.capitalizeWords(taxon.commonName)})"
                  th:remove="tag">...
             </div>
         </div>
@@ -137,11 +94,6 @@
                                 <a class="nav-link active" id="genes-tab" data-toggle="tab" href="#genes" role="tab"
                                    aria-controls="profile" aria-selected="true">Genes</a>
                             </li>
-                            <li class="nav-item">
-                                <a class="nav-link" id="organ-systems-tab" data-toggle="tab"
-                                   href="#organ-systems" role="tab"
-                                   aria-controls="profile" aria-selected="true">Organ Systems</a>
-                            </li>
                             <li class="nav-item" th:if="${@tierService.isTierEnabled(T(ubc.pavlab.rdp.model.enums.TierType).TIER3)}">
                                 <a class="nav-link" id="terms-tab" data-toggle="tab" href="#terms" role="tab"
                                    aria-controls="model"
@@ -164,23 +116,6 @@
                                     <input type="text" class="form-control autocomplete"
                                            placeholder="ex. GRIN1, BRCA1, FOXP2"/>
                                 </div>
-                            </div>
-
-                            <div class="tab-pane fade" id="organ-systems" role="tabpanel" aria-labelledby="organ-systems-tab">
-                                <form>
-                                    <div class="form-row">
-                                        <div class="form-group col-md-5">
-                                            <label for="organSystems">Organ Systems</label>
-                                            <select id="organSystems" class="custom-select" multiple="multiple">
-                                                <option>Heart</option>
-                                                <option>Brain</option>
-                                                <option>Spleen</option>
-                                                <option>Liver</option>
-                                                <option>Lung</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                </form>
                             </div>
 
                             <div class="tab-pane fade" id="terms" role="tabpanel" aria-labelledby="terms-tab"
@@ -227,6 +162,25 @@
     </div>
 </div>
 
-<div th:replace="fragments/footer" th:remove="tag">...</div>
+<div th:replace="layouts/common::footer">...</div>
+
+<div th:replace="layouts/common::scripts"></div>
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    // noinspection JSUnusedLocalSymbols used in model.js
+    var currentTaxon = [[${taxon}]];
+    var userProfile = [[${user.profile}]];
+    // TODO: serialize and use PrivacyLevelType instead of hardcoded values
+    var PrivacyLevelType = [[${T(ubc.pavlab.rdp.model.enums.PrivacyLevelType).values()}]];
+    var privacyLevels = {
+        'PUBLIC': {'label': 'Public', 'ordinal': 2},
+        'SHARED': {'label': 'Shared', 'ordinal': 1},
+        'PRIVATE': {'label': 'Private', 'ordinal': 0}
+    };
+    var enabledGenePrivacyLevels = [[${@applicationSettings.privacy.enabledGeneLevels}]];
+    var userPrivacyLevel = privacyLevels[userProfile.privacyLevel['$name']];
+    /*]]>*/
+</script>
+<script th:src="@{/js/model.js}"></script>
 </body>
 </html>

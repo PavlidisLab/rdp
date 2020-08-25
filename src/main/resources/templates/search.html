@@ -4,17 +4,18 @@
       xmlns:th="http://www.thymeleaf.org"
       lang="en">
 
-<head th:replace="layouts/common::head">
+<head th:replace="layouts/common::head(title='Search')">
     <meta charset="UTF-8"/>
     <title>...</title>
 </head>
 
 <body>
-<div th:replace="fragments/header">...</div>
+
+<div th:replace="layouts/common::header">...</div>
 
 <div class="container py-4">
-    <div th:replace="fragments/title :: title(title='Search', subtitle='Researchers, Organs Systems &amp; Genes')"
-         th:remove="tag">...
+    <div th:replace="layouts/common::title(title='Search', subtitle='Researchers, Organs Systems &amp; Genes')">
+        ...
     </div>
 
     <p class="lead mt-3" th:text="#{rdp.site.welcome-public}"/>
@@ -22,8 +23,6 @@
     <ul class="nav nav-tabs mt-3">
         <li class="nav-item"><a class="nav-link active" id="gene-tab" data-toggle="tab"
                                 href="#gene-search">Genes</a></li>
-        <li class="nav-item"><a class="nav-link" id="organ-tab" data-toggle="tab"
-                                href="#organ-system-search">Organ Systems</a></li>
         <li class="nav-item"><a class="nav-link" id="res-tab" data-toggle="tab"
                                 href="#user-search-name">Researchers</a></li>
     </ul>
@@ -114,56 +113,18 @@
                         </label>
                     </div>
                 </div>
-            </form>
-        </div>
-
-        <div id="organ-system-search" role="tabpanel" class="tab-pane fade">
-            <form>
-                <div class="form-row">
-                    <div class="col-md-5">
-                        <label for="organSystemSearch">Search for researchers that study the following organ systems:</label>
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="col-auto">
-                        <div th:each="organInfo : ${@organInfoService.findAll()}"
-                             class="form-check">
-                            <input type="checkbox"
-                                   th:id="'organ[' + ${organInfo.symbol} + ']'"
-                                   th:name="'organ[' + ${organInfo.symbol} + ']'"
-                                   class="form-check-input"/>
-                            <label th:for="'organ[' + ${organInfo.symbol} + ']'"
-                                   class="form-check-label">
-                                <img th:src="@{/images/organs/{symbol}.svg(symbol=${organInfo.symbol})}"
-                                     class="img-fluid"
-                                     th:alt="${organInfo.description}"/>
-                                <span th:text="${organInfo.name}"/>
-                            </label>
+                <div th:if="${@applicationSettings.organs.enabled}">
+                    <div class="form-row">
+                        <div class="col-md-12">
+                            <p>With focus on the following organs:</p>
                         </div>
                     </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group col-md-5">
-                        <div class="input-group">
-                            <div class="input-group-prepend">
-                                <button class="btn btn-primary">Search</button>
-                            </div>
-                            <input id="organSystemSearch" class="form-control" type="text" placeholder="Organ system name"/>
-                        </div>
-                    </div>
-                    <div class="form-group col-md-4">
-                        <select id="taxonId" name="taxonId" class="custom-select"
-                                title="Taxon to run primary search on">
-                            <th:block th:each="taxon : ${@taxonService.findByActiveTrue()}">
-                                <option th:value="${taxon.id}"
-                                        th:text="${#strings.capitalizeWords(taxon.commonName)}"
-                                        th:selected="${taxon.id == 9606}"></option>
-                            </th:block>
-                        </select>
+                    <div th:replace="fragments/organ::organs-selection"
+                         th:remove="tag">
+                        ...
                     </div>
                 </div>
             </form>
-            <p>If we only have a few organ systems, this could just be a list of organ icons that can be selected.</p>
         </div>
 
         <div id="user-search-name" role="tabpanel" aria-labelledby="res-tab" class="tab-pane fade">
@@ -232,6 +193,19 @@
                     </div>
                 </form>
 
+                <!-- Researchers by focused organs -->
+                <form th:if="${@applicationSettings.organs.enabled}">
+                    <div class="form-row">
+                        <div class="col-md-12">
+                            <p>With focus on the following organs:</p>
+                        </div>
+                    </div>
+                    <div th:replace="fragments/organ::organs-selection"
+                         th:remove="tag">
+                        ...
+                    </div>
+                </form>
+
                 <!--International toggle-->
                 <form>
                     <div class="form-row" th:if="${@applicationSettings.getIsearch().isEnabled()}">
@@ -296,7 +270,8 @@
     </div>
 </div>
 
-<div th:replace="fragments/footer" th:remove="tag">...</div>
-
+<div th:replace="layouts/common::footer">...</div>
+<div th:replace="layouts/common::scripts"></div>
+<script th:src="@{/js/search.js}"></script>
 </body>
 </html>

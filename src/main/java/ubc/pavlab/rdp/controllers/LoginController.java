@@ -1,11 +1,8 @@
 package ubc.pavlab.rdp.controllers;
 
 import lombok.extern.apachecommons.CommonsLog;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -16,14 +13,11 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.View;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import org.springframework.web.servlet.view.RedirectView;
 import ubc.pavlab.rdp.events.OnRegistrationCompleteEvent;
 import ubc.pavlab.rdp.model.Profile;
 import ubc.pavlab.rdp.model.User;
 import ubc.pavlab.rdp.model.UserPrinciple;
-import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.services.PrivacyService;
 import ubc.pavlab.rdp.services.UserService;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
@@ -39,6 +33,12 @@ public class LoginController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    PrivacyService privacyService;
+
+    @Autowired
+    ApplicationSettings applicationSettings;
 
     @Autowired
     ApplicationEventPublisher eventPublisher;
@@ -67,41 +67,25 @@ public class LoginController {
         return modelAndView;
     }
 
-    @Autowired
-    PrivacyService privacyService;
-
-    @Autowired
-    ApplicationSettings applicationSettings;
-
     @PostMapping("/registration")
     public String createNewUser( @Valid User user,
                                  BindingResult bindingResult,
                                  RedirectAttributes redirectAttributes ) {
-        User userExists = userService.findUserByEmail( user.getEmail() );
+        User userExists = userService.findUserByEmailNoAuth( user.getEmail() );
 
         // initialize a basic user profile
-        Profile userProfile = new Profile();
+        Profile userProfile = user.getProfile();
         userProfile.setPrivacyLevel( privacyService.getDefaultPrivacyLevel() );
         userProfile.setShared( applicationSettings.getPrivacy().isDefaultSharing() );
         userProfile.setHideGenelist( false );
 
-        user.setProfile(userProfile);
-
         if ( userExists != null ) {
-            bindingResult
-                    .rejectValue( "user.email", "error.user",
-                            "There is already a user registered with the email provided." );
+            bindingResult.rejectValue( "email", "error.user", "There is already a user registered this email." );
             log.warn("Trying to register an already registered email.");
         }
 
-        log.info(bindingResult);
-
         if ( !bindingResult.hasErrors() ) {
-            if ( true ) {
-                userService.createAdmin( user );
-            } else {
-                userService.create( user );
-            }
+            user = userService.create( user );
             try {
                 eventPublisher.publishEvent( new OnRegistrationCompleteEvent( user ) );
                 redirectAttributes.addAttribute( "message", "Your user account was registered successfully. Please check your email for completing the completing the registration process." );
@@ -127,7 +111,7 @@ public class LoginController {
     public ModelAndView resendConfirmation( @RequestParam("email") String email ) {
         ModelAndView modelAndView = new ModelAndView();
         modelAndView.setViewName( "resendConfirmation" );
-        User user = userService.findUserByEmail( email );
+        User user = userService.findUserByEmailNoAuth( email );
 
         if ( user == null ) {
 //            modelAndView.addObject( "message", "User does not exist." );

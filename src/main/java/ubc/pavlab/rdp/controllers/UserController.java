@@ -1,9 +1,6 @@
 package ubc.pavlab.rdp.controllers;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -11,10 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.TierType;
-import ubc.pavlab.rdp.services.GOService;
-import ubc.pavlab.rdp.services.GeneInfoService;
-import ubc.pavlab.rdp.services.TaxonService;
-import ubc.pavlab.rdp.services.UserService;
+import ubc.pavlab.rdp.services.*;
 
 import javax.validation.Valid;
 import java.util.*;
@@ -37,9 +31,19 @@ public class UserController {
     @Autowired
     private GOService goService;
 
-    @RequestMapping(value = "/user/profile", method = RequestMethod.POST)
-    public String saveProfile( @RequestBody @Valid Profile profile ) {
+    @Autowired
+    private OrganInfoService organInfoService;
+
+    @Data
+    private static class ProfileWithOrganUberonIds {
+        @Valid Profile profile;
+        Set<String> organUberonIds;
+    }
+
+    @PostMapping(value = "/user/profile")
+    public String saveProfile( @RequestBody @Valid ProfileWithOrganUberonIds profileWithOrganUberonIds ) {
         User user = userService.findCurrentUser();
+        Profile profile = profileWithOrganUberonIds.profile;
         user.getProfile().setDepartment( profile.getDepartment() );
         user.getProfile().setDescription( profile.getDescription() );
         user.getProfile().setLastName( profile.getLastName() );
@@ -51,7 +55,13 @@ public class UserController {
         user.getProfile().setShared( profile.getShared() );
         user.getProfile().setHideGenelist( profile.getHideGenelist() );
 
-        userService.updatePublications( user, profile.getPublications() );
+        Map<String, UserOrgan> userOrgans = organInfoService.findByUberonIdIn(profileWithOrganUberonIds.organUberonIds).stream()
+                .map( organInfo -> user.getUserOrgans().getOrDefault( organInfo.getUberonId(), UserOrgan.createFromOrganInfo( user, organInfo ) ))
+                .collect(Collectors.toMap(ug -> ug.getUberonId(), ug -> ug));
+        user.getUserOrgans().clear();
+        user.getUserOrgans().putAll( userOrgans );
+
+        userService.updateUserProfileAndPublications( user, profile.getPublications() );
 
         return "Saved.";
     }

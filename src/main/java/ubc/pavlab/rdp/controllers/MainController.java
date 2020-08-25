@@ -99,7 +99,7 @@ public class MainController {
         GeneOntologyTerm term = goService.getTerm( goId );
 
         if ( term != null ) {
-            Collection<Gene> genes = goService.getGenes( term );
+            Collection<GeneInfo> genes = goService.getGenes( term );
 
             modelAndView.addObject( "genes",
                     user.getGenesByTaxonAndTier( taxon, TierType.MANUAL ).stream().filter( genes::contains )
@@ -174,8 +174,10 @@ public class MainController {
     }
 
     @RequestMapping(value = { "/user/support" }, method = RequestMethod.POST)
-    public ModelAndView supportPost( HttpServletRequest request, @RequestParam("name") String name,
-            @RequestParam("message") String message, @RequestParam(required = false) MultipartFile attachment ) {
+    public ModelAndView supportPost( HttpServletRequest request,
+                                     @RequestParam String name,
+                                     @RequestParam String message,
+                                     @RequestParam(required = false) MultipartFile attachment ) {
         ModelAndView modelAndView = new ModelAndView();
         User user = userService.findCurrentUser();
         modelAndView.addObject( "user", user );

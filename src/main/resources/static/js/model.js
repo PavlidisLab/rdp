@@ -67,8 +67,10 @@ function addGeneRow(data) {
                         return '';
                     }
                 }).join('');
-                console.log(privacyOptions);
-                row.push('<select class="form-control">' + privacyOptions + '</select>');
+                row.push('<select class="form-control">' +
+                    '<option>Identical to you user profile</option>' +
+                    privacyOptions +
+                    '</select>');
             }
             rows.push(row);
         }

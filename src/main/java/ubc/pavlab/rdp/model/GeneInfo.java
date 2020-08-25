@@ -30,11 +30,10 @@ public class GeneInfo extends Gene implements Serializable {
     @JsonIgnore
     private Integer id;
 
-    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @ManyToMany(cascade = CascadeType.ALL)
     @JoinTable(name = "ortholog",
             joinColumns = @JoinColumn(name = "source_gene"),
-            inverseJoinColumns = @JoinColumn(name = "target_gene")
-    )
+            inverseJoinColumns = @JoinColumn(name = "target_gene"))
     @JsonIgnore
     private Set<GeneInfo> orthologs;
 }

@@ -5,7 +5,6 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPHTTPClient;
-import ubc.pavlab.rdp.model.Gene;
 import ubc.pavlab.rdp.model.GeneInfo;
 import ubc.pavlab.rdp.model.GeneOntologyTerm;
 import ubc.pavlab.rdp.model.Taxon;
@@ -14,6 +13,7 @@ import ubc.pavlab.rdp.services.GeneInfoService;
 
 import java.io.*;
 import java.net.URL;
+import java.text.MessageFormat;
 import java.text.ParseException;
 import java.util.Collection;
 import java.util.Map;
@@ -56,14 +56,14 @@ public class Gene2GoParser {
 
             populateAnnotations( new GZIPInputStream( ftp.retrieveFileStream( url.getPath() ) ), acceptableTaxons, geneService, goService );
 
-        } catch (IOException e) {
+        } catch ( IOException e ) {
             throw new ParseException( e.getMessage(), 0 );
         } finally {
             try {
                 if ( ftp.isConnected() ) {
                     ftp.disconnect();
                 }
-            } catch (IOException ex) {
+            } catch ( IOException ex ) {
                 log.error( ex.getMessage() );
             }
         }
@@ -72,17 +72,14 @@ public class Gene2GoParser {
     public static void populateAnnotations( File file, Collection<Taxon> acceptableTaxons, GeneInfoService geneService, GOService goService ) throws ParseException {
         try {
             populateAnnotations( new GZIPInputStream( new FileInputStream( file ) ), acceptableTaxons, geneService, goService );
-        } catch (IOException e) {
+        } catch ( IOException e ) {
             throw new ParseException( e.getMessage(), 0 );
         }
     }
 
     private static void populateAnnotations( InputStream input, Collection<Taxon> acceptableTaxons, GeneInfoService geneService, GOService goService ) throws ParseException {
         Map<Integer, Taxon> fastMap = acceptableTaxons.stream().collect( Collectors.toMap( Taxon::getId, t -> t ) );
-        try {
-
-            BufferedReader br = new BufferedReader( new InputStreamReader( input ) );
-
+        try ( BufferedReader br = new BufferedReader( new InputStreamReader( input ) ) ) {
             String header = br.readLine();
 
             if ( header == null ) {
@@ -90,39 +87,32 @@ public class Gene2GoParser {
             }
 
             if ( !header.equalsIgnoreCase( EXPECTED_HEADER ) ) {
-                throw new ParseException( "Unexpected Header Line!", 0 );
+                throw new ParseException( MessageFormat.format( "Unexpected header line: {0}.", header ), 0 );
             }
 
-            br.lines().map( line -> line.split( "\t" ) ).filter( values -> fastMap.containsKey( Integer.valueOf( values[0] ) ) ).forEach( values -> {
+            br.lines()
+                    .map( line -> line.split( "\t" ) )
+                    .filter( values -> fastMap.containsKey( Integer.valueOf( values[0] ) ) )
+                    .forEach( values -> {
+                        GeneOntologyTerm term = goService.getTerm( values[2] );
 
-                GeneOntologyTerm term = goService.getTerm( values[2] );
+                        if ( term == null ) {
+                            log.warn( MessageFormat.format( "Problem finding data for term {0}.", values[2] ) );
+                            return;
+                        }
 
-                if ( term == null ) {
-                    log.warn( "Problem finding data for term (" + values[2] + ")" );
-                    return;
-                }
+                        GeneInfo gene = geneService.load( Integer.valueOf( values[1] ) );
 
-                GeneInfo gene = geneService.load( Integer.valueOf( values[1] ) );
+                        if ( gene == null ) {
+                            log.warn( MessageFormat.format( "Problem finding data for gene {0}.", values[1] ) );
+                            return;
+                        }
 
-                if ( gene == null ) {
-                    log.warn( "Problem finding data for gene (" + values[1] + ")" );
-                    return;
-                }
-
-                term.getDirectGenes().add( gene );
-                gene.getTerms().add( term );
-
-            } );
-        } catch (IOException e) {
+                        term.getDirectGenes().add( gene );
+                        gene.getTerms().add( term );
+                    } );
+        } catch ( IOException e ) {
             throw new ParseException( e.getMessage(), 0 );
-        } finally {
-            try {
-                if ( input != null ) {
-                    input.close();
-                }
-            } catch (IOException ex) {
-                log.error( ex.getMessage() );
-            }
         }
     }
 

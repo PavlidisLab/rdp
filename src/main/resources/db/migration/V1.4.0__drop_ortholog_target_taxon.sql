@@ -1,0 +1,1 @@
+alter table ortholog drop column target_taxon;

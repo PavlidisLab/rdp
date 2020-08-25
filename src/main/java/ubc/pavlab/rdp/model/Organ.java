@@ -1,21 +1,18 @@
 package ubc.pavlab.rdp.model;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.*;
 
 import javax.persistence.*;
 
-@Data
 @MappedSuperclass
-@EqualsAndHashCode(of = { "symbol", "taxon" })
+@Getter
+@Setter
+@EqualsAndHashCode(of = { "uberonId" })
+@ToString(of = { "uberonId" })
 public abstract class Organ {
 
-    @ManyToOne
-    @JoinColumn(name = "taxon_id")
-    private Taxon taxon;
-
-    @Column
-    private String symbol;
+    @Column(name = "uberon_id", length = 14)
+    private String uberonId;
 
     @Column
     private String name;

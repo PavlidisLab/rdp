@@ -1,5 +1,6 @@
 package ubc.pavlab.rdp.controllers;
 
+import lombok.SneakyThrows;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.Before;
@@ -12,6 +13,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -22,19 +24,17 @@ import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.Aspect;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.TierType;
-import ubc.pavlab.rdp.services.GOService;
-import ubc.pavlab.rdp.services.GeneInfoService;
-import ubc.pavlab.rdp.services.TaxonService;
-import ubc.pavlab.rdp.services.UserService;
+import ubc.pavlab.rdp.services.*;
 import ubc.pavlab.rdp.settings.SiteSettings;
-import ubc.pavlab.rdp.util.BaseTest;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static ubc.pavlab.rdp.util.TestUtils.*;
 
 /**
  * Created by mjacobson on 13/02/18.
@@ -42,7 +42,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @RunWith(SpringRunner.class)
 @WebMvcTest(UserController.class)
 @Import(WebSecurityConfig.class)
-public class UserControllerTest extends BaseTest {
+public class UserControllerTest {
 
     @Autowired
     private MockMvc mvc;
@@ -59,6 +59,12 @@ public class UserControllerTest extends BaseTest {
     @MockBean
     private GOService goService;
 
+    @MockBean
+    private PrivacyService privacyService;
+
+    @MockBean
+    private OrganInfoService organInfoService;
+
     //    WebSecurityConfig
     @MockBean
     private UserDetailsService userDetailsService;
@@ -66,6 +72,9 @@ public class UserControllerTest extends BaseTest {
     private BCryptPasswordEncoder bCryptPasswordEncoder;
     @MockBean
     private SiteSettings siteSettings;
+
+    @MockBean
+    private PermissionEvaluator permissionEvaluator;
 
     @Before
     public void setUp() {
@@ -191,7 +200,7 @@ public class UserControllerTest extends BaseTest {
         Taxon taxon = createTaxon( 1 );
         GeneOntologyTerm term = createTerm( toGOId( 1 ) );
         term.setName( "cave" );
-        UserTerm ut = UserTerm.createUserTerm( term, taxon, null );
+        UserTerm ut = UserTerm.createUserTerm( user, term, taxon, null );
         ut.getSizesByTaxon().put( taxon, 99L );
         user.getUserTerms().add( ut );
 
@@ -279,13 +288,13 @@ public class UserControllerTest extends BaseTest {
         GeneOntologyTerm term = createTerm( toGOId( 1 ) );
         term.setName( "term name1" );
         term.setAspect( Aspect.biological_process );
-        user.getUserTerms().add( UserTerm.createUserTerm( term, taxon, null ) );
+        user.getUserTerms().add( UserTerm.createUserTerm( user, term, taxon, null ) );
 
         Taxon taxon2 = createTaxon( 2 );
         GeneOntologyTerm term2 = createTerm( toGOId( 2 ) );
         term2.setName( "term name2" );
         term2.setAspect( Aspect.molecular_function );
-        user.getUserTerms().add( UserTerm.createUserTerm( term2, taxon2, null ) );
+        user.getUserTerms().add( UserTerm.createUserTerm( user, term2, taxon2, null ) );
 
         given( userService.findCurrentUser() ).willReturn( user );
 
@@ -329,12 +338,12 @@ public class UserControllerTest extends BaseTest {
         User user = createUser( 1 );
 
         Taxon taxon = createTaxon( 1 );
-        UserTerm t1 = UserTerm.createUserTerm( createTerm( toGOId( 1 ) ), taxon, null );
-        UserTerm t2 = UserTerm.createUserTerm( createTerm( toGOId( 2 ) ), taxon, null );
+        UserTerm t1 = UserTerm.createUserTerm( user, createTerm( toGOId( 1 ) ), taxon, null );
+        UserTerm t2 = UserTerm.createUserTerm( user, createTerm( toGOId( 2 ) ), taxon, null );
 
         Taxon taxon2 = createTaxon( 2 );
-        UserTerm t3 = UserTerm.createUserTerm( createTerm( toGOId( 3 ) ), taxon2, null );
-        UserTerm t4 = UserTerm.createUserTerm( createTerm( toGOId( 4 ) ), taxon2, null );
+        UserTerm t3 = UserTerm.createUserTerm( user, createTerm( toGOId( 3 ) ), taxon2, null );
+        UserTerm t4 = UserTerm.createUserTerm( user, createTerm( toGOId( 4 ) ), taxon2, null );
 
 
         given( userService.findCurrentUser() ).willReturn( user );
@@ -378,23 +387,29 @@ public class UserControllerTest extends BaseTest {
             throws Exception {
 
         User user = createUser( 1 );
-        user.getProfile().setDepartment( "Department" );
-        user.getProfile().setDescription( "Description" );
-        user.getProfile().setLastName( "LastName" );
-        user.getProfile().setName( "Name" );
-        user.getProfile().setOrganization( "Organization" );
-        user.getProfile().setPhone( "555-555-5555" );
-        user.getProfile().setWebsite( "http://test.com" );
-
-
         given( userService.findCurrentUser() ).willReturn( user );
-        String json = new JSONObject( user.getProfile() ).toString();
+
+        JSONObject updatedProfile = new JSONObject( user.getProfile() );
+        updatedProfile.put("department", "Department" );
+        updatedProfile.put("description", "Description" );
+        updatedProfile.put("lastName",  "LastName" );
+        updatedProfile.put("name", "Name" );
+        updatedProfile.put("organization", "Organization" );
+        updatedProfile.put("phone", "555-555-5555" );
+        updatedProfile.put("website", "http://test.com" );
+        updatedProfile.put("privacyLevel", PrivacyLevelType.PRIVATE.ordinal() );
+
+        JSONObject payload = new JSONObject();
+        payload.put("profile", updatedProfile);
 
         mvc.perform( post( "/user/profile" )
                 .contentType( MediaType.APPLICATION_JSON )
-                .content( json ) )
+                .content( payload.toString() ) )
                 .andExpect( status().isOk() );
 
+        assertThat( user.getProfile().getDepartment() ).isEqualTo( "Department");
+        assertThat( user.getProfile().getDescription() ).isEqualTo( "Description");
+        assertThat( user.getProfile().getPrivacyLevel() ).isEqualTo( PrivacyLevelType.PRIVATE );
     }
 
     @Test
@@ -405,15 +420,82 @@ public class UserControllerTest extends BaseTest {
         User user = createUser( 1 );
         user.getProfile().setWebsite( "malformed url" );
 
-
         given( userService.findCurrentUser() ).willReturn( user );
-        String json = new JSONObject( user.getProfile() ).toString();
+        JSONObject profileJson = new JSONObject( user.getProfile() );
+        JSONObject payload = new JSONObject();
+        payload.put("profile", profileJson);
 
         mvc.perform( post( "/user/profile" )
                 .contentType( MediaType.APPLICATION_JSON )
-                .content( json ) )
+                .content( payload.toString() ) )
                 .andExpect( status().isBadRequest() );
 
+    }
+
+    @Test
+    @WithMockUser
+    public void givenLoggedIn_whenSaveProfileWithNewPrivacyLevel_thenReturn200()
+            throws Exception {
+
+        User user = createUser( 1 );
+
+        given( userService.findCurrentUser() ).willReturn( user );
+        assertThat( user.getProfile().getPrivacyLevel() ).isEqualTo( PrivacyLevelType.PUBLIC );
+
+        JSONObject profileJson = new JSONObject( user.getProfile() );
+        // FIXME: use jackson serializer to perform enum conversion from model
+        profileJson.put("privacyLevel",  PrivacyLevelType.SHARED.ordinal());
+
+        JSONObject payload = new JSONObject();
+        payload.put("profile", profileJson);
+
+        mvc.perform( post( "/user/profile" )
+                .contentType( MediaType.APPLICATION_JSON )
+                .content( payload.toString() ) )
+                .andExpect( status().isOk() );
+
+        assertThat( user.getProfile().getPrivacyLevel() ).isEqualTo( PrivacyLevelType.SHARED );
+    }
+
+    @Test
+    @WithMockUser
+    @SneakyThrows
+    public void givenLoggedIn_whenSaveProfileWithUberonOrganIds_thenReturnSuccess() {
+        User user = createUser( 1 );
+        Organ organ = createOrgan( "UBERON", "Appendage", null );
+
+        given( userService.findCurrentUser() ).willReturn( user );
+        given( organInfoService.findByUberonIdIn( Mockito.anyCollection() ) ).willReturn( Sets.newSet( organ ) );
+
+        assertThat( user.getProfile().getPrivacyLevel() ).isEqualTo( PrivacyLevelType.PUBLIC );
+
+        JSONObject profileJson = new JSONObject( user.getProfile() );
+        // FIXME
+        profileJson.put( "privacyLevel", user.getProfile().getPrivacyLevel().ordinal() );
+        profileJson.put( "uberonOrganIds", new JSONArray( new String[]{ organ.getUberonId() } ) );
+
+        JSONObject payload = new JSONObject();
+        payload.put("profile", profileJson);
+
+        mvc.perform( post( "/user/profile" )
+                .contentType( MediaType.APPLICATION_JSON )
+                .content( payload.toString() ) )
+                .andExpect( status().isOk() );
+
+        assertThat( user.getUserOrgans() )
+                .containsKey( organ.getUberonId() )
+                .containsValue( createUserOrgan( user, organ ) );
+
+        given( organInfoService.findByUberonIdIn( Mockito.anyCollection() ) ).willReturn( Sets.newSet() );
+
+        // clear any existing values
+        payload.put( "uberonOrganIds", new JSONArray() );
+        mvc.perform( post( "/user/profile" )
+                .contentType( MediaType.APPLICATION_JSON )
+                .content( payload.toString() ) )
+                .andExpect( status().isOk() );
+
+        assertThat( user.getUserOrgans() ).isEmpty();
     }
 
     @Test
@@ -438,7 +520,7 @@ public class UserControllerTest extends BaseTest {
         Taxon taxon = createTaxon( 1 );
 
         Mockito.when( userService.convertTerms( Mockito.any(), Mockito.eq( taxon ), Mockito.any( GeneOntologyTerm.class ) ) )
-                .then( i -> UserTerm.createUserTerm( i.getArgumentAt( 2, GeneOntologyTerm.class ), taxon, null ) );
+                .then( i -> UserTerm.createUserTerm( user, i.getArgumentAt( 2, GeneOntologyTerm.class ), taxon, null ) );
         Mockito.when( goService.getTerm( Mockito.any() ) )
                 .then( i -> createTerm( i.getArgumentAt( 0, String.class ) ) );
 

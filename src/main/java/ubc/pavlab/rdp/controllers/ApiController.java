@@ -7,7 +7,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import ubc.pavlab.rdp.exception.TierException;
 import ubc.pavlab.rdp.model.*;
@@ -22,23 +21,19 @@ import java.util.stream.Collectors;
 
 /**
  * This class provides API access for remote applications
- *
+ * <p>
  * It's worth mentioning that the '/api' endpoint is delegated to springdoc OpenAPI JSON generator and welcome the
  * client with a specification of the endpoints of this API.
  */
-@Controller
+
+@RestController
 @CommonsLog
 public class ApiController {
 
     private static final String API_VERSION = "1.0.0"; //TODO update every time there is any change in how the API works.
-    private static final String MISCONF_REMOTE_ADMIN = "The remote admin account is misconfigured! Remote searches won't be able to authenticate even with valid security tokens!";
-    private static final ResponseEntity<String> TIER3_RESPONSE = new ResponseEntity<>(
-            "Tier3 genes not published to partner registires.", null, HttpStatus.NOT_FOUND );
-    private static final ResponseEntity<String> GENE_NULL_RESPONSE = new ResponseEntity<>( "Unknown gene.", null,
-            HttpStatus.NOT_FOUND );
-    private static final ResponseEntity<String> ORTHOLOG_NULL_RESPONSE = new ResponseEntity<>(
-            "Could not find any orthologs with given parameters.", null, HttpStatus.NOT_FOUND );
 
+    @Autowired
+    MessageSource messageSource;
     @Autowired
     private UserService userService;
     @Autowired
@@ -48,20 +43,22 @@ public class ApiController {
     @Autowired
     TierService tierService;
     @Autowired
+    private UserOrganService userOrganService;
+    @Autowired
+    UserGeneService userGeneService;
+    @Autowired
+    OrganInfoService organInfoService;
+    @Autowired
     private ApplicationSettings applicationSettings;
     @Autowired
     private SiteSettings siteSettings;
-
-    @Autowired
-    MessageSource messageSource;
 
     /**
      * Fallback for unmapped sub-paths.
      *
      * @return 404.
      */
-    @RequestMapping(value = "/api/*", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON)
-    @ResponseBody
+    @GetMapping(value = "/api/*", produces = MediaType.APPLICATION_JSON)
     public Object searchApiInfo() {
         return ResponseEntity.notFound().build();
     }
@@ -71,8 +68,7 @@ public class ApiController {
      *
      * @return 404.
      */
-    @RequestMapping(value = "/api/users/search", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON)
-    @ResponseBody
+    @GetMapping(value = "/api/users/search", produces = MediaType.APPLICATION_JSON)
     public Object searchUsers() {
         return ResponseEntity.notFound().build();
     }
@@ -83,29 +79,28 @@ public class ApiController {
      * @return 404.
      */
     @RequestMapping(value = "/api/genes/search", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON)
-    @ResponseBody
     public Object searchGenes() {
         return ResponseEntity.notFound().build();
     }
 
-    @RequestMapping(value = "/api/users/search", method = RequestMethod.GET, params = {
-            "nameLike" }, produces = MediaType.APPLICATION_JSON)
-    @ResponseBody
-    public Object searchUsersByName( @RequestParam String nameLike, @RequestParam Boolean prefix,
-            @RequestParam(name = "auth", required = false) String auth, Locale locale ) {
+    @GetMapping(value = "/api/users/search", params = { "nameLike" }, produces = MediaType.APPLICATION_JSON)
+    public Object searchUsersByName( @RequestParam String nameLike,
+                                     @RequestParam Boolean prefix,
+                                     @RequestParam(required = false) Set<String> organUberonIds,
+                                     @RequestParam(required = false) String auth,
+                                     Locale locale ) {
         if ( !applicationSettings.getIsearch().isEnabled() ) {
             return ResponseEntity.notFound().build();
         }
         checkAuth( auth );
-        return initUsers( prefix ? userService.findByStartsName( nameLike ) : userService.findByLikeName( nameLike ),
-                locale);
+        return initUsers( prefix ? userService.findByStartsName( nameLike ) : userService.findByLikeName( nameLike ), locale );
     }
 
-    @RequestMapping(value = "/api/users/search", method = RequestMethod.GET, params = {
-            "descriptionLike" }, produces = MediaType.APPLICATION_JSON)
-    @ResponseBody
+    @GetMapping(value = "/api/users/search", params = { "descriptionLike" }, produces = MediaType.APPLICATION_JSON)
     public Object searchUsersByDescription( @RequestParam String descriptionLike,
-            @RequestParam(name = "auth", required = false) String auth, Locale locale ) {
+                                            @RequestParam(required = false) String auth,
+                                            @RequestParam(required = false) Set<String> organUberonIds,
+                                            Locale locale ) {
         if ( !applicationSettings.getIsearch().isEnabled() ) {
             return ResponseEntity.notFound().build();
         }
@@ -113,11 +108,17 @@ public class ApiController {
         return initUsers( userService.findByDescription( descriptionLike ), locale );
     }
 
-    @RequestMapping(value = "/api/genes/search", method = RequestMethod.GET, params = { "symbol", "taxonId", "tiers" }, produces = MediaType.APPLICATION_JSON)
-    @ResponseBody
-    public Object searchUsersByGeneSymbol( @RequestParam String symbol, @RequestParam Integer taxonId,
-            @RequestParam Set<TierType> tiers, @RequestParam(name = "auth", required = false) String auth,
-            @RequestParam(name = "orthologTaxonId", required = false) Integer orthologTaxonId, Locale locale ) {
+    /**
+     * Search for genes by symbol, taxon, tier, orthologs and organ systems.
+     */
+    @GetMapping(value = "/api/genes/search", params = { "symbol", "taxonId", "tiers" }, produces = MediaType.APPLICATION_JSON)
+    public Object searchUsersByGeneSymbol( @RequestParam String symbol,
+                                           @RequestParam Integer taxonId,
+                                           @RequestParam Set<TierType> tiers,
+                                           @RequestParam(required = false) String auth,
+                                           @RequestParam(required = false) Integer orthologTaxonId,
+                                           @RequestParam(required = false) Set<String> organUberonIds,
+                                           Locale locale ) {
         if ( !applicationSettings.getIsearch().isEnabled() ) {
             return ResponseEntity.notFound().build();
         }
@@ -125,8 +126,14 @@ public class ApiController {
         Taxon taxon = taxonService.findById( taxonId );
         Gene gene = geneService.findBySymbolAndTaxon( symbol, taxon );
 
-        if (gene == null)
-            return GENE_NULL_RESPONSE;
+        Optional<Collection<UserOrgan>> organs = Optional.empty();
+        if ( organUberonIds != null ) {
+            organs = Optional.of( userOrganService.findByUberonIdIn( organUberonIds ) );
+        }
+
+        if ( gene == null )
+            return new ResponseEntity<>( "Unknown gene.", null,
+                    HttpStatus.NOT_FOUND );
 
         Collection<UserGene> orthologs = orthologTaxonId == null ? userGeneService.findOrthologs( gene, tiers ) :
                 userGeneService.findOrthologsWithTaxon( gene, tiers, taxonService.findById( orthologTaxonId ) );
@@ -136,52 +143,49 @@ public class ApiController {
                 ( orthologTaxonId != null && !orthologTaxonId.equals( gene.getTaxon().getId() ) )
                         // Check if we got some ortholog results
                         && ( orthologs == null || orthologs.isEmpty() ) ) {
-            return ORTHOLOG_NULL_RESPONSE;
+            return new ResponseEntity<>( messageSource.getMessage( "ApiController.noOrthologsWithGivenParameters", null, locale ), null, HttpStatus.NOT_FOUND );
         }
 
         try {
-            return initGeneUsers( userGeneService.handleGeneSearch( gene, restrictTiers( tiers ), orthologs ), locale );
+            return initGeneUsers( userGeneService.handleGeneSearch( gene, restrictTiers( tiers ), orthologs, organs ), locale );
         } catch ( TierException e ) {
-            return TIER3_RESPONSE;
+            return new ResponseEntity<>( messageSource.getMessage( "ApiController.tier3GenesNotPublishable", null, locale ), null, HttpStatus.NOT_FOUND );
         }
     }
 
     /**
-     * @deprecated
-     * This endpoint is maintained for backward-compatibility. New usages should provide a full set of tiers they expect
-     * the search to be realized on.
+     * Search for genes by symbol, taxon identifier, tier, orthologs and organ systems.
+     *
+     * @deprecated This endpoint is maintained for backward-compatibility. New usages should provide a full set of tiers
+     * they expect the search to be realized on.
      */
     @Deprecated
-    @RequestMapping(value = "/api/genes/search", method = RequestMethod.GET, params = { "symbol", "taxonId", "tier" }, produces = MediaType.APPLICATION_JSON)
-    @ResponseBody
-    public Object searchUsersByGeneSymbol( @RequestParam String symbol, @RequestParam Integer taxonId,
-                                           @RequestParam String tier, @RequestParam(name = "auth", required = false) String auth,
-                                           @RequestParam(name = "orthologTaxonId", required = false) Integer orthologTaxonId, Locale locale ) {
+    @GetMapping(value = "/api/genes/search", params = { "symbol", "taxonId", "tier" }, produces = MediaType.APPLICATION_JSON)
+    public Object searchUsersByGeneSymbol( @RequestParam String symbol,
+                                           @RequestParam Integer taxonId,
+                                           @RequestParam String tier,
+                                           @RequestParam(name = "auth", required = false) String auth,
+                                           @RequestParam(name = "orthologTaxonId", required = false) Integer orthologTaxonId,
+                                           @RequestParam(required = false) Set<String> organUberonIds,
+                                           Locale locale ) {
         Set<TierType> tiers;
-        if (tier.equals ("TIER_ANY")) {
+        if ( tier.equals( "TIER_ANY" ) ) {
             tiers = tierService.getEnabledTiers();
-        } else if (tier.equals ("TIER1_2") || tier.equals ("TIER_MANUAL")) {
+        } else if ( tier.equals( "TIER1_2" ) || tier.equals( "TIER_MANUAL" ) ) {
             tiers = TierType.MANUAL;
-        } else if (TierType.valueOf( tier ) != null) {
-            tiers = EnumSet.of (TierType.valueOf( tier ));
+        } else if ( TierType.valueOf( tier ) != null ) {
+            tiers = EnumSet.of( TierType.valueOf( tier ) );
         } else {
             // FIXME: handle this error properly
-            throw new RuntimeException ("Unknown tier " + tier + ".");
+            throw new RuntimeException( "Unknown tier " + tier + "." );
         }
-        return searchUsersByGeneSymbol( symbol, taxonId, tiers, auth, orthologTaxonId, locale );
+        return searchUsersByGeneSymbol( symbol, taxonId, tiers, auth, orthologTaxonId, organUberonIds, locale );
     }
 
-    @Autowired
-    private UserOrganService userOrganService;
-
-    @RequestMapping(value = "/api/organs/search", method = RequestMethod.GET, params = { "description", "taxonId" }, produces = MediaType.APPLICATION_JSON)
-    public Object searchOrgansByDescription( String description, Integer taxonId ) {
-        Taxon taxon = taxonService.findById( taxonId );
-        return userOrganService.findByDescriptionAndTaxon( description, taxon );
+    @GetMapping(value = "/api/organs/search", params = { "description" }, produces = MediaType.APPLICATION_JSON)
+    public Object searchOrgansByDescription( String description ) {
+        return userOrganService.findByDescription( description );
     }
-
-    @Autowired
-    UserGeneService userGeneService;
 
     private Collection<UserGene> handleGeneSearch( Gene gene, Set<TierType> tiers, Collection<? extends Gene> orthologs ) {
         Collection<UserGene> uGenes = new LinkedList<>();
@@ -191,20 +195,19 @@ public class ApiController {
             }
             return uGenes;
         } else {
-            return userGeneService.findByGene( gene.getGeneId(), tiers );
+            return userGeneService.findByGeneIdAndTierIn( gene.getGeneId(), tiers );
         }
     }
 
-    @RequestMapping(value = "/api/users/{userId}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON)
-    @ResponseBody
+    @GetMapping(value = "/api/users/{userId}", produces = MediaType.APPLICATION_JSON)
     public Object getUserById( @PathVariable Integer userId,
-            @RequestParam(name = "auth", required = false) String auth, Locale locale ) {
+                               @RequestParam(name = "auth", required = false) String auth, Locale locale ) {
         if ( !applicationSettings.getIsearch().isEnabled() ) {
             return ResponseEntity.notFound().build();
         }
         checkAuth( auth );
         User user = userService.findUserById( userId );
-        if(user == null){
+        if ( user == null ) {
             return ResponseEntity.notFound().build();
         }
         return initUser( user, locale );
@@ -217,7 +220,7 @@ public class ApiController {
         } else if ( applicationSettings.getIsearch().getAuthTokens().contains( auth ) ) {
             User u = userService.getRemoteAdmin();
             if ( u == null ) {
-                log.error( MISCONF_REMOTE_ADMIN );
+                log.error( messageSource.getMessage( "ApiController.misconfiguredRemoteAdmin", null, Locale.getDefault() ) );
                 return;
             }
             UserPrinciple principle = new UserPrinciple( u );
@@ -243,7 +246,7 @@ public class ApiController {
         return users;
     }
 
-    private User initUser(User user, Locale locale){
+    private User initUser( User user, Locale locale ) {
         user.setOrigin( messageSource.getMessage( "rdp.site.shortname", null, locale ) );
         user.setOriginUrl( siteSettings.getFullUrl() );
         return user;

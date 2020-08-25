@@ -1,48 +1,20 @@
 <!DOCTYPE html>
 <!--suppress HtmlUnknownTarget css and js folders not recognised after build-->
 <html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:th="http://www.thymeleaf.org">
-
-<head>
-    <title th:text="#{rdp.site.fullname}"></title>
-    <link rel="icon" type="image/png" sizes="16x16" th:href="@{/images/favicon-16x16.png}"/>
-    <link rel="icon" type="image/png" sizes="32x32" th:href="@{/images/favicon-32x32.png}"/>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
-          integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous"/>
-    <link rel="stylesheet"
-          href="https://cdnjs.cloudflare.com/ajax/libs/open-iconic/1.1.1/font/css/open-iconic-bootstrap.min.css"/>
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.16/css/dataTables.bootstrap4.min.css"/>
-
-
-    <link rel="stylesheet" type="text/css" th:href="@{/css/common.css}"/>
-    <link rel="stylesheet" type="text/css" th:href="@{/css/profile.css}"/>
-
-    <script src="https://code.jquery.com/jquery-3.3.1.min.js"
-            integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
-            crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
-            integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
-            crossorigin="anonymous"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
-            integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
-            crossorigin="anonymous"></script>
-    <script src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.10.16/js/dataTables.bootstrap4.min.js"></script>
-    <script src="/js/opentip-jquery.min.js"></script>
-    <link href="/css/opentip.css" rel="stylesheet" type="text/css"/>
-
-    <script th:src="@{/js/common.js}"></script>
-    <script th:src="@{/js/profile.js}"></script>
-    <script th:if="${user != null}" th:src="@{/js/activity-monitor.js}"></script>
+      xmlns:th="http://www.thymeleaf.org"
+      lang="en">
+<head th:replace="layouts/common::head(title='Profile')">
+    <meta charset="UTF-8"/>
+    <title>...</title>
 </head>
 
 <body>
-<div th:replace="fragments/header">...</div>
+<div th:replace="layouts/common::header">...</div>
 <div class="container py-4">
 
     <div class="row">
         <div class="col">
-            <div th:replace="fragments/title :: title(title='My Account', subtitle='User Profile')" th:remove="tag">...</div>
+            <div th:replace="layouts/common::title(title='My Account', subtitle='User Profile')">...</div>
         </div>
         <div class="d-flex align-items-center justify-content-center" th:if="${viewOnly != null}">
             <h3 class="d-inline-block pr-3 mr-3 mb-0" th:text="${user.email}"></h3>
@@ -150,6 +122,23 @@
             </div>
         </div>
 
+        <div class="row my-3"
+             th:if="${@applicationSettings.organs.enabled}">
+            <div class="col">
+                <div class="card organs">
+                    <div class="card-header d-flex align-items-center">
+                        <h3 class="mb-0 d-inline-block">Organ Systems</h3>
+                    </div>
+                    <div class="card-body">
+                        <p>These settings let other users know which organs your researched is focused on.</p>
+                        <div th:replace="fragments/organ::organs-selection(checkedOrgans = ${user.userOrgans.values()})">
+                            ...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="row my-3">
             <div class="w-100"
                  th:if="${@applicationSettings.getPrivacy().isCustomizableLevel()} or ${@applicationSettings.getPrivacy().isCustomizableSharing()} or ${@applicationSettings.getPrivacy().isAllowHideGenelist()}"></div>
@@ -168,47 +157,29 @@
                             <p>These settings determine how other users in the system can see your data.</p>
 
                             <h5>User Profile Privacy Level</h5>
-
-                            <div class="alert alert-warning" role="alert">
-                                <div class="form-group">
-                                    <div class="form-check-inline"
-                                         th:each="privacyLevel : ${T(ubc.pavlab.rdp.model.enums.PrivacyLevelType).values()}"
-                                         th:if="${@privacyService.isPrivacyLevelEnabled(privacyLevel)}">
-                                        <input class="form-check-input" type="radio" name="privacy"
-                                               th:id="${'privacy-level-' + privacyLevel.label}"
-                                               th:checked="${user.profile.privacyLevel == privacyLevel}"
-                                               th:value="${privacyLevel.ordinal()}"/>
-                                        <label class="form-check-label" th:for="${'privacy-level-' + privacyLevel.label}">
-                                            <span th:text="${privacyLevel.label}"></span>
-                                            <i class="tip oi oi-question-mark"
-                                               data-ot-background="cornflowerblue"
-                                               data-ot-border-color="white"
-                                               data-ot-shadow-color="lightgray"
-                                               th:attr="data-ot=${privacyLevel.description}"/>
-                                        </label>
-                                    </div>
-                                </div>
-                                <div th:if="${@applicationSettings.getPrivacy().isCustomizableGeneLevel()}">
-                                    If you lower your privacy level, all the genes privacy levels you have set will be
-                                    capped by this value.
+                            <div class="form-group">
+                                <div class="form-check-inline"
+                                     th:each="privacyLevel : ${T(ubc.pavlab.rdp.model.enums.PrivacyLevelType).values()}"
+                                     th:if="${@privacyService.isPrivacyLevelEnabled(privacyLevel)}">
+                                    <input class="form-check-input" type="radio" name="privacyLevel"
+                                           th:id="${'privacy-level-' + privacyLevel.label}"
+                                           th:checked="${user.profile.privacyLevel == privacyLevel}"
+                                           th:value="${privacyLevel.ordinal()}"/>
+                                    <label class="form-check-label" th:for="${'privacy-level-' + privacyLevel.label}">
+                                        <span th:text="${privacyLevel.label}"></span>
+                                        <i class="tip oi oi-question-mark"
+                                           data-ot-background="cornflowerblue"
+                                           data-ot-border-color="white"
+                                           data-ot-shadow-color="lightgray"
+                                           th:attr="data-ot=${privacyLevel.description}"/>
+                                    </label>
                                 </div>
                             </div>
 
-                            <div class="alert alert-danger" th:if="${@applicationSettings.getPrivacy().isCustomizableGeneLevel()}">
-                                <div class="form-group">
-                                    <div class="form-check">
-                                        <input id="updateAllGenePrivacyLevels"
-                                               class="form-check-input"
-                                               name="updateAllGenePrivacyLevels"
-                                               type="checkbox"/>
-                                        <label for="updateAllGenePrivacyLevels" class="form-check-label">
-                                            I want all my gene to be set to <b th:text="${user.effectivePrivacyLevel.label}"></b> as well.
-                                        </label>
-                                    </div>
-                                </div>
-                                This option apply regardless of the current privacy level of your genes, so you should
-                                revise your genes to make sure no unintended leakage occurs.
-                            </div>
+                            <p th:if="${@applicationSettings.getPrivacy().isCustomizableGeneLevel()}">
+                                Your genes privacy levels are always capped by your profile privacy level.
+                            </p>
+
                             Read more about these settings in the <a th:href="@{/user/faq#privacy-settings}" target="_blank">FAQ</a>.
                         </div>
 
@@ -231,9 +202,7 @@
                                     </label>
                                 </div>
                             </div>
-                            <div>
-                                Read more about these settings in the <a th:href="@{/user/faq#isearch}" target="_blank">FAQ</a>.
-                            </div>
+                            Read more about these settings in the <a th:href="@{/user/faq#isearch}" target="_blank">FAQ</a>.
                         </div>
                         <div id="privacy-genelist" class="list-group-item"
                              th:if="${@applicationSettings.getPrivacy().isAllowHideGenelist()}">
@@ -301,6 +270,8 @@
         </div>
     </div>
 </div>
-<div th:replace="fragments/footer" th:remove="tag">...</div>
+<div th:replace="layouts/common::footer">...</div>
+<div th:replace="layouts/common::scripts"></div>
+<script th:src="@{/js/profile.js}" defer="defer"></script>
 </body>
 </html>

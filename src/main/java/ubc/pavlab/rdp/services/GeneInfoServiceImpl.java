@@ -52,12 +52,12 @@ public class GeneInfoServiceImpl implements GeneInfoService {
 
     @Override
     public GeneInfo load( Integer id ) {
-        return geneInfoRepository.findOne(id);
+        return geneInfoRepository.findByGeneId(id);
     }
 
     @Override
     public Collection<GeneInfo> load( Collection<Integer> ids ) {
-        return geneInfoRepository.findAllByIdIn (ids);
+        return geneInfoRepository.findAllByGeneIdIn (ids);
     }
 
     @Override
@@ -111,7 +111,6 @@ public class GeneInfoServiceImpl implements GeneInfoService {
     }
 
     @Override
-    @Scheduled(fixedRate = 2592000000L)
     public void updateGenes() {
         ApplicationSettings.CacheSettings cacheSettings = applicationSettings.getCache();
 
@@ -126,8 +125,8 @@ public class GeneInfoServiceImpl implements GeneInfoService {
                         log.info( "Loading genes for " + taxon.toString() + " from disk: " + path.toAbsolutePath() );
                         data = geneInfoParser.parse( taxon, path.toFile() );
                     } else {
-                        log.info( MessageFormat.format("Loading genes for {0} from URL {1}.",
-                                taxon, taxon.getGeneUrl().getPath() ));
+                        log.info( MessageFormat.format("Loading genes for {0} from {1}.",
+                                taxon, taxon.getGeneUrl() ));
                         data = geneInfoParser.parse( taxon, taxon.getGeneUrl() );
                     }
                     log.info( MessageFormat.format("Done parsing genes for {0}.", taxon ));
@@ -154,7 +153,6 @@ public class GeneInfoServiceImpl implements GeneInfoService {
     }
 
     @Override
-    @Scheduled(fixedRate = 2592000000L)
     public void updateGeneOrthologs() {
         if (applicationSettings.getCache().isEnabled()) {
             InputStream is;
@@ -165,6 +163,7 @@ public class GeneInfoServiceImpl implements GeneInfoService {
                     log.error(e);
                     return;
                 }
+
                 log.info(MessageFormat.format("Updating gene orthologs from {0}...",
                         applicationSettings.getCache().getOrthologFile()));
             } else {
@@ -224,6 +223,12 @@ public class GeneInfoServiceImpl implements GeneInfoService {
                     });
             log.info( "Done updating gene orthologs. Next update is scheduled in 30 days from now." );
         }
+    }
+
+    @Scheduled(fixedRate = 2592000000L)
+    public void updateGenesAndOrthologs() {
+        updateGenes();
+        updateGeneOrthologs();
     }
 
     private <T> boolean addAll( Collection<SearchResult<T>> container, Collection<T> newValues, GeneMatchType match,

@@ -38,5 +38,6 @@ public class Taxon implements Serializable {
     @JsonIgnore
     private boolean active;
 
+    @JsonIgnore
     private Integer ordering;
 }

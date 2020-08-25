@@ -1,4 +1,4 @@
-package ubc.pavlab.rdp.security;
+package ubc.pavlab.rdp.model;
 
 import lombok.NonNull;
 import ubc.pavlab.rdp.model.User;
@@ -7,14 +7,14 @@ import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import java.util.Optional;
 
 /**
- * Indicate that the content is privacy sensitive.
+ * Indicate content that belongs to a user.
  */
-public interface PrivacySensitive {
+public interface UserContent {
 
     /**
      * Obtain the owner of the content if applicable.
      */
-    public Optional<User> getOwner();
+    Optional<User> getOwner();
 
     /**
      * Obtain the effective privacy level of the content.
@@ -23,5 +23,5 @@ public interface PrivacySensitive {
      * cascading generally by using the owner privacy level.
      */
     @NonNull
-    public PrivacyLevelType getEffectivePrivacyLevel();
+    PrivacyLevelType getEffectivePrivacyLevel();
 }

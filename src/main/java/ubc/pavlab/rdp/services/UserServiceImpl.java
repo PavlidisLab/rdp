@@ -3,8 +3,10 @@ package ubc.pavlab.rdp.services;
 import lombok.NonNull;
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PostFilter;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -48,8 +50,6 @@ public class UserServiceImpl implements UserService {
     private BCryptPasswordEncoder bCryptPasswordEncoder;
     @Autowired
     private GOService goService;
-    @Autowired
-    private PrivacyService privacyService;
 
     @SuppressWarnings("unused") // Keeping for future use
     private static <T> Collector<T, ?, List<T>> maxList( Comparator<? super T> comp ) {
@@ -113,21 +113,21 @@ public class UserServiceImpl implements UserService {
     public User create( User user ) {
         user.setPassword( bCryptPasswordEncoder.encode( user.getPassword() ) );
         Role userRole = roleRepository.findByRole( "ROLE_USER" );
-
         user.setRoles( Collections.singleton( userRole ) );
         return userRepository.save( user );
     }
 
+    @Secured("ROLE_ADMIN")
     @Transactional
     @Override
-    public void createAdmin( User admin ) {
+    public User createAdmin( User admin ) {
         admin.setPassword( bCryptPasswordEncoder.encode( admin.getPassword() ) );
         Role adminRole = roleRepository.findByRole( "ROLE_ADMIN" );
-
         admin.setRoles( Collections.singleton( adminRole ) );
-        userRepository.save( admin );
+        return userRepository.save( admin );
     }
 
+    @PreAuthorize("hasPermission(#user, 'update')")
     @Transactional
     @Override
     public User update( User user ) {
@@ -181,6 +181,7 @@ public class UserServiceImpl implements UserService {
 
     }
 
+    @Secured("ROLE_ADMIN")
     @Transactional
     @Override
     public void delete( User user ) {
@@ -200,6 +201,7 @@ public class UserServiceImpl implements UserService {
         userRepository.delete( user );
     }
 
+    @Transactional
     @Override
     public User changePassword( String oldPassword, String newPassword )
             throws BadCredentialsException, ValidationException {
@@ -251,7 +253,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User findUserByEmail( String email ) {
+    public User findUserByEmailNoAuth( String email ) {
         return userRepository.findByEmailIgnoreCase( email );
     }
 
@@ -261,24 +263,25 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<User> findAll() {
+    @PostFilter("hasPermission(filterObject, 'read')")
+    public Collection<User> findAll() {
         return userRepository.findAll();
     }
 
     @Override
-    @PostFilter("hasPermission(filteredObject, 'read')")
+    @PostFilter("hasPermission(filterObject, 'read')")
     public Collection<User> findByLikeName( String nameLike ) {
         return userRepository.findByProfileNameContainingIgnoreCaseOrProfileLastNameContainingIgnoreCase( nameLike, nameLike );
     }
 
     @Override
-    @PostFilter("hasPermission(filteredObject, 'read')")
+    @PostFilter("hasPermission(filterObject, 'read')")
     public Collection<User> findByStartsName( String startsName ) {
         return userRepository.findByProfileLastNameStartsWithIgnoreCase( startsName );
     }
 
     @Override
-    @PostFilter("hasPermission(filteredObject, 'read')")
+    @PostFilter("hasPermission(filterObject, 'read')")
     public Collection<User> findByDescription( String descriptionLike ) {
         return userRepository.findByProfileDescriptionContainingIgnoreCaseOrTaxonDescriptionsContainingIgnoreCase( descriptionLike, descriptionLike );
     }
@@ -335,7 +338,7 @@ public class UserServiceImpl implements UserService {
 
         // Then keep only those terms not already added and with the highest frequency
         Set<UserTerm> topResults = resultStream.map( e -> {
-            UserTerm ut = UserTerm.createUserTerm( e.getKey(), taxon, null );
+            UserTerm ut = UserTerm.createUserTerm( user, e.getKey(), taxon, null );
             ut.setFrequency( e.getValue().intValue() );
             return ut;
         } ).filter( ut -> !userTerms.contains( ut ) ).collect( maxSet( comparing( UserTerm::getFrequency ) ) );
@@ -359,6 +362,7 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     @Override
+    @PreAuthorize("hasPermission(#user, 'update')")
     public void updateTermsAndGenesInTaxon( User user,
                                             Taxon taxon,
                                             Map<? extends Gene, TierType> genesToTierMap,
@@ -387,7 +391,8 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     @Override
-    public User updatePublications( User user, Set<Publication> publications ) {
+    @PreAuthorize("hasPermission(#user, 'update')")
+    public User updateUserProfileAndPublications( User user, Set<Publication> publications ) {
         user.getProfile().getPublications().retainAll( publications );
         user.getProfile().getPublications().addAll( publications );
         return update( user );
@@ -462,7 +467,7 @@ public class UserServiceImpl implements UserService {
         return user;
     }
 
-    @PostFilter("hasPermission(filteredObject, 'read')")
+    @PostFilter("hasPermission(filterObject, 'read')")
     private Collection<User>findAllWithNonEmptyProfileLastName() {
         return userRepository.findAllWithNonEmptyProfileLastName();
     }
@@ -490,7 +495,7 @@ public class UserServiceImpl implements UserService {
 
     private UserTerm convertTermTypes( User user, GeneOntologyTerm goTerm, Taxon taxon, Set<? extends Gene> genes ) {
         if ( goTerm != null ) {
-            UserTerm term = UserTerm.createUserTerm( goTerm, taxon, genes );
+            UserTerm term = UserTerm.createUserTerm( user, goTerm, taxon, genes );
             if ( term.getSize() <= applicationSettings.getGoTermSizeLimit() ) {
                 return term;
             }
@@ -515,7 +520,7 @@ public class UserServiceImpl implements UserService {
         return updated;
     }
 
-    private Collection<Gene> calculatedGenesInTaxon( User user, Taxon taxon ) {
+    private Collection<GeneInfo> calculatedGenesInTaxon( User user, Taxon taxon ) {
         return goService.getGenes( user.getTermsByTaxon( taxon ), taxon );
     }
 
@@ -544,5 +549,10 @@ public class UserServiceImpl implements UserService {
     @Override
     public User findUserByHiddenId( UUID hiddenId ) {
         return findUserById( userHiddenIds.get( hiddenId ) );
+    }
+
+    @Override
+    public boolean hasRole( User user, String role ) {
+        return user.getRoles().contains(roleRepository.findByRole( role ));
     }
 }

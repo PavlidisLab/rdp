@@ -1,8 +1,6 @@
 package ubc.pavlab.rdp.util;
 
 import lombok.extern.apachecommons.CommonsLog;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPHTTPClient;
@@ -14,7 +12,6 @@ import ubc.pavlab.rdp.repositories.GeneInfoRepository;
 
 import java.io.*;
 import java.net.URL;
-import java.sql.Date;
 import java.text.MessageFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -45,7 +42,7 @@ public class GeneInfoParser {
 
         if ( proxyHost != null ) {
             Integer proxyPort = Integer.parseInt( System.getProperty( "ftp.proxyPort" ) );
-            log.info( "Using HTTP proxy server: " + proxyHost + ":" + proxyPort.toString() );
+            log.info( MessageFormat.format( "Using HTTP proxy server: {0}:{1}", proxyHost, proxyPort.toString() ) );
             ftp = new FTPHTTPClient( proxyHost, proxyPort );
         } else {
             ftp = new FTPClient();
@@ -61,14 +58,14 @@ public class GeneInfoParser {
 
             return parse( taxon, new GZIPInputStream( ftp.retrieveFileStream( url.getPath() ) ) );
 
-        } catch (IOException e) {
+        } catch ( IOException e ) {
             throw new ParseException( e.getMessage(), 0 );
         } finally {
             try {
                 if ( ftp.isConnected() ) {
                     ftp.disconnect();
                 }
-            } catch (IOException ex) {
+            } catch ( IOException ex ) {
                 log.error( ex.getMessage() );
             }
         }
@@ -77,16 +74,13 @@ public class GeneInfoParser {
     public Set<GeneInfo> parse( Taxon taxon, File file ) throws ParseException {
         try {
             return parse( taxon, new GZIPInputStream( new FileInputStream( file ) ) );
-        } catch (IOException e) {
+        } catch ( IOException e ) {
             throw new ParseException( e.getMessage(), 0 );
         }
     }
 
     private Set<GeneInfo> parse( Taxon taxon, InputStream input ) throws ParseException {
-        try {
-
-            BufferedReader br = new BufferedReader( new InputStreamReader( input ) );
-
+        try ( BufferedReader br = new BufferedReader( new InputStreamReader( input ) ) ) {
             String header = br.readLine();
 
             if ( header == null ) {
@@ -94,37 +88,33 @@ public class GeneInfoParser {
             }
 
             if ( !header.equalsIgnoreCase( EXPECTED_HEADER ) ) {
-                throw new ParseException( "Unexpected Header Line!", 0 );
+                throw new ParseException( MessageFormat.format( "Unexpected header line: {0}.", header ), 0 );
             }
 
-            return br.lines().map( line -> line.split( "\t" ) ).filter( values -> Integer.valueOf( values[0] ).equals( taxon.getId() ) ).map( values -> {
-                GeneInfo gene = geneInfoRepository.findByGeneIdAndTaxon( Integer.valueOf (values[1]), taxon );
-                if (gene == null) {
-                    gene = new GeneInfo();
-                }
-                gene.setTaxon( taxon );
-                gene.setGeneId( Integer.valueOf( values[1] ) );
-                gene.setSymbol( values[2] );
-                gene.setAliases( values[4] );
-                gene.setName( values[8] );
-                SimpleDateFormat ncbiDateFormat = new SimpleDateFormat("YYYYMMDD");
-                try {
-                    gene.setModificationDate( ncbiDateFormat.parse( values[14] ) );
-                } catch ( ParseException e ) {
-                    log.warn( MessageFormat.format("Could not parse date {0} for gene {1}.", values[14], values[1]), e);
-                }
-                return gene;
-            } ).collect( Collectors.toSet() );
-        } catch (IOException e) {
+
+            return br.lines()
+                    .map( line -> line.split( "\t" ) )
+                    .filter( values -> Integer.valueOf( values[0] ).equals( taxon.getId() ) )
+                    .map( values -> {
+                        GeneInfo gene = geneInfoRepository.findByGeneIdAndTaxon( Integer.valueOf( values[1] ), taxon );
+                        if ( gene == null ) {
+                            gene = new GeneInfo();
+                        }
+                        gene.setTaxon( taxon );
+                        gene.setGeneId( Integer.valueOf( values[1] ) );
+                        gene.setSymbol( values[2] );
+                        gene.setAliases( values[4] );
+                        gene.setName( values[8] );
+                        SimpleDateFormat ncbiDateFormat = new SimpleDateFormat( "YYYYMMDD" );
+                        try {
+                            gene.setModificationDate( ncbiDateFormat.parse( values[14] ) );
+                        } catch ( ParseException e ) {
+                            log.warn( MessageFormat.format( "Could not parse date {0} for gene {1}.", values[14], values[1] ), e );
+                        }
+                        return gene;
+                    } ).collect( Collectors.toSet() );
+        } catch ( IOException e ) {
             throw new ParseException( e.getMessage(), 0 );
-        } finally {
-            try {
-                if ( input != null ) {
-                    input.close();
-                }
-            } catch (IOException ex) {
-                log.error( ex.getMessage() );
-            }
         }
     }
 

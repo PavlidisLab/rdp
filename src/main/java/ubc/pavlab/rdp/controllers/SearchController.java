@@ -4,16 +4,14 @@ import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 import ubc.pavlab.rdp.exception.RemoteException;
 import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.services.*;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 
 /**
@@ -39,13 +37,19 @@ public class SearchController {
     private UserGeneService userGeneService;
 
     @Autowired
+    private OrganInfoService organInfoService;
+
+    @Autowired
     private RemoteResourceService remoteResourceService;
 
     @Autowired
     private PrivacyService privacyService;
 
-    @RequestMapping(value = "/search", method = RequestMethod.GET, params = { "nameLike", "iSearch" })
-    public ModelAndView searchUsersByName( @RequestParam String nameLike, @RequestParam Boolean iSearch, @RequestParam Boolean prefix ) {
+    @GetMapping(value = "/search", params = { "nameLike", "iSearch" })
+    public ModelAndView searchUsersByName( @RequestParam String nameLike,
+                                           @RequestParam Boolean iSearch,
+                                           @RequestParam Boolean prefix,
+                                           @RequestParam(required = false) Set<String> organUberonIds ) {
         User user = userService.findCurrentUser();
         if(!privacyService.checkUserCanSearch( user, false )){
             return null;
@@ -55,7 +59,7 @@ public class SearchController {
         modelAndView.addObject( "users", prefix ? userService.findByStartsName( nameLike ) : userService.findByLikeName( nameLike ) );
         if ( iSearch ) {
             try {
-                modelAndView.addObject( "itlUsers", remoteResourceService.findUsersByLikeName( nameLike, prefix ) );
+                modelAndView.addObject( "itlUsers", remoteResourceService.findUsersByLikeName( nameLike, prefix, Optional.ofNullable( organUberonIds ) ) );
             } catch ( RemoteException e ) {
                 modelAndView.addObject( "itlErrorMessage", e.getMessage() );
             }
@@ -64,8 +68,9 @@ public class SearchController {
         return modelAndView;
     }
 
-    @RequestMapping(value = "/search/view", method = RequestMethod.GET, params = { "nameLike", })
-    public ModelAndView searchUsersByNameView( @RequestParam String nameLike, @RequestParam Boolean prefix ) {
+    @GetMapping(value = "/search/view", params = { "nameLike", })
+    public ModelAndView searchUsersByNameView( @RequestParam String nameLike,
+                                               @RequestParam Boolean prefix ) {
         if(!privacyService.checkCurrentUserCanSearch( false )){
             return null;
         }
@@ -76,15 +81,17 @@ public class SearchController {
         return modelAndView;
     }
 
-    @RequestMapping(value = "/search/view/international", method = RequestMethod.GET, params = { "nameLike" })
-    public ModelAndView searchItlUsersByNameView( @RequestParam String nameLike, @RequestParam Boolean prefix ) {
+    @GetMapping(value = "/search/view/international", params = {"nameLike"})
+    public ModelAndView searchItlUsersByNameView( @RequestParam String nameLike,
+                                                  @RequestParam Boolean prefix,
+                                                  @RequestParam(required = false) Set<String> organUberonIds ) {
         if(!privacyService.checkCurrentUserCanSearch(  true )){
             return null;
         }
         ModelAndView modelAndView = new ModelAndView();
 
         try {
-            modelAndView.addObject( "users", remoteResourceService.findUsersByLikeName( nameLike, prefix ) );
+            modelAndView.addObject( "users", remoteResourceService.findUsersByLikeName( nameLike, prefix, Optional.ofNullable( organUberonIds ) ) );
             modelAndView.setViewName( "fragments/user-table :: user-table" );
             modelAndView.addObject( "remote", true );
         } catch ( RemoteException e ) {
@@ -95,9 +102,10 @@ public class SearchController {
         return modelAndView;
     }
 
-    @RequestMapping(value = "/search", method = RequestMethod.GET, params = { "descriptionLike", "iSearch" })
+    @GetMapping(value = "/search", params = { "descriptionLike", "iSearch" })
     public ModelAndView searchUsersByDescription( @RequestParam String descriptionLike,
-            @RequestParam Boolean iSearch ) {
+                                                  @RequestParam Boolean iSearch,
+                                                  @RequestParam(required = false) Set<String> organUberonIds ) {
         User user = userService.findCurrentUser();
         if(!privacyService.checkUserCanSearch( user, false )){
             return null;
@@ -108,7 +116,7 @@ public class SearchController {
         modelAndView.addObject( "users", userService.findByDescription( descriptionLike ) );
         if ( iSearch ) {
             try {
-                modelAndView.addObject( "itlUsers", remoteResourceService.findUsersByDescription( descriptionLike ) );
+                modelAndView.addObject( "itlUsers", remoteResourceService.findUsersByDescription( descriptionLike, Optional.ofNullable( organUberonIds ) ) );
             } catch ( RemoteException e ) {
                 modelAndView.addObject( "itlErrorMessage", e.getMessage() );
             }
@@ -117,8 +125,9 @@ public class SearchController {
         return modelAndView;
     }
 
-    @RequestMapping(value = "/search/view", method = RequestMethod.GET, params = { "descriptionLike" })
-    public ModelAndView searchUsersByDescriptionView( @RequestParam String descriptionLike ) {
+    @RequestMapping(value = "/search/view", params = { "descriptionLike" })
+    public ModelAndView searchUsersByDescriptionView( @RequestParam String descriptionLike,
+                                                      @RequestParam(required = false) List<String> organUberonIds ) {
         if(!privacyService.checkCurrentUserCanSearch(  false )){
             return null;
         }
@@ -128,15 +137,16 @@ public class SearchController {
         return modelAndView;
     }
 
-    @RequestMapping(value = "/search/view/international", method = RequestMethod.GET, params = { "descriptionLike" })
-    public ModelAndView searchItlUsersByDescriptionView( @RequestParam String descriptionLike ) {
+    @GetMapping(value = "/search/view/international", params = { "descriptionLike" })
+    public ModelAndView searchItlUsersByDescriptionView( @RequestParam String descriptionLike,
+                                                         @RequestParam(required = false) Set<String> organUberonIds ) {
         if(!privacyService.checkCurrentUserCanSearch( true )){
             return null;
         }
         ModelAndView modelAndView = new ModelAndView();
 
         try {
-            modelAndView.addObject( "users", remoteResourceService.findUsersByDescription( descriptionLike ) );
+            modelAndView.addObject( "users", remoteResourceService.findUsersByDescription( descriptionLike, Optional.ofNullable(organUberonIds) ) );
             modelAndView.setViewName( "fragments/user-table :: user-table" );
             modelAndView.addObject( "remote", true );
         } catch ( RemoteException e ) {
@@ -147,12 +157,24 @@ public class SearchController {
         return modelAndView;
     }
 
+    @Autowired
+    UserOrganService userOrganService;
+
+    private Optional<Collection<UserOrgan>> organsFromUberonIds (Set<String> organUberonIds) {
+        Optional<Collection<UserOrgan>> organs = Optional.empty();
+        if (organUberonIds != null) {
+            organs = Optional.of(userOrganService.findByUberonIdIn( organUberonIds ));
+        }
+        return organs;
+    }
+
     @RequestMapping(value = "/search", method = RequestMethod.GET, params = {"symbol", "taxonId"})
     public ModelAndView searchUsersByGene( @RequestParam String symbol,
                                            @RequestParam Integer taxonId,
-                                           @RequestParam(required = false) Set<TierType> tiers,
                                            @RequestParam Boolean iSearch,
-                                           @RequestParam(name = "orthologTaxonId", required = false) Integer orthologTaxonId,
+                                           @RequestParam(required = false) Set<TierType> tiers,
+                                           @RequestParam(required = false) Integer orthologTaxonId,
+                                           @RequestParam(required = false) Set<String> organUberonIds,
                                            Locale locale ) {
         if(!privacyService.checkCurrentUserCanSearch(  false )){
             return null;
@@ -170,7 +192,7 @@ public class SearchController {
         Taxon taxon = taxonService.findById( taxonId );
         Gene gene = geneService.findBySymbolAndTaxon( symbol, taxon );
         Collection<UserGene> orthologs = orthologTaxonId == null ? userGeneService.findOrthologsWithoutSecurityFilter( gene, tiers ) :
-                userGeneService.findOrthologsWithTaxonWithoutSecurityFilter( gene, tiers, taxonService.findById( orthologTaxonId ) );
+                userGeneService.findOrthologsWithTaxonWithoutSecurityFilter( gene, tiers, taxonService.findById( orthologTaxonId ), organsFromUberonIds( organUberonIds ) );
 
         ModelAndView modelAndView = new ModelAndView();
         modelAndView.setViewName( "search" );
@@ -188,11 +210,11 @@ public class SearchController {
             modelAndView.addObject( "errorMessage",
                     messageSource.getMessage( "SearchController.errorNoOrthologs", new String[]{ orthologTaxonId.toString() }, locale ) );
         } else {
-            modelAndView.addObject( "usergenes", userGeneService.handleGeneSearchWithoutSecurityFilter( gene, tiers, orthologs ) );
+            modelAndView.addObject( "usergenes", userGeneService.handleGeneSearchWithoutSecurityFilter( gene, tiers, orthologs, organsFromUberonIds( organUberonIds ) ) );
             if ( iSearch ) {
                 try {
                     modelAndView.addObject( "itlUsergenes",
-                            remoteResourceService.findGenesBySymbol (symbol, taxon, tiers, orthologTaxonId) );
+                            remoteResourceService.findGenesBySymbol( symbol, taxon, tiers, orthologTaxonId, Optional.ofNullable(organUberonIds) ) );
                 } catch ( RemoteException e ) {
                     modelAndView.addObject( "itlErrorMessage", e.getMessage() );
                 }
@@ -205,8 +227,10 @@ public class SearchController {
     public ModelAndView searchUsersByGeneView( @RequestParam String symbol,
                                                @RequestParam Integer taxonId,
                                                @RequestParam(required = false) Set<TierType> tiers,
-                                               @RequestParam(name = "orthologTaxonId", required = false) Integer orthologTaxonId,
-                                               Locale locale ) {
+                                               @RequestParam(required = false) Integer orthologTaxonId,
+                                               @RequestParam(required = false) Set<String> organUberonIds,
+                                               Locale locale ,
+                                               HttpServletRequest req ) {
         ModelAndView modelAndView = new ModelAndView();
 
         if ( !privacyService.checkCurrentUserCanSearch( false ) ) {
@@ -249,7 +273,7 @@ public class SearchController {
         }
 
         Collection<UserGene> orthologs = orthologTaxonId == null ? userGeneService.findOrthologsWithoutSecurityFilter( gene, tiers ) :
-                userGeneService.findOrthologsWithTaxonWithoutSecurityFilter( gene, tiers, orthologTaxon );
+                userGeneService.findOrthologsWithTaxonWithoutSecurityFilter( gene, tiers, orthologTaxon, organsFromUberonIds( organUberonIds ) );
 
         if (
             // Check if there is a ortholog request for a different taxon than the original gene
@@ -262,7 +286,7 @@ public class SearchController {
             return modelAndView;
         }
 
-        modelAndView.addObject( "usergenes", userGeneService.handleGeneSearch( gene, tiers, orthologs ) );
+        modelAndView.addObject( "usergenes", userGeneService.handleGeneSearch( gene, tiers, orthologs, organsFromUberonIds( organUberonIds ) ) );
         modelAndView.setViewName( "fragments/user-table :: usergenes-table" );
 
         return modelAndView;
@@ -272,9 +296,12 @@ public class SearchController {
     GeneInfoService geneInfoService;
 
     @RequestMapping(value = "/search/view/orthologs", method = RequestMethod.GET)
-    public ModelAndView searchOrthologsForGene(@RequestParam String symbol, @RequestParam Integer taxonId,
-					       @RequestParam(required = false) Set<TierType> tiers,
-					       @RequestParam(name = "orthologTaxonId", required = false) Integer orthologTaxonId, Locale locale ) {
+    public ModelAndView searchOrthologsForGene(@RequestParam String symbol,
+                                               @RequestParam Integer taxonId,
+                                               @RequestParam(required = false) Set<TierType> tiers,
+                                               @RequestParam(required = false) Integer orthologTaxonId,
+                                               @RequestParam(required = false) Set<String> organUberonIds,
+                                               Locale locale ) {
         ModelAndView modelAndView = new ModelAndView();
 
         if ( !privacyService.checkCurrentUserCanSearch( false ) ) {
@@ -308,7 +335,7 @@ public class SearchController {
         }
 
         Collection<UserGene> orthologs = orthologTaxonId == null ? userGeneService.findOrthologsWithoutSecurityFilter( gene, tiers ) :
-                userGeneService.findOrthologsWithTaxonWithoutSecurityFilter( gene, tiers, taxonService.findById(orthologTaxonId) );
+                userGeneService.findOrthologsWithTaxonWithoutSecurityFilter( gene, tiers, taxonService.findById( orthologTaxonId ), organsFromUberonIds( organUberonIds ) );
 
         if (
             // Check if there is a ortholog request for a different taxon than the original gene
@@ -337,11 +364,12 @@ public class SearchController {
     }
 
 
-
-    @RequestMapping(value = "/search/view/international", method = RequestMethod.GET, params = { "symbol", "taxonId", "tiers" })
-    public ModelAndView searchItlUsersByGeneView( @RequestParam String symbol, @RequestParam Integer taxonId,
-            @RequestParam Set<TierType> tiers,
-            @RequestParam(name = "orthologTaxonId", required = false) final Integer orthologTaxonId ) {
+    @GetMapping(value = "/search/view/international", params = { "symbol", "taxonId", "orthologTaxonId" })
+    public ModelAndView searchItlUsersByGeneView( @RequestParam String symbol,
+                                                  @RequestParam Integer taxonId,
+                                                  @RequestParam(required = false) Set<TierType> tiers,
+                                                  @RequestParam(required = false) Integer orthologTaxonId,
+                                                  @RequestParam(required = false) Set<String> organUberonIds) {
         if(!privacyService.checkCurrentUserCanSearch( true )){
             return null;
         }
@@ -351,11 +379,15 @@ public class SearchController {
             // FIXME: orthologTaxonId = null;
         }
 
+        if (tiers == null) {
+            tiers = TierType.ANY;
+        }
+
         Taxon taxon = taxonService.findById( taxonId );
         ModelAndView modelAndView = new ModelAndView();
 
         try {
-            Collection<UserGene> userGenes = remoteResourceService.findGenesBySymbol( symbol, taxon, tiers, orthologTaxonId);
+            Collection<UserGene> userGenes = remoteResourceService.findGenesBySymbol( symbol, taxon, tiers, orthologTaxonId, Optional.ofNullable( organUberonIds ) );
             modelAndView.addObject( "usergenes", userGenes);
             modelAndView.addObject( "remote", true );
             modelAndView.setViewName( "fragments/user-table :: usergenes-table" );
@@ -369,7 +401,7 @@ public class SearchController {
 
     @RequestMapping(value = "/userView/{userId}", method = RequestMethod.GET)
     public ModelAndView viewUser( @PathVariable Integer userId,
-            @RequestParam(name = "remoteHost", required = false) String remoteHost ) {
+                                  @RequestParam(required = false) String remoteHost ) {
         if(!privacyService.checkCurrentUserCanSearch(  false )){
             return null;
         }

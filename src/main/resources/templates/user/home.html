@@ -1,17 +1,18 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:th="http://www.thymeleaf.org">
+      xmlns:th="http://www.thymeleaf.org"
+      lang="en">
 
-<head th:replace="layouts/common::head">
+<head th:replace="layouts/common::head(title='Overview')">
+    <meta charset="UTF-8"/>
     <title>...</title>
 </head>
 
 <body>
-<div th:replace="fragments/header">...</div>
+<div th:replace="layouts/common::header">...</div>
 <div class="container py-4">
 
-
-    <div th:replace="fragments/title :: title(title='Welcome', subtitle='Overview')" th:remove="tag">...</div>
+    <div th:replace="layouts/common::title(title='Welcome', subtitle='Overview')">...</div>
 
     <div class="main-content my-3">
 
@@ -24,6 +25,7 @@
     </div>
 
 </div>
-<div th:replace="fragments/footer" th:remove="tag">...</div>
+<div th:replace="layouts/common::footer">...</div>
+<div th:replace="layouts/common::scripts"></div>
 </body>
 </html>

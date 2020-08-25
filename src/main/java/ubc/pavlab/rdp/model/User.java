@@ -11,13 +11,12 @@ import org.hibernate.validator.constraints.NotEmpty;
 import org.springframework.data.annotation.Transient;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.TierType;
-import ubc.pavlab.rdp.security.PrivacySensitive;
 
 import javax.persistence.*;
 import javax.validation.Valid;
+import java.text.MessageFormat;
 import java.util.*;
 import java.util.stream.Collectors;
-
 
 @Entity
 @Table(name = "user")
@@ -29,7 +28,7 @@ import java.util.stream.Collectors;
 @EqualsAndHashCode(of = {"id"})
 @ToString( of = {"id", "email", "enabled"})
 @CommonsLog
-public class User implements PrivacySensitive {
+public class User implements UserContent {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -53,7 +52,7 @@ public class User implements PrivacySensitive {
 	private boolean enabled;
 
     // @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @ManyToMany(cascade = CascadeType.ALL)
 	@JoinTable(name = "user_role", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
     @JsonIgnore
 	private Set<Role> roles;
@@ -77,17 +76,21 @@ public class User implements PrivacySensitive {
 	@MapKeyJoinColumn(name="taxon_id")
     @Column(name = "description", columnDefinition = "TEXT")
     @JsonIgnore
-    private Map<Taxon, String> taxonDescriptions;
+    private Map<Taxon, String> taxonDescriptions = new HashMap<>();
 
     @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 	@OneToMany(cascade = CascadeType.ALL, orphanRemoval = true )
 	@JoinColumn(name = "user_id")
-	private Set<UserTerm> userTerms;
+	private Set<UserTerm> userTerms = new HashSet<>();
 
     @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "user" )
     @MapKey(name = "geneId")
-	private Map<Integer, UserGene> userGenes;
+	private Map<Integer, UserGene> userGenes = new HashMap<>();
+
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "user")
+    @MapKey(name = "uberonId")
+    private Map<String, UserOrgan> userOrgans = new HashMap<>();
 
     @JsonIgnore
     @Transient
@@ -122,13 +125,14 @@ public class User implements PrivacySensitive {
 
     @Override
     public Optional<User> getOwner() {
-        return Optional.of(this);
+        return Optional.of( this );
     }
 
     @Override
     public PrivacyLevelType getEffectivePrivacyLevel() {
         // this is a fallback
         if (getProfile() == null || getProfile().getPrivacyLevel() == null) {
+            log.warn( MessageFormat.format( "User {} has no profile or a null privacy level defined in its profile.", this ) );
             return PrivacyLevelType.PRIVATE;
         }
         return getProfile().getPrivacyLevel();

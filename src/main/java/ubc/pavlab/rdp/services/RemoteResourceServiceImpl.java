@@ -1,8 +1,6 @@
 package ubc.pavlab.rdp.services;
 
 import lombok.extern.apachecommons.CommonsLog;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.jboss.resteasy.client.jaxrs.ResteasyClient;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
@@ -19,13 +17,10 @@ import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.repositories.RoleRepository;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 
-import javax.ws.rs.client.Client;
 import javax.ws.rs.core.Response;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Service("RemoteResourceService")
 @CommonsLog
@@ -51,7 +46,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
     private RoleRepository roleRepository;
 
     @Override
-    public Collection<User> findUsersByLikeName( String nameLike, Boolean prefix ) throws RemoteException {
+    public Collection<User> findUsersByLikeName( String nameLike, Boolean prefix, Optional<Collection<String>> organUberonIds ) throws RemoteException {
         return getRemoteEntities( User[].class, API_USERS_SEARCH_URI, new HashMap<String, String>() {{
             put( "nameLike", nameLike );
             put( "prefix", prefix.toString() );
@@ -59,14 +54,14 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
     }
 
     @Override
-    public Collection<User> findUsersByDescription( String descriptionLike ) throws RemoteException {
+    public Collection<User> findUsersByDescription( String descriptionLike, Optional<Collection<String>> organUberonIds ) throws RemoteException {
         return getRemoteEntities( User[].class, API_USERS_SEARCH_URI, new HashMap<String, String>() {{
             put( "descriptionLike", descriptionLike );
         }} );
     }
 
     @Override
-    public Collection<UserGene> findGenesBySymbol( String symbol, Taxon taxon, Set<TierType> tiers, Integer orthologTaxonId )
+    public Collection<UserGene> findGenesBySymbol( String symbol, Taxon taxon, Set<TierType> tiers, Integer orthologTaxonId, Optional<Collection<String>> organUberonIds )
             throws RemoteException {
         List<UserGene> intlUsergenes = new LinkedList<>();
         // TODO: use the tiers field for the v1.4 API

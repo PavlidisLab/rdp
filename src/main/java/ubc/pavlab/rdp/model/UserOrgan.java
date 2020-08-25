@@ -1,26 +1,39 @@
 package ubc.pavlab.rdp.model;
 
-import lombok.EqualsAndHashCode;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.Getter;
+import lombok.Setter;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
-import ubc.pavlab.rdp.security.PrivacySensitive;
 
 import javax.persistence.*;
 import java.util.Optional;
 
 @Entity
-@Table(name = "organ",
-        uniqueConstraints = { @UniqueConstraint(columnNames = { "user_id", "symbol", "taxon_id" }) })
-@EqualsAndHashCode(of = { "user", "symbol", "taxon" }, callSuper = false)
-public class UserOrgan extends Organ implements PrivacySensitive {
+@Getter
+@Setter
+@Table(name = "user_organ",
+        uniqueConstraints = { @UniqueConstraint(columnNames = { "user_id", "uberon_id" }) })
+public class UserOrgan extends Organ implements UserContent {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column
+    @JsonIgnore
     private Integer id;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
+    @JsonIgnore
     private User user;
+
+    public static UserOrgan createFromOrganInfo( User user, OrganInfo organInfo ) {
+        UserOrgan userOrgan = new UserOrgan();
+        userOrgan.setUser( user );
+        userOrgan.setUberonId( organInfo.getUberonId() );
+        userOrgan.setName( organInfo.getName() );
+        userOrgan.setDescription( organInfo.getDescription() );
+        return userOrgan;
+    }
 
     @Override
     public Optional<User> getOwner() {

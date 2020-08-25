@@ -7,18 +7,19 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.test.context.junit4.SpringRunner;
 import ubc.pavlab.rdp.model.Taxon;
-import ubc.pavlab.rdp.util.BaseTest;
+import ubc.pavlab.rdp.util.TestUtils;
 
 import java.util.Collection;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static ubc.pavlab.rdp.util.TestUtils.createTaxon;
 
 /**
  * Created by mjacobson on 26/02/18.
  */
 @RunWith(SpringRunner.class)
 @DataJpaTest
-public class TaxonRepositoryTest extends BaseTest {
+public class TaxonRepositoryTest {
 
     @Autowired
     private TestEntityManager entityManager;

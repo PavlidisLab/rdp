@@ -17,4 +17,14 @@ public class OrganInfoServiceImpl implements OrganInfoService {
     public Collection<OrganInfo> findAll() {
         return organInfoRepository.findAll();
     }
+
+    @Override
+    public Collection<OrganInfo> findByUberonIdIn( Collection<String> organUberonIds ) {
+        return organInfoRepository.findByUberonIdIn(organUberonIds);
+    }
+
+    @Override
+    public Collection<OrganInfo> findByActiveTrueOrderByOrdering() {
+        return organInfoRepository.findByActiveTrueOrderByOrdering();
+    }
 }
