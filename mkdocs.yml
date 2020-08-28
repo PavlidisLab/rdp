@@ -1,0 +1,8 @@
+site_name: Rare Disease Project Documentation
+theme: readthedocs
+nav:
+  - index.md
+  - installation.md
+  - customization.md
+  - deployment.md
+  - migration.md
