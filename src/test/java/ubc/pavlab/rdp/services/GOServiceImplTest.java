@@ -16,6 +16,7 @@ import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.model.enums.RelationshipType;
 import ubc.pavlab.rdp.model.enums.TermMatchType;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
+import ubc.pavlab.rdp.util.OBOParser;
 import ubc.pavlab.rdp.util.SearchResult;
 import ubc.pavlab.rdp.util.TestUtils;
 
@@ -54,6 +55,9 @@ public class GOServiceImplTest {
 
     @Autowired
     private GOService goService;
+
+    @MockBean
+    private OBOParser oboParser;
 
     @MockBean
     private UserService userService;
