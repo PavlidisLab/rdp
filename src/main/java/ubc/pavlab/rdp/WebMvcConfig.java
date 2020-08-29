@@ -21,9 +21,9 @@ public class WebMvcConfig extends WebMvcConfigurerAdapter {
     @Bean
     public MessageSource messageSource() {
         ReloadableResourceBundleMessageSource messageSource = new ReloadableResourceBundleMessageSource();
-        // application-prod is there for backward compatibility since we use to pull locale strings from there, and we
-        // also want to offer the possibility of loading messages from an external file.
-        messageSource.setBasenames( "file:messages", "file:application-prod", "classpath:messages" );
+        // application-prod.properties and login.properties is there for backward compatibility since
+        // we used to pull locale strings from there.
+        messageSource.setBasenames( "file:messages", "file:application-prod", "file:login", "classpath:messages" );
         return messageSource;
     }
 

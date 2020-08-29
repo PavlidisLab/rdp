@@ -52,8 +52,9 @@ add the entries you want to change. Default values are found in
 You can use suffixed like `messages_en_CA.properties` for region-specific
 localization.
 
-Note that `application-prod.properties` is also used for messages for backward
-compatibility. New and existing messages should be moved to `messages.properties`.
+Note that `application-prod.properties` and `login.properties` are also used
+for messages for backward compatibility. New and existing messages should be
+moved to `messages.properties`.
 
 ## FAQ
 
@@ -63,10 +64,6 @@ The FAQ can be customized in `faq.properties`.
   - Defaults: Empty
   - Contents: All of the question and answer style items that will display in the frequently asked questions page. Each entry requires two parts: `rdp.faq.questions.<q_key>` and `rdp.faq.answers.<q_key>` which hold the question and the corresponding answer, respectively.
   - Example: https://github.com/PavlidisLab/modinvreg/blob/master/faq.properties
-* login.properties
-  - Location: Working directory of running jar
-  - Defaults: https://github.com/PavlidisLab/modinvreg/blob/master/src/main/resources/application.properties
-  - Contents: Create this file if you would like to customise spring specific messages such as incorrect username/password.
 
 #### Notes
 * The organisms table is prepopulated on creation however all but human are turned off. Set the active column to 1 in the database to turn on an organism (Example (this will activate mouse): `update taxon set active=1 where taxon_id=10090`)
