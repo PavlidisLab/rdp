@@ -132,7 +132,7 @@ public class User implements UserContent {
     public PrivacyLevelType getEffectivePrivacyLevel() {
         // this is a fallback
         if (getProfile() == null || getProfile().getPrivacyLevel() == null) {
-            log.warn( MessageFormat.format( "User {} has no profile or a null privacy level defined in its profile.", this ) );
+            log.warn( MessageFormat.format( "User {0} has no profile or a null privacy level defined in its profile.", this ) );
             return PrivacyLevelType.PRIVATE;
         }
         return getProfile().getPrivacyLevel();
