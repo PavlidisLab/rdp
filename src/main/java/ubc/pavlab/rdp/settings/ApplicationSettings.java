@@ -28,6 +28,7 @@ public class ApplicationSettings {
         private String termFile;
         private String annotationFile;
         private String orthologFile;
+        private String organFile;
 
     }
 

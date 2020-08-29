@@ -1,7 +1,5 @@
 package ubc.pavlab.rdp.services;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -11,12 +9,15 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.junit4.SpringRunner;
-import ubc.pavlab.rdp.model.*;
+import ubc.pavlab.rdp.model.GeneInfo;
+import ubc.pavlab.rdp.model.GeneOntologyTerm;
+import ubc.pavlab.rdp.model.Relationship;
+import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.model.enums.RelationshipType;
 import ubc.pavlab.rdp.model.enums.TermMatchType;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
-import ubc.pavlab.rdp.util.TestUtils;
 import ubc.pavlab.rdp.util.SearchResult;
+import ubc.pavlab.rdp.util.TestUtils;
 
 import java.util.*;
 import java.util.function.Function;
@@ -31,8 +32,6 @@ import static ubc.pavlab.rdp.util.TestUtils.*;
  */
 @RunWith(SpringRunner.class)
 public class GOServiceImplTest {
-
-    private static Log log = LogFactory.getLog( GOServiceImplTest.class );
 
     @TestConfiguration
     static class GOServiceImplTestContextConfiguration {
@@ -452,6 +451,5 @@ public class GOServiceImplTest {
         GeneOntologyTerm found = goService.getTerm( null );
         assertThat( found ).isNull();
     }
-
 
 }

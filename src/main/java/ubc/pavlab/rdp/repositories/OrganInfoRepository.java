@@ -9,6 +9,8 @@ import java.util.Collection;
 @Repository
 public interface OrganInfoRepository extends JpaRepository<OrganInfo, Integer> {
 
+    OrganInfo findByUberonId( String id );
+
     Collection<OrganInfo> findByActiveTrueOrderByOrdering();
 
     Collection<OrganInfo> findByUberonIdIn( Collection<String> organUberonIds );

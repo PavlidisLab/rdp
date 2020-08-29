@@ -5,14 +5,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import ubc.pavlab.rdp.model.*;
+import ubc.pavlab.rdp.model.enums.Aspect;
 import ubc.pavlab.rdp.model.enums.RelationshipType;
 import ubc.pavlab.rdp.model.enums.TermMatchType;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
-import ubc.pavlab.rdp.util.GOParser;
 import ubc.pavlab.rdp.util.Gene2GoParser;
+import ubc.pavlab.rdp.util.OBOParser;
 import ubc.pavlab.rdp.util.SearchResult;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.net.URL;
 import java.util.*;
 import java.util.function.Function;
@@ -48,6 +50,40 @@ public class GOServiceImpl implements GOService {
     @Autowired
     UserService userService;
 
+    @Autowired
+    private OBOParser oboParser;
+
+    private static Relationship convertRelationship( OBOParser.Relationship parsedRelationship ) {
+        return new Relationship(convertTermIgnoringRelationship(parsedRelationship.getNode()),
+                RelationshipType.valueOf(parsedRelationship.getRelationshipType().toString()));
+    }
+
+    private static GeneOntologyTerm convertTermIgnoringRelationship( OBOParser.Term parsedTerm ) {
+        GeneOntologyTerm geneOntologyTerm = new GeneOntologyTerm();
+        geneOntologyTerm.setGoId( parsedTerm.getId() );
+        geneOntologyTerm.setName( parsedTerm.getName() );
+        geneOntologyTerm.setDefinition( parsedTerm.getDefinition() );
+        geneOntologyTerm.setAspect( Aspect.valueOf( parsedTerm.getNamespace() ) );
+        return geneOntologyTerm;
+    }
+
+    private static GeneOntologyTerm convertTerm( OBOParser.Term parsedTerm ) {
+        GeneOntologyTerm geneOntologyTerm = convertTermIgnoringRelationship( parsedTerm );
+        geneOntologyTerm.setParents( parsedTerm.getParents().stream().map( GOServiceImpl::convertRelationship ).collect( Collectors.toSet() ) );
+        geneOntologyTerm.setChildren( parsedTerm.getChildren().stream().map( GOServiceImpl::convertRelationship ).collect( Collectors.toSet() ) );
+        return geneOntologyTerm;
+    }
+
+    private static Map<String, GeneOntologyTerm> convertTerms(Map<String, OBOParser.Term> parsedTerms) {
+        // using a stream does not work because the GO identifier does not constitute an injective mapping due to
+        // aliases
+        Map<String, GeneOntologyTerm> goTerms = new HashMap<>();
+        for (Map.Entry<String, OBOParser.Term> entry : parsedTerms.entrySet()) {
+            goTerms.put( entry.getKey(), convertTerm( entry.getValue() ) );
+        }
+        return goTerms;
+    }
+
     @Override
     @Scheduled(fixedRate = 2592000000L)
     public void updateGoTerms() {
@@ -58,10 +94,10 @@ public class GOServiceImpl implements GOService {
             try {
                 if ( cacheSettings.isLoadFromDisk() ) {
                     log.info( "Loading GO Terms from disk: " + cacheSettings.getTermFile() );
-                    setTerms( GOParser.parse( new File( cacheSettings.getTermFile() ) ) );
+                    setTerms( convertTerms( oboParser.parseStream( new FileInputStream( new File( cacheSettings.getTermFile() ) ) ) ));
                 } else {
                     log.info( "Loading GO Terms from URL: " + GO_URL );
-                    setTerms( GOParser.parse( new URL( GO_URL ) ) );
+                    setTerms( convertTerms( oboParser.parseStream( new URL( GO_URL ).openStream() ) ) );
                 }
 
                 log.info( "Gene Ontology loaded, total of " + size() + " items." );

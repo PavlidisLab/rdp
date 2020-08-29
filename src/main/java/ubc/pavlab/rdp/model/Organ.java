@@ -14,9 +14,9 @@ public abstract class Organ {
     @Column(name = "uberon_id", length = 14)
     private String uberonId;
 
-    @Column
+    @Column(columnDefinition = "TEXT")
     private String name;
 
-    @Column
+    @Column(columnDefinition = "TEXT")
     private String description;
 }
