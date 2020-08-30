@@ -62,7 +62,7 @@ public interface UserService {
                                      Map<? extends Gene, Optional<PrivacyLevelType>> genesToPrivacyLevelMap,
                                      Collection<? extends GeneOntologyTerm> goTerms );
 
-    User updateUserProfileAndPublications( User user, Set<Publication> publications );
+    User updateUserProfileAndPublicationsAndOrgans( User user, Profile profile, Set<Publication> publications, Optional<Set<String>> organUberonIds );
 
     PasswordResetToken createPasswordResetTokenForUser( User user, String token );
 

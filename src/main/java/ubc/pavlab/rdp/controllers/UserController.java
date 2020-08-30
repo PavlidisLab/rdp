@@ -44,24 +44,8 @@ public class UserController {
     public String saveProfile( @RequestBody @Valid ProfileWithOrganUberonIds profileWithOrganUberonIds ) {
         User user = userService.findCurrentUser();
         Profile profile = profileWithOrganUberonIds.profile;
-        user.getProfile().setDepartment( profile.getDepartment() );
-        user.getProfile().setDescription( profile.getDescription() );
-        user.getProfile().setLastName( profile.getLastName() );
-        user.getProfile().setName( profile.getName() );
-        user.getProfile().setOrganization( profile.getOrganization() );
-        user.getProfile().setPhone( profile.getPhone() );
-        user.getProfile().setWebsite( profile.getWebsite() );
-        user.getProfile().setPrivacyLevel( profile.getPrivacyLevel() );
-        user.getProfile().setShared( profile.getShared() );
-        user.getProfile().setHideGenelist( profile.getHideGenelist() );
 
-        Map<String, UserOrgan> userOrgans = organInfoService.findByUberonIdIn(profileWithOrganUberonIds.organUberonIds).stream()
-                .map( organInfo -> user.getUserOrgans().getOrDefault( organInfo.getUberonId(), UserOrgan.createFromOrganInfo( user, organInfo ) ))
-                .collect(Collectors.toMap(ug -> ug.getUberonId(), ug -> ug));
-        user.getUserOrgans().clear();
-        user.getUserOrgans().putAll( userOrgans );
-
-        userService.updateUserProfileAndPublications( user, profile.getPublications() );
+        userService.updateUserProfileAndPublicationsAndOrgans( user, profileWithOrganUberonIds.profile, profile.getPublications(), Optional.ofNullable( profileWithOrganUberonIds.organUberonIds ) );
 
         return "Saved.";
     }

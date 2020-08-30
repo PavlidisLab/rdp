@@ -492,7 +492,7 @@ public class UserServiceImplTest {
 
 
     @Test
-    public void updatePublications_whenPublications_thenReplaceAll() {
+    public void updateUserProfileAndPublications_whenPublications_thenReplaceAll() {
         User user = createUser( 1 );
         becomeUser( user );
         Publication oldPub = new Publication();
@@ -507,14 +507,29 @@ public class UserServiceImplTest {
                 }
         ).collect( Collectors.toSet() );
 
-        User updatedUser = userService.updateUserProfileAndPublications( user, newPublications );
+        User updatedUser = userService.updateUserProfileAndPublicationsAndOrgans( user, user.getProfile(), newPublications, Optional.empty() );
 
         assertThat( updatedUser.getProfile().getPublications() ).containsExactlyElementsOf( newPublications );
 
     }
 
     @Test
-    public void updatePublications_whenWrongUser_thenFail() {
+    public void updateUserProfileAndPublication_whenOrgansIsEnabled_thenSaveOrgans() {
+        when( applicationSettings.getOrgans().getEnabled() ).thenReturn( true );
+        User user = createUser( 1 );
+        userService.updateUserProfileAndPublicationsAndOrgans( user, user.getProfile(), new HashSet<>(), Optional.empty() );
+        // assertThat( user.getUserOrgans() ).containsValue( userOrgan );
+    }
+
+    @Test
+    public void updateUserProfileAndPublication_whenOrgansIsNotEnabled_thenIgnoreOrgans() {
+        when( applicationSettings.getOrgans().getEnabled() ).thenReturn( true );
+        User user = createUser( 1 );
+        userService.updateUserProfileAndPublicationsAndOrgans( user, user.getProfile(), new HashSet<>(), Optional.empty() );
+    }
+
+    @Test
+    public void updateUserProfileAndPublications_whenWrongUser_thenFail() {
         User user = createUser( 1 );
 
         User otherUser = createUser( 2 );
@@ -533,7 +548,7 @@ public class UserServiceImplTest {
                 }
         ).collect( Collectors.toSet() );
 
-        User updatedUser = userService.updateUserProfileAndPublications( user, newPublications );
+        User updatedUser = userService.updateUserProfileAndPublicationsAndOrgans( user, user.getProfile(), newPublications, Optional.empty() );
 
         assertThat( updatedUser ).isNull();
 

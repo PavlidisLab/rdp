@@ -389,12 +389,36 @@ public class UserServiceImpl implements UserService {
         update( user );
     }
 
+    @Autowired
+    private OrganInfoService organInfoService;
+
     @Transactional
     @Override
     @PreAuthorize("hasPermission(#user, 'update')")
-    public User updateUserProfileAndPublications( User user, Set<Publication> publications ) {
+    public User updateUserProfileAndPublicationsAndOrgans( User user, Profile profile, Set<Publication> publications, Optional<Set<String>> organUberonIds ) {
+        user.getProfile().setDepartment( profile.getDepartment() );
+        user.getProfile().setDescription( profile.getDescription() );
+        user.getProfile().setLastName( profile.getLastName() );
+        user.getProfile().setName( profile.getName() );
+        user.getProfile().setOrganization( profile.getOrganization() );
+        user.getProfile().setPhone( profile.getPhone() );
+        user.getProfile().setWebsite( profile.getWebsite() );
+        user.getProfile().setPrivacyLevel( profile.getPrivacyLevel() );
+        user.getProfile().setShared( profile.getShared() );
+        user.getProfile().setHideGenelist( profile.getHideGenelist() );
+
         user.getProfile().getPublications().retainAll( publications );
         user.getProfile().getPublications().addAll( publications );
+
+        if (applicationSettings.getOrgans().getEnabled()) {
+            // defaults the the user organs of no ids are provided
+            Map<String, UserOrgan> userOrgans = organInfoService.findByUberonIdIn(organUberonIds.orElse(user.getUserOrgans().keySet())).stream()
+                    .map( organInfo -> user.getUserOrgans().getOrDefault( organInfo.getUberonId(), UserOrgan.createFromOrganInfo( user, organInfo ) ))
+                    .collect(Collectors.toMap(ug -> ug.getUberonId(), ug -> ug));
+            user.getUserOrgans().clear();
+            user.getUserOrgans().putAll( userOrgans );
+        }
+
         return update( user );
     }
 
