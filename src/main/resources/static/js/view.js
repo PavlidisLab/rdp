@@ -1,4 +1,4 @@
-$(document).ready(function () {
+(function () {
 
     $('#publication-table').DataTable({
         "scrollY":        "200px",
@@ -58,4 +58,4 @@ $(document).ready(function () {
     $('.terms-tab').on('shown.bs.tab', function (e) {
         $('.term-table').DataTable().draw();
     })
-});
+})();

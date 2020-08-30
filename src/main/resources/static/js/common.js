@@ -1,4 +1,4 @@
-$(document).ready(function () {
+(function () {
 
     $(document).on("click", '.editable', function (e) {
         var inputs = $(this).closest(".edit-container").find(".data-edit");
@@ -41,4 +41,4 @@ $(document).ready(function () {
     $('.alert .close').on('click',function(){
         $(this).parent().hide();
     });
-});
+})();

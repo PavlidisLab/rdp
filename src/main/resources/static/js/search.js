@@ -1,23 +1,23 @@
-function checkItl(itlChbox){
-    if(itlChbox.prop("checked")){
-        $("#itlResults").show();
-        $("[name=iSearch]").val(true);
-    }else{
-        $("#itlResults").hide();
-        $('[name="iSearch"]').val(false);
+(function () {
+    function checkItl(itlChbox){
+        if(itlChbox.prop("checked")){
+            $("#itlResults").show();
+            $("[name=iSearch]").val(true);
+        }else{
+            $("#itlResults").hide();
+            $('[name="iSearch"]').val(false);
+        }
     }
-}
 
-function checkTaxon(taxonSelect){
-    // noinspection EqualityComparisonWithCoercionJS // multi-browser support // Taxon also checked in SearchController.java
-    if(taxonSelect.val() == 9606){
-        $("#ortholog-box").show();
-    }else{
-        $("#ortholog-box").hide();
+    function checkTaxon(taxonSelect){
+        // noinspection EqualityComparisonWithCoercionJS // multi-browser support // Taxon also checked in SearchController.java
+        if(taxonSelect.val() == 9606){
+            $("#ortholog-box").show();
+        }else{
+            $("#ortholog-box").hide();
+        }
     }
-}
 
-$(document).ready(function () {
     $("form").submit(function (event) {
 
 	// Show search results
@@ -34,7 +34,7 @@ $(document).ready(function () {
 	// Show orthologs
 	//$("#orthologsResults").fadeOut("slow", function(){
 	$(".ortholog-search-text").html(""); // Clear existing results.
-	//});	
+	//});
 	if ( $("#symbolInput").val() !== "" && $("#ortholog-box").is( ":visible" ) ) {
 	    var orthologContainer = $("#orthologsResults");
 	    orthologContainer.html($('<i class="mx-2 spinner"></i>'));
@@ -43,9 +43,9 @@ $(document).ready(function () {
 		    orthologContainer.html($('<span class="mx-2 text-danger">Something went wrong! Please try again.</span>'));
 		}
 		//$("#orthologsResults").fadeIn(1500);
-	    });	    	
+	    });
 	}
-					   
+
 	// Show international search results
         if($("#isearch-checkbox").is(":checked")){
             var itlTableContainer = $("#itlUserTable");
@@ -155,10 +155,9 @@ $(document).ready(function () {
             });
         };
 
+        $('[name="nameLikeBtn"]').click(function() {
+            $('[name="nameLikeBtn"]').toggleClass('active', false);
+            $(this).toggleClass('active', true);
+        });
     });
-
-    $('[name="nameLikeBtn"]').click(function() {
-        $('[name="nameLikeBtn"]').toggleClass('active', false);
-        $(this).toggleClass('active', true);
-    });
-});
+})();

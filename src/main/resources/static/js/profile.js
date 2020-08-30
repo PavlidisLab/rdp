@@ -47,7 +47,7 @@ function collectProfile() {
     return {'profile': profile, 'organUberonIds': organUberonIds};
 }
 
-$(document).ready(function () {
+(function () {
 
     // auto-hide save message
     $('#saved-button').blur(function(){
@@ -186,4 +186,4 @@ $(document).ready(function () {
         });
     });
 
-});
+})();

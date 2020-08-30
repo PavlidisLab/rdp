@@ -9,9 +9,7 @@
  * and the file-closure is important.
  */
     
-
-
-$(document).ready(function () {
+(function () {
     
     // Constants
     var ONE_MINUTE = 60 * 1000;
@@ -20,8 +18,7 @@ $(document).ready(function () {
     var offset;
     var timeoutWindow = (ONE_MINUTE * 1); // User has one minute to react when warned for expiring session.
     var timeoutWarningMessage =	'Your session is going to be end in ' +
-	(timeoutWindow/ONE_MINUTE)  +
-	'  minutes. Please click OK to continue, or Cancel to log out.';
+	(timeoutWindow/ONE_MINUTE)  + '  minutes. Please click OK to continue, or Cancel to log out.';
     
     // Runtime
     var startTime = (new Date()).getTime();  // Get initial client timestamp.
@@ -166,4 +163,4 @@ $(document).ready(function () {
     updateTimeout(); // Get the cookies        
     $(document).on("mousemove", monitorMovements); // Bind monitor on mouse movements.
     checkForTimeout(); // Set the timeout.
-});
+})();

@@ -1,4 +1,5 @@
-function collectModel() {
+(function () {
+    function collectModel() {
     var model = {};
 
     // Research Information
@@ -124,8 +125,6 @@ function addTermRow(data) {
 
     table.columns.adjust().draw();
 }
-
-$(document).ready(function () {
 
     $.fn.dataTable.ext.order['dom-checkbox'] = function  ( settings, col )
     {
@@ -442,4 +441,4 @@ $(document).ready(function () {
         $('#term-table').DataTable().draw();
     })
 
-});
+})();
