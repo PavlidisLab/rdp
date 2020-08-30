@@ -36,7 +36,7 @@ Gene informations are now stored in the database. As a result, taxons are known
 for ortholog genes and the `ortholog_taxon` column has become unnecessary, and
 a source of error for Hibernate.
 
- - [V1.4.0__drop_ortholog_target_taxon.sql](src/main/resources/db/migration/V1.4.0__drop_ortholog_target_taxon.sql)
+ - [V1.4.0__drop_ortholog_target_taxon.sql](../src/main/resources/db/migration/V1.4.0__drop_ortholog_target_taxon.sql)
 
 ## Migrate from 1.3.x to 1.3.2
 
@@ -44,7 +44,7 @@ NCBI gene broke because they introduced genes with unexpected date format. We
 adjusted our parsing code to process date formats and now store a `DATE` type
 in the database.
 
- - [V1.3.2__fix_gene_modification_date_type.sql](src/main/resources/db/migration/V1.3.2__fix_gene_modification_date_type.sql)
+ - [V1.3.2__fix_gene_modification_date_type.sql](../src/main/resources/db/migration/V1.3.2__fix_gene_modification_date_type.sql)
 
 ## Migrate from version 1.1.x to 1.2
 
