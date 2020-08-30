@@ -157,15 +157,8 @@ $(document).ready(function () {
 
     });
 
-    // Show results for first available character
-    /* Disabled because we're showing the Gene tab first.
-    var charBtns = $('#alpha-grp [name="nameLikeBtn"]');
-    $('[type="submit"]').click(function(){
-        charBtns.removeClass("active");
+    $('[name="nameLikeBtn"]').click(function() {
+        $('[name="nameLikeBtn"]').toggleClass('active', false);
+        $(this).toggleClass('active', true);
     });
-    charBtns.click(function() {
-        $(this).toggleClass("active");
-    });
-    charBtns.first().click();
-    */
 });
