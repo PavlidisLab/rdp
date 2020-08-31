@@ -1,13 +1,10 @@
 package ubc.pavlab.rdp.settings;
 
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 import org.hibernate.validator.constraints.URL;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
-import ubc.pavlab.rdp.services.UserService;
 
 import java.util.List;
 
