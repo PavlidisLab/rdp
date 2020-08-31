@@ -24,7 +24,7 @@ rdp.settings.cache.enabled=true
 rdp.settings.cache.load-from-disk=false
 ```
 
-By default, rgr will retrieve the latest genes and gene-term associations from
+By default, RDP will retrieve the latest genes and gene-term associations from
 NCBI, and GO terms from [Ontobee](http://www.ontobee.org/ontology/OBI). Users
 genes and terms will be updated in the aftermath of a successful update.
 
@@ -38,12 +38,12 @@ rdp.settings.cache.term-file=go.obo
 rdp.settings.cache.annotation-file=gene2go.gz
 ```
 
-With the above settings and given that *Homo sapiens* taxon is enabled, rgr
+With the above settings and given that *Homo sapiens* taxon is enabled, RDP
 will retrieve gene information from `genes/Homo_sapiens.gene_info.gz`.
 
 ## Internationalization and custom messages
 
-Some text displayed in rgr can be customized and internationalized.
+Some text displayed in RDP can be customized and internationalized.
 
 To do so, create a `messages.properties` file in the working directory of the Web application
 add the entries you want to change. Default values are found in
@@ -82,7 +82,7 @@ file for changes, and run the ortholog part on your database when that happens.
 
 ## Building from source
 
-You can customize rgr by editing the publicly available source code and
+You can customize RDP by editing the publicly available source code and
 packaging the JAR archive yourself.
 
 ```bash
