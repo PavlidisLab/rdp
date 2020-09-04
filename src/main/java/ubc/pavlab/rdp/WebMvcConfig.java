@@ -1,8 +1,13 @@
 package ubc.pavlab.rdp;
 
+import org.flywaydb.core.Flyway;
+import org.springframework.boot.actuate.endpoint.FlywayEndpoint;
+import org.springframework.boot.autoconfigure.flyway.FlywayMigrationInitializer;
+import org.springframework.boot.autoconfigure.flyway.FlywayMigrationStrategy;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;

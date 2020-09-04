@@ -5,7 +5,9 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.junit4.SpringRunner;
+import ubc.pavlab.rdp.DatabaseMigrationConfig;
 import ubc.pavlab.rdp.model.GeneInfo;
 import ubc.pavlab.rdp.model.Taxon;
 
@@ -14,6 +16,7 @@ import static ubc.pavlab.rdp.util.TestUtils.createTaxon;
 
 @RunWith(SpringRunner.class)
 @DataJpaTest
+@Import(DatabaseMigrationConfig.class)
 public class GeneInfoRepositoryTest {
 
     @Autowired
