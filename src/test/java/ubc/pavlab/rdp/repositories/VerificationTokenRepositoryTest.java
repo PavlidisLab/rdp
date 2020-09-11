@@ -6,10 +6,8 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.context.annotation.Import;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.test.context.junit4.SpringRunner;
-import ubc.pavlab.rdp.DatabaseMigrationConfig;
 import ubc.pavlab.rdp.model.User;
 import ubc.pavlab.rdp.model.VerificationToken;
 
@@ -25,7 +23,6 @@ import static ubc.pavlab.rdp.util.TestUtils.createUser;
  */
 @RunWith(SpringRunner.class)
 @DataJpaTest
-@Import(DatabaseMigrationConfig.class)
 public class VerificationTokenRepositoryTest {
 
     @Autowired
