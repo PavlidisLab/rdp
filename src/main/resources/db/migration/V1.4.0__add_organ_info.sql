@@ -5,4 +5,6 @@ create table user_organ (id integer not null auto_increment, description TEXT, n
 alter table organ_info add constraint UK3gxhitw1572dhfctt2mjulc45 unique (uberon_id);
 alter table user_organ add constraint UKt09aoc8fqrshueqnau3m5423i unique (user_id, uberon_id);
 alter table user_organ add constraint FKtmll6kbthwqqh53034wn9i220 foreign key (user_id) references user (user_id);
+alter table ortholog drop primary key;
+alter table ortholog add primary key (source_gene, target_gene);
 alter table ortholog drop column target_taxon;

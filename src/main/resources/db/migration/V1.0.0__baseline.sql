@@ -1,7 +1,7 @@
 create table descriptions (user_id integer not null, description TEXT, taxon_id integer not null, primary key (user_id, taxon_id));
 create table gene (id integer not null auto_increment, synonyms TEXT, gene_id integer, modification_date int(11), description TEXT, symbol varchar(63), tier varchar(5), taxon_id integer not null, user_id integer not null, primary key (id));
 create table gene_info (id integer not null auto_increment, synonyms TEXT, gene_id integer, modification_date date, description TEXT, symbol varchar(63), taxon_id integer not null, primary key (id));
-create table ortholog (source_gene integer not null, target_gene integer not null, target_taxon int(11), primary key (source_gene, target_gene));
+create table ortholog (source_gene integer not null, target_gene integer not null, target_taxon integer not null, primary key (source_gene, target_gene, target_taxon));
 create table password_reset_token (id integer not null auto_increment, expiry_date datetime, token varchar(255), user_id integer not null, primary key (id));
 create table publication (publication_id integer not null auto_increment, pmid integer, title varchar(255), user_id integer, primary key (publication_id));
 create table role (role_id integer not null auto_increment, role varchar(255), primary key (role_id));
@@ -25,8 +25,6 @@ alter table descriptions add constraint FK6501475nsrwi4tucfi8mfjr0h foreign key 
 alter table gene add constraint FKtqhagy6kmkx36gh9w2ku5g9gf foreign key (taxon_id) references taxon (taxon_id);
 alter table gene add constraint FKfitav6vg0nilrvfwrqdtbvgh2 foreign key (user_id) references user (user_id);
 alter table gene_info add constraint FKjhrcx93vfadlsujyvmudxc7dg foreign key (taxon_id) references taxon (taxon_id);
-alter table ortholog add constraint FKe2ta3wnn9jfcg06xnqxkrv6cg foreign key (target_gene) references gene_info (id);
-alter table ortholog add constraint FKg6ir5vbtwytuyoemcay8tsc6x foreign key (source_gene) references gene_info (id);
 alter table password_reset_token add constraint FK5lwtbncug84d4ero33v3cfxvl foreign key (user_id) references user (user_id);
 alter table publication add constraint FKq2ei3a07e3ln96uel4alss2u7 foreign key (user_id) references user (user_id);
 alter table term add constraint FK3p6e5vb4ri2ekg1ct1aoq57md foreign key (taxon_id) references taxon (taxon_id);
