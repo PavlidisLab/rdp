@@ -13,7 +13,7 @@ This section describe the essential steps to install and run an RDP instance.
 Download the [latest jar distribution](https://github.com/PavlidisLab/rgr/releases/latest) from GitHub.
 
 ```bash
-wget https://github.com/PavlidisLab/rgr/releases/download/v1.3.2/rdp-1.3.2.jar
+wget -O rdp.jar https://github.com/PavlidisLab/rgr/releases/download/v1.3.2/rdp-1.3.2.jar
 ```
 
 The jar contains the core application, including an embedded webserver (Tomcat 8.5.x),
@@ -61,7 +61,7 @@ That should be enough to get the Web service started. Now you can launch it be
 issuing the following command:
 
 ```bash
-java -jar rdp-1.3.2.jar
+java -jar rdp.jar
 ```
 
 If your email server is not configured properly, you will see an error from the

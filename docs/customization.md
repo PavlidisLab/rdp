@@ -33,13 +33,39 @@ where gene and GO terms can be downloaded relative to the working directory of
 the Web application.
 
 ```ini
-rdp.settings.cache.gene-files-location=genes
-rdp.settings.cache.term-file=go.obo
-rdp.settings.cache.annotation-file=gene2go.gz
+rdp.settings.cache.load-from-disk=true
+rdp.settings.cache.gene-files-location=file:genes/
+rdp.settings.cache.ortholog-file=file:DIOPT_filtered_data_March2020.txt
+rdp.settings.cache.term-file=file:go.obo
+rdp.settings.cache.annotation-file=file:gene2go.gz
+rdp.settings.cache.organ-file=file:uberon.obo
 ```
 
 With the above settings and given that *Homo sapiens* taxon is enabled, RDP
 will retrieve gene information from `genes/Homo_sapiens.gene_info.gz`.
+
+## Ortholog mapping
+
+There is a static orthologs mapping included with the application based on [DIOPT](https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-12-357), 
+that will automatically populate the database on startup. They are also updated monthly.
+
+As an alternative, you can also use NCBI gene orthologs:
+
+```ini
+rdp.settings.cache.orthologs-file=ftp://ftp.ncbi.nlm.nih.gov/gene/DATA/gene_orthologs.gz
+```
+
+## Organ Systems
+
+Organ systems are based on [Uberon multi-species anatomy ontology](http://www.obofoundry.org/ontology/uberon.html) and 
+updated monthly.
+
+Only a select few organ systems are activated by default. You can activate more by running the following SQL command with
+a Uberon identifier of your choice:
+
+```sql
+update organ_info set active = true where uberon_id = '<uberon_id>';
+```
 
 ## Internationalization and custom messages
 
@@ -71,14 +97,36 @@ The FAQ can be customized in `faq.properties`.
 * In order to access the RDMMN shared data system (international search), your application must use HTTPs. If you do not have HTTPs setup for you domain, you can consult the following guides on how to set it up:
     - [medium.com/@raupach/how-to-install-lets-encrypt-with-tomcat-3db8a469e3d2](https://medium.com/@raupach/how-to-install-lets-encrypt-with-tomcat-3db8a469e3d2)
     - [community.letsencrypt.org/t/configuring-lets-encrypt-with-tomcat-6-x-and-7-x/32416](https://community.letsencrypt.org/t/configuring-lets-encrypt-with-tomcat-6-x-and-7-x/32416)
+    
+## Style and static resources
 
-## Ortholog mapping
+Static resources can be selectively replaced by including a search directory for Spring static resources.
 
-There is a static ortholog mapping included with the application, that will automatically populate the database on startup.
+```ini
+spring.resources.static-locations=file:static/,classpath:/static/
+```
 
-For future updates of the ortholog mapping, you can watch the
-[data.sql](https://github.com/PavlidisLab/modinvreg/blob/development/src/main/resources/data.sql)
-file for changes, and run the ortholog part on your database when that happens.
+Here's the list of paths that can be adjusted using the above setting:
+
+```
+static/
+    css/
+        common.css # general pages
+        login.css  # login-like pages (i.e. registration, reset password, etc.)
+    images/
+        model-organisms/
+            <taxon_id>.svg
+        organs/
+            <uberon_id>.svg
+        researcher-categories/
+            <researcher_category_id>.svg
+        brand.png
+        favicon-16x16.png
+        favicon-32x32.png
+        header.jpg
+```
+
+We strongly recommend against overriding JavaScript files as it could break functionalities of the website.
 
 ## Building from source
 

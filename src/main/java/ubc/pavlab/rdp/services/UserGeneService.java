@@ -19,8 +19,8 @@
 
 package ubc.pavlab.rdp.services;
 
-import org.springframework.security.access.prepost.PostFilter;
 import ubc.pavlab.rdp.model.*;
+import ubc.pavlab.rdp.model.enums.ResearcherCategory;
 import ubc.pavlab.rdp.model.enums.TierType;
 
 import java.util.*;
@@ -42,26 +42,9 @@ public interface UserGeneService {
 
     Integer countUniqueAssociationsToHumanAllTiers();
 
-    Collection<UserGene> findByGeneId( int geneId );
+    Collection<UserGene> findByGeneIdAndTierInWithoutSecurityFilter( int geneId, Set<TierType> tiers, Optional<Collection<ResearcherCategory>> researcherTypes, Optional<Collection<UserOrgan>> organs );
 
-    Collection<UserGene> findByGeneIdAndTier( int geneId, TierType tier );
-
-    @PostFilter("hasPermission(filterObject, 'read')")
-    Collection<UserGene> findByGeneIdAndTierAndUserOrgansIn( int geneId, TierType tier, Collection<UserOrgan> organs );
-
-    Collection<UserGene> findByGeneIdAndTierIn( int geneId, Set<TierType> tiers );
-
-    Collection<UserGene> findByGeneIdAndTierInAndUserOrgansIn( int geneId, Set<TierType> tiers, Collection<UserOrgan> organs );
-
-    Collection<UserGene> findByGeneIdWithoutSecurityFilter( int geneId );
-
-    Collection<UserGene> findByGeneIdAndTierWithoutSecurityFilter( int geneId, TierType tier );
-
-    Collection<UserGene> findByGeneIdAndTierAndUserOrgansInWithoutSecurityFilter( int geneId, TierType tier, Collection<UserOrgan> organs );
-
-    Collection<UserGene> findByGeneIdAndTierInWithoutSecurityFilter( int geneId, Set<TierType> tiers );
-
-    Collection<UserGene> findByGeneIdAndTierInAndUserOrgansInWithoutSecurityFilter( int geneId, Set<TierType> tiers, Collection<UserOrgan> organs );
+    Collection<UserGene> findByGeneIdAndTierInAndUserOrgansInWithoutSecurityFilter( int geneId, Set<TierType> tiers, Optional<Collection<ResearcherCategory>> researcherTypes, Optional<Collection<UserOrgan>> organs );
 
     UserGene findBySymbolAndTaxon( String symbol, Taxon taxon );
 
@@ -71,19 +54,21 @@ public interface UserGeneService {
 
     Collection<UserGene> findByLikeSymbol( String symbol, Taxon taxon, Set<TierType> tiers );
 
-    Collection<UserGene> findOrthologs( Gene gene, Set<TierType> tiers );
+    Collection<UserGene> findOrthologsByGeneAndTierInAndUserOrgansIn( Gene gene, Set<TierType> tiers, Optional<Collection<ResearcherCategory>> researcherTypes, Optional<Collection<UserOrgan>> userOrgans );
 
-    Collection<UserGene> findOrthologsWithTaxon( Gene gene, Set<TierType> tiers, Taxon orthologTaxon );
+    Collection<UserGene> findOrthologsByGeneAndTierInAndTaxonAndUserOrgansIn( Gene gene, Set<TierType> tiers, Taxon orthologTaxon, Optional<Collection<ResearcherCategory>> researcherTypes, Optional<Collection<UserOrgan>> userOrgans );
 
-    Collection<UserGene> findOrthologsWithoutSecurityFilter( Gene gene, Set<TierType> tiers );
+    Collection<UserGene> findOrthologsByGeneAndTierInAndUserOrgansInWithoutSecurityFilter( Gene gene, Set<TierType> tiers, Optional<Collection<ResearcherCategory>> researcherTypes, Optional<Collection<UserOrgan>> userOrgans );
 
-    Collection<UserGene> findOrthologsWithTaxonWithoutSecurityFilter( Gene gene, Set<TierType> tiers, Taxon orthologTaxon, Optional<Collection<UserOrgan>> organs );
+    Collection<UserGene> findOrthologsByGeneAndTierInAndTaxonAndUserOrgansInWithoutSecurityFilter( Gene gene, Set<TierType> tiers, Taxon orthologTaxon, Optional<Collection<ResearcherCategory>> researcherTypes, Optional<Collection<UserOrgan>> userOrgans );
 
     UUID getHiddenIdForUserGene( UserGene userGene );
 
     UserGene findUserGeneByHiddenId( UUID hiddenUserGeneId );
 
-    Collection<UserGene> handleGeneSearch( Gene gene, Set<TierType> tiers, Collection<UserGene> orthologs, Optional<Collection<UserOrgan>> organs );
+    Collection<UserGene> handleGeneSearch( Gene gene, Set<TierType> tiers, Optional<Taxon> orthologTaxon, Optional<Collection<ResearcherCategory>> researcherTypes, Optional<Collection<UserOrgan>> organs );
 
-    Collection<UserGene> handleGeneSearchWithoutSecurityFilter( Gene gene, Set<TierType> tiers, Collection<UserGene> orthologs, Optional<Collection<UserOrgan>> organs );
+    Collection<UserGene> handleGeneSearchWithoutSecurityFilter( Gene gene, Set<TierType> tiers, Optional<Taxon> orthologTaxon, Optional<Collection<ResearcherCategory>> researcherTypes, Optional<Collection<UserOrgan>> organs );
+
+    void updateUserGenes();
 }

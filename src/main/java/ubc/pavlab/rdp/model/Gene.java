@@ -12,8 +12,6 @@ import java.util.*;
 @MappedSuperclass
 @Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
 @EqualsAndHashCode(of = {"geneId"})
 @ToString(of = {"geneId", "symbol", "taxon"})
 public abstract class Gene {
@@ -37,23 +35,4 @@ public abstract class Gene {
     @Temporal(TemporalType.DATE)
     @Column(name = "modification_date")
     private Date modificationDate;
-
-    @Transient
-    @JsonIgnore
-    private Set<GeneOntologyTerm> terms = new HashSet<>();
-
-    public Collection<GeneOntologyTerm> getAllTerms( boolean includePartOf, boolean propagateUpwards ) {
-
-        Collection<GeneOntologyTerm> allGOTermSet = new HashSet<>();
-
-        for ( GeneOntologyTerm term : terms ) {
-            allGOTermSet.add( term );
-
-            if ( propagateUpwards ) {
-                allGOTermSet.addAll( term.getAncestors( includePartOf ) );
-            }
-        }
-
-        return Collections.unmodifiableCollection( allGOTermSet );
-    }
 }

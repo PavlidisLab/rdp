@@ -14,7 +14,9 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler;
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.web.filter.HiddenHttpMethodFilter;
 import ubc.pavlab.rdp.security.PermissionEvaluatorImpl;
 
 import java.util.Locale;
@@ -38,13 +40,13 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     private MessageSource messageSource;
 
+    @Autowired
+    PermissionEvaluator permissionEvaluator;
+
     @Override
     protected void configure( AuthenticationManagerBuilder auth ) throws Exception {
         auth.userDetailsService( userDetailsService ).passwordEncoder( bCryptPasswordEncoder );
     }
-
-    @Autowired
-    PermissionEvaluator permissionEvaluator;
 
     @Override
     public void configure( WebSecurity web ) {
@@ -60,11 +62,13 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure( HttpSecurity http ) throws Exception {
         http
+                // allow _method in HTML form
+                .addFilterAfter( new HiddenHttpMethodFilter(), BasicAuthenticationFilter.class )
                 .authorizeRequests()
                     // public endpoints
                     .antMatchers( "/", "/login", "/registration", "/registrationConfirm", "/stats", "/stats.html",
                             "/forgotPassword", "/resetPassword", "/updatePassword", "/resendConfirmation", "/search/**",
-                            "/userView/**", "/request-match/**", "/taxon/**", "/access-denied" )
+                            "/userView/**", "/taxon/**", "/access-denied" )
                         .permitAll()
                     // API for international search
                     .antMatchers("/api/**")
@@ -74,7 +78,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                         .hasRole( "ADMIN" )
                     // user endpoints
                     .antMatchers( "/user/**" )
-                        .authenticated()
+                        .hasAnyRole("USER", "ADMIN")
                     .and()
                 // TODO: we should fully comply with CSRF
                 .csrf()
@@ -95,6 +99,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                     .logoutSuccessUrl( "/" )
                     .and()
                 .exceptionHandling()
-                    .accessDeniedPage( "/access-denied" );
+                    .accessDeniedPage( "/access-denied" )
+                    .and();
+
     }
 }

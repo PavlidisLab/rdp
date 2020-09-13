@@ -12,7 +12,6 @@ import ubc.pavlab.rdp.model.enums.TierType;
 
 import java.net.URL;
 import java.util.Arrays;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.mockito.Matchers.argThat;
@@ -30,7 +29,6 @@ public final class TestUtils {
     public static final String PASSWORD = "imbatman";
     public static final String NAME = "Bruce";
     public static final String LAST_NAME = "Wayne";
-
 
     public static final String TAXON_COMMON_NAME = "Honey Bee";
     public static final String TAXON_SCIENTIFIC_NAME = "Apis mellifera";
@@ -107,12 +105,7 @@ public final class TestUtils {
         GeneOntologyTerm term = new GeneOntologyTerm();
         term.setGoId( id );
         term.setObsolete( false );
-
-        Arrays.stream( genes ).forEach( g -> {
-            term.getDirectGenes().add( g );
-            g.getTerms().add( term );
-        } );
-
+        term.setDirectGeneIds( Arrays.stream( genes ).map( GeneInfo::getGeneId ).collect( Collectors.toSet() ) );
         return term;
     }
 
@@ -120,60 +113,32 @@ public final class TestUtils {
         GeneInfo gene = new GeneInfo();
         gene.setGeneId( id );
         gene.setTaxon( taxon );
-
         return gene;
     }
 
     public static UserTerm createUserTerm( int id, User user, GeneOntologyTerm term, Taxon taxon ) {
-        UserTerm ut = UserTerm.createUserTerm( user, term, taxon, null );
-        ut.setId( id );
-        return ut;
-    }
-
-    public static UserTerm createUserTerm( int id, User user, GeneOntologyTerm term, Taxon taxon, Set<Gene> genes ) {
-        UserTerm ut = UserTerm.createUserTerm( user, term, taxon, genes );
+        UserTerm ut = UserTerm.createUserTerm( user, term, taxon );
         ut.setId( id );
         return ut;
     }
 
     public static UserGene createUserGene( int id, Gene gene, User user, TierType tier ) {
-        UserGene ug = UserGene.createUserGeneFromGene( gene, user, tier, PrivacyLevelType.PRIVATE );
+        UserGene ug = createUnpersistedUserGene( gene, user, tier );
         ug.setId( id );
+        return ug;
+    }
+
+    public static UserGene createUnpersistedUserGene( Gene gene, User user, TierType tier ) {
+        UserGene ug = new UserGene();
+        ug.setUser( user );
+        ug.setTier( tier );
+        ug.setPrivacyLevel( PrivacyLevelType.PRIVATE );
+        ug.updateGene( gene );
         return ug;
     }
 
     public static String toGOId( int id ) {
         return String.format( "GO:%07d", id );
-    }
-
-    @AllArgsConstructor
-    private static class IsPrefixOfIgnoreCase extends ArgumentMatcher<String> {
-
-        private String s;
-
-        @Override
-        public boolean matches( Object argument ) {
-            return argument != null && s.toLowerCase().startsWith( ( (String) argument ).toLowerCase() );
-        }
-    }
-
-    public static String isPrefixOfIgnoreCase( String prefix ) {
-        return argThat( new IsPrefixOfIgnoreCase( prefix ) );
-    }
-
-    @AllArgsConstructor
-    private static class IsSubstringOfIgnoreCase extends ArgumentMatcher<String> {
-
-        private String s;
-
-        @Override
-        public boolean matches( Object argument ) {
-            return argument != null && s.contains( (String) argument );
-        }
-    }
-
-    public static String isSubstringOfIgnoreCase( String s ) {
-        return argThat( new IsSubstringOfIgnoreCase( s ) );
     }
 
     public static OrganInfo createOrgan( String uberonId, String name, String description ) {

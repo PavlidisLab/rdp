@@ -44,7 +44,7 @@
 
         <div class="row my-3">
             <div class="col">
-                <div class="card basic-info">
+                <form class="card basic-info" method="post">
                     <div class="card-header">
                         <div class="d-flex align-items-center">
                             <h3 class="mb-0">Basic Information</h3>
@@ -64,6 +64,14 @@
                             </td>
                         </tr>
                         <tr class="edit-container">
+                            <td class="align-middle"><label th:for="${#ids.next('researcherPosition')}" class="text-muted align-middle">Position</label></td>
+                            <td>
+                                <div th:replace="fragments/profile::researcher-position-selection(selectedResearcherPosition=${user.profile.researcherPosition})">
+                                    ...
+                                </div>
+                            </td>
+                        </tr>
+                        <tr class="edit-container">
                             <td class="align-middle"><span class="text-muted align-middle">Organization</span></td>
                             <td><i class="editable" th:if="${viewOnly == null}"/>
                                 <input class="data-edit" type="text" name="organization" th:value="${user.profile.organization}" disabled="disabled"/>
@@ -75,6 +83,14 @@
                                 <input class="data-edit" type="text" name="department" th:value="${user.profile.department}" disabled="disabled"/>
                             </td>
                         </tr>
+                        <tr th:unless="${@applicationSettings.profile.enabledResearcherCategories.isEmpty()}" class="edit-container">
+                            <td class="align-middle"><label th:for="${#ids.next('researcherCategory')}" class="text-muted align-middle">Researcher Category</label></td>
+                            <td>
+                                <div th:replace="fragments/profile::researcher-category-selection(selectedResearcherCategory = ${user.profile.researcherCategory})">
+                                ...
+                                </div>
+                            </td>
+                        </tr>
                         <tr class="edit-container">
                             <td class="align-middle"><span class="text-muted align-middle">Website</span></td>
                             <td><i class="editable" th:if="${viewOnly == null}"/>
@@ -82,7 +98,7 @@
                             </td>
                         </tr>
                     </table>
-                </div>
+                </form>
             </div>
         </div>
 
@@ -130,9 +146,9 @@
                         <h3 class="mb-0 d-inline-block">Organ Systems</h3>
                     </div>
                     <div class="card-body">
-                        <p>These settings let other users know which organs your researched is focused on.</p>
+                        <p>These settings let other users know which organ systems your research focuses on.</p>
                         <div th:replace="fragments/organ::organs-selection(checkedOrgans = ${user.userOrgans.values()})">
-                            ...
+                        ...
                         </div>
                     </div>
                 </div>
@@ -272,6 +288,6 @@
 </div>
 <div th:replace="layouts/common::footer">...</div>
 <div th:replace="layouts/common::scripts"></div>
-<script th:src="@{/js/profile.js}" defer="defer"></script>
+<script th:src="@{/js/profile.js}"></script>
 </body>
 </html>

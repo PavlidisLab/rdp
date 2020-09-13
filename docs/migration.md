@@ -21,8 +21,6 @@ us.
 Once the update is successful, you should revert the option back to `false` to
 speed up future restarts.
 
-Take a look in the sections below for version-specific migration procedures.
-
 As of 1.3.2, database migrations are automated with Flyway which will run at startup of the application. This behaviour
 can be disabled with the following parameter in `application.properties`:
 
@@ -30,21 +28,43 @@ can be disabled with the following parameter in `application.properties`:
 flyway.enabled=false
 ```
 
+After finishing all the steps, you can start your RDP application again and test if everything works as expected.
+
+Take a look at the sections below for version-specific migration procedures.
+
 ## Migrate from 1.3 to 1.4
 
-Gene informations are now stored in the database. As a result, taxons are known
-for ortholog genes and the `ortholog_taxon` column has become unnecessary, and
-a source of error for Hibernate.
+This release includes the initial schema of the 1.3.1 release as baseline. This means that you don't have to go through
+the process of running previous migrations when you deploy releases from the 1.4 series.
 
- - [V1.4.0__drop_ortholog_target_taxon.sql](../src/main/resources/db/migration/V1.4.0__drop_ortholog_target_taxon.sql)
+Organ information have been included as well as additional fields in the user profile. Gene informations are now stored
+in the database. As a result, taxons are known for ortholog genes and the `ortholog_taxon`  column has become unnecessary,
+and a source of error for Hibernate.
+
+From this release and onward, Spring resources are used to map external URL and local files for cached resources such as
+gene informations, orthologs, etc.
+
+If you changed any of the `rdp.settings.cache` parameter, you will have to add a `file:` prefix to refer to local files. 
+You can also use the `https:` and `ftp:` prefixes for refering to remote files.
+
+```
+rdp.settings.cache.enabled=false
+rdp.settings.cache.load-from-disk=true
+rdp.settings.cache.gene-files-location=file:genes/
+rdp.settings.cache.ortholog-file=file:DIOPT_filtered_data_March2020.gz
+rdp.settings.cache.term-file=file:go.obo
+rdp.settings.cache.annotation-file=file:gene2go.gz
+rdp.settings.cache.organ-file=file:uberon.obo
+```
+
+We recommend that you move any messages from `application-prod.properties` and `login.properties` into 
+`messages.properties`. More details are available in [Customize your instance](customization.md).
 
 ## Migrate from 1.3.x to 1.3.2
 
 NCBI gene broke because they introduced genes with unexpected date format. We
 adjusted our parsing code to process date formats and now store a `DATE` type
 in the database.
-
- - [V1.3.2__fix_gene_modification_date_type.sql](../src/main/resources/db/migration/V1.3.2__fix_gene_modification_date_type.sql)
 
 ## Migrate from version 1.1.x to 1.2
 
@@ -153,8 +173,3 @@ update taxon set ordering = 8 where common_name = "e. coli";
 
 There are new categories talking about the now available privacy and sharing options. You can use our updated
 faq file (see the faq.properties file in our github repository), or add the new categories manually to your existing file.
-
-
-### Start the application
-
-After finishing all the steps, you can start your RDMM application again and test if everything works as expected.

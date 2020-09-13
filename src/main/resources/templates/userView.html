@@ -11,7 +11,7 @@
 <body>
 <div th:replace="layouts/common::header">...</div>
 <div class="container py-4">
-    <div th:replace="layouts/common::title(title='View Account', subtitle=${viewUser.email})">...</div>
+    <div th:replace="layouts/common::title(title='User Profile', subtitle=${viewUser.email})">...</div>
     <div class="main-content">
         <div class="row justify-content-center success-row" th:if="${viewUser.origin} != null">
             <div class="col my-3">
@@ -40,6 +40,10 @@
         </div>
 
         <div class="row">
+            <div th:if="${viewUser.profile.researcherCategory != null}" class="col-3 col-lg-2 my-auto">
+                <img th:src="@{/images/researcher-categories/{id}.svg(id=${viewUser.profile.researcherCategory.id})}" class="img-fluid"/>
+                <h4 class="text-center" th:text="${viewUser.profile.researcherCategory.label}"></h4>
+            </div>
             <div class="col my-3">
                 <div class="card basic-info">
                     <div class="card-header">
@@ -57,6 +61,16 @@
                             <td class="align-middle"><span class="text-muted align-middle">Last Name</span></td>
                             <td>
                                 <input class="data-edit" type="text" name="lastName" th:value="${viewUser.profile.lastName}" disabled="disabled"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Position</td>
+                            <td>
+                                <input th:if="${viewUser.profile.researcherPosition} != null"
+                                       class="data-edit"
+                                       type="text"
+                                       name="researcherPosition"
+                                       th:value="${viewUser.profile.researcherPosition.label}" disabled="disabled"/>
                             </td>
                         </tr>
                         <tr class="edit-container">
@@ -81,6 +95,7 @@
                 </div>
             </div>
         </div>
+
         <div class="row">
             <div class="col my-3">
                 <div class="card contact-info">
@@ -103,10 +118,10 @@
                     </table>
                 </div>
             </div>
+        </div>
 
-            <div class="w-100"></div>
-
-            <div class="col my-3">
+        <div class="row my-3">
+            <div class="col">
                 <div class="card research-info edit-container">
                     <div class="card-header d-flex align-items-center">
                         <h3 class="mb-0 d-inline-block">About My Research</h3>
@@ -116,34 +131,47 @@
                     </div>
                 </div>
             </div>
+        </div>
 
-            <div class="w-100"></div>
-
-            <div class="col my-3" th:if="(${user} != null) and ${user.getRoles().contains(@roleRepository.findByRole('ROLE_ADMIN'))}">
+        <div class="row my-3">
+            <div class="col">
                 <div class="card">
                     <div class="card-header">
-                        <h4>Data privacy</h4>
-                        <div>
-                            Data privacy:
-                            <b th:text="${viewUser.getEffectivePrivacyLevel().getLabel()}"></b>
-                        </div>
-                        <div>
-                            International sharing:
-                            <b th:if="${viewUser.getProfile().getHideGenelist()}">disabled.</b>
-                            <b th:if="not ${viewUser.getProfile().getHideGenelist()}">enabled.</b>
-                        </div>
-                        <div th:if="${@applicationSettings.getPrivacy().isAllowHideGenelist()}">
-                            International sharing of this users data is
-                            <b th:if="${viewUser.getProfile().getShared()}">enabled.</b>
-                            <b th:if="not ${viewUser.getProfile().getShared()}">disabled.</b>
+                        <h4>Organ Systems</h4>
+                    </div>
+                    <div class="card-body">
+                        <div th:replace="fragments/organ::organs-selection(checkedOrgans = ${viewUser.userOrgans.values()}, appendclass = 'col-lg-1', readonly = true)">
+                            ...
                         </div>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <div class="w-100"></div>
+        <div class="col my-3" th:if="(${user} != null) and ${user.getRoles().contains(@roleRepository.findByRole('ROLE_ADMIN'))}">
+            <div class="card">
+                <div class="card-header">
+                    <h4>Data privacy</h4>
+                    <div>
+                        Data privacy:
+                        <b th:text="${viewUser.getEffectivePrivacyLevel().getLabel()}"></b>
+                    </div>
+                    <div>
+                        International sharing:
+                        <b th:if="${viewUser.getProfile().getHideGenelist()}">disabled.</b>
+                        <b th:if="not ${viewUser.getProfile().getHideGenelist()}">enabled.</b>
+                    </div>
+                    <div th:if="${@applicationSettings.getPrivacy().isAllowHideGenelist()}">
+                        International sharing of this users data is
+                        <b th:if="${viewUser.getProfile().getShared()}">enabled.</b>
+                        <b th:if="not ${viewUser.getProfile().getShared()}">disabled.</b>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-            <div class="col my-3">
+        <div class="row my-3">
+            <div class="col">
                 <div class="card publication-info">
                     <div class="card-header">
                         <h3 class="mb-0">Publications</h3>
@@ -166,66 +194,68 @@
                     </table>
                 </div>
             </div>
-            <th:block th:each="taxon : ${viewUser.taxons}">
-                    <div class="w-100"></div>
+        </div>
 
-                    <div class="col my-3">
-                        <div class="card research-info edit-container">
-                            <div class="card-header d-flex align-items-center">
-                                <h3 class="mb-0 d-inline-block text-capitalize"><span
-                                        th:text="${taxon.commonName + ' Research Focus'}" th:remove="tag"></span></h3>
-                            </div>
-                            <div class="p-2" style="height: 80px;">
+        <th:block th:each="taxon : ${viewUser.taxons}">
+
+            <div class="row my-3">
+                <div class="col">
+                    <div class="card research-info edit-container">
+                        <div class="card-header d-flex align-items-center">
+                            <h3 class="mb-0 d-inline-block text-capitalize"><span
+                                    th:text="${taxon.commonName + ' Research Focus'}" th:remove="tag"></span></h3>
+                        </div>
+                        <div class="p-2" style="height: 80px;">
                                 <textarea class="data-edit" name="description"
-                                          th:text="${viewUser.taxonDescriptions.get(taxon)}" disabled="disabled"></textarea>
-                            </div>
+                                          th:text="${viewUser.taxonDescriptions.get(taxon)}"
+                                          disabled="disabled"></textarea>
                         </div>
                     </div>
+                </div>
+            </div>
 
-                    <div class="w-100"></div>
-
-                    <div class="col my-3" th:if="
+            <div class="row my-3" th:if="
                     not ${viewUser.getProfile().getHideGenelist()}
                     or ((${user} != null) and ${user.getId() == viewUser.getId()})
-                    or ((${user} != null) and ${user.getRoles().contains(@roleRepository.findByRole('ROLE_ADMIN'))})
-                    ">
-                        <div class="card">
-                            <div class="card-header">
-                                <!--<h3 class="mb-2 text-capitalize"><span th:text="${taxon.commonName}" th:remove="tag"></span></h3>-->
-                                <ul class="nav nav-tabs card-header-tabs" role="tablist">
-                                    <li class="nav-item">
-                                        <a class="nav-link active genes-tab" data-toggle="tab"
-                                           th:href="${'#genes-' + taxon.id}" role="tab"
-                                           aria-controls="profile" aria-selected="true">Genes</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a class="nav-link terms-tab" data-toggle="tab"
-                                           th:href="${'#terms-' + taxon.id}" role="tab"
-                                           aria-controls="model"
-                                           aria-selected="true">Terms</a>
-                                    </li>
-                                </ul>
-                            </div>
+                    or ((${user} != null) and ${user.getRoles().contains(@roleRepository.findByRole('ROLE_ADMIN'))})">
+                <div class="col">
+                    <div class="card">
+                        <div class="card-header">
+                            <!--<h3 class="mb-2 text-capitalize"><span th:text="${taxon.commonName}" th:remove="tag"></span></h3>-->
+                            <ul class="nav nav-tabs card-header-tabs" role="tablist">
+                                <li class="nav-item">
+                                    <a class="nav-link active genes-tab" data-toggle="tab"
+                                       th:href="${'#genes-' + taxon.id}" role="tab"
+                                       aria-controls="profile" aria-selected="true">Genes</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link terms-tab" data-toggle="tab"
+                                       th:href="${'#terms-' + taxon.id}" role="tab"
+                                       aria-controls="model"
+                                       aria-selected="true">Terms</a>
+                                </li>
+                            </ul>
+                        </div>
 
-                            <div class="card-body">
-                                <div class="tab-content">
-                                    <div class="tab-pane fade show active" th:id="${'genes-' + taxon.id}"
-                                         role="tabpanel">
+                        <div class="card-body">
+                            <div class="tab-content">
+                                <div class="tab-pane fade show active" th:id="${'genes-' + taxon.id}"
+                                     role="tabpanel">
                                     <div th:replace="fragments/gene-table :: gene-table(genes=${viewUser.getGenesByTaxon(taxon)}, defaultPrivacyLevel=${viewUser.getEffectivePrivacyLevel()})"
-                                             th:remove="tag">...
-                                        </div>
+                                         th:remove="tag">...
                                     </div>
-                                    <div class="tab-pane fade" th:id="${'terms-' + taxon.id}" role="tabpanel">
-                                        <div th:replace="fragments/term-table :: term-table(userTerms=${viewUser.getTermsByTaxon(taxon)})"
-                                             th:remove="tag">...
-                                        </div>
+                                </div>
+                                <div class="tab-pane fade" th:id="${'terms-' + taxon.id}" role="tabpanel">
+                                    <div th:replace="fragments/term-table :: term-table(userTerms=${viewUser.getTermsByTaxon(taxon)})"
+                                         th:remove="tag">...
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-            </th:block>
-        </div>
+                </div>
+            </div>
+        </th:block>
     </div>
 </div>
 

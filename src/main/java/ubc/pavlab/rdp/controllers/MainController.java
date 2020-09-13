@@ -2,6 +2,7 @@ package ubc.pavlab.rdp.controllers;
 
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -23,6 +24,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Controller
@@ -63,6 +65,7 @@ public class MainController {
         return modelAndView;
     }
 
+    @Secured({ "ROLE_USER", "ROLE_ADMIN" })
     @RequestMapping(value = { "/user/home" }, method = RequestMethod.GET)
     public ModelAndView userHome() {
         ModelAndView modelAndView = new ModelAndView();
@@ -77,6 +80,7 @@ public class MainController {
         response.sendRedirect( "/stats" );
     }
 
+    @Secured({ "ROLE_USER", "ROLE_ADMIN" })
     @RequestMapping(value = { "/user/model/{taxonId}" }, method = RequestMethod.GET)
     public ModelAndView model( @PathVariable Integer taxonId ) {
         ModelAndView modelAndView = new ModelAndView();
@@ -90,6 +94,7 @@ public class MainController {
         return modelAndView;
     }
 
+    @Secured({ "ROLE_USER", "ROLE_ADMIN" })
     @RequestMapping(value = "/user/taxon/{taxonId}/term/{goId}/gene/view", method = RequestMethod.GET)
     public ModelAndView getTermsGenesForTaxon( @PathVariable Integer taxonId, @PathVariable String goId ) {
         ModelAndView modelAndView = new ModelAndView();
@@ -99,10 +104,10 @@ public class MainController {
         GeneOntologyTerm term = goService.getTerm( goId );
 
         if ( term != null ) {
-            Collection<GeneInfo> genes = goService.getGenes( term );
-
+            Set<Integer> geneIds = goService.getGenes( term ).stream().map( GeneInfo::getGeneId ).collect( Collectors.toSet() );
             modelAndView.addObject( "genes",
-                    user.getGenesByTaxonAndTier( taxon, TierType.MANUAL ).stream().filter( genes::contains )
+                    user.getGenesByTaxonAndTier( taxon, TierType.MANUAL ).stream()
+                            .filter( ug -> geneIds.contains( ug.getGeneId() ) )
                             .collect( Collectors.toSet() ) );
         } else {
             modelAndView.addObject( "genes", Collections.EMPTY_SET );
@@ -112,6 +117,7 @@ public class MainController {
         return modelAndView;
     }
 
+    @Secured({ "ROLE_USER", "ROLE_ADMIN" })
     @RequestMapping(value = { "/user/profile" }, method = RequestMethod.GET)
     public ModelAndView profile() {
         ModelAndView modelAndView = new ModelAndView();
@@ -122,6 +128,7 @@ public class MainController {
         return modelAndView;
     }
 
+    @Secured({ "ROLE_USER", "ROLE_ADMIN" })
     @RequestMapping(value = { "/user/documentation" }, method = RequestMethod.GET)
     public ModelAndView documentation() {
         ModelAndView modelAndView = new ModelAndView();
@@ -131,6 +138,7 @@ public class MainController {
         return modelAndView;
     }
 
+    @Secured({ "ROLE_USER", "ROLE_ADMIN" })
     @RequestMapping(value = { "/user/faq" }, method = RequestMethod.GET)
     public ModelAndView faq() {
         ModelAndView modelAndView = new ModelAndView();
@@ -140,6 +148,7 @@ public class MainController {
         return modelAndView;
     }
 
+    @Secured({ "ROLE_USER", "ROLE_ADMIN" })
     @RequestMapping(value = { "/user/support" }, method = RequestMethod.GET)
     public ModelAndView support() {
         ModelAndView modelAndView = new ModelAndView();

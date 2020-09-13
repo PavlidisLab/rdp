@@ -11,43 +11,45 @@
         <th></th>
         <th th:if="${remote}" scope="col">Origin</th>
         <th scope="col">Email</th>
-        <th scope="col">Name</th>
-        <th scope="col" style="white-space: nowrap;">Last Name</th>
+        <th scope="col">Full Name</th>
+        <th th:unless="${@applicationSettings.profile.enabledResearcherPositions.isEmpty()}" scope="col">Position</th>
         <th scope="col">Organization</th>
     </tr>
     </thead>
     <tbody>
-    <th:block th:each="u : ${users}">
-        <tr sec:authorize="hasPermission(#vars.u, 'read')">
+    <tr th:each="u : ${users}">
+        <th:block sec:authorize="hasPermission(#vars.u, 'read')">
             <td class="text-center">
-                <a th:href="@{/userView/{id}(id=${u.id})}"
-                   class="btn btn-primary btn-sm">View user profile</a>
+                <a th:href="@{/userView/{id}(id=${u.id})}" class="btn btn-primary btn-sm">View user profile</a>
             </td>
-            <td th:if="${remote}"><span th:text="${u.origin}" th:remove="tag"></span></td>
+            <td th:if="${remote}" th:text="${u.origin}"></td>
             <td><a th:href="'mailto:' + ${u.email}" th:text="${u.email}"></a></td>
-            <td><span th:text="${u.profile.name}" th:remove="tag"></span></td>
-            <td><span th:text="${u.profile.lastName}" th:remove="tag"></span></td>
-            <td style="width: 100%;"><span th:text="${u.profile.organization}" th:remove="tag"></span></td>
-        </tr>
-        <tr sec:authorize="!hasPermission(#vars.u, 'read')">
-            <td class="text-center">
-                <a th:href="@{/request-match/user/{hiddenId}(hiddenId=${@userService.getHiddenIdForUser(u)})}" class="btn btn-primary btn-sm">Request a match</a>
+            <td th:text="${u.profile.fullName}"></td>
+            <td th:unless="${@applicationSettings.profile.enabledResearcherPositions.isEmpty()}">
+                <span th:if="${u.profile.researcherPosition != null}" th:text="${u.profile.researcherPosition.label}"></span>
             </td>
-            <td class="text-center" colspan="4">
+            <td th:text="${u.profile.organization}"></td>
+        </th:block>
+        <th:block sec:authorize="!hasPermission(#vars.u, 'read')">
+            <td class="text-center">
+                <a th:href="@{/request-match/user/{hiddenId}(hiddenId=${@userService.getHiddenIdForUser(u)})}"
+                   class="btn btn-primary btn-sm">Request a match</a>
+            </td>
+            <td class="text-center" th:colspan="100">
                 <i class="oi oi-lock-locked" title="This researcher information is confidential."></i>
                 This research information is confidential.
             </td>
-        </tr>
-    </th:block>
+        </th:block>
+    </tr>
     <tr th:if="${#lists.isEmpty(users)}">
-        <td class="text-center" colspan="6">No Users Found</td>
+        <td class="text-center" th:colspan="100">No Users Found</td>
     </tr>
     </tbody>
 </table>
 
 <table class="user-table table table-sm mb-0" th:fragment="usergenes-table (usergenes, remote)">
     <tr th:each="map : ${mapsList}" >
-        <td colspan="6" th:each="mapEntry : ${map}">
+        <td colspan="100" th:each="mapEntry : ${map}">
             <span th:text="${mapEntry.key}"></span>
             <span th:text="${mapEntry.value}"></span>
         </td>
@@ -59,8 +61,8 @@
         <th scope="col"></th>
         <th th:if="${remote}" scope="col">Origin</th>
         <th scope="col">Email</th>
-        <th scope="col">Name</th>
-        <th scope="col" style="white-space: nowrap;">Last Name</th>
+        <th scope="col">Full Name</th>
+        <th th:unless="${@applicationSettings.profile.enabledResearcherPositions.isEmpty()}" scope="col">Position</th>
         <th scope="col">Organization</th>
         <th scope="col">Gene</th>
         <th scope="col">Tier</th>
@@ -71,20 +73,22 @@
     <tr th:each="ug : ${usergenes}">
         <th:block sec:authorize="hasPermission(#vars.ug, 'read')">
             <td class="text-center">
-                <a th:href="@{/userView/{id}(id=${ug.user.id})}"
-                   class="btn btn-primary btn-sm">View user profile</a>
+                <a th:href="@{/userView/{id}(id=${ug.user.id})}" class="btn btn-primary btn-sm">View User Profile</a>
             </td>
             <td th:if="${remote}"><span th:text="${ug.user.origin}" th:remove="tag"></span></td>
             <td><a th:href="'mailto:' + ${ug.user.email}" th:text="${ug.user.email}"></a></td>
-            <td th:text="${ug.user.profile.name}"></td>
-            <td th:text="${ug.user.profile.lastName}"></td>
-            <td th:text="${ug.user.profile.organization}" style="width: 100%;"></td>
+            <td th:text="${ug.user.profile.fullName}"></td>
+            <td th:unless="${@applicationSettings.profile.enabledResearcherPositions.isEmpty()}">
+                <span th:if="${ug.user.profile.researcherPosition} != null"
+                      th:text="${ug.user.profile.researcherPosition.label}"></span>
+            </td>
+            <td th:text="${ug.user.profile.organization}"></td>
         </th:block>
         <th:block sec:authorize="!hasPermission(#vars.ug, 'read')">
             <td class="text-center">
                 <a th:href="@{/request-match/user/{hiddenId}/gene/{hiddenUserGeneId}(hiddenId=${@userService.getHiddenIdForUser(ug.user)},hiddenUserGeneId=${@userGeneService.getHiddenIdForUserGene(ug)})}" class="btn btn-primary btn-sm">Request a match</a>
             </td>
-            <td class="text-center" colspan="4" style="width: 100%;">
+            <td class="text-center" colspan="100">
                 <i class="oi oi-lock-locked" title="This researcher information is confidential."></i>
                 This research information is confidential.
             </td>
@@ -94,7 +98,7 @@
         <td th:text="${#strings.capitalizeWords(ug.taxon.commonName)}"></td>
     </tr>
     <tr th:if="${#lists.isEmpty(usergenes)}">
-        <td class="text-center" colspan="8">No Users Found</td>
+        <td class="text-center" th:colspan="100">No Users Found</td>
     </tr>
     </tbody>
 </table>

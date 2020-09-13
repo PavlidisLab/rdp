@@ -5,7 +5,7 @@
 <div th:fragment="organs-selection">
     <div class="form-row">
         <div th:each="organInfo, iter : ${@organInfoService.findByActiveTrueOrderByOrdering()}"
-             class="form-group col-3 col-md-2 col-xl-1">
+             class="form-group col-3 col-md-2 col-lg-1">
             <div class="form-check"
                  th:attr="data-ot=${organInfo.name}"
                  data-ot-background="cornflowerblue"
@@ -16,6 +16,7 @@
                        th:id="${#ids.seq('organUberonIds')}"
                        th:value="${organInfo.uberonId}"
                        th:checked="${checkedOrgans != null} and ${#lists.contains(checkedOrgans, organInfo)}"
+                       th:disabled="${readonly != null and readonly}"
                        class="form-check-input"/>
                 <label th:for="${#ids.prev('organUberonIds')}"
                        class="form-check-label">

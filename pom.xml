@@ -10,7 +10,6 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <!-- FIXME: 1.5.13 introduces a regression with Ehcache CacheManager backend (see issue #6) -->
         <version>1.5.22.RELEASE</version>
     </parent>
 
@@ -130,6 +129,7 @@
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
+            <version>3.2.1</version>
         </dependency>
 
         <!-- Development Time Resources -->
@@ -143,7 +143,6 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <optional>true</optional>
         </dependency>
 
         <dependency>
@@ -219,6 +218,11 @@
                         <supportBranchPrefix>support-</supportBranchPrefix>
                     </gitFlowConfig>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.flywaydb</groupId>
+                <artifactId>flyway-maven-plugin</artifactId>
+                <version>3.2.1</version>
             </plugin>
         </plugins>
     </build>

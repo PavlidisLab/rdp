@@ -16,11 +16,11 @@ import java.util.stream.Collectors;
 @Getter
 @Setter
 @NoArgsConstructor
-@EqualsAndHashCode(of = {"goId"})
-@ToString(of={"goId"})
+@EqualsAndHashCode(of = { "goId" })
+@ToString(of = { "goId" })
 public class GeneOntologyTerm {
 
-    @Column(name = "go_id", length=10)
+    @Column(name = "go_id", length = 10)
     private String goId;
 
     @Column(name = "name", columnDefinition = "TEXT")
@@ -46,23 +46,15 @@ public class GeneOntologyTerm {
 
     @JsonIgnore
     @Transient
-    private Map<Taxon, Long> sizesByTaxon = new HashMap<>();
+    private Map<Integer, Long> sizesByTaxonId = new HashMap<>();
 
     @JsonIgnore
     @Transient
-    private Set<GeneInfo> directGenes = new HashSet<>();
-
-    public void addChild( Relationship child ) {
-        this.children.add( child );
-    }
-
-    public void addParent( Relationship parent ) {
-        this.parents.add( parent );
-    }
+    private Set<Integer> directGeneIds = new HashSet<>();
 
     public int getSize( Taxon taxon ) {
-        Long size = this.sizesByTaxon.get( taxon );
-        if (size == null) {
+        Long size = this.sizesByTaxonId.get( taxon.getId() );
+        if ( size == null ) {
             return 0;
         }
         return size.intValue();
@@ -71,7 +63,7 @@ public class GeneOntologyTerm {
     @JsonIgnore
     @Transient
     public int getTotalSize() {
-        return sizesByTaxon.values().stream().mapToInt( Long::intValue ).sum();
+        return sizesByTaxonId.values().stream().mapToInt( Long::intValue ).sum();
     }
 
     public Collection<GeneOntologyTerm> getParents( boolean includePartOf ) {
@@ -89,10 +81,7 @@ public class GeneOntologyTerm {
             ancestors.addAll( parent.getAncestors( includePartOf ) );
         }
 
-        ancestors = Collections.unmodifiableCollection( ancestors );
-
-        return new HashSet<>( ancestors );
+        return ancestors;
     }
-
 
 }

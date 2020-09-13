@@ -69,7 +69,7 @@ function addGeneRow(data) {
                     }
                 }).join('');
                 row.push('<select class="form-control">' +
-                    '<option>Identical to you user profile</option>' +
+                    '<option>Identical to your profile</option>' +
                     privacyOptions +
                     '</select>');
             }
@@ -216,7 +216,7 @@ function addTermRow(data) {
                     return;
                 }
 
-                $.getJSON("/taxon/" + currentTaxon.id + "/gene/search/" + term + "?max=10", request, function (data, status, xhr) {
+                $.getJSON("/taxon/" + currentTaxonId + "/gene/search/" + term + "?max=10", request, function (data, status, xhr) {
                     if (!data.length) {
                         data = [
                             {
@@ -291,7 +291,7 @@ function addTermRow(data) {
 
         $.ajax({
             type: "POST",
-            url: '/taxon/' + currentTaxon.id + '/gene/search',
+            url: '/taxon/' + currentTaxonId + '/gene/search',
             data: JSON.stringify(symbols),
             contentType: "application/json",
             success: function(data) {
@@ -322,7 +322,7 @@ function addTermRow(data) {
                 if (term.includes(",")) {
                     return;
                 }
-                $.getJSON("/taxon/" + currentTaxon.id + "/term/search/" + term + "?max=10", request, function (data, status, xhr) {
+                $.getJSON("/taxon/" + currentTaxonId + "/term/search/" + term + "?max=10", request, function (data, status, xhr) {
 
                     if (!data.length) {
                         data = [
@@ -399,7 +399,7 @@ function addTermRow(data) {
 
         $.ajax({
             type: "POST",
-            url: '/user/taxon/' + currentTaxon.id + '/term/search',
+            url: '/user/taxon/' + currentTaxonId + '/term/search',
             data: JSON.stringify(ids),
             contentType: "application/json",
             success: function(data) {
@@ -415,7 +415,7 @@ function addTermRow(data) {
     $('.recommend-terms').click(function(e) {
         var spinner = $(this).find('.spinner');
         spinner.removeClass("d-none");
-        $.getJSON("/user/taxon/" + currentTaxon.id + "/term/recommend", function (data, status, xhr) {
+        $.getJSON("/user/taxon/" + currentTaxonId + "/term/recommend", function (data, status, xhr) {
             try {
 
                 addTermRow(data);
@@ -434,7 +434,7 @@ function addTermRow(data) {
 
     $('#overlapModal').on('show.bs.modal', function (e) {
         var goId = $(e.relatedTarget).closest('tr').find('td')[0].innerText;
-        $("#overlapModal").find(".modal-body").load("/user/taxon/" + currentTaxon.id + "/term/" + goId + "/gene/view");
+        $("#overlapModal").find(".modal-body").load("/user/taxon/" + currentTaxonId + "/term/" + goId + "/gene/view");
     });
 
     $('#terms-tab').on('shown.bs.tab', function (e) {

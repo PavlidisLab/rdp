@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.test.context.junit4.SpringRunner;
 import ubc.pavlab.rdp.model.GeneInfo;
 import ubc.pavlab.rdp.model.GeneOntologyTerm;
@@ -16,6 +17,7 @@ import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.model.enums.RelationshipType;
 import ubc.pavlab.rdp.model.enums.TermMatchType;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
+import ubc.pavlab.rdp.util.Gene2GoParser;
 import ubc.pavlab.rdp.util.OBOParser;
 import ubc.pavlab.rdp.util.SearchResult;
 import ubc.pavlab.rdp.util.TestUtils;
@@ -26,6 +28,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.BDDMockito.given;
 import static ubc.pavlab.rdp.util.TestUtils.*;
 
 /**
@@ -42,6 +45,8 @@ public class GOServiceImplTest {
             ApplicationSettings a = new ApplicationSettings();
             ApplicationSettings.CacheSettings cacheSettings = new ApplicationSettings.CacheSettings();
             cacheSettings.setEnabled( false );
+            cacheSettings.setTermFile( new ClassPathResource( "cache/go.obo" ) );
+            cacheSettings.setAnnotationFile( new ClassPathResource( "cache/gene2go.gz" ) );
             a.setCache( cacheSettings );
             return a;
         }
@@ -51,19 +56,19 @@ public class GOServiceImplTest {
             return new GOServiceImpl();
         }
 
+        @Bean
+        public Gene2GoParser gene2GoParser() {
+            return new Gene2GoParser();
+        }
+
+        @Bean
+        public OBOParser oboParser() {
+            return new OBOParser();
+        }
     }
 
     @Autowired
     private GOService goService;
-
-    @MockBean
-    private OBOParser oboParser;
-
-    @MockBean
-    private UserService userService;
-
-    @MockBean
-    private TaxonService taxonService;
 
     @MockBean
     private GeneInfoService geneService;
@@ -88,6 +93,9 @@ public class GOServiceImplTest {
 
         GeneInfo g1 = createGene( 1, taxon );
         GeneInfo g2 = createGene( 2, taxon );
+
+        given( geneService.load( 1 ) ).willReturn( g1 );
+        given( geneService.load( 2 ) ).willReturn( g2 );
 
         genes.put( g1.getGeneId(), g1 );
         genes.put( g2.getGeneId(), g2 );
@@ -121,7 +129,6 @@ public class GOServiceImplTest {
         t5.getParents().add( new Relationship( t4, RelationshipType.IS_A ) );
 
         goService.setTerms( terms.values().stream().collect( Collectors.toMap( GeneOntologyTerm::getGoId, Function.identity() ) ) );
-
     }
 
     private GeneOntologyTerm initializeTerm( GeneOntologyTerm term ) {
@@ -454,6 +461,12 @@ public class GOServiceImplTest {
     public void getTerm_whenNullId_thenReturnNull() {
         GeneOntologyTerm found = goService.getTerm( null );
         assertThat( found ).isNull();
+    }
+
+    @Test
+    public void updateGoTerms() {
+        goService.updateGoTerms();
+        assertThat( goService.getTerm( "GO:0000001" ) ).isNotNull();
     }
 
 }

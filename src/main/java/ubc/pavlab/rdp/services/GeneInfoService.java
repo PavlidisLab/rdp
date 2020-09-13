@@ -19,17 +19,14 @@
 
 package ubc.pavlab.rdp.services;
 
-import org.springframework.scheduling.annotation.Scheduled;
 import ubc.pavlab.rdp.model.GeneInfo;
 import ubc.pavlab.rdp.model.Taxon;
-import ubc.pavlab.rdp.model.UserGene;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.util.SearchResult;
 
 import java.util.Collection;
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * Created by mjacobson on 17/01/18.
@@ -40,6 +37,10 @@ public interface GeneInfoService {
 
     Collection<GeneInfo> load( Collection<Integer> ids );
 
+    Collection<GeneInfo> loadAll();
+
+    Collection<GeneInfo> findAllByActiveTaxon();
+
     GeneInfo findBySymbolAndTaxon( String officialSymbol, Taxon taxon );
 
     Collection<GeneInfo> findBySymbolInAndTaxon( Collection<String> symbols, Taxon taxon );
@@ -48,7 +49,7 @@ public interface GeneInfoService {
 
     Map<GeneInfo, TierType> deserializeGenesTiers( Map<Integer, TierType> genesTierMap );
 
-    Map<GeneInfo, Optional<PrivacyLevelType>> deserializeGenesPrivacyLevels( Map<Integer, PrivacyLevelType> genesPrivacyLevelMap );
+    Map<GeneInfo, PrivacyLevelType> deserializeGenesPrivacyLevels( Map<Integer, PrivacyLevelType> genesPrivacyLevelMap );
 
     /**
      * Update gene informations in the database.

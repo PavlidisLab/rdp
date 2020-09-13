@@ -1,8 +1,11 @@
 package ubc.pavlab.rdp.controllers;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.*;
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import ubc.pavlab.rdp.model.*;
@@ -16,7 +19,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @CommonsLog
-@PreAuthorize("isAuthenticated()")
+@Secured({ "ROLE_USER", "ROLE_ADMIN" })
 public class UserController {
 
     @Autowired
@@ -31,22 +34,17 @@ public class UserController {
     @Autowired
     private GOService goService;
 
-    @Autowired
-    private OrganInfoService organInfoService;
-
     @Data
-    private static class ProfileWithOrganUberonIds {
+    static class ProfileWithOrganUberonIds {
         @Valid Profile profile;
         Set<String> organUberonIds;
     }
 
     @PostMapping(value = "/user/profile")
-    public String saveProfile( @RequestBody @Valid ProfileWithOrganUberonIds profileWithOrganUberonIds ) {
+    public String saveProfile( @RequestBody ProfileWithOrganUberonIds profileWithOrganUberonIds ) {
+        log.info(profileWithOrganUberonIds);
         User user = userService.findCurrentUser();
-        Profile profile = profileWithOrganUberonIds.profile;
-
-        userService.updateUserProfileAndPublicationsAndOrgans( user, profileWithOrganUberonIds.profile, profile.getPublications(), Optional.ofNullable( profileWithOrganUberonIds.organUberonIds ) );
-
+        userService.updateUserProfileAndPublicationsAndOrgans( user, profileWithOrganUberonIds.profile, profileWithOrganUberonIds.profile.getPublications(), Optional.ofNullable( profileWithOrganUberonIds.organUberonIds ) );
         return "Saved.";
     }
 
@@ -70,10 +68,7 @@ public class UserController {
         return userService.findCurrentUser().getUserTerms();
     }
 
-    @Getter
-    @Setter
-    @NoArgsConstructor
-    @AllArgsConstructor
+    @Data
     static class Model {
 
         private Map<Integer, TierType> geneTierMap;
@@ -91,8 +86,10 @@ public class UserController {
         user.getTaxonDescriptions().put( taxon, model.getDescription() );
 
         Map<GeneInfo, TierType> genes = geneService.deserializeGenesTiers( model.getGeneTierMap() );
-        Map<GeneInfo, Optional<PrivacyLevelType>> privacyLevels = geneService.deserializeGenesPrivacyLevels( model.getGenePrivacyLevelMap() );
-        Set<GeneOntologyTerm> terms = model.getGoIds().stream().map( s -> goService.getTerm( s ) ).collect( Collectors.toSet() );
+        Map<GeneInfo, PrivacyLevelType> privacyLevels = geneService.deserializeGenesPrivacyLevels( model.getGenePrivacyLevelMap() );
+        Set<GeneOntologyTerm> terms = model.getGoIds().stream()
+                .map( s -> goService.getTerm( s ) )
+                .collect( Collectors.toSet() );
 
         userService.updateTermsAndGenesInTaxon( user, taxon, genes, privacyLevels, terms );
 
@@ -116,16 +113,17 @@ public class UserController {
     public Map<String, UserTerm> getTermsForTaxon( @PathVariable Integer taxonId, @RequestBody List<String> goIds ) {
         User user = userService.findCurrentUser();
         Taxon taxon = taxonService.findById( taxonId );
-
-        return goIds.stream().collect( HashMap::new, ( m, s)->m.put(s, userService.convertTerms( user, taxon, goService.getTerm( s ) )), HashMap::putAll);
+        Set<GeneOntologyTerm> goTerms = goIds.stream().map( goId -> goService.getTerm( goId ) ).collect( Collectors.toSet() );
+        return userService.convertTerms( user, taxon, goTerms ).stream().collect( Collectors.toMap( term -> term.getGoId(), term -> term ) );
     }
 
     @RequestMapping(value = "/user/taxon/{taxonId}/term/recommend", method = RequestMethod.GET)
-    public Collection<UserTerm> getRecommendedTermsForTaxon( @PathVariable Integer taxonId ) {
+    public Object getRecommendedTermsForTaxon( @PathVariable Integer taxonId ) {
         User user = userService.findCurrentUser();
         Taxon taxon = taxonService.findById( taxonId );
-        Collection<UserTerm> terms = userService.recommendTerms( user, taxon );
-
-        return terms;
+        if ( user == null || taxon == null ) {
+            return ResponseEntity.notFound().build();
+        }
+        return userService.recommendTerms( user, taxon );
     }
 }

@@ -23,7 +23,7 @@ public interface GOService {
 
     Collection<GeneOntologyTerm> getDescendants( GeneOntologyTerm entry, boolean includePartOf );
 
-    Map<GeneOntologyTerm, Long> termFrequencyMap( Collection<? extends Gene> genes );
+    Map<GeneOntologyTerm, Long> termFrequencyMap( Collection<GeneInfo> genes );
 
     List<SearchResult<GeneOntologyTerm>> search( String queryString, Taxon taxon, int max );
 
@@ -37,10 +37,13 @@ public interface GOService {
 
     Collection<GeneInfo> getGenes( GeneOntologyTerm t );
 
-    Collection<GeneInfo> getGenes( Collection<? extends GeneOntologyTerm> goTerms, Taxon taxon );
+    Collection<GeneInfo> getGenes( Collection<GeneOntologyTerm> goTerms, Taxon taxon );
 
     GeneOntologyTerm getTerm( String goId );
 
-    @Scheduled(fixedRate = 2592000000L)
     void updateGoTerms ();
+
+    Collection<GeneOntologyTerm> getTermsForGene( GeneInfo gene );
+
+    Collection<GeneOntologyTerm> getAllTermsForGene( GeneInfo gene, boolean includePartOf, boolean propagateUpwards );
 }

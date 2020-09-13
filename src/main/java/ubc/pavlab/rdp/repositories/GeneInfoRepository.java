@@ -32,4 +32,14 @@ public interface GeneInfoRepository extends JpaRepository<GeneInfo, Integer> {
     Collection<GeneInfo> findAllByNameStartingWithIgnoreCase( String query );
 
     Collection<GeneInfo> findAllByAliasesContainingIgnoreCase( String query );
+
+    Collection<GeneInfo> findAllBySymbolAndTaxon( String query, Taxon taxon );
+
+    Collection<GeneInfo> findAllBySymbolStartingWithIgnoreCaseAndTaxon( String query, Taxon taxon );
+
+    Collection<GeneInfo> findAllByNameStartingWithIgnoreCaseAndTaxon( String query, Taxon taxon );
+
+    Collection<GeneInfo> findAllByAliasesContainingIgnoreCaseAndTaxon( String query, Taxon taxon );
+
+    Collection<GeneInfo> findAllByTaxonActiveTrue();
 }

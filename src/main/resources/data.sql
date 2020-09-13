@@ -26,3 +26,8 @@ insert ignore into organ_info (uberon_id, name, active, ordering) values ("UBERO
 insert ignore into organ_info (uberon_id, name, active, ordering) values ("UBERON:0001016", "Nervous System", true, 6);
 insert ignore into organ_info (uberon_id, name, active, ordering) values ("UBERON:0001004", "Respiratory System", true, 7);
 insert ignore into organ_info (uberon_id, name, active, ordering) values ("UBERON:0004755+UBERON:0002384", "Skeletal and Connective Tissue", true, 8);
+insert ignore into organ_info (uberon_id, name, active, ordering) values ("UBERON:0000178", "Blood and Immune", true, 9);
+insert ignore into organ_info (uberon_id, name, active, ordering) values ("UBERON:0000949", "Endocrine System", true, 10);
+insert ignore into organ_info (uberon_id, name, active, ordering) values ("UBERON:0002199", "Intergument", true, 11);
+insert ignore into organ_info (uberon_id, name, active, ordering) values ("UBERON:0001007", "Digestive System", true, 12);
+insert ignore into organ_info (uberon_id, name, active, ordering) values ("UBERON:0004122", "Genitourinary", true, 13);

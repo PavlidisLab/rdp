@@ -1,8 +1,11 @@
 package ubc.pavlab.rdp.model.enums;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.PermissionEvaluator;
 
 @AllArgsConstructor
 @Getter
@@ -13,4 +16,9 @@ public enum PrivacyLevelType {
 
     private String label;
     private String description;
+
+    @JsonValue
+    public int toJsonValue() {
+        return this.ordinal();
+    }
 }

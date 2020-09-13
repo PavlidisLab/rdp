@@ -31,13 +31,17 @@ public class PermissionEvaluatorImpl implements PermissionEvaluator {
     @Override
     public boolean hasPermission( Authentication authentication, Object targetDomainObject, Object permission ) {
         User user = authentication.getPrincipal().equals( "anonymousUser" ) ? null : userService.findUserByIdNoAuth( ( (UserPrinciple) authentication.getPrincipal() ).getId() );
-        if ( targetDomainObject instanceof UserContent ) {
+        if ( permission.equals( "search" ) ) {
+            return privacyService.checkUserCanSearch( user, false );
+        } else if ( permission.equals( "international-search" ) ) {
+            return privacyService.checkUserCanSearch( user, true );
+        } else if ( targetDomainObject instanceof UserContent ) {
             if ( permission.equals( "search" ) ) {
                 return privacyService.checkUserCanSearch( user, false );
             } else if ( permission.equals( "read" ) ) {
                 return privacyService.checkUserCanSee( user, (UserContent) targetDomainObject );
-            } else if (permission.equals ("update") ) {
-                return userService.hasRole( user, "ROLE_ADMIN" ) || ( (UserContent) targetDomainObject ).getOwner().map( u -> u.equals( user ) ).orElse( false );
+            } else if ( permission.equals( "update" ) ) {
+                return privacyService.checkUserCanUpdate( user, (UserContent) targetDomainObject );
             }
         }
 

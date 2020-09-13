@@ -16,11 +16,13 @@ import org.springframework.transaction.annotation.Transactional;
 import ubc.pavlab.rdp.exception.TokenException;
 import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
+import ubc.pavlab.rdp.model.enums.ResearcherCategory;
 import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.repositories.*;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 
 import javax.validation.ValidationException;
+import java.text.MessageFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collector;
@@ -28,6 +30,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.Comparator.comparing;
+import static org.springframework.util.CollectionUtils.containsAny;
 
 /**
  * Created by mjacobson on 16/01/18.
@@ -50,6 +53,10 @@ public class UserServiceImpl implements UserService {
     private BCryptPasswordEncoder bCryptPasswordEncoder;
     @Autowired
     private GOService goService;
+    @Autowired
+    private OrganInfoService organInfoService;
+    @Autowired
+    UserGeneRepository userGeneRepository;
 
     @SuppressWarnings("unused") // Keeping for future use
     private static <T> Collector<T, ?, List<T>> maxList( Comparator<? super T> comp ) {
@@ -127,58 +134,52 @@ public class UserServiceImpl implements UserService {
         return userRepository.save( admin );
     }
 
-    @PreAuthorize("hasPermission(#user, 'update')")
-    @Transactional
     @Override
+    @PreAuthorize("hasPermission(#user, 'update')")
     public User update( User user ) {
-        // Currently restrict to updating your own user. Can make this better with
-        // Pre-Post authorized annotations.
-        String currentUsername = getCurrentEmail();
-        if ( user.getEmail().equals( currentUsername ) ) {
-	    if (applicationSettings.getPrivacy() == null){
-		log.warn( currentUsername + " attempted to updated, but applicationSettings is null. ");
-	    } else {
-                PrivacyLevelType defaultPrivacyLevel = PrivacyLevelType.values()[applicationSettings.getPrivacy().getDefaultLevel()];
-		boolean defaultSharing = applicationSettings.getPrivacy().isDefaultSharing();
-		boolean defaultGenelist = applicationSettings.getPrivacy().isAllowHideGenelist();
-		
-		if (user.getProfile().getPrivacyLevel() == null){		
-		    log.warn("Received a null 'privacyLevel' value in profile.");
-		    user.getProfile().setPrivacyLevel(defaultPrivacyLevel);
-		}
-		if (user.getProfile().getShared() == null){	
-		    log.warn("Received a null 'shared' value in profile.");
-		    user.getProfile().setShared(defaultSharing);
-		}
-		if (user.getProfile().getHideGenelist() == null){
-		    log.warn("Received a null 'hideGeneList' value in profile.");
-		    user.getProfile().setHideGenelist(defaultGenelist);
-		}	
-	    }
+        if ( applicationSettings.getPrivacy() == null ) {
+            // FIXME: this should not be possible...
+            log.warn( MessageFormat.format( "{0} attempted to update, but applicationSettings.privacy is null.", user.getEmail() ) );
+        } else {
+            PrivacyLevelType defaultPrivacyLevel = PrivacyLevelType.values()[applicationSettings.getPrivacy().getDefaultLevel()];
+            boolean defaultSharing = applicationSettings.getPrivacy().isDefaultSharing();
+            boolean defaultGenelist = applicationSettings.getPrivacy().isAllowHideGenelist();
 
-            PrivacyLevelType userPrivacyLevel = user.getProfile().getPrivacyLevel();
-
-            // We cap the user gene privacy level to its new profile setting
-            for ( UserGene gene : user.getUserGenes().values() ) {
-                PrivacyLevelType genePrivacyLevel = gene.getPrivacyLevel();
-                // in case any of the user or gene privacy level is null, we already have a cascading value
-                if ( userPrivacyLevel == null || genePrivacyLevel == null ) {
-                    continue;
-                }
-                if ( userPrivacyLevel.ordinal() < genePrivacyLevel.ordinal() ) {
-                    gene.setPrivacyLevel( userPrivacyLevel );
-                    log.info( "Privacy level of " + gene + " will be capped to " + userPrivacyLevel + " (was " + genePrivacyLevel + ")." );
-                }
+            if ( user.getProfile().getPrivacyLevel() == null ) {
+                log.warn( "Received a null 'privacyLevel' value in profile." );
+                user.getProfile().setPrivacyLevel( defaultPrivacyLevel );
             }
 
-            return userRepository.save( user );
-	    
-        } else {
-            log.warn( currentUsername + " attempted to update a user that is not their own: " + user.getEmail() );
+            if ( user.getProfile().getShared() == null ) {
+                log.warn( "Received a null 'shared' value in profile." );
+                user.getProfile().setShared( defaultSharing );
+            }
+
+            if ( user.getProfile().getHideGenelist() == null ) {
+                if ( applicationSettings.getPrivacy().isAllowHideGenelist() ) {
+                    log.warn( "Received a null 'hideGeneList' value in profile." );
+                }
+                user.getProfile().setHideGenelist( defaultGenelist );
+            }
         }
 
-        return null;
+        PrivacyLevelType userPrivacyLevel = user.getProfile().getPrivacyLevel();
 
+        // We cap the user gene privacy level to its new profile setting
+        for ( UserGene gene : user.getUserGenes().values() ) {
+            PrivacyLevelType genePrivacyLevel = gene.getPrivacyLevel();
+            // in case any of the user or gene privacy level is null, we already have a cascading value
+            if ( userPrivacyLevel == null || genePrivacyLevel == null ) {
+                continue;
+            }
+            if ( userPrivacyLevel.ordinal() < genePrivacyLevel.ordinal() ) {
+                gene.setPrivacyLevel( userPrivacyLevel );
+                log.info( MessageFormat.format( "Privacy level of {0} will be capped to {1} (was {2}",
+                        gene, userPrivacyLevel, genePrivacyLevel ) );
+            }
+        }
+
+        return userRepository.save( user );
     }
 
     @Secured("ROLE_ADMIN")
@@ -249,7 +250,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public User findUserByIdNoAuth( int id ) {
         // Only use this in placed where no authentication of user is needed
-        return userRepository.findOne( id );
+        return userRepository.findOneWithRoles( id );
     }
 
     @Override
@@ -259,7 +260,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User getRemoteAdmin() {
-        return userRepository.findOne( applicationSettings.getIsearch().getUserId() );
+        return userRepository.findOneWithRoles( applicationSettings.getIsearch().getUserId() );
     }
 
     @Override
@@ -270,20 +271,29 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @PostFilter("hasPermission(filterObject, 'read')")
-    public Collection<User> findByLikeName( String nameLike ) {
-        return userRepository.findByProfileNameContainingIgnoreCaseOrProfileLastNameContainingIgnoreCase( nameLike, nameLike );
+    public Collection<User> findByLikeName( String nameLike, Optional<Collection<ResearcherCategory>> researcherTypes, Optional<Collection<UserOrgan>> userOrgans ) {
+        return userRepository.findByProfileNameContainingIgnoreCaseOrProfileLastNameContainingIgnoreCase( nameLike, nameLike ).stream()
+                .filter( u -> researcherTypes.map( rt -> rt.contains( u.getProfile().getResearcherCategory() ) ).orElse( true ) )
+                .filter( u -> userOrgans.map( o -> containsAny( o, u.getUserOrgans().values() ) ).orElse( true ) )
+                .collect( Collectors.toSet() );
     }
 
     @Override
     @PostFilter("hasPermission(filterObject, 'read')")
-    public Collection<User> findByStartsName( String startsName ) {
-        return userRepository.findByProfileLastNameStartsWithIgnoreCase( startsName );
+    public Collection<User> findByStartsName( String startsName, Optional<Collection<ResearcherCategory>> researcherTypes, Optional<Collection<UserOrgan>> userOrgans ) {
+        return userRepository.findByProfileLastNameStartsWithIgnoreCase( startsName ).stream()
+                .filter( u -> researcherTypes.map( rt -> rt.contains( u.getProfile().getResearcherCategory() ) ).orElse( true ) )
+                .filter( u -> userOrgans.map( o -> containsAny( o, u.getUserOrgans().values() ) ).orElse( true ) )
+                .collect( Collectors.toSet() );
     }
 
     @Override
     @PostFilter("hasPermission(filterObject, 'read')")
-    public Collection<User> findByDescription( String descriptionLike ) {
-        return userRepository.findByProfileDescriptionContainingIgnoreCaseOrTaxonDescriptionsContainingIgnoreCase( descriptionLike, descriptionLike );
+    public Collection<User> findByDescription( String descriptionLike, Optional<Collection<ResearcherCategory>> researcherTypes, Optional<Collection<UserOrgan>> userOrgans ) {
+        return userRepository.findByProfileDescriptionContainingIgnoreCaseOrTaxonDescriptionsContainingIgnoreCase( descriptionLike, descriptionLike ).stream()
+                .filter( u -> researcherTypes.map( rt -> rt.contains( u.getProfile().getResearcherCategory() ) ).orElse( true ) )
+                .filter( u -> userOrgans.map( o -> containsAny( o, u.getUserOrgans().values() ) ).orElse( true ) )
+                .collect( Collectors.toSet() );
     }
 
     @Override
@@ -293,29 +303,24 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Collection<UserTerm> convertTerms( User user, Taxon taxon, Collection<GeneOntologyTerm> terms ) {
-        Set<UserGene> genes = user.getGenesByTaxonAndTier( taxon, TierType.MANUAL );
-
-        return convertTermTypes( user, terms, taxon, genes );
+        Set<GeneInfo> genes = user.getGenesByTaxonAndTier( taxon, TierType.MANUAL ).stream()
+                .map( UserGene::getGeneInfo )
+                .filter( Objects::nonNull ) // some user genes might be missing from our cache
+                .collect( Collectors.toSet() );
+        return convertTermTypes( user, terms, taxon );
     }
 
     @Override
-    public UserTerm convertTerms( User user, Taxon taxon, GeneOntologyTerm term ) {
-        Set<UserGene> genes = user.getGenesByTaxonAndTier( taxon, TierType.MANUAL );
-
-        return convertTermTypes( user, term, taxon, genes );
-    }
-
-    @Override
-    public Collection<UserTerm> recommendTerms( User user, Taxon taxon ) {
+    public Collection<UserTerm> recommendTerms( @NonNull User user, @NonNull Taxon taxon ) {
         return recommendTerms( user, taxon, 10, applicationSettings.getGoTermSizeLimit(), 2 );
     }
 
     @Override
-    public Collection<UserTerm> recommendTerms( User user, Taxon taxon, int minSize, int maxSize, int minFrequency ) {
-        if ( user == null || taxon == null )
-            return null;
-
-        Set<UserGene> genes = user.getGenesByTaxonAndTier( taxon, TierType.MANUAL );
+    public Collection<UserTerm> recommendTerms( @NonNull User user, @NonNull Taxon taxon, int minSize, int maxSize, int minFrequency ) {
+        Set<GeneInfo> genes = user.getGenesByTaxonAndTier( taxon, TierType.MANUAL ).stream()
+                .map(UserGene::getGeneInfo)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
 
         Map<GeneOntologyTerm, Long> fmap = goService.termFrequencyMap( genes );
 
@@ -338,59 +343,79 @@ public class UserServiceImpl implements UserService {
 
         // Then keep only those terms not already added and with the highest frequency
         Set<UserTerm> topResults = resultStream.map( e -> {
-            UserTerm ut = UserTerm.createUserTerm( user, e.getKey(), taxon, null );
+            UserTerm ut = UserTerm.createUserTerm( user, e.getKey(), taxon );
             ut.setFrequency( e.getValue().intValue() );
             return ut;
         } ).filter( ut -> !userTerms.contains( ut ) ).collect( maxSet( comparing( UserTerm::getFrequency ) ) );
 
         // Keep only leafiest of remaining terms (keep if it has no descendants in results)
-        return topResults.stream().filter( ut -> Collections.disjoint( topResults, goService.getDescendants( ut ) ) )
+        return topResults.stream()
+                .filter( ut -> Collections.disjoint( topResults, convertTerms( user, taxon, goService.getDescendants( ut ) ) ) )
                 .collect( Collectors.toSet() );
-    }
-
-    @Autowired
-    UserGeneRepository userGeneRepository;
-
-    private UserGene fromGene( User user, Gene gene, TierType tierType, PrivacyLevelType privacyLevelType ) {
-        UserGene userGene = user.getUserGenes().getOrDefault( gene.getGeneId(), new UserGene () );
-        userGene.updateGene( gene );
-        userGene.setUser(user);
-        userGene.setTier(tierType);
-        userGene.setPrivacyLevel( privacyLevelType );
-        return userGene;
     }
 
     @Transactional
     @Override
     @PreAuthorize("hasPermission(#user, 'update')")
-    public void updateTermsAndGenesInTaxon( User user,
+    public User updateTermsAndGenesInTaxon( User user,
                                             Taxon taxon,
-                                            Map<? extends Gene, TierType> genesToTierMap,
-                                            Map<? extends Gene, Optional<PrivacyLevelType>> genesToPrivacyLevelMap,
-                                            Collection<? extends GeneOntologyTerm> goTerms ) {
+                                            Map<GeneInfo, TierType> genesToTierMap,
+                                            Map<GeneInfo, PrivacyLevelType> genesToPrivacyLevelMap,
+                                            Collection<GeneOntologyTerm> goTerms ) {
         Map<Integer, UserGene> userGenes = genesToTierMap.keySet()
                 .stream()
                 .filter( g -> g.getTaxon().equals( taxon ) )
-                .map( g -> fromGene( user, g, genesToTierMap.get( g ), genesToPrivacyLevelMap.get( g ).orElse( null ) ) )
-                .collect( Collectors.toMap( g -> g.getGeneId(), g->g ) );
+                .map( g -> {
+                    UserGene userGene = user.getUserGenes().getOrDefault( g.getGeneId(), new UserGene() );
+                    userGene.setUser( user );
+                    userGene.setTier( genesToTierMap.get( g ) );
+                    userGene.setPrivacyLevel( genesToPrivacyLevelMap.get( g ) );
+                    userGene.updateGene( g );
+                    return userGene;
+                })
+                .collect( Collectors.toMap( g -> g.getGeneId(), g -> g ) );
 
-        // remove all genes from the taxon
-        user.getUserGenes().entrySet().removeIf(e -> e.getValue().getTaxon().equals(taxon));
-        user.getUserGenes().putAll(userGenes);
+        // add calculated genes from terms
+        Map<Integer, UserGene> userGenesFromTerms = goTerms.stream()
+                .flatMap( term -> goService.getGenes( term, taxon ).stream() )
+                .map( g -> {
+                    UserGene userGene = user.getUserGenes().getOrDefault( g.getGeneId(), new UserGene() );
+                    userGene.setUser( user );
+                    userGene.setTier( genesToTierMap.getOrDefault( g, TierType.TIER3 ) );
+                    // we let the privacy level to its default value
+                    userGene.updateGene( g );
+                    return userGene;
+                } )
+                .collect( Collectors.toMap( g -> g.getGeneId(), g -> g ) );
+
+        // remove all genes in the taxon
+        user.getUserGenes().entrySet()
+                .removeIf( e -> e.getValue().getTaxon().equals( taxon ) );
+
+        user.getUserGenes().putAll( userGenes );
+        user.getUserGenes().putAll( userGenesFromTerms );
 
         // update terms
         // go terms with the same identifier will be replaced
-        Set<UserTerm> userTerms = convertTermTypes(user, goTerms, taxon, genesToTierMap.keySet());
-        user.getUserTerms().removeIf(e -> e.getTaxon().equals(taxon));
-
-        // add all genes from the taxon
+        Set<UserTerm> userTerms = convertTermTypes( user, goTerms, taxon );
+        user.getUserTerms().removeIf( e -> e.getTaxon().equals( taxon ) && !userTerms.contains( e ) );
         user.getUserTerms().addAll(userTerms);
 
-        update( user );
+        // update overlap frequencies with the user genes
+        for ( UserTerm ut : user.getUserTerms() ) {
+            ut.setFrequency( (int) computeTermOverlaps( ut, genesToTierMap.keySet() ) );
+        }
+
+        return update( user );
     }
 
-    @Autowired
-    private OrganInfoService organInfoService;
+    @Override
+    public long computeTermOverlaps( UserTerm userTerm, Collection<GeneInfo> genes ) {
+        return genes.stream()
+                .flatMap( g -> goService.getAllTermsForGene( g, true, true ).stream() )
+                .filter( term -> term.getGoId().equals( userTerm.getGoId() ) )
+                .count();
+    }
 
     @Transactional
     @Override
@@ -400,12 +425,27 @@ public class UserServiceImpl implements UserService {
         user.getProfile().setDescription( profile.getDescription() );
         user.getProfile().setLastName( profile.getLastName() );
         user.getProfile().setName( profile.getName() );
+        if ( profile.getResearcherPosition() == null || applicationSettings.getProfile().getEnabledResearcherPositions().contains( profile.getResearcherPosition() ) ) {
+            user.getProfile().setResearcherPosition( profile.getResearcherPosition() );
+        } else {
+            log.warn( MessageFormat.format( "User {0} attempted to set user {1} researcher position to an unknown value {2}.",
+                    findCurrentUser(), user, profile.getResearcherPosition() ) );
+        }
+        user.getProfile().setResearcherPosition( profile.getResearcherPosition() );
         user.getProfile().setOrganization( profile.getOrganization() );
+        if ( profile.getResearcherCategory() == null || applicationSettings.getProfile().getEnabledResearcherCategories().contains( profile.getResearcherCategory().name() ) ) {
+            user.getProfile().setResearcherCategory( profile.getResearcherCategory() );
+        } else {
+            log.warn( MessageFormat.format( "User {0} attempted to set user {1} researcher type to an unknown value {2}.",
+                    findCurrentUser(), user, profile.getResearcherCategory() ) );
+        }
         user.getProfile().setPhone( profile.getPhone() );
         user.getProfile().setWebsite( profile.getWebsite() );
         user.getProfile().setPrivacyLevel( profile.getPrivacyLevel() );
         user.getProfile().setShared( profile.getShared() );
-        user.getProfile().setHideGenelist( profile.getHideGenelist() );
+        if (applicationSettings.getPrivacy().isAllowHideGenelist()) {
+            user.getProfile().setHideGenelist( profile.getHideGenelist() );
+        }
 
         user.getProfile().getPublications().retainAll( publications );
         user.getProfile().getPublications().addAll( publications );
@@ -509,56 +549,11 @@ public class UserServiceImpl implements UserService {
         return userRepository.save( user );
     }
 
-    private Set<UserTerm> convertTermTypes( User user, Collection<? extends GeneOntologyTerm> goTerms, Taxon taxon,
-                                                   Set<? extends Gene> genes ) {
+    private Set<UserTerm> convertTermTypes( User user, Collection<GeneOntologyTerm> goTerms, Taxon taxon ) {
         return goTerms.stream()
-                .map(term -> convertTermTypes( user, term, taxon, genes ))
-                .filter(Objects::nonNull)
-                .collect(Collectors.toSet());
-    }
-
-    private UserTerm convertTermTypes( User user, GeneOntologyTerm goTerm, Taxon taxon, Set<? extends Gene> genes ) {
-        if ( goTerm != null ) {
-            UserTerm term = UserTerm.createUserTerm( user, goTerm, taxon, genes );
-            if ( term.getSize() <= applicationSettings.getGoTermSizeLimit() ) {
-                return term;
-            }
-        }
-
-        return null;
-    }
-
-    private boolean updateOrInsert( @NonNull User user, @NonNull Gene gene, @NonNull TierType tier, Optional<PrivacyLevelType> privacyLevel ) {
-        UserGene existing = user.getUserGenes().get( gene.getGeneId() );
-
-        boolean updated = false;
-        if ( existing != null ) {
-            // Only set tier because the rest of it's information is updated PreLoad
-            updated = !existing.getTier().equals( tier ) || !Optional.ofNullable( existing.getPrivacyLevel() ).equals( privacyLevel );
-            existing.setTier( tier );
-            existing.setPrivacyLevel( privacyLevel.orElse( null ) );
-        } else {
-            user.getUserGenes().put( gene.getGeneId(), UserGene.createUserGeneFromGene( gene, user, tier, privacyLevel.orElse( null ) ) );
-        }
-
-        return updated;
-    }
-
-    private Collection<GeneInfo> calculatedGenesInTaxon( User user, Taxon taxon ) {
-        return goService.getGenes( user.getTermsByTaxon( taxon ), taxon );
-    }
-
-    private boolean removeGenesFromUserByTaxon( User user, Taxon taxon ) {
-        return user.getUserGenes().values().removeIf( ga -> ga.getTaxon().equals( taxon ) );
-    }
-
-    private boolean removeGenesFromUserByTiersAndTaxon( User user, Taxon taxon, Collection<TierType> tiers ) {
-        return user.getUserGenes().values()
-                .removeIf( ga -> tiers.contains( ga.getTier() ) && ga.getTaxon().equals( taxon ) );
-    }
-
-    private boolean removeTermsFromUserByTaxon( User user, Taxon taxon ) {
-        return user.getUserTerms().removeIf( ut -> ut.getTaxon().equals( taxon ) );
+                .map( term -> UserTerm.createUserTerm( user, term, taxon ) )
+                .filter( term -> term.getSize() <= applicationSettings.getGoTermSizeLimit() )
+                .collect( Collectors.toSet() );
     }
 
     private Map<UUID, Integer> userHiddenIds = new ConcurrentHashMap<>();
@@ -579,4 +574,23 @@ public class UserServiceImpl implements UserService {
     public boolean hasRole( User user, String role ) {
         return user.getRoles().contains(roleRepository.findByRole( role ));
     }
+
+    @Override
+    @Transactional
+    public void updateUserTerms() {
+        log.info( "Updating user terms..." );
+        for ( User user : userRepository.findAllWithUserTerms() ) {
+            for ( UserTerm userTerm : user.getUserTerms() ) {
+                GeneOntologyTerm cachedTerm = goService.getTerm( userTerm.getGoId() );
+                if ( cachedTerm == null ) {
+                    log.warn( MessageFormat.format( "User has a reference to a GO term missing from the cache: {0}.", userTerm ) );
+                    continue;
+                }
+                userTerm.updateTerm( cachedTerm );
+            }
+            userRepository.save( user );
+        }
+        log.info ("Done updating user terms.");
+    }
+
 }

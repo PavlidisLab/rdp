@@ -24,12 +24,12 @@ import java.util.Optional;
                 @Index(columnList = "gene_id, tier", name = "gene_id_tier_hidx"),
                 @Index(columnList = "symbol, taxon_id, tier", name = "symbol_taxon_id_tier_hidx") })
 @Cacheable
-@org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @Getter
 @Setter
 @NoArgsConstructor
-@ToString(callSuper = true)
+@EqualsAndHashCode(of = { "user" }, callSuper = true)
 @CommonsLog
+@ToString(of = { "user", "tier", "privacyLevel" }, callSuper = true)
 public class UserGene extends Gene implements UserContent {
 
     @Id
@@ -77,9 +77,10 @@ public class UserGene extends Gene implements UserContent {
         this.setName( gene.getName() );
         this.setAliases( gene.getAliases() );
         this.setModificationDate( gene.getModificationDate() );
-        this.setTerms( gene.getTerms() );
     }
 
+    @Override
+    @JsonIgnore
     public Optional<User> getOwner() {
         return Optional.of(getUser());
     }
@@ -90,6 +91,7 @@ public class UserGene extends Gene implements UserContent {
      * This value cascades down to the user profile or the application default in case it is not set.
      */
     @Override
+    @JsonIgnore
     public PrivacyLevelType getEffectivePrivacyLevel() {
         PrivacyLevelType privacyLevel = Optional.ofNullable(getPrivacyLevel()).orElse(getUser().getProfile().getPrivacyLevel());
         if ( privacyLevel.ordinal() > getUser().getEffectivePrivacyLevel().ordinal() ) {

@@ -2,6 +2,7 @@ package ubc.pavlab.rdp.controllers;
 
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ubc.pavlab.rdp.model.Gene;
 import ubc.pavlab.rdp.model.GeneInfo;
@@ -16,6 +17,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Created by mjacobson on 22/01/18.
@@ -36,8 +38,11 @@ public class GeneController {
     @RequestMapping(value = "/taxon/{taxonId}/gene/search", method = RequestMethod.POST)
     public Map<String, Gene> searchGenesByTaxonAndSymbols( @PathVariable Integer taxonId, @RequestBody List<String> symbols ) {
         Taxon taxon = taxonService.findById( taxonId );
-        return symbols.stream().collect( HashMap::new, ( m, s)->m.put(s, geneService.findBySymbolAndTaxon( s, taxon )), HashMap::putAll);
-//        return symbols.stream().collect(Collectors.toMap( Function.identity(), s -> geneService.findBySymbolAndTaxon( s, taxon )));
+        return geneService.findBySymbolInAndTaxon( symbols, taxon )
+                .stream()
+                .collect( Collectors.toMap( g -> g.getSymbol(), g -> g ));
+        // return symbols.stream().collect( HashMap::new, ( m, s)->m.put(s, geneService.findBySymbolAndTaxon( s, taxon )), HashMap::putAll);
+        // return symbols.stream().collect(Collectors.toMap( Function.identity(), s -> geneService.findBySymbolAndTaxon( s, taxon )));
     }
 
     @RequestMapping(value = "/taxon/{taxonId}/gene/search/{query}", method = RequestMethod.GET)
@@ -54,8 +59,8 @@ public class GeneController {
 
     @RequestMapping(value = "/gene/{geneId}/term", method = RequestMethod.GET)
     public Collection<GeneOntologyTerm> getGeneTerms( @PathVariable Integer geneId ) {
-        Gene gene = geneService.load( geneId );
-        return gene.getAllTerms( true, true );
+        GeneInfo gene = geneService.load( geneId );
+        return goService.getAllTermsForGene( gene, true, true );
     }
 
     @RequestMapping(value = "/taxon/{taxonId}/gene/{symbol}", method = RequestMethod.GET)

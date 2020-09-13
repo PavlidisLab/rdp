@@ -18,7 +18,7 @@
         ...
     </div>
 
-    <p class="lead mt-3" th:text="#{rdp.site.welcome-public}"/>
+    <p class="lead my-3" th:text="#{rdp.site.welcome-public}"/>
 
     <ul class="nav nav-tabs mt-3">
         <li class="nav-item"><a class="nav-link active" id="gene-tab" data-toggle="tab"
@@ -37,7 +37,7 @@
                         <label for="symbolInput">Search for researchers that study the following organism-specific
                             gene:</label>
                     </div>
-                    <div class="col-md-3" th:if="${user} != null">
+                    <div class="col-md-3" th:if="${@applicationSettings.enabledTiers.size()} > 1">
                         <label for="tiers">Within the following tiers:</label>
                     </div>
                 </div>
@@ -67,19 +67,17 @@
                         </select>
                     </div>
                     <div class="form-group col-md-3"
-                         th:if="${user} != null"
                          th:style="${@applicationSettings.enabledTiers.size()} > 1 ? '' : 'display: none;'">
                         <select id="tiers"
                                 class="form-control selectpicker"
                                 name="tiers"
-                                title="Show any tier, or specific tiers."
+                                title="Show any tier, or specific tiers"
                                 multiple="multiple">
                             <!--suppress ThymeleafVariablesResolveInspection -->
                             <option th:each="tier : ${T(ubc.pavlab.rdp.model.enums.TierType).values()}"
                                     th:if="${@tierService.isTierEnabled(tier)}"
                                     th:value="${tier}"
-                                    th:text="${tier.label}"
-                                    th:selected="true"></option>
+                                    th:text="${tier.label}"></option>
                         </select>
                     </div>
                 </div>
@@ -113,25 +111,39 @@
                         </label>
                     </div>
                 </div>
-                <div th:if="${@applicationSettings.organs.enabled}">
-                    <div class="form-row">
-                        <div class="col-md-12">
-                            <p>With focus on the following organs:</p>
+                <div th:unless="${@applicationSettings.profile.enabledResearcherCategories.isEmpty()}" class="form-row">
+                    <div class="col-md-5">
+                        <p class="text-right">
+                            <label th:for="${#ids.next('researcherCategories')}" class="col-form-label">Within the
+                                following researcher categories:</label>
+                        </p>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <div th:replace="fragments/profile::researcher-categories-selection"></div>
                         </div>
                     </div>
-                    <div th:replace="fragments/organ::organs-selection"
-                         th:remove="tag">
-                        ...
+                </div>
+                <div th:if="${@applicationSettings.organs.enabled}" class="form-row">
+                    <div class="col-md-12">
+                        <p>With focus on the following organ systems (or any of none are selected):</p>
+                    </div>
+                    <div class="col-md-12">
+                        <div th:replace="fragments/organ::organs-selection"
+                             th:remove="tag">
+                            ...
+                        </div>
                     </div>
                 </div>
             </form>
+
         </div>
 
         <div id="user-search-name" role="tabpanel" aria-labelledby="res-tab" class="tab-pane fade">
             <!--Researchers alphabetically-->
             <div th:if="not ${chars.isEmpty()}" th:remove="tag">
                 <div class="form-row">
-                    <div class="form-group col-md-12">
+                    <div class="col-md-12">
                         <label>Browse alphabetically:</label>
                         <div class="btn-toolbar">
                             <div class="btn-group" id="alpha-grp" role="group"
@@ -196,36 +208,32 @@
                     </div>
                 </form>
 
+                <div th:unless="${@applicationSettings.profile.enabledResearcherCategories.isEmpty()}">
+                    <div class="form-row">
+                        <div class="col-md-5">
+                            <div class="form-group text-right">
+                                <label th:for="${#ids.next('researcherCategories')}" class="col-form-label">Within the following researcher categories:</label>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <div th:include="fragments/profile::researcher-categories-selection"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Researchers by focused organs -->
                 <form th:if="${@applicationSettings.organs.enabled}">
                     <div class="form-row">
                         <div class="col-md-12">
-                            <p>With focus on the following organs:</p>
+                            <div class="form-group">
+                                <label>With focus on the following organ systems (or any of none are selected):</label>
+                            </div>
                         </div>
-                    </div>
-                    <div th:replace="fragments/organ::organs-selection"
-                         th:remove="tag">
-                        ...
-                    </div>
-                </form>
-
-                <!--International toggle-->
-                <form>
-                    <div class="form-row" th:if="${@applicationSettings.getIsearch().isEnabled()}">
-                        <div class="form-group col-md-12">
-                            <div class="form-check">
-                                <input id="isearch-checkbox" type="checkbox" class="form-check-input"
-                                       th:checked="${@applicationSettings.getIsearch().isDefaultOn()}"/>
-                                <label for="isearch-checkbox"
-                                       class="form-check-label">
-                                    Include results from partner registries
-                                    <i class="tip oi oi-question-mark"
-                                       data-ot-background="cornflowerblue"
-                                       data-ot-border-color="white"
-                                       data-ot-shadow-color="lightgray"
-                                       data-ot="If enabled, the search will include matches found in our partner registries">
-                                    </i>
-                                </label>
+                        <div class="col-md-12">
+                            <div th:replace="fragments/organ::organs-selection">
+                                ...
                             </div>
                         </div>
                     </div>
@@ -234,10 +242,31 @@
         </div>
     </div>
 
+    <form th:if="${@applicationSettings.getIsearch().isEnabled()}" class="my-3">
+        <div class="form-row">
+            <div class="col-md-12">
+                <div class="form-check">
+                    <input id="isearch-checkbox" type="checkbox" class="form-check-input"
+                           th:checked="${@applicationSettings.getIsearch().isDefaultOn()}"/>
+                    <label for="isearch-checkbox"
+                           class="form-check-label">
+                        Include results from partner registries
+                        <i class="tip oi oi-question-mark"
+                           data-ot-background="cornflowerblue"
+                           data-ot-border-color="white"
+                           data-ot-shadow-color="lightgray"
+                           data-ot="If enabled, the search will include matches found in our partner registries">
+                        </i>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </form>
+
     <hr/>
 
     <!--Orthologs -->
-    <div id="orthologsResults" class="my-4">
+    <div id="orthologsResults" class="my-3">
         <div th:if="${orthologs != null} "
              th:replace="fragments/user-table :: ortholog-table(users=${users}, orthologs=${orthologs}, remote=false)"
              th:remove="tag">
@@ -246,7 +275,7 @@
     </div>
 
     <!--Results-->
-    <div class="my-4">
+    <div class="my-3">
         <h4 th:text="'Researchers registered in ' + #{rdp.site.shortname}"></h4>
         <div id="userTable">
             <div th:if="${users != null}"
@@ -258,7 +287,7 @@
     </div>
 
     <!--International results-->
-    <div id="itlResults" th:if="${@applicationSettings.getIsearch().isEnabled()}" class="my-4">
+    <div id="itlResults" th:if="${@applicationSettings.getIsearch().isEnabled()}" class="my-3">
         <hr/>
         <h4>Partner registry results</h4>
         <div id="itlUserTable">

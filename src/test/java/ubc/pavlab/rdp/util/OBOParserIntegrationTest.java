@@ -5,10 +5,10 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.IOException;
-import java.net.URL;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -30,7 +30,7 @@ public class OBOParserIntegrationTest {
 
     @Test
     public void parseStream_withGoTerms_thenSucceed() throws IOException {
-        Map<String, OBOParser.Term> parsedTerms =  oboParser.parseStream( new URL( "http://purl.obolibrary.org/obo/go.obo" ).openStream() );
+        Map<String, OBOParser.Term> parsedTerms = oboParser.parseStream( new ClassPathResource( "cache/go.obo" ).getInputStream() );
         assertThat(parsedTerms).containsKey("GO:0000001");
         OBOParser.Term term = parsedTerms.get("GO:0000001");
         assertThat(term)
@@ -42,7 +42,7 @@ public class OBOParserIntegrationTest {
 
     @Test
     public void parseStream_withUberonTerms_thenSucceed() throws IOException {
-        Map<String, OBOParser.Term> parsedTerms = oboParser.parseStream( new URL( "http://purl.obolibrary.org/obo/uberon.obo" ).openStream() );
+        Map<String, OBOParser.Term> parsedTerms = oboParser.parseStream( new ClassPathResource( "cache/uberon.obo" ).getInputStream() );
         assertThat(parsedTerms).containsKey("UBERON:0000000");
         OBOParser.Term term = parsedTerms.get("UBERON:0000000");
         assertThat(term)

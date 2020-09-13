@@ -45,7 +45,7 @@
         </button>
 
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
-            <ul class="navbar-nav mr-auto" th:if="${user != null}">
+            <ul class="navbar-nav mr-auto" th:if="${@userService.findCurrentUser() != null}">
                 <li class="nav-item">
                     <a class="nav-link" th:href="@{/user/home}" href="/">Home</a>
                 </li>
@@ -59,7 +59,7 @@
                     <div class="dropdown-menu" aria-labelledby="navbarDropdownModel">
                         <th:block th:each="taxon : ${@taxonService.findByActiveTrue()}">
                             <a class="dropdown-item text-capitalize"
-                               th:classappend="(${user != null} and ${user.hasTaxon(taxon)}) ? 'hastaxon' : ''"
+                               th:classappend="(${@userService.findCurrentUser() != null} and ${@userService.findCurrentUser().hasTaxon(taxon)}) ? 'hastaxon' : ''"
                                th:href="@{'/user/model/' + ${taxon.id}}" th:text="${taxon.commonName} " href="#"></a>
                         </th:block>
                     </div>
@@ -73,17 +73,13 @@
                 <li class="nav-item">
                     <a class="nav-link" th:href="@{/user/support}" href="/user/support">Contact</a>
                 </li>
-                <li class="nav-item" th:if="
-            ${@applicationSettings.getPrivacy().isPublicSearch()} or
-            (${@applicationSettings.getPrivacy().isRegisteredSearch()} and ${user != null} ) or
-            (${user != null} and ${user.getRoles().contains(@roleRepository.findByRole('ROLE_ADMIN'))} )
-            ">
+                <li class="nav-item" th:if="${@applicationSettings.privacy.isPublicSearch()} or (${@applicationSettings.privacy.isRegisteredSearch()} and ${@userService.findCurrentUser() != null} ) or ${#authorization.expression('hasRole(''ADMIN'')')}">
                     <a class="nav-link" th:href="@{/search}" href="/search">Search</a>
                 </li>
             </ul>
-            <ul class="navbar-nav mr-auto" th:if="${user == null}"></ul>
+            <ul class="navbar-nav mr-auto" th:if="${@userService.findCurrentUser() == null}"></ul>
             <ul class="navbar-nav">
-                <li class="nav-item dropdown" th:if="${user != null}">
+                <li class="nav-item dropdown" th:if="${@userService.findCurrentUser() != null}">
                     <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownUser" role="button"
                        data-toggle="dropdown"
                        aria-haspopup="true" aria-expanded="false">
@@ -94,7 +90,7 @@
                         <a class="dropdown-item" th:href="@{/logout}" href="/logout">Logout</a>
                     </div>
                 </li>
-                <li class="nav-item" th:if="${user == null}">
+                <li class="nav-item" th:if="${@userService.findCurrentUser() == null}">
                     <a class="nav-link" th:href="@{/login}" href="/login">Login &amp; Registration</a>
                 </li>
             </ul>
@@ -136,7 +132,7 @@
     <script src="https://cdn.jsdelivr.net/gh/enyo/opentip@2.4.6/downloads/opentip-jquery.min.js"
             crossorigin="=anonymous"></script>
     <script th:src="@{/js/common.js}" ></script>
-    <script th:if="${user != null}" th:src="@{/js/activity-monitor.js}" ></script>
+    <script th:if="${@userService.findCurrentUser() != null}" th:src="@{/js/activity-monitor.js}" ></script>
 </th:block>
 </body>
 </html>

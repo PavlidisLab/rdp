@@ -10,4 +10,6 @@ public interface UserOrganService {
     Collection<UserOrgan> findByDescription( String description );
 
     Collection<UserOrgan> findByUberonIdIn( Set<String> organUberonIds );
+
+    void updateUserOrgans();
 }

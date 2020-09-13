@@ -51,6 +51,7 @@ public class PasswordController {
     }
 
     @Data
+    @EqualsAndHashCode(callSuper = true)
     static class PasswordChange extends PasswordReset {
 
         @NotEmpty(message = "Current password cannot be empty.")

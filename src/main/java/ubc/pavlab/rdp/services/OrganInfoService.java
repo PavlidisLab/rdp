@@ -16,6 +16,5 @@ public interface OrganInfoService {
 
     Collection<OrganInfo> findByUberonIdIn( Collection<String> organUberonIds );
 
-    @Scheduled(fixedRate = 2592000000L)
-    void updateOrganInfos() throws IOException;
+    void updateOrganInfos();
 }

@@ -1,5 +1,7 @@
 package ubc.pavlab.rdp.controllers;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.Data;
 import lombok.SneakyThrows;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -27,13 +29,19 @@ import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.services.*;
 import ubc.pavlab.rdp.settings.SiteSettings;
 
+import java.util.Collection;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static ubc.pavlab.rdp.util.TestUtils.*;
 
 /**
@@ -46,6 +54,9 @@ public class UserControllerTest {
 
     @Autowired
     private MockMvc mvc;
+
+    @Autowired
+    ObjectMapper objectMapper;
 
     @MockBean
     private UserService userService;
@@ -200,8 +211,8 @@ public class UserControllerTest {
         Taxon taxon = createTaxon( 1 );
         GeneOntologyTerm term = createTerm( toGOId( 1 ) );
         term.setName( "cave" );
-        UserTerm ut = UserTerm.createUserTerm( user, term, taxon, null );
-        ut.getSizesByTaxon().put( taxon, 99L );
+        UserTerm ut = UserTerm.createUserTerm( user, term, taxon );
+        ut.getSizesByTaxonId().put( taxon.getId(), 99L );
         user.getUserTerms().add( ut );
 
         given( userService.findCurrentUser() ).willReturn( user );
@@ -288,13 +299,13 @@ public class UserControllerTest {
         GeneOntologyTerm term = createTerm( toGOId( 1 ) );
         term.setName( "term name1" );
         term.setAspect( Aspect.biological_process );
-        user.getUserTerms().add( UserTerm.createUserTerm( user, term, taxon, null ) );
+        user.getUserTerms().add( UserTerm.createUserTerm( user, term, taxon ) );
 
         Taxon taxon2 = createTaxon( 2 );
         GeneOntologyTerm term2 = createTerm( toGOId( 2 ) );
         term2.setName( "term name2" );
         term2.setAspect( Aspect.molecular_function );
-        user.getUserTerms().add( UserTerm.createUserTerm( user, term2, taxon2, null ) );
+        user.getUserTerms().add( UserTerm.createUserTerm( user, term2, taxon2 ) );
 
         given( userService.findCurrentUser() ).willReturn( user );
 
@@ -338,17 +349,17 @@ public class UserControllerTest {
         User user = createUser( 1 );
 
         Taxon taxon = createTaxon( 1 );
-        UserTerm t1 = UserTerm.createUserTerm( user, createTerm( toGOId( 1 ) ), taxon, null );
-        UserTerm t2 = UserTerm.createUserTerm( user, createTerm( toGOId( 2 ) ), taxon, null );
+        UserTerm t1 = UserTerm.createUserTerm( user, createTerm( toGOId( 1 ) ), taxon );
+        UserTerm t2 = UserTerm.createUserTerm( user, createTerm( toGOId( 2 ) ), taxon );
 
         Taxon taxon2 = createTaxon( 2 );
-        UserTerm t3 = UserTerm.createUserTerm( user, createTerm( toGOId( 3 ) ), taxon2, null );
-        UserTerm t4 = UserTerm.createUserTerm( user, createTerm( toGOId( 4 ) ), taxon2, null );
+        UserTerm t3 = UserTerm.createUserTerm( user, createTerm( toGOId( 3 ) ), taxon2 );
+        UserTerm t4 = UserTerm.createUserTerm( user, createTerm( toGOId( 4 ) ), taxon2 );
 
 
         given( userService.findCurrentUser() ).willReturn( user );
-        given( userService.recommendTerms( Mockito.any(), Mockito.eq( taxon ) ) ).willReturn( Sets.newSet( t1, t2 ) );
-        given( userService.recommendTerms( Mockito.any(), Mockito.eq( taxon2 ) ) ).willReturn( Sets.newSet( t3, t4 ) );
+        given( userService.recommendTerms( Mockito.any(), eq( taxon ) ) ).willReturn( Sets.newSet( t1, t2 ) );
+        given( userService.recommendTerms( Mockito.any(), eq( taxon2 ) ) ).willReturn( Sets.newSet( t3, t4 ) );
 
         mvc.perform( get( "/user/taxon/1/term/recommend" )
                 .contentType( MediaType.APPLICATION_JSON ) )
@@ -381,6 +392,17 @@ public class UserControllerTest {
                 .andExpect( status().is3xxRedirection() );
     }
 
+    @Data
+    static class ProfileWithoutOrganUberonIds {
+        Profile profile;
+    }
+
+    @Data
+    static class ProfileWithOrganUberonIds {
+        Profile profile;
+        Set<String> organUberonIds;
+    }
+
     @Test
     @WithMockUser
     public void givenLoggedIn_whenSaveProfile_thenReturnSucceed()
@@ -389,27 +411,26 @@ public class UserControllerTest {
         User user = createUser( 1 );
         given( userService.findCurrentUser() ).willReturn( user );
 
-        JSONObject updatedProfile = new JSONObject( user.getProfile() );
-        updatedProfile.put("department", "Department" );
-        updatedProfile.put("description", "Description" );
-        updatedProfile.put("lastName",  "LastName" );
-        updatedProfile.put("name", "Name" );
-        updatedProfile.put("organization", "Organization" );
-        updatedProfile.put("phone", "555-555-5555" );
-        updatedProfile.put("website", "http://test.com" );
-        updatedProfile.put("privacyLevel", PrivacyLevelType.PRIVATE.ordinal() );
+        Profile updatedProfile = new Profile();
+        updatedProfile.setDepartment( "Department" );
+        updatedProfile.setDescription( "Description" );
+        updatedProfile.setLastName( "LastName" );
+        updatedProfile.setName( "Name" );
+        updatedProfile.setOrganization( "Organization" );
+        updatedProfile.setPhone( "555-555-5555" );
+        updatedProfile.setWebsite( "http://test.com" );
+        updatedProfile.setPublications( Sets.newSet() );
+        updatedProfile.setPrivacyLevel( PrivacyLevelType.PRIVATE );
 
-        JSONObject payload = new JSONObject();
-        payload.put("profile", updatedProfile);
+        ProfileWithoutOrganUberonIds payload = new ProfileWithoutOrganUberonIds();
+        payload.setProfile( updatedProfile );
 
         mvc.perform( post( "/user/profile" )
                 .contentType( MediaType.APPLICATION_JSON )
-                .content( payload.toString() ) )
+                .content( objectMapper.writeValueAsString( payload ) ) )
                 .andExpect( status().isOk() );
 
-        assertThat( user.getProfile().getDepartment() ).isEqualTo( "Department");
-        assertThat( user.getProfile().getDescription() ).isEqualTo( "Description");
-        assertThat( user.getProfile().getPrivacyLevel() ).isEqualTo( PrivacyLevelType.PRIVATE );
+        verify( userService ).updateUserProfileAndPublicationsAndOrgans( user, updatedProfile, updatedProfile.getPublications(), Optional.empty() );
     }
 
     @Test
@@ -423,7 +444,7 @@ public class UserControllerTest {
         given( userService.findCurrentUser() ).willReturn( user );
         JSONObject profileJson = new JSONObject( user.getProfile() );
         JSONObject payload = new JSONObject();
-        payload.put("profile", profileJson);
+        payload.put( "profile", profileJson );
 
         mvc.perform( post( "/user/profile" )
                 .contentType( MediaType.APPLICATION_JSON )
@@ -444,17 +465,19 @@ public class UserControllerTest {
 
         JSONObject profileJson = new JSONObject( user.getProfile() );
         // FIXME: use jackson serializer to perform enum conversion from model
-        profileJson.put("privacyLevel",  PrivacyLevelType.SHARED.ordinal());
+        profileJson.put( "privacyLevel", PrivacyLevelType.SHARED.ordinal() );
 
         JSONObject payload = new JSONObject();
-        payload.put("profile", profileJson);
+        payload.put( "profile", profileJson );
 
         mvc.perform( post( "/user/profile" )
                 .contentType( MediaType.APPLICATION_JSON )
                 .content( payload.toString() ) )
                 .andExpect( status().isOk() );
 
-        assertThat( user.getProfile().getPrivacyLevel() ).isEqualTo( PrivacyLevelType.SHARED );
+        Profile profile = user.getProfile();
+        profile.setPrivacyLevel( PrivacyLevelType.SHARED );
+        verify( userService ).updateUserProfileAndPublicationsAndOrgans( user, profile, profile.getPublications(), Optional.empty() );
     }
 
     @Test
@@ -472,30 +495,17 @@ public class UserControllerTest {
         JSONObject profileJson = new JSONObject( user.getProfile() );
         // FIXME
         profileJson.put( "privacyLevel", user.getProfile().getPrivacyLevel().ordinal() );
-        profileJson.put( "uberonOrganIds", new JSONArray( new String[]{ organ.getUberonId() } ) );
 
         JSONObject payload = new JSONObject();
-        payload.put("profile", profileJson);
+        payload.put( "profile", profileJson );
+        payload.put( "organUberonIds", new JSONArray( new String[]{ organ.getUberonId() } ) );
 
         mvc.perform( post( "/user/profile" )
                 .contentType( MediaType.APPLICATION_JSON )
                 .content( payload.toString() ) )
                 .andExpect( status().isOk() );
 
-        assertThat( user.getUserOrgans() )
-                .containsKey( organ.getUberonId() )
-                .containsValue( createUserOrgan( user, organ ) );
-
-        given( organInfoService.findByUberonIdIn( Mockito.anyCollection() ) ).willReturn( Sets.newSet() );
-
-        // clear any existing values
-        payload.put( "uberonOrganIds", new JSONArray() );
-        mvc.perform( post( "/user/profile" )
-                .contentType( MediaType.APPLICATION_JSON )
-                .content( payload.toString() ) )
-                .andExpect( status().isOk() );
-
-        assertThat( user.getUserOrgans() ).isEmpty();
+        verify( userService ).updateUserProfileAndPublicationsAndOrgans( user, user.getProfile(), user.getProfile().getPublications(), Optional.of( Sets.newSet( organ.getUberonId() ) ) );
     }
 
     @Test
@@ -519,8 +529,9 @@ public class UserControllerTest {
         User user = createUser( 1 );
         Taxon taxon = createTaxon( 1 );
 
-        Mockito.when( userService.convertTerms( Mockito.any(), Mockito.eq( taxon ), Mockito.any( GeneOntologyTerm.class ) ) )
-                .then( i -> UserTerm.createUserTerm( user, i.getArgumentAt( 2, GeneOntologyTerm.class ), taxon, null ) );
+        Mockito.when( userService.convertTerms( Mockito.any(), eq( taxon ), Mockito.anyCollectionOf( GeneOntologyTerm.class ) ) )
+                .then( i -> ( (Collection<GeneOntologyTerm>) i.getArgumentAt( 2, Collection.class ) ).stream()
+                        .map( goTerm -> UserTerm.createUserTerm( user, goTerm, taxon ) ).collect( Collectors.toSet() ) );
         Mockito.when( goService.getTerm( Mockito.any() ) )
                 .then( i -> createTerm( i.getArgumentAt( 0, String.class ) ) );
 
@@ -546,9 +557,7 @@ public class UserControllerTest {
                 .contentType( MediaType.APPLICATION_JSON )
                 .content( json.toString() ) )
                 .andExpect( status().isOk() )
-                .andExpect( jsonPath( "$['GO:0000001']", isEmptyOrNullString() ) )
-                .andExpect( jsonPath( "$['GO:0000002']", isEmptyOrNullString() ) )
-                .andExpect( jsonPath( "$['GO:0000003']", isEmptyOrNullString() ) );
+                .andExpect( content().string( "{}" ) );
     }
 
     @Test

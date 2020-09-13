@@ -13,12 +13,12 @@
 <div class="container py-4">
 
     <div class="row">
-        <div class="col-10">
+        <div class="col-9">
             <div th:replace="layouts/common::title(title='Model Organisms', subtitle=${#strings.capitalizeWords(taxon.commonName)})"
                  th:remove="tag">...
             </div>
         </div>
-        <div class="col-2 text-right">
+        <div class="col-3 text-right">
             <button type="button" class="btn btn-primary btn-lg save-model" th:if="${viewOnly == null}">
                 <i class="mx-2 d-none spinner"></i>
                 Save
@@ -46,17 +46,20 @@
             </button>
         </div>
 
-            <div class="my-3">
+        <div class="row my-3">
+            <div class="col">
                 <div class="card research-info edit-container">
                     <div class="card-header d-flex align-items-center">
                         <i class="editable" th:if="${viewOnly == null}"/>
                         <h3 class="mb-0 d-inline-block">Organism Research Focus</h3>
                     </div>
                     <div class="p-2" style="height: 80px;">
-                        <textarea class="data-edit" name="description" th:text="${user.taxonDescriptions.get(taxon)}" disabled="disabled"></textarea>
+                        <textarea class="data-edit" name="description" th:text="${user.taxonDescriptions.get(taxon)}"
+                                  disabled="disabled"></textarea>
                     </div>
                 </div>
             </div>
+        </div>
 
             <div class="my-3" th:if="${@applicationSettings.getPrivacy().isCustomizableLevel()} or ${@applicationSettings.getPrivacy().isCustomizableSharing()} or ${@applicationSettings.getPrivacy().isAllowHideGenelist()}">
                 <div class="card">
@@ -168,7 +171,7 @@
 <script th:inline="javascript">
     /*<![CDATA[*/
     // noinspection JSUnusedLocalSymbols used in model.js
-    var currentTaxon = [[${taxon}]];
+    var currentTaxonId = [[${taxon.id}]];
     var userProfile = [[${user.profile}]];
     // TODO: serialize and use PrivacyLevelType instead of hardcoded values
     var PrivacyLevelType = [[${T(ubc.pavlab.rdp.model.enums.PrivacyLevelType).values()}]];

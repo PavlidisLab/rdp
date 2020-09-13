@@ -9,6 +9,10 @@ function collectProfile() {
     profile.department = $.trim(values[3].value);
     profile.website = $.trim(values[4].value);
 
+    // we handle empty string, null and undefined value (if researcher type feature is not enabled)
+    profile.researcherPosition = $('.basic-info').find('[name=researcherPosition]').val() || null;
+    profile.researcherCategory = $('.basic-info').find('[name=researcherCategory]').val() || null;
+
     // Contact Information
     profile.phone = $.trim($('.contact-info').find('.data-edit')[0].value);
 

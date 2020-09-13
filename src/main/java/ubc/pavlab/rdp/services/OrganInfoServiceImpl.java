@@ -2,6 +2,7 @@ package ubc.pavlab.rdp.services;
 
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import ubc.pavlab.rdp.model.OrganInfo;
@@ -20,8 +21,6 @@ import java.util.Collection;
 @CommonsLog
 @Service("organInfoService")
 public class OrganInfoServiceImpl implements OrganInfoService {
-
-    private static final String UBERON_URL = "http://purl.obolibrary.org/obo/uberon.obo";
 
     @Autowired
     OrganInfoRepository organInfoRepository;
@@ -47,22 +46,12 @@ public class OrganInfoServiceImpl implements OrganInfoService {
     @Autowired
     ApplicationSettings applicationSettings;
 
-    @Scheduled(fixedRate = 2592000000L)
+    @Transactional
     public void updateOrganInfos() {
-        if ( !applicationSettings.getCache().isEnabled() ) {
-            return;
-        }
         try {
-            InputStream in;
-            String organFilePath = applicationSettings.getCache().getOrganFile();
-            if ( applicationSettings.getCache().isLoadFromDisk() ) {
-                in = new FileInputStream( organFilePath );
-                log.info( MessageFormat.format( "Loading organ ontology from {0}.", organFilePath ) );
-            } else {
-                in = new URL( UBERON_URL ).openStream();
-                log.info( MessageFormat.format( "Loading organ ontology from {0}.", UBERON_URL ) );
-            }
-            for ( OBOParser.Term term : oboParser.parseStream( in ).values() ) {
+            Resource organFile = applicationSettings.getCache().getOrganFile();
+            log.info( MessageFormat.format( "Loading organ ontology from {0}...", organFile ) );
+            for ( OBOParser.Term term : oboParser.parseStream( organFile.getInputStream() ).values() ) {
                 OrganInfo organInfo = organInfoRepository.findByUberonId( term.getId() );
                 if ( organInfo == null ) {
                     organInfo = new OrganInfo();
@@ -70,6 +59,7 @@ public class OrganInfoServiceImpl implements OrganInfoService {
                     // only show organs that have been explicitly activated
                     organInfo.setActive( false );
                 }
+                organInfo.setName( term.getName() );
                 organInfo.setDescription( term.getDefinition() );
                 organInfoRepository.save( organInfo );
             }

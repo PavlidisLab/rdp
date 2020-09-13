@@ -1,7 +1,5 @@
 package ubc.pavlab.rdp.services;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -22,8 +20,12 @@ import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.repositories.GeneInfoRepository;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.util.GeneInfoParser;
+import ubc.pavlab.rdp.util.GeneOrthologsParser;
 import ubc.pavlab.rdp.util.SearchResult;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.text.ParseException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -32,20 +34,20 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.verify;
 import static ubc.pavlab.rdp.util.TestUtils.createGene;
 import static ubc.pavlab.rdp.util.TestUtils.createTaxon;
 
 /**
  * Created by mjacobson on 26/02/18.
- *
+ * <p>
  * TODO: move some of the tests in GeneInfoRepositoryTest so that the data repository can be mocked.
  */
 @RunWith(SpringRunner.class)
 @DataJpaTest
-@TestPropertySource(properties = {"spring.jpa.properties.hibernate.ejb.entitymanager_factory_name = test"})
+@TestPropertySource(properties = { "spring.jpa.properties.hibernate.ejb.entitymanager_factory_name = test" })
 public class GeneInfoServiceImplTest {
-
-    private static Log log = LogFactory.getLog( GeneInfoServiceImplTest.class );
 
     @TestConfiguration
     static class GeneServiceImplTestContextConfiguration {
@@ -75,6 +77,9 @@ public class GeneInfoServiceImplTest {
     private GeneInfoRepository geneInfoRepository;
 
     @MockBean
+    private GeneOrthologsParser geneOrthologsParser;
+
+    @MockBean
     private GeneInfoParser geneInfoParser;
 
     @MockBean
@@ -94,11 +99,11 @@ public class GeneInfoServiceImplTest {
         genes.put( 2, entityManager.persist( createGene( 2, taxon ) ) );
         genes.put( 3, entityManager.persist( createGene( 3, taxon ) ) );
 
-        for (Map.Entry<Integer, GeneInfo> entry : genes.entrySet()) {
+        for ( Map.Entry<Integer, GeneInfo> entry : genes.entrySet() ) {
             entry.getValue().setSymbol( "Gene" + entry.getValue().getGeneId() + "Symbol" );
             entry.getValue().setName( "Gene" + entry.getValue().getGeneId() + "Name" );
             entry.getValue().setAliases( "Gene" + entry.getValue().getGeneId() + "Alias" );
-            genes.put(entry.getKey(), entityManager.persist(entry.getValue()));
+            genes.put( entry.getKey(), entityManager.persist( entry.getValue() ) );
         }
     }
 
@@ -244,7 +249,7 @@ public class GeneInfoServiceImplTest {
         genes.get( 12 ).setName( "Match" );
         genes.get( 13 ).setAliases( "Match" );
 
-        geneInfoRepository.save ( genes.values() );
+        geneInfoRepository.save( genes.values() );
 
         Collection<SearchResult<GeneInfo>> matches = geneService.autocomplete( "Match", taxon, 10 );
 
@@ -268,7 +273,7 @@ public class GeneInfoServiceImplTest {
                 nbr -> {
                     GeneInfo g = createGene( nbr, taxon );
                     g.setSymbol( "Gene" + nbr );
-                    return entityManager.persist(g);
+                    return entityManager.persist( g );
                 }
         ).collect( Collectors.toSet() );
 
@@ -291,6 +296,24 @@ public class GeneInfoServiceImplTest {
         Map<GeneInfo, TierType> found = geneService.deserializeGenesTiers( geneTierMap );
         assertThat( found.keySet() ).containsExactly( genes.get( 1 ), genes.get( 2 ), genes.get( 3 ) );
         assertThat( found.values() ).containsExactly( TierType.TIER1, TierType.TIER2, TierType.TIER3 );
+    }
+
+    @Test
+    public void updateGenes_thenSucceed() throws MalformedURLException, ParseException {
+        Taxon humanTaxon = entityManager.persist( createTaxon( 9606 ) );
+        humanTaxon.setGeneUrl( new URL( "ftp://ncbi/Homo_sapiens.gene_info.gz" ) );
+        given( taxonService.findByActiveTrue() ).willReturn( Sets.newSet( humanTaxon ) );
+        GeneInfo updatedGene = createGene( 4, humanTaxon );
+        updatedGene.setSymbol( "FOO" );
+        updatedGene.setName( "BAR" );
+        given( geneInfoParser.parse( humanTaxon, humanTaxon.getGeneUrl() ) ).willReturn( Sets.newSet( updatedGene ) );
+        geneService.updateGenes();
+        verify( taxonService ).findByActiveTrue();
+        assertThat( geneInfoRepository.findByGeneId( 4 ) )
+                .isNotNull()
+                .hasFieldOrPropertyWithValue( "symbol", "FOO" )
+                .hasFieldOrPropertyWithValue( "name", "BAR" )
+                .hasFieldOrPropertyWithValue( "taxon", humanTaxon );
     }
 
 }

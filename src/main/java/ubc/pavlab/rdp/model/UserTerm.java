@@ -1,18 +1,16 @@
 package ubc.pavlab.rdp.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import javax.persistence.*;
-import java.util.Collection;
-import java.util.Set;
 
 /**
- * Represents an association between a user and a GO term.
+ * GO term tracked by a user.
+ *
+ * TODO: add user to {@link EqualsAndHashCode} definition to distinguish
+ * between terms from different users.
  *
  * Created by mjacobson on 28/01/18.
  */
@@ -25,6 +23,8 @@ import java.util.Set;
 @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @Getter
 @Setter
+@EqualsAndHashCode(of = { "user", "taxon" }, callSuper = true)
+@ToString(of = {"user", "taxon"}, callSuper = true)
 @NoArgsConstructor
 public class UserTerm extends GeneOntologyTerm {
 
@@ -43,27 +43,26 @@ public class UserTerm extends GeneOntologyTerm {
     @JoinColumn(name = "taxon_id")
     private Taxon taxon;
 
+    /**
+     * Number of overlap with the user TIER1 and TIER2 genes.
+     */
     @Column(name = "frequency")
     private int frequency;
 
     @Column(name = "size")
     private int size;
 
-    public static UserTerm createUserTerm( User user, GeneOntologyTerm term, Taxon taxon, Set<? extends Gene> overlapGenes ) {
+    public static UserTerm createUserTerm( User user, GeneOntologyTerm term, Taxon taxon ) {
         UserTerm userTerm = new UserTerm();
+        userTerm.setGoId( term.getGoId() );
         userTerm.updateTerm( term );
         userTerm.user = user;
         userTerm.taxon = taxon;
-
         userTerm.size = userTerm.getSize( taxon );
-        if ( overlapGenes != null ) {
-            userTerm.frequency = userTerm.computeOverlapFrequency( overlapGenes );
-        }
         return userTerm;
     }
 
     public void updateTerm( GeneOntologyTerm term ) {
-        this.setGoId( term.getGoId() );
         this.setName( term.getName() );
         this.setDefinition( term.getDefinition() );
         this.setAspect( term.getAspect() );
@@ -71,25 +70,8 @@ public class UserTerm extends GeneOntologyTerm {
 
         this.setParents( term.getParents() );
         this.setChildren( term.getChildren() );
-        this.setSizesByTaxon( term.getSizesByTaxon() );
-        this.setDirectGenes( term.getDirectGenes() );
-    }
-
-    private Integer computeOverlapFrequency( Set<? extends Gene> genes ) {
-        Integer frequency = 0;
-        for ( Gene g : genes ) {
-            Collection<GeneOntologyTerm> directTerms = g.getAllTerms( true, true );
-
-            for ( GeneOntologyTerm term : directTerms ) {
-                if ( term.equals( this ) ) {
-                    frequency++;
-                    // Can break because a gene cannot (and shouldn't) have duplicate terms
-                    break;
-                }
-            }
-
-        }
-        return frequency;
+        this.setSizesByTaxonId( term.getSizesByTaxonId() );
+        this.setDirectGeneIds( term.getDirectGeneIds() );
     }
 
 }

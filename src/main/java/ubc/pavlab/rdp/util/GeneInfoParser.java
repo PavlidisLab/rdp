@@ -79,7 +79,7 @@ public class GeneInfoParser {
         }
     }
 
-    private Set<GeneInfo> parse( Taxon taxon, InputStream input ) throws ParseException {
+    public Set<GeneInfo> parse( Taxon taxon, InputStream input ) throws ParseException {
         try ( BufferedReader br = new BufferedReader( new InputStreamReader( input ) ) ) {
             String header = br.readLine();
 

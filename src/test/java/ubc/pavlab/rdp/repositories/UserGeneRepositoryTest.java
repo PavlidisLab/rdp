@@ -69,6 +69,9 @@ public class UserGeneRepositoryTest {
     @MockBean
     private GOService goService;
 
+    @MockBean
+    private OrganInfoService organInfoService;
+
     private User user;
     private Taxon taxon;
 
@@ -77,7 +80,6 @@ public class UserGeneRepositoryTest {
         // given
         taxon = entityManager.persist( createTaxon( 1 ) );
         user = entityManager.persist( createUserWithGenes( taxon ) );
-        entityManager.flush();
     }
 
     private User createUserWithGenes( Taxon taxon ) {
@@ -126,8 +128,7 @@ public class UserGeneRepositoryTest {
 
         UserGene ug = UserGene.createUserGeneFromGene( createGene( 99, taxon ), user, TierType.TIER1, PrivacyLevelType.PRIVATE );
         user.getUserGenes().put( ug.getGeneId(), ug );
-        entityManager.persist( user );
-        entityManager.flush();
+        user = entityManager.persist( user );
 
         int count = userGeneRepository.countByTierIn( EnumSet.of( TierType.TIER1 ) );
 
@@ -138,7 +139,6 @@ public class UserGeneRepositoryTest {
     public void countByTierIn_whenMultipleMatchesInDifferentUsers_thenCountAll() {
 
         entityManager.persist( createUserWithGenes( taxon ) );
-        entityManager.flush();
 
         int count = userGeneRepository.countByTierIn( EnumSet.of( TierType.TIER1 ) );
 
@@ -175,7 +175,6 @@ public class UserGeneRepositoryTest {
         UserGene ug = UserGene.createUserGeneFromGene( createGene( 99, taxon ), user, TierType.TIER1, PrivacyLevelType.PRIVATE );
         user.getUserGenes().put( ug.getGeneId(), ug );
         entityManager.persist( user );
-        entityManager.flush();
 
         int count = userGeneRepository.countDistinctGeneByTierIn( Collections.singleton( TierType.TIER1 ) );
 
@@ -187,7 +186,6 @@ public class UserGeneRepositoryTest {
 
         // Create another user.
         entityManager.persist( createUserWithGenes( taxon ) );
-        entityManager.flush();
 
         int count = userGeneRepository.countDistinctGeneByTierIn( TierType.MANUAL );
 
@@ -216,7 +214,6 @@ public class UserGeneRepositoryTest {
         UserGene ug = UserGene.createUserGeneFromGene( createGene( 99, taxon ), user, TierType.TIER1, PrivacyLevelType.PRIVATE );
         user.getUserGenes().put( ug.getGeneId(), ug );
         entityManager.persist( user );
-        entityManager.flush();
 
         int count = userGeneRepository.countDistinctUserByTaxon( taxon );
 
@@ -228,7 +225,6 @@ public class UserGeneRepositoryTest {
 
         // Create another user.
         entityManager.persist( createUserWithGenes( taxon ) );
-        entityManager.flush();
 
         int count = userGeneRepository.countDistinctUserByTaxon( taxon );
 
@@ -248,7 +244,6 @@ public class UserGeneRepositoryTest {
 
         // Create another user.
         entityManager.persist( createUserWithGenes( taxon ) );
-        entityManager.flush();
 
         int count = userGeneRepository.countDistinctUser();
 
@@ -260,12 +255,10 @@ public class UserGeneRepositoryTest {
 
         // Create another user.
         entityManager.persist( createUserWithGenes( taxon ) );
-        entityManager.flush();
 
         // Create another user.
         Taxon taxon2 = entityManager.persist( createTaxon( 2 ) );
         entityManager.persist( createUserWithGenes( taxon2 ) );
-        entityManager.flush();
 
         int count = userGeneRepository.countDistinctUser();
 
@@ -315,7 +308,6 @@ public class UserGeneRepositoryTest {
 
         // Create another user.
         User user2 = entityManager.persist( createUserWithGenes( taxon ) );
-        entityManager.flush();
 
         Collection<UserGene> ugs = userGeneRepository.findByGeneIdAndTier( 1, TierType.TIER1 );
 
@@ -337,7 +329,6 @@ public class UserGeneRepositoryTest {
         UserGene ug = UserGene.createUserGeneFromGene( createGene( 1, taxon ), user2, TierType.TIER2, PrivacyLevelType.PRIVATE );
         user2.getUserGenes().put( ug.getGeneId(), ug );
         entityManager.persist( user2 );
-        entityManager.flush();
 
         Collection<UserGene> ugs = userGeneRepository.findByGeneIdAndTierIn( 1, TierType.MANUAL );
 
@@ -363,7 +354,6 @@ public class UserGeneRepositoryTest {
 
         // Create another user.
         User user2 = entityManager.persist( createUserWithGenes( taxon ) );
-        entityManager.flush();
 
         Collection<UserGene> ugs = userGeneRepository.findByGeneIdAndTierIn( 1, Collections.singleton( TierType.TIER1 ) );
 
@@ -417,7 +407,6 @@ public class UserGeneRepositoryTest {
 
         // Create another user.
         User user2 = entityManager.persist( createUserWithGenes( taxon ) );
-        entityManager.flush();
 
         Collection<UserGene> ugs = userGeneRepository.findBySymbolContainingIgnoreCaseAndTaxon( "Gene1", taxon );
         assertThat( ugs ).containsExactly( user.getUserGenes().get( 1 ), user2.getUserGenes().get( 1 ) );
@@ -476,7 +465,6 @@ public class UserGeneRepositoryTest {
 
         // Create another user.
         User user2 = entityManager.persist( createUserWithGenes( taxon ) );
-        entityManager.flush();
 
         Collection<UserGene> ugs = userGeneRepository.findBySymbolContainingIgnoreCaseAndTaxonAndTier( "Gene1", taxon, TierType.TIER1 );
         assertThat( ugs ).containsExactly( user.getUserGenes().get( 1 ), user2.getUserGenes().get( 1 ) );
@@ -543,7 +531,6 @@ public class UserGeneRepositoryTest {
 
         // Create another user.
         User user2 = entityManager.persist( createUserWithGenes( taxon ) );
-        entityManager.flush();
 
         Collection<UserGene> ugs = userGeneRepository.findBySymbolContainingIgnoreCaseAndTaxonAndTierIn( "Gene", taxon, TierType.MANUAL );
         assertThat( ugs ).containsExactly( user.getUserGenes().get( 1 ), user.getUserGenes().get( 2 ), user2.getUserGenes().get( 1 ), user2.getUserGenes().get( 2 ) );
@@ -560,7 +547,8 @@ public class UserGeneRepositoryTest {
 
     @Test
     public void findByGeneIdAndTierInAndUserUserOrgansIn_whenUserFollowOrgan_ReturnUserGene () {
-        UserGene userGene = userGeneRepository.findById( 1 );
+        Gene gene = entityManager.persist( createGene( 10, taxon ) );
+        UserGene userGene = entityManager.persist( createUnpersistedUserGene( gene, user, TierType.TIER1 ) );
         Organ organ = entityManager.persist( createOrgan( "UBERON_1010101", "Appendages", null ) );
         UserOrgan userOrgan = entityManager.persist( createUserOrgan( user, organ ) );
 

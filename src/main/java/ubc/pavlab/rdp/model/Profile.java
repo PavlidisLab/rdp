@@ -5,6 +5,8 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.hibernate.validator.constraints.URL;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
+import ubc.pavlab.rdp.model.enums.ResearcherPosition;
+import ubc.pavlab.rdp.model.enums.ResearcherCategory;
 
 import javax.persistence.*;
 import java.util.HashSet;
@@ -13,12 +15,8 @@ import java.util.Set;
 /**
  * Created by mjacobson on 18/01/18.
  */
+@Data
 @Embeddable
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@ToString
 public class Profile {
     @Column(name = "name")
     @NotEmpty(message = "Please provide your name.")
@@ -56,11 +54,19 @@ public class Profile {
     @Column(name = "shared")
     private Boolean shared;
 
-    @Column(name= "hide_genelist")
+    @Column(name = "hide_genelist")
     private Boolean hideGenelist;
 
     @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "user_id")
     private Set<Publication> publications = new HashSet<>();
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "researcher_position")
+    private ResearcherPosition researcherPosition;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "researcher_category")
+    private ResearcherCategory researcherCategory;
 }

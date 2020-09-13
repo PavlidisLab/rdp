@@ -1,12 +1,14 @@
 package ubc.pavlab.rdp.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -36,4 +38,5 @@ public class GeneInfo extends Gene implements Serializable {
             inverseJoinColumns = @JoinColumn(name = "target_gene"))
     @JsonIgnore
     private Set<GeneInfo> orthologs;
+
 }

@@ -10,10 +10,12 @@ import ubc.pavlab.rdp.model.enums.TierType;
 
 import javax.persistence.QueryHint;
 import java.util.Collection;
+import java.util.Optional;
 import java.util.Set;
 
 @Repository
 public interface UserGeneRepository extends JpaRepository<UserGene, Integer> {
+
     Integer countByTierIn( Collection<TierType> tiers );
 
     @Query("select count(distinct geneId) FROM UserGene WHERE tier IN (:tiers)")
@@ -65,4 +67,7 @@ public interface UserGeneRepository extends JpaRepository<UserGene, Integer> {
     @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
     @Query("select geneId FROM UserGene where taxon = '9606'")
     Collection<Integer> findAllHumanGenes();
+
+    @Query("select gene from UserGene gene left join fetch gene.geneInfo")
+    Collection<UserGene> findAllWithGeneInfo();
 }

@@ -4,6 +4,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import ubc.pavlab.rdp.exception.TokenException;
 import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
+import ubc.pavlab.rdp.model.enums.ResearcherCategory;
 import ubc.pavlab.rdp.model.enums.TierType;
 
 import javax.validation.ValidationException;
@@ -40,27 +41,25 @@ public interface UserService {
 
     Collection<User> findAll();
 
-    Collection<User> findByLikeName( String nameLike );
+    Collection<User> findByLikeName( String nameLike, Optional<Collection<ResearcherCategory>> researcherTypes, Optional<Collection<UserOrgan>> userOrgans );
 
-    Collection<User> findByStartsName( String startsName );
+    Collection<User> findByStartsName( String startsName, Optional<Collection<ResearcherCategory>> researcherTypes, Optional<Collection<UserOrgan>> userOrgans );
 
-    Collection<User> findByDescription( String descriptionLike );
+    Collection<User> findByDescription( String descriptionLike, Optional<Collection<ResearcherCategory>> researcherTypes, Optional<Collection<UserOrgan>> userOrgans );
 
     long countResearchers();
 
     Collection<UserTerm> convertTerms( User user, Taxon taxon, Collection<GeneOntologyTerm> terms );
 
-    UserTerm convertTerms( User user, Taxon taxon, GeneOntologyTerm term );
-
     Collection<UserTerm> recommendTerms( User user, Taxon taxon );
 
     Collection<UserTerm> recommendTerms( User user, Taxon taxon, int minSize, int maxSize, int minFrequency );
 
-    void updateTermsAndGenesInTaxon( User user,
+    User updateTermsAndGenesInTaxon( User user,
                                      Taxon taxon,
-                                     Map<? extends Gene, TierType> genesToTierMapFrom,
-                                     Map<? extends Gene, Optional<PrivacyLevelType>> genesToPrivacyLevelMap,
-                                     Collection<? extends GeneOntologyTerm> goTerms );
+                                     Map<GeneInfo, TierType> genesToTierMapFrom,
+                                     Map<GeneInfo, PrivacyLevelType> genesToPrivacyLevelMap,
+                                     Collection<GeneOntologyTerm> goTerms );
 
     User updateUserProfileAndPublicationsAndOrgans( User user, Profile profile, Set<Publication> publications, Optional<Set<String>> organUberonIds );
 
@@ -81,4 +80,8 @@ public interface UserService {
     User findUserByHiddenId( UUID hiddenId );
 
     boolean hasRole( User user, String role );
+
+    void updateUserTerms();
+
+    long computeTermOverlaps( UserTerm userTerm, Collection<GeneInfo> genes );
 }

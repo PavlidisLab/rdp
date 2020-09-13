@@ -1,89 +1,77 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ehcache xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:noNamespaceSchemaLocation="http://www.ehcache.org/ehcache.xsd"
-         updateCheck="true"
-         monitoring="autodetect"
-         dynamicConfig="true">
+         xsi:noNamespaceSchemaLocation="http://www.ehcache.org/ehcache.xsd">
 
     <defaultCache
-           eternal="false"
-           overflowToDisk="false"
-           timeToLiveSeconds="600"
-           timeToIdleSeconds="600"
-           memoryStoreEvictionPolicy="LRU"
-           transactionalMode="off"/>
+            maxElementsInMemory="256"
+            overflowToDisk="false"
+            timeToLiveSeconds="600"
+            timeToIdleSeconds="600"
+            memoryStoreEvictionPolicy="LRU"/>
 
     <cache name="org.hibernate.cache.internal.StandardQueryCache"
-           eternal="false"
+           maxElementsInMemory="256"
            overflowToDisk="false"
            timeToLiveSeconds="300"
            timeToIdleSeconds="0"
-           memoryStoreEvictionPolicy="LFU"
-           transactionalMode="off"/>
+           memoryStoreEvictionPolicy="LFU"/>
 
     <cache name="org.hibernate.cache.spi.UpdateTimestampsCache"
+           maxElementsInMemory="256"
            eternal="true"/>
 
     <cache name="ubc.pavlab.rdp.model.User"
-           eternal="false"
+           maxElementsInMemory="256"
            overflowToDisk="false"
            timeToLiveSeconds="600"
            timeToIdleSeconds="0"
-           memoryStoreEvictionPolicy="LRU"
-           transactionalMode="off"/>
+           memoryStoreEvictionPolicy="LRU"/>
 
     <cache name="ubc.pavlab.rdp.model.Taxon"
-           eternal="false"
+           maxElementsInMemory="256"
            overflowToDisk="false"
            timeToLiveSeconds="3600"
            timeToIdleSeconds="0"
-           memoryStoreEvictionPolicy="LRU"
-           transactionalMode="off"/>
+           memoryStoreEvictionPolicy="LRU"/>
 
     <cache name="ubc.pavlab.rdp.model.Role"
+           maxElementsInMemory="256"
            eternal="true"/>
 
     <cache name="ubc.pavlab.rdp.model.UserGene"
-           eternal="false"
+           maxElementsInMemory="256"
            overflowToDisk="false"
            timeToLiveSeconds="600"
            timeToIdleSeconds="600"
-           memoryStoreEvictionPolicy="LRU"
-           transactionalMode="off"/>
+           memoryStoreEvictionPolicy="LRU"/>
 
     <cache name="ubc.pavlab.rdp.model.UserTerm"
-           eternal="false"
+           maxElementsInMemory="256"
            overflowToDisk="false"
            timeToLiveSeconds="600"
            timeToIdleSeconds="600"
-           memoryStoreEvictionPolicy="LRU"
-           transactionalMode="off"/>
-
-    <!--
-    <cache name="ubc.pavlab.rdp.model.Ortholog"
-           eternal="false"
-           overflowToDisk="false"
-           timeToLiveSeconds="600"
-           timeToIdleSeconds="600"
-           memoryStoreEvictionPolicy="LRU"
-           transactionalMode="off"/>
-           -->
+           memoryStoreEvictionPolicy="LRU"/>
 
     <!-- Special Query Caches -->
 
     <cache name="taxon-list"
-           eternal="false"
+           maxElementsInMemory="256"
            overflowToDisk="false"
            timeToLiveSeconds="3600"
            timeToIdleSeconds="0"
-           memoryStoreEvictionPolicy="LFU"
-           transactionalMode="off"/>
+           memoryStoreEvictionPolicy="LFU"/>
 
     <cache name="stats"
-           eternal="false"
+           maxElementsInMemory="256"
            overflowToDisk="false"
            timeToLiveSeconds="600"
            timeToIdleSeconds="0"
-           memoryStoreEvictionPolicy="LFU"
-           transactionalMode="off"/>
+           memoryStoreEvictionPolicy="LFU"/>
+
+    <cache name="descendants"
+           maxElementsInMemory="256"
+           overflowToDisk="false"
+           timeToLiveSeconds="3600"
+           timeToIdleSeconds="0"
+           memoryStoreEvictionPolicy="LFU"/>
 </ehcache>

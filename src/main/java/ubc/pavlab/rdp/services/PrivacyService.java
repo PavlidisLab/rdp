@@ -45,4 +45,6 @@ public interface PrivacyService {
     boolean checkUserCanSearch( User user, boolean international );
 
     boolean checkCurrentUserCanSearch( boolean international );
+
+    boolean checkUserCanUpdate( User user, UserContent targetDomainObject );
 }

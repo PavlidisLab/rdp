@@ -23,7 +23,7 @@ public class OrganInfo extends Organ {
     @JsonIgnore
     private Integer id;
 
-    @Column
+    @Column(nullable = false)
     @JsonIgnore
     private Boolean active;
 

@@ -51,11 +51,10 @@ public class User implements UserContent {
     @JsonIgnore
 	private boolean enabled;
 
-    // @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     @ManyToMany(cascade = CascadeType.ALL)
 	@JoinTable(name = "user_role", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
     @JsonIgnore
-	private Set<Role> roles;
+	private Set<Role> roles = new HashSet<> ();
 
     @Valid
 	@Embedded
@@ -78,12 +77,10 @@ public class User implements UserContent {
     @JsonIgnore
     private Map<Taxon, String> taxonDescriptions = new HashMap<>();
 
-    @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 	@OneToMany(cascade = CascadeType.ALL, orphanRemoval = true )
 	@JoinColumn(name = "user_id")
 	private Set<UserTerm> userTerms = new HashSet<>();
 
-    @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "user" )
     @MapKey(name = "geneId")
 	private Map<Integer, UserGene> userGenes = new HashMap<>();
@@ -124,11 +121,13 @@ public class User implements UserContent {
     }
 
     @Override
+    @JsonIgnore
     public Optional<User> getOwner() {
         return Optional.of( this );
     }
 
     @Override
+    @JsonIgnore
     public PrivacyLevelType getEffectivePrivacyLevel() {
         // this is a fallback
         if (getProfile() == null || getProfile().getPrivacyLevel() == null) {

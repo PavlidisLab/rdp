@@ -99,4 +99,11 @@ public class PrivacyServiceImpl implements PrivacyService {
     public boolean checkCurrentUserCanSearch( boolean international ) {
         return checkUserCanSearch( userService.findCurrentUser(), international );
     }
+
+    @Override
+    public boolean checkUserCanUpdate( User user, UserContent userContent ) {
+        // only admins or rightful owner can update user content
+        return userService.hasRole( user, "ROLE_ADMIN" ) ||
+                userContent.getOwner().map( u -> u.equals( user ) ).orElse( false );
+    }
 }

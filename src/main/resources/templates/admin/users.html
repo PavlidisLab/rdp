@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      lang="en">
+<head th:replace="layouts/common::head(title='Users')">
+    <meta charset="UTF-8"/>
+    <title>...</title>
+</head>
+<body>
+<div th:replace="layouts/common::header(title='Users')"></div>
+<div class="container py-3">
+    <div th:replace="layouts/common::title(title='Users', subtitle='Test')"></div>
+    <h2>List of all registered users</h2>
+    <table class="table table-compact">
+        <thead>
+        <th>User ID</th>
+        <th>Full Name</th>
+        <th>Email</th>
+        </thead>
+        <tbody>
+        <tr th:each="user : ${users}">
+            <td><a th:href="@{/admin/users/{userId}(userId=${user.id})}" th:text="${user.id}"></a></td>
+            <td th:text="${user.profile.fullName}"></td>
+            <td th:text="${user.email}"></td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+<div th:replace="layouts/common::footer"></div>
+</body>
+</html>
