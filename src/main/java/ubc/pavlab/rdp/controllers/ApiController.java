@@ -7,8 +7,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.*;
-import ubc.pavlab.rdp.WebSecurityConfig;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.ResearcherCategory;
 import ubc.pavlab.rdp.model.enums.TierType;
@@ -119,10 +121,10 @@ public class ApiController {
     /**
      * Search for genes by symbol, taxon, tier, orthologs and organ systems.
      */
-    @GetMapping(value = "/api/genes/search", params = { "symbol", "taxonId", "tiers" }, produces = MediaType.APPLICATION_JSON)
+    @GetMapping(value = "/api/genes/search", params = { "symbol", "taxonId" }, produces = MediaType.APPLICATION_JSON)
     public Object searchUsersByGeneSymbol( @RequestParam String symbol,
                                            @RequestParam Integer taxonId,
-                                           @RequestParam Set<TierType> tiers,
+                                           @RequestParam(required = false) Set<TierType> tiers,
                                            @RequestParam(required = false) String auth,
                                            @RequestParam(required = false) Integer orthologTaxonId,
                                            @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
@@ -142,6 +144,10 @@ public class ApiController {
 
         if ( gene == null ) {
             return ResponseEntity.notFound().build();
+        }
+
+        if (tiers == null) {
+            tiers = TierType.ANY;
         }
 
         Optional<Taxon> orthologTaxon = Optional.ofNullable( orthologTaxonId ).map( taxonService::findById );

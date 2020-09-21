@@ -116,4 +116,24 @@ public class ApiControllerTest {
 
         verify( userGeneService ).handleGeneSearch( cdh1GeneInfo, EnumSet.of( TierType.TIER1, TierType.TIER2 ), Optional.empty(), Optional.empty(), Optional.empty() );
     }
+
+    @Test
+    public void searchGenes_withNoTiers_thenReturn200() throws Exception {
+        Taxon humanTaxon = createTaxon( 9606 );
+        User user = createUser( 1 );
+        GeneInfo cdh1GeneInfo = createGene( 1, humanTaxon );
+        UserGene cdh1UserGene = createUserGene( 1, cdh1GeneInfo, user, TierType.TIER1 );
+
+        given( taxonService.findById( 9606 ) ).willReturn( humanTaxon );
+        given( geneService.findBySymbolAndTaxon( "CDH1", humanTaxon ) ).willReturn( cdh1GeneInfo );
+        given( userGeneService.handleGeneSearch( cdh1GeneInfo, EnumSet.of( TierType.TIER1, TierType.TIER2 ), Optional.of( humanTaxon ), Optional.empty (), Optional.empty() ) )
+                .willReturn( Sets.newSet( cdh1UserGene ) );
+
+        mvc.perform( get( "/api/genes/search" )
+                .param( "symbol", "CDH1" )
+                .param( "taxonId", "9606" ) )
+                .andExpect( status().is2xxSuccessful() );
+
+        verify( userGeneService ).handleGeneSearch( cdh1GeneInfo, TierType.MANUAL, Optional.empty(), Optional.empty(), Optional.empty() );
+    }
 }
