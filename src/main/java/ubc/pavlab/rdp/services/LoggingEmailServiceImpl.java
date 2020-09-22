@@ -8,7 +8,6 @@ import org.springframework.web.multipart.MultipartFile;
 import ubc.pavlab.rdp.model.User;
 import ubc.pavlab.rdp.settings.SiteSettings;
 
-import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
 import java.text.MessageFormat;
 
@@ -18,7 +17,7 @@ import java.text.MessageFormat;
 @CommonsLog
 @Profile("dev")
 @Service("emailService")
-public class LoggingEmailService implements EmailService {
+public class LoggingEmailServiceImpl implements EmailService {
 
     @Autowired
     private SiteSettings siteSettings;
