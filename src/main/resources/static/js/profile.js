@@ -19,7 +19,6 @@ function collectProfile() {
     // Research Information
     profile.description = $.trim($('.research-info').find('.data-edit')[0].value);
 
-    console.log($('input[name=privacyLevel]:checked').val());
     profile.privacyLevel = parseInt($('input[name=privacyLevel]:checked').val());
     profile.shared = $('#privacy-sharing-checkbox').prop('checked');
     profile.hideGenelist = $('#privacy-genelist-checkbox').prop('checked');
@@ -44,7 +43,7 @@ function collectProfile() {
     publications.sort(function(a, b){return b.pmid-a.pmid});
     profile.publications = publications;
 
-    let organUberonIds = $('[name="organUberonIds"]:checked')
+    var organUberonIds = $('[name="organUberonIds"]:checked')
         .map(function(i, elem) { return elem.value; })
         .get();
 
@@ -163,7 +162,6 @@ function collectProfile() {
             data: JSON.stringify(profile),
             contentType: "application/json",
             success: function(r) {
-                console.log('Yep!');
                 $('.success-row').show();
                 $('.error-row').hide();
                 spinner.addClass("d-none");

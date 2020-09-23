@@ -1,57 +1,57 @@
 (function () {
-    function checkItl(itlChbox){
-        if(itlChbox.prop("checked")){
+    function checkItl(itlChbox) {
+        if (itlChbox.prop("checked")) {
             $("#itlResults").show();
             $("[name=iSearch]").val(true);
-        }else{
+        } else {
             $("#itlResults").hide();
             $('[name="iSearch"]').val(false);
         }
     }
 
-    function checkTaxon(taxonSelect){
+    function checkTaxon(taxonSelect) {
         // noinspection EqualityComparisonWithCoercionJS // multi-browser support // Taxon also checked in SearchController.java
-        if(taxonSelect.val() == 9606){
+        if (taxonSelect.val() == 9606) {
             $("#ortholog-box").show();
-        }else{
+        } else {
             $("#ortholog-box").hide();
         }
     }
 
     $("form").submit(function (event) {
 
-	// Show search results
+        // Show search results
         var tableContainer = $("#userTable");
         tableContainer.html($('<i class="mx-2 spinner"></i>'));
 
         // noinspection JSUnusedLocalSymbols
-        tableContainer.load("/search/view", $(this).serialize(), function(responseText, textStatus, req) {
+        tableContainer.load("/search/view", $(this).serialize(), function (responseText, textStatus, req) {
             if (textStatus !== "success") {
                 tableContainer.html($('<span class="mx-2 text-danger">Something went wrong! Please try again.</span>'));
             }
         });
 
-	// Show orthologs
-	//$("#orthologsResults").fadeOut("slow", function(){
-	$(".ortholog-search-text").html(""); // Clear existing results.
-	//});
-	if ( $("#symbolInput").val() !== "" && $("#ortholog-box").is( ":visible" ) ) {
-	    var orthologContainer = $("#orthologsResults");
-	    orthologContainer.html($('<i class="mx-2 spinner"></i>'));
-	    orthologContainer.load("/search/view/orthologs", $(this).serialize(), function(responseText, textStatus, req) {
-		if (textStatus === "error") {
-		    orthologContainer.html($('<span class="mx-2 text-danger">Something went wrong! Please try again.</span>'));
-		}
-		//$("#orthologsResults").fadeIn(1500);
-	    });
-	}
+        // Show orthologs
+        //$("#orthologsResults").fadeOut("slow", function(){
+        $(".ortholog-search-text").html(""); // Clear existing results.
+        //});
+        if ($("#symbolInput").val() !== "" && $("#ortholog-box").is(":visible")) {
+            var orthologContainer = $("#orthologsResults");
+            orthologContainer.html($('<i class="mx-2 spinner"></i>'));
+            orthologContainer.load("/search/view/orthologs", $(this).serialize(), function (responseText, textStatus) {
+                if (textStatus === "error") {
+                    orthologContainer.html($('<span class="mx-2 text-danger">Something went wrong! Please try again.</span>'));
+                }
+                //$("#orthologsResults").fadeIn(1500);
+            });
+        }
 
-	// Show international search results
-        if($("#isearch-checkbox").is(":checked")){
+        // Show international search results
+        if ($("#isearch-checkbox").is(":checked")) {
             var itlTableContainer = $("#itlUserTable");
             itlTableContainer.html($('<i class="mx-2 spinner"></i>'));
             // noinspection JSUnusedLocalSymbols
-            itlTableContainer.load("/search/view/international", $(this).serialize(), function(responseText, textStatus, req) {
+            itlTableContainer.load("/search/view/international", $(this).serialize(), function (responseText, textStatus, req) {
                 if (textStatus !== "success") {
                     itlTableContainer.html($('<span class="mx-2 text-danger">Something went wrong! Please try again.</span>'));
                 }
@@ -64,14 +64,14 @@
     // International search property setting
     var itlChbox = $("#isearch-checkbox");
     checkItl(itlChbox);
-    itlChbox.click(function(){
+    itlChbox.click(function () {
         checkItl(itlChbox);
     });
 
     // Ortholog selection show&hide
     var taxonSelect = $("#taxonId");
     checkTaxon(taxonSelect);
-    taxonSelect.on("change", function(){
+    taxonSelect.on("change", function () {
         checkTaxon(taxonSelect);
     });
 
@@ -102,7 +102,7 @@
                 }
 
                 // noinspection JSUnusedLocalSymbols
-                $.getJSON("/taxon/" + taxonId  + "/gene/search/" + term + "?max=10", request, function (data, status, xhr) {
+                $.getJSON("/taxon/" + taxonId + "/gene/search/" + term + "?max=10", request, function (data, status, xhr) {
 
                     if (!data.length) {
                         data = [
@@ -118,44 +118,44 @@
                     response(data);
                 });
             },
-            select: function( event, ui ) {
-                autocomplete.val( ui.item.match.symbol );
+            select: function (event, ui) {
+                autocomplete.val(ui.item.match.symbol);
                 return false;
             }
         });
-        autocomplete.autocomplete( "instance" )._renderItem = function( ul, item ) {
-            return $( "<li>" )
-                .append( "<div class='pl-3'><b>" + item.match.symbol + "</b>: " + item.match.name + " (<i>" + item.match.aliases + "</i>)</div>" )
-                .appendTo( ul );
+        autocomplete.autocomplete("instance")._renderItem = function (ul, item) {
+            return $("<li>")
+                .append("<div class='pl-3'><b>" + item.match.symbol + "</b>: " + item.match.name + " (<i>" + item.match.aliases + "</i>)</div>")
+                .appendTo(ul);
         };
-        autocomplete.autocomplete( "instance" )._create = function() {
+        autocomplete.autocomplete("instance")._create = function () {
             this._super();
-            this.widget().menu( "option", "items", "> :not(.ui-autocomplete-category)" );
+            this.widget().menu("option", "items", "> :not(.ui-autocomplete-category)");
         };
-        autocomplete.autocomplete( "instance" )._renderMenu = function(ul, items) {
+        autocomplete.autocomplete("instance")._renderMenu = function (ul, items) {
             var that = this,
                 currentCategory = "";
 
-            if(items.length === 1 && items[0].noresults ){
-                ul.append( "<li aria-label='noresults' class='ui-autocomplete-category my-1 p-2 font-weight-bold' style='background-color: #fddce5; font-size: 1rem;'>No Results</li>" );
+            if (items.length === 1 && items[0].noresults) {
+                ul.append("<li aria-label='noresults' class='ui-autocomplete-category my-1 p-2 font-weight-bold' style='background-color: #fddce5; font-size: 1rem;'>No Results</li>");
                 return;
             }
 
-            $.each( items, function( index, item ) {
+            $.each(items, function (index, item) {
                 var li;
                 var label = item.matchType + " : " + item.match.symbol;
-                if ( item.matchType !== currentCategory ) {
-                    ul.append( "<li aria-label='" + label + "' class='ui-autocomplete-category my-1 p-2 font-weight-bold' style='background-color: #e3f2fd; font-size: 1rem;'>" + item.matchType + "</li>" );
+                if (item.matchType !== currentCategory) {
+                    ul.append("<li aria-label='" + label + "' class='ui-autocomplete-category my-1 p-2 font-weight-bold' style='background-color: #e3f2fd; font-size: 1rem;'>" + item.matchType + "</li>");
                     currentCategory = item.matchType;
                 }
-                li = that._renderItemData( ul, item );
-                if ( item.matchType ) {
-                    li.attr( "aria-label", label );
+                li = that._renderItemData(ul, item);
+                if (item.matchType) {
+                    li.attr("aria-label", label);
                 }
             });
         };
 
-        $('[name="nameLikeBtn"]').click(function() {
+        $('[name="nameLikeBtn"]').click(function () {
             $('[name="nameLikeBtn"]').toggleClass('active', false);
             $(this).toggleClass('active', true);
         });
