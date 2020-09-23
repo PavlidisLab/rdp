@@ -147,7 +147,7 @@
                     </div>
                     <div class="card-body">
                         <p>These settings let other users know which organ systems your research focuses on.</p>
-                        <div th:replace="fragments/organ::organs-selection(checkedOrgans = ${user.userOrgans.values()})">
+                        <div th:replace="fragments/organ::organs-selection(checkedOrganUberonIds = ${user.userOrgans.keySet()})">
                         ...
                         </div>
                     </div>

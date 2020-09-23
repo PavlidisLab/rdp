@@ -15,7 +15,7 @@
                        name="organUberonIds"
                        th:id="${#ids.seq('organUberonIds')}"
                        th:value="${organInfo.uberonId}"
-                       th:checked="${checkedOrgans != null} and ${#lists.contains(checkedOrgans, organInfo)}"
+                       th:checked="${checkedOrganUberonIds != null} and ${#lists.contains(checkedOrganUberonIds, organInfo.uberonId)}"
                        th:disabled="${readonly != null and readonly}"
                        class="form-check-input"/>
                 <label th:for="${#ids.prev('organUberonIds')}"
