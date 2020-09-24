@@ -5,7 +5,7 @@
 <table th:id="${viewOnly == null} ? 'term-table' : ''" class="term-table table table-sm mb-0" th:fragment="term-table (userTerms)">
     <thead class="thead-light">
     <tr>
-        <th scope="col">Id</th>
+        <th scope="col">Term</th>
         <th scope="col">Name</th>
         <th scope="col">Aspect</th>
         <th scope="col">Overlap</th>
@@ -21,7 +21,7 @@
                     data-toggle="tooltip" th:title="${ut.definition}"></a></span></td>
             <td><span class="align-middle" th:text="${ut.name}"></span></td>
             <td><span class="align-middle" th:text="${ut.aspect.label}"></span></td>
-            <td><a href="#" class="align-middle overlap-show-modal" data-toggle="modal" data-target="#overlapModal" th:text="${ut.frequency}"></a></td>
+            <td><a href="#" class="align-middle overlap-show-modal" data-toggle="modal" data-target="#overlapModal" th:text="${@userService.computeTermFrequency(ut)}"></a></td>
             <td><span class="align-middle" th:text="${ut.size}"></span></td>
         </tr>
     </th:block>

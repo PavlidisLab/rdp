@@ -18,20 +18,20 @@
         ...
     </div>
 
-    <p class="lead my-3" th:text="#{rdp.site.welcome-public}"/>
+    <p class="lead my-3" th:text="#{rdp.site.welcome-public}">...</p>
 
     <ul class="nav nav-tabs mt-3">
         <li class="nav-item"><a class="nav-link active" id="gene-tab" data-toggle="tab"
                                 href="#gene-search">Genes</a></li>
         <li class="nav-item"><a class="nav-link" id="res-tab" data-toggle="tab"
-                                href="#user-search-name">Researchers</a></li>
+                                href="#user-search">Researchers</a></li>
     </ul>
 
     <div class="tab-content border-left border-right border-bottom p-3 mb-3">
         <!--Genes-->
         <div id="gene-search" role="tabpanel" aria-labelledby="gene-tab"
              class="tab-pane fade show active">
-            <form>
+            <form class="search">
                 <div class="form-row">
                     <div class="col-md-9">
                         <label for="symbolInput">Search for researchers that study the following organism-specific
@@ -126,7 +126,7 @@
                 </div>
                 <div th:if="${@applicationSettings.organs.enabled}" class="form-row">
                     <div class="col-md-12">
-                        <p>With focus on the following organ systems (or any of none are selected):</p>
+                        <p>With focus on the following organ systems (or any if none are selected):</p>
                     </div>
                     <div class="col-md-12">
                         <div th:replace="fragments/organ::organs-selection"
@@ -139,7 +139,7 @@
 
         </div>
 
-        <div id="user-search-name" role="tabpanel" aria-labelledby="res-tab" class="tab-pane fade">
+        <div id="user-search" role="tabpanel" aria-labelledby="res-tab" class="tab-pane fade">
             <!--Researchers alphabetically-->
             <div th:if="not ${chars.isEmpty()}" th:remove="tag">
                 <div class="form-row">
@@ -151,7 +151,7 @@
                                 <ul class="pagination">
                                     <li th:each="char : ${chars}"
                                         class="page-item">
-                                        <form>
+                                        <form class="search">
                                             <input type="hidden" name="iSearch"/>
                                             <input type="hidden" name="prefix" value="true"/>
                                             <input type="hidden" name="nameLike" th:value="${char}"/>
@@ -167,7 +167,7 @@
                 </div>
 
                 <!--Researchers by name-->
-                <form>
+                <form class="search">
                     <div class="form-row">
                         <div class="form-group col-md-12">
                             <label for="nameLike">Search by name:</label>
@@ -188,7 +188,7 @@
                 </form>
 
                 <!--Researchers by description-->
-                <form>
+                <form class="search">
                     <div class="form-row">
                         <div class="form-group col-md-12">
                             <label for="descriptionLike">Search by research interests:</label>

@@ -1,8 +1,6 @@
 package ubc.pavlab.rdp.util;
 
-import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
-import org.mockito.ArgumentMatcher;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -13,8 +11,10 @@ import ubc.pavlab.rdp.model.enums.TierType;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
-import static org.mockito.Matchers.argThat;
+import static java.util.stream.Collectors.counting;
+import static java.util.stream.Collectors.groupingBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -72,15 +72,6 @@ public final class TestUtils {
         return user;
     }
 
-    public static User createUserWithRole( int id, String... role ) {
-        User user = createUnpersistedUser();
-        user.setId( id );
-
-        user.setRoles( Arrays.stream( role ).map( r -> createRole( r.length(), r ) ).collect( Collectors.toSet() ) );
-
-        return user;
-    }
-
     @SneakyThrows
     public static Taxon createTaxon( int id ) {
         Taxon taxon = new Taxon();
@@ -101,11 +92,11 @@ public final class TestUtils {
         return term;
     }
 
-    public static GeneOntologyTerm createTermWithGene( String id, GeneInfo... genes ) {
-        GeneOntologyTerm term = new GeneOntologyTerm();
-        term.setGoId( id );
-        term.setObsolete( false );
+    public static GeneOntologyTerm createTermWithGenes( String id, GeneInfo... genes ) {
+        GeneOntologyTerm term = createTerm( id );
         term.setDirectGeneIds( Arrays.stream( genes ).map( GeneInfo::getGeneId ).collect( Collectors.toSet() ) );
+        term.setSizesByTaxonId( Arrays.stream( genes )
+                .collect( groupingBy( g -> g.getTaxon().getId(), counting() ) ) );
         return term;
     }
 
@@ -116,23 +107,32 @@ public final class TestUtils {
         return gene;
     }
 
+    public static UserTerm createUnpersistedUserTerm( User user, GeneOntologyTerm term, Taxon taxon ) {
+        UserTerm userTerm = new UserTerm();
+        userTerm.setGoId( term.getGoId() );
+        userTerm.updateTerm( term );
+        userTerm.setUser( user );
+        userTerm.setTaxon( taxon );
+        return userTerm;
+    }
+
     public static UserTerm createUserTerm( int id, User user, GeneOntologyTerm term, Taxon taxon ) {
-        UserTerm ut = UserTerm.createUserTerm( user, term, taxon );
+        UserTerm ut = createUnpersistedUserTerm( user, term, taxon );
         ut.setId( id );
         return ut;
     }
 
-    public static UserGene createUserGene( int id, Gene gene, User user, TierType tier ) {
-        UserGene ug = createUnpersistedUserGene( gene, user, tier );
+    public static UserGene createUserGene( int id, Gene gene, User user, TierType tier, PrivacyLevelType privacyLevelType ) {
+        UserGene ug = createUnpersistedUserGene( gene, user, tier, privacyLevelType );
         ug.setId( id );
         return ug;
     }
 
-    public static UserGene createUnpersistedUserGene( Gene gene, User user, TierType tier ) {
+    public static UserGene createUnpersistedUserGene( Gene gene, User user, TierType tier, PrivacyLevelType privacyLevelType ) {
         UserGene ug = new UserGene();
         ug.setUser( user );
         ug.setTier( tier );
-        ug.setPrivacyLevel( PrivacyLevelType.PRIVATE );
+        ug.setPrivacyLevel( privacyLevelType );
         ug.updateGene( gene );
         return ug;
     }

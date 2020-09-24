@@ -8,10 +8,10 @@ import javax.persistence.*;
 
 /**
  * GO term tracked by a user.
- *
+ * <p>
  * TODO: add user to {@link EqualsAndHashCode} definition to distinguish
  * between terms from different users.
- *
+ * <p>
  * Created by mjacobson on 28/01/18.
  */
 @Entity
@@ -24,7 +24,7 @@ import javax.persistence.*;
 @Getter
 @Setter
 @EqualsAndHashCode(of = { "user", "taxon" }, callSuper = true)
-@ToString(of = {"user", "taxon"}, callSuper = true)
+@ToString(of = { "user", "taxon" }, callSuper = true)
 @NoArgsConstructor
 public class UserTerm extends GeneOntologyTerm {
 
@@ -66,8 +66,8 @@ public class UserTerm extends GeneOntologyTerm {
 
         this.setParents( term.getParents() );
         this.setChildren( term.getChildren() );
-        this.setSizesByTaxonId( term.getSizesByTaxonId() );
         this.setDirectGeneIds( term.getDirectGeneIds() );
+        this.setSizesByTaxonId( term.getSizesByTaxonId() );
     }
 
 }

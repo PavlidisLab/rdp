@@ -11,7 +11,6 @@ import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.test.context.junit4.SpringRunner;
 import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
-import ubc.pavlab.rdp.util.TestUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

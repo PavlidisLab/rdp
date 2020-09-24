@@ -12,6 +12,7 @@ import ubc.pavlab.rdp.model.GeneInfo;
 import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.model.User;
 import ubc.pavlab.rdp.model.UserGene;
+import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.repositories.GeneInfoRepository;
 import ubc.pavlab.rdp.repositories.TaxonRepository;
@@ -54,7 +55,7 @@ public class UserGeneServiceImplTest {
         Taxon humanTaxon = createTaxon( 9606 );
         User user = createUser( 1 );
         GeneInfo gene = createGene( 1, humanTaxon );
-        UserGene userGene = createUserGene( 1, gene, user, TierType.TIER1 );
+        UserGene userGene = createUserGene( 1, gene, user, TierType.TIER1, PrivacyLevelType.PRIVATE );
         userGene.setGeneInfo (gene);
         when( userGeneRepository.findAllWithGeneInfo() ).thenReturn( Lists.newArrayList( userGene ) );
         when( geneInfoRepository.findByGeneIdAndTaxon( gene.getGeneId(), gene.getTaxon() ) ).thenReturn( gene );

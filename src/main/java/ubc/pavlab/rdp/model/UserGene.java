@@ -63,9 +63,9 @@ public class UserGene extends Gene implements UserContent {
 
     public static UserGene createUserGeneFromGene( Gene gene, User user, TierType tier, PrivacyLevelType privacyLevel ) {
         UserGene userGene = new UserGene();
-        userGene.updateGene(gene);
-        userGene.setUser(user);
-        userGene.setTier(tier);
+        userGene.updateGene( gene );
+        userGene.setUser( user );
+        userGene.setTier( tier );
         userGene.setPrivacyLevel( privacyLevel );
         return userGene;
     }
@@ -82,18 +82,18 @@ public class UserGene extends Gene implements UserContent {
     @Override
     @JsonIgnore
     public Optional<User> getOwner() {
-        return Optional.of(getUser());
+        return Optional.of( getUser() );
     }
 
     /**
      * Get the effective privacy level for this gene.
-     *
+     * <p>
      * This value cascades down to the user profile or the application default in case it is not set.
      */
     @Override
     @JsonIgnore
     public PrivacyLevelType getEffectivePrivacyLevel() {
-        PrivacyLevelType privacyLevel = Optional.ofNullable(getPrivacyLevel()).orElse(getUser().getProfile().getPrivacyLevel());
+        PrivacyLevelType privacyLevel = Optional.ofNullable( getPrivacyLevel() ).orElse( getUser().getProfile().getPrivacyLevel() );
         if ( privacyLevel.ordinal() > getUser().getEffectivePrivacyLevel().ordinal() ) {
             log.warn( MessageFormat.format( "Effective gene privacy level {0} of {1} is higher than that of the user {2}, and will be capped to {3}.",
                     privacyLevel, this, getUser(), getUser().getEffectivePrivacyLevel() ) );

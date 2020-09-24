@@ -36,7 +36,7 @@ import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.*;
-import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.when;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -98,7 +98,7 @@ public class UserControllerTest {
 
         User user = createUser( 1 );
 
-        given( userService.findCurrentUser() ).willReturn( user );
+        when( userService.findCurrentUser() ).thenReturn( user );
 
         mvc.perform( get( "/user" )
                 .contentType( MediaType.APPLICATION_JSON ) )
@@ -112,7 +112,7 @@ public class UserControllerTest {
 
         User user = createUser( 1 );
 
-        given( userService.findCurrentUser() ).willReturn( user );
+        when( userService.findCurrentUser() ).thenReturn( user );
 
         mvc.perform( get( "/user" )
                 .contentType( MediaType.APPLICATION_JSON ) )
@@ -127,7 +127,7 @@ public class UserControllerTest {
 
         User user = createUser( 1 );
 
-        given( userService.findCurrentUser() ).willReturn( user );
+        when( userService.findCurrentUser() ).thenReturn( user );
 
         mvc.perform( get( "/user/taxon" )
                 .contentType( MediaType.APPLICATION_JSON ) )
@@ -143,7 +143,7 @@ public class UserControllerTest {
         Taxon taxon = createTaxon( 1 );
         user.getUserGenes().put( 1, UserGene.createUserGeneFromGene( createGene( 1, taxon ), user, TierType.TIER1, PrivacyLevelType.PUBLIC ) );
 
-        given( userService.findCurrentUser() ).willReturn( user );
+        when( userService.findCurrentUser() ).thenReturn( user );
 
         mvc.perform( get( "/user/taxon" )
                 .contentType( MediaType.APPLICATION_JSON ) )
@@ -158,7 +158,7 @@ public class UserControllerTest {
 
         User user = createUser( 1 );
 
-        given( userService.findCurrentUser() ).willReturn( user );
+        when( userService.findCurrentUser() ).thenReturn( user );
 
         mvc.perform( get( "/user/gene" )
                 .contentType( MediaType.APPLICATION_JSON ) )
@@ -177,7 +177,7 @@ public class UserControllerTest {
         gene.setSymbol( "bat" );
         user.getUserGenes().put( 1, UserGene.createUserGeneFromGene( gene, user, TierType.TIER1, PrivacyLevelType.PRIVATE ) );
 
-        given( userService.findCurrentUser() ).willReturn( user );
+        when( userService.findCurrentUser() ).thenReturn( user );
 
         mvc.perform( get( "/user/gene" )
                 .contentType( MediaType.APPLICATION_JSON ) )
@@ -194,7 +194,7 @@ public class UserControllerTest {
 
         User user = createUser( 1 );
 
-        given( userService.findCurrentUser() ).willReturn( user );
+        when( userService.findCurrentUser() ).thenReturn( user );
 
         mvc.perform( get( "/user/term" )
                 .contentType( MediaType.APPLICATION_JSON ) )
@@ -215,7 +215,7 @@ public class UserControllerTest {
         ut.getSizesByTaxonId().put( taxon.getId(), 99L );
         user.getUserTerms().add( ut );
 
-        given( userService.findCurrentUser() ).willReturn( user );
+        when( userService.findCurrentUser() ).thenReturn( user );
 
         mvc.perform( get( "/user/term" )
                 .contentType( MediaType.APPLICATION_JSON ) )
@@ -232,7 +232,7 @@ public class UserControllerTest {
 
         User user = createUser( 1 );
 
-        given( userService.findCurrentUser() ).willReturn( user );
+        when( userService.findCurrentUser() ).thenReturn( user );
 
         mvc.perform( get( "/user/taxon/9606/gene" )
                 .contentType( MediaType.APPLICATION_JSON ) )
@@ -256,7 +256,7 @@ public class UserControllerTest {
         gene2.setSymbol( "bat2" );
         user.getUserGenes().put( 2, UserGene.createUserGeneFromGene( gene2, user, TierType.TIER3, PrivacyLevelType.PRIVATE ) );
 
-        given( userService.findCurrentUser() ).willReturn( user );
+        when( userService.findCurrentUser() ).thenReturn( user );
 
         mvc.perform( get( "/user/taxon/1/gene" )
                 .contentType( MediaType.APPLICATION_JSON ) )
@@ -281,7 +281,7 @@ public class UserControllerTest {
 
         User user = createUser( 1 );
 
-        given( userService.findCurrentUser() ).willReturn( user );
+        when( userService.findCurrentUser() ).thenReturn( user );
 
         mvc.perform( get( "/user/taxon/9606/term" )
                 .contentType( MediaType.APPLICATION_JSON ) )
@@ -307,7 +307,7 @@ public class UserControllerTest {
         term2.setAspect( Aspect.molecular_function );
         user.getUserTerms().add( UserTerm.createUserTerm( user, term2, taxon2 ) );
 
-        given( userService.findCurrentUser() ).willReturn( user );
+        when( userService.findCurrentUser() ).thenReturn( user );
 
         mvc.perform( get( "/user/taxon/1/term" )
                 .contentType( MediaType.APPLICATION_JSON ) )
@@ -334,7 +334,7 @@ public class UserControllerTest {
 
         User user = createUser( 1 );
 
-        given( userService.findCurrentUser() ).willReturn( user );
+        when( userService.findCurrentUser() ).thenReturn( user );
 
         mvc.perform( get( "/user/taxon/1/term/recommend" )
                 .contentType( MediaType.APPLICATION_JSON ) )
@@ -357,9 +357,9 @@ public class UserControllerTest {
         UserTerm t4 = UserTerm.createUserTerm( user, createTerm( toGOId( 4 ) ), taxon2 );
 
 
-        given( userService.findCurrentUser() ).willReturn( user );
-        given( userService.recommendTerms( Mockito.any(), eq( taxon ) ) ).willReturn( Sets.newSet( t1, t2 ) );
-        given( userService.recommendTerms( Mockito.any(), eq( taxon2 ) ) ).willReturn( Sets.newSet( t3, t4 ) );
+        when( userService.findCurrentUser() ).thenReturn( user );
+        when( userService.recommendTerms( Mockito.any(), eq( taxon ) ) ).thenReturn( Sets.newSet( t1, t2 ) );
+        when( userService.recommendTerms( Mockito.any(), eq( taxon2 ) ) ).thenReturn( Sets.newSet( t3, t4 ) );
 
         mvc.perform( get( "/user/taxon/1/term/recommend" )
                 .contentType( MediaType.APPLICATION_JSON ) )
@@ -384,7 +384,7 @@ public class UserControllerTest {
 
         User user = createUser( 1 );
 
-        given( userService.findCurrentUser() ).willReturn( user );
+        when( userService.findCurrentUser() ).thenReturn( user );
 
         mvc.perform( post( "/user/profile" )
                 .contentType( MediaType.APPLICATION_JSON )
@@ -409,7 +409,7 @@ public class UserControllerTest {
             throws Exception {
 
         User user = createUser( 1 );
-        given( userService.findCurrentUser() ).willReturn( user );
+        when( userService.findCurrentUser() ).thenReturn( user );
 
         Profile updatedProfile = new Profile();
         updatedProfile.setDepartment( "Department" );
@@ -441,7 +441,7 @@ public class UserControllerTest {
         User user = createUser( 1 );
         user.getProfile().setWebsite( "malformed url" );
 
-        given( userService.findCurrentUser() ).willReturn( user );
+        when( userService.findCurrentUser() ).thenReturn( user );
         JSONObject profileJson = new JSONObject( user.getProfile() );
         JSONObject payload = new JSONObject();
         payload.put( "profile", profileJson );
@@ -460,7 +460,7 @@ public class UserControllerTest {
 
         User user = createUser( 1 );
 
-        given( userService.findCurrentUser() ).willReturn( user );
+        when( userService.findCurrentUser() ).thenReturn( user );
         assertThat( user.getProfile().getPrivacyLevel() ).isEqualTo( PrivacyLevelType.PUBLIC );
 
         JSONObject profileJson = new JSONObject( user.getProfile() );
@@ -487,8 +487,8 @@ public class UserControllerTest {
         User user = createUser( 1 );
         Organ organ = createOrgan( "UBERON", "Appendage", null );
 
-        given( userService.findCurrentUser() ).willReturn( user );
-        given( organInfoService.findByUberonIdIn( Mockito.anyCollection() ) ).willReturn( Sets.newSet( organ ) );
+        when( userService.findCurrentUser() ).thenReturn( user );
+        when( organInfoService.findByUberonIdIn( Mockito.anyCollection() ) ).thenReturn( Sets.newSet( organ ) );
 
         assertThat( user.getProfile().getPrivacyLevel() ).isEqualTo( PrivacyLevelType.PUBLIC );
 
@@ -514,7 +514,7 @@ public class UserControllerTest {
 
         User user = createUser( 1 );
 
-        given( userService.findCurrentUser() ).willReturn( user );
+        when( userService.findCurrentUser() ).thenReturn( user );
 
         mvc.perform( post( "/user/taxon/1/term/search" )
                 .contentType( MediaType.APPLICATION_JSON )
@@ -535,7 +535,7 @@ public class UserControllerTest {
         Mockito.when( goService.getTerm( Mockito.any() ) )
                 .then( i -> createTerm( i.getArgumentAt( 0, String.class ) ) );
 
-        given( userService.findCurrentUser() ).willReturn( user );
+        when( userService.findCurrentUser() ).thenReturn( user );
 
         JSONArray json = new JSONArray();
         json.put( toGOId( 1 ) );
@@ -566,7 +566,7 @@ public class UserControllerTest {
 
         User user = createUser( 1 );
 
-        given( userService.findCurrentUser() ).willReturn( user );
+        when( userService.findCurrentUser() ).thenReturn( user );
 
         mvc.perform( post( "/user/model/1" )
                 .contentType( MediaType.APPLICATION_JSON )

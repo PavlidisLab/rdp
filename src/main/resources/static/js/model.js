@@ -69,7 +69,7 @@
                         }
                     }).join('');
                     row.push('<select class="form-control">' +
-                        '<option>Identical to your profile</option>' +
+                        '<option>Please select…</option>' +
                         privacyOptions +
                         '</select>');
                 }

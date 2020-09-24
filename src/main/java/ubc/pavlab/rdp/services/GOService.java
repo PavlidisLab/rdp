@@ -13,11 +13,9 @@ import java.util.Map;
  */
 public interface GOService {
 
+    Map<String, GeneOntologyTerm> getTerms();
+
     void setTerms( Map<String, GeneOntologyTerm> termMap );
-
-    Collection<GeneOntologyTerm> getAllTerms();
-
-    int size();
 
     Collection<GeneOntologyTerm> getDescendants( GeneOntologyTerm entry );
 
@@ -31,17 +29,17 @@ public interface GOService {
 
     Collection<GeneOntologyTerm> getChildren( GeneOntologyTerm entry, boolean includePartOf );
 
-    Collection<GeneInfo> getGenes( String id, Taxon taxon );
-
-    Collection<GeneInfo> getGenes( GeneOntologyTerm t, Taxon taxon );
-
     Collection<GeneInfo> getGenes( GeneOntologyTerm t );
 
-    Collection<GeneInfo> getGenes( Collection<GeneOntologyTerm> goTerms, Taxon taxon );
+    Collection<GeneInfo> getGenesInTaxon( String id, Taxon taxon );
+
+    Collection<GeneInfo> getGenesInTaxon( GeneOntologyTerm t, Taxon taxon );
+
+    Collection<GeneInfo> getGenesInTaxon( Collection<GeneOntologyTerm> goTerms, Taxon taxon );
 
     GeneOntologyTerm getTerm( String goId );
 
-    void updateGoTerms ();
+    void updateGoTerms();
 
     Collection<GeneOntologyTerm> getTermsForGene( GeneInfo gene );
 

@@ -538,7 +538,7 @@ public class UserGeneRepositoryTest {
 
     @Test
     public void findById_whenUserGenePrivacyLevelIsHigher_ReturnUserPrivacyLevel () {
-        UserGene userGene = userGeneRepository.findById( 1 );
+        UserGene userGene = user.getUserGenes().get( 1 );
         userGene.getUser().getProfile().setPrivacyLevel( PrivacyLevelType.SHARED );
         userGene.setPrivacyLevel( PrivacyLevelType.PUBLIC );
         assertThat( userGene.getPrivacyLevel() ).isEqualTo( PrivacyLevelType.PUBLIC );
@@ -548,7 +548,7 @@ public class UserGeneRepositoryTest {
     @Test
     public void findByGeneIdAndTierInAndUserUserOrgansIn_whenUserFollowOrgan_ReturnUserGene () {
         Gene gene = entityManager.persist( createGene( 10, taxon ) );
-        UserGene userGene = entityManager.persist( createUnpersistedUserGene( gene, user, TierType.TIER1 ) );
+        UserGene userGene = entityManager.persist( createUnpersistedUserGene( gene, user, TierType.TIER1, PrivacyLevelType.PRIVATE ) );
         Organ organ = entityManager.persist( createOrgan( "UBERON_1010101", "Appendages", null ) );
         UserOrgan userOrgan = entityManager.persist( createUserOrgan( user, organ ) );
 

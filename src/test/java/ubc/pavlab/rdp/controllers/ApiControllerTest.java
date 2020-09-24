@@ -18,6 +18,7 @@ import ubc.pavlab.rdp.model.GeneInfo;
 import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.model.User;
 import ubc.pavlab.rdp.model.UserGene;
+import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.services.*;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
@@ -26,9 +27,8 @@ import ubc.pavlab.rdp.settings.SiteSettings;
 import java.util.EnumSet;
 import java.util.Optional;
 
-import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.when;
 import static org.mockito.Mockito.verify;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.jsonPath;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static ubc.pavlab.rdp.util.TestUtils.*;
@@ -70,8 +70,8 @@ public class ApiControllerTest {
 
     @Before
     public void setUp() {
-        given( applicationSettings.getIsearch() ).willReturn( isearchSettings );
-        given( isearchSettings.isEnabled() ).willReturn( true );
+        when( applicationSettings.getIsearch() ).thenReturn( isearchSettings );
+        when( isearchSettings.isEnabled() ).thenReturn( true );
     }
 
     @Test
@@ -79,12 +79,12 @@ public class ApiControllerTest {
         Taxon humanTaxon = createTaxon( 9606 );
         User user = createUser( 1 );
         GeneInfo cdh1GeneInfo = createGene( 1, humanTaxon );
-        UserGene cdh1UserGene = createUserGene( 1, cdh1GeneInfo, user, TierType.TIER1 );
+        UserGene cdh1UserGene = createUserGene( 1, cdh1GeneInfo, user, TierType.TIER1, PrivacyLevelType.PRIVATE );
 
-        given( taxonService.findById( 9606 ) ).willReturn( humanTaxon );
-        given( geneService.findBySymbolAndTaxon( "CDH1", humanTaxon ) ).willReturn( cdh1GeneInfo );
-        given( userGeneService.handleGeneSearch( cdh1GeneInfo, EnumSet.of( TierType.TIER1 ), Optional.of( humanTaxon ), Optional.empty(), Optional.empty() ) )
-                .willReturn( Sets.newSet( cdh1UserGene ) );
+        when( taxonService.findById( 9606 ) ).thenReturn( humanTaxon );
+        when( geneService.findBySymbolAndTaxon( "CDH1", humanTaxon ) ).thenReturn( cdh1GeneInfo );
+        when( userGeneService.handleGeneSearch( cdh1GeneInfo, EnumSet.of( TierType.TIER1 ), Optional.of( humanTaxon ), Optional.empty(), Optional.empty() ) )
+                .thenReturn( Sets.newSet( cdh1UserGene ) );
 
         mvc.perform( get( "/api/genes/search" )
                 .param( "symbol", "CDH1" )
@@ -100,12 +100,12 @@ public class ApiControllerTest {
         Taxon humanTaxon = createTaxon( 9606 );
         User user = createUser( 1 );
         GeneInfo cdh1GeneInfo = createGene( 1, humanTaxon );
-        UserGene cdh1UserGene = createUserGene( 1, cdh1GeneInfo, user, TierType.TIER1 );
+        UserGene cdh1UserGene = createUserGene( 1, cdh1GeneInfo, user, TierType.TIER1, PrivacyLevelType.PRIVATE );
 
-        given( taxonService.findById( 9606 ) ).willReturn( humanTaxon );
-        given( geneService.findBySymbolAndTaxon( "CDH1", humanTaxon ) ).willReturn( cdh1GeneInfo );
-        given( userGeneService.handleGeneSearch( cdh1GeneInfo, EnumSet.of( TierType.TIER1, TierType.TIER2 ), Optional.of( humanTaxon ), Optional.empty (), Optional.empty() ) )
-                .willReturn( Sets.newSet( cdh1UserGene ) );
+        when( taxonService.findById( 9606 ) ).thenReturn( humanTaxon );
+        when( geneService.findBySymbolAndTaxon( "CDH1", humanTaxon ) ).thenReturn( cdh1GeneInfo );
+        when( userGeneService.handleGeneSearch( cdh1GeneInfo, EnumSet.of( TierType.TIER1, TierType.TIER2 ), Optional.of( humanTaxon ), Optional.empty (), Optional.empty() ) )
+                .thenReturn( Sets.newSet( cdh1UserGene ) );
 
         mvc.perform( get( "/api/genes/search" )
                 .param( "symbol", "CDH1" )
@@ -122,12 +122,12 @@ public class ApiControllerTest {
         Taxon humanTaxon = createTaxon( 9606 );
         User user = createUser( 1 );
         GeneInfo cdh1GeneInfo = createGene( 1, humanTaxon );
-        UserGene cdh1UserGene = createUserGene( 1, cdh1GeneInfo, user, TierType.TIER1 );
+        UserGene cdh1UserGene = createUserGene( 1, cdh1GeneInfo, user, TierType.TIER1, PrivacyLevelType.PRIVATE );
 
-        given( taxonService.findById( 9606 ) ).willReturn( humanTaxon );
-        given( geneService.findBySymbolAndTaxon( "CDH1", humanTaxon ) ).willReturn( cdh1GeneInfo );
-        given( userGeneService.handleGeneSearch( cdh1GeneInfo, EnumSet.of( TierType.TIER1, TierType.TIER2 ), Optional.of( humanTaxon ), Optional.empty (), Optional.empty() ) )
-                .willReturn( Sets.newSet( cdh1UserGene ) );
+        when( taxonService.findById( 9606 ) ).thenReturn( humanTaxon );
+        when( geneService.findBySymbolAndTaxon( "CDH1", humanTaxon ) ).thenReturn( cdh1GeneInfo );
+        when( userGeneService.handleGeneSearch( cdh1GeneInfo, EnumSet.of( TierType.TIER1, TierType.TIER2 ), Optional.of( humanTaxon ), Optional.empty (), Optional.empty() ) )
+                .thenReturn( Sets.newSet( cdh1UserGene ) );
 
         mvc.perform( get( "/api/genes/search" )
                 .param( "symbol", "CDH1" )

@@ -5,12 +5,13 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-import ubc.pavlab.rdp.model.*;
+import ubc.pavlab.rdp.model.Taxon;
+import ubc.pavlab.rdp.model.UserGene;
+import ubc.pavlab.rdp.model.UserOrgan;
 import ubc.pavlab.rdp.model.enums.TierType;
 
 import javax.persistence.QueryHint;
 import java.util.Collection;
-import java.util.Optional;
 import java.util.Set;
 
 @Repository

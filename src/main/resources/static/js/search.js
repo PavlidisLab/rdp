@@ -18,7 +18,7 @@
         }
     }
 
-    $("form").submit(function (event) {
+    $("form.search").submit(function (event) {
 
         // Show search results
         var tableContainer = $("#userTable");

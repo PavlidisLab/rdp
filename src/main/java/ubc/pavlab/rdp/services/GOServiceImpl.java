@@ -104,7 +104,7 @@ public class GOServiceImpl implements GOService {
             return;
         }
 
-        log.info( MessageFormat.format( "Gene Ontology loaded, total of {0} items.", size() ) );
+        log.info( MessageFormat.format( "Gene Ontology loaded, total of {0} items.", getTerms().size() ) );
 
         log.info( MessageFormat.format( "Loading annotations from: {0}.", cacheSettings.getAnnotationFile() ) );
 
@@ -113,7 +113,7 @@ public class GOServiceImpl implements GOService {
 
             Map<String, List<Gene2GoParser.Record>> recordsByGoTerm = records.stream().collect( Collectors.groupingBy( term -> term.getGoId(), Collectors.toList() ) );
 
-            for (Map.Entry<String, List<Gene2GoParser.Record>> entry: recordsByGoTerm.entrySet()) {
+            for ( Map.Entry<String, List<Gene2GoParser.Record>> entry : recordsByGoTerm.entrySet() ) {
                 GeneOntologyTerm term = getTerm( entry.getKey() );
 
                 if ( term == null ) {
@@ -152,22 +152,14 @@ public class GOServiceImpl implements GOService {
     }
 
     @Override
-    public Collection<GeneOntologyTerm> getAllTerms() {
-        return termMap.values();
-    }
-
-    @Override
-    public int size() {
-        return termMap.size();
+    public Map<String, GeneOntologyTerm> getTerms() {
+        return Collections.unmodifiableMap( termMap );
     }
 
     @Override
     public Map<GeneOntologyTerm, Long> termFrequencyMap( Collection<GeneInfo> genes ) {
-        if ( genes == null ) {
-            return null;
-        }
         return genes.stream()
-                .flatMap( g -> getAllTermsForGene(g, true, true ).stream() )
+                .flatMap( g -> getAllTermsForGene( g, true, true ).stream() )
                 .collect( Collectors.groupingBy( Function.identity(), counting() ) );
     }
 
@@ -258,17 +250,17 @@ public class GOServiceImpl implements GOService {
     }
 
     @Override
-    public Collection<GeneInfo> getGenes( String id, Taxon taxon ) {
+    public Collection<GeneInfo> getGenesInTaxon( String id, Taxon taxon ) {
         if ( id == null || taxon == null ) return null;
 
         GeneOntologyTerm term = termMap.get( id );
         if ( term == null ) return Collections.emptySet();
 
-        return getGenes( termMap.get( id ), taxon );
+        return getGenesInTaxon( termMap.get( id ), taxon );
     }
 
     @Override
-    public Collection<GeneInfo> getGenes( GeneOntologyTerm t, Taxon taxon ) {
+    public Collection<GeneInfo> getGenesInTaxon( GeneOntologyTerm t, Taxon taxon ) {
         if ( t == null || taxon == null ) return null;
         Collection<GeneOntologyTerm> descendants = new HashSet<>( getDescendants( t ) );
 
@@ -297,9 +289,9 @@ public class GOServiceImpl implements GOService {
     }
 
     @Override
-    public Collection<GeneInfo> getGenes( Collection<GeneOntologyTerm> goTerms, Taxon taxon ) {
+    public Collection<GeneInfo> getGenesInTaxon( Collection<GeneOntologyTerm> goTerms, Taxon taxon ) {
         if ( goTerms == null || taxon == null ) return null;
-        return goTerms.stream().flatMap( t -> getGenes( t, taxon ).stream() ).collect( Collectors.toSet() );
+        return goTerms.stream().flatMap( t -> getGenesInTaxon( t, taxon ).stream() ).collect( Collectors.toSet() );
     }
 
     @Override
@@ -313,7 +305,7 @@ public class GOServiceImpl implements GOService {
     }
 
     @Override
-    public Collection<GeneOntologyTerm> getAllTermsForGene ( GeneInfo gene, boolean includePartOf, boolean propagateUpwards ) {
+    public Collection<GeneOntologyTerm> getAllTermsForGene( GeneInfo gene, boolean includePartOf, boolean propagateUpwards ) {
 
         Collection<GeneOntologyTerm> allGOTermSet = new HashSet<>();
 

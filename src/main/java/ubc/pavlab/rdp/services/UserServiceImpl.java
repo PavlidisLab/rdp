@@ -27,7 +27,6 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static java.util.Comparator.comparing;
 import static org.springframework.util.CollectionUtils.containsAny;
@@ -233,12 +232,12 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User findCurrentUser() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();	
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if ( auth == null || auth.getPrincipal().equals( "anonymousUser" ) ) {
             return null;
         }
-	
-        return findUserByIdNoAuth( ( ( UserPrinciple ) auth.getPrincipal() ).getId() );
+
+        return findUserByIdNoAuth( ( (UserPrinciple) auth.getPrincipal() ).getId() );
     }
 
     @Override
@@ -355,12 +354,12 @@ public class UserServiceImpl implements UserService {
                     userGene.setPrivacyLevel( genesToPrivacyLevelMap.get( g ) );
                     userGene.updateGene( g );
                     return userGene;
-                })
+                } )
                 .collect( Collectors.toMap( g -> g.getGeneId(), g -> g ) );
 
         // add calculated genes from terms
         Map<Integer, UserGene> userGenesFromTerms = goTerms.stream()
-                .flatMap( term -> goService.getGenes( term, taxon ).stream() )
+                .flatMap( term -> goService.getGenesInTaxon( term, taxon ).stream() )
                 .map( g -> {
                     UserGene userGene = user.getUserGenes().getOrDefault( g.getGeneId(), new UserGene() );
                     userGene.setUser( user );
@@ -431,18 +430,18 @@ public class UserServiceImpl implements UserService {
         user.getProfile().setWebsite( profile.getWebsite() );
         user.getProfile().setPrivacyLevel( profile.getPrivacyLevel() );
         user.getProfile().setShared( profile.getShared() );
-        if (applicationSettings.getPrivacy().isAllowHideGenelist()) {
+        if ( applicationSettings.getPrivacy().isAllowHideGenelist() ) {
             user.getProfile().setHideGenelist( profile.getHideGenelist() );
         }
 
         user.getProfile().getPublications().retainAll( publications );
         user.getProfile().getPublications().addAll( publications );
 
-        if (applicationSettings.getOrgans().getEnabled()) {
+        if ( applicationSettings.getOrgans().getEnabled() ) {
             // defaults the the user organs of no ids are provided
-            Map<String, UserOrgan> userOrgans = organInfoService.findByUberonIdIn(organUberonIds.orElse(user.getUserOrgans().keySet())).stream()
-                    .map( organInfo -> user.getUserOrgans().getOrDefault( organInfo.getUberonId(), UserOrgan.createFromOrganInfo( user, organInfo ) ))
-                    .collect(Collectors.toMap(ug -> ug.getUberonId(), ug -> ug));
+            Map<String, UserOrgan> userOrgans = organInfoService.findByUberonIdIn( organUberonIds.orElse( user.getUserOrgans().keySet() ) ).stream()
+                    .map( organInfo -> user.getUserOrgans().getOrDefault( organInfo.getUberonId(), UserOrgan.createFromOrganInfo( user, organInfo ) ) )
+                    .collect( Collectors.toMap( ug -> ug.getUberonId(), ug -> ug ) );
             user.getUserOrgans().clear();
             user.getUserOrgans().putAll( userOrgans );
         }
@@ -520,7 +519,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @PostFilter("hasPermission(filterObject, 'read')")
-    private Collection<User>findAllWithNonEmptyProfileLastName() {
+    private Collection<User> findAllWithNonEmptyProfileLastName() {
         return userRepository.findAllWithNonEmptyProfileLastName();
     }
 
@@ -528,8 +527,8 @@ public class UserServiceImpl implements UserService {
     public SortedSet<String> getLastNamesFirstChar() {
         return findAllWithNonEmptyProfileLastName()
                 .stream()
-                .map(u -> u.getProfile().getLastName().substring(0, 1).toUpperCase())
-                .collect(Collectors.toCollection(TreeSet::new));
+                .map( u -> u.getProfile().getLastName().substring( 0, 1 ).toUpperCase() )
+                .collect( Collectors.toCollection( TreeSet::new ) );
     }
 
     @Transactional
@@ -560,7 +559,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public boolean hasRole( User user, String role ) {
-        return user.getRoles().contains(roleRepository.findByRole( role ));
+        return user.getRoles().contains( roleRepository.findByRole( role ) );
     }
 
     @Override
@@ -578,7 +577,7 @@ public class UserServiceImpl implements UserService {
             }
             userRepository.save( user );
         }
-        log.info ("Done updating user terms.");
+        log.info( "Done updating user terms." );
     }
 
 }

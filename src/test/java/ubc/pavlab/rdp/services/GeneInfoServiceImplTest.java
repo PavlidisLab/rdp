@@ -34,8 +34,8 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static ubc.pavlab.rdp.util.TestUtils.createGene;
 import static ubc.pavlab.rdp.util.TestUtils.createTaxon;
 
@@ -302,11 +302,11 @@ public class GeneInfoServiceImplTest {
     public void updateGenes_thenSucceed() throws MalformedURLException, ParseException {
         Taxon humanTaxon = entityManager.persist( createTaxon( 9606 ) );
         humanTaxon.setGeneUrl( new URL( "ftp://ncbi/Homo_sapiens.gene_info.gz" ) );
-        given( taxonService.findByActiveTrue() ).willReturn( Sets.newSet( humanTaxon ) );
+        when( taxonService.findByActiveTrue() ).thenReturn( Sets.newSet( humanTaxon ) );
         GeneInfo updatedGene = createGene( 4, humanTaxon );
         updatedGene.setSymbol( "FOO" );
         updatedGene.setName( "BAR" );
-        given( geneInfoParser.parse( humanTaxon, humanTaxon.getGeneUrl() ) ).willReturn( Sets.newSet( updatedGene ) );
+        when( geneInfoParser.parse( humanTaxon, humanTaxon.getGeneUrl() ) ).thenReturn( Sets.newSet( updatedGene ) );
         geneService.updateGenes();
         verify( taxonService ).findByActiveTrue();
         assertThat( geneInfoRepository.findByGeneId( 4 ) )

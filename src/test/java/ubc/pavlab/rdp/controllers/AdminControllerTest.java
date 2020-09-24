@@ -25,7 +25,7 @@ import ubc.pavlab.rdp.settings.SiteSettings;
 
 import java.util.Collections;
 
-import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.when;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
@@ -82,7 +82,7 @@ public class AdminControllerTest {
 
     @Before
     public void setUp() {
-        given( applicationSettings.getPrivacy() ).willReturn( privacySettings );
+        when( applicationSettings.getPrivacy() ).thenReturn( privacySettings );
         conversionService.addConverter( new UserIdToUserConverter() );
     }
 
@@ -91,7 +91,7 @@ public class AdminControllerTest {
             throws Exception {
 
         User user = createUser( 1 );
-        given( userService.findUserById( eq( 1 ) ) ).willReturn( user );
+        when( userService.findUserById( eq( 1 ) ) ).thenReturn( user );
 
         mvc.perform( get( "/admin/users/{userId}", user.getId() )
                 .contentType( MediaType.APPLICATION_JSON ) )
@@ -105,7 +105,7 @@ public class AdminControllerTest {
 
         User me = createUser( 1 );
 
-        given( userService.findUserById( eq( 1 ) ) ).willReturn( me );
+        when( userService.findUserById( eq( 1 ) ) ).thenReturn( me );
 
         mvc.perform( get( "/admin/users/{userId}", me.getId() )
                 .contentType( MediaType.APPLICATION_JSON ) )
@@ -119,7 +119,7 @@ public class AdminControllerTest {
 
         User me = createUser( 1 );
 
-        given( userService.findUserById( eq( 1 ) ) ).willReturn( me );
+        when( userService.findUserById( eq( 1 ) ) ).thenReturn( me );
 
         mvc.perform( delete( "/admin/users/{userId}", me.getId() )
                 .param("email", me.getEmail()) )
@@ -134,8 +134,8 @@ public class AdminControllerTest {
     public void givenLoggedInAsAdmin_whenDeleteUserWithWrongConfirmationEmail_thenReturnBadRequest() throws Exception {
         User me = createUser( 1 );
 
-        given( taxonService.findByActiveTrue() ).willReturn( Collections.emptySet() );
-        given( userService.findUserById( eq( 1 ) ) ).willReturn( me );
+        when( taxonService.findByActiveTrue() ).thenReturn( Collections.emptySet() );
+        when( userService.findUserById( eq( 1 ) ) ).thenReturn( me );
 
         mvc.perform( delete( "/admin/users/{userId}", me.getId() )
                 .param( "email", "123@example.com" ) )

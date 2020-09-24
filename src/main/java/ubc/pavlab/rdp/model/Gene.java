@@ -1,10 +1,12 @@
 package ubc.pavlab.rdp.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.*;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 import javax.persistence.*;
-import java.util.*;
+import java.util.Date;
 
 /**
  * Created by mjacobson on 17/01/18.
@@ -12,8 +14,8 @@ import java.util.*;
 @MappedSuperclass
 @Getter
 @Setter
-@EqualsAndHashCode(of = {"geneId"})
-@ToString(of = {"geneId", "symbol", "taxon"})
+@EqualsAndHashCode(of = { "geneId" })
+@ToString(of = { "geneId", "symbol", "taxon" })
 public abstract class Gene {
 
     @Column(name = "gene_id")

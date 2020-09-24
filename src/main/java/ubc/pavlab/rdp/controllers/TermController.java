@@ -66,7 +66,7 @@ public class TermController {
         Taxon taxon = taxonService.findById( taxonId );
         GeneOntologyTerm term = goService.getTerm( goId );
 
-        return goService.getGenes( term, taxon );
+        return goService.getGenesInTaxon( term, taxon );
     }
 
     private boolean searchNotAuthorized() {
