@@ -1,6 +1,8 @@
 alter table user add column privacy_level integer;
 alter table user add column researcher_position varchar(255);
 alter table user add column researcher_category varchar(255);
+alter table term drop column frequency;
+alter table term drop column size;
 alter table gene add column user_privacy_level integer default NULL;
 create table organ_info (id integer not null auto_increment, description TEXT, name TEXT, uberon_id varchar(14), active bit, ordering integer, primary key (id));
 create table user_organ (id integer not null auto_increment, description TEXT, name TEXT, uberon_id varchar(14), user_id integer not null, primary key (id));

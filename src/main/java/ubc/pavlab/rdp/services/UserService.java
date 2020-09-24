@@ -53,7 +53,7 @@ public interface UserService {
 
     Collection<UserTerm> recommendTerms( User user, Taxon taxon );
 
-    Collection<UserTerm> recommendTerms( User user, Taxon taxon, int minSize, int maxSize, int minFrequency );
+    Collection<UserTerm> recommendTerms( User user, Taxon taxon, long minSize, long maxSize, long minFrequency );
 
     User updateTermsAndGenesInTaxon( User user,
                                      Taxon taxon,
@@ -84,4 +84,6 @@ public interface UserService {
     void updateUserTerms();
 
     long computeTermOverlaps( UserTerm userTerm, Collection<GeneInfo> genes );
+
+    long computeTermFrequency( UserTerm userTerm );
 }

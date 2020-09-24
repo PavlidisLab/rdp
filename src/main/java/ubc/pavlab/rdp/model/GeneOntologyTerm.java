@@ -52,17 +52,15 @@ public class GeneOntologyTerm {
     @Transient
     private Set<Integer> directGeneIds = new HashSet<>();
 
-    public int getSize( Taxon taxon ) {
-        Long size = this.sizesByTaxonId.get( taxon.getId() );
-        if ( size == null ) {
-            return 0;
-        }
-        return size.intValue();
+    @JsonIgnore
+    @Transient
+    public long getSizeInTaxon( Taxon taxon ) {
+        return sizesByTaxonId.getOrDefault( taxon.getId(), 0L );
     }
 
     @JsonIgnore
     @Transient
-    public int getTotalSize() {
+    public long getTotalSize() {
         return sizesByTaxonId.values().stream().mapToInt( Long::intValue ).sum();
     }
 

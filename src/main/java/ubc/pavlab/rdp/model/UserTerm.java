@@ -43,14 +43,11 @@ public class UserTerm extends GeneOntologyTerm {
     @JoinColumn(name = "taxon_id")
     private Taxon taxon;
 
-    /**
-     * Number of overlap with the user TIER1 and TIER2 genes.
-     */
-    @Column(name = "frequency")
-    private int frequency;
-
-    @Column(name = "size")
-    private int size;
+    @JsonIgnore
+    @Transient
+    public long getSize() {
+        return getSizeInTaxon( taxon );
+    }
 
     public static UserTerm createUserTerm( User user, GeneOntologyTerm term, Taxon taxon ) {
         UserTerm userTerm = new UserTerm();
@@ -58,7 +55,6 @@ public class UserTerm extends GeneOntologyTerm {
         userTerm.updateTerm( term );
         userTerm.user = user;
         userTerm.taxon = taxon;
-        userTerm.size = userTerm.getSize( taxon );
         return userTerm;
     }
 

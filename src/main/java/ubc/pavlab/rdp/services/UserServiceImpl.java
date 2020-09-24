@@ -316,37 +316,20 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Collection<UserTerm> recommendTerms( @NonNull User user, @NonNull Taxon taxon, int minSize, int maxSize, int minFrequency ) {
+    public Collection<UserTerm> recommendTerms( @NonNull User user, @NonNull Taxon taxon, long minSize, long maxSize, long minFrequency ) {
         Set<GeneInfo> genes = user.getGenesByTaxonAndTier( taxon, TierType.MANUAL ).stream()
-                .map(UserGene::getGeneInfo)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toSet());
-
-        Map<GeneOntologyTerm, Long> fmap = goService.termFrequencyMap( genes );
-
-        Stream<Map.Entry<GeneOntologyTerm, Long>> resultStream = fmap.entrySet().stream();
-
-        // Filter out terms without enough overlap or that are too broad/specific
-        if ( minFrequency > 0 ) {
-            resultStream = resultStream.filter( e -> e.getValue() >= minFrequency );
-        }
-
-        if ( minSize > 0 ) {
-            resultStream = resultStream.filter( e -> e.getKey().getSize( taxon ) >= minSize );
-        }
-
-        if ( maxSize > 0 ) {
-            resultStream = resultStream.filter( e -> e.getKey().getSize( taxon ) <= maxSize );
-        }
-
-        Set<UserTerm> userTerms = user.getTermsByTaxon( taxon );
+                .map( UserGene::getGeneInfo )
+                .filter( Objects::nonNull )
+                .collect( Collectors.toSet() );
 
         // Then keep only those terms not already added and with the highest frequency
-        Set<UserTerm> topResults = resultStream.map( e -> {
-            UserTerm ut = UserTerm.createUserTerm( user, e.getKey(), taxon );
-            ut.setFrequency( e.getValue().intValue() );
-            return ut;
-        } ).filter( ut -> !userTerms.contains( ut ) ).collect( maxSet( comparing( UserTerm::getFrequency ) ) );
+        Set<UserTerm> topResults = goService.termFrequencyMap( genes ).entrySet().stream()
+                .filter( e -> minFrequency < 0 || e.getValue() >= minFrequency )
+                .filter( e -> minSize < 0 || e.getKey().getSizeInTaxon( taxon ) >= minSize )
+                .filter( e -> maxSize < 0 || e.getKey().getSizeInTaxon( taxon ) <= maxSize )
+                .map( e -> UserTerm.createUserTerm( user, e.getKey(), taxon ) )
+                .filter( ut -> !user.getUserTerms().contains( ut ) )
+                .collect( maxSet( comparing( this::computeTermFrequency ) ) );
 
         // Keep only leafiest of remaining terms (keep if it has no descendants in results)
         return topResults.stream()
@@ -399,12 +382,7 @@ public class UserServiceImpl implements UserService {
         // go terms with the same identifier will be replaced
         Set<UserTerm> userTerms = convertTermTypes( user, goTerms, taxon );
         user.getUserTerms().removeIf( e -> e.getTaxon().equals( taxon ) && !userTerms.contains( e ) );
-        user.getUserTerms().addAll(userTerms);
-
-        // update overlap frequencies with the user genes
-        for ( UserTerm ut : user.getUserTerms() ) {
-            ut.setFrequency( (int) computeTermOverlaps( ut, genesToTierMap.keySet() ) );
-        }
+        user.getUserTerms().addAll( userTerms );
 
         return update( user );
     }
@@ -412,6 +390,16 @@ public class UserServiceImpl implements UserService {
     @Override
     public long computeTermOverlaps( UserTerm userTerm, Collection<GeneInfo> genes ) {
         return genes.stream()
+                .flatMap( g -> goService.getAllTermsForGene( g, true, true ).stream() )
+                .filter( term -> term.getGoId().equals( userTerm.getGoId() ) )
+                .count();
+    }
+
+    @Override
+    public long computeTermFrequency( UserTerm userTerm ) {
+        return userTerm.getUser().getUserGenes().values().stream()
+                .map( UserGene::getGeneInfo )
+                .filter( Objects::nonNull )
                 .flatMap( g -> goService.getAllTermsForGene( g, true, true ).stream() )
                 .filter( term -> term.getGoId().equals( userTerm.getGoId() ) )
                 .count();
@@ -552,7 +540,7 @@ public class UserServiceImpl implements UserService {
     private Set<UserTerm> convertTermTypes( User user, Collection<GeneOntologyTerm> goTerms, Taxon taxon ) {
         return goTerms.stream()
                 .map( term -> UserTerm.createUserTerm( user, term, taxon ) )
-                .filter( term -> term.getSize() <= applicationSettings.getGoTermSizeLimit() )
+                .filter( term -> term.getSizeInTaxon( term.getTaxon() ) <= applicationSettings.getGoTermSizeLimit() )
                 .collect( Collectors.toSet() );
     }
 

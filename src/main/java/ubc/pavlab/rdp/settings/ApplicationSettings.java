@@ -151,7 +151,7 @@ public class ApplicationSettings {
     private OrganSettings organs;
 
     private boolean sendEmailOnRegistration;
-    private int goTermSizeLimit = 100;
+    private long goTermSizeLimit = 100L;
     public List<String> enabledTiers;
 
 }

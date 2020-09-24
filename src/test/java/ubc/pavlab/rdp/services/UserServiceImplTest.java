@@ -112,7 +112,7 @@ public class UserServiceImplTest {
         when( passwordResetTokenRepository.save( Mockito.any( PasswordResetToken.class ) ) ).then( i -> i.getArgumentAt( 0, PasswordResetToken.class ) );
         when( tokenRepository.save( Mockito.any( VerificationToken.class ) ) ).then( i -> i.getArgumentAt( 0, VerificationToken.class ) );
 
-        when( applicationSettings.getGoTermSizeLimit() ).thenReturn( 100 );
+        when( applicationSettings.getGoTermSizeLimit() ).thenReturn( 100L );
         when( applicationSettings.getOrgans() ).thenReturn( organSettings );
         when( organSettings.getEnabled() ).thenReturn( true );
         when( applicationSettings.getPrivacy() ).thenReturn( privacySettings );
@@ -406,7 +406,7 @@ public class UserServiceImplTest {
 
     @Test
     public void convertTerms_whenTermsAndSizeLimit_thenReturnCorrectUserTerms() {
-        when( applicationSettings.getGoTermSizeLimit() ).thenReturn( 3 );
+        when( applicationSettings.getGoTermSizeLimit() ).thenReturn( 3L );
 
         Taxon taxon = createTaxon( 1 );
         Collection<GeneOntologyTerm> terms = LongStream.range( 1, 10 ).boxed().map(
@@ -440,7 +440,7 @@ public class UserServiceImplTest {
         Collection<UserTerm> userTerms = userService.convertTerms( createUser( 1 ), taxon, Collections.singleton( createTerm( "GO:0000001" ) ) );
 
         assertThat( userTerms ).hasSize( 1 );
-        assertThat( userTerms.iterator().next().getFrequency() ).isZero();
+        assertThat( userService.computeTermFrequency( userTerms.iterator().next() ) ).isZero();
     }
 
     @Test
@@ -459,8 +459,7 @@ public class UserServiceImplTest {
         Collection<UserTerm> userTerms = userService.convertTerms( user, taxon, Collections.singleton( term ) );
 
         assertThat( userTerms ).hasSize( 1 );
-        assertThat( userTerms.iterator().next().getFrequency() ).isEqualTo( 1 );
-
+        assertThat( userService.computeTermFrequency( userTerms.iterator().next() ) ).isEqualTo( 1 );
     }
 
     @Test
@@ -478,7 +477,7 @@ public class UserServiceImplTest {
         Collection<UserTerm> ut = userService.convertTerms( createUser( 1 ), taxon, Sets.newSet( createTerm( "GO:0000001" ) ) );
 
         assertThat( ut ).isNotEmpty();
-        assertThat( ut ).first().hasFieldOrPropertyWithValue( "frequency", 0 );
+        ut.forEach( uts -> assertThat( userService.computeTermFrequency( uts ) ).isZero() );
     }
 
     @Test
@@ -497,7 +496,7 @@ public class UserServiceImplTest {
         Collection<UserTerm> ut = userService.convertTerms( user, taxon, Sets.newSet( term ) );
 
         assertThat( ut ).isNotEmpty().first();
-        assertThat( ut ).first().hasFieldOrPropertyWithValue( "frequency", 1 );
+        assertThat( userService.computeTermFrequency( ut.iterator().next() ) ).isEqualTo( 1 );
     }
 
 
@@ -941,7 +940,6 @@ public class UserServiceImplTest {
                 createTermWithGene( toGOId( geneWillChangeTier.getGeneId() ), geneWillBeRemoved, geneWillChangeTier ),
                 taxon );
         // Should have frequency of 2
-        termWillUpdateFrequency.setFrequency( 2 );
         user.getUserTerms().add( termWillUpdateFrequency );
 
         becomeUser( user );
@@ -955,8 +953,7 @@ public class UserServiceImplTest {
 
         assertThat( user.getUserTerms() ).hasSize( 1 );
         assertThat( user.getUserTerms().iterator().next() ).isEqualTo( termWillUpdateFrequency );
-        assertThat( user.getUserTerms().iterator().next().getFrequency() ).isEqualTo( 1 );
-
+        assertThat( userService.computeTermFrequency( user.getUserTerms().iterator().next() ) ).isEqualTo( 1 );
     }
 
     @Test

@@ -206,7 +206,7 @@ public class GOServiceImpl implements GOService {
     @Override
     public List<SearchResult<GeneOntologyTerm>> search( String queryString, Taxon taxon, int max ) {
         Stream<SearchResult<GeneOntologyTerm>> stream = termMap.values().stream()
-                .filter( t -> t.getSize( taxon ) <= applicationSettings.getGoTermSizeLimit() )
+                .filter( t -> t.getSizeInTaxon( taxon ) <= applicationSettings.getGoTermSizeLimit() )
                 .map( t -> queryTerm( queryString, t ) )
                 .filter( Objects::nonNull )
                 .map( sr -> new SearchResult<>( sr.getMatchType(), sr.getMatch() ) )
