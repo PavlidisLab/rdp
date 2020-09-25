@@ -9,9 +9,11 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+      with:
+        lfs: true
     - name: Setup Java JDK
       uses: actions/setup-java@v1.3.0
       with:
-        java-version: 1.8  
+        java-version: 1.8
     - name: Test code with Maven
       run: ./mvnw test
