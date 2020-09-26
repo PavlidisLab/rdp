@@ -11,7 +11,6 @@ import ubc.pavlab.rdp.model.enums.TierType;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import static java.util.stream.Collectors.counting;
 import static java.util.stream.Collectors.groupingBy;

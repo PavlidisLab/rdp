@@ -1,23 +1,27 @@
 package ubc.pavlab.rdp.controllers;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.*;
+import lombok.Data;
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
-import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.ModelAndView;
 import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.services.*;
 
+import javax.mail.MessagingException;
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import javax.ws.rs.core.MediaType;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@RestController
+@Controller
 @CommonsLog
 @Secured({ "ROLE_USER", "ROLE_ADMIN" })
 public class UserController {
@@ -34,51 +38,166 @@ public class UserController {
     @Autowired
     private GOService goService;
 
+    @Autowired
+    private EmailService emailService;
+
+    @GetMapping(value = { "/user/home" })
+    public ModelAndView userHome() {
+        ModelAndView modelAndView = new ModelAndView();
+        User user = userService.findCurrentUser();
+        modelAndView.addObject( "user", user );
+        modelAndView.setViewName( "user/home" );
+        return modelAndView;
+    }
+
+    @GetMapping(value = { "/user/model/{taxonId}" })
+    public ModelAndView model( @PathVariable Integer taxonId ) {
+        ModelAndView modelAndView = new ModelAndView();
+        User user = userService.findCurrentUser();
+        Taxon taxon = taxonService.findById( taxonId );
+
+        modelAndView.addObject( "viewOnly", null );
+        modelAndView.addObject( "user", user );
+        modelAndView.addObject( "taxon", taxon );
+        modelAndView.setViewName( "user/model" );
+        return modelAndView;
+    }
+
+    @GetMapping(value = "/user/taxon/{taxonId}/term/{goId}/gene/view")
+    public ModelAndView getTermsGenesForTaxon( @PathVariable Integer taxonId, @PathVariable String goId ) {
+        ModelAndView modelAndView = new ModelAndView();
+        User user = userService.findCurrentUser();
+        Taxon taxon = taxonService.findById( taxonId );
+
+        GeneOntologyTerm term = goService.getTerm( goId );
+
+        if ( term != null ) {
+            Set<Integer> geneIds = goService.getGenes( term ).stream().map( GeneInfo::getGeneId ).collect( Collectors.toSet() );
+            modelAndView.addObject( "genes",
+                    user.getGenesByTaxonAndTier( taxon, TierType.MANUAL ).stream()
+                            .filter( ug -> geneIds.contains( ug.getGeneId() ) )
+                            .collect( Collectors.toSet() ) );
+        } else {
+            modelAndView.addObject( "genes", Collections.EMPTY_SET );
+        }
+        modelAndView.addObject( "viewOnly", true );
+        modelAndView.setViewName( "fragments/gene-table :: gene-table" );
+        return modelAndView;
+    }
+
+    @GetMapping(value = { "/user/profile" })
+    public ModelAndView profile() {
+        ModelAndView modelAndView = new ModelAndView();
+        User user = userService.findCurrentUser();
+        modelAndView.addObject( "user", user );
+        modelAndView.addObject( "viewOnly", null );
+        modelAndView.setViewName( "user/profile" );
+        return modelAndView;
+    }
+
+    @GetMapping(value = { "/user/documentation" })
+    public ModelAndView documentation() {
+        ModelAndView modelAndView = new ModelAndView();
+        User user = userService.findCurrentUser();
+        modelAndView.addObject( "user", user );
+        modelAndView.setViewName( "user/documentation" );
+        return modelAndView;
+    }
+
+    @GetMapping(value = { "/user/faq" })
+    public ModelAndView faq() {
+        ModelAndView modelAndView = new ModelAndView();
+        User user = userService.findCurrentUser();
+        modelAndView.addObject( "user", user );
+        modelAndView.setViewName( "user/faq" );
+        return modelAndView;
+    }
+
+    @GetMapping(value = { "/user/support" })
+    public ModelAndView support() {
+        ModelAndView modelAndView = new ModelAndView();
+        User user = userService.findCurrentUser();
+        modelAndView.addObject( "user", user );
+        modelAndView.setViewName( "user/support" );
+        return modelAndView;
+    }
+
+    @PostMapping(value = { "/user/support" })
+    public ModelAndView supportPost( HttpServletRequest request,
+                                     @RequestParam String name,
+                                     @RequestParam String message,
+                                     @RequestParam(required = false) MultipartFile attachment ) {
+        ModelAndView modelAndView = new ModelAndView();
+        User user = userService.findCurrentUser();
+        modelAndView.addObject( "user", user );
+
+        log.info( user.getProfile().getLastName() + ", " + user.getProfile().getName() + " (" + user.getEmail()
+                + ") is attempting to contact support." );
+
+        try {
+            emailService.sendSupportMessage( message, name, user, request, attachment );
+            modelAndView.addObject( "message", "Sent. We will get back to you shortly." );
+            modelAndView.addObject( "success", true );
+        } catch ( MessagingException e ) {
+            log.error( e );
+            modelAndView
+                    .addObject( "message", "There was a problem sending the support request. Please try again later." );
+            modelAndView.addObject( "success", false );
+        }
+
+        modelAndView.setViewName( "user/support" );
+        return modelAndView;
+    }
+
     @Data
     static class ProfileWithOrganUberonIds {
-        @Valid Profile profile;
+        @Valid
+        Profile profile;
         Set<String> organUberonIds;
     }
 
-    @PostMapping(value = "/user/profile")
+    @ResponseBody
+    @PostMapping(value = "/user/profile", produces = MediaType.TEXT_PLAIN)
     public String saveProfile( @RequestBody ProfileWithOrganUberonIds profileWithOrganUberonIds ) {
-        log.info(profileWithOrganUberonIds);
         User user = userService.findCurrentUser();
         userService.updateUserProfileAndPublicationsAndOrgans( user, profileWithOrganUberonIds.profile, profileWithOrganUberonIds.profile.getPublications(), Optional.ofNullable( profileWithOrganUberonIds.organUberonIds ) );
         return "Saved.";
     }
 
-    @RequestMapping(value = "/user", method = RequestMethod.GET)
+    @ResponseBody
+    @GetMapping(value = "/user", produces = MediaType.APPLICATION_JSON)
     public User getUser() {
         return userService.findCurrentUser();
     }
 
-    @RequestMapping(value = "/user/taxon", method = RequestMethod.GET)
+    @ResponseBody
+    @GetMapping(value = "/user/taxon", produces = MediaType.APPLICATION_JSON)
     public Set<Taxon> getTaxons() {
         return userService.findCurrentUser().getUserGenes().values().stream().map( UserGene::getTaxon ).collect( Collectors.toSet() );
     }
 
-    @RequestMapping(value = "/user/gene", method = RequestMethod.GET)
+    @ResponseBody
+    @GetMapping(value = "/user/gene", produces = MediaType.APPLICATION_JSON)
     public Collection<UserGene> getGenes() {
         return userService.findCurrentUser().getUserGenes().values();
     }
 
-    @RequestMapping(value = "/user/term", method = RequestMethod.GET)
+    @ResponseBody
+    @GetMapping(value = "/user/term", produces = MediaType.APPLICATION_JSON)
     public Collection<UserTerm> getTerms() {
         return userService.findCurrentUser().getUserTerms();
     }
 
     @Data
     static class Model {
-
         private Map<Integer, TierType> geneTierMap;
         private Map<Integer, PrivacyLevelType> genePrivacyLevelMap;
         private List<String> goIds;
         private String description;
-
     }
 
-    @RequestMapping(value = "/user/model/{taxonId}", method = RequestMethod.POST)
+    @ResponseBody
+    @PostMapping(value = "/user/model/{taxonId}", produces = MediaType.TEXT_PLAIN)
     public String saveModelForTaxon( @PathVariable Integer taxonId, @RequestBody Model model ) {
         User user = userService.findCurrentUser();
         Taxon taxon = taxonService.findById( taxonId );
@@ -96,20 +215,23 @@ public class UserController {
         return "Saved.";
     }
 
-    @RequestMapping(value = "/user/taxon/{taxonId}/gene", method = RequestMethod.GET)
+    @ResponseBody
+    @GetMapping(value = "/user/taxon/{taxonId}/gene", produces = MediaType.APPLICATION_JSON)
     public Set<UserGene> getGenesForTaxon( @PathVariable Integer taxonId ) {
         Taxon taxon = taxonService.findById( taxonId );
         return userService.findCurrentUser().getUserGenes().values().stream()
-                .filter( gene -> gene.getTaxon().equals( taxon ) ).collect(Collectors.toSet());
+                .filter( gene -> gene.getTaxon().equals( taxon ) ).collect( Collectors.toSet() );
     }
 
-    @RequestMapping(value = "/user/taxon/{taxonId}/term", method = RequestMethod.GET)
+    @ResponseBody
+    @GetMapping(value = "/user/taxon/{taxonId}/term", produces = MediaType.APPLICATION_JSON)
     public Set<UserTerm> getTermsForTaxon( @PathVariable Integer taxonId ) {
         Taxon taxon = taxonService.findById( taxonId );
         return userService.findCurrentUser().getTermsByTaxon( taxon );
     }
 
-    @RequestMapping(value = "/user/taxon/{taxonId}/term/search", method = RequestMethod.POST)
+    @ResponseBody
+    @PostMapping(value = "/user/taxon/{taxonId}/term/search", produces = MediaType.APPLICATION_JSON)
     public Map<String, UserTerm> getTermsForTaxon( @PathVariable Integer taxonId, @RequestBody List<String> goIds ) {
         User user = userService.findCurrentUser();
         Taxon taxon = taxonService.findById( taxonId );
@@ -117,7 +239,8 @@ public class UserController {
         return userService.convertTerms( user, taxon, goTerms ).stream().collect( Collectors.toMap( term -> term.getGoId(), term -> term ) );
     }
 
-    @RequestMapping(value = "/user/taxon/{taxonId}/term/recommend", method = RequestMethod.GET)
+    @ResponseBody
+    @GetMapping(value = "/user/taxon/{taxonId}/term/recommend", produces = MediaType.APPLICATION_JSON)
     public Object getRecommendedTermsForTaxon( @PathVariable Integer taxonId ) {
         User user = userService.findCurrentUser();
         Taxon taxon = taxonService.findById( taxonId );

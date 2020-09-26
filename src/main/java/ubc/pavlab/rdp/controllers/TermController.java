@@ -2,6 +2,7 @@ package ubc.pavlab.rdp.controllers;
 
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.repositories.RoleRepository;
@@ -38,46 +39,29 @@ public class TermController {
     @Autowired
     private RoleRepository roleRepository;
 
+    @PreAuthorize("hasPermission(null, 'search')")
     @RequestMapping(value = "/taxon/{taxonId}/term/search/{query}", method = RequestMethod.GET)
     public List<SearchResult<GeneOntologyTerm>> searchTermsByQueryAndTaxon( @PathVariable Integer taxonId, @PathVariable String query,
-                                                                    @RequestParam(value = "max", required = false, defaultValue = "-1") int max) {
-        if( searchNotAuthorized() ){
-            return null;
-        }
+                                                                            @RequestParam(value = "max", required = false, defaultValue = "-1") int max ) {
         Taxon taxon = taxonService.findById( taxonId );
 
         return goService.search( query, taxon, max );
 
     }
 
+    @PreAuthorize("hasPermission(null, 'search')")
     @RequestMapping(value = "/term/{goId}", method = RequestMethod.GET)
     public GeneOntologyTerm getTerm( @PathVariable String goId ) {
-        if( searchNotAuthorized() ){
-            return null;
-        }
         return goService.getTerm( goId );
     }
 
+    @PreAuthorize("hasPermission(null, 'search')")
     @RequestMapping(value = "/taxon/{taxonId}/term/{goId}/gene", method = RequestMethod.GET)
     public Collection<GeneInfo> termGenes( @PathVariable Integer taxonId, @PathVariable String goId ) {
-        if( searchNotAuthorized() ){
-            return null;
-        }
         Taxon taxon = taxonService.findById( taxonId );
         GeneOntologyTerm term = goService.getTerm( goId );
 
         return goService.getGenesInTaxon( term, taxon );
-    }
-
-    private boolean searchNotAuthorized() {
-        if ( adminRole == null ) {
-            adminRole = roleRepository.findByRole( "ROLE_ADMIN" );
-        }
-        User user = userService.findCurrentUser();
-        return ( !applicationSettings.getPrivacy().isPublicSearch() // Search is public
-                && ( !applicationSettings.getPrivacy().isRegisteredSearch() || user == null )
-                // Search is registered and there is user logged
-                && ( user == null || adminRole == null || !user.getRoles().contains( adminRole ) ) ); // User is admin
     }
 
 }

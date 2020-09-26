@@ -87,6 +87,9 @@ public class UserControllerTest {
     @MockBean
     private PermissionEvaluator permissionEvaluator;
 
+    @MockBean
+    private EmailService emailService;
+
     @Before
     public void setUp() {
         Mockito.when( taxonService.findById( Mockito.any() ) ).then( i -> createTaxon( i.getArgumentAt( 0, Integer.class ) ) );
