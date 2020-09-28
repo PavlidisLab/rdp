@@ -42,7 +42,6 @@ import static ubc.pavlab.rdp.util.TestUtils.*;
 /**
  * Created by mjacobson on 13/02/18.
  */
-@Ignore("There are some issues with term recommendations that needs to be fixed first.")
 @RunWith(SpringRunner.class)
 public class UserServiceImplTest {
 
@@ -449,6 +448,7 @@ public class UserServiceImplTest {
     }
 
     @Test
+    @Ignore("There are some issues with term recommendations that needs to be fixed first.")
     public void convertTerms_whenTermsAndGenes_thenReturnUserTermsWithFrequency() {
         Taxon taxon = createTaxon( 1 );
         User user = createUser( 1 );
@@ -486,6 +486,7 @@ public class UserServiceImplTest {
     }
 
     @Test
+    @Ignore("There are some issues with term recommendations that needs to be fixed first.")
     public void convertTerms_whenTermAndGenes_thenReturnUserTermWithFrequency() {
         Taxon taxon = createTaxon( 1 );
         User user = createUser( 1 );
@@ -678,6 +679,7 @@ public class UserServiceImplTest {
     }
 
     @Test
+    @Ignore("There are some issues with term recommendations that needs to be fixed first.")
     public void updateTermsAndGenesInTaxon_whenUserHasNoGeneOrTerms() {
         User user = createUser( 1 );
         becomeUser( user );
@@ -715,6 +717,7 @@ public class UserServiceImplTest {
     }
 
     @Test
+    @Ignore("There are some issues with term recommendations that needs to be fixed first.")
     public void updateTermsAndGenesInTaxon_whenUserHasGenesAndTerms() {
         User user = createUser( 1 );
         Taxon taxon = createTaxon( 1 );
@@ -843,6 +846,7 @@ public class UserServiceImplTest {
     }
 
     @Test
+    @Ignore("There are some issues with term recommendations that needs to be fixed first.")
     public void updateTermsAndGenesInTaxon_whenManualAndCalculatedGenesOverlap_thenKeepManual() {
         User user = createUser( 1 );
         Taxon taxon = createTaxon( 1 );
@@ -883,6 +887,7 @@ public class UserServiceImplTest {
     }
 
     @Test
+    @Ignore("There are some issues with term recommendations that needs to be fixed first.")
     public void updateTermsAndGenesInTaxon_whenOldAndNewOverlap_thenRetainIds() {
         User user = createUser( 1 );
         Taxon taxon = createTaxon( 1 );
@@ -932,6 +937,7 @@ public class UserServiceImplTest {
     }
 
     @Test
+    @Ignore("There are some issues with term recommendations that needs to be fixed first.")
     public void updateTermsAndGenesInTaxon_whenUserHasGenesAndTerms_thenUpdateFrequency() {
         User user = createUser( 1 );
         Taxon taxon = createTaxon( 1 );
@@ -965,6 +971,7 @@ public class UserServiceImplTest {
     }
 
     @Test
+    @Ignore("There are some issues with term recommendations that needs to be fixed first.")
     public void updateTermsAndGenesInTaxon_whenTermsOverlapInDifferentSpecies_thenKeepBothTerms() {
         User user = createUser( 1 );
         Taxon taxon = createTaxon( 1 );
@@ -1062,6 +1069,7 @@ public class UserServiceImplTest {
     }
 
     @Test
+    @Ignore("There are some issues with term recommendations that needs to be fixed first.")
     public void recommendTerms_thenReturnBestResultsOnly() {
         setUpRecomendTermsMocks();
 
@@ -1072,6 +1080,7 @@ public class UserServiceImplTest {
     }
 
     @Test
+    @Ignore("There are some issues with term recommendations that needs to be fixed first.")
     public void recommendTerms_whenMinSizeLimited_thenReturnBestLimitedResultsOnly() {
         setUpRecomendTermsMocks();
 
@@ -1088,6 +1097,7 @@ public class UserServiceImplTest {
     }
 
     @Test
+    @Ignore("There are some issues with term recommendations that needs to be fixed first.")
     public void recommendTerms_whenMaxSizeLimited_thenReturnBestLimitedResultsOnly() {
         setUpRecomendTermsMocks();
 
@@ -1127,6 +1137,7 @@ public class UserServiceImplTest {
     }
 
     @Test
+    @Ignore("There are some issues with term recommendations that needs to be fixed first.")
     public void recommendTerms_whenRedundantTerms_thenReturnOnlyMostSpecific() {
         setUpRecomendTermsMocks();
 
@@ -1140,6 +1151,7 @@ public class UserServiceImplTest {
     }
 
     @Test
+    @Ignore("There are some issues with term recommendations that needs to be fixed first.")
     public void recommendTerms_whenUserHasSomeTopTerms_thenReturnNewBestResultsOnly() {
         setUpRecomendTermsMocks();
 
