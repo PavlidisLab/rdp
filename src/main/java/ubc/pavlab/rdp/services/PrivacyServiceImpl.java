@@ -2,6 +2,7 @@ package ubc.pavlab.rdp.services;
 
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import ubc.pavlab.rdp.model.Profile;
 import ubc.pavlab.rdp.model.Role;
@@ -11,6 +12,9 @@ import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.repositories.RoleRepository;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 
+import javax.annotation.PostConstruct;
+import java.text.MessageFormat;
+
 /**
  * Logic regarding privacy
  */
@@ -19,13 +23,13 @@ import ubc.pavlab.rdp.settings.ApplicationSettings;
 public class PrivacyServiceImpl implements PrivacyService {
 
     @Autowired
-    ApplicationSettings applicationSettings;
+    private ApplicationSettings applicationSettings;
 
     @Autowired
-    RoleRepository roleRepository;
+    private RoleRepository roleRepository;
 
     @Autowired
-    UserService userService;
+    private UserService userService;
 
     @Override
     public boolean checkUserCanSee( User user, UserContent content ) {
@@ -50,48 +54,11 @@ public class PrivacyServiceImpl implements PrivacyService {
         return PrivacyLevelType.values()[applicationSettings.getPrivacy().getDefaultLevel()];
     }
 
-    private static Role roleAdmin = null;
-
-    private boolean checkUserCanSeeOtherUserContentWithPrivacyLevel( User currentUser, User otherUser, PrivacyLevelType privacyLevel ) {
-        if ( roleAdmin == null ) {
-            roleAdmin = roleRepository.findByRole( "ROLE_ADMIN" );
-        }
-
-        // Never show the remote admin profile (or accidental null users)
-        if ( otherUser == null || ( applicationSettings.getIsearch() != null && otherUser.getId()
-                .equals( applicationSettings.getIsearch().getUserId() ) ) ) {
-            return false;
-        }
-
-        Profile profile = otherUser.getProfile();
-
-        if ( profile == null || profile.getPrivacyLevel() == null || profile.getShared() == null ) {
-            log.error( "!! User without a profile, privacy levels or sharing set: " + otherUser.getId() + " / " + otherUser
-                    .getEmail() );
-            return false;
-        }
-
-        // Either the user is looking at himself, or the user is public, or shared with registered users - check for any logged-in user, or private - check for admin; If logged-in user is admin, we have to
-        // check whether this user is the designated actor for the authenticated remote search, in which case we have to check for remote search privileges on the user.
-        return otherUser.equals( currentUser ) // User is looking at himself
-                || ( privacyLevel.equals( PrivacyLevelType.PUBLIC ) ) // Data is public
-                || ( privacyLevel.equals( PrivacyLevelType.SHARED ) && currentUser != null && !currentUser
-                .getId().equals( applicationSettings.getIsearch().getUserId() ) )
-                // data is accessible for registerd users and there is a user logged in who is not the remote admin
-                || ( privacyLevel.equals( PrivacyLevelType.PRIVATE ) && currentUser != null && currentUser
-                .getRoles().contains( roleAdmin ) && !currentUser.getId()
-                .equals( applicationSettings.getIsearch().getUserId() ) )
-                // data is private and there is an admin logged in who is not the remote admin
-                || ( profile.getShared() && currentUser != null && currentUser.getRoles().contains( roleAdmin )
-                && currentUser.getId().equals( applicationSettings.getIsearch()
-                .getUserId() ) ); // data is designated as remotely shared and there is an admin logged in who is the remote admin
-    }
-
+    @Override
     public boolean checkUserCanSearch( User user, boolean international ) {
-        Role adminRole = roleRepository.findByRole( "ROLE_ADMIN" );
         return ( user == null && applicationSettings.getPrivacy().isPublicSearch() // Search is public, even for unregistered users
                 || ( user != null && applicationSettings.getPrivacy().isRegisteredSearch() ) // Search is registered and there is user logged
-                || ( user != null && adminRole != null && user.getRoles().contains( adminRole ) ) ) // User is admin
+                || ( user != null && getRoleAdmin() != null && user.getRoles().contains( getRoleAdmin() ) ) ) // User is admin
                 && ( !international || applicationSettings.getIsearch().isEnabled() ); // International search enabled
     }
 
@@ -103,7 +70,41 @@ public class PrivacyServiceImpl implements PrivacyService {
     @Override
     public boolean checkUserCanUpdate( User user, UserContent userContent ) {
         // only admins or rightful owner can update user content
-        return userService.hasRole( user, "ROLE_ADMIN" ) ||
-                userContent.getOwner().map( u -> u.equals( user ) ).orElse( false );
+        return user.getRoles().contains( getRoleAdmin() ) || userContent.getOwner().map( u -> u.equals( user ) ).orElse( false );
+    }
+
+    @Cacheable
+    public Role getRoleAdmin() {
+        return roleRepository.findByRole( "ROLE_ADMIN" );
+    }
+
+    private boolean checkUserCanSeeOtherUserContentWithPrivacyLevel( User currentUser, User otherUser, PrivacyLevelType privacyLevel ) {
+        // Never show the remote admin profile (or accidental null users)
+        if ( otherUser == null || ( applicationSettings.getIsearch() != null && otherUser.getId()
+                .equals( applicationSettings.getIsearch().getUserId() ) ) ) {
+            return false;
+        }
+
+        Profile profile = otherUser.getProfile();
+
+        if ( profile == null || profile.getPrivacyLevel() == null || profile.getShared() == null ) {
+            log.error( MessageFormat.format( "User without a profile, privacy levels or sharing set: {0}", otherUser ) );
+            return false;
+        }
+
+        // Either the user is looking at himself, or the user is public, or shared with registered users - check for any logged-in user, or private - check for admin; If logged-in user is admin, we have to
+        // check whether this user is the designated actor for the authenticated remote search, in which case we have to check for remote search privileges on the user.
+        return otherUser.equals( currentUser ) // User is looking at himself
+                || ( privacyLevel.equals( PrivacyLevelType.PUBLIC ) ) // Data is public
+                || ( privacyLevel.equals( PrivacyLevelType.SHARED ) && currentUser != null && !currentUser
+                .getId().equals( applicationSettings.getIsearch().getUserId() ) )
+                // data is accessible for registerd users and there is a user logged in who is not the remote admin
+                || ( privacyLevel.equals( PrivacyLevelType.PRIVATE ) && currentUser != null && currentUser
+                .getRoles().contains( getRoleAdmin() ) && !currentUser.getId()
+                .equals( applicationSettings.getIsearch().getUserId() ) )
+                // data is private and there is an admin logged in who is not the remote admin
+                || ( profile.getShared() && currentUser != null && currentUser.getRoles().contains( getRoleAdmin() )
+                && currentUser.getId().equals( applicationSettings.getIsearch()
+                .getUserId() ) ); // data is designated as remotely shared and there is an admin logged in who is the remote admin
     }
 }

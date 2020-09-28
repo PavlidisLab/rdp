@@ -3,6 +3,7 @@ package ubc.pavlab.rdp.controllers;
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,6 +17,7 @@ import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.services.*;
 
 import javax.servlet.http.HttpServletRequest;
+import java.text.MessageFormat;
 import java.util.*;
 
 /**
@@ -41,9 +43,6 @@ public class SearchController {
     private UserGeneService userGeneService;
 
     @Autowired
-    private OrganInfoService organInfoService;
-
-    @Autowired
     UserOrganService userOrganService;
 
     @Autowired
@@ -54,6 +53,17 @@ public class SearchController {
 
     @Autowired
     GeneInfoService geneInfoService;
+
+    @PreAuthorize("hasPermission(null, 'search')")
+    @GetMapping(value = { "/search" })
+    public ModelAndView search() {
+        User user = userService.findCurrentUser();
+        ModelAndView modelAndView = new ModelAndView();
+        modelAndView.addObject( "chars", userService.getLastNamesFirstChar() );
+        modelAndView.addObject( "user", user );
+        modelAndView.setViewName( "search" );
+        return modelAndView;
+    }
 
     @PreAuthorize("hasPermission(null, #iSearch ? 'international-search' : 'search')")
     @GetMapping(value = "/search", params = { "nameLike", "iSearch" })
@@ -97,7 +107,7 @@ public class SearchController {
         }
         ModelAndView modelAndView = new ModelAndView();
         modelAndView.addObject( "users", users );
-        modelAndView.setViewName( "fragments/user-table :: user-table" );
+        modelAndView.setViewName( "fragments/user-table::user-table" );
         return modelAndView;
     }
 
@@ -111,10 +121,10 @@ public class SearchController {
 
         try {
             modelAndView.addObject( "users", remoteResourceService.findUsersByLikeName( nameLike, prefix, Optional.ofNullable( researcherCategories ), Optional.ofNullable( organUberonIds ) ) );
-            modelAndView.setViewName( "fragments/user-table :: user-table" );
+            modelAndView.setViewName( "fragments/user-table::user-table" );
             modelAndView.addObject( "remote", true );
         } catch ( RemoteException e ) {
-            modelAndView.setViewName( "fragments/error :: message" );
+            modelAndView.setViewName( "fragments/error::message" );
             modelAndView.addObject( "errorMessage", e.getMessage() );
         }
 
@@ -153,7 +163,7 @@ public class SearchController {
                                                       @RequestParam(required = false) Set<String> organUberonIds ) {
         ModelAndView modelAndView = new ModelAndView();
         modelAndView.addObject( "users", userService.findByDescription( descriptionLike, Optional.ofNullable( researcherCategories ), organsFromUberonIds( organUberonIds ) ) );
-        modelAndView.setViewName( "fragments/user-table :: user-table" );
+        modelAndView.setViewName( "fragments/user-table::user-table" );
         return modelAndView;
     }
 
@@ -166,10 +176,10 @@ public class SearchController {
 
         try {
             modelAndView.addObject( "users", remoteResourceService.findUsersByDescription( descriptionLike, Optional.ofNullable( researcherCategories ), Optional.ofNullable( organUberonIds ) ) );
-            modelAndView.setViewName( "fragments/user-table :: user-table" );
+            modelAndView.setViewName( "fragments/user-table::user-table" );
             modelAndView.addObject( "remote", true );
         } catch ( RemoteException e ) {
-            modelAndView.setViewName( "fragments/error :: message" );
+            modelAndView.setViewName( "fragments/error::message" );
             modelAndView.addObject( "errorMessage", e.getMessage() );
         }
 
@@ -209,7 +219,7 @@ public class SearchController {
         modelAndView.setViewName( "search" );
 
         if ( gene == null ) {
-            modelAndView.setViewName( "fragments/error :: message" );
+            modelAndView.setViewName( "fragments/error::message" );
             modelAndView.addObject( "errorMessage",
                     messageSource.getMessage( "SearchController.errorNoGene", new String[]{ symbol }, locale ) );
         } else if (
@@ -217,7 +227,7 @@ public class SearchController {
                 ( orthologTaxonId != null && !orthologTaxonId.equals( gene.getTaxon().getId() ) )
                         // Check if we got some ortholog results
                         && ( orthologs == null || orthologs.isEmpty() ) ) {
-            modelAndView.setViewName( "fragments/error :: message" );
+            modelAndView.setViewName( "fragments/error::message" );
             modelAndView.addObject( "errorMessage",
                     messageSource.getMessage( "SearchController.errorNoOrthologs", new String[]{ orthologTaxonId.toString() }, locale ) );
         } else {
@@ -258,7 +268,7 @@ public class SearchController {
         Taxon taxon = taxonService.findById( taxonId );
 
         if ( taxon == null ) {
-            modelAndView.setViewName( "fragments/error :: message" );
+            modelAndView.setViewName( "fragments/error::message" );
             modelAndView.addObject( "errorMessage",
                     messageSource.getMessage( "SearchController.errorNoTaxon", new String[]{ taxonId.toString() }, locale ) );
             return modelAndView;
@@ -267,7 +277,7 @@ public class SearchController {
         Gene gene = geneService.findBySymbolAndTaxon( symbol, taxon );
 
         if ( gene == null ) {
-            modelAndView.setViewName( "fragments/error :: message" );
+            modelAndView.setViewName( "fragments/error::message" );
             modelAndView.addObject( "errorMessage",
                     messageSource.getMessage( "SearchController.errorNoGene", new String[]{ symbol }, locale ) );
             return modelAndView;
@@ -275,7 +285,7 @@ public class SearchController {
 
         Taxon orthologTaxon = orthologTaxonId == null ? null : taxonService.findById( orthologTaxonId );
         if ( orthologTaxonId != null && orthologTaxon == null ) {
-            modelAndView.setViewName( "fragments/error :: message" );
+            modelAndView.setViewName( "fragments/error::message" );
             modelAndView.addObject( "errorMessage",
                     messageSource.getMessage( "SearchController.errorNoOrthologTaxon", new String[]{ orthologTaxonId.toString() }, locale ) );
             return modelAndView;
@@ -293,14 +303,14 @@ public class SearchController {
                 ( orthologTaxonId != null && !orthologTaxonId.equals( gene.getTaxon().getId() ) )
                         // Check if we got some ortholog results
                         && orthologs.isEmpty() ) {
-            modelAndView.setViewName( "fragments/error :: message" );
+            modelAndView.setViewName( "fragments/error::message" );
             modelAndView.addObject( "errorMessage",
                     messageSource.getMessage( "SearchController.errorNoOrthologs", new String[]{ symbol }, locale ) );
             return modelAndView;
         }
 
         modelAndView.addObject( "usergenes", userGeneService.handleGeneSearch( gene, tiers, Optional.ofNullable( orthologTaxon ), Optional.ofNullable( researcherCategories ), organsFromUberonIds( organUberonIds ) ) );
-        modelAndView.setViewName( "fragments/user-table :: usergenes-table" );
+        modelAndView.setViewName( "fragments/user-table::usergenes-table" );
 
         return modelAndView;
     }
@@ -327,7 +337,7 @@ public class SearchController {
 
         Taxon taxon = taxonService.findById( taxonId );
         if ( taxon == null ) {
-            modelAndView.setViewName( "fragments/error :: message" );
+            modelAndView.setViewName( "fragments/error::message" );
             modelAndView.addObject( "errorMessage",
                     messageSource.getMessage( "SearchController.errorNoTaxon", new String[]{ taxonId.toString() }, locale ) );
             return modelAndView;
@@ -336,7 +346,7 @@ public class SearchController {
         GeneInfo gene = geneInfoService.findBySymbolAndTaxon( symbol, taxon );
 
         if ( gene == null ) {
-            modelAndView.setViewName( "fragments/error :: message" );
+            modelAndView.setViewName( "fragments/error::message" );
             modelAndView.addObject( "errorMessage",
                     messageSource.getMessage( "SearchController.errorNoGene", new String[]{ symbol }, locale ) );
             return modelAndView;
@@ -354,7 +364,7 @@ public class SearchController {
                 ( orthologTaxonId != null && !orthologTaxonId.equals( gene.getTaxon().getId() ) )
                         // Check if we got some ortholog results
                         && orthologs.isEmpty() ) {
-            modelAndView.setViewName( "fragments/error :: message" );
+            modelAndView.setViewName( "fragments/error::message" );
             modelAndView.addObject( "errorMessage",
                     messageSource.getMessage( "SearchController.errorNoOrthologs", new String[]{ symbol }, locale ) );
             return modelAndView;
@@ -370,7 +380,7 @@ public class SearchController {
         }
 
         modelAndView.addObject( "orthologs", orthologMap );
-        modelAndView.setViewName( "fragments/ortholog-table :: ortholog-table" );
+        modelAndView.setViewName( "fragments/ortholog-table::ortholog-table" );
 
         return modelAndView;
     }
@@ -399,9 +409,9 @@ public class SearchController {
             Collection<UserGene> userGenes = remoteResourceService.findGenesBySymbol( symbol, taxon, tiers, orthologTaxonId, Optional.ofNullable( researcherCategories ), Optional.ofNullable( organUberonIds ) );
             modelAndView.addObject( "usergenes", userGenes );
             modelAndView.addObject( "remote", true );
-            modelAndView.setViewName( "fragments/user-table :: usergenes-table" );
+            modelAndView.setViewName( "fragments/user-table::usergenes-table" );
         } catch ( RemoteException e ) {
-            modelAndView.setViewName( "fragments/error :: message" );
+            modelAndView.setViewName( "fragments/error::message" );
             modelAndView.addObject( "errorMessage", e.getMessage() );
         }
 
@@ -418,15 +428,17 @@ public class SearchController {
             try {
                 viewUser = remoteResourceService.getRemoteUser( userId, remoteHost );
             } catch ( RemoteException e ) {
-                log.error( "Could not fetch the remote user id " + userId + " from " + remoteHost );
-                e.printStackTrace();
-                return null;
+                log.error( MessageFormat.format( "Could not fetch the remote user id {0} from {1}.", userId, remoteHost ), e );
+                modelAndView.setStatus( HttpStatus.SERVICE_UNAVAILABLE );
+                modelAndView.setViewName( "error/503" );
+                return modelAndView;
             }
         } else {
             viewUser = userService.findUserById( userId );
         }
 
         if ( viewUser == null ) {
+            modelAndView.setStatus( HttpStatus.NOT_FOUND );
             modelAndView.setViewName( "error/404" );
         } else {
             modelAndView.addObject( "user", user );

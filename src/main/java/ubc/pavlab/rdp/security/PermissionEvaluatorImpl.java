@@ -35,9 +35,7 @@ public class PermissionEvaluatorImpl implements PermissionEvaluator {
         } else if ( permission.equals( "international-search" ) ) {
             return privacyService.checkUserCanSearch( user, true );
         } else if ( targetDomainObject instanceof UserContent ) {
-            if ( permission.equals( "search" ) ) {
-                return privacyService.checkUserCanSearch( user, false );
-            } else if ( permission.equals( "read" ) ) {
+            if ( permission.equals( "read" ) ) {
                 return privacyService.checkUserCanSee( user, (UserContent) targetDomainObject );
             } else if ( permission.equals( "update" ) ) {
                 return privacyService.checkUserCanUpdate( user, (UserContent) targetDomainObject );

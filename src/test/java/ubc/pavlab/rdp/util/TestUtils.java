@@ -10,6 +10,7 @@ import ubc.pavlab.rdp.model.enums.TierType;
 
 import java.net.URL;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.counting;
@@ -68,6 +69,12 @@ public final class TestUtils {
         User user = createUnpersistedUser();
         user.setId( id );
 
+        return user;
+    }
+
+    public static User createUserWithRoles( int id, Role... roles ) {
+        User user = createUser( id );
+        user.setRoles( Arrays.stream( roles ).collect( Collectors.toSet() ) );
         return user;
     }
 

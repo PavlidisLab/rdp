@@ -139,19 +139,4 @@ public class MainControllerTest {
                 .andExpect( status().is3xxRedirection() )
                 .andExpect( redirectedUrl( "http://localhost/login" ) );
     }
-
-    @Test
-    public void getSearch_return200() throws Exception {
-        when( permissionEvaluator.hasPermission( any(), isNull(), eq( "search" ) ) ).thenReturn( true );
-        mvc.perform( get( "/search" ) )
-                .andExpect( status().isOk() );
-    }
-
-    @Test
-    public void getSearch_withoutPublicSearch_redirect3xx() throws Exception {
-        when( permissionEvaluator.hasPermission( any(), isNull(), eq( "search" ) ) ).thenReturn( false );
-        mvc.perform( get( "/search" ) )
-                .andExpect( status().is3xxRedirection() )
-                .andExpect( redirectedUrl( "http://localhost/login" ) );
-    }
 }

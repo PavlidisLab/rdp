@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
-import ubc.pavlab.rdp.model.User;
 import ubc.pavlab.rdp.services.UserService;
 
 import javax.servlet.http.Cookie;
@@ -33,17 +32,6 @@ public class MainController {
     @RequestMapping(value = "/stats.html")
     public void handleStatsHTMLEndpoint( HttpServletResponse response ) throws IOException {
         response.sendRedirect( "/stats" );
-    }
-
-    @PreAuthorize("hasPermission(null, 'search')")
-    @GetMapping(value = { "/search" })
-    public ModelAndView search() {
-        User user = userService.findCurrentUser();
-        ModelAndView modelAndView = new ModelAndView();
-        modelAndView.addObject( "chars", userService.getLastNamesFirstChar() );
-        modelAndView.addObject( "user", user );
-        modelAndView.setViewName( "search" );
-        return modelAndView;
     }
 
     @GetMapping(value = { "/maintenance" })
