@@ -49,7 +49,7 @@ public class CacheService {
             userService.updateUserTerms();
             organInfoService.updateOrganInfos();
             userOrganService.updateUserOrgans();
-            log.info("Done updating cached data. Next update is scheduled in 30 days from now.");
+            log.info( "Done updating cached data. Next update is scheduled in 30 days from now." );
         }
     }
 }

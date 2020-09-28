@@ -25,7 +25,6 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.ResearcherCategory;
 import ubc.pavlab.rdp.model.enums.TierType;
@@ -229,7 +228,6 @@ public class UserGeneServiceImpl implements UserGeneService {
     }
 
     @Override
-    @Transactional
     public void updateUserGenes() {
         log.info( "Updating user genes..." );
         for ( UserGene userGene : userGeneRepository.findAllWithGeneInfo() ) {

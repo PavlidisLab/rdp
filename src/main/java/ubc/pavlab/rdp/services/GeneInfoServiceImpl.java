@@ -15,8 +15,7 @@ import ubc.pavlab.rdp.util.GeneInfoParser;
 import ubc.pavlab.rdp.util.GeneOrthologsParser;
 import ubc.pavlab.rdp.util.SearchResult;
 
-import javax.transaction.Transactional;
-import java.io.*;
+import java.io.IOException;
 import java.text.MessageFormat;
 import java.text.ParseException;
 import java.util.*;
@@ -118,7 +117,6 @@ public class GeneInfoServiceImpl implements GeneInfoService {
     }
 
     @Override
-    @Transactional
     public void updateGenes() {
         ApplicationSettings.CacheSettings cacheSettings = applicationSettings.getCache();
         log.info( "Updating genes..." );
@@ -145,7 +143,6 @@ public class GeneInfoServiceImpl implements GeneInfoService {
     }
 
     @Override
-    @Transactional
     public void updateGeneOrthologs() {
         log.info( MessageFormat.format( "Updating gene orthologs from {0}...", applicationSettings.getCache().getOrthologFile() ) );
 

@@ -3,19 +3,14 @@ package ubc.pavlab.rdp.services;
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import ubc.pavlab.rdp.model.OrganInfo;
 import ubc.pavlab.rdp.repositories.OrganInfoRepository;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.util.OBOParser;
 
-import javax.transaction.Transactional;
-import java.io.*;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.io.IOException;
 import java.text.MessageFormat;
-import java.text.ParseException;
 import java.util.Collection;
 
 @CommonsLog
@@ -46,7 +41,7 @@ public class OrganInfoServiceImpl implements OrganInfoService {
     @Autowired
     ApplicationSettings applicationSettings;
 
-    @Transactional
+    @Override
     public void updateOrganInfos() {
         try {
             Resource organFile = applicationSettings.getCache().getOrganFile();
