@@ -124,13 +124,13 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
         String proxyPort = applicationSettings.getIsearch().getPort();
         ResteasyClient client = null;
 
-        if (proxyHost != null && proxyPort != null &&
-                !proxyHost.equals("") && !proxyPort.equals("") ) {
+        if ( proxyHost != null && proxyPort != null &&
+                !proxyHost.equals( "" ) && !proxyPort.equals( "" ) ) {
             client = new ResteasyClientBuilder().defaultProxy(
                     proxyHost,
                     Integer.parseInt( proxyPort )
             ).build();
-            log.info( "Using " +proxyHost + ":" + proxyPort+ " as proxy for rest client." );
+            log.info( "Using " + proxyHost + ":" + proxyPort + " as proxy for rest client." );
         } else {
             client = new ResteasyClientBuilder().build();
             log.info( "Using default proxy for rest client." );
@@ -155,7 +155,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
                 first = false;
             }
             try {
-                for (String a : args.get(arg)) {
+                for ( String a : args.get( arg ) ) {
                     s.append( arg ).append( "=" ).append( URLEncoder.encode( a, "UTF8" ) );
                 }
             } catch ( UnsupportedEncodingException e ) {

@@ -33,7 +33,7 @@ public class CacheService {
 
     /**
      * Cached data are updated periodically (monthly be default).
-     *
+     * <p>
      * This task make sure that the updates are performed in a logical order (i.e. genes are updated prior to ortholog
      * relationships and user-gene associations).
      */

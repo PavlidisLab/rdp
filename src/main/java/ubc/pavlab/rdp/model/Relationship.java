@@ -11,7 +11,7 @@ import ubc.pavlab.rdp.model.enums.RelationshipType;
  */
 @Getter
 @AllArgsConstructor
-@EqualsAndHashCode(of = {"term"})
+@EqualsAndHashCode(of = { "term" })
 @ToString
 public class Relationship {
 

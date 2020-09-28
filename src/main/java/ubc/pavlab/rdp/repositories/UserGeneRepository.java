@@ -29,23 +29,30 @@ public interface UserGeneRepository extends JpaRepository<UserGene, Integer> {
     Integer countDistinctUser();
 
     @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
-    UserGene findById(int id);
+    UserGene findById( int id );
 
     @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
-    Collection<UserGene> findByGeneId(int geneId);
+    Collection<UserGene> findByGeneId( int geneId );
+
     @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
-    Collection<UserGene> findByGeneIdAndTier(int geneId, TierType tier);
+    Collection<UserGene> findByGeneIdAndTier( int geneId, TierType tier );
+
     @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
-    Collection<UserGene> findByGeneIdAndTierIn(int geneId, Set<TierType> tiers);
+    Collection<UserGene> findByGeneIdAndTierIn( int geneId, Set<TierType> tiers );
+
     @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
-    Collection<UserGene> findBySymbolContainingIgnoreCaseAndTaxon(String symbolContaining, Taxon taxon);
+    Collection<UserGene> findBySymbolContainingIgnoreCaseAndTaxon( String symbolContaining, Taxon taxon );
+
     @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
-    Collection<UserGene> findBySymbolContainingIgnoreCaseAndTaxonAndTier(String symbolContaining, Taxon taxon, TierType tier);
+    Collection<UserGene> findBySymbolContainingIgnoreCaseAndTaxonAndTier( String symbolContaining, Taxon taxon, TierType tier );
+
     @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
-    Collection<UserGene> findBySymbolContainingIgnoreCaseAndTaxonAndTierIn(String symbolContaining, Taxon taxon, Set<TierType> tiers);
+    Collection<UserGene> findBySymbolContainingIgnoreCaseAndTaxonAndTierIn( String symbolContaining, Taxon taxon, Set<TierType> tiers );
+
     UserGene findBySymbolAndTaxon( String symbol, Taxon taxon );
 
     Collection<UserGene> findByGeneIdAndTierAndUserUserOrgansIn( int geneId, TierType tier, Collection<UserOrgan> organs );
+
     Collection<UserGene> findByGeneIdAndTierInAndUserUserOrgansIn( int geneId, Set<TierType> tiers, Collection<UserOrgan> organs );
 
     /**
@@ -58,6 +65,7 @@ public interface UserGeneRepository extends JpaRepository<UserGene, Integer> {
 
     /**
      * Find user genes within a given taxon that are ortholog to a given gene.
+     *
      * @param taxon
      * @return
      */

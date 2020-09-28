@@ -218,10 +218,10 @@ public class UserGeneServiceImpl implements UserGeneService {
             }
         }
 
-        if (orthologTaxon.isPresent()) {
-            uGenes.addAll( findOrthologsByGeneAndTierInAndTaxonAndUserOrgansInWithoutSecurityFilter( gene, tiers, orthologTaxon.get(), researcherTypes, organs ));
+        if ( orthologTaxon.isPresent() ) {
+            uGenes.addAll( findOrthologsByGeneAndTierInAndTaxonAndUserOrgansInWithoutSecurityFilter( gene, tiers, orthologTaxon.get(), researcherTypes, organs ) );
         } else {
-            uGenes.addAll( findOrthologsByGeneAndTierInAndUserOrgansInWithoutSecurityFilter( gene, tiers, researcherTypes, organs ));
+            uGenes.addAll( findOrthologsByGeneAndTierInAndUserOrgansInWithoutSecurityFilter( gene, tiers, researcherTypes, organs ) );
         }
 
         return uGenes;

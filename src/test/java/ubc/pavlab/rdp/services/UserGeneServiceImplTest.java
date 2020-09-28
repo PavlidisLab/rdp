@@ -56,7 +56,7 @@ public class UserGeneServiceImplTest {
         User user = createUser( 1 );
         GeneInfo gene = createGene( 1, humanTaxon );
         UserGene userGene = createUserGene( 1, gene, user, TierType.TIER1, PrivacyLevelType.PRIVATE );
-        userGene.setGeneInfo (gene);
+        userGene.setGeneInfo( gene );
         when( userGeneRepository.findAllWithGeneInfo() ).thenReturn( Lists.newArrayList( userGene ) );
         when( geneInfoRepository.findByGeneIdAndTaxon( gene.getGeneId(), gene.getTaxon() ) ).thenReturn( gene );
         userGeneService.updateUserGenes();

@@ -8,7 +8,10 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * OBO ontology parser
@@ -20,7 +23,7 @@ public class OBOParser {
 
     @Getter
     @Setter
-    @ToString(of = {"id"})
+    @ToString(of = { "id" })
     @EqualsAndHashCode(of = { "id" })
     public class Term {
 

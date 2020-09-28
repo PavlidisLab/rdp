@@ -96,8 +96,8 @@ public class EmailServiceImpl implements EmailService {
 
     @Override
     public void sendRegistrationMessage( User user, String token ) {
-        String registrationWelcome = messageSource.getMessage( "rdp.site.email.registration-welcome", new String[] {siteSettings.getFullUrl()}, Locale.getDefault() );
-        String registrationEnding = messageSource.getMessage( "rdp.site.email.registration-ending", new String[] {siteSettings.getContactEmail()}, Locale.getDefault() );
+        String registrationWelcome = messageSource.getMessage( "rdp.site.email.registration-welcome", new String[]{ siteSettings.getFullUrl() }, Locale.getDefault() );
+        String registrationEnding = messageSource.getMessage( "rdp.site.email.registration-ending", new String[]{ siteSettings.getContactEmail() }, Locale.getDefault() );
         String recipientAddress = user.getEmail();
         String subject = "Registration Confirmation";
         String confirmationUrl = siteSettings.getFullUrl() + "registrationConfirm?token=" + token;

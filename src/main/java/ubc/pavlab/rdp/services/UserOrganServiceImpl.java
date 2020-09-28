@@ -32,7 +32,7 @@ public class UserOrganServiceImpl implements UserOrganService {
     @Override
     @PostFilter("hasPermission(filterObject, 'read')")
     public Collection<UserOrgan> findByUberonIdIn( Set<String> organUberonIds ) {
-        return userOrganRepository.findByUberonIdIn(organUberonIds);
+        return userOrganRepository.findByUberonIdIn( organUberonIds );
     }
 
     @Autowired

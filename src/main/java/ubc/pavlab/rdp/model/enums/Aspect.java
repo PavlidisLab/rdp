@@ -8,7 +8,7 @@ import lombok.AllArgsConstructor;
  */
 @AllArgsConstructor
 public enum Aspect {
-    biological_process("BP"), cellular_component("CC"), molecular_function("MF");
+    biological_process( "BP" ), cellular_component( "CC" ), molecular_function( "MF" );
 
     private String label;
 

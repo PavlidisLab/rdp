@@ -1,8 +1,12 @@
 package ubc.pavlab.rdp.model;
 
-import lombok.*;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.MappedSuperclass;
 
 @MappedSuperclass
 @Getter

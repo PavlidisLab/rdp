@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import lombok.*;
 import lombok.extern.apachecommons.CommonsLog;
-import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.validator.constraints.Email;
 import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.NotEmpty;
@@ -25,8 +24,8 @@ import java.util.stream.Collectors;
 @Getter
 @Setter
 @NoArgsConstructor
-@EqualsAndHashCode(of = {"id"})
-@ToString( of = {"id", "email", "enabled"})
+@EqualsAndHashCode(of = { "id" })
+@ToString(of = { "id", "email", "enabled" })
 @CommonsLog
 public class User implements UserContent {
 
@@ -35,29 +34,29 @@ public class User implements UserContent {
     @Column(name = "user_id")
     private Integer id;
 
-	@Column(name = "email")
-	@Email(message = "Your email address is not valid.")
-	@NotEmpty(message = "Please provide an email address.")
-	private String email;
+    @Column(name = "email")
+    @Email(message = "Your email address is not valid.")
+    @NotEmpty(message = "Please provide an email address.")
+    private String email;
 
-	@Column(name = "password")
-	@Length(min = 6, message = "Your password must have at least 6 characters.")
-	@NotEmpty(message = "Please provide your password.")
+    @Column(name = "password")
+    @Length(min = 6, message = "Your password must have at least 6 characters.")
+    @NotEmpty(message = "Please provide your password.")
     @JsonIgnore
-	@Transient
-	private String password;
+    @Transient
+    private String password;
 
-	@Column(name = "enabled")
+    @Column(name = "enabled")
     @JsonIgnore
-	private boolean enabled;
+    private boolean enabled;
 
     @ManyToMany(cascade = CascadeType.ALL)
-	@JoinTable(name = "user_role", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
+    @JoinTable(name = "user_role", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
     @JsonIgnore
-	private Set<Role> roles = new HashSet<> ();
+    private Set<Role> roles = new HashSet<>();
 
     @Valid
-	@Embedded
+    @Embedded
     @JsonUnwrapped
     private Profile profile;
 
@@ -72,18 +71,18 @@ public class User implements UserContent {
     // @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     @ElementCollection()
     @CollectionTable(name = "descriptions", joinColumns = @JoinColumn(name = "user_id"))
-	@MapKeyJoinColumn(name="taxon_id")
+    @MapKeyJoinColumn(name = "taxon_id")
     @Column(name = "description", columnDefinition = "TEXT")
     @JsonIgnore
     private Map<Taxon, String> taxonDescriptions = new HashMap<>();
 
-	@OneToMany(cascade = CascadeType.ALL, orphanRemoval = true )
-	@JoinColumn(name = "user_id")
-	private Set<UserTerm> userTerms = new HashSet<>();
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "user_id")
+    private Set<UserTerm> userTerms = new HashSet<>();
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "user" )
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "user")
     @MapKey(name = "geneId")
-	private Map<Integer, UserGene> userGenes = new HashMap<>();
+    private Map<Integer, UserGene> userGenes = new HashMap<>();
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "user")
     @MapKey(name = "uberonId")
@@ -99,7 +98,7 @@ public class User implements UserContent {
     @Transient
     public Set<UserGene> getGenesByTaxonAndTier( Taxon taxon, Set<TierType> tiers ) {
         return this.getUserGenes().values().stream()
-                .filter( gene -> gene.getTaxon().equals( taxon ) && tiers.contains( gene.getTier()) ).collect( Collectors.toSet() );
+                .filter( gene -> gene.getTaxon().equals( taxon ) && tiers.contains( gene.getTier() ) ).collect( Collectors.toSet() );
     }
 
     @JsonIgnore
@@ -130,7 +129,7 @@ public class User implements UserContent {
     @JsonIgnore
     public PrivacyLevelType getEffectivePrivacyLevel() {
         // this is a fallback
-        if (getProfile() == null || getProfile().getPrivacyLevel() == null) {
+        if ( getProfile() == null || getProfile().getPrivacyLevel() == null ) {
             log.warn( MessageFormat.format( "User {0} has no profile or a null privacy level defined in its profile.", this ) );
             return PrivacyLevelType.PRIVATE;
         }

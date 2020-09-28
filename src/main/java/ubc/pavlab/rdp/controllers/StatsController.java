@@ -1,8 +1,6 @@
 package ubc.pavlab.rdp.controllers;
 
 import lombok.extern.apachecommons.CommonsLog;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -27,8 +25,8 @@ public class StatsController {
     @Autowired
     private UserGeneService userGeneService;
 
-    @RequestMapping(value = {"/stats"}, method = RequestMethod.GET)
-    public Map<String, Object> getAggregateStats(HttpServletResponse response) {
+    @RequestMapping(value = { "/stats" }, method = RequestMethod.GET)
+    public Map<String, Object> getAggregateStats( HttpServletResponse response ) {
 
         Map<String, Object> stats = new LinkedHashMap<>();
 

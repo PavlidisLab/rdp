@@ -6,7 +6,7 @@ import java.util.Set;
 
 public interface TierService {
 
-    boolean isTierEnabled( TierType tier);
+    boolean isTierEnabled( TierType tier );
 
     Set<TierType> getEnabledTiers();
 }

@@ -10,7 +10,7 @@ import lombok.ToString;
  */
 @Getter
 @AllArgsConstructor
-@EqualsAndHashCode(of = {"match"})
+@EqualsAndHashCode(of = { "match" })
 @ToString
 public class SearchResult<T> {
     private MatchType matchType;

@@ -18,7 +18,9 @@ import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.services.*;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.EnumSet;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static ubc.pavlab.rdp.util.TestUtils.*;
@@ -537,7 +539,7 @@ public class UserGeneRepositoryTest {
     }
 
     @Test
-    public void findById_whenUserGenePrivacyLevelIsHigher_ReturnUserPrivacyLevel () {
+    public void findById_whenUserGenePrivacyLevelIsHigher_ReturnUserPrivacyLevel() {
         UserGene userGene = user.getUserGenes().get( 1 );
         userGene.getUser().getProfile().setPrivacyLevel( PrivacyLevelType.SHARED );
         userGene.setPrivacyLevel( PrivacyLevelType.PUBLIC );
@@ -546,7 +548,7 @@ public class UserGeneRepositoryTest {
     }
 
     @Test
-    public void findByGeneIdAndTierInAndUserUserOrgansIn_whenUserFollowOrgan_ReturnUserGene () {
+    public void findByGeneIdAndTierInAndUserUserOrgansIn_whenUserFollowOrgan_ReturnUserGene() {
         Gene gene = entityManager.persist( createGene( 10, taxon ) );
         UserGene userGene = entityManager.persist( createUnpersistedUserGene( gene, user, TierType.TIER1, PrivacyLevelType.PRIVATE ) );
         Organ organ = entityManager.persist( createOrgan( "UBERON_1010101", "Appendages", null ) );

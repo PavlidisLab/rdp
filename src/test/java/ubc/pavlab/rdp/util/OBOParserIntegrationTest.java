@@ -31,9 +31,9 @@ public class OBOParserIntegrationTest {
     @Test
     public void parseStream_withGoTerms_thenSucceed() throws IOException {
         Map<String, OBOParser.Term> parsedTerms = oboParser.parseStream( new ClassPathResource( "cache/go.obo" ).getInputStream() );
-        assertThat(parsedTerms).containsKey("GO:0000001");
-        OBOParser.Term term = parsedTerms.get("GO:0000001");
-        assertThat(term)
+        assertThat( parsedTerms ).containsKey( "GO:0000001" );
+        OBOParser.Term term = parsedTerms.get( "GO:0000001" );
+        assertThat( term )
                 .hasFieldOrPropertyWithValue( "id", "GO:0000001" )
                 .hasFieldOrPropertyWithValue( "name", "mitochondrion inheritance" )
                 .hasFieldOrPropertyWithValue( "namespace", "biological_process" )
@@ -43,9 +43,9 @@ public class OBOParserIntegrationTest {
     @Test
     public void parseStream_withUberonTerms_thenSucceed() throws IOException {
         Map<String, OBOParser.Term> parsedTerms = oboParser.parseStream( new ClassPathResource( "cache/uberon.obo" ).getInputStream() );
-        assertThat(parsedTerms).containsKey("UBERON:0000000");
-        OBOParser.Term term = parsedTerms.get("UBERON:0000000");
-        assertThat(term)
+        assertThat( parsedTerms ).containsKey( "UBERON:0000000" );
+        OBOParser.Term term = parsedTerms.get( "UBERON:0000000" );
+        assertThat( term )
                 .hasFieldOrPropertyWithValue( "name", "processual entity" )
                 .hasFieldOrPropertyWithValue( "definition", "An occurrent [span:Occurrent] that exists in time by occurring or happening, has temporal parts and always involves and depends on some entity." );
     }

@@ -1,12 +1,12 @@
 package ubc.pavlab.rdp.model;
 
-import lombok.*;
+import lombok.Data;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.hibernate.validator.constraints.URL;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
-import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import ubc.pavlab.rdp.model.enums.ResearcherCategory;
+import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 
 import javax.persistence.*;
 import java.util.HashSet;

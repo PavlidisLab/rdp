@@ -15,7 +15,7 @@ import javax.persistence.*;
 @Getter
 @Setter
 @NoArgsConstructor
-@EqualsAndHashCode(of = {"pmid"})
+@EqualsAndHashCode(of = { "pmid" })
 @ToString
 public class Publication {
 

@@ -25,7 +25,7 @@ public class GeneOrthologsParser {
         private Integer orthologId;
     }
 
-    public List<Record> parse( InputStream is) throws IOException {
+    public List<Record> parse( InputStream is ) throws IOException {
         BufferedReader br = new BufferedReader( new InputStreamReader( new GZIPInputStream( is ) ) );
         return br.lines()
                 .skip( 1 ) // skip the TSV header

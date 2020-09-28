@@ -98,7 +98,7 @@ public class ApiController {
             return ResponseEntity.notFound().build();
         }
         checkAuth( auth );
-        if (prefix) {
+        if ( prefix ) {
             return initUsers( userService.findByStartsName( nameLike, Optional.ofNullable( researcherCategories ), organsFromUberonIds( organUberonIds ) ), locale );
         } else {
             return initUsers( userService.findByLikeName( nameLike, Optional.ofNullable( researcherCategories ), organsFromUberonIds( organUberonIds ) ), locale );
@@ -136,7 +136,7 @@ public class ApiController {
         checkAuth( auth );
         Taxon taxon = taxonService.findById( taxonId );
 
-        if (taxon == null) {
+        if ( taxon == null ) {
             return ResponseEntity.notFound().build();
         }
 
@@ -146,7 +146,7 @@ public class ApiController {
             return ResponseEntity.notFound().build();
         }
 
-        if (tiers == null) {
+        if ( tiers == null ) {
             tiers = TierType.ANY;
         }
 

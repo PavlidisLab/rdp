@@ -104,7 +104,7 @@ public class ApiControllerTest {
 
         when( taxonService.findById( 9606 ) ).thenReturn( humanTaxon );
         when( geneService.findBySymbolAndTaxon( "CDH1", humanTaxon ) ).thenReturn( cdh1GeneInfo );
-        when( userGeneService.handleGeneSearch( cdh1GeneInfo, EnumSet.of( TierType.TIER1, TierType.TIER2 ), Optional.of( humanTaxon ), Optional.empty (), Optional.empty() ) )
+        when( userGeneService.handleGeneSearch( cdh1GeneInfo, EnumSet.of( TierType.TIER1, TierType.TIER2 ), Optional.of( humanTaxon ), Optional.empty(), Optional.empty() ) )
                 .thenReturn( Sets.newSet( cdh1UserGene ) );
 
         mvc.perform( get( "/api/genes/search" )
@@ -126,7 +126,7 @@ public class ApiControllerTest {
 
         when( taxonService.findById( 9606 ) ).thenReturn( humanTaxon );
         when( geneService.findBySymbolAndTaxon( "CDH1", humanTaxon ) ).thenReturn( cdh1GeneInfo );
-        when( userGeneService.handleGeneSearch( cdh1GeneInfo, EnumSet.of( TierType.TIER1, TierType.TIER2 ), Optional.of( humanTaxon ), Optional.empty (), Optional.empty() ) )
+        when( userGeneService.handleGeneSearch( cdh1GeneInfo, EnumSet.of( TierType.TIER1, TierType.TIER2 ), Optional.of( humanTaxon ), Optional.empty(), Optional.empty() ) )
                 .thenReturn( Sets.newSet( cdh1UserGene ) );
 
         mvc.perform( get( "/api/genes/search" )

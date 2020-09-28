@@ -103,7 +103,7 @@ public class PasswordResetTokenRepositoryTest {
 
         try {
             PasswordResetToken found = passwordResetTokenRepository.findByUser( user );
-        } catch (IncorrectResultSizeDataAccessException e) {
+        } catch ( IncorrectResultSizeDataAccessException e ) {
             // Expected
             return;
         }

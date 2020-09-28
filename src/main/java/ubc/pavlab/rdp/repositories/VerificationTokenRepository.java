@@ -12,6 +12,7 @@ import java.util.Date;
 @Repository
 public interface VerificationTokenRepository extends JpaRepository<VerificationToken, Integer> {
     VerificationToken findByToken( String token );
+
     VerificationToken findByUser( User user );
 
     @Modifying

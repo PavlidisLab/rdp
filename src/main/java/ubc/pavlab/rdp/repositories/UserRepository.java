@@ -37,7 +37,7 @@ public interface UserRepository extends JpaRepository<User, Integer> {
 
     @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
     Collection<User> findByProfileNameContainingIgnoreCaseOrProfileLastNameContainingIgnoreCase( String nameLike,
-            String lastNameLike );
+                                                                                                 String lastNameLike );
 
     @SuppressWarnings("SpringDataRepositoryMethodParametersInspection")
     @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))

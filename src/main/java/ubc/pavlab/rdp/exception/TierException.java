@@ -8,16 +8,16 @@ public final class TierException extends Exception {
         super();
     }
 
-    public TierException( final String message, final Throwable cause) {
-        super(message, cause);
+    public TierException( final String message, final Throwable cause ) {
+        super( message, cause );
     }
 
-    public TierException( final String message) {
-        super(message);
+    public TierException( final String message ) {
+        super( message );
     }
 
-    public TierException( final Throwable cause) {
-        super(cause);
+    public TierException( final Throwable cause ) {
+        super( cause );
     }
 
 }

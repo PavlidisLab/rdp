@@ -26,9 +26,9 @@ import ubc.pavlab.rdp.settings.SiteSettings;
 import java.util.Collections;
 
 import static org.mockito.BDDMockito.when;
-import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -113,7 +113,7 @@ public class AdminControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"ADMIN"})
+    @WithMockUser(roles = { "ADMIN" })
     public void givenLoggedInAsAdmin_whenDeleteUser_thenSucceed()
             throws Exception {
 
@@ -122,7 +122,7 @@ public class AdminControllerTest {
         when( userService.findUserById( eq( 1 ) ) ).thenReturn( me );
 
         mvc.perform( delete( "/admin/users/{userId}", me.getId() )
-                .param("email", me.getEmail()) )
+                .param( "email", me.getEmail() ) )
                 .andExpect( status().is3xxRedirection() )
                 .andExpect( redirectedUrl( "/admin/users" ) );
 
@@ -130,7 +130,7 @@ public class AdminControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"ADMIN"})
+    @WithMockUser(roles = { "ADMIN" })
     public void givenLoggedInAsAdmin_whenDeleteUserWithWrongConfirmationEmail_thenReturnBadRequest() throws Exception {
         User me = createUser( 1 );
 

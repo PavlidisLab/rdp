@@ -28,7 +28,7 @@ public class TierServiceImplTest {
         @Bean
         public ApplicationSettings applicationSettings() {
             ApplicationSettings as = new ApplicationSettings();
-            as.setEnabledTiers( Lists.newArrayList("TIER1", "TIER2", "TIER3") );
+            as.setEnabledTiers( Lists.newArrayList( "TIER1", "TIER2", "TIER3" ) );
             return as;
         }
     }
@@ -41,8 +41,8 @@ public class TierServiceImplTest {
 
     @Test
     public void isTierEnabled() {
-        assertThat(tierService.isTierEnabled( TierType.TIER1 )).isTrue();
-        assertThat(tierService.isTierEnabled( TierType.TIER2 )).isTrue();
-        assertThat(tierService.isTierEnabled( TierType.TIER3 )).isTrue();
+        assertThat( tierService.isTierEnabled( TierType.TIER1 ) ).isTrue();
+        assertThat( tierService.isTierEnabled( TierType.TIER2 ) ).isTrue();
+        assertThat( tierService.isTierEnabled( TierType.TIER3 ) ).isTrue();
     }
 }

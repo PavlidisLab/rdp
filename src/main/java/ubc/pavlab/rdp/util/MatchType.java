@@ -6,5 +6,6 @@ package ubc.pavlab.rdp.util;
 public interface MatchType {
 
     String getLabel();
+
     int getOrder();
 }

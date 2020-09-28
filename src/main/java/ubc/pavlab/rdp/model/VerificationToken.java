@@ -16,8 +16,8 @@ import java.util.Optional;
 @Getter
 @Setter
 @NoArgsConstructor
-@EqualsAndHashCode(of = {"token", "user"})
-@ToString(of = {"user", "token", "expiryDate"})
+@EqualsAndHashCode(of = { "token", "user" })
+@ToString(of = { "user", "token", "expiryDate" })
 public class VerificationToken implements UserContent {
 
     public static final int EXPIRATION = 24;
@@ -34,21 +34,21 @@ public class VerificationToken implements UserContent {
 
     private Date expiryDate;
 
-    private Date calculateExpiryDate(final int expiryTimeInHours) {
+    private Date calculateExpiryDate( final int expiryTimeInHours ) {
         final Calendar cal = Calendar.getInstance();
-        cal.setTimeInMillis(new Date().getTime());
-        cal.add(Calendar.HOUR, expiryTimeInHours);
-        return new Date(cal.getTime().getTime());
+        cal.setTimeInMillis( new Date().getTime() );
+        cal.add( Calendar.HOUR, expiryTimeInHours );
+        return new Date( cal.getTime().getTime() );
     }
 
-    public void updateToken(final String token) {
+    public void updateToken( final String token ) {
         this.token = token;
-        this.expiryDate = calculateExpiryDate(EXPIRATION);
+        this.expiryDate = calculateExpiryDate( EXPIRATION );
     }
 
     @Override
     public Optional<User> getOwner() {
-        return Optional.of(getUser());
+        return Optional.of( getUser() );
     }
 
     @Override

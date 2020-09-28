@@ -103,7 +103,7 @@ public class VerificationTokenRepositoryTest {
 
         try {
             VerificationToken found = verificationTokenRepository.findByUser( user );
-        } catch (IncorrectResultSizeDataAccessException e) {
+        } catch ( IncorrectResultSizeDataAccessException e ) {
             // Expected
             return;
         }

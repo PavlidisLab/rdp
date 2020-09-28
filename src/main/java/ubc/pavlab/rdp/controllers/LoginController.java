@@ -49,9 +49,9 @@ public class LoginController {
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
-        if (!(auth instanceof AnonymousAuthenticationToken)) {
+        if ( !( auth instanceof AnonymousAuthenticationToken ) ) {
             // User is logged in
-            return new ModelAndView("forward:/");
+            return new ModelAndView( "forward:/" );
         }
 
         modelAndView.setViewName( "login" );
@@ -81,7 +81,7 @@ public class LoginController {
 
         if ( userExists != null ) {
             bindingResult.rejectValue( "email", "error.user", "There is already a user registered this email." );
-            log.warn("Trying to register an already registered email.");
+            log.warn( "Trying to register an already registered email." );
         }
 
         if ( !bindingResult.hasErrors() ) {
@@ -89,8 +89,8 @@ public class LoginController {
             try {
                 eventPublisher.publishEvent( new OnRegistrationCompleteEvent( user ) );
                 redirectAttributes.addAttribute( "message", "Your user account was registered successfully. Please check your email for completing the completing the registration process." );
-            } catch (Exception me) {
-                log.error(me);
+            } catch ( Exception me ) {
+                log.error( me );
                 redirectAttributes.addAttribute( "message", "Your user account was registered successfully, but we couldn't send you a confirmation email." );
             } finally {
                 return "redirect:/login";
@@ -100,7 +100,7 @@ public class LoginController {
         return "registration";
     }
 
-    @RequestMapping(value = {"/resendConfirmation"}, method = RequestMethod.GET)
+    @RequestMapping(value = { "/resendConfirmation" }, method = RequestMethod.GET)
     public ModelAndView resendConfirmation() {
         ModelAndView modelAndView = new ModelAndView();
         modelAndView.setViewName( "resendConfirmation" );
@@ -126,7 +126,7 @@ public class LoginController {
             try {
                 eventPublisher.publishEvent( new OnRegistrationCompleteEvent( user ) );
                 modelAndView.addObject( "message", "Confirmation email sent." );
-            } catch (Exception me) {
+            } catch ( Exception me ) {
                 log.error( me );
                 modelAndView.addObject( "message", "There was a problem sending the confirmation email. Please try again later." );
             }
@@ -136,10 +136,10 @@ public class LoginController {
     }
 
     @RequestMapping(value = "/registrationConfirm", method = RequestMethod.GET)
-    public ModelAndView confirmRegistration( WebRequest request, Model model, @RequestParam("token") String token) {
+    public ModelAndView confirmRegistration( WebRequest request, Model model, @RequestParam("token") String token ) {
         User user = userService.confirmVerificationToken( token );
 
-        UserPrinciple principle = new UserPrinciple(user);
+        UserPrinciple principle = new UserPrinciple( user );
         Authentication auth = new UsernamePasswordAuthenticationToken( principle, null, principle.getAuthorities() );
         SecurityContextHolder.getContext().setAuthentication( auth );
 

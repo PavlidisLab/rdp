@@ -2,7 +2,6 @@ package ubc.pavlab.rdp.controllers;
 
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ubc.pavlab.rdp.model.Gene;
 import ubc.pavlab.rdp.model.GeneInfo;
@@ -14,7 +13,6 @@ import ubc.pavlab.rdp.services.TaxonService;
 import ubc.pavlab.rdp.util.SearchResult;
 
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -40,7 +38,7 @@ public class GeneController {
         Taxon taxon = taxonService.findById( taxonId );
         return geneService.findBySymbolInAndTaxon( symbols, taxon )
                 .stream()
-                .collect( Collectors.toMap( g -> g.getSymbol(), g -> g ));
+                .collect( Collectors.toMap( g -> g.getSymbol(), g -> g ) );
         // return symbols.stream().collect( HashMap::new, ( m, s)->m.put(s, geneService.findBySymbolAndTaxon( s, taxon )), HashMap::putAll);
         // return symbols.stream().collect(Collectors.toMap( Function.identity(), s -> geneService.findBySymbolAndTaxon( s, taxon )));
     }

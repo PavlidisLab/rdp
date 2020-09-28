@@ -1,12 +1,9 @@
 package ubc.pavlab.rdp.repositories;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import ubc.pavlab.rdp.model.GeneInfo;
 import ubc.pavlab.rdp.model.Taxon;
-import ubc.pavlab.rdp.model.UserGene;
-import ubc.pavlab.rdp.util.MatchType;
 
 import java.util.Collection;
 
@@ -19,7 +16,7 @@ public interface GeneInfoRepository extends JpaRepository<GeneInfo, Integer> {
 
     Collection<GeneInfo> findAllByGeneIdIn( Collection<Integer> geneIds );
 
-    GeneInfo findByGeneIdAndTaxon ( Integer geneId, Taxon taxon );
+    GeneInfo findByGeneIdAndTaxon( Integer geneId, Taxon taxon );
 
     GeneInfo findBySymbolAndTaxon( String symbol, Taxon taxon );
 

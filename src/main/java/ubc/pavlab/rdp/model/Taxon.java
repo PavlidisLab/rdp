@@ -20,8 +20,8 @@ import java.net.URL;
 @Getter
 @Setter
 @NoArgsConstructor
-@EqualsAndHashCode(of = {"id"})
-@ToString(of = {"id", "scientificName"})
+@EqualsAndHashCode(of = { "id" })
+@ToString(of = { "id", "scientificName" })
 public class Taxon implements Serializable {
 
     @Id

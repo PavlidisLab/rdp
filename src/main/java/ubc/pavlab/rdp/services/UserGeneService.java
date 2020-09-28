@@ -19,7 +19,10 @@
 
 package ubc.pavlab.rdp.services;
 
-import ubc.pavlab.rdp.model.*;
+import ubc.pavlab.rdp.model.Gene;
+import ubc.pavlab.rdp.model.Taxon;
+import ubc.pavlab.rdp.model.UserGene;
+import ubc.pavlab.rdp.model.UserOrgan;
 import ubc.pavlab.rdp.model.enums.ResearcherCategory;
 import ubc.pavlab.rdp.model.enums.TierType;
 

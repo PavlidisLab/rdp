@@ -11,7 +11,7 @@ import java.util.Optional;
 
 /**
  * Organ systems tracked by a user.
- *
+ * <p>
  * TODO: add user to {@link EqualsAndHashCode} definition to distinguish
  * between organs from different users.
  */

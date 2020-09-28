@@ -22,10 +22,10 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     @Transactional
     public UserPrinciple loadUserByUsername( String email ) {
         User user = userRepository.findByEmailIgnoreCase( email );
-        if (user == null) {
-            throw new UsernameNotFoundException(email);
+        if ( user == null ) {
+            throw new UsernameNotFoundException( email );
         }
-        return new UserPrinciple(user);
+        return new UserPrinciple( user );
     }
 
 }

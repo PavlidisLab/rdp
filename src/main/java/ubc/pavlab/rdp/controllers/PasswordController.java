@@ -1,6 +1,7 @@
 package ubc.pavlab.rdp.controllers;
 
-import lombok.*;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.extern.apachecommons.CommonsLog;
 import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.NotEmpty;

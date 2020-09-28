@@ -1,7 +1,8 @@
 package ubc.pavlab.rdp.services;
 
-import org.springframework.scheduling.annotation.Scheduled;
-import ubc.pavlab.rdp.model.*;
+import ubc.pavlab.rdp.model.GeneInfo;
+import ubc.pavlab.rdp.model.GeneOntologyTerm;
+import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.util.SearchResult;
 
 import java.util.Collection;

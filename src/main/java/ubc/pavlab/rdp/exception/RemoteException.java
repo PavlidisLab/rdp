@@ -8,16 +8,16 @@ public final class RemoteException extends RuntimeException {
         super();
     }
 
-    public RemoteException( final String message, final Throwable cause) {
-        super(message, cause);
+    public RemoteException( final String message, final Throwable cause ) {
+        super( message, cause );
     }
 
-    public RemoteException( final String message) {
-        super(message);
+    public RemoteException( final String message ) {
+        super( message );
     }
 
-    public RemoteException( final Throwable cause) {
-        super(cause);
+    public RemoteException( final Throwable cause ) {
+        super( cause );
     }
 
 }

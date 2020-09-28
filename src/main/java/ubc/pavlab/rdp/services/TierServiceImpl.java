@@ -2,7 +2,6 @@ package ubc.pavlab.rdp.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ubc.pavlab.rdp.exception.TierException;
 import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 
@@ -22,7 +21,7 @@ public class TierServiceImpl implements TierService {
     }
 
     @Override
-    public Set<TierType> getEnabledTiers () {
-        return EnumSet.allOf(TierType.class).stream().filter(this::isTierEnabled).collect(Collectors.toSet());
+    public Set<TierType> getEnabledTiers() {
+        return EnumSet.allOf( TierType.class ).stream().filter( this::isTierEnabled ).collect( Collectors.toSet() );
     }
 }
