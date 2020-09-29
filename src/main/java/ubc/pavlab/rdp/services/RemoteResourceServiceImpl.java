@@ -8,6 +8,7 @@ import org.jboss.resteasy.plugins.providers.RegisterBuiltin;
 import org.jboss.resteasy.plugins.providers.jackson.ResteasyJackson2Provider;
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -49,6 +50,9 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
 
     @Autowired
     private RoleRepository roleRepository;
+
+    @Autowired
+    private ResteasyClient client;
 
     @Override
     public Collection<User> findUsersByLikeName( String nameLike, Boolean prefix, Optional<Collection<ResearcherCategory>> researcherTypes, Optional<Collection<String>> organUberonIds ) throws RemoteException {
@@ -120,23 +124,6 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
     }
 
     private <T> T remoteRequest( Class<T> cls, String remoteUrl, MultiValueMap<String, String> args ) throws RemoteException {
-
-        String proxyHost = applicationSettings.getIsearch().getHost();
-        String proxyPort = applicationSettings.getIsearch().getPort();
-        ResteasyClient client = null;
-
-        if ( proxyHost != null && proxyPort != null &&
-                !proxyHost.equals( "" ) && !proxyPort.equals( "" ) ) {
-            client = new ResteasyClientBuilder().defaultProxy(
-                    proxyHost,
-                    Integer.parseInt( proxyPort )
-            ).build();
-            log.info( "Using " + proxyHost + ":" + proxyPort + " as proxy for rest client." );
-        } else {
-            client = new ResteasyClientBuilder().build();
-            log.info( "Using default proxy for rest client." );
-        }
-
         ResteasyWebTarget target = client.target( remoteUrl + encodeParams( args ) );
         Response response = target.request().get();
         if ( response.getStatus() != 200 ) {
