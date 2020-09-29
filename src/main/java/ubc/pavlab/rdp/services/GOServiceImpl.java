@@ -31,7 +31,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.GZIPInputStream;
 
+import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.counting;
+import static java.util.stream.Collectors.groupingBy;
 
 /**
  * Created by mjacobson on 17/01/18.
@@ -111,7 +113,7 @@ public class GOServiceImpl implements GOService {
         try {
             Collection<Gene2GoParser.Record> records = gene2GoParser.populateAnnotations( new GZIPInputStream( cacheSettings.getAnnotationFile().getInputStream() ) );
 
-            Map<String, List<Gene2GoParser.Record>> recordsByGoTerm = records.stream().collect( Collectors.groupingBy( term -> term.getGoId(), Collectors.toList() ) );
+            Map<String, List<Gene2GoParser.Record>> recordsByGoTerm = records.stream().collect( groupingBy( term -> term.getGoId(), Collectors.toList() ) );
 
             for ( Map.Entry<String, List<Gene2GoParser.Record>> entry : recordsByGoTerm.entrySet() ) {
                 GeneOntologyTerm term = getTerm( entry.getKey() );
@@ -125,7 +127,7 @@ public class GOServiceImpl implements GOService {
                 }
 
                 term.setSizesByTaxonId( entry.getValue().stream()
-                        .collect( Collectors.groupingBy( record -> record.getTaxonId(), counting() ) ) );
+                        .collect( groupingBy( record -> record.getTaxonId(), counting() ) ) );
             }
 
             log.info( "Finished loading annotations." );
@@ -160,7 +162,7 @@ public class GOServiceImpl implements GOService {
     public Map<GeneOntologyTerm, Long> termFrequencyMap( Collection<GeneInfo> genes ) {
         return genes.stream()
                 .flatMap( g -> getAllTermsForGene( g, true, true ).stream() )
-                .collect( Collectors.groupingBy( Function.identity(), counting() ) );
+                .collect( groupingBy( identity(), counting() ) );
     }
 
     private SearchResult<GeneOntologyTerm> queryTerm( String queryString, GeneOntologyTerm term ) {

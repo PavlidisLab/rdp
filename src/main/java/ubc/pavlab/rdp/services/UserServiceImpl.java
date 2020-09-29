@@ -25,10 +25,15 @@ import javax.validation.ValidationException;
 import java.text.MessageFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import static java.util.Comparator.comparing;
+import static java.util.Comparator.comparingLong;
+import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.maxBy;
 import static org.springframework.util.CollectionUtils.containsAny;
 
 /**
@@ -56,63 +61,6 @@ public class UserServiceImpl implements UserService {
     private OrganInfoService organInfoService;
     @Autowired
     UserGeneRepository userGeneRepository;
-
-    @SuppressWarnings("unused") // Keeping for future use
-    private static <T> Collector<T, ?, List<T>> maxList( Comparator<? super T> comp ) {
-        return Collector.of( ArrayList::new, ( list, t ) -> {
-            int c;
-            if ( list.isEmpty() || ( c = comp.compare( t, list.get( 0 ) ) ) == 0 ) {
-                list.add( t );
-            } else if ( c > 0 ) {
-                list.clear();
-                list.add( t );
-            }
-        }, ( list1, list2 ) -> {
-            if ( list1.isEmpty() ) {
-                return list2;
-            }
-            if ( list2.isEmpty() ) {
-                return list1;
-            }
-            int r = comp.compare( list1.get( 0 ), list2.get( 0 ) );
-            if ( r < 0 ) {
-                return list2;
-            } else if ( r > 0 ) {
-                return list1;
-            } else {
-                list1.addAll( list2 );
-                return list1;
-            }
-        } );
-    }
-
-    private static <T> Collector<T, ?, Set<T>> maxSet( Comparator<? super T> comp ) {
-        return Collector.of( HashSet::new, ( set, t ) -> {
-            int c;
-            if ( set.isEmpty() || ( c = comp.compare( t, set.iterator().next() ) ) == 0 ) {
-                set.add( t );
-            } else if ( c > 0 ) {
-                set.clear();
-                set.add( t );
-            }
-        }, ( set1, set2 ) -> {
-            if ( set1.isEmpty() ) {
-                return set2;
-            }
-            if ( set2.isEmpty() ) {
-                return set1;
-            }
-            int r = comp.compare( set1.iterator().next(), set2.iterator().next() );
-            if ( r < 0 ) {
-                return set2;
-            } else if ( r > 0 ) {
-                return set1;
-            } else {
-                set1.addAll( set2 );
-                return set1;
-            }
-        } );
-    }
 
     @Transactional
     @Override
@@ -328,7 +276,10 @@ public class UserServiceImpl implements UserService {
                 .filter( e -> maxSize < 0 || e.getKey().getSizeInTaxon( taxon ) <= maxSize )
                 .map( e -> UserTerm.createUserTerm( user, e.getKey(), taxon ) )
                 .filter( ut -> !user.getUserTerms().contains( ut ) )
-                .collect( maxSet( comparing( this::computeTermFrequency ) ) );
+                .collect( groupingBy( identity(), maxBy( comparingLong( this::computeTermFrequency ) ) ) )
+                .values().stream()
+                .map( ut -> ut.get() )
+                .collect( Collectors.toSet() );
 
         // Keep only leafiest of remaining terms (keep if it has no descendants in results)
         return topResults.stream()
