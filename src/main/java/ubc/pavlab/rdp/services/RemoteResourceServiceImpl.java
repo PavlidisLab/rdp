@@ -36,12 +36,6 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
     private static final String API_USER_GET_URI = "/api/users/%s";
     private static final String API_GENES_SEARCH_URI = "/api/genes/search";
 
-    static {
-        ResteasyProviderFactory instance = ResteasyProviderFactory.getInstance();
-        RegisterBuiltin.register( instance );
-        instance.registerProvider( ResteasyJackson2Provider.class );
-    }
-
     @Autowired
     private ApplicationSettings applicationSettings;
 
