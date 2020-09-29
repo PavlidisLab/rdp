@@ -40,9 +40,10 @@
         </div>
 
         <div class="row">
-            <div th:if="${viewUser.profile.researcherCategory != null}" class="col-3 col-lg-2 my-auto">
+            <div th:if="${@applicationSettings.profile.enabledResearcherCategories.contains(viewUser.profile.researcherCategory)} and ${viewUser.profile.researcherCategory} != null"
+                 class="col-3 col-lg-2 my-auto">
                 <img th:src="@{/images/researcher-categories/{id}.svg(id=${viewUser.profile.researcherCategory.id})}" class="img-fluid"/>
-                <h4 class="text-center" th:text="${viewUser.profile.researcherCategory.label}"></h4>
+                <h4 class="text-center" th:text="${viewUser.profile.researcherCategory.label}">...</h4>
             </div>
             <div class="col my-3">
                 <div class="card basic-info">
@@ -63,14 +64,14 @@
                                 <input class="data-edit" type="text" name="lastName" th:value="${viewUser.profile.lastName}" disabled="disabled"/>
                             </td>
                         </tr>
-                        <tr>
+                        <tr th:unless="${@applicationSettings.profile.enabledResearcherPositions.isEmpty()} or ${viewUser.profile.researcherPosition} == null">
                             <td class="text-muted">Position</td>
                             <td>
-                                <input th:if="${viewUser.profile.researcherPosition} != null"
-                                       class="data-edit"
+                                <input class="data-edit"
                                        type="text"
                                        name="researcherPosition"
-                                       th:value="${viewUser.profile.researcherPosition.label}" disabled="disabled"/>
+                                       th:value="${viewUser.profile.researcherPosition.label}"
+                                       disabled="disabled"/>
                             </td>
                         </tr>
                         <tr class="edit-container">
@@ -109,7 +110,7 @@
                             <td><a th:href="${'mailto://' + viewUser.email}" th:text="${viewUser.email}"></a>
                             </td>
                         </tr>
-                        <tr class="edit-container">
+                        <tr th:unless="${viewUser.profile.phone} == ''" class="edit-container">
                             <td class="align-middle"><span class="text-muted align-middle">Phone</span></td>
                             <td>
                                 <input class="data-edit" type="text" name="phone" th:value="${viewUser.profile.phone}" disabled="disabled"/>
@@ -120,7 +121,7 @@
             </div>
         </div>
 
-        <div class="row my-3">
+        <div th:unless="${viewUser.profile.description} == ''" class="row my-3">
             <div class="col">
                 <div class="card research-info edit-container">
                     <div class="card-header d-flex align-items-center">
@@ -133,7 +134,7 @@
             </div>
         </div>
 
-        <div class="row my-3">
+        <div th:unless="${viewUser.userOrgans.isEmpty()}" class="row my-3">
             <div class="col">
                 <div class="card">
                     <div class="card-header">
@@ -170,7 +171,7 @@
             </div>
         </div>
 
-        <div class="row my-3">
+        <div th:unless="${viewUser.profile.publications.isEmpty()}" class="row my-3">
             <div class="col">
                 <div class="card publication-info">
                     <div class="card-header">
@@ -198,7 +199,7 @@
 
         <th:block th:each="taxon : ${viewUser.taxons}">
 
-            <div class="row my-3">
+            <div th:unless="${viewUser.taxonDescriptions.get(taxon)} == ''" class="row my-3">
                 <div class="col">
                     <div class="card research-info edit-container">
                         <div class="card-header d-flex align-items-center">

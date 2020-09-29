@@ -13,12 +13,12 @@
 <div class="container py-4">
 
     <div class="row">
-        <div class="col-9">
+        <div class="col-8">
             <div th:replace="layouts/common::title(title='Model Organisms', subtitle=${#strings.capitalizeWords(taxon.commonName)})"
                  th:remove="tag">...
             </div>
         </div>
-        <div class="col-3 text-right">
+        <div class="col-4 my-auto text-right">
             <button type="button" class="btn btn-primary btn-lg save-model" th:if="${viewOnly == null}">
                 <i class="mx-2 d-none spinner"></i>
                 Save
