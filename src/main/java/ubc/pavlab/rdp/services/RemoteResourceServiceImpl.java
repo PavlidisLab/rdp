@@ -25,6 +25,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.text.MessageFormat;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service("RemoteResourceService")
 @CommonsLog
@@ -75,7 +76,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
             throws RemoteException {
         List<UserGene> intlUsergenes = new LinkedList<>();
         // TODO: use the tiers field for the v1.4 API
-        for ( TierType tier : tiers ) {
+        for ( TierType tier : restrictTiers( tiers ) ) {
             intlUsergenes.addAll( convertRemoteGenes(
                     getRemoteEntities( UserGene[].class, API_GENES_SEARCH_URI, new LinkedMultiValueMap<String, String>() {{
                         add( "symbol", symbol );
@@ -164,6 +165,12 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
             }
         }
         return s.toString();
+    }
+
+    private Set<TierType> restrictTiers( Set<TierType> tiers ) {
+        return tiers.stream()
+                .filter( t -> t != TierType.TIER3 )
+                .collect( Collectors.toSet() );
     }
 
     private Collection<UserGene> convertRemoteGenes( Collection<UserGene> genes ) {
