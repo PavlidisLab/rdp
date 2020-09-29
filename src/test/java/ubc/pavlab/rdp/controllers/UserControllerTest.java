@@ -3,6 +3,7 @@ package ubc.pavlab.rdp.controllers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 import lombok.SneakyThrows;
+import org.assertj.core.util.Lists;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.Before;
@@ -21,12 +22,15 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.web.multipart.MultipartFile;
 import ubc.pavlab.rdp.WebSecurityConfig;
 import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.Aspect;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.services.*;
+import ubc.pavlab.rdp.settings.ApplicationSettings;
+import ubc.pavlab.rdp.settings.FaqSettings;
 import ubc.pavlab.rdp.settings.SiteSettings;
 
 import java.util.Collection;
@@ -35,10 +39,13 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.*;
-import static org.mockito.BDDMockito.when;
-import static org.mockito.Matchers.eq;
+import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -58,10 +65,31 @@ public class UserControllerTest {
     @Autowired
     ObjectMapper objectMapper;
 
-    @MockBean
-    private UserService userService;
+    @MockBean(name = "applicationSettings")
+    private ApplicationSettings applicationSettings;
 
     @MockBean
+    private ApplicationSettings.ProfileSettings profileSettings;
+
+    @MockBean
+    private ApplicationSettings.PrivacySettings privacySettings;
+
+    @MockBean(name = "siteSettings")
+    private SiteSettings siteSettings;
+
+    @MockBean(name = "faqSettings")
+    private FaqSettings faqSettings;
+
+    @MockBean
+    private ApplicationSettings.OrganSettings organSettings;
+
+    @MockBean
+    private ApplicationSettings.InternationalSearchSettings iSearchSettings;
+
+    @MockBean(name = "userService")
+    private UserService userService;
+
+    @MockBean(name = "taxonService")
     private TaxonService taxonService;
 
     @MockBean
@@ -76,13 +104,14 @@ public class UserControllerTest {
     @MockBean
     private OrganInfoService organInfoService;
 
+    @MockBean(name = "tierService")
+    private TierService tierService;
+
     //    WebSecurityConfig
     @MockBean
     private UserDetailsService userDetailsService;
     @MockBean
     private BCryptPasswordEncoder bCryptPasswordEncoder;
-    @MockBean
-    private SiteSettings siteSettings;
 
     @MockBean
     private PermissionEvaluator permissionEvaluator;
@@ -92,7 +121,90 @@ public class UserControllerTest {
 
     @Before
     public void setUp() {
-        Mockito.when( taxonService.findById( Mockito.any() ) ).then( i -> createTaxon( i.getArgumentAt( 0, Integer.class ) ) );
+        when( applicationSettings.getEnabledTiers() ).thenReturn( Lists.newArrayList( "TIER1", "TIER2", "TIER3" ) );
+        when( applicationSettings.getPrivacy() ).thenReturn( privacySettings );
+        when( applicationSettings.getProfile() ).thenReturn( profileSettings );
+        when( profileSettings.getEnabledResearcherCategories() ).thenReturn( Lists.newArrayList( "TIER1", "TIER2", "TIER3" ) );
+        when( profileSettings.getEnabledResearcherPositions() ).thenReturn( Lists.newArrayList( "PRINCIPAL_INVESTIGATOR" ) );
+        when( applicationSettings.getOrgans() ).thenReturn( organSettings );
+        when( applicationSettings.getIsearch() ).thenReturn( iSearchSettings );
+        when( taxonService.findById( any() ) ).then( i -> createTaxon( i.getArgumentAt( 0, Integer.class ) ) );
+    }
+
+    @Test
+    @WithMockUser
+    public void getProfile_thenReturnSuccess() throws Exception {
+        User user = createUser( 1 );
+        when( userService.findCurrentUser() ).thenReturn( user );
+        mvc.perform( get( "/user/profile" ) )
+                .andExpect( status().isOk() )
+                .andExpect( view().name( "user/profile" ) );
+    }
+
+    @Test
+    public void getProfile_withoutUser_thenReturn3xx() throws Exception {
+        mvc.perform( get( "/user/profile" ) )
+                .andExpect( status().is3xxRedirection() )
+                .andExpect( redirectedUrl( "http://localhost/login" ) );
+    }
+
+    @Test
+    @WithMockUser
+    public void getModel_thenReturnSuccess() throws Exception {
+        User user = createUser( 1 );
+        when( userService.findCurrentUser() ).thenReturn( user );
+        mvc.perform( get( "/user/model/{taxonId}", 9606 ) )
+                .andExpect( status().isOk() )
+                .andExpect( view().name( "user/model" ) );
+    }
+
+    @Test
+    @WithMockUser
+    public void getTermsGenesForTaxon_thenReturnSuccess() throws Exception {
+        User user = createUser( 1 );
+        when( userService.findCurrentUser() ).thenReturn( user );
+        when( goService.getTerm( any( String.class ) ) ).then( i -> createTerm( i.getArgumentAt( 0, String.class ) ) );
+        mvc.perform( get( "/user/taxon/{taxonId}/term/{goId}/gene/view", 9606, "GO:0000001" ) )
+                .andExpect( status().isOk() )
+                .andExpect( view().name( "fragments/gene-table::gene-table" ) );
+    }
+
+    @Test
+    @WithMockUser
+    public void getUserStaticEndpoints_thenReturnSuccess() throws Exception {
+        User user = createUser( 1 );
+        when( userService.findCurrentUser() ).thenReturn( user );
+        mvc.perform( get( "/user/home" ) )
+                .andExpect( status().isOk() )
+                .andExpect( view().name( "user/home" ) );
+        mvc.perform( get( "/user/documentation" ) )
+                .andExpect( status().isOk() )
+                .andExpect( view().name( "user/documentation" ) );
+        mvc.perform( get( "/user/faq" ) )
+                .andExpect( status().isOk() )
+                .andExpect( view().name( "user/faq" ) );
+    }
+
+    @Test
+    @WithMockUser
+    public void contactSupport_thenReturnSuccess() throws Exception {
+        User user = createUser( 1 );
+        user.setEmail( "johndoe@example.com" );
+        user.getProfile().setName( "John" );
+        user.getProfile().setLastName( "Doe" );
+        when( userService.findCurrentUser() ).thenReturn( user );
+
+        mvc.perform( get( "/user/support" ) )
+                .andExpect( status().isOk() )
+                .andExpect( view().name( "user/support" ) );
+
+        mvc.perform( post( "/user/support" )
+                .param( "name", "John Doe" )
+                .param( "message", "Is everything okay?" ) )
+                .andExpect( status().isOk() )
+                .andExpect( view().name( "user/support" ) );
+
+        verify( emailService ).sendSupportMessage( eq( "Is everything okay?" ), eq( "John Doe" ), eq( user ), any(), isNull( MultipartFile.class ) );
     }
 
     @Test
@@ -361,8 +473,8 @@ public class UserControllerTest {
 
 
         when( userService.findCurrentUser() ).thenReturn( user );
-        when( userService.recommendTerms( Mockito.any(), eq( taxon ) ) ).thenReturn( Sets.newSet( t1, t2 ) );
-        when( userService.recommendTerms( Mockito.any(), eq( taxon2 ) ) ).thenReturn( Sets.newSet( t3, t4 ) );
+        when( userService.recommendTerms( any(), eq( taxon ) ) ).thenReturn( Sets.newSet( t1, t2 ) );
+        when( userService.recommendTerms( any(), eq( taxon2 ) ) ).thenReturn( Sets.newSet( t3, t4 ) );
 
         mvc.perform( get( "/user/taxon/1/term/recommend" )
                 .contentType( MediaType.APPLICATION_JSON ) )
@@ -532,10 +644,10 @@ public class UserControllerTest {
         User user = createUser( 1 );
         Taxon taxon = createTaxon( 1 );
 
-        Mockito.when( userService.convertTerms( Mockito.any(), eq( taxon ), Mockito.anyCollectionOf( GeneOntologyTerm.class ) ) )
+        when( userService.convertTerms( any(), eq( taxon ), Mockito.anyCollectionOf( GeneOntologyTerm.class ) ) )
                 .then( i -> ( (Collection<GeneOntologyTerm>) i.getArgumentAt( 2, Collection.class ) ).stream()
                         .map( goTerm -> UserTerm.createUserTerm( user, goTerm, taxon ) ).collect( Collectors.toSet() ) );
-        Mockito.when( goService.getTerm( Mockito.any() ) )
+        when( goService.getTerm( any() ) )
                 .then( i -> createTerm( i.getArgumentAt( 0, String.class ) ) );
 
         when( userService.findCurrentUser() ).thenReturn( user );

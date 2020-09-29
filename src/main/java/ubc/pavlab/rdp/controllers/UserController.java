@@ -18,6 +18,7 @@ import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import javax.ws.rs.core.MediaType;
+import java.text.MessageFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -81,7 +82,7 @@ public class UserController {
             modelAndView.addObject( "genes", Collections.EMPTY_SET );
         }
         modelAndView.addObject( "viewOnly", true );
-        modelAndView.setViewName( "fragments/gene-table :: gene-table" );
+        modelAndView.setViewName( "fragments/gene-table::gene-table" );
         return modelAndView;
     }
 
@@ -131,8 +132,7 @@ public class UserController {
         User user = userService.findCurrentUser();
         modelAndView.addObject( "user", user );
 
-        log.info( user.getProfile().getLastName() + ", " + user.getProfile().getName() + " (" + user.getEmail()
-                + ") is attempting to contact support." );
+        log.info( MessageFormat.format( "{0} is attemting to contact support.", user ) );
 
         try {
             emailService.sendSupportMessage( message, name, user, request, attachment );
