@@ -43,6 +43,13 @@ public class UserTerm extends GeneOntologyTerm {
     @JoinColumn(name = "taxon_id")
     private Taxon taxon;
 
+    /**
+     * @deprecated This field is kept for backward-compatibility with previous APIs.
+     */
+    @Deprecated
+    @Transient
+    private Long frequency;
+
     @JsonIgnore
     @Transient
     public long getSize() {
