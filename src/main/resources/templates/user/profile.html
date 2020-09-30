@@ -28,7 +28,8 @@
     </div>
 
     <div class="main-content">
-        <div class="alert alert-success alert-dismissible fade show success-row my-3" role="alert" style="display: none;">
+        <div class="alert alert-success alert-dismissible fade show success-row my-3" role="alert"
+             style="display: none;">
             Profile Saved!
             <button type="button" class="close" id="saved-button">
                 <span aria-hidden="true">&times;</span>
@@ -44,7 +45,7 @@
 
         <div class="row my-3">
             <div class="col">
-                <form class="card basic-info" method="post">
+                <div class="card basic-info">
                     <div class="card-header">
                         <div class="d-flex align-items-center">
                             <h3 class="mb-0">Basic Information</h3>
@@ -52,19 +53,23 @@
                     </div>
                     <table class="table mb-0">
                         <tr class="edit-container">
-                            <td class="align-middle" style="width: 120px;"><span class="text-muted align-middle">First Name</span></td>
+                            <td class="align-middle" style="width: 120px;"><span class="text-muted align-middle">First Name</span>
+                            </td>
                             <td><i class="editable" th:if="${viewOnly == null}"/>
-                                <input class="data-edit" type="text" name="name" th:value="${user.profile.name}" disabled="disabled"/>
+                                <input class="data-edit" type="text" name="name" th:value="${user.profile.name}"
+                                       disabled="disabled"/>
                             </td>
                         </tr>
                         <tr class="edit-container">
                             <td class="align-middle"><span class="text-muted align-middle">Last Name</span></td>
                             <td><i class="editable" th:if="${viewOnly == null}"/>
-                                <input class="data-edit" type="text" name="lastName" th:value="${user.profile.lastName}" disabled="disabled"/>
+                                <input class="data-edit" type="text" name="lastName" th:value="${user.profile.lastName}"
+                                       disabled="disabled"/>
                             </td>
                         </tr>
                         <tr class="edit-container">
-                            <td class="align-middle"><label th:for="${#ids.next('researcherPosition')}" class="text-muted align-middle">Position</label></td>
+                            <td class="align-middle"><label th:for="${#ids.next('researcherPosition')}"
+                                                            class="text-muted align-middle">Position</label></td>
                             <td>
                                 <div th:replace="fragments/profile::researcher-position-selection(selectedResearcherPosition=${user.profile.researcherPosition})">
                                     ...
@@ -74,31 +79,37 @@
                         <tr class="edit-container">
                             <td class="align-middle"><span class="text-muted align-middle">Organization</span></td>
                             <td><i class="editable" th:if="${viewOnly == null}"/>
-                                <input class="data-edit" type="text" name="organization" th:value="${user.profile.organization}" disabled="disabled"/>
+                                <input class="data-edit" type="text" name="organization"
+                                       th:value="${user.profile.organization}" disabled="disabled"/>
                             </td>
                         </tr>
                         <tr class="edit-container">
                             <td class="align-middle"><span class="text-muted align-middle">Department</span></td>
                             <td><i class="editable" th:if="${viewOnly == null}"/>
-                                <input class="data-edit" type="text" name="department" th:value="${user.profile.department}" disabled="disabled"/>
+                                <input class="data-edit" type="text" name="department"
+                                       th:value="${user.profile.department}" disabled="disabled"/>
                             </td>
                         </tr>
-                        <tr th:unless="${@applicationSettings.profile.enabledResearcherCategories.isEmpty()}" class="edit-container">
-                            <td class="align-middle"><label th:for="${#ids.next('researcherCategory')}" class="text-muted align-middle">Researcher Category</label></td>
+                        <tr th:unless="${@applicationSettings.profile.enabledResearcherCategories.isEmpty()}"
+                            class="edit-container">
+                            <td class="align-middle"><label th:for="${#ids.next('researcherCategory')}"
+                                                            class="text-muted align-middle">Researcher Category</label>
+                            </td>
                             <td>
                                 <div th:replace="fragments/profile::researcher-category-selection(selectedResearcherCategory = ${user.profile.researcherCategory})">
-                                ...
+                                    ...
                                 </div>
                             </td>
                         </tr>
                         <tr class="edit-container">
                             <td class="align-middle"><span class="text-muted align-middle">Website</span></td>
                             <td><i class="editable" th:if="${viewOnly == null}"/>
-                                <input class="data-edit" type="text" name="website" th:value="${user.profile.website}" disabled="disabled"/>
+                                <input class="data-edit" type="text" name="website" th:value="${user.profile.website}"
+                                       disabled="disabled"/>
                             </td>
                         </tr>
                     </table>
-                </form>
+                </div>
             </div>
         </div>
 
@@ -110,13 +121,15 @@
                     </div>
                     <table class="table mb-0">
                         <tr>
-                            <td class="align-middle" style="width: 120px;"><span class="text-muted align-middle">Email</span></td>
+                            <td class="align-middle" style="width: 120px;"><span
+                                    class="text-muted align-middle">Email</span></td>
                             <td><span th:text="${user.email}" th:remove="tag"></span></td>
                         </tr>
                         <tr class="edit-container">
                             <td class="align-middle"><span class="text-muted align-middle">Phone</span></td>
                             <td><i class="editable" th:if="${viewOnly == null}"/>
-                                <input class="data-edit" type="text" name="phone" th:value="${user.profile.phone}" disabled="disabled"/>
+                                <input class="data-edit" type="text" name="phone" th:value="${user.profile.phone}"
+                                       disabled="disabled"/>
                             </td>
                         </tr>
                     </table>
@@ -132,7 +145,8 @@
                         <h3 class="mb-0 d-inline-block">About My Research</h3>
                     </div>
                     <div class="p-2" style="height: 120px;">
-                        <textarea class="data-edit" name="description" th:text="${user.profile.description}" disabled="disabled"></textarea>
+                        <textarea class="data-edit" name="description" th:text="${user.profile.description}"
+                                  disabled="disabled"></textarea>
                     </div>
                 </div>
             </div>
@@ -148,7 +162,7 @@
                     <div class="card-body">
                         <p>These settings let other users know which organ systems your research focuses on.</p>
                         <div th:replace="fragments/organ::organs-selection(checkedOrganUberonIds = ${user.userOrgans.keySet()})">
-                        ...
+                            ...
                         </div>
                     </div>
                 </div>
@@ -170,39 +184,44 @@
                              th:if="${@applicationSettings.getPrivacy().isCustomizableLevel()}">
                             <h4>Privacy Level</h4>
 
-                            <p>These settings determine how other users in the system can see your data.</p>
+                            <p>These settings determine how other users from <strong>this registry</strong> can see your data.</p>
 
                             <h5>User Profile Privacy Level</h5>
-                            <div class="form-group">
-                                <div class="form-check-inline"
-                                     th:each="privacyLevel : ${T(ubc.pavlab.rdp.model.enums.PrivacyLevelType).values()}"
-                                     th:if="${@privacyService.isPrivacyLevelEnabled(privacyLevel)}">
-                                    <input class="form-check-input" type="radio" name="privacyLevel"
-                                           th:id="${'privacy-level-' + privacyLevel.label}"
-                                           th:checked="${user.profile.privacyLevel == privacyLevel}"
-                                           th:value="${privacyLevel.ordinal()}"/>
-                                    <label class="form-check-label" th:for="${'privacy-level-' + privacyLevel.label}">
-                                        <span th:text="${privacyLevel.label}"></span>
-                                        <i class="tip oi oi-question-mark"
-                                           data-ot-background="cornflowerblue"
-                                           data-ot-border-color="white"
-                                           data-ot-shadow-color="lightgray"
-                                           th:attr="data-ot=${privacyLevel.description}"/>
-                                    </label>
+                            <form id="privacy-level">
+                                <div class="form-group">
+                                    <div class="form-check-inline"
+                                         th:each="privacyLevel : ${T(ubc.pavlab.rdp.model.enums.PrivacyLevelType).values()}"
+                                         th:if="${@privacyService.isPrivacyLevelEnabled(privacyLevel)}">
+                                        <input class="form-check-input" type="radio" name="privacyLevel"
+                                               th:id="${'privacy-level-' + privacyLevel.label}"
+                                               th:checked="${user.profile.privacyLevel == privacyLevel}"
+                                               th:value="${privacyLevel.ordinal()}"
+                                               th:attr="data-toggle=${@applicationSettings.privacy.isCustomizableGeneLevel() and privacyLevel.ordinal() lt user.profile.privacyLevel.ordinal()} ? 'modal',
+                                                        data-target=${@applicationSettings.privacy.isCustomizableGeneLevel() and privacyLevel.ordinal() lt user.profile.privacyLevel.ordinal()} ? '#' + ${#ids.next('confirm-gene-privacy-level-capping')}"/>
+                                        <label class="form-check-label"
+                                               th:for="${'privacy-level-' + privacyLevel.label}">
+                                            <span th:text="${privacyLevel.label}"></span>
+                                            <i class="tip oi oi-question-mark"
+                                               data-ot-background="cornflowerblue"
+                                               data-ot-border-color="white"
+                                               data-ot-shadow-color="lightgray"
+                                               th:attr="data-ot=${privacyLevel.description}"/>
+                                        </label>
+                                    </div>
                                 </div>
-                            </div>
+                            </form>
 
                             <p th:if="${@applicationSettings.getPrivacy().isCustomizableGeneLevel()}">
-                                Your genes privacy levels are always capped by your profile privacy level.
+                                Your genes privacy levels are capped by this setting.
                             </p>
 
-                            Read more about these settings in the <a th:href="@{/user/faq#privacy-settings}" target="_blank">FAQ</a>.
+                            Read more about privacy settings in the <a th:href="@{/user/faq#privacy-settings}" target="_blank">FAQ</a>.
                         </div>
 
                         <div id="privacy-sharing" class="list-group-item"
                              th:if="${@applicationSettings.getPrivacy().isCustomizableSharing()}">
                             <h4>Partner Registry</h4>
-                            <p>These settings determine whether users from other instances can see your data.</p>
+                            <p>These settings determine whether users from <strong>other registries</strong> can see your data.</p>
                             <div class="form-group">
                                 <div class="form-check form-check-inline">
                                     <input id="privacy-sharing-checkbox" type="checkbox" class="form-check-input"
@@ -218,7 +237,8 @@
                                     </label>
                                 </div>
                             </div>
-                            Read more about these settings in the <a th:href="@{/user/faq#isearch}" target="_blank">FAQ</a>.
+                            Read more about international search settings in the <a th:href="@{/user/faq#isearch}"
+                                                                     target="_blank">FAQ</a>.
                         </div>
                         <div id="privacy-genelist" class="list-group-item"
                              th:if="${@applicationSettings.getPrivacy().isAllowHideGenelist()}">
@@ -286,8 +306,22 @@
         </div>
     </div>
 </div>
+
 <div th:replace="layouts/common::footer">...</div>
 <div th:replace="layouts/common::scripts"></div>
 <script th:src="@{/js/profile.js}"></script>
+<th:block th:if="${@applicationSettings.privacy.isCustomizableGeneLevel()}">
+    <div th:replace="fragments/modal::confirmation(target=${#ids.seq('confirm-gene-privacy-level-capping')}, title='Your gene privacy levels might get adjusted!', body='Making your profile privacy setting stricter will also restrict access to the genes associated to your model organisms.')"></div>
+    <script th:inline="javascript">
+        var modalId = [[${#ids.prev('confirm-gene-privacy-level-capping')}]];
+        var modal = $('#' + modalId);
+        modal.find('button.confirm').on('click', function () {
+            modal.modal('hide');
+        });
+        modal.find('button.cancel').on('click', function () {
+            document.getElementById('privacy-level').reset();
+        });
+    </script>
+</th:block>
 </body>
 </html>

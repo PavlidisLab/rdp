@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="confirmation">
+    <div class="modal fade" th:id="${target}" tabindex="-1" role="alertdialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" th:text="${title}"></h4>
+                </div>
+                <div class="modal-body">
+                    <p th:text="${body}"></p>
+                    <p>Are you sure you want to do this?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary confirm mr-auto">Yes, I agree</button>
+                    <button type="button" class="btn btn-secondary cancel" data-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
