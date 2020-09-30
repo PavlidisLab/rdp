@@ -21,12 +21,9 @@ package ubc.pavlab.rdp.services;
 
 import ubc.pavlab.rdp.model.GeneInfo;
 import ubc.pavlab.rdp.model.Taxon;
-import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
-import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.util.SearchResult;
 
 import java.util.Collection;
-import java.util.Map;
 
 /**
  * Created by mjacobson on 17/01/18.
@@ -46,10 +43,6 @@ public interface GeneInfoService {
     Collection<GeneInfo> findBySymbolInAndTaxon( Collection<String> symbols, Taxon taxon );
 
     Collection<SearchResult<GeneInfo>> autocomplete( String query, Taxon taxon, int maxResults );
-
-    Map<GeneInfo, TierType> deserializeGenesTiers( Map<Integer, TierType> genesTierMap );
-
-    Map<GeneInfo, PrivacyLevelType> deserializeGenesPrivacyLevels( Map<Integer, PrivacyLevelType> genesPrivacyLevelMap );
 
     /**
      * Update gene informations in the database.

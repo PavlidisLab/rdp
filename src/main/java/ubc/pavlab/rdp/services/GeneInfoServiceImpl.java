@@ -23,6 +23,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 
+import static java.util.function.Function.identity;
+
 /**
  * Created by mjacobson on 17/01/18.
  */
@@ -97,24 +99,6 @@ public class GeneInfoServiceImpl implements GeneInfoService {
                 GeneMatchType.SIMILAR_ALIAS, maxResults );
 
         return results;
-    }
-
-    @Override
-    public Map<GeneInfo, TierType> deserializeGenesTiers( Map<Integer, TierType> genesTierMap ) {
-        return genesTierMap.keySet().stream()
-                .filter( geneId -> genesTierMap.get( geneId ) != null ) // strip null values
-                .map( geneId -> geneInfoRepository.findByGeneId( geneId ) )
-                .filter( Objects::nonNull )
-                .collect( Collectors.toMap( g -> g, g -> genesTierMap.get( g.getGeneId() ) ) );
-    }
-
-    @Override
-    public Map<GeneInfo, PrivacyLevelType> deserializeGenesPrivacyLevels( Map<Integer, PrivacyLevelType> genesPrivacyLevelMap ) {
-        return genesPrivacyLevelMap.keySet().stream()
-                .filter( geneId -> genesPrivacyLevelMap.get( geneId ) != null ) // strip null values
-                .map( geneId -> geneInfoRepository.findByGeneId( geneId ) )
-                .filter( Objects::nonNull )
-                .collect( Collectors.toMap( g -> g, g -> genesPrivacyLevelMap.get( g.getGeneId() ) ) );
     }
 
     @Override

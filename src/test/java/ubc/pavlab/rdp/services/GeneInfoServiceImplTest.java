@@ -286,19 +286,6 @@ public class GeneInfoServiceImplTest {
     }
 
     @Test
-    public void deserializeGenes_whenMultipleValidOrInvalidIds_thenReturnValidGenes() {
-        Map<Integer, TierType> geneTierMap = new HashMap<>();
-        geneTierMap.put( 1, TierType.TIER1 );
-        geneTierMap.put( 2, TierType.TIER2 );
-        geneTierMap.put( 3, TierType.TIER3 );
-        geneTierMap.put( 4, TierType.TIER3 );
-        geneTierMap.put( 5, TierType.TIER3 );
-        Map<GeneInfo, TierType> found = geneService.deserializeGenesTiers( geneTierMap );
-        assertThat( found.keySet() ).containsExactly( genes.get( 1 ), genes.get( 2 ), genes.get( 3 ) );
-        assertThat( found.values() ).containsExactly( TierType.TIER1, TierType.TIER2, TierType.TIER3 );
-    }
-
-    @Test
     public void updateGenes_thenSucceed() throws MalformedURLException, ParseException {
         Taxon humanTaxon = entityManager.persist( createTaxon( 9606 ) );
         humanTaxon.setGeneUrl( new URL( "ftp://ncbi/Homo_sapiens.gene_info.gz" ) );

@@ -22,6 +22,8 @@ import java.text.MessageFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static java.util.function.Function.identity;
+
 @Controller
 @CommonsLog
 @Secured({ "ROLE_USER", "ROLE_ADMIN" })
@@ -204,8 +206,18 @@ public class UserController {
 
         user.getTaxonDescriptions().put( taxon, model.getDescription() );
 
-        Map<GeneInfo, TierType> genes = geneService.deserializeGenesTiers( model.getGeneTierMap() );
-        Map<GeneInfo, PrivacyLevelType> privacyLevels = geneService.deserializeGenesPrivacyLevels( model.getGenePrivacyLevelMap() );
+        Map<GeneInfo, TierType> genes = model.getGeneTierMap().keySet().stream()
+                .filter( geneId -> model.getGeneTierMap().get( geneId ) != null ) // strip null values
+                .map( geneId -> geneService.load( geneId ) )
+                .filter( Objects::nonNull )
+                .collect( Collectors.toMap( identity(), g -> model.getGeneTierMap().get( g.getGeneId() ) ) );
+
+        Map<GeneInfo, PrivacyLevelType> privacyLevels = model.getGenePrivacyLevelMap().keySet().stream()
+                .filter( geneId -> model.getGenePrivacyLevelMap().get( geneId ) != null ) // strip null values
+                .map( geneId -> geneService.load( geneId ) )
+                .filter( Objects::nonNull )
+                .collect( Collectors.toMap( identity(), g -> model.getGenePrivacyLevelMap().get( g.getGeneId() ) ) );
+
         Set<GeneOntologyTerm> terms = model.getGoIds().stream()
                 .map( s -> goService.getTerm( s ) )
                 .collect( Collectors.toSet() );
