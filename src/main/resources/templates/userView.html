@@ -141,7 +141,7 @@
                         <h4>Organ Systems</h4>
                     </div>
                     <div class="card-body">
-                        <div th:replace="fragments/organ::organs-selection(checkedOrganUberonIds = ${viewUser.userOrgans.keySet()}, readonly = true)">
+                        <div th:replace="fragments/organ::organs(checkedOrganUberonIds = ${viewUser.userOrgans.keySet()})">
                             ...
                         </div>
                     </div>

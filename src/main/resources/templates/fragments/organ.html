@@ -28,5 +28,20 @@
         </div>
     </div>
 </div>
+<div th:fragment="organs">
+    <div class="row">
+        <div th:each="organInfo, iter : ${@organInfoService.findByActiveTrueOrderByOrdering()}"
+             th:if="${#lists.contains(checkedOrganUberonIds, organInfo.uberonId)}"
+             class="col-3 col-md-2 col-lg-1"
+             th:attr="data-ot=${organInfo.name}"
+             data-ot-background="cornflowerblue"
+             data-ot-border-color="white"
+             data-ot-shadow-color="lightgray">
+            <img th:src="@{/images/organs/{uberonId}.svg(uberonId=${organInfo.uberonId})}"
+                 th:alt="${organInfo.name}"
+                 class="img-fluid"/>
+        </div>
+    </div>
+</div>
 </body>
 </html>
