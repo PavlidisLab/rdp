@@ -13,7 +13,7 @@
         <th class="text-center" scope="col"
             th:text="${viewOnly == null} ? 'Primary' : 'Tier'"
             th:if="${@tierService.isTierEnabled(T(ubc.pavlab.rdp.model.enums.TierType).TIER1)} and ${@tierService.isTierEnabled(T(ubc.pavlab.rdp.model.enums.TierType).TIER2)}"/>
-        <th class="text-center" scope="col"  th:style="${@applicationSettings.privacy.isCustomizableGeneLevel()} ? '' : 'display: none;'">Privacy Level</th>
+        <th th:if="${@applicationSettings.privacy.isCustomizableGeneLevel()}" class="text-center" scope="col">Privacy Level</th>
     </tr>
     </thead>
     <tbody>
@@ -34,16 +34,15 @@
                            th:checked="${gene.tier == T(ubc.pavlab.rdp.model.enums.TierType).TIER1}"/>
                 </td>
             </th:block>
-            <td class="text-center" th:style="${@applicationSettings.privacy.isCustomizableGeneLevel()} ? '' : 'display: none'">
+            <td th:if="${@applicationSettings.privacy.isCustomizableGeneLevel()}" class="text-center">
                 <span th:if="${viewOnly != null}"
-                      th:text="${gene.getEffectivePrivacyLevel().label}" th:remove="tag">...</span>
+                      th:text="${gene.effectivePrivacyLevel.label}" th:remove="tag">...</span>
                 <select th:if="${viewOnly == null}"
                         name="privacyLevel" class="form-control">
-                    <option th:value="null" th:selected="${gene.privacyLevel} == null">Please select…</option>
                     <option th:each="privacyLevel : ${T(ubc.pavlab.rdp.model.enums.PrivacyLevelType).values()}"
                             th:if="${@privacyService.isGenePrivacyLevelEnabled(privacyLevel) and (privacyLevel.ordinal() le defaultPrivacyLevel.ordinal())}"
                             th:value="${privacyLevel.ordinal()}"
-                            th:selected="${gene.privacyLevel == privacyLevel}"
+                            th:selected="${gene.effectivePrivacyLevel == privacyLevel}"
                             th:text="${privacyLevel.label}"></option>
                 </select>
             </td>

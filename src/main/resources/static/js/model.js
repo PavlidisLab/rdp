@@ -15,8 +15,10 @@
             if (!isNaN(geneId)) {
                 geneTierMap[geneId] = $(this.node()).find('input[type=checkbox]').prop('checked') ? "TIER1" : "TIER2";
             }
-            var selectedPrivacyLevelOption = $(this.node()).find('select option:selected')[0];
-            genePrivacyLevelMap[geneId] = selectedPrivacyLevelOption.value ? parseInt(selectedPrivacyLevelOption.value) : null;
+            if (customizableGeneLevel) {
+                var selectedPrivacyLevelOption = $(this.node()).find('select option:selected')[0];
+                genePrivacyLevelMap[geneId] = selectedPrivacyLevelOption.value ? parseInt(selectedPrivacyLevelOption.value) : null;
+            }
         });
         model.geneTierMap = geneTierMap;
         model.genePrivacyLevelMap = genePrivacyLevelMap;
@@ -56,22 +58,21 @@
                     row.push(gene.geneId);
                     row.push('<span class="align-middle">' + gene.name + '</span>');
                     row.push('<input name="primary" class="align-middle" type="checkbox"/>');
-                    var privacyOptions = enabledGenePrivacyLevels.map(function (k) {
-                        var privacyLevel = privacyLevels[k];
-                        if (privacyLevel.ordinal <= userPrivacyLevel.ordinal) {
-                            return '<option' +
-                                ' value="' + privacyLevel.ordinal + '"' +
-                                (privacyLevel.ordinal === userPrivacyLevel.ordinal ? ' checked="checked"' : '') + '>' +
-                                privacyLevel.label +
-                                '</option>';
-                        } else {
-                            return '';
-                        }
-                    }).join('');
-                    row.push('<select class="form-control">' +
-                        '<option>Please select…</option>' +
-                        privacyOptions +
-                        '</select>');
+                    if (customizableGeneLevel) {
+                        var privacyOptions = enabledGenePrivacyLevels.map(function (k) {
+                            var privacyLevel = privacyLevels[k];
+                            if (privacyLevel.ordinal <= userPrivacyLevel.ordinal) {
+                                return '<option' +
+                                    ' value="' + privacyLevel.ordinal + '"' +
+                                    (privacyLevel.ordinal === userPrivacyLevel.ordinal ? ' selected' : '') + '>' +
+                                    privacyLevel.label +
+                                    '</option>';
+                            } else {
+                                return '';
+                            }
+                        }).join('');
+                        row.push('<select class="form-control">' + privacyOptions + '</select>');
+                    }
                 }
                 rows.push(row);
             }
@@ -132,6 +133,16 @@
         });
     };
 
+    var columnDefs = [
+        {"name": "Symbol", "targets": 0},
+        {"name": "Id", "targets": 1, "visible": false},
+        {"name": "Name", "targets": 2},
+        {"name": "Primary", "targets": 3, "className": "text-center", "orderDataType": "dom-checkbox"}];
+
+    if (customizableGeneLevel) {
+        columnDefs.push({"name": "PrivacyLevel", "targets": 4, "className": "text-center", "orderDataType": "dom-select"});
+    }
+
     $('#gene-table').DataTable({
         "scrollY": "200px",
         "scrollCollapse": true,
@@ -139,13 +150,7 @@
         "searching": false,
         "info": false,
         "order": [[0, "desc"]],
-        "columnDefs": [
-            {"name": "Symbol", "targets": 0},
-            {"name": "Id", "targets": 1, "visible": false},
-            {"name": "Name", "targets": 2},
-            {"name": "Primary", "targets": 3, "className": "text-center", "orderDataType": "dom-checkbox"},
-            {"name": "PrivacyLevel", "targets": 4, "className": "text-center", "orderDataType": "dom-select"}
-        ]
+        "columnDefs": columnDefs
     });
 
     $('#term-table').DataTable({
