@@ -3,6 +3,7 @@ package ubc.pavlab.rdp.controllers;
 import lombok.Data;
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Controller;
@@ -17,7 +18,6 @@ import ubc.pavlab.rdp.services.*;
 import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
-import javax.ws.rs.core.MediaType;
 import java.text.MessageFormat;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -157,7 +157,7 @@ public class UserController {
     }
 
     @ResponseBody
-    @PostMapping(value = "/user/profile", produces = MediaType.TEXT_PLAIN)
+    @PostMapping(value = "/user/profile", produces = MediaType.TEXT_PLAIN_VALUE)
     public String saveProfile( @RequestBody ProfileWithOrganUberonIds profileWithOrganUberonIds ) {
         User user = userService.findCurrentUser();
         userService.updateUserProfileAndPublicationsAndOrgans( user, profileWithOrganUberonIds.profile, profileWithOrganUberonIds.profile.getPublications(), Optional.ofNullable( profileWithOrganUberonIds.organUberonIds ) );
@@ -165,25 +165,25 @@ public class UserController {
     }
 
     @ResponseBody
-    @GetMapping(value = "/user", produces = MediaType.APPLICATION_JSON)
+    @GetMapping(value = "/user", produces = MediaType.APPLICATION_JSON_VALUE)
     public User getUser() {
         return userService.findCurrentUser();
     }
 
     @ResponseBody
-    @GetMapping(value = "/user/taxon", produces = MediaType.APPLICATION_JSON)
+    @GetMapping(value = "/user/taxon", produces = MediaType.APPLICATION_JSON_VALUE)
     public Set<Taxon> getTaxons() {
         return userService.findCurrentUser().getUserGenes().values().stream().map( UserGene::getTaxon ).collect( Collectors.toSet() );
     }
 
     @ResponseBody
-    @GetMapping(value = "/user/gene", produces = MediaType.APPLICATION_JSON)
+    @GetMapping(value = "/user/gene", produces = MediaType.APPLICATION_JSON_VALUE)
     public Collection<UserGene> getGenes() {
         return userService.findCurrentUser().getUserGenes().values();
     }
 
     @ResponseBody
-    @GetMapping(value = "/user/term", produces = MediaType.APPLICATION_JSON)
+    @GetMapping(value = "/user/term", produces = MediaType.APPLICATION_JSON_VALUE)
     public Collection<UserTerm> getTerms() {
         return userService.findCurrentUser().getUserTerms();
     }
@@ -197,7 +197,7 @@ public class UserController {
     }
 
     @ResponseBody
-    @PostMapping(value = "/user/model/{taxonId}", produces = MediaType.TEXT_PLAIN)
+    @PostMapping(value = "/user/model/{taxonId}", produces = MediaType.TEXT_PLAIN_VALUE)
     public String saveModelForTaxon( @PathVariable Integer taxonId, @RequestBody Model model ) {
         User user = userService.findCurrentUser();
         Taxon taxon = taxonService.findById( taxonId );
@@ -216,7 +216,7 @@ public class UserController {
     }
 
     @ResponseBody
-    @GetMapping(value = "/user/taxon/{taxonId}/gene", produces = MediaType.APPLICATION_JSON)
+    @GetMapping(value = "/user/taxon/{taxonId}/gene", produces = MediaType.APPLICATION_JSON_VALUE)
     public Set<UserGene> getGenesForTaxon( @PathVariable Integer taxonId ) {
         Taxon taxon = taxonService.findById( taxonId );
         return userService.findCurrentUser().getUserGenes().values().stream()
@@ -224,14 +224,14 @@ public class UserController {
     }
 
     @ResponseBody
-    @GetMapping(value = "/user/taxon/{taxonId}/term", produces = MediaType.APPLICATION_JSON)
+    @GetMapping(value = "/user/taxon/{taxonId}/term", produces = MediaType.APPLICATION_JSON_VALUE)
     public Set<UserTerm> getTermsForTaxon( @PathVariable Integer taxonId ) {
         Taxon taxon = taxonService.findById( taxonId );
         return userService.findCurrentUser().getTermsByTaxon( taxon );
     }
 
     @ResponseBody
-    @PostMapping(value = "/user/taxon/{taxonId}/term/search", produces = MediaType.APPLICATION_JSON)
+    @PostMapping(value = "/user/taxon/{taxonId}/term/search", produces = MediaType.APPLICATION_JSON_VALUE)
     public Map<String, UserTerm> getTermsForTaxon( @PathVariable Integer taxonId, @RequestBody List<String> goIds ) {
         User user = userService.findCurrentUser();
         Taxon taxon = taxonService.findById( taxonId );
@@ -240,7 +240,7 @@ public class UserController {
     }
 
     @ResponseBody
-    @GetMapping(value = "/user/taxon/{taxonId}/term/recommend", produces = MediaType.APPLICATION_JSON)
+    @GetMapping(value = "/user/taxon/{taxonId}/term/recommend", produces = MediaType.APPLICATION_JSON_VALUE)
     public Object getRecommendedTermsForTaxon( @PathVariable Integer taxonId ) {
         User user = userService.findCurrentUser();
         Taxon taxon = taxonService.findById( taxonId );

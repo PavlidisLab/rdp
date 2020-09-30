@@ -4,6 +4,7 @@ import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -18,7 +19,6 @@ import ubc.pavlab.rdp.services.*;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.settings.SiteSettings;
 
-import javax.ws.rs.core.MediaType;
 import java.text.MessageFormat;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -62,7 +62,7 @@ public class ApiController {
      *
      * @return 404.
      */
-    @GetMapping(value = "/api/*", produces = MediaType.APPLICATION_JSON)
+    @GetMapping(value = "/api/*", produces = MediaType.APPLICATION_JSON_VALUE)
     public Object searchApiInfo() {
         return ResponseEntity.notFound().build();
     }
@@ -72,7 +72,7 @@ public class ApiController {
      *
      * @return 404.
      */
-    @GetMapping(value = "/api/users/search", produces = MediaType.APPLICATION_JSON)
+    @GetMapping(value = "/api/users/search", produces = MediaType.APPLICATION_JSON_VALUE)
     public Object searchUsers() {
         return ResponseEntity.notFound().build();
     }
@@ -82,12 +82,12 @@ public class ApiController {
      *
      * @return 404.
      */
-    @GetMapping(value = "/api/genes/search", produces = MediaType.APPLICATION_JSON)
+    @GetMapping(value = "/api/genes/search", produces = MediaType.APPLICATION_JSON_VALUE)
     public Object searchGenes() {
         return ResponseEntity.notFound().build();
     }
 
-    @GetMapping(value = "/api/users/search", params = { "nameLike" }, produces = MediaType.APPLICATION_JSON)
+    @GetMapping(value = "/api/users/search", params = { "nameLike" }, produces = MediaType.APPLICATION_JSON_VALUE)
     public Object searchUsersByName( @RequestParam String nameLike,
                                      @RequestParam Boolean prefix,
                                      @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
@@ -105,7 +105,7 @@ public class ApiController {
         }
     }
 
-    @GetMapping(value = "/api/users/search", params = { "descriptionLike" }, produces = MediaType.APPLICATION_JSON)
+    @GetMapping(value = "/api/users/search", params = { "descriptionLike" }, produces = MediaType.APPLICATION_JSON_VALUE)
     public Object searchUsersByDescription( @RequestParam String descriptionLike,
                                             @RequestParam(required = false) String auth,
                                             @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
@@ -121,7 +121,7 @@ public class ApiController {
     /**
      * Search for genes by symbol, taxon, tier, orthologs and organ systems.
      */
-    @GetMapping(value = "/api/genes/search", params = { "symbol", "taxonId" }, produces = MediaType.APPLICATION_JSON)
+    @GetMapping(value = "/api/genes/search", params = { "symbol", "taxonId" }, produces = MediaType.APPLICATION_JSON_VALUE)
     public Object searchUsersByGeneSymbol( @RequestParam String symbol,
                                            @RequestParam Integer taxonId,
                                            @RequestParam(required = false) Set<TierType> tiers,
@@ -177,7 +177,7 @@ public class ApiController {
      * they expect the search to be realized on.
      */
     @Deprecated
-    @GetMapping(value = "/api/genes/search", params = { "symbol", "taxonId", "tier" }, produces = MediaType.APPLICATION_JSON)
+    @GetMapping(value = "/api/genes/search", params = { "symbol", "taxonId", "tier" }, produces = MediaType.APPLICATION_JSON_VALUE)
     public Object searchUsersByGeneSymbol( @RequestParam String symbol,
                                            @RequestParam Integer taxonId,
                                            @RequestParam String tier,
@@ -199,7 +199,7 @@ public class ApiController {
         return searchUsersByGeneSymbol( symbol, taxonId, tiers, auth, orthologTaxonId, researcherCategories, organUberonIds, locale );
     }
 
-    @GetMapping(value = "/api/users/{userId}", produces = MediaType.APPLICATION_JSON)
+    @GetMapping(value = "/api/users/{userId}", produces = MediaType.APPLICATION_JSON_VALUE)
     public Object getUserById( @PathVariable Integer userId,
                                @RequestParam(name = "auth", required = false) String auth, Locale locale ) {
         if ( !applicationSettings.getIsearch().isEnabled() ) {
