@@ -9,6 +9,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -27,10 +28,10 @@ import ubc.pavlab.rdp.settings.SiteSettings;
 import java.util.EnumSet;
 import java.util.Optional;
 
-import static org.mockito.BDDMockito.when;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static ubc.pavlab.rdp.util.TestUtils.*;
 
 @WebMvcTest(ApiController.class)
@@ -90,7 +91,8 @@ public class ApiControllerTest {
                 .param( "symbol", "CDH1" )
                 .param( "taxonId", "9606" )
                 .param( "tier", "TIER1" ) )
-                .andExpect( status().is2xxSuccessful() );
+                .andExpect( status().is2xxSuccessful() )
+                .andExpect( content().contentTypeCompatibleWith( MediaType.APPLICATION_JSON ) );
 
         verify( userGeneService ).handleGeneSearch( cdh1GeneInfo, EnumSet.of( TierType.TIER1 ), Optional.empty(), Optional.empty(), Optional.empty() );
     }
@@ -112,7 +114,32 @@ public class ApiControllerTest {
                 .param( "taxonId", "9606" )
                 .param( "tiers", "TIER1" )
                 .param( "tiers", "TIER2" ) )
-                .andExpect( status().is2xxSuccessful() );
+                .andExpect( status().is2xxSuccessful() )
+                .andExpect( content().contentTypeCompatibleWith( MediaType.APPLICATION_JSON ) );
+
+        verify( userGeneService ).handleGeneSearch( cdh1GeneInfo, EnumSet.of( TierType.TIER1, TierType.TIER2 ), Optional.empty(), Optional.empty(), Optional.empty() );
+    }
+
+    @Test
+    public void searchGenes_withMultipleTiersInludingTier3_thenReturn200() throws Exception {
+        Taxon humanTaxon = createTaxon( 9606 );
+        User user = createUser( 1 );
+        GeneInfo cdh1GeneInfo = createGene( 1, humanTaxon );
+        UserGene cdh1UserGene = createUserGene( 1, cdh1GeneInfo, user, TierType.TIER1, PrivacyLevelType.PRIVATE );
+
+        when( taxonService.findById( 9606 ) ).thenReturn( humanTaxon );
+        when( geneService.findBySymbolAndTaxon( "CDH1", humanTaxon ) ).thenReturn( cdh1GeneInfo );
+        when( userGeneService.handleGeneSearch( cdh1GeneInfo, EnumSet.of( TierType.TIER1, TierType.TIER2 ), Optional.of( humanTaxon ), Optional.empty(), Optional.empty() ) )
+                .thenReturn( Sets.newSet( cdh1UserGene ) );
+
+        mvc.perform( get( "/api/genes/search" )
+                .param( "symbol", "CDH1" )
+                .param( "taxonId", "9606" )
+                .param( "tiers", "TIER1" )
+                .param( "tiers", "TIER2" )
+                .param( "tiers", "TIER3" ) )
+                .andExpect( status().is2xxSuccessful() )
+                .andExpect( content().contentTypeCompatibleWith( MediaType.APPLICATION_JSON ) );
 
         verify( userGeneService ).handleGeneSearch( cdh1GeneInfo, EnumSet.of( TierType.TIER1, TierType.TIER2 ), Optional.empty(), Optional.empty(), Optional.empty() );
     }
@@ -132,7 +159,8 @@ public class ApiControllerTest {
         mvc.perform( get( "/api/genes/search" )
                 .param( "symbol", "CDH1" )
                 .param( "taxonId", "9606" ) )
-                .andExpect( status().is2xxSuccessful() );
+                .andExpect( status().is2xxSuccessful() )
+                .andExpect( content().contentTypeCompatibleWith( MediaType.APPLICATION_JSON ) );
 
         verify( userGeneService ).handleGeneSearch( cdh1GeneInfo, TierType.MANUAL, Optional.empty(), Optional.empty(), Optional.empty() );
     }

@@ -42,7 +42,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -232,7 +231,7 @@ public class UserControllerTest {
         mvc.perform( get( "/user" )
                 .contentType( MediaType.APPLICATION_JSON ) )
                 .andExpect( status().isOk() )
-                .andExpect( jsonPath( "$.email", is( user.getEmail() ) ) )
+                .andExpect( jsonPath( "$.email" ).value( user.getEmail() ) )
                 .andExpect( jsonPath( "$.password" ).doesNotExist() );
     }
 
@@ -263,8 +262,8 @@ public class UserControllerTest {
         mvc.perform( get( "/user/taxon" )
                 .contentType( MediaType.APPLICATION_JSON ) )
                 .andExpect( status().isOk() )
-                .andExpect( jsonPath( "$[0].id", is( taxon.getId() ) ) )
-                .andExpect( jsonPath( "$[0].commonName", is( taxon.getCommonName() ) ) );
+                .andExpect( jsonPath( "$[0].id" ).value( taxon.getId() ) )
+                .andExpect( jsonPath( "$[0].commonName" ).value( taxon.getCommonName() ) );
     }
 
     @Test
@@ -297,10 +296,10 @@ public class UserControllerTest {
         mvc.perform( get( "/user/gene" )
                 .contentType( MediaType.APPLICATION_JSON ) )
                 .andExpect( status().isOk() )
-                .andExpect( jsonPath( "$[0].geneId", is( gene.getGeneId() ) ) )
-                .andExpect( jsonPath( "$[0].symbol", is( gene.getSymbol() ) ) )
-                .andExpect( jsonPath( "$[0].tier", is( TierType.TIER1.toString() ) ) )
-                .andExpect( jsonPath( "$[0].taxon.id", is( taxon.getId() ) ) );
+                .andExpect( jsonPath( "$[0].geneId" ).value( gene.getGeneId() ) )
+                .andExpect( jsonPath( "$[0].symbol" ).value( gene.getSymbol() ) )
+                .andExpect( jsonPath( "$[0].tier" ).value( TierType.TIER1.toString() ) )
+                .andExpect( jsonPath( "$[0].taxon.id" ).value( taxon.getId() ) );
     }
 
     @Test
@@ -335,9 +334,9 @@ public class UserControllerTest {
         mvc.perform( get( "/user/term" )
                 .contentType( MediaType.APPLICATION_JSON ) )
                 .andExpect( status().isOk() )
-                .andExpect( jsonPath( "$[0].goId", is( term.getGoId() ) ) )
-                .andExpect( jsonPath( "$[0].name", is( term.getName() ) ) )
-                .andExpect( jsonPath( "$[0].taxon.id", is( taxon.getId() ) ) )
+                .andExpect( jsonPath( "$[0].goId" ).value( term.getGoId() ) )
+                .andExpect( jsonPath( "$[0].name" ).value( term.getName() ) )
+                .andExpect( jsonPath( "$[0].taxon.id" ).value( taxon.getId() ) )
                 .andExpect( jsonPath( "$[0].sizesByTaxon" ).doesNotExist() );
     }
 
@@ -376,18 +375,18 @@ public class UserControllerTest {
         mvc.perform( get( "/user/taxon/1/gene" )
                 .contentType( MediaType.APPLICATION_JSON ) )
                 .andExpect( status().isOk() )
-                .andExpect( jsonPath( "$[0].geneId", is( gene.getGeneId() ) ) )
-                .andExpect( jsonPath( "$[0].symbol", is( gene.getSymbol() ) ) )
-                .andExpect( jsonPath( "$[0].tier", is( TierType.TIER1.toString() ) ) )
-                .andExpect( jsonPath( "$[0].taxon.id", is( taxon.getId() ) ) );
+                .andExpect( jsonPath( "$[0].geneId" ).value( gene.getGeneId() ) )
+                .andExpect( jsonPath( "$[0].symbol" ).value( gene.getSymbol() ) )
+                .andExpect( jsonPath( "$[0].tier" ).value( TierType.TIER1.toString() ) )
+                .andExpect( jsonPath( "$[0].taxon.id" ).value( taxon.getId() ) );
 
         mvc.perform( get( "/user/taxon/2/gene" )
                 .contentType( MediaType.APPLICATION_JSON ) )
                 .andExpect( status().isOk() )
-                .andExpect( jsonPath( "$[0].geneId", is( gene2.getGeneId() ) ) )
-                .andExpect( jsonPath( "$[0].symbol", is( gene2.getSymbol() ) ) )
-                .andExpect( jsonPath( "$[0].tier", is( TierType.TIER3.toString() ) ) )
-                .andExpect( jsonPath( "$[0].taxon.id", is( taxon2.getId() ) ) );
+                .andExpect( jsonPath( "$[0].geneId" ).value( gene2.getGeneId() ) )
+                .andExpect( jsonPath( "$[0].symbol" ).value( gene2.getSymbol() ) )
+                .andExpect( jsonPath( "$[0].tier" ).value( TierType.TIER3.toString() ) )
+                .andExpect( jsonPath( "$[0].taxon.id" ).value( taxon2.getId() ) );
     }
 
     @Test
@@ -427,20 +426,20 @@ public class UserControllerTest {
         mvc.perform( get( "/user/taxon/1/term" )
                 .contentType( MediaType.APPLICATION_JSON ) )
                 .andExpect( status().isOk() )
-                .andExpect( jsonPath( "$[0].goId", is( term.getGoId() ) ) )
-                .andExpect( jsonPath( "$[0].name", is( term.getName() ) ) )
-                .andExpect( jsonPath( "$[0].definition", is( term.getDefinition() ) ) )
-                .andExpect( jsonPath( "$[0].aspect", is( term.getAspect().getLabel() ) ) )
-                .andExpect( jsonPath( "$[0].taxon.id", is( taxon.getId() ) ) );
+                .andExpect( jsonPath( "$[0].goId" ).value( term.getGoId() ) )
+                .andExpect( jsonPath( "$[0].name" ).value( term.getName() ) )
+                .andExpect( jsonPath( "$[0].definition" ).value( term.getDefinition() ) )
+                .andExpect( jsonPath( "$[0].aspect" ).value( ( term.getAspect().getLabel() ) ) )
+                .andExpect( jsonPath( "$[0].taxon.id" ).value( taxon.getId() ) );
 
         mvc.perform( get( "/user/taxon/2/term" )
                 .contentType( MediaType.APPLICATION_JSON ) )
                 .andExpect( status().isOk() )
-                .andExpect( jsonPath( "$[0].goId", is( term2.getGoId() ) ) )
-                .andExpect( jsonPath( "$[0].name", is( term2.getName() ) ) )
-                .andExpect( jsonPath( "$[0].definition", is( term2.getDefinition() ) ) )
-                .andExpect( jsonPath( "$[0].aspect", is( term2.getAspect().getLabel() ) ) )
-                .andExpect( jsonPath( "$[0].taxon.id", is( taxon2.getId() ) ) );
+                .andExpect( jsonPath( "$[0].goId" ).value( term2.getGoId() ) )
+                .andExpect( jsonPath( "$[0].name" ).value( term2.getName() ) )
+                .andExpect( jsonPath( "$[0].definition" ).value( term2.getDefinition() ) )
+                .andExpect( jsonPath( "$[0].aspect" ).value( term2.getAspect().getLabel() ) )
+                .andExpect( jsonPath( "$[0].taxon.id" ).value( taxon2.getId() ) );
     }
 
     @Test
@@ -480,15 +479,15 @@ public class UserControllerTest {
                 .contentType( MediaType.APPLICATION_JSON ) )
                 .andExpect( status().isOk() )
                 .andExpect( jsonPath( "$", hasSize( 2 ) ) )
-                .andExpect( jsonPath( "$[*].goId", containsInAnyOrder( t1.getGoId(), t2.getGoId() ) ) )
-                .andExpect( jsonPath( "$[*].taxon.id", contains( taxon.getId(), taxon.getId() ) ) );
+                .andExpect( jsonPath( "$[*].goId" ).value( containsInAnyOrder( t1.getGoId(), t2.getGoId() ) ) )
+                .andExpect( jsonPath( "$[*].taxon.id" ).value( contains( taxon.getId(), taxon.getId() ) ) );
 
         mvc.perform( get( "/user/taxon/2/term/recommend" )
                 .contentType( MediaType.APPLICATION_JSON ) )
                 .andExpect( status().isOk() )
-                .andExpect( jsonPath( "$", hasSize( 2 ) ) )
-                .andExpect( jsonPath( "$[*].goId", containsInAnyOrder( t3.getGoId(), t4.getGoId() ) ) )
-                .andExpect( jsonPath( "$[*].taxon.id", contains( taxon2.getId(), taxon2.getId() ) ) );
+                .andExpect( jsonPath( "$" ).value( hasSize( 2 ) ) )
+                .andExpect( jsonPath( "$[*].goId" ).value( containsInAnyOrder( t3.getGoId(), t4.getGoId() ) ) )
+                .andExpect( jsonPath( "$[*].taxon.id" ).value( contains( taxon2.getId(), taxon2.getId() ) ) );
     }
 
     // POST
@@ -661,12 +660,12 @@ public class UserControllerTest {
                 .contentType( MediaType.APPLICATION_JSON )
                 .content( json.toString() ) )
                 .andExpect( status().isOk() )
-                .andExpect( jsonPath( "$['GO:0000001'].goId", is( toGOId( 1 ) ) ) )
-                .andExpect( jsonPath( "$['GO:0000002'].goId", is( toGOId( 2 ) ) ) )
-                .andExpect( jsonPath( "$['GO:0000003'].goId", is( toGOId( 3 ) ) ) )
-                .andExpect( jsonPath( "$['GO:0000001'].taxon.id", is( taxon.getId() ) ) )
-                .andExpect( jsonPath( "$['GO:0000002'].taxon.id", is( taxon.getId() ) ) )
-                .andExpect( jsonPath( "$['GO:0000003'].taxon.id", is( taxon.getId() ) ) );
+                .andExpect( jsonPath( "$['GO:0000001'].goId" ).value( toGOId( 1 ) ) )
+                .andExpect( jsonPath( "$['GO:0000002'].goId" ).value( toGOId( 2 ) ) )
+                .andExpect( jsonPath( "$['GO:0000003'].goId" ).value( toGOId( 3 ) ) )
+                .andExpect( jsonPath( "$['GO:0000001'].taxon.id" ).value( taxon.getId() ) )
+                .andExpect( jsonPath( "$['GO:0000002'].taxon.id" ).value( taxon.getId() ) )
+                .andExpect( jsonPath( "$['GO:0000003'].taxon.id" ).value( taxon.getId() ) );
 
         mvc.perform( post( "/user/taxon/2/term/search" )
                 .contentType( MediaType.APPLICATION_JSON )
