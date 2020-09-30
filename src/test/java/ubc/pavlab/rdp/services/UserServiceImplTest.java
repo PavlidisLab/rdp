@@ -115,6 +115,7 @@ public class UserServiceImplTest {
         when( applicationSettings.getGoTermSizeLimit() ).thenReturn( 100L );
         when( applicationSettings.getOrgans() ).thenReturn( organSettings );
         when( organSettings.getEnabled() ).thenReturn( true );
+        when( privacySettings.isCustomizableGeneLevel() ).thenReturn( true );
         when( applicationSettings.getPrivacy() ).thenReturn( privacySettings );
 
         when( geneInfoService.load( anyCollection() ) ).thenAnswer(

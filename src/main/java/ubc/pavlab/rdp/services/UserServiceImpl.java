@@ -299,7 +299,10 @@ public class UserServiceImpl implements UserService {
                     UserGene userGene = user.getUserGenes().getOrDefault( g.getGeneId(), new UserGene() );
                     userGene.setUser( user );
                     userGene.setTier( genesToTierMap.get( g ) );
-                    userGene.setPrivacyLevel( genesToPrivacyLevelMap.get( g ) );
+                    if ( applicationSettings.getPrivacy().isCustomizableGeneLevel() ) {
+                        // if no privacy level is set, we inherit the profile value
+                        userGene.setPrivacyLevel( genesToPrivacyLevelMap.getOrDefault( g, null ) );
+                    }
                     userGene.updateGene( g );
                     return userGene;
                 } )
@@ -312,7 +315,7 @@ public class UserServiceImpl implements UserService {
                     UserGene userGene = user.getUserGenes().getOrDefault( g.getGeneId(), new UserGene() );
                     userGene.setUser( user );
                     userGene.setTier( genesToTierMap.getOrDefault( g, TierType.TIER3 ) );
-                    // we let the privacy level to its default value
+                    // we let the privacy level inherit the profile value
                     userGene.updateGene( g );
                     return userGene;
                 } )
