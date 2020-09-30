@@ -40,7 +40,7 @@
         </div>
 
         <div class="row">
-            <div th:if="${@applicationSettings.profile.enabledResearcherCategories.contains(viewUser.profile.researcherCategory)} and ${viewUser.profile.researcherCategory} != null"
+            <div th:if="${viewUser.profile.researcherCategory} != null and ${@applicationSettings.profile.enabledResearcherCategories.contains(viewUser.profile.researcherCategory.name())}"
                  class="col-3 col-lg-2 my-auto">
                 <img th:src="@{/images/researcher-categories/{id}.svg(id=${viewUser.profile.researcherCategory.id})}" class="img-fluid"/>
                 <h4 class="text-center" th:text="${viewUser.profile.researcherCategory.label}">...</h4>
@@ -64,13 +64,13 @@
                                 <input class="data-edit" type="text" name="lastName" th:value="${viewUser.profile.lastName}" disabled="disabled"/>
                             </td>
                         </tr>
-                        <tr th:unless="${@applicationSettings.profile.enabledResearcherPositions.isEmpty()} or ${viewUser.profile.researcherPosition} == null">
+                        <tr th:unless="${@applicationSettings.profile.enabledResearcherPositions.isEmpty()}">
                             <td class="text-muted">Position</td>
                             <td>
                                 <input class="data-edit"
                                        type="text"
                                        name="researcherPosition"
-                                       th:value="${viewUser.profile.researcherPosition.label}"
+                                       th:value="${viewUser.profile.researcherPosition?.label}"
                                        disabled="disabled"/>
                             </td>
                         </tr>
@@ -110,7 +110,7 @@
                             <td><a th:href="${'mailto://' + viewUser.email}" th:text="${viewUser.email}"></a>
                             </td>
                         </tr>
-                        <tr th:unless="${viewUser.profile.phone} == ''" class="edit-container">
+                        <tr class="edit-container">
                             <td class="align-middle"><span class="text-muted align-middle">Phone</span></td>
                             <td>
                                 <input class="data-edit" type="text" name="phone" th:value="${viewUser.profile.phone}" disabled="disabled"/>
@@ -149,23 +149,24 @@
             </div>
         </div>
 
-        <div class="col my-3" th:if="(${user} != null) and ${user.getRoles().contains(@roleRepository.findByRole('ROLE_ADMIN'))}">
-            <div class="card">
-                <div class="card-header">
-                    <h4>Data privacy</h4>
-                    <div>
-                        Data privacy:
-                        <b th:text="${viewUser.getEffectivePrivacyLevel().getLabel()}"></b>
+        <div th:if="(${user} != null) and ${user.getRoles().contains(@roleRepository.findByRole('ROLE_ADMIN'))}"
+             class="row my-3">
+            <div class="col">
+                <div class="card">
+                    <div class="card-header">
+                        <h4>Data Privacy</h4>
                     </div>
-                    <div>
-                        International sharing:
-                        <b th:if="${viewUser.getProfile().getHideGenelist()}">disabled.</b>
-                        <b th:if="not ${viewUser.getProfile().getHideGenelist()}">enabled.</b>
-                    </div>
-                    <div th:if="${@applicationSettings.getPrivacy().isAllowHideGenelist()}">
-                        International sharing of this users data is
-                        <b th:if="${viewUser.getProfile().getShared()}">enabled.</b>
-                        <b th:if="not ${viewUser.getProfile().getShared()}">disabled.</b>
+                    <div class="card-body">
+                        <dl class="row mb-0">
+                            <dt class="col-md-2">Profile privacy level:</dt>
+                            <dd th:text="${viewUser.effectivePrivacyLevel.label}" class="col-md-9"></dd>
+                            <th:block th:if="${@applicationSettings.privacy.isAllowHideGenelist()}">
+                                <dt class="col-md-2">Gene list hidden:</dt>
+                                <dd th:text="${viewUser.profile.hideGenelist} ? 'Enabled' : 'Disabled'" class="col-md-9"></dd>
+                            </th:block>
+                            <dt class="col-md-2">International sharing:</dt>
+                            <dd th:text="${viewUser.profile.shared} ? 'Enabled' : 'Disabled'" class="col-md-9"></dd>
+                        </dl>
                     </div>
                 </div>
             </div>
@@ -199,7 +200,7 @@
 
         <th:block th:each="taxon : ${viewUser.taxons}">
 
-            <div th:unless="${viewUser.taxonDescriptions.get(taxon)} == ''" class="row my-3">
+            <div class="row my-3">
                 <div class="col">
                     <div class="card research-info edit-container">
                         <div class="card-header d-flex align-items-center">
