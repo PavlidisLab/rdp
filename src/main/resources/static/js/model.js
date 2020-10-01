@@ -54,7 +54,7 @@
                     row.push('');
                     row.push('');
                 } else {
-                    row.push('<span class="align-middle"><i class="delete-row align-middle"></i><a href="https://www.ncbi.nlm.nih.gov/gene/' + gene.geneId + '" target="_blank" class="align-middle">' + gene.symbol + '</a></span>')
+                    row.push('<span class="align-middle"><i class="delete-row align-middle"></i><a href="https://www.ncbi.nlm.nih.gov/gene/' + gene.geneId + '" target="_blank" class="align-middle" rel="noopener">' + gene.symbol + '</a></span>')
                     row.push(gene.geneId);
                     row.push('<span class="align-middle">' + gene.name + '</span>');
                     row.push('<input name="primary" class="align-middle" type="checkbox"/>');

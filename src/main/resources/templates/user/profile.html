@@ -321,7 +321,8 @@
                         </td>
                         <td><a th:href="${'https://www.ncbi.nlm.nih.gov/pubmed/' + pub.pmid}"
                                target="_blank"
-                               th:text="${pub.title != ''} ? ${pub.title} : 'Unknown Title'"></a></td>
+                               th:text="${pub.title != ''} ? ${pub.title} : 'Unknown Title'"
+                               rel="noopener"></a></td>
                     </tr>
                 </th:block>
                 </tbody>
