@@ -3,7 +3,7 @@
       xmlns:th="http://www.thymeleaf.org">
 <body>
 <div th:fragment="researcher-position-selection(selectedResearcherPosition)">
-    <select th:id="${#ids.seq('researcherPosition')}"
+    <select th:id="${#ids.seq('profile.researcherPosition')}"
             name="researcherPosition"
             class="form-control">
         <option th:selected="${selectedResearcherPosition} == null"
@@ -16,7 +16,7 @@
     </select>
 </div>
 <div th:fragment="researcher-category-selection(selectedResearcherCategory)">
-    <select th:id="${#ids.seq('researcherCategory')}"
+    <select th:id="${#ids.seq('profile.researcherCategory')}"
             name="researcherCategory"
             class="form-control">
         <option th:selected="${selectedResearcherCategory} == null"
@@ -29,7 +29,7 @@
     </select>
 </div>
 <div th:fragment="researcher-categories-selection">
-    <select th:id="${#ids.seq('researcherCategories')}"
+    <select th:id="${#ids.seq('profile.researcherCategories')}"
             name="researcherCategories"
             class="form-control selectpicker"
             title="Show any researcher, or specific categories"

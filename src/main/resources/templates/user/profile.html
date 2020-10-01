@@ -10,7 +10,7 @@
 
 <body>
 <div th:replace="layouts/common::header">...</div>
-<div class="container py-4">
+<div class="container py-4" th:object="${user.profile}">
 
     <div class="row">
         <div class="col-8">
@@ -53,58 +53,82 @@
                     </div>
                     <table class="table mb-0">
                         <tr class="edit-container">
-                            <td class="align-middle" style="width: 120px;"><span class="text-muted align-middle">First Name</span>
+                            <td class="align-middle" style="width: 120px;">
+                                <label th:for="${#ids.next('profile.name')}" class="text-muted align-middle mb-0">First Name</label>
                             </td>
                             <td><i class="editable" th:if="${viewOnly == null}"/>
-                                <input class="data-edit" type="text" name="name" th:value="${user.profile.name}"
+                                <input th:id="${#ids.seq('profile.name')}"
+                                       th:field="*{name}"
+                                       type="text"
+                                       class="data-edit"
                                        disabled="disabled"/>
                             </td>
                         </tr>
                         <tr class="edit-container">
-                            <td class="align-middle"><span class="text-muted align-middle">Last Name</span></td>
+                            <td class="align-middle">
+                                <label th:for="${#ids.next('profile.lastName')}" class="text-muted align-middle mb-0">Last Name</label>
+                            </td>
                             <td><i class="editable" th:if="${viewOnly == null}"/>
-                                <input class="data-edit" type="text" name="lastName" th:value="${user.profile.lastName}"
+                                <input th:id="${#ids.seq('profile.lastName')}"
+                                       th:field="*{lastName}"
+                                       type="text"
+                                       class="data-edit"
                                        disabled="disabled"/>
                             </td>
                         </tr>
                         <tr class="edit-container">
-                            <td class="align-middle"><label th:for="${#ids.next('researcherPosition')}"
-                                                            class="text-muted align-middle">Position</label></td>
+                            <td class="align-middle">
+                                <label th:for="${#ids.next('profile.researcherPosition')}" class="text-muted align-middle mb-0">Position</label>
+                            </td>
                             <td>
-                                <div th:replace="fragments/profile::researcher-position-selection(selectedResearcherPosition=${user.profile.researcherPosition})">
+                                <div th:replace="fragments/profile::researcher-position-selection(selectedResearcherPosition=*{researcherPosition})">
                                     ...
                                 </div>
                             </td>
                         </tr>
                         <tr class="edit-container">
-                            <td class="align-middle"><span class="text-muted align-middle">Organization</span></td>
+                            <td class="align-middle">
+                                <label th:for="${#ids.next('profile.organization')}"
+                                       class="text-muted align-middle mb-0">Organization</label>
+                            </td>
                             <td><i class="editable" th:if="${viewOnly == null}"/>
-                                <input class="data-edit" type="text" name="organization"
-                                       th:value="${user.profile.organization}" disabled="disabled"/>
+                                <input th:id="${#ids.seq('profile.organization')}"
+                                       th:field="*{organization}"
+                                       class="data-edit" type="text"
+                                       disabled="disabled"/>
                             </td>
                         </tr>
                         <tr class="edit-container">
-                            <td class="align-middle"><span class="text-muted align-middle">Department</span></td>
+                            <td class="align-middle">
+                                <label th:for="${#ids.next('profile.department')}" class="text-muted align-middle mb-0">Department</label>
+                            </td>
                             <td><i class="editable" th:if="${viewOnly == null}"/>
-                                <input class="data-edit" type="text" name="department"
-                                       th:value="${user.profile.department}" disabled="disabled"/>
+                                <input th:id="${#ids.seq('profile.department')}"
+                                       th:field="*{department}"
+                                       type="text"
+                                       class="data-edit"
+                                       disabled="disabled"/>
                             </td>
                         </tr>
                         <tr th:unless="${@applicationSettings.profile.enabledResearcherCategories.isEmpty()}"
                             class="edit-container">
-                            <td class="align-middle"><label th:for="${#ids.next('researcherCategory')}"
-                                                            class="text-muted align-middle">Researcher Category</label>
+                            <td class="align-middle">
+                                <label th:for="${#ids.next('profile.researcherCategory')}" class="text-muted align-middle mb-0">Researcher Category</label>
                             </td>
                             <td>
-                                <div th:replace="fragments/profile::researcher-category-selection(selectedResearcherCategory = ${user.profile.researcherCategory})">
+                                <div th:replace="fragments/profile::researcher-category-selection(selectedResearcherCategory = *{researcherCategory})">
                                     ...
                                 </div>
                             </td>
                         </tr>
                         <tr class="edit-container">
-                            <td class="align-middle"><span class="text-muted align-middle">Website</span></td>
+                            <td class="align-middle">
+                                <label th:for="${#ids.next('profile.website')}" class="text-muted align-middle mb-0">Website</label>
+                            </td>
                             <td><i class="editable" th:if="${viewOnly == null}"/>
-                                <input class="data-edit" type="text" name="website" th:value="${user.profile.website}"
+                                <input th:id="${#ids.seq('profile.website')}"
+                                       th:field="*{website}"
+                                       class="data-edit" type="text"
                                        disabled="disabled"/>
                             </td>
                         </tr>
@@ -126,9 +150,13 @@
                             <td><span th:text="${user.email}" th:remove="tag"></span></td>
                         </tr>
                         <tr class="edit-container">
-                            <td class="align-middle"><span class="text-muted align-middle">Phone</span></td>
+                            <td class="align-middle">
+                                <label th:for="${#ids.next('profile.phone')}" class="text-muted align-middle mb-0">Phone</label>
+                            </td>
                             <td><i class="editable" th:if="${viewOnly == null}"/>
-                                <input class="data-edit" type="text" name="phone" th:value="${user.profile.phone}"
+                                <input th:id="${#ids.seq('profile.phone')}"
+                                       th:field="*{phone}"
+                                       class="data-edit" type="text"
                                        disabled="disabled"/>
                             </td>
                         </tr>
@@ -142,10 +170,14 @@
                 <div class="card research-info edit-container">
                     <div class="card-header d-flex align-items-center">
                         <i class="editable" th:if="${viewOnly == null}"/>
-                        <h3 class="mb-0 d-inline-block">About My Research</h3>
+                        <h3 class="mb-0 d-inline-block">
+                            <label th:for="${#ids.next('profile.description')}" class="mb-0">About My Research</label>
+                        </h3>
                     </div>
                     <div class="p-2" style="height: 120px;">
-                        <textarea class="data-edit" name="description" th:text="${user.profile.description}"
+                        <textarea th:id="${#ids.seq('profile.description')}"
+                                  th:field="*{description}"
+                                  class="data-edit"
                                   disabled="disabled"></textarea>
                     </div>
                 </div>
@@ -160,7 +192,9 @@
                         <h3 class="mb-0 d-inline-block">Organ Systems</h3>
                     </div>
                     <div class="card-body">
-                        <p>These settings let other users know which organ systems your research focuses on.</p>
+                        <p>
+                            These settings let other users know which human organ systems your research is relevant to.
+                        </p>
                         <div th:replace="fragments/organ::organs-selection(checkedOrganUberonIds = ${user.userOrgans.keySet()})">
                             ...
                         </div>
@@ -184,22 +218,22 @@
                              th:if="${@applicationSettings.getPrivacy().isCustomizableLevel()}">
                             <h4>Privacy Level</h4>
 
-                            <p>These settings determine how other users from <strong>this registry</strong> can see your data.</p>
+                            <p>These settings determine how other users from <strong>this registry</strong> can see your
+                                data.</p>
 
-                            <h5>User Profile Privacy Level</h5>
                             <form id="privacy-level">
                                 <div class="form-group">
                                     <div class="form-check-inline"
                                          th:each="privacyLevel : ${T(ubc.pavlab.rdp.model.enums.PrivacyLevelType).values()}"
                                          th:if="${@privacyService.isPrivacyLevelEnabled(privacyLevel)}">
                                         <input class="form-check-input" type="radio" name="privacyLevel"
-                                               th:id="${'privacy-level-' + privacyLevel.label}"
+                                               th:id="${#ids.seq('privacyLevel')}"
                                                th:checked="${user.profile.privacyLevel == privacyLevel}"
                                                th:value="${privacyLevel.ordinal()}"
                                                th:attr="data-toggle=${@applicationSettings.privacy.isCustomizableGeneLevel() and privacyLevel.ordinal() lt user.profile.privacyLevel.ordinal()} ? 'modal',
                                                         data-target=${@applicationSettings.privacy.isCustomizableGeneLevel() and privacyLevel.ordinal() lt user.profile.privacyLevel.ordinal()} ? '#' + ${#ids.next('confirm-gene-privacy-level-capping')}"/>
                                         <label class="form-check-label"
-                                               th:for="${'privacy-level-' + privacyLevel.label}">
+                                               th:for="${#ids.prev('privacyLevel')}">
                                             <span th:text="${privacyLevel.label}"></span>
                                             <i class="tip oi oi-question-mark"
                                                data-ot-background="cornflowerblue"
@@ -221,12 +255,15 @@
                         <div id="privacy-sharing" class="list-group-item"
                              th:if="${@applicationSettings.getPrivacy().isCustomizableSharing()}">
                             <h4>Partner Registry</h4>
-                            <p>These settings determine whether users from <strong>other registries</strong> can see your data.</p>
+                            <p>These settings determine whether users from <strong>other registries</strong> can see
+                                your data.</p>
                             <div class="form-group">
                                 <div class="form-check form-check-inline">
-                                    <input id="privacy-sharing-checkbox" type="checkbox" class="form-check-input"
-                                           th:checked="${user.profile.shared}"/>
-                                    <label class="form-check-label" for="privacy-sharing-checkbox">
+                                    <input th:id="${#ids.seq('profile.shared')}"
+                                           th:field="*{shared}"
+                                           type="checkbox"
+                                           class="form-check-input"/>
+                                    <label class="form-check-label" th:for="${#ids.prev('profile.shared')}">
                                         Share my data with partner registries
                                         <i class="tip oi oi-question-mark"
                                            data-ot-background="cornflowerblue"
@@ -237,17 +274,18 @@
                                     </label>
                                 </div>
                             </div>
-                            Read more about international search settings in the <a th:href="@{/user/faq#isearch}"
-                                                                     target="_blank">FAQ</a>.
+                            Read more about international search settings in the <a th:href="@{/user/faq#isearch}" target="_blank">FAQ</a>.
                         </div>
                         <div id="privacy-genelist" class="list-group-item"
                              th:if="${@applicationSettings.getPrivacy().isAllowHideGenelist()}">
                             <h5>Content displayed on my profile</h5>
                             <p>These settings determine which parts of your user profile are visible to other users.</p>
                             <div class="form-check form-check-inline">
-                                <input id="privacy-genelist-checkbox" type="checkbox" class="form-check-input"
-                                       th:checked="${user.profile.hideGenelist}"/>
-                                <label class="form-check-label" for="privacy-genelist-checkbox">
+                                <input th:id="${#ids.seq('profile.hideGenelist')}"
+                                       th:field="*{hideGenelist}"
+                                       type="checkbox"
+                                       class="form-check-input"/>
+                                <label class="form-check-label" th:for="${#ids.prev('profile.hideGenelist')}">
                                     Hide my gene listing for non-administrative users
                                     <i class="tip oi oi-question-mark"
                                        data-ot-background="cornflowerblue"
@@ -292,11 +330,10 @@
                     <td colspan="2">
                         <div class="input-group">
                             <div class="input-group-prepend">
-                                <button class="btn btn-outline-secondary add-row text-success"
-                                        type="button">+
-                                </button>
+                                <button class="btn btn-outline-secondary add-row text-success" type="button">+</button>
                             </div>
-                            <input type="text" class="pub-input form-control"
+                            <input type="text"
+                                   class="pub-input form-control"
                                    placeholder="PubMed Ids: 25363768, 25418537"/>
                         </div>
                     </td>

@@ -140,7 +140,12 @@
         {"name": "Primary", "targets": 3, "className": "text-center", "orderDataType": "dom-checkbox"}];
 
     if (customizableGeneLevel) {
-        columnDefs.push({"name": "PrivacyLevel", "targets": 4, "className": "text-center", "orderDataType": "dom-select"});
+        columnDefs.push({
+            "name": "PrivacyLevel",
+            "targets": 4,
+            "className": "text-center",
+            "orderDataType": "dom-select"
+        });
     }
 
     $('#gene-table').DataTable({

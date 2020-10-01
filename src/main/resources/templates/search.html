@@ -114,8 +114,7 @@
                 <div th:unless="${@applicationSettings.profile.enabledResearcherCategories.isEmpty()}" class="form-row">
                     <div class="col-md-5">
                         <p class="text-right">
-                            <label th:for="${#ids.next('researcherCategories')}" class="col-form-label">Within the
-                                following researcher categories:</label>
+                            <label th:for="${#ids.next('profile.researcherCategories')}" class="col-form-label">Within the following researcher categories:</label>
                         </p>
                     </div>
                     <div class="col-md-4">
@@ -212,7 +211,7 @@
                     <div class="form-row">
                         <div class="col-md-5">
                             <div class="form-group text-right">
-                                <label th:for="${#ids.next('researcherCategories')}" class="col-form-label">Within the following researcher categories:</label>
+                                <label th:for="${#ids.next('profile.researcherCategories')}" class="col-form-label">Within the following researcher categories:</label>
                             </div>
                         </div>
                         <div class="col-md-4">
