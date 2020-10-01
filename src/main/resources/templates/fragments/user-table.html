@@ -12,8 +12,7 @@
         <th th:if="${remote}" scope="col">Origin</th>
         <th scope="col">Email</th>
         <th scope="col">Full Name</th>
-        <th th:unless="${@applicationSettings.profile.enabledResearcherPositions.isEmpty()}" scope="col">Position</th>
-        <th scope="col">Organization</th>
+        <th scope="col">Position</th>
     </tr>
     </thead>
     <tbody>
@@ -25,10 +24,11 @@
             <td th:if="${remote}" th:text="${u.origin}"></td>
             <td><a th:href="'mailto:' + ${u.email}" th:text="${u.email}"></a></td>
             <td th:text="${u.profile.fullName}"></td>
-            <td th:unless="${@applicationSettings.profile.enabledResearcherPositions.isEmpty()}">
-                <span th:if="${u.profile.researcherPosition != null}" th:text="${u.profile.researcherPosition.label}"></span>
+            <td>
+                <span th:text="${u.profile.researcherPosition?.label}"></span>
+                <span th:if="${u.profile.researcherPosition} != null and ${u.profile.organization} != ''">at</span>
+                <span th:text="${u.profile.organization}"></span>
             </td>
-            <td th:text="${u.profile.organization}"></td>
         </th:block>
         <th:block sec:authorize="!hasPermission(#vars.u, 'read')">
             <td class="text-center">
@@ -62,8 +62,7 @@
         <th th:if="${remote}" scope="col">Origin</th>
         <th scope="col">Email</th>
         <th scope="col">Full Name</th>
-        <th th:unless="${@applicationSettings.profile.enabledResearcherPositions.isEmpty()}" scope="col">Position</th>
-        <th scope="col">Organization</th>
+        <th scope="col">Position</th>
         <th scope="col">Gene</th>
         <th scope="col">Tier</th>
         <th scope="col">Organism</th>
@@ -78,11 +77,11 @@
             <td th:if="${remote}"><span th:text="${ug.user.origin}" th:remove="tag"></span></td>
             <td><a th:href="'mailto:' + ${ug.user.email}" th:text="${ug.user.email}"></a></td>
             <td th:text="${ug.user.profile.fullName}"></td>
-            <td th:unless="${@applicationSettings.profile.enabledResearcherPositions.isEmpty()}">
-                <span th:if="${ug.user.profile.researcherPosition} != null"
-                      th:text="${ug.user.profile.researcherPosition.label}"></span>
+            <td>
+                <span th:text="${ug.user.profile.researcherPosition?.label}"></span>
+                <span th:if="${ug.user.profile.researcherPosition} != null and ${ug.user.profile.organization} != ''">at</span>
+                <span th:text="${ug.user.profile.organization}"></span>
             </td>
-            <td th:text="${ug.user.profile.organization}"></td>
         </th:block>
         <th:block sec:authorize="!hasPermission(#vars.ug, 'read')">
             <td class="text-center">
