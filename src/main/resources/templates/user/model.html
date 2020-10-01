@@ -71,8 +71,7 @@
                 <div class="card-header">
                     <h4>Data Privacy</h4>
                     <p th:if="${@applicationSettings.privacy.isCustomizableLevel()}">
-                        Your profile privacy level is set to <b th:text="${user.effectivePrivacyLevel.label}"></b>, your
-                        gene privacy levels cannot more visible.
+                        Your profile privacy level is set to <b th:text="${user.effectivePrivacyLevel.label}"></b>.
                     </p>
                     <p th:if="(${user.effectivePrivacyLevel.ordinal()} gt 0) and ${@applicationSettings.privacy.isAllowHideGenelist()}">
                         Non-administrative users that can see your data
