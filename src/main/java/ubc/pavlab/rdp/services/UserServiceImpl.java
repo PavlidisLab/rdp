@@ -368,6 +368,9 @@ public class UserServiceImpl implements UserService {
         } else {
             log.warn( MessageFormat.format( "User {0} attempted to set user {1} researcher position to an unknown value {2}.",
                     findCurrentUser(), user, profile.getResearcherPosition() ) );
+            if ( user.getProfile().getPrivacyLevel() != profile.getPrivacyLevel() ) {
+                user.getUserGenes().values().forEach( ug -> ug.setPrivacyLevel( profile.getPrivacyLevel() ) );
+            }
         }
         user.getProfile().setResearcherPosition( profile.getResearcherPosition() );
         user.getProfile().setOrganization( profile.getOrganization() );
@@ -379,8 +382,19 @@ public class UserServiceImpl implements UserService {
         }
         user.getProfile().setPhone( profile.getPhone() );
         user.getProfile().setWebsite( profile.getWebsite() );
-        user.getProfile().setPrivacyLevel( profile.getPrivacyLevel() );
-        user.getProfile().setShared( profile.getShared() );
+
+        // privacy settings
+        if ( applicationSettings.getPrivacy().isCustomizableLevel() ) {
+            // reset gene privacy levels if the profile value is changed
+            if ( applicationSettings.getPrivacy().isCustomizableGeneLevel() &&
+                    user.getProfile().getPrivacyLevel() != profile.getPrivacyLevel() ) {
+                user.getUserGenes().values().forEach( ug -> ug.setPrivacyLevel( profile.getPrivacyLevel() ) );
+            }
+            user.getProfile().setPrivacyLevel( profile.getPrivacyLevel() );
+        }
+        if ( applicationSettings.getPrivacy().isCustomizableSharing() ) {
+            user.getProfile().setShared( profile.getShared() );
+        }
         if ( applicationSettings.getPrivacy().isAllowHideGenelist() ) {
             user.getProfile().setHideGenelist( profile.getHideGenelist() );
         }

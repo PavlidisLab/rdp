@@ -349,9 +349,9 @@
 <div th:replace="layouts/common::scripts"></div>
 <script th:src="@{/js/profile.js}"></script>
 <th:block th:if="${@applicationSettings.privacy.isCustomizableGeneLevel()}">
-    <div th:replace="fragments/modal::confirmation(target=${#ids.seq('confirm-gene-privacy-level-capping')}, title='Your gene privacy levels might get adjusted!', body='Making your profile privacy setting stricter will also restrict access to the genes associated to your model organisms.')"></div>
+    <div th:replace="fragments/modal::confirmation(target=${#ids.seq('confirm-gene-privacy-level-reset')}, title='Your gene privacy levels might get adjusted!', body='Changing your profile privacy setting will also reset the privacy levels of the genes associated to your model organisms to this new value.')"></div>
     <script th:inline="javascript">
-        var modalId = [[${#ids.prev('confirm-gene-privacy-level-capping')}]];
+        var modalId = [[${#ids.prev('confirm-gene-privacy-level-reset')}]];
         var modal = $('#' + modalId);
         modal.find('button.confirm').on('click', function () {
             modal.modal('hide');
