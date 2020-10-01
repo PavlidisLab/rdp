@@ -19,6 +19,7 @@ import ubc.pavlab.rdp.services.*;
 import javax.servlet.http.HttpServletRequest;
 import java.text.MessageFormat;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Created by mjacobson on 05/02/18.
@@ -337,6 +338,7 @@ public class SearchController {
 
         Taxon taxon = taxonService.findById( taxonId );
         if ( taxon == null ) {
+            modelAndView.setStatus( HttpStatus.BAD_REQUEST );
             modelAndView.setViewName( "fragments/error::message" );
             modelAndView.addObject( "errorMessage",
                     messageSource.getMessage( "SearchController.errorNoTaxon", new String[]{ taxonId.toString() }, locale ) );
@@ -346,6 +348,7 @@ public class SearchController {
         GeneInfo gene = geneInfoService.findBySymbolAndTaxon( symbol, taxon );
 
         if ( gene == null ) {
+            modelAndView.setStatus( HttpStatus.BAD_REQUEST );
             modelAndView.setViewName( "fragments/error::message" );
             modelAndView.addObject( "errorMessage",
                     messageSource.getMessage( "SearchController.errorNoGene", new String[]{ symbol }, locale ) );
@@ -364,20 +367,17 @@ public class SearchController {
                 ( orthologTaxonId != null && !orthologTaxonId.equals( gene.getTaxon().getId() ) )
                         // Check if we got some ortholog results
                         && orthologs.isEmpty() ) {
+            modelAndView.setStatus( HttpStatus.BAD_REQUEST );
             modelAndView.setViewName( "fragments/error::message" );
             modelAndView.addObject( "errorMessage",
                     messageSource.getMessage( "SearchController.errorNoOrthologs", new String[]{ symbol }, locale ) );
             return modelAndView;
         }
 
-        Map<String, List<Gene>> orthologMap = new HashMap<>();
-        for ( Gene o : orthologs ) {
-            String name = o.getTaxon().getCommonName();
-            if ( !orthologMap.containsKey( name ) ) {
-                orthologMap.put( name, new ArrayList<Gene>() );
-            }
-            orthologMap.get( name ).add( o );
-        }
+        Map<Taxon, Set<GeneInfo>> orthologMap = orthologs.stream()
+                .map( UserGene::getGeneInfo )
+                .filter( Objects::nonNull )
+                .collect( Collectors.groupingBy( GeneInfo::getTaxon, Collectors.toSet() ) );
 
         modelAndView.addObject( "orthologs", orthologMap );
         modelAndView.setViewName( "fragments/ortholog-table::ortholog-table" );
