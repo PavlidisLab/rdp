@@ -3,17 +3,19 @@
       xmlns:th="http://www.thymeleaf.org">
 <body>
 <div th:fragment="researcher-position-selection(selectedResearcherPosition)">
-    <select th:id="${#ids.seq('profile.researcherPosition')}"
-            name="researcherPosition"
-            class="form-control">
-        <option th:selected="${selectedResearcherPosition} == null"
-                th:value="null">Please select…</option>
-        <option th:each="researcherPosition : ${T(ubc.pavlab.rdp.model.enums.ResearcherPosition).values()}"
-                th:if="${@applicationSettings.profile.enabledResearcherPositions.contains(researcherPosition.name())}"
-                th:value="${researcherPosition.name()}"
-                th:text="${researcherPosition.label}"
-                th:selected="${researcherPosition} == ${selectedResearcherPosition}">...</option>
-    </select>
+    <div th:each="researcherPosition : ${T(ubc.pavlab.rdp.model.enums.ResearcherPosition).values()}"
+         th:if="${@applicationSettings.profile.enabledResearcherPositions.contains(researcherPosition.name())}"
+         class="form-check-inline">
+        <input th:id="${#ids.seq('profile.researcherPosition')}"
+               name="researcherPosition"
+               class="form-check-input"
+               type="checkbox"
+               th:value="${researcherPosition.name()}"
+               th:checked="${researcherPosition} == ${selectedResearcherPosition}"/>
+        <label th:for="${#ids.prev('profile.researcherPosition')}"
+               th:text="${researcherPosition.label}"
+               class="form-check-label">...</label>
+    </div>
 </div>
 <div th:fragment="researcher-category-selection(selectedResearcherCategory)">
     <select th:id="${#ids.seq('profile.researcherCategory')}"

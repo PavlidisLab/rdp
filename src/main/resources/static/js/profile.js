@@ -9,7 +9,7 @@ function collectProfile() {
     profile.website = $.trim($('[name="profile.website"]').val());
 
     // we handle empty string, null and undefined value (if researcher type feature is not enabled)
-    profile.researcherPosition = $('[name="researcherPosition"]').val() || null;
+    profile.researcherPosition = $('[name="researcherPosition"]:checked').val() || null;
     profile.researcherCategory = $('[name="researcherCategory"]').val() || null;
 
     // Contact Information
