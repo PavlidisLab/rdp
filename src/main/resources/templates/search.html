@@ -111,6 +111,7 @@
                         </label>
                     </div>
                 </div>
+                <!--
                 <div th:unless="${@applicationSettings.profile.enabledResearcherCategories.isEmpty()}" class="form-row">
                     <div class="col-md-5">
                         <p class="text-right">
@@ -123,6 +124,7 @@
                         </div>
                     </div>
                 </div>
+                -->
                 <div th:if="${@applicationSettings.organs.enabled}" class="form-row">
                     <div class="col-md-12">
                         <p>With focus on the following organ systems (or any if none are selected):</p>
@@ -207,6 +209,7 @@
                     </div>
                 </form>
 
+                <!--
                 <div th:unless="${@applicationSettings.profile.enabledResearcherCategories.isEmpty()}">
                     <div class="form-row">
                         <div class="col-md-5">
@@ -221,6 +224,7 @@
                         </div>
                     </div>
                 </div>
+                -->
 
                 <!-- Researchers by focused organs -->
                 <form th:if="${@applicationSettings.organs.enabled}">
