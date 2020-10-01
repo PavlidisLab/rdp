@@ -12,7 +12,10 @@
         <th th:if="${remote}" scope="col">Origin</th>
         <th scope="col">Email</th>
         <th scope="col">Full Name</th>
-        <th scope="col">Position</th>
+        <th scope="col">
+            <span th:unless="${@applicationSettings.profile.enabledResearcherPositions.isEmpty()}">Position and</span>
+            Organization
+        </th>
     </tr>
     </thead>
     <tbody>
@@ -62,7 +65,10 @@
         <th th:if="${remote}" scope="col">Origin</th>
         <th scope="col">Email</th>
         <th scope="col">Full Name</th>
-        <th scope="col">Position</th>
+        <th scope="col">
+            <span th:unless="${@applicationSettings.profile.enabledResearcherPositions.isEmpty()}">Position and</span>
+            Organization
+        </th>
         <th scope="col">Gene</th>
         <th scope="col">Tier</th>
         <th scope="col">Organism</th>
