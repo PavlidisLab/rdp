@@ -40,11 +40,13 @@
         </div>
 
         <div class="row">
+            <!--
             <div th:if="${viewUser.profile.researcherCategory} != null and ${@applicationSettings.profile.enabledResearcherCategories.contains(viewUser.profile.researcherCategory.name())}"
                  class="col-3 col-lg-2 my-auto">
                 <img th:src="@{/images/researcher-categories/{id}.svg(id=${viewUser.profile.researcherCategory.id})}" class="img-fluid"/>
                 <h4 class="text-center" th:text="${viewUser.profile.researcherCategory.label}">...</h4>
             </div>
+            -->
             <div class="col my-3">
                 <div class="card basic-info">
                     <div class="card-header">
@@ -52,16 +54,51 @@
                             <h3 class="mb-0">Basic Information</h3>
                         </div>
                     </div>
-                    <table class="table mb-0"> <tr class="edit-container">
-                            <td class="align-middle" style="width: 120px;"><span class="text-muted align-middle">First Name</span></td>
+                    <table class="table mb-0">
+                        <tr class="edit-container">
+                            <td class="align-middle" style="width: 120px;"><span class="text-muted align-middle">First Name</span>
+                            </td>
                             <td>
-                                <input class="data-edit" type="text" name="name" th:value="${viewUser.profile.name}" disabled="disabled"/>
+                                <input class="data-edit" type="text" name="name" th:value="${viewUser.profile.name}"
+                                       disabled="disabled"/>
                             </td>
                         </tr>
                         <tr class="edit-container">
                             <td class="align-middle"><span class="text-muted align-middle">Last Name</span></td>
                             <td>
-                                <input class="data-edit" type="text" name="lastName" th:value="${viewUser.profile.lastName}" disabled="disabled"/>
+                                <input class="data-edit" type="text" name="lastName"
+                                       th:value="${viewUser.profile.lastName}" disabled="disabled"/>
+                            </td>
+                        </tr>
+                        <tr class="edit-container">
+                            <td class="align-middle"><span class="text-muted align-middle">Organization</span></td>
+                            <td>
+                                <input class="data-edit" type="text" name="organization"
+                                       th:value="${viewUser.profile.organization}" disabled="disabled"/>
+                            </td>
+                        </tr>
+                        <tr class="edit-container">
+                            <td class="align-middle"><span class="text-muted align-middle">Department</span></td>
+                            <td>
+                                <input class="data-edit" type="text" name="department"
+                                       th:value="${viewUser.profile.department}" disabled="disabled"/>
+                            </td>
+                        </tr>
+                        <tr class="edit-container">
+                            <td class="align-middle"><span class="text-muted align-middle">Website</span></td>
+                            <td>
+                                <input class="data-edit" type="text" name="website"
+                                       th:value="${viewUser.profile.website}" disabled="disabled"/>
+                            </td>
+                        </tr>
+                        <tr th:unless="${@applicationSettings.profile.enabledResearcherCategories.isEmpty()}">
+                            <td class="text-muted">Researcher Category</td>
+                            <td>
+                                <input class="data-edit"
+                                       type="text"
+                                       name="researcherCategory"
+                                       th:value="${viewUser.profile.researcherCategory?.label}"
+                                       disabled="disabled"/>
                             </td>
                         </tr>
                         <tr th:unless="${@applicationSettings.profile.enabledResearcherPositions.isEmpty()}">
@@ -72,24 +109,6 @@
                                        name="researcherPosition"
                                        th:value="${viewUser.profile.researcherPosition?.label}"
                                        disabled="disabled"/>
-                            </td>
-                        </tr>
-                        <tr class="edit-container">
-                            <td class="align-middle"><span class="text-muted align-middle">Organization</span></td>
-                            <td>
-                                <input class="data-edit" type="text" name="organization" th:value="${viewUser.profile.organization}" disabled="disabled"/>
-                            </td>
-                        </tr>
-                        <tr class="edit-container">
-                            <td class="align-middle"><span class="text-muted align-middle">Department</span></td>
-                            <td>
-                                <input class="data-edit" type="text" name="department" th:value="${viewUser.profile.department}" disabled="disabled"/>
-                            </td>
-                        </tr>
-                        <tr class="edit-container">
-                            <td class="align-middle"><span class="text-muted align-middle">Website</span></td>
-                            <td>
-                                <input class="data-edit" type="text" name="website" th:value="${viewUser.profile.website}" disabled="disabled"/>
                             </td>
                         </tr>
                     </table>

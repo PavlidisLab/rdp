@@ -78,16 +78,6 @@
                         </tr>
                         <tr class="edit-container">
                             <td class="align-middle">
-                                <label th:for="${#ids.next('profile.researcherPosition')}" class="text-muted align-middle mb-0">Position</label>
-                            </td>
-                            <td>
-                                <div th:replace="fragments/profile::researcher-position-selection(selectedResearcherPosition=*{researcherPosition})">
-                                    ...
-                                </div>
-                            </td>
-                        </tr>
-                        <tr class="edit-container">
-                            <td class="align-middle">
                                 <label th:for="${#ids.next('profile.organization')}"
                                        class="text-muted align-middle mb-0">Organization</label>
                             </td>
@@ -110,6 +100,17 @@
                                        disabled="disabled"/>
                             </td>
                         </tr>
+                        <tr class="edit-container">
+                            <td class="align-middle">
+                                <label th:for="${#ids.next('profile.website')}" class="text-muted align-middle mb-0">Website</label>
+                            </td>
+                            <td><i class="editable" th:if="${viewOnly == null}"/>
+                                <input th:id="${#ids.seq('profile.website')}"
+                                       th:field="*{website}"
+                                       class="data-edit" type="text"
+                                       disabled="disabled"/>
+                            </td>
+                        </tr>
                         <tr th:unless="${@applicationSettings.profile.enabledResearcherCategories.isEmpty()}"
                             class="edit-container">
                             <td class="align-middle">
@@ -123,13 +124,12 @@
                         </tr>
                         <tr class="edit-container">
                             <td class="align-middle">
-                                <label th:for="${#ids.next('profile.website')}" class="text-muted align-middle mb-0">Website</label>
+                                <label th:for="${#ids.next('profile.researcherPosition')}" class="text-muted align-middle mb-0">Position</label>
                             </td>
-                            <td><i class="editable" th:if="${viewOnly == null}"/>
-                                <input th:id="${#ids.seq('profile.website')}"
-                                       th:field="*{website}"
-                                       class="data-edit" type="text"
-                                       disabled="disabled"/>
+                            <td>
+                                <div th:replace="fragments/profile::researcher-position-selection(selectedResearcherPosition=*{researcherPosition})">
+                                    ...
+                                </div>
                             </td>
                         </tr>
                     </table>
