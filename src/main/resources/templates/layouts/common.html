@@ -25,9 +25,6 @@
     <link rel="stylesheet"
           crossorigin="anonymous"
           href="https://cdn.datatables.net/1.10.16/css/dataTables.bootstrap4.min.css"/>
-    <link rel="stylesheet"
-          crossorigin="anonymous"
-          href="https://cdn.jsdelivr.net/gh/enyo/opentip@2.4.6/css/opentip.css"/>
     <link rel="stylesheet" th:href="@{/css/common.css}"/>
     <link rel="stylesheet" th:href="@{/css/model.css}"/>
     <link rel="stylesheet" th:href="@{/css/search.css}"/>
@@ -115,21 +112,19 @@
     <script src="https://code.jquery.com/jquery-3.2.1.min.js"
             integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
             crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"
+            crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
             integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
             crossorigin="anonymous"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
             integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
             crossorigin="anonymous"></script>
-    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"
-            crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.9/dist/js/bootstrap-select.min.js"
             crossorigin="anonymous"></script>
     <script src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"
             crossorigin="=anonymous"></script>
     <script src="https://cdn.datatables.net/1.10.16/js/dataTables.bootstrap4.min.js"
-            crossorigin="=anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/gh/enyo/opentip@2.4.6/downloads/opentip-jquery.min.js"
             crossorigin="=anonymous"></script>
     <script th:src="@{/js/common.js}" ></script>
     <script th:if="${@userService.findCurrentUser() != null}" th:src="@{/js/activity-monitor.js}" ></script>

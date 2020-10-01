@@ -41,4 +41,6 @@
     $('.alert .close').on('click', function () {
         $(this).parent().hide();
     });
+
+    $('[data-toggle="tooltip"').tooltip();
 })();

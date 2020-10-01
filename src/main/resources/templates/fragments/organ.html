@@ -7,10 +7,8 @@
         <div th:each="organInfo, iter : ${@organInfoService.findByActiveTrueOrderByOrdering()}"
              class="form-group col-3 col-md-2 col-lg-1">
             <div class="form-check"
-                 th:attr="data-ot=${organInfo.name}"
-                 data-ot-background="cornflowerblue"
-                 data-ot-border-color="white"
-                 data-ot-shadow-color="lightgray">
+                 data-toggle="tooltip"
+                 th:title="${#strings.capitalize(organInfo.name)}">
                 <input type="checkbox"
                        name="organUberonIds"
                        th:id="${#ids.seq('organUberonIds')}"
@@ -33,10 +31,8 @@
         <div th:each="organInfo, iter : ${@organInfoService.findByActiveTrueOrderByOrdering()}"
              th:if="${#lists.contains(checkedOrganUberonIds, organInfo.uberonId)}"
              class="col-3 col-md-2 col-lg-1"
-             th:attr="data-ot=${organInfo.name}"
-             data-ot-background="cornflowerblue"
-             data-ot-border-color="white"
-             data-ot-shadow-color="lightgray">
+             data-toggle="tooltip"
+             th:title="${organInfo.name}">
             <img th:src="@{/images/organs/{uberonId}.svg(uberonId=${organInfo.uberonId})}"
                  th:alt="${organInfo.name}"
                  class="img-fluid"/>

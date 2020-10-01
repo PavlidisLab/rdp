@@ -230,16 +230,14 @@
                                                th:id="${#ids.seq('privacyLevel')}"
                                                th:checked="${user.profile.privacyLevel == privacyLevel}"
                                                th:value="${privacyLevel.ordinal()}"
-                                               th:attr="data-toggle=${@applicationSettings.privacy.isCustomizableGeneLevel() and privacyLevel.ordinal() lt user.profile.privacyLevel.ordinal()} ? 'modal',
-                                                        data-target=${@applicationSettings.privacy.isCustomizableGeneLevel() and privacyLevel.ordinal() lt user.profile.privacyLevel.ordinal()} ? '#' + ${#ids.next('confirm-gene-privacy-level-capping')}"/>
+                                               th:attr="data-toggle=${@applicationSettings.privacy.isCustomizableGeneLevel() and privacyLevel != user.profile.privacyLevel} ? 'modal',
+                                                        data-target=${@applicationSettings.privacy.isCustomizableGeneLevel() and privacyLevel != user.profile.privacyLevel} ? '#' + ${#ids.next('confirm-gene-privacy-level-reset')}"/>
                                         <label class="form-check-label"
                                                th:for="${#ids.prev('privacyLevel')}">
                                             <span th:text="${privacyLevel.label}"></span>
                                             <i class="tip oi oi-question-mark"
-                                               data-ot-background="cornflowerblue"
-                                               data-ot-border-color="white"
-                                               data-ot-shadow-color="lightgray"
-                                               th:attr="data-ot=${privacyLevel.description}"/>
+                                               data-toggle="tooltip"
+                                               th:title="${privacyLevel.description}"/>
                                         </label>
                                     </div>
                                 </div>
@@ -266,10 +264,8 @@
                                     <label class="form-check-label" th:for="${#ids.prev('profile.shared')}">
                                         Share my data with partner registries
                                         <i class="tip oi oi-question-mark"
-                                           data-ot-background="cornflowerblue"
-                                           data-ot-border-color="white"
-                                           data-ot-shadow-color="lightgray"
-                                           data-ot="Administrators of partner registries will be able to view your data">
+                                           data-toggle="tooltip"
+                                           title="Administrators of partner registries will be able to view your data">
                                         </i>
                                     </label>
                                 </div>
@@ -288,10 +284,8 @@
                                 <label class="form-check-label" th:for="${#ids.prev('profile.hideGenelist')}">
                                     Hide my gene listing for non-administrative users
                                     <i class="tip oi oi-question-mark"
-                                       data-ot-background="cornflowerblue"
-                                       data-ot-border-color="white"
-                                       data-ot-shadow-color="lightgray"
-                                       data-ot="Hide your gene list when sharing your profile with others">
+                                       data-toggle="tooltip"
+                                       text="Hide your gene list when sharing your profile with others">
                                     </i>
                                 </label>
                             </div>
