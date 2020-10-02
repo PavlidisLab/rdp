@@ -33,7 +33,6 @@ import ubc.pavlab.rdp.repositories.UserGeneRepository;
 
 import java.text.MessageFormat;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import static org.springframework.util.CollectionUtils.containsAny;
