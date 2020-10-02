@@ -508,25 +508,6 @@ public class UserServiceImpl implements UserService {
                 .collect( Collectors.toSet() );
     }
 
-    private Map<UUID, Integer> userHiddenIds = new ConcurrentHashMap<>();
-
-    @Override
-    public UUID getHiddenIdForUser( User user ) {
-        UUID hiddenId = UUID.randomUUID();
-        userHiddenIds.put( hiddenId, user.getId() );
-        return hiddenId;
-    }
-
-    @Override
-    public User findUserByHiddenId( UUID hiddenId ) {
-        return findUserById( userHiddenIds.get( hiddenId ) );
-    }
-
-    @Override
-    public boolean hasRole( User user, String role ) {
-        return user.getRoles().contains( roleRepository.findByRole( role ) );
-    }
-
     @Override
     public void updateUserTerms() {
         log.info( "Updating user terms..." );

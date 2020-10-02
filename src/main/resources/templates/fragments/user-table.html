@@ -33,16 +33,6 @@
                 <span th:text="${u.profile.organization}"></span>
             </td>
         </th:block>
-        <th:block sec:authorize="!hasPermission(#vars.u, 'read')">
-            <td class="text-center">
-                <a th:href="@{/request-match/user/{hiddenId}(hiddenId=${@userService.getHiddenIdForUser(u)})}"
-                   class="btn btn-primary btn-sm">Request a match</a>
-            </td>
-            <td class="text-center" th:colspan="100">
-                <i class="oi oi-lock-locked" title="This researcher information is confidential."></i>
-                This research information is confidential.
-            </td>
-        </th:block>
     </tr>
     <tr th:if="${#lists.isEmpty(users)}">
         <td class="text-center" th:colspan="100">No Users Found</td>
@@ -87,15 +77,6 @@
                 <span th:text="${ug.user.profile.researcherPosition?.label}"></span>
                 <span th:if="${ug.user.profile.researcherPosition} != null and ${ug.user.profile.organization} != ''">at</span>
                 <span th:text="${ug.user.profile.organization}"></span>
-            </td>
-        </th:block>
-        <th:block sec:authorize="!hasPermission(#vars.ug, 'read')">
-            <td class="text-center">
-                <a th:href="@{/request-match/user/{hiddenId}/gene/{hiddenUserGeneId}(hiddenId=${@userService.getHiddenIdForUser(ug.user)},hiddenUserGeneId=${@userGeneService.getHiddenIdForUserGene(ug)})}" class="btn btn-primary btn-sm">Request a match</a>
-            </td>
-            <td class="text-center" colspan="100">
-                <i class="oi oi-lock-locked" title="This researcher information is confidential."></i>
-                This research information is confidential.
             </td>
         </th:block>
         <td th:text="${ug.symbol}"></td>

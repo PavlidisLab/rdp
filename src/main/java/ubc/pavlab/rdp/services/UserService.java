@@ -75,12 +75,6 @@ public interface UserService {
 
     SortedSet<String> getLastNamesFirstChar();
 
-    UUID getHiddenIdForUser( User user );
-
-    User findUserByHiddenId( UUID hiddenId );
-
-    boolean hasRole( User user, String role );
-
     void updateUserTerms();
 
     long computeTermOverlaps( UserTerm userTerm, Collection<GeneInfo> genes );
