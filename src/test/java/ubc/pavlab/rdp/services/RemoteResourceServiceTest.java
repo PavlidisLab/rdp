@@ -11,6 +11,7 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.junit4.SpringRunner;
+import ubc.pavlab.rdp.exception.RemoteException;
 import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.model.User;
 import ubc.pavlab.rdp.model.UserGene;
@@ -23,9 +24,11 @@ import javax.ws.rs.core.Response;
 import java.util.EnumSet;
 import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 import static ubc.pavlab.rdp.util.TestUtils.createTaxon;
+import static ubc.pavlab.rdp.util.TestUtils.createUser;
 
 @RunWith(SpringRunner.class)
 public class RemoteResourceServiceTest {
@@ -90,5 +93,21 @@ public class RemoteResourceServiceTest {
         verify( resteasyClient ).target( "example.com/api/genes/search?symbol=ok&taxonId=9606&tier=TIER1" );
         verify( resteasyClient ).target( "example.com/api/genes/search?symbol=ok&taxonId=9606&tier=TIER2" );
         verifyNoMoreInteractions( resteasyClient );
+    }
+
+    @Test
+    public void getRemoteUser_whenRemoteDoesNotExist_thenReturnSuccess() {
+        User user = createUser( 1 );
+        when( response.getStatus() ).thenReturn( 200 );
+        when( response.readEntity( User.class ) ).thenReturn( user );
+        when( iSearchSettings.getApis() ).thenReturn( new String[]{ "example.com" } );
+        User remoteUser = remoteResourceService.getRemoteUser( 1, "example.com" );
+        assertThat( remoteUser ).isEqualTo( user );
+    }
+
+    @Test(expected = RemoteException.class)
+    public void getRemoteUser_whenRemoteDoesNotExist_thenRaiseException() {
+        when( iSearchSettings.getApis() ).thenReturn( new String[]{ "example.com" } );
+        remoteResourceService.getRemoteUser( 1, "example1.com" );
     }
 }

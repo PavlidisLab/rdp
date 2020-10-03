@@ -2,6 +2,7 @@
 <!--suppress ThymeleafVariablesResolveInspection checking for null -->
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
       lang="en">
 
 <head th:replace="layouts/login::head(title='Login')">
@@ -13,18 +14,20 @@
 
 <div class="wrapper d-flex justify-content-center align-items-center">
     <div class="container py-4">
-        <h4 class="form-signin-heading"><a th:href="@{/login}" th:text="#{rdp.site.fullname}"/></h4> <h6 class="form-signin-subheading">Researcher Registry</h6>
-        <div th:text="${message}"></div>
+        <h4 class="form-signin-heading"><a th:href="@{/login}" th:text="#{rdp.site.fullname}"/></h4> <h6
+            class="form-signin-subheading">Researcher Registry</h6>
+        <div th:replace="layouts/login::message"></div>
         <form th:action="@{/login}" method="POST">
             <div class="row">
-                <div class="offset-1 col-10">
+                <div class="offset-md-1 col-md-10">
                     <div class="form-group">
                         <label for="email">Email</label>
                         <input type="text" id="email" name="email" th:placeholder="Email" class="form-control py-2"/>
                     </div>
                     <div class="form-group">
                         <label for="password">Password</label>
-                        <input type="password" placeholder="Password" id="password" name="password" class="form-control py-2"/>
+                        <input type="password" placeholder="Password" id="password" name="password"
+                               class="form-control py-2"/>
                     </div>
                     <div class="form-group">
                         <div class="form-check">
@@ -33,7 +36,8 @@
                         </div>
                     </div>
                     <div class="form-group" th:if="${param.error}">
-                        <div class="text-danger text-center" th:if="${session[SPRING_SECURITY_LAST_EXCEPTION]}" th:utext="${session[SPRING_SECURITY_LAST_EXCEPTION].message}">
+                        <div class="text-danger text-center" th:if="${session[SPRING_SECURITY_LAST_EXCEPTION]}"
+                             th:utext="${session[SPRING_SECURITY_LAST_EXCEPTION].message}">
                             error
                         </div>
                     </div>
@@ -41,29 +45,32 @@
             </div>
 
             <div class="form-group row">
-                <div class="col-4 offset-1">
-                    <button class="btn btn-primary btn-block" name="Submit" value="Login" type="Submit" th:text="Login"></button>
+                <div class="col-md-4 offset-md-1">
+                    <button class="btn btn-primary btn-block" name="Submit" value="Login" type="Submit"
+                            th:text="Login"></button>
                 </div>
                 <div class="col-6 d-flex align-items-center h100">
                     <a th:href="@{/forgotPassword}">Forgot Password?</a>
                 </div>
             </div>
-        </form>
-        <div class="row">
-            <div class="col-10 offset-1">
-                <div class="row">
-                    <div class="col-4 text-center">
-                        <a th:href="@{/registration}">Create Account</a>
-                    </div>
-                    <div class="col-4 text-center" th:if="${@applicationSettings.getPrivacy().isPublicSearch()}">
-                        <a th:href="@{/search}">Public search</a>
-                    </div>
-                    <div class="col-4 text-center">
-                        <a th:href="'mailto:' + #{rdp.site.contact-email}">Contact Support</a>
+
+            <div class="form-group row">
+                <div class="col-md-10 offset-md-1">
+                    <div class="row">
+                        <div class="col-4 text-center">
+                            <a th:href="@{/registration}">Create Account</a>
+                        </div>
+                        <div sec:authorize="hasPermission(null, 'search')"
+                             class="col-4 text-center">
+                            <a th:href="@{/search}">Public search</a>
+                        </div>
+                        <div class="col-4 text-center">
+                            <a th:href="'mailto:' + #{rdp.site.contact-email}">Contact Support</a>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
+        </form>
     </div>
 
 </div>

@@ -4,7 +4,8 @@
       xmlns:th="http://www.thymeleaf.org">
 <body>
 <!-- User table -->
-<table class="user-table table table-sm mb-0" th:fragment="user-table (users, remote)">
+<table th:fragment="user-table (users, remote)"
+       class="user-table table table-sm">
     <thead class="thead-light">
     <tr>
         <th></th>
@@ -21,7 +22,15 @@
     <tr th:each="u : ${users}">
         <th:block>
             <td class="text-center">
-                <a th:href="@{/userView/{id}(id=${u.id})}" class="btn btn-primary btn-sm">View user profile</a>
+                <a th:if="${remote}"
+                   th:href="@{/userView/{userId}(userId=${u.id},remoteHost=${u.originUrl})}"
+                   class="btn btn-primary btn-sm">
+                    View User Profile
+                </a>
+                <a th:if="${remote == null}"
+                   th:href="@{/userView/{userId}(userId=${u.id})}" class="btn btn-primary btn-sm">
+                    View User Profile
+                </a>
             </td>
             <td th:if="${remote}" th:text="${u.origin}"></td>
             <td><a th:href="'mailto:' + ${u.email}" th:text="${u.email}"></a></td>
@@ -33,14 +42,14 @@
             </td>
         </th:block>
     </tr>
-    <tr th:if="${#lists.isEmpty(users)}">
-        <td class="text-center" th:colspan="100">No Users Found</td>
+    <tr th:if="${#lists.isEmpty(users)}" class="table-warning">
+        <td class="text-center" th:colspan="100">No users found matching the provided search criteria.</td>
     </tr>
     </tbody>
 </table>
 
 <table class="user-table table table-sm mb-0" th:fragment="usergenes-table (usergenes, remote)">
-    <tr th:each="map : ${mapsList}" >
+    <tr th:each="map : ${mapsList}">
         <td colspan="100" th:each="mapEntry : ${map}">
             <span th:text="${mapEntry.key}"></span>
             <span th:text="${mapEntry.value}"></span>
@@ -67,7 +76,15 @@
     <tr th:each="ug : ${usergenes}">
         <th:block>
             <td class="text-center">
-                <a th:href="@{/userView/{id}(id=${ug.user.id})}" class="btn btn-primary btn-sm">View User Profile</a>
+                <a th:if="${remote}"
+                   th:href="@{/userView/{userId}(userId=${ug.user.id},remoteHost=${ug.user.originUrl})}"
+                   class="btn btn-primary btn-sm">
+                    View User Profile
+                </a>
+                <a th:if="${remote == null}"
+                   th:href="@{/userView/{userId}(userId=${ug.user.id})}" class="btn btn-primary btn-sm">
+                    View User Profile
+                </a>
             </td>
             <td th:if="${remote}"><span th:text="${ug.user.origin}" th:remove="tag"></span></td>
             <td><a th:href="'mailto:' + ${ug.user.email}" th:text="${ug.user.email}"></a></td>
@@ -82,8 +99,8 @@
         <td th:text="${ug.tier}"></td>
         <td th:text="${#strings.capitalizeWords(ug.taxon.commonName)}"></td>
     </tr>
-    <tr th:if="${#lists.isEmpty(usergenes)}">
-        <td class="text-center" th:colspan="100">No Users Found</td>
+    <tr th:if="${#lists.isEmpty(usergenes)}" class="table-warning">
+        <td class="text-center warning" th:colspan="100">No user genes found matching the provided search criteria.</td>
     </tr>
     </tbody>
 </table>

@@ -544,6 +544,38 @@ public class UserServiceImplTest {
     }
 
     @Test
+    public void updateUserProfileAndPublicationsAndOrgans_whenPrivacyLevelChangeAndCustomizableLevelIsNotEnabled_thenLeavePrivacyLevelAsIs() {
+        when( privacySettings.isCustomizableLevel() ).thenReturn( false );
+        User user = createUser( 1 );
+        assertThat( user.getProfile() ).hasFieldOrPropertyWithValue( "privacyLevel", PrivacyLevelType.PUBLIC );
+
+        Profile profile = new Profile();
+        profile.setPrivacyLevel( PrivacyLevelType.SHARED );
+        userService.updateUserProfileAndPublicationsAndOrgans( user, profile, new HashSet<>(), Optional.empty() );
+
+        assertThat( user.getProfile() ).hasFieldOrPropertyWithValue( "privacyLevel", PrivacyLevelType.PUBLIC );
+    }
+
+    @Test
+    public void updateUserProfileAndPublicationsAndOrgans_whenPrivacyLevelChange_thenResetGenePrivacyLevels() {
+        when( privacySettings.isCustomizableLevel() ).thenReturn( true );
+        when( privacySettings.isCustomizableGeneLevel() ).thenReturn( true );
+        Taxon taxon = createTaxon( 1 );
+        User user = createUserWithGenes( 1, createGene( 1, taxon ), createGene( 2, taxon ) );
+        assertThat( user.getUserGenes().get( 1 ) )
+                .hasFieldOrPropertyWithValue( "privacyLevel", PrivacyLevelType.PRIVATE );
+
+        Profile profile = new Profile();
+        profile.setPrivacyLevel( PrivacyLevelType.SHARED );
+        userService.updateUserProfileAndPublicationsAndOrgans( user, profile, new HashSet<>(), Optional.empty() );
+
+        assertThat( user.getProfile() )
+                .hasFieldOrPropertyWithValue( "privacyLevel", PrivacyLevelType.SHARED );
+        assertThat( user.getUserGenes().get( 1 ) )
+                .hasFieldOrPropertyWithValue( "privacyLevel", PrivacyLevelType.SHARED );
+    }
+
+    @Test
     public void createPasswordResetTokenForUser_hasCorrectExpiration() {
         User user = createUser( 1 );
         String token = "HEYYEYAAEYAAAEYAEYAA";

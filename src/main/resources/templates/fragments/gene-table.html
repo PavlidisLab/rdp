@@ -2,8 +2,9 @@
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:th="http://www.thymeleaf.org">
 <body>
-<table th:id="${viewOnly == null} ? 'gene-table' : ''" class="gene-table table table-sm mb-0"
-       th:fragment="gene-table (genes)">
+<table th:fragment="gene-table (genes)"
+       th:id="${viewOnly == null} ? 'gene-table' : ''"
+       class="gene-table table table-sm">
     <thead class="thead-light">
     <tr>
         <th scope="col">Symbol</th>
@@ -12,7 +13,9 @@
         <th class="text-center" scope="col"
             th:text="${viewOnly == null} ? 'Primary' : 'Tier'"
             th:if="${@tierService.isTierEnabled(T(ubc.pavlab.rdp.model.enums.TierType).TIER1)} and ${@tierService.isTierEnabled(T(ubc.pavlab.rdp.model.enums.TierType).TIER2)}"/>
-        <th th:if="${@applicationSettings.privacy.isCustomizableGeneLevel()}" class="text-center" scope="col">Privacy Level</th>
+        <th th:if="${@applicationSettings.privacy.isCustomizableGeneLevel()}" class="text-center" scope="col">
+            Privacy Level
+        </th>
     </tr>
     </thead>
     <tbody>
@@ -50,9 +53,7 @@
     </tbody>
     <tfoot th:if="${viewOnly != null}">
     <tr>
-        <td colspan="3">
-
-        </td>
+        <td colspan="100"></td>
     </tr>
     </tfoot>
 </table>

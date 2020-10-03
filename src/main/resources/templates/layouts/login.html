@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:th="http://www.thymeleaf.org">
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head th:fragment="login-head">
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
@@ -17,6 +18,37 @@
     <link rel="stylesheet" type="text/css" th:href="@{/css/login.css}"/>
 </head>
 <body>
+<div th:fragment="message">
+    <div th:if="${message}"
+         class="row">
+        <div class="col-10 offset-1">
+            <div th:text="${message}"
+                 class="alert"
+                 th:classappend="${error} ? 'alert-danger' : 'alert-info'">
+                ...
+            </div>
+        </div>
+    </div>
+</div>
+<div th:fragment="actions">
+    <div class="form-group row">
+        <div class="col-md-10 offset-md-1">
+            <div class="row">
+                <div sec:authorize="isAuthenticated()"
+                     class="col-6 text-center">
+                    <a th:href="@{/login}">Return to my user profile</a>
+                </div>
+                <div sec:authorize="!isAuthenticated()"
+                     class="col-6 text-center">
+                    <a th:href="@{/login}">Return to login</a>
+                </div>
+                <div class="col-6 text-center">
+                    <a th:href="${'mailto:' + @siteSettings.getContactEmail()}">Contact Support</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 <th:block th:fragment="scripts">
     <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
             integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"

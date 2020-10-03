@@ -53,7 +53,8 @@
                                     <div class="card-body">
                                         <p>
                                             On your <b><a th:href="@{/user/profile}">Profile</a></b>, use
-                                            the edit [<i class="oi oi-pencil" style="color: orange;"></i>] functions to provide basic information:
+                                            the edit [<i class="oi oi-pencil" style="color: orange;"></i>] functions to
+                                            provide basic information:
                                         </p>
                                         <ul>
                                             <li>Name</li>
@@ -74,23 +75,33 @@
                                             <li>A list of PubMed IDs for your publications.</li>
                                         </ul>
 
-                                        <div  th:if="${@applicationSettings.getPrivacy().isCustomizableLevel()}">
+                                        <div th:if="${@applicationSettings.getPrivacy().isCustomizableLevel()}">
                                             <p>
                                                 These fields are optional. Your email address is not
                                                 editable because it serves as your User ID.
                                             </p>
 
-                                            <p>Data Privacy Settings section lets you choose your data sharing preferences.
+                                            <p>Data Privacy Settings section lets you choose your data sharing
+                                                preferences.
                                                 The default setting, "private", is pre-selected, but can be changed.
                                                 The options are:
                                             </p>
                                             <ul>
                                                 <li><b>private</b> - your information will only be accessible by
-                                                    Network administrators for matching you to a new rare disease gene and considering you for funding opportunities.</li>
-                                                <li><b>shared</b> - your information will be accessible by other researchers who are registered.
-                                                    Registered users will be able to access your information through the provided search interface.</li>
-                                                <li><b>public</b> - your information will be visible publicly. Your information will be shared (see above)
-                                                    with registered users and will be accessible to non-registered users through the registry’s public search webpage (<i th:text="${@siteSettings.getFullUrl()}"></i>).</li>
+                                                    Network administrators for matching you to a new rare disease gene
+                                                    and considering you for funding opportunities.
+                                                </li>
+                                                <li><b>shared</b> - your information will be accessible by other
+                                                    researchers who are registered.
+                                                    Registered users will be able to access your information through the
+                                                    provided search interface.
+                                                </li>
+                                                <li><b>public</b> - your information will be visible publicly. Your
+                                                    information will be shared (see above)
+                                                    with registered users and will be accessible to non-registered users
+                                                    through the registry’s public search webpage (<i
+                                                            th:text="${@siteSettings.getFullUrl()}"></i>).
+                                                </li>
                                             </ul>
                                         </div>
                                         <p th:if="${@applicationSettings.getPrivacy().isCustomizableSharing()}">
@@ -99,7 +110,8 @@
                                             of establishing connections between clinician sciences who are submitting
                                             their rare disease genes to partner registries and Canadian model organism
                                             researchers. The data shared with partner registries will only be visible to
-                                            the administrators of those registries. If your data privacy level is set to "public",
+                                            the administrators of those registries. If your data privacy level is set to
+                                            "public",
                                             partner registries will gain access automatically.
                                         </p>
                                     </div>
@@ -164,12 +176,14 @@
                                 <div id="modelmanager" class="collapse" aria-labelledby="modelmanager-heading"
                                      data-parent="#model-accordion">
                                     <div class="card-body">
-                                      <p>
-					After selecting a model organism in the drop-down menu, you can optionally enter
-					a description of your research on this organism (Organism Research Focus), if you
-					feel it is different from the description you may have provided in your
-					<b><a th:href="@{/user/profile}">Profile</a></b> (About My Research).
-                                      </p>
+                                        <p>
+                                            After selecting a model organism in the drop-down menu, you can optionally
+                                            enter
+                                            a description of your research on this organism (Organism Research Focus),
+                                            if you
+                                            feel it is different from the description you may have provided in your
+                                            <b><a th:href="@{/user/profile}">Profile</a></b> (About My Research).
+                                        </p>
 
                                         <p>The most important functionality of this section is
                                             the addition of genes, and then of Gene Ontology terms.</p>
@@ -267,7 +281,8 @@
                                             Organism Manager page. From here you may let us suggest terms for you or
                                             input terms manually using the input box below the table.</p>
 
-                                        <p><b>Note:</b> You need to have at least two genes saved in order for us to succesfully recommend terms.</p>
+                                        <p><b>Note:</b> You need to have at least two genes saved in order for us to
+                                            succesfully recommend terms.</p>
 
                                         <p>Suggested GO terms will appear in a table (allow
                                             for a short delay especially if you have a lot of
@@ -278,15 +293,18 @@
                                             <li>GO Aspect, which indicates one of three
                                                 domains from which the GO term originates (biological
                                                 process (BP), molecular function (MF), cellular
-                                                component (CC))</li>
+                                                component (CC))
+                                            </li>
                                             <li>Overlap, which indicates how many of your
                                                 (Tier 1 and 2) genes are annotated with that term. Clicking this
-                                                number will show which of your genes these are.</li>
+                                                number will show which of your genes these are.
+                                            </li>
                                             <li>Term Size, which indicates how many genes in
                                                 the currently chosen model organism are annotated
                                                 with that term and will be added as Tier 3 genes if
                                                 the term is selected (excluding the genes
-                                                that are already added as Tier 1 or 2)</li>
+                                                that are already added as Tier 1 or 2)
+                                            </li>
                                         </ul>
 
                                         <p>You may also manually search by GO
@@ -329,7 +347,8 @@
                                             term. A selection of the top candidates is then provided.
                                             The full process is a little more involved than this,
                                             as it makes use of the structure of the GO hierarchy and
-                                            several heuristics to provide useful results. Please <a th:href="@{/user/support}">Contact
+                                            several heuristics to provide useful results. Please <a
+                                                th:href="@{/user/support}">Contact
                                             Us</a> if you would like more details.
                                         </p>
                                     </div>
@@ -354,34 +373,49 @@
                                     <div class="card-body">
                                         <p>
                                             The Search page allows you to browse or search for other registered users
-                                            who chose to share their data by selecting "shared" or "public" data privacy setting.
+                                            who chose to share their data by selecting "shared" or "public" data privacy
+                                            setting.
                                             If "Include results from partner registries" option is selected,
                                             the registry will connect to remote registries of the RDMM
                                             partners and display/search their "public" users.
                                         </p>
                                         <p>
-                                            There are two ways to search for users: using their name and profile information
-                                            ("researcher" tab) or using gene search ("Gene" tab). In the "researcher" tab you can search in the following ways:
+                                            There are two ways to search for users: using their name and profile
+                                            information
+                                            ("researcher" tab) or using gene search ("Gene" tab). In the "researcher"
+                                            tab you can search in the following ways:
                                         </p>
                                         <ul>
-                                            <li>Click on letters of the alphabet to retrieve all users whose last name begins with that letter</li>
-                                            <li>Enter one or more letters of the user's name in "Search by name" box</li>
+                                            <li>Click on letters of the alphabet to retrieve all users whose last name
+                                                begins with that letter
+                                            </li>
+                                            <li>Enter one or more letters of the user's name in "Search by name" box
+                                            </li>
                                             <li>Search for keywords in the user's research description</li>
                                         </ul>
                                         <p>
-                                            After clicking on the Search button (or a letter of the alphabet) the list of
-                                            results will be displayed at the bottom of the page. If "Include results from partner registries" is selected,
-                                            the partner registries results will be displayed in a separate section with the
+                                            After clicking on the Search button (or a letter of the alphabet) the list
+                                            of
+                                            results will be displayed at the bottom of the page. If "Include results
+                                            from partner registries" is selected,
+                                            the partner registries results will be displayed in a separate section with
+                                            the
                                             indication from which registry the matches are coming from ("Origin").
-                                            Clicking on a user's email address will open a new tab with the user's profile and gene information.
+                                            Clicking on a user's email address will open a new tab with the user's
+                                            profile and gene information.
                                         </p>
                                         <p>
-                                            "Gene" tab allows you to search for registered users based on genes they study. 
-                                            Gene symbols are organism-specific and will be matched against the list of known gene 
-                                            symbols for the selected organism (selection made in a dropdown menu). 
-                                            If you want to search for a match using a human gene, but consider orthologs in other model organisms, 
-                                            you would use the secondary dropdown menu to indicate the preferred organism. 
-                                            The ortholog mapping is based on <a href="https://www.flyrnai.org/diopt" target="_blank">
+                                            "Gene" tab allows you to search for registered users based on genes they
+                                            study.
+                                            Gene symbols are organism-specific and will be matched against the list of
+                                            known gene
+                                            symbols for the selected organism (selection made in a dropdown menu).
+                                            If you want to search for a match using a human gene, but consider orthologs
+                                            in other model organisms,
+                                            you would use the secondary dropdown menu to indicate the preferred
+                                            organism.
+                                            The ortholog mapping is based on <a href="https://www.flyrnai.org/diopt"
+                                                                                target="_blank">
                                             DIOPT</a> results, filtered for DIOPT score >5 and Rank = "high".
                                         </p>
                                     </div>

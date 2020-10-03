@@ -18,7 +18,8 @@
 
         <nav id="main-nav" class="navbar navbar-light bg-light">
             <nav class="nav flex-column">
-                    <a th:each="question : ${@faqSettings.questions}" th:href="${'#' + question.key}" th:text="${question.value}"></a>
+                <a th:each="question : ${@faqSettings.questions}" th:href="${'#' + question.key}"
+                   th:text="${question.value}"></a>
             </nav>
         </nav>
         <div class="dropdown-divider"></div>

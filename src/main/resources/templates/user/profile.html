@@ -54,9 +54,10 @@
                     <table class="table mb-0">
                         <tr class="edit-container">
                             <td class="align-middle" style="width: 120px;">
-                                <label th:for="${#ids.next('profile.name')}" class="text-muted align-middle mb-0">First Name</label>
+                                <label th:for="${#ids.next('profile.name')}" class="text-muted align-middle mb-0">First
+                                    Name</label>
                             </td>
-                            <td><i class="editable" th:if="${viewOnly == null}"/>
+                            <td><i class="editable" th:if="${viewOnly == null}"></i>
                                 <input th:id="${#ids.seq('profile.name')}"
                                        th:field="*{name}"
                                        type="text"
@@ -66,9 +67,10 @@
                         </tr>
                         <tr class="edit-container">
                             <td class="align-middle">
-                                <label th:for="${#ids.next('profile.lastName')}" class="text-muted align-middle mb-0">Last Name</label>
+                                <label th:for="${#ids.next('profile.lastName')}" class="text-muted align-middle mb-0">Last
+                                    Name</label>
                             </td>
-                            <td><i class="editable" th:if="${viewOnly == null}"/>
+                            <td><i class="editable" th:if="${viewOnly == null}"></i>
                                 <input th:id="${#ids.seq('profile.lastName')}"
                                        th:field="*{lastName}"
                                        type="text"
@@ -79,9 +81,11 @@
                         <tr class="edit-container">
                             <td class="align-middle">
                                 <label th:for="${#ids.next('profile.organization')}"
-                                       class="text-muted align-middle mb-0">Organization</label>
+                                       class="text-muted align-middle mb-0">
+                                    Organization
+                                </label>
                             </td>
-                            <td><i class="editable" th:if="${viewOnly == null}"/>
+                            <td><i class="editable" th:if="${viewOnly == null}"></i>
                                 <input th:id="${#ids.seq('profile.organization')}"
                                        th:field="*{organization}"
                                        class="data-edit" type="text"
@@ -90,9 +94,12 @@
                         </tr>
                         <tr class="edit-container">
                             <td class="align-middle">
-                                <label th:for="${#ids.next('profile.department')}" class="text-muted align-middle mb-0">Department</label>
+                                <label th:for="${#ids.next('profile.department')}"
+                                       class="text-muted align-middle mb-0">
+                                    Department
+                                </label>
                             </td>
-                            <td><i class="editable" th:if="${viewOnly == null}"/>
+                            <td><i class="editable" th:if="${viewOnly == null}"></i>
                                 <input th:id="${#ids.seq('profile.department')}"
                                        th:field="*{department}"
                                        type="text"
@@ -102,9 +109,11 @@
                         </tr>
                         <tr class="edit-container">
                             <td class="align-middle">
-                                <label th:for="${#ids.next('profile.website')}" class="text-muted align-middle mb-0">Website</label>
+                                <label th:for="${#ids.next('profile.website')}" class="text-muted align-middle mb-0">
+                                    Website
+                                </label>
                             </td>
-                            <td><i class="editable" th:if="${viewOnly == null}"/>
+                            <td><i class="editable" th:if="${viewOnly == null}"></i>
                                 <input th:id="${#ids.seq('profile.website')}"
                                        th:field="*{website}"
                                        class="data-edit" type="text"
@@ -114,7 +123,8 @@
                         <tr th:unless="${@applicationSettings.profile.enabledResearcherCategories.isEmpty()}"
                             class="edit-container">
                             <td class="align-middle">
-                                <label th:for="${#ids.next('profile.researcherCategory')}" class="text-muted align-middle mb-0">Researcher Category</label>
+                                <label th:for="${#ids.next('profile.researcherCategory')}"
+                                       class="text-muted align-middle mb-0">Researcher Category</label>
                             </td>
                             <td>
                                 <div th:replace="fragments/profile::researcher-category-selection(selectedResearcherCategory = *{researcherCategory})">
@@ -124,7 +134,8 @@
                         </tr>
                         <tr class="edit-container">
                             <td class="align-middle">
-                                <label th:for="${#ids.next('profile.researcherPosition')}" class="text-muted align-middle mb-0">Position</label>
+                                <label th:for="${#ids.next('profile.researcherPosition')}"
+                                       class="text-muted align-middle mb-0">Position</label>
                             </td>
                             <td>
                                 <div th:replace="fragments/profile::researcher-position-selection(selectedResearcherPosition=*{researcherPosition})">
@@ -145,13 +156,17 @@
                     </div>
                     <table class="table mb-0">
                         <tr>
-                            <td class="align-middle" style="width: 120px;"><span
-                                    class="text-muted align-middle">Email</span></td>
-                            <td><span th:text="${user.email}" th:remove="tag"></span></td>
+                            <td class="align-middle" style="width: 120px;">
+                                <span class="text-muted align-middle">Email</span>
+                            </td>
+                            <td th:text="${user.email}"></td>
                         </tr>
                         <tr class="edit-container">
                             <td class="align-middle">
-                                <label th:for="${#ids.next('profile.phone')}" class="text-muted align-middle mb-0">Phone</label>
+                                <label th:for="${#ids.next('profile.phone')}"
+                                       class="text-muted align-middle mb-0">
+                                    Phone
+                                </label>
                             </td>
                             <td><i class="editable" th:if="${viewOnly == null}"/>
                                 <input th:id="${#ids.seq('profile.phone')}"
@@ -205,9 +220,9 @@
 
         <div class="row my-3">
             <div class="w-100"
-                 th:if="${@applicationSettings.getPrivacy().isCustomizableLevel()} or ${@applicationSettings.getPrivacy().isCustomizableSharing()} or ${@applicationSettings.getPrivacy().isAllowHideGenelist()}"></div>
+                 th:if="${@applicationSettings.privacy.isCustomizableLevel()} or ${@applicationSettings.privacy.isCustomizableSharing()} or ${@applicationSettings.privacy.isAllowHideGenelist()}"></div>
             <div class="col"
-                 th:if="${@applicationSettings.getPrivacy().isCustomizableLevel()} or ${@applicationSettings.getPrivacy().isCustomizableSharing()} or ${@applicationSettings.getPrivacy().isAllowHideGenelist()}">
+                 th:if="${@applicationSettings.privacy.isCustomizableLevel()} or ${@applicationSettings.privacy.isCustomizableSharing()} or ${@applicationSettings.privacy.isAllowHideGenelist()}">
                 <div class="card privacy-settings edit-container">
                     <div class="card-header d-flex align-items-center">
                         <h3 id="data-privacy-settings" class="mb-0 d-inline-block">Data Privacy Settings</h3>
@@ -215,11 +230,12 @@
                     <div class="list-group list-group-flush">
                         <!-- TODO: also check if more than one option is available to display this section -->
                         <div id="privacy-levels" class="list-group-item"
-                             th:if="${@applicationSettings.getPrivacy().isCustomizableLevel()}">
-                            <h4>Privacy Level</h4>
+                             th:if="${@applicationSettings.privacy.isCustomizableLevel()}">
+                            <h4 class="card-title">Privacy Level</h4>
 
-                            <p>These settings determine how other users from <strong>this registry</strong> can see your
-                                data.</p>
+                            <!--
+                            <p>These settings determine how other users from <strong>this registry</strong> can see your data.</p>
+                            -->
 
                             <form id="privacy-level">
                                 <div class="form-group">
@@ -243,18 +259,20 @@
                                 </div>
                             </form>
 
-                            <p th:if="${@applicationSettings.getPrivacy().isCustomizableGeneLevel()}">
+                            <p th:if="${@applicationSettings.privacy.isCustomizableGeneLevel()}">
                                 Your genes privacy levels are capped by this setting.
                             </p>
 
-                            Read more about privacy settings in the <a th:href="@{/user/faq#privacy-settings}" target="_blank">FAQ</a>.
+                            Read more about privacy settings in the <a th:href="@{/user/faq#privacy-settings}"
+                                                                       target="_blank">FAQ</a>.
                         </div>
 
                         <div id="privacy-sharing" class="list-group-item"
-                             th:if="${@applicationSettings.getPrivacy().isCustomizableSharing()}">
-                            <h4>Partner Registry</h4>
-                            <p>These settings determine whether users from <strong>other registries</strong> can see
-                                your data.</p>
+                             th:if="${@applicationSettings.privacy.isCustomizableSharing()}">
+                            <h4 class="card-title">Partner Registry</h4>
+                            <!--
+                            <p>These settings determine whether users from <strong>other registries</strong> can see your data.</p>
+                                -->
                             <div class="form-group">
                                 <div class="form-check form-check-inline">
                                     <input th:id="${#ids.seq('profile.shared')}"
@@ -270,10 +288,11 @@
                                     </label>
                                 </div>
                             </div>
-                            Read more about international search settings in the <a th:href="@{/user/faq#isearch}" target="_blank">FAQ</a>.
+                            Read more about international search settings in the
+                            <a th:href="@{/user/faq#isearch}" target="_blank">FAQ</a>.
                         </div>
                         <div id="privacy-genelist" class="list-group-item"
-                             th:if="${@applicationSettings.getPrivacy().isAllowHideGenelist()}">
+                             th:if="${@applicationSettings.privacy.isAllowHideGenelist()}">
                             <h5>Content displayed on my profile</h5>
                             <p>These settings determine which parts of your user profile are visible to other users.</p>
                             <div class="form-check form-check-inline">
@@ -299,42 +318,39 @@
             <div class="card-header">
                 <h3 class="mb-0">Publications</h3>
             </div>
-            <table id="publication-table" class="table mb-0">
-                <thead class=".thead-light">
-                <tr>
-                    <th scope="col">PubMed</th>
-                    <th scope="col">Title</th>
-                </tr>
-                </thead>
-                <tbody>
-                <th:block th:each="pub : ${user.profile.publications}">
-                    <tr>
-                        <td><i class="delete-row" th:if="${viewOnly == null}"/><span
-                                th:text="${pub.pmid}"
-                                th:remove="tag"></span>
-                        </td>
-                        <td><a th:href="${'https://www.ncbi.nlm.nih.gov/pubmed/' + pub.pmid}"
-                               target="_blank"
-                               th:text="${pub.title != ''} ? ${pub.title} : 'Unknown Title'"
-                               rel="noopener"></a></td>
-                    </tr>
-                </th:block>
-                </tbody>
-                <tfoot th:if="${viewOnly == null}">
-                <tr>
-                    <td colspan="2">
-                        <div class="input-group">
-                            <div class="input-group-prepend">
-                                <button class="btn btn-outline-secondary add-row text-success" type="button">+</button>
-                            </div>
-                            <input type="text"
-                                   class="pub-input form-control"
-                                   placeholder="PubMed Ids: 25363768, 25418537"/>
-                        </div>
-                    </td>
-                </tr>
-                </tfoot>
-            </table>
+            <div class="card-body">
+                <div class="mb-3">
+                    <table id="publication-table" class="table">
+                        <thead class=".thead-light">
+                        <tr>
+                            <th scope="col">PubMed</th>
+                            <th scope="col">Title</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="pub : ${user.profile.publications}">
+                            <td><i class="delete-row" th:if="${viewOnly == null}"></i>
+                                <span th:text="${pub.pmid}"
+                                      th:remove="tag"></span>
+                            </td>
+                            <td><a th:href="${'https://www.ncbi.nlm.nih.gov/pubmed/' + pub.pmid}"
+                                   target="_blank"
+                                   th:text="${pub.title != ''} ? ${pub.title} : 'Unknown Title'"
+                                   rel="noopener"></a>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="input-group" th:if="${viewOnly == null}">
+                    <div class="input-group-prepend" style="background: lightgrey;">
+                        <button class="btn btn-outline-secondary add-row text-success" type="button">+</button>
+                    </div>
+                    <input type="text"
+                           class="pub-input form-control"
+                           placeholder="PubMed Ids: 25363768, 25418537"/>
+                </div>
+            </div>
         </div>
     </div>
 </div>

@@ -14,8 +14,8 @@
 
     <div class="row">
         <div class="col-8">
-            <div th:replace="layouts/common::title(title='Model Organisms', subtitle=${#strings.capitalizeWords(taxon.commonName)})"
-                 th:remove="tag">...
+            <div th:replace="layouts/common::title(title='Model Organisms', subtitle=${#strings.capitalizeWords(taxon.commonName)})">
+                ...
             </div>
         </div>
         <div class="col-4 my-auto text-right">
@@ -53,7 +53,11 @@
                 <div class="card research-info edit-container">
                     <div class="card-header d-flex align-items-center">
                         <i class="editable" th:if="${viewOnly == null}"/>
-                        <h3 class="mb-0 d-inline-block"><label th:for="${#ids.next('taxonDescriptions')}" class="mb-0">Organism Research Focus</label></h3>
+                        <h3 class="mb-0 d-inline-block">
+                            <label th:for="${#ids.next('taxonDescriptions')}" class="mb-0">
+                                Organism Research Focus
+                            </label>
+                        </h3>
                     </div>
                     <div class="p-2" style="height: 80px;">
                         <textarea th:id="${#ids.seq('taxonDescriptions')}"
@@ -69,7 +73,7 @@
              class="my-3">
             <div class="card">
                 <div class="card-header">
-                    <h4>Data Privacy</h4>
+                    <h3 class="card-title">Data Privacy</h3>
                     <p th:if="${@applicationSettings.privacy.isCustomizableLevel()}">
                         Your profile privacy level is set to <b th:text="${user.effectivePrivacyLevel.label}"></b>.
                     </p>
@@ -112,16 +116,17 @@
                     <div class="tab-content">
                         <div class="tab-pane fade show active" id="genes" role="tabpanel"
                              aria-labelledby="genes-tab">
-                            <div th:replace="fragments/gene-table :: gene-table(genes=${user.getGenesByTaxonAndTier(taxon, T(ubc.pavlab.rdp.model.enums.TierType).MANUAL)}, defaultPrivacyLevel=${user.getEffectivePrivacyLevel()})"
-                                 th:remove="tag">...
+                            <div class="mb-3">
+                                <div th:replace="fragments/gene-table::gene-table(genes=${user.getGenesByTaxonAndTier(taxon, T(ubc.pavlab.rdp.model.enums.TierType).MANUAL)}, defaultPrivacyLevel=${user.getEffectivePrivacyLevel()})">
+                                    ...
+                                </div>
                             </div>
-                            <div class="input-group mt-2" th:if="${viewOnly == null}">
+                            <div class="input-group" th:if="${viewOnly == null}">
                                 <div class="input-group-prepend" style="background: lightgrey;">
-                                    <button class="btn btn-outline-secondary reset-table text-danger d-none"
-                                            type="button">-
-                                    </button>
-                                    <button class="btn btn-outline-secondary add-row text-success" type="button"><i
-                                            class="mx-2 d-none spinner"></i>+
+                                    <button class="btn btn-outline-secondary add-row text-success"
+                                            type="button">
+                                        <i class="mx-2 d-none spinner"></i>
+                                        +
                                     </button>
                                 </div>
                                 <input type="text" class="form-control autocomplete"
@@ -129,33 +134,43 @@
                             </div>
                         </div>
 
-                        <div class="tab-pane fade" id="terms" role="tabpanel" aria-labelledby="terms-tab"
-                             th:if="${@tierService.isTierEnabled(T(ubc.pavlab.rdp.model.enums.TierType).TIER3)}">
-                            <div class="row justify-content-center" th:if="${viewOnly == null}">
-                                <div class="mb-3">
-                                    <button type="button" class="btn btn-primary recommend-terms"><i
-                                            class="mx-2 d-none spinner"></i>Recommend Terms
+                        <div th:if="${@tierService.isTierEnabled(T(ubc.pavlab.rdp.model.enums.TierType).TIER3)}"
+                             class="tab-pane fade" id="terms" role="tabpanel" aria-labelledby="terms-tab">
+
+                            <div th:if="${viewOnly == null}"
+                                 class="row mb-3">
+                                <div class="col text-center">
+                                    <button type="button" class="btn btn-primary recommend-terms">
+                                        <i class="mx-2 d-none spinner"></i>
+                                        Recommend Terms
                                     </button>
                                 </div>
                             </div>
-                            <div class="row justify-content-center recommend-message" th:if="${viewOnly == null}">
-                            </div>
 
-                            <div th:replace="fragments/term-table :: term-table(userTerms=${user.getTermsByTaxon(taxon)})"
-                                 th:remove="tag">...
-                            </div>
+                            <div class="alert recommend-message d-none" role="alert"></div>
 
-                            <div class="input-group mt-2" th:if="${viewOnly == null}">
-                                <div class="input-group-prepend" style="background: lightgrey;">
-                                    <button class="btn btn-outline-secondary reset-table text-danger d-none"
-                                            type="button">-
-                                    </button>
-                                    <button class="btn btn-outline-secondary add-row text-success" type="button"><i
-                                            class="mx-2 d-none spinner"></i>+
-                                    </button>
+                            <div class="row mb-3">
+                                <div class="col">
+                                    <div th:replace="fragments/term-table::term-table(userTerms=${user.getTermsByTaxon(taxon)})">
+                                        ...
+                                    </div>
                                 </div>
-                                <input type="text" class="form-control autocomplete"
-                                       placeholder="Search Terms"/>
+                            </div>
+
+                            <div class="row">
+                                <div class="col">
+                                    <div class="input-group" th:if="${viewOnly == null}">
+                                        <div class="input-group-prepend" style="background: lightgrey;">
+                                            <button class="btn btn-outline-secondary add-row text-success"
+                                                    type="button">
+                                                <i class="mx-2 d-none spinner"></i>
+                                                +
+                                            </button>
+                                        </div>
+                                        <input type="text" class="form-control autocomplete"
+                                               placeholder="Search Terms"/>
+                                    </div>
+                                </div>
                             </div>
 
                         </div>

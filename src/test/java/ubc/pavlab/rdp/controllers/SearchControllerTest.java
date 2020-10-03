@@ -152,6 +152,26 @@ public class SearchControllerTest {
     }
 
     @Test
+    public void viewUser_whenRemoteUserIsNotFound_thenReturnNotFound() throws Exception {
+        when( remoteResourceService.getRemoteUser( 1, "example.com" ) ).thenReturn( null );
+        when( privacyService.checkCurrentUserCanSearch( true ) ).thenReturn( true );
+        mvc.perform( get( "/userView/{userId}", 1 )
+                .param( "remoteHost", "example.com" ) )
+                .andExpect( status().isNotFound() );
+        verify( remoteResourceService ).getRemoteUser( 1, "example.com" );
+    }
+
+    @Test
+    public void viewUser_whenRemoteIsUnavailable_thenReturnNotFound() throws Exception {
+        when( remoteResourceService.getRemoteUser( 1, "example.com" ) ).thenThrow( RemoteException.class );
+        when( privacyService.checkCurrentUserCanSearch( true ) ).thenReturn( true );
+        mvc.perform( get( "/userView/{userId}", 1 )
+                .param( "remoteHost", "example.com" ) )
+                .andExpect( status().isServiceUnavailable() );
+        verify( remoteResourceService ).getRemoteUser( 1, "example.com" );
+    }
+
+    @Test
     public void searchItlUsersByNameView_thenReturnSuccess() throws Exception {
         User user = createUser( 1 );
         when( permissionEvaluator.hasPermission( any(), isNull(), eq( "international-search" ) ) ).thenReturn( true );

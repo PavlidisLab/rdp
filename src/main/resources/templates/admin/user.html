@@ -29,7 +29,8 @@
                   class="delete-user-form">
                 <div class="form-group">
                     <label th:for="${#ids.next('email')}">Confirm the user email:</label>
-                    <input th:id="${#ids.seq('email')}" class="form-control" type="email" name="email" th:placeholder="*{email}"/>
+                    <input th:id="${#ids.seq('email')}" class="form-control" type="email" name="email"
+                           th:placeholder="*{email}"/>
                     <div class="invalid-feedback" th:errors="*{email}"/>
                 </div>
                 <button class="btn btn-danger">Delete this user</button>

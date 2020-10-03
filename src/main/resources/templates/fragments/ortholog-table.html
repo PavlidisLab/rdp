@@ -11,7 +11,10 @@
         </span>
         <span th:text="${entry.key.scientificName}"></span>
         <th:block th:each="orthologGene, iterGene : ${entry.value}">
-            <th:block th:if="${iterGene.first}">(</th:block><span th:text="${orthologGene.symbol}"></span><th:block th:if="${!iterGene.last}">,</th:block><th:block th:if="${iterGene.last}">).</th:block>
+            <th:block th:if="${iterGene.first}">(</th:block>
+            <span th:text="${orthologGene.symbol}"></span>
+            <th:block th:if="${!iterGene.last}">,</th:block>
+            <th:block th:if="${iterGene.last}">).</th:block>
         </th:block>
     </th:block>
 </section>

@@ -11,6 +11,8 @@ import ubc.pavlab.rdp.model.enums.TierType;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.counting;
@@ -75,6 +77,15 @@ public final class TestUtils {
     public static User createUserWithRoles( int id, Role... roles ) {
         User user = createUser( id );
         user.setRoles( Arrays.stream( roles ).collect( Collectors.toSet() ) );
+        return user;
+    }
+
+    public static User createUserWithGenes( int id, Gene... genes ) {
+        User user = createUser( id );
+        Map<Integer, UserGene> userGenes = Arrays.stream( genes )
+                .map( g -> createUnpersistedUserGene( g, user, TierType.TIER1, PrivacyLevelType.PRIVATE ) )
+                .collect( Collectors.toMap( UserGene::getGeneId, Function.identity() ) );
+        user.getUserGenes().putAll( userGenes );
         return user;
     }
 

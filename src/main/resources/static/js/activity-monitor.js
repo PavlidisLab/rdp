@@ -90,7 +90,7 @@
 
         var currTime = (new Date()).getTime();
 
-        return parseInt(expireTime) + parseInt(offset) - parseInt(currTime) - parseInt(timeoutWindow);
+        return parseInt(expireTime) + offset - currTime - timeoutWindow;
     }
 
     function updateTimeout() {
@@ -104,7 +104,6 @@
             contentType: "application/json",
             success: function () {
                 // Confirm session is renewed.
-                console.log('dat timeout!');
                 // $('.success-row').show();
                 // $('.error-row').hide();
             },

@@ -423,20 +423,27 @@
 
     $('.recommend-terms').click(function () {
         var spinner = $(this).find('.spinner');
-        spinner.removeClass("d-none");
+        var recommendMessage = $('#terms').find('.recommend-message');
+        spinner.toggleClass("d-none", false);
+        recommendMessage.toggleClass('d-none', true);
         $.getJSON("/user/taxon/" + currentTaxonId + "/term/recommend", function (data) {
             try {
-
                 addTermRow(data);
-
                 if (data.length > 0) {
-                    $('#terms').find('.recommend-message').html("<p class='text-success'>Recommended " + data.length + " terms.</p>");
+                    recommendMessage
+                        .text('Recommended ' + data.length + ' terms')
+                        .toggleClass('alert-success', true)
+                        .toggleClass('alert-danger', false)
+                        .toggleClass('d-none', false);
                 } else {
-                    $('#terms').find('.recommend-message').html("<p class='text-danger'>Could not recommend new terms. Try adding more genes and make sure you click the save button.</p>");
+                    recommendMessage
+                        .text('Could not recommend new terms. Try adding more genes and make sure you click the save button.')
+                        .toggleClass('alert-success', false)
+                        .toggleClass('alert-danger', true)
+                        .toggleClass('d-none', false);
                 }
-
             } finally {
-                spinner.addClass("d-none");
+                spinner.toggleClass("d-none", true);
             }
         });
     });
