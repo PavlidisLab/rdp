@@ -210,9 +210,9 @@ public class SearchController {
         Gene gene = geneService.findBySymbolAndTaxon( symbol, taxon );
         Collection<UserGene> orthologs;
         if ( orthologTaxonId == null ) {
-            orthologs = userGeneService.findOrthologsByGeneAndTierInAndUserOrgansInWithoutSecurityFilter( gene, tiers, Optional.ofNullable( researcherCategories ), organsFromUberonIds( organUberonIds ) );
+            orthologs = userGeneService.findOrthologsByGeneAndTierInAndUserOrgansIn( gene, tiers, Optional.ofNullable( researcherCategories ), organsFromUberonIds( organUberonIds ) );
         } else {
-            orthologs = userGeneService.findOrthologsByGeneAndTierInAndTaxonAndUserOrgansInWithoutSecurityFilter( gene, tiers, taxonService.findById( orthologTaxonId ), Optional.ofNullable( researcherCategories ), organsFromUberonIds( organUberonIds ) );
+            orthologs = userGeneService.findOrthologsByGeneAndTierInAndTaxonAndUserOrgansIn( gene, tiers, taxonService.findById( orthologTaxonId ), Optional.ofNullable( researcherCategories ), organsFromUberonIds( organUberonIds ) );
         }
         Taxon orthologTaxon = orthologTaxonId == null ? null : taxonService.findById( orthologTaxonId );
 
@@ -232,7 +232,7 @@ public class SearchController {
             modelAndView.addObject( "errorMessage",
                     messageSource.getMessage( "SearchController.errorNoOrthologs", new String[]{ orthologTaxonId.toString() }, locale ) );
         } else {
-            modelAndView.addObject( "usergenes", userGeneService.handleGeneSearchWithoutSecurityFilter( gene, tiers, Optional.ofNullable( orthologTaxon ), Optional.ofNullable( researcherCategories ), organsFromUberonIds( organUberonIds ) ) );
+            modelAndView.addObject( "usergenes", userGeneService.handleGeneSearch( gene, tiers, Optional.ofNullable( orthologTaxon ), Optional.ofNullable( researcherCategories ), organsFromUberonIds( organUberonIds ) ) );
             if ( iSearch ) {
                 try {
                     modelAndView.addObject( "itlUsergenes",
@@ -294,9 +294,9 @@ public class SearchController {
 
         Collection<UserGene> orthologs;
         if ( orthologTaxonId == null ) {
-            orthologs = userGeneService.findOrthologsByGeneAndTierInAndUserOrgansInWithoutSecurityFilter( gene, tiers, Optional.ofNullable( researcherCategories ), organsFromUberonIds( organUberonIds ) );
+            orthologs = userGeneService.findOrthologsByGeneAndTierInAndUserOrgansIn( gene, tiers, Optional.ofNullable( researcherCategories ), organsFromUberonIds( organUberonIds ) );
         } else {
-            orthologs = userGeneService.findOrthologsByGeneAndTierInAndTaxonAndUserOrgansInWithoutSecurityFilter( gene, tiers, taxonService.findById( orthologTaxonId ), Optional.ofNullable( researcherCategories ), organsFromUberonIds( organUberonIds ) );
+            orthologs = userGeneService.findOrthologsByGeneAndTierInAndTaxonAndUserOrgansIn( gene, tiers, taxonService.findById( orthologTaxonId ), Optional.ofNullable( researcherCategories ), organsFromUberonIds( organUberonIds ) );
         }
 
         if (
@@ -357,9 +357,9 @@ public class SearchController {
 
         Collection<UserGene> orthologs;
         if ( orthologTaxonId == null ) {
-            orthologs = userGeneService.findOrthologsByGeneAndTierInAndUserOrgansInWithoutSecurityFilter( gene, tiers, Optional.ofNullable( researcherCategories ), organsFromUberonIds( organUberonIds ) );
+            orthologs = userGeneService.findOrthologsByGeneAndTierInAndUserOrgansIn( gene, tiers, Optional.ofNullable( researcherCategories ), organsFromUberonIds( organUberonIds ) );
         } else {
-            orthologs = userGeneService.findOrthologsByGeneAndTierInAndTaxonAndUserOrgansInWithoutSecurityFilter( gene, tiers, taxonService.findById( orthologTaxonId ), Optional.ofNullable( researcherCategories ), organsFromUberonIds( organUberonIds ) );
+            orthologs = userGeneService.findOrthologsByGeneAndTierInAndTaxonAndUserOrgansIn( gene, tiers, taxonService.findById( orthologTaxonId ), Optional.ofNullable( researcherCategories ), organsFromUberonIds( organUberonIds ) );
         }
 
         if (

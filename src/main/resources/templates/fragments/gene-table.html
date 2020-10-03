@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security4">
+      xmlns:th="http://www.thymeleaf.org">
 <body>
 <table th:id="${viewOnly == null} ? 'gene-table' : ''" class="gene-table table table-sm mb-0"
        th:fragment="gene-table (genes)">
@@ -18,7 +17,7 @@
     </thead>
     <tbody>
     <th:block th:each="gene : ${genes}">
-        <tr sec:authorize="hasPermission(#vars.gene, 'read')">
+        <tr>
             <td><span class="align-middle"><i th:if="${viewOnly == null}" class="delete-row align-middle"/><a
                     th:href="'https://www.ncbi.nlm.nih.gov/gene/' + ${gene.geneId}"
                     target="_blank" class="align-middle" th:text="${gene.symbol}"></a></span></td>

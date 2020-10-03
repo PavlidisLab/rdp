@@ -1,8 +1,7 @@
 <!DOCTYPE html>
 <!--suppress ThymeleafVariablesResolveInspection java variables not visible in fragments-->
 <html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security4">
+      xmlns:th="http://www.thymeleaf.org">
 <body>
 <!-- User table -->
 <table class="user-table table table-sm mb-0" th:fragment="user-table (users, remote)">
@@ -20,7 +19,7 @@
     </thead>
     <tbody>
     <tr th:each="u : ${users}">
-        <th:block sec:authorize="hasPermission(#vars.u, 'read')">
+        <th:block>
             <td class="text-center">
                 <a th:href="@{/userView/{id}(id=${u.id})}" class="btn btn-primary btn-sm">View user profile</a>
             </td>
@@ -66,7 +65,7 @@
     </thead>
     <tbody>
     <tr th:each="ug : ${usergenes}">
-        <th:block sec:authorize="hasPermission(#vars.ug, 'read')">
+        <th:block>
             <td class="text-center">
                 <a th:href="@{/userView/{id}(id=${ug.user.id})}" class="btn btn-primary btn-sm">View User Profile</a>
             </td>

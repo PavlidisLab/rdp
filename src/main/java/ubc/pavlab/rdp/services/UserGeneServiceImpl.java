@@ -24,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PostFilter;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.ResearcherCategory;
@@ -108,7 +109,8 @@ public class UserGeneServiceImpl implements UserGeneService {
     }
 
     @Override
-    public Collection<UserGene> findByGeneIdAndTierInWithoutSecurityFilter( int geneId, Set<TierType> tiers, Optional<Collection<ResearcherCategory>> researcherTypes, Optional<Collection<UserOrgan>> userOrgans ) {
+    @PostFilter("hasPermission(filterObject, 'read')")
+    public Collection<UserGene> findByGeneIdAndTierIn( int geneId, Set<TierType> tiers, Optional<Collection<ResearcherCategory>> researcherTypes, Optional<Collection<UserOrgan>> userOrgans ) {
         return userGeneRepository.findByGeneIdAndTierIn( geneId, tiers ).stream()
                 .filter( ug -> researcherTypes.map( rt -> rt.contains( ug.getUser().getProfile().getResearcherCategory() ) ).orElse( true ) )
                 .filter( ortholog -> userOrgans.map( o -> containsAny( o, ortholog.getUser().getUserOrgans().values() ) ).orElse( true ) )
@@ -116,50 +118,17 @@ public class UserGeneServiceImpl implements UserGeneService {
     }
 
     @Override
-    public Collection<UserGene> findByGeneIdAndTierInAndUserOrgansInWithoutSecurityFilter( int geneId, Set<TierType> tiers, Optional<Collection<ResearcherCategory>> researcherTypes, Optional<Collection<UserOrgan>> userOrgans ) {
+    @PostFilter("hasPermission(filterObject, 'read')")
+    public Collection<UserGene> findByGeneIdAndTierInAndUserOrgansIn( int geneId, Set<TierType> tiers, Optional<Collection<ResearcherCategory>> researcherTypes, Optional<Collection<UserOrgan>> userOrgans ) {
         return userGeneRepository.findByGeneIdAndTierIn( geneId, tiers ).stream()
                 .filter( ug -> researcherTypes.map( rt -> rt.contains( ug.getUser().getProfile().getResearcherCategory() ) ).orElse( true ) )
                 .filter( ortholog -> userOrgans.map( o -> containsAny( o, ortholog.getUser().getUserOrgans().values() ) ).orElse( true ) )
                 .collect( Collectors.toSet() );
-    }
-
-    @Override
-    public UserGene findBySymbolAndTaxon( String symbol, Taxon taxon ) {
-        return userGeneRepository.findBySymbolAndTaxon( symbol, taxon );
-    }
-
-    @Override
-    @PostFilter("hasPermission(filterObject, 'read')")
-    public Collection<UserGene> findByLikeSymbol( String symbol, Taxon taxon ) {
-        return userGeneRepository.findBySymbolContainingIgnoreCaseAndTaxon( symbol, taxon );
-    }
-
-    @Override
-    @PostFilter("hasPermission(filterObject, 'read')")
-    public Collection<UserGene> findByLikeSymbol( String symbol, Taxon taxon, TierType tier ) {
-        return userGeneRepository.findBySymbolContainingIgnoreCaseAndTaxonAndTier( symbol, taxon, tier );
-    }
-
-    @Override
-    @PostFilter("hasPermission(filterObject, 'read')")
-    public Collection<UserGene> findByLikeSymbol( String symbol, Taxon taxon, Set<TierType> tiers ) {
-        return userGeneRepository.findBySymbolContainingIgnoreCaseAndTaxonAndTierIn( symbol, taxon, tiers );
     }
 
     @Override
     @PostFilter("hasPermission(filterObject, 'read')")
     public Collection<UserGene> findOrthologsByGeneAndTierInAndUserOrgansIn( Gene gene, Set<TierType> tiers, Optional<Collection<ResearcherCategory>> researcherTypes, Optional<Collection<UserOrgan>> userOrgans ) {
-        return findOrthologsByGeneAndTierInAndUserOrgansInWithoutSecurityFilter( gene, tiers, researcherTypes, userOrgans );
-    }
-
-    @Override
-    @PostFilter("hasPermission(filterObject, 'read')")
-    public Collection<UserGene> findOrthologsByGeneAndTierInAndTaxonAndUserOrgansIn( Gene gene, Set<TierType> tiers, Taxon orthologTaxon, Optional<Collection<ResearcherCategory>> researcherTypes, Optional<Collection<UserOrgan>> userOrgans ) {
-        return findOrthologsByGeneAndTierInAndTaxonAndUserOrgansInWithoutSecurityFilter( gene, tiers, orthologTaxon, researcherTypes, userOrgans );
-    }
-
-    @Override
-    public Collection<UserGene> findOrthologsByGeneAndTierInAndUserOrgansInWithoutSecurityFilter( Gene gene, Set<TierType> tiers, Optional<Collection<ResearcherCategory>> researcherTypes, Optional<Collection<UserOrgan>> userOrgans ) {
         return userGeneRepository.findByGeneId( gene.getGeneId() )
                 .stream()
                 .map( userGene -> userGeneRepository.findOrthologsByGeneId( userGene.getGeneId() ) )
@@ -171,7 +140,8 @@ public class UserGeneServiceImpl implements UserGeneService {
     }
 
     @Override
-    public Collection<UserGene> findOrthologsByGeneAndTierInAndTaxonAndUserOrgansInWithoutSecurityFilter( Gene gene, Set<TierType> tiers, Taxon orthologTaxon, Optional<Collection<ResearcherCategory>> researcherTypes, Optional<Collection<UserOrgan>> userOrgans ) {
+    @PostFilter("hasPermission(filterObject, 'read')")
+    public Collection<UserGene> findOrthologsByGeneAndTierInAndTaxonAndUserOrgansIn( Gene gene, Set<TierType> tiers, Taxon orthologTaxon, Optional<Collection<ResearcherCategory>> researcherTypes, Optional<Collection<UserOrgan>> userOrgans ) {
         return userGeneRepository.findByGeneId( gene.getGeneId() )
                 .stream()
                 .map( userGene -> userGeneRepository.findOrthologsByGeneIdAndTaxon( userGene.getGeneId(), orthologTaxon ) )
@@ -182,45 +152,25 @@ public class UserGeneServiceImpl implements UserGeneService {
                 .collect( Collectors.toSet() );
     }
 
-    private Map<UUID, Integer> userGeneHiddenIds = new ConcurrentHashMap<>();
-
-    @Override
-    public UUID getHiddenIdForUserGene( UserGene userGene ) {
-        UUID hiddenId = UUID.randomUUID();
-        userGeneHiddenIds.put( hiddenId, userGene.getId() );
-        return hiddenId;
-    }
-
-    @Override
-    @PostAuthorize("hasPermission(returnObject, 'read')")
-    public UserGene findUserGeneByHiddenId( UUID hiddenUserGeneId ) {
-        return userGeneRepository.findById( userGeneHiddenIds.get( hiddenUserGeneId ) );
-    }
-
     @Override
     @PostFilter("hasPermission(filterObject, 'read')")
     public Collection<UserGene> handleGeneSearch( Gene gene, Set<TierType> tiers, Optional<Taxon> orthologTaxon, Optional<Collection<ResearcherCategory>> researcherTypes, Optional<Collection<UserOrgan>> organs ) {
-        return handleGeneSearchWithoutSecurityFilter( gene, tiers, orthologTaxon, researcherTypes, organs );
-    }
-
-    @Override
-    public Collection<UserGene> handleGeneSearchWithoutSecurityFilter( Gene gene, Set<TierType> tiers, Optional<Taxon> orthologTaxon, Optional<Collection<ResearcherCategory>> researcherTypes, Optional<Collection<UserOrgan>> organs ) {
         Collection<UserGene> uGenes = new LinkedHashSet<>();
 
         // ortholog relationship is not reflexive (i.e. a gene is not its own ortholog), but we still want to display
         // that gene first when ortholog search is performed in the same MO
         if ( gene.getTaxon().equals( orthologTaxon.orElse( gene.getTaxon() ) ) ) {
             if ( organs.isPresent() ) {
-                uGenes.addAll( findByGeneIdAndTierInAndUserOrgansInWithoutSecurityFilter( gene.getGeneId(), tiers, researcherTypes, organs ) );
+                uGenes.addAll( findByGeneIdAndTierInAndUserOrgansIn( gene.getGeneId(), tiers, researcherTypes, organs ) );
             } else {
-                uGenes.addAll( findByGeneIdAndTierInWithoutSecurityFilter( gene.getGeneId(), tiers, researcherTypes, organs ) );
+                uGenes.addAll( findByGeneIdAndTierIn( gene.getGeneId(), tiers, researcherTypes, organs ) );
             }
         }
 
         if ( orthologTaxon.isPresent() ) {
-            uGenes.addAll( findOrthologsByGeneAndTierInAndTaxonAndUserOrgansInWithoutSecurityFilter( gene, tiers, orthologTaxon.get(), researcherTypes, organs ) );
+            uGenes.addAll( findOrthologsByGeneAndTierInAndTaxonAndUserOrgansIn( gene, tiers, orthologTaxon.get(), researcherTypes, organs ) );
         } else {
-            uGenes.addAll( findOrthologsByGeneAndTierInAndUserOrgansInWithoutSecurityFilter( gene, tiers, researcherTypes, organs ) );
+            uGenes.addAll( findOrthologsByGeneAndTierInAndUserOrgansIn( gene, tiers, researcherTypes, organs ) );
         }
 
         return uGenes;
