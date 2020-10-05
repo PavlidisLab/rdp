@@ -2,13 +2,8 @@ package ubc.pavlab.rdp.services;
 
 import lombok.extern.apachecommons.CommonsLog;
 import org.jboss.resteasy.client.jaxrs.ResteasyClient;
-import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
-import org.jboss.resteasy.plugins.providers.RegisterBuiltin;
-import org.jboss.resteasy.plugins.providers.jackson.ResteasyJackson2Provider;
-import org.jboss.resteasy.spi.ResteasyProviderFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -75,7 +70,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
         List<UserGene> intlUsergenes = new LinkedList<>();
         // TODO: use the tiers field for the v1.4 API
         for ( TierType tier : restrictTiers( tiers ) ) {
-            intlUsergenes.addAll( convertRemoteGenes(
+            intlUsergenes.addAll(
                     getRemoteEntities( UserGene[].class, API_GENES_SEARCH_URI, new LinkedMultiValueMap<String, String>() {{
                         add( "symbol", symbol );
                         add( "taxonId", taxon.getId().toString() );
@@ -86,19 +81,27 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
                         for ( String organUberonId : organUberonIds.orElse( Collections.emptySet() ) ) {
                             add( "organUberonIds", organUberonId );
                         }
-                    }} ) ) );
+                    }} ) );
         }
+        // add back-reference to user
+        intlUsergenes.forEach( g -> g.setUser( g.getRemoteUser() ) );
         return intlUsergenes;
     }
 
     @Override
     public User getRemoteUser( Integer userId, String remoteHost ) throws RemoteException {
         // Check that the remoteHost is one of our known APIs and call it if it is.
-        if ( Arrays.stream( applicationSettings.getIsearch().getApis() ).noneMatch( remoteHost::equals ) ) {
-            return remoteRequest( User.class, remoteHost + String.format( API_USER_GET_URI, userId ),
+        if ( Arrays.stream( applicationSettings.getIsearch().getApis() ).anyMatch( remoteHost::equals ) ) {
+            User user = remoteRequest( User.class, remoteHost + String.format( API_USER_GET_URI, userId ),
                     addAuthParamIfAdmin( new LinkedMultiValueMap<>() ) );
+            // add back-references to the user
+            user.getUserGenes().values().forEach( ug -> ug.setUser( user ) );
+            user.getUserTerms().forEach( ug -> ug.setUser( user ) );
+            user.getUserOrgans().values().forEach( ug -> ug.setUser( user ) );
+            return user;
+        } else {
+            throw new RemoteException( MessageFormat.format( "Unknown remote API {0}.", remoteHost ) );
         }
-        return null;
     }
 
     private <T> Collection<T> getRemoteEntities( Class<T[]> arrCls, String uri, MultiValueMap<String, String> args )
@@ -152,13 +155,6 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
         return tiers.stream()
                 .filter( t -> t != TierType.TIER3 )
                 .collect( Collectors.toSet() );
-    }
-
-    private Collection<UserGene> convertRemoteGenes( Collection<UserGene> genes ) {
-        for ( UserGene gene : genes ) {
-            gene.setUser( gene.getRemoteUser() );
-        }
-        return genes;
     }
 
     private MultiValueMap<String, String> addAuthParamIfAdmin( MultiValueMap<String, String> args ) {
