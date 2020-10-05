@@ -88,10 +88,10 @@ public class LoginController {
             user = userService.create( user );
             try {
                 eventPublisher.publishEvent( new OnRegistrationCompleteEvent( user ) );
-                redirectAttributes.addAttribute( "message", "Your user account was registered successfully. Please check your email for completing the completing the registration process." );
+                redirectAttributes.addFlashAttribute( "message", "Your user account was registered successfully. Please check your email for completing the completing the registration process." );
             } catch ( Exception me ) {
                 log.error( me );
-                redirectAttributes.addAttribute( "message", "Your user account was registered successfully, but we couldn't send you a confirmation email." );
+                redirectAttributes.addFlashAttribute( "message", "Your user account was registered successfully, but we couldn't send you a confirmation email." );
             } finally {
                 return "redirect:/login";
             }
