@@ -2,6 +2,7 @@ package ubc.pavlab.rdp.settings;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.SneakyThrows;
 import org.hibernate.validator.constraints.Email;
 import org.hibernate.validator.constraints.URL;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -18,14 +19,18 @@ public class SiteSettings {
 
     @URL
     private String host;
+
     private String context;
+
     @Email
     private String contactEmail;
+
     @Email
     private String adminEmail;
 
-    public String getFullUrl() {
-        return host + context + ( context.endsWith( "/" ) ? "" : "/" );
+    @SneakyThrows
+    public java.net.URL getFullUrl() {
+        return new java.net.URL( new java.net.URL( host ), context );
     }
 
     @URL

@@ -13,6 +13,7 @@ import ubc.pavlab.rdp.model.enums.TierType;
 
 import javax.persistence.*;
 import javax.validation.Valid;
+import java.net.URL;
 import java.text.MessageFormat;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -64,7 +65,7 @@ public class User implements UserContent {
     private String origin;
 
     @Transient
-    private String originUrl;
+    private URL originUrl;
 
     /* Research related information */
 
