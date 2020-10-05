@@ -124,7 +124,7 @@
                             class="edit-container">
                             <td class="align-middle">
                                 <label th:for="${#ids.next('profile.researcherCategory')}"
-                                       class="text-muted align-middle mb-0">Researcher Category</label>
+                                       class="text-muted align-middle mb-0">Category</label>
                             </td>
                             <td>
                                 <div th:replace="fragments/profile::researcher-category-selection(selectedResearcherCategory = *{researcherCategory})">
@@ -208,7 +208,7 @@
                     </div>
                     <div class="card-body">
                         <p>
-                            These settings let other users know which human organ systems your research is relevant to.
+                            Choose human organ systems your research is most relevant to:
                         </p>
                         <div th:replace="fragments/organ::organs-selection(checkedOrganUberonIds = ${user.userOrgans.keySet()})">
                             ...
@@ -359,7 +359,7 @@
 <div th:replace="layouts/common::scripts"></div>
 <script th:src="@{/js/profile.js}"></script>
 <th:block th:if="${@applicationSettings.privacy.isCustomizableGeneLevel()}">
-    <div th:replace="fragments/modal::confirmation(target=${#ids.seq('confirm-gene-privacy-level-reset')}, title='Your gene privacy levels might get adjusted!', body='Changing your profile privacy setting will also reset the privacy levels of the genes associated to your model organisms to this new value.')"></div>
+    <div th:replace="fragments/modal::confirmation(target=${#ids.seq('confirm-gene-privacy-level-reset')}, title='Your gene privacy levels will be adjusted!', body='Changing your profile privacy setting will reset the privacy levels of the genes associated to your model organisms to the selected value.')"></div>
     <script th:inline="javascript">
         var modalId = [[${#ids.prev('confirm-gene-privacy-level-reset')}]];
         var modal = $('#' + modalId);

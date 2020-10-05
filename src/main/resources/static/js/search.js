@@ -29,6 +29,7 @@
             if (textStatus !== "success") {
                 tableContainer.html($('<span class="mx-2 text-danger">Something went wrong! Please try again.</span>'));
             }
+            tableContainer.find('[data-toggle="tooltip"]').tooltip();
         });
 
         // Show orthologs
@@ -43,6 +44,7 @@
                     orthologContainer.html($('<span class="mx-2 text-danger">Something went wrong! Please try again.</span>'));
                 }
                 //$("#orthologsResults").fadeIn(1500);
+                orthologContainer.find('[data-toggle="tooltip"]').tooltip();
             });
         }
 
@@ -55,6 +57,7 @@
                 if (textStatus !== "success") {
                     itlTableContainer.html($('<span class="mx-2 text-danger">Something went wrong! Please try again.</span>'));
                 }
+                itlTableContainer.find('[data-toggle="tooltip"]').tooltip();
             });
         }
 

@@ -97,7 +97,7 @@
                             </td>
                         </tr>
                         <tr th:unless="${@applicationSettings.profile.enabledResearcherCategories.isEmpty()}">
-                            <td class="text-muted">Researcher Category</td>
+                            <td class="text-muted">Category</td>
                             <td>
                                 <input class="data-edit"
                                        type="text"
@@ -106,13 +106,13 @@
                                        disabled="disabled"/>
                             </td>
                         </tr>
-                        <tr th:unless="${@applicationSettings.profile.enabledResearcherPositions.isEmpty()}">
+                        <tr th:unless="${@applicationSettings.profile.enabledResearcherPositions.isEmpty()} or ${viewUser.profile.researcherPosition} == null">
                             <td class="text-muted">Position</td>
                             <td>
                                 <input class="data-edit"
                                        type="text"
                                        name="researcherPosition"
-                                       th:value="${viewUser.profile.researcherPosition?.label}"
+                                       th:value="${viewUser.profile.researcherPosition.label}"
                                        disabled="disabled"/>
                             </td>
                         </tr>

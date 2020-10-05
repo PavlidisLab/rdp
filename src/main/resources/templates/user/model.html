@@ -75,7 +75,12 @@
                 <div class="card-header">
                     <h3 class="card-title">Data Privacy</h3>
                     <p th:if="${@applicationSettings.privacy.isCustomizableLevel()}">
-                        Your profile privacy level is set to <b th:text="${user.effectivePrivacyLevel.label}"></b>.
+                        Your profile privacy level is set to <b th:text="${#strings.unCapitalize(user.effectivePrivacyLevel.label)}"></b>,
+                        which determines your default gene privacy level.<br/>
+                    </p>
+                    <p th:if="${@applicationSettings.privacy.isCustomizableGeneLevel()}">
+                        Your can adjust privacy level for each gene individually, however you can only choose a more
+                        restrictive value than what is set in your profile.
                     </p>
                     <p th:if="(${user.effectivePrivacyLevel.ordinal()} gt 0) and ${@applicationSettings.privacy.isAllowHideGenelist()}">
                         Non-administrative users that can see your data

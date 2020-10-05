@@ -13,7 +13,7 @@
                th:value="${researcherPosition.name()}"
                th:checked="${researcherPosition} == ${selectedResearcherPosition}"/>
         <label th:for="${#ids.prev('profile.researcherPosition')}"
-               th:text="${researcherPosition.label}"
+               th:text="'I am a ' + ${researcherPosition.label}"
                class="form-check-label">...</label>
     </div>
 </div>

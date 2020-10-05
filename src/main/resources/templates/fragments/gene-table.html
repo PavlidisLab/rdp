@@ -10,10 +10,16 @@
         <th scope="col">Symbol</th>
         <th scope="col" style="display: none;" th:if="${viewOnly == null}">Id</th>
         <th scope="col">Name</th>
-        <th class="text-center" scope="col"
+        <th th:if="${@tierService.isTierEnabled(T(ubc.pavlab.rdp.model.enums.TierType).TIER1)} and ${@tierService.isTierEnabled(T(ubc.pavlab.rdp.model.enums.TierType).TIER2)}"
+            class="text-center" scope="col"
             th:text="${viewOnly == null} ? 'Primary' : 'Tier'"
-            th:if="${@tierService.isTierEnabled(T(ubc.pavlab.rdp.model.enums.TierType).TIER1)} and ${@tierService.isTierEnabled(T(ubc.pavlab.rdp.model.enums.TierType).TIER2)}"/>
-        <th th:if="${@applicationSettings.privacy.isCustomizableGeneLevel()}" class="text-center" scope="col">
+            data-toggle="tooltip"
+            th:title="${viewOnly} == null ? 'Primary genes constitute your TIER1 genes whereas non-primary genes will be part of your TIER2 genes.' : 'Tier determines the degree of involvment of a researcher with a gene.'"/>
+        <th th:if="${viewOnly == null} and ${@applicationSettings.privacy.isCustomizableGeneLevel()}"
+            class="text-center"
+            scope="col"
+            data-toggle="tooltip"
+            title="Privacy level determines who can see this gene in a search result.">
             Privacy Level
         </th>
     </tr>
@@ -28,19 +34,13 @@
                                                                          th:remove="tag"></span></td>
             <td><span class="align-middle" th:text="${gene.name}"></span></td>
             <th:block th:if="${@tierService.isTierEnabled(T(ubc.pavlab.rdp.model.enums.TierType).TIER1)} and ${@tierService.isTierEnabled(T(ubc.pavlab.rdp.model.enums.TierType).TIER2)}">
-                <td class="text-center"
-                    th:text="${gene.tier}"
-                    th:if="${viewOnly != null}"/>
                 <td class="text-center" th:if="${viewOnly == null}">
                     <input name="primary" type="checkbox" class="align-middle"
                            th:checked="${gene.tier == T(ubc.pavlab.rdp.model.enums.TierType).TIER1}"/>
                 </td>
             </th:block>
-            <td th:if="${@applicationSettings.privacy.isCustomizableGeneLevel()}" class="text-center">
-                <span th:if="${viewOnly != null}"
-                      th:text="${gene.effectivePrivacyLevel.label}" th:remove="tag">...</span>
-                <select th:if="${viewOnly == null}"
-                        name="privacyLevel" class="form-control">
+            <td th:if="${viewOnly == null} and ${@applicationSettings.privacy.isCustomizableGeneLevel()}" class="text-center">
+                <select name="privacyLevel" class="form-control">
                     <option th:each="privacyLevel : ${T(ubc.pavlab.rdp.model.enums.PrivacyLevelType).values()}"
                             th:if="${@privacyService.isGenePrivacyLevelEnabled(privacyLevel) and (privacyLevel.ordinal() le defaultPrivacyLevel.ordinal())}"
                             th:value="${privacyLevel.ordinal()}"
