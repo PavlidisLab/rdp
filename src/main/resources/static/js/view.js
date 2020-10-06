@@ -19,7 +19,7 @@
         "columnDefs": [
             {"name": "Symbol", "targets": 0},
             {"name": "Name", "targets": 1},
-            {"name": "Primary", "targets": 2, "className": "text-center", "orderDataType": "dom-checkbox"}
+            {"name": "Tier", "targets": 2, "className": "text-center", "orderDataType": "dom-checkbox"}
         ],
         "footerCallback": function () {
             var api = this.api();

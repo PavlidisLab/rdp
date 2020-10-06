@@ -19,7 +19,7 @@
                 <label th:for="${#ids.prev('organUberonIds')}"
                        class="form-check-label">
                     <img th:src="@{/images/organs/{uberonId}.svg(uberonId=${organInfo.uberonId})}"
-                         th:alt="${organInfo.name}"
+                         th:alt="${#strings.capitalize(organInfo.name)}"
                          class="img-fluid"/>
                 </label>
             </div>
@@ -32,9 +32,9 @@
              th:if="${#lists.contains(checkedOrganUberonIds, organInfo.uberonId)}"
              class="col-3 col-md-2 col-lg-1"
              data-toggle="tooltip"
-             th:title="${organInfo.name}">
+             th:title="${#strings.capitalize(organInfo.name)}">
             <img th:src="@{/images/organs/{uberonId}.svg(uberonId=${organInfo.uberonId})}"
-                 th:alt="${organInfo.name}"
+                 th:alt="${#strings.capitalize(organInfo.name)}"
                  class="img-fluid"/>
         </div>
     </div>

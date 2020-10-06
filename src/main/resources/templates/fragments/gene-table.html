@@ -8,52 +8,65 @@
     <thead class="thead-light">
     <tr>
         <th scope="col">Symbol</th>
-        <th scope="col" style="display: none;" th:if="${viewOnly == null}">Id</th>
+        <th scope="col d-none" th:if="${viewOnly == null}">Id</th>
         <th scope="col">Name</th>
         <th th:if="${@tierService.isTierEnabled(T(ubc.pavlab.rdp.model.enums.TierType).TIER1)} and ${@tierService.isTierEnabled(T(ubc.pavlab.rdp.model.enums.TierType).TIER2)}"
-            class="text-center" scope="col"
-            th:text="${viewOnly == null} ? 'Primary' : 'Tier'"
+            class="text-center"
+            scope="col"
             data-toggle="tooltip"
-            th:title="${viewOnly} == null ? 'Primary genes constitute your TIER1 genes whereas non-primary genes will be part of your TIER2 genes.' : 'Tier determines the degree of involvment of a researcher with a gene.'"/>
+            th:title="${viewOnly} == null ? 'Primary genes constitute your TIER1 genes whereas non-primary genes will be part of your TIER2 genes.' : 'Tier determines the degree of involvment of a researcher with a gene.'">
+            <span th:text="${viewOnly == null} ? 'Primary' : 'Tier'"></span>
+            <i class="tip oi oi-question-mark"></i>
+        </th>
         <th th:if="${viewOnly == null} and ${@applicationSettings.privacy.isCustomizableGeneLevel()}"
             class="text-center"
             scope="col"
             data-toggle="tooltip"
             title="Privacy level determines who can see this gene in a search result.">
             Privacy Level
+            <i class="tip oi oi-question-mark"></i>
         </th>
     </tr>
     </thead>
     <tbody>
-    <th:block th:each="gene : ${genes}">
-        <tr>
-            <td><span class="align-middle"><i th:if="${viewOnly == null}" class="delete-row align-middle"/><a
-                    th:href="'https://www.ncbi.nlm.nih.gov/gene/' + ${gene.geneId}"
-                    target="_blank" class="align-middle" th:text="${gene.symbol}"></a></span></td>
-            <td style="display: none;" th:if="${viewOnly == null}"><span th:text="${gene.geneId}"
-                                                                         th:remove="tag"></span></td>
-            <td><span class="align-middle" th:text="${gene.name}"></span></td>
-            <th:block th:if="${@tierService.isTierEnabled(T(ubc.pavlab.rdp.model.enums.TierType).TIER1)} and ${@tierService.isTierEnabled(T(ubc.pavlab.rdp.model.enums.TierType).TIER2)}">
-                <td class="text-center" th:if="${viewOnly == null}">
-                    <input name="primary" type="checkbox" class="align-middle"
-                           th:checked="${gene.tier == T(ubc.pavlab.rdp.model.enums.TierType).TIER1}"/>
-                </td>
-            </th:block>
-            <td th:if="${viewOnly == null} and ${@applicationSettings.privacy.isCustomizableGeneLevel()}" class="text-center">
-                <select name="privacyLevel" class="form-control">
-                    <option th:each="privacyLevel : ${T(ubc.pavlab.rdp.model.enums.PrivacyLevelType).values()}"
-                            th:if="${@privacyService.isGenePrivacyLevelEnabled(privacyLevel) and (privacyLevel.ordinal() le defaultPrivacyLevel.ordinal())}"
-                            th:value="${privacyLevel.ordinal()}"
-                            th:selected="${gene.effectivePrivacyLevel == privacyLevel}"
-                            th:text="${privacyLevel.label}"></option>
-                </select>
+    <tr th:each="gene : ${genes}">
+        <td class="align-middle">
+            <i th:if="${viewOnly == null}" class="delete-row align-middle"/>
+            <a th:href="@{https://www.ncbi.nlm.nih.gov/gene/{geneId}(geneId=${gene.geneId})}"
+               th:text="${gene.symbol}"
+               target="_blank"
+               class="align-middle"></a>
+        </td>
+        <td th:if="${viewOnly == null}"
+            th:text="${gene.geneId}"
+            style="display: none;">
+        </td>
+        <td class="align-middle" th:text="${gene.name}"></td>
+        <th:block
+                th:if="${@tierService.isTierEnabled(T(ubc.pavlab.rdp.model.enums.TierType).TIER1)} and ${@tierService.isTierEnabled(T(ubc.pavlab.rdp.model.enums.TierType).TIER2)}">
+            <td class="text-center" th:if="${viewOnly == null}">
+                <input name="primary" type="checkbox" class="align-middle"
+                       th:checked="${gene.tier == T(ubc.pavlab.rdp.model.enums.TierType).TIER1}"/>
             </td>
-        </tr>
-    </th:block>
+            <td th:if="${viewOnly != null}"
+                th:text="${gene.tier}"
+                class="text-center"></td>
+        </th:block>
+        <td th:if="${viewOnly == null} and ${@applicationSettings.privacy.isCustomizableGeneLevel()}"
+            class="text-center">
+            <select name="privacyLevel" class="form-control">
+                <option th:each="privacyLevel : ${T(ubc.pavlab.rdp.model.enums.PrivacyLevelType).values()}"
+                        th:if="${@privacyService.isGenePrivacyLevelEnabled(privacyLevel) and (privacyLevel.ordinal() le defaultPrivacyLevel.ordinal())}"
+                        th:value="${privacyLevel.ordinal()}"
+                        th:selected="${gene.effectivePrivacyLevel == privacyLevel}"
+                        th:text="${privacyLevel.label}"></option>
+            </select>
+        </td>
+    </tr>
     </tbody>
     <tfoot th:if="${viewOnly != null}">
     <tr>
-        <td colspan="100"></td>
+        <td colspan="3"></td>
     </tr>
     </tfoot>
 </table>
