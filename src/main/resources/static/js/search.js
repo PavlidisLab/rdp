@@ -20,12 +20,20 @@
 
     $("form.search").submit(function (event) {
 
+        var formData = $(this).serialize();
+
+        /* retrieve nearby organ systems */
+        var organsForm = $(this).closest('.tab-pane').find('.organs-form').serialize();
+        if (organsForm) {
+            formData = formData + '&' + organsForm;
+        }
+
         // Show search results
         var tableContainer = $("#userTable");
         tableContainer.html($('<i class="mx-2 spinner"></i>'));
 
         // noinspection JSUnusedLocalSymbols
-        tableContainer.load("/search/view", $(this).serialize(), function (responseText, textStatus, req) {
+        tableContainer.load("/search/view", formData, function (responseText, textStatus, req) {
             if (textStatus !== "success") {
                 tableContainer.html($('<span class="mx-2 text-danger">Something went wrong! Please try again.</span>'));
             }
@@ -39,7 +47,7 @@
         if ($("#symbolInput").val() !== "" && $("#ortholog-box").is(":visible")) {
             var orthologContainer = $("#orthologsResults");
             orthologContainer.html($('<i class="mx-2 spinner"></i>'));
-            orthologContainer.load("/search/view/orthologs", $(this).serialize(), function (responseText, textStatus) {
+            orthologContainer.load("/search/view/orthologs", formData, function (responseText, textStatus) {
                 if (textStatus === "error") {
                     orthologContainer.html($('<span class="mx-2 text-danger">Something went wrong! Please try again.</span>'));
                 }
@@ -53,7 +61,7 @@
             var itlTableContainer = $("#itlUserTable");
             itlTableContainer.html($('<i class="mx-2 spinner"></i>'));
             // noinspection JSUnusedLocalSymbols
-            itlTableContainer.load("/search/view/international", $(this).serialize(), function (responseText, textStatus, req) {
+            itlTableContainer.load("/search/view/international", formData, function (responseText, textStatus, req) {
                 if (textStatus !== "success") {
                     itlTableContainer.html($('<span class="mx-2 text-danger">Something went wrong! Please try again.</span>'));
                 }
