@@ -1,4 +1,6 @@
 function collectProfile() {
+    "use strict";
+
     var profile = {};
 
     // Basic Information
@@ -27,37 +29,35 @@ function collectProfile() {
     // noinspection JSUnusedLocalSymbols
     $('#publication-table').DataTable().rows().every(function (rowIdx, tableLoop, rowLoop) {
         var node = $(this.node());
-        var pmidstr = node.find('td')[0].innerText;
-        var pmid = parseInt(pmidstr, 10);
+        var pubmedId = parseInt(node.find('td')[0].innerText, 10);
 
         // noinspection EqualityComparisonWithCoercionJS
-        if (pmidstr == pmid) {
+        if (!isNaN(pubmedId)) {
             var a = node.find('a')[0];
             publications.push({
-                pmid: pmid,
+                pmid: pubmedId,
                 title: a ? a.innerText : ""
             });
         }
     });
     publications.sort(function (a, b) {
-        return b.pmid - a.pmid
+        return b.pmid - a.pmid;
     });
     profile.publications = publications;
 
     var organUberonIds = $('[name="organUberonIds"]:checked')
         .map(function (i, elem) {
             return elem.value;
-        })
-        .get();
+        }).get();
 
     return {'profile': profile, 'organUberonIds': organUberonIds};
 }
 
 (function () {
-
+    "use strict";
     // auto-hide save message
     $('#saved-button').blur(function () {
-        console.log("Handler for .blur() called.");
+        window.console.log("Handler for .blur() called.");
         $('.success-row').hide();
     });
 
@@ -103,7 +103,7 @@ function collectProfile() {
 
     $(document).on("keypress", ".pub-input", function (e) {
         // noinspection EqualityComparisonWithCoercionJS
-        if (e.which == 13) {
+        if (e.which === 13) {
             $(this).closest('.input-group').find('button.add-row').click();
         }
     });
@@ -128,16 +128,15 @@ function collectProfile() {
                 row.push('<i class="delete-row"></i>' + pubmed);
 
                 try {
-                    var title = data['result'][pubmed]['title'];
+                    var title = data.result[pubmed].title;
+                    title = title.length > 100 ?
+                        title.substring(0, 100 - 3) + "..." :
+                        title;
+
+                    row.push('<a href="https://www.ncbi.nlm.nih.gov/pubmed/' + pubmed + '" target="_blank" rel="noopener">' + (title ? title : 'Unknown Title') + '</a>');
                 } catch (e) {
-                    console.log("Issue obtaining metadata for: " + pubmed, e);
+                    window.console.log("Issue obtaining metadata for: " + pubmed, e);
                 }
-
-                title = title.length > 100 ?
-                    title.substring(0, 100 - 3) + "..." :
-                    title;
-
-                row.push('<a href="https://www.ncbi.nlm.nih.gov/pubmed/' + pubmed + '" target="_blank">' + (title ? title : 'Unknown Title') + '</a>');
 
                 rows.push(row);
             });
@@ -176,8 +175,8 @@ function collectProfile() {
                 var errorMessages = [];
                 try {
                     $.each(r.responseJSON.errors, function (idx, item) {
-                        errorMessages.push(item.field + " - " + item.defaultMessage)
-                    })
+                        errorMessages.push(item.field + " - " + item.defaultMessage);
+                    });
                 } finally {
                     var message = "Profile Not Saved: " + errorMessages.join(", ");
 

@@ -1,4 +1,5 @@
 (function () {
+    "use strict";
     function collectModel() {
         var model = {};
 
@@ -47,14 +48,14 @@
                 var row = [];
 
                 if (gene === null) {
-                    console.log("Issue obtaining metadata for: " + symbol);
+                    window.console.log("Issue obtaining metadata for: " + symbol);
                     row.push('<span class="align-middle text-danger"><i class="delete-row align-middle"></i>' + symbol + '</span>');
                     row.push('');
                     row.push('<span class="align-middle text-danger">Could Not Find Gene.</span>');
                     row.push('');
                     row.push('');
                 } else {
-                    row.push('<span class="align-middle"><i class="delete-row align-middle"></i><a href="https://www.ncbi.nlm.nih.gov/gene/' + gene.geneId + '" target="_blank" class="align-middle" rel="noopener">' + gene.symbol + '</a></span>')
+                    row.push('<span class="align-middle"><i class="delete-row align-middle"></i><a href="https://www.ncbi.nlm.nih.gov/gene/' + gene.geneId + '" target="_blank" class="align-middle" rel="noopener">' + gene.symbol + '</a></span>');
                     row.push(gene.geneId);
                     row.push('<span class="align-middle">' + gene.name + '</span>');
                     row.push('<input name="primary" class="align-middle" type="checkbox"/>');
@@ -97,7 +98,7 @@
                 var row = [];
 
                 if (term === null) {
-                    console.log("Issue obtaining metadata for: " + goId);
+                    window.console.log("Issue obtaining metadata for: " + goId);
                     row.push('<span class="align-middle text-danger"><i class="delete-row align-middle"></i>' + goId + '</span>');
                     row.push('<span class="align-middle text-danger">Could Not Find Term.</span>');
                     row.push('');
@@ -310,7 +311,7 @@
         }).always(function () {
             spinner.addClass("d-none");
         });
-        $(this).closest('.input-group').find('input').val("")
+        $(this).closest('.input-group').find('input').val("");
     });
 
     // Terms
@@ -418,7 +419,7 @@
         }).always(function () {
             spinner.addClass("d-none");
         });
-        $(this).closest('.input-group').find('input').val("")
+        $(this).closest('.input-group').find('input').val("");
     });
 
     $('.recommend-terms').click(function () {
@@ -455,6 +456,6 @@
 
     $('#terms-tab').on('shown.bs.tab', function () {
         $('#term-table').DataTable().draw();
-    })
+    });
 
 })();

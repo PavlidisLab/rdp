@@ -1,4 +1,5 @@
 (function () {
+    "use strict";
 
     $('#publication-table').DataTable({
         "scrollY": "200px",
@@ -26,15 +27,19 @@
             var columnData = api.columns().data();
             var tiers = columnData[2];
             var counts = tiers.reduce(function (acc, curr) {
-                acc[curr] ? acc[curr]++ : acc[curr] = 1;
+                if (acc[curr]) {
+                    acc[curr]++;
+                } else {
+                    acc[curr] = 1;
+                }
                 return acc;
             }, {});
             $(api.column(1).footer()).html(
-                '<span class="mx-1"><b>' + (counts['TIER1'] ? counts['TIER1'] : "0") + '</b> TIER1' + '</span>' +
+                '<span class="mx-1"><b>' + (counts.TIER1 ? counts.TIER1 : "0") + '</b> TIER1' + '</span>' +
                 '<span class="mx-1" style="border-right: 3px solid #f2f7f9;"></span>' +
-                '<span class="mx-1"><b>' + (counts['TIER2'] ? counts['TIER2'] : "0") + '</b> TIER2' + '</span>' +
+                '<span class="mx-1"><b>' + (counts.TIER2 ? counts.TIER2 : "0") + '</b> TIER2' + '</span>' +
                 '<span class="mx-1" style="border-right: 3px solid #F2F7F9;"></span>' +
-                '<span class="mx-1"><b>' + (counts['TIER3'] ? counts['TIER3'] : "0") + '</b> TIER3' + '</span>'
+                '<span class="mx-1"><b>' + (counts.TIER3 ? counts.TIER3 : "0") + '</b> TIER3' + '</span>'
             );
 
         }
@@ -57,5 +62,5 @@
 
     $('.terms-tab').on('shown.bs.tab', function () {
         $('.term-table').DataTable().draw();
-    })
+    });
 })();

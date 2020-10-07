@@ -10,6 +10,7 @@
  */
 
 (function () {
+    "use strict";
 
     // Constants
     var ONE_MINUTE = 60 * 1000;
@@ -58,11 +59,11 @@
 
         var expireTime = getCookie(expireTimeCookieName);
 
-        if (offset == null) {
+        if (offset === null) {
             // Set only once.
             serverTime = getCookie(serverTimeCookieName);
 
-            if (serverTime == null) {
+            if (serverTime === null) {
                 // Cookie is null. No timeout occurs.
                 return null;
             }
@@ -134,7 +135,7 @@
             var timeToWarning = getTimeToWarning();
             //console.log("Warning expected in: " + timeToWarning + "ms | " + timeToWarning/1000 + "s");
             if (timeToWarning < 0) {
-                if (confirm(timeoutWarningMessage) && getTimeToWarning() > (-1 * timeoutWindow)) {
+                if (window.confirm(timeoutWarningMessage) && getTimeToWarning() > (-1 * timeoutWindow)) {
                     // Reset the timeout
                     updateTimeout();
                     checkForTimeout();

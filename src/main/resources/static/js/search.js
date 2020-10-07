@@ -1,4 +1,6 @@
 (function () {
+    "use strict";
+
     function checkItl(itlChbox) {
         if (itlChbox.prop("checked")) {
             $("#itlResults").show();
@@ -11,7 +13,7 @@
 
     function checkTaxon(taxonSelect) {
         // noinspection EqualityComparisonWithCoercionJS // multi-browser support // Taxon also checked in SearchController.java
-        if (taxonSelect.val() == 9606) {
+        if (taxonSelect.val() === "9606") {
             $("#ortholog-box").show();
         } else {
             $("#ortholog-box").hide();

@@ -1,4 +1,5 @@
 (function () {
+    "use strict";
 
     $(document).on("click", '.editable', function () {
         var inputs = $(this).closest(".edit-container").find(".data-edit");
