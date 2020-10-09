@@ -26,17 +26,15 @@
         </div>
     </div>
 </div>
-<div th:fragment="organs">
-    <div class="row">
-        <div th:each="organInfo, iter : ${@organInfoService.findByActiveTrueOrderByOrdering()}"
-             th:if="${#lists.contains(checkedOrganUberonIds, organInfo.uberonId)}"
-             class="col-3 col-md-2 col-lg-1"
-             data-toggle="tooltip"
-             th:title="${#strings.capitalize(organInfo.name)}">
-            <img th:src="@{/images/organs/{uberonId}.svg(uberonId=${organInfo.uberonId})}"
-                 th:alt="${#strings.capitalize(organInfo.name)}"
-                 class="img-fluid"/>
-        </div>
+<div th:fragment="organs" class="row">
+    <div th:each="organInfo, iter : ${@organInfoService.findByActiveTrueOrderByOrdering()}"
+         th:if="${#lists.contains(checkedOrganUberonIds, organInfo.uberonId)}"
+         class="col-3 col-md-2 col-lg-1"
+         data-toggle="tooltip"
+         th:title="${#strings.capitalize(organInfo.name)}">
+        <img th:src="@{/images/organs/{uberonId}.svg(uberonId=${organInfo.uberonId})}"
+             th:alt="${#strings.capitalize(organInfo.name)}"
+             class="img-fluid"/>
     </div>
 </div>
 </body>

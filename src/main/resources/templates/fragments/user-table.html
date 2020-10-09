@@ -8,7 +8,7 @@
        class="user-table table table-sm">
     <thead class="thead-light">
     <tr>
-        <th></th>
+        <th scope="col"></th>
         <th th:if="${remote}" scope="col">Origin</th>
         <th scope="col">Email</th>
         <th scope="col">Full Name</th>
@@ -20,27 +20,27 @@
     </thead>
     <tbody>
     <tr th:each="u : ${users}">
-        <th:block>
-            <td class="text-center">
-                <a th:if="${remote}"
-                   th:href="@{/userView/{userId}(userId=${u.id},remoteHost=${u.originUrl})}"
-                   class="btn btn-primary btn-sm">
-                    View User Profile
-                </a>
-                <a th:if="${remote == null}"
-                   th:href="@{/userView/{userId}(userId=${u.id})}" class="btn btn-primary btn-sm">
-                    View User Profile
-                </a>
-            </td>
-            <td th:if="${remote}" th:text="${u.origin}"></td>
-            <td><a th:href="'mailto:' + ${u.email}" th:text="${u.email}"></a></td>
-            <td th:text="${u.profile.fullName}"></td>
-            <td>
-                <span th:text="${u.profile.researcherPosition?.label}"></span>
-                <span th:if="${u.profile.researcherPosition} != null and ${u.profile.organization} != ''">at</span>
-                <span th:text="${u.profile.organization}"></span>
-            </td>
-        </th:block>
+        <td class="text-center">
+            <a th:if="${remote}"
+               th:href="@{/userView/{userId}(userId=${u.id},remoteHost=${u.originUrl})}"
+               class="btn btn-primary btn-sm">
+                View User Profile
+            </a>
+            <a th:unless="${remote}"
+               th:href="@{/userView/{userId}(userId=${u.id})}"
+               th:attr="data-user-id=${u.id}"
+               class="btn btn-primary btn-sm user-preview-popover">
+                View User Profile
+            </a>
+        </td>
+        <td th:if="${remote}" th:text="${u.origin}"></td>
+        <td><a th:href="'mailto:' + ${u.email}" th:text="${u.email}"></a></td>
+        <td th:text="${u.profile.fullName}"></td>
+        <td>
+            <span th:text="${u.profile.researcherPosition?.label}"></span>
+            <span th:if="${u.profile.researcherPosition} != null and ${u.profile.organization} != ''">at</span>
+            <span th:text="${u.profile.organization}"></span>
+        </td>
     </tr>
     <tr th:if="${#lists.isEmpty(users)}" class="table-warning">
         <td class="text-center" th:colspan="100">No users found matching the provided search criteria.</td>
@@ -78,27 +78,27 @@
     </thead>
     <tbody>
     <tr th:each="ug : ${usergenes}">
-        <th:block>
-            <td class="text-center">
-                <a th:if="${remote}"
-                   th:href="@{/userView/{userId}(userId=${ug.user.id},remoteHost=${ug.user.originUrl})}"
-                   class="btn btn-primary btn-sm">
-                    View User Profile
-                </a>
-                <a th:if="${remote == null}"
-                   th:href="@{/userView/{userId}(userId=${ug.user.id})}" class="btn btn-primary btn-sm">
-                    View User Profile
-                </a>
-            </td>
-            <td th:if="${remote}"><span th:text="${ug.user.origin}" th:remove="tag"></span></td>
-            <td><a th:href="'mailto:' + ${ug.user.email}" th:text="${ug.user.email}"></a></td>
-            <td th:text="${ug.user.profile.fullName}"></td>
-            <td>
-                <span th:text="${ug.user.profile.researcherPosition?.label}"></span>
-                <span th:if="${ug.user.profile.researcherPosition} != null and ${ug.user.profile.organization} != ''">at</span>
-                <span th:text="${ug.user.profile.organization}"></span>
-            </td>
-        </th:block>
+        <td class="text-center">
+            <a th:if="${remote}"
+               th:href="@{/userView/{userId}(userId=${ug.user.id},remoteHost=${ug.user.originUrl})}"
+               class="btn btn-primary btn-sm">
+                View User Profile
+            </a>
+            <a th:unless="${remote}"
+               th:href="@{/userView/{userId}(userId=${ug.user.id})}"
+               th:attr="data-user-id=${ug.user.id}"
+               class="btn btn-primary btn-sm user-preview-popover">
+                View User Profile
+            </a>
+        </td>
+        <td th:if="${remote}"><span th:text="${ug.user.origin}" th:remove="tag"></span></td>
+        <td><a th:href="'mailto:' + ${ug.user.email}" th:text="${ug.user.email}"></a></td>
+        <td th:text="${ug.user.profile.fullName}"></td>
+        <td>
+            <span th:text="${ug.user.profile.researcherPosition?.label}"></span>
+            <span th:if="${ug.user.profile.researcherPosition} != null and ${ug.user.profile.organization} != ''">at</span>
+            <span th:text="${ug.user.profile.organization}"></span>
+        </td>
         <td th:text="${ug.symbol}"></td>
         <td th:text="${ug.tier}"></td>
         <td th:text="${#strings.capitalizeWords(ug.taxon.commonName)}"></td>

@@ -1,6 +1,19 @@
 (function () {
     "use strict";
 
+    function initializeUserPreviewPopover() {
+        var element = $(this);
+        var userId = element.data('user-id');
+        $.get('/search/view/user-preview/' + userId, function (data) {
+            element.popover({
+                container: 'body',
+                trigger: 'hover',
+                html: true,
+                content: data
+            });
+        });
+    }
+
     function checkItl(itlChbox) {
         if (itlChbox.prop("checked")) {
             $("#itlResults").show();
@@ -40,6 +53,7 @@
                 tableContainer.html(responseText);
             }
             tableContainer.find('[data-toggle="tooltip"]').tooltip();
+            tableContainer.find('.user-preview-popover').each(initializeUserPreviewPopover);
         });
 
         // Show orthologs
@@ -53,6 +67,7 @@
                     orthologContainer.html('');
                 }
                 orthologContainer.find('[data-toggle="tooltip"]').tooltip();
+                orthologContainer.find('.user-preview-popover').each(initializeUserPreviewPopover);
             });
         }
 
@@ -171,4 +186,7 @@
             $(this).toggleClass('active', true);
         });
     });
+
+    /* initialize user preview popovers */
+    $('.user-preview-popover').each(initializeUserPreviewPopover);
 })();

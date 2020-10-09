@@ -372,6 +372,14 @@ public class SearchController {
         return modelAndView;
     }
 
+    @GetMapping(value = "/search/view/user-preview/{userId}")
+    public ModelAndView previewUser( @PathVariable Integer userId,
+                                     @RequestParam(required = false) String remoteHost ) {
+        ModelAndView modelAndView = new ModelAndView( "fragments/profile::user-preview" );
+        modelAndView.addObject( "user", userService.findUserById( userId ) );
+        return modelAndView;
+    }
+
     @GetMapping(value = "/userView/{userId}")
     public ModelAndView viewUser( @PathVariable Integer userId,
                                   @RequestParam(required = false) String remoteHost ) {
