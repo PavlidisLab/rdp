@@ -2,6 +2,7 @@ package ubc.pavlab.rdp.controllers;
 
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -25,7 +26,11 @@ public class StatsController {
     @Autowired
     private UserGeneService userGeneService;
 
-    @RequestMapping(value = { "/stats" }, method = RequestMethod.GET)
+    /**
+     * @deprecated use /api/stats instead
+     */
+    @Deprecated
+    @GetMapping(value = "/stats")
     public Map<String, Object> getAggregateStats( HttpServletResponse response ) {
 
         Map<String, Object> stats = new LinkedHashMap<>();

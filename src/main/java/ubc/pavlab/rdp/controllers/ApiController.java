@@ -68,6 +68,20 @@ public class ApiController {
     }
 
     /**
+     * Provide general statistics about this registry.
+     */
+    @GetMapping(value = "/api/stats", produces = MediaType.APPLICATION_JSON_VALUE)
+    public Object getStats() {
+        return new Stats( userService.countResearchers(),
+                userGeneService.countUsersWithGenes(),
+                userGeneService.countAssociations(),
+                userGeneService.countUniqueAssociations(),
+                userGeneService.countUniqueAssociationsAllTiers(),
+                userGeneService.countUniqueAssociationsToHumanAllTiers(),
+                userGeneService.researcherCountByTaxon() );
+    }
+
+    /**
      * Hides the default users search 400 page when no parameters are provided.
      *
      * @return 404.
