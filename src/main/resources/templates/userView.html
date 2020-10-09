@@ -18,7 +18,7 @@
             <div class="col">
                 <div th:if="${viewUser.origin} != null" class="alert alert-info mb-0" role="alert">
                     This is a remote user registered at
-                    <a th:href="@{{originUrl}userView/{userId}(originUrl=${viewUser.originUrl},userId=${viewUser.id})}"
+                    <a th:href="@{{remoteHost}/userView/{userId}(remoteHost=${viewUser.originUrl},userId=${viewUser.id})}"
                        th:text="${viewUser.origin}"
                        target="_blank"
                        rel="noopener"></a>.

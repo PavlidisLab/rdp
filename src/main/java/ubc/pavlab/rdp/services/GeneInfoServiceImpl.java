@@ -8,8 +8,6 @@ import org.springframework.stereotype.Service;
 import ubc.pavlab.rdp.model.GeneInfo;
 import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.model.enums.GeneMatchType;
-import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
-import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.repositories.GeneInfoRepository;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.util.GeneInfoParser;
@@ -19,11 +17,12 @@ import ubc.pavlab.rdp.util.SearchResult;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.text.ParseException;
-import java.util.*;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
-
-import static java.util.function.Function.identity;
 
 /**
  * Created by mjacobson on 17/01/18.
@@ -55,16 +54,6 @@ public class GeneInfoServiceImpl implements GeneInfoService {
     @Override
     public Collection<GeneInfo> load( Collection<Integer> ids ) {
         return geneInfoRepository.findAllByGeneIdIn( ids );
-    }
-
-    @Override
-    public Collection<GeneInfo> loadAll() {
-        return geneInfoRepository.findAll();
-    }
-
-    @Override
-    public Collection<GeneInfo> findAllByActiveTaxon() {
-        return geneInfoRepository.findAllByTaxonActiveTrue();
     }
 
     @Override
@@ -133,7 +122,7 @@ public class GeneInfoServiceImpl implements GeneInfoService {
 
         Set<Integer> supportedTaxons = taxonService.loadAll()
                 .stream()
-                .map( taxon -> taxon.getId() )
+                .map( Taxon::getId )
                 .collect( Collectors.toSet() );
 
         List<GeneOrthologsParser.Record> records;

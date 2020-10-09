@@ -24,7 +24,6 @@ import ubc.pavlab.rdp.settings.ApplicationSettings;
 import javax.validation.ValidationException;
 import java.text.MessageFormat;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import static java.util.Comparator.comparingLong;
@@ -215,28 +214,28 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @PostFilter("hasPermission(filterObject, 'read')")
-    public Collection<User> findByLikeName( String nameLike, Optional<Collection<ResearcherCategory>> researcherTypes, Optional<Collection<UserOrgan>> userOrgans ) {
+    public Collection<User> findByLikeName( String nameLike, Set<ResearcherCategory> researcherTypes, Collection<UserOrgan> userOrgans ) {
         return userRepository.findByProfileNameContainingIgnoreCaseOrProfileLastNameContainingIgnoreCase( nameLike, nameLike ).stream()
-                .filter( u -> researcherTypes.map( rt -> rt.contains( u.getProfile().getResearcherCategory() ) ).orElse( true ) )
-                .filter( u -> userOrgans.map( o -> containsAny( o, u.getUserOrgans().values() ) ).orElse( true ) )
+                .filter( u -> researcherTypes == null || researcherTypes.contains( u.getProfile().getResearcherCategory() ) )
+                .filter( u -> userOrgans == null || containsAny( userOrgans, u.getUserOrgans().values() ) )
                 .collect( Collectors.toSet() );
     }
 
     @Override
     @PostFilter("hasPermission(filterObject, 'read')")
-    public Collection<User> findByStartsName( String startsName, Optional<Collection<ResearcherCategory>> researcherTypes, Optional<Collection<UserOrgan>> userOrgans ) {
+    public Collection<User> findByStartsName( String startsName, Set<ResearcherCategory> researcherTypes, Collection<UserOrgan> userOrgans ) {
         return userRepository.findByProfileLastNameStartsWithIgnoreCase( startsName ).stream()
-                .filter( u -> researcherTypes.map( rt -> rt.contains( u.getProfile().getResearcherCategory() ) ).orElse( true ) )
-                .filter( u -> userOrgans.map( o -> containsAny( o, u.getUserOrgans().values() ) ).orElse( true ) )
+                .filter( u -> researcherTypes == null || researcherTypes.contains( u.getProfile().getResearcherCategory() ) )
+                .filter( u -> userOrgans == null || containsAny( userOrgans, u.getUserOrgans().values() ) )
                 .collect( Collectors.toSet() );
     }
 
     @Override
     @PostFilter("hasPermission(filterObject, 'read')")
-    public Collection<User> findByDescription( String descriptionLike, Optional<Collection<ResearcherCategory>> researcherTypes, Optional<Collection<UserOrgan>> userOrgans ) {
+    public Collection<User> findByDescription( String descriptionLike, Collection<ResearcherCategory> researcherTypes, Collection<UserOrgan> userOrgans ) {
         return userRepository.findByProfileDescriptionContainingIgnoreCaseOrTaxonDescriptionsContainingIgnoreCase( descriptionLike, descriptionLike ).stream()
-                .filter( u -> researcherTypes.map( rt -> rt.contains( u.getProfile().getResearcherCategory() ) ).orElse( true ) )
-                .filter( u -> userOrgans.map( o -> containsAny( o, u.getUserOrgans().values() ) ).orElse( true ) )
+                .filter( u -> researcherTypes == null || researcherTypes.contains( u.getProfile().getResearcherCategory() ) )
+                .filter( u -> userOrgans == null || containsAny( userOrgans, u.getUserOrgans().values() ) )
                 .collect( Collectors.toSet() );
     }
 
@@ -247,10 +246,6 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Collection<UserTerm> convertTerms( User user, Taxon taxon, Collection<GeneOntologyTerm> terms ) {
-        Set<GeneInfo> genes = user.getGenesByTaxonAndTier( taxon, TierType.MANUAL ).stream()
-                .map( UserGene::getGeneInfo )
-                .filter( Objects::nonNull ) // some user genes might be missing from our cache
-                .collect( Collectors.toSet() );
         return convertTermTypes( user, terms, taxon );
     }
 
@@ -275,7 +270,7 @@ public class UserServiceImpl implements UserService {
                 .filter( ut -> !user.getUserTerms().contains( ut ) )
                 .collect( groupingBy( identity(), maxBy( comparingLong( this::computeTermFrequency ) ) ) )
                 .values().stream()
-                .map( ut -> ut.get() )
+                .map( Optional::get )
                 .collect( Collectors.toSet() );
 
         // Keep only leafiest of remaining terms (keep if it has no descendants in results)
@@ -306,7 +301,7 @@ public class UserServiceImpl implements UserService {
                     userGene.updateGene( g );
                     return userGene;
                 } )
-                .collect( Collectors.toMap( g -> g.getGeneId(), g -> g ) );
+                .collect( Collectors.toMap( Gene::getGeneId, identity() ) );
 
         // add calculated genes from terms
         Map<Integer, UserGene> userGenesFromTerms = goTerms.stream()
@@ -319,7 +314,7 @@ public class UserServiceImpl implements UserService {
                     userGene.updateGene( g );
                     return userGene;
                 } )
-                .collect( Collectors.toMap( g -> g.getGeneId(), g -> g ) );
+                .collect( Collectors.toMap( Gene::getGeneId, identity() ) );
 
         // remove all genes in the taxon
         user.getUserGenes().entrySet()
@@ -358,12 +353,12 @@ public class UserServiceImpl implements UserService {
     @Transactional
     @Override
     @PreAuthorize("hasPermission(#user, 'update')")
-    public User updateUserProfileAndPublicationsAndOrgans( User user, Profile profile, Set<Publication> publications, Optional<Set<String>> organUberonIds ) {
+    public User updateUserProfileAndPublicationsAndOrgans( User user, Profile profile, Set<Publication> publications, Set<String> organUberonIds ) {
         user.getProfile().setDepartment( profile.getDepartment() );
         user.getProfile().setDescription( profile.getDescription() );
         user.getProfile().setLastName( profile.getLastName() );
         user.getProfile().setName( profile.getName() );
-        if ( profile.getResearcherPosition() == null || applicationSettings.getProfile().getEnabledResearcherPositions().contains( profile.getResearcherPosition() ) ) {
+        if ( profile.getResearcherPosition() == null || applicationSettings.getProfile().getEnabledResearcherPositions().contains( profile.getResearcherPosition().name() ) ) {
             user.getProfile().setResearcherPosition( profile.getResearcherPosition() );
         } else {
             log.warn( MessageFormat.format( "User {0} attempted to set user {1} researcher position to an unknown value {2}.",
@@ -403,10 +398,9 @@ public class UserServiceImpl implements UserService {
         user.getProfile().getPublications().addAll( publications );
 
         if ( applicationSettings.getOrgans().getEnabled() ) {
-            // defaults the the user organs of no ids are provided
-            Map<String, UserOrgan> userOrgans = organInfoService.findByUberonIdIn( organUberonIds.orElse( user.getUserOrgans().keySet() ) ).stream()
+            Map<String, UserOrgan> userOrgans = organInfoService.findByUberonIdIn( organUberonIds ).stream()
                     .map( organInfo -> user.getUserOrgans().getOrDefault( organInfo.getUberonId(), UserOrgan.createFromOrganInfo( user, organInfo ) ) )
-                    .collect( Collectors.toMap( ug -> ug.getUberonId(), ug -> ug ) );
+                    .collect( Collectors.toMap( Organ::getUberonId, identity() ) );
             user.getUserOrgans().clear();
             user.getUserOrgans().putAll( userOrgans );
         }
@@ -427,32 +421,27 @@ public class UserServiceImpl implements UserService {
     public void verifyPasswordResetToken( int userId, String token ) throws TokenException {
         PasswordResetToken passToken = passwordResetTokenRepository.findByToken( token );
         if ( ( passToken == null ) || ( !passToken.getUser().getId().equals( userId ) ) ) {
-            throw new TokenException( "Invalid Token" );
+            throw new TokenException( "Token is invalid." );
         }
 
         Calendar cal = Calendar.getInstance();
         if ( ( passToken.getExpiryDate().getTime() - cal.getTime().getTime() ) <= 0 ) {
-            throw new TokenException( "Expired" );
+            throw new TokenException( "Token is expired." );
         }
     }
 
     @Transactional
     @Override
-    public User changePasswordByResetToken( int userId, String token, String newPassword )
-            throws TokenException, ValidationException {
+    public User changePasswordByResetToken( int userId, String token, PasswordReset passwordReset ) throws TokenException, ValidationException {
 
         verifyPasswordResetToken( userId, token );
 
-        if ( newPassword.length() >= 6 ) { //TODO: Tie in with hibernate constraint on User or not necessary?
+        // Preauthorize might cause trouble here if implemented, fix by setting manual authentication
+        User user = findUserByIdNoAuth( userId );
 
-            // Preauthorize might cause trouble here if implemented, fix by setting manual authentication
-            User user = findUserByIdNoAuth( userId );
+        user.setPassword( bCryptPasswordEncoder.encode( passwordReset.getNewPassword() ) );
 
-            user.setPassword( bCryptPasswordEncoder.encode( newPassword ) );
-            return updateNoAuth( user );
-        } else {
-            throw new ValidationException( "Password must be a minimum of 6 characters" );
-        }
+        return updateNoAuth( user );
     }
 
     @Transactional
@@ -466,7 +455,7 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     @Override
-    public User confirmVerificationToken( String token ) {
+    public User confirmVerificationToken( String token ) throws TokenException {
         VerificationToken verificationToken = tokenRepository.findByToken( token );
         if ( verificationToken == null ) {
             throw new TokenException( "Invalid Token" );
@@ -479,8 +468,7 @@ public class UserServiceImpl implements UserService {
 
         User user = verificationToken.getUser();
         user.setEnabled( true );
-        updateNoAuth( user );
-        return user;
+        return updateNoAuth( user );
     }
 
     @PostFilter("hasPermission(filterObject, 'read')")

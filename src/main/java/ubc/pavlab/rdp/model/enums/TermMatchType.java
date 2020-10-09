@@ -16,8 +16,8 @@ public enum TermMatchType implements MatchType {
     NAME_CONTAINS_PART( "Name Contains Part", 3 ),
     DEFINITION_CONTAINS_PART( "Definition Contains Part", 4 );
 
-    private String label;
-    private int order;
+    private final String label;
+    private final int order;
 
     @JsonValue
     public String getLabel() {

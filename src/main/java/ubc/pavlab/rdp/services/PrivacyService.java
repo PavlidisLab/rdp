@@ -11,9 +11,6 @@ public interface PrivacyService {
 
     /**
      * Check if a privacy level is enabled in the configuration.
-     *
-     * @param privacyLevel
-     * @return
      */
     boolean isPrivacyLevelEnabled( PrivacyLevelType privacyLevel );
 
@@ -25,10 +22,6 @@ public interface PrivacyService {
      * Check of a given user has access to a privacy-sensitive content.
      * <p>
      * Consider using hasPermission(object, 'read') instead.
-     *
-     * @param user
-     * @param content
-     * @return
      */
     boolean checkUserCanSee( User user, UserContent content );
 
@@ -37,10 +30,6 @@ public interface PrivacyService {
      * Check if a given user can search.
      * <p>
      * Consider using hasPermission(object, 'search') instead.
-     *
-     * @param user
-     * @param international
-     * @return
      */
     boolean checkUserCanSearch( User user, boolean international );
 

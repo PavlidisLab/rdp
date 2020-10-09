@@ -25,7 +25,6 @@ import java.io.IOException;
 import java.text.MessageFormat;
 import java.text.ParseException;
 import java.util.*;
-import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -113,7 +112,7 @@ public class GOServiceImpl implements GOService {
         try {
             Collection<Gene2GoParser.Record> records = gene2GoParser.populateAnnotations( new GZIPInputStream( cacheSettings.getAnnotationFile().getInputStream() ) );
 
-            Map<String, List<Gene2GoParser.Record>> recordsByGoTerm = records.stream().collect( groupingBy( term -> term.getGoId(), Collectors.toList() ) );
+            Map<String, List<Gene2GoParser.Record>> recordsByGoTerm = records.stream().collect( groupingBy( Gene2GoParser.Record::getGoId, Collectors.toList() ) );
 
             for ( Map.Entry<String, List<Gene2GoParser.Record>> entry : recordsByGoTerm.entrySet() ) {
                 GeneOntologyTerm term = getTerm( entry.getKey() );
@@ -127,7 +126,7 @@ public class GOServiceImpl implements GOService {
                 }
 
                 term.setSizesByTaxonId( entry.getValue().stream()
-                        .collect( groupingBy( record -> record.getTaxonId(), counting() ) ) );
+                        .collect( groupingBy( Gene2GoParser.Record::getTaxonId, counting() ) ) );
             }
 
             log.info( "Finished loading annotations." );

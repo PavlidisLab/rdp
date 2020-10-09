@@ -15,15 +15,10 @@ public class RemoteResourceConfig {
     public ResteasyClient resteasyClient( ApplicationSettings applicationSettings ) {
         String proxyHost = applicationSettings.getIsearch().getHost();
         String proxyPort = applicationSettings.getIsearch().getPort();
-        ResteasyClient client = null;
-
         if ( proxyHost != null && proxyPort != null &&
                 !proxyHost.equals( "" ) && !proxyPort.equals( "" ) ) {
             log.info( "Using " + proxyHost + ":" + proxyPort + " as proxy for rest client." );
-            return new ResteasyClientBuilder().defaultProxy(
-                    proxyHost,
-                    Integer.parseInt( proxyPort )
-            ).build();
+            return new ResteasyClientBuilder().defaultProxy( proxyHost, Integer.parseInt( proxyPort ) ).build();
         } else {
             log.info( "Using default proxy for rest client." );
             return new ResteasyClientBuilder().build();

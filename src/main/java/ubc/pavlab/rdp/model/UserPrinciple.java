@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
  */
 @AllArgsConstructor
 public class UserPrinciple implements UserDetails {
-    private User user;
+    private final User user;
 
     public Integer getId() {
         return user.getId();

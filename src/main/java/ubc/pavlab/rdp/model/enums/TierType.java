@@ -16,7 +16,7 @@ public enum TierType {
     TIER2( "Tier 2" ),
     TIER3( "Tier 3" );
 
-    private String label;
+    private final String label;
 
     /**
      * This is the subset of manually assigned tiers which correspond to tier 1 and 2.

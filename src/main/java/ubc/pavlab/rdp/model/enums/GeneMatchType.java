@@ -16,8 +16,8 @@ public enum GeneMatchType implements MatchType {
     SIMILAR_ALIAS( "Similar Alias", 3 );
 
 
-    private String label;
-    private int order;
+    private final String label;
+    private final int order;
 
     @JsonValue
     public String getLabel() {

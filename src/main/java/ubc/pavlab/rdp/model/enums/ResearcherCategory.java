@@ -12,6 +12,6 @@ public enum ResearcherCategory {
     IN_VITRO_STRUCTURAL( "in-vitro-structural", "In vitro (structural)" ),
     IN_VIVO( "in-vivo", "In vivo" ),
     OTHER( "other", "Other" );
-    private String id;
-    private String label;
+    private final String id;
+    private final String label;
 }

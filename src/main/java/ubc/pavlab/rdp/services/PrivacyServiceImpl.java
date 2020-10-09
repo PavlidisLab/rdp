@@ -12,7 +12,6 @@ import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.repositories.RoleRepository;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 
-import javax.annotation.PostConstruct;
 import java.text.MessageFormat;
 
 /**

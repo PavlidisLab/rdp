@@ -7,7 +7,6 @@ import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPHTTPClient;
 import org.springframework.stereotype.Component;
-import ubc.pavlab.rdp.model.Taxon;
 
 import java.io.*;
 import java.net.URL;
@@ -30,21 +29,21 @@ public class Gene2GoParser {
 
     @Data
     @AllArgsConstructor
-    public class Record {
+    public static class Record {
         private Integer taxonId;
         private Integer geneId;
         private String goId;
     }
 
-    public void populateAnnotations( URL url, Collection<Taxon> acceptableTaxons ) throws ParseException {
+    public void populateAnnotations( URL url ) throws ParseException {
 
         String proxyHost = System.getProperty( "ftp.proxyHost" );
 
         FTPClient ftp;
 
         if ( proxyHost != null ) {
-            Integer proxyPort = Integer.parseInt( System.getProperty( "ftp.proxyPort" ) );
-            log.info( "Using HTTP proxy server: " + proxyHost + ":" + proxyPort.toString() );
+            int proxyPort = Integer.parseInt( System.getProperty( "ftp.proxyPort" ) );
+            log.info( "Using HTTP proxy server: " + proxyHost + ":" + proxyPort );
             ftp = new FTPHTTPClient( proxyHost, proxyPort );
         } else {
             ftp = new FTPClient();

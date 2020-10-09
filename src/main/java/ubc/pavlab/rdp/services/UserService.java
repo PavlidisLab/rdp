@@ -8,7 +8,10 @@ import ubc.pavlab.rdp.model.enums.ResearcherCategory;
 import ubc.pavlab.rdp.model.enums.TierType;
 
 import javax.validation.ValidationException;
-import java.util.*;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedSet;
 
 /**
  * Created by mjacobson on 16/01/18.
@@ -41,11 +44,11 @@ public interface UserService {
 
     Collection<User> findAll();
 
-    Collection<User> findByLikeName( String nameLike, Optional<Collection<ResearcherCategory>> researcherTypes, Optional<Collection<UserOrgan>> userOrgans );
+    Collection<User> findByLikeName( String nameLike, Set<ResearcherCategory> researcherTypes, Collection<UserOrgan> userOrgans );
 
-    Collection<User> findByStartsName( String startsName, Optional<Collection<ResearcherCategory>> researcherTypes, Optional<Collection<UserOrgan>> userOrgans );
+    Collection<User> findByStartsName( String startsName, Set<ResearcherCategory> researcherTypes, Collection<UserOrgan> userOrgans );
 
-    Collection<User> findByDescription( String descriptionLike, Optional<Collection<ResearcherCategory>> researcherTypes, Optional<Collection<UserOrgan>> userOrgans );
+    Collection<User> findByDescription( String descriptionLike, Collection<ResearcherCategory> researcherTypes, Collection<UserOrgan> userOrgans );
 
     long countResearchers();
 
@@ -61,17 +64,17 @@ public interface UserService {
                                      Map<GeneInfo, PrivacyLevelType> genesToPrivacyLevelMap,
                                      Collection<GeneOntologyTerm> goTerms );
 
-    User updateUserProfileAndPublicationsAndOrgans( User user, Profile profile, Set<Publication> publications, Optional<Set<String>> organUberonIds );
+    User updateUserProfileAndPublicationsAndOrgans( User user, Profile profile, Set<Publication> publications, Set<String> organUberonIds );
 
     PasswordResetToken createPasswordResetTokenForUser( User user, String token );
 
     void verifyPasswordResetToken( int userId, String token ) throws TokenException;
 
-    User changePasswordByResetToken( int userId, String token, String newPassword );
+    User changePasswordByResetToken( int userId, String token, PasswordReset passwordReset ) throws TokenException;
 
     VerificationToken createVerificationTokenForUser( User user, String token );
 
-    User confirmVerificationToken( String token );
+    User confirmVerificationToken( String token ) throws TokenException;
 
     SortedSet<String> getLastNamesFirstChar();
 

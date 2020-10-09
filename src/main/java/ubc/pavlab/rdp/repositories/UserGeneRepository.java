@@ -57,17 +57,12 @@ public interface UserGeneRepository extends JpaRepository<UserGene, Integer> {
 
     /**
      * Find all user genes ortholog to a given gene.
-     *
-     * @return
      */
     @Query("select user_gene from UserGene user_gene where user_gene.geneId in (select ortholog.geneId from GeneInfo gene_info join gene_info.orthologs as ortholog where gene_info.geneId = :geneId)")
     Collection<UserGene> findOrthologsByGeneId( @Param("geneId") Integer geneId );
 
     /**
      * Find user genes within a given taxon that are ortholog to a given gene.
-     *
-     * @param taxon
-     * @return
      */
     @Query("select user_gene from UserGene user_gene where user_gene.geneId in (select ortholog.geneId from GeneInfo gene_info join gene_info.orthologs as ortholog where gene_info.geneId = :geneId and ortholog.taxon = :taxon)")
     Collection<UserGene> findOrthologsByGeneIdAndTaxon( @Param("geneId") Integer geneId, @Param("taxon") Taxon taxon );

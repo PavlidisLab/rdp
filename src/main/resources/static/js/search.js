@@ -35,25 +35,23 @@
         tableContainer.html($('<i class="mx-2 spinner"></i>'));
 
         // noinspection JSUnusedLocalSymbols
-        tableContainer.load("/search/view", formData, function (responseText, textStatus, req) {
-            if (textStatus !== "success") {
-                tableContainer.html($('<span class="mx-2 text-danger">Something went wrong! Please try again.</span>'));
+        tableContainer.load("/search/view", formData, function (responseText, textStatus) {
+            if (textStatus === "error") {
+                tableContainer.html(responseText);
             }
             tableContainer.find('[data-toggle="tooltip"]').tooltip();
         });
 
         // Show orthologs
-        //$("#orthologsResults").fadeOut("slow", function(){
         $(".ortholog-search-text").html(""); // Clear existing results.
-        //});
         if ($("#symbolInput").val() !== "" && $("#ortholog-box").is(":visible")) {
             var orthologContainer = $("#orthologsResults");
             orthologContainer.html($('<i class="mx-2 spinner"></i>'));
             orthologContainer.load("/search/view/orthologs", formData, function (responseText, textStatus) {
                 if (textStatus === "error") {
-                    orthologContainer.html($('<span class="mx-2 text-danger">Something went wrong! Please try again.</span>'));
+                    /* display nothing if there's issue with orthologs */
+                    orthologContainer.html('');
                 }
-                //$("#orthologsResults").fadeIn(1500);
                 orthologContainer.find('[data-toggle="tooltip"]').tooltip();
             });
         }
@@ -64,8 +62,8 @@
             itlTableContainer.html($('<i class="mx-2 spinner"></i>'));
             // noinspection JSUnusedLocalSymbols
             itlTableContainer.load("/search/view/international", formData, function (responseText, textStatus, req) {
-                if (textStatus !== "success") {
-                    itlTableContainer.html($('<span class="mx-2 text-danger">Something went wrong! Please try again.</span>'));
+                if (textStatus === "error") {
+                    itlTableContainer.html(responseText);
                 }
                 itlTableContainer.find('[data-toggle="tooltip"]').tooltip();
             });

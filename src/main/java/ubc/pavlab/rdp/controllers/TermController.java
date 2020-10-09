@@ -6,13 +6,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import ubc.pavlab.rdp.model.GeneInfo;
 import ubc.pavlab.rdp.model.GeneOntologyTerm;
-import ubc.pavlab.rdp.model.Role;
 import ubc.pavlab.rdp.model.Taxon;
-import ubc.pavlab.rdp.repositories.RoleRepository;
 import ubc.pavlab.rdp.services.GOService;
 import ubc.pavlab.rdp.services.TaxonService;
-import ubc.pavlab.rdp.services.UserService;
-import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.util.SearchResult;
 
 import java.util.Collection;
@@ -25,22 +21,11 @@ import java.util.List;
 @CommonsLog
 public class TermController {
 
-    private static Role adminRole;
-
-    @Autowired
-    private UserService userService;
-
     @Autowired
     private GOService goService;
 
     @Autowired
     private TaxonService taxonService;
-
-    @Autowired
-    private ApplicationSettings applicationSettings;
-
-    @Autowired
-    private RoleRepository roleRepository;
 
     @PreAuthorize("hasPermission(null, 'search')")
     @RequestMapping(value = "/taxon/{taxonId}/term/search/{query}", method = RequestMethod.GET)

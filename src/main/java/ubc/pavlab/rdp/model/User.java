@@ -8,12 +8,13 @@ import org.hibernate.validator.constraints.Email;
 import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.springframework.data.annotation.Transient;
+import org.springframework.util.StringUtils;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.TierType;
 
 import javax.persistence.*;
 import javax.validation.Valid;
-import java.net.URL;
+import java.net.URI;
 import java.text.MessageFormat;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -65,7 +66,15 @@ public class User implements UserContent {
     private String origin;
 
     @Transient
-    private URL originUrl;
+    private URI originUrl;
+
+    /**
+     * Ensure that the path of the URL is effectively stripped from any trailing slashes.
+     */
+    @SneakyThrows
+    public void setOriginUrl( URI originUrl ) {
+        this.originUrl = new URI( originUrl.getScheme(), originUrl.getAuthority(), StringUtils.trimTrailingCharacter( originUrl.getPath(), '/' ), null, null );
+    }
 
     /* Research related information */
 

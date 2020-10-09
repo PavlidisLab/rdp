@@ -69,7 +69,7 @@ public class RemoteResourceServiceTest {
     @Before
     public void setUp() {
         when( applicationSettings.getIsearch() ).thenReturn( iSearchSettings );
-        when( iSearchSettings.getApis() ).thenReturn( new String[]{ "example.com" } );
+        when( iSearchSettings.getApis() ).thenReturn( new String[]{ "http://example.com" } );
 
         ResteasyWebTarget resteasyWebTarget = mock( ResteasyWebTarget.class );
         Invocation.Builder builder = mock( Invocation.Builder.class );
@@ -79,16 +79,16 @@ public class RemoteResourceServiceTest {
     }
 
     @Test
-    public void findUserByLikeName_thenReturnSuccess() throws URISyntaxException, RemoteException {
+    public void findUserByLikeName_thenReturnSuccess() throws URISyntaxException {
         when( response.getStatus() ).thenReturn( 200 );
         when( response.readEntity( User[].class ) ).thenReturn( new User[]{} );
-        remoteResourceService.findUsersByLikeName( "ok", true, Optional.empty(), Optional.empty() );
-        verify( resteasyClient ).target( new URI( "example.com/api/users/search?nameLike=ok&prefix=true" ) );
+        remoteResourceService.findUsersByLikeName( "ok", true, null, null );
+        verify( resteasyClient ).target( new URI( "http://example.com/api/users/search?nameLike=ok&prefix=true" ) );
     }
 
     @Test
     @WithMockUser(roles = { "ADMIN" })
-    public void findUserByLikeName_whenAdmin_thenReturnSuccess() throws URISyntaxException, RemoteException {
+    public void findUserByLikeName_whenAdmin_thenReturnSuccess() throws URISyntaxException {
         Role adminRole = createRole( 1, "ROLE_ADMIN" );
         User adminUser = createUserWithRoles( 1, adminRole );
         when( iSearchSettings.getSearchToken() ).thenReturn( "1234" );
@@ -96,8 +96,8 @@ public class RemoteResourceServiceTest {
         when( userService.findCurrentUser() ).thenReturn( adminUser );
         when( response.getStatus() ).thenReturn( 200 );
         when( response.readEntity( User[].class ) ).thenReturn( new User[]{} );
-        remoteResourceService.findUsersByLikeName( "ok", true, Optional.empty(), Optional.empty() );
-        verify( resteasyClient ).target( new URI( "example.com/api/users/search?nameLike=ok&prefix=true&auth=1234" ) );
+        remoteResourceService.findUsersByLikeName( "ok", true, null, null );
+        verify( resteasyClient ).target( new URI( "http://example.com/api/users/search?nameLike=ok&prefix=true&auth=1234" ) );
     }
 
     @Test
@@ -106,20 +106,39 @@ public class RemoteResourceServiceTest {
         when( response.readEntity( UserGene[].class ) ).thenReturn( new UserGene[]{} );
 
         Taxon taxon = createTaxon( 9606 );
-        remoteResourceService.findGenesBySymbol( "ok", taxon, EnumSet.of( TierType.TIER1, TierType.TIER2, TierType.TIER3 ), null, Optional.empty(), Optional.empty() );
-        verify( resteasyClient ).target( new URI( "example.com/api/genes/search?symbol=ok&taxonId=9606&tier=TIER1" ) );
-        verify( resteasyClient ).target( new URI( "example.com/api/genes/search?symbol=ok&taxonId=9606&tier=TIER2" ) );
+        remoteResourceService.findGenesBySymbol( "ok", taxon, EnumSet.of( TierType.TIER1, TierType.TIER2, TierType.TIER3 ), null, null, null );
+        verify( resteasyClient ).target( new URI( "http://example.com/api/genes/search?symbol=ok&taxonId=9606&tier=TIER1" ) );
+        verify( resteasyClient ).target( new URI( "http://example.com/api/genes/search?symbol=ok&taxonId=9606&tier=TIER2" ) );
         verifyNoMoreInteractions( resteasyClient );
     }
 
     @Test
-    public void getRemoteUser_whenRemoteDoesNotExist_thenReturnSuccess() throws URISyntaxException, RemoteException {
+    public void getRemoteUser_thenReturnSuccess() throws URISyntaxException, RemoteException {
         User user = createUser( 1 );
         when( response.getStatus() ).thenReturn( 200 );
         when( response.readEntity( User.class ) ).thenReturn( user );
-        when( iSearchSettings.getApis() ).thenReturn( new String[]{ "example.com" } );
-        User remoteUser = remoteResourceService.getRemoteUser( 1, "example.com" );
-        verify( resteasyClient ).target( new URI( "example.com/api/users/1" ) );
+        User remoteUser = remoteResourceService.getRemoteUser( 1, URI.create( "http://example.com" ) );
+        verify( resteasyClient ).target( new URI( "http://example.com/api/users/1" ) );
+        assertThat( remoteUser ).isEqualTo( user );
+    }
+
+    @Test
+    public void getRemoteUser_whenAuthorityIsKnownButSchemeDiffers_thenReturnSuccess() throws URISyntaxException, RemoteException {
+        User user = createUser( 1 );
+        when( response.getStatus() ).thenReturn( 200 );
+        when( response.readEntity( User.class ) ).thenReturn( user );
+        User remoteUser = remoteResourceService.getRemoteUser( 1, URI.create( "https://example.com" ) );
+        verify( resteasyClient ).target( new URI( "http://example.com/api/users/1" ) );
+        assertThat( remoteUser ).isEqualTo( user );
+    }
+
+    @Test
+    public void getRemoteUser_whenAuthorityIsKnownButPathDiffers_thenReturnSuccess() throws URISyntaxException, RemoteException {
+        User user = createUser( 1 );
+        when( response.getStatus() ).thenReturn( 200 );
+        when( response.readEntity( User.class ) ).thenReturn( user );
+        User remoteUser = remoteResourceService.getRemoteUser( 1, URI.create( "http://example.com/foo" ) );
+        verify( resteasyClient ).target( new URI( "http://example.com/api/users/1" ) );
         assertThat( remoteUser ).isEqualTo( user );
     }
 
@@ -129,7 +148,7 @@ public class RemoteResourceServiceTest {
         when( response.getStatus() ).thenReturn( 200 );
         when( response.readEntity( User.class ) ).thenReturn( user );
         when( iSearchSettings.getApis() ).thenReturn( new String[]{ "https://example.com/rgr" } );
-        User remoteUser = remoteResourceService.getRemoteUser( 1, "https://example.com/rgr" );
+        User remoteUser = remoteResourceService.getRemoteUser( 1, URI.create( "https://example.com/rgr" ) );
         verify( resteasyClient ).target( new URI( "https://example.com/rgr/api/users/1" ) );
         assertThat( remoteUser ).isEqualTo( user );
     }
@@ -139,15 +158,14 @@ public class RemoteResourceServiceTest {
         User user = createUser( 1 );
         when( response.getStatus() ).thenReturn( 200 );
         when( response.readEntity( User.class ) ).thenReturn( user );
-        when( iSearchSettings.getApis() ).thenReturn( new String[]{ "https://example.com/" } );
-        User remoteUser = remoteResourceService.getRemoteUser( 1, "https://example.com/" );
-        verify( resteasyClient ).target( new URI( "https://example.com/api/users/1" ) );
+        when( iSearchSettings.getApis() ).thenReturn( new String[]{ "http://example.com/" } );
+        User remoteUser = remoteResourceService.getRemoteUser( 1, URI.create( "http://example.com/" ) );
+        verify( resteasyClient ).target( new URI( "http://example.com/api/users/1" ) );
         assertThat( remoteUser ).isEqualTo( user );
     }
 
     @Test(expected = RemoteException.class)
     public void getRemoteUser_whenRemoteDoesNotExist_thenRaiseException() throws RemoteException {
-        when( iSearchSettings.getApis() ).thenReturn( new String[]{ "example.com" } );
-        remoteResourceService.getRemoteUser( 1, "example1.com" );
+        remoteResourceService.getRemoteUser( 1, URI.create( "http://example1.com" ) );
     }
 }

@@ -17,7 +17,7 @@ public class GeneOrthologsParser {
 
     @Data
     @AllArgsConstructor
-    public class Record {
+    public static class Record {
         private Integer taxonId;
         private Integer geneId;
         private String relationship;

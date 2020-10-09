@@ -2,11 +2,11 @@ package ubc.pavlab.rdp.settings;
 
 import lombok.Getter;
 import lombok.Setter;
-import lombok.SneakyThrows;
 import org.hibernate.validator.constraints.Email;
 import org.hibernate.validator.constraints.URL;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
+import org.springframework.web.util.UriComponentsBuilder;
 
 /**
  * Created by mjacobson on 22/01/18.
@@ -28,9 +28,8 @@ public class SiteSettings {
     @Email
     private String adminEmail;
 
-    @SneakyThrows
-    public java.net.URL getFullUrl() {
-        return new java.net.URL( new java.net.URL( host ), context );
+    public java.net.URI getFullUrl() {
+        return UriComponentsBuilder.fromUriString( host ).path( context ).build().toUri();
     }
 
     @URL

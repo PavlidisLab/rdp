@@ -3,21 +3,21 @@ package ubc.pavlab.rdp.controllers;
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import ubc.pavlab.rdp.events.OnRegistrationCompleteEvent;
+import ubc.pavlab.rdp.exception.TokenException;
 import ubc.pavlab.rdp.model.Profile;
 import ubc.pavlab.rdp.model.User;
-import ubc.pavlab.rdp.model.UserPrinciple;
 import ubc.pavlab.rdp.services.PrivacyService;
 import ubc.pavlab.rdp.services.UserService;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
@@ -45,7 +45,7 @@ public class LoginController {
 
     @GetMapping("/login")
     public ModelAndView login() {
-        ModelAndView modelAndView = new ModelAndView();
+        ModelAndView modelAndView = new ModelAndView( "login" );
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
@@ -54,23 +54,21 @@ public class LoginController {
             return new ModelAndView( "forward:/" );
         }
 
-        modelAndView.setViewName( "login" );
         return modelAndView;
     }
 
-
     @GetMapping("/registration")
     public ModelAndView registration() {
-        ModelAndView modelAndView = new ModelAndView();
+        ModelAndView modelAndView = new ModelAndView( "registration" );
         modelAndView.addObject( "user", new User() );
-        modelAndView.setViewName( "registration" );
         return modelAndView;
     }
 
     @PostMapping("/registration")
-    public String createNewUser( @Valid User user,
-                                 BindingResult bindingResult,
-                                 RedirectAttributes redirectAttributes ) {
+    public ModelAndView createNewUser( @Valid User user,
+                                       BindingResult bindingResult,
+                                       RedirectAttributes redirectAttributes ) {
+        ModelAndView modelAndView = new ModelAndView( "registration" );
         User userExists = userService.findUserByEmailNoAuth( user.getEmail() );
 
         // initialize a basic user profile
@@ -84,7 +82,9 @@ public class LoginController {
             log.warn( "Trying to register an already registered email." );
         }
 
-        if ( !bindingResult.hasErrors() ) {
+        if ( bindingResult.hasErrors() ) {
+            modelAndView.setStatus( HttpStatus.BAD_REQUEST );
+        } else {
             user = userService.create( user );
             try {
                 eventPublisher.publishEvent( new OnRegistrationCompleteEvent( user ) );
@@ -93,33 +93,33 @@ public class LoginController {
                 log.error( me );
                 redirectAttributes.addFlashAttribute( "message", "Your user account was registered successfully, but we couldn't send you a confirmation email." );
             } finally {
-                return "redirect:/login";
+                modelAndView.setViewName( "redirect:/login" );
             }
         }
 
-        return "registration";
-    }
-
-    @RequestMapping(value = { "/resendConfirmation" }, method = RequestMethod.GET)
-    public ModelAndView resendConfirmation() {
-        ModelAndView modelAndView = new ModelAndView();
-        modelAndView.setViewName( "resendConfirmation" );
         return modelAndView;
     }
 
-    @RequestMapping(value = "/resendConfirmation", method = RequestMethod.POST)
+    @GetMapping(value = "/resendConfirmation")
+    public ModelAndView resendConfirmation() {
+        ModelAndView modelAndView = new ModelAndView( "resendConfirmation" );
+        return modelAndView;
+    }
+
+    @PostMapping(value = "/resendConfirmation")
     public ModelAndView resendConfirmation( @RequestParam("email") String email ) {
-        ModelAndView modelAndView = new ModelAndView();
-        modelAndView.setViewName( "resendConfirmation" );
+        ModelAndView modelAndView = new ModelAndView( "resendConfirmation" );
         User user = userService.findUserByEmailNoAuth( email );
 
+        // don't leak the user existence
         if ( user == null ) {
-//            modelAndView.addObject( "message", "User does not exist." );
-            modelAndView.addObject( "message", "Confirmation email sent." );
+            modelAndView.setStatus( HttpStatus.NOT_FOUND );
+            modelAndView.addObject( "message", "User does not exist." );
             return modelAndView;
         } else if ( user.isEnabled() ) {
-//            modelAndView.addObject( "message", "Account already enabled." );
-            modelAndView.addObject( "message", "Confirmation email sent." );
+            // user is already enabled...
+            modelAndView.setStatus( HttpStatus.BAD_REQUEST );
+            modelAndView.addObject( "message", "User is already enabled." );
             return modelAndView;
         } else {
 
@@ -135,18 +135,20 @@ public class LoginController {
         return modelAndView;
     }
 
-    @RequestMapping(value = "/registrationConfirm", method = RequestMethod.GET)
-    public ModelAndView confirmRegistration( WebRequest request, Model model, @RequestParam("token") String token ) {
-        User user = userService.confirmVerificationToken( token );
-
-        UserPrinciple principle = new UserPrinciple( user );
-        Authentication auth = new UsernamePasswordAuthenticationToken( principle, null, principle.getAuthorities() );
-        SecurityContextHolder.getContext().setAuthentication( auth );
-
+    @GetMapping(value = "/registrationConfirm")
+    public ModelAndView confirmRegistration( @RequestParam("token") String token ) {
         ModelAndView modelAndView = new ModelAndView();
-        modelAndView.setViewName( "redirect:user/home" );
-        return modelAndView;
 
+        try {
+            userService.confirmVerificationToken( token );
+            modelAndView.setViewName( "redirect:/login" );
+        } catch ( TokenException e ) {
+            log.error( e );
+            modelAndView.setStatus( HttpStatus.NOT_FOUND );
+            modelAndView.setViewName( "error/404" );
+        }
+
+        return modelAndView;
     }
 
 

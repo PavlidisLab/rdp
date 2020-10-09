@@ -1,12 +1,17 @@
 package ubc.pavlab.rdp.controllers;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.extern.apachecommons.CommonsLog;
+import org.hibernate.validator.constraints.NotEmpty;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Controller;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
@@ -46,29 +51,25 @@ public class UserController {
 
     @GetMapping(value = { "/user/home" })
     public ModelAndView userHome() {
-        ModelAndView modelAndView = new ModelAndView();
-        User user = userService.findCurrentUser();
-        modelAndView.addObject( "user", user );
-        modelAndView.setViewName( "user/home" );
+        ModelAndView modelAndView = new ModelAndView( "user/home" );
+        modelAndView.addObject( "user", userService.findCurrentUser() );
         return modelAndView;
     }
 
     @GetMapping(value = { "/user/model/{taxonId}" })
     public ModelAndView model( @PathVariable Integer taxonId ) {
-        ModelAndView modelAndView = new ModelAndView();
+        ModelAndView modelAndView = new ModelAndView( "user/model" );
         User user = userService.findCurrentUser();
         Taxon taxon = taxonService.findById( taxonId );
-
         modelAndView.addObject( "viewOnly", null );
         modelAndView.addObject( "user", user );
         modelAndView.addObject( "taxon", taxon );
-        modelAndView.setViewName( "user/model" );
         return modelAndView;
     }
 
     @GetMapping(value = "/user/taxon/{taxonId}/term/{goId}/gene/view")
     public ModelAndView getTermsGenesForTaxon( @PathVariable Integer taxonId, @PathVariable String goId ) {
-        ModelAndView modelAndView = new ModelAndView();
+        ModelAndView modelAndView = new ModelAndView( "fragments/gene-table::gene-table" );
         User user = userService.findCurrentUser();
         Taxon taxon = taxonService.findById( taxonId );
 
@@ -84,44 +85,39 @@ public class UserController {
             modelAndView.addObject( "genes", Collections.EMPTY_SET );
         }
         modelAndView.addObject( "viewOnly", true );
-        modelAndView.setViewName( "fragments/gene-table::gene-table" );
         return modelAndView;
     }
 
     @GetMapping(value = { "/user/profile" })
     public ModelAndView profile() {
-        ModelAndView modelAndView = new ModelAndView();
+        ModelAndView modelAndView = new ModelAndView( "user/profile" );
         User user = userService.findCurrentUser();
         modelAndView.addObject( "user", user );
         modelAndView.addObject( "viewOnly", null );
-        modelAndView.setViewName( "user/profile" );
         return modelAndView;
     }
 
     @GetMapping(value = { "/user/documentation" })
     public ModelAndView documentation() {
-        ModelAndView modelAndView = new ModelAndView();
+        ModelAndView modelAndView = new ModelAndView( "user/documentation" );
         User user = userService.findCurrentUser();
         modelAndView.addObject( "user", user );
-        modelAndView.setViewName( "user/documentation" );
         return modelAndView;
     }
 
     @GetMapping(value = { "/user/faq" })
     public ModelAndView faq() {
-        ModelAndView modelAndView = new ModelAndView();
+        ModelAndView modelAndView = new ModelAndView( "user/faq" );
         User user = userService.findCurrentUser();
         modelAndView.addObject( "user", user );
-        modelAndView.setViewName( "user/faq" );
         return modelAndView;
     }
 
     @GetMapping(value = { "/user/support" })
     public ModelAndView support() {
-        ModelAndView modelAndView = new ModelAndView();
+        ModelAndView modelAndView = new ModelAndView( "user/support" );
         User user = userService.findCurrentUser();
         modelAndView.addObject( "user", user );
-        modelAndView.setViewName( "user/support" );
         return modelAndView;
     }
 
@@ -130,11 +126,11 @@ public class UserController {
                                      @RequestParam String name,
                                      @RequestParam String message,
                                      @RequestParam(required = false) MultipartFile attachment ) {
-        ModelAndView modelAndView = new ModelAndView();
+        ModelAndView modelAndView = new ModelAndView( "user/support" );
         User user = userService.findCurrentUser();
         modelAndView.addObject( "user", user );
 
-        log.info( MessageFormat.format( "{0} is attemting to contact support.", user ) );
+        log.info( MessageFormat.format( "{0} is attempting to contact support.", user ) );
 
         try {
             emailService.sendSupportMessage( message, name, user, request, attachment );
@@ -147,9 +143,59 @@ public class UserController {
             modelAndView.addObject( "success", false );
         }
 
-        modelAndView.setViewName( "user/support" );
         return modelAndView;
     }
+
+    @Data
+    @EqualsAndHashCode(callSuper = true)
+    public static class PasswordChange extends PasswordReset {
+
+        @NotEmpty(message = "Current password cannot be empty.")
+        private String oldPassword;
+    }
+
+    @GetMapping(value = "/user/password")
+    public ModelAndView changePassword() {
+        ModelAndView modelAndView = new ModelAndView( "user/password" );
+        User user = userService.findCurrentUser();
+        modelAndView.addObject( "user", user );
+
+        modelAndView.addObject( "passwordChange", new PasswordChange() );
+        return modelAndView;
+    }
+
+    @PostMapping(value = "/user/password")
+    public ModelAndView changePassword( @Valid PasswordChange passwordChange, BindingResult bindingResult ) {
+        ModelAndView modelAndView = new ModelAndView( "user/password" );
+        User user = userService.findCurrentUser();
+        modelAndView.addObject( "user", user );
+
+        if ( !passwordChange.isValid() ) {
+            bindingResult.rejectValue( "passwordConfirm", "error.passwordChange", "Password conformation does not match new password." );
+        }
+
+        if ( bindingResult.hasErrors() ) {
+            // Short circuit before testing password.
+            modelAndView.setStatus( HttpStatus.BAD_REQUEST );
+            return modelAndView;
+        }
+
+        try {
+            userService.changePassword( passwordChange.getOldPassword(), passwordChange.getNewPassword() );
+        } catch ( BadCredentialsException e ) {
+            bindingResult.rejectValue( "oldPassword", "error.passwordChange", "Current password does not match." );
+        }
+
+        if ( bindingResult.hasErrors() ) {
+            modelAndView.setStatus( HttpStatus.BAD_REQUEST );
+        } else {
+            modelAndView.addObject( "passwordChange", new PasswordChange() );
+            modelAndView.addObject( "message", "Password Updated" );
+        }
+
+        return modelAndView;
+    }
+
 
     @Data
     static class ProfileWithOrganUberonIds {
@@ -162,7 +208,7 @@ public class UserController {
     @PostMapping(value = "/user/profile", produces = MediaType.TEXT_PLAIN_VALUE)
     public String saveProfile( @RequestBody ProfileWithOrganUberonIds profileWithOrganUberonIds ) {
         User user = userService.findCurrentUser();
-        userService.updateUserProfileAndPublicationsAndOrgans( user, profileWithOrganUberonIds.profile, profileWithOrganUberonIds.profile.getPublications(), Optional.ofNullable( profileWithOrganUberonIds.organUberonIds ) );
+        userService.updateUserProfileAndPublicationsAndOrgans( user, profileWithOrganUberonIds.profile, profileWithOrganUberonIds.profile.getPublications(), profileWithOrganUberonIds.organUberonIds );
         return "Saved.";
     }
 
@@ -248,7 +294,7 @@ public class UserController {
         User user = userService.findCurrentUser();
         Taxon taxon = taxonService.findById( taxonId );
         Set<GeneOntologyTerm> goTerms = goIds.stream().map( goId -> goService.getTerm( goId ) ).collect( Collectors.toSet() );
-        return userService.convertTerms( user, taxon, goTerms ).stream().collect( Collectors.toMap( term -> term.getGoId(), term -> term ) );
+        return userService.convertTerms( user, taxon, goTerms ).stream().collect( Collectors.toMap( GeneOntologyTerm::getGoId, term -> term ) );
     }
 
     @ResponseBody

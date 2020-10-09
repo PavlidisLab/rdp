@@ -284,9 +284,6 @@
         <hr/>
         <h4>Partner registry results</h4>
         <div id="itlUserTable">
-            <div th:if="${itlErrorMessage != null}" th:replace="fragments/error::message">
-                ...
-            </div>
             <div th:if="${itlUsers != null}"
                  th:replace="fragments/user-table::user-table(users=${itlUsers}, remote=true)">
                 ...

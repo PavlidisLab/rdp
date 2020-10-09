@@ -99,9 +99,9 @@ public class ApiController {
         }
         checkAuth( auth );
         if ( prefix ) {
-            return initUsers( userService.findByStartsName( nameLike, Optional.ofNullable( researcherCategories ), organsFromUberonIds( organUberonIds ) ), locale );
+            return initUsers( userService.findByStartsName( nameLike, researcherCategories, organsFromUberonIds( organUberonIds ) ), locale );
         } else {
-            return initUsers( userService.findByLikeName( nameLike, Optional.ofNullable( researcherCategories ), organsFromUberonIds( organUberonIds ) ), locale );
+            return initUsers( userService.findByLikeName( nameLike, researcherCategories, organsFromUberonIds( organUberonIds ) ), locale );
         }
     }
 
@@ -115,7 +115,7 @@ public class ApiController {
             return ResponseEntity.notFound().build();
         }
         checkAuth( auth );
-        return initUsers( userService.findByDescription( descriptionLike, Optional.ofNullable( researcherCategories ), organsFromUberonIds( organUberonIds ) ), locale );
+        return initUsers( userService.findByDescription( descriptionLike, researcherCategories, organsFromUberonIds( organUberonIds ) ), locale );
     }
 
     /**
@@ -150,13 +150,13 @@ public class ApiController {
             tiers = TierType.ANY;
         }
 
-        Optional<Taxon> orthologTaxon = Optional.ofNullable( orthologTaxonId ).map( taxonService::findById );
+        Taxon orthologTaxon = orthologTaxonId == null ? null : taxonService.findById( orthologTaxonId );
 
         Collection<UserGene> orthologs;
-        if ( orthologTaxon.isPresent() ) {
-            orthologs = userGeneService.findOrthologsByGeneAndTierInAndTaxonAndUserOrgansIn( gene, tiers, orthologTaxon.get(), Optional.ofNullable( researcherCategories ), organsFromUberonIds( organUberonIds ) );
+        if ( orthologTaxon != null ) {
+            orthologs = userGeneService.findOrthologsByGeneAndTierInAndTaxonAndUserOrgansIn( gene, tiers, orthologTaxon, researcherCategories, organsFromUberonIds( organUberonIds ) );
         } else {
-            orthologs = userGeneService.findOrthologsByGeneAndTierInAndUserOrgansIn( gene, tiers, Optional.ofNullable( researcherCategories ), organsFromUberonIds( organUberonIds ) );
+            orthologs = userGeneService.findOrthologsByGeneAndTierInAndUserOrgansIn( gene, tiers, researcherCategories, organsFromUberonIds( organUberonIds ) );
         }
 
         if (
@@ -167,7 +167,7 @@ public class ApiController {
             return new ResponseEntity<>( messageSource.getMessage( "ApiController.noOrthologsWithGivenParameters", null, locale ), null, HttpStatus.NOT_FOUND );
         }
 
-        return initGeneUsers( userGeneService.handleGeneSearch( gene, restrictTiers( tiers ), orthologTaxon, Optional.ofNullable( researcherCategories ), organsFromUberonIds( organUberonIds ) ), locale );
+        return initGeneUsers( userGeneService.handleGeneSearch( gene, restrictTiers( tiers ), orthologTaxon, researcherCategories, organsFromUberonIds( organUberonIds ) ), locale );
     }
 
     /**
@@ -188,14 +188,18 @@ public class ApiController {
                                            Locale locale ) {
         Set<TierType> tiers;
         if ( tier.equals( "TIER_ANY" ) ) {
-            tiers = tierService.getEnabledTiers();
+            tiers = TierType.ANY;
         } else if ( tier.equals( "TIER1_2" ) || tier.equals( "TIER_MANUAL" ) ) {
             tiers = TierType.MANUAL;
-        } else if ( TierType.valueOf( tier ) != null ) {
-            tiers = EnumSet.of( TierType.valueOf( tier ) );
         } else {
-            return ResponseEntity.badRequest().body( MessageFormat.format( "Unknown tier {0}.", tier ) );
+            try {
+                tiers = EnumSet.of( TierType.valueOf( tier ) );
+            } catch ( IllegalArgumentException e ) {
+                log.error( e );
+                return ResponseEntity.badRequest().body( MessageFormat.format( "Unknown tier {0}.", tier ) );
+            }
         }
+
         return searchUsersByGeneSymbol( symbol, taxonId, tiers, auth, orthologTaxonId, researcherCategories, organUberonIds, locale );
     }
 
@@ -228,7 +232,7 @@ public class ApiController {
 
     private Collection<UserGene> initGeneUsers( Collection<UserGene> genes, Locale locale ) {
         for ( UserGene gene : genes ) {
-            //noinspection ResultOfMethodCallIgnored // Initializing for the json serializer.
+            // Initializing for the json serializer.
             initUser( gene.getUser(), locale );
             gene.getUser().setUserGenes( new HashMap<>() );
             gene.setRemoteUser( gene.getUser() );
@@ -262,12 +266,8 @@ public class ApiController {
                 .collect( Collectors.toSet() );
     }
 
-    private Optional<Collection<UserOrgan>> organsFromUberonIds( Set<String> organUberonIds ) {
-        Optional<Collection<UserOrgan>> organs = Optional.empty();
-        if ( organUberonIds != null ) {
-            organs = Optional.of( userOrganService.findByUberonIdIn( organUberonIds ) );
-        }
-        return organs;
+    private Collection<UserOrgan> organsFromUberonIds( Set<String> organUberonIds ) {
+        return organUberonIds == null ? null : userOrganService.findByUberonIdIn( organUberonIds );
     }
 
 }

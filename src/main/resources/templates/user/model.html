@@ -81,7 +81,7 @@
                     <p th:if="${@applicationSettings.privacy.isCustomizableGeneLevel()}">
                         Your can adjust privacy level for each gene individually, however you can only choose a more
                         restrictive value than what is set in your profile. You can change privacy settings for all of
-                        your genes changing your profile privacy setting.
+                        your genes by changing your profile privacy setting.
                     </p>
                     <p th:if="(${user.effectivePrivacyLevel.ordinal()} gt 0) and ${@applicationSettings.privacy.isAllowHideGenelist()}">
                         Non-administrative users that can see your data

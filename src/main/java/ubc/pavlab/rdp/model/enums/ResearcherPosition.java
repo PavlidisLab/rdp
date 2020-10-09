@@ -7,5 +7,5 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum ResearcherPosition {
     PRINCIPAL_INVESTIGATOR( "Principal Investigator" );
-    private String label;
+    private final String label;
 }

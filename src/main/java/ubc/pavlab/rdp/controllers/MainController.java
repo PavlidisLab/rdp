@@ -36,8 +36,7 @@ public class MainController {
 
     @GetMapping(value = { "/maintenance" })
     public ModelAndView maintenance() {
-        ModelAndView modelAndView = new ModelAndView();
-        modelAndView.setViewName( "error/maintenance" );
+        ModelAndView modelAndView = new ModelAndView( "error/maintenance" );
         return modelAndView;
     }
 

@@ -13,6 +13,6 @@ import lombok.ToString;
 @EqualsAndHashCode(of = { "match" })
 @ToString
 public class SearchResult<T> {
-    private MatchType matchType;
-    private T match;
+    private final MatchType matchType;
+    private final T match;
 }

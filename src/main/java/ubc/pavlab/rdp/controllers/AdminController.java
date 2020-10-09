@@ -36,8 +36,7 @@ public class AdminController {
         Collection<User> users = userService.findAll().stream()
                 .sorted( Comparator.comparing( u -> u.getProfile().getFullName() ) )
                 .collect( Collectors.toList() );
-        ModelAndView view = new ModelAndView();
-        view.setViewName( "admin/users" );
+        ModelAndView view = new ModelAndView( "admin/users" );
         view.addObject( "users", users );
         return view;
     }

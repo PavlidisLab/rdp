@@ -15,6 +15,7 @@ import ubc.pavlab.rdp.util.SearchResult;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -38,7 +39,7 @@ public class GeneController {
         Taxon taxon = taxonService.findById( taxonId );
         return geneService.findBySymbolInAndTaxon( symbols, taxon )
                 .stream()
-                .collect( Collectors.toMap( g -> g.getSymbol(), g -> g ) );
+                .collect( Collectors.toMap( Gene::getSymbol, Function.identity() ) );
         // return symbols.stream().collect( HashMap::new, ( m, s)->m.put(s, geneService.findBySymbolAndTaxon( s, taxon )), HashMap::putAll);
         // return symbols.stream().collect(Collectors.toMap( Function.identity(), s -> geneService.findBySymbolAndTaxon( s, taxon )));
     }

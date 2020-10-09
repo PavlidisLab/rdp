@@ -12,8 +12,6 @@ public interface GeneInfoRepository extends JpaRepository<GeneInfo, Integer> {
 
     GeneInfo findByGeneId( Integer geneId );
 
-    Collection<GeneInfo> findAllByIdIn( Collection<Integer> ids );
-
     Collection<GeneInfo> findAllByGeneIdIn( Collection<Integer> geneIds );
 
     GeneInfo findByGeneIdAndTaxon( Integer geneId, Taxon taxon );
@@ -21,14 +19,6 @@ public interface GeneInfoRepository extends JpaRepository<GeneInfo, Integer> {
     GeneInfo findBySymbolAndTaxon( String symbol, Taxon taxon );
 
     Collection<GeneInfo> findBySymbolInAndTaxon( Collection<String> symbols, Taxon taxon );
-
-    Collection<GeneInfo> findAllBySymbol( String symbol );
-
-    Collection<GeneInfo> findAllBySymbolStartingWithIgnoreCase( String symbolPrefix );
-
-    Collection<GeneInfo> findAllByNameStartingWithIgnoreCase( String query );
-
-    Collection<GeneInfo> findAllByAliasesContainingIgnoreCase( String query );
 
     Collection<GeneInfo> findAllBySymbolAndTaxon( String query, Taxon taxon );
 

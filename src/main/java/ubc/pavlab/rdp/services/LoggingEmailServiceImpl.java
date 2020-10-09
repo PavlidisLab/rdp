@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.util.UriComponentsBuilder;
 import ubc.pavlab.rdp.model.User;
 import ubc.pavlab.rdp.settings.SiteSettings;
 
@@ -29,13 +30,21 @@ public class LoggingEmailServiceImpl implements EmailService {
 
     @Override
     public void sendResetTokenMessage( String token, User user ) {
-        String url = siteSettings.getFullUrl() + "updatePassword?id=" + user.getId() + "&token=" + token;
+        String url = UriComponentsBuilder.fromUri( siteSettings.getFullUrl() )
+                .path( "updatePassword" )
+                .queryParam( "id", user.getId() )
+                .queryParam( "token", token )
+                .build().toUriString();
         log.info( MessageFormat.format( "Reset URL for {0}: {1}", user, url ) );
     }
 
     @Override
     public void sendRegistrationMessage( User user, String token ) {
-        String confirmationUrl = siteSettings.getFullUrl() + "registrationConfirm?token=" + token;
+        String confirmationUrl = UriComponentsBuilder.fromUri( siteSettings.getFullUrl() )
+                .path( "registrationConfirm" )
+                .queryParam( "token", token )
+                .build()
+                .toUriString();
         log.info( MessageFormat.format( "Confirmation URL for {0}: {1}", user, confirmationUrl ) );
     }
 

@@ -4,7 +4,6 @@ import lombok.extern.apachecommons.CommonsLog;
 import org.jboss.resteasy.client.jaxrs.ResteasyClient;
 import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -23,6 +22,8 @@ import java.net.URI;
 import java.text.MessageFormat;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static java.util.function.Function.identity;
 
 @Service("RemoteResourceService")
 @CommonsLog
@@ -45,31 +46,44 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
     private ResteasyClient client;
 
     @Override
-    public Collection<User> findUsersByLikeName( String nameLike, Boolean prefix, Optional<Collection<ResearcherCategory>> researcherTypes, Optional<Collection<String>> organUberonIds ) throws RemoteException {
+    public Collection<User> findUsersByLikeName( String nameLike, Boolean prefix, Collection<ResearcherCategory> researcherCategories, Collection<String> organUberonIds ) {
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add( "nameLike", nameLike );
         params.add( "prefix", prefix.toString() );
-        for ( String organUberonId : organUberonIds.orElse( Collections.emptySet() ) ) {
-            params.add( "organUberonIds", organUberonId );
+        if ( researcherCategories != null ) {
+            for ( ResearcherCategory researcherCategory : researcherCategories ) {
+                params.add( "researcherCategory", researcherCategory.name() );
+            }
+        }
+        if ( organUberonIds != null ) {
+            for ( String organUberonId : organUberonIds ) {
+                params.add( "organUberonIds", organUberonId );
+            }
         }
         addAuthParamIfAdmin( params );
         return getRemoteEntities( User[].class, API_USERS_SEARCH_URI, params );
     }
 
     @Override
-    public Collection<User> findUsersByDescription( String descriptionLike, Optional<Collection<ResearcherCategory>> researcherTypes, Optional<Collection<String>> organUberonIds ) throws RemoteException {
+    public Collection<User> findUsersByDescription( String descriptionLike, Collection<ResearcherCategory> researcherCategories, Collection<String> organUberonIds ) {
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add( "descriptionLike", descriptionLike );
-        for ( String organUberonId : organUberonIds.orElse( Collections.emptySet() ) ) {
-            params.add( "organUberonIds", organUberonId );
+        if ( researcherCategories != null ) {
+            for ( ResearcherCategory researcherCategory : researcherCategories ) {
+                params.add( "researcherCategory", researcherCategory.name() );
+            }
+        }
+        if ( organUberonIds != null ) {
+            for ( String organUberonId : organUberonIds ) {
+                params.add( "organUberonIds", organUberonId );
+            }
         }
         addAuthParamIfAdmin( params );
         return getRemoteEntities( User[].class, API_USERS_SEARCH_URI, params );
     }
 
     @Override
-    public Collection<UserGene> findGenesBySymbol( String symbol, Taxon taxon, Set<TierType> tiers, Integer orthologTaxonId, Optional<Collection<ResearcherCategory>> researcherTypes, Optional<Collection<String>> organUberonIds )
-            throws RemoteException {
+    public Collection<UserGene> findGenesBySymbol( String symbol, Taxon taxon, Set<TierType> tiers, Integer orthologTaxonId, Set<ResearcherCategory> researcherCategories, Set<String> organUberonIds ) {
         List<UserGene> intlUsergenes = new LinkedList<>();
         for ( TierType tier : restrictTiers( tiers ) ) {
             MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
@@ -80,8 +94,15 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
             if ( orthologTaxonId != null ) {
                 params.add( "orthologTaxonId", orthologTaxonId.toString() );
             }
-            for ( String organUberonId : organUberonIds.orElse( Collections.emptySet() ) ) {
-                params.add( "organUberonIds", organUberonId );
+            if ( researcherCategories != null ) {
+                for ( ResearcherCategory researcherCategory : researcherCategories ) {
+                    params.add( "researcherCategory", researcherCategory.name() );
+                }
+            }
+            if ( organUberonIds != null ) {
+                for ( String organUberonId : organUberonIds ) {
+                    params.add( "organUberonIds", organUberonId );
+                }
             }
             addAuthParamIfAdmin( params );
             intlUsergenes.addAll( getRemoteEntities( UserGene[].class, API_GENES_SEARCH_URI, params ) );
@@ -92,15 +113,20 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
     }
 
     @Override
-    public User getRemoteUser( Integer userId, String remoteHost ) throws RemoteException {
-        // Check that the remoteHost is one of our known APIs
-        if ( Arrays.stream( applicationSettings.getIsearch().getApis() ).noneMatch( remoteHost::equals ) ) {
-            throw new RemoteException( MessageFormat.format( "Unknown remote API {0}.", remoteHost ) );
+    public User getRemoteUser( Integer userId, URI remoteHost ) throws RemoteException {
+        // Ensure that the remoteHost is one of our known APIs by comparing the URI authority component and always use
+        // the URI defined in the configuration
+        String remoteHostAuthority = remoteHost.getAuthority();
+        Map<String, URI> apiUriByAuthority = Arrays.stream( applicationSettings.getIsearch().getApis() )
+                .map( URI::create )
+                .collect( Collectors.toMap( URI::getAuthority, identity() ) );
+        if ( !apiUriByAuthority.containsKey( remoteHost.getAuthority() ) ) {
+            throw new RemoteException( MessageFormat.format( "Unknown remote API {0}.", remoteHost.getAuthority() ) );
         }
 
-        MultiValueMap queryParams = new LinkedMultiValueMap<String, String>();
+        MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
         addAuthParamIfAdmin( queryParams );
-        URI uri = UriComponentsBuilder.fromUriString( remoteHost )
+        URI uri = UriComponentsBuilder.fromUri( apiUriByAuthority.get( remoteHostAuthority ) )
                 .path( API_USER_GET_URI )
                 .queryParams( queryParams )
                 .buildAndExpand( Collections.singletonMap( "userId", userId ) )
@@ -116,8 +142,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
         return user;
     }
 
-    private <T> Collection<T> getRemoteEntities( Class<T[]> arrCls, String path, MultiValueMap<String, String> params )
-            throws RemoteException {
+    private <T> Collection<T> getRemoteEntities( Class<T[]> arrCls, String path, MultiValueMap<String, String> params ) {
         Collection<T> entities = new LinkedList<>();
 
         // Call all APIs

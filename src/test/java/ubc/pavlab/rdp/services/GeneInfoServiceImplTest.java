@@ -279,7 +279,7 @@ public class GeneInfoServiceImplTest {
 
         Collection<SearchResult<GeneInfo>> matches = geneService.autocomplete( "Gene", taxon, -1 );
 
-        assertThat( matches.stream().map( sr -> sr.getMatch() ).collect( Collectors.toList() ) )
+        assertThat( matches.stream().map( SearchResult::getMatch ).collect( Collectors.toList() ) )
                 .containsAll( genes.values() )
                 .containsAll( geneInfos )
                 .hasSize( 93 );

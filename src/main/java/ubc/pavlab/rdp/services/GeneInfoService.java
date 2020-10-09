@@ -34,10 +34,6 @@ public interface GeneInfoService {
 
     Collection<GeneInfo> load( Collection<Integer> ids );
 
-    Collection<GeneInfo> loadAll();
-
-    Collection<GeneInfo> findAllByActiveTaxon();
-
     GeneInfo findBySymbolAndTaxon( String officialSymbol, Taxon taxon );
 
     Collection<GeneInfo> findBySymbolInAndTaxon( Collection<String> symbols, Taxon taxon );

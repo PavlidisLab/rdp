@@ -41,8 +41,8 @@ public class GeneInfoParser {
         FTPClient ftp;
 
         if ( proxyHost != null ) {
-            Integer proxyPort = Integer.parseInt( System.getProperty( "ftp.proxyPort" ) );
-            log.info( MessageFormat.format( "Using HTTP proxy server: {0}:{1}", proxyHost, proxyPort.toString() ) );
+            int proxyPort = Integer.parseInt( System.getProperty( "ftp.proxyPort" ) );
+            log.info( MessageFormat.format( "Using HTTP proxy server: {0}:{1}", proxyHost, Integer.toString( proxyPort ) ) );
             ftp = new FTPHTTPClient( proxyHost, proxyPort );
         } else {
             ftp = new FTPClient();
@@ -101,11 +101,11 @@ public class GeneInfoParser {
                             gene = new GeneInfo();
                         }
                         gene.setTaxon( taxon );
-                        gene.setGeneId( Integer.valueOf( values[1] ) );
+                        gene.setGeneId( Integer.parseInt( values[1] ) );
                         gene.setSymbol( values[2] );
                         gene.setAliases( values[4] );
                         gene.setName( values[8] );
-                        SimpleDateFormat ncbiDateFormat = new SimpleDateFormat( "YYYYMMDD" );
+                        SimpleDateFormat ncbiDateFormat = new SimpleDateFormat( "yyyyMMdd" );
                         try {
                             gene.setModificationDate( ncbiDateFormat.parse( values[14] ) );
                         } catch ( ParseException e ) {

@@ -7,6 +7,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.util.UriComponentsBuilder;
 import ubc.pavlab.rdp.model.PasswordResetToken;
 import ubc.pavlab.rdp.model.User;
 import ubc.pavlab.rdp.settings.SiteSettings;
@@ -44,43 +45,42 @@ public class EmailServiceImpl implements EmailService {
 
     }
 
-    private void sendMessage( String subject, String content, String to, MultipartFile attachment ) throws MessagingException {
+    private void sendMultipartMessage( String subject, String content, String to, MultipartFile attachment ) throws MessagingException {
+        MimeMessage message = emailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper( message, true );
+
+        helper.setSubject( subject );
+        helper.setText( content );
+        helper.setTo( to );
+        helper.setFrom( siteSettings.getAdminEmail() );
+
+        helper.addAttachment( attachment.getOriginalFilename(), attachment );
+
+        emailSender.send( message );
+    }
+
+    @Override
+    public void sendSupportMessage( String message, String name, User user, HttpServletRequest request, MultipartFile attachment ) throws MessagingException {
+        String content = "Name: " + name + "\r\n" +
+                "Email: " + user.getEmail() + "\r\n" +
+                "User-Agent: " + request.getHeader( "User-Agent" ) + "\r\n" +
+                "Message: " + message + "\r\n" +
+                "File Attached: " + ( attachment != null && !attachment.getOriginalFilename().equals( "" ) );
 
         if ( attachment == null ) {
-            sendSimpleMessage( subject, content, to );
+            sendSimpleMessage( "Registry Help - Contact Support", content, siteSettings.getAdminEmail() );
         } else {
-
-            MimeMessage message = emailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper( message, true );
-
-            helper.setSubject( subject );
-            helper.setText( content );
-            helper.setTo( to );
-            helper.setFrom( siteSettings.getAdminEmail() );
-
-            helper.addAttachment( attachment.getOriginalFilename(), attachment );
-
-            emailSender.send( message );
+            sendMultipartMessage( "Registry Help - Contact Support", content, siteSettings.getAdminEmail(), attachment );
         }
-
     }
 
     @Override
-    public void sendSupportMessage( String message, String name, User user, HttpServletRequest request,
-                                    MultipartFile attachment ) throws MessagingException {
-        String content =
-                "Name: " + name + "\r\n" +
-                        "Email: " + user.getEmail() + "\r\n" +
-                        "User-Agent: " + request.getHeader( "User-Agent" ) + "\r\n" +
-                        "Message: " + message + "\r\n" +
-                        "File Attached: " + ( attachment != null && !attachment.getOriginalFilename().equals( "" ) );
-
-        sendMessage( "Registry Help - Contact Support", content, siteSettings.getAdminEmail(), attachment );
-    }
-
-    @Override
-    public void sendResetTokenMessage( String token, User user ) throws MessagingException {
-        String url = siteSettings.getFullUrl() + "updatePassword?id=" + user.getId() + "&token=" + token;
+    public void sendResetTokenMessage( String token, User user ) {
+        String url = UriComponentsBuilder.fromUri( siteSettings.getFullUrl() )
+                .path( "updatePassword" )
+                .queryParam( "id", user.getId() )
+                .queryParam( "token", token )
+                .build().toUriString();
 
         String content =
                 "Hello " + user.getProfile().getName() + ",\r\n\r\n" +
@@ -91,7 +91,7 @@ public class EmailServiceImpl implements EmailService {
                         "Please note that this link will expire in " + PasswordResetToken.EXPIRATION + " hours.";
 
 
-        sendMessage( "Reset Password", content, user.getEmail(), null );
+        sendSimpleMessage( "Reset Password", content, user.getEmail() );
     }
 
     @Override
@@ -100,7 +100,11 @@ public class EmailServiceImpl implements EmailService {
         String registrationEnding = messageSource.getMessage( "rdp.site.email.registration-ending", new String[]{ siteSettings.getContactEmail() }, Locale.getDefault() );
         String recipientAddress = user.getEmail();
         String subject = "Registration Confirmation";
-        String confirmationUrl = siteSettings.getFullUrl() + "registrationConfirm?token=" + token;
+        String confirmationUrl = UriComponentsBuilder.fromUri( siteSettings.getFullUrl() )
+                .path( "registrationConfirm" )
+                .queryParam( "token", token )
+                .build()
+                .toUriString();
         String message = registrationWelcome +
                 "\r\n\r\nPlease confirm your registration by clicking on the following link:\r\n\r\n" +
                 confirmationUrl +

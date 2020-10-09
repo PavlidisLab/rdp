@@ -13,14 +13,20 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import ubc.pavlab.rdp.WebSecurityConfig;
 import ubc.pavlab.rdp.exception.RemoteException;
+import ubc.pavlab.rdp.model.GeneInfo;
+import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.model.User;
+import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.services.*;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.settings.SiteSettings;
 
+import java.net.URI;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.Optional;
 
 import static org.mockito.Matchers.*;
@@ -29,7 +35,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static ubc.pavlab.rdp.util.TestUtils.createUser;
+import static ubc.pavlab.rdp.util.TestUtils.*;
 
 @RunWith(SpringRunner.class)
 @WebMvcTest(SearchController.class)
@@ -121,6 +127,46 @@ public class SearchControllerTest {
     }
 
     @Test
+    public void getSearch_ByNameLike_return200() throws Exception {
+        when( permissionEvaluator.hasPermission( any(), isNull(), eq( "search" ) ) ).thenReturn( true );
+        mvc.perform( get( "/search" )
+                .param( "nameLike", "K" )
+                .param( "prefix", "true" )
+                .param( "iSearch", "false" ) )
+                .andExpect( status().isOk() )
+                .andExpect( view().name( "search" ) )
+                .andExpect( model().attributeExists( "users" ) );
+    }
+
+    @Test
+    public void getSearch_ByDescriptionLike_return200() throws Exception {
+        when( permissionEvaluator.hasPermission( any(), isNull(), eq( "search" ) ) ).thenReturn( true );
+        mvc.perform( get( "/search" )
+                .param( "descriptionLike", "pancake" )
+                .param( "iSearch", "false" ) )
+                .andExpect( status().isOk() )
+                .andExpect( view().name( "search" ) )
+                .andExpect( model().attributeExists( "users" ) );
+    }
+
+    @Test
+    public void getSearch_ByGeneSymbol_return200() throws Exception {
+        when( permissionEvaluator.hasPermission( any(), isNull(), eq( "search" ) ) ).thenReturn( true );
+        Taxon humanTaxon = createTaxon( 9606 );
+        GeneInfo gene = createGene( 1, humanTaxon );
+        when( taxonService.findById( 9606 ) ).thenReturn( humanTaxon );
+        when( geneService.findBySymbolAndTaxon( "BRCA1", humanTaxon ) ).thenReturn( gene );
+        mvc.perform( get( "/search" )
+                .param( "symbol", "BRCA1" )
+                .param( "taxonId", "9606" )
+                .param( "iSearch", "false" ) )
+                .andExpect( status().isOk() )
+                .andExpect( view().name( "search" ) )
+                .andExpect( model().attributeExists( "usergenes" ) );
+        verify( userGeneService ).findOrthologsByGeneAndTierInAndUserOrgansIn( gene, TierType.ANY, null, null );
+    }
+
+    @Test
     public void viewUser_thenReturnSuccess() throws Exception {
         User user = createUser( 1 );
         when( userService.findUserById( user.getId() ) ).thenReturn( user );
@@ -142,40 +188,40 @@ public class SearchControllerTest {
     @Test
     public void viewUser_whenUserIsRemote_thenReturnSuccess() throws Exception {
         User user = createUser( 1 );
-        when( remoteResourceService.getRemoteUser( user.getId(), "example.com" ) ).thenReturn( user );
+        when( remoteResourceService.getRemoteUser( user.getId(), URI.create( "example.com" ) ) ).thenReturn( user );
         when( privacyService.checkCurrentUserCanSearch( true ) ).thenReturn( true );
         mvc.perform( get( "/userView/{userId}", user.getId() )
                 .param( "remoteHost", "example.com" ) )
                 .andExpect( status().isOk() )
                 .andExpect( view().name( "userView" ) );
-        verify( remoteResourceService ).getRemoteUser( user.getId(), "example.com" );
+        verify( remoteResourceService ).getRemoteUser( user.getId(), URI.create( "example.com" ) );
     }
 
     @Test
     public void viewUser_whenRemoteUserIsNotFound_thenReturnNotFound() throws Exception {
-        when( remoteResourceService.getRemoteUser( 1, "example.com" ) ).thenReturn( null );
+        when( remoteResourceService.getRemoteUser( 1, URI.create( "example.com" ) ) ).thenReturn( null );
         when( privacyService.checkCurrentUserCanSearch( true ) ).thenReturn( true );
         mvc.perform( get( "/userView/{userId}", 1 )
                 .param( "remoteHost", "example.com" ) )
                 .andExpect( status().isNotFound() );
-        verify( remoteResourceService ).getRemoteUser( 1, "example.com" );
+        verify( remoteResourceService ).getRemoteUser( 1, URI.create( "example.com" ) );
     }
 
     @Test
     public void viewUser_whenRemoteIsUnavailable_thenReturnNotFound() throws Exception {
-        when( remoteResourceService.getRemoteUser( 1, "example.com" ) ).thenThrow( RemoteException.class );
+        when( remoteResourceService.getRemoteUser( 1, URI.create( "example.com" ) ) ).thenThrow( RemoteException.class );
         when( privacyService.checkCurrentUserCanSearch( true ) ).thenReturn( true );
         mvc.perform( get( "/userView/{userId}", 1 )
                 .param( "remoteHost", "example.com" ) )
                 .andExpect( status().isServiceUnavailable() );
-        verify( remoteResourceService ).getRemoteUser( 1, "example.com" );
+        verify( remoteResourceService ).getRemoteUser( 1, URI.create( "example.com" ) );
     }
 
     @Test
     public void searchItlUsersByNameView_thenReturnSuccess() throws Exception {
         User user = createUser( 1 );
         when( permissionEvaluator.hasPermission( any(), isNull(), eq( "international-search" ) ) ).thenReturn( true );
-        when( remoteResourceService.findUsersByLikeName( "Mark", true, Optional.empty(), Optional.empty() ) )
+        when( remoteResourceService.findUsersByLikeName( "Mark", true, null, null ) )
                 .thenReturn( Collections.singleton( user ) );
         mvc.perform( get( "/search/view/international" )
                 .param( "nameLike", "Mark" )
@@ -187,11 +233,11 @@ public class SearchControllerTest {
     @Test
     public void viewUser_whenRemoteUserCannotBeRetrieved_thenReturnNotFound() throws Exception {
         User user = createUser( 1 );
-        when( remoteResourceService.getRemoteUser( user.getId(), "example.com" ) ).thenThrow( RemoteException.class );
+        when( remoteResourceService.getRemoteUser( user.getId(), URI.create( "example.com" ) ) ).thenThrow( RemoteException.class );
         when( privacyService.checkCurrentUserCanSearch( true ) ).thenReturn( true );
         mvc.perform( get( "/userView/{userId}", user.getId() )
                 .param( "remoteHost", "example.com" ) )
                 .andExpect( status().isServiceUnavailable() );
-        verify( remoteResourceService ).getRemoteUser( user.getId(), "example.com" );
+        verify( remoteResourceService ).getRemoteUser( user.getId(), URI.create( "example.com" ) );
     }
 }

@@ -11,8 +11,8 @@ public enum PrivacyLevelType {
     SHARED( "Shared", "Your information will be accessible by other researchers who are registered." ),
     PUBLIC( "Public", "Your information will be visible by everyone." );
 
-    private String label;
-    private String description;
+    private final String label;
+    private final String description;
 
     @JsonValue
     public int toJsonValue() {

@@ -25,20 +25,18 @@
     </thead>
     <tbody>
     <tr th:each="ut : ${userTerms}">
-        <td>
-                <span class="align-middle">
-                <i th:if="${viewOnly == null}" class="delete-row align-middle"/>
-                <a th:href="@{http://www.ebi.ac.uk/QuickGO/GTerm(id=${ut.goId})}"
-                   th:text="${ut.goId}"
-                   target="_blank"
-                   rel="noopener"
-                   class="align-middle"
-                   data-toggle="tooltip"
-                   th:title="${ut.definition}"></a>
-                </span>
+        <td class="align-middle">
+            <i th:if="${viewOnly == null}" class="delete-row align-middle"/>
+            <a th:href="@{http://www.ebi.ac.uk/QuickGO/GTerm(id=${ut.goId})}"
+               th:text="${ut.goId}"
+               target="_blank"
+               rel="noopener"
+               class="align-middle"
+               data-toggle="tooltip"
+               th:title="${ut.definition}"></a>
         </td>
-        <td><span class="align-middle" th:text="${ut.name}"></span></td>
-        <td><span class="align-middle" th:text="${ut.aspect.label}"></span></td>
+        <td class="align-middle" th:text="${ut.name}"></td>
+        <td class="align-middle" th:text="${ut.aspect.label}"></td>
         <td>
             <a href="#"
                class="align-middle overlap-show-modal"
@@ -46,7 +44,7 @@
                data-target="#overlapModal"
                th:text="${@userService.computeTermFrequency(ut)}"></a>
         </td>
-        <td><span class="align-middle" th:text="${ut.size}"></span></td>
+        <td class="align-middle" th:text="${ut.size}"></td>
     </tr>
     </tbody>
 </table>

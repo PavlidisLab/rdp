@@ -153,7 +153,6 @@ public class UserServiceImplTest {
 
     private void setUpVerificationTokenMocks() {
         User user = createUser( 1 );
-        User otherUser = createUser( 2 );
         VerificationToken token = new VerificationToken();
         token.setUser( user );
         token.updateToken( "token1" );
@@ -168,7 +167,7 @@ public class UserServiceImplTest {
         when( tokenRepository.findByToken( "tokenBad" ) ).thenReturn( null );
     }
 
-    private void setUpRecomendTermsMocks() {
+    private void setUpRecommendTermsMocks() {
         Map<GeneOntologyTerm, Long> expected = new HashMap<>();
         Taxon taxon = createTaxon( 1 );
 
@@ -191,7 +190,7 @@ public class UserServiceImplTest {
 
         expected.forEach( ( key, value ) -> key.getSizesByTaxonId().put( taxon.getId(), value + 10 ) );
 
-        when( goService.getTerms() ).thenReturn( expected.keySet().stream().collect( Collectors.toMap( term -> term.getGoId(), Function.identity() ) ) );
+        when( goService.getTerms() ).thenReturn( expected.keySet().stream().collect( Collectors.toMap( GeneOntologyTerm::getGoId, Function.identity() ) ) );
         when( goService.getTerm( any() ) ).thenAnswer( a -> goService.getTerms().get( a.getArgumentAt( 0, String.class ) ) );
         when( goService.termFrequencyMap( Mockito.anyCollectionOf( GeneInfo.class ) ) ).thenReturn( expected );
     }
@@ -215,7 +214,7 @@ public class UserServiceImplTest {
     }
 
     @Test
-    public void update_whenCorrectUserthenSucceed() {
+    public void update_whenCorrectUser_thenSucceed() {
         User user = createUser( 1 );
         becomeUser( user );
         user.getProfile().setName( "batman" );
@@ -264,69 +263,34 @@ public class UserServiceImplTest {
     }
 
     @Test
-    public void changePasswordByResetToken_whenValidToken_thenSucceed() {
+    public void changePasswordByResetToken_whenValidToken_thenSucceed() throws TokenException {
         setUpPasswordResetTokenMocks();
         User user = createUser( 1 );
 
-        User updatedUser = userService.changePasswordByResetToken( user.getId(), "token1", "newPassword" );
+        User updatedUser = userService.changePasswordByResetToken( user.getId(), "token1", new PasswordReset( "newPassword", "newPassword" ) );
         assertThat( updatedUser ).isNotNull();
         assertThat( bCryptPasswordEncoder.matches( "newPassword", updatedUser.getPassword() ) ).isTrue();
     }
 
-    @Test
-    public void changePasswordByResetToken_whenInvalidToken_thenThrowTokenException() {
+    @Test(expected = TokenException.class)
+    public void changePasswordByResetToken_whenInvalidToken_thenThrowTokenException() throws TokenException {
         setUpPasswordResetTokenMocks();
         User user = createUser( 1 );
-
-        try {
-            userService.changePasswordByResetToken( user.getId(), "tokenBad", "newPassword" );
-        } catch ( TokenException e ) {
-            // Expected
-            return;
-        }
-        fail( "Should have thrown TokenException" );
+        userService.changePasswordByResetToken( user.getId(), "tokenBad", new PasswordReset( "newPassword", "newPassword" ) );
     }
 
-    @Test
-    public void changePasswordByResetToken_whenInvalidUserId_thenThrowTokenException() {
+    @Test(expected = TokenException.class)
+    public void changePasswordByResetToken_whenInvalidUserId_thenThrowTokenException() throws TokenException {
         setUpPasswordResetTokenMocks();
         User user = createUser( 1 );
-
-        try {
-            userService.changePasswordByResetToken( user.getId(), "token2", "newPassword" );
-        } catch ( TokenException e ) {
-            // Expected
-            return;
-        }
-        fail( "Should have thrown TokenException" );
+        userService.changePasswordByResetToken( user.getId(), "token2", new PasswordReset( "newPassword", "newPassword" ) );
     }
 
-    @Test
-    public void changePasswordByResetToken_whenExpiredToken_thenThrowTokenException() {
+    @Test(expected = TokenException.class)
+    public void changePasswordByResetToken_whenExpiredToken_thenThrowTokenException() throws TokenException {
         setUpPasswordResetTokenMocks();
         User user = createUser( 1 );
-
-        try {
-            userService.changePasswordByResetToken( user.getId(), "token1Expired", "newPassword" );
-        } catch ( TokenException e ) {
-            // Expected
-            return;
-        }
-        fail( "Should have thrown TokenException" );
-    }
-
-    @Test
-    public void changePasswordByResetToken_whenInvalidNewPassword_thenThrowValidationException() {
-        setUpPasswordResetTokenMocks();
-        User user = createUser( 1 );
-
-        try {
-            userService.changePasswordByResetToken( user.getId(), "token1", "12345" );
-        } catch ( ValidationException e ) {
-            // Expected
-            return;
-        }
-        fail( "Should have thrown ValidationException" );
+        userService.changePasswordByResetToken( user.getId(), "token1Expired", new PasswordReset( "newPassword", "newPassword" ) );
     }
 
     @Test
@@ -523,7 +487,7 @@ public class UserServiceImplTest {
                 }
         ).collect( Collectors.toSet() );
 
-        User updatedUser = userService.updateUserProfileAndPublicationsAndOrgans( user, user.getProfile(), newPublications, Optional.empty() );
+        User updatedUser = userService.updateUserProfileAndPublicationsAndOrgans( user, user.getProfile(), newPublications, null );
 
         assertThat( updatedUser.getProfile().getPublications() ).containsExactlyElementsOf( newPublications );
 
@@ -532,7 +496,7 @@ public class UserServiceImplTest {
     @Test
     public void updateUserProfileAndPublication_whenOrgansIsEnabled_thenSaveOrgans() {
         User user = createUser( 1 );
-        userService.updateUserProfileAndPublicationsAndOrgans( user, user.getProfile(), new HashSet<>(), Optional.empty() );
+        userService.updateUserProfileAndPublicationsAndOrgans( user, user.getProfile(), new HashSet<>(), null );
         // assertThat( user.getUserOrgans() ).containsValue( userOrgan );
     }
 
@@ -540,7 +504,7 @@ public class UserServiceImplTest {
     public void updateUserProfileAndPublication_whenOrgansIsNotEnabled_thenIgnoreOrgans() {
         when( applicationSettings.getOrgans().getEnabled() ).thenReturn( true );
         User user = createUser( 1 );
-        userService.updateUserProfileAndPublicationsAndOrgans( user, user.getProfile(), new HashSet<>(), Optional.empty() );
+        userService.updateUserProfileAndPublicationsAndOrgans( user, user.getProfile(), new HashSet<>(), null );
     }
 
     @Test
@@ -551,7 +515,7 @@ public class UserServiceImplTest {
 
         Profile profile = new Profile();
         profile.setPrivacyLevel( PrivacyLevelType.SHARED );
-        userService.updateUserProfileAndPublicationsAndOrgans( user, profile, new HashSet<>(), Optional.empty() );
+        userService.updateUserProfileAndPublicationsAndOrgans( user, profile, new HashSet<>(), null );
 
         assertThat( user.getProfile() ).hasFieldOrPropertyWithValue( "privacyLevel", PrivacyLevelType.PUBLIC );
     }
@@ -567,7 +531,7 @@ public class UserServiceImplTest {
 
         Profile profile = new Profile();
         profile.setPrivacyLevel( PrivacyLevelType.SHARED );
-        userService.updateUserProfileAndPublicationsAndOrgans( user, profile, new HashSet<>(), Optional.empty() );
+        userService.updateUserProfileAndPublicationsAndOrgans( user, profile, new HashSet<>(), null );
 
         assertThat( user.getProfile() )
                 .hasFieldOrPropertyWithValue( "privacyLevel", PrivacyLevelType.SHARED );
@@ -601,7 +565,7 @@ public class UserServiceImplTest {
     }
 
     @Test
-    public void verifyPasswordResetToken_whenValidToken_thenSucceed() {
+    public void verifyPasswordResetToken_whenValidToken_thenSucceed() throws TokenException {
         setUpPasswordResetTokenMocks();
         User user = createUser( 1 );
 
@@ -676,7 +640,7 @@ public class UserServiceImplTest {
     }
 
     @Test
-    public void confirmVerificationToken_whenValidToken_thenSucceed() {
+    public void confirmVerificationToken_whenValidToken_thenSucceed() throws TokenException {
         setUpVerificationTokenMocks();
 
         User user = userService.confirmVerificationToken( "token1" );
@@ -684,31 +648,16 @@ public class UserServiceImplTest {
 
     }
 
-    @Test
-    public void confirmVerificationToken_whenInvalidToken_thenThrowTokenException() {
+    @Test(expected = TokenException.class)
+    public void confirmVerificationToken_whenInvalidToken_thenThrowTokenException() throws TokenException {
         setUpVerificationTokenMocks();
-
-        try {
-            userService.confirmVerificationToken( "tokenBad" );
-        } catch ( TokenException e ) {
-            // Expected
-            return;
-        }
-        fail( "Should have thrown TokenException" );
+        userService.confirmVerificationToken( "tokenBad" );
     }
 
-    @Test
-    public void confirmVerificationToken_whenExpiredToken_thenThrowTokenException() {
+    @Test(expected = TokenException.class)
+    public void confirmVerificationToken_whenExpiredToken_thenThrowTokenException() throws TokenException {
         setUpVerificationTokenMocks();
-        User user = createUser( 1 );
-
-        try {
-            userService.confirmVerificationToken( "token1Expired" );
-        } catch ( TokenException e ) {
-            // Expected
-            return;
-        }
-        fail( "Should have thrown TokenException" );
+        userService.confirmVerificationToken( "token1Expired" );
     }
 
     @Test
@@ -729,12 +678,12 @@ public class UserServiceImplTest {
         ).collect( Collectors.toSet() );
 
         Map<GeneInfo, TierType> geneTierMap = terms.stream()
-                .map( t -> t.getDirectGeneIds() )
+                .map( GeneOntologyTerm::getDirectGeneIds )
                 .flatMap( o -> geneInfoService.load( o ).stream() )
                 .collect( Collectors.toMap( Function.identity(), g -> TierType.TIER1 ) );
 
         Map<GeneInfo, PrivacyLevelType> privacyLevelMap = terms.stream()
-                .map( t -> t.getDirectGeneIds() )
+                .map( GeneOntologyTerm::getDirectGeneIds )
                 .flatMap( o -> geneInfoService.load( o ).stream() )
                 .collect( Collectors.toMap( Function.identity(), g -> PrivacyLevelType.PUBLIC ) );
 
@@ -784,12 +733,12 @@ public class UserServiceImplTest {
         } ).collect( Collectors.toSet() );
 
         Map<GeneInfo, TierType> geneTierMap = terms.stream()
-                .map( t -> t.getDirectGeneIds() )
+                .map( GeneOntologyTerm::getDirectGeneIds )
                 .flatMap( o -> geneInfoService.load( o ).stream() )
                 .collect( Collectors.toMap( Function.identity(), g -> TierType.TIER1 ) );
 
         Map<GeneInfo, PrivacyLevelType> privacyLevelMap = terms.stream()
-                .map( t -> t.getDirectGeneIds() )
+                .map( GeneOntologyTerm::getDirectGeneIds )
                 .flatMap( o -> geneInfoService.load( o ).stream() )
                 .collect( Collectors.toMap( Function.identity(), g -> PrivacyLevelType.PUBLIC ) );
 
@@ -808,7 +757,7 @@ public class UserServiceImplTest {
     }
 
     @Test
-    public void updateTermsAndGenesInTaxon_whenUserHasGenesAndTermsInMultipleTaxons() {
+    public void updateTermsAndGenesInTaxon_whenUserHasGenesAndTermsInMultipleTaxon() {
         User user = createUser( 1 );
 
         Taxon taxon = createTaxon( 1 );
@@ -854,7 +803,7 @@ public class UserServiceImplTest {
         Map<GeneInfo, TierType> geneTierMap = Maps.newHashMap( geneWillChangeTier, TierType.TIER1 );
 
         Map<GeneInfo, PrivacyLevelType> privacyLevelMap = terms.stream()
-                .map( t -> t.getDirectGeneIds() )
+                .map( GeneOntologyTerm::getDirectGeneIds )
                 .flatMap( o -> geneInfoService.load( o ).stream() )
                 .collect( Collectors.toMap( Function.identity(), g -> PrivacyLevelType.PRIVATE ) );
 
@@ -865,7 +814,7 @@ public class UserServiceImplTest {
 
         Map<Gene, TierType> expectedGenes = new HashMap<>( geneTierMap );
         terms.stream()
-                .map( t -> t.getDirectGeneIds() )
+                .map( GeneOntologyTerm::getDirectGeneIds )
                 .flatMap( o -> geneInfoService.load( o ).stream() )
                 .forEach( g -> expectedGenes.putIfAbsent( g, TierType.TIER3 ) );
 
@@ -899,13 +848,13 @@ public class UserServiceImplTest {
         ).collect( Collectors.toSet() );
 
         Map<GeneInfo, TierType> geneTierMap = terms.stream()
-                .map( t -> t.getDirectGeneIds() )
+                .map( GeneOntologyTerm::getDirectGeneIds )
                 .flatMap( o -> geneInfoService.load( o ).stream() )
                 .collect( Collectors.toMap( Function.identity(), g -> TierType.TIER1 ) );
 
 
         Map<GeneInfo, PrivacyLevelType> privacyLevelMap = terms.stream()
-                .map( t -> t.getDirectGeneIds() )
+                .map( GeneOntologyTerm::getDirectGeneIds )
                 .flatMap( o -> geneInfoService.load( o ).stream() )
                 .collect( Collectors.toMap( Function.identity(), g -> PrivacyLevelType.PUBLIC ) );
 
@@ -945,12 +894,12 @@ public class UserServiceImplTest {
         Collection<GeneOntologyTerm> terms = Collections.singleton( createTermWithGenes( toGOId( 5 ), createGene( 5, taxon ) ) );
 
         Map<GeneInfo, TierType> geneTierMap = terms.stream()
-                .map( t -> t.getDirectGeneIds() )
+                .map( GeneOntologyTerm::getDirectGeneIds )
                 .flatMap( o -> geneInfoService.load( o ).stream() )
                 .collect( Collectors.toMap( Function.identity(), g -> TierType.TIER1 ) );
 
         Map<GeneInfo, PrivacyLevelType> privacyLevelMap = terms.stream()
-                .map( t -> t.getDirectGeneIds() )
+                .map( GeneOntologyTerm::getDirectGeneIds )
                 .flatMap( o -> geneInfoService.load( o ).stream() )
                 .collect( Collectors.toMap( Function.identity(), g -> PrivacyLevelType.PRIVATE ) );
 
@@ -1038,12 +987,12 @@ public class UserServiceImplTest {
         Collection<GeneOntologyTerm> terms = Collections.singleton( createTermWithGenes( toGOId( 105 ), g1 ) );
 
         Map<GeneInfo, TierType> geneTierMap = terms.stream()
-                .map( t -> t.getDirectGeneIds() )
+                .map( GeneOntologyTerm::getDirectGeneIds )
                 .flatMap( o -> geneInfoService.load( o ).stream() )
                 .collect( Collectors.toMap( Function.identity(), g -> TierType.TIER3 ) );
 
         Map<GeneInfo, PrivacyLevelType> privacyLevelMap = terms.stream()
-                .map( t -> t.getDirectGeneIds() )
+                .map( GeneOntologyTerm::getDirectGeneIds )
                 .flatMap( o -> geneInfoService.load( o ).stream() )
                 .collect( Collectors.toMap( Function.identity(), g -> PrivacyLevelType.PUBLIC ) );
 
@@ -1104,7 +1053,7 @@ public class UserServiceImplTest {
     @Test
     @Ignore("There are some issues with term recommendations that needs to be fixed first.")
     public void recommendTerms_thenReturnBestResultsOnly() {
-        setUpRecomendTermsMocks();
+        setUpRecommendTermsMocks();
 
         User user = createUser( 1 );
         Taxon taxon = createTaxon( 1 );
@@ -1115,7 +1064,7 @@ public class UserServiceImplTest {
     @Test
     @Ignore("There are some issues with term recommendations that needs to be fixed first.")
     public void recommendTerms_whenMinSizeLimited_thenReturnBestLimitedResultsOnly() {
-        setUpRecomendTermsMocks();
+        setUpRecommendTermsMocks();
 
         User user = createUser( 1 );
         Taxon taxon = createTaxon( 1 );
@@ -1132,7 +1081,7 @@ public class UserServiceImplTest {
     @Test
     @Ignore("There are some issues with term recommendations that needs to be fixed first.")
     public void recommendTerms_whenMaxSizeLimited_thenReturnBestLimitedResultsOnly() {
-        setUpRecomendTermsMocks();
+        setUpRecommendTermsMocks();
 
         User user = createUser( 1 );
         Taxon taxon = createTaxon( 1 );
@@ -1145,7 +1094,7 @@ public class UserServiceImplTest {
 
     @Test
     public void recommendTerms_whenFrequencyLimited_thenReturnBestLimitedResultsOnly() {
-        setUpRecomendTermsMocks();
+        setUpRecommendTermsMocks();
 
         User user = createUser( 1 );
         Taxon taxon = createTaxon( 1 );
@@ -1158,7 +1107,7 @@ public class UserServiceImplTest {
 
     @Test
     public void recommendTerms_whenFrequencyLimitedAndSizeLimited_thenReturnBestLimitedResultsOnly() {
-        setUpRecomendTermsMocks();
+        setUpRecommendTermsMocks();
 
         User user = createUser( 1 );
         Taxon taxon = createTaxon( 1 );
@@ -1172,7 +1121,7 @@ public class UserServiceImplTest {
     @Test
     @Ignore("There are some issues with term recommendations that needs to be fixed first.")
     public void recommendTerms_whenRedundantTerms_thenReturnOnlyMostSpecific() {
-        setUpRecomendTermsMocks();
+        setUpRecommendTermsMocks();
 
         User user = createUser( 1 );
         Taxon taxon = createTaxon( 1 );
@@ -1186,7 +1135,7 @@ public class UserServiceImplTest {
     @Test
     @Ignore("There are some issues with term recommendations that needs to be fixed first.")
     public void recommendTerms_whenUserHasSomeTopTerms_thenReturnNewBestResultsOnly() {
-        setUpRecomendTermsMocks();
+        setUpRecommendTermsMocks();
 
         User user = createUser( 1 );
         Taxon taxon = createTaxon( 1 );
@@ -1199,7 +1148,7 @@ public class UserServiceImplTest {
 
     @Test
     public void recommendTerms_whenUserHasAllTopTerms_thenReturnNextBestResultsOnly() {
-        setUpRecomendTermsMocks();
+        setUpRecommendTermsMocks();
 
         User user = createUser( 1 );
         Taxon taxon = createTaxon( 1 );
@@ -1225,7 +1174,7 @@ public class UserServiceImplTest {
 
     @Test(expected = NullPointerException.class)
     public void recommendTerms_whenUserNull_thenThrowNullPointerException() {
-        setUpRecomendTermsMocks();
+        setUpRecommendTermsMocks();
 
         Taxon taxon = createTaxon( 1 );
         Collection<UserTerm> found = userService.recommendTerms( null, taxon, -1, -1, -1 );
@@ -1234,10 +1183,10 @@ public class UserServiceImplTest {
 
     @Test(expected = NullPointerException.class)
     public void recommendTerms_whenTaxonNull_thenThrowNullPointerException() {
-        setUpRecomendTermsMocks();
+        setUpRecommendTermsMocks();
 
         User user = createUser( 1 );
-        Collection<UserTerm> found = userService.recommendTerms( user, null, -1, -1, -1 );
+        userService.recommendTerms( user, null, -1, -1, -1 );
     }
 
     @Test

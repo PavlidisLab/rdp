@@ -15,6 +15,6 @@ import ubc.pavlab.rdp.model.enums.RelationshipType;
 @ToString
 public class Relationship {
 
-    private GeneOntologyTerm term;
-    private RelationshipType type;
+    private final GeneOntologyTerm term;
+    private final RelationshipType type;
 }

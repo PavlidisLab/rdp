@@ -544,7 +544,7 @@ public class UserControllerTest {
                 .content( objectMapper.writeValueAsString( payload ) ) )
                 .andExpect( status().isOk() );
 
-        verify( userService ).updateUserProfileAndPublicationsAndOrgans( user, updatedProfile, updatedProfile.getPublications(), Optional.empty() );
+        verify( userService ).updateUserProfileAndPublicationsAndOrgans( user, updatedProfile, updatedProfile.getPublications(), null );
     }
 
     @Test
@@ -591,7 +591,7 @@ public class UserControllerTest {
 
         Profile profile = user.getProfile();
         profile.setPrivacyLevel( PrivacyLevelType.SHARED );
-        verify( userService ).updateUserProfileAndPublicationsAndOrgans( user, profile, profile.getPublications(), Optional.empty() );
+        verify( userService ).updateUserProfileAndPublicationsAndOrgans( user, profile, profile.getPublications(), null );
     }
 
     @Test
@@ -619,7 +619,7 @@ public class UserControllerTest {
                 .content( payload.toString() ) )
                 .andExpect( status().isOk() );
 
-        verify( userService ).updateUserProfileAndPublicationsAndOrgans( user, user.getProfile(), user.getProfile().getPublications(), Optional.of( Sets.newSet( organ.getUberonId() ) ) );
+        verify( userService ).updateUserProfileAndPublicationsAndOrgans( user, user.getProfile(), user.getProfile().getPublications(), Sets.newSet( organ.getUberonId() ) );
     }
 
     @Test
