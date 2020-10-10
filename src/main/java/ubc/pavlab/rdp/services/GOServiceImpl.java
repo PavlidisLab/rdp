@@ -1,7 +1,6 @@
 package ubc.pavlab.rdp.services;
 
 import lombok.extern.apachecommons.CommonsLog;
-import org.assertj.core.util.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
@@ -302,7 +301,7 @@ public class GOServiceImpl implements GOService {
 
     @Override
     public Collection<GeneOntologyTerm> getTermsForGene( GeneInfo gene ) {
-        return geneMap.getOrDefault( gene.getGeneId(), Lists.emptyList() );
+        return geneMap.getOrDefault( gene.getGeneId(), Collections.emptyList() );
     }
 
     @Override
@@ -310,7 +309,7 @@ public class GOServiceImpl implements GOService {
 
         Collection<GeneOntologyTerm> allGOTermSet = new HashSet<>();
 
-        for ( GeneOntologyTerm term : geneMap.getOrDefault( gene.getGeneId(), Lists.emptyList() ) ) {
+        for ( GeneOntologyTerm term : geneMap.getOrDefault( gene.getGeneId(), Collections.emptyList() ) ) {
             allGOTermSet.add( term );
 
             if ( propagateUpwards ) {
