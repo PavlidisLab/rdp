@@ -7,7 +7,7 @@ create table publication (publication_id integer not null auto_increment, pmid i
 create table role (role_id integer not null auto_increment, role varchar(255), primary key (role_id));
 create table taxon (taxon_id integer not null, active bit not null, common_name varchar(255), gene_url varchar(255), ordering integer, scientific_name varchar(255), primary key (taxon_id));
 create table term (id integer not null auto_increment, aspect varchar(255), definition TEXT, go_id varchar(10), name TEXT, frequency integer, size integer, taxon_id integer, user_id integer, primary key (id));
-create table user (user_id integer not null auto_increment, email varchar(255) not null, enabled bit, origin varchar(255), origin_url varchar(255), password varchar(255) not null, department varchar(255), description TEXT, hide_genelist bit, last_name varchar(255), name varchar(255), organization varchar(255), phone varchar(255), shared bit, website varchar(255), primary key (user_id));
+create table user (user_id integer not null auto_increment, email varchar(255) not null, enabled bit, origin varchar(255), origin_url varchar(255), password varchar(255) not null, privacy_level integer, department varchar(255), description TEXT, hide_genelist bit, last_name varchar(255), name varchar(255), organization varchar(255), phone varchar(255), shared bit, website varchar(255), primary key (user_id));
 create table user_role (user_id integer not null, role_id integer not null, primary key (user_id, role_id));
 create table verification_token (id integer not null auto_increment, expiry_date datetime, token varchar(255), user_id integer not null, primary key (id));
 create index IDXrj5dlny39nvsq3ebw4uftgsja on gene (gene_id);
@@ -32,3 +32,17 @@ alter table term add constraint FKktl98gic60ehb8miresv21f12 foreign key (user_id
 alter table user_role add constraint FKa68196081fvovjhkek5m97n3y foreign key (role_id) references role (role_id);
 alter table user_role add constraint FK859n2jvi8ivhui0rl0esws6o foreign key (user_id) references user (user_id);
 alter table verification_token add constraint FKrdn0mss276m9jdobfhhn2qogw foreign key (user_id) references user (user_id);
+
+-- Default roles
+insert into role values (1,'ROLE_ADMIN');
+insert into role values (2,'ROLE_USER');
+
+-- Default taxon
+insert into taxon (taxon_id, common_name, scientific_name, gene_url, active, ordering) values (9606, 'human', 'homo sapiens', 'ftp://ftp.ncbi.nlm.nih.gov/gene/data/gene_info/mammalia/homo_sapiens.gene_info.gz', true, 1);
+insert into taxon (taxon_id, common_name, scientific_name, gene_url, active, ordering) values (10090, 'mouse', 'mus musculus', 'ftp://ftp.ncbi.nlm.nih.gov/gene/data/gene_info/mammalia/mus_musculus.gene_info.gz', false, 2);
+insert into taxon (taxon_id, common_name, scientific_name, gene_url, active, ordering) values (10116, 'rat', 'rattus norvegicus', 'ftp://ftp.ncbi.nlm.nih.gov/gene/data/gene_info/mammalia/rattus_norvegicus.gene_info.gz', false, 3);
+insert into taxon (taxon_id, common_name, scientific_name, gene_url, active, ordering) values (559292, 'yeast', 'saccharomyces cerevisiae s288c', 'ftp://ftp.ncbi.nlm.nih.gov/gene/data/gene_info/fungi/saccharomyces_cerevisiae.gene_info.gz', false, 7);
+insert into taxon (taxon_id, common_name, scientific_name, gene_url, active, ordering) values (7955, 'zebrafish', 'danio rerio', 'ftp://ftp.ncbi.nlm.nih.gov/gene/data/gene_info/non-mammalian_vertebrates/danio_rerio.gene_info.gz', false, 4);
+insert into taxon (taxon_id, common_name, scientific_name, gene_url, active, ordering) values (7227, 'fruit fly', 'drosophila melanogaster', 'ftp://ftp.ncbi.nlm.nih.gov/gene/data/gene_info/invertebrates/drosophila_melanogaster.gene_info.gz', false, 5);
+insert into taxon (taxon_id, common_name, scientific_name, gene_url, active, ordering) values (6239, 'roundworm', 'caenorhabditis elegans', 'ftp://ftp.ncbi.nlm.nih.gov/gene/data/gene_info/invertebrates/caenorhabditis_elegans.gene_info.gz', false, 6);
+insert into taxon (taxon_id, common_name, scientific_name, gene_url, active, ordering) values (511145, 'e. coli', 'escherichia coli', 'ftp://ftp.ncbi.nlm.nih.gov/gene/data/gene_info/archaea_bacteria/escherichia_coli_str._k-12_substr._mg1655.gene_info.gz', false, 8);

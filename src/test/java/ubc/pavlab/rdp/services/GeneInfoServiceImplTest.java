@@ -16,15 +16,14 @@ import ubc.pavlab.rdp.model.Gene;
 import ubc.pavlab.rdp.model.GeneInfo;
 import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.model.enums.GeneMatchType;
-import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.repositories.GeneInfoRepository;
+import ubc.pavlab.rdp.repositories.TaxonRepository;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.util.GeneInfoParser;
 import ubc.pavlab.rdp.util.GeneOrthologsParser;
 import ubc.pavlab.rdp.util.SearchResult;
 
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.text.ParseException;
 import java.util.Collection;
 import java.util.Collections;
@@ -87,6 +86,9 @@ public class GeneInfoServiceImplTest {
 
     @MockBean
     private TaxonService taxonService;
+
+    @Autowired
+    private TaxonRepository taxonRepository;
 
     private Taxon taxon;
     private Map<Integer, GeneInfo> genes;
@@ -286,9 +288,8 @@ public class GeneInfoServiceImplTest {
     }
 
     @Test
-    public void updateGenes_thenSucceed() throws MalformedURLException, ParseException {
-        Taxon humanTaxon = entityManager.persist( createTaxon( 9606 ) );
-        humanTaxon.setGeneUrl( new URL( "ftp://ncbi/Homo_sapiens.gene_info.gz" ) );
+    public void updateGenes_thenSucceed() throws ParseException {
+        Taxon humanTaxon = taxonRepository.findOne( 9606 );
         when( taxonService.findByActiveTrue() ).thenReturn( Sets.newSet( humanTaxon ) );
         GeneInfo updatedGene = createGene( 4, humanTaxon );
         updatedGene.setSymbol( "FOO" );
