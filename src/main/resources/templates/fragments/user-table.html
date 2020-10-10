@@ -91,8 +91,9 @@
                 View User Profile
             </a>
         </td>
-        <td th:if="${remote}"><span th:text="${ug.user.origin}" th:remove="tag"></span></td>
-        <td><a th:href="'mailto:' + ${ug.user.email}" th:text="${ug.user.email}"></a></td>
+        <td th:if="${remote}" th:text="${ug.user.origin}"></td>
+        <td><a th:href="'mailto:' + ${ug.user.profile.contactEmail ?: ug.user.email}"
+               th:text="${ug.user.profile.contactEmail ?: ug.user.email}"></a></td>
         <td th:text="${ug.user.profile.fullName}"></td>
         <td>
             <span th:text="${ug.user.profile.researcherPosition?.label}"></span>

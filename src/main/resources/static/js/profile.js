@@ -15,6 +15,7 @@ function collectProfile() {
     profile.researcherCategory = $('[name="researcherCategory"]').val() || null;
 
     // Contact Information
+    profile.contactEmail = $.trim($('[name="profile.contactEmail"]').val());
     profile.phone = $.trim($('[name="profile.phone"]').val());
 
     // Research Information

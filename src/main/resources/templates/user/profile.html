@@ -17,7 +17,7 @@
             <div th:replace="layouts/common::title(title='My Account', subtitle='User Profile')">...</div>
         </div>
         <div class="d-flex align-items-center justify-content-center" th:if="${viewOnly != null}">
-            <h3 class="d-inline-block pr-3 mr-3 mb-0" th:text="${user.email}"></h3>
+            <h3 class="d-inline-block pr-3 mr-3 mb-0" th:text="${user.profile.contactEmail ?: user.email}"></h3>
         </div>
         <div class="col-4 my-auto text-right" th:if="${viewOnly == null}">
             <button type="button" class="btn btn-primary btn-lg save-profile">
@@ -155,11 +155,21 @@
                         <h3 class="mb-0">Contact Information</h3>
                     </div>
                     <table class="table mb-0">
-                        <tr>
+                        <tr class="edit-container">
                             <td class="align-middle" style="width: 120px;">
-                                <span class="text-muted align-middle">Email</span>
+                                <label th:for="${#ids.next('profile.contactEmail')}"
+                                       class="text-muted align-middle">
+                                    Contact Email
+                                </label>
                             </td>
-                            <td th:text="${user.email}"></td>
+                            <td>
+                                <i th:if="${viewOnly == null}" class="editable"></i>
+                                <input th:id="${#ids.seq('profile.contactEmail')}"
+                                       th:field="*{contactEmail}"
+                                       class="data-edit"
+                                       type="text"
+                                       disabled="disabled"/>
+                            </td>
                         </tr>
                         <tr class="edit-container">
                             <td class="align-middle">

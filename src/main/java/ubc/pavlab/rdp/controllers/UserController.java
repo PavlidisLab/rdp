@@ -196,6 +196,19 @@ public class UserController {
         return modelAndView;
     }
 
+    @GetMapping("/user/verify-contact-email")
+    public ModelAndView verifyContactEmail( @RequestParam String token ) {
+        ModelAndView modelAndView = new ModelAndView();
+        try {
+            userService.confirmVerificationToken( token );
+            modelAndView.setViewName( "redirect:/user/home" );
+        } catch ( TokenException e ) {
+            modelAndView.setStatus( HttpStatus.NOT_FOUND );
+            modelAndView.setViewName( "error/404" );
+            log.error( e );
+        }
+        return modelAndView;
+    }
 
     @Data
     static class ProfileWithOrganUberonIds {

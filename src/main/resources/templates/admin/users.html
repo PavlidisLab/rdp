@@ -15,13 +15,13 @@
         <thead>
         <th>User ID</th>
         <th>Full Name</th>
-        <th>Email</th>
+        <th>Contact Email</th>
         </thead>
         <tbody>
         <tr th:each="user : ${users}">
             <td><a th:href="@{/admin/users/{userId}(userId=${user.id})}" th:text="${user.id}"></a></td>
             <td th:text="${user.profile.fullName}"></td>
-            <td th:text="${user.email}"></td>
+            <td th:text="${user.profile.contactEmail ?: user.email}"></td>
         </tr>
         </tbody>
     </table>

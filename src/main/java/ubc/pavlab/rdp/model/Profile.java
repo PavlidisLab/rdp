@@ -2,6 +2,7 @@ package ubc.pavlab.rdp.model;
 
 import lombok.Data;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.validator.constraints.Email;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.hibernate.validator.constraints.URL;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
@@ -42,6 +43,10 @@ public class Profile {
 
     @Column(name = "phone")
     private String phone;
+
+    @Email(message = "Your email address is not valid.")
+    @Column(name = "contact_email")
+    private String contactEmail;
 
     @Column(name = "website")
     @URL

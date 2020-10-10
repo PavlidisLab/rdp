@@ -12,7 +12,7 @@
 <body>
 <div th:replace="layouts/common::header">...</div>
 <div class="container py-4">
-    <div th:replace="layouts/common::title(title='User Profile', subtitle=${viewUser.email})">...</div>
+    <div th:replace="layouts/common::title(title='User Profile', subtitle=${viewUser.profile.contactEmail ?: viewUser.email})">...</div>
     <div class="main-content">
         <div class="row justify-content-center success-row my-3">
             <div class="col">

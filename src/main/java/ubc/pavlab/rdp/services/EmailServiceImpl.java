@@ -36,7 +36,7 @@ public class EmailServiceImpl implements EmailService {
     @Autowired
     MessageSource messageSource;
 
-    private void sendSimpleMessage( String subject, String content, String to ) {
+    private void sendSimpleMessage( String subject, String content, String to, String replyTo ) {
 
         SimpleMailMessage email = new SimpleMailMessage();
 
@@ -44,12 +44,15 @@ public class EmailServiceImpl implements EmailService {
         email.setText( content );
         email.setTo( to );
         email.setFrom( siteSettings.getAdminEmail() );
+        if ( replyTo != null ) {
+            email.setReplyTo( replyTo );
+        }
 
         emailSender.send( email );
 
     }
 
-    private void sendMultipartMessage( String subject, String content, String to, MultipartFile attachment ) throws MessagingException {
+    private void sendMultipartMessage( String subject, String content, String to, String replyTo, MultipartFile attachment ) throws MessagingException {
         MimeMessage message = emailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper( message, true );
 
@@ -57,6 +60,9 @@ public class EmailServiceImpl implements EmailService {
         helper.setText( content );
         helper.setTo( to );
         helper.setFrom( siteSettings.getAdminEmail() );
+        if ( replyTo != null ) {
+            helper.setReplyTo( replyTo );
+        }
 
         helper.addAttachment( attachment.getOriginalFilename(), attachment );
 
@@ -65,6 +71,7 @@ public class EmailServiceImpl implements EmailService {
 
     @Override
     public void sendSupportMessage( String message, String name, User user, HttpServletRequest request, MultipartFile attachment ) throws MessagingException {
+        String replyTo = user.getProfile().getContactEmail() == null ? user.getEmail() : user.getProfile().getContactEmail();
         String content = "Name: " + name + "\r\n" +
                 "Email: " + user.getEmail() + "\r\n" +
                 "User-Agent: " + request.getHeader( "User-Agent" ) + "\r\n" +
@@ -72,9 +79,9 @@ public class EmailServiceImpl implements EmailService {
                 "File Attached: " + ( attachment != null && !attachment.getOriginalFilename().equals( "" ) );
 
         if ( attachment == null ) {
-            sendSimpleMessage( "Registry Help - Contact Support", content, siteSettings.getAdminEmail() );
+            sendSimpleMessage( "Registry Help - Contact Support", content, siteSettings.getAdminEmail(), replyTo );
         } else {
-            sendMultipartMessage( "Registry Help - Contact Support", content, siteSettings.getAdminEmail(), attachment );
+            sendMultipartMessage( "Registry Help - Contact Support", content, siteSettings.getAdminEmail(), replyTo, attachment );
         }
     }
 
@@ -100,7 +107,7 @@ public class EmailServiceImpl implements EmailService {
                         "Please note that this link will expire on " + dateTimeFormatter.format( token.getExpiryDate().toInstant() ) + ".";
 
 
-        sendSimpleMessage( "Reset Password", content, user.getEmail() );
+        sendSimpleMessage( "Reset Password", content, user.getEmail(), null );
     }
 
     @Override
@@ -119,12 +126,12 @@ public class EmailServiceImpl implements EmailService {
                 confirmationUrl +
                 "\r\n\r\n" +
                 registrationEnding;
-        sendSimpleMessage( subject, message, recipientAddress );
+        sendSimpleMessage( subject, message, recipientAddress, null );
     }
 
     @Override
     public void sendUserRegisteredEmail( User user ) {
-        sendSimpleMessage( messageSource.getMessage( "rdp.site.shortname", null, Locale.getDefault() ) + " - User Registered", "New user registration: " + user.getEmail(), siteSettings.getAdminEmail() );
+        sendSimpleMessage( messageSource.getMessage( "rdp.site.shortname", null, Locale.getDefault() ) + " - User Registered", "New user registration: " + user.getEmail(), siteSettings.getAdminEmail(), null );
     }
 
 }

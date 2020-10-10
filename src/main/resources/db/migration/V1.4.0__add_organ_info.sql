@@ -1,6 +1,7 @@
 alter table user modify column enabled bit not null;
 alter table user add column researcher_position varchar(255);
 alter table user add column researcher_category varchar(255);
+alter table user add column contact_email varchar(255);
 alter table term drop column frequency;
 alter table term drop column size;
 alter table gene add column user_privacy_level integer default NULL;

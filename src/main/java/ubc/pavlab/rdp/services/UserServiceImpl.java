@@ -376,6 +376,7 @@ public class UserServiceImpl implements UserService {
             log.warn( MessageFormat.format( "User {0} attempted to set user {1} researcher type to an unknown value {2}.",
                     findCurrentUser(), user, profile.getResearcherCategory() ) );
         }
+        user.getProfile().setContactEmail( profile.getContactEmail() );
         user.getProfile().setPhone( profile.getPhone() );
         user.getProfile().setWebsite( profile.getWebsite() );
 
