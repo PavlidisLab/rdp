@@ -174,4 +174,19 @@ public final class TestUtils {
         uo.setDescription( organ.getDescription() );
         return uo;
     }
+
+    public static PasswordResetToken createPasswordResetToken( User user, String token ) {
+        PasswordResetToken t = new PasswordResetToken();
+        t.setUser( user );
+        t.updateToken( token );
+        return t;
+    }
+
+    public static VerificationToken createVerificationToken( User user, String token ) {
+        VerificationToken t = new VerificationToken();
+        t.setUser( user );
+        t.setEmail( user.getEmail() );
+        t.setToken( "1234" );
+        return t;
+    }
 }

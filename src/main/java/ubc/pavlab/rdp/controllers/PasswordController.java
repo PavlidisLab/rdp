@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 import ubc.pavlab.rdp.exception.TokenException;
 import ubc.pavlab.rdp.model.PasswordReset;
+import ubc.pavlab.rdp.model.PasswordResetToken;
 import ubc.pavlab.rdp.model.User;
 import ubc.pavlab.rdp.model.UserPrinciple;
 import ubc.pavlab.rdp.services.EmailService;
@@ -55,9 +56,8 @@ public class PasswordController {
             return modelAndView;
         }
 
-        String token = UUID.randomUUID().toString();
-        userService.createPasswordResetTokenForUser( user, token );
-        emailService.sendResetTokenMessage( token, user );
+        PasswordResetToken token = userService.createPasswordResetTokenForUser( user );
+        emailService.sendResetTokenMessage( user, token );
 
         modelAndView.addObject( "message", "Password reset instructions have been sent." );
         modelAndView.addObject( "error", false );

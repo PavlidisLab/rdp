@@ -66,13 +66,13 @@ public interface UserService {
 
     User updateUserProfileAndPublicationsAndOrgans( User user, Profile profile, Set<Publication> publications, Set<String> organUberonIds );
 
-    PasswordResetToken createPasswordResetTokenForUser( User user, String token );
+    PasswordResetToken createPasswordResetTokenForUser( User user );
 
-    void verifyPasswordResetToken( int userId, String token ) throws TokenException;
+    PasswordResetToken verifyPasswordResetToken( int userId, String token ) throws TokenException;
 
     User changePasswordByResetToken( int userId, String token, PasswordReset passwordReset ) throws TokenException;
 
-    VerificationToken createVerificationTokenForUser( User user, String token );
+    VerificationToken createVerificationTokenForUser( User user );
 
     User confirmVerificationToken( String token ) throws TokenException;
 

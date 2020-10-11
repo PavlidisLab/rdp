@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository;
 import ubc.pavlab.rdp.model.User;
 import ubc.pavlab.rdp.model.VerificationToken;
 
+import java.sql.Timestamp;
 import java.util.Date;
 
 @Repository
@@ -17,5 +18,5 @@ public interface VerificationTokenRepository extends JpaRepository<VerificationT
 
     @Modifying
     @Query("delete from VerificationToken t where t.expiryDate <= ?1")
-    void deleteAllExpiredSince( Date now );
+    void deleteAllExpiredSince( Timestamp now );
 }

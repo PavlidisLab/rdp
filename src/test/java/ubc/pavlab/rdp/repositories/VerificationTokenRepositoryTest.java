@@ -11,10 +11,13 @@ import org.springframework.test.context.junit4.SpringRunner;
 import ubc.pavlab.rdp.model.User;
 import ubc.pavlab.rdp.model.VerificationToken;
 
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.Date;
 
 import static junit.framework.TestCase.fail;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.within;
 import static ubc.pavlab.rdp.util.TestUtils.createUnpersistedUser;
 import static ubc.pavlab.rdp.util.TestUtils.createUser;
 
@@ -44,17 +47,17 @@ public class VerificationTokenRepositoryTest {
         validToken = new VerificationToken();
         validToken.updateToken( "validtoken" );
         validToken.setUser( user );
+        validToken.setEmail( user.getEmail() );
         entityManager.persist( validToken );
 
-        user2 = entityManager.persist( createUnpersistedUser() );
+        user2 = entityManager.persistAndFlush( createUnpersistedUser() );
 
         expiredToken = new VerificationToken();
         expiredToken.setToken( "expiredtoken" );
         expiredToken.setUser( user2 );
-        expiredToken.setExpiryDate( new Date() );
-        entityManager.persist( expiredToken );
-
-        entityManager.flush();
+        expiredToken.setEmail( user2.getEmail() );
+        expiredToken.setExpiryDate( Timestamp.from( Instant.now() ) );
+        expiredToken = entityManager.persistAndFlush( expiredToken );
     }
 
     @Test
@@ -98,6 +101,7 @@ public class VerificationTokenRepositoryTest {
         VerificationToken validToken2 = new VerificationToken();
         validToken2.updateToken( "validtoken2" );
         validToken2.setUser( user );
+        validToken2.setEmail( user.getEmail() );
         entityManager.persist( validToken2 );
         entityManager.flush();
 
@@ -119,7 +123,7 @@ public class VerificationTokenRepositoryTest {
 
     @Test
     public void deleteAllExpiredSince_whenValidDate_thenDeleteTokens() {
-        verificationTokenRepository.deleteAllExpiredSince( new Date() );
+        verificationTokenRepository.deleteAllExpiredSince( Timestamp.from( Instant.now() ) );
         assertThat( verificationTokenRepository.findAll() ).containsExactly( validToken );
 
     }

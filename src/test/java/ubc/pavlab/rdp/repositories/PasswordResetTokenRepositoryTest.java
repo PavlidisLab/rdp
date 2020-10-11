@@ -11,6 +11,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 import ubc.pavlab.rdp.model.PasswordResetToken;
 import ubc.pavlab.rdp.model.User;
 
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.Date;
 
 import static junit.framework.TestCase.fail;
@@ -51,7 +53,7 @@ public class PasswordResetTokenRepositoryTest {
         expiredToken = new PasswordResetToken();
         expiredToken.setToken( "expiredtoken" );
         expiredToken.setUser( user2 );
-        expiredToken.setExpiryDate( new Date() );
+        expiredToken.setExpiryDate( Timestamp.from( Instant.now() ) );
         entityManager.persist( expiredToken );
 
         entityManager.flush();

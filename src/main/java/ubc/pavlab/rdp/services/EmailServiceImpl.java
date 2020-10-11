@@ -8,8 +8,10 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.UriComponentsBuilder;
+import ubc.pavlab.rdp.model.PasswordReset;
 import ubc.pavlab.rdp.model.PasswordResetToken;
 import ubc.pavlab.rdp.model.User;
+import ubc.pavlab.rdp.model.VerificationToken;
 import ubc.pavlab.rdp.settings.SiteSettings;
 
 import javax.mail.MessagingException;
@@ -75,11 +77,11 @@ public class EmailServiceImpl implements EmailService {
     }
 
     @Override
-    public void sendResetTokenMessage( String token, User user ) {
+    public void sendResetTokenMessage( User user, PasswordResetToken token ) {
         String url = UriComponentsBuilder.fromUri( siteSettings.getFullUrl() )
                 .path( "updatePassword" )
                 .queryParam( "id", user.getId() )
-                .queryParam( "token", token )
+                .queryParam( "token", token.getToken() )
                 .build().toUriString();
 
         String content =
@@ -95,14 +97,14 @@ public class EmailServiceImpl implements EmailService {
     }
 
     @Override
-    public void sendRegistrationMessage( User user, String token ) {
+    public void sendRegistrationMessage( User user, VerificationToken token ) {
         String registrationWelcome = messageSource.getMessage( "rdp.site.email.registration-welcome", new String[]{ siteSettings.getFullUrl().toString() }, Locale.getDefault() );
         String registrationEnding = messageSource.getMessage( "rdp.site.email.registration-ending", new String[]{ siteSettings.getContactEmail() }, Locale.getDefault() );
         String recipientAddress = user.getEmail();
         String subject = "Registration Confirmation";
         String confirmationUrl = UriComponentsBuilder.fromUri( siteSettings.getFullUrl() )
                 .path( "registrationConfirm" )
-                .queryParam( "token", token )
+                .queryParam( "token", token.getToken() )
                 .build()
                 .toUriString();
         String message = registrationWelcome +

@@ -14,7 +14,9 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.context.junit4.SpringRunner;
 import ubc.pavlab.rdp.WebMvcConfig;
+import ubc.pavlab.rdp.model.PasswordResetToken;
 import ubc.pavlab.rdp.model.User;
+import ubc.pavlab.rdp.model.VerificationToken;
 import ubc.pavlab.rdp.settings.SiteSettings;
 
 import javax.mail.MessagingException;
@@ -24,7 +26,7 @@ import java.net.URI;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static ubc.pavlab.rdp.util.TestUtils.createUser;
+import static ubc.pavlab.rdp.util.TestUtils.*;
 
 @RunWith(SpringRunner.class)
 @Import(WebMvcConfig.class)
@@ -61,7 +63,8 @@ public class EmailServiceImplTest {
     public void sendResetTokenMessage_thenSucceed() throws MessagingException {
         when( siteSettings.getFullUrl() ).thenReturn( URI.create( "http://localhost" ) );
         User user = createUser( 1 );
-        emailService.sendResetTokenMessage( "1234", user );
+        PasswordResetToken token = createPasswordResetToken( user, "1234" );
+        emailService.sendResetTokenMessage( user, token );
         ArgumentCaptor<SimpleMailMessage> mailMessageCaptor = ArgumentCaptor.forClass( SimpleMailMessage.class );
         verify( emailSender ).send( mailMessageCaptor.capture() );
         assertThat( mailMessageCaptor.getValue() )
@@ -74,7 +77,8 @@ public class EmailServiceImplTest {
     @Test
     public void sendRegistrationMessageMessage_thenSucceed() {
         User user = createUser( 1 );
-        emailService.sendRegistrationMessage( user, "1234" );
+        VerificationToken token = createVerificationToken( user, "1234" );
+        emailService.sendRegistrationMessage( user, token );
         ArgumentCaptor<SimpleMailMessage> mailMessageCaptor = ArgumentCaptor.forClass( SimpleMailMessage.class );
         verify( emailSender ).send( mailMessageCaptor.capture() );
         assertThat( mailMessageCaptor.getValue() )

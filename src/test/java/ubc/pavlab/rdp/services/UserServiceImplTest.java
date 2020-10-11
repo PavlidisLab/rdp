@@ -25,6 +25,9 @@ import ubc.pavlab.rdp.security.PermissionEvaluatorImpl;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 
 import javax.validation.ValidationException;
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -136,11 +139,12 @@ public class UserServiceImplTest {
         token.setUser( user );
         token.updateToken( "token1" );
         when( passwordResetTokenRepository.findByToken( token.getToken() ) ).thenReturn( token );
+        System.out.println( token.getExpiryDate() );
 
         token = new PasswordResetToken();
         token.setUser( user );
         token.setToken( "token1Expired" );
-        token.setExpiryDate( new Date() );
+        token.setExpiryDate( Timestamp.from( Instant.now().minusSeconds( 1 ) ) );
         when( passwordResetTokenRepository.findByToken( token.getToken() ) ).thenReturn( token );
 
         token = new PasswordResetToken();
@@ -155,13 +159,15 @@ public class UserServiceImplTest {
         User user = createUser( 1 );
         VerificationToken token = new VerificationToken();
         token.setUser( user );
+        token.setEmail( user.getEmail() );
         token.updateToken( "token1" );
         when( tokenRepository.findByToken( token.getToken() ) ).thenReturn( token );
 
         token = new VerificationToken();
         token.setUser( user );
+        token.setEmail( user.getEmail() );
         token.setToken( "token1Expired" );
-        token.setExpiryDate( new Date() );
+        token.setExpiryDate( Timestamp.from( Instant.now().minus( 1, ChronoUnit.SECONDS ) ) );
         when( tokenRepository.findByToken( token.getToken() ) ).thenReturn( token );
 
         when( tokenRepository.findByToken( "tokenBad" ) ).thenReturn( null );
@@ -270,6 +276,7 @@ public class UserServiceImplTest {
         User updatedUser = userService.changePasswordByResetToken( user.getId(), "token1", new PasswordReset( "newPassword", "newPassword" ) );
         assertThat( updatedUser ).isNotNull();
         assertThat( bCryptPasswordEncoder.matches( "newPassword", updatedUser.getPassword() ) ).isTrue();
+        verify( passwordResetTokenRepository ).delete( any( PasswordResetToken.class ) );
     }
 
     @Test(expected = TokenException.class)
@@ -543,24 +550,13 @@ public class UserServiceImplTest {
     public void createPasswordResetTokenForUser_hasCorrectExpiration() {
         User user = createUser( 1 );
         String token = "HEYYEYAAEYAAAEYAEYAA";
-        PasswordResetToken passwordResetToken = userService.createPasswordResetTokenForUser( user, token );
+        PasswordResetToken passwordResetToken = userService.createPasswordResetTokenForUser( user );
 
-        final Calendar cal = Calendar.getInstance();
-
-        cal.setTimeInMillis( new Date().getTime() );
-        cal.add( Calendar.HOUR, PasswordResetToken.EXPIRATION );
-        Date expectedExpiry = new Date( cal.getTime().getTime() );
-
-        cal.setTimeInMillis( expectedExpiry.getTime() );
-        cal.add( Calendar.MINUTE, -1 );
-        Date lowerBound = new Date( cal.getTime().getTime() );
-
-        cal.setTimeInMillis( expectedExpiry.getTime() );
-        cal.add( Calendar.MINUTE, 1 );
-        Date upperBound = new Date( cal.getTime().getTime() );
+        Instant lowerBound = Instant.now().plus( PasswordResetToken.EXPIRATION, ChronoUnit.HOURS ).minus( 1, ChronoUnit.MINUTES );
+        Instant upperBound = Instant.now().plus( PasswordResetToken.EXPIRATION, ChronoUnit.HOURS ).plus( 1, ChronoUnit.MINUTES );
 
         // one minute tolerance
-        assertThat( passwordResetToken.getExpiryDate() ).isBetween( lowerBound, upperBound );
+        assertThat( passwordResetToken.getExpiryDate().toInstant() ).isBetween( lowerBound, upperBound );
 
     }
 
@@ -572,70 +568,37 @@ public class UserServiceImplTest {
         userService.verifyPasswordResetToken( user.getId(), "token1" );
     }
 
-    @Test
-    public void verifyPasswordResetToken_whenInvalidToken_thenThrowTokenException() {
+    @Test(expected = TokenException.class)
+    public void verifyPasswordResetToken_whenInvalidToken_thenThrowTokenException() throws TokenException {
         setUpPasswordResetTokenMocks();
         User user = createUser( 1 );
-
-        try {
-            userService.verifyPasswordResetToken( user.getId(), "tokenBad" );
-        } catch ( TokenException e ) {
-            // Expected
-            return;
-        }
-        fail( "Should have thrown TokenException" );
+        userService.verifyPasswordResetToken( user.getId(), "tokenBad" );
     }
 
-    @Test
-    public void verifyPasswordResetToken_whenInvalidUserId_thenThrowTokenException() {
+    @Test(expected = TokenException.class)
+    public void verifyPasswordResetToken_whenInvalidUserId_thenThrowTokenException() throws TokenException {
         setUpPasswordResetTokenMocks();
         User user = createUser( 1 );
-
-        try {
-            userService.verifyPasswordResetToken( user.getId(), "token2" );
-        } catch ( TokenException e ) {
-            // Expected
-            return;
-        }
-        fail( "Should have thrown TokenException" );
+        userService.verifyPasswordResetToken( user.getId(), "token2" );
     }
 
-    @Test
-    public void verifyPasswordResetToken_whenExpiredToken_thenThrowTokenException() {
+    @Test(expected = TokenException.class)
+    public void verifyPasswordResetToken_whenExpiredToken_thenThrowTokenException() throws TokenException {
         setUpPasswordResetTokenMocks();
         User user = createUser( 1 );
-
-        try {
-            userService.verifyPasswordResetToken( user.getId(), "token1Expired" );
-        } catch ( TokenException e ) {
-            // Expected
-            return;
-        }
-        fail( "Should have thrown TokenException" );
+        userService.verifyPasswordResetToken( user.getId(), "token1Expired" );
     }
 
     @Test
     public void createVerificationTokenForUser_hasCorrectExpiration() {
         User user = createUser( 1 );
-        String token = "HEYYEYAAEYAAAEYAEYAA";
-        VerificationToken verificationToken = userService.createVerificationTokenForUser( user, token );
+        VerificationToken verificationToken = userService.createVerificationTokenForUser( user );
 
-        final Calendar cal = Calendar.getInstance();
-
-        cal.setTimeInMillis( new Date().getTime() );
-        cal.add( Calendar.HOUR, VerificationToken.EXPIRATION );
-        Date expectedExpiry = new Date( cal.getTime().getTime() );
-
-        cal.setTimeInMillis( expectedExpiry.getTime() );
-        cal.add( Calendar.MINUTE, -1 );
-        Date lowerBound = new Date( cal.getTime().getTime() );
-
-        cal.setTimeInMillis( expectedExpiry.getTime() );
-        cal.add( Calendar.MINUTE, 1 );
-        Date upperBound = new Date( cal.getTime().getTime() );
+        Instant lowerBound = Instant.now().plus( VerificationToken.EXPIRATION, ChronoUnit.HOURS ).minus( 1, ChronoUnit.MINUTES );
+        Instant upperBound = Instant.now().plus( VerificationToken.EXPIRATION, ChronoUnit.HOURS ).plus( 1, ChronoUnit.MINUTES );
 
         // one minute tolerance
-        assertThat( verificationToken.getExpiryDate() ).isBetween( lowerBound, upperBound );
+        assertThat( verificationToken.getExpiryDate().toInstant() ).isBetween( lowerBound, upperBound );
 
     }
 
@@ -645,6 +608,7 @@ public class UserServiceImplTest {
 
         User user = userService.confirmVerificationToken( "token1" );
         assertThat( user.isEnabled() ).isTrue();
+        verify( tokenRepository ).delete( any( VerificationToken.class ) );
 
     }
 
@@ -658,6 +622,17 @@ public class UserServiceImplTest {
     public void confirmVerificationToken_whenExpiredToken_thenThrowTokenException() throws TokenException {
         setUpVerificationTokenMocks();
         userService.confirmVerificationToken( "token1Expired" );
+    }
+
+    @Test(expected = TokenException.class)
+    public void confirmVerificationToken_whenTokenEmailDoesNotMatch_thenThrowTokenException() throws TokenException {
+        User user = createUser( 1 );
+        VerificationToken token = new VerificationToken();
+        token.setUser( user );
+        token.setEmail( "foo@example.com" );
+        token.updateToken( "token1" );
+        when( tokenRepository.findByToken( token.getToken() ) ).thenReturn( token );
+        userService.confirmVerificationToken( "token1" );
     }
 
     @Test

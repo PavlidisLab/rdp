@@ -48,7 +48,7 @@ public class User implements UserContent {
     @Transient
     private String password;
 
-    @Column(name = "enabled")
+    @Column(name = "enabled", nullable = false)
     @JsonIgnore
     private boolean enabled;
 

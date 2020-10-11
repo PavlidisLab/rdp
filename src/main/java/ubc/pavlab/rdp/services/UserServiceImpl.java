@@ -23,6 +23,7 @@ import ubc.pavlab.rdp.settings.ApplicationSettings;
 
 import javax.validation.ValidationException;
 import java.text.MessageFormat;
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -410,63 +411,78 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     @Override
-    public PasswordResetToken createPasswordResetTokenForUser( User user, String token ) {
+    public PasswordResetToken createPasswordResetTokenForUser( User user ) {
         PasswordResetToken userToken = new PasswordResetToken();
         userToken.setUser( user );
-        userToken.updateToken( token );
+        userToken.updateToken( UUID.randomUUID().toString() );
         return passwordResetTokenRepository.save( userToken );
     }
 
     @Override
-    public void verifyPasswordResetToken( int userId, String token ) throws TokenException {
+    public PasswordResetToken verifyPasswordResetToken( int userId, String token ) throws TokenException {
         PasswordResetToken passToken = passwordResetTokenRepository.findByToken( token );
-        if ( ( passToken == null ) || ( !passToken.getUser().getId().equals( userId ) ) ) {
-            throw new TokenException( "Token is invalid." );
+
+        if ( passToken == null ) {
+            throw new TokenException( "Password reset token is invalid." );
         }
 
-        Calendar cal = Calendar.getInstance();
-        if ( ( passToken.getExpiryDate().getTime() - cal.getTime().getTime() ) <= 0 ) {
-            throw new TokenException( "Token is expired." );
+        if ( !passToken.getUser().getId().equals( userId ) ) {
+            throw new TokenException( "Password reset token is invalid." );
         }
+
+        if ( Instant.now().isAfter( passToken.getExpiryDate().toInstant() ) ) {
+            throw new TokenException( "Password reset token is expired." );
+        }
+
+        return passToken;
     }
 
     @Transactional
     @Override
     public User changePasswordByResetToken( int userId, String token, PasswordReset passwordReset ) throws TokenException, ValidationException {
 
-        verifyPasswordResetToken( userId, token );
+        PasswordResetToken passToken = verifyPasswordResetToken( userId, token );
 
         // Preauthorize might cause trouble here if implemented, fix by setting manual authentication
         User user = findUserByIdNoAuth( userId );
 
         user.setPassword( bCryptPasswordEncoder.encode( passwordReset.getNewPassword() ) );
 
+        passwordResetTokenRepository.delete( passToken );
+
         return updateNoAuth( user );
     }
 
     @Transactional
     @Override
-    public VerificationToken createVerificationTokenForUser( User user, String token ) {
+    public VerificationToken createVerificationTokenForUser( User user ) {
         VerificationToken userToken = new VerificationToken();
         userToken.setUser( user );
-        userToken.updateToken( token );
+        userToken.setEmail( user.getEmail() );
+        userToken.updateToken( UUID.randomUUID().toString() );
         return tokenRepository.save( userToken );
     }
 
-    @Transactional
     @Override
+    @Transactional
     public User confirmVerificationToken( String token ) throws TokenException {
         VerificationToken verificationToken = tokenRepository.findByToken( token );
         if ( verificationToken == null ) {
-            throw new TokenException( "Invalid Token" );
+            throw new TokenException( "Verification token is invalid." );
         }
 
-        Calendar cal = Calendar.getInstance();
-        if ( ( verificationToken.getExpiryDate().getTime() - cal.getTime().getTime() ) <= 0 ) {
-            throw new TokenException( "Expired" );
+        if ( Instant.now().isAfter( verificationToken.getExpiryDate().toInstant() ) ) {
+            throw new TokenException( "Verification token is expired." );
         }
 
         User user = verificationToken.getUser();
+
+        if ( !verificationToken.getEmail().equals( user.getEmail() ) ) {
+            throw new TokenException( "Verification token does not match user email." );
+        }
+
+        tokenRepository.delete( verificationToken );
+
         user.setEnabled( true );
         return updateNoAuth( user );
     }

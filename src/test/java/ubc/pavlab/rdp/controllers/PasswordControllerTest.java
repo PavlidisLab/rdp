@@ -83,8 +83,8 @@ public class PasswordControllerTest {
                 .andExpect( view().name( "forgotPassword" ) )
                 .andExpect( model().attribute( "error", false ) );
 
-        verify( userService ).createPasswordResetTokenForUser( eq( user ), any() );
-        verify( emailService ).sendResetTokenMessage( any(), eq( user ) );
+        verify( userService ).createPasswordResetTokenForUser( eq( user ) );
+        verify( emailService ).sendResetTokenMessage( eq( user ), any() );
     }
 
     @Test

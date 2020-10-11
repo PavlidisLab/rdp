@@ -5,6 +5,7 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
 import ubc.pavlab.rdp.events.OnRegistrationCompleteEvent;
 import ubc.pavlab.rdp.model.User;
+import ubc.pavlab.rdp.model.VerificationToken;
 import ubc.pavlab.rdp.services.EmailService;
 import ubc.pavlab.rdp.services.UserService;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
@@ -38,8 +39,7 @@ public class RegistrationListener implements ApplicationListener<OnRegistrationC
 
     private void confirmRegistration( OnRegistrationCompleteEvent event ) {
         User user = event.getUser();
-        String token = UUID.randomUUID().toString();
-        userService.createVerificationTokenForUser( user, token );
+        VerificationToken token = userService.createVerificationTokenForUser( user );
         emailService.sendRegistrationMessage( user, token );
     }
 }

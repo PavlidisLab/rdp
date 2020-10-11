@@ -1,3 +1,4 @@
+alter table user modify column enabled bit not null;
 alter table user add column researcher_position varchar(255);
 alter table user add column researcher_category varchar(255);
 alter table term drop column frequency;
@@ -11,6 +12,16 @@ alter table user_organ add constraint FKtmll6kbthwqqh53034wn9i220 foreign key (u
 alter table ortholog drop primary key;
 alter table ortholog add primary key (source_gene, target_gene);
 alter table ortholog drop column target_taxon;
+
+-- migrate password reset token expiry date to non-nullable timestamps
+alter table verification_token modify column expiry_date timestamp not null;
+alter table password_reset_token modify column expiry_date timestamp not null;
+update password_reset_token set expiry_date = CURRENT_TIMESTAMP() where expiry_date is null;
+update verification_token set expiry_date = CURRENT_TIMESTAMP() where expiry_date is null;
+
+-- add an email to the verification token
+alter table verification_token add column email varchar(255) not null;
+update verification_token set email = (select email from user where user.user_id = verification_token.user_id);
 
 -- Default organ systems
 insert into organ_info (uberon_id, name, active, ordering) values ('UBERON:0000026', 'Limb/Appendage', true, 1);

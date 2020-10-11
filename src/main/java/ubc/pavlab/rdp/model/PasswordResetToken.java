@@ -1,9 +1,13 @@
 package ubc.pavlab.rdp.model;
 
 import lombok.*;
+import org.hibernate.validator.constraints.Email;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 
 import javax.persistence.*;
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Optional;
@@ -32,18 +36,16 @@ public class PasswordResetToken implements UserContent {
     @JoinColumn(nullable = false, name = "user_id")
     private User user;
 
-    private Date expiryDate;
+    @Column(name = "expiry_date")
+    private Timestamp expiryDate;
 
-    private Date calculateExpiryDate( final int expiryTimeInHours ) {
-        final Calendar cal = Calendar.getInstance();
-        cal.setTimeInMillis( new Date().getTime() );
-        cal.add( Calendar.HOUR, expiryTimeInHours );
-        return new Date( cal.getTime().getTime() );
+    private Instant calculateExpiryDate( final int expiryTimeInHours ) {
+        return Instant.now().plus( expiryTimeInHours, ChronoUnit.HOURS );
     }
 
     public void updateToken( final String token ) {
         this.token = token;
-        this.expiryDate = calculateExpiryDate( EXPIRATION );
+        this.expiryDate = Timestamp.from( calculateExpiryDate( EXPIRATION ) );
     }
 
     @Override

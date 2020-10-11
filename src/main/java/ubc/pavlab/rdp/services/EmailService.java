@@ -1,7 +1,9 @@
 package ubc.pavlab.rdp.services;
 
 import org.springframework.web.multipart.MultipartFile;
+import ubc.pavlab.rdp.model.PasswordResetToken;
 import ubc.pavlab.rdp.model.User;
+import ubc.pavlab.rdp.model.VerificationToken;
 
 import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
@@ -13,9 +15,9 @@ public interface EmailService {
 
     void sendSupportMessage( String message, String name, User user, HttpServletRequest request, MultipartFile attachment ) throws MessagingException;
 
-    void sendResetTokenMessage( String token, User user );
+    void sendResetTokenMessage( User user, PasswordResetToken token );
 
-    void sendRegistrationMessage( User user, String token );
+    void sendRegistrationMessage( User user, VerificationToken token );
 
     void sendUserRegisteredEmail( User user );
 }
