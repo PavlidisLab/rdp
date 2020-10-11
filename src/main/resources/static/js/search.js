@@ -7,7 +7,7 @@
         $.get('/search/view/user-preview/' + userId, function (data) {
             element.popover({
                 container: 'body',
-                trigger: 'hover',
+                trigger: 'hover tooltip',
                 html: true,
                 content: data
             });
