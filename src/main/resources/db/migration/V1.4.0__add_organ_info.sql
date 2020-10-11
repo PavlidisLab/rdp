@@ -19,6 +19,16 @@ alter table password_reset_token modify column expiry_date timestamp not null;
 update password_reset_token set expiry_date = CURRENT_TIMESTAMP() where expiry_date is null;
 update verification_token set expiry_date = CURRENT_TIMESTAMP() where expiry_date is null;
 
+-- enforce non-nullable tokens remove null tokens
+alter table verification_token modify column token varchar(255) not null;
+delete from verification_token where token is null;
+alter table password_reset_token modify column token varchar(255) not null;
+delete from password_reset_token where token is null;
+
+-- make token uniques and indexed
+alter table verification_token add constraint uk_verification_token_token unique (token);
+alter table password_reset_token add constraint uk_password_reset_token_token unique (token);
+
 -- add an email to the verification token
 alter table verification_token add column email varchar(255) not null;
 update verification_token set email = (select email from user where user.user_id = verification_token.user_id);

@@ -552,8 +552,8 @@ public class UserServiceImplTest {
         String token = "HEYYEYAAEYAAAEYAEYAA";
         PasswordResetToken passwordResetToken = userService.createPasswordResetTokenForUser( user );
 
-        Instant lowerBound = Instant.now().plus( PasswordResetToken.EXPIRATION, ChronoUnit.HOURS ).minus( 1, ChronoUnit.MINUTES );
-        Instant upperBound = Instant.now().plus( PasswordResetToken.EXPIRATION, ChronoUnit.HOURS ).plus( 1, ChronoUnit.MINUTES );
+        Instant lowerBound = Instant.now().plus( 2, ChronoUnit.HOURS ).minus( 1, ChronoUnit.MINUTES );
+        Instant upperBound = Instant.now().plus( 2, ChronoUnit.HOURS ).plus( 1, ChronoUnit.MINUTES );
 
         // one minute tolerance
         assertThat( passwordResetToken.getExpiryDate().toInstant() ).isBetween( lowerBound, upperBound );
@@ -594,8 +594,8 @@ public class UserServiceImplTest {
         User user = createUser( 1 );
         VerificationToken verificationToken = userService.createVerificationTokenForUser( user );
 
-        Instant lowerBound = Instant.now().plus( VerificationToken.EXPIRATION, ChronoUnit.HOURS ).minus( 1, ChronoUnit.MINUTES );
-        Instant upperBound = Instant.now().plus( VerificationToken.EXPIRATION, ChronoUnit.HOURS ).plus( 1, ChronoUnit.MINUTES );
+        Instant lowerBound = Instant.now().plus( 24, ChronoUnit.HOURS ).minus( 1, ChronoUnit.MINUTES );
+        Instant upperBound = Instant.now().plus( 24, ChronoUnit.HOURS ).plus( 1, ChronoUnit.MINUTES );
 
         // one minute tolerance
         assertThat( verificationToken.getExpiryDate().toInstant() ).isBetween( lowerBound, upperBound );

@@ -22,6 +22,7 @@ import ubc.pavlab.rdp.settings.SiteSettings;
 import javax.mail.MessagingException;
 
 import java.net.URI;
+import java.util.Locale;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
@@ -64,7 +65,7 @@ public class EmailServiceImplTest {
         when( siteSettings.getFullUrl() ).thenReturn( URI.create( "http://localhost" ) );
         User user = createUser( 1 );
         PasswordResetToken token = createPasswordResetToken( user, "1234" );
-        emailService.sendResetTokenMessage( user, token );
+        emailService.sendResetTokenMessage( user, token, Locale.getDefault() );
         ArgumentCaptor<SimpleMailMessage> mailMessageCaptor = ArgumentCaptor.forClass( SimpleMailMessage.class );
         verify( emailSender ).send( mailMessageCaptor.capture() );
         assertThat( mailMessageCaptor.getValue() )

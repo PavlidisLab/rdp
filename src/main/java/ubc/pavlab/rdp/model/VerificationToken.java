@@ -5,32 +5,27 @@ import org.hibernate.validator.constraints.Email;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 
 import javax.persistence.*;
-import java.sql.Timestamp;
-import java.time.Instant;
+import java.time.Duration;
 import java.time.temporal.ChronoUnit;
-import java.util.Calendar;
-import java.util.Date;
+import java.time.temporal.TemporalAmount;
 import java.util.Optional;
 
 /**
  * Created by mjacobson on 22/01/18.
  */
 @Entity
-@Table(name = "verification_token")
+@Table(name = "verification_token",
+        uniqueConstraints = { @UniqueConstraint(columnNames = { "token" }) })
 @Getter
 @Setter
 @NoArgsConstructor
-@EqualsAndHashCode(of = { "token", "user" })
-@ToString(of = { "user", "token", "expiryDate" })
-public class VerificationToken implements UserContent {
-
-    public static final int EXPIRATION = 24;
+@EqualsAndHashCode(of = { "user" }, callSuper = true)
+@ToString(of = { "user" }, callSuper = true)
+public class VerificationToken extends Token implements UserContent {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Integer id;
-
-    private String token;
 
     @OneToOne(targetEntity = User.class, fetch = FetchType.EAGER)
     @JoinColumn(nullable = false, name = "user_id")
@@ -40,16 +35,9 @@ public class VerificationToken implements UserContent {
     @Column(name = "email")
     private String email;
 
-    @Column(name = "expiry_date")
-    private Timestamp expiryDate;
-
-    private Instant calculateExpiryDate( final int expiryTimeInHours ) {
-        return Instant.now().plus( expiryTimeInHours, ChronoUnit.HOURS );
-    }
-
-    public void updateToken( final String token ) {
-        this.token = token;
-        this.expiryDate = Timestamp.from( calculateExpiryDate( EXPIRATION ) );
+    @Override
+    protected TemporalAmount getDuration() {
+        return Duration.of( 24, ChronoUnit.HOURS );
     }
 
     @Override

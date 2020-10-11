@@ -21,7 +21,7 @@ import ubc.pavlab.rdp.services.EmailService;
 import ubc.pavlab.rdp.services.UserService;
 
 import javax.validation.Valid;
-import java.util.UUID;
+import java.util.Locale;
 
 /**
  * Created by mjacobson on 23/01/18.
@@ -43,7 +43,7 @@ public class PasswordController {
     }
 
     @PostMapping(value = "/forgotPassword")
-    public ModelAndView resetPassword( @RequestParam("email") String userEmail ) {
+    public ModelAndView resetPassword( @RequestParam("email") String userEmail, Locale locale ) {
         //TODO: require captcha?
         User user = userService.findUserByEmailNoAuth( userEmail );
 
@@ -57,7 +57,7 @@ public class PasswordController {
         }
 
         PasswordResetToken token = userService.createPasswordResetTokenForUser( user );
-        emailService.sendResetTokenMessage( user, token );
+        emailService.sendResetTokenMessage( user, token, locale );
 
         modelAndView.addObject( "message", "Password reset instructions have been sent." );
         modelAndView.addObject( "error", false );

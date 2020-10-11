@@ -13,6 +13,7 @@ import ubc.pavlab.rdp.settings.SiteSettings;
 
 import javax.servlet.http.HttpServletRequest;
 import java.text.MessageFormat;
+import java.util.Locale;
 
 /**
  * Email service implementation used for development that simply pastes the email content into the logs.
@@ -31,7 +32,7 @@ public class LoggingEmailServiceImpl implements EmailService {
     }
 
     @Override
-    public void sendResetTokenMessage( User user, PasswordResetToken token ) {
+    public void sendResetTokenMessage( User user, PasswordResetToken token, Locale locale ) {
         String url = UriComponentsBuilder.fromUri( siteSettings.getFullUrl() )
                 .path( "updatePassword" )
                 .queryParam( "id", user.getId() )

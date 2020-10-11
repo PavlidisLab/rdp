@@ -84,7 +84,7 @@ public class PasswordControllerTest {
                 .andExpect( model().attribute( "error", false ) );
 
         verify( userService ).createPasswordResetTokenForUser( eq( user ) );
-        verify( emailService ).sendResetTokenMessage( eq( user ), any() );
+        verify( emailService ).sendResetTokenMessage( eq( user ), any(), any() );
     }
 
     @Test

@@ -8,7 +8,6 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.UriComponentsBuilder;
-import ubc.pavlab.rdp.model.PasswordReset;
 import ubc.pavlab.rdp.model.PasswordResetToken;
 import ubc.pavlab.rdp.model.User;
 import ubc.pavlab.rdp.model.VerificationToken;
@@ -17,6 +16,9 @@ import ubc.pavlab.rdp.settings.SiteSettings;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 import javax.servlet.http.HttpServletRequest;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
 import java.util.Locale;
 
 /**
@@ -77,12 +79,17 @@ public class EmailServiceImpl implements EmailService {
     }
 
     @Override
-    public void sendResetTokenMessage( User user, PasswordResetToken token ) {
+    public void sendResetTokenMessage( User user, PasswordResetToken token, Locale locale ) {
         String url = UriComponentsBuilder.fromUri( siteSettings.getFullUrl() )
                 .path( "updatePassword" )
                 .queryParam( "id", user.getId() )
                 .queryParam( "token", token.getToken() )
                 .build().toUriString();
+
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter
+                .ofLocalizedDateTime( FormatStyle.SHORT )
+                .withLocale( locale )
+                .withZone( ZoneId.systemDefault());
 
         String content =
                 "Hello " + user.getProfile().getName() + ",\r\n\r\n" +
@@ -90,7 +97,7 @@ public class EmailServiceImpl implements EmailService {
                         "In order to reset your password, please click the confirmation link below:\r\n\r\n" +
                         url + "\r\n\r\n" +
                         "If you did not initiate this request, please disregard and delete this e-mail. " +
-                        "Please note that this link will expire in " + PasswordResetToken.EXPIRATION + " hours.";
+                        "Please note that this link will expire on " + dateTimeFormatter.format( token.getExpiryDate().toInstant() ) + ".";
 
 
         sendSimpleMessage( "Reset Password", content, user.getEmail() );
