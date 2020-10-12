@@ -1,5 +1,10 @@
+/* globals currentTaxonId, customizableGeneLevel, enabledGenePrivacyLevels, privacyLevels, userPrivacyLevel */
 (function () {
     "use strict";
+
+    var geneTable = $('#gene-table');
+    var termTable = $('#term-table');
+
     function collectModel() {
         var model = {};
 
@@ -10,7 +15,7 @@
         var geneTierMap = {};
         var genePrivacyLevelMap = {};
 
-        $('#gene-table').DataTable().rows().every(function () {
+        geneTable.DataTable().rows().every(function () {
             var data = this.data();
             var geneId = parseInt(data[1], 10);
             if (!isNaN(geneId)) {
@@ -26,7 +31,7 @@
 
         // Term Information
         var goIds = [];
-        $('#term-table').DataTable().rows().every(function () {
+        termTable.DataTable().rows().every(function () {
             var data = this.data();
             goIds.push($.trim($(data[0]).text()));
         });
@@ -38,7 +43,7 @@
 
     function addGeneRow(data) {
 
-        var table = $('#gene-table').DataTable();
+        var table = geneTable.DataTable();
         var rows = [];
 
         for (var symbol in data) {
@@ -88,7 +93,7 @@
 
     function addTermRow(data) {
 
-        var table = $('#term-table').DataTable();
+        var table = termTable.DataTable();
         var rows = [];
 
         for (var goId in data) {
@@ -149,7 +154,7 @@
         });
     }
 
-    $('#gene-table').DataTable({
+    geneTable.DataTable({
         "scrollY": "200px",
         "scrollCollapse": true,
         "paging": false,
@@ -159,7 +164,7 @@
         "columnDefs": columnDefs
     });
 
-    $('#term-table').DataTable({
+    termTable.DataTable({
         "scrollY": "200px",
         "scrollCollapse": true,
         "paging": false,
@@ -455,7 +460,6 @@
     });
 
     $('#terms-tab').on('shown.bs.tab', function () {
-        $('#term-table').DataTable().draw();
+        termTable.DataTable().draw();
     });
-
 })();

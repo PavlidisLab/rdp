@@ -2,6 +2,7 @@
     "use strict";
 
     function initializeUserPreviewPopover() {
+        /* jshint validthis: true */
         var element = $(this);
         var userId = element.data('user-id');
         $.get('/search/view/user-preview/' + userId, function (data) {

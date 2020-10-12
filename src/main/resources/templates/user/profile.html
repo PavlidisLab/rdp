@@ -371,14 +371,17 @@
 <th:block th:if="${@applicationSettings.privacy.isCustomizableGeneLevel()}">
     <div th:replace="fragments/modal::confirmation(target=${#ids.seq('confirm-gene-privacy-level-reset')}, title='Your gene privacy levels will be adjusted!', body='Changing your profile privacy setting will reset the privacy levels of the genes associated to your model organisms to the selected value.')"></div>
     <script th:inline="javascript">
-        var modalId = [[${#ids.prev('confirm-gene-privacy-level-reset')}]];
-        var modal = $('#' + modalId);
-        modal.find('button.confirm').on('click', function () {
-            modal.modal('hide');
-        });
-        modal.find('button.cancel').on('click', function () {
-            document.getElementById('privacy-level').reset();
-        });
+        (function () {
+            "use strict";
+            var modalId = [[${#ids.prev('confirm-gene-privacy-level-reset')}]];
+            var modal = $('#' + modalId);
+            modal.find('button.confirm').on('click', function () {
+                modal.modal('hide');
+            });
+            modal.find('button.cancel').on('click', function () {
+                document.getElementById('privacy-level').reset();
+            });
+        })();
     </script>
 </th:block>
 </body>

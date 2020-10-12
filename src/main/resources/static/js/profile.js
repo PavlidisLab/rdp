@@ -1,68 +1,69 @@
-function collectProfile() {
-    "use strict";
-
-    var profile = {};
-
-    // Basic Information
-    profile.name = $.trim($('[name="profile.name"]').val());
-    profile.lastName = $.trim($('[name="profile.lastName"]').val());
-    profile.organization = $.trim($('[name="profile.organization"]').val());
-    profile.department = $.trim($('[name="profile.department"]').val());
-    profile.website = $.trim($('[name="profile.website"]').val());
-
-    // we handle empty string, null and undefined value (if researcher type feature is not enabled)
-    profile.researcherPosition = $('[name="researcherPosition"]:checked').val() || null;
-    profile.researcherCategory = $('[name="researcherCategory"]').val() || null;
-
-    // Contact Information
-    profile.contactEmail = $.trim($('[name="profile.contactEmail"]').val());
-    profile.phone = $.trim($('[name="profile.phone"]').val());
-
-    // Research Information
-    profile.description = $.trim($('[name="profile.description"]').val());
-
-    profile.privacyLevel = parseInt($('input[name=privacyLevel]:checked').val());
-    profile.shared = $('[name="profile.shared"]').prop('checked');
-    profile.hideGenelist = $('[name="profile.hideGenelist"]').prop('checked');
-
-    // Publication Information
-    var publications = [];
-    // noinspection JSUnusedLocalSymbols
-    $('#publication-table').DataTable().rows().every(function (rowIdx, tableLoop, rowLoop) {
-        var node = $(this.node());
-        var pubmedId = parseInt(node.find('td')[0].innerText, 10);
-
-        // noinspection EqualityComparisonWithCoercionJS
-        if (!isNaN(pubmedId)) {
-            var a = node.find('a')[0];
-            publications.push({
-                pmid: pubmedId,
-                title: a ? a.innerText : ""
-            });
-        }
-    });
-    publications.sort(function (a, b) {
-        return b.pmid - a.pmid;
-    });
-    profile.publications = publications;
-
-    var organUberonIds = $('[name="organUberonIds"]:checked')
-        .map(function (i, elem) {
-            return elem.value;
-        }).get();
-
-    return {'profile': profile, 'organUberonIds': organUberonIds};
-}
-
 (function () {
     "use strict";
+
+    var publicationTable = $('#publication-table');
+
+    function collectProfile() {
+        var profile = {};
+
+        // Basic Information
+        profile.name = $.trim($('[name="profile.name"]').val());
+        profile.lastName = $.trim($('[name="profile.lastName"]').val());
+        profile.organization = $.trim($('[name="profile.organization"]').val());
+        profile.department = $.trim($('[name="profile.department"]').val());
+        profile.website = $.trim($('[name="profile.website"]').val());
+
+        // we handle empty string, null and undefined value (if researcher type feature is not enabled)
+        profile.researcherPosition = $('[name="researcherPosition"]:checked').val() || null;
+        profile.researcherCategory = $('[name="researcherCategory"]').val() || null;
+
+        // Contact Information
+        profile.contactEmail = $.trim($('[name="profile.contactEmail"]').val());
+        profile.phone = $.trim($('[name="profile.phone"]').val());
+
+        // Research Information
+        profile.description = $.trim($('[name="profile.description"]').val());
+
+        profile.privacyLevel = parseInt($('input[name=privacyLevel]:checked').val());
+        profile.shared = $('[name="profile.shared"]').prop('checked');
+        profile.hideGenelist = $('[name="profile.hideGenelist"]').prop('checked');
+
+        // Publication Information
+        var publications = [];
+        // noinspection JSUnusedLocalSymbols
+        publicationTable.DataTable().rows().every(function (rowIdx, tableLoop, rowLoop) {
+            var node = $(this.node());
+            var pubmedId = parseInt(node.find('td')[0].innerText, 10);
+
+            // noinspection EqualityComparisonWithCoercionJS
+            if (!isNaN(pubmedId)) {
+                var a = node.find('a')[0];
+                publications.push({
+                    pmid: pubmedId,
+                    title: a ? a.innerText : ""
+                });
+            }
+        });
+        publications.sort(function (a, b) {
+            return b.pmid - a.pmid;
+        });
+        profile.publications = publications;
+
+        var organUberonIds = $('[name="organUberonIds"]:checked')
+            .map(function (i, elem) {
+                return elem.value;
+            }).get();
+
+        return {'profile': profile, 'organUberonIds': organUberonIds};
+    }
+
     // auto-hide save message
     $('#saved-button').blur(function () {
         window.console.log("Handler for .blur() called.");
         $('.success-row').hide();
     });
 
-    $('#publication-table').DataTable({
+    publicationTable.DataTable({
         "scrollY": "200px",
         "scrollCollapse": true,
         "paging": false,
@@ -143,7 +144,7 @@ function collectProfile() {
             });
         }).done(function () {
 
-            var table = $('#publication-table').DataTable();
+            var table = publicationTable.DataTable();
 
             table.rows.add(rows).draw().nodes()
                 .to$()
@@ -190,5 +191,4 @@ function collectProfile() {
             }
         });
     });
-
 })();
