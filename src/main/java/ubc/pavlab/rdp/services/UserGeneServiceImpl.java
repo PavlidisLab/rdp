@@ -108,7 +108,7 @@ public class UserGeneServiceImpl implements UserGeneService {
     @PostFilter("hasPermission(filterObject, 'read')")
     public Collection<UserGene> findByGeneIdAndTierIn( int geneId, Set<TierType> tiers, Collection<ResearcherCategory> researcherTypes ) {
         return userGeneRepository.findByGeneIdAndTierIn( geneId, tiers ).stream()
-                .filter( ug -> researcherTypes == null || researcherTypes.contains( ug.getUser().getProfile().getResearcherCategory() ) )
+                .filter( ug -> researcherTypes == null || containsAny( researcherTypes, ug.getUser().getProfile().getResearcherCategories() ) )
                 .collect( Collectors.toSet() );
     }
 
@@ -116,7 +116,7 @@ public class UserGeneServiceImpl implements UserGeneService {
     @PostFilter("hasPermission(filterObject, 'read')")
     public Collection<UserGene> findByGeneIdAndTierInAndUserOrgansIn( int geneId, Set<TierType> tiers, Collection<ResearcherCategory> researcherTypes, Collection<UserOrgan> userOrgans ) {
         return userGeneRepository.findByGeneIdAndTierIn( geneId, tiers ).stream()
-                .filter( ug -> researcherTypes == null || researcherTypes.contains( ug.getUser().getProfile().getResearcherCategory() ) )
+                .filter( ug -> researcherTypes == null || containsAny( researcherTypes, ug.getUser().getProfile().getResearcherCategories() ) )
                 .filter( ortholog -> userOrgans == null || containsAny( userOrgans, ortholog.getUser().getUserOrgans().values() ) )
                 .collect( Collectors.toSet() );
     }
@@ -129,7 +129,7 @@ public class UserGeneServiceImpl implements UserGeneService {
                 .map( userGene -> userGeneRepository.findOrthologsByGeneId( userGene.getGeneId() ) )
                 .flatMap( Collection::stream )
                 .filter( ortholog -> tiers.contains( ortholog.getTier() ) )
-                .filter( ug -> researcherTypes == null || researcherTypes.contains( ug.getUser().getProfile().getResearcherCategory() ) )
+                .filter( ug -> researcherTypes == null || containsAny( researcherTypes, ug.getUser().getProfile().getResearcherCategories() ) )
                 .filter( ortholog -> userOrgans == null || containsAny( userOrgans, ortholog.getUser().getUserOrgans().values() ) )
                 .collect( Collectors.toSet() );
     }
@@ -142,7 +142,7 @@ public class UserGeneServiceImpl implements UserGeneService {
                 .map( userGene -> userGeneRepository.findOrthologsByGeneIdAndTaxon( userGene.getGeneId(), orthologTaxon ) )
                 .flatMap( Collection::stream )
                 .filter( ortholog -> tiers.contains( ortholog.getTier() ) )
-                .filter( ug -> researcherTypes == null || researcherTypes.contains( ug.getUser().getProfile().getResearcherCategory() ) )
+                .filter( ug -> researcherTypes == null || containsAny( researcherTypes, ug.getUser().getProfile().getResearcherCategories() ) )
                 .filter( ortholog -> userOrgans == null || containsAny( userOrgans, ortholog.getUser().getUserOrgans().values() ) )
                 .collect( Collectors.toSet() );
     }

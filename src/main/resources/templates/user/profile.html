@@ -123,11 +123,11 @@
                         <tr th:unless="${@applicationSettings.profile.enabledResearcherCategories.isEmpty()}"
                             class="edit-container">
                             <td class="align-middle">
-                                <label th:for="${#ids.next('profile.researcherCategory')}"
+                                <label th:for="${#ids.next('profile.researcherCategories')}"
                                        class="text-muted align-middle mb-0">Category</label>
                             </td>
                             <td>
-                                <div th:replace="fragments/profile::researcher-category-selection(selectedResearcherCategory = *{researcherCategory})">
+                                <div th:replace="fragments/profile::researcher-categories-selection(selectedResearcherCategories = *{researcherCategories})">
                                     ...
                                 </div>
                             </td>

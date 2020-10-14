@@ -15,7 +15,12 @@
 
         // we handle empty string, null and undefined value (if researcher type feature is not enabled)
         profile.researcherPosition = $('[name="researcherPosition"]:checked').val() || null;
-        profile.researcherCategory = $('[name="researcherCategory"]').val() || null;
+
+        // here an empty list is a valid selection, so we only need to convert undefined when the field is not displayed
+        profile.researcherCategories = $('[name="researcherCategories"]').val();
+        if (profile.researcherCategories === undefined) {
+            profile.researcherCategories = null;
+        }
 
         // Contact Information
         profile.contactEmail = $.trim($('[name="profile.contactEmail"]').val());

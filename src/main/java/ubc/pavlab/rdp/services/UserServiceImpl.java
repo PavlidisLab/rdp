@@ -217,7 +217,7 @@ public class UserServiceImpl implements UserService {
     @PostFilter("hasPermission(filterObject, 'read')")
     public Collection<User> findByLikeName( String nameLike, Set<ResearcherCategory> researcherTypes, Collection<UserOrgan> userOrgans ) {
         return userRepository.findByProfileNameContainingIgnoreCaseOrProfileLastNameContainingIgnoreCase( nameLike, nameLike ).stream()
-                .filter( u -> researcherTypes == null || researcherTypes.contains( u.getProfile().getResearcherCategory() ) )
+                .filter( u -> researcherTypes == null || containsAny( researcherTypes, u.getProfile().getResearcherCategories() ) )
                 .filter( u -> userOrgans == null || containsAny( userOrgans, u.getUserOrgans().values() ) )
                 .collect( Collectors.toSet() );
     }
@@ -226,7 +226,7 @@ public class UserServiceImpl implements UserService {
     @PostFilter("hasPermission(filterObject, 'read')")
     public Collection<User> findByStartsName( String startsName, Set<ResearcherCategory> researcherTypes, Collection<UserOrgan> userOrgans ) {
         return userRepository.findByProfileLastNameStartsWithIgnoreCase( startsName ).stream()
-                .filter( u -> researcherTypes == null || researcherTypes.contains( u.getProfile().getResearcherCategory() ) )
+                .filter( u -> researcherTypes == null || containsAny( researcherTypes, u.getProfile().getResearcherCategories() ) )
                 .filter( u -> userOrgans == null || containsAny( userOrgans, u.getUserOrgans().values() ) )
                 .collect( Collectors.toSet() );
     }
@@ -235,7 +235,7 @@ public class UserServiceImpl implements UserService {
     @PostFilter("hasPermission(filterObject, 'read')")
     public Collection<User> findByDescription( String descriptionLike, Collection<ResearcherCategory> researcherTypes, Collection<UserOrgan> userOrgans ) {
         return userRepository.findByProfileDescriptionContainingIgnoreCaseOrTaxonDescriptionsContainingIgnoreCase( descriptionLike, descriptionLike ).stream()
-                .filter( u -> researcherTypes == null || researcherTypes.contains( u.getProfile().getResearcherCategory() ) )
+                .filter( u -> researcherTypes == null || containsAny( researcherTypes, u.getProfile().getResearcherCategories() ) )
                 .filter( u -> userOrgans == null || containsAny( userOrgans, u.getUserOrgans().values() ) )
                 .collect( Collectors.toSet() );
     }
@@ -370,12 +370,19 @@ public class UserServiceImpl implements UserService {
         }
         user.getProfile().setResearcherPosition( profile.getResearcherPosition() );
         user.getProfile().setOrganization( profile.getOrganization() );
-        if ( profile.getResearcherCategory() == null || applicationSettings.getProfile().getEnabledResearcherCategories().contains( profile.getResearcherCategory().name() ) ) {
-            user.getProfile().setResearcherCategory( profile.getResearcherCategory() );
-        } else {
-            log.warn( MessageFormat.format( "User {0} attempted to set user {1} researcher type to an unknown value {2}.",
-                    findCurrentUser(), user, profile.getResearcherCategory() ) );
+
+        if ( profile.getResearcherCategories() != null ) {
+            Set<String> researcherCategoryNames = profile.getResearcherCategories().stream()
+                    .map( ResearcherCategory::name )
+                    .collect( Collectors.toSet() );
+            if ( applicationSettings.getProfile().getEnabledResearcherCategories().containsAll( researcherCategoryNames ) ) {
+                user.getProfile().setResearcherCategories( profile.getResearcherCategories() );
+            } else {
+                log.warn( MessageFormat.format( "User {0} attempted to set user {1} researcher type to an unknown value {2}.",
+                        findCurrentUser(), user, profile.getResearcherCategories() ) );
+            }
         }
+
         user.getProfile().setContactEmail( profile.getContactEmail() );
         user.getProfile().setPhone( profile.getPhone() );
         user.getProfile().setWebsite( profile.getWebsite() );

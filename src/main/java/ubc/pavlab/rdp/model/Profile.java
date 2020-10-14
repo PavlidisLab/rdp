@@ -73,5 +73,7 @@ public class Profile {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "researcher_category")
-    private ResearcherCategory researcherCategory;
+    @ElementCollection
+    @CollectionTable(name = "user_researcher_category", joinColumns = { @JoinColumn(name = "user_id") })
+    private Set<ResearcherCategory> researcherCategories = new HashSet<>();
 }

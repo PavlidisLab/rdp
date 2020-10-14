@@ -1,6 +1,5 @@
 alter table user modify column enabled bit not null;
 alter table user add column researcher_position varchar(255);
-alter table user add column researcher_category varchar(255);
 alter table user add column contact_email varchar(255);
 alter table term drop column frequency;
 alter table term drop column size;
@@ -13,6 +12,9 @@ alter table user_organ add constraint FKtmll6kbthwqqh53034wn9i220 foreign key (u
 alter table ortholog drop primary key;
 alter table ortholog add primary key (source_gene, target_gene);
 alter table ortholog drop column target_taxon;
+
+create table researcher_category (user_id integer not null auto_increment, researcher_category varchar(255));
+alter table researcher_category add constraint fk_researcher_category_user_id foreign key (user_id) references user (user_id);
 
 -- migrate password reset token expiry date to non-nullable timestamps
 alter table verification_token modify column expiry_date timestamp not null;

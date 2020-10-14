@@ -104,6 +104,8 @@ public class UserServiceImplTest {
     private ApplicationSettings.OrganSettings organSettings;
     @MockBean
     private ApplicationSettings.PrivacySettings privacySettings;
+    @MockBean
+    private ApplicationSettings.ProfileSettings profileSettings;
 
     @Before
     public void setUp() {
@@ -120,6 +122,7 @@ public class UserServiceImplTest {
         when( organSettings.getEnabled() ).thenReturn( true );
         when( privacySettings.isCustomizableGeneLevel() ).thenReturn( true );
         when( applicationSettings.getPrivacy() ).thenReturn( privacySettings );
+        when( applicationSettings.getProfile() ).thenReturn( profileSettings );
 
         when( geneInfoService.load( anyCollection() ) ).thenAnswer(
                 a -> a.getArgumentAt( 0, Collection.class ).stream()

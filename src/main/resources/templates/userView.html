@@ -96,14 +96,16 @@
                                        th:value="${viewUser.profile.website}" disabled="disabled"/>
                             </td>
                         </tr>
-                        <tr th:unless="${@applicationSettings.profile.enabledResearcherCategories.isEmpty()}">
-                            <td class="text-muted">Category</td>
+                        <tr th:unless="${@applicationSettings.profile.enabledResearcherCategories.isEmpty()} or ${viewUser.profile.researcherCategories.isEmpty()}">
+                            <td class="text-muted">Categories</td>
                             <td>
-                                <input class="data-edit"
-                                       type="text"
-                                       name="researcherCategory"
-                                       th:value="${viewUser.profile.researcherCategory?.label}"
-                                       disabled="disabled"/>
+                                <th:block th:each="researcherCategory, i : ${viewUser.profile.researcherCategories}">
+                                    <input class="data-edit"
+                                           type="text"
+                                           name="researcherCategories"
+                                           th:value="${researcherCategory.label}"
+                                           disabled="disabled"/><br th:unless="${i.last}"/>
+                                </th:block>
                             </td>
                         </tr>
                         <tr th:unless="${@applicationSettings.profile.enabledResearcherPositions.isEmpty()} or ${viewUser.profile.researcherPosition} == null">
