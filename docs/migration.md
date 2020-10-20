@@ -3,23 +3,12 @@
 Your current data should not be lost while migrating, but you should definitely
 have a database backup in case things go wrong for any reason. Read about [database backup options for MySQL](https://dev.mysql.com/doc/refman/5.7/en/backup-methods.html).
 
-First, take down your running instance to make sure that the previous release
-will not interfere with the migration process.
+First, take down your running registry instance to make sure it won't interfere with the migration process.
 
-Then, run the newer application release with the following parameter in
-`application.properties`:
+Then, launch the newer release which will perform the necessary migrations on startup.
 
-```
-spring.datasource.initialize=true
-```
-
-which will update the database to support the latest model definitions.
-
-If you get any errors during any part of the following process, please contact
-us.
-
-Once the update is successful, you should revert the option back to `false` to
-speed up future restarts.
+At this point, your instance should be updated and running. No further action is necessary. If you get any errors
+during any part of the process, please contact us.
 
 As of 1.3.2, database migrations are automated with Flyway which will run at startup of the application. This behaviour
 can be disabled with the following parameter in `application.properties`:
@@ -27,8 +16,6 @@ can be disabled with the following parameter in `application.properties`:
 ```
 flyway.enabled=false
 ```
-
-After finishing all the steps, you can start your RDP application again and test if everything works as expected.
 
 Take a look at the sections below for version-specific migration procedures.
 

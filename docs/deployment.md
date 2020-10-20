@@ -4,11 +4,6 @@ This section expands the process of deploying in a production environment. Make
 sure you are familiarized with the [installation](/installation) procedure
 first before attempting the described steps.
 
-## Administrative user
-
-Your RDP instance is initialized with an administrator user. Make sure you
-change its default password before exposing your application to the Internet.
-
 ## Web server
 
 There a few options you will likely want to specify when deploying your RDP

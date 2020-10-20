@@ -1,11 +1,11 @@
 # Installation
 
-This section describe the essential steps to install and run an RDP instance.
+This section describes the essential steps to deploy an RDP registry.
 
 ## Requirements
 
-* Java 8+
-* MySQL 5.5+ or equivalent
+- Java 8+
+- MySQL 5.5+ or equivalent
 - SMTP mail server
 
 ## Obtain a distribution of RDP
@@ -54,18 +54,34 @@ This file contains the database and SMTP credentials and various runtime
 configurations. Make sure it's only readable by the user that will run the
 instance.
 
-Take a look at [application.properties](https://github.com/PavlidisLab/rgr/blob/development/src/main/resources/application.properties)
-for detailed documentation and default values.
+Documentation for options with their default values are available in [application.properties](https://github.com/PavlidisLab/rgr/blob/development/src/main/resources/application.properties).
 
-That should be enough to get the Web service started. Now you can launch it be
+That should be enough to get the Web service started. Now you can launch it by
 issuing the following command:
 
 ```bash
 java -jar rdp.jar
 ```
 
-If your email server is not configured properly, you will see an error from the
+If your email server is not properly configured, you will see an error from the
 Spring Actuator health check. You can detect further issues by looking at the
 `/admin/health` endpoint with administrative privilege.
+
+## Create an administrative account
+
+Use the registration page to create a user account and promote it to administrator privileges. Consider this to be a
+sanity check for your database and email server setup.
+
+Once created, obtain its user identifier:
+
+```sql
+select user_id from user where email = '<your user email>';
+```
+
+Then add the `ROLE_ADMIN` (`role_id` is `1`) role to that user:
+
+```sql
+insert into user_role (user_id, role_id) values ('<user_id>', 1);
+```
 
 Next, we will see how the Web application can be customized further.
