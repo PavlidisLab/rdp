@@ -6,12 +6,12 @@ import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import ubc.pavlab.rdp.exception.ApiException;
 import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.ResearcherCategory;
 import ubc.pavlab.rdp.model.enums.TierType;
@@ -56,6 +56,16 @@ public class ApiController {
     private ApplicationSettings applicationSettings;
     @Autowired
     private SiteSettings siteSettings;
+
+    @ExceptionHandler({ AuthenticationException.class })
+    public ResponseEntity handleAuthenticationException() {
+        return ResponseEntity.status( HttpStatus.UNAUTHORIZED ).build();
+    }
+
+    @ExceptionHandler({ ApiException.class })
+    public ResponseEntity handleApiException( ApiException e ) {
+        return ResponseEntity.status( e.getStatus() ).body( e.getMessage() );
+    }
 
     /**
      * Fallback for unmapped sub-paths.
@@ -108,9 +118,7 @@ public class ApiController {
                                      @RequestParam(required = false) Set<String> organUberonIds,
                                      @RequestParam(required = false) String auth,
                                      Locale locale ) {
-        if ( !applicationSettings.getIsearch().isEnabled() ) {
-            return ResponseEntity.notFound().build();
-        }
+        checkEnabled();
         checkAuth( auth );
         if ( prefix ) {
             return initUsers( userService.findByStartsName( nameLike, researcherCategories, organsFromUberonIds( organUberonIds ) ), locale );
@@ -125,9 +133,7 @@ public class ApiController {
                                             @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
                                             @RequestParam(required = false) Set<String> organUberonIds,
                                             Locale locale ) {
-        if ( !applicationSettings.getIsearch().isEnabled() ) {
-            return ResponseEntity.notFound().build();
-        }
+        checkEnabled();
         checkAuth( auth );
         return initUsers( userService.findByDescription( descriptionLike, researcherCategories, organsFromUberonIds( organUberonIds ) ), locale );
     }
@@ -144,10 +150,9 @@ public class ApiController {
                                            @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
                                            @RequestParam(required = false) Set<String> organUberonIds,
                                            Locale locale ) {
-        if ( !applicationSettings.getIsearch().isEnabled() ) {
-            return ResponseEntity.notFound().build();
-        }
+        checkEnabled();
         checkAuth( auth );
+
         Taxon taxon = taxonService.findById( taxonId );
 
         if ( taxon == null ) {
@@ -220,9 +225,7 @@ public class ApiController {
     @GetMapping(value = "/api/users/{userId}", produces = MediaType.APPLICATION_JSON_VALUE)
     public Object getUserById( @PathVariable Integer userId,
                                @RequestParam(name = "auth", required = false) String auth, Locale locale ) {
-        if ( !applicationSettings.getIsearch().isEnabled() ) {
-            return ResponseEntity.notFound().build();
-        }
+        checkEnabled();
         checkAuth( auth );
         User user = userService.findUserById( userId );
         if ( user == null ) {
@@ -231,16 +234,25 @@ public class ApiController {
         return initUser( user, locale );
     }
 
-    private void checkAuth( String auth ) {
-        if ( applicationSettings.getIsearch().getAuthTokens().contains( auth ) ) {
+    private void checkEnabled() {
+        if ( !applicationSettings.getIsearch().isEnabled() ) {
+            throw new ApiException( HttpStatus.SERVICE_UNAVAILABLE, "Public API is not available for this registry." );
+        }
+    }
+
+    private void checkAuth( String authToken ) throws AuthenticationException {
+        if ( authToken == null ) {
+            // anonymous user which is the default for spring security
+        } else if ( applicationSettings.getIsearch().getAuthTokens().contains( authToken ) ) {
             User u = userService.getRemoteAdmin();
             if ( u == null ) {
-                log.error( messageSource.getMessage( "ApiController.misconfiguredRemoteAdmin", null, Locale.getDefault() ) );
-                return;
+                throw new ApiException( HttpStatus.SERVICE_UNAVAILABLE, messageSource.getMessage( "ApiController.misconfiguredRemoteAdmin", null, Locale.getDefault() ) );
             }
             UserPrinciple principle = new UserPrinciple( u );
             SecurityContextHolder.getContext().setAuthentication(
                     new UsernamePasswordAuthenticationToken( principle, null, principle.getAuthorities() ) );
+        } else {
+            throw new BadCredentialsException( "Invalid API token." );
         }
     }
 

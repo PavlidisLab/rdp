@@ -25,13 +25,14 @@ import ubc.pavlab.rdp.services.*;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.settings.SiteSettings;
 
+import java.util.Collections;
 import java.util.EnumSet;
-import java.util.Optional;
 
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static ubc.pavlab.rdp.util.TestUtils.*;
 
 @WebMvcTest(ApiController.class)
@@ -73,6 +74,64 @@ public class ApiControllerTest {
     public void setUp() {
         when( applicationSettings.getIsearch() ).thenReturn( isearchSettings );
         when( isearchSettings.isEnabled() ).thenReturn( true );
+    }
+
+    @Test
+    public void searchGenes_withSearchDisabled_thenReturnServiceUnavailable() throws Exception {
+        when( isearchSettings.isEnabled() ).thenReturn( false );
+        mvc.perform( get( "/api/genes/search" )
+                .param( "symbol", "CDH1" )
+                .param( "taxonId", "9606" )
+                .param( "tier", "TIER1" )
+                .param( "auth", "1234" ) )
+                .andExpect( status().isServiceUnavailable() );
+    }
+
+    @Test
+    public void searchGenes_withAuthToken_thenReturnSuccess() throws Exception {
+        // configure remote authentication
+        when( isearchSettings.getAuthTokens() ).thenReturn( Collections.singletonList( "1234" ) );
+        when( userService.getRemoteAdmin() ).thenReturn( createUser( 1 ) );
+
+        // configure one search result
+        Taxon humanTaxon = createTaxon( 9606 );
+        User user = createUser( 2 );
+        GeneInfo cdh1GeneInfo = createGene( 1, humanTaxon );
+        UserGene cdh1UserGene = createUserGene( 1, cdh1GeneInfo, user, TierType.TIER1, PrivacyLevelType.PRIVATE );
+        when( taxonService.findById( 9606 ) ).thenReturn( humanTaxon );
+        when( geneService.findBySymbolAndTaxon( "CDH1", humanTaxon ) ).thenReturn( cdh1GeneInfo );
+        when( userGeneService.handleGeneSearch( cdh1GeneInfo, EnumSet.of( TierType.TIER1 ), humanTaxon, null, null ) )
+                .thenReturn( Sets.newSet( cdh1UserGene ) );
+
+        mvc.perform( get( "/api/genes/search" )
+                .param( "symbol", "CDH1" )
+                .param( "taxonId", "9606" )
+                .param( "tier", "TIER1" )
+                .param( "auth", "1234" ) )
+                .andExpect( status().is2xxSuccessful() );
+
+        verify( userService ).getRemoteAdmin();
+    }
+
+    @Test
+    public void searchGenes_withInvalidAuthToken_thenReturnUnauthorized() throws Exception {
+        mvc.perform( get( "/api/genes/search" )
+                .param( "symbol", "CDH1" )
+                .param( "taxonId", "9606" )
+                .param( "tier", "TIER1" )
+                .param( "auth", "unknownToken" ) )
+                .andExpect( status().isUnauthorized() );
+    }
+
+    @Test
+    public void searchGenes_whenMisconfiguredRemoteAdmin_thenReturnServiceUnavailable() throws Exception {
+        when( isearchSettings.getAuthTokens() ).thenReturn( Collections.singletonList( "1234" ) );
+        mvc.perform( get( "/api/genes/search" )
+                .param( "symbol", "CDH1" )
+                .param( "taxonId", "9606" )
+                .param( "tier", "TIER1" )
+                .param( "auth", "1234" ) )
+                .andExpect( status().isServiceUnavailable() );
     }
 
     @Test
