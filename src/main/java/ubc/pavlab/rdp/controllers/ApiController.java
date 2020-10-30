@@ -12,8 +12,10 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import ubc.pavlab.rdp.exception.ApiException;
+import ubc.pavlab.rdp.exception.TokenException;
 import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.ResearcherCategory;
+import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.services.*;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
@@ -114,28 +116,32 @@ public class ApiController {
     @GetMapping(value = "/api/users/search", params = { "nameLike" }, produces = MediaType.APPLICATION_JSON_VALUE)
     public Object searchUsersByName( @RequestParam String nameLike,
                                      @RequestParam Boolean prefix,
+                                     @RequestParam(required = false) Set<ResearcherPosition> researcherPositions,
                                      @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
                                      @RequestParam(required = false) Set<String> organUberonIds,
-                                     @RequestParam(required = false) String auth,
+                                     @RequestHeader(value = "Authorization", required = false) String authorizationHeader,
+                                     @Deprecated @RequestParam(required = false) String auth,
                                      Locale locale ) {
         checkEnabled();
-        checkAuth( auth );
+        checkAuth( authorizationHeader, auth );
         if ( prefix ) {
-            return initUsers( userService.findByStartsName( nameLike, researcherCategories, organsFromUberonIds( organUberonIds ) ), locale );
+            return initUsers( userService.findByStartsName( nameLike, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ) ), locale );
         } else {
-            return initUsers( userService.findByLikeName( nameLike, researcherCategories, organsFromUberonIds( organUberonIds ) ), locale );
+            return initUsers( userService.findByLikeName( nameLike, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ) ), locale );
         }
     }
 
     @GetMapping(value = "/api/users/search", params = { "descriptionLike" }, produces = MediaType.APPLICATION_JSON_VALUE)
     public Object searchUsersByDescription( @RequestParam String descriptionLike,
-                                            @RequestParam(required = false) String auth,
+                                            @RequestParam(required = false) Set<ResearcherPosition> researcherPositions,
                                             @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
                                             @RequestParam(required = false) Set<String> organUberonIds,
+                                            @RequestHeader(value = "Authorization", required = false) String authorizationHeader,
+                                            @Deprecated @RequestParam(required = false) String auth,
                                             Locale locale ) {
         checkEnabled();
-        checkAuth( auth );
-        return initUsers( userService.findByDescription( descriptionLike, researcherCategories, organsFromUberonIds( organUberonIds ) ), locale );
+        checkAuth( authorizationHeader, auth );
+        return initUsers( userService.findByDescription( descriptionLike, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ) ), locale );
     }
 
     /**
@@ -145,13 +151,15 @@ public class ApiController {
     public Object searchUsersByGeneSymbol( @RequestParam String symbol,
                                            @RequestParam Integer taxonId,
                                            @RequestParam(required = false) Set<TierType> tiers,
-                                           @RequestParam(required = false) String auth,
                                            @RequestParam(required = false) Integer orthologTaxonId,
+                                           @RequestParam(required = false) Set<ResearcherPosition> researcherPositions,
                                            @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
                                            @RequestParam(required = false) Set<String> organUberonIds,
+                                           @RequestHeader(value = "Authorization", required = false) String authorizationHeader,
+                                           @Deprecated @RequestParam(required = false) String auth,
                                            Locale locale ) {
         checkEnabled();
-        checkAuth( auth );
+        checkAuth( authorizationHeader, auth );
 
         Taxon taxon = taxonService.findById( taxonId );
 
@@ -173,9 +181,9 @@ public class ApiController {
 
         Collection<UserGene> orthologs;
         if ( orthologTaxon != null ) {
-            orthologs = userGeneService.findOrthologsByGeneAndTierInAndTaxonAndUserOrgansIn( gene, tiers, orthologTaxon, researcherCategories, organsFromUberonIds( organUberonIds ) );
+            orthologs = userGeneService.findOrthologsByGeneAndTierInAndTaxonAndUserOrgansIn( gene, tiers, orthologTaxon, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ) );
         } else {
-            orthologs = userGeneService.findOrthologsByGeneAndTierInAndUserOrgansIn( gene, tiers, researcherCategories, organsFromUberonIds( organUberonIds ) );
+            orthologs = userGeneService.findOrthologsByGeneAndTierInAndUserOrgansIn( gene, tiers, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ) );
         }
 
         if (
@@ -186,7 +194,7 @@ public class ApiController {
             return new ResponseEntity<>( messageSource.getMessage( "ApiController.noOrthologsWithGivenParameters", null, locale ), null, HttpStatus.NOT_FOUND );
         }
 
-        return initGeneUsers( userGeneService.handleGeneSearch( gene, restrictTiers( tiers ), orthologTaxon, researcherCategories, organsFromUberonIds( organUberonIds ) ), locale );
+        return initGeneUsers( userGeneService.handleGeneSearch( gene, restrictTiers( tiers ), orthologTaxon, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ) ), locale );
     }
 
     /**
@@ -200,10 +208,12 @@ public class ApiController {
     public Object searchUsersByGeneSymbol( @RequestParam String symbol,
                                            @RequestParam Integer taxonId,
                                            @RequestParam String tier,
-                                           @RequestParam(required = false) String auth,
                                            @RequestParam(required = false) Integer orthologTaxonId,
+                                           @RequestParam(required = false) Set<ResearcherPosition> researcherPositions,
                                            @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
                                            @RequestParam(required = false) Set<String> organUberonIds,
+                                           @RequestHeader(value = "Authorization", required = false) String authorizationHeader,
+                                           @Deprecated @RequestParam(required = false) String auth,
                                            Locale locale ) {
         Set<TierType> tiers;
         if ( tier.equals( "TIER_ANY" ) ) {
@@ -219,14 +229,16 @@ public class ApiController {
             }
         }
 
-        return searchUsersByGeneSymbol( symbol, taxonId, tiers, auth, orthologTaxonId, researcherCategories, organUberonIds, locale );
+        return searchUsersByGeneSymbol( symbol, taxonId, tiers, orthologTaxonId, researcherPositions, researcherCategories, organUberonIds, authorizationHeader, auth, locale );
     }
 
     @GetMapping(value = "/api/users/{userId}", produces = MediaType.APPLICATION_JSON_VALUE)
     public Object getUserById( @PathVariable Integer userId,
-                               @RequestParam(name = "auth", required = false) String auth, Locale locale ) {
+                               @RequestHeader(value = "Authorization", required = false) String authorizationHeader,
+                               @RequestParam(name = "auth", required = false) String auth,
+                               Locale locale ) {
         checkEnabled();
-        checkAuth( auth );
+        checkAuth( authorizationHeader, auth );
         User user = userService.findUserById( userId );
         if ( user == null ) {
             return ResponseEntity.notFound().build();
@@ -240,20 +252,42 @@ public class ApiController {
         }
     }
 
-    private void checkAuth( String authToken ) throws AuthenticationException {
+    private void checkAuth( String authorizationHeader, String authToken ) throws AuthenticationException {
+        if ( authToken == null && authorizationHeader != null ) {
+            String[] pieces = authorizationHeader.split( " ", 2 );
+            if ( pieces.length == 2 && pieces[0].equalsIgnoreCase( "Bearer" ) ) {
+                authToken = pieces[1];
+            } else {
+                throw new ApiException( HttpStatus.BAD_REQUEST, "Cannot parse Authorization header, should be 'Bearer <api_key>'." );
+            }
+        }
+
+        User u;
         if ( authToken == null ) {
             // anonymous user which is the default for spring security
+            return;
         } else if ( applicationSettings.getIsearch().getAuthTokens().contains( authToken ) ) {
-            User u = userService.getRemoteAdmin();
+            // remote admin authentication
+            u = userService.getRemoteAdmin();
             if ( u == null ) {
                 throw new ApiException( HttpStatus.SERVICE_UNAVAILABLE, messageSource.getMessage( "ApiController.misconfiguredRemoteAdmin", null, Locale.getDefault() ) );
             }
-            UserPrinciple principle = new UserPrinciple( u );
-            SecurityContextHolder.getContext().setAuthentication(
-                    new UsernamePasswordAuthenticationToken( principle, null, principle.getAuthorities() ) );
         } else {
-            throw new BadCredentialsException( "Invalid API token." );
+            // authentication via access token
+            try {
+                u = userService.findUserByAccessTokenNoAuth( authToken );
+            } catch ( TokenException e ) {
+                throw new BadCredentialsException( "Invalid API token.", e );
+            }
         }
+
+        if ( u == null ) {
+            throw new BadCredentialsException( "No user associated to the provided API token." );
+        }
+
+        UserPrinciple principle = new UserPrinciple( u );
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken( principle, null, principle.getAuthorities() ) );
     }
 
     private Collection<UserGene> initGeneUsers( Collection<UserGene> genes, Locale locale ) {
