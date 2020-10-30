@@ -74,6 +74,9 @@ public class UserGeneRepositoryTest {
     @MockBean
     private OrganInfoService organInfoService;
 
+    @MockBean
+    private EmailService emailService;
+
     private User user;
     private Taxon taxon;
 

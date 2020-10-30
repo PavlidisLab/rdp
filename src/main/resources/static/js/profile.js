@@ -177,6 +177,8 @@
                 initialProfile = collectProfile();
                 $('.new-row').removeClass("new-row");
                 $('#saved-button').focus();
+                // hide the verification badge
+                $('.contact-email-verification-badge').toggleClass('d-none', true);
             },
             error: function (r) {
                 var errorMessages = [];

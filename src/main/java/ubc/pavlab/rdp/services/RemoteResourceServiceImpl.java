@@ -13,6 +13,7 @@ import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.model.User;
 import ubc.pavlab.rdp.model.UserGene;
 import ubc.pavlab.rdp.model.enums.ResearcherCategory;
+import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.repositories.RoleRepository;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
@@ -46,10 +47,15 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
     private ResteasyClient client;
 
     @Override
-    public Collection<User> findUsersByLikeName( String nameLike, Boolean prefix, Collection<ResearcherCategory> researcherCategories, Collection<String> organUberonIds ) {
+    public Collection<User> findUsersByLikeName( String nameLike, Boolean prefix, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherCategories, Collection<String> organUberonIds ) {
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add( "nameLike", nameLike );
         params.add( "prefix", prefix.toString() );
+        if ( researcherPositions != null ) {
+            for ( ResearcherPosition researcherPosition : researcherPositions ) {
+                params.add( "researcherPosition", researcherPosition.name() );
+            }
+        }
         if ( researcherCategories != null ) {
             for ( ResearcherCategory researcherCategory : researcherCategories ) {
                 params.add( "researcherCategory", researcherCategory.name() );
@@ -65,9 +71,14 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
     }
 
     @Override
-    public Collection<User> findUsersByDescription( String descriptionLike, Collection<ResearcherCategory> researcherCategories, Collection<String> organUberonIds ) {
+    public Collection<User> findUsersByDescription( String descriptionLike, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherCategories, Collection<String> organUberonIds ) {
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add( "descriptionLike", descriptionLike );
+        if ( researcherPositions != null ) {
+            for ( ResearcherPosition researcherPosition : researcherPositions ) {
+                params.add( "researcherPosition", researcherPosition.name() );
+            }
+        }
         if ( researcherCategories != null ) {
             for ( ResearcherCategory researcherCategory : researcherCategories ) {
                 params.add( "researcherCategory", researcherCategory.name() );
@@ -83,7 +94,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
     }
 
     @Override
-    public Collection<UserGene> findGenesBySymbol( String symbol, Taxon taxon, Set<TierType> tiers, Integer orthologTaxonId, Set<ResearcherCategory> researcherCategories, Set<String> organUberonIds ) {
+    public Collection<UserGene> findGenesBySymbol( String symbol, Taxon taxon, Set<TierType> tiers, Integer orthologTaxonId, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherCategories, Set<String> organUberonIds ) {
         List<UserGene> intlUsergenes = new LinkedList<>();
         for ( TierType tier : restrictTiers( tiers ) ) {
             MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
@@ -93,6 +104,11 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
             params.add( "tier", tier.toString() );
             if ( orthologTaxonId != null ) {
                 params.add( "orthologTaxonId", orthologTaxonId.toString() );
+            }
+            if ( researcherPositions != null ) {
+                for ( ResearcherPosition researcherPosition : researcherPositions ) {
+                    params.add( "researcherPosition", researcherPosition.name() );
+                }
             }
             if ( researcherCategories != null ) {
                 for ( ResearcherCategory researcherCategory : researcherCategories ) {

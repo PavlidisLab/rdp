@@ -37,12 +37,11 @@ public class UserOrganRepositoryTest {
         return userOrgan;
     }
 
-    private User user;
     private UserOrgan userOrgan;
 
     @Before
     public void setUp() {
-        user = entityManager.persist( createUnpersistedUser() );
+        User user = entityManager.persist( createUnpersistedUser() );
         userOrgan = entityManager.persist( createUserOrgan( user, "UBERON_....", "Limb/Appendage", "Limb or appendage" ) );
     }
 

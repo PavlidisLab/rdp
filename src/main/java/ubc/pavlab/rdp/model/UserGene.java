@@ -20,8 +20,8 @@ import java.util.Optional;
                 @UniqueConstraint(columnNames = { "user_id", "gene_id" }) },
         indexes = {
                 @Index(columnList = "gene_id"),
-                @Index(columnList = "gene_id, tier", name = "gene_id_tier_hidx"),
-                @Index(columnList = "symbol, taxon_id, tier", name = "symbol_taxon_id_tier_hidx") })
+                @Index(columnList = "gene_id, tier"),
+                @Index(columnList = "symbol, taxon_id, tier") })
 @Cacheable
 @Getter
 @Setter

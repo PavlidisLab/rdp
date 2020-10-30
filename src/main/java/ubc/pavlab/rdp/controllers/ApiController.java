@@ -309,7 +309,7 @@ public class ApiController {
 
     private User initUser( User user, Locale locale ) {
         user.setOrigin( messageSource.getMessage( "rdp.site.shortname", null, locale ) );
-        user.setOriginUrl( siteSettings.getFullUrl() );
+        user.setOriginUrl( siteSettings.getHostUri() );
         return user;
     }
 

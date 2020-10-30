@@ -2,11 +2,13 @@ package ubc.pavlab.rdp.model.enums;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import ubc.pavlab.rdp.util.MatchType;
 
 /**
  * Created by mjacobson on 30/01/18.
  */
+@Getter
 @AllArgsConstructor
 public enum TermMatchType implements MatchType {
 
@@ -24,7 +26,4 @@ public enum TermMatchType implements MatchType {
         return label;
     }
 
-    public int getOrder() {
-        return order;
-    }
 }

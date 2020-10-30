@@ -24,6 +24,7 @@ import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.model.UserGene;
 import ubc.pavlab.rdp.model.UserOrgan;
 import ubc.pavlab.rdp.model.enums.ResearcherCategory;
+import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import ubc.pavlab.rdp.model.enums.TierType;
 
 import java.util.Collection;
@@ -47,15 +48,15 @@ public interface UserGeneService {
 
     Integer countUniqueAssociationsToHumanAllTiers();
 
-    Collection<UserGene> findByGeneIdAndTierIn( int geneId, Set<TierType> tiers, Collection<ResearcherCategory> researcherTypes );
+    Collection<UserGene> findByGeneIdAndTierIn( int geneId, Set<TierType> tiers, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherTypes );
 
-    Collection<UserGene> findByGeneIdAndTierInAndUserOrgansIn( int geneId, Set<TierType> tiers, Collection<ResearcherCategory> researcherTypes, Collection<UserOrgan> userOrgans );
+    Collection<UserGene> findByGeneIdAndTierInAndUserOrgansIn( int geneId, Set<TierType> tiers, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherTypes, Collection<UserOrgan> userOrgans );
 
-    Collection<UserGene> findOrthologsByGeneAndTierInAndUserOrgansIn( Gene gene, Set<TierType> tiers, Collection<ResearcherCategory> researcherTypes, Collection<UserOrgan> userOrgans );
+    Collection<UserGene> findOrthologsByGeneAndTierInAndUserOrgansIn( Gene gene, Set<TierType> tiers, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherTypes, Collection<UserOrgan> userOrgans );
 
-    Collection<UserGene> findOrthologsByGeneAndTierInAndTaxonAndUserOrgansIn( Gene gene, Set<TierType> tiers, Taxon orthologTaxon, Collection<ResearcherCategory> researcherTypes, Collection<UserOrgan> userOrgans );
+    Collection<UserGene> findOrthologsByGeneAndTierInAndTaxonAndUserOrgansIn( Gene gene, Set<TierType> tiers, Taxon orthologTaxon, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherTypes, Collection<UserOrgan> userOrgans );
 
-    Collection<UserGene> handleGeneSearch( Gene gene, Set<TierType> tiers, Taxon orthologTaxon, Collection<ResearcherCategory> researcherTypes, Collection<UserOrgan> organs );
+    Collection<UserGene> handleGeneSearch( Gene gene, Set<TierType> tiers, Taxon orthologTaxon, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherTypes, Collection<UserOrgan> organs );
 
     void updateUserGenes();
 }

@@ -48,4 +48,11 @@ public class RoleRepositoryTest {
 
     }
 
+    @Test
+    public void findByRole_whenExpected_thenReturnRole() {
+        assertThat( roleRepository.findByRole( "ROLE_USER" ) ).isNotNull();
+        assertThat( roleRepository.findByRole( "ROLE_ADMIN" ) ).isNotNull();
+        assertThat( roleRepository.findByRole( "ROLE_SERVICE_ACCOUNT" ) ).isNotNull();
+    }
+
 }

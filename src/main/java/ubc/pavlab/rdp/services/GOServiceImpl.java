@@ -6,10 +6,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import ubc.pavlab.rdp.model.GeneInfo;
-import ubc.pavlab.rdp.model.GeneOntologyTerm;
-import ubc.pavlab.rdp.model.Relationship;
-import ubc.pavlab.rdp.model.Taxon;
+import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.Aspect;
 import ubc.pavlab.rdp.model.enums.RelationshipType;
 import ubc.pavlab.rdp.model.enums.TermMatchType;
@@ -91,8 +88,7 @@ public class GOServiceImpl implements GOService {
      * TODO: store the terms in the database to avoid this initialization
      */
     @Override
-    @Transactional
-    @PostConstruct
+    /* @PostConstruct */
     public void updateGoTerms() {
         ApplicationSettings.CacheSettings cacheSettings = applicationSettings.getCache();
 
@@ -157,9 +153,9 @@ public class GOServiceImpl implements GOService {
     }
 
     @Override
-    public Map<GeneOntologyTerm, Long> termFrequencyMap( Collection<GeneInfo> genes ) {
+    public Map<GeneOntologyTerm, Long> termFrequencyMap( Collection<? extends Gene> genes ) {
         return genes.stream()
-                .flatMap( g -> getAllTermsForGene( g, true, true ).stream() )
+                .flatMap( g -> getTermsForGene( g, true, true ).stream() )
                 .collect( groupingBy( identity(), counting() ) );
     }
 
@@ -300,12 +296,12 @@ public class GOServiceImpl implements GOService {
     }
 
     @Override
-    public Collection<GeneOntologyTerm> getTermsForGene( GeneInfo gene ) {
+    public Collection<GeneOntologyTerm> getTermsForGene( Gene gene ) {
         return geneMap.getOrDefault( gene.getGeneId(), Collections.emptyList() );
     }
 
     @Override
-    public Collection<GeneOntologyTerm> getAllTermsForGene( GeneInfo gene, boolean includePartOf, boolean propagateUpwards ) {
+    public Collection<GeneOntologyTerm> getTermsForGene( Gene gene, boolean includePartOf, boolean propagateUpwards ) {
 
         Collection<GeneOntologyTerm> allGOTermSet = new HashSet<>();
 

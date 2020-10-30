@@ -10,7 +10,6 @@
     <tr>
         <th scope="col"></th>
         <th th:if="${remote}" scope="col">Origin</th>
-        <th scope="col">Email</th>
         <th scope="col">Full Name</th>
         <th scope="col">
             <span th:unless="${@applicationSettings.profile.enabledResearcherPositions.isEmpty()}">Position and</span>
@@ -34,10 +33,10 @@
             </a>
         </td>
         <td th:if="${remote}" th:text="${u.origin}"></td>
-        <td><a th:href="'mailto:' + ${u.email}" th:text="${u.email}"></a></td>
         <td th:text="${u.profile.fullName}"></td>
         <td>
-            <span th:text="${u.profile.researcherPosition?.label}"></span>
+            <span th:if="${u.profile.researcherPosition}"
+                  th:text="#{'ResearcherPosition.' + ${u.profile.researcherPosition.name()}}">...</span>
             <span th:if="${u.profile.researcherPosition} != null and ${u.profile.organization} != ''">at</span>
             <span th:text="${u.profile.organization}"></span>
         </td>
@@ -48,7 +47,7 @@
     </tbody>
 </table>
 
-<table class="user-table table table-sm mb-0" th:fragment="usergenes-table (usergenes, remote)">
+<table class="user-table table table-sm" th:fragment="usergenes-table (usergenes, remote)">
     <tr th:each="map : ${mapsList}">
         <td colspan="100" th:each="mapEntry : ${map}">
             <span th:text="${mapEntry.key}"></span>
@@ -61,7 +60,6 @@
     <tr>
         <th scope="col"></th>
         <th th:if="${remote}" scope="col">Origin</th>
-        <th scope="col">Email</th>
         <th scope="col">Full Name</th>
         <th scope="col">
             <span th:unless="${@applicationSettings.profile.enabledResearcherPositions.isEmpty()}">Position and</span>
@@ -92,11 +90,10 @@
             </a>
         </td>
         <td th:if="${remote}" th:text="${ug.user.origin}"></td>
-        <td><a th:href="'mailto:' + ${ug.user.profile.contactEmail ?: ug.user.email}"
-               th:text="${ug.user.profile.contactEmail ?: ug.user.email}"></a></td>
         <td th:text="${ug.user.profile.fullName}"></td>
         <td>
-            <span th:text="${ug.user.profile.researcherPosition?.label}"></span>
+            <span th:if="${ug.user.profile.researcherPosition}"
+                  th:text="#{'ResearcherPosition.' + ${ug.user.profile.researcherPosition}}">...</span>
             <span th:if="${ug.user.profile.researcherPosition} != null and ${ug.user.profile.organization} != ''">at</span>
             <span th:text="${ug.user.profile.organization}"></span>
         </td>

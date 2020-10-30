@@ -12,8 +12,10 @@ import org.springframework.util.StringUtils;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.TierType;
 
+import javax.mail.internet.InternetAddress;
 import javax.persistence.*;
 import javax.validation.Valid;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.text.MessageFormat;
 import java.util.*;
@@ -22,7 +24,6 @@ import java.util.stream.Collectors;
 @Entity
 @Table(name = "user")
 @Cacheable
-// @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @Getter
 @Setter
 @NoArgsConstructor
@@ -31,31 +32,58 @@ import java.util.stream.Collectors;
 @CommonsLog
 public class User implements UserContent {
 
+    /**
+     * Constraints for regular user accounts.
+     */
+    public interface ValidationUserAccount {
+    }
+
+    /**
+     * Constraints for service accounts.
+     */
+    public interface ValidationServiceAccount {
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "user_id")
     private Integer id;
 
     @Column(name = "email")
-    @Email(message = "Your email address is not valid.")
-    @NotEmpty(message = "Please provide an email address.")
+    @Email(message = "Your email address is not valid.", groups = { ValidationUserAccount.class })
+    @NotEmpty(message = "Please provide an email address.", groups = { ValidationUserAccount.class, ValidationServiceAccount.class })
     private String email;
 
     @Column(name = "password")
-    @Length(min = 6, message = "Your password must have at least 6 characters.")
-    @NotEmpty(message = "Please provide your password.")
+    @Length(min = 6, message = "Your password must have at least 6 characters.", groups = { ValidationUserAccount.class })
+    @NotEmpty(message = "Please provide your password.", groups = { ValidationUserAccount.class })
     @JsonIgnore
     @Transient
     private String password;
 
     @Column(name = "enabled", nullable = false)
     @JsonIgnore
-    private boolean enabled;
+    private Boolean enabled;
 
-    @ManyToMany(cascade = CascadeType.ALL)
+    @ManyToMany
     @JoinTable(name = "user_role", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
     @JsonIgnore
     private Set<Role> roles = new HashSet<>();
+
+    @OneToMany(cascade = CascadeType.ALL)
+    @JoinColumn(name = "user_id")
+    @JsonIgnore
+    private Set<AccessToken> accessTokens = new HashSet<>();
+
+    @OneToMany(cascade = CascadeType.ALL)
+    @JoinColumn(name = "user_id")
+    @JsonIgnore
+    private Set<VerificationToken> verificationTokens = new HashSet<>();
+
+    @OneToMany(cascade = CascadeType.ALL)
+    @JoinColumn(name = "user_id")
+    @JsonIgnore
+    private Set<PasswordResetToken> passwordResetTokens = new HashSet<>();
 
     @Valid
     @Embedded
@@ -127,6 +155,26 @@ public class User implements UserContent {
     @Transient
     public Set<Taxon> getTaxons() {
         return this.getUserGenes().values().stream().map( Gene::getTaxon ).collect( Collectors.toSet() );
+    }
+
+    /**
+     * Obtain a verified contact email for the user if available.
+     */
+    @JsonIgnore
+    @Transient
+    public Optional<InternetAddress> getVerifiedContactEmail() {
+        try {
+            if ( profile.getContactEmailVerified() ) {
+                return Optional.of( new InternetAddress( profile.getContactEmail(), profile.getFullName() ) );
+            } else if ( enabled ) {
+                return Optional.of( new InternetAddress( email, profile.getFullName() ) );
+            } else {
+                return Optional.empty();
+            }
+        } catch ( UnsupportedEncodingException e ) {
+            log.error( MessageFormat.format( "Could not encode a verified internet address for {0}.", this ) );
+            return Optional.empty();
+        }
     }
 
     @Override

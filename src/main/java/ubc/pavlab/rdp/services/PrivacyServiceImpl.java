@@ -55,10 +55,14 @@ public class PrivacyServiceImpl implements PrivacyService {
 
     @Override
     public boolean checkUserCanSearch( User user, boolean international ) {
-        return ( user == null && applicationSettings.getPrivacy().isPublicSearch() // Search is public, even for unregistered users
+        // international search is not enabled
+        if ( international && !applicationSettings.getIsearch().isEnabled() ) {
+            return false;
+        }
+        return ( user == null && applicationSettings.getPrivacy().isPublicSearch() ) // Search is public, even for unregistered users
                 || ( user != null && applicationSettings.getPrivacy().isRegisteredSearch() ) // Search is registered and there is user logged
-                || ( user != null && getRoleAdmin() != null && user.getRoles().contains( getRoleAdmin() ) ) ) // User is admin
-                && ( !international || applicationSettings.getIsearch().isEnabled() ); // International search enabled
+                || ( user != null && user.getRoles().contains( getAdminRole() ) ) // User is admin
+                || ( user != null && user.getRoles().contains( getServiceAccountRole() ) ); // user is a service account
     }
 
     @Override
@@ -69,18 +73,12 @@ public class PrivacyServiceImpl implements PrivacyService {
     @Override
     public boolean checkUserCanUpdate( User user, UserContent userContent ) {
         // only admins or rightful owner can update user content
-        return user.getRoles().contains( getRoleAdmin() ) || userContent.getOwner().map( u -> u.equals( user ) ).orElse( false );
-    }
-
-    @Cacheable
-    public Role getRoleAdmin() {
-        return roleRepository.findByRole( "ROLE_ADMIN" );
+        return user.getRoles().contains( getAdminRole() ) || userContent.getOwner().map( u -> u.equals( user ) ).orElse( false );
     }
 
     private boolean checkUserCanSeeOtherUserContentWithPrivacyLevel( User currentUser, User otherUser, PrivacyLevelType privacyLevel ) {
         // Never show the remote admin profile (or accidental null users)
-        if ( otherUser == null || ( applicationSettings.getIsearch() != null && otherUser.getId()
-                .equals( applicationSettings.getIsearch().getUserId() ) ) ) {
+        if ( otherUser == null || ( applicationSettings.getIsearch() != null && otherUser.getId().equals( applicationSettings.getIsearch().getUserId() ) ) ) {
             return false;
         }
 
@@ -95,15 +93,19 @@ public class PrivacyServiceImpl implements PrivacyService {
         // check whether this user is the designated actor for the authenticated remote search, in which case we have to check for remote search privileges on the user.
         return otherUser.equals( currentUser ) // User is looking at himself
                 || ( privacyLevel.equals( PrivacyLevelType.PUBLIC ) ) // Data is public
-                || ( privacyLevel.equals( PrivacyLevelType.SHARED ) && currentUser != null && !currentUser
-                .getId().equals( applicationSettings.getIsearch().getUserId() ) )
-                // data is accessible for registerd users and there is a user logged in who is not the remote admin
-                || ( privacyLevel.equals( PrivacyLevelType.PRIVATE ) && currentUser != null && currentUser
-                .getRoles().contains( getRoleAdmin() ) && !currentUser.getId()
-                .equals( applicationSettings.getIsearch().getUserId() ) )
-                // data is private and there is an admin logged in who is not the remote admin
-                || ( profile.getShared() && currentUser != null && currentUser.getRoles().contains( getRoleAdmin() )
-                && currentUser.getId().equals( applicationSettings.getIsearch()
-                .getUserId() ) ); // data is designated as remotely shared and there is an admin logged in who is the remote admin
+                || ( privacyLevel.equals( PrivacyLevelType.SHARED ) && currentUser != null && !currentUser.getId().equals( applicationSettings.getIsearch().getUserId() ) )// data is accessible for registerd users and there is a user logged in who is not the remote admin
+                || ( privacyLevel.equals( PrivacyLevelType.PRIVATE ) && currentUser != null && currentUser.getRoles().contains( getAdminRole() ) && !currentUser.getId().equals( applicationSettings.getIsearch().getUserId() ) )// data is private and there is an admin logged in who is not the remote admin
+                || ( privacyLevel.equals( PrivacyLevelType.PRIVATE ) && currentUser != null && currentUser.getRoles().contains( getServiceAccountRole() ) ) // user is a service account
+                || ( profile.getShared() && currentUser != null && currentUser.getRoles().contains( getAdminRole() ) && currentUser.getId().equals( applicationSettings.getIsearch().getUserId() ) ); // data is designated as remotely shared and there is an admin logged in who is the remote admin
+    }
+
+    @Cacheable
+    public Role getAdminRole() {
+        return roleRepository.findByRole( "ROLE_ADMIN" );
+    }
+
+    @Cacheable
+    public Role getServiceAccountRole() {
+        return roleRepository.findByRole( "ROLE_SERVICE_ACCOUNT" );
     }
 }

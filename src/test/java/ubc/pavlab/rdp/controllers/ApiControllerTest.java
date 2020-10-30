@@ -62,7 +62,7 @@ public class ApiControllerTest {
     @MockBean
     private ApplicationSettings applicationSettings;
     @MockBean
-    private ApplicationSettings.InternationalSearchSettings isearchSettings;
+    private ApplicationSettings.InternationalSearchSettings iSearchSettings;
     @MockBean
     private SiteSettings siteSettings;
     @MockBean
@@ -72,25 +72,25 @@ public class ApiControllerTest {
 
     @Before
     public void setUp() {
-        when( applicationSettings.getIsearch() ).thenReturn( isearchSettings );
-        when( isearchSettings.isEnabled() ).thenReturn( true );
+        when( applicationSettings.getIsearch() ).thenReturn( iSearchSettings );
+        when( iSearchSettings.isEnabled() ).thenReturn( true );
     }
 
     @Test
     public void searchGenes_withSearchDisabled_thenReturnServiceUnavailable() throws Exception {
-        when( isearchSettings.isEnabled() ).thenReturn( false );
+        when( iSearchSettings.isEnabled() ).thenReturn( false );
         mvc.perform( get( "/api/genes/search" )
+                .header( "Authorization", "Bearer 1234" )
                 .param( "symbol", "CDH1" )
                 .param( "taxonId", "9606" )
-                .param( "tier", "TIER1" )
-                .param( "auth", "1234" ) )
+                .param( "tier", "TIER1" ) )
                 .andExpect( status().isServiceUnavailable() );
     }
 
     @Test
     public void searchGenes_withAuthToken_thenReturnSuccess() throws Exception {
         // configure remote authentication
-        when( isearchSettings.getAuthTokens() ).thenReturn( Collections.singletonList( "1234" ) );
+        when( iSearchSettings.getAuthTokens() ).thenReturn( Collections.singletonList( "1234" ) );
         when( userService.getRemoteAdmin() ).thenReturn( createUser( 1 ) );
 
         // configure one search result
@@ -100,7 +100,33 @@ public class ApiControllerTest {
         UserGene cdh1UserGene = createUserGene( 1, cdh1GeneInfo, user, TierType.TIER1, PrivacyLevelType.PRIVATE );
         when( taxonService.findById( 9606 ) ).thenReturn( humanTaxon );
         when( geneService.findBySymbolAndTaxon( "CDH1", humanTaxon ) ).thenReturn( cdh1GeneInfo );
-        when( userGeneService.handleGeneSearch( cdh1GeneInfo, EnumSet.of( TierType.TIER1 ), humanTaxon, null, null ) )
+        when( userGeneService.handleGeneSearch( cdh1GeneInfo, EnumSet.of( TierType.TIER1 ), humanTaxon, null, null, null ) )
+                .thenReturn( Sets.newSet( cdh1UserGene ) );
+
+        mvc.perform( get( "/api/genes/search" )
+                .header( "Authorization", "Bearer 1234" )
+                .param( "symbol", "CDH1" )
+                .param( "taxonId", "9606" )
+                .param( "tier", "TIER1" ) )
+                .andExpect( status().is2xxSuccessful() );
+
+        verify( userService ).getRemoteAdmin();
+    }
+
+    @Test
+    public void searchGenes_withAuthTokenInQuery_thenReturnSuccess() throws Exception {
+        // configure remote authentication
+        when( iSearchSettings.getAuthTokens() ).thenReturn( Collections.singletonList( "1234" ) );
+        when( userService.getRemoteAdmin() ).thenReturn( createUser( 1 ) );
+
+        // configure one search result
+        Taxon humanTaxon = createTaxon( 9606 );
+        User user = createUser( 2 );
+        GeneInfo cdh1GeneInfo = createGene( 1, humanTaxon );
+        UserGene cdh1UserGene = createUserGene( 1, cdh1GeneInfo, user, TierType.TIER1, PrivacyLevelType.PRIVATE );
+        when( taxonService.findById( 9606 ) ).thenReturn( humanTaxon );
+        when( geneService.findBySymbolAndTaxon( "CDH1", humanTaxon ) ).thenReturn( cdh1GeneInfo );
+        when( userGeneService.handleGeneSearch( cdh1GeneInfo, EnumSet.of( TierType.TIER1 ), humanTaxon, null, null, null ) )
                 .thenReturn( Sets.newSet( cdh1UserGene ) );
 
         mvc.perform( get( "/api/genes/search" )
@@ -116,21 +142,31 @@ public class ApiControllerTest {
     @Test
     public void searchGenes_withInvalidAuthToken_thenReturnUnauthorized() throws Exception {
         mvc.perform( get( "/api/genes/search" )
+                .header( "Authorization", "Bearer unknownToken" )
                 .param( "symbol", "CDH1" )
                 .param( "taxonId", "9606" )
-                .param( "tier", "TIER1" )
-                .param( "auth", "unknownToken" ) )
+                .param( "tier", "TIER1" ) )
                 .andExpect( status().isUnauthorized() );
     }
 
     @Test
-    public void searchGenes_whenMisconfiguredRemoteAdmin_thenReturnServiceUnavailable() throws Exception {
-        when( isearchSettings.getAuthTokens() ).thenReturn( Collections.singletonList( "1234" ) );
+    public void searchGenes_withInvalidAuthToken_thenReturnBadRequest() throws Exception {
         mvc.perform( get( "/api/genes/search" )
+                .header( "Authorization", "Basic unknownToken" )
                 .param( "symbol", "CDH1" )
                 .param( "taxonId", "9606" )
-                .param( "tier", "TIER1" )
-                .param( "auth", "1234" ) )
+                .param( "tier", "TIER1" ) )
+                .andExpect( status().isBadRequest() );
+    }
+
+    @Test
+    public void searchGenes_whenMisconfiguredRemoteAdmin_thenReturnServiceUnavailable() throws Exception {
+        when( iSearchSettings.getAuthTokens() ).thenReturn( Collections.singletonList( "1234" ) );
+        mvc.perform( get( "/api/genes/search" )
+                .header( "Authorization", "Bearer 1234" )
+                .param( "symbol", "CDH1" )
+                .param( "taxonId", "9606" )
+                .param( "tier", "TIER1" ) )
                 .andExpect( status().isServiceUnavailable() );
     }
 
@@ -143,7 +179,7 @@ public class ApiControllerTest {
 
         when( taxonService.findById( 9606 ) ).thenReturn( humanTaxon );
         when( geneService.findBySymbolAndTaxon( "CDH1", humanTaxon ) ).thenReturn( cdh1GeneInfo );
-        when( userGeneService.handleGeneSearch( cdh1GeneInfo, EnumSet.of( TierType.TIER1 ), humanTaxon, null, null ) )
+        when( userGeneService.handleGeneSearch( cdh1GeneInfo, EnumSet.of( TierType.TIER1 ), humanTaxon, null, null, null ) )
                 .thenReturn( Sets.newSet( cdh1UserGene ) );
 
         mvc.perform( get( "/api/genes/search" )
@@ -153,7 +189,7 @@ public class ApiControllerTest {
                 .andExpect( status().is2xxSuccessful() )
                 .andExpect( content().contentTypeCompatibleWith( MediaType.APPLICATION_JSON ) );
 
-        verify( userGeneService ).handleGeneSearch( cdh1GeneInfo, EnumSet.of( TierType.TIER1 ), null, null, null );
+        verify( userGeneService ).handleGeneSearch( cdh1GeneInfo, EnumSet.of( TierType.TIER1 ), null, null, null, null );
     }
 
     @Test
@@ -165,7 +201,7 @@ public class ApiControllerTest {
 
         when( taxonService.findById( 9606 ) ).thenReturn( humanTaxon );
         when( geneService.findBySymbolAndTaxon( "CDH1", humanTaxon ) ).thenReturn( cdh1GeneInfo );
-        when( userGeneService.handleGeneSearch( cdh1GeneInfo, EnumSet.of( TierType.TIER1, TierType.TIER2 ), humanTaxon, null, null ) )
+        when( userGeneService.handleGeneSearch( cdh1GeneInfo, EnumSet.of( TierType.TIER1, TierType.TIER2 ), humanTaxon, null, null, null ) )
                 .thenReturn( Sets.newSet( cdh1UserGene ) );
 
         mvc.perform( get( "/api/genes/search" )
@@ -176,11 +212,11 @@ public class ApiControllerTest {
                 .andExpect( status().is2xxSuccessful() )
                 .andExpect( content().contentTypeCompatibleWith( MediaType.APPLICATION_JSON ) );
 
-        verify( userGeneService ).handleGeneSearch( cdh1GeneInfo, EnumSet.of( TierType.TIER1, TierType.TIER2 ), null, null, null );
+        verify( userGeneService ).handleGeneSearch( cdh1GeneInfo, EnumSet.of( TierType.TIER1, TierType.TIER2 ), null, null, null, null );
     }
 
     @Test
-    public void searchGenes_withMultipleTiersInludingTier3_thenReturn200() throws Exception {
+    public void searchGenes_withMultipleTiersIncludingTier3_thenReturn200() throws Exception {
         Taxon humanTaxon = createTaxon( 9606 );
         User user = createUser( 1 );
         GeneInfo cdh1GeneInfo = createGene( 1, humanTaxon );
@@ -188,7 +224,7 @@ public class ApiControllerTest {
 
         when( taxonService.findById( 9606 ) ).thenReturn( humanTaxon );
         when( geneService.findBySymbolAndTaxon( "CDH1", humanTaxon ) ).thenReturn( cdh1GeneInfo );
-        when( userGeneService.handleGeneSearch( cdh1GeneInfo, EnumSet.of( TierType.TIER1, TierType.TIER2 ), humanTaxon, null, null ) )
+        when( userGeneService.handleGeneSearch( cdh1GeneInfo, EnumSet.of( TierType.TIER1, TierType.TIER2 ), humanTaxon, null, null, null ) )
                 .thenReturn( Sets.newSet( cdh1UserGene ) );
 
         mvc.perform( get( "/api/genes/search" )
@@ -200,7 +236,7 @@ public class ApiControllerTest {
                 .andExpect( status().is2xxSuccessful() )
                 .andExpect( content().contentTypeCompatibleWith( MediaType.APPLICATION_JSON ) );
 
-        verify( userGeneService ).handleGeneSearch( cdh1GeneInfo, EnumSet.of( TierType.TIER1, TierType.TIER2 ), null, null, null );
+        verify( userGeneService ).handleGeneSearch( cdh1GeneInfo, EnumSet.of( TierType.TIER1, TierType.TIER2 ), null, null, null, null );
     }
 
     @Test
@@ -212,12 +248,12 @@ public class ApiControllerTest {
 
         when( taxonService.findById( 9606 ) ).thenReturn( humanTaxon );
         when( geneService.findBySymbolAndTaxon( "CDH1", humanTaxon ) ).thenReturn( cdh1GeneInfo );
-        when( userGeneService.handleGeneSearch( cdh1GeneInfo, EnumSet.of( TierType.TIER1, TierType.TIER2 ), humanTaxon, null, null ) )
+        when( userGeneService.handleGeneSearch( cdh1GeneInfo, EnumSet.of( TierType.TIER1, TierType.TIER2 ), humanTaxon, null, null, null ) )
                 .thenReturn( Sets.newSet( cdh1UserGene ) );
 
         when( taxonService.findById( 9606 ) ).thenReturn( humanTaxon );
         when( geneService.findBySymbolAndTaxon( "CDH1", humanTaxon ) ).thenReturn( cdh1GeneInfo );
-        when( userGeneService.handleGeneSearch( cdh1GeneInfo, EnumSet.of( TierType.TIER1 ), humanTaxon, null, null ) )
+        when( userGeneService.handleGeneSearch( cdh1GeneInfo, EnumSet.of( TierType.TIER1 ), humanTaxon, null, null, null ) )
                 .thenReturn( Sets.newSet( cdh1UserGene ) );
 
         mvc.perform( get( "/api/genes/search" )
@@ -226,7 +262,7 @@ public class ApiControllerTest {
                 .andExpect( status().is2xxSuccessful() )
                 .andExpect( content().contentTypeCompatibleWith( MediaType.APPLICATION_JSON ) );
 
-        verify( userGeneService ).handleGeneSearch( cdh1GeneInfo, TierType.MANUAL, null, null, null );
+        verify( userGeneService ).handleGeneSearch( cdh1GeneInfo, TierType.MANUAL, null, null, null, null );
     }
 
     @Test
@@ -238,7 +274,7 @@ public class ApiControllerTest {
 
         when( taxonService.findById( 9606 ) ).thenReturn( humanTaxon );
         when( geneService.findBySymbolAndTaxon( "CDH1", humanTaxon ) ).thenReturn( cdh1GeneInfo );
-        when( userGeneService.handleGeneSearch( cdh1GeneInfo, EnumSet.of( TierType.TIER1 ), humanTaxon, null, null ) )
+        when( userGeneService.handleGeneSearch( cdh1GeneInfo, EnumSet.of( TierType.TIER1 ), humanTaxon, null, null, null ) )
                 .thenReturn( Sets.newSet( cdh1UserGene ) );
 
         mvc.perform( get( "/api/genes/search" )
@@ -248,7 +284,7 @@ public class ApiControllerTest {
                 .andExpect( status().is2xxSuccessful() )
                 .andExpect( content().contentTypeCompatibleWith( MediaType.APPLICATION_JSON ) );
 
-        verify( userGeneService ).handleGeneSearch( cdh1GeneInfo, TierType.MANUAL, null, null, null );
+        verify( userGeneService ).handleGeneSearch( cdh1GeneInfo, TierType.MANUAL, null, null, null, null );
     }
 
     @Test
@@ -260,7 +296,7 @@ public class ApiControllerTest {
 
         when( taxonService.findById( 9606 ) ).thenReturn( humanTaxon );
         when( geneService.findBySymbolAndTaxon( "CDH1", humanTaxon ) ).thenReturn( cdh1GeneInfo );
-        when( userGeneService.handleGeneSearch( cdh1GeneInfo, EnumSet.of( TierType.TIER1 ), humanTaxon, null, null ) )
+        when( userGeneService.handleGeneSearch( cdh1GeneInfo, EnumSet.of( TierType.TIER1 ), humanTaxon, null, null, null ) )
                 .thenReturn( Sets.newSet( cdh1UserGene ) );
 
         mvc.perform( get( "/api/genes/search" )
@@ -270,7 +306,7 @@ public class ApiControllerTest {
                 .andExpect( status().is2xxSuccessful() )
                 .andExpect( content().contentTypeCompatibleWith( MediaType.APPLICATION_JSON ) );
 
-        verify( userGeneService ).handleGeneSearch( cdh1GeneInfo, TierType.MANUAL, null, null, null );
+        verify( userGeneService ).handleGeneSearch( cdh1GeneInfo, TierType.MANUAL, null, null, null, null );
     }
 
     @Test

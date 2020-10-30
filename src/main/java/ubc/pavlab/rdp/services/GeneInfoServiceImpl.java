@@ -17,12 +17,11 @@ import ubc.pavlab.rdp.util.SearchResult;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.text.ParseException;
-import java.util.Collection;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
+
+import static java.util.stream.Collectors.groupingBy;
 
 /**
  * Created by mjacobson on 17/01/18.
@@ -133,26 +132,26 @@ public class GeneInfoServiceImpl implements GeneInfoService {
             return;
         }
 
-        for ( GeneOrthologsParser.Record record : records ) {
-            // skip non-ortholog relationships
-            if ( !record.getRelationship().equals( "Ortholog" ) )
-                continue;
+        Map<Integer, List<GeneOrthologsParser.Record>> recordByGeneId = records.stream()
+                .filter( record -> record.getRelationship().equals( "Ortholog" ) )
+                .filter( record -> supportedTaxons.contains( record.getTaxonId() ) && supportedTaxons.contains( record.getOrthologTaxonId() ) )
+                .collect( groupingBy( GeneOrthologsParser.Record::getGeneId ) );
 
-            // skip unsupported taxons
-            if ( !supportedTaxons.contains( record.getTaxonId() ) || !supportedTaxons.contains( record.getOrthologTaxonId() ) )
-                continue;
-
-            GeneInfo gene = geneInfoRepository.findByGeneId( record.getGeneId() );
-            GeneInfo ortholog = geneInfoRepository.findByGeneId( record.getOrthologId() );
-
-            // skip genes or orthologs not stored in the database
-            if ( gene == null || ortholog == null ) {
-                log.info( MessageFormat.format( "Cannot add ortholog relationship between {0} and {1} since either or both gene are missing from the database.",
-                        record.getGeneId(), record.getOrthologId() ) );
+        for ( Integer geneId : recordByGeneId.keySet() ) {
+            GeneInfo gene = geneInfoRepository.findByGeneIdWithOrthologs( geneId );
+            if ( gene == null ) {
+                log.info( MessageFormat.format( "Ignoring orthologs for {0} since it's missing from the database.", geneId ) );
                 continue;
             }
-
-            gene.getOrthologs().add( ortholog );
+            for ( GeneOrthologsParser.Record record : recordByGeneId.get( geneId ) ) {
+                GeneInfo ortholog = geneInfoRepository.findByGeneId( record.getOrthologId() );
+                if ( ortholog == null ) {
+                    log.info( MessageFormat.format( "Cannot add ortholog relationship between {0} and {1} since the latter is missing from the database.",
+                            geneId, record.getOrthologId() ) );
+                    continue;
+                }
+                gene.getOrthologs().add( ortholog );
+            }
             geneInfoRepository.save( gene );
         }
         log.info( "Done updating gene orthologs." );

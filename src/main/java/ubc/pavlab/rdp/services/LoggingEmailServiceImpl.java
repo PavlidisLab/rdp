@@ -33,7 +33,7 @@ public class LoggingEmailServiceImpl implements EmailService {
 
     @Override
     public void sendResetTokenMessage( User user, PasswordResetToken token, Locale locale ) {
-        String url = UriComponentsBuilder.fromUri( siteSettings.getFullUrl() )
+        String url = UriComponentsBuilder.fromUri( siteSettings.getHostUri() )
                 .path( "updatePassword" )
                 .queryParam( "id", user.getId() )
                 .queryParam( "token", token.getToken() )
@@ -43,12 +43,22 @@ public class LoggingEmailServiceImpl implements EmailService {
 
     @Override
     public void sendRegistrationMessage( User user, VerificationToken token ) {
-        String confirmationUrl = UriComponentsBuilder.fromUri( siteSettings.getFullUrl() )
+        String confirmationUrl = UriComponentsBuilder.fromUri( siteSettings.getHostUri() )
                 .path( "registrationConfirm" )
                 .queryParam( "token", token.getToken() )
                 .build()
                 .toUriString();
         log.info( MessageFormat.format( "Confirmation URL for {0}: {1}", user, confirmationUrl ) );
+    }
+
+    @Override
+    public void sendContactEmailVerificationMessage( User user, VerificationToken token ) {
+        String confirmationUrl = UriComponentsBuilder.fromUri( siteSettings.getHostUri() )
+                .path( "user/verify-contact-email" )
+                .queryParam( "token", token.getToken() )
+                .build()
+                .toUriString();
+        log.info( MessageFormat.format( "Contact email verification URL for {0}: {1}", user, confirmationUrl ) );
     }
 
     @Override

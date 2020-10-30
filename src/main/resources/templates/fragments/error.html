@@ -4,7 +4,7 @@
 <body>
 <div th:fragment="message(errorMessage)"
      th:if="${errorMessage}"
-     th:text="${errorMessage}"
+     th:utext="${errorMessage}"
      class="alert alert-danger alert-dismissible fade show"
      role="alert">
 </div>

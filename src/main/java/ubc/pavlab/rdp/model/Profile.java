@@ -10,6 +10,7 @@ import ubc.pavlab.rdp.model.enums.ResearcherCategory;
 import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 
 import javax.persistence.*;
+import java.text.MessageFormat;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -20,16 +21,22 @@ import java.util.Set;
 @Embeddable
 public class Profile {
     @Column(name = "name")
-    @NotEmpty(message = "Please provide your name.")
+    @NotEmpty(message = "Please provide your name.", groups = { User.ValidationUserAccount.class, User.ValidationServiceAccount.class })
     private String name;
 
     @Column(name = "last_name")
-    @NotEmpty(message = "Please provide your last name.")
+    @NotEmpty(message = "Please provide your last name.", groups = { User.ValidationUserAccount.class })
     private String lastName;
 
     @Transient
     public String getFullName() {
-        return name + " " + lastName;
+        if ( lastName == null || lastName.isEmpty() ) {
+            return name == null ? "" : name;
+        } else if ( name == null || name.isEmpty() ) {
+            return "";
+        } else {
+            return MessageFormat.format( "{0}, {1}", lastName, name );
+        }
     }
 
     @Column(name = "description", columnDefinition = "TEXT")
@@ -48,6 +55,9 @@ public class Profile {
     @Column(name = "contact_email")
     private String contactEmail;
 
+    @Column(name = "contact_email_verified", nullable = false)
+    private Boolean contactEmailVerified;
+
     @Column(name = "website")
     @URL
     private String website;
@@ -56,10 +66,10 @@ public class Profile {
     @Column(name = "privacy_level")
     private PrivacyLevelType privacyLevel;
 
-    @Column(name = "shared")
+    @Column(name = "shared", nullable = false)
     private Boolean shared;
 
-    @Column(name = "hide_genelist")
+    @Column(name = "hide_genelist", nullable = false)
     private Boolean hideGenelist;
 
     @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)

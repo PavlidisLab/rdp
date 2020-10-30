@@ -16,14 +16,19 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.context.junit4.SpringRunner;
+import ubc.pavlab.rdp.events.OnContactEmailUpdateEvent;
 import ubc.pavlab.rdp.exception.TokenException;
+import ubc.pavlab.rdp.listeners.UserListener;
 import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
+import ubc.pavlab.rdp.model.enums.ResearcherCategory;
+import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.repositories.*;
 import ubc.pavlab.rdp.security.PermissionEvaluatorImpl;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 
+import javax.mail.MessagingException;
 import javax.validation.ValidationException;
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -36,10 +41,8 @@ import java.util.stream.LongStream;
 
 import static junit.framework.TestCase.fail;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyCollection;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Matchers.*;
+import static org.mockito.Mockito.*;
 import static ubc.pavlab.rdp.util.TestUtils.*;
 
 /**
@@ -91,6 +94,8 @@ public class UserServiceImplTest {
     @MockBean
     private RoleRepository roleRepository;
     @MockBean
+    private AccessTokenRepository accessTokenRepository;
+    @MockBean
     private PasswordResetTokenRepository passwordResetTokenRepository;
     @MockBean
     private VerificationTokenRepository tokenRepository;
@@ -98,6 +103,8 @@ public class UserServiceImplTest {
     private GOService goService;
     @MockBean
     private OrganInfoService organInfoService;
+    @MockBean
+    private UserListener userListener;
     @MockBean
     private ApplicationSettings applicationSettings;
     @MockBean
@@ -177,31 +184,36 @@ public class UserServiceImplTest {
     }
 
     private void setUpRecommendTermsMocks() {
-        Map<GeneOntologyTerm, Long> expected = new HashMap<>();
+        Map<GeneOntologyTerm, Long> termFrequencies = new HashMap<>();
         Taxon taxon = createTaxon( 1 );
 
-        expected.put( createTerm( toGOId( 0 ) ), 2L );
-        expected.put( createTerm( toGOId( 1 ) ), 3L );
-        expected.put( createTerm( toGOId( 2 ) ), 1L );
-        expected.put( createTerm( toGOId( 3 ) ), 1L );
-        expected.put( createTerm( toGOId( 4 ) ), 2L );
-        expected.put( createTerm( toGOId( 5 ) ), 1L );
-        expected.put( createTerm( toGOId( 6 ) ), 2L );
-        expected.put( createTerm( toGOId( 7 ) ), 3L );
-        expected.put( createTerm( toGOId( 8 ) ), 3L );
+        termFrequencies.put( createTerm( toGOId( 0 ) ), 2L );
+        termFrequencies.put( createTerm( toGOId( 1 ) ), 3L );
+        termFrequencies.put( createTerm( toGOId( 2 ) ), 1L );
+        termFrequencies.put( createTerm( toGOId( 3 ) ), 1L );
+        termFrequencies.put( createTerm( toGOId( 4 ) ), 2L );
+        termFrequencies.put( createTerm( toGOId( 5 ) ), 1L );
+        termFrequencies.put( createTerm( toGOId( 6 ) ), 2L );
+        termFrequencies.put( createTerm( toGOId( 7 ) ), 3L );
+        termFrequencies.put( createTerm( toGOId( 8 ) ), 3L );
 
         // These will make sure we remove redundant terms
         GeneOntologyTerm t98 = createTerm( toGOId( 98 ) );
         GeneOntologyTerm t99 = createTerm( toGOId( 99 ) );
-        expected.put( t98, 1L );
-        expected.put( t99, 1L );
+        termFrequencies.put( t98, 1L );
+        termFrequencies.put( t99, 1L );
         when( goService.getDescendants( t98 ) ).thenReturn( Collections.singleton( t99 ) );
 
-        expected.forEach( ( key, value ) -> key.getSizesByTaxonId().put( taxon.getId(), value + 10 ) );
+        termFrequencies.forEach( ( key, value ) -> key.setSizesByTaxonId( Maps.newHashMap( taxon.getId(), value + 10 ) ) );
 
-        when( goService.getTerms() ).thenReturn( expected.keySet().stream().collect( Collectors.toMap( GeneOntologyTerm::getGoId, Function.identity() ) ) );
-        when( goService.getTerm( any() ) ).thenAnswer( a -> goService.getTerms().get( a.getArgumentAt( 0, String.class ) ) );
-        when( goService.termFrequencyMap( Mockito.anyCollectionOf( GeneInfo.class ) ) ).thenReturn( expected );
+        Map<String, GeneOntologyTerm> termMap = termFrequencies.keySet().stream()
+                .collect( Collectors.toMap( GeneOntologyTerm::getGoId, Function.identity() ) );
+
+        assertThat( termMap.get( toGOId( 0 ) ).getSizeInTaxon( taxon ) ).isEqualTo( 12L );
+
+        when( goService.getTerms() ).thenReturn( termMap );
+        when( goService.getTerm( any() ) ).thenAnswer( a -> termMap.get( a.getArgumentAt( 0, String.class ) ) );
+        when( goService.termFrequencyMap( Mockito.anyCollectionOf( GeneInfo.class ) ) ).thenReturn( termFrequencies );
     }
 
     @Test
@@ -416,10 +428,11 @@ public class UserServiceImplTest {
     @Test
     public void convertTerms_whenTermsAndEmptyGenes_thenReturnUserTermsWithZeroFrequency() {
         Taxon taxon = createTaxon( 1 );
-        Collection<UserTerm> userTerms = userService.convertTerms( createUser( 1 ), taxon, Collections.singleton( createTerm( "GO:0000001" ) ) );
+        User user = createUser( 1 );
+        Collection<UserTerm> userTerms = userService.convertTerms( user, taxon, Collections.singleton( createTerm( "GO:0000001" ) ) );
 
         assertThat( userTerms ).hasSize( 1 );
-        assertThat( userService.computeTermFrequency( userTerms.iterator().next() ) ).isZero();
+        assertThat( userService.computeTermFrequency( user, userTerms.iterator().next() ) ).isZero();
     }
 
     @Test
@@ -434,12 +447,12 @@ public class UserServiceImplTest {
         when( goService.getTermsForGene( gene ) ).thenReturn( Sets.newSet( term ) );
         term.getDirectGeneIds().add( gene.getGeneId() );
 
-        user.getUserGenes().put( gene.getGeneId(), UserGene.createUserGeneFromGene( gene, user, TierType.TIER1, PrivacyLevelType.PRIVATE ) );
+        user.getUserGenes().put( gene.getGeneId(), createUnpersistedUserGene( gene, user, TierType.TIER1, PrivacyLevelType.PRIVATE ) );
 
         Collection<UserTerm> userTerms = userService.convertTerms( user, taxon, Collections.singleton( term ) );
 
         assertThat( userTerms ).hasSize( 1 );
-        assertThat( userService.computeTermFrequency( userTerms.iterator().next() ) ).isEqualTo( 1 );
+        assertThat( userService.computeTermFrequency( user, userTerms.iterator().next() ) ).isEqualTo( 1 );
     }
 
     @Test
@@ -454,10 +467,11 @@ public class UserServiceImplTest {
     @Test
     public void convertTerms_whenTermAndEmptyGenes_thenReturnUserTermWithZeroFrequency() {
         Taxon taxon = createTaxon( 1 );
-        Collection<UserTerm> ut = userService.convertTerms( createUser( 1 ), taxon, Sets.newSet( createTerm( "GO:0000001" ) ) );
+        User user = createUser( 1 );
+        Collection<UserTerm> ut = userService.convertTerms( user, taxon, Sets.newSet( createTerm( "GO:0000001" ) ) );
 
         assertThat( ut ).isNotEmpty();
-        ut.forEach( uts -> assertThat( userService.computeTermFrequency( uts ) ).isZero() );
+        ut.forEach( uts -> assertThat( userService.computeTermFrequency( user, uts ) ).isZero() );
     }
 
     @Test
@@ -477,7 +491,7 @@ public class UserServiceImplTest {
         Collection<UserTerm> ut = userService.convertTerms( user, taxon, Sets.newSet( term ) );
 
         assertThat( ut ).isNotEmpty().first();
-        assertThat( userService.computeTermFrequency( ut.iterator().next() ) ).isEqualTo( 1 );
+        assertThat( userService.computeTermFrequency( user, ut.iterator().next() ) ).isEqualTo( 1 );
     }
 
 
@@ -506,7 +520,7 @@ public class UserServiceImplTest {
     @Test
     public void updateUserProfileAndPublication_whenOrgansIsEnabled_thenSaveOrgans() {
         User user = createUser( 1 );
-        userService.updateUserProfileAndPublicationsAndOrgans( user, user.getProfile(), new HashSet<>(), null );
+        userService.updateUserProfileAndPublicationsAndOrgans( user, user.getProfile(), null, null );
         // assertThat( user.getUserOrgans() ).containsValue( userOrgan );
     }
 
@@ -514,7 +528,7 @@ public class UserServiceImplTest {
     public void updateUserProfileAndPublication_whenOrgansIsNotEnabled_thenIgnoreOrgans() {
         when( applicationSettings.getOrgans().getEnabled() ).thenReturn( true );
         User user = createUser( 1 );
-        userService.updateUserProfileAndPublicationsAndOrgans( user, user.getProfile(), new HashSet<>(), null );
+        userService.updateUserProfileAndPublicationsAndOrgans( user, user.getProfile(), null, null );
     }
 
     @Test
@@ -525,7 +539,7 @@ public class UserServiceImplTest {
 
         Profile profile = new Profile();
         profile.setPrivacyLevel( PrivacyLevelType.SHARED );
-        userService.updateUserProfileAndPublicationsAndOrgans( user, profile, new HashSet<>(), null );
+        userService.updateUserProfileAndPublicationsAndOrgans( user, profile, null, null );
 
         assertThat( user.getProfile() ).hasFieldOrPropertyWithValue( "privacyLevel", PrivacyLevelType.PUBLIC );
     }
@@ -541,7 +555,7 @@ public class UserServiceImplTest {
 
         Profile profile = new Profile();
         profile.setPrivacyLevel( PrivacyLevelType.SHARED );
-        userService.updateUserProfileAndPublicationsAndOrgans( user, profile, new HashSet<>(), null );
+        userService.updateUserProfileAndPublicationsAndOrgans( user, profile, null, null );
 
         assertThat( user.getProfile() )
                 .hasFieldOrPropertyWithValue( "privacyLevel", PrivacyLevelType.SHARED );
@@ -550,9 +564,76 @@ public class UserServiceImplTest {
     }
 
     @Test
+    public void updateUserProfileAndPublicationsAndOrgans_whenContactEmailIsSet_thenSendVerificationEmail() throws MessagingException {
+        User user = createUser( 1 );
+        Profile profile = new Profile();
+        profile.setContactEmail( "foo@example.com" );
+        userService.updateUserProfileAndPublicationsAndOrgans( user, profile, null, null );
+        verify( userListener ).onContactEmailUpdate( any( OnContactEmailUpdateEvent.class ) );
+        assertThat( user.getProfile().getContactEmailVerified() ).isFalse();
+
+        // make sure that if user update its profile later on, he doesn't get spammed
+        userService.updateUserProfileAndPublicationsAndOrgans( user, profile, null, null );
+        verifyNoMoreInteractions( userListener );
+        assertThat( user.getProfile().getContactEmailVerified() ).isFalse();
+    }
+
+    @Test
+    public void updateUserProfileAndPublicationsAndOrgans_whenContactEmailIsEqualToUserEmail_thenAssumeContactEmailIsVerified() {
+        User user = createUser( 1 );
+        Profile profile = new Profile();
+        profile.setContactEmail( user.getEmail() );
+        userService.updateUserProfileAndPublicationsAndOrgans( user, profile, null, null );
+        assertThat( user.getProfile().getContactEmailVerified() ).isTrue();
+        verifyZeroInteractions( userListener );
+    }
+
+    @Test
+    public void updateUserProfileAndPublicationsAndOrgans_whenContactEmailIsNull_thenUnsetContactEmail() {
+        User user = createUser( 1 );
+        user.getProfile().setContactEmail( "foo@example.com" );
+        user.getProfile().setContactEmailVerified( true );
+        Profile profile = new Profile();
+        profile.setContactEmail( null );
+        userService.updateUserProfileAndPublicationsAndOrgans( user, profile, null, null );
+        assertThat( user.getProfile().getContactEmail() ).isNull();
+        assertThat( user.getProfile().getContactEmailVerified() ).isFalse();
+        verifyZeroInteractions( userListener );
+    }
+
+    @Test
+    public void updateUserProfileAndPublicationsAndOrgans_whenResearcherPositionIsSet_thenUpdateResearcherPosition() {
+        List<String> researcherPositionNames = Arrays.stream( ResearcherPosition.values() )
+                .map( ResearcherPosition::name )
+                .collect( Collectors.toList() );
+        when( profileSettings.getEnabledResearcherPositions() ).thenReturn( researcherPositionNames );
+        User user = createUser( 1 );
+        Profile profile = new Profile();
+        profile.setResearcherPosition( ResearcherPosition.PRINCIPAL_INVESTIGATOR );
+        userService.updateUserProfileAndPublicationsAndOrgans( user, profile, null, null );
+        assertThat( user.getProfile().getResearcherPosition() ).isEqualTo( ResearcherPosition.PRINCIPAL_INVESTIGATOR );
+        verify( profileSettings ).getEnabledResearcherPositions();
+        verify( userRepository ).save( user );
+    }
+
+    @Test
+    public void updateUserProfileAndPublicationsAndOrgans_whenResearcherCategoriesAreSet_thenUpdateResearcherCategories() {
+        List<String> researcherCategoryNames = Arrays.stream( ResearcherCategory.values() )
+                .map( ResearcherCategory::name )
+                .collect( Collectors.toList() );
+        when( profileSettings.getEnabledResearcherCategories() ).thenReturn( researcherCategoryNames );
+        User user = createUser( 1 );
+        Profile profile = new Profile();
+        profile.setResearcherCategories( EnumSet.of( ResearcherCategory.IN_SILICO ) );
+        userService.updateUserProfileAndPublicationsAndOrgans( user, profile, null, null );
+        assertThat( user.getProfile().getResearcherCategories() ).containsExactly( ResearcherCategory.IN_SILICO );
+        verify( profileSettings ).getEnabledResearcherCategories();
+        verify( userRepository ).save( user );
+    }
+
+    @Test
     public void createPasswordResetTokenForUser_hasCorrectExpiration() {
         User user = createUser( 1 );
-        String token = "HEYYEYAAEYAAAEYAEYAA";
         PasswordResetToken passwordResetToken = userService.createPasswordResetTokenForUser( user );
 
         Instant lowerBound = Instant.now().plus( 2, ChronoUnit.HOURS ).minus( 1, ChronoUnit.MINUTES );
@@ -560,7 +641,6 @@ public class UserServiceImplTest {
 
         // one minute tolerance
         assertThat( passwordResetToken.getExpiryDate().toInstant() ).isBetween( lowerBound, upperBound );
-
     }
 
     @Test
@@ -610,7 +690,7 @@ public class UserServiceImplTest {
         setUpVerificationTokenMocks();
 
         User user = userService.confirmVerificationToken( "token1" );
-        assertThat( user.isEnabled() ).isTrue();
+        assertThat( user.getEnabled() ).isTrue();
         verify( tokenRepository ).delete( any( VerificationToken.class ) );
 
     }
@@ -807,47 +887,6 @@ public class UserServiceImplTest {
 
     @Test
     @Ignore("There are some issues with term recommendations that needs to be fixed first.")
-    public void updateTermsAndGenesInTaxon_whenManualAndCalculatedGenesOverlap_thenKeepManual() {
-        User user = createUser( 1 );
-        Taxon taxon = createTaxon( 1 );
-        becomeUser( user );
-
-        // Mock goService.getRelatedGenes
-        Collection<GeneInfo> calculatedGenes = IntStream.range( 5, 14 ).boxed().map(
-                nbr -> createGene( nbr, taxon )
-        ).collect( Collectors.toList() );
-        for ( GeneInfo gi : calculatedGenes ) {
-            when( geneInfoService.load( gi.getGeneId() ) ).thenReturn( gi );
-        }
-        when( goService.getGenesInTaxon( Mockito.anyCollectionOf( GeneOntologyTerm.class ), any() ) ).thenReturn( calculatedGenes );
-
-        Collection<GeneOntologyTerm> terms = IntStream.range( 1, 10 ).boxed().map(
-                nbr -> createTermWithGenes( toGOId( nbr ), createGene( nbr, taxon ) )
-        ).collect( Collectors.toSet() );
-
-        Map<GeneInfo, TierType> geneTierMap = terms.stream()
-                .map( GeneOntologyTerm::getDirectGeneIds )
-                .flatMap( o -> geneInfoService.load( o ).stream() )
-                .collect( Collectors.toMap( Function.identity(), g -> TierType.TIER1 ) );
-
-
-        Map<GeneInfo, PrivacyLevelType> privacyLevelMap = terms.stream()
-                .map( GeneOntologyTerm::getDirectGeneIds )
-                .flatMap( o -> geneInfoService.load( o ).stream() )
-                .collect( Collectors.toMap( Function.identity(), g -> PrivacyLevelType.PUBLIC ) );
-
-        userService.updateTermsAndGenesInTaxon( user, taxon, geneTierMap, privacyLevelMap, terms );
-
-        assertThatUserTermsAreEqualTo( user, taxon, terms );
-
-        Map<Gene, TierType> expectedGenes = new HashMap<>( geneTierMap );
-        calculatedGenes.forEach( g -> expectedGenes.putIfAbsent( g, TierType.TIER3 ) );
-
-        assertThatUserGenesAreEqualTo( user, taxon, expectedGenes );
-    }
-
-    @Test
-    @Ignore("There are some issues with term recommendations that needs to be fixed first.")
     public void updateTermsAndGenesInTaxon_whenOldAndNewOverlap_thenRetainIds() {
         User user = createUser( 1 );
         Taxon taxon = createTaxon( 1 );
@@ -927,7 +966,7 @@ public class UserServiceImplTest {
 
         assertThat( user.getUserTerms() ).hasSize( 1 );
         assertThat( user.getUserTerms().iterator().next() ).isEqualTo( termWillUpdateFrequency );
-        assertThat( userService.computeTermFrequency( user.getUserTerms().iterator().next() ) ).isEqualTo( 1 );
+        assertThat( userService.computeTermFrequency( user, user.getUserTerms().iterator().next() ) ).isEqualTo( 1 );
     }
 
     @Test
@@ -956,8 +995,8 @@ public class UserServiceImplTest {
         GeneInfo gene205InTaxon1 = createGene( 205, taxon );
         Collection<GeneInfo> calculatedGenes = Collections.singleton( gene205InTaxon1 );
         when( geneInfoService.load( 205 ) ).thenReturn( gene205InTaxon1 );
-        when( goService.getGenesInTaxon( Mockito.anyCollectionOf( GeneOntologyTerm.class ), Mockito.eq( taxon ) ) ).thenReturn( calculatedGenes );
-        when( goService.getGenesInTaxon( Mockito.anyCollectionOf( GeneOntologyTerm.class ), Mockito.eq( taxon2 ) ) ).thenReturn( Collections.emptySet() );
+        when( goService.getGenesInTaxon( Mockito.anyCollectionOf( GeneOntologyTerm.class ), eq( taxon ) ) ).thenReturn( calculatedGenes );
+        when( goService.getGenesInTaxon( Mockito.anyCollectionOf( GeneOntologyTerm.class ), eq( taxon2 ) ) ).thenReturn( Collections.emptySet() );
 
         // Attempting to add term to taxon 1 that is already present in taxon 2
         GeneInfo g1 = createGene( 1005, taxon );
@@ -972,7 +1011,7 @@ public class UserServiceImplTest {
         Map<GeneInfo, PrivacyLevelType> privacyLevelMap = terms.stream()
                 .map( GeneOntologyTerm::getDirectGeneIds )
                 .flatMap( o -> geneInfoService.load( o ).stream() )
-                .collect( Collectors.toMap( Function.identity(), g -> PrivacyLevelType.PUBLIC ) );
+                .collect( Collectors.toMap( Function.identity(), g -> PrivacyLevelType.PRIVATE ) );
 
         user = userService.updateTermsAndGenesInTaxon( user, taxon, geneTierMap, privacyLevelMap, terms );
 
@@ -1035,7 +1074,7 @@ public class UserServiceImplTest {
 
         User user = createUser( 1 );
         Taxon taxon = createTaxon( 1 );
-        Collection<UserTerm> found = userService.recommendTerms( user, taxon );
+        Collection<GeneOntologyTerm> found = userService.recommendTerms( user, taxon );
         assertThat( found.stream().map( GeneOntologyTerm::getGoId ).collect( Collectors.toList() ) ).containsExactlyInAnyOrder( toGOId( 1 ), toGOId( 7 ), toGOId( 8 ) );
     }
 
@@ -1046,10 +1085,7 @@ public class UserServiceImplTest {
 
         User user = createUser( 1 );
         Taxon taxon = createTaxon( 1 );
-        Collection<UserTerm> found = userService.recommendTerms( user, taxon, 12, -1, -1 );
-        for ( UserTerm term : found ) {
-            assertThat( term.getSize() ).isGreaterThanOrEqualTo( 12 );
-        }
+        Collection<GeneOntologyTerm> found = userService.recommendTerms( user, taxon, 12, -1, -1 );
         assertThat( found.stream().map( GeneOntologyTerm::getGoId ).collect( Collectors.toList() ) ).containsExactlyInAnyOrder( toGOId( 1 ), toGOId( 7 ), toGOId( 8 ) );
 
         found = userService.recommendTerms( user, taxon, 20, -1, -1 );
@@ -1063,8 +1099,8 @@ public class UserServiceImplTest {
 
         User user = createUser( 1 );
         Taxon taxon = createTaxon( 1 );
-        Collection<UserTerm> found = userService.recommendTerms( user, taxon, -1, 12, -1 );
-        assertThat( found.stream().map( UserTerm::getGoId ).collect( Collectors.toList() ) ).containsExactlyInAnyOrder( toGOId( 0 ), toGOId( 4 ), toGOId( 6 ) );
+        Collection<GeneOntologyTerm> found = userService.recommendTerms( user, taxon, -1, 12, -1 );
+        assertThat( found.stream().map( GeneOntologyTerm::getGoId ).collect( Collectors.toList() ) ).containsExactlyInAnyOrder( toGOId( 0 ), toGOId( 4 ), toGOId( 6 ) );
 
         found = userService.recommendTerms( user, taxon, -1, 1, -1 );
         assertThat( found ).isEmpty();
@@ -1076,7 +1112,7 @@ public class UserServiceImplTest {
 
         User user = createUser( 1 );
         Taxon taxon = createTaxon( 1 );
-        Collection<UserTerm> found = userService.recommendTerms( user, taxon, -1, -1, 3 );
+        Collection<GeneOntologyTerm> found = userService.recommendTerms( user, taxon, -1, -1, 3 );
         assertThat( found.stream().map( GeneOntologyTerm::getGoId ).collect( Collectors.toList() ) ).containsExactlyInAnyOrder( toGOId( 1 ), toGOId( 7 ), toGOId( 8 ) );
 
         found = userService.recommendTerms( user, taxon, -1, -1, 4 );
@@ -1089,7 +1125,7 @@ public class UserServiceImplTest {
 
         User user = createUser( 1 );
         Taxon taxon = createTaxon( 1 );
-        Collection<UserTerm> found = userService.recommendTerms( user, taxon, 11, 12, 2 );
+        Collection<GeneOntologyTerm> found = userService.recommendTerms( user, taxon, 11, 12, 2 );
         assertThat( found.stream().map( GeneOntologyTerm::getGoId ).collect( Collectors.toList() ) ).containsExactlyInAnyOrder( toGOId( 0 ), toGOId( 4 ), toGOId( 6 ) );
 
         found = userService.recommendTerms( user, taxon, 1, 11, 2 );
@@ -1097,13 +1133,12 @@ public class UserServiceImplTest {
     }
 
     @Test
-    @Ignore("There are some issues with term recommendations that needs to be fixed first.")
     public void recommendTerms_whenRedundantTerms_thenReturnOnlyMostSpecific() {
         setUpRecommendTermsMocks();
 
         User user = createUser( 1 );
         Taxon taxon = createTaxon( 1 );
-        Collection<UserTerm> found = userService.recommendTerms( user, taxon, 11, 11, 1 );
+        Collection<GeneOntologyTerm> found = userService.recommendTerms( user, taxon, 11, 11, 1 );
         assertThat( found.stream().map( GeneOntologyTerm::getGoId ).collect( Collectors.toList() ) ).containsExactlyInAnyOrder( toGOId( 2 ), toGOId( 3 ), toGOId( 5 ), toGOId( 99 ) );
 
         found = userService.recommendTerms( user, taxon, 1, 11, 2 );
@@ -1118,9 +1153,9 @@ public class UserServiceImplTest {
         User user = createUser( 1 );
         Taxon taxon = createTaxon( 1 );
 
-        user.getUserTerms().add( UserTerm.createUserTerm( user, createTerm( toGOId( 1 ) ), taxon ) );
+        user.getUserTerms().add( createUserTerm( 1, user, createTerm( toGOId( 1 ) ), taxon ) );
 
-        Collection<UserTerm> found = userService.recommendTerms( user, taxon );
+        Collection<GeneOntologyTerm> found = userService.recommendTerms( user, taxon );
         assertThat( found.stream().map( GeneOntologyTerm::getGoId ).collect( Collectors.toList() ) ).containsExactlyInAnyOrder( toGOId( 7 ), toGOId( 8 ) );
     }
 
@@ -1131,11 +1166,11 @@ public class UserServiceImplTest {
         User user = createUser( 1 );
         Taxon taxon = createTaxon( 1 );
 
-        user.getUserTerms().add( UserTerm.createUserTerm( user, createTerm( toGOId( 1 ) ), taxon ) );
-        user.getUserTerms().add( UserTerm.createUserTerm( user, createTerm( toGOId( 7 ) ), taxon ) );
-        user.getUserTerms().add( UserTerm.createUserTerm( user, createTerm( toGOId( 8 ) ), taxon ) );
+        user.getUserTerms().add( createUserTerm( 1, user, createTerm( toGOId( 1 ) ), taxon ) );
+        user.getUserTerms().add( createUserTerm( 2, user, createTerm( toGOId( 7 ) ), taxon ) );
+        user.getUserTerms().add( createUserTerm( 3, user, createTerm( toGOId( 8 ) ), taxon ) );
 
-        Collection<UserTerm> found = userService.recommendTerms( user, taxon );
+        Collection<GeneOntologyTerm> found = userService.recommendTerms( user, taxon );
         assertThat( found.stream().map( GeneOntologyTerm::getGoId ).collect( Collectors.toList() ) ).containsExactlyInAnyOrder( toGOId( 0 ), toGOId( 4 ), toGOId( 6 ) );
     }
 
@@ -1146,7 +1181,7 @@ public class UserServiceImplTest {
 
         User user = createUser( 1 );
         Taxon taxon = createTaxon( 1 );
-        Collection<UserTerm> found = userService.recommendTerms( user, taxon, -1, -1, -1 );
+        Collection<GeneOntologyTerm> found = userService.recommendTerms( user, taxon, -1, -1, -1 );
         assertThat( found ).isEmpty();
     }
 
@@ -1155,7 +1190,7 @@ public class UserServiceImplTest {
         setUpRecommendTermsMocks();
 
         Taxon taxon = createTaxon( 1 );
-        Collection<UserTerm> found = userService.recommendTerms( null, taxon, -1, -1, -1 );
+        Collection<GeneOntologyTerm> found = userService.recommendTerms( null, taxon, -1, -1, -1 );
         assertThat( found ).isNull();
     }
 

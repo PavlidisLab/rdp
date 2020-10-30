@@ -12,7 +12,9 @@
 <body>
 <div th:replace="layouts/common::header">...</div>
 <div class="container py-4">
-    <div th:replace="layouts/common::title(title='User Profile', subtitle=${viewUser.profile.contactEmail ?: viewUser.email})">...</div>
+    <div th:replace="layouts/common::title(title='User Profile', subtitle=${viewUser.profile.fullName})">
+        ...
+    </div>
     <div class="main-content">
         <div class="row justify-content-center success-row my-3">
             <div class="col">
@@ -61,10 +63,12 @@
                     </div>
                     <table class="table mb-0">
                         <tr class="edit-container">
-                            <td class="align-middle" style="width: 120px;"><span class="text-muted align-middle">First Name</span>
+                            <td class="align-middle" style="width: 120px;">
+                                <span class="text-muted align-middle">First Name</span>
                             </td>
                             <td>
-                                <input class="data-edit" type="text" name="name" th:value="${viewUser.profile.name}"
+                                <input class="data-edit" type="text" name="name"
+                                       th:value="${viewUser.profile.name}"
                                        disabled="disabled"/>
                             </td>
                         </tr>
@@ -103,7 +107,7 @@
                                     <input class="data-edit"
                                            type="text"
                                            name="researcherCategories"
-                                           th:value="${researcherCategory.label}"
+                                           th:value="#{'ResearcherCategory.' + ${researcherCategory.name()}}"
                                            disabled="disabled"/><br th:unless="${i.last}"/>
                                 </th:block>
                             </td>
@@ -114,7 +118,7 @@
                                 <input class="data-edit"
                                        type="text"
                                        name="researcherPosition"
-                                       th:value="${viewUser.profile.researcherPosition.label}"
+                                       th:value="#{'ResearcherPosition.' + ${viewUser.profile.researcherPosition.name()}}"
                                        disabled="disabled"/>
                             </td>
                         </tr>
@@ -130,10 +134,13 @@
                         <h3 class="mb-0">Contact Information</h3>
                     </div>
                     <table class="table mb-0">
-                        <tr>
+                        <tr th:unless="${viewUser.origin}">
                             <td class="align-middle" style="width: 120px;"><span
                                     class="text-muted align-middle">Email</span></td>
-                            <td><a th:href="${'mailto://' + viewUser.email}" th:text="${viewUser.email}"></a>
+                            <td>
+                                <a th:if="${viewUser.verifiedContactEmail.isPresent()}"
+                                   th:href="${'mailto:' + viewUser.verifiedContactEmail.get().address}"
+                                   th:text="${viewUser.verifiedContactEmail.get().address}"></a>
                             </td>
                         </tr>
                         <tr class="edit-container">
@@ -187,7 +194,8 @@
                     <div class="card-body">
                         <dl class="row mb-0">
                             <dt class="col-md-2">Profile privacy level:</dt>
-                            <dd th:text="${viewUser.effectivePrivacyLevel.label}" class="col-md-9"></dd>
+                            <dd th:text="#{'PrivacyLevelType.' + ${viewUser.effectivePrivacyLevel.name()}}"
+                                class="col-md-9"></dd>
                             <th:block th:if="${@applicationSettings.privacy.isAllowHideGenelist()}">
                                 <dt class="col-md-2">Gene list hidden:</dt>
                                 <dd th:text="${viewUser.profile.hideGenelist} ? 'Enabled' : 'Disabled'"

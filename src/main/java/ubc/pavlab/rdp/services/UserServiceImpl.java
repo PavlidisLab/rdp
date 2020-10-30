@@ -3,6 +3,7 @@ package ubc.pavlab.rdp.services;
 import lombok.NonNull;
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PostFilter;
@@ -13,10 +14,12 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ubc.pavlab.rdp.events.OnContactEmailUpdateEvent;
 import ubc.pavlab.rdp.exception.TokenException;
 import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.ResearcherCategory;
+import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.repositories.*;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
@@ -58,6 +61,8 @@ public class UserServiceImpl implements UserService {
     private OrganInfoService organInfoService;
     @Autowired
     UserGeneRepository userGeneRepository;
+    @Autowired
+    private ApplicationEventPublisher eventPublisher;
 
     @Transactional
     @Override
@@ -76,6 +81,18 @@ public class UserServiceImpl implements UserService {
         Role adminRole = roleRepository.findByRole( "ROLE_ADMIN" );
         admin.setRoles( Collections.singleton( adminRole ) );
         return userRepository.save( admin );
+    }
+
+    @Override
+    @Secured("ROLE_ADMIN")
+    @Transactional
+    public User createServiceAccount( User user ) {
+        user.setPassword( bCryptPasswordEncoder.encode( UUID.randomUUID().toString() ) );
+        Role serviceAccountRole = roleRepository.findByRole( "ROLE_SERVICE_ACCOUNT" );
+        user.setRoles( Collections.singleton( serviceAccountRole ) );
+        user = userRepository.save( user );
+        createAccessTokenForUser( user );
+        return user;
     }
 
     @Override
@@ -202,6 +219,35 @@ public class UserServiceImpl implements UserService {
         return userRepository.findByEmailIgnoreCase( email );
     }
 
+    @Autowired
+    private AccessTokenRepository accessTokenRepository;
+
+    @Override
+    public User findUserByAccessTokenNoAuth( String accessToken ) throws TokenException {
+        AccessToken token = accessTokenRepository.findByToken( accessToken );
+        if ( token == null ) {
+            return null;
+        }
+        if ( Instant.now().isAfter( token.getExpiryDate().toInstant() ) ) {
+            // token is expired
+            throw new TokenException( "Token is expired." );
+        }
+        return token.getUser();
+    }
+
+    @Override
+    public void revokeAccessToken( AccessToken accessToken ) {
+        accessTokenRepository.delete( accessToken );
+    }
+
+    @Override
+    public AccessToken createAccessTokenForUser( User user ) {
+        AccessToken token = new AccessToken();
+        token.updateToken( UUID.randomUUID().toString() );
+        token.setUser( user );
+        return accessTokenRepository.save( token );
+    }
+
     @Override
     public User getRemoteAdmin() {
         return userRepository.findOneWithRoles( applicationSettings.getIsearch().getUserId() );
@@ -215,8 +261,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @PostFilter("hasPermission(filterObject, 'read')")
-    public Collection<User> findByLikeName( String nameLike, Set<ResearcherCategory> researcherTypes, Collection<UserOrgan> userOrgans ) {
+    public Collection<User> findByLikeName( String nameLike, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherTypes, Collection<UserOrgan> userOrgans ) {
         return userRepository.findByProfileNameContainingIgnoreCaseOrProfileLastNameContainingIgnoreCase( nameLike, nameLike ).stream()
+                .filter( u -> researcherPositions == null || researcherPositions.contains( u.getProfile().getResearcherPosition() ) )
                 .filter( u -> researcherTypes == null || containsAny( researcherTypes, u.getProfile().getResearcherCategories() ) )
                 .filter( u -> userOrgans == null || containsAny( userOrgans, u.getUserOrgans().values() ) )
                 .collect( Collectors.toSet() );
@@ -224,8 +271,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @PostFilter("hasPermission(filterObject, 'read')")
-    public Collection<User> findByStartsName( String startsName, Set<ResearcherCategory> researcherTypes, Collection<UserOrgan> userOrgans ) {
+    public Collection<User> findByStartsName( String startsName, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherTypes, Collection<UserOrgan> userOrgans ) {
         return userRepository.findByProfileLastNameStartsWithIgnoreCase( startsName ).stream()
+                .filter( u -> researcherPositions == null || researcherPositions.contains( u.getProfile().getResearcherPosition() ) )
                 .filter( u -> researcherTypes == null || containsAny( researcherTypes, u.getProfile().getResearcherCategories() ) )
                 .filter( u -> userOrgans == null || containsAny( userOrgans, u.getUserOrgans().values() ) )
                 .collect( Collectors.toSet() );
@@ -233,8 +281,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @PostFilter("hasPermission(filterObject, 'read')")
-    public Collection<User> findByDescription( String descriptionLike, Collection<ResearcherCategory> researcherTypes, Collection<UserOrgan> userOrgans ) {
+    public Collection<User> findByDescription( String descriptionLike, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherTypes, Collection<UserOrgan> userOrgans ) {
         return userRepository.findByProfileDescriptionContainingIgnoreCaseOrTaxonDescriptionsContainingIgnoreCase( descriptionLike, descriptionLike ).stream()
+                .filter( u -> researcherPositions == null || researcherPositions.contains( u.getProfile().getResearcherPosition() ) )
                 .filter( u -> researcherTypes == null || containsAny( researcherTypes, u.getProfile().getResearcherCategories() ) )
                 .filter( u -> userOrgans == null || containsAny( userOrgans, u.getUserOrgans().values() ) )
                 .collect( Collectors.toSet() );
@@ -251,32 +300,35 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Collection<UserTerm> recommendTerms( @NonNull User user, @NonNull Taxon taxon ) {
+    public Collection<GeneOntologyTerm> recommendTerms( @NonNull User user, @NonNull Taxon taxon ) {
         return recommendTerms( user, taxon, 10, applicationSettings.getGoTermSizeLimit(), 2 );
     }
 
     @Override
-    public Collection<UserTerm> recommendTerms( @NonNull User user, @NonNull Taxon taxon, long minSize, long maxSize, long minFrequency ) {
-        Set<GeneInfo> genes = user.getGenesByTaxonAndTier( taxon, TierType.MANUAL ).stream()
-                .map( UserGene::getGeneInfo )
-                .filter( Objects::nonNull )
+    public Collection<GeneOntologyTerm> recommendTerms( @NonNull User user, @NonNull Taxon taxon, long minSize, long maxSize, long minFrequency ) {
+        Set<? extends Gene> genes = user.getGenesByTaxonAndTier( taxon, TierType.MANUAL ).stream().collect( Collectors.toSet() );
+
+        // terms already associated to user within the taxon
+        Set<String> userTermGoIds = user.getUserTerms().stream()
+                .filter( ut -> ut.getTaxon().equals( taxon ) )
+                .map( UserTerm::getGoId )
                 .collect( Collectors.toSet() );
 
         // Then keep only those terms not already added and with the highest frequency
-        Set<UserTerm> topResults = goService.termFrequencyMap( genes ).entrySet().stream()
+        Set<GeneOntologyTerm> topResults = goService.termFrequencyMap( genes ).entrySet().stream()
                 .filter( e -> minFrequency < 0 || e.getValue() >= minFrequency )
                 .filter( e -> minSize < 0 || e.getKey().getSizeInTaxon( taxon ) >= minSize )
                 .filter( e -> maxSize < 0 || e.getKey().getSizeInTaxon( taxon ) <= maxSize )
-                .map( e -> UserTerm.createUserTerm( user, e.getKey(), taxon ) )
-                .filter( ut -> !user.getUserTerms().contains( ut ) )
-                .collect( groupingBy( identity(), maxBy( comparingLong( this::computeTermFrequency ) ) ) )
+                .filter( e -> !userTermGoIds.contains( e.getKey().getGoId() ) )
+                .map( e -> e.getKey() )
+                .collect( groupingBy( identity(), maxBy( comparingLong( t -> computeTermFrequency( user, t ) ) ) ) )
                 .values().stream()
                 .map( Optional::get )
                 .collect( Collectors.toSet() );
 
         // Keep only leafiest of remaining terms (keep if it has no descendants in results)
         return topResults.stream()
-                .filter( ut -> Collections.disjoint( topResults, convertTerms( user, taxon, goService.getDescendants( ut ) ) ) )
+                .filter( ut -> Collections.disjoint( topResults, goService.getDescendants( ut ) ) )
                 .collect( Collectors.toSet() );
     }
 
@@ -336,18 +388,16 @@ public class UserServiceImpl implements UserService {
     @Override
     public long computeTermOverlaps( UserTerm userTerm, Collection<GeneInfo> genes ) {
         return genes.stream()
-                .flatMap( g -> goService.getAllTermsForGene( g, true, true ).stream() )
+                .flatMap( g -> goService.getTermsForGene( g, true, true ).stream() )
                 .filter( term -> term.getGoId().equals( userTerm.getGoId() ) )
                 .count();
     }
 
     @Override
-    public long computeTermFrequency( UserTerm userTerm ) {
-        return userTerm.getUser().getUserGenes().values().stream()
-                .map( UserGene::getGeneInfo )
-                .filter( Objects::nonNull )
-                .flatMap( g -> goService.getAllTermsForGene( g, true, true ).stream() )
-                .filter( term -> term.getGoId().equals( userTerm.getGoId() ) )
+    public long computeTermFrequency( User user, GeneOntologyTerm term ) {
+        return user.getUserGenes().values().stream()
+                .flatMap( g -> goService.getTermsForGene( g, true, true ).stream() )
+                .filter( t -> t.getGoId().equals( term.getGoId() ) )
                 .count();
     }
 
@@ -383,7 +433,24 @@ public class UserServiceImpl implements UserService {
             }
         }
 
-        user.getProfile().setContactEmail( profile.getContactEmail() );
+        if ( user.getProfile().getContactEmail() == null ||
+                !user.getProfile().getContactEmail().equals( profile.getContactEmail() ) ) {
+            user.getProfile().setContactEmail( profile.getContactEmail() );
+            if ( user.getProfile().getContactEmail() != null ) {
+                if ( user.getProfile().getContactEmail().equals( user.getEmail() ) ) {
+                    // if the contact email is set to the user email, it's de facto verified
+                    user.getProfile().setContactEmailVerified( true );
+                } else {
+                    user.getProfile().setContactEmailVerified( false );
+                    VerificationToken token = createContactEmailVerificationTokenForUser( user );
+                    eventPublisher.publishEvent( new OnContactEmailUpdateEvent( user, token ) );
+                }
+            } else {
+                // contact email is unset, so we don't need to send a confirmation
+                user.getProfile().setContactEmailVerified( false );
+            }
+        }
+
         user.getProfile().setPhone( profile.getPhone() );
         user.getProfile().setWebsite( profile.getWebsite() );
 
@@ -403,8 +470,10 @@ public class UserServiceImpl implements UserService {
             user.getProfile().setHideGenelist( profile.getHideGenelist() );
         }
 
-        user.getProfile().getPublications().retainAll( publications );
-        user.getProfile().getPublications().addAll( publications );
+        if ( publications != null ) {
+            user.getProfile().getPublications().retainAll( publications );
+            user.getProfile().getPublications().addAll( publications );
+        }
 
         if ( applicationSettings.getOrgans().getEnabled() ) {
             Map<String, UserOrgan> userOrgans = organInfoService.findByUberonIdIn( organUberonIds ).stream()
@@ -471,9 +540,20 @@ public class UserServiceImpl implements UserService {
         return tokenRepository.save( userToken );
     }
 
+    @Transactional
+    @Override
+    public VerificationToken createContactEmailVerificationTokenForUser( User user ) {
+        VerificationToken userToken = new VerificationToken();
+        userToken.setUser( user );
+        userToken.setEmail( user.getProfile().getContactEmail() );
+        userToken.updateToken( UUID.randomUUID().toString() );
+        return tokenRepository.save( userToken );
+    }
+
     @Override
     @Transactional
     public User confirmVerificationToken( String token ) throws TokenException {
+        log.error( "This is called." );
         VerificationToken verificationToken = tokenRepository.findByToken( token );
         if ( verificationToken == null ) {
             throw new TokenException( "Verification token is invalid." );
@@ -485,14 +565,24 @@ public class UserServiceImpl implements UserService {
 
         User user = verificationToken.getUser();
 
-        if ( !verificationToken.getEmail().equals( user.getEmail() ) ) {
-            throw new TokenException( "Verification token does not match user email." );
+        boolean tokenUsed = false;
+
+        if ( verificationToken.getEmail().equals( user.getEmail() ) ) {
+            user.setEnabled( true );
+            tokenUsed = true;
         }
 
-        tokenRepository.delete( verificationToken );
+        if ( user.getProfile().getContactEmail() != null && verificationToken.getEmail().equals( user.getProfile().getContactEmail() ) ) {
+            user.getProfile().setContactEmailVerified( true );
+            tokenUsed = true;
+        }
 
-        user.setEnabled( true );
-        return updateNoAuth( user );
+        if ( tokenUsed ) {
+            tokenRepository.delete( verificationToken );
+            return updateNoAuth( user );
+        } else {
+            throw new TokenException( "Verification token email does not match neither the user email nor contact email." );
+        }
     }
 
     @PostFilter("hasPermission(filterObject, 'read')")

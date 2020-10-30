@@ -1,20 +1,26 @@
 alter table user modify column enabled bit not null;
+alter table user modify column hide_genelist bit not null;
+alter table user modify column shared bit not null;
 alter table user add column researcher_position varchar(255);
 alter table user add column contact_email varchar(255);
+alter table user add column contact_email_verified bit not null;
 alter table term drop column frequency;
 alter table term drop column size;
 alter table gene add column user_privacy_level integer default NULL;
-create table organ_info (id integer not null auto_increment, description TEXT, name TEXT, uberon_id varchar(14), active bit, ordering integer, primary key (id));
-create table user_organ (id integer not null auto_increment, description TEXT, name TEXT, uberon_id varchar(14), user_id integer not null, primary key (id));
-alter table organ_info add constraint UK3gxhitw1572dhfctt2mjulc45 unique (uberon_id);
-alter table user_organ add constraint UKt09aoc8fqrshueqnau3m5423i unique (user_id, uberon_id);
-alter table user_organ add constraint FKtmll6kbthwqqh53034wn9i220 foreign key (user_id) references user (user_id);
 alter table ortholog drop primary key;
 alter table ortholog add primary key (source_gene, target_gene);
 alter table ortholog drop column target_taxon;
 
-create table researcher_category (user_id integer not null auto_increment, researcher_category varchar(255));
-alter table researcher_category add constraint fk_researcher_category_user_id foreign key (user_id) references user (user_id);
+create table user_researcher_category (user_id integer not null auto_increment, researcher_category varchar(255));
+alter table user_researcher_category add constraint fk_researcher_category_user_id foreign key (user_id) references user (user_id);
+
+-- add service account role
+-- some registry might still have a ROLE_MANAGER occupying id = 3
+insert into role values (4, 'ROLE_SERVICE_ACCOUNT');
+
+create table access_token (id integer not null auto_increment, expiry_date datetime not null, token varchar(255) not null, user_id integer not null, primary key (id));
+alter table access_token add constraint fk_access_token_user_id foreign key (user_id) references user (user_id);
+alter table access_token add constraint uk_access_token_token unique (token);
 
 -- migrate password reset token expiry date to non-nullable timestamps
 alter table verification_token modify column expiry_date timestamp not null;
@@ -35,6 +41,13 @@ alter table password_reset_token add constraint uk_password_reset_token_token un
 -- add an email to the verification token
 alter table verification_token add column email varchar(255) not null;
 update verification_token set email = (select email from user where user.user_id = verification_token.user_id);
+
+-- organ systems
+create table organ_info (id integer not null auto_increment, description TEXT, name TEXT, uberon_id varchar(14), active bit not null, ordering integer, primary key (id));
+create table user_organ (id integer not null auto_increment, description TEXT, name TEXT, uberon_id varchar(14), user_id integer not null, primary key (id));
+alter table organ_info add constraint UK3gxhitw1572dhfctt2mjulc45 unique (uberon_id);
+alter table user_organ add constraint UKt09aoc8fqrshueqnau3m5423i unique (user_id, uberon_id);
+alter table user_organ add constraint FKtmll6kbthwqqh53034wn9i220 foreign key (user_id) references user (user_id);
 
 -- Default organ systems
 insert into organ_info (uberon_id, name, active, ordering) values ('UBERON:0000026', 'Limb/Appendage', true, 1);

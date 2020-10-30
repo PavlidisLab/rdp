@@ -9,6 +9,7 @@ import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.mockito.internal.util.collections.Sets;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +25,9 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.multipart.MultipartFile;
 import ubc.pavlab.rdp.WebSecurityConfig;
+import ubc.pavlab.rdp.events.OnContactEmailUpdateEvent;
+import ubc.pavlab.rdp.exception.TokenException;
+import ubc.pavlab.rdp.listeners.UserListener;
 import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.Aspect;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
@@ -34,17 +38,15 @@ import ubc.pavlab.rdp.settings.FaqSettings;
 import ubc.pavlab.rdp.settings.SiteSettings;
 
 import java.util.Collection;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.*;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -117,6 +119,9 @@ public class UserControllerTest {
 
     @MockBean
     private EmailService emailService;
+
+    @MockBean
+    private UserListener userListener;
 
     @Before
     public void setUp() {
@@ -688,4 +693,45 @@ public class UserControllerTest {
                 .andExpect( status().is3xxRedirection() );
     }
 
+    @Test
+    @WithMockUser
+    public void givenLoggedIn_whenVerifyContactEmailWithToken_thenReturn3xx() throws Exception {
+        User user = createUser( 1 );
+        when( userService.findCurrentUser() ).thenReturn( user );
+        mvc.perform( get( "/user/verify-contact-email" ).param( "token", "1234" ) )
+                .andExpect( status().is3xxRedirection() )
+                .andExpect( redirectedUrl( "/user/profile" ) );
+        verify( userService ).confirmVerificationToken( "1234" );
+        verifyNoMoreInteractions( userService );
+    }
+
+    @Test
+    @WithMockUser
+    public void givenLoggedIn_whenVerifyContactEmailWithToken_andTokenDoesNotExist_thenReturn3xx() throws Exception {
+        User user = createUser( 1 );
+        when( userService.findCurrentUser() ).thenReturn( user );
+        when( userService.confirmVerificationToken( "1234" ) ).thenThrow( TokenException.class );
+        mvc.perform( get( "/user/verify-contact-email" )
+                .param( "token", "1234" ) )
+                .andExpect( status().isNotFound() );
+        verify( userService ).confirmVerificationToken( "1234" );
+    }
+
+    @Test
+    @WithMockUser
+    public void givenLoggedIn_whenResendContactEmailVerification_thenRedirect3xx() throws Exception {
+        User user = createUser( 1 );
+        VerificationToken token = createContactEmailVerificationToken( user, "1234" );
+        when( userService.findCurrentUser() ).thenReturn( user );
+        when( userService.createContactEmailVerificationTokenForUser( user ) ).thenReturn( token );
+        mvc.perform( post( "/user/resend-contact-email-verification" ) )
+                .andExpect( status().is3xxRedirection() )
+                .andExpect( redirectedUrl( "/user/profile" ) )
+                .andExpect( flash().attributeExists( "message" ) );
+        verify( userService ).createContactEmailVerificationTokenForUser( user );
+        ArgumentCaptor<OnContactEmailUpdateEvent> eventCaptor = ArgumentCaptor.forClass( OnContactEmailUpdateEvent.class );
+        verify( userListener ).onContactEmailUpdate( eventCaptor.capture() );
+        assertThat( eventCaptor.getValue().getUser() ).isEqualTo( user );
+        assertThat( eventCaptor.getValue().getToken() ).isEqualTo( token );
+    }
 }

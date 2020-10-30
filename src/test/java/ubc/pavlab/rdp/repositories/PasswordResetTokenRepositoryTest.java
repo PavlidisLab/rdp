@@ -15,7 +15,6 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.Date;
 
-import static junit.framework.TestCase.fail;
 import static org.assertj.core.api.Assertions.assertThat;
 import static ubc.pavlab.rdp.util.TestUtils.createUnpersistedUser;
 import static ubc.pavlab.rdp.util.TestUtils.createUser;
@@ -94,7 +93,7 @@ public class PasswordResetTokenRepositoryTest {
         assertThat( found ).isEqualTo( expiredToken );
     }
 
-    @Test
+    @Test(expected = IncorrectResultSizeDataAccessException.class)
     public void findByUser_whenValidUserHasMultipleTokens_thenError() {
 
         PasswordResetToken validToken2 = new PasswordResetToken();
@@ -103,13 +102,7 @@ public class PasswordResetTokenRepositoryTest {
         entityManager.persist( validToken2 );
         entityManager.flush();
 
-        try {
-            PasswordResetToken found = passwordResetTokenRepository.findByUser( user );
-        } catch ( IncorrectResultSizeDataAccessException e ) {
-            // Expected
-            return;
-        }
-        fail( "Should have thrown IncorrectResultSizeDataAccessException" );
+        passwordResetTokenRepository.findByUser( user );
     }
 
     @Test

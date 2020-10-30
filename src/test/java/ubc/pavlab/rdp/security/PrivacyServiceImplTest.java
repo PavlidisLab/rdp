@@ -61,20 +61,31 @@ public class PrivacyServiceImplTest {
 
     private User adminUser;
 
+    private User serviceAccountUser;
+
     @Before
     public void setUp() {
         Role roleAdmin = createRole( 3, "ROLE_ADMIN" );
+        Role roleServiceAccount = createRole( 4, "ROLE_SERVICE_ACCOUNT" );
         user = createUser( 1 );
         otherUser = createUser( 2 );
         adminUser = createUserWithRoles( 3, roleAdmin );
+        serviceAccountUser = createUserWithRoles( 4, roleServiceAccount );
         when( roleRepository.findByRole( "ROLE_ADMIN" ) ).thenReturn( roleAdmin );
+        when( roleRepository.findByRole( "ROLE_SERVICE_ACCOUNT" ) ).thenReturn( roleServiceAccount );
         when( applicationSettings.getPrivacy() ).thenReturn( privacySettings );
         when( applicationSettings.getIsearch() ).thenReturn( iSearchSettings );
+        when( privacySettings.isRegisteredSearch() ).thenReturn( true );
     }
 
     @Test
     public void checkUserCanSearch_thenReturnTrue() {
-        privacyService.checkUserCanSearch( user, true );
+        assertThat( privacyService.checkUserCanSearch( user, false ) ).isTrue();
+    }
+
+    @Test
+    public void checkUserCanSearchInternationally_whenInternationalSearchIsDisabled_thenReturnFalse() {
+        assertThat( privacyService.checkUserCanSearch( user, true ) ).isFalse();
     }
 
     @Test
@@ -161,4 +172,24 @@ public class PrivacyServiceImplTest {
         assertThat( privacyService.checkUserCanUpdate( adminUser, userContent ) ).isTrue();
     }
 
+    @Test
+    public void checkUserCanSearch_whenUserIsServiceAccount_thenReturnTrue() {
+        assertThat( privacyService.checkUserCanSearch( serviceAccountUser, false ) ).isTrue();
+    }
+
+    @Test
+    public void checkUserCanSee_whenUserIsServiceAccount_thenReturnTrue() {
+        UserContent userContent = mock( UserContent.class );
+        when( userContent.getOwner() ).thenReturn( Optional.of( otherUser ) );
+        when( userContent.getEffectivePrivacyLevel() ).thenReturn( PrivacyLevelType.PRIVATE );
+        assertThat( privacyService.checkUserCanSee( serviceAccountUser, userContent ) ).isTrue();
+    }
+
+    @Test
+    public void checkUserCanUpdate_whenUserIsServiceAccount_thenReturnFalse() {
+        UserContent userContent = mock( UserContent.class );
+        when( userContent.getOwner() ).thenReturn( Optional.of( otherUser ) );
+        when( userContent.getEffectivePrivacyLevel() ).thenReturn( PrivacyLevelType.PRIVATE );
+        assertThat( privacyService.checkUserCanUpdate( serviceAccountUser, userContent ) ).isFalse();
+    }
 }

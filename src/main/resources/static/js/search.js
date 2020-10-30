@@ -85,6 +85,9 @@
             });
         }
 
+        // update history stack
+        window.history.pushState({}, '', '?' + formData);
+
         event.preventDefault();
     });
 

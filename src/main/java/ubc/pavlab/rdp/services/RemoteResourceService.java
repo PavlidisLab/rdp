@@ -5,6 +5,7 @@ import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.model.User;
 import ubc.pavlab.rdp.model.UserGene;
 import ubc.pavlab.rdp.model.enums.ResearcherCategory;
+import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import ubc.pavlab.rdp.model.enums.TierType;
 
 import java.net.URI;
@@ -17,11 +18,11 @@ import java.util.Set;
  */
 public interface RemoteResourceService {
 
-    Collection<User> findUsersByLikeName( String nameLike, Boolean prefix, Collection<ResearcherCategory> researcherTypes, Collection<String> organUberonIds );
+    Collection<User> findUsersByLikeName( String nameLike, Boolean prefix, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherTypes, Collection<String> organUberonIds );
 
-    Collection<User> findUsersByDescription( String descriptionLike, Collection<ResearcherCategory> researcherTypes, Collection<String> organUberonIds );
+    Collection<User> findUsersByDescription( String descriptionLike, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherTypes, Collection<String> organUberonIds );
 
-    Collection<UserGene> findGenesBySymbol( String symbol, Taxon taxon, Set<TierType> tier, Integer orthologTaxonId, Set<ResearcherCategory> researcherTypes, Set<String> organUberonIds );
+    Collection<UserGene> findGenesBySymbol( String symbol, Taxon taxon, Set<TierType> tier, Integer orthologTaxonId, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherTypes, Set<String> organUberonIds );
 
     User getRemoteUser( Integer userId, URI remoteHost ) throws RemoteException;
 }

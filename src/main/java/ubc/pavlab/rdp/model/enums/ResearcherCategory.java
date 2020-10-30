@@ -6,12 +6,11 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum ResearcherCategory {
-    IN_SILICO( "in-silico", "In silico" ),
-    IN_VITRO_BIOCHEMICAL( "in-vitro", "In vitro (biochemical)" ),
-    IN_VITRO_CELLS( "in-vitro-cells", "In vitro (cells)" ),
-    IN_VITRO_STRUCTURAL( "in-vitro-structural", "In vitro (structural)" ),
-    IN_VIVO( "in-vivo", "In vivo" ),
-    OTHER( "other", "Other" );
+    IN_SILICO( "in-silico" ),
+    IN_VITRO_BIOCHEMICAL( "in-vitro" ),
+    IN_VITRO_CELLS( "in-vitro-cells" ),
+    IN_VITRO_STRUCTURAL( "in-vitro-structural" ),
+    IN_VIVO( "in-vivo" ),
+    OTHER( "other" );
     private final String id;
-    private final String label;
 }

@@ -1,5 +1,6 @@
 package ubc.pavlab.rdp.services;
 
+import ubc.pavlab.rdp.model.Gene;
 import ubc.pavlab.rdp.model.GeneInfo;
 import ubc.pavlab.rdp.model.GeneOntologyTerm;
 import ubc.pavlab.rdp.model.Taxon;
@@ -22,7 +23,7 @@ public interface GOService {
 
     Collection<GeneOntologyTerm> getDescendants( GeneOntologyTerm entry, boolean includePartOf );
 
-    Map<GeneOntologyTerm, Long> termFrequencyMap( Collection<GeneInfo> genes );
+    Map<GeneOntologyTerm, Long> termFrequencyMap( Collection<? extends Gene> genes );
 
     List<SearchResult<GeneOntologyTerm>> search( String queryString, Taxon taxon, int max );
 
@@ -40,9 +41,9 @@ public interface GOService {
 
     GeneOntologyTerm getTerm( String goId );
 
+    Collection<GeneOntologyTerm> getTermsForGene( Gene gene );
+
+    Collection<GeneOntologyTerm> getTermsForGene( Gene gene, boolean includePartOf, boolean propagateUpwards );
+
     void updateGoTerms();
-
-    Collection<GeneOntologyTerm> getTermsForGene( GeneInfo gene );
-
-    Collection<GeneOntologyTerm> getAllTermsForGene( GeneInfo gene, boolean includePartOf, boolean propagateUpwards );
 }

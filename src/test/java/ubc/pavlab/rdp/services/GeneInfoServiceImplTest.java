@@ -23,7 +23,6 @@ import ubc.pavlab.rdp.util.GeneInfoParser;
 import ubc.pavlab.rdp.util.GeneOrthologsParser;
 import ubc.pavlab.rdp.util.SearchResult;
 
-import java.net.MalformedURLException;
 import java.text.ParseException;
 import java.util.Collection;
 import java.util.Collections;

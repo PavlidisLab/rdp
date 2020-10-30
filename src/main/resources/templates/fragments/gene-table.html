@@ -8,7 +8,7 @@
     <thead class="thead-light">
     <tr>
         <th scope="col">Symbol</th>
-        <th scope="col d-none" th:if="${viewOnly == null}">Id</th>
+        <th scope="col" class="d-none" th:if="${viewOnly == null}">Id</th>
         <th scope="col">Name</th>
         <th th:if="${@tierService.isTierEnabled(T(ubc.pavlab.rdp.model.enums.TierType).TIER1)} and ${@tierService.isTierEnabled(T(ubc.pavlab.rdp.model.enums.TierType).TIER2)}"
             class="text-center"
@@ -31,7 +31,7 @@
     <tbody>
     <tr th:each="gene : ${genes}">
         <td class="align-middle">
-            <i th:if="${viewOnly == null}" class="delete-row align-middle"/>
+            <i th:if="${viewOnly == null}" class="delete-row align-middle"></i>
             <a th:href="@{https://www.ncbi.nlm.nih.gov/gene/{geneId}(geneId=${gene.geneId})}"
                th:text="${gene.symbol}"
                target="_blank"
@@ -59,7 +59,7 @@
                         th:if="${@privacyService.isGenePrivacyLevelEnabled(privacyLevel) and (privacyLevel.ordinal() le defaultPrivacyLevel.ordinal())}"
                         th:value="${privacyLevel.ordinal()}"
                         th:selected="${gene.effectivePrivacyLevel == privacyLevel}"
-                        th:text="${privacyLevel.label}"></option>
+                        th:text="#{'PrivacyLevelType.' + ${privacyLevel.name()}}"></option>
             </select>
         </td>
     </tr>

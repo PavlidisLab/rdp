@@ -36,13 +36,13 @@
                th:title="${ut.definition}"></a>
         </td>
         <td class="align-middle" th:text="${ut.name}"></td>
-        <td class="align-middle" th:text="${ut.aspect.label}"></td>
+        <td class="align-middle" th:text="#{'Aspect.' + ${ut.aspect.name()}}"></td>
         <td>
             <a href="#"
                class="align-middle overlap-show-modal"
                data-toggle="modal"
                data-target="#overlapModal"
-               th:text="${@userService.computeTermFrequency(ut)}"></a>
+               th:text="${@userService.computeTermFrequency(ut.user, ut)}"></a>
         </td>
         <td class="align-middle" th:text="${ut.size}"></td>
     </tr>

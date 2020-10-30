@@ -5,6 +5,7 @@ import lombok.EqualsAndHashCode;
 import lombok.extern.apachecommons.CommonsLog;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +16,9 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import ubc.pavlab.rdp.events.OnContactEmailUpdateEvent;
+import ubc.pavlab.rdp.exception.TokenException;
 import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.TierType;
@@ -48,6 +52,9 @@ public class UserController {
 
     @Autowired
     private EmailService emailService;
+
+    @Autowired
+    ApplicationEventPublisher eventPublisher;
 
     @GetMapping(value = { "/user/home" })
     public ModelAndView userHome() {
@@ -88,7 +95,7 @@ public class UserController {
         return modelAndView;
     }
 
-    @GetMapping(value = { "/user/profile" })
+    @GetMapping(value = "/user/profile")
     public ModelAndView profile() {
         ModelAndView modelAndView = new ModelAndView( "user/profile" );
         User user = userService.findCurrentUser();
@@ -137,7 +144,7 @@ public class UserController {
             modelAndView.addObject( "message", "Sent. We will get back to you shortly." );
             modelAndView.addObject( "success", true );
         } catch ( MessagingException e ) {
-            log.error( e );
+            log.error( MessageFormat.format( "Could not send support message to {0}.", user ), e );
             modelAndView
                     .addObject( "message", "There was a problem sending the support request. Please try again later." );
             modelAndView.addObject( "success", false );
@@ -196,12 +203,24 @@ public class UserController {
         return modelAndView;
     }
 
+    @PostMapping("/user/resend-contact-email-verification")
+    public Object resendContactEmailVerification( RedirectAttributes redirectAttributes ) {
+        User user = userService.findCurrentUser();
+        if ( user.getProfile().getContactEmailVerified() ) {
+            return ResponseEntity.badRequest().body( "Contact email is already verified." );
+        }
+        VerificationToken token = userService.createContactEmailVerificationTokenForUser( user );
+        eventPublisher.publishEvent( new OnContactEmailUpdateEvent( user, token ) );
+        redirectAttributes.addFlashAttribute( "message", MessageFormat.format( "We will send an email to {0} with a link to verify your contact email.", user.getProfile().getContactEmail() ) );
+        return new ModelAndView( "redirect:/user/profile" );
+    }
+
     @GetMapping("/user/verify-contact-email")
     public ModelAndView verifyContactEmail( @RequestParam String token ) {
         ModelAndView modelAndView = new ModelAndView();
         try {
             userService.confirmVerificationToken( token );
-            modelAndView.setViewName( "redirect:/user/home" );
+            modelAndView.setViewName( "redirect:/user/profile" );
         } catch ( TokenException e ) {
             modelAndView.setStatus( HttpStatus.NOT_FOUND );
             modelAndView.setViewName( "error/404" );

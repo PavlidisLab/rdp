@@ -57,12 +57,12 @@ public class EmailServiceImplTest {
     @Before
     public void setUp() {
         when( siteSettings.getAdminEmail() ).thenReturn( "admin@example.com" );
-        when( siteSettings.getFullUrl() ).thenReturn( URI.create( "http://localhost" ) );
+        when( siteSettings.getHostUri() ).thenReturn( URI.create( "http://localhost" ) );
     }
 
     @Test
     public void sendResetTokenMessage_thenSucceed() throws MessagingException {
-        when( siteSettings.getFullUrl() ).thenReturn( URI.create( "http://localhost" ) );
+        when( siteSettings.getHostUri() ).thenReturn( URI.create( "http://localhost" ) );
         User user = createUser( 1 );
         PasswordResetToken token = createPasswordResetToken( user, "1234" );
         emailService.sendResetTokenMessage( user, token, Locale.getDefault() );
@@ -76,7 +76,7 @@ public class EmailServiceImplTest {
     }
 
     @Test
-    public void sendRegistrationMessageMessage_thenSucceed() {
+    public void sendRegistrationMessageMessage_thenSucceed() throws MessagingException {
         User user = createUser( 1 );
         VerificationToken token = createVerificationToken( user, "1234" );
         emailService.sendRegistrationMessage( user, token );
@@ -87,5 +87,20 @@ public class EmailServiceImplTest {
                 .hasFieldOrPropertyWithValue( "to", new String[]{ user.getEmail() } );
         assertThat( mailMessageCaptor.getValue().getText() ).
                 contains( "http://localhost/registrationConfirm?token=1234" );
+    }
+
+    @Test
+    public void sendContactEmailVerificationMessage_thenSucceed() throws MessagingException {
+        User user = createUser( 1 );
+        user.getProfile().setContactEmail( "foo@example.com" );
+        VerificationToken token = createContactEmailVerificationToken( user, "1234" );
+        emailService.sendContactEmailVerificationMessage( user, token );
+        ArgumentCaptor<SimpleMailMessage> mailMessageCaptor = ArgumentCaptor.forClass( SimpleMailMessage.class );
+        verify( emailSender ).send( mailMessageCaptor.capture() );
+        assertThat( mailMessageCaptor.getValue() )
+                .hasFieldOrPropertyWithValue( "from", "admin@example.com" )
+                .hasFieldOrPropertyWithValue( "to", new String[]{ "foo@example.com" } );
+        assertThat( mailMessageCaptor.getValue().getText() ).
+                contains( "http://localhost/user/verify-contact-email?token=1234" );
     }
 }

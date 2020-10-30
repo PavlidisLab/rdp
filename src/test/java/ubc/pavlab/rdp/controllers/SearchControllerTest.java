@@ -13,7 +13,6 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import ubc.pavlab.rdp.WebSecurityConfig;
 import ubc.pavlab.rdp.exception.RemoteException;
 import ubc.pavlab.rdp.model.GeneInfo;
@@ -26,11 +25,8 @@ import ubc.pavlab.rdp.settings.SiteSettings;
 
 import java.net.URI;
 import java.util.Collections;
-import java.util.EnumSet;
-import java.util.Optional;
 
 import static org.mockito.Matchers.*;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -163,7 +159,7 @@ public class SearchControllerTest {
                 .andExpect( status().isOk() )
                 .andExpect( view().name( "search" ) )
                 .andExpect( model().attributeExists( "usergenes" ) );
-        verify( userGeneService ).findOrthologsByGeneAndTierInAndUserOrgansIn( gene, TierType.ANY, null, null );
+        verify( userGeneService ).findOrthologsByGeneAndTierInAndUserOrgansIn( gene, TierType.ANY, null, null, null );
     }
 
     @Test
@@ -221,7 +217,7 @@ public class SearchControllerTest {
     public void searchItlUsersByNameView_thenReturnSuccess() throws Exception {
         User user = createUser( 1 );
         when( permissionEvaluator.hasPermission( any(), isNull(), eq( "international-search" ) ) ).thenReturn( true );
-        when( remoteResourceService.findUsersByLikeName( "Mark", true, null, null ) )
+        when( remoteResourceService.findUsersByLikeName( "Mark", true, null, null, null ) )
                 .thenReturn( Collections.singleton( user ) );
         mvc.perform( get( "/search/view/international" )
                 .param( "nameLike", "Mark" )

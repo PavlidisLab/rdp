@@ -3,6 +3,7 @@ package ubc.pavlab.rdp.controllers;
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import ubc.pavlab.rdp.model.GeneInfo;
 import ubc.pavlab.rdp.model.GeneOntologyTerm;
@@ -17,7 +18,7 @@ import java.util.List;
 /**
  * Created by mjacobson on 18/01/18.
  */
-@RestController
+@Controller
 @CommonsLog
 public class TermController {
 
@@ -28,7 +29,8 @@ public class TermController {
     private TaxonService taxonService;
 
     @PreAuthorize("hasPermission(null, 'search')")
-    @RequestMapping(value = "/taxon/{taxonId}/term/search/{query}", method = RequestMethod.GET)
+    @ResponseBody
+    @GetMapping(value = "/taxon/{taxonId}/term/search/{query}")
     public List<SearchResult<GeneOntologyTerm>> searchTermsByQueryAndTaxon( @PathVariable Integer taxonId, @PathVariable String query,
                                                                             @RequestParam(value = "max", required = false, defaultValue = "-1") int max ) {
         Taxon taxon = taxonService.findById( taxonId );
@@ -38,13 +40,15 @@ public class TermController {
     }
 
     @PreAuthorize("hasPermission(null, 'search')")
-    @RequestMapping(value = "/term/{goId}", method = RequestMethod.GET)
+    @ResponseBody
+    @GetMapping(value = "/term/{goId}")
     public GeneOntologyTerm getTerm( @PathVariable String goId ) {
         return goService.getTerm( goId );
     }
 
     @PreAuthorize("hasPermission(null, 'search')")
-    @RequestMapping(value = "/taxon/{taxonId}/term/{goId}/gene", method = RequestMethod.GET)
+    @ResponseBody
+    @GetMapping(value = "/taxon/{taxonId}/term/{goId}/gene")
     public Collection<GeneInfo> termGenes( @PathVariable Integer taxonId, @PathVariable String goId ) {
         Taxon taxon = taxonService.findById( taxonId );
         GeneOntologyTerm term = goService.getTerm( goId );

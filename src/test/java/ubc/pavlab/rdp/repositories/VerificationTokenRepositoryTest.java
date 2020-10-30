@@ -13,11 +13,9 @@ import ubc.pavlab.rdp.model.VerificationToken;
 
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.Date;
 
 import static junit.framework.TestCase.fail;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.within;
 import static ubc.pavlab.rdp.util.TestUtils.createUnpersistedUser;
 import static ubc.pavlab.rdp.util.TestUtils.createUser;
 
@@ -95,7 +93,7 @@ public class VerificationTokenRepositoryTest {
         assertThat( found ).isEqualTo( expiredToken );
     }
 
-    @Test
+    @Test(expected = IncorrectResultSizeDataAccessException.class)
     public void findByUser_whenValidUserHasMultipleTokens_thenError() {
 
         VerificationToken validToken2 = new VerificationToken();
@@ -105,13 +103,7 @@ public class VerificationTokenRepositoryTest {
         entityManager.persist( validToken2 );
         entityManager.flush();
 
-        try {
-            VerificationToken found = verificationTokenRepository.findByUser( user );
-        } catch ( IncorrectResultSizeDataAccessException e ) {
-            // Expected
-            return;
-        }
-        fail( "Should have thrown IncorrectResultSizeDataAccessException" );
+        verificationTokenRepository.findByUser( user );
     }
 
     @Test

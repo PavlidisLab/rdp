@@ -10,6 +10,7 @@
 
 <div class="container py-3">
     <div th:replace="layouts/common::title(title='Administrate User', subtitle=${user.profile.fullName})"></div>
+    <div th:replace="layouts/common::message"></div>
     <div class="row">
         <div class="col-3">
             <h3>User details</h3>
@@ -18,22 +19,77 @@
                 <dd th:text="${user.profile.name}"></dd>
                 <dt>Email</dt>
                 <dd th:text="${user.email}"></dd>
-                <dt>Contact Email</dt>
-                <dd th:text="${user.profile.contactEmail}"></dd>
+                <dt>Enabled?</dt>
+                <dd th:text="${user.enabled} ? 'Yes' : 'No'"></dd>
+                <th:block th:if="${user.verifiedContactEmail.isPresent()}">
+                    <dt>Contact Email</dt>
+                    <dd th:text="${user.verifiedContactEmail.get().address}"></dd>
+                </th:block>
             </dl>
+            <div class="form-group">
+                <a class="btn btn-primary btn-sm" th:href="@{/userView/{userId}(userId=${user.id})}">
+                    View user profile
+                </a>
+            </div>
+            <h3>Roles</h3>
+            <ul>
+                <li th:each="role : ${user.roles}"
+                    th:text="#{'Role.' + ${role.role}}">...
+                </li>
+            </ul>
         </div>
         <div class="col-4">
+            <th:block th:unless="${user.accessTokens.isEmpty()}">
+                <h3>Access Tokens</h3>
+                <ul class="list-group mb-3">
+                    <li th:each="accessToken : ${user.accessTokens}"
+                        class="list-group-item">
+                        <form th:action="@{/admin/users/{userId}/revoke-access-token/{accessTokenId}(userId=${user.id},accessTokenId=${accessToken.id})}"
+                              method="post"
+                              class="mb-0">
+                            <span th:text="${accessToken.token}"></span><br/>
+                            Expires on <span th:text="${accessToken.expiryDate}"></span>.<br/>
+                            <button class="btn btn-sm btn-danger">Revoke</button>
+                        </form>
+                    </li>
+                </ul>
+            </th:block>
+            <th:block th:unless="${user.verificationTokens.isEmpty()}">
+                <h3>Verification Tokens</h3>
+                <ul>
+                    <li th:each="verificationToken : ${user.verificationTokens}">
+                        <span th:text="${verificationToken.token} ?: 'No value'"></span><br/>
+                        For <span th:text="${verificationToken.email}"></span><br/>
+                        Expires on <span th:text="${verificationToken.expiryDate}"></span>.
+                    </li>
+                </ul>
+            </th:block>
+            <th:block th:unless="${user.passwordResetTokens.isEmpty()}">
+                <h3>Password Reset Tokens</h3>
+                <ul>
+                    <li th:each="passwordResetToken : ${user.passwordResetTokens}">
+                        <span th:text="${passwordResetToken.token} ?: 'No value'"></span><br/>
+                        Expires on <span th:text="${passwordResetToken.expiryDate}"></span>.
+                    </li>
+                </ul>
+            </th:block>
+            <form th:action="@{/admin/users/{userId}/create-access-token(userId=${user.id})}"
+                  method="post">
+                <button type="submit" class="btn btn-primary">Create new access token</button>
+            </form>
             <h3>Delete <span th:text="${user.profile.fullName}"></span></h3>
-            <div th:text="${message}"></div>
             <form th:action="@{/admin/users/{userId}(userId=${user.id})}"
                   th:method="delete"
-                  th:object="${user}"
+                  th:object="${confirmEmailForm}"
                   class="delete-user-form">
                 <div class="form-group">
                     <label th:for="${#ids.next('email')}">Confirm the user email:</label>
-                    <input th:id="${#ids.seq('email')}" class="form-control" type="email" name="email"
-                           th:placeholder="*{email}"/>
-                    <div class="invalid-feedback" th:errors="*{email}"/>
+                    <input th:id="${#ids.seq('email')}"
+                           th:field="*{email}"
+                           th:placeholder="${user.email}"
+                           class="form-control" type="email"
+                           th:classappend="${#fields.hasErrors('email')} ? 'is-invalid'"/>
+                    <div class="invalid-feedback" th:errors="*{email}"></div>
                 </div>
                 <button class="btn btn-danger">Delete this user</button>
             </form>

@@ -20,6 +20,7 @@ import ubc.pavlab.rdp.model.UserPrinciple;
 import ubc.pavlab.rdp.services.EmailService;
 import ubc.pavlab.rdp.services.UserService;
 
+import javax.mail.MessagingException;
 import javax.validation.Valid;
 import java.util.Locale;
 
@@ -38,10 +39,9 @@ public class PasswordController {
 
     @GetMapping(value = "/forgotPassword")
     public ModelAndView forgotPassword() {
-        ModelAndView modelAndView = new ModelAndView( "forgotPassword" );
-        return modelAndView;
+        return new ModelAndView( "forgotPassword" );
     }
-
+    
     @PostMapping(value = "/forgotPassword")
     public ModelAndView resetPassword( @RequestParam("email") String userEmail, Locale locale ) {
         //TODO: require captcha?
@@ -57,7 +57,15 @@ public class PasswordController {
         }
 
         PasswordResetToken token = userService.createPasswordResetTokenForUser( user );
-        emailService.sendResetTokenMessage( user, token, locale );
+        try {
+            emailService.sendResetTokenMessage( user, token, locale );
+        } catch ( MessagingException e ) {
+            modelAndView.setStatus( HttpStatus.INTERNAL_SERVER_ERROR );
+            modelAndView.addObject( "message", "We had trouble sending an email to your address." );
+            modelAndView.addObject( "error", true );
+            log.error( e );
+            return modelAndView;
+        }
 
         modelAndView.addObject( "message", "Password reset instructions have been sent." );
         modelAndView.addObject( "error", false );

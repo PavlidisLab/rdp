@@ -14,8 +14,8 @@
 
 <div class="wrapper d-flex justify-content-center align-items-center">
     <div class="container py-4">
-        <h4 class="form-signin-heading"><a th:href="@{/login}" th:text="#{rdp.site.fullname}"/></h4> <h6
-            class="form-signin-subheading">Researcher Registry</h6>
+        <h4 class="form-signin-heading"><a th:href="@{/login}" th:text="#{rdp.site.fullname}"></a></h4>
+        <h6 class="form-signin-subheading">Researcher Registry</h6>
         <div th:replace="layouts/login::message"></div>
         <form th:action="@{/login}" method="POST">
             <div class="row">

@@ -15,7 +15,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import ubc.pavlab.rdp.WebSecurityConfig;
 import ubc.pavlab.rdp.events.OnRegistrationCompleteEvent;
 import ubc.pavlab.rdp.exception.TokenException;
-import ubc.pavlab.rdp.listeners.RegistrationListener;
+import ubc.pavlab.rdp.listeners.UserListener;
 import ubc.pavlab.rdp.model.User;
 import ubc.pavlab.rdp.services.PrivacyService;
 import ubc.pavlab.rdp.services.UserService;
@@ -63,7 +63,7 @@ public class LoginControllerTest {
     private PermissionEvaluator permissionEvaluator;
 
     @MockBean
-    RegistrationListener registrationListener;
+    UserListener userListener;
 
     @Test
     public void login_thenReturnSuccess() throws Exception {
@@ -115,7 +115,8 @@ public class LoginControllerTest {
                 .andExpect( view().name( "resendConfirmation" ) );
 
         verify( userService ).findUserByEmailNoAuth( "foo@example.com" );
-        verify( registrationListener ).onApplicationEvent( any( OnRegistrationCompleteEvent.class ) );
+        verify( userService ).createVerificationTokenForUser( user );
+        verify( userListener ).onRegistrationComplete( any( OnRegistrationCompleteEvent.class ) );
     }
 
     @Test

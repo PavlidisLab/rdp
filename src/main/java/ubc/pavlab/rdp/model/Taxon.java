@@ -36,7 +36,8 @@ public class Taxon implements Serializable {
     private URL geneUrl;
 
     @JsonIgnore
-    private boolean active;
+    @Column(nullable = false)
+    private Boolean active;
 
     @JsonIgnore
     private Integer ordering;

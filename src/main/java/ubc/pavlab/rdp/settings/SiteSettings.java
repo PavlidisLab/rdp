@@ -22,18 +22,19 @@ public class SiteSettings {
 
     private String context;
 
+    public java.net.URI getHostUri() {
+        return UriComponentsBuilder.fromUriString( host ).path( context ).build().toUri();
+    }
+
     @Email
     private String contactEmail;
 
     @Email
     private String adminEmail;
 
-    public java.net.URI getFullUrl() {
-        return UriComponentsBuilder.fromUriString( host ).path( context ).build().toUri();
-    }
-
     @URL
     private String proxyHost;
     private String proxyPort;
 
+    private String gaTracker;
 }

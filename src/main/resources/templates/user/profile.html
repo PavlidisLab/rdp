@@ -11,24 +11,23 @@
 <body>
 <div th:replace="layouts/common::header">...</div>
 <div class="container py-4" th:object="${user.profile}">
-
-    <div class="row">
-        <div class="col-8">
-            <div th:replace="layouts/common::title(title='My Account', subtitle='User Profile')">...</div>
-        </div>
-        <div class="d-flex align-items-center justify-content-center" th:if="${viewOnly != null}">
-            <h3 class="d-inline-block pr-3 mr-3 mb-0" th:text="${user.profile.contactEmail ?: user.email}"></h3>
-        </div>
-        <div class="col-4 my-auto text-right" th:if="${viewOnly == null}">
-            <button type="button" class="btn btn-primary btn-lg save-profile">
-                <i class="mx-2 d-none spinner"></i>
-                Save
-            </button>
-        </div>
-    </div>
-
     <div class="main-content">
-        <div class="alert alert-success alert-dismissible fade show success-row my-3" role="alert"
+        <div class="row mb-3">
+            <div class="col-8">
+                <div th:replace="layouts/common::title(title='My Account', subtitle='User Profile')">...</div>
+            </div>
+            <div class="d-flex align-items-center justify-content-center" th:if="${viewOnly != null}">
+                <h3 class="d-inline-block pr-3 mr-3 mb-0" th:text="${user.profile.contactEmail ?: user.email}"></h3>
+            </div>
+            <div class="col-4 my-auto text-right" th:if="${viewOnly == null}">
+                <button type="button" class="btn btn-primary btn-lg save-profile">
+                    <i class="mx-2 d-none spinner"></i>
+                    Save
+                </button>
+            </div>
+        </div>
+
+        <div class="alert alert-success alert-dismissible fade show success-row mb-3" role="alert"
              style="display: none;">
             Profile Saved!
             <button type="button" class="close" id="saved-button">
@@ -36,14 +35,16 @@
             </button>
         </div>
 
-        <div class="alert alert-danger alert-dismissible fade show error-row my-3" role="alert" style="display: none;">
+        <div class="alert alert-danger alert-dismissible fade show error-row mb-3" role="alert" style="display: none;">
             Error Saving Profile!
             <button type="button" class="close">
                 <span aria-hidden="true">&times;</span>
             </button>
         </div>
 
-        <div class="row my-3">
+        <div th:replace="layouts/common::message"></div>
+
+        <div class="row mb-3">
             <div class="col">
                 <div class="card basic-info">
                     <div class="card-header">
@@ -124,7 +125,7 @@
                             class="edit-container">
                             <td class="align-middle">
                                 <label th:for="${#ids.next('profile.researcherCategories')}"
-                                       class="text-muted align-middle mb-0">Category</label>
+                                       class="text-muted align-middle mb-0">Categories</label>
                             </td>
                             <td>
                                 <div th:replace="fragments/profile::researcher-categories-selection(selectedResearcherCategories = *{researcherCategories})">
@@ -148,7 +149,7 @@
             </div>
         </div>
 
-        <div class="row my-3">
+        <div class="row mb-3">
             <div class="col">
                 <div class="card contact-info">
                     <div class="card-header">
@@ -158,7 +159,7 @@
                         <tr class="edit-container">
                             <td class="align-middle" style="width: 120px;">
                                 <label th:for="${#ids.next('profile.contactEmail')}"
-                                       class="text-muted align-middle">
+                                       class="text-muted align-middle mb-0">
                                     Contact Email
                                 </label>
                             </td>
@@ -169,6 +170,17 @@
                                        class="data-edit"
                                        type="text"
                                        disabled="disabled"/>
+                                <span th:if="*{contactEmailVerified}" class="badge badge-success contact-email-verification-badge">Verified</span>
+                                <th:block th:unless="*{contactEmail} == null or *{contactEmail} == '' or *{contactEmailVerified}">
+                                    <form th:action="@{/user/resend-contact-email-verification}" method="post"
+                                          class="d-inline-block">
+                                    <span class="badge badge-warning contact-email-verification-badge"
+                                          data-toggle="tooltip"
+                                          title="Your contact email is not verified, we'll contact you with your primary email instead.">Not verified</span>
+                                        <button class="btn btn-sm" type="submit">Resend contact email verification
+                                        </button>
+                                    </form>
+                                </th:block>
                             </td>
                         </tr>
                         <tr class="edit-container">
@@ -190,7 +202,7 @@
             </div>
         </div>
 
-        <div class="row my-3">
+        <div class="row mb-3">
             <div class="col">
                 <div class="card research-info edit-container">
                     <div class="card-header d-flex align-items-center">
@@ -209,7 +221,7 @@
             </div>
         </div>
 
-        <div class="row my-3"
+        <div class="row mb-3"
              th:if="${@applicationSettings.organs.enabled}">
             <div class="col">
                 <div class="card organs">
@@ -228,7 +240,7 @@
             </div>
         </div>
 
-        <div class="row my-3">
+        <div class="row mb-3">
             <div class="w-100"
                  th:if="${@applicationSettings.privacy.isCustomizableLevel()} or ${@applicationSettings.privacy.isCustomizableSharing()} or ${@applicationSettings.privacy.isAllowHideGenelist()}"></div>
             <div class="col"
@@ -260,10 +272,10 @@
                                                         data-target=${@applicationSettings.privacy.isCustomizableGeneLevel() and privacyLevel != user.profile.privacyLevel} ? '#' + ${#ids.next('confirm-gene-privacy-level-reset')}"/>
                                         <label class="form-check-label"
                                                th:for="${#ids.prev('privacyLevel')}">
-                                            <span th:text="${privacyLevel.label}"></span>
+                                            <span th:text="#{'PrivacyLevelType.' + ${privacyLevel.name()}}"></span>
                                             <i class="tip oi oi-question-mark"
                                                data-toggle="tooltip"
-                                               th:title="${privacyLevel.description}"/>
+                                               th:title="#{'PrivacyLevelType.' + ${privacyLevel.name()} + '.description'}"/>
                                         </label>
                                     </div>
                                 </div>
@@ -324,7 +336,7 @@
             </div>
         </div>
 
-        <div class="card publication-info my-3">
+        <div class="card publication-info">
             <div class="card-header">
                 <h3 class="mb-0">Publications</h3>
             </div>

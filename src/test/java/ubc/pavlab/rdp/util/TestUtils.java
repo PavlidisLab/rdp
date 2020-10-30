@@ -8,9 +8,9 @@ import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.TierType;
 
+import javax.persistence.Access;
 import java.net.URL;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -56,12 +56,15 @@ public final class TestUtils {
         User user = new User();
         user.setEmail( EMAIL );
         user.setPassword( ENCODED_PASSWORD ); // imbatman
+        user.setEnabled( false );
 
         Profile profile = new Profile();
         profile.setName( NAME );
         profile.setLastName( LAST_NAME );
         profile.setPrivacyLevel( PrivacyLevelType.PUBLIC );
         profile.setShared( false );
+        profile.setHideGenelist( false );
+        profile.setContactEmailVerified( false );
         user.setProfile( profile );
 
         return user;
@@ -90,14 +93,13 @@ public final class TestUtils {
     }
 
     @SneakyThrows
-    public static Taxon createTaxon( int id ) {
+    public static Taxon createTaxon( int taxonId ) {
         Taxon taxon = new Taxon();
+        taxon.setId( taxonId );
         taxon.setActive( true );
         taxon.setCommonName( TAXON_COMMON_NAME );
         taxon.setScientificName( TAXON_SCIENTIFIC_NAME );
         taxon.setGeneUrl( new URL( "ftp://ftp.ncbi.nlm.nih.gov/gene/DATA/GENE_INFO/Invertebrates/Caenorhabditis_elegans.gene_info.gz" ) );
-        taxon.setId( id );
-
         return taxon;
     }
 
@@ -105,7 +107,6 @@ public final class TestUtils {
         GeneOntologyTerm term = new GeneOntologyTerm();
         term.setGoId( id );
         term.setObsolete( false );
-
         return term;
     }
 
@@ -163,6 +164,7 @@ public final class TestUtils {
         oi.setUberonId( uberonId );
         oi.setName( name );
         oi.setDescription( description );
+        oi.setActive( false );
         return oi;
     }
 
@@ -186,7 +188,23 @@ public final class TestUtils {
         VerificationToken t = new VerificationToken();
         t.setUser( user );
         t.setEmail( user.getEmail() );
-        t.setToken( "1234" );
+        t.setToken( token );
         return t;
+    }
+
+    public static VerificationToken createContactEmailVerificationToken( User user, String token ) {
+        VerificationToken t = new VerificationToken();
+        t.setUser( user );
+        t.setEmail( user.getProfile().getContactEmail() );
+        t.setToken( token );
+        return t;
+    }
+
+    public static AccessToken createAccessToken( Integer id, User user, String token ) {
+        AccessToken accessToken = new AccessToken();
+        accessToken.setId( id );
+        accessToken.setUser( user );
+        accessToken.updateToken( token );
+        return accessToken;
     }
 }

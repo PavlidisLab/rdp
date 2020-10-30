@@ -26,7 +26,6 @@ import javax.ws.rs.core.Response;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.EnumSet;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
@@ -82,7 +81,7 @@ public class RemoteResourceServiceTest {
     public void findUserByLikeName_thenReturnSuccess() throws URISyntaxException {
         when( response.getStatus() ).thenReturn( 200 );
         when( response.readEntity( User[].class ) ).thenReturn( new User[]{} );
-        remoteResourceService.findUsersByLikeName( "ok", true, null, null );
+        remoteResourceService.findUsersByLikeName( "ok", true, null, null, null );
         verify( resteasyClient ).target( new URI( "http://example.com/api/users/search?nameLike=ok&prefix=true" ) );
     }
 
@@ -96,7 +95,7 @@ public class RemoteResourceServiceTest {
         when( userService.findCurrentUser() ).thenReturn( adminUser );
         when( response.getStatus() ).thenReturn( 200 );
         when( response.readEntity( User[].class ) ).thenReturn( new User[]{} );
-        remoteResourceService.findUsersByLikeName( "ok", true, null, null );
+        remoteResourceService.findUsersByLikeName( "ok", true, null, null, null );
         verify( resteasyClient ).target( new URI( "http://example.com/api/users/search?nameLike=ok&prefix=true&auth=1234" ) );
     }
 
@@ -106,7 +105,7 @@ public class RemoteResourceServiceTest {
         when( response.readEntity( UserGene[].class ) ).thenReturn( new UserGene[]{} );
 
         Taxon taxon = createTaxon( 9606 );
-        remoteResourceService.findGenesBySymbol( "ok", taxon, EnumSet.of( TierType.TIER1, TierType.TIER2, TierType.TIER3 ), null, null, null );
+        remoteResourceService.findGenesBySymbol( "ok", taxon, EnumSet.of( TierType.TIER1, TierType.TIER2, TierType.TIER3 ), null, null, null, null );
         verify( resteasyClient ).target( new URI( "http://example.com/api/genes/search?symbol=ok&taxonId=9606&tier=TIER1" ) );
         verify( resteasyClient ).target( new URI( "http://example.com/api/genes/search?symbol=ok&taxonId=9606&tier=TIER2" ) );
         verifyNoMoreInteractions( resteasyClient );

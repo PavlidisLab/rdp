@@ -9,23 +9,33 @@
 <body>
 <div th:replace="layouts/common::header(title='Users')"></div>
 <div class="container py-3">
-    <div th:replace="layouts/common::title(title='Users', subtitle='Test')"></div>
+    <div th:replace="layouts/common::title(title='Users')"></div>
     <h2>List of all registered users</h2>
     <table class="table table-compact">
         <thead>
-        <th>User ID</th>
-        <th>Full Name</th>
-        <th>Contact Email</th>
+        <tr>
+            <th>Email</th>
+            <th>Full Name</th>
+            <th>Contact Email</th>
+        </tr>
         </thead>
         <tbody>
         <tr th:each="user : ${users}">
-            <td><a th:href="@{/admin/users/{userId}(userId=${user.id})}" th:text="${user.id}"></a></td>
+            <td><a th:href="@{/admin/users/{userId}(userId=${user.id})}" th:text="${user.email}"></a></td>
             <td th:text="${user.profile.fullName}"></td>
-            <td th:text="${user.profile.contactEmail ?: user.email}"></td>
+            <td>
+                <a th:if="${user.verifiedContactEmail.isPresent()}"
+                   th:href="'mailto:' + ${user.verifiedContactEmail.get().address}"
+                   th:text="${user.verifiedContactEmail.get().address}"></a>
+                <span th:unless="${user.verifiedContactEmail.isPresent()}">
+                    No verified contact email.
+                </span>
+            </td>
         </tr>
         </tbody>
     </table>
 </div>
 <div th:replace="layouts/common::footer"></div>
+<div th:replace="layouts/common::scripts"></div>
 </body>
 </html>

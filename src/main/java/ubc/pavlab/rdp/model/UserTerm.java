@@ -17,8 +17,7 @@ import javax.persistence.*;
 @Entity
 @Table(name = "term",
         uniqueConstraints = { @UniqueConstraint(columnNames = { "user_id", "taxon_id", "go_id" }) },
-        indexes = { @Index(columnList = "go_id", name = "go_id_hidx") }
-)
+        indexes = { @Index(columnList = "go_id") })
 @Cacheable
 @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @Getter

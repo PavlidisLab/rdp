@@ -18,7 +18,7 @@
         ...
     </div>
 
-    <p class="lead my-3" th:text="#{rdp.site.welcome-public}">...</p>
+    <p class="lead mb-3" th:text="#{rdp.site.welcome-public}">...</p>
 
     <ul class="nav nav-tabs mt-3">
         <li class="nav-item"><a class="nav-link active" id="gene-tab" data-toggle="tab"
@@ -53,6 +53,7 @@
                             </div>
                             <input type="text" class="form-control gene-autocomplete" id="symbolInput"
                                    name="symbol"
+                                   th:value="${symbol}"
                                    placeholder="Symbol" title="Gene official symbol to look for"/>
                         </div>
                     </div>
@@ -62,7 +63,7 @@
                             <th:block th:each="taxon : ${@taxonService.findByActiveTrue()}">
                                 <option th:value="${taxon.id}"
                                         th:text="${#strings.capitalizeWords(taxon.commonName)}"
-                                        th:selected="${taxon.id == 9606}"></option>
+                                        th:selected="${taxon.id} == ${taxonId ?: 9606}"></option>
                             </th:block>
                         </select>
                     </div>
@@ -77,7 +78,8 @@
                             <option th:each="tier : ${T(ubc.pavlab.rdp.model.enums.TierType).values()}"
                                     th:if="${@tierService.isTierEnabled(tier)}"
                                     th:value="${tier}"
-                                    th:text="${tier.label}"></option>
+                                    th:text="#{'TierType.' + ${tier.name()}}"
+                                    th:selected="${tiers != null and tiers.contains(tier)}"></option>
                         </select>
                     </div>
                 </div>
@@ -96,7 +98,7 @@
                             <option th:each="taxon : ${@taxonService.findByActiveTrue()}"
                                     th:value="${taxon.id}"
                                     th:text="${#strings.capitalizeWords(taxon.commonName)}"
-                                    th:selected="${taxon.id == 9606}"></option>
+                                    th:selected="${taxon.id} == ${orthologTaxonId ?: 9606}"></option>
                         </select>
                     </div>
                     <div class="form-group col-md-3">
@@ -127,18 +129,19 @@
                         <p>With relevance to the following human organ systems (or any if none are selected):</p>
                     </div>
                     <div class="col-md-12">
-                        <div th:replace="fragments/organ::organs-selection">
+                        <div th:replace="fragments/organ::organs-selection(checkedOrganUberonIds = ${organUberonIds})">
                             ...
                         </div>
                     </div>
                 </div>
+                <input type="hidden" name="iSearch" th:value="${iSearch}"/>
             </form>
 
         </div>
 
         <div id="user-search" role="tabpanel" aria-labelledby="res-tab" class="tab-pane fade">
             <!--Researchers alphabetically-->
-            <div th:if="not ${chars.isEmpty()}" class="form-row">
+            <div th:unless="${chars.isEmpty()}" class="form-row d-none d-lg-block">
                 <div class="col-md-12">
                     <label>Browse alphabetically:</label>
                     <div class="btn-toolbar">
@@ -148,7 +151,7 @@
                                 <li th:each="char : ${chars}"
                                     class="page-item">
                                     <form class="search">
-                                        <input type="hidden" name="iSearch"/>
+                                        <input type="hidden" name="iSearch" th:value="${iSearch}"/>
                                         <input type="hidden" name="prefix" value="true"/>
                                         <input type="hidden" name="nameLike" th:value="${char}"/>
                                         <button class="page-link" type="submit"
@@ -175,8 +178,8 @@
                                 </button>
                             </div>
                             <input type="text" class="form-control" name="nameLike" id="nameLike"
-                                   placeholder="Part of researcher name"/>
-                            <input type="hidden" name="iSearch"/>
+                                   placeholder="Part of researcher name" th:value="${nameLike}"/>
+                            <input type="hidden" name="iSearch" th:value="${iSearch}"/>
                             <input type="hidden" name="prefix" value="false"/>
                         </div>
                     </div>
@@ -195,9 +198,12 @@
                                     Search
                                 </button>
                             </div>
-                            <input type="text" class="form-control" name="descriptionLike" id="descriptionLike"
+                            <input id="descriptionLike"
+                                   type="text" class="form-control"
+                                   name="descriptionLike"
+                                   th:value="${descriptionLike}"
                                    placeholder="Keyword in research description"/>
-                            <input type="hidden" name="iSearch"/>
+                            <input type="hidden" name="iSearch" th:value="${iSearch}"/>
                             <input type="hidden" name="prefix" value="false"/>
                         </div>
                     </div>
@@ -230,7 +236,7 @@
                         </div>
                     </div>
                     <div class="col-md-12">
-                        <div th:replace="fragments/organ::organs-selection">
+                        <div th:replace="fragments/organ::organs-selection(checkedOrganUberonIds = ${organUberonIds})">
                             ...
                         </div>
                     </div>
@@ -239,12 +245,13 @@
         </div>
     </div>
 
-    <form th:if="${@applicationSettings.getIsearch().isEnabled()}" class="my-3">
+    <form th:if="${@applicationSettings.getIsearch().isEnabled()}"
+          class="mb-3">
         <div class="form-row">
             <div class="col-md-12">
                 <div class="form-check">
                     <input id="isearch-checkbox" type="checkbox" class="form-check-input"
-                           th:checked="${@applicationSettings.getIsearch().isDefaultOn()}"/>
+                           th:checked="${iSearch} ?: ${@applicationSettings.getIsearch().isDefaultOn()}"/>
                     <label for="isearch-checkbox"
                            class="form-check-label">
                         Include results from partner registries
@@ -261,7 +268,7 @@
     <hr/>
 
     <!--Orthologs -->
-    <div id="orthologsResults" class="my-3">
+    <div id="orthologsResults" class="mb-3">
         <div th:if="${orthologs != null} "
              th:replace="fragments/user-table::ortholog-table(users=${users}, orthologs=${orthologs}, remote=false)">
             ...
@@ -269,25 +276,40 @@
     </div>
 
     <!--Results-->
-    <div class="my-3">
+    <div class="mb-3">
         <h4 th:text="'Researchers registered in ' + #{rdp.site.shortname}"></h4>
         <div id="userTable">
-            <div th:if="${users != null}"
-                 th:replace="fragments/user-table::user-table(users=${users}, remote=false)">
-                ...
-            </div>
+            <div th:replace="layouts/common::message"></div>
+            <th:block th:if="${users}">
+                <div th:replace="fragments/user-table::user-table(users=${users}, remote=false)">
+                    ...
+                </div>
+            </th:block>
+            <th:block th:if="${usergenes}">
+                <div th:replace="fragments/user-table::usergenes-table (usergenes=${usergenes}, remote=false)">
+                    ...
+                </div>
+            </th:block>
         </div>
     </div>
 
     <!--International results-->
-    <div id="itlResults" th:if="${@applicationSettings.getIsearch().isEnabled()}" class="my-3">
+    <div th:if="${@applicationSettings.getIsearch().isEnabled()}"
+         id="itlResults"
+         class="mb-3">
         <hr/>
         <h4>Partner registry results</h4>
         <div id="itlUserTable">
-            <div th:if="${itlUsers != null}"
-                 th:replace="fragments/user-table::user-table(users=${itlUsers}, remote=true)">
-                ...
-            </div>
+            <th:block th:if="${itlUsers}">
+                <div th:replace="fragments/user-table::user-table(users=${itlUsers}, remote=true)">
+                    ...
+                </div>
+            </th:block>
+            <th:block th:if="${itlUsergenes}">
+                <div th:replace="fragments/user-table::usergenes-table (usergenes=${itlUsergenes}, remote=true)">
+                    ...
+                </div>
+            </th:block>
         </div>
     </div>
 </div>

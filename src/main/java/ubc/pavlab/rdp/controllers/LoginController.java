@@ -9,6 +9,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -18,11 +19,10 @@ import ubc.pavlab.rdp.events.OnRegistrationCompleteEvent;
 import ubc.pavlab.rdp.exception.TokenException;
 import ubc.pavlab.rdp.model.Profile;
 import ubc.pavlab.rdp.model.User;
+import ubc.pavlab.rdp.model.VerificationToken;
 import ubc.pavlab.rdp.services.PrivacyService;
 import ubc.pavlab.rdp.services.UserService;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
-
-import javax.validation.Valid;
 
 /**
  * Created by mjacobson on 16/01/18.
@@ -65,17 +65,20 @@ public class LoginController {
     }
 
     @PostMapping("/registration")
-    public ModelAndView createNewUser( @Valid User user,
+    public ModelAndView createNewUser( @Validated(User.ValidationUserAccount.class) User user,
                                        BindingResult bindingResult,
                                        RedirectAttributes redirectAttributes ) {
         ModelAndView modelAndView = new ModelAndView( "registration" );
         User userExists = userService.findUserByEmailNoAuth( user.getEmail() );
+
+        user.setEnabled( false );
 
         // initialize a basic user profile
         Profile userProfile = user.getProfile();
         userProfile.setPrivacyLevel( privacyService.getDefaultPrivacyLevel() );
         userProfile.setShared( applicationSettings.getPrivacy().isDefaultSharing() );
         userProfile.setHideGenelist( false );
+        userProfile.setContactEmailVerified( false );
 
         if ( userExists != null ) {
             bindingResult.rejectValue( "email", "error.user", "There is already a user registered this email." );
@@ -86,15 +89,10 @@ public class LoginController {
             modelAndView.setStatus( HttpStatus.BAD_REQUEST );
         } else {
             user = userService.create( user );
-            try {
-                eventPublisher.publishEvent( new OnRegistrationCompleteEvent( user ) );
-                redirectAttributes.addFlashAttribute( "message", "Your user account was registered successfully. Please check your email for completing the completing the registration process." );
-            } catch ( Exception me ) {
-                log.error( me );
-                redirectAttributes.addFlashAttribute( "message", "Your user account was registered successfully, but we couldn't send you a confirmation email." );
-            } finally {
-                modelAndView.setViewName( "redirect:/login" );
-            }
+            VerificationToken token = userService.createVerificationTokenForUser( user );
+            eventPublisher.publishEvent( new OnRegistrationCompleteEvent( user, token ) );
+            redirectAttributes.addFlashAttribute( "message", "Your user account was registered successfully. Please check your email for completing the completing the registration process." );
+            modelAndView.setViewName( "redirect:/login" );
         }
 
         return modelAndView;
@@ -102,8 +100,7 @@ public class LoginController {
 
     @GetMapping(value = "/resendConfirmation")
     public ModelAndView resendConfirmation() {
-        ModelAndView modelAndView = new ModelAndView( "resendConfirmation" );
-        return modelAndView;
+        return new ModelAndView( "resendConfirmation" );
     }
 
     @PostMapping(value = "/resendConfirmation")
@@ -116,20 +113,15 @@ public class LoginController {
             modelAndView.setStatus( HttpStatus.NOT_FOUND );
             modelAndView.addObject( "message", "User does not exist." );
             return modelAndView;
-        } else if ( user.isEnabled() ) {
+        } else if ( user.getEnabled() ) {
             // user is already enabled...
             modelAndView.setStatus( HttpStatus.BAD_REQUEST );
             modelAndView.addObject( "message", "User is already enabled." );
             return modelAndView;
         } else {
-
-            try {
-                eventPublisher.publishEvent( new OnRegistrationCompleteEvent( user ) );
-                modelAndView.addObject( "message", "Confirmation email sent." );
-            } catch ( Exception me ) {
-                log.error( me );
-                modelAndView.addObject( "message", "There was a problem sending the confirmation email. Please try again later." );
-            }
+            VerificationToken token = userService.createVerificationTokenForUser( user );
+            eventPublisher.publishEvent( new OnRegistrationCompleteEvent( user, token ) );
+            modelAndView.addObject( "message", "Confirmation email sent." );
         }
 
         return modelAndView;
@@ -150,6 +142,5 @@ public class LoginController {
 
         return modelAndView;
     }
-
 
 }
