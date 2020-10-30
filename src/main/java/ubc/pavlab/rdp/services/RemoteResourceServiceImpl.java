@@ -1,12 +1,12 @@
 package ubc.pavlab.rdp.services;
 
 import lombok.extern.apachecommons.CommonsLog;
-import org.jboss.resteasy.client.jaxrs.ResteasyClient;
-import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import ubc.pavlab.rdp.exception.RemoteException;
 import ubc.pavlab.rdp.model.Taxon;
@@ -18,7 +18,6 @@ import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.repositories.RoleRepository;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 
-import javax.ws.rs.core.Response;
 import java.net.URI;
 import java.text.MessageFormat;
 import java.util.*;
@@ -44,7 +43,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
     private RoleRepository roleRepository;
 
     @Autowired
-    private ResteasyClient client;
+    private RestTemplate restTemplate;
 
     @Override
     public Collection<User> findUsersByLikeName( String nameLike, Boolean prefix, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherCategories, Collection<String> organUberonIds ) {
@@ -178,13 +177,13 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
     }
 
     private <T> T remoteRequest( Class<T> cls, URI uri ) throws RemoteException {
-        ResteasyWebTarget target = client.target( uri );
-        Response response = target.request().get();
-        if ( response.getStatus() != 200 ) {
-            throw new RemoteException( MessageFormat.format( "No data received: {0}.", response.readEntity( String.class ) ) );
+        ResponseEntity<T> responseEntity = restTemplate.getForEntity( uri, cls );
+
+        if ( !responseEntity.getStatusCode().is2xxSuccessful() ) {
+            throw new RemoteException( MessageFormat.format( "No data received from {0}.", uri ) );
         }
 
-        return response.readEntity( cls );
+        return responseEntity.getBody();
     }
 
     private Set<TierType> restrictTiers( Set<TierType> tiers ) {

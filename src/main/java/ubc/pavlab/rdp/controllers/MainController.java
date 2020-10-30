@@ -2,6 +2,7 @@ package ubc.pavlab.rdp.controllers;
 
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,7 +14,6 @@ import ubc.pavlab.rdp.services.UserService;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.core.MediaType;
 import java.io.IOException;
 
 @Controller
@@ -40,7 +40,7 @@ public class MainController {
     }
 
     @PreAuthorize("isAuthenticated()")
-    @GetMapping(value = "/gettimeout", produces = MediaType.TEXT_PLAIN)
+    @GetMapping(value = "/gettimeout", produces = MediaType.TEXT_PLAIN_VALUE)
     @ResponseBody
     public String getTimeout( HttpServletRequest servletRequest, HttpServletResponse servletResponse ) {
         addTimeoutCookies( servletRequest, servletResponse );

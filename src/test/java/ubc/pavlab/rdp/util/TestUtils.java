@@ -8,7 +8,7 @@ import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.TierType;
 
-import javax.persistence.Access;
+import java.net.URI;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Map;
@@ -89,6 +89,12 @@ public final class TestUtils {
                 .map( g -> createUnpersistedUserGene( g, user, TierType.TIER1, PrivacyLevelType.PRIVATE ) )
                 .collect( Collectors.toMap( UserGene::getGeneId, Function.identity() ) );
         user.getUserGenes().putAll( userGenes );
+        return user;
+    }
+
+    public static User createRemoteUser( int id, URI originUri ) {
+        User user = createUser( id );
+        user.setOriginUrl( originUri );
         return user;
     }
 

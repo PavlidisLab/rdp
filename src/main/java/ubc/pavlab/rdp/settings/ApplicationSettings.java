@@ -141,7 +141,7 @@ public class ApplicationSettings {
         private String searchToken;
         @URL
         private String host = null;
-        private String port = null;
+        private Integer port = null;
     }
 
     private ProfileSettings profile;
