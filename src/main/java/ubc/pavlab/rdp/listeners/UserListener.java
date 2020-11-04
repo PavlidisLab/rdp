@@ -4,6 +4,7 @@ import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.event.TransactionalEventListener;
 import ubc.pavlab.rdp.events.OnContactEmailUpdateEvent;
 import ubc.pavlab.rdp.events.OnRegistrationCompleteEvent;
 import ubc.pavlab.rdp.services.EmailService;
@@ -22,7 +23,7 @@ public class UserListener {
     @Autowired
     private ApplicationSettings applicationSettings;
 
-    @EventListener
+    @TransactionalEventListener
     public void onRegistrationComplete( OnRegistrationCompleteEvent event ) {
         if ( applicationSettings.isSendEmailOnRegistration() ) {
             try {
@@ -39,7 +40,7 @@ public class UserListener {
         }
     }
 
-    @EventListener
+    @TransactionalEventListener
     public void onContactEmailUpdate( OnContactEmailUpdateEvent event ) {
         try {
             emailService.sendContactEmailVerificationMessage( event.getUser(), event.getToken() );

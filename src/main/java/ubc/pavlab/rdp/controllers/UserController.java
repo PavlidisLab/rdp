@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -203,6 +204,7 @@ public class UserController {
         return modelAndView;
     }
 
+    @Transactional
     @PostMapping("/user/resend-contact-email-verification")
     public Object resendContactEmailVerification( RedirectAttributes redirectAttributes ) {
         User user = userService.findCurrentUser();

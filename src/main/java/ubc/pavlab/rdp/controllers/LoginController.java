@@ -8,6 +8,7 @@ import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -64,6 +65,7 @@ public class LoginController {
         return modelAndView;
     }
 
+    @Transactional
     @PostMapping("/registration")
     public ModelAndView createNewUser( @Validated(User.ValidationUserAccount.class) User user,
                                        BindingResult bindingResult,
@@ -103,6 +105,7 @@ public class LoginController {
         return new ModelAndView( "resendConfirmation" );
     }
 
+    @Transactional
     @PostMapping(value = "/resendConfirmation")
     public ModelAndView resendConfirmation( @RequestParam("email") String email ) {
         ModelAndView modelAndView = new ModelAndView( "resendConfirmation" );
