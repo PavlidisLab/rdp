@@ -3,6 +3,7 @@ package ubc.pavlab.rdp.controllers;
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -119,7 +120,7 @@ public class ApiController {
                                      @RequestParam(required = false) Set<ResearcherPosition> researcherPositions,
                                      @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
                                      @RequestParam(required = false) Set<String> organUberonIds,
-                                     @RequestHeader(value = "Authorization", required = false) String authorizationHeader,
+                                     @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorizationHeader,
                                      @Deprecated @RequestParam(required = false) String auth,
                                      Locale locale ) {
         checkEnabled();
@@ -136,7 +137,7 @@ public class ApiController {
                                             @RequestParam(required = false) Set<ResearcherPosition> researcherPositions,
                                             @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
                                             @RequestParam(required = false) Set<String> organUberonIds,
-                                            @RequestHeader(value = "Authorization", required = false) String authorizationHeader,
+                                            @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorizationHeader,
                                             @Deprecated @RequestParam(required = false) String auth,
                                             Locale locale ) {
         checkEnabled();
@@ -155,7 +156,7 @@ public class ApiController {
                                            @RequestParam(required = false) Set<ResearcherPosition> researcherPositions,
                                            @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
                                            @RequestParam(required = false) Set<String> organUberonIds,
-                                           @RequestHeader(value = "Authorization", required = false) String authorizationHeader,
+                                           @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorizationHeader,
                                            @Deprecated @RequestParam(required = false) String auth,
                                            Locale locale ) {
         checkEnabled();
@@ -212,7 +213,7 @@ public class ApiController {
                                            @RequestParam(required = false) Set<ResearcherPosition> researcherPositions,
                                            @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
                                            @RequestParam(required = false) Set<String> organUberonIds,
-                                           @RequestHeader(value = "Authorization", required = false) String authorizationHeader,
+                                           @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorizationHeader,
                                            @Deprecated @RequestParam(required = false) String auth,
                                            Locale locale ) {
         Set<TierType> tiers;
@@ -234,7 +235,7 @@ public class ApiController {
 
     @GetMapping(value = "/api/users/{userId}", produces = MediaType.APPLICATION_JSON_VALUE)
     public Object getUserById( @PathVariable Integer userId,
-                               @RequestHeader(value = "Authorization", required = false) String authorizationHeader,
+                               @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorizationHeader,
                                @RequestParam(name = "auth", required = false) String auth,
                                Locale locale ) {
         checkEnabled();
