@@ -3,7 +3,9 @@ package ubc.pavlab.rdp.services;
 import lombok.NonNull;
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.CacheManager;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.MessageSource;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PostFilter;
@@ -23,6 +25,7 @@ import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.repositories.*;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
+import ubc.pavlab.rdp.settings.SiteSettings;
 
 import javax.validation.ValidationException;
 import java.text.MessageFormat;
@@ -30,10 +33,7 @@ import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static java.util.Comparator.comparingLong;
 import static java.util.function.Function.identity;
-import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.maxBy;
 import static org.springframework.util.CollectionUtils.containsAny;
 
 /**
@@ -42,6 +42,9 @@ import static org.springframework.util.CollectionUtils.containsAny;
 @Service("userService")
 @CommonsLog
 public class UserServiceImpl implements UserService {
+
+    public static final String USERS_BY_ANONYMOUS_ID_CACHE_KEY = "ubc.pavlab.rdp.model.User.byAnonymousId";
+    public static final String USER_GENES_BY_ANONYMOUS_ID_CACHE_KEY = "ubc.pavlab.rdp.model.UserGene.byAnonymousId";
 
     @Autowired
     ApplicationSettings applicationSettings;
@@ -63,13 +66,19 @@ public class UserServiceImpl implements UserService {
     UserGeneRepository userGeneRepository;
     @Autowired
     private ApplicationEventPublisher eventPublisher;
+    @Autowired
+    private AccessTokenRepository accessTokenRepository;
+    @Autowired
+    private PrivacyService privacyService;
+    @Autowired
+    private CacheManager cacheManager;
 
     @Transactional
     @Override
     public User create( User user ) {
         user.setPassword( bCryptPasswordEncoder.encode( user.getPassword() ) );
         Role userRole = roleRepository.findByRole( "ROLE_USER" );
-        user.setRoles( Collections.singleton( userRole ) );
+        user.getRoles().add( userRole );
         return userRepository.save( user );
     }
 
@@ -79,7 +88,7 @@ public class UserServiceImpl implements UserService {
     public User createAdmin( User admin ) {
         admin.setPassword( bCryptPasswordEncoder.encode( admin.getPassword() ) );
         Role adminRole = roleRepository.findByRole( "ROLE_ADMIN" );
-        admin.setRoles( Collections.singleton( adminRole ) );
+        admin.getRoles().add( adminRole );
         return userRepository.save( admin );
     }
 
@@ -89,7 +98,7 @@ public class UserServiceImpl implements UserService {
     public User createServiceAccount( User user ) {
         user.setPassword( bCryptPasswordEncoder.encode( UUID.randomUUID().toString() ) );
         Role serviceAccountRole = roleRepository.findByRole( "ROLE_SERVICE_ACCOUNT" );
-        user.setRoles( Collections.singleton( serviceAccountRole ) );
+        user.getRoles().add( serviceAccountRole );
         user = userRepository.save( user );
         createAccessTokenForUser( user );
         return user;
@@ -208,6 +217,17 @@ public class UserServiceImpl implements UserService {
         return userRepository.findOne( id );
     }
 
+
+    @Override
+    public User findUserByAnonymousId( UUID anonymousId ) {
+        return cacheManager.getCache( USERS_BY_ANONYMOUS_ID_CACHE_KEY ).get( anonymousId, User.class );
+    }
+
+    @Override
+    public UserGene findUserGeneByAnonymousId( UUID anonymousId ) {
+        return cacheManager.getCache( USER_GENES_BY_ANONYMOUS_ID_CACHE_KEY ).get( anonymousId, UserGene.class );
+    }
+
     @Override
     public User findUserByIdNoAuth( int id ) {
         // Only use this in placed where no authentication of user is needed
@@ -218,9 +238,6 @@ public class UserServiceImpl implements UserService {
     public User findUserByEmailNoAuth( String email ) {
         return userRepository.findByEmailIgnoreCase( email );
     }
-
-    @Autowired
-    private AccessTokenRepository accessTokenRepository;
 
     @Override
     public User findUserByAccessTokenNoAuth( String accessToken ) throws TokenException {
@@ -233,6 +250,43 @@ public class UserServiceImpl implements UserService {
             throw new TokenException( "Token is expired." );
         }
         return token.getUser();
+    }
+
+    @Autowired
+    private MessageSource messageSource;
+
+    @Override
+    public User anonymizeUser( User user ) {
+        Profile profile = Profile.builder()
+                .name( messageSource.getMessage( "rdp.site.anonymized-user-name", new String[]{}, Locale.getDefault() ) )
+                .privacyLevel( PrivacyLevelType.PUBLIC )
+                .shared( true )
+                .build();
+        profile.getResearcherCategories().addAll( user.getProfile().getResearcherCategories() );
+        User anonymizedUser = User.builder()
+                .id( 0 )
+                .anonymousId( UUID.randomUUID() )
+                .profile( profile )
+                .build();
+        // TODO: check if this is leaking too much personal information
+        user.getUserOrgans().putAll( user.getUserOrgans() );
+        cacheManager.getCache( USERS_BY_ANONYMOUS_ID_CACHE_KEY ).put( anonymizedUser.getAnonymousId(), user );
+        return anonymizedUser;
+    }
+
+    @Override
+    public UserGene anonymizeUserGene( UserGene userGene ) {
+        UserGene anonymizedUserGene = UserGene.builder()
+                .id( 0 )
+                .anonymousId( UUID.randomUUID() )
+                .user( anonymizeUser( userGene.getUser() ) )
+                .geneInfo( userGene.getGeneInfo() )
+                .privacyLevel( PrivacyLevelType.PUBLIC )
+                .tier( userGene.getTier() )
+                .build();
+        anonymizedUserGene.updateGene( userGene );
+        cacheManager.getCache( USER_GENES_BY_ANONYMOUS_ID_CACHE_KEY ).put( anonymizedUserGene.getAnonymousId(), userGene );
+        return anonymizedUserGene;
     }
 
     @Override
@@ -306,7 +360,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Collection<GeneOntologyTerm> recommendTerms( @NonNull User user, @NonNull Taxon taxon, long minSize, long maxSize, long minFrequency ) {
-        Set<? extends Gene> genes = user.getGenesByTaxonAndTier( taxon, TierType.MANUAL ).stream().collect( Collectors.toSet() );
+        Set<UserGene> genes = new HashSet<>( user.getGenesByTaxonAndTier( taxon, TierType.MANUAL ) );
 
         // terms already associated to user within the taxon
         Set<String> userTermGoIds = user.getUserTerms().stream()
@@ -320,15 +374,12 @@ public class UserServiceImpl implements UserService {
                 .filter( e -> minSize < 0 || e.getKey().getSizeInTaxon( taxon ) >= minSize )
                 .filter( e -> maxSize < 0 || e.getKey().getSizeInTaxon( taxon ) <= maxSize )
                 .filter( e -> !userTermGoIds.contains( e.getKey().getGoId() ) )
-                .map( e -> e.getKey() )
-                .collect( groupingBy( identity(), maxBy( comparingLong( t -> computeTermFrequency( user, t ) ) ) ) )
-                .values().stream()
-                .map( Optional::get )
+                .map( Map.Entry::getKey )
                 .collect( Collectors.toSet() );
 
         // Keep only leafiest of remaining terms (keep if it has no descendants in results)
         return topResults.stream()
-                .filter( ut -> Collections.disjoint( topResults, goService.getDescendants( ut ) ) )
+                .filter( term -> Collections.disjoint( topResults, goService.getDescendants( term ) ) )
                 .collect( Collectors.toSet() );
     }
 
@@ -426,7 +477,8 @@ public class UserServiceImpl implements UserService {
                     .map( ResearcherCategory::name )
                     .collect( Collectors.toSet() );
             if ( applicationSettings.getProfile().getEnabledResearcherCategories().containsAll( researcherCategoryNames ) ) {
-                user.getProfile().setResearcherCategories( profile.getResearcherCategories() );
+                user.getProfile().getResearcherCategories().retainAll( profile.getResearcherCategories() );
+                user.getProfile().getResearcherCategories().addAll( profile.getResearcherCategories() );
             } else {
                 log.warn( MessageFormat.format( "User {0} attempted to set user {1} researcher type to an unknown value {2}.",
                         findCurrentUser(), user, profile.getResearcherCategories() ) );
@@ -436,7 +488,7 @@ public class UserServiceImpl implements UserService {
         if ( user.getProfile().getContactEmail() == null ||
                 !user.getProfile().getContactEmail().equals( profile.getContactEmail() ) ) {
             user.getProfile().setContactEmail( profile.getContactEmail() );
-            if ( user.getProfile().getContactEmail() != null ) {
+            if ( user.getProfile().getContactEmail() != null && !user.getProfile().getContactEmail().isEmpty() ) {
                 if ( user.getProfile().getContactEmail().equals( user.getEmail() ) ) {
                     // if the contact email is set to the user email, it's de facto verified
                     user.getProfile().setContactEmailVerified( true );
@@ -553,7 +605,6 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public User confirmVerificationToken( String token ) throws TokenException {
-        log.error( "This is called." );
         VerificationToken verificationToken = tokenRepository.findByToken( token );
         if ( verificationToken == null ) {
             throw new TokenException( "Verification token is invalid." );

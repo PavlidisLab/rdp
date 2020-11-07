@@ -8,4 +8,8 @@ public final class RemoteException extends Exception {
     public RemoteException( final String message ) {
         super( message );
     }
+
+    public RemoteException( final String message, Throwable e ) {
+        super( message, e );
+    }
 }

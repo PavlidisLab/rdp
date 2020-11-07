@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      lang="en">
+<head th:replace="layouts/common::head(title='Request Access')">
+    <meta charset="UTF-8"/>
+    <title>...</title>
+</head>
+<body>
+<div th:replace="layouts/common::header">...</div>
+<div class="container py-4">
+    <div th:replace="layouts/common::title(title='Request Access')">...</div>
+    <div class="row">
+        <div class="col-4">
+            <p>
+                This user does not want to be identified via <strong th:text="${userGene.symbol}"></strong>.
+            </p>
+            <p>
+                You can request access by filling and submitting the form below. If he/she agrees, you will receive a
+                reply through your contact email.
+            </p>
+        </div>
+        <div class="col-4">
+            <div class="card mb-3">
+                <div class="card-body">
+                    <div th:replace="fragments/profile::user-preview(user = ${userGene.user})">
+                        ...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-8">
+            <form method="post" th:object="${requestAccessForm}">
+                <div class="form-group form-row">
+                    <label th:for="${#ids.next('reason')}"
+                           class="col-form-label col-sm-2">
+                        Reason
+                    </label>
+                    <div class="form-group col-sm-10">
+                    <textarea placeholder="Describe why you want to access this user..."
+                              th:field="*{reason}"
+                              class="form-control"
+                              th:classappend="${#fields.hasErrors('reason')} ? 'is-invalid'"></textarea>
+                        <div class="invalid-feedback" th:errors="*{reason}"></div>
+                    </div>
+                </div>
+                <div class="form-group form-row">
+                    <button class="btn btn-primary" type="submit">
+                        <i class="oi oi-lock-locked"></i>
+                        Request Access
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<div th:replace="layouts/common::footer">...</div>
+<div th:replace="layouts/common::scripts">...</div>
+</body>
+</html>

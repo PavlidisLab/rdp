@@ -41,8 +41,8 @@ public class UserOrganRepositoryTest {
 
     @Before
     public void setUp() {
-        User user = entityManager.persist( createUnpersistedUser() );
-        userOrgan = entityManager.persist( createUserOrgan( user, "UBERON_....", "Limb/Appendage", "Limb or appendage" ) );
+        User user = entityManager.persistAndFlush( createUnpersistedUser() );
+        userOrgan = entityManager.persistAndFlush( createUserOrgan( user, "UBERON_....", "Limb/Appendage", "Limb or appendage" ) );
     }
 
     @Test

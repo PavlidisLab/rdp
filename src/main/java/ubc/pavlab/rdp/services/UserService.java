@@ -10,10 +10,7 @@ import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import ubc.pavlab.rdp.model.enums.TierType;
 
 import javax.validation.ValidationException;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedSet;
+import java.util.*;
 
 /**
  * Created by mjacobson on 16/01/18.
@@ -40,13 +37,21 @@ public interface UserService {
 
     User findUserById( int id );
 
+    User findUserByAnonymousId( UUID anonymousId );
+
+    UserGene findUserGeneByAnonymousId( UUID anonymousId );
+
     User findUserByIdNoAuth( int id );
 
     User findUserByEmailNoAuth( String email );
 
     User findUserByAccessTokenNoAuth( String accessToken ) throws TokenException;
 
-    void revokeAccessToken(AccessToken accessToken);
+    User anonymizeUser( User user );
+
+    UserGene anonymizeUserGene( UserGene userGene );
+
+    void revokeAccessToken( AccessToken accessToken );
 
     AccessToken createAccessTokenForUser( User user );
 

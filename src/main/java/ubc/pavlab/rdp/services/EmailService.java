@@ -3,6 +3,7 @@ package ubc.pavlab.rdp.services;
 import org.springframework.web.multipart.MultipartFile;
 import ubc.pavlab.rdp.model.PasswordResetToken;
 import ubc.pavlab.rdp.model.User;
+import ubc.pavlab.rdp.model.UserGene;
 import ubc.pavlab.rdp.model.VerificationToken;
 
 import javax.mail.MessagingException;
@@ -25,4 +26,6 @@ public interface EmailService {
     void sendContactEmailVerificationMessage( User user, VerificationToken token ) throws MessagingException;
 
     void sendUserRegisteredEmail( User user ) throws MessagingException;
+
+    void sendUserGeneAccessRequest( UserGene userGene, User by, String reason ) throws MessagingException;
 }

@@ -12,11 +12,13 @@
 <body>
 <div th:replace="layouts/common::header">...</div>
 <div class="container py-4">
-    <div th:replace="layouts/common::title(title='User Profile', subtitle=${viewUser.profile.fullName})">
-        ...
-    </div>
     <div class="main-content">
-        <div class="row justify-content-center success-row my-3">
+        <div th:replace="layouts/common::title(title='User Profile', subtitle=${viewUser.profile.fullName})">
+            ...
+        </div>
+
+        <div th:replace="layouts/common::message"></div>
+        <div class="row justify-content-center success-row mb-3">
             <div class="col">
                 <div th:if="${viewUser.origin} != null" class="alert alert-info mb-0" role="alert">
                     This is a remote user registered at
@@ -27,7 +29,7 @@
                 </div>
             </div>
         </div>
-        <div class="row justify-content-center success-row my-3" style="display: none;">
+        <div class="row justify-content-center success-row mb-3" style="display: none;">
             <div class="col">
                 <div class="alert alert-success alert-dismissible fade show" role="alert">Profile Saved!
                     <button type="button" class="close">
@@ -36,7 +38,7 @@
                 </div>
             </div>
         </div>
-        <div class="row justify-content-center error-row my-3" style="display: none;">
+        <div class="row justify-content-center error-row mb-3" style="display: none;">
             <div class="col">
                 <div class="alert alert-danger alert-dismissible fade show" role="alert">Error Saving Profile!
                     <button type="button" class="close">
@@ -46,7 +48,7 @@
             </div>
         </div>
 
-        <div class="row my-3">
+        <div class="row mb-3">
             <!--
             <div th:if="${viewUser.profile.researcherCategory} != null and ${@applicationSettings.profile.enabledResearcherCategories.contains(viewUser.profile.researcherCategory.name())}"
                  class="col-3 col-lg-2 my-auto">
@@ -127,7 +129,7 @@
             </div>
         </div>
 
-        <div class="row my-3">
+        <div class="row mb-3">
             <div class="col">
                 <div class="card contact-info">
                     <div class="card-header">
@@ -155,7 +157,7 @@
             </div>
         </div>
 
-        <div th:unless="${viewUser.profile.description} == ''" class="row my-3">
+        <div th:unless="${viewUser.profile.description} == ''" class="row mb-3">
             <div class="col">
                 <div class="card research-info edit-container">
                     <div class="card-header d-flex align-items-center">
@@ -169,7 +171,7 @@
             </div>
         </div>
 
-        <div th:unless="${viewUser.userOrgans.isEmpty()}" class="row my-3">
+        <div th:unless="${viewUser.userOrgans.isEmpty()}" class="row mb-3">
             <div class="col">
                 <div class="card">
                     <div class="card-header">
@@ -185,7 +187,7 @@
         </div>
 
         <div sec:authorize="hasRole('ROLE_ADMIN')"
-             class="row my-3">
+             class="row mb-3">
             <div class="col">
                 <div class="card">
                     <div class="card-header">
@@ -209,7 +211,7 @@
             </div>
         </div>
 
-        <div th:unless="${viewUser.profile.publications.isEmpty()}" class="row my-3">
+        <div th:unless="${viewUser.profile.publications.isEmpty()}" class="row mb-3">
             <div class="col">
                 <div class="card publication-info">
                     <div class="card-header">
@@ -242,7 +244,7 @@
 
         <th:block th:each="taxon : ${viewUser.taxons}">
 
-            <div class="row my-3">
+            <div class="row mb-3">
                 <div class="col">
                     <div class="card research-info edit-container">
                         <div class="card-header d-flex align-items-center">
@@ -259,7 +261,7 @@
             </div>
 
             <div th:if="not ${viewUser.profile.hideGenelist} or (${user} == ${viewUser}) or ${user?.roles?.contains(@roleRepository.findByRole('ROLE_ADMIN'))}"
-                 class="row my-3">
+                 class="row mb-3">
                 <div class="col">
                     <div class="card">
                         <div class="card-header">

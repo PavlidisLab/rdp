@@ -4,20 +4,25 @@ import org.assertj.core.util.Lists;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import ubc.pavlab.rdp.WebSecurityConfig;
+import ubc.pavlab.rdp.events.OnRequestAccessEvent;
 import ubc.pavlab.rdp.exception.RemoteException;
-import ubc.pavlab.rdp.model.GeneInfo;
-import ubc.pavlab.rdp.model.Taxon;
-import ubc.pavlab.rdp.model.User;
+import ubc.pavlab.rdp.listeners.UserListener;
+import ubc.pavlab.rdp.model.*;
+import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.services.*;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
@@ -25,11 +30,14 @@ import ubc.pavlab.rdp.settings.SiteSettings;
 
 import java.net.URI;
 import java.util.Collections;
+import java.util.UUID;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static ubc.pavlab.rdp.util.TestUtils.*;
 
@@ -95,6 +103,9 @@ public class SearchControllerTest {
     @MockBean(name = "organInfoService")
     private OrganInfoService organInfoService;
 
+    @MockBean
+    private UserListener userListener;
+
     @Before
     public void setUp() {
         when( applicationSettings.getEnabledTiers() ).thenReturn( Lists.newArrayList( "TIER1", "TIER2", "TIER3" ) );
@@ -159,7 +170,7 @@ public class SearchControllerTest {
                 .andExpect( status().isOk() )
                 .andExpect( view().name( "search" ) )
                 .andExpect( model().attributeExists( "usergenes" ) );
-        verify( userGeneService ).findOrthologsByGeneAndTierInAndUserOrgansIn( gene, TierType.ANY, null, null, null );
+        verify( userGeneService ).handleOrthologSearch( gene, TierType.ANY, null, null, null, null );
     }
 
     @Test
@@ -236,4 +247,62 @@ public class SearchControllerTest {
                 .andExpect( status().isServiceUnavailable() );
         verify( remoteResourceService ).getRemoteUser( user.getId(), URI.create( "example.com" ) );
     }
+
+    @Test
+    @WithMockUser
+    public void requestAccess_thenReturnSuccess() throws Exception {
+        User user = createUser( 1 );
+        when( userService.findCurrentUser() ).thenReturn( user );
+        Taxon taxon = createTaxon( 1 );
+        GeneInfo gene = createGene( 1, taxon );
+        UserGene userGene = createUserGene( 1, gene, createUser( 2 ), TierType.TIER1, PrivacyLevelType.PRIVATE );
+        UserGene anonymizedUserGene = UserGene.builder()
+                .anonymousId( UUID.randomUUID() )
+                .user( User.builder().profile( new Profile() ).build() )
+                .build();
+        when( userService.anonymizeUserGene( userGene ) ).thenReturn( anonymizedUserGene );
+        when( userService.findUserGeneByAnonymousId( anonymizedUserGene.getAnonymousId() ) ).thenReturn( userGene );
+
+        mvc.perform( get( "/search/gene/by-anonymous-id/{anonymousId}/request-access", anonymizedUserGene.getAnonymousId() ) )
+                .andExpect( status().is2xxSuccessful() )
+                .andExpect( model().attribute( "userGene", anonymizedUserGene ) );
+        verify( userService ).anonymizeUserGene( userGene );
+
+        mvc.perform( post( "/search/gene/by-anonymous-id/{anonymousId}/request-access", anonymizedUserGene.getAnonymousId() )
+                .param( "reason", "Because." ) )
+                .andExpect( status().is3xxRedirection() )
+                .andExpect( redirectedUrl( "/search" ) )
+                .andExpect( flash().attributeExists( "message" ) );
+        ArgumentCaptor<OnRequestAccessEvent> captor = ArgumentCaptor.forClass( OnRequestAccessEvent.class );
+        verify( userListener ).onGeneRequestAccess( captor.capture() );
+        assertThat( captor.getValue() )
+                .hasFieldOrPropertyWithValue( "user", user )
+                .hasFieldOrPropertyWithValue( "object", userGene )
+                .hasFieldOrPropertyWithValue( "reason", "Because." );
+    }
+
+    @Test
+    @WithMockUser
+    public void requestAccess_whenUserHasPermission_thenRedirectToUserProfile() throws Exception {
+        User user = createUser( 1 );
+        when( userService.findCurrentUser() ).thenReturn( user );
+        Taxon taxon = createTaxon( 1 );
+        GeneInfo gene = createGene( 1, taxon );
+        UserGene userGene = createUserGene( 1, gene, createUser( 2 ), TierType.TIER1, PrivacyLevelType.PRIVATE );
+        UserGene anonymizedUserGene = UserGene.builder()
+                .anonymousId( UUID.randomUUID() )
+                .user( User.builder().profile( new Profile() ).build() )
+                .build();
+        when( userService.anonymizeUserGene( userGene ) ).thenReturn( anonymizedUserGene );
+        when( userService.findUserGeneByAnonymousId( anonymizedUserGene.getAnonymousId() ) ).thenReturn( userGene );
+
+        when( permissionEvaluator.hasPermission( any(), eq( userGene ), eq( "read" ) ) ).thenReturn( true );
+
+        mvc.perform( get( "/search/gene/by-anonymous-id/{anonymousId}/request-access", anonymizedUserGene.getAnonymousId() ) )
+                .andExpect( status().is3xxRedirection() )
+                .andExpect( redirectedUrl( "http://localhost/userView/2" ) )
+                .andExpect( flash().attributeExists( "message" ) );
+    }
+
+
 }

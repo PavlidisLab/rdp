@@ -10,6 +10,7 @@ import ubc.pavlab.rdp.model.enums.TierType;
 import javax.persistence.*;
 import java.text.MessageFormat;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Created by mjacobson on 17/01/18.
@@ -25,7 +26,9 @@ import java.util.Optional;
 @Cacheable
 @Getter
 @Setter
+@Builder
 @NoArgsConstructor
+@AllArgsConstructor
 @EqualsAndHashCode(of = { "user" }, callSuper = true)
 @CommonsLog
 @ToString(of = { "user", "tier", "privacyLevel" }, callSuper = true)
@@ -36,6 +39,9 @@ public class UserGene extends Gene implements UserContent {
     @Column
     @JsonIgnore
     private Integer id;
+
+    @Transient
+    private UUID anonymousId;
 
     @Enumerated(EnumType.STRING)
     @Column(length = 5)

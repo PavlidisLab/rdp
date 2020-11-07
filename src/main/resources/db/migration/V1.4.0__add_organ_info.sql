@@ -4,6 +4,8 @@ alter table user modify column shared bit not null;
 alter table user add column researcher_position varchar(255);
 alter table user add column contact_email varchar(255);
 alter table user add column contact_email_verified bit not null;
+alter table user drop column origin;
+alter table user drop column origin_url;
 alter table term drop column frequency;
 alter table term drop column size;
 alter table gene add column user_privacy_level integer default NULL;

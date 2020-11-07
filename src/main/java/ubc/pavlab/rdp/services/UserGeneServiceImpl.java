@@ -22,7 +22,10 @@ package ubc.pavlab.rdp.services;
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.access.prepost.PostFilter;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.ResearcherCategory;
@@ -30,11 +33,13 @@ import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.repositories.TaxonRepository;
 import ubc.pavlab.rdp.repositories.UserGeneRepository;
+import ubc.pavlab.rdp.settings.ApplicationSettings;
 
 import java.text.MessageFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static java.util.Comparator.*;
 import static org.springframework.util.CollectionUtils.containsAny;
 
 /**
@@ -51,7 +56,16 @@ public class UserGeneServiceImpl implements UserGeneService {
     private UserGeneRepository userGeneRepository;
 
     @Autowired
+    private UserService userService;
+
+    @Autowired
     TierService tierService;
+
+    @Autowired
+    private PermissionEvaluator permissionEvaluator;
+
+    @Autowired
+    private ApplicationSettings applicationSettings;
 
     @Cacheable(cacheNames = "stats", key = "#root.methodName")
     @Override
@@ -107,73 +121,70 @@ public class UserGeneServiceImpl implements UserGeneService {
 
     @Override
     @PostFilter("hasPermission(filterObject, 'read')")
-    public Collection<UserGene> findByGeneIdAndTierIn( int geneId, Set<TierType> tiers, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherTypes ) {
-        return userGeneRepository.findByGeneIdAndTierIn( geneId, tiers ).stream()
-                .filter( ug -> researcherPositions == null || researcherPositions.contains( ug.getUser().getProfile().getResearcherPosition() ) )
-                .filter( ug -> researcherTypes == null || containsAny( researcherTypes, ug.getUser().getProfile().getResearcherCategories() ) )
-                .collect( Collectors.toSet() );
+    public Collection<UserGene> handleGeneSearch( Gene gene, Set<TierType> tiers, Taxon orthologTaxon, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherCategories, Collection<UserOrgan> organs ) {
+        if ( applicationSettings.getPrivacy().isEnableAnonymizedSearchResults() ) {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            return handleGeneSearchInternal( gene, tiers, orthologTaxon, researcherPositions, researcherCategories, organs ).stream()
+                    .map( ug -> permissionEvaluator.hasPermission( auth, ug, "read" ) ? ug : userService.anonymizeUserGene( ug ) )
+                    .sorted( comparing( UserGene::getAnonymousId, nullsFirst( naturalOrder() ) ) )
+                    .collect( Collectors.toList() ); // we need to preserve the search order
+        } else {
+            return handleGeneSearchInternal( gene, tiers, orthologTaxon, researcherPositions, researcherCategories, organs );
+        }
     }
 
-    @Override
-    @PostFilter("hasPermission(filterObject, 'read')")
-    public Collection<UserGene> findByGeneIdAndTierInAndUserOrgansIn( int geneId, Set<TierType> tiers, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherTypes, Collection<UserOrgan> userOrgans ) {
-        return userGeneRepository.findByGeneIdAndTierIn( geneId, tiers ).stream()
-                .filter( ug -> researcherPositions == null || researcherPositions.contains( ug.getUser().getProfile().getResearcherPosition() ) )
-                .filter( ug -> researcherTypes == null || containsAny( researcherTypes, ug.getUser().getProfile().getResearcherCategories() ) )
-                .filter( ortholog -> userOrgans == null || containsAny( userOrgans, ortholog.getUser().getUserOrgans().values() ) )
-                .collect( Collectors.toSet() );
-    }
-
-    @Override
-    @PostFilter("hasPermission(filterObject, 'read')")
-    public Collection<UserGene> findOrthologsByGeneAndTierInAndUserOrgansIn( Gene gene, Set<TierType> tiers, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherTypes, Collection<UserOrgan> userOrgans ) {
-        return userGeneRepository.findByGeneId( gene.getGeneId() )
-                .stream()
-                .map( userGene -> userGeneRepository.findOrthologsByGeneId( userGene.getGeneId() ) )
-                .flatMap( Collection::stream )
-                .filter( ortholog -> tiers.contains( ortholog.getTier() ) )
-                .filter( ug -> researcherPositions == null || researcherPositions.contains( ug.getUser().getProfile().getResearcherPosition() ) )
-                .filter( ug -> researcherTypes == null || containsAny( researcherTypes, ug.getUser().getProfile().getResearcherCategories() ) )
-                .filter( ortholog -> userOrgans == null || containsAny( userOrgans, ortholog.getUser().getUserOrgans().values() ) )
-                .collect( Collectors.toSet() );
-    }
-
-    @Override
-    @PostFilter("hasPermission(filterObject, 'read')")
-    public Collection<UserGene> findOrthologsByGeneAndTierInAndTaxonAndUserOrgansIn( Gene gene, Set<TierType> tiers, Taxon orthologTaxon, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherTypes, Collection<UserOrgan> userOrgans ) {
-        return userGeneRepository.findByGeneId( gene.getGeneId() )
-                .stream()
-                .map( userGene -> userGeneRepository.findOrthologsByGeneIdAndTaxon( userGene.getGeneId(), orthologTaxon ) )
-                .flatMap( Collection::stream )
-                .filter( ortholog -> tiers.contains( ortholog.getTier() ) )
-                .filter( ug -> researcherPositions == null || researcherPositions.contains( ug.getUser().getProfile().getResearcherPosition() ) )
-                .filter( ug -> researcherTypes == null || containsAny( researcherTypes, ug.getUser().getProfile().getResearcherCategories() ) )
-                .filter( ortholog -> userOrgans == null || containsAny( userOrgans, ortholog.getUser().getUserOrgans().values() ) )
-                .collect( Collectors.toSet() );
-    }
-
-    @Override
-    @PostFilter("hasPermission(filterObject, 'read')")
-    public Collection<UserGene> handleGeneSearch( Gene gene, Set<TierType> tiers, Taxon orthologTaxon, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherTypes, Collection<UserOrgan> organs ) {
+    private Collection<UserGene> handleGeneSearchInternal( Gene gene, Set<TierType> tiers, Taxon orthologTaxon, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherCategories, Collection<UserOrgan> organs ) {
         Collection<UserGene> uGenes = new LinkedHashSet<>();
 
         // ortholog relationship is not reflexive (i.e. a gene is not its own ortholog), but we still want to display
         // that gene first when ortholog search is performed in the same MO
-        if ( gene.getTaxon().equals( orthologTaxon ) ) {
-            if ( organs != null ) {
-                uGenes.addAll( findByGeneIdAndTierInAndUserOrgansIn( gene.getGeneId(), tiers, researcherPositions, researcherTypes, organs ) );
-            } else {
-                uGenes.addAll( findByGeneIdAndTierIn( gene.getGeneId(), tiers, researcherPositions, researcherTypes ) );
-            }
+        if ( orthologTaxon == null || gene.getTaxon().equals( orthologTaxon ) ) {
+            uGenes.addAll( userGeneRepository.findByGeneIdAndTierIn( gene.getGeneId(), tiers ).stream()
+                    .filter( ug -> researcherPositions == null || researcherPositions.contains( ug.getUser().getProfile().getResearcherPosition() ) )
+                    .filter( ug -> researcherCategories == null || containsAny( researcherCategories, ug.getUser().getProfile().getResearcherCategories() ) )
+                    .filter( ortholog -> organs == null || containsAny( organs, ortholog.getUser().getUserOrgans().values() ) )
+                    .collect( Collectors.toSet() ) );
         }
 
         if ( orthologTaxon != null ) {
-            uGenes.addAll( findOrthologsByGeneAndTierInAndTaxonAndUserOrgansIn( gene, tiers, orthologTaxon, researcherPositions, researcherTypes, organs ) );
+            uGenes.addAll( userGeneRepository.findByGeneId( gene.getGeneId() )
+                    .stream()
+                    .map( userGene -> userGeneRepository.findOrthologsByGeneIdAndTaxon( userGene.getGeneId(), orthologTaxon ) )
+                    .flatMap( Collection::stream )
+                    .filter( ortholog -> tiers.contains( ortholog.getTier() ) )
+                    .filter( ug -> researcherPositions == null || researcherPositions.contains( ug.getUser().getProfile().getResearcherPosition() ) )
+                    .filter( ug -> researcherCategories == null || containsAny( researcherCategories, ug.getUser().getProfile().getResearcherCategories() ) )
+                    .filter( ortholog -> organs == null || containsAny( organs, ortholog.getUser().getUserOrgans().values() ) )
+                    .collect( Collectors.toSet() ) );
         } else {
-            uGenes.addAll( findOrthologsByGeneAndTierInAndUserOrgansIn( gene, tiers, researcherPositions, researcherTypes, organs ) );
+            uGenes.addAll( userGeneRepository.findByGeneId( gene.getGeneId() )
+                    .stream()
+                    .map( userGene -> userGeneRepository.findOrthologsByGeneId( userGene.getGeneId() ) )
+                    .flatMap( Collection::stream )
+                    .filter( ortholog -> tiers.contains( ortholog.getTier() ) )
+                    .filter( ug -> researcherPositions == null || researcherPositions.contains( ug.getUser().getProfile().getResearcherPosition() ) )
+                    .filter( ug -> researcherCategories == null || containsAny( researcherCategories, ug.getUser().getProfile().getResearcherCategories() ) )
+                    .filter( ortholog -> organs == null || containsAny( organs, ortholog.getUser().getUserOrgans().values() ) )
+                    .collect( Collectors.toSet() ) );
         }
 
         return uGenes;
+    }
+
+    @Override
+    @PostFilter("hasPermission(filterObject, 'read')")
+    public Collection<UserGene> handleOrthologSearch( Gene gene, Set<TierType> tiers, Taxon orthologTaxon, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherCategories, Collection<UserOrgan> userOrgans ) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return userGeneRepository.findByGeneId( gene.getGeneId() )
+                .stream()
+                .map( userGene -> orthologTaxon == null ? userGeneRepository.findOrthologsByGeneId( userGene.getGeneId() ) : userGeneRepository.findOrthologsByGeneIdAndTaxon( userGene.getGeneId(), orthologTaxon ) )
+                .flatMap( Collection::stream )
+                .filter( ortholog -> tiers.contains( ortholog.getTier() ) )
+                .filter( ug -> researcherPositions == null || researcherPositions.contains( ug.getUser().getProfile().getResearcherPosition() ) )
+                .filter( ug -> researcherCategories == null || containsAny( researcherCategories, ug.getUser().getProfile().getResearcherCategories() ) )
+                .filter( ortholog -> userOrgans == null || containsAny( userOrgans, ortholog.getUser().getUserOrgans().values() ) )
+                .map( ug -> permissionEvaluator.hasPermission( auth, ug, "read" ) ? ug : userService.anonymizeUserGene( ug ) )
+                .collect( Collectors.toSet() );
     }
 
     @Override

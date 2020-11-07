@@ -143,6 +143,7 @@ public class GeneInfoServiceImpl implements GeneInfoService {
                 log.info( MessageFormat.format( "Ignoring orthologs for {0} since it's missing from the database.", geneId ) );
                 continue;
             }
+            gene.getOrthologs().clear();
             for ( GeneOrthologsParser.Record record : recordByGeneId.get( geneId ) ) {
                 GeneInfo ortholog = geneInfoRepository.findByGeneId( record.getOrthologId() );
                 if ( ortholog == null ) {

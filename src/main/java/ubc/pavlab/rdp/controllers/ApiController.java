@@ -180,12 +180,7 @@ public class ApiController {
 
         Taxon orthologTaxon = orthologTaxonId == null ? null : taxonService.findById( orthologTaxonId );
 
-        Collection<UserGene> orthologs;
-        if ( orthologTaxon != null ) {
-            orthologs = userGeneService.findOrthologsByGeneAndTierInAndTaxonAndUserOrgansIn( gene, tiers, orthologTaxon, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ) );
-        } else {
-            orthologs = userGeneService.findOrthologsByGeneAndTierInAndUserOrgansIn( gene, tiers, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ) );
-        }
+        Collection<UserGene> orthologs = userGeneService.handleOrthologSearch( gene, tiers, orthologTaxon, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ) );
 
         if (
             // Check if there is a ortholog request for a different taxon than the original gene
@@ -295,7 +290,7 @@ public class ApiController {
         for ( UserGene gene : genes ) {
             // Initializing for the json serializer.
             initUser( gene.getUser(), locale );
-            gene.getUser().setUserGenes( new HashMap<>() );
+            gene.getUser().getUserGenes().clear();
             gene.setRemoteUser( gene.getUser() );
         }
         return genes;

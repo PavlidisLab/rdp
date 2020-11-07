@@ -19,16 +19,18 @@
     </thead>
     <tbody>
     <tr th:each="u : ${users}">
-        <td class="text-center">
+        <td class="text-center" style="width: 10em;">
             <a th:if="${remote}"
                th:href="@{/userView/{userId}(userId=${u.id},remoteHost=${u.originUrl})}"
                class="btn btn-primary btn-sm">
+                <i class="oi oi-person"></i>
                 View User Profile
             </a>
-            <a th:unless="${remote}"
+            <a th:if="not ${remote}"
                th:href="@{/userView/{userId}(userId=${u.id})}"
                th:attr="data-user-id=${u.id}"
-               class="btn btn-primary btn-sm user-preview-popover">
+               class="btn btn-primary btn-sm btn-block user-preview-popover">
+                <i class="oi oi-person"></i>
                 View User Profile
             </a>
         </td>
@@ -76,17 +78,26 @@
     </thead>
     <tbody>
     <tr th:each="ug : ${usergenes}">
-        <td class="text-center">
-            <a th:if="${remote}"
+        <td class="text-center" style="width: 10em;">
+            <a th:if="${ug.anonymousId} == null and ${remote}"
                th:href="@{/userView/{userId}(userId=${ug.user.id},remoteHost=${ug.user.originUrl})}"
-               class="btn btn-primary btn-sm">
+               class="btn btn-primary btn-sm btn-block">
+                <i class="oi oi-person"></i>
                 View User Profile
             </a>
-            <a th:unless="${remote}"
+            <a th:if="${ug.anonymousId} == null and not ${remote}"
                th:href="@{/userView/{userId}(userId=${ug.user.id})}"
                th:attr="data-user-id=${ug.user.id}"
-               class="btn btn-primary btn-sm user-preview-popover">
+               class="btn btn-primary btn-sm btn-block user-preview-popover">
+                <i class="oi oi-person"></i>
                 View User Profile
+            </a>
+            <a th:if="${ug.anonymousId}"
+               th:href="@{/search/gene/by-anonymous-id/{anonymousId}/request-access(anonymousId=${ug.anonymousId})}"
+               th:attr="data-anonymous-user-id=${ug.user.anonymousId}"
+               class="btn btn-primary btn-sm btn-block user-preview-popover">
+                <i class="oi oi-lock-locked"></i>
+                Request Access
             </a>
         </td>
         <td th:if="${remote}" th:text="${ug.user.origin}"></td>

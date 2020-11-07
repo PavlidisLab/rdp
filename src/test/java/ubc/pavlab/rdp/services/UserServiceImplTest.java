@@ -10,12 +10,16 @@ import org.mockito.internal.util.collections.Sets;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.context.junit4.SpringRunner;
+import ubc.pavlab.rdp.WebMvcConfig;
 import ubc.pavlab.rdp.events.OnContactEmailUpdateEvent;
 import ubc.pavlab.rdp.exception.TokenException;
 import ubc.pavlab.rdp.listeners.UserListener;
@@ -49,6 +53,7 @@ import static ubc.pavlab.rdp.util.TestUtils.*;
  * Created by mjacobson on 13/02/18.
  */
 @RunWith(SpringRunner.class)
+@Import(WebMvcConfig.class)
 public class UserServiceImplTest {
 
     @TestConfiguration
@@ -74,6 +79,12 @@ public class UserServiceImplTest {
             return new PermissionEvaluatorImpl();
         }
 
+        @Bean
+        public CacheManager cacheManager() {
+            return new ConcurrentMapCacheManager(
+                    UserServiceImpl.USERS_BY_ANONYMOUS_ID_CACHE_KEY,
+                    UserServiceImpl.USER_GENES_BY_ANONYMOUS_ID_CACHE_KEY );
+        }
     }
 
     @SuppressWarnings("SpringJavaAutowiredMembersInspection")
@@ -564,7 +575,7 @@ public class UserServiceImplTest {
     }
 
     @Test
-    public void updateUserProfileAndPublicationsAndOrgans_whenContactEmailIsSet_thenSendVerificationEmail() throws MessagingException {
+    public void updateUserProfileAndPublicationsAndOrgans_whenContactEmailIsSet_thenSendVerificationEmail() {
         User user = createUser( 1 );
         Profile profile = new Profile();
         profile.setContactEmail( "foo@example.com" );
@@ -602,6 +613,19 @@ public class UserServiceImplTest {
     }
 
     @Test
+    public void updateUserProfileAndPublicationsAndOrgans_whenContactEmailIsEmpty_thenUnsetContactEmail() {
+        User user = createUser( 1 );
+        user.getProfile().setContactEmail( "foo@example.com" );
+        user.getProfile().setContactEmailVerified( true );
+        Profile profile = new Profile();
+        profile.setContactEmail( "" );
+        userService.updateUserProfileAndPublicationsAndOrgans( user, profile, null, null );
+        assertThat( user.getProfile().getContactEmail() ).isEmpty();
+        assertThat( user.getProfile().getContactEmailVerified() ).isFalse();
+        verifyZeroInteractions( userListener );
+    }
+
+    @Test
     public void updateUserProfileAndPublicationsAndOrgans_whenResearcherPositionIsSet_thenUpdateResearcherPosition() {
         List<String> researcherPositionNames = Arrays.stream( ResearcherPosition.values() )
                 .map( ResearcherPosition::name )
@@ -624,7 +648,7 @@ public class UserServiceImplTest {
         when( profileSettings.getEnabledResearcherCategories() ).thenReturn( researcherCategoryNames );
         User user = createUser( 1 );
         Profile profile = new Profile();
-        profile.setResearcherCategories( EnumSet.of( ResearcherCategory.IN_SILICO ) );
+        profile.getResearcherCategories().add( ResearcherCategory.IN_SILICO );
         userService.updateUserProfileAndPublicationsAndOrgans( user, profile, null, null );
         assertThat( user.getProfile().getResearcherCategories() ).containsExactly( ResearcherCategory.IN_SILICO );
         verify( profileSettings ).getEnabledResearcherCategories();
@@ -1212,5 +1236,34 @@ public class UserServiceImplTest {
     public void updateUserTerms_thenSucceed() {
         userService.updateUserTerms();
         verify( userRepository ).findAllWithUserTerms();
+    }
+
+    @Test
+    public void anonymizeUser() {
+        when( privacySettings.getDefaultLevel() ).thenReturn( 2 );
+        User user = createUser( 1 );
+        user.getProfile().setPrivacyLevel( PrivacyLevelType.PRIVATE );
+        User anonymizedUser = userService.anonymizeUser( user );
+        assertThat( anonymizedUser )
+                .hasFieldOrPropertyWithValue( "email", null )
+                .hasFieldOrPropertyWithValue( "profile.privacyLevel", PrivacyLevelType.PUBLIC );
+        assertThat( anonymizedUser.getUserGenes() ).isEmpty();
+        assertThat( userService.findUserByAnonymousId( anonymizedUser.getAnonymousId() ) )
+                .isEqualTo( user );
+    }
+
+    @Test
+    public void anonymizeUserGene() {
+        when( privacySettings.getDefaultLevel() ).thenReturn( 2 );
+        Taxon taxon = createTaxon( 1 );
+        User user = createUser( 1 );
+        UserGene userGene = createUserGene( 1, createGene( 1, taxon ), user, TierType.TIER1, PrivacyLevelType.PRIVATE );
+        UserGene anonymizedUserGene = userService.anonymizeUserGene( userGene );
+        assertThat( anonymizedUserGene )
+                .hasFieldOrPropertyWithValue( "privacyLevel", PrivacyLevelType.PUBLIC );
+        assertThat( anonymizedUserGene.getUser() )
+                .isEqualToIgnoringGivenFields( userService.anonymizeUser( user ), "anonymousId" );
+        assertThat( userService.findUserGeneByAnonymousId( anonymizedUserGene.getAnonymousId() ) )
+                .isEqualTo( userGene );
     }
 }

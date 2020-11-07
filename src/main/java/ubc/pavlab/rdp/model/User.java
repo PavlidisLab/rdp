@@ -7,7 +7,6 @@ import lombok.extern.apachecommons.CommonsLog;
 import org.hibernate.validator.constraints.Email;
 import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.NotEmpty;
-import org.springframework.data.annotation.Transient;
 import org.springframework.util.StringUtils;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.TierType;
@@ -26,9 +25,11 @@ import java.util.stream.Collectors;
 @Cacheable
 @Getter
 @Setter
-@NoArgsConstructor
+@Builder
 @EqualsAndHashCode(of = { "id" })
-@ToString(of = { "id", "email", "enabled" })
+@NoArgsConstructor
+@AllArgsConstructor
+@ToString(of = { "id", "anonymousId", "email", "enabled" })
 @CommonsLog
 public class User implements UserContent {
 
@@ -49,6 +50,9 @@ public class User implements UserContent {
     @Column(name = "user_id")
     private Integer id;
 
+    @Transient
+    private UUID anonymousId;
+
     @Column(name = "email")
     @Email(message = "Your email address is not valid.", groups = { ValidationUserAccount.class })
     @NotEmpty(message = "Please provide an email address.", groups = { ValidationUserAccount.class, ValidationServiceAccount.class })
@@ -58,7 +62,7 @@ public class User implements UserContent {
     @Length(min = 6, message = "Your password must have at least 6 characters.", groups = { ValidationUserAccount.class })
     @NotEmpty(message = "Please provide your password.", groups = { ValidationUserAccount.class })
     @JsonIgnore
-    @Transient
+    @org.springframework.data.annotation.Transient
     private String password;
 
     @Column(name = "enabled", nullable = false)
@@ -68,22 +72,22 @@ public class User implements UserContent {
     @ManyToMany
     @JoinTable(name = "user_role", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
     @JsonIgnore
-    private Set<Role> roles = new HashSet<>();
+    private final Set<Role> roles = new HashSet<>();
 
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "user_id")
     @JsonIgnore
-    private Set<AccessToken> accessTokens = new HashSet<>();
+    private final Set<AccessToken> accessTokens = new HashSet<>();
 
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "user_id")
     @JsonIgnore
-    private Set<VerificationToken> verificationTokens = new HashSet<>();
+    private final Set<VerificationToken> verificationTokens = new HashSet<>();
 
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "user_id")
     @JsonIgnore
-    private Set<PasswordResetToken> passwordResetTokens = new HashSet<>();
+    private final Set<PasswordResetToken> passwordResetTokens = new HashSet<>();
 
     @Valid
     @Embedded
@@ -107,24 +111,24 @@ public class User implements UserContent {
     /* Research related information */
 
     // @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-    @ElementCollection()
+    @ElementCollection
     @CollectionTable(name = "descriptions", joinColumns = @JoinColumn(name = "user_id"))
     @MapKeyJoinColumn(name = "taxon_id")
     @Column(name = "description", columnDefinition = "TEXT")
     @JsonIgnore
-    private Map<Taxon, String> taxonDescriptions = new HashMap<>();
+    private final Map<Taxon, String> taxonDescriptions = new HashMap<>();
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "user_id")
-    private Set<UserTerm> userTerms = new HashSet<>();
+    private final Set<UserTerm> userTerms = new HashSet<>();
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "user")
     @MapKey(name = "geneId")
-    private Map<Integer, UserGene> userGenes = new HashMap<>();
+    private final Map<Integer, UserGene> userGenes = new HashMap<>();
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "user")
     @MapKey(name = "uberonId")
-    private Map<String, UserOrgan> userOrgans = new HashMap<>();
+    private final Map<String, UserOrgan> userOrgans = new HashMap<>();
 
     @JsonIgnore
     @Transient

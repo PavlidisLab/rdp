@@ -56,6 +56,8 @@ public class VerificationTokenRepositoryTest {
         expiredToken.setEmail( user2.getEmail() );
         expiredToken.setExpiryDate( Timestamp.from( Instant.now() ) );
         expiredToken = entityManager.persistAndFlush( expiredToken );
+
+        entityManager.flush();
     }
 
     @Test

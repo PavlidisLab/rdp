@@ -10,11 +10,13 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
+import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.context.junit4.SpringRunner;
 import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.TierType;
+import ubc.pavlab.rdp.security.PermissionEvaluatorImpl;
 import ubc.pavlab.rdp.services.*;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 
@@ -63,6 +65,9 @@ public class UserGeneRepositoryTest {
     private UserGeneRepository userGeneRepository;
 
     @MockBean
+    private PermissionEvaluator permissionEvaluator;
+
+    @MockBean
     private BCryptPasswordEncoder bCryptPasswordEncoder;
 
     @MockBean
@@ -82,9 +87,8 @@ public class UserGeneRepositoryTest {
 
     @Before
     public void setUp() {
-        // given
-        taxon = entityManager.persist( createTaxon( 1 ) );
-        user = entityManager.persist( createUserWithGenes( taxon ) );
+        taxon = entityManager.persistAndFlush( createTaxon( 1 ) );
+        user = entityManager.persistAndFlush( createUserWithGenes( taxon ) );
     }
 
     private User createUserWithGenes( Taxon taxon ) {
@@ -133,7 +137,7 @@ public class UserGeneRepositoryTest {
 
         UserGene ug = UserGene.createUserGeneFromGene( createGene( 99, taxon ), user, TierType.TIER1, PrivacyLevelType.PRIVATE );
         user.getUserGenes().put( ug.getGeneId(), ug );
-        user = entityManager.persist( user );
+        user = entityManager.persistAndFlush( user );
 
         int count = userGeneRepository.countByTierIn( EnumSet.of( TierType.TIER1 ) );
 

@@ -1,11 +1,14 @@
 package ubc.pavlab.rdp.services;
 
+import lombok.Builder;
+import lombok.Data;
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import ubc.pavlab.rdp.exception.RemoteException;
@@ -50,21 +53,11 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add( "nameLike", nameLike );
         params.add( "prefix", prefix.toString() );
-        if ( researcherPositions != null ) {
-            for ( ResearcherPosition researcherPosition : researcherPositions ) {
-                params.add( "researcherPosition", researcherPosition.name() );
-            }
-        }
-        if ( researcherCategories != null ) {
-            for ( ResearcherCategory researcherCategory : researcherCategories ) {
-                params.add( "researcherCategory", researcherCategory.name() );
-            }
-        }
-        if ( organUberonIds != null ) {
-            for ( String organUberonId : organUberonIds ) {
-                params.add( "organUberonIds", organUberonId );
-            }
-        }
+        params.putAll( UserSearchParams.builder()
+                .researcherPositions( researcherPositions )
+                .researcherCategories( researcherCategories )
+                .organUberonIds( organUberonIds )
+                .build().toMultiValueMap() );
         addAuthParamIfAdmin( params );
         return getRemoteEntities( User[].class, API_USERS_SEARCH_URI, params );
     }
@@ -73,21 +66,11 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
     public Collection<User> findUsersByDescription( String descriptionLike, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherCategories, Collection<String> organUberonIds ) {
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add( "descriptionLike", descriptionLike );
-        if ( researcherPositions != null ) {
-            for ( ResearcherPosition researcherPosition : researcherPositions ) {
-                params.add( "researcherPosition", researcherPosition.name() );
-            }
-        }
-        if ( researcherCategories != null ) {
-            for ( ResearcherCategory researcherCategory : researcherCategories ) {
-                params.add( "researcherCategory", researcherCategory.name() );
-            }
-        }
-        if ( organUberonIds != null ) {
-            for ( String organUberonId : organUberonIds ) {
-                params.add( "organUberonIds", organUberonId );
-            }
-        }
+        params.putAll( UserSearchParams.builder()
+                .researcherPositions( researcherPositions )
+                .researcherCategories( researcherCategories )
+                .organUberonIds( organUberonIds )
+                .build().toMultiValueMap() );
         addAuthParamIfAdmin( params );
         return getRemoteEntities( User[].class, API_USERS_SEARCH_URI, params );
     }
@@ -98,27 +81,14 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
         for ( TierType tier : restrictTiers( tiers ) ) {
             MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
             params.add( "symbol", symbol );
-            params.add( "taxonId", taxon.getId().toString() );
-            // TODO: use the tiers field for the v1.4 API
-            params.add( "tier", tier.toString() );
-            if ( orthologTaxonId != null ) {
-                params.add( "orthologTaxonId", orthologTaxonId.toString() );
-            }
-            if ( researcherPositions != null ) {
-                for ( ResearcherPosition researcherPosition : researcherPositions ) {
-                    params.add( "researcherPosition", researcherPosition.name() );
-                }
-            }
-            if ( researcherCategories != null ) {
-                for ( ResearcherCategory researcherCategory : researcherCategories ) {
-                    params.add( "researcherCategory", researcherCategory.name() );
-                }
-            }
-            if ( organUberonIds != null ) {
-                for ( String organUberonId : organUberonIds ) {
-                    params.add( "organUberonIds", organUberonId );
-                }
-            }
+            params.putAll( UserGeneSearchParams.builder()
+                    .taxonId( taxon.getId() )
+                    .tier( tier )
+                    .orthologTaxonId( orthologTaxonId )
+                    .researcherPositions( researcherPositions )
+                    .researcherCategories( researcherCategories )
+                    .organUberonIds( organUberonIds )
+                    .build().toMultiValueMap() );
             addAuthParamIfAdmin( params );
             intlUsergenes.addAll( getRemoteEntities( UserGene[].class, API_GENES_SEARCH_URI, params ) );
         }
@@ -147,43 +117,37 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
                 .buildAndExpand( Collections.singletonMap( "userId", userId ) )
                 .toUri();
 
-        User user = remoteRequest( User.class, uri );
-
-        // add back-references to the user
-        user.getUserGenes().values().forEach( ug -> ug.setUser( user ) );
-        user.getUserTerms().forEach( ug -> ug.setUser( user ) );
-        user.getUserOrgans().values().forEach( ug -> ug.setUser( user ) );
-
-        return user;
+        try {
+            ResponseEntity<User> responseEntity = restTemplate.getForEntity( uri, User.class );
+            User user = responseEntity.getBody();
+            // add back-references to the user
+            user.getUserGenes().values().forEach( ug -> ug.setUser( user ) );
+            user.getUserTerms().forEach( ug -> ug.setUser( user ) );
+            user.getUserOrgans().values().forEach( ug -> ug.setUser( user ) );
+            return user;
+        } catch ( HttpClientErrorException e ) {
+            throw new RemoteException( MessageFormat.format( "Unsuccessful response received for {0}.", uri ), e );
+        }
     }
 
     private <T> Collection<T> getRemoteEntities( Class<T[]> arrCls, String path, MultiValueMap<String, String> params ) {
-        Collection<T> entities = new LinkedList<>();
-
-        // Call all APIs
-        for ( String api : applicationSettings.getIsearch().getApis() ) {
-            try {
-                URI uri = UriComponentsBuilder.fromUriString( api )
+        return Arrays.stream( applicationSettings.getIsearch().getApis() )
+                .map( api -> UriComponentsBuilder.fromUriString( api )
                         .path( path )
                         .queryParams( params )
-                        .build().toUri();
-                entities.addAll( Arrays.asList( remoteRequest( arrCls, uri ) ) );
-            } catch ( RemoteException e ) {
-                log.error( MessageFormat.format( "Received error from remote API {0}:", api ), e );
-            }
-        }
-
-        return entities;
-    }
-
-    private <T> T remoteRequest( Class<T> cls, URI uri ) throws RemoteException {
-        ResponseEntity<T> responseEntity = restTemplate.getForEntity( uri, cls );
-
-        if ( !responseEntity.getStatusCode().is2xxSuccessful() ) {
-            throw new RemoteException( MessageFormat.format( "No data received from {0}.", uri ) );
-        }
-
-        return responseEntity.getBody();
+                        .build().toUri() )
+                .map( uri -> {
+                    try {
+                        return restTemplate.getForEntity( uri, arrCls );
+                    } catch ( HttpClientErrorException e ) {
+                        log.error( MessageFormat.format( "Unsuccessful response received for {0}.", uri ), e );
+                        return null;
+                    }
+                } )
+                .filter( Objects::nonNull )
+                .map( ResponseEntity::getBody )
+                .flatMap( Arrays::stream )
+                .collect( Collectors.toList() );
     }
 
     private Set<TierType> restrictTiers( Set<TierType> tiers ) {
@@ -197,6 +161,73 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
         if ( user != null && user.getRoles().contains( roleRepository.findByRole( "ROLE_ADMIN" ) ) ) {
             query.add( "auth", applicationSettings.getIsearch().getSearchToken() );
         }
+    }
+
+    @Data
+    @Builder
+    static class UserSearchParams {
+
+        private Collection<ResearcherPosition> researcherPositions;
+        private Collection<ResearcherCategory> researcherCategories;
+        private Collection<String> organUberonIds;
+
+        public MultiValueMap<String, String> toMultiValueMap() {
+            MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+            if ( researcherPositions != null ) {
+                for ( ResearcherPosition researcherPosition : researcherPositions ) {
+                    params.add( "researcherPosition", researcherPosition.name() );
+                }
+            }
+            if ( researcherCategories != null ) {
+                for ( ResearcherCategory researcherCategory : researcherCategories ) {
+                    params.add( "researcherCategory", researcherCategory.name() );
+                }
+            }
+            if ( organUberonIds != null ) {
+                for ( String organUberonId : organUberonIds ) {
+                    params.add( "organUberonIds", organUberonId );
+                }
+            }
+            return params;
+        }
+    }
+
+    @Data
+    @Builder
+    static class UserGeneSearchParams {
+
+        private Integer taxonId;
+        private TierType tier;
+        private Integer orthologTaxonId;
+        private Collection<ResearcherPosition> researcherPositions;
+        private Collection<ResearcherCategory> researcherCategories;
+        private Collection<String> organUberonIds;
+
+        public MultiValueMap<String, String> toMultiValueMap() {
+            MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+            params.add( "taxonId", taxonId.toString() );
+            params.add( "tier", tier.name() );
+            if ( orthologTaxonId != null ) {
+                params.add( "orthologTaxonId", orthologTaxonId.toString() );
+            }
+            if ( researcherPositions != null ) {
+                for ( ResearcherPosition researcherPosition : researcherPositions ) {
+                    params.add( "researcherPosition", researcherPosition.name() );
+                }
+            }
+            if ( researcherCategories != null ) {
+                for ( ResearcherCategory researcherCategory : researcherCategories ) {
+                    params.add( "researcherCategory", researcherCategory.name() );
+                }
+            }
+            if ( organUberonIds != null ) {
+                for ( String organUberonId : organUberonIds ) {
+                    params.add( "organUberonIds", organUberonId );
+                }
+            }
+            return params;
+        }
+
     }
 
 }

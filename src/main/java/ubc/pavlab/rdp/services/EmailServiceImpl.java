@@ -11,17 +11,21 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.UriComponentsBuilder;
 import ubc.pavlab.rdp.model.PasswordResetToken;
 import ubc.pavlab.rdp.model.User;
+import ubc.pavlab.rdp.model.UserGene;
 import ubc.pavlab.rdp.model.VerificationToken;
 import ubc.pavlab.rdp.settings.SiteSettings;
 
 import javax.mail.MessagingException;
+import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import javax.servlet.http.HttpServletRequest;
+import java.io.UnsupportedEncodingException;
 import java.text.MessageFormat;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
+import java.util.Collections;
 import java.util.Locale;
 
 /**
@@ -40,16 +44,20 @@ public class EmailServiceImpl implements EmailService {
     @Autowired
     MessageSource messageSource;
 
-    private void sendSimpleMessage( String subject, String content, InternetAddress to, InternetAddress replyTo ) {
+
+    private void sendSimpleMessage( String subject, String content, InternetAddress to, InternetAddress replyTo, InternetAddress cc ) throws AddressException {
 
         SimpleMailMessage email = new SimpleMailMessage();
 
         email.setSubject( subject );
         email.setText( content );
         email.setTo( to.toString() );
-        email.setFrom( siteSettings.getAdminEmail() );
+        email.setFrom( getAdminAddress().toString() );
         if ( replyTo != null ) {
             email.setReplyTo( replyTo.toString() );
+        }
+        if ( cc != null ) {
+            email.setCc( cc.toString() );
         }
 
         emailSender.send( email );
@@ -63,7 +71,7 @@ public class EmailServiceImpl implements EmailService {
         helper.setSubject( subject );
         helper.setText( content );
         helper.setTo( to );
-        helper.setFrom( siteSettings.getAdminEmail() );
+        helper.setFrom( getAdminAddress() );
         if ( replyTo != null ) {
             helper.setReplyTo( replyTo );
         }
@@ -83,9 +91,9 @@ public class EmailServiceImpl implements EmailService {
                 "File Attached: " + ( attachment != null && !attachment.getOriginalFilename().equals( "" ) );
 
         if ( attachment == null ) {
-            sendSimpleMessage( "Registry Help - Contact Support", content, new InternetAddress( siteSettings.getAdminEmail() ), replyTo );
+            sendSimpleMessage( "Registry Help - Contact Support", content, getAdminAddress(), replyTo, null );
         } else {
-            sendMultipartMessage( "Registry Help - Contact Support", content, new InternetAddress( siteSettings.getAdminEmail() ), replyTo, attachment );
+            sendMultipartMessage( "Registry Help - Contact Support", content, getAdminAddress(), replyTo, attachment );
         }
     }
 
@@ -114,7 +122,7 @@ public class EmailServiceImpl implements EmailService {
                         "Please note that this link will expire on " + dateTimeFormatter.format( token.getExpiryDate().toInstant() ) + ".";
 
 
-        sendSimpleMessage( subject, content, to, null );
+        sendSimpleMessage( subject, content, to, null, null );
     }
 
     @Override
@@ -134,7 +142,7 @@ public class EmailServiceImpl implements EmailService {
                 confirmationUrl +
                 "\r\n\r\n" +
                 registrationEnding;
-        sendSimpleMessage( subject, message, recipientAddress, null );
+        sendSimpleMessage( subject, message, recipientAddress, null, null );
     }
 
     @Override
@@ -148,12 +156,35 @@ public class EmailServiceImpl implements EmailService {
                 .toUriString();
         String message = MessageFormat.format( "Please verify your contact email by clicking on the following link:\r\n\r\n{0}",
                 confirmationUrl );
-        sendSimpleMessage( subject, message, recipientAddress, null );
+        sendSimpleMessage( subject, message, recipientAddress, null, null );
     }
 
     @Override
     public void sendUserRegisteredEmail( User user ) throws MessagingException {
-        sendSimpleMessage( messageSource.getMessage( "rdp.site.shortname", null, Locale.getDefault() ) + " - User Registered", "New user registration: " + user.getEmail(), new InternetAddress( siteSettings.getAdminEmail() ), null );
+
+        sendSimpleMessage( messageSource.getMessage( "rdp.site.shortname", null, Locale.getDefault() ) + " - User Registered", "New user registration: " + user.getEmail(), getAdminAddress(), null, null );
     }
 
+    @Override
+    public void sendUserGeneAccessRequest( UserGene userGene, User replyTo, String reason ) throws MessagingException {
+        String viewUserUrl = UriComponentsBuilder.fromUri( siteSettings.getHostUri() )
+                .path( "userView/{userId}" )
+                .buildAndExpand( Collections.singletonMap( "userId", replyTo.getId() ) )
+                .toUriString();
+        InternetAddress to = userGene.getUser().getVerifiedContactEmail().orElseThrow( () -> new MessagingException( "Could not find a verified email address for user." ) );
+        InternetAddress replyToAddress = replyTo.getVerifiedContactEmail().orElseThrow( () -> new MessagingException( "Could not find a verified email address for user." ) );
+        String subject = messageSource.getMessage( "rdp.site.shortname", null, Locale.getDefault() ) + " - Access Request";
+        String content = messageSource.getMessage( "EmailService.sendUserGeneAccessRequest",
+                new String[]{ replyTo.getProfile().getFullName(), userGene.getSymbol(), reason, viewUserUrl }, Locale.getDefault() );
+        sendSimpleMessage( subject, content, to, replyToAddress, getAdminAddress() );
+    }
+
+    private InternetAddress getAdminAddress() throws AddressException {
+        try {
+            return new InternetAddress( siteSettings.getAdminEmail(), messageSource.getMessage( "rdp.site.shortname", null, Locale.getDefault() ) );
+        } catch ( UnsupportedEncodingException e ) {
+            log.error( "Could not encode the admin email personal, please set rdp.site.shortname correctly.", e );
+            return new InternetAddress( siteSettings.getAdminEmail() );
+        }
+    }
 }

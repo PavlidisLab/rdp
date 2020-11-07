@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.web.client.ExpectedCount;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
 import ubc.pavlab.rdp.exception.RemoteException;
@@ -29,6 +30,7 @@ import java.net.URISyntaxException;
 import java.util.EnumSet;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
@@ -112,17 +114,16 @@ public class RemoteResourceServiceTest {
     }
 
     @Test
-    public void findGenesBySymbol_whenTier3_isRestricted() throws URISyntaxException, RemoteException, JsonProcessingException {
+    public void findGenesBySymbol_whenTier3_isRestricted() throws URISyntaxException, JsonProcessingException {
         MockRestServiceServer mockServer = MockRestServiceServer.createServer( restTemplate );
-        mockServer.expect( requestTo( new URI( "http://example.com/api/genes/search?symbol=ok&taxonId=9606&tier=TIER1" ) ) )
+        mockServer.expect( ExpectedCount.once(), requestTo( new URI( "http://example.com/api/genes/search?symbol=ok&taxonId=9606&tier=TIER1" ) ) )
                 .andRespond( withStatus( HttpStatus.OK )
                         .contentType( MediaType.APPLICATION_JSON )
                         .body( objectMapper.writeValueAsString( new UserGene[]{} ) ) );
-        mockServer.expect( requestTo( new URI( "http://example.com/api/genes/search?symbol=ok&taxonId=9606&tier=TIER2" ) ) )
+        mockServer.expect( ExpectedCount.once(), requestTo( new URI( "http://example.com/api/genes/search?symbol=ok&taxonId=9606&tier=TIER2" ) ) )
                 .andRespond( withStatus( HttpStatus.OK )
                         .contentType( MediaType.APPLICATION_JSON )
                         .body( objectMapper.writeValueAsString( new UserGene[]{} ) ) );
-
         Taxon taxon = createTaxon( 9606 );
         remoteResourceService.findGenesBySymbol( "ok", taxon, EnumSet.of( TierType.TIER1, TierType.TIER2, TierType.TIER3 ), null, null, null, null );
         mockServer.verify();

@@ -538,7 +538,6 @@ public class UserControllerTest {
         updatedProfile.setOrganization( "Organization" );
         updatedProfile.setPhone( "555-555-5555" );
         updatedProfile.setWebsite( "http://test.com" );
-        updatedProfile.setPublications( Sets.newSet() );
         updatedProfile.setPrivacyLevel( PrivacyLevelType.PRIVATE );
 
         ProfileWithoutOrganUberonIds payload = new ProfileWithoutOrganUberonIds();
@@ -710,10 +709,14 @@ public class UserControllerTest {
     public void givenLoggedIn_whenVerifyContactEmailWithToken_andTokenDoesNotExist_thenReturn3xx() throws Exception {
         User user = createUser( 1 );
         when( userService.findCurrentUser() ).thenReturn( user );
-        when( userService.confirmVerificationToken( "1234" ) ).thenThrow( TokenException.class );
+        when( userService.confirmVerificationToken( "1234" ) ).thenAnswer( answer -> {
+            throw new TokenException( "Verification token does not exist." );
+        } );
         mvc.perform( get( "/user/verify-contact-email" )
                 .param( "token", "1234" ) )
-                .andExpect( status().isNotFound() );
+                .andExpect( status().is3xxRedirection() )
+                .andExpect( flash().attributeExists( "message" ) )
+                .andExpect( flash().attribute( "error", true ) );
         verify( userService ).confirmVerificationToken( "1234" );
     }
 

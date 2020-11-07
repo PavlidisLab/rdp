@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
+import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.test.context.junit4.SpringRunner;
 import ubc.pavlab.rdp.model.GeneInfo;
 import ubc.pavlab.rdp.model.Taxon;
@@ -17,6 +18,7 @@ import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.repositories.GeneInfoRepository;
 import ubc.pavlab.rdp.repositories.TaxonRepository;
 import ubc.pavlab.rdp.repositories.UserGeneRepository;
+import ubc.pavlab.rdp.settings.ApplicationSettings;
 
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -48,7 +50,15 @@ public class UserGeneServiceImplTest {
     private UserGeneRepository userGeneRepository;
 
     @MockBean
+    private UserService userService;
+
+    @MockBean
     private TierService tierService;
+    @MockBean
+    private PermissionEvaluator permissionEvaluator;
+
+    @MockBean
+    private ApplicationSettings applicationSettings;
 
     @Test
     public void updateUserGenes_withExistingUser_thenUserGeneAreUpdated() {

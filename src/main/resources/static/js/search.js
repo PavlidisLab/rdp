@@ -5,7 +5,8 @@
         /* jshint validthis: true */
         var element = $(this);
         var userId = element.data('user-id');
-        $.get('/search/view/user-preview/' + userId, function (data) {
+        var anonymousUserId = element.data('anonymous-user-id');
+        $.get(anonymousUserId ? '/search/view/user-preview/by-anonymous-id/' + anonymousUserId : '/search/view/user-preview/' + userId, function (data) {
             element.popover({
                 container: 'body',
                 trigger: 'hover tooltip',

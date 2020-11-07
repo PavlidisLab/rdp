@@ -4,11 +4,6 @@
 <body>
 <div th:fragment="user-preview(user)">
     <h4 th:text="${user.profile.fullName}"></h4>
-    <h5>
-        <span th:if="${user.profile.researcherPosition} != null" th:text="#{'ResearcherPosition.' + ${user.profile.researcherPosition?.name()}}"></span>
-        <span th:if="${user.profile.researcherPosition} != null and ${user.profile.organization} != ''">at</span>
-        <span th:text="${user.profile.organization}"></span>
-    </h5>
     <p th:unless="${user.profile.researcherCategories.isEmpty()}">
         <span th:each="researcherCategory : ${user.profile.researcherCategories}"
               class="badge badge-info"
@@ -46,7 +41,8 @@
                 th:if="${@applicationSettings.profile.enabledResearcherCategories.contains(researcherCategory.name())}"
                 th:value="${researcherCategory.name()}"
                 th:text="#{'ResearcherCategory.' + ${researcherCategory.name()}}"
-                th:selected="${#lists.contains(selectedResearcherCategories, researcherCategory)}">...</option>
+                th:selected="${#lists.contains(selectedResearcherCategories, researcherCategory)}">...
+        </option>
     </select>
 </div>
 </body>

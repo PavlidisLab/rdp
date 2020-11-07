@@ -214,21 +214,21 @@ public class UserController {
         VerificationToken token = userService.createContactEmailVerificationTokenForUser( user );
         eventPublisher.publishEvent( new OnContactEmailUpdateEvent( user, token ) );
         redirectAttributes.addFlashAttribute( "message", MessageFormat.format( "We will send an email to {0} with a link to verify your contact email.", user.getProfile().getContactEmail() ) );
-        return new ModelAndView( "redirect:/user/profile" );
+        return "redirect:/user/profile";
     }
 
     @GetMapping("/user/verify-contact-email")
-    public ModelAndView verifyContactEmail( @RequestParam String token ) {
-        ModelAndView modelAndView = new ModelAndView();
+    public String verifyContactEmail( @RequestParam String token, RedirectAttributes redirectAttributes ) {
         try {
             userService.confirmVerificationToken( token );
-            modelAndView.setViewName( "redirect:/user/profile" );
+            redirectAttributes.addFlashAttribute( "Your contact email has been successfully verified." );
         } catch ( TokenException e ) {
-            modelAndView.setStatus( HttpStatus.NOT_FOUND );
-            modelAndView.setViewName( "error/404" );
-            log.error( e );
+            log.error( MessageFormat.format( "{0} attempt to confirm verification token {1} failed.", userService.findCurrentUser(), token ), e );
+            redirectAttributes.addFlashAttribute( "message", e.getMessage() );
+            redirectAttributes.addFlashAttribute( "error", true );
+        } finally {
+            return "redirect:/user/profile";
         }
-        return modelAndView;
     }
 
     @Data
@@ -280,9 +280,13 @@ public class UserController {
 
     @ResponseBody
     @PostMapping(value = "/user/model/{taxonId}", produces = MediaType.TEXT_PLAIN_VALUE)
-    public String saveModelForTaxon( @PathVariable Integer taxonId, @RequestBody Model model ) {
+    public Object saveModelForTaxon( @PathVariable Integer taxonId, @RequestBody Model model ) {
         User user = userService.findCurrentUser();
         Taxon taxon = taxonService.findById( taxonId );
+
+        if ( taxon == null ) {
+            return ResponseEntity.notFound().build();
+        }
 
         user.getTaxonDescriptions().put( taxon, model.getDescription() );
 
@@ -309,36 +313,44 @@ public class UserController {
 
     @ResponseBody
     @GetMapping(value = "/user/taxon/{taxonId}/gene", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Set<UserGene> getGenesForTaxon( @PathVariable Integer taxonId ) {
+    public Object getGenesForTaxon( @PathVariable Integer taxonId ) {
         Taxon taxon = taxonService.findById( taxonId );
+        if ( taxon == null ) {
+            return ResponseEntity.notFound().build();
+        }
         return userService.findCurrentUser().getUserGenes().values().stream()
                 .filter( gene -> gene.getTaxon().equals( taxon ) ).collect( Collectors.toSet() );
     }
 
     @ResponseBody
     @GetMapping(value = "/user/taxon/{taxonId}/term", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Set<UserTerm> getTermsForTaxon( @PathVariable Integer taxonId ) {
+    public Object getTermsForTaxon( @PathVariable Integer taxonId ) {
         Taxon taxon = taxonService.findById( taxonId );
+        if ( taxon == null ) {
+            return ResponseEntity.notFound().build();
+        }
         return userService.findCurrentUser().getTermsByTaxon( taxon );
     }
 
     @ResponseBody
     @PostMapping(value = "/user/taxon/{taxonId}/term/search", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Map<String, UserTerm> getTermsForTaxon( @PathVariable Integer taxonId, @RequestBody List<String> goIds ) {
-        User user = userService.findCurrentUser();
+    public Object getTermsForTaxon( @PathVariable Integer taxonId, @RequestBody List<String> goIds ) {
         Taxon taxon = taxonService.findById( taxonId );
+        if ( taxon == null ) {
+            return ResponseEntity.notFound().build();
+        }
         Set<GeneOntologyTerm> goTerms = goIds.stream().map( goId -> goService.getTerm( goId ) ).collect( Collectors.toSet() );
-        return userService.convertTerms( user, taxon, goTerms ).stream().collect( Collectors.toMap( GeneOntologyTerm::getGoId, term -> term ) );
+        return userService.convertTerms( userService.findCurrentUser(), taxon, goTerms ).stream()
+                .collect( Collectors.toMap( GeneOntologyTerm::getGoId, identity() ) );
     }
 
     @ResponseBody
     @GetMapping(value = "/user/taxon/{taxonId}/term/recommend", produces = MediaType.APPLICATION_JSON_VALUE)
     public Object getRecommendedTermsForTaxon( @PathVariable Integer taxonId ) {
-        User user = userService.findCurrentUser();
         Taxon taxon = taxonService.findById( taxonId );
-        if ( user == null || taxon == null ) {
+        if ( taxon == null ) {
             return ResponseEntity.notFound().build();
         }
-        return userService.recommendTerms( user, taxon );
+        return userService.recommendTerms( userService.findCurrentUser(), taxon );
     }
 }

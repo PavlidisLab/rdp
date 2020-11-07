@@ -1,15 +1,29 @@
 package ubc.pavlab.rdp.controllers;
 
+import lombok.Data;
 import lombok.extern.apachecommons.CommonsLog;
+import org.hibernate.validator.constraints.NotBlank;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.PermissionEvaluator;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import org.springframework.web.servlet.view.RedirectView;
+import ubc.pavlab.rdp.events.OnRequestAccessEvent;
 import ubc.pavlab.rdp.exception.RemoteException;
 import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.ResearcherCategory;
@@ -17,6 +31,7 @@ import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.services.*;
 
+import javax.validation.Valid;
 import java.net.URI;
 import java.text.MessageFormat;
 import java.util.*;
@@ -30,7 +45,7 @@ import java.util.stream.Collectors;
 public class SearchController {
 
     @Autowired
-    MessageSource messageSource;
+    private MessageSource messageSource;
 
     @Autowired
     private UserService userService;
@@ -45,7 +60,7 @@ public class SearchController {
     private UserGeneService userGeneService;
 
     @Autowired
-    UserOrganService userOrganService;
+    private UserOrganService userOrganService;
 
     @Autowired
     private RemoteResourceService remoteResourceService;
@@ -54,7 +69,13 @@ public class SearchController {
     private PrivacyService privacyService;
 
     @Autowired
-    GeneInfoService geneInfoService;
+    private GeneInfoService geneInfoService;
+
+    @Autowired
+    private PermissionEvaluator permissionEvaluator;
+
+    @Autowired
+    private ApplicationEventPublisher eventPublisher;
 
     @PreAuthorize("hasPermission(null, 'search')")
     @GetMapping(value = "/search")
@@ -218,13 +239,8 @@ public class SearchController {
             return modelAndView;
         }
 
-        Collection<UserGene> orthologs;
-        if ( orthologTaxonId == null ) {
-            orthologs = userGeneService.findOrthologsByGeneAndTierInAndUserOrgansIn( gene, tiers, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ) );
-        } else {
-            orthologs = userGeneService.findOrthologsByGeneAndTierInAndTaxonAndUserOrgansIn( gene, tiers, taxonService.findById( orthologTaxonId ), researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ) );
-        }
         Taxon orthologTaxon = orthologTaxonId == null ? null : taxonService.findById( orthologTaxonId );
+        Collection<UserGene> orthologs = userGeneService.handleOrthologSearch( gene, tiers, orthologTaxon, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ) );
 
         if (
             // Check if there is a ortholog request for a different taxon than the original gene
@@ -293,12 +309,7 @@ public class SearchController {
             return modelAndView;
         }
 
-        Collection<UserGene> orthologs;
-        if ( orthologTaxonId == null ) {
-            orthologs = userGeneService.findOrthologsByGeneAndTierInAndUserOrgansIn( gene, tiers, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ) );
-        } else {
-            orthologs = userGeneService.findOrthologsByGeneAndTierInAndTaxonAndUserOrgansIn( gene, tiers, taxonService.findById( orthologTaxonId ), researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ) );
-        }
+        Collection<UserGene> orthologs = userGeneService.handleOrthologSearch( gene, tiers, orthologTaxon, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ) );
 
         if (
             // Check if there is a ortholog request for a different taxon than the original gene
@@ -356,14 +367,9 @@ public class SearchController {
             return modelAndView;
         }
 
-        Collection<UserGene> orthologs;
-        if ( orthologTaxonId == null ) {
-            orthologs = userGeneService.findOrthologsByGeneAndTierInAndUserOrgansIn( gene, tiers, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ) );
-        } else {
-            orthologs = userGeneService.findOrthologsByGeneAndTierInAndTaxonAndUserOrgansIn( gene, tiers, taxonService.findById( orthologTaxonId ), researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ) );
-        }
-
         Taxon orthologTaxon = orthologTaxonId == null ? null : taxonService.findById( orthologTaxonId );
+        Collection<UserGene> orthologs = userGeneService.handleOrthologSearch( gene, tiers, orthologTaxon, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ) );
+
         if (
             // Check if there is a ortholog request for a different taxon than the original gene
                 ( orthologTaxonId != null && !orthologTaxonId.equals( gene.getTaxon().getId() ) )
@@ -422,6 +428,18 @@ public class SearchController {
         return modelAndView;
     }
 
+    @GetMapping(value = "/search/view/user-preview/by-anonymous-id/{anonymousId}")
+    public ModelAndView previewUser( @PathVariable UUID anonymousId,
+                                     @RequestParam(required = false) String remoteHost ) {
+        ModelAndView modelAndView = new ModelAndView( "fragments/profile::user-preview" );
+        User user = userService.findUserByAnonymousId( anonymousId );
+        if ( user == null ) {
+            modelAndView.setStatus( HttpStatus.NOT_FOUND );
+        }
+        modelAndView.addObject( "user", userService.anonymizeUser( user ) );
+        return modelAndView;
+    }
+
     @GetMapping(value = "/userView/{userId}")
     public ModelAndView viewUser( @PathVariable Integer userId,
                                   @RequestParam(required = false) String remoteHost ) {
@@ -448,6 +466,64 @@ public class SearchController {
             modelAndView.addObject( "user", user );
             modelAndView.addObject( "viewUser", viewUser );
             modelAndView.addObject( "viewOnly", true );
+        }
+        return modelAndView;
+    }
+
+    @Data
+    private static class RequestAccessForm {
+        @NotBlank(message = "Reason cannot be blank.")
+        private String reason;
+    }
+
+    @Secured({ "ROLE_USER", "ROLE_ADMIN" })
+    @GetMapping("/search/gene/by-anonymous-id/{anonymousId}/request-access")
+    public Object requestGeneAccessView( @PathVariable UUID anonymousId,
+                                         RedirectAttributes redirectAttributes ) {
+        ModelAndView modelAndView = new ModelAndView( "search/request-access" );
+        UserGene userGene = userService.findUserGeneByAnonymousId( anonymousId );
+        if ( userGene == null ) {
+            modelAndView.setStatus( HttpStatus.NOT_FOUND );
+            modelAndView.setViewName( "error/404" );
+            return modelAndView;
+        }
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if ( permissionEvaluator.hasPermission( auth, userGene, "read" ) ) {
+            String redirectUri = ServletUriComponentsBuilder.fromCurrentContextPath()
+                    .path( "userView/{userId}" )
+                    .buildAndExpand( Collections.singletonMap( "userId", userGene.getUser().getId() ) )
+                    .toUriString();
+            redirectAttributes.addFlashAttribute( "message", "There is no need to request access as you have sufficient permission to see this gene." );
+            return new RedirectView( redirectUri );
+        }
+        modelAndView.addObject( "requestAccessForm", new RequestAccessForm() );
+        modelAndView.addObject( "userGene", userService.anonymizeUserGene( userGene ) );
+        return modelAndView;
+    }
+
+    @Transactional
+    @Secured({ "ROLE_USER", "ROLE_ADMIN" })
+    @PostMapping("/search/gene/by-anonymous-id/{anonymousId}/request-access")
+    public ModelAndView requestGeneAccess( @PathVariable UUID anonymousId,
+                                           @Valid RequestAccessForm requestAccessForm,
+                                           BindingResult bindingResult,
+                                           RedirectAttributes redirectAttributes ) {
+        ModelAndView modelAndView = new ModelAndView( "search/request-access" );
+        UserGene userGene = userService.findUserGeneByAnonymousId( anonymousId );
+        if ( userGene == null ) {
+            modelAndView.setStatus( HttpStatus.NOT_FOUND );
+            modelAndView.setViewName( "error/404" );
+            return modelAndView;
+        }
+
+        modelAndView.addObject( "userGene", userService.anonymizeUserGene( userGene ) );
+
+        if ( bindingResult.hasErrors() ) {
+            modelAndView.setStatus( HttpStatus.BAD_REQUEST );
+        } else {
+            eventPublisher.publishEvent( new OnRequestAccessEvent( userService.findCurrentUser(), userGene, requestAccessForm.reason ) );
+            redirectAttributes.addFlashAttribute( "message", "An access request has been sent and will be reviewed." );
+            return new ModelAndView( "redirect:/search" );
         }
         return modelAndView;
     }

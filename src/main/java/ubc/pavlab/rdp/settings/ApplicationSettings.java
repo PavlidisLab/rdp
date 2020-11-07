@@ -128,6 +128,10 @@ public class ApplicationSettings {
          * Allow users to choose whether or not their genes can be hidden from their public profile.
          */
         private boolean allowHideGenelist = false;
+        /**
+         * Allow anonymized search results to be displayed.
+         */
+        private boolean enableAnonymizedSearchResults = true;
     }
 
     @SuppressWarnings("WeakerAccess") //Used in frontend

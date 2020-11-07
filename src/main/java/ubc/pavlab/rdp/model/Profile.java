@@ -1,6 +1,6 @@
 package ubc.pavlab.rdp.model;
 
-import lombok.Data;
+import lombok.*;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.validator.constraints.Email;
 import org.hibernate.validator.constraints.NotEmpty;
@@ -18,6 +18,9 @@ import java.util.Set;
  * Created by mjacobson on 18/01/18.
  */
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Embeddable
 public class Profile {
     @Column(name = "name")
@@ -75,7 +78,7 @@ public class Profile {
     @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "user_id")
-    private Set<Publication> publications = new HashSet<>();
+    private final Set<Publication> publications = new HashSet<>();
 
     @Enumerated(EnumType.STRING)
     @Column(name = "researcher_position")
@@ -85,5 +88,5 @@ public class Profile {
     @Column(name = "researcher_category")
     @ElementCollection
     @CollectionTable(name = "user_researcher_category", joinColumns = { @JoinColumn(name = "user_id") })
-    private Set<ResearcherCategory> researcherCategories = new HashSet<>();
+    private final Set<ResearcherCategory> researcherCategories = new HashSet<>();
 }

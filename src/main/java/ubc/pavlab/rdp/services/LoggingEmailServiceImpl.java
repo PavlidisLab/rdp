@@ -8,9 +8,11 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.UriComponentsBuilder;
 import ubc.pavlab.rdp.model.PasswordResetToken;
 import ubc.pavlab.rdp.model.User;
+import ubc.pavlab.rdp.model.UserGene;
 import ubc.pavlab.rdp.model.VerificationToken;
 import ubc.pavlab.rdp.settings.SiteSettings;
 
+import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
 import java.text.MessageFormat;
 import java.util.Locale;
@@ -64,5 +66,10 @@ public class LoggingEmailServiceImpl implements EmailService {
     @Override
     public void sendUserRegisteredEmail( User user ) {
         log.info( MessageFormat.format( "{0} has been registered.", user ) );
+    }
+
+    @Override
+    public void sendUserGeneAccessRequest( UserGene userGene, User by, String reason ) {
+        log.info( MessageFormat.format( "{0} has been requested by {1} for: {2}.", userGene, by, reason ) );
     }
 }

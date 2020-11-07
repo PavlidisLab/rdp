@@ -54,6 +54,12 @@
 
     <!-- Special Query Caches -->
 
+    <cache name="ubc.pavlab.rdp.model.User.byAnonymousId"
+           maxElementsInMemory="0"/>
+
+    <cache name="ubc.pavlab.rdp.model.UserGene.byAnonymousId"
+           maxElementsInMemory="0"/>
+
     <cache name="taxon-list"
            maxElementsInMemory="256"
            overflowToDisk="false"

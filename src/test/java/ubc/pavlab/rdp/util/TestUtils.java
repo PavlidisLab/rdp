@@ -12,6 +12,7 @@ import java.net.URI;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -53,21 +54,18 @@ public final class TestUtils {
     }
 
     public static User createUnpersistedUser() {
-        User user = new User();
-        user.setEmail( EMAIL );
-        user.setPassword( ENCODED_PASSWORD ); // imbatman
-        user.setEnabled( false );
-
-        Profile profile = new Profile();
-        profile.setName( NAME );
-        profile.setLastName( LAST_NAME );
-        profile.setPrivacyLevel( PrivacyLevelType.PUBLIC );
-        profile.setShared( false );
-        profile.setHideGenelist( false );
-        profile.setContactEmailVerified( false );
-        user.setProfile( profile );
-
-        return user;
+        Profile profile = Profile.builder()
+                .name( NAME )
+                .lastName( LAST_NAME )
+                .privacyLevel( PrivacyLevelType.PUBLIC )
+                .shared( false )
+                .hideGenelist( false )
+                .contactEmailVerified( false ).build();
+        return User.builder()
+                .email( EMAIL )
+                .password( ENCODED_PASSWORD ) // imbatman
+                .enabled( false )
+                .profile( profile ).build();
     }
 
     public static User createUser( int id ) {
@@ -79,7 +77,7 @@ public final class TestUtils {
 
     public static User createUserWithRoles( int id, Role... roles ) {
         User user = createUser( id );
-        user.setRoles( Arrays.stream( roles ).collect( Collectors.toSet() ) );
+        user.getRoles().addAll( Arrays.stream( roles ).collect( Collectors.toSet() ) );
         return user;
     }
 
@@ -96,6 +94,10 @@ public final class TestUtils {
         User user = createUser( id );
         user.setOriginUrl( originUri );
         return user;
+    }
+
+    public static User createAnonymizedUser() {
+        return User.builder().anonymousId( UUID.randomUUID() ).build();
     }
 
     @SneakyThrows
@@ -128,6 +130,7 @@ public final class TestUtils {
         GeneInfo gene = new GeneInfo();
         gene.setGeneId( id );
         gene.setTaxon( taxon );
+        gene.setSymbol( "BRCA1" );
         return gene;
     }
 
