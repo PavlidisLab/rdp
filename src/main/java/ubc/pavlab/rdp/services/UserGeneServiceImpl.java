@@ -146,27 +146,7 @@ public class UserGeneServiceImpl implements UserGeneService {
                     .collect( Collectors.toSet() ) );
         }
 
-        if ( orthologTaxon != null ) {
-            uGenes.addAll( userGeneRepository.findByGeneId( gene.getGeneId() )
-                    .stream()
-                    .map( userGene -> userGeneRepository.findOrthologsByGeneIdAndTaxon( userGene.getGeneId(), orthologTaxon ) )
-                    .flatMap( Collection::stream )
-                    .filter( ortholog -> tiers.contains( ortholog.getTier() ) )
-                    .filter( ug -> researcherPositions == null || researcherPositions.contains( ug.getUser().getProfile().getResearcherPosition() ) )
-                    .filter( ug -> researcherCategories == null || containsAny( researcherCategories, ug.getUser().getProfile().getResearcherCategories() ) )
-                    .filter( ortholog -> organs == null || containsAny( organs, ortholog.getUser().getUserOrgans().values() ) )
-                    .collect( Collectors.toSet() ) );
-        } else {
-            uGenes.addAll( userGeneRepository.findByGeneId( gene.getGeneId() )
-                    .stream()
-                    .map( userGene -> userGeneRepository.findOrthologsByGeneId( userGene.getGeneId() ) )
-                    .flatMap( Collection::stream )
-                    .filter( ortholog -> tiers.contains( ortholog.getTier() ) )
-                    .filter( ug -> researcherPositions == null || researcherPositions.contains( ug.getUser().getProfile().getResearcherPosition() ) )
-                    .filter( ug -> researcherCategories == null || containsAny( researcherCategories, ug.getUser().getProfile().getResearcherCategories() ) )
-                    .filter( ortholog -> organs == null || containsAny( organs, ortholog.getUser().getUserOrgans().values() ) )
-                    .collect( Collectors.toSet() ) );
-        }
+        uGenes.addAll( handleOrthologSearchInternal( gene, tiers, orthologTaxon, researcherPositions, researcherCategories, organs ) );
 
         return uGenes;
     }
@@ -175,15 +155,18 @@ public class UserGeneServiceImpl implements UserGeneService {
     @PostFilter("hasPermission(filterObject, 'read')")
     public Collection<UserGene> handleOrthologSearch( Gene gene, Set<TierType> tiers, Taxon orthologTaxon, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherCategories, Collection<UserOrgan> userOrgans ) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        return userGeneRepository.findByGeneId( gene.getGeneId() )
+        return handleOrthologSearchInternal( gene, tiers, orthologTaxon, researcherPositions, researcherCategories, userOrgans )
                 .stream()
-                .map( userGene -> orthologTaxon == null ? userGeneRepository.findOrthologsByGeneId( userGene.getGeneId() ) : userGeneRepository.findOrthologsByGeneIdAndTaxon( userGene.getGeneId(), orthologTaxon ) )
-                .flatMap( Collection::stream )
+                .map( ug -> permissionEvaluator.hasPermission( auth, ug, "read" ) ? ug : userService.anonymizeUserGene( ug ) )
+                .collect( Collectors.toSet() );
+    }
+
+    private Collection<UserGene> handleOrthologSearchInternal( Gene gene, Set<TierType> tiers, Taxon orthologTaxon, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherCategories, Collection<UserOrgan> userOrgans ) {
+        return ( orthologTaxon == null ? userGeneRepository.findOrthologsByGeneId( gene.getGeneId() ) : userGeneRepository.findOrthologsByGeneIdAndTaxon( gene.getGeneId(), orthologTaxon ) ).stream()
                 .filter( ortholog -> tiers.contains( ortholog.getTier() ) )
                 .filter( ug -> researcherPositions == null || researcherPositions.contains( ug.getUser().getProfile().getResearcherPosition() ) )
                 .filter( ug -> researcherCategories == null || containsAny( researcherCategories, ug.getUser().getProfile().getResearcherCategories() ) )
                 .filter( ortholog -> userOrgans == null || containsAny( userOrgans, ortholog.getUser().getUserOrgans().values() ) )
-                .map( ug -> permissionEvaluator.hasPermission( auth, ug, "read" ) ? ug : userService.anonymizeUserGene( ug ) )
                 .collect( Collectors.toSet() );
     }
 
