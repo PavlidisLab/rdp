@@ -172,7 +172,7 @@ public class ApiController {
             return ResponseEntity.notFound().build();
         }
 
-        Gene gene = geneService.findBySymbolAndTaxon( symbol, taxon );
+        GeneInfo gene = geneService.findBySymbolAndTaxon( symbol, taxon );
 
         if ( gene == null ) {
             return ResponseEntity.notFound().build();
@@ -183,8 +183,9 @@ public class ApiController {
         }
 
         Taxon orthologTaxon = orthologTaxonId == null ? null : taxonService.findById( orthologTaxonId );
-
-        Collection<UserGene> orthologs = userGeneService.handleOrthologSearch( gene, tiers, orthologTaxon, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ) );
+        Collection<GeneInfo> orthologs = gene.getOrthologs().stream()
+                .filter( g -> orthologTaxon == null || g.getTaxon().equals( orthologTaxon ) )
+                .collect( Collectors.toSet() );
 
         if (
             // Check if there is a ortholog request for a different taxon than the original gene

@@ -229,7 +229,7 @@ public class SearchController {
             return modelAndView;
         }
 
-        Gene gene = geneService.findBySymbolAndTaxon( symbol, taxon );
+        GeneInfo gene = geneService.findBySymbolAndTaxon( symbol, taxon );
 
         if ( gene == null ) {
             modelAndView.setStatus( HttpStatus.NOT_FOUND );
@@ -240,7 +240,9 @@ public class SearchController {
         }
 
         Taxon orthologTaxon = orthologTaxonId == null ? null : taxonService.findById( orthologTaxonId );
-        Collection<UserGene> orthologs = userGeneService.handleOrthologSearch( gene, tiers, orthologTaxon, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ) );
+        Collection<GeneInfo> orthologs = gene.getOrthologs().stream()
+                .filter( g -> orthologTaxon == null || g.getTaxon().equals( orthologTaxon ) )
+                .collect( Collectors.toSet() );
 
         if (
             // Check if there is a ortholog request for a different taxon than the original gene
@@ -292,7 +294,7 @@ public class SearchController {
             return modelAndView;
         }
 
-        Gene gene = geneService.findBySymbolAndTaxon( symbol, taxon );
+        GeneInfo gene = geneService.findBySymbolAndTaxon( symbol, taxon );
 
         if ( gene == null ) {
             modelAndView.setStatus( HttpStatus.NOT_FOUND );
@@ -309,7 +311,9 @@ public class SearchController {
             return modelAndView;
         }
 
-        Collection<UserGene> orthologs = userGeneService.handleOrthologSearch( gene, tiers, orthologTaxon, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ) );
+        Collection<GeneInfo> orthologs = gene.getOrthologs().stream()
+                .filter( g -> orthologTaxon == null || g.getTaxon().equals( orthologTaxon ) )
+                .collect( Collectors.toSet() );
 
         if (
             // Check if there is a ortholog request for a different taxon than the original gene
@@ -368,7 +372,9 @@ public class SearchController {
         }
 
         Taxon orthologTaxon = orthologTaxonId == null ? null : taxonService.findById( orthologTaxonId );
-        Collection<UserGene> orthologs = userGeneService.handleOrthologSearch( gene, tiers, orthologTaxon, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ) );
+        Collection<GeneInfo> orthologs = gene.getOrthologs().stream()
+                .filter( g -> orthologTaxon == null || g.getTaxon().equals( orthologTaxon ) )
+                .collect( Collectors.toSet() );
 
         if (
             // Check if there is a ortholog request for a different taxon than the original gene
@@ -383,8 +389,6 @@ public class SearchController {
         }
 
         Map<Taxon, Set<GeneInfo>> orthologMap = orthologs.stream()
-                .map( UserGene::getGeneInfo )
-                .filter( Objects::nonNull )
                 .collect( Collectors.groupingBy( GeneInfo::getTaxon, Collectors.toSet() ) );
 
         modelAndView.addObject( "orthologs", orthologMap );

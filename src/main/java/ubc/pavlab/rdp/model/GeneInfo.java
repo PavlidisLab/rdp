@@ -6,6 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -34,6 +35,6 @@ public class GeneInfo extends Gene implements Serializable {
             joinColumns = @JoinColumn(name = "source_gene"),
             inverseJoinColumns = @JoinColumn(name = "target_gene"))
     @JsonIgnore
-    private Set<GeneInfo> orthologs;
+    private Set<GeneInfo> orthologs = new HashSet<>();
 
 }

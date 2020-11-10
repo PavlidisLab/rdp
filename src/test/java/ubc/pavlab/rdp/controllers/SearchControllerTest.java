@@ -168,7 +168,7 @@ public class SearchControllerTest {
                 .andExpect( status().isOk() )
                 .andExpect( view().name( "search" ) )
                 .andExpect( model().attributeExists( "usergenes" ) );
-        verify( userGeneService ).handleOrthologSearch( gene, TierType.ANY, null, null, null, null );
+        verify( userGeneService ).handleGeneSearch( gene, TierType.ANY, null, null, null, null );
     }
 
     @Test

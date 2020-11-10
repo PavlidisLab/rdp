@@ -4,19 +4,14 @@
       xmlns:th="http://www.thymeleaf.org">
 <body>
 <!-- Orthologs mapped -->
-<section class="ortholog-search-text" th:fragment="ortholog-table (orthologs)">
+<div th:fragment="ortholog-table (orthologs)">
     <th:block th:each="entry, iterOrtholog : ${orthologs}">
         <span th:if="${iterOrtholog.first}">
           Showing the results for the specified human gene and the following orthologs:
         </span>
-        <span th:text="${entry.key.scientificName}"></span>
-        <th:block th:each="orthologGene, iterGene : ${entry.value}">
-            <th:block th:if="${iterGene.first}">(</th:block>
-            <span th:text="${orthologGene.symbol}"></span>
-            <th:block th:if="${!iterGene.last}">,</th:block>
-            <th:block th:if="${iterGene.last}">).</th:block>
-        </th:block>
+        <em th:text="${entry.key.scientificName}"></em>
+        <th:block th:each="orthologGene, iterGene : ${entry.value}"><th:block th:if="${iterGene.first}">(</th:block><a th:href="@{https://www.ncbi.nlm.nih.gov/gene/{geneId}(geneId=${orthologGene.geneId})}" th:text="${orthologGene.symbol}" target="_blank" rel="noopener"></a><th:block th:if="${!iterGene.last}">,</th:block><th:block th:if="${iterGene.last}">)</th:block></th:block><span th:text="${iterOrtholog.last} ? '.' : ','"></span>
     </th:block>
-</section>
+</div>
 </body>
 </html>

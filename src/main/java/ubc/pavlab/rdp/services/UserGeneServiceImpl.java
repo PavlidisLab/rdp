@@ -151,21 +151,6 @@ public class UserGeneServiceImpl implements UserGeneService {
         return uGenes;
     }
 
-    @Override
-    @PostFilter("hasPermission(filterObject, 'read')")
-    public Collection<UserGene> handleOrthologSearch( Gene gene, Set<TierType> tiers, Taxon orthologTaxon, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherCategories, Collection<UserOrgan> userOrgans ) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if ( applicationSettings.getPrivacy().isEnableAnonymizedSearchResults() ) {
-            return handleOrthologSearchInternal( gene, tiers, orthologTaxon, researcherPositions, researcherCategories, userOrgans )
-                    .stream()
-                    .map( ug -> permissionEvaluator.hasPermission( auth, ug, "read" ) ? ug : userService.anonymizeUserGene( ug ) )
-                    .sorted( comparing( UserGene::getAnonymousId, nullsFirst( naturalOrder() ) ) )
-                    .collect( Collectors.toList() );
-        } else {
-            return handleOrthologSearchInternal( gene, tiers, orthologTaxon, researcherPositions, researcherCategories, userOrgans );
-        }
-    }
-
     private Collection<UserGene> handleOrthologSearchInternal( Gene gene, Set<TierType> tiers, Taxon orthologTaxon, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherCategories, Collection<UserOrgan> userOrgans ) {
         return ( orthologTaxon == null ? userGeneRepository.findOrthologsByGeneId( gene.getGeneId() ) : userGeneRepository.findOrthologsByGeneIdAndTaxon( gene.getGeneId(), orthologTaxon ) ).stream()
                 .filter( ortholog -> tiers.contains( ortholog.getTier() ) )
