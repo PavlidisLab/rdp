@@ -1239,8 +1239,9 @@ public class UserServiceImplTest {
     }
 
     @Test
-    public void anonymizeUser() {
+    public void anonymizeUser_thenReturnAnonymizedUser() {
         when( privacySettings.getDefaultLevel() ).thenReturn( 2 );
+        when( privacySettings.isEnableAnonymizedSearchResults() ).thenReturn( true );
         User user = createUser( 1 );
         user.getProfile().setPrivacyLevel( PrivacyLevelType.PRIVATE );
         User anonymizedUser = userService.anonymizeUser( user );
@@ -1253,8 +1254,9 @@ public class UserServiceImplTest {
     }
 
     @Test
-    public void anonymizeUserGene() {
+    public void anonymizeUserGene_thenReturnAnonymizedUserGene() {
         when( privacySettings.getDefaultLevel() ).thenReturn( 2 );
+        when( privacySettings.isEnableAnonymizedSearchResults() ).thenReturn( true );
         Taxon taxon = createTaxon( 1 );
         User user = createUser( 1 );
         UserGene userGene = createUserGene( 1, createGene( 1, taxon ), user, TierType.TIER1, PrivacyLevelType.PRIVATE );

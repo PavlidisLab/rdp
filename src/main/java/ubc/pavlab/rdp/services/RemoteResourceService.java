@@ -11,6 +11,7 @@ import ubc.pavlab.rdp.model.enums.TierType;
 import java.net.URI;
 import java.util.Collection;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * Interface for remote resource methods. These mirror methods from UserService and UserGeneService, but the implementation
@@ -25,4 +26,6 @@ public interface RemoteResourceService {
     Collection<UserGene> findGenesBySymbol( String symbol, Taxon taxon, Set<TierType> tier, Integer orthologTaxonId, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherTypes, Set<String> organUberonIds );
 
     User getRemoteUser( Integer userId, URI remoteHost ) throws RemoteException;
+
+    User getAnonymizedUser( UUID anonymousId, URI remoteHost ) throws RemoteException;
 }

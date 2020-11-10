@@ -7,8 +7,10 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -59,6 +61,8 @@ public class ApiController {
     private ApplicationSettings applicationSettings;
     @Autowired
     private SiteSettings siteSettings;
+    @Autowired
+    private PermissionEvaluator permissionEvaluator;
 
     @ExceptionHandler({ AuthenticationException.class })
     public ResponseEntity handleAuthenticationException() {
@@ -240,6 +244,24 @@ public class ApiController {
             return ResponseEntity.notFound().build();
         }
         return initUser( user, locale );
+    }
+
+    @GetMapping(value = "/api/users/by-anonymous-id/{anonymousId}")
+    public Object getUserByAnonymousId( @PathVariable UUID anonymousId,
+                                        @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorizationHeader,
+                                        @RequestParam(name = "auth", required = false) String auth,
+                                        Locale locale ) {
+        checkEnabled();
+        checkAuth( authorizationHeader, auth );
+        User user = userService.findUserByAnonymousId( anonymousId );
+        if ( user == null ) {
+            return ResponseEntity.notFound().build();
+        }
+        if ( permissionEvaluator.hasPermission( SecurityContextHolder.getContext().getAuthentication(), user, "read" ) ) {
+            return initUser( user, locale );
+        } else {
+            return initUser( userService.anonymizeUser( user ), locale );
+        }
     }
 
     private void checkEnabled() {

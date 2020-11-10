@@ -25,7 +25,6 @@ import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.repositories.*;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
-import ubc.pavlab.rdp.settings.SiteSettings;
 
 import javax.validation.ValidationException;
 import java.text.MessageFormat;
@@ -69,9 +68,9 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private AccessTokenRepository accessTokenRepository;
     @Autowired
-    private PrivacyService privacyService;
-    @Autowired
     private CacheManager cacheManager;
+    @Autowired
+    private MessageSource messageSource;
 
     @Transactional
     @Override
@@ -252,14 +251,11 @@ public class UserServiceImpl implements UserService {
         return token.getUser();
     }
 
-    @Autowired
-    private MessageSource messageSource;
-
     @Override
     public User anonymizeUser( User user ) {
         Profile profile = Profile.builder()
                 .name( messageSource.getMessage( "rdp.site.anonymized-user-name", new String[]{}, Locale.getDefault() ) )
-                .privacyLevel( PrivacyLevelType.PUBLIC )
+                .privacyLevel( applicationSettings.getPrivacy().isEnableAnonymizedSearchResults() ? PrivacyLevelType.PUBLIC : PrivacyLevelType.PRIVATE )
                 .shared( true )
                 .build();
         profile.getResearcherCategories().addAll( user.getProfile().getResearcherCategories() );
@@ -269,7 +265,7 @@ public class UserServiceImpl implements UserService {
                 .profile( profile )
                 .build();
         // TODO: check if this is leaking too much personal information
-        user.getUserOrgans().putAll( user.getUserOrgans() );
+        anonymizedUser.getUserOrgans().putAll( user.getUserOrgans() );
         cacheManager.getCache( USERS_BY_ANONYMOUS_ID_CACHE_KEY ).put( anonymizedUser.getAnonymousId(), user );
         return anonymizedUser;
     }
@@ -281,7 +277,7 @@ public class UserServiceImpl implements UserService {
                 .anonymousId( UUID.randomUUID() )
                 .user( anonymizeUser( userGene.getUser() ) )
                 .geneInfo( userGene.getGeneInfo() )
-                .privacyLevel( PrivacyLevelType.PUBLIC )
+                .privacyLevel( applicationSettings.getPrivacy().isEnableAnonymizedSearchResults() ? PrivacyLevelType.PUBLIC : PrivacyLevelType.PRIVATE )
                 .tier( userGene.getTier() )
                 .build();
         anonymizedUserGene.updateGene( userGene );

@@ -3,6 +3,7 @@ package ubc.pavlab.rdp.controllers;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Matchers;
 import org.mockito.internal.util.collections.Sets;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -14,6 +15,7 @@ import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
+import ubc.pavlab.rdp.WebMvcConfig;
 import ubc.pavlab.rdp.WebSecurityConfig;
 import ubc.pavlab.rdp.model.GeneInfo;
 import ubc.pavlab.rdp.model.Taxon;
@@ -25,14 +27,17 @@ import ubc.pavlab.rdp.services.*;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.settings.SiteSettings;
 
+import java.net.URI;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.UUID;
 
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static ubc.pavlab.rdp.util.TestUtils.*;
 
 @WebMvcTest(ApiController.class)
@@ -74,6 +79,8 @@ public class ApiControllerTest {
     public void setUp() {
         when( applicationSettings.getIsearch() ).thenReturn( iSearchSettings );
         when( iSearchSettings.isEnabled() ).thenReturn( true );
+        when( siteSettings.getHostUri() ).thenReturn( URI.create( "http://localhost/" ) );
+        when( messageSource.getMessage( eq( "rdp.site.shortname" ), any(), any() ) ).thenReturn( "RDMM" );
     }
 
     @Test
@@ -317,5 +324,30 @@ public class ApiControllerTest {
                 .param( "tier", "TIER4" ) )
                 .andExpect( status().isBadRequest() )
                 .andExpect( content().contentTypeCompatibleWith( MediaType.APPLICATION_JSON ) );
+    }
+
+    @Test
+    public void getUser_thenReturn2xxSuccessful() throws Exception {
+        User user = createUser( 1 );
+        when( userService.findUserById( 1 ) ).thenReturn( user );
+        mvc.perform( get( "/api/users/{userId}", 1 ) )
+                .andExpect( status().is2xxSuccessful() )
+                .andExpect( jsonPath( "$.id" ).value( 1 ) )
+                .andExpect( jsonPath( "$.origin" ).value( "RDMM" ) )
+                .andExpect( jsonPath( "$.originUrl" ).value( "http://localhost" ) );
+    }
+
+    @Test
+    public void getUser_withAnonymousId_thenReturn2xxSuccessful() throws Exception {
+        User user = createUser( 1 );
+        UUID anonymousId = UUID.randomUUID();
+        when( userService.findUserByAnonymousId( anonymousId ) ).thenReturn( user );
+        when( userService.anonymizeUser( user ) ).thenReturn( User.builder().anonymousId( anonymousId ).build() );
+        mvc.perform( get( "/api/users/by-anonymous-id/{anonymousId}", anonymousId ) )
+                .andExpect( status().is2xxSuccessful() )
+                .andExpect( jsonPath( "$.anonymousId" ).value( anonymousId.toString() ) )
+                .andExpect( jsonPath( "$.origin" ).value( "RDMM" ) )
+                .andExpect( jsonPath( "$.originUrl" ).value( "http://localhost" ) );
+
     }
 }

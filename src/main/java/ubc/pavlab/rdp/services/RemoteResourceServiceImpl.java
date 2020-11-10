@@ -34,6 +34,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
 
     private static final String API_USERS_SEARCH_URI = "/api/users/search";
     private static final String API_USER_GET_URI = "/api/users/{userId}";
+    private static final String API_USER_GET_BY_ANONYMOUS_ID_URI = "/api/users/by-anonymous-id/{anonymousId}";
     private static final String API_GENES_SEARCH_URI = "/api/genes/search";
 
     @Autowired
@@ -101,20 +102,39 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
     public User getRemoteUser( Integer userId, URI remoteHost ) throws RemoteException {
         // Ensure that the remoteHost is one of our known APIs by comparing the URI authority component and always use
         // the URI defined in the configuration
-        String remoteHostAuthority = remoteHost.getAuthority();
-        Map<String, URI> apiUriByAuthority = Arrays.stream( applicationSettings.getIsearch().getApis() )
-                .map( URI::create )
-                .collect( Collectors.toMap( URI::getAuthority, identity() ) );
-        if ( !apiUriByAuthority.containsKey( remoteHost.getAuthority() ) ) {
-            throw new RemoteException( MessageFormat.format( "Unknown remote API {0}.", remoteHost.getAuthority() ) );
-        }
+        URI authority = getApiUri( remoteHost );
 
         MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
         addAuthParamIfAdmin( queryParams );
-        URI uri = UriComponentsBuilder.fromUri( apiUriByAuthority.get( remoteHostAuthority ) )
+        URI uri = UriComponentsBuilder.fromUri( authority )
                 .path( API_USER_GET_URI )
                 .queryParams( queryParams )
                 .buildAndExpand( Collections.singletonMap( "userId", userId ) )
+                .toUri();
+
+        try {
+            ResponseEntity<User> responseEntity = restTemplate.getForEntity( uri, User.class );
+            User user = responseEntity.getBody();
+            // add back-references to the user
+            user.getUserGenes().values().forEach( ug -> ug.setUser( user ) );
+            user.getUserTerms().forEach( ug -> ug.setUser( user ) );
+            user.getUserOrgans().values().forEach( ug -> ug.setUser( user ) );
+            return user;
+        } catch ( HttpClientErrorException e ) {
+            throw new RemoteException( MessageFormat.format( "Unsuccessful response received for {0}.", uri ), e );
+        }
+    }
+
+    @Override
+    public User getAnonymizedUser( UUID anonymousId, URI remoteHost ) throws RemoteException {
+        URI authority = getApiUri( remoteHost );
+
+        MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
+        addAuthParamIfAdmin( queryParams );
+        URI uri = UriComponentsBuilder.fromUri( authority )
+                .path( API_USER_GET_BY_ANONYMOUS_ID_URI )
+                .queryParams( queryParams )
+                .buildAndExpand( Collections.singletonMap( "anonymousId", anonymousId ) )
                 .toUri();
 
         try {
@@ -148,6 +168,17 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
                 .map( ResponseEntity::getBody )
                 .flatMap( Arrays::stream )
                 .collect( Collectors.toList() );
+    }
+
+    private URI getApiUri( URI remoteHost ) throws RemoteException {
+        String remoteHostAuthority = remoteHost.getAuthority();
+        Map<String, URI> apiUriByAuthority = Arrays.stream( applicationSettings.getIsearch().getApis() )
+                .map( URI::create )
+                .collect( Collectors.toMap( URI::getAuthority, identity() ) );
+        if ( !apiUriByAuthority.containsKey( remoteHost.getAuthority() ) ) {
+            throw new RemoteException( MessageFormat.format( "Unknown remote API {0}.", remoteHost.getAuthority() ) );
+        }
+        return apiUriByAuthority.get( remoteHostAuthority );
     }
 
     private Set<TierType> restrictTiers( Set<TierType> tiers ) {
