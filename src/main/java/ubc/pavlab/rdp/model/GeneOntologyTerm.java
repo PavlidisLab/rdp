@@ -34,7 +34,7 @@ public class GeneOntologyTerm {
     private Aspect aspect;
 
     @Transient
-    private boolean isObsolete;
+    private boolean obsolete;
 
     @JsonIgnore
     @Transient

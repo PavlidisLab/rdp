@@ -67,6 +67,8 @@ public interface UserService {
 
     long countResearchers();
 
+    UserTerm convertTerm( User user, Taxon taxon, GeneOntologyTerm term );
+
     Collection<UserTerm> convertTerms( User user, Taxon taxon, Collection<GeneOntologyTerm> terms );
 
     Collection<GeneOntologyTerm> recommendTerms( User user, Taxon taxon );

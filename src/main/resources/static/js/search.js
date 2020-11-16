@@ -133,21 +133,23 @@
                 }
 
                 // noinspection JSUnusedLocalSymbols
-                $.getJSON("/taxon/" + taxonId + "/gene/search/" + term + "?max=10", request, function (data, status, xhr) {
-
-                    if (!data.length) {
-                        data = [
-                            {
-                                noresults: true,
-                                label: 'No matches found',
-                                value: term
-                            }
-                        ];
-                    }
-
-                    taxonCache[term] = data;
-                    response(data);
-                });
+                $.getJSON("/taxon/" + encodeURIComponent(taxonId) + "/gene/search", {query: term, max: 10})
+                    .done(function (data, status, xhr) {
+                        if (!data.length) {
+                            data = [
+                                {
+                                    noresults: true,
+                                    label: 'No matches found',
+                                    value: term
+                                }
+                            ];
+                        }
+                        taxonCache[term] = data;
+                        response(data);
+                    })
+                    .fail(function () {
+                        response([{noresults: true, label: 'Error querying search endpoint.', value: term}]);
+                    });
             },
             select: function (event, ui) {
                 autocomplete.val(ui.item.match.symbol);

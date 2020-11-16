@@ -345,6 +345,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @PostAuthorize("hasPermission(returnObject, 'read')")
+    public UserTerm convertTerm( User user, Taxon taxon, GeneOntologyTerm term ) {
+        return convertTermType( user, term, taxon );
+    }
+
+    @Override
+    @PostFilter("hasPermission(filterObject, 'read')")
     public Collection<UserTerm> convertTerms( User user, Taxon taxon, Collection<GeneOntologyTerm> terms ) {
         return convertTermTypes( user, terms, taxon );
     }
@@ -650,9 +657,13 @@ public class UserServiceImpl implements UserService {
         return userRepository.save( user );
     }
 
+    private UserTerm convertTermType( User user, GeneOntologyTerm term, Taxon taxon ) {
+        return UserTerm.createUserTerm( user, term, taxon );
+    }
+
     private Set<UserTerm> convertTermTypes( User user, Collection<GeneOntologyTerm> goTerms, Taxon taxon ) {
         return goTerms.stream()
-                .map( term -> UserTerm.createUserTerm( user, term, taxon ) )
+                .map( term -> convertTermType( user, term, taxon ) )
                 .filter( term -> term.getSizeInTaxon( term.getTaxon() ) <= applicationSettings.getGoTermSizeLimit() )
                 .collect( Collectors.toSet() );
     }
