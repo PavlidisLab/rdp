@@ -1,5 +1,6 @@
 package ubc.pavlab.rdp.services;
 
+import io.swagger.v3.oas.models.OpenAPI;
 import lombok.Builder;
 import lombok.Data;
 import lombok.extern.apachecommons.CommonsLog;
@@ -32,6 +33,7 @@ import static java.util.function.Function.identity;
 @CommonsLog
 public class RemoteResourceServiceImpl implements RemoteResourceService {
 
+    private static final String API_URI = "/api";
     private static final String API_USERS_SEARCH_URI = "/api/users/search";
     private static final String API_USER_GET_URI = "/api/users/{userId}";
     private static final String API_USER_GET_BY_ANONYMOUS_ID_URI = "/api/users/by-anonymous-id/{anonymousId}";
@@ -48,6 +50,24 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
 
     @Autowired
     private RestTemplate restTemplate;
+
+    @Override
+    public String getApiVersion( URI remoteHost ) throws RemoteException {
+        // Ensure that the remoteHost is one of our known APIs by comparing the URI authority component and always use
+        // the URI defined in the configuration
+        URI authority = getApiUri( remoteHost );
+        URI uri = UriComponentsBuilder.fromUri( authority )
+                .path( API_URI )
+                .build()
+                .toUri();
+        OpenAPI openAPI = restTemplate.getForEntity( uri, OpenAPI.class ).getBody();
+        // OpenAPI specification was introduced in 1.4, so we assume 1.0.0 for previous versions
+        if ( openAPI.getInfo() == null ) {
+            return "1.0.0";
+        } else {
+            return openAPI.getInfo().getVersion();
+        }
+    }
 
     @Override
     public Collection<User> findUsersByLikeName( String nameLike, Boolean prefix, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherCategories, Collection<String> organUberonIds ) {
