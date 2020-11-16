@@ -125,32 +125,32 @@
             return item;
         });
 
+        var table = publicationTable.DataTable();
+
         // Try to get metadata for the articles
         var rows = [];
-        $.get('https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=pubmed&amp;id=' + ids.join(",") + '&amp;retmode=json', function (data) {
+        $.get('https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=pubmed&amp;id=' + encodeURIComponent(ids.join(",")) + '&amp;retmode=json', function (data) {
             $.each(ids, function (idx, pubmed) {
-
+                /* check if it's already in the table */
+                var val = '<i class="delete-row"></i> ' + pubmed;
+                if (table.column(0).data().indexOf(val) != -1) {
+                    return;
+                }
                 var row = [];
-
-                row.push('<i class="delete-row"></i>' + pubmed);
-
+                row.push(val);
                 try {
                     var title = data.result[pubmed].title;
                     title = title.length > 100 ?
                         title.substring(0, 100 - 3) + "..." :
                         title;
 
-                    row.push('<a href="https://www.ncbi.nlm.nih.gov/pubmed/' + pubmed + '" target="_blank" rel="noopener">' + (title ? title : 'Unknown Title') + '</a>');
+                    row.push('<a href="https://www.ncbi.nlm.nih.gov/pubmed/' + encodeURIComponent(pubmed) + '" target="_blank" rel="noopener">' + (title ? title : 'Unknown Title') + '</a>');
                 } catch (e) {
                     window.console.log("Issue obtaining metadata for: " + pubmed, e);
                 }
-
                 rows.push(row);
             });
         }).done(function () {
-
-            var table = publicationTable.DataTable();
-
             table.rows.add(rows).draw().nodes()
                 .to$()
                 .addClass('new-row');
