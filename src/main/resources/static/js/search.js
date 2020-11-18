@@ -103,6 +103,7 @@
                     itlTableContainer.html(responseText);
                 }
                 itlTableContainer.find('[data-toggle="tooltip"]').tooltip();
+                itlTableContainer.find('.user-preview-popover').each(initializeUserPreviewPopover);
             });
         }
 
