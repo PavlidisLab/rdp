@@ -217,13 +217,35 @@ public class UserServiceImpl implements UserService {
     }
 
 
+    /**
+     * Retrieve a user using an anonymous identifier.
+     * <p>
+     * Identifiers are generated and stored when calling anonymizeUser on a {@link User} model.
+     * <p>
+     * There is no authorization check performed, so make sure that you reuse anonymizeUser before presenting the data
+     * in the view.
+     *
+     * @param anonymousId
+     * @return the user if found, otherwise null
+     */
     @Override
-    public User findUserByAnonymousId( UUID anonymousId ) {
+    public User findUserByAnonymousIdNoAuth( UUID anonymousId ) {
         return cacheManager.getCache( USERS_BY_ANONYMOUS_ID_CACHE_KEY ).get( anonymousId, User.class );
     }
 
+    /**
+     * Retrieve a user's gene using an anonymous identifier.
+     * <p>
+     * Identifiers are generated and stored when calling anonymizeUserGene on a {@link UserGene} model.
+     * <p>
+     * There is no authorization check performed, so make sure that you reuse anonymizeUserGene before presenting the
+     * data in the view.
+     *
+     * @param anonymousId
+     * @return the user's gene if found, otherwise null
+     */
     @Override
-    public UserGene findUserGeneByAnonymousId( UUID anonymousId ) {
+    public UserGene findUserGeneByAnonymousIdNoAuth( UUID anonymousId ) {
         return cacheManager.getCache( USER_GENES_BY_ANONYMOUS_ID_CACHE_KEY ).get( anonymousId, UserGene.class );
     }
 
@@ -252,6 +274,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @PostAuthorize("hasPermission(returnObject, 'read')")
     public User anonymizeUser( User user ) {
         Profile profile = Profile.builder()
                 .name( messageSource.getMessage( "rdp.site.anonymized-user-name", new String[]{}, Locale.getDefault() ) )
@@ -271,6 +294,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @PostAuthorize("hasPermission(returnObject, 'read')")
     public UserGene anonymizeUserGene( UserGene userGene ) {
         UserGene anonymizedUserGene = UserGene.builder()
                 .id( 0 )

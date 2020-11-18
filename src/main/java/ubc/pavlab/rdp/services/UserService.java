@@ -37,9 +37,9 @@ public interface UserService {
 
     User findUserById( int id );
 
-    User findUserByAnonymousId( UUID anonymousId );
+    User findUserByAnonymousIdNoAuth( UUID anonymousId );
 
-    UserGene findUserGeneByAnonymousId( UUID anonymousId );
+    UserGene findUserGeneByAnonymousIdNoAuth( UUID anonymousId );
 
     User findUserByIdNoAuth( int id );
 

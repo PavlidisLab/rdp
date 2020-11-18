@@ -21,6 +21,7 @@ import ubc.pavlab.rdp.exception.RemoteException;
 import ubc.pavlab.rdp.listeners.UserListener;
 import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
+import ubc.pavlab.rdp.model.enums.ResearcherCategory;
 import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.services.*;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
@@ -247,6 +248,89 @@ public class SearchControllerTest {
     }
 
     @Test
+    public void previewUser_thenReturnSuccess() throws Exception {
+        User user = createUser( 1 );
+        user.getProfile().setDescription( "This is a description." );
+        when( userService.findUserById( 1 ) ).thenReturn( user );
+        mvc.perform( get( "/search/view/user-preview/{userId}", user.getId() ) )
+                .andExpect( status().isOk() )
+                .andExpect( view().name( "fragments/profile::user-preview" ) )
+                .andExpect( model().attribute( "user", user ) );
+    }
+
+    @Test
+    public void previewUser_whenUserProfileIsEmpty_thenReturnNoContent() throws Exception {
+        User user = createUser( 1 );
+        when( userService.findUserById( 1 ) ).thenReturn( user );
+        mvc.perform( get( "/search/view/user-preview/{userId}", user.getId() ) )
+                .andExpect( status().isNoContent() );
+    }
+
+    @Test
+    public void previewUser_whenUserIsRemote_thenReturnSuccess() throws Exception {
+        User user = createUser( 1 );
+        user.getProfile().setDescription( "This is a description." );
+        when( userService.findUserById( 1 ) ).thenReturn( user );
+        when( remoteResourceService.getRemoteUser( 1, URI.create( "http://localhost/" ) ) ).thenReturn( user );
+        mvc.perform( get( "/search/view/user-preview/{userId}", user.getId() )
+                .param( "remoteHost", "http://localhost/" ) )
+                .andExpect( status().isOk() );
+        verify( remoteResourceService ).getRemoteUser( 1, URI.create( "http://localhost/" ) );
+    }
+
+    @Test
+    public void previewAnonymousUser_thenReturnSuccess() throws Exception {
+        User user = createUser( 1 );
+        User anonymousUser = createAnonymousUser();
+        anonymousUser.getProfile().getResearcherCategories().add( ResearcherCategory.IN_SILICO );
+        when( userService.findUserByAnonymousIdNoAuth( anonymousUser.getAnonymousId() ) ).thenReturn( user );
+        when( userService.anonymizeUser( user ) ).thenReturn( anonymousUser );
+        mvc.perform( get( "/search/view/user-preview/by-anonymous-id/{anonymousId}", anonymousUser.getAnonymousId() ) )
+                .andExpect( status().isOk() )
+                .andExpect( view().name( "fragments/profile::user-preview" ) )
+                .andExpect( model().attribute( "user", anonymousUser ) );
+        verify( userService ).anonymizeUser( user );
+    }
+
+    @Test
+    public void previewAnonymousUser_whenUserProfileIsEmpty_thenReturnNoContent() throws Exception {
+        User user = createUser( 1 );
+        User anonymousUser = createAnonymousUser();
+        when( userService.findUserByAnonymousIdNoAuth( anonymousUser.getAnonymousId() ) ).thenReturn( user );
+        when( userService.anonymizeUser( user ) ).thenReturn( anonymousUser );
+        mvc.perform( get( "/search/view/user-preview/by-anonymous-id/{anonymousId}", anonymousUser.getAnonymousId() ) )
+                .andExpect( status().isNoContent() )
+                .andExpect( view().name( "fragments/profile::user-preview" ) )
+                .andExpect( model().attribute( "user", anonymousUser ) );
+        verify( userService ).anonymizeUser( user );
+    }
+
+    @Test
+    public void previewAnonymousUser_whenUserIsRemote_thenReturnSuccess() throws Exception {
+        User anonymousUser = createAnonymousUser();
+        anonymousUser.getProfile().getResearcherCategories().add( ResearcherCategory.IN_SILICO );
+        when( remoteResourceService.getApiVersion( URI.create( "http://localhost/" ) ) ).thenReturn( "1.4.0" );
+        when( remoteResourceService.getAnonymizedUser( anonymousUser.getAnonymousId(), URI.create( "http://localhost/" ) ) ).thenReturn( anonymousUser );
+        mvc.perform( get( "/search/view/user-preview/by-anonymous-id/{anonymousId}", anonymousUser.getAnonymousId() )
+                .param( "remoteHost", "http://localhost/" ) )
+                .andExpect( status().isOk() )
+                .andExpect( view().name( "fragments/profile::user-preview" ) )
+                .andExpect( model().attribute( "user", anonymousUser ) );
+        verify( remoteResourceService ).getAnonymizedUser( anonymousUser.getAnonymousId(), URI.create( "http://localhost/" ) );
+    }
+
+    @Test
+    public void previewAnonymousUser_whenUserIsRemoteAndApiVersionIsPre14_thenReturnNotFound() throws Exception {
+        User anonymousUser = createAnonymousUser();
+        anonymousUser.getProfile().getResearcherCategories().add( ResearcherCategory.IN_SILICO );
+        when( remoteResourceService.getApiVersion( URI.create( "http://localhost/" ) ) ).thenReturn( "1.0.0" );
+        mvc.perform( get( "/search/view/user-preview/by-anonymous-id/{anonymousId}", anonymousUser.getAnonymousId() )
+                .param( "remoteHost", "http://localhost/" ) )
+                .andExpect( status().isNotFound() )
+                .andExpect( view().name( "fragments/error::message" ) );
+    }
+
+    @Test
     @WithMockUser
     public void requestAccess_thenReturnSuccess() throws Exception {
         User user = createUser( 1 );
@@ -259,7 +343,7 @@ public class SearchControllerTest {
                 .user( User.builder().profile( new Profile() ).build() )
                 .build();
         when( userService.anonymizeUserGene( userGene ) ).thenReturn( anonymizedUserGene );
-        when( userService.findUserGeneByAnonymousId( anonymizedUserGene.getAnonymousId() ) ).thenReturn( userGene );
+        when( userService.findUserGeneByAnonymousIdNoAuth( anonymizedUserGene.getAnonymousId() ) ).thenReturn( userGene );
 
         mvc.perform( get( "/search/gene/by-anonymous-id/{anonymousId}/request-access", anonymizedUserGene.getAnonymousId() ) )
                 .andExpect( status().is2xxSuccessful() )
@@ -292,7 +376,7 @@ public class SearchControllerTest {
                 .user( User.builder().profile( new Profile() ).build() )
                 .build();
         when( userService.anonymizeUserGene( userGene ) ).thenReturn( anonymizedUserGene );
-        when( userService.findUserGeneByAnonymousId( anonymizedUserGene.getAnonymousId() ) ).thenReturn( userGene );
+        when( userService.findUserGeneByAnonymousIdNoAuth( anonymizedUserGene.getAnonymousId() ) ).thenReturn( userGene );
 
         when( permissionEvaluator.hasPermission( any(), eq( userGene ), eq( "read" ) ) ).thenReturn( true );
 

@@ -32,7 +32,6 @@ import ubc.pavlab.rdp.repositories.*;
 import ubc.pavlab.rdp.security.PermissionEvaluatorImpl;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 
-import javax.mail.MessagingException;
 import javax.validation.ValidationException;
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -1249,7 +1248,7 @@ public class UserServiceImplTest {
                 .hasFieldOrPropertyWithValue( "email", null )
                 .hasFieldOrPropertyWithValue( "profile.privacyLevel", PrivacyLevelType.PUBLIC );
         assertThat( anonymizedUser.getUserGenes() ).isEmpty();
-        assertThat( userService.findUserByAnonymousId( anonymizedUser.getAnonymousId() ) )
+        assertThat( userService.findUserByAnonymousIdNoAuth( anonymizedUser.getAnonymousId() ) )
                 .isEqualTo( user );
     }
 
@@ -1265,7 +1264,7 @@ public class UserServiceImplTest {
                 .hasFieldOrPropertyWithValue( "privacyLevel", PrivacyLevelType.PUBLIC );
         assertThat( anonymizedUserGene.getUser() )
                 .isEqualToIgnoringGivenFields( userService.anonymizeUser( user ), "anonymousId" );
-        assertThat( userService.findUserGeneByAnonymousId( anonymizedUserGene.getAnonymousId() ) )
+        assertThat( userService.findUserGeneByAnonymousIdNoAuth( anonymizedUserGene.getAnonymousId() ) )
                 .isEqualTo( userGene );
     }
 }

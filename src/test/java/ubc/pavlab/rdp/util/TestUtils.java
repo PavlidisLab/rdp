@@ -96,8 +96,11 @@ public final class TestUtils {
         return user;
     }
 
-    public static User createAnonymizedUser() {
-        return User.builder().anonymousId( UUID.randomUUID() ).build();
+    public static User createAnonymousUser() {
+        return User.builder()
+                .anonymousId( UUID.randomUUID() )
+                .profile( new Profile() )
+                .build();
     }
 
     @SneakyThrows

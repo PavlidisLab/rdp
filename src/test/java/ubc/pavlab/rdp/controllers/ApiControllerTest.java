@@ -3,7 +3,6 @@ package ubc.pavlab.rdp.controllers;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Matchers;
 import org.mockito.internal.util.collections.Sets;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -15,7 +14,6 @@ import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
-import ubc.pavlab.rdp.WebMvcConfig;
 import ubc.pavlab.rdp.WebSecurityConfig;
 import ubc.pavlab.rdp.model.GeneInfo;
 import ubc.pavlab.rdp.model.Taxon;
@@ -341,7 +339,7 @@ public class ApiControllerTest {
     public void getUser_withAnonymousId_thenReturn2xxSuccessful() throws Exception {
         User user = createUser( 1 );
         UUID anonymousId = UUID.randomUUID();
-        when( userService.findUserByAnonymousId( anonymousId ) ).thenReturn( user );
+        when( userService.findUserByAnonymousIdNoAuth( anonymousId ) ).thenReturn( user );
         when( userService.anonymizeUser( user ) ).thenReturn( User.builder().anonymousId( anonymousId ).build() );
         mvc.perform( get( "/api/users/by-anonymous-id/{anonymousId}", anonymousId ) )
                 .andExpect( status().is2xxSuccessful() )
