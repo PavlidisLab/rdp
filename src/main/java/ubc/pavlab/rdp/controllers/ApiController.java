@@ -38,7 +38,10 @@ import java.util.stream.Collectors;
 @CommonsLog
 public class ApiController {
 
-    private static final String API_VERSION = "1.0.0"; //TODO update every time there is any change in how the API works.
+    /**
+     * API version
+     */
+    public static final String API_VERSION = "1.4.0";
 
     @Autowired
     MessageSource messageSource;
@@ -71,16 +74,6 @@ public class ApiController {
     @ExceptionHandler({ ApiException.class })
     public ResponseEntity handleApiException( ApiException e ) {
         return ResponseEntity.status( e.getStatus() ).body( e.getMessage() );
-    }
-
-    /**
-     * Fallback for unmapped sub-paths.
-     *
-     * @return 404.
-     */
-    @GetMapping(value = "/api/*", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Object searchApiInfo() {
-        return ResponseEntity.notFound().build();
     }
 
     /**
