@@ -88,14 +88,15 @@ public class GOServiceImpl implements GOService {
      * TODO: store the terms in the database to avoid this initialization
      */
     @Override
-    /* @PostConstruct */
+    @PostConstruct
     public void updateGoTerms() {
         ApplicationSettings.CacheSettings cacheSettings = applicationSettings.getCache();
 
         log.info( MessageFormat.format( "Loading GO Terms from: {0}.", cacheSettings.getTermFile() ) );
 
+        Map<String, GeneOntologyTerm> terms;
         try {
-            setTerms( convertTerms( oboParser.parseStream( cacheSettings.getTermFile().getInputStream() ) ) );
+            terms = convertTerms( oboParser.parseStream( cacheSettings.getTermFile().getInputStream() ) );
         } catch ( IOException e ) {
             return;
         }
@@ -110,9 +111,10 @@ public class GOServiceImpl implements GOService {
             Map<String, List<Gene2GoParser.Record>> recordsByGoTerm = records.stream().collect( groupingBy( Gene2GoParser.Record::getGoId, Collectors.toList() ) );
 
             for ( Map.Entry<String, List<Gene2GoParser.Record>> entry : recordsByGoTerm.entrySet() ) {
-                GeneOntologyTerm term = getTerm( entry.getKey() );
+                GeneOntologyTerm term = terms.get( entry.getKey() );
 
                 if ( term == null ) {
+                    log.warn( MessageFormat.format( "{0} is missing from {1}, its direct genes will be ignored.", entry.getKey(), cacheSettings.getTermFile() ) );
                     continue;
                 }
 
@@ -123,6 +125,8 @@ public class GOServiceImpl implements GOService {
                 term.setSizesByTaxonId( entry.getValue().stream()
                         .collect( groupingBy( Gene2GoParser.Record::getTaxonId, counting() ) ) );
             }
+
+            setTerms( terms );
 
             log.info( "Finished loading annotations." );
         } catch ( IOException e ) {
