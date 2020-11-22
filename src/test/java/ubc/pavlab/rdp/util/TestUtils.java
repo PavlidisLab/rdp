@@ -11,6 +11,7 @@ import ubc.pavlab.rdp.model.enums.TierType;
 import java.net.URI;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Function;
@@ -114,18 +115,16 @@ public final class TestUtils {
         return taxon;
     }
 
-    public static GeneOntologyTerm createTerm( String id ) {
-        GeneOntologyTerm term = new GeneOntologyTerm();
+    public static GeneOntologyTermInfo createTerm( String id ) {
+        GeneOntologyTermInfo term = new GeneOntologyTermInfo();
         term.setGoId( id );
         term.setObsolete( false );
         return term;
     }
 
-    public static GeneOntologyTerm createTermWithGenes( String id, GeneInfo... genes ) {
-        GeneOntologyTerm term = createTerm( id );
-        term.setDirectGeneIds( Arrays.stream( genes ).map( GeneInfo::getGeneId ).collect( Collectors.toSet() ) );
-        term.setSizesByTaxonId( Arrays.stream( genes )
-                .collect( groupingBy( g -> g.getTaxon().getId(), counting() ) ) );
+    public static GeneOntologyTermInfo createTermWithGenes( String goId, GeneInfo... genes ) {
+        GeneOntologyTermInfo term = createTerm( goId );
+        term.setDirectGenes( new HashSet<>( Arrays.asList( genes ) ) );
         return term;
     }
 

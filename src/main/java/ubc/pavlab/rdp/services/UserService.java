@@ -67,19 +67,19 @@ public interface UserService {
 
     long countResearchers();
 
-    UserTerm convertTerm( User user, Taxon taxon, GeneOntologyTerm term );
+    UserTerm convertTerm( User user, Taxon taxon, GeneOntologyTermInfo term );
 
-    Collection<UserTerm> convertTerms( User user, Taxon taxon, Collection<GeneOntologyTerm> terms );
+    Collection<UserTerm> convertTerms( User user, Taxon taxon, Collection<GeneOntologyTermInfo> terms );
 
-    Collection<GeneOntologyTerm> recommendTerms( User user, Taxon taxon );
+    Collection<UserTerm> recommendTerms( User user, Taxon taxon );
 
-    Collection<GeneOntologyTerm> recommendTerms( User user, Taxon taxon, long minSize, long maxSize, long minFrequency );
+    Collection<UserTerm> recommendTerms( User user, Taxon taxon, long minSize, long maxSize, long minFrequency );
 
     User updateTermsAndGenesInTaxon( User user,
                                      Taxon taxon,
                                      Map<GeneInfo, TierType> genesToTierMapFrom,
                                      Map<GeneInfo, PrivacyLevelType> genesToPrivacyLevelMap,
-                                     Collection<GeneOntologyTerm> goTerms );
+                                     Collection<GeneOntologyTermInfo> goTerms );
 
     User updateUserProfileAndPublicationsAndOrgans( User user, Profile profile, Set<Publication> publications, Set<String> organUberonIds );
 

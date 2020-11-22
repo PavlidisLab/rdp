@@ -82,10 +82,10 @@ public class UserController {
         User user = userService.findCurrentUser();
         Taxon taxon = taxonService.findById( taxonId );
 
-        GeneOntologyTerm term = goService.getTerm( goId );
+        GeneOntologyTermInfo term = goService.getTerm( goId );
 
         if ( term != null ) {
-            Set<Integer> geneIds = goService.getGenes( term ).stream().map( GeneInfo::getGeneId ).collect( Collectors.toSet() );
+            Set<Integer> geneIds = goService.getGenesInTaxon( term, taxon ).stream().map( Gene::getGeneId ).collect( Collectors.toSet() );
             modelAndView.addObject( "genes",
                     user.getGenesByTaxonAndTier( taxon, TierType.MANUAL ).stream()
                             .filter( ug -> geneIds.contains( ug.getGeneId() ) )
@@ -303,7 +303,7 @@ public class UserController {
                 .filter( Objects::nonNull )
                 .collect( Collectors.toMap( identity(), g -> model.getGenePrivacyLevelMap().get( g.getGeneId() ) ) );
 
-        Set<GeneOntologyTerm> terms = model.getGoIds().stream()
+        Set<GeneOntologyTermInfo> terms = model.getGoIds().stream()
                 .map( s -> goService.getTerm( s ) )
                 .collect( Collectors.toSet() );
 

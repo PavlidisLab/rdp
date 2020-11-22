@@ -8,6 +8,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import ubc.pavlab.rdp.model.GeneInfo;
 import ubc.pavlab.rdp.model.GeneOntologyTerm;
+import ubc.pavlab.rdp.model.GeneOntologyTermInfo;
 import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.services.GOService;
 import ubc.pavlab.rdp.services.TaxonService;
@@ -59,7 +60,7 @@ public class TermController {
         if ( taxon == null ) {
             return ResponseEntity.notFound().build();
         }
-        GeneOntologyTerm term = goService.getTerm( goId );
+        GeneOntologyTermInfo term = goService.getTerm( goId );
         if ( term == null ) {
             return ResponseEntity.notFound().build();
         }

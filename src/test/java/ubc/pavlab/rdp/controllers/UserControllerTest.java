@@ -331,7 +331,6 @@ public class UserControllerTest {
         GeneOntologyTerm term = createTerm( toGOId( 1 ) );
         term.setName( "cave" );
         UserTerm ut = UserTerm.createUserTerm( user, term, taxon );
-        ut.getSizesByTaxonId().put( taxon.getId(), 99L );
         user.getUserTerms().add( ut );
 
         when( userService.findCurrentUser() ).thenReturn( user );
@@ -647,7 +646,7 @@ public class UserControllerTest {
         User user = createUser( 1 );
         Taxon taxon = createTaxon( 1 );
 
-        when( userService.convertTerm( any(), eq( taxon ), Mockito.any( GeneOntologyTerm.class ) ) )
+        when( userService.convertTerm( any(), eq( taxon ), Mockito.any( GeneOntologyTermInfo.class ) ) )
                 .thenAnswer( answer -> createUserTerm( 1, user, answer.getArgumentAt( 2, GeneOntologyTerm.class ), taxon ) );
         when( goService.getTerm( any() ) )
                 .then( i -> createTerm( i.getArgumentAt( 0, String.class ) ) );

@@ -3,8 +3,10 @@ package ubc.pavlab.rdp.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
+import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 
 import javax.persistence.*;
+import java.util.Optional;
 
 /**
  * GO term tracked by a user.
@@ -25,7 +27,7 @@ import javax.persistence.*;
 @EqualsAndHashCode(of = { "user", "taxon" }, callSuper = true)
 @ToString(of = { "user", "taxon" }, callSuper = true)
 @NoArgsConstructor
-public class UserTerm extends GeneOntologyTerm {
+public class UserTerm extends GeneOntologyTerm implements UserContent {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -42,18 +44,11 @@ public class UserTerm extends GeneOntologyTerm {
     @JoinColumn(name = "taxon_id")
     private Taxon taxon;
 
-    /**
-     * @deprecated This field is kept for backward-compatibility with previous APIs.
-     */
-    @Deprecated
-    @Transient
+    @Column
     private Long frequency;
 
-    @JsonIgnore
-    @Transient
-    public long getSize() {
-        return getSizeInTaxon( taxon );
-    }
+    @Column
+    private Long size;
 
     public static UserTerm createUserTerm( User user, GeneOntologyTerm term, Taxon taxon ) {
         UserTerm userTerm = new UserTerm();
@@ -68,12 +63,15 @@ public class UserTerm extends GeneOntologyTerm {
         this.setName( term.getName() );
         this.setDefinition( term.getDefinition() );
         this.setAspect( term.getAspect() );
-        this.setObsolete( term.isObsolete() );
-
-        this.setParents( term.getParents() );
-        this.setChildren( term.getChildren() );
-        this.setDirectGeneIds( term.getDirectGeneIds() );
-        this.setSizesByTaxonId( term.getSizesByTaxonId() );
     }
 
+    @Override
+    public Optional<User> getOwner() {
+        return Optional.of( user );
+    }
+
+    @Override
+    public PrivacyLevelType getEffectivePrivacyLevel() {
+        return user.getEffectivePrivacyLevel();
+    }
 }

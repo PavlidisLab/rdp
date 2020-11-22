@@ -5,6 +5,12 @@
     var geneTable = $('#gene-table');
     var termTable = $('#term-table');
 
+    function arrayContains(term) {
+        return function (elem) {
+            return elem.includes(term);
+        };
+    }
+
     function collectModel() {
         var model = {};
 
@@ -58,7 +64,7 @@
                 }
             } else {
                 /* gene is already in the table */
-                if (table.column(1).data().indexOf(gene.geneId + '') != -1) {
+                if (table.column(1).data().toArray().some(arrayContains(gene.geneId + ''))) {
                     continue;
                 }
                 row.push('<span class="align-middle"><i class="delete-row align-middle"></i><a href="https://www.ncbi.nlm.nih.gov/gene/' + gene.geneId + '" target="_blank" class="align-middle" rel="noopener">' + gene.symbol + '</a></span>');
@@ -87,6 +93,8 @@
             .addClass('new-row');
 
         table.columns.adjust().draw();
+
+        return rows.length;
     }
 
     function addTermRow(data) {
@@ -103,7 +111,7 @@
                 row.push('');
                 row.push('');
             } else {
-                if (table.column(0).data().indexOf(term.goId) != -1) {
+                if (table.column(0).data().toArray().some(arrayContains(term.goId))) {
                     continue;
                 }
                 row.push('<span class="align-middle">' +
@@ -124,6 +132,8 @@
         // .find('[data-toggle="tooltip"]').tooltip();
 
         table.columns.adjust().draw();
+
+        return rows.length;
     }
 
     $.fn.dataTable.ext.order['dom-checkbox'] = function (settings, col) {
@@ -132,14 +142,14 @@
         });
     };
 
-    var columnDefs = [
+    var geneTableColumnDefs = [
         {"name": "Symbol", "targets": 0},
         {"name": "Id", "targets": 1, "visible": false},
         {"name": "Name", "targets": 2},
         {"name": "Primary", "targets": 3, "className": "text-center", "orderDataType": "dom-checkbox"}];
 
     if (customizableGeneLevel) {
-        columnDefs.push({
+        geneTableColumnDefs.push({
             "name": "PrivacyLevel",
             "targets": 4,
             "className": "text-center",
@@ -154,7 +164,7 @@
         "searching": false,
         "info": false,
         "order": [[0, "desc"]],
-        "columnDefs": columnDefs
+        "columnDefs": geneTableColumnDefs
     });
 
     termTable.DataTable({
@@ -187,14 +197,14 @@
             success: function () {
                 $('.success-row').show();
                 $('.error-row').hide();
-                spinner.addClass("d-none");
+                spinner.toggleClass("d-none", true);
                 initialModel = collectModel();
                 $('.new-row').removeClass("new-row");
             },
             error: function () {
                 $('.success-row').hide();
                 $('.error-row').show();
-                spinner.addClass("d-none");
+                spinner.toggleClass("d-none", false);
             }
         });
     });
@@ -310,7 +320,7 @@
         })
             .done(addGeneRow)
             .always(function () {
-                spinner.addClass("d-none");
+                spinner.toggleClass('d-none', true);
             });
         $(this).closest('.input-group').find('input').val("");
     });
@@ -421,7 +431,7 @@
         })
             .done(addTermRow)
             .always(function () {
-                spinner.addClass("d-none");
+                spinner.toggleClass("d-none", true);
             });
         $(this).closest('.input-group').find('input').val("");
     });
@@ -433,10 +443,10 @@
         recommendMessage.toggleClass('d-none', true);
         $.getJSON("/user/taxon/" + encodeURIComponent(currentTaxonId) + "/term/recommend")
             .done(function (data) {
-                addTermRow(data);
-                if (data.length > 0) {
+                var addedTerms = addTermRow(data);
+                if (addedTerms > 0) {
                     recommendMessage
-                        .text('Recommended ' + data.length + ' terms')
+                        .text('Recommended ' + addedTerms + ' terms.')
                         .toggleClass('alert-success', true)
                         .toggleClass('alert-danger', false);
                 } else {
@@ -455,6 +465,7 @@
             .always(function () {
                 spinner.toggleClass("d-none", true);
                 recommendMessage.toggleClass('d-none', false);
+                $('#terms-tab').tab('show');
             });
     });
 
