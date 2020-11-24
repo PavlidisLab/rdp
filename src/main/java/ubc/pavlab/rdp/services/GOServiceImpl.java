@@ -81,7 +81,6 @@ public class GOServiceImpl implements GOService {
      * TODO: store the terms in the database to avoid this initialization
      */
     @Override
-    @PostConstruct
     public void updateGoTerms() {
         ApplicationSettings.CacheSettings cacheSettings = applicationSettings.getCache();
 
