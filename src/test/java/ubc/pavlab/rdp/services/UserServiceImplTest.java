@@ -451,16 +451,20 @@ public class UserServiceImplTest {
 
         GeneOntologyTermInfo term = createTerm( "GO:0000001" );
         GeneInfo gene = createGene( 1, taxon );
+        UserGene userGene = createUnpersistedUserGene( gene, user, TierType.TIER1, PrivacyLevelType.PRIVATE );
 
-        when( goService.getTermsForGene( gene ) ).thenReturn( Sets.newSet( term ) );
+        when( goService.getTermsForGene( userGene, true, true ) ).thenReturn( Sets.newSet( term ) );
+        when( goService.getSizeInTaxon( term, taxon ) ).thenReturn( 2L );
         when( goService.getDirectGenes( term ) ).thenReturn( Collections.singleton( gene ) );
 
-        user.getUserGenes().put( gene.getGeneId(), createUnpersistedUserGene( gene, user, TierType.TIER1, PrivacyLevelType.PRIVATE ) );
+        user.getUserGenes().put( gene.getGeneId(), userGene );
 
         Collection<UserTerm> userTerms = userService.convertTerms( user, taxon, Collections.singleton( term ) );
 
         assertThat( userTerms ).hasSize( 1 );
-        assertThat( userService.computeTermFrequency( user, userTerms.iterator().next() ) ).isEqualTo( 1 );
+        assertThat( userTerms.iterator().next() )
+                .hasFieldOrPropertyWithValue( "frequency", 1L )
+                .hasFieldOrPropertyWithValue( "size", 2L );
     }
 
     @Test
