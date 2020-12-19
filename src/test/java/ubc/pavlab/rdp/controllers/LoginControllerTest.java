@@ -27,7 +27,7 @@ import ubc.pavlab.rdp.settings.SiteSettings;
 
 import java.util.Locale;
 
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -107,7 +107,7 @@ public class LoginControllerTest {
                 .andExpect( model().attribute( "user", new User() ) );
 
         when( applicationSettings.getPrivacy() ).thenReturn( privacySettings );
-        when( userService.create( any() ) ).thenAnswer( answer -> answer.getArgumentAt( 0, User.class ) );
+        when( userService.create( any() ) ).thenAnswer( answer -> answer.getArgument( 0, User.class ) );
     }
 
     @Test

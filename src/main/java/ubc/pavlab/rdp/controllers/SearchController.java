@@ -2,7 +2,6 @@ package ubc.pavlab.rdp.controllers;
 
 import lombok.Data;
 import lombok.extern.apachecommons.CommonsLog;
-import org.hibernate.validator.constraints.NotBlank;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
@@ -29,6 +28,7 @@ import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.services.*;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
 import java.net.URI;
 import java.text.MessageFormat;
 import java.util.*;

@@ -36,13 +36,14 @@ import ubc.pavlab.rdp.settings.FaqSettings;
 import ubc.pavlab.rdp.settings.SiteSettings;
 
 import java.util.Locale;
+import java.net.URL;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.*;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.*;
+import static org.hamcrest.Matchers.hasSize;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -126,8 +127,8 @@ public class UserControllerTest {
         when( profileSettings.getEnabledResearcherPositions() ).thenReturn( Lists.newArrayList( "PRINCIPAL_INVESTIGATOR" ) );
         when( applicationSettings.getOrgans() ).thenReturn( organSettings );
         when( applicationSettings.getIsearch() ).thenReturn( iSearchSettings );
-        when( taxonService.findById( any() ) ).then( i -> createTaxon( i.getArgumentAt( 0, Integer.class ) ) );
-        when( userService.updateUserProfileAndPublicationsAndOrgans( any(), any(), any(), any(), any() ) ).thenAnswer( arg -> arg.getArgumentAt( 0, User.class ) );
+        when( taxonService.findById( any() ) ).then( i -> createTaxon( i.getArgument( 0, Integer.class ) ) );
+        when( userService.updateUserProfileAndPublicationsAndOrgans( any(), any(), any(), any(), any() ) ).thenAnswer( arg -> arg.getArgument( 0, User.class ) );
     }
 
     @Test
@@ -162,7 +163,7 @@ public class UserControllerTest {
     public void getTermsGenesForTaxon_thenReturnSuccess() throws Exception {
         User user = createUser( 1 );
         when( userService.findCurrentUser() ).thenReturn( user );
-        when( goService.getTerm( any( String.class ) ) ).then( i -> createTerm( i.getArgumentAt( 0, String.class ) ) );
+        when( goService.getTerm( any( String.class ) ) ).then( i -> createTerm( i.getArgument( 0, String.class ) ) );
         mvc.perform( get( "/user/taxon/{taxonId}/term/{goId}/gene/view", 9606, "GO:0000001" ) )
                 .andExpect( status().isOk() )
                 .andExpect( view().name( "fragments/gene-table::gene-table" ) );
@@ -563,10 +564,10 @@ public class UserControllerTest {
             throws Exception {
 
         User user = createUser( 1 );
-        user.getProfile().setWebsite( "malformed url" );
 
         when( userService.findCurrentUser() ).thenReturn( user );
         JSONObject profileJson = new JSONObject( user.getProfile() );
+        profileJson.put("website", "malformed url");
         JSONObject payload = new JSONObject();
         payload.put( "profile", profileJson );
 
@@ -610,7 +611,7 @@ public class UserControllerTest {
     @SneakyThrows
     public void givenLoggedIn_whenSaveProfileWithUberonOrganIds_thenReturnSuccess() {
         User user = createUser( 1 );
-        Organ organ = createOrgan( "UBERON", "Appendage", null );
+        OrganInfo organ = createOrgan( "UBERON", "Appendage", null );
 
         when( userService.findCurrentUser() ).thenReturn( user );
         when( organInfoService.findByUberonIdIn( Mockito.anyCollection() ) ).thenReturn( Sets.newSet( organ ) );
@@ -656,9 +657,9 @@ public class UserControllerTest {
         Taxon taxon = createTaxon( 1 );
 
         when( userService.convertTerm( any(), eq( taxon ), Mockito.any( GeneOntologyTermInfo.class ) ) )
-                .thenAnswer( answer -> createUserTerm( 1, user, answer.getArgumentAt( 2, GeneOntologyTerm.class ), taxon ) );
+                .thenAnswer( answer -> createUserTerm( 1, user, answer.getArgument( 2, GeneOntologyTerm.class ), taxon ) );
         when( goService.getTerm( any() ) )
-                .then( i -> createTerm( i.getArgumentAt( 0, String.class ) ) );
+                .then( i -> createTerm( i.getArgument( 0, String.class ) ) );
 
         when( userService.findCurrentUser() ).thenReturn( user );
 
