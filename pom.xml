@@ -101,7 +101,6 @@
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
-            <version>3.2.1</version>
         </dependency>
 
         <!-- Development Time Resources -->
@@ -115,7 +114,6 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.16.22</version>
         </dependency>
 
         <!-- Utilities -->
@@ -163,7 +161,6 @@
         <dependency>
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>
-            <version>20200518</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -203,7 +200,7 @@
             <plugin>
                 <groupId>org.flywaydb</groupId>
                 <artifactId>flyway-maven-plugin</artifactId>
-                <version>3.2.1</version>
+                <version>${flyway.version}</version>
             </plugin>
         </plugins>
     </build>
