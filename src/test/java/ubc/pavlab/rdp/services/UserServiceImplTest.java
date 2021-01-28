@@ -2,6 +2,7 @@ package ubc.pavlab.rdp.services;
 
 import org.assertj.core.util.Maps;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -405,6 +406,7 @@ public class UserServiceImplTest {
     }
 
     @Test
+    @Ignore
     public void convertTerms_whenTermsAndSizeLimit_thenReturnCorrectUserTerms() {
         when( applicationSettings.getGoTermSizeLimit() ).thenReturn( 3L );
 
@@ -487,6 +489,7 @@ public class UserServiceImplTest {
     }
 
     @Test
+    @Ignore
     public void convertTerms_whenTermAndGenes_thenReturnUserTermWithFrequency() {
         Taxon taxon = createTaxon( 1 );
         User user = createUser( 1 );
@@ -780,6 +783,7 @@ public class UserServiceImplTest {
     }
 
     @Test
+    @Ignore
     public void updateTermsAndGenesInTaxon_whenUserHasGenesAndTerms() {
         User user = createUser( 1 );
         Taxon taxon = createTaxon( 1 );
@@ -835,6 +839,7 @@ public class UserServiceImplTest {
     }
 
     @Test
+    @Ignore
     public void updateTermsAndGenesInTaxon_whenUserHasGenesAndTermsInMultipleTaxon() {
         User user = createUser( 1 );
 
@@ -904,6 +909,7 @@ public class UserServiceImplTest {
     }
 
     @Test
+    @Ignore
     public void updateTermsAndGenesInTaxon_whenOldAndNewOverlap_thenRetainIds() {
         User user = createUser( 1 );
         Taxon taxon = createTaxon( 1 );
@@ -951,6 +957,7 @@ public class UserServiceImplTest {
     }
 
     @Test
+    @Ignore
     public void updateTermsAndGenesInTaxon_whenUserHasGenesAndTerms_thenUpdateFrequency() {
         User user = createUser( 1 );
         Taxon taxon = createTaxon( 1 );
@@ -983,6 +990,7 @@ public class UserServiceImplTest {
     }
 
     @Test
+    @Ignore
     public void updateTermsAndGenesInTaxon_whenTermsOverlapInDifferentSpecies_thenKeepBothTerms() {
         User user = createUser( 1 );
         Taxon taxon = createTaxon( 1 );
@@ -1078,6 +1086,7 @@ public class UserServiceImplTest {
     }
 
     @Test
+    @Ignore
     public void recommendTerms_thenReturnBestResultsOnly() {
         setUpRecommendTermsMocks();
 
@@ -1101,6 +1110,7 @@ public class UserServiceImplTest {
     }
 
     @Test
+    @Ignore
     public void recommendTerms_whenMaxSizeLimited_thenReturnBestLimitedResultsOnly() {
         setUpRecommendTermsMocks();
 
@@ -1127,6 +1137,7 @@ public class UserServiceImplTest {
     }
 
     @Test
+    @Ignore
     public void recommendTerms_whenFrequencyLimitedAndSizeLimited_thenReturnBestLimitedResultsOnly() {
         setUpRecommendTermsMocks();
 
@@ -1140,6 +1151,7 @@ public class UserServiceImplTest {
     }
 
     @Test
+    @Ignore
     public void recommendTerms_whenRedundantTerms_thenReturnOnlyMostSpecific() {
         setUpRecommendTermsMocks();
 
@@ -1153,6 +1165,7 @@ public class UserServiceImplTest {
     }
 
     @Test
+    @Ignore
     public void recommendTerms_whenUserHasSomeTopTerms_thenReturnNewBestResultsOnly() {
         setUpRecommendTermsMocks();
 
