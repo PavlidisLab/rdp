@@ -34,4 +34,6 @@ public interface GeneInfoRepository extends JpaRepository<GeneInfo, Integer> {
     Collection<GeneInfo> findAllByAliasesContainingIgnoreCaseAndTaxon( String query, Taxon taxon );
 
     Collection<GeneInfo> findAllByTaxonActiveTrue();
+
+    long countByTaxon( Taxon taxon );
 }

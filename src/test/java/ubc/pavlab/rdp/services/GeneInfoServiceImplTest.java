@@ -23,7 +23,10 @@ import ubc.pavlab.rdp.util.GeneInfoParser;
 import ubc.pavlab.rdp.util.GeneOrthologsParser;
 import ubc.pavlab.rdp.util.SearchResult;
 
+import java.io.IOException;
+import java.sql.Date;
 import java.text.ParseException;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -287,13 +290,11 @@ public class GeneInfoServiceImplTest {
     }
 
     @Test
-    public void updateGenes_thenSucceed() throws ParseException {
+    public void updateGenes_thenSucceed() throws ParseException, IOException {
         Taxon humanTaxon = taxonRepository.findOne( 9606 );
         when( taxonService.findByActiveTrue() ).thenReturn( Sets.newSet( humanTaxon ) );
-        GeneInfo updatedGene = createGene( 4, humanTaxon );
-        updatedGene.setSymbol( "FOO" );
-        updatedGene.setName( "BAR" );
-        when( geneInfoParser.parse( humanTaxon, humanTaxon.getGeneUrl() ) ).thenReturn( Sets.newSet( updatedGene ) );
+        GeneInfoParser.Record updatedGeneRecord = new GeneInfoParser.Record( 4, 4, "FOO", "", "BAR", Date.from( Instant.now() ) );
+        when( geneInfoParser.parse( humanTaxon.getGeneUrl() ) ).thenReturn( Collections.singletonList( updatedGeneRecord ) );
         geneService.updateGenes();
         verify( taxonService ).findByActiveTrue();
         assertThat( geneInfoRepository.findByGeneId( 4 ) )

@@ -17,9 +17,11 @@ import ubc.pavlab.rdp.util.SearchResult;
 import java.io.IOException;
 import java.text.*;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 
+import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.groupingBy;
 
 /**
@@ -94,18 +96,39 @@ public class GeneInfoServiceImpl implements GeneInfoService {
         log.info( "Updating genes..." );
         for ( Taxon taxon : taxonService.findByActiveTrue() ) {
             try {
-                Set<GeneInfo> data;
+                List<GeneInfoParser.Record> data;
                 if ( cacheSettings.isLoadFromDisk() ) {
                     Resource resource = cacheSettings.getGeneFilesLocation().createRelative( FilenameUtils.getName( taxon.getGeneUrl().getPath() ) );
-                    log.info( MessageFormat.format( "Updating genes for {0} from {1}.", taxon, resource ) );
-                    data = geneInfoParser.parse( taxon, new GZIPInputStream( resource.getInputStream() ) );
+                    log.info( MessageFormat.format( "Loading genes for {0} from {1}.", taxon, resource ) );
+                    data = geneInfoParser.parse( new GZIPInputStream( resource.getInputStream() ) );
                 } else {
                     log.info( MessageFormat.format( "Loading genes for {0} from {1}.",
                             taxon, taxon.getGeneUrl() ) );
-                    data = geneInfoParser.parse( taxon, taxon.getGeneUrl() );
+                    data = geneInfoParser.parse( taxon.getGeneUrl() );
                 }
                 log.info( MessageFormat.format( "Done parsing genes for {0}.", taxon ) );
-                geneInfoRepository.save( data );
+                // retrieve all relevant genes in a single database query
+                Map<Integer, GeneInfo> foundGenesByGeneId = geneInfoRepository
+                        .findAllByGeneIdIn( data.stream().filter( record -> record.getTaxonId().equals( taxon.getId() ) ).map( GeneInfoParser.Record::getGeneId ).collect( Collectors.toList() ) )
+                        .stream()
+                        .collect( Collectors.toMap( GeneInfo::getGeneId, identity() ) );
+                log.info( MessageFormat.format( "Done retrieving existing genes for {0}, will now proceed to update.", taxon ) );
+                long numberOfGenesInTaxon = geneInfoRepository.countByTaxon( taxon );
+                if ( foundGenesByGeneId.size() < numberOfGenesInTaxon ) {
+                    log.warn( MessageFormat.format( "No information were found for {0} genes in {1}.", numberOfGenesInTaxon - foundGenesByGeneId.size(), taxon ) );
+                }
+                Set<GeneInfo> geneData = data.stream()
+                        .map( record -> {
+                            GeneInfo gene = foundGenesByGeneId.getOrDefault( record.getGeneId(), new GeneInfo() );
+                            gene.setTaxon( taxon );
+                            gene.setGeneId( record.getGeneId() );
+                            gene.setSymbol( record.getSymbol() );
+                            gene.setAliases( record.getSynonyms() );
+                            gene.setName( record.getDescription() );
+                            gene.setModificationDate( record.getModificationDate() );
+                            return gene;
+                        } ).collect( Collectors.toSet() );
+                geneInfoRepository.save( geneData );
                 log.info( MessageFormat.format( "Done updating genes for {0}.", taxon ) );
             } catch ( ParseException | IOException e ) {
                 log.error( MessageFormat.format( "Issue loading genes for {0}.", taxon ), e );
