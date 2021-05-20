@@ -470,7 +470,7 @@
     });
 
     $('#overlapModal').on('show.bs.modal', function (e) {
-        var goId = $(e.relatedTarget).closest('tr').find('td')[0].innerText;
+        var goId = $(e.relatedTarget).data('go-id');
         $("#overlapModal").find(".modal-body").load("/user/taxon/" + encodeURIComponent(currentTaxonId) + "/term/" + encodeURIComponent(goId) + "/gene/view");
     });
 
