@@ -1,7 +1,6 @@
 package ubc.pavlab.rdp.settings;
 
 import lombok.Data;
-import org.hibernate.validator.constraints.URL;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
@@ -143,7 +142,6 @@ public class ApplicationSettings {
         private String[] apis;
         private List<String> authTokens;
         private String searchToken;
-        @URL
         private String host = null;
         private Integer port = null;
     }
@@ -157,5 +155,4 @@ public class ApplicationSettings {
     private boolean sendEmailOnRegistration;
     private long goTermSizeLimit = 100L;
     public List<String> enabledTiers;
-
 }

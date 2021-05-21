@@ -217,13 +217,35 @@ public class UserServiceImpl implements UserService {
     }
 
 
+    /**
+     * Retrieve a user using an anonymous identifier.
+     * <p>
+     * Identifiers are generated and stored when calling anonymizeUser on a {@link User} model.
+     * <p>
+     * There is no authorization check performed, so make sure that you reuse anonymizeUser before presenting the data
+     * in the view.
+     *
+     * @param anonymousId
+     * @return the user if found, otherwise null
+     */
     @Override
-    public User findUserByAnonymousId( UUID anonymousId ) {
+    public User findUserByAnonymousIdNoAuth( UUID anonymousId ) {
         return cacheManager.getCache( USERS_BY_ANONYMOUS_ID_CACHE_KEY ).get( anonymousId, User.class );
     }
 
+    /**
+     * Retrieve a user's gene using an anonymous identifier.
+     * <p>
+     * Identifiers are generated and stored when calling anonymizeUserGene on a {@link UserGene} model.
+     * <p>
+     * There is no authorization check performed, so make sure that you reuse anonymizeUserGene before presenting the
+     * data in the view.
+     *
+     * @param anonymousId
+     * @return the user's gene if found, otherwise null
+     */
     @Override
-    public UserGene findUserGeneByAnonymousId( UUID anonymousId ) {
+    public UserGene findUserGeneByAnonymousIdNoAuth( UUID anonymousId ) {
         return cacheManager.getCache( USER_GENES_BY_ANONYMOUS_ID_CACHE_KEY ).get( anonymousId, UserGene.class );
     }
 
@@ -252,6 +274,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @PostAuthorize("hasPermission(returnObject, 'read')")
     public User anonymizeUser( User user ) {
         Profile profile = Profile.builder()
                 .name( messageSource.getMessage( "rdp.site.anonymized-user-name", new String[]{}, Locale.getDefault() ) )
@@ -271,6 +294,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @PostAuthorize("hasPermission(returnObject, 'read')")
     public UserGene anonymizeUserGene( UserGene userGene ) {
         UserGene anonymizedUserGene = UserGene.builder()
                 .id( 0 )
@@ -345,17 +369,31 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Collection<UserTerm> convertTerms( User user, Taxon taxon, Collection<GeneOntologyTerm> terms ) {
-        return convertTermTypes( user, terms, taxon );
+    @PostAuthorize("hasPermission(returnObject, 'read')")
+    public UserTerm convertTerm( User user, Taxon taxon, GeneOntologyTermInfo term ) {
+        UserTerm ut = UserTerm.createUserTerm( user, term, taxon );
+        ut.setFrequency( computeTermFrequency( user, term ) );
+        ut.setSize( goService.getSizeInTaxon( term, taxon ) );
+        return ut;
     }
 
     @Override
-    public Collection<GeneOntologyTerm> recommendTerms( @NonNull User user, @NonNull Taxon taxon ) {
+    @PostFilter("hasPermission(filterObject, 'read')")
+    public Collection<UserTerm> convertTerms( User user, Taxon taxon, Collection<GeneOntologyTermInfo> terms ) {
+        return terms.stream()
+                .map( term -> convertTerm( user, taxon, term ) )
+                .collect( Collectors.toSet() );
+    }
+
+    @Override
+    @PostFilter("hasPermission(filterObject, 'read')")
+    public Collection<UserTerm> recommendTerms( @NonNull User user, @NonNull Taxon taxon ) {
         return recommendTerms( user, taxon, 10, applicationSettings.getGoTermSizeLimit(), 2 );
     }
 
     @Override
-    public Collection<GeneOntologyTerm> recommendTerms( @NonNull User user, @NonNull Taxon taxon, long minSize, long maxSize, long minFrequency ) {
+    @PostFilter("hasPermission(filterObject, 'read')")
+    public Collection<UserTerm> recommendTerms( @NonNull User user, @NonNull Taxon taxon, long minSize, long maxSize, long minFrequency ) {
         Set<UserGene> genes = new HashSet<>( user.getGenesByTaxonAndTier( taxon, TierType.MANUAL ) );
 
         // terms already associated to user within the taxon
@@ -365,10 +403,10 @@ public class UserServiceImpl implements UserService {
                 .collect( Collectors.toSet() );
 
         // Then keep only those terms not already added and with the highest frequency
-        Set<GeneOntologyTerm> topResults = goService.termFrequencyMap( genes ).entrySet().stream()
+        Set<GeneOntologyTermInfo> topResults = goService.termFrequencyMap( genes ).entrySet().stream()
                 .filter( e -> minFrequency < 0 || e.getValue() >= minFrequency )
-                .filter( e -> minSize < 0 || e.getKey().getSizeInTaxon( taxon ) >= minSize )
-                .filter( e -> maxSize < 0 || e.getKey().getSizeInTaxon( taxon ) <= maxSize )
+                .filter( e -> minSize < 0 || goService.getSizeInTaxon( e.getKey(), taxon ) >= minSize )
+                .filter( e -> maxSize < 0 || goService.getSizeInTaxon( e.getKey(), taxon ) <= maxSize )
                 .filter( e -> !userTermGoIds.contains( e.getKey().getGoId() ) )
                 .map( Map.Entry::getKey )
                 .collect( Collectors.toSet() );
@@ -376,6 +414,8 @@ public class UserServiceImpl implements UserService {
         // Keep only leafiest of remaining terms (keep if it has no descendants in results)
         return topResults.stream()
                 .filter( term -> Collections.disjoint( topResults, goService.getDescendants( term ) ) )
+                .filter( term -> goService.getSizeInTaxon( term, taxon ) <= applicationSettings.getGoTermSizeLimit() )
+                .map( term -> convertTerm( user, taxon, term ) )
                 .collect( Collectors.toSet() );
     }
 
@@ -386,7 +426,7 @@ public class UserServiceImpl implements UserService {
                                             Taxon taxon,
                                             Map<GeneInfo, TierType> genesToTierMap,
                                             Map<GeneInfo, PrivacyLevelType> genesToPrivacyLevelMap,
-                                            Collection<GeneOntologyTerm> goTerms ) {
+                                            Collection<GeneOntologyTermInfo> goTerms ) {
         Map<Integer, UserGene> userGenes = genesToTierMap.keySet()
                 .stream()
                 .filter( g -> g.getTaxon().equals( taxon ) )
@@ -406,6 +446,7 @@ public class UserServiceImpl implements UserService {
         // add calculated genes from terms
         Map<Integer, UserGene> userGenesFromTerms = goTerms.stream()
                 .flatMap( term -> goService.getGenesInTaxon( term, taxon ).stream() )
+                .distinct() // terms might refer to the same gene
                 .map( g -> {
                     UserGene userGene = user.getUserGenes().getOrDefault( g.getGeneId(), new UserGene() );
                     userGene.setUser( user );
@@ -425,7 +466,7 @@ public class UserServiceImpl implements UserService {
 
         // update terms
         // go terms with the same identifier will be replaced
-        Set<UserTerm> userTerms = convertTermTypes( user, goTerms, taxon );
+        Collection<UserTerm> userTerms = convertTerms( user, taxon, goTerms );
         user.getUserTerms().removeIf( e -> e.getTaxon().equals( taxon ) && !userTerms.contains( e ) );
         user.getUserTerms().addAll( userTerms );
 
@@ -648,13 +689,6 @@ public class UserServiceImpl implements UserService {
     @Transactional
     protected User updateNoAuth( User user ) {
         return userRepository.save( user );
-    }
-
-    private Set<UserTerm> convertTermTypes( User user, Collection<GeneOntologyTerm> goTerms, Taxon taxon ) {
-        return goTerms.stream()
-                .map( term -> UserTerm.createUserTerm( user, term, taxon ) )
-                .filter( term -> term.getSizeInTaxon( term.getTaxon() ) <= applicationSettings.getGoTermSizeLimit() )
-                .collect( Collectors.toSet() );
     }
 
     @Override

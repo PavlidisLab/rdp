@@ -89,7 +89,9 @@
                 <div class="card-header">
                     <h3 class="card-title">Data Privacy</h3>
                     <p th:if="${@applicationSettings.privacy.isCustomizableLevel()}">
-                        Your profile privacy level is set to <b th:text="#{'PrivacyLevelType.' + ${user.effectivePrivacyLevel.name()}}" style="text-transform: lowercase;"></b>,
+                        Your profile privacy level is set to <b
+                            th:text="#{'PrivacyLevelType.' + ${user.effectivePrivacyLevel.name()}}"
+                            style="text-transform: lowercase;"></b>,
                         which determines your default gene privacy level.<br/>
                     </p>
                     <p th:if="${@applicationSettings.privacy.isCustomizableGeneLevel()}">
@@ -124,11 +126,22 @@
                             <a class="nav-link active" id="genes-tab" data-toggle="tab" href="#genes" role="tab"
                                aria-controls="profile" aria-selected="true">Genes</a>
                         </li>
-                        <li class="nav-item"
-                            th:if="${@tierService.isTierEnabled(T(ubc.pavlab.rdp.model.enums.TierType).TIER3)}">
+                        <li th:if="${@tierService.isTierEnabled(T(ubc.pavlab.rdp.model.enums.TierType).TIER3)}"
+                            class="nav-item">
                             <a class="nav-link" id="terms-tab" data-toggle="tab" href="#terms" role="tab"
                                aria-controls="model"
                                aria-selected="true">Terms</a>
+                        </li>
+                        <li th:if="${@tierService.isTierEnabled(T(ubc.pavlab.rdp.model.enums.TierType).TIER3)} and ${viewOnly == null}"
+                            class="nav-item ml-auto">
+                            <a href="#terms"
+                               class="btn btn-primary btn-sm recommend-terms"
+                               data-toggle="tooltip"
+                               title="Recommend relevant gene ontology terms based the genes from your profile.">
+                                <i class="mx-2 d-none spinner"></i>
+                                <i class="oi oi-heart"></i>
+                                Recommend Terms
+                            </a>
                         </li>
                     </ul>
                 </div>
@@ -156,16 +169,6 @@
 
                         <div th:if="${@tierService.isTierEnabled(T(ubc.pavlab.rdp.model.enums.TierType).TIER3)}"
                              class="tab-pane fade" id="terms" role="tabpanel" aria-labelledby="terms-tab">
-
-                            <div th:if="${viewOnly == null}"
-                                 class="row mb-3">
-                                <div class="col text-center">
-                                    <button type="button" class="btn btn-primary recommend-terms">
-                                        <i class="mx-2 d-none spinner"></i>
-                                        Recommend Terms
-                                    </button>
-                                </div>
-                            </div>
 
                             <div class="alert recommend-message d-none" role="alert"></div>
 
@@ -213,7 +216,8 @@
 
 </div>
 
-<div class="modal fade" id="overlapModal" tabindex="-1" role="dialog" aria-labelledby="overlapModal" aria-hidden="true">
+<div class="modal fade" id="overlapModal" tabindex="-1" role="dialog" aria-labelledby="overlapModal"
+     aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-body pb-0">

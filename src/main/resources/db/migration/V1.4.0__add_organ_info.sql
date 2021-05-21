@@ -6,8 +6,6 @@ alter table user add column contact_email varchar(255);
 alter table user add column contact_email_verified bit not null;
 alter table user drop column origin;
 alter table user drop column origin_url;
-alter table term drop column frequency;
-alter table term drop column size;
 alter table gene add column user_privacy_level integer default NULL;
 alter table ortholog drop primary key;
 alter table ortholog add primary key (source_gene, target_gene);

@@ -6,14 +6,34 @@
         var element = $(this);
         var userId = element.data('user-id');
         var anonymousUserId = element.data('anonymous-user-id');
-        $.get(anonymousUserId ? '/search/view/user-preview/by-anonymous-id/' + anonymousUserId : '/search/view/user-preview/' + userId, function (data) {
-            element.popover({
-                container: 'body',
-                trigger: 'hover tooltip',
-                html: true,
-                content: data
+        var remoteHost = element.data('remote-host');
+        var popoverUrl = '/search/view/user-preview/';
+        if (anonymousUserId) {
+            popoverUrl += 'by-anonymous-id/' + encodeURIComponent(anonymousUserId);
+        } else {
+            popoverUrl += encodeURIComponent(userId);
+        }
+        $.get(popoverUrl, remoteHost ? {'remoteHost': remoteHost} : {})
+            .done(function (data, textStatus, jqXHR) {
+                /* handle no content status code when the popover is empty */
+                if (jqXHR.status == 204) {
+                    return;
+                }
+                element.popover({
+                    container: 'body',
+                    trigger: 'hover tooltip',
+                    html: true,
+                    content: data
+                });
+            })
+            .fail(function (data) {
+                element.popover({
+                    container: 'body',
+                    trigger: 'hover tooltip',
+                    html: true,
+                    content: data
+                });
             });
-        });
     }
 
     function checkItl(itlChbox) {
@@ -83,6 +103,7 @@
                     itlTableContainer.html(responseText);
                 }
                 itlTableContainer.find('[data-toggle="tooltip"]').tooltip();
+                itlTableContainer.find('.user-preview-popover').each(initializeUserPreviewPopover);
             });
         }
 
@@ -133,21 +154,23 @@
                 }
 
                 // noinspection JSUnusedLocalSymbols
-                $.getJSON("/taxon/" + taxonId + "/gene/search/" + term + "?max=10", request, function (data, status, xhr) {
-
-                    if (!data.length) {
-                        data = [
-                            {
-                                noresults: true,
-                                label: 'No matches found',
-                                value: term
-                            }
-                        ];
-                    }
-
-                    taxonCache[term] = data;
-                    response(data);
-                });
+                $.getJSON("/taxon/" + encodeURIComponent(taxonId) + "/gene/search", {query: term, max: 10})
+                    .done(function (data, status, xhr) {
+                        if (!data.length) {
+                            data = [
+                                {
+                                    noresults: true,
+                                    label: 'No matches found',
+                                    value: term
+                                }
+                            ];
+                        }
+                        taxonCache[term] = data;
+                        response(data);
+                    })
+                    .fail(function () {
+                        response([{noresults: true, label: 'Error querying search endpoint.', value: term}]);
+                    });
             },
             select: function (event, ui) {
                 autocomplete.val(ui.item.match.symbol);

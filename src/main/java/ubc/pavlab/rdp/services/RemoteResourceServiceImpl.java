@@ -1,10 +1,13 @@
 package ubc.pavlab.rdp.services;
 
+import io.swagger.v3.oas.models.OpenAPI;
 import lombok.Builder;
 import lombok.Data;
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -20,6 +23,7 @@ import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.repositories.RoleRepository;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
+import ubc.pavlab.rdp.util.VersionUtils;
 
 import java.net.URI;
 import java.text.MessageFormat;
@@ -32,6 +36,7 @@ import static java.util.function.Function.identity;
 @CommonsLog
 public class RemoteResourceServiceImpl implements RemoteResourceService {
 
+    private static final String API_URI = "/api";
     private static final String API_USERS_SEARCH_URI = "/api/users/search";
     private static final String API_USER_GET_URI = "/api/users/{userId}";
     private static final String API_USER_GET_BY_ANONYMOUS_ID_URI = "/api/users/by-anonymous-id/{anonymousId}";
@@ -50,6 +55,25 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
     private RestTemplate restTemplate;
 
     @Override
+    @Cacheable
+    public String getApiVersion( URI remoteHost ) throws RemoteException {
+        // Ensure that the remoteHost is one of our known APIs by comparing the URI authority component and always use
+        // the URI defined in the configuration
+        URI authority = getApiUri( remoteHost );
+        URI uri = UriComponentsBuilder.fromUri( authority )
+                .path( API_URI )
+                .build()
+                .toUri();
+        OpenAPI openAPI = restTemplate.getForEntity( uri, OpenAPI.class ).getBody();
+        // OpenAPI specification was introduced in 1.4, so we assume 1.0.0 for previous versions
+        if ( openAPI.getInfo() == null ) {
+            return "1.0.0";
+        } else {
+            return openAPI.getInfo().getVersion();
+        }
+    }
+
+    @Override
     public Collection<User> findUsersByLikeName( String nameLike, Boolean prefix, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherCategories, Collection<String> organUberonIds ) {
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add( "nameLike", nameLike );
@@ -64,6 +88,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
     }
 
     @Override
+    @PreAuthorize("hasPermission(null, 'international-search')")
     public Collection<User> findUsersByDescription( String descriptionLike, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherCategories, Collection<String> organUberonIds ) {
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add( "descriptionLike", descriptionLike );
@@ -77,6 +102,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
     }
 
     @Override
+    @PreAuthorize("hasPermission(null, 'international-search')")
     public Collection<UserGene> findGenesBySymbol( String symbol, Taxon taxon, Set<TierType> tiers, Integer orthologTaxonId, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherCategories, Set<String> organUberonIds ) {
         List<UserGene> intlUsergenes = new LinkedList<>();
         if(taxon.getId()==8364){
@@ -107,6 +133,7 @@ orthologTaxonId=-99;
     }
 
     @Override
+    @PreAuthorize("hasPermission(null, 'international-search')")
     public User getRemoteUser( Integer userId, URI remoteHost ) throws RemoteException {
         // Ensure that the remoteHost is one of our known APIs by comparing the URI authority component and always use
         // the URI defined in the configuration
@@ -134,8 +161,14 @@ orthologTaxonId=-99;
     }
 
     @Override
+    @PreAuthorize("hasPermission(null, 'international-search')")
     public User getAnonymizedUser( UUID anonymousId, URI remoteHost ) throws RemoteException {
         URI authority = getApiUri( remoteHost );
+
+        if ( !VersionUtils.satisfiesVersion( getApiVersion( remoteHost ), "1.4.0" ) ) {
+            log.info( MessageFormat.format( "{0} does not support retrieving user by anonymous identifier, will return null instead.", remoteHost ) );
+            return null;
+        }
 
         MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
         addAuthParamIfAdmin( queryParams );

@@ -7,6 +7,7 @@ import org.hibernate.validator.constraints.URL;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
+import org.springframework.web.util.UrlPathHelper;
 
 /**
  * Created by mjacobson on 22/01/18.
@@ -17,7 +18,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 @Setter
 public class SiteSettings {
 
-    @URL
     private String host;
 
     private String context;
@@ -26,13 +26,10 @@ public class SiteSettings {
         return UriComponentsBuilder.fromUriString( host ).path( context ).build().toUri();
     }
 
-    @Email
     private String contactEmail;
 
-    @Email
     private String adminEmail;
 
-    @URL
     private String proxyHost;
     private String proxyPort;
 

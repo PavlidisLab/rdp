@@ -331,7 +331,6 @@ public class UserControllerTest {
         GeneOntologyTerm term = createTerm( toGOId( 1 ) );
         term.setName( "cave" );
         UserTerm ut = UserTerm.createUserTerm( user, term, taxon );
-        ut.getSizesByTaxonId().put( taxon.getId(), 99L );
         user.getUserTerms().add( ut );
 
         when( userService.findCurrentUser() ).thenReturn( user );
@@ -647,22 +646,17 @@ public class UserControllerTest {
         User user = createUser( 1 );
         Taxon taxon = createTaxon( 1 );
 
-        when( userService.convertTerms( any(), eq( taxon ), Mockito.anyCollectionOf( GeneOntologyTerm.class ) ) )
-                .then( i -> ( (Collection<GeneOntologyTerm>) i.getArgumentAt( 2, Collection.class ) ).stream()
-                        .map( goTerm -> UserTerm.createUserTerm( user, goTerm, taxon ) ).collect( Collectors.toSet() ) );
+        when( userService.convertTerm( any(), eq( taxon ), Mockito.any( GeneOntologyTermInfo.class ) ) )
+                .thenAnswer( answer -> createUserTerm( 1, user, answer.getArgumentAt( 2, GeneOntologyTerm.class ), taxon ) );
         when( goService.getTerm( any() ) )
                 .then( i -> createTerm( i.getArgumentAt( 0, String.class ) ) );
 
         when( userService.findCurrentUser() ).thenReturn( user );
 
-        JSONArray json = new JSONArray();
-        json.put( toGOId( 1 ) );
-        json.put( toGOId( 2 ) );
-        json.put( toGOId( 3 ) );
-
-        mvc.perform( post( "/user/taxon/1/term/search" )
-                .contentType( MediaType.APPLICATION_JSON )
-                .content( json.toString() ) )
+        mvc.perform( get( "/user/taxon/1/term/search" )
+                .param( "goIds", toGOId( 1 ) )
+                .param( "goIds", toGOId( 2 ) )
+                .param( "goIds", toGOId( 3 ) ) )
                 .andExpect( status().isOk() )
                 .andExpect( jsonPath( "$['GO:0000001'].goId" ).value( toGOId( 1 ) ) )
                 .andExpect( jsonPath( "$['GO:0000002'].goId" ).value( toGOId( 2 ) ) )
@@ -671,11 +665,14 @@ public class UserControllerTest {
                 .andExpect( jsonPath( "$['GO:0000002'].taxon.id" ).value( taxon.getId() ) )
                 .andExpect( jsonPath( "$['GO:0000003'].taxon.id" ).value( taxon.getId() ) );
 
-        mvc.perform( post( "/user/taxon/2/term/search" )
-                .contentType( MediaType.APPLICATION_JSON )
-                .content( json.toString() ) )
+        mvc.perform( get( "/user/taxon/2/term/search" )
+                .param( "goIds", toGOId( 1 ) )
+                .param( "goIds", toGOId( 2 ) )
+                .param( "goIds", toGOId( 3 ) ) )
                 .andExpect( status().isOk() )
-                .andExpect( content().string( "{}" ) );
+                .andExpect( jsonPath( "$['GO:0000001']" ).isEmpty() )
+                .andExpect( jsonPath( "$['GO:0000002']" ).isEmpty() )
+                .andExpect( jsonPath( "$['GO:0000003']" ).isEmpty() );
     }
 
     @Test

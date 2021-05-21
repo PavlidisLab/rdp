@@ -10,7 +10,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -39,7 +38,10 @@ import java.util.stream.Collectors;
 @CommonsLog
 public class ApiController {
 
-    private static final String API_VERSION = "1.0.0"; //TODO update every time there is any change in how the API works.
+    /**
+     * API version
+     */
+    public static final String API_VERSION = "1.4.0";
 
     @Autowired
     MessageSource messageSource;
@@ -72,16 +74,6 @@ public class ApiController {
     @ExceptionHandler({ ApiException.class })
     public ResponseEntity handleApiException( ApiException e ) {
         return ResponseEntity.status( e.getStatus() ).body( e.getMessage() );
-    }
-
-    /**
-     * Fallback for unmapped sub-paths.
-     *
-     * @return 404.
-     */
-    @GetMapping(value = "/api/*", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Object searchApiInfo() {
-        return ResponseEntity.notFound().build();
     }
 
     /**
@@ -254,7 +246,7 @@ public class ApiController {
                                         Locale locale ) {
         checkEnabled();
         checkAuth( authorizationHeader, auth );
-        User user = userService.findUserByAnonymousId( anonymousId );
+        User user = userService.findUserByAnonymousIdNoAuth( anonymousId );
         if ( user == null ) {
             return ResponseEntity.notFound().build();
         }

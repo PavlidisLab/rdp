@@ -37,9 +37,9 @@ public interface UserService {
 
     User findUserById( int id );
 
-    User findUserByAnonymousId( UUID anonymousId );
+    User findUserByAnonymousIdNoAuth( UUID anonymousId );
 
-    UserGene findUserGeneByAnonymousId( UUID anonymousId );
+    UserGene findUserGeneByAnonymousIdNoAuth( UUID anonymousId );
 
     User findUserByIdNoAuth( int id );
 
@@ -67,17 +67,19 @@ public interface UserService {
 
     long countResearchers();
 
-    Collection<UserTerm> convertTerms( User user, Taxon taxon, Collection<GeneOntologyTerm> terms );
+    UserTerm convertTerm( User user, Taxon taxon, GeneOntologyTermInfo term );
 
-    Collection<GeneOntologyTerm> recommendTerms( User user, Taxon taxon );
+    Collection<UserTerm> convertTerms( User user, Taxon taxon, Collection<GeneOntologyTermInfo> terms );
 
-    Collection<GeneOntologyTerm> recommendTerms( User user, Taxon taxon, long minSize, long maxSize, long minFrequency );
+    Collection<UserTerm> recommendTerms( User user, Taxon taxon );
+
+    Collection<UserTerm> recommendTerms( User user, Taxon taxon, long minSize, long maxSize, long minFrequency );
 
     User updateTermsAndGenesInTaxon( User user,
                                      Taxon taxon,
                                      Map<GeneInfo, TierType> genesToTierMapFrom,
                                      Map<GeneInfo, PrivacyLevelType> genesToPrivacyLevelMap,
-                                     Collection<GeneOntologyTerm> goTerms );
+                                     Collection<GeneOntologyTermInfo> goTerms );
 
     User updateUserProfileAndPublicationsAndOrgans( User user, Profile profile, Set<Publication> publications, Set<String> organUberonIds );
 

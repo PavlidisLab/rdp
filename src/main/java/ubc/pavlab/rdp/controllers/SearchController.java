@@ -428,20 +428,69 @@ public class SearchController {
     public ModelAndView previewUser( @PathVariable Integer userId,
                                      @RequestParam(required = false) String remoteHost ) {
         ModelAndView modelAndView = new ModelAndView( "fragments/profile::user-preview" );
-        modelAndView.addObject( "user", userService.findUserById( userId ) );
+
+        User user;
+        if ( remoteHost != null ) {
+            try {
+                user = remoteResourceService.getRemoteUser( userId, URI.create( remoteHost ) );
+            } catch ( RemoteException e ) {
+                log.error( "Could not retrieve user {0} from {1}.", e );
+                modelAndView.setStatus( HttpStatus.INTERNAL_SERVER_ERROR );
+                modelAndView.setViewName( "fragments/error::message" );
+                modelAndView.addObject( "errorMessage", "Error querying remote user." );
+                return modelAndView;
+            }
+        } else {
+            user = userService.findUserById( userId );
+        }
+        if ( user == null ) {
+            modelAndView.setStatus( HttpStatus.NOT_FOUND );
+            modelAndView.setViewName( "fragments/error::message" );
+            modelAndView.addObject( "errorMessage", "Could not find user by given identifier." );
+        } else if ( userPreviewIsEmpty( user ) ) {
+            modelAndView.setStatus( HttpStatus.NO_CONTENT );
+            modelAndView.addObject( "user", user );
+        } else {
+            modelAndView.addObject( "user", user );
+        }
         return modelAndView;
     }
 
     @GetMapping(value = "/search/view/user-preview/by-anonymous-id/{anonymousId}")
-    public ModelAndView previewUser( @PathVariable UUID anonymousId,
-                                     @RequestParam(required = false) String remoteHost ) {
+    public ModelAndView previewAnonymousUser( @PathVariable UUID anonymousId,
+                                              @RequestParam(required = false) String remoteHost ) {
         ModelAndView modelAndView = new ModelAndView( "fragments/profile::user-preview" );
-        User user = userService.findUserByAnonymousId( anonymousId );
+        User user;
+        if ( remoteHost != null ) {
+            try {
+                user = remoteResourceService.getAnonymizedUser( anonymousId, URI.create( remoteHost ) );
+            } catch ( RemoteException e ) {
+                log.error( e );
+                modelAndView.setStatus( HttpStatus.INTERNAL_SERVER_ERROR );
+                modelAndView.setViewName( "fragments/error::message" );
+                modelAndView.addObject( "errorMessage", "Error querying remote anonymous user." );
+                return modelAndView;
+            }
+        } else {
+            user = userService.anonymizeUser( userService.findUserByAnonymousIdNoAuth( anonymousId ) );
+        }
         if ( user == null ) {
             modelAndView.setStatus( HttpStatus.NOT_FOUND );
+            modelAndView.setViewName( "fragments/error::message" );
+            modelAndView.addObject( "errorMessage", "Could not find user by given identifier." );
+        } else if ( userPreviewIsEmpty( user ) ) {
+            modelAndView.setStatus( HttpStatus.NO_CONTENT );
+            modelAndView.addObject( "user", user );
+        } else {
+            modelAndView.addObject( "user", user );
         }
-        modelAndView.addObject( "user", userService.anonymizeUser( user ) );
         return modelAndView;
+    }
+
+    private boolean userPreviewIsEmpty( User user ) {
+        return ( user.getProfile().getDescription() == null || user.getProfile().getDescription().isEmpty() ) &&
+                user.getProfile().getResearcherCategories().isEmpty() &&
+                user.getUserOrgans().isEmpty();
     }
 
     @GetMapping(value = "/userView/{userId}")
@@ -450,7 +499,7 @@ public class SearchController {
         ModelAndView modelAndView = new ModelAndView( "userView" );
         User user = userService.findCurrentUser();
         User viewUser;
-        if ( remoteHost != null && !remoteHost.isEmpty() && privacyService.checkCurrentUserCanSearch( true ) ) {
+        if ( remoteHost != null && !remoteHost.isEmpty() ) {
             try {
                 viewUser = remoteResourceService.getRemoteUser( userId, URI.create( remoteHost ) );
             } catch ( RemoteException e ) {
@@ -485,7 +534,7 @@ public class SearchController {
     public Object requestGeneAccessView( @PathVariable UUID anonymousId,
                                          RedirectAttributes redirectAttributes ) {
         ModelAndView modelAndView = new ModelAndView( "search/request-access" );
-        UserGene userGene = userService.findUserGeneByAnonymousId( anonymousId );
+        UserGene userGene = userService.findUserGeneByAnonymousIdNoAuth( anonymousId );
         if ( userGene == null ) {
             modelAndView.setStatus( HttpStatus.NOT_FOUND );
             modelAndView.setViewName( "error/404" );
@@ -513,7 +562,7 @@ public class SearchController {
                                            BindingResult bindingResult,
                                            RedirectAttributes redirectAttributes ) {
         ModelAndView modelAndView = new ModelAndView( "search/request-access" );
-        UserGene userGene = userService.findUserGeneByAnonymousId( anonymousId );
+        UserGene userGene = userService.findUserGeneByAnonymousIdNoAuth( anonymousId );
         if ( userGene == null ) {
             modelAndView.setStatus( HttpStatus.NOT_FOUND );
             modelAndView.setViewName( "error/404" );

@@ -19,6 +19,8 @@ import java.util.UUID;
  */
 public interface RemoteResourceService {
 
+    String getApiVersion( URI remoteHost ) throws RemoteException;
+
     Collection<User> findUsersByLikeName( String nameLike, Boolean prefix, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherTypes, Collection<String> organUberonIds );
 
     Collection<User> findUsersByDescription( String descriptionLike, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherTypes, Collection<String> organUberonIds );

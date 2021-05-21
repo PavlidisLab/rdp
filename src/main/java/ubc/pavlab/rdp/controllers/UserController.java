@@ -33,6 +33,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.util.function.Function.identity;
+import static ubc.pavlab.rdp.util.CollectionUtils.toNullableMap;
 
 @Controller
 @CommonsLog
@@ -81,10 +82,10 @@ public class UserController {
         User user = userService.findCurrentUser();
         Taxon taxon = taxonService.findById( taxonId );
 
-        GeneOntologyTerm term = goService.getTerm( goId );
+        GeneOntologyTermInfo term = goService.getTerm( goId );
 
         if ( term != null ) {
-            Set<Integer> geneIds = goService.getGenes( term ).stream().map( GeneInfo::getGeneId ).collect( Collectors.toSet() );
+            Set<Integer> geneIds = goService.getGenesInTaxon( term, taxon ).stream().map( Gene::getGeneId ).collect( Collectors.toSet() );
             modelAndView.addObject( "genes",
                     user.getGenesByTaxonAndTier( taxon, TierType.MANUAL ).stream()
                             .filter( ug -> geneIds.contains( ug.getGeneId() ) )
@@ -302,7 +303,7 @@ public class UserController {
                 .filter( Objects::nonNull )
                 .collect( Collectors.toMap( identity(), g -> model.getGenePrivacyLevelMap().get( g.getGeneId() ) ) );
 
-        Set<GeneOntologyTerm> terms = model.getGoIds().stream()
+        Set<GeneOntologyTermInfo> terms = model.getGoIds().stream()
                 .map( s -> goService.getTerm( s ) )
                 .collect( Collectors.toSet() );
 
@@ -318,8 +319,7 @@ public class UserController {
         if ( taxon == null ) {
             return ResponseEntity.notFound().build();
         }
-        return userService.findCurrentUser().getUserGenes().values().stream()
-                .filter( gene -> gene.getTaxon().equals( taxon ) ).collect( Collectors.toSet() );
+        return userService.findCurrentUser().getGenesByTaxon( taxon );
     }
 
     @ResponseBody
@@ -333,15 +333,15 @@ public class UserController {
     }
 
     @ResponseBody
-    @PostMapping(value = "/user/taxon/{taxonId}/term/search", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Object getTermsForTaxon( @PathVariable Integer taxonId, @RequestBody List<String> goIds ) {
+    @GetMapping(value = "/user/taxon/{taxonId}/term/search", produces = MediaType.APPLICATION_JSON_VALUE)
+    public Object getTermsForTaxon( @PathVariable Integer taxonId,
+                                    @RequestParam List<String> goIds ) {
         Taxon taxon = taxonService.findById( taxonId );
         if ( taxon == null ) {
             return ResponseEntity.notFound().build();
         }
-        Set<GeneOntologyTerm> goTerms = goIds.stream().map( goId -> goService.getTerm( goId ) ).collect( Collectors.toSet() );
-        return userService.convertTerms( userService.findCurrentUser(), taxon, goTerms ).stream()
-                .collect( Collectors.toMap( GeneOntologyTerm::getGoId, identity() ) );
+        User user = userService.findCurrentUser();
+        return goIds.stream().collect( toNullableMap( identity(), goId -> goService.getTerm( goId ) == null ? null : userService.convertTerm( user, taxon, goService.getTerm( goId ) ) ) );
     }
 
     @ResponseBody
