@@ -5,6 +5,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ubc.pavlab.rdp.model.GeneInfo;
 import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.model.enums.GeneMatchType;
@@ -91,6 +92,7 @@ public class GeneInfoServiceImpl implements GeneInfoService {
     }
 
     @Override
+    @Transactional
     public void updateGenes() {
         ApplicationSettings.CacheSettings cacheSettings = applicationSettings.getCache();
         log.info( "Updating genes..." );
@@ -108,6 +110,7 @@ public class GeneInfoServiceImpl implements GeneInfoService {
                 }
                 log.info( MessageFormat.format( "Done parsing genes for {0}.", taxon ) );
                 // retrieve all relevant genes in a single database query
+                // note that because of this, we have to make this whole process @Transactional
                 Map<Integer, GeneInfo> foundGenesByGeneId = geneInfoRepository
                         .findAllByGeneIdIn( data.stream().map( GeneInfoParser.Record::getGeneId ).collect( Collectors.toList() ) )
                         .stream()
