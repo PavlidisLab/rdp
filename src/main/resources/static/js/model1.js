@@ -67,7 +67,7 @@
                     if (customizableGeneLevel) {
                         var privacyOptions = enabledGenePrivacyLevels.map(function (k) {
                             var privacyLevel = privacyLevels[k];
-                            if (privacyLevel.ordinal <= userPrivacyLevel.ordinal) {
+                            if (privacyLevel.ordinal!=1) {
                                 return '<option' +
                                     ' value="' + privacyLevel.ordinal + '"' +
                                     (privacyLevel.ordinal === userPrivacyLevel.ordinal ? ' selected' : '') + '>' +

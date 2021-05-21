@@ -14,21 +14,35 @@
 
     <div class="row">
         <div class="col-8">
-            <div th:replace="layouts/common::title(title='Model Organisms', subtitle=${#strings.capitalizeWords(taxon.commonName)})">
-                ...
-            </div>
+<div
+     class="row mb-3">
+    <h1 class="border-right col-auto my-auto">
+            <span th:if="${taxon.commonName=='e. coli'}"><i>E. coli</i></span>
+            <span th:unless="${taxon.commonName=='e. coli'}" th:text="${#strings.capitalizeWords(taxon.commonName)}">...</span>
+
+
+</h1>
+    <img th:src="@{${'/images/mod/' +taxon.id + '.png'}}" style="max-width:10%"       class="col-auto my-auto"></img>
+</div>
+
         </div>
         <div class="col-4 my-auto text-right">
-            <button type="button" class="btn btn-primary btn-lg save-model" th:if="${viewOnly == null}">
+            <button style="background-color:teal"  type="button" class="btn btn-primary btn-lg save-model" th:if="${viewOnly == null}">
                 <i class="mx-2 d-none spinner"></i>
                 Save
             </button>
         </div>
     </div>
-
     <div class="d-flex align-items-center justify-content-center" th:if="${viewOnly != null}">
         <h3 class="d-inline-block pr-3 mr-3 mb-0" th:text="${user.email}"></h3>
     </div>
+
+
+    <div th:if="${taxon.scientificName == 'homo sapiens'}">
+        Please select ortholog based on official human gene symbols (HGNC). Please specify the species you work with under the research focus box.
+    </div>
+    <div th:if="${taxon.scientificName == 'Xenopus tropicalis'}">
+	Even if you work with <i>Xenopus laevis</i>, please select your genes of interest based on the official symbol in <i>Xenopus tropicalis</i>    </div>
 
     <div class="main-content">
 
@@ -60,7 +74,7 @@
                         </h3>
                     </div>
                     <div class="p-2" style="height: 80px;">
-                        <textarea th:id="${#ids.seq('taxonDescriptions')}"
+                        <textarea placeholder="Briefly describe your research in this area. Please avoid technical jargon and uncommon acronyms." th:id="${#ids.seq('taxonDescriptions')}"
                                   th:text="${user.taxonDescriptions.get(taxon)}"
                                   class="data-edit" name="description"
                                   disabled="disabled"></textarea>
@@ -68,7 +82,7 @@
                 </div>
             </div>
         </div>
-
+<!--
         <div th:if="${@applicationSettings.privacy.isCustomizableLevel()} or ${@applicationSettings.privacy.isCustomizableSharing()} or ${@applicationSettings.privacy.isAllowHideGenelist()}"
              class="my-3">
             <div class="card">
@@ -101,7 +115,7 @@
                 </div>
             </div>
         </div>
-
+-->
         <div class="my-3">
             <div class="card">
                 <div class="card-header">
@@ -185,6 +199,18 @@
             </div>
         </div>
     </div>
+        <div class="row mb-3">
+            <div class="col-8">
+            </div>
+
+        <div class="col-4 my-auto text-right">
+            <button style="background-color:teal"  type="button" class="btn btn-primary btn-lg save-model" th:if="${viewOnly == null}">
+                <i class="mx-2 d-none spinner"></i>
+                Save
+            </button>
+        </div>
+</div>
+
 </div>
 
 <div class="modal fade" id="overlapModal" tabindex="-1" role="dialog" aria-labelledby="overlapModal" aria-hidden="true">
@@ -213,13 +239,13 @@
     var privacyLevels = {
         'PUBLIC': {'label': 'Public', 'ordinal': 2},
         'SHARED': {'label': 'Shared', 'ordinal': 1},
-        'PRIVATE': {'label': 'Private', 'ordinal': 0}
+        'PRIVATE': {'label': 'Restricted', 'ordinal': 0}
     };
     var enabledGenePrivacyLevels = [[${@applicationSettings.privacy.enabledGeneLevels}]];
     var customizableGeneLevel = [[${@applicationSettings.privacy.customizableGeneLevel}]]
     var userPrivacyLevel = privacyLevels[userProfile.privacyLevel['$name']];
     /*]]>*/
 </script>
-<script th:src="@{/js/model.js}"></script>
+<script th:src="@{/js/model1.js}"></script>
 </body>
 </html>

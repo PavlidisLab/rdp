@@ -14,7 +14,7 @@
             class="text-center"
             scope="col"
             data-toggle="tooltip"
-            th:title="${viewOnly} == null ? 'Primary genes constitute your TIER1 genes whereas non-primary genes will be part of your TIER2 genes.' : 'Tier determines the degree of involvment of a researcher with a gene.'">
+            th:title="${viewOnly} == null ? 'Primary genes are genes that your lab is actively working on, or genes where you have assays and reagents ready for immediately study.' : 'Tier determines the degree of involvment of a researcher with a gene.'">
             <span th:text="${viewOnly == null} ? 'Primary' : 'Tier'"></span>
             <i class="tip oi oi-question-mark"></i>
         </th>
@@ -22,14 +22,14 @@
             class="text-center"
             scope="col"
             data-toggle="tooltip"
-            title="Privacy level determines who can see this gene in a search result.">
+            title="Public genes can be searched by all users. Restricted genes require a match request to be submitted.">
             Privacy Level
             <i class="tip oi oi-question-mark"></i>
         </th>
     </tr>
     </thead>
     <tbody>
-    <tr th:each="gene : ${genes}">
+    <tr th:if="${gene.effectivePrivacyLevel != T(ubc.pavlab.rdp.model.enums.PrivacyLevelType).PRIVATE or viewOnly == null}" th:each="gene : ${genes}">
         <td class="align-middle">
             <i th:if="${viewOnly == null}" class="delete-row align-middle"></i>
             <a th:href="@{https://www.ncbi.nlm.nih.gov/gene/{geneId}(geneId=${gene.geneId})}"
@@ -49,7 +49,7 @@
                        th:checked="${gene.tier == T(ubc.pavlab.rdp.model.enums.TierType).TIER1}"/>
             </td>
             <td th:if="${viewOnly != null}"
-                th:text="${gene.tier}"
+                th:text="${gene.tier==T(ubc.pavlab.rdp.model.enums.TierType).TIER1}?'Primary':'Secondary'"
                 class="text-center"></td>
         </th:block>
         <td th:if="${viewOnly == null} and ${@applicationSettings.privacy.isCustomizableGeneLevel()}"
@@ -63,12 +63,15 @@
             </select>
         </td>
     </tr>
+
     </tbody>
+<!--
     <tfoot th:if="${viewOnly != null}">
     <tr>
         <td colspan="3"></td>
     </tr>
     </tfoot>
+-->
 </table>
 </body>
 </html>

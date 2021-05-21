@@ -12,7 +12,7 @@
 <div th:replace="layouts/common::header">...</div>
 <div class="container py-4">
 
-    <div th:replace="layouts/common::title(title='Support', subtitle='Documentation')">...</div>
+    <div th:replace="layouts/common::title(title='Support', subtitle='Instructions')">...</div>
 
     <div class="main-content my-3">
         <div class="card">
@@ -73,6 +73,7 @@
                                                 recommend 100-500 words)
                                             </li>
                                             <li>A list of PubMed IDs for your publications.</li>
+					    <li>Preferred E-mail address if different from your username.</li>
                                         </ul>
 
                                         <div th:if="${@applicationSettings.getPrivacy().isCustomizableLevel()}">
@@ -83,36 +84,22 @@
 
                                             <p>Data Privacy Settings section lets you choose your data sharing
                                                 preferences.
-                                                The default setting, "private", is pre-selected, but can be changed.
+                                                The default setting, "Public", is pre-selected, but can be changed.
                                                 The options are:
                                             </p>
                                             <ul>
-                                                <li><b>private</b> - your information will only be accessible by
-                                                    Network administrators for matching you to a new rare disease gene
-                                                    and considering you for funding opportunities.
+                                                <li><b>Restricted</b> - Your information will only be used to generate matches. It will not be visible in public searches
+
+                                                    
                                                 </li>
-                                                <li><b>shared</b> - your information will be accessible by other
-                                                    researchers who are registered.
-                                                    Registered users will be able to access your information through the
-                                                    provided search interface.
-                                                </li>
-                                                <li><b>public</b> - your information will be visible publicly. Your
+
+                                                <li><b>Public</b> - Your information will be visible publicly. Anyone can obtain information on these genes through ModelMatcher’s public search webpage. Your
                                                     information will be shared (see above)
                                                     with registered users and will be accessible to non-registered users
-                                                    through the registry’s public search webpage (<i th:text="${@siteSettings.getHostUri()}"></i>).
+                                                    through the registry’s public search webpage (<i th:text="${@siteSettings.getHostUri()}"></i>). This information will also be shared with our partner model organism registries including <a href="https://register.rare-diseases-catalyst-network.ca/search" target="_blank">RDMM (Canada)</a>, <a href="https://rdmm.imgag.de/search" target="_blank">Solve-RD (Europe)</a>, and <a href="https://www.functionalgenomics.org.au/" target="_blank">AFGN (Australia)</a>. 
                                                 </li>
                                             </ul>
                                         </div>
-                                        <p th:if="${@applicationSettings.getPrivacy().isCustomizableSharing()}">
-                                            Furthermore this section gives you the option to set your preference for
-                                            sharing your data with the network’s partner registries for the purposes
-                                            of establishing connections between clinician sciences who are submitting
-                                            their rare disease genes to partner registries and Canadian model organism
-                                            researchers. The data shared with partner registries will only be visible to
-                                            the administrators of those registries. If your data privacy level is set to
-                                            "public",
-                                            partner registries will gain access automatically.
-                                        </p>
                                     </div>
                                 </div>
                             </div>
@@ -184,8 +171,8 @@
                                             <b><a th:href="@{/user/profile}">Profile</a></b> (About My Research).
                                         </p>
 
-                                        <p>The most important functionality of this section is
-                                            the addition of genes, and then of Gene Ontology terms.</p>
+                                        <p>Please input the genes you are working on in each specific model organism using the official gene symbol for this species. If you are uncertain what the official gene symbol is, please visit one of the following databases to find this out: <em>E. coli</em>: <a data-auth="NotApplicable" data-ogsc="" href="https://ecocyc.org/" target="_blank">EcoCyc</a> , Budding Yeast: <a data-auth="NotApplicable" data-ogsc="" href="https://www.yeastgenome.org/" rel="noopener noreferrer" target="_blank">SGD</a>, Roundworm: <a data-auth="NotApplicable" data-ogsc="" href="https://wormbase.org/" target="_blank">WormBase</a>, Fruit Fly: <a data-auth="NotApplicable" data-ogsc="" href="http://flybase.org/" target="_blank">FlyBase</a>, Zebrafish: <a data-auth="NotApplicable" data-ogsc="" href="https://zfin.org/"  target="_blank">ZFIN</a>, Rat: <a data-auth="NotApplicable" data-ogsc="" href="https://rgd.mcw.edu/" rel="noopener noreferrer" style="margin: 0px; padding: 0px; border: 0px; font: inherit; vertical-align: baseline;" target="_blank">RGD</a>, Mouse: <a data-auth="NotApplicable" data-ogsc="" href="http://www.informatics.jax.org/" rel="noopener noreferrer" style="margin: 0px; padding: 0px; border: 0px; font: inherit; vertical-align: baseline;" target="_blank">MGI</a>, Human: <a data-auth="NotApplicable" data-ogsc="" href="https://www.genenames.org/" target="_blank">HGNC</a>.</p>
+                                            <p> If your model organism is not available, please select "Human or Other" and document the specific organism under "Organism Research Focus". </p>
                                     </div>
                                 </div>
                             </div>
@@ -202,29 +189,12 @@
                                 <div id="modeladdgene" class="collapse" aria-labelledby="modeladdgene-heading"
                                      data-parent="#model-accordion">
                                     <div class="card-body">
-                                        <p>The main goal of the registry is to collect an accurate
-                                            and comprehensive list of the genes that you study or are
-                                            able to study. Genes that you are entering directly into
-                                            the system can be either Primary or Secondary
-                                            (non-Primary).</p>
+                                        <p>The main goal of ModelMatcher is to collect an accurate and comprehensive list of the genes that you study or are able to study. These can be listed as Primary (Tier 1) or Secondary (Tier 2) in focus.                                        </p>
 
                                         <ul>
-                                            <li><b>Primary genes</b> (Tier 1) are those you currently
-                                                work on in a model organism. You must be able to
-                                                immediately, specifically and rapidly study them in your
-                                                laboratory. Genes you have recently published on are
-                                                especially good Primary genes. We expect this to
-                                                typically be between one and ten genes.
+                                            <li><b>Primary</b> (Tier 1) These are genes which you are currently studying in your laboratory, or have studied in the past and have established protocols and reagents for functional studies.
                                             </li>
-                                            <li><b>Secondary genes</b> (Tier 2) are those you do not
-                                                mark as Primary. Carefully choose genes which you are
-                                                not necessarily actively investigating but would be able
-                                                to work on rapidly and specifically with minimal set-up
-                                                time. These might be paralogs of Tier 1 genes, or
-                                                members of the same complexes or pathway. For most
-                                                registrants we expect there might be between one and 100
-                                                non-Primary genes entered.
-                                            </li>
+                                            <li><b>Secondary</b> (Tier 2) These are genes which are closely related to genes you study and have great interest in pursuing functional studies. Examples ofsecondary genes would be other genes in a pathway you specialize in, or a known interactor of a gene you study.                                            </li>
                                         </ul>
 
                                         <p>For more information, see the relevant <a
@@ -233,9 +203,8 @@
                                         <p>In the input box below the table you may search genes one by one or type
                                             in a comma separated list of gene symbols. Add them by pressing the enter
                                             key or the + symbol.</p>
-                                        <p>The added genes will appear at the bottom of the table. You can remove genes
-                                            by clicking the red X on the desired row. You can also change the Primary
-                                            status of genes using the checkbox.</p>
+                                        <p>Your genes will appear at the bottom of the table on the Model Organism page. You can remove genes by clicking the red X on the desired row. You can change the Primary status of genes using the adjacent checkboxes, and the level of privacy using the adjacent drop down menu.
+</p>
 
                                         <p>Finally, be sure to <b>Save</b>. If you navigate away from the page without
                                             doing so, you will be prompted to confirm.</p>
@@ -253,106 +222,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="card my-3">
-                                <div class="card-header" id="modelterms-heading">
-                                    <h5 class="mb-0">
-                                        <button class="btn btn-link" data-toggle="collapse" data-target="#modelterms"
-                                                aria-expanded="false" aria-controls="modelterms">
-                                            Gene Ontology Terms
-                                        </button>
-                                    </h5>
-                                </div>
 
-                                <div id="modelterms" class="collapse" aria-labelledby="modelterms-heading"
-                                     data-parent="#model-accordion">
-                                    <div class="card-body">
-                                        <p>
-                                            Once you have added some genes, you can optionally
-                                            provide some Gene Ontology (GO) terms related to your
-                                            work. Genes associated with the GO terms you select will
-                                            be considered a "third Tier" of genes for possible use in
-                                            identifying researchers who can study a particular gene.
-                                            For more details about GO, please see <a href="http://geneontology.org/"
-                                                                                     target="_blank">geneontology.org</a>.
-                                        </p>
-
-                                        <p>To enter GO terms for an organism, click on the "Terms" tab on the Model
-                                            Organism Manager page. From here you may let us suggest terms for you or
-                                            input terms manually using the input box below the table.</p>
-
-                                        <p><b>Note:</b> You need to have at least two genes saved in order for us to
-                                            succesfully recommend terms.</p>
-
-                                        <p>Suggested GO terms will appear in a table (allow
-                                            for a short delay especially if you have a lot of
-                                            genes saved) that has the following columns:</p>
-
-                                        <ul>
-                                            <li>GO term full name</li>
-                                            <li>GO Aspect, which indicates one of three
-                                                domains from which the GO term originates (biological
-                                                process (BP), molecular function (MF), cellular
-                                                component (CC))
-                                            </li>
-                                            <li>Overlap, which indicates how many of your
-                                                (Tier 1 and 2) genes are annotated with that term. Clicking this
-                                                number will show which of your genes these are.
-                                            </li>
-                                            <li>Term Size, which indicates how many genes in
-                                                the currently chosen model organism are annotated
-                                                with that term and will be added as Tier 3 genes if
-                                                the term is selected (excluding the genes
-                                                that are already added as Tier 1 or 2)
-                                            </li>
-                                        </ul>
-
-                                        <p>You may also manually search by GO
-                                            ID, Name or description. Add them by pressing the enter
-                                            key or the + symbol</p>
-
-                                        <p><b>Note:</b> that terms who have more
-                                            than 100 associated genes will not be
-                                            available for addition to your profile.</p>
-
-                                        <p>
-                                            Once again, don't forget to <b>Save</b>.
-                                        </p>
-
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="card my-3">
-                                <div class="card-header" id="modeltermsuggest-heading">
-                                    <h5 class="mb-0">
-                                        <button class="btn btn-link" data-toggle="collapse"
-                                                data-target="#modeltermsuggest"
-                                                aria-expanded="false" aria-controls="modeltermsuggest">
-                                            How does the Gene Ontology Term suggestion work?
-                                        </button>
-                                    </h5>
-                                </div>
-
-                                <div id="modeltermsuggest" class="collapse" aria-labelledby="modeltermsuggest-heading"
-                                     data-parent="#model-accordion">
-                                    <div class="card-body">
-                                        <p>
-                                            If you have already entered at least two genes, the
-                                            system can suggest related GO terms for you. The system
-                                            uses a very simple algorithm to do this. We look at GO
-                                            terms shared by the genes you have entered. If a term has
-                                            enough genes overlapping with your genes, it is
-                                            considered a candidate. We then prune terms that are too
-                                            big, too small or highly redundant with another candidate
-                                            term. A selection of the top candidates is then provided.
-                                            The full process is a little more involved than this,
-                                            as it makes use of the structure of the GO hierarchy and
-                                            several heuristics to provide useful results. Please <a
-                                                th:href="@{/user/support}">Contact
-                                            Us</a> if you would like more details.
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
                         </div>
                     </div>
                     <div class="tab-pane fade" id="search" role="tabpanel" aria-labelledby="model-tab">
@@ -372,11 +242,10 @@
                                     <div class="card-body">
                                         <p>
                                             The Search page allows you to browse or search for other registered users
-                                            who chose to share their data by selecting "shared" or "public" data privacy
+                                            who chose to share their data by selecting the "public" data privacy
                                             setting.
                                             If "Include results from partner registries" option is selected,
-                                            the registry will connect to remote registries of the RDMM
-                                            partners and display/search their "public" users.
+                                            the registry will connect to remote registries of the ModelMatcher partners including <a href="https://register.rare-diseases-catalyst-network.ca/search" target="_blank">RDMM (Canada)</a>, <a href="https://rdmm.imgag.de/search" target="_blank">Solve-RD (Europe)</a>, and <a href="https://www.functionalgenomics.org.au/" target="_blank">AFGN (Australia)</a> and display/search their "public" users.
                                         </p>
                                         <p>
                                             There are two ways to search for users: using their name and profile
@@ -400,7 +269,7 @@
                                             the partner registries results will be displayed in a separate section with
                                             the
                                             indication from which registry the matches are coming from ("Origin").
-                                            Clicking on a user's email address will open a new tab with the user's
+                                            Clicking on the "view user profile" button will open a new tab with the user's
                                             profile and gene information.
                                         </p>
                                         <p>
@@ -415,7 +284,7 @@
                                             organism.
                                             The ortholog mapping is based on <a href="https://www.flyrnai.org/diopt"
                                                                                 target="_blank">
-                                            DIOPT</a> results, filtered for DIOPT score >5 and Rank = "high".
+                                            DIOPT</a> results, filtered for DIOPT score >5.
                                         </p>
                                     </div>
                                 </div>

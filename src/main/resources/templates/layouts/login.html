@@ -8,8 +8,8 @@
     <meta name="description" th:content="${description} ?: #{rdp.site.welcome-public}"/>
     <title th:text="${title} ? ${title} + ' - ' + #{rdp.site.fullname} : #{rdp.site.fullname}"></title>
 
-    <link rel="icon" type="image/png" sizes="16x16" th:href="@{/images/favicon-16x16.png}"/>
-    <link rel="icon" type="image/png" sizes="32x32" th:href="@{/images/favicon-32x32.png}"/>
+    <link rel="icon" type="image/png" sizes="16x16" th:href="@{/images/mm.png}"/>
+    <link rel="icon" type="image/png" sizes="32x32" th:href="@{/images/mm.png}"/>
 
     <link rel="stylesheet"
           href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
@@ -36,14 +36,14 @@
             <div class="row">
                 <div sec:authorize="isAuthenticated()"
                      class="col-6 text-center">
-                    <a th:href="@{/login}">Return to my user profile</a>
+                    <a th:href="@{/login}">Return to home</a>
                 </div>
                 <div sec:authorize="!isAuthenticated()"
                      class="col-6 text-center">
                     <a th:href="@{/login}">Return to login</a>
                 </div>
                 <div class="col-6 text-center">
-                    <a th:href="${'mailto:' + @siteSettings.getContactEmail()}">Contact Support</a>
+                    <a href="https://www.modelmatcher.net/Contact.html">Contact Support</a>
                 </div>
             </div>
         </div>

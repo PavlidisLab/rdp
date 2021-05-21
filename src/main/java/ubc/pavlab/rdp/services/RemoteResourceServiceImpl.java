@@ -79,7 +79,15 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
     @Override
     public Collection<UserGene> findGenesBySymbol( String symbol, Taxon taxon, Set<TierType> tiers, Integer orthologTaxonId, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherCategories, Set<String> organUberonIds ) {
         List<UserGene> intlUsergenes = new LinkedList<>();
-        for ( TierType tier : restrictTiers( tiers ) ) {
+        if(taxon.getId()==8364){
+return new LinkedList<>();
+}
+
+        if(orthologTaxonId==null){
+orthologTaxonId=-99;
+}
+
+	for ( TierType tier : restrictTiers( tiers ) ) {
             MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
             params.add( "symbol", symbol );
             params.putAll( UserGeneSearchParams.builder()

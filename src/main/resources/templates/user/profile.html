@@ -20,7 +20,7 @@
                 <h3 class="d-inline-block pr-3 mr-3 mb-0" th:text="${user.profile.contactEmail ?: user.email}"></h3>
             </div>
             <div class="col-4 my-auto text-right" th:if="${viewOnly == null}">
-                <button type="button" class="btn btn-primary btn-lg save-profile">
+                <button style="background-color:teal"  type="button" class="btn btn-primary btn-lg save-profile">
                     <i class="mx-2 d-none spinner"></i>
                     Save
                 </button>
@@ -43,6 +43,7 @@
         </div>
 
         <div th:replace="layouts/common::message"></div>
+<div><span style="color: red">*</span> denotes required fields</div>
 
         <div class="row mb-3">
             <div class="col">
@@ -56,10 +57,10 @@
                         <tr class="edit-container">
                             <td class="align-middle" style="width: 120px;">
                                 <label th:for="${#ids.next('profile.name')}" class="text-muted align-middle mb-0">First
-                                    Name</label>
+                                    Name<span style="color: red">*</span></label>
                             </td>
                             <td><i class="editable" th:if="${viewOnly == null}"></i>
-                                <input th:id="${#ids.seq('profile.name')}"
+                                <input size="50" th:id="${#ids.seq('profile.name')}"
                                        th:field="*{name}"
                                        type="text"
                                        class="data-edit"
@@ -69,10 +70,10 @@
                         <tr class="edit-container">
                             <td class="align-middle">
                                 <label th:for="${#ids.next('profile.lastName')}" class="text-muted align-middle mb-0">Last
-                                    Name</label>
+                                    Name<span style="color: red">*</span></label>
                             </td>
                             <td><i class="editable" th:if="${viewOnly == null}"></i>
-                                <input th:id="${#ids.seq('profile.lastName')}"
+                                <input size="50" th:id="${#ids.seq('profile.lastName')}"
                                        th:field="*{lastName}"
                                        type="text"
                                        class="data-edit"
@@ -83,11 +84,11 @@
                             <td class="align-middle">
                                 <label th:for="${#ids.next('profile.organization')}"
                                        class="text-muted align-middle mb-0">
-                                    Organization
+                                    Organization<span style="color: red">*</span>
                                 </label>
                             </td>
                             <td><i class="editable" th:if="${viewOnly == null}"></i>
-                                <input th:id="${#ids.seq('profile.organization')}"
+                                <input size="50" th:id="${#ids.seq('profile.organization')}"
                                        th:field="*{organization}"
                                        class="data-edit" type="text"
                                        disabled="disabled"/>
@@ -101,23 +102,10 @@
                                 </label>
                             </td>
                             <td><i class="editable" th:if="${viewOnly == null}"></i>
-                                <input th:id="${#ids.seq('profile.department')}"
+                                <input size="50" th:id="${#ids.seq('profile.department')}"
                                        th:field="*{department}"
                                        type="text"
                                        class="data-edit"
-                                       disabled="disabled"/>
-                            </td>
-                        </tr>
-                        <tr class="edit-container">
-                            <td class="align-middle">
-                                <label th:for="${#ids.next('profile.website')}" class="text-muted align-middle mb-0">
-                                    Website
-                                </label>
-                            </td>
-                            <td><i class="editable" th:if="${viewOnly == null}"></i>
-                                <input th:id="${#ids.seq('profile.website')}"
-                                       th:field="*{website}"
-                                       class="data-edit" type="text"
                                        disabled="disabled"/>
                             </td>
                         </tr>
@@ -125,12 +113,26 @@
                             class="edit-container">
                             <td class="align-middle">
                                 <label th:for="${#ids.next('profile.researcherCategories')}"
-                                       class="text-muted align-middle mb-0">Categories</label>
+                                       class="text-muted align-middle mb-0">Model Systems<span style="color: red">*</span></label>
                             </td>
                             <td>
                                 <div th:replace="fragments/profile::researcher-categories-selection(selectedResearcherCategories = *{researcherCategories})">
                                     ...
                                 </div>
+                            </td>
+                        </tr>
+
+                        <tr class="edit-container">
+                            <td class="align-middle">
+                                <label th:for="${#ids.next('profile.website')}" class="text-muted align-middle mb-0">
+                                    Website
+                                </label>
+                            </td>
+                            <td><i class="editable" th:if="${viewOnly == null}"></i>
+                                <input size="50" th:id="${#ids.seq('profile.website')}"
+                                       th:field="*{website}"
+                                       class="data-edit" type="text"
+                                       disabled="disabled"/>
                             </td>
                         </tr>
                         <tr class="edit-container">
@@ -160,12 +162,12 @@
                             <td class="align-middle" style="width: 120px;">
                                 <label th:for="${#ids.next('profile.contactEmail')}"
                                        class="text-muted align-middle mb-0">
-                                    Contact Email
+                                    Preferred Email (if different)
                                 </label>
                             </td>
                             <td>
                                 <i th:if="${viewOnly == null}" class="editable"></i>
-                                <input th:id="${#ids.seq('profile.contactEmail')}"
+                                <input size="50" th:id="${#ids.seq('profile.contactEmail')}"
                                        th:field="*{contactEmail}"
                                        class="data-edit"
                                        type="text"
@@ -177,7 +179,7 @@
                                     <span class="badge badge-warning contact-email-verification-badge"
                                           data-toggle="tooltip"
                                           title="Your contact email is not verified, we'll contact you with your primary email instead.">Not verified</span>
-                                        <button class="btn btn-sm" type="submit">Resend contact email verification
+                                        <button style="background-color:teal" class="btn btn-sm" type="submit">Resend contact email verification
                                         </button>
                                     </form>
                                 </th:block>
@@ -191,7 +193,7 @@
                                 </label>
                             </td>
                             <td><i class="editable" th:if="${viewOnly == null}"/>
-                                <input th:id="${#ids.seq('profile.phone')}"
+                                <input size="50" th:id="${#ids.seq('profile.phone')}"
                                        th:field="*{phone}"
                                        class="data-edit" type="text"
                                        disabled="disabled"/>
@@ -212,7 +214,7 @@
                         </h3>
                     </div>
                     <div class="p-2" style="height: 120px;">
-                        <textarea th:id="${#ids.seq('profile.description')}"
+                        <textarea placeholder="Briefly describe your research in this area. Please avoid technical jargon and uncommon acronyms." th:id="${#ids.seq('profile.description')}"
                                   th:field="*{description}"
                                   class="data-edit"
                                   disabled="disabled"></textarea>
@@ -226,7 +228,7 @@
             <div class="col">
                 <div class="card organs">
                     <div class="card-header d-flex align-items-center">
-                        <h3 class="mb-0 d-inline-block">Organ Systems</h3>
+                        <h3 class="mb-0 d-inline-block">Organ Systems of Study</h3>
                     </div>
                     <div class="card-body">
                         <p>
@@ -239,7 +241,7 @@
                 </div>
             </div>
         </div>
-
+<!--
         <div class="row mb-3">
             <div class="w-100"
                  th:if="${@applicationSettings.privacy.isCustomizableLevel()} or ${@applicationSettings.privacy.isCustomizableSharing()} or ${@applicationSettings.privacy.isAllowHideGenelist()}"></div>
@@ -250,14 +252,11 @@
                         <h3 id="data-privacy-settings" class="mb-0 d-inline-block">Data Privacy Settings</h3>
                     </div>
                     <div class="list-group list-group-flush">
-                        <!-- TODO: also check if more than one option is available to display this section -->
                         <div id="privacy-levels" class="list-group-item"
                              th:if="${@applicationSettings.privacy.isCustomizableLevel()}">
                             <h4 class="card-title">Privacy Level</h4>
 
-                            <!--
                             <p>These settings determine how other users from <strong>this registry</strong> can see your data.</p>
-                            -->
 
                             <form id="privacy-level">
                                 <div class="form-group">
@@ -292,9 +291,7 @@
                         <div id="privacy-sharing" class="list-group-item"
                              th:if="${@applicationSettings.privacy.isCustomizableSharing()}">
                             <h4 class="card-title">Partner Registry</h4>
-                            <!--
                             <p>These settings determine whether users from <strong>other registries</strong> can see your data.</p>
-                                -->
                             <div class="form-group">
                                 <div class="form-check form-check-inline">
                                     <input th:id="${#ids.seq('profile.shared')}"
@@ -335,7 +332,7 @@
                 </div>
             </div>
         </div>
-
+-->
         <div class="card publication-info">
             <div class="card-header">
                 <h3 class="mb-0">Publications</h3>
@@ -366,15 +363,31 @@
                 </div>
                 <div class="input-group" th:if="${viewOnly == null}">
                     <div class="input-group-prepend" style="background: lightgrey;">
-                        <button class="btn btn-outline-secondary add-row text-success" type="button">+</button>
+                        <button style="background-color:teal"  class="btn btn-outline-secondary add-row text-success" type="button">+</button>
                     </div>
                     <input type="text"
                            class="pub-input form-control"
                            placeholder="PubMed Ids: 25363768, 25418537"/>
                 </div>
+                
             </div>
         </div>
+
     </div>
+
+        <div class="row mb-3">
+            <div class="col-8">
+                <div><b style="color:red">Navigate to the ‘Model Organisms’ tab at the top of the screen to add the specific genes your lab works on</b></div>
+            </div>
+            <div class="col-4 my-auto text-right" th:if="${viewOnly == null}">
+                <button style="background-color:teal"  type="button" class="btn btn-primary btn-lg save-profile">
+                    <i class="mx-2 d-none spinner"></i>
+                    Save
+                </button>
+            </div>
+        </div>
+
+
 </div>
 
 <div th:replace="layouts/common::footer">...</div>

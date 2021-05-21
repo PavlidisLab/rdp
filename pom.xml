@@ -101,7 +101,6 @@
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
-            <version>3.2.1</version>
         </dependency>
 
         <!-- Development Time Resources -->
@@ -162,14 +161,13 @@
         <dependency>
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>
-            <version>20200518</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
 
     <properties>
         <java.version>1.8</java.version>
-        <tomcat.version>8.5.41</tomcat.version>
+        <tomcat.version>8.5.60</tomcat.version>
     </properties>
 
     <build>
@@ -181,7 +179,7 @@
             <plugin>
                 <groupId>com.amashchenko.maven.plugin</groupId>
                 <artifactId>gitflow-maven-plugin</artifactId>
-                <version>1.9.0</version>
+                <version>1.15.1</version>
                 <configuration>
                     <!-- Do not push to remote -->
                     <pushRemote>false</pushRemote>
@@ -202,7 +200,7 @@
             <plugin>
                 <groupId>org.flywaydb</groupId>
                 <artifactId>flyway-maven-plugin</artifactId>
-                <version>3.2.1</version>
+                <version>${flyway.version}</version>
             </plugin>
         </plugins>
     </build>

@@ -15,8 +15,7 @@ import ubc.pavlab.rdp.util.GeneOrthologsParser;
 import ubc.pavlab.rdp.util.SearchResult;
 
 import java.io.IOException;
-import java.text.MessageFormat;
-import java.text.ParseException;
+import java.text.*;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
@@ -103,7 +102,12 @@ public class GeneInfoServiceImpl implements GeneInfoService {
                 } else {
                     log.info( MessageFormat.format( "Loading genes for {0} from {1}.",
                             taxon, taxon.getGeneUrl() ) );
+if(taxon.getId()==8364){
                     data = geneInfoParser.parse( taxon, taxon.getGeneUrl() );
+}
+else{
+data=new HashSet<>();
+}
                 }
                 log.info( MessageFormat.format( "Done parsing genes for {0}.", taxon ) );
                 geneInfoRepository.save( data );
@@ -118,6 +122,9 @@ public class GeneInfoServiceImpl implements GeneInfoService {
     @Override
     public void updateGeneOrthologs() {
         log.info( MessageFormat.format( "Updating gene orthologs from {0}...", applicationSettings.getCache().getOrthologFile() ) );
+
+        DecimalFormat geneIdFormat = new DecimalFormat();
+        geneIdFormat.setGroupingUsed( false );
 
         Set<Integer> supportedTaxons = taxonService.loadAll()
                 .stream()
@@ -140,7 +147,8 @@ public class GeneInfoServiceImpl implements GeneInfoService {
         for ( Integer geneId : recordByGeneId.keySet() ) {
             GeneInfo gene = geneInfoRepository.findByGeneIdWithOrthologs( geneId );
             if ( gene == null ) {
-                log.info( MessageFormat.format( "Ignoring orthologs for {0} since it's missing from the database.", geneId ) );
+                log.info( MessageFormat.format( "Ignoring orthologs for {0} since it's missing from the database.",
+                        geneIdFormat.format( geneId ) ) );
                 continue;
             }
             gene.getOrthologs().clear();
@@ -148,7 +156,7 @@ public class GeneInfoServiceImpl implements GeneInfoService {
                 GeneInfo ortholog = geneInfoRepository.findByGeneId( record.getOrthologId() );
                 if ( ortholog == null ) {
                     log.info( MessageFormat.format( "Cannot add ortholog relationship between {0} and {1} since the latter is missing from the database.",
-                            geneId, record.getOrthologId() ) );
+                            geneIdFormat.format( geneId ), geneIdFormat.format( record.getOrthologId() ) ) );
                     continue;
                 }
                 gene.getOrthologs().add( ortholog );
@@ -170,4 +178,4 @@ public class GeneInfoServiceImpl implements GeneInfoService {
 
         return false;
     }
-}
+} 
