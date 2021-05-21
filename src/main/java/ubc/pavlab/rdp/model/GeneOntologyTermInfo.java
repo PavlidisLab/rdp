@@ -5,10 +5,13 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import ubc.pavlab.rdp.model.enums.RelationshipType;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -26,7 +29,10 @@ public class GeneOntologyTermInfo extends GeneOntologyTerm {
     private Collection<Relationship> children = new HashSet<>();
 
     @JsonIgnore
-    private Set<GeneInfo> directGenes = new HashSet<>();
+    private Set<Integer> directGenes = new HashSet<>();
+
+    @JsonIgnore
+    private MultiValueMap<Integer, Integer> directGenesByTaxon = new LinkedMultiValueMap<>();
 
     @JsonIgnore
     public Collection<GeneOntologyTermInfo> getParents( boolean includePartOf ) {

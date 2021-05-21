@@ -6,6 +6,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import ubc.pavlab.rdp.model.Gene;
 import ubc.pavlab.rdp.model.GeneOntologyTermInfo;
+import ubc.pavlab.rdp.model.Taxon;
 
 import java.util.*;
 
@@ -32,8 +33,8 @@ public class GeneOntologyTermInfoRepository implements CrudRepository<GeneOntolo
 
     public <S extends GeneOntologyTermInfo> S saveAlias( String alias, S term ) {
         terms.put( alias, term );
-        for ( Gene gene : term.getDirectGenes() ) {
-            geneIdsToTerms.add( gene.getGeneId(), term );
+        for ( Integer geneId : term.getDirectGenes() ) {
+            geneIdsToTerms.add( geneId, term );
         }
         return term;
     }

@@ -124,7 +124,7 @@ public final class TestUtils {
 
     public static GeneOntologyTermInfo createTermWithGenes( String goId, GeneInfo... genes ) {
         GeneOntologyTermInfo term = createTerm( goId );
-        term.setDirectGenes( new HashSet<>( Arrays.asList( genes ) ) );
+        term.setDirectGenes( Arrays.asList( genes ).stream().map( GeneInfo::getGeneId ).collect( Collectors.toSet() ) );
         return term;
     }
 

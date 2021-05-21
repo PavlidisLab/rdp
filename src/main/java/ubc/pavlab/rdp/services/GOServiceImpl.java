@@ -46,6 +46,9 @@ public class GOServiceImpl implements GOService {
     @Autowired
     private Gene2GoParser gene2GoParser;
 
+    @Autowired
+    private GeneInfoService geneInfoService;
+
     private static Relationship convertRelationship( OBOParser.Relationship parsedRelationship ) {
         return new Relationship( convertTermIgnoringRelationship( parsedRelationship.getNode() ),
                 RelationshipType.valueOf( parsedRelationship.getRelationshipType().toString() ) );
@@ -111,12 +114,10 @@ public class GOServiceImpl implements GOService {
                 }
 
                 for ( Gene2GoParser.Record record : entry.getValue() ) {
-                    GeneInfo gene = new GeneInfo();
                     Taxon taxon = new Taxon();
                     taxon.setId( record.getTaxonId() );
-                    gene.setGeneId( record.getGeneId() );
-                    gene.setTaxon( taxon );
-                    term.getDirectGenes().add( gene );
+                    term.getDirectGenes().add( record.getGeneId() );
+                    term.getDirectGenesByTaxon().add( record.getTaxonId(), record.getGeneId() );
                 }
             }
 
@@ -190,7 +191,7 @@ public class GOServiceImpl implements GOService {
 
     @Override
     public long getSizeInTaxon( GeneOntologyTermInfo t, Taxon taxon ) {
-        return t.getDirectGenes().stream().filter( g -> g.getTaxon().equals( taxon ) ).count();
+        return t.getDirectGenesByTaxon().getOrDefault( taxon.getId(), Collections.emptyList() ).size();
     }
 
     @Override
@@ -264,7 +265,7 @@ public class GOServiceImpl implements GOService {
     @Override
     @Deprecated
     public Collection<GeneInfo> getDirectGenes( GeneOntologyTermInfo term ) {
-        return term.getDirectGenes();
+        return geneInfoService.load( term.getDirectGenes() );
     }
 
     @Override
@@ -284,8 +285,11 @@ public class GOServiceImpl implements GOService {
 
         descendants.add( t );
 
-        return descendants.stream()
+        Set<Integer> geneIds = descendants.stream()
                 .flatMap( term -> term.getDirectGenes().stream() )
+                .collect( Collectors.toSet() );
+
+        return geneInfoService.load( geneIds ).stream()
                 .filter( gene -> gene.getTaxon().equals( taxon ) )
                 .collect( Collectors.toSet() );
     }
@@ -297,9 +301,9 @@ public class GOServiceImpl implements GOService {
 
         descendants.add( t );
 
-        return descendants.stream()
+        return geneInfoService.load( descendants.stream()
                 .flatMap( term -> term.getDirectGenes().stream() )
-                .collect( Collectors.toSet() );
+                .collect( Collectors.toSet() ) );
     }
 
     @Override
