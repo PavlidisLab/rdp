@@ -109,7 +109,7 @@ public class GeneInfoServiceImpl implements GeneInfoService {
                 log.info( MessageFormat.format( "Done parsing genes for {0}.", taxon ) );
                 // retrieve all relevant genes in a single database query
                 Map<Integer, GeneInfo> foundGenesByGeneId = geneInfoRepository
-                        .findAllByGeneIdIn( data.stream().filter( record -> record.getTaxonId().equals( taxon.getId() ) ).map( GeneInfoParser.Record::getGeneId ).collect( Collectors.toList() ) )
+                        .findAllByGeneIdIn( data.stream().map( GeneInfoParser.Record::getGeneId ).collect( Collectors.toList() ) )
                         .stream()
                         .collect( Collectors.toMap( GeneInfo::getGeneId, identity() ) );
                 log.info( MessageFormat.format( "Done retrieving existing genes for {0}, will now proceed to update.", taxon ) );
