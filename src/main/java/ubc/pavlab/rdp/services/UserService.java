@@ -102,5 +102,5 @@ public interface UserService {
 
     long computeTermOverlaps( UserTerm userTerm, Collection<GeneInfo> genes );
 
-    long computeTermFrequency( User user, GeneOntologyTerm term );
+    long computeTermFrequencyInTaxon( User user, GeneOntologyTerm term, Taxon taxon );
 }

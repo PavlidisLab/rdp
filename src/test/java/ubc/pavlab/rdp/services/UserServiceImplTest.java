@@ -443,7 +443,7 @@ public class UserServiceImplTest {
         Collection<UserTerm> userTerms = userService.convertTerms( user, taxon, Collections.singleton( createTerm( "GO:0000001" ) ) );
 
         assertThat( userTerms ).hasSize( 1 );
-        assertThat( userService.computeTermFrequency( user, userTerms.iterator().next() ) ).isZero();
+        assertThat( userService.computeTermFrequencyInTaxon( user, userTerms.iterator().next(), taxon ) ).isZero();
     }
 
     @Test
@@ -485,7 +485,7 @@ public class UserServiceImplTest {
         Collection<UserTerm> ut = userService.convertTerms( user, taxon, Sets.newSet( createTerm( "GO:0000001" ) ) );
 
         assertThat( ut ).isNotEmpty();
-        ut.forEach( uts -> assertThat( userService.computeTermFrequency( user, uts ) ).isZero() );
+        ut.forEach( uts -> assertThat( userService.computeTermFrequencyInTaxon( user, uts, taxon ) ).isZero() );
     }
 
     @Test
@@ -505,7 +505,7 @@ public class UserServiceImplTest {
         Collection<UserTerm> ut = userService.convertTerms( user, taxon, Sets.newSet( term ) );
 
         assertThat( ut ).isNotEmpty().first();
-        assertThat( userService.computeTermFrequency( user, ut.iterator().next() ) ).isEqualTo( 1 );
+        assertThat( userService.computeTermFrequencyInTaxon( user, ut.iterator().next(), taxon ) ).isEqualTo( 1 );
     }
 
 
@@ -986,7 +986,7 @@ public class UserServiceImplTest {
 
         assertThat( user.getUserTerms() ).hasSize( 1 );
         assertThat( user.getUserTerms().iterator().next() ).isEqualTo( termWillUpdateFrequency );
-        assertThat( userService.computeTermFrequency( user, user.getUserTerms().iterator().next() ) ).isEqualTo( 1 );
+        assertThat( userService.computeTermFrequencyInTaxon( user, user.getUserTerms().iterator().next(), taxon ) ).isEqualTo( 1 );
     }
 
     @Test

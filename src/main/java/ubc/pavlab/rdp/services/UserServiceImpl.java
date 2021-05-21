@@ -372,7 +372,7 @@ public class UserServiceImpl implements UserService {
     @PostAuthorize("hasPermission(returnObject, 'read')")
     public UserTerm convertTerm( User user, Taxon taxon, GeneOntologyTermInfo term ) {
         UserTerm ut = UserTerm.createUserTerm( user, term, taxon );
-        ut.setFrequency( computeTermFrequency( user, term ) );
+        ut.setFrequency( computeTermFrequencyInTaxon( user, term, taxon ) );
         ut.setSize( goService.getSizeInTaxon( term, taxon ) );
         return ut;
     }
@@ -481,11 +481,20 @@ public class UserServiceImpl implements UserService {
                 .count();
     }
 
+    /**
+     * Compute the number of TIER1/TIER2 user genes that are associated to a given ontology term.
+     *
+     * @param user
+     * @param term
+     * @param taxon
+     * @return
+     */
     @Override
-    public long computeTermFrequency( User user, GeneOntologyTerm term ) {
-        return user.getUserGenes().values().stream()
-                .flatMap( g -> goService.getTermsForGene( g, true, true ).stream() )
-                .filter( t -> t.getGoId().equals( term.getGoId() ) )
+    public long computeTermFrequencyInTaxon( User user, GeneOntologyTerm term, Taxon taxon ) {
+        Set<Integer> geneIds = goService.getGenes( goService.getTerm( term.getGoId() ) ).stream().map( Gene::getGeneId ).collect( Collectors.toSet() );
+        return user.getGenesByTaxonAndTier( taxon, TierType.MANUAL ).stream()
+                .map( UserGene::getGeneId )
+                .filter( geneIds::contains )
                 .count();
     }
 
