@@ -11,7 +11,7 @@ alter table ortholog drop primary key;
 alter table ortholog add primary key (source_gene, target_gene);
 alter table ortholog drop column target_taxon;
 
-create table user_researcher_category (user_id integer not null auto_increment, researcher_category varchar(255));
+create table user_researcher_category (user_id integer not null auto_increment, researcher_category varchar(255), primary key (user_id));
 alter table user_researcher_category add constraint fk_researcher_category_user_id foreign key (user_id) references user (user_id);
 
 -- add service account role
