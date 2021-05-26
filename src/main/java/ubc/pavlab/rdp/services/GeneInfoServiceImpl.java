@@ -4,6 +4,7 @@ import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ubc.pavlab.rdp.model.GeneInfo;
@@ -98,16 +99,14 @@ public class GeneInfoServiceImpl implements GeneInfoService {
         log.info( "Updating genes..." );
         for ( Taxon taxon : taxonService.findByActiveTrue() ) {
             try {
-                List<GeneInfoParser.Record> data;
+                Resource resource;
                 if ( cacheSettings.isLoadFromDisk() ) {
-                    Resource resource = cacheSettings.getGeneFilesLocation().createRelative( FilenameUtils.getName( taxon.getGeneUrl().getPath() ) );
-                    log.info( MessageFormat.format( "Loading genes for {0} from {1}.", taxon, resource ) );
-                    data = geneInfoParser.parse( new GZIPInputStream( resource.getInputStream() ) );
+                    resource = cacheSettings.getGeneFilesLocation().createRelative( FilenameUtils.getName( taxon.getGeneUrl().getPath() ) );
                 } else {
-                    log.info( MessageFormat.format( "Loading genes for {0} from {1}.",
-                            taxon, taxon.getGeneUrl() ) );
-                    data = geneInfoParser.parse( taxon.getGeneUrl() );
+                    resource = new UrlResource( taxon.getGeneUrl() );
                 }
+                log.info( MessageFormat.format( "Loading genes for {0} from {1}.", taxon, resource ) );
+                List<GeneInfoParser.Record> data = geneInfoParser.parse( new GZIPInputStream( resource.getInputStream() ) );
                 log.info( MessageFormat.format( "Done parsing genes for {0}.", taxon ) );
                 // retrieve all relevant genes in a single database query
                 // note that because of this, we have to make this whole process @Transactional
@@ -147,7 +146,8 @@ public class GeneInfoServiceImpl implements GeneInfoService {
         DecimalFormat geneIdFormat = new DecimalFormat();
         geneIdFormat.setGroupingUsed( false );
 
-        Set<Integer> supportedTaxons = taxonService.loadAll()
+        // only orthologs update active taxon
+        Set<Integer> activeTaxonIds = taxonService.findByActiveTrue()
                 .stream()
                 .map( Taxon::getId )
                 .collect( Collectors.toSet() );
@@ -162,7 +162,7 @@ public class GeneInfoServiceImpl implements GeneInfoService {
 
         Map<Integer, List<GeneOrthologsParser.Record>> recordByGeneId = records.stream()
                 .filter( record -> record.getRelationship().equals( "Ortholog" ) )
-                .filter( record -> supportedTaxons.contains( record.getTaxonId() ) && supportedTaxons.contains( record.getOrthologTaxonId() ) )
+                .filter( record -> activeTaxonIds.contains( record.getTaxonId() ) && activeTaxonIds.contains( record.getOrthologTaxonId() ) )
                 .collect( groupingBy( GeneOrthologsParser.Record::getGeneId ) );
 
         for ( Integer geneId : recordByGeneId.keySet() ) {

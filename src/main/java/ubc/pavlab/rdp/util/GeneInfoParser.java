@@ -4,13 +4,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.net.ftp.FTP;
-import org.apache.commons.net.ftp.FTPClient;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.*;
-import java.net.URL;
 import java.text.DateFormat;
 import java.text.MessageFormat;
 import java.text.ParseException;
@@ -19,7 +15,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import java.util.zip.GZIPInputStream;
 
 import static org.apache.commons.lang3.ArrayUtils.indexOf;
 
@@ -35,27 +30,6 @@ public class GeneInfoParser {
     private static final String[] EXPECTED_HEADER_FIELDS = { "#tax_id", "GeneID", "Symbol", "Synonyms", "description", "Modification_date" };
 
     private static DateFormat NCBI_DATE_FORMAT = new SimpleDateFormat( "yyyyMMdd" );
-
-    @Autowired
-    FTPClient ftp;
-
-    public List<Record> parse( URL url ) throws ParseException, IOException {
-        try {
-            ftp.connect( url.getHost() );
-            ftp.login( "anonymous", "" );
-            ftp.setFileType( FTP.BINARY_FILE_TYPE );
-            ftp.enterLocalPassiveMode();
-            return parse( new GZIPInputStream( ftp.retrieveFileStream( url.getPath() ) ) );
-        } finally {
-            if ( ftp.isConnected() ) {
-                ftp.disconnect();
-            }
-        }
-    }
-
-    public List<Record> parse( File file ) throws ParseException, IOException {
-        return parse( new GZIPInputStream( new FileInputStream( file ) ) );
-    }
 
     public List<Record> parse( InputStream input ) throws ParseException, IOException {
         try ( BufferedReader br = new BufferedReader( new InputStreamReader( input ) ) ) {
@@ -73,17 +47,21 @@ public class GeneInfoParser {
                 }
             }
 
-            return br.lines()
-                    .map( line -> {
-                        try {
-                            return Record.parseLine( line, header );
-                        } catch ( ParseException e ) {
-                            log.warn( "Failed to parse line: " + line, e );
-                            return null;
-                        }
-                    } )
-                    .filter( Objects::nonNull )
-                    .collect( Collectors.toList() );
+            try {
+                return br.lines()
+                        .map( line -> {
+                            try {
+                                return Record.parseLine( line, header );
+                            } catch ( ParseException e ) {
+                                log.warn( "Failed to parse line: " + line, e );
+                                return null;
+                            }
+                        } )
+                        .filter( Objects::nonNull )
+                        .collect( Collectors.toList() );
+            } catch ( UncheckedIOException ioe ) {
+                throw ioe.getCause();
+            }
         }
     }
 
