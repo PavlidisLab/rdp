@@ -333,4 +333,20 @@ public class GeneInfoServiceImplTest {
                 .hasFieldOrPropertyWithValue( "taxon", humanTaxon );
     }
 
+    @Test
+    public void updateGenes_whenGeneInfoContainsMultipleTaxon_thenIgnoreUnrelatedTaxon() throws ParseException, IOException {
+        Taxon fissionYeastTaxon = createTaxon( 4896, "fission yeast", "Schizosaccharomyces pombe", new URL( "https://ftp.ncbi.nih.gov/gene/DATA/GENE_INFO/Fungi/All_Fungi.gene_info.gz" ) );
+        when( taxonService.findByActiveTrue() ).thenReturn( Sets.newSet( fissionYeastTaxon ) );
+        GeneInfoParser.Record updatedGeneRecord = new GeneInfoParser.Record( 4896, 4, "FOO", "", "BAR", Date.from( Instant.now() ) );
+        GeneInfoParser.Record unrelatedGeneRecord = new GeneInfoParser.Record( 12, 4, "FOO", "", "BAR", Date.from( Instant.now() ) );
+        when( geneInfoParser.parse( any() ) ).thenReturn( Lists.newArrayList( updatedGeneRecord, unrelatedGeneRecord ) );
+        geneService.updateGenes();
+        verify( taxonService ).findByActiveTrue();
+        assertThat( geneInfoRepository.findByGeneId( 4 ) )
+                .isNotNull()
+                .hasFieldOrPropertyWithValue( "symbol", "FOO" )
+                .hasFieldOrPropertyWithValue( "name", "BAR" )
+                .hasFieldOrPropertyWithValue( "taxon", fissionYeastTaxon );
+    }
+
 }

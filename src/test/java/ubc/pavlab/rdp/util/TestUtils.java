@@ -106,12 +106,16 @@ public final class TestUtils {
 
     @SneakyThrows
     public static Taxon createTaxon( int taxonId ) {
+        return createTaxon( taxonId, TAXON_COMMON_NAME, TAXON_SCIENTIFIC_NAME, new URL( "ftp://ftp.ncbi.nlm.nih.gov/gene/DATA/GENE_INFO/Invertebrates/Caenorhabditis_elegans.gene_info.gz" ) );
+    }
+
+    public static Taxon createTaxon( int id, String commonName, String scientificName, URL geneUrl ) {
         Taxon taxon = new Taxon();
-        taxon.setId( taxonId );
+        taxon.setId( id );
         taxon.setActive( true );
-        taxon.setCommonName( TAXON_COMMON_NAME );
-        taxon.setScientificName( TAXON_SCIENTIFIC_NAME );
-        taxon.setGeneUrl( new URL( "ftp://ftp.ncbi.nlm.nih.gov/gene/DATA/GENE_INFO/Invertebrates/Caenorhabditis_elegans.gene_info.gz" ) );
+        taxon.setCommonName( commonName );
+        taxon.setScientificName( scientificName );
+        taxon.setGeneUrl( geneUrl );
         return taxon;
     }
 

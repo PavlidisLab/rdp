@@ -120,6 +120,8 @@ public class GeneInfoServiceImpl implements GeneInfoService {
                     log.warn( MessageFormat.format( "No information were found for {0} genes in {1}.", numberOfGenesInTaxon - foundGenesByGeneId.size(), taxon ) );
                 }
                 Set<GeneInfo> geneData = data.stream()
+                        // some gene info file contain data from multiple species
+                        .filter( record -> record.getTaxonId().equals( taxon.getId() ) )
                         .map( record -> {
                             GeneInfo gene = foundGenesByGeneId.getOrDefault( record.getGeneId(), new GeneInfo() );
                             gene.setTaxon( taxon );
