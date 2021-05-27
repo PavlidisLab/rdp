@@ -7,9 +7,12 @@ alter table user add column contact_email_verified bit not null;
 alter table user drop column origin;
 alter table user drop column origin_url;
 alter table gene add column user_privacy_level integer default NULL;
-alter table ortholog drop primary key;
-alter table ortholog add primary key (source_gene, target_gene);
-alter table ortholog drop column target_taxon;
+
+-- we cannot unfortunately just drop the target_taxon column because it was previously part of the primary key
+rename table ortholog to ortholog_tmp;
+create table ortholog (source_gene integer not null, target_gene integer not null, primary key (source_gene, target_gene));
+insert into ortholog (select source_gene, target_gene from ortholog_tmp group by source_gene, target_gene);
+drop table ortholog_tmp;
 
 create table user_researcher_category (user_id integer not null auto_increment, researcher_category varchar(255), primary key (user_id));
 alter table user_researcher_category add constraint fk_researcher_category_user_id foreign key (user_id) references user (user_id);
@@ -29,10 +32,10 @@ update password_reset_token set expiry_date = CURRENT_TIMESTAMP() where expiry_d
 update verification_token set expiry_date = CURRENT_TIMESTAMP() where expiry_date is null;
 
 -- enforce non-nullable tokens remove null tokens
-alter table verification_token modify column token varchar(255) not null;
 delete from verification_token where token is null;
-alter table password_reset_token modify column token varchar(255) not null;
+alter table verification_token modify column token varchar(255) not null;
 delete from password_reset_token where token is null;
+alter table password_reset_token modify column token varchar(255) not null;
 
 -- make token uniques and indexed
 alter table verification_token add constraint uk_verification_token_token unique (token);
