@@ -1,5 +1,6 @@
 package ubc.pavlab.rdp.services;
 
+import org.assertj.core.util.Lists;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -21,12 +22,12 @@ import ubc.pavlab.rdp.repositories.TaxonRepository;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.util.GeneInfoParser;
 import ubc.pavlab.rdp.util.GeneOrthologsParser;
+import ubc.pavlab.rdp.util.ParseException;
 import ubc.pavlab.rdp.util.SearchResult;
 
 import java.io.IOException;
 import java.net.URL;
 import java.sql.Date;
-import java.text.ParseException;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
@@ -36,6 +37,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static ubc.pavlab.rdp.util.TestUtils.createGene;
@@ -319,7 +321,7 @@ public class GeneInfoServiceImplTest {
     @Test
     public void updateGenes_whenTaxonIsChanged_thenUpdateGene() throws ParseException, IOException {
         Taxon humanTaxon = taxonRepository.findOne( 9606 );
-        Taxon otherTaxon = entityManager.persist( TestUtils.createTaxon( 4 ) );
+        Taxon otherTaxon = entityManager.persist( createTaxon( 4 ) );
         when( taxonService.findByActiveTrue() ).thenReturn( Sets.newSet( humanTaxon ) );
         GeneInfo gene = entityManager.persist( createGene( 4, otherTaxon ) );
         GeneInfoParser.Record updatedGeneRecord = new GeneInfoParser.Record( 9606, 4, "FOO", "", "BAR", Date.from( Instant.now() ) );

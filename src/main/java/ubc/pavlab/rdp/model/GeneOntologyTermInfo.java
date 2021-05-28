@@ -29,10 +29,10 @@ public class GeneOntologyTermInfo extends GeneOntologyTerm {
     private Collection<Relationship> children = new HashSet<>();
 
     @JsonIgnore
-    private Set<Integer> directGenes = new HashSet<>();
+    private Set<Integer> directGeneIds = new HashSet<>();
 
     @JsonIgnore
-    private MultiValueMap<Integer, Integer> directGenesByTaxon = new LinkedMultiValueMap<>();
+    private MultiValueMap<Integer, Integer> directGeneIdsByTaxonId = new LinkedMultiValueMap<>();
 
     @JsonIgnore
     public Collection<GeneOntologyTermInfo> getParents( boolean includePartOf ) {

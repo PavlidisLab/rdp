@@ -82,6 +82,9 @@ public class UserGeneRepositoryTest {
     @MockBean
     private EmailService emailService;
 
+    @MockBean
+    private GeneInfoService geneinfoService;
+
     private User user;
     private Taxon taxon;
 

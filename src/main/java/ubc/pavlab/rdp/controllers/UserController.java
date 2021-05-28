@@ -82,10 +82,16 @@ public class UserController {
         User user = userService.findCurrentUser();
         Taxon taxon = taxonService.findById( taxonId );
 
+        if ( taxon == null ) {
+            modelAndView.setViewName( "error/404" );
+            modelAndView.setStatus( HttpStatus.NOT_FOUND );
+            return modelAndView;
+        }
+
         GeneOntologyTermInfo term = goService.getTerm( goId );
 
         if ( term != null ) {
-            Set<Integer> geneIds = goService.getGenesInTaxon( term, taxon ).stream().map( Gene::getGeneId ).collect( Collectors.toSet() );
+            Collection<Integer> geneIds = goService.getGenesInTaxon( term, taxon );
             modelAndView.addObject( "genes",
                     user.getGenesByTaxonAndTier( taxon, TierType.MANUAL ).stream()
                             .filter( ug -> geneIds.contains( ug.getGeneId() ) )
@@ -304,7 +310,8 @@ public class UserController {
                 .collect( Collectors.toMap( identity(), g -> model.getGenePrivacyLevelMap().get( g.getGeneId() ) ) );
 
         Set<GeneOntologyTermInfo> terms = model.getGoIds().stream()
-                .map( s -> goService.getTerm( s ) )
+                .map( goService::getTerm )
+                .filter( Objects::nonNull )
                 .collect( Collectors.toSet() );
 
         userService.updateTermsAndGenesInTaxon( user, taxon, genes, privacyLevels, terms );

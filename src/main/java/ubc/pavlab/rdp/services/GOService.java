@@ -36,15 +36,15 @@ public interface GOService {
 
     Collection<GeneOntologyTermInfo> getChildren( GeneOntologyTermInfo entry, boolean includePartOf );
 
-    Collection<GeneInfo> getDirectGenes( GeneOntologyTermInfo term );
+    Collection<Integer> getDirectGenes( GeneOntologyTermInfo term );
 
-    Collection<GeneInfo> getGenes( GeneOntologyTermInfo t );
+    Collection<Integer> getGenes( GeneOntologyTermInfo t );
 
-    Collection<GeneInfo> getGenesInTaxon( String id, Taxon taxon );
+    Collection<Integer> getGenesInTaxon( String id, Taxon taxon );
 
-    Collection<GeneInfo> getGenesInTaxon( GeneOntologyTermInfo t, Taxon taxon );
+    Collection<Integer> getGenesInTaxon( GeneOntologyTermInfo t, Taxon taxon );
 
-    Collection<GeneInfo> getGenesInTaxon( Collection<GeneOntologyTermInfo> goTerms, Taxon taxon );
+    Collection<Integer> getGenesInTaxon( Collection<GeneOntologyTermInfo> goTerms, Taxon taxon );
 
     GeneOntologyTermInfo getTerm( String goId );
 

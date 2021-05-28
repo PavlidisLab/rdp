@@ -11,7 +11,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.IOException;
 import java.net.URL;
-import java.text.ParseException;
 import java.util.List;
 import java.util.zip.GZIPInputStream;
 

@@ -9,7 +9,6 @@ import org.springframework.stereotype.Component;
 import java.io.*;
 import java.text.DateFormat;
 import java.text.MessageFormat;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -85,18 +84,23 @@ public class GeneInfoParser {
             try {
                 taxonId = Integer.parseInt( values[indexOf( header, "#tax_id" )] );
             } catch ( NumberFormatException e ) {
-                throw new ParseException( "Could not parse taxon id.", 0 );
+                throw new ParseException( "Could not parse taxon id." );
             }
             Integer geneId;
             try {
                 geneId = Integer.parseInt( values[indexOf( header, "GeneID" )] );
             } catch ( NumberFormatException e ) {
-                throw new ParseException( "Could not parse gene id.", 0 );
+                throw new ParseException( "Could not parse gene id." );
             }
             String symbol = values[indexOf( header, "Symbol" )];
             String synonyms = values[indexOf( header, "Synonyms" )];
             String description = values[indexOf( header, "description" )];
-            Date modificationDate = NCBI_DATE_FORMAT.parse( values[indexOf( header, "Modification_date" )] );
+            Date modificationDate = null;
+            try {
+                modificationDate = NCBI_DATE_FORMAT.parse( values[indexOf( header, "Modification_date" )] );
+            } catch ( java.text.ParseException e ) {
+                throw new ParseException( e.getMessage(), e );
+            }
             return new Record( taxonId, geneId, symbol, synonyms, description, modificationDate );
         }
     }

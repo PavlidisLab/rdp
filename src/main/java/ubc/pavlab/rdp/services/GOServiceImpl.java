@@ -12,11 +12,11 @@ import ubc.pavlab.rdp.repositories.GeneOntologyTermInfoRepository;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.util.Gene2GoParser;
 import ubc.pavlab.rdp.util.OBOParser;
+import ubc.pavlab.rdp.util.ParseException;
 import ubc.pavlab.rdp.util.SearchResult;
 
 import java.io.IOException;
 import java.text.MessageFormat;
-import java.text.ParseException;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -45,9 +45,6 @@ public class GOServiceImpl implements GOService {
 
     @Autowired
     private Gene2GoParser gene2GoParser;
-
-    @Autowired
-    private GeneInfoService geneInfoService;
 
     private static Relationship convertRelationship( OBOParser.Relationship parsedRelationship ) {
         return new Relationship( convertTermIgnoringRelationship( parsedRelationship.getNode() ),
@@ -87,18 +84,17 @@ public class GOServiceImpl implements GOService {
     public void updateGoTerms() {
         ApplicationSettings.CacheSettings cacheSettings = applicationSettings.getCache();
 
-        log.info( MessageFormat.format( "Loading GO Terms from: {0}.", cacheSettings.getTermFile() ) );
+        log.info( MessageFormat.format( "Loading GO terms from: {0}.", cacheSettings.getTermFile() ) );
 
         Map<String, GeneOntologyTermInfo> terms;
         try {
             terms = convertTerms( oboParser.parseStream( cacheSettings.getTermFile().getInputStream() ) );
-        } catch ( IOException e ) {
+        } catch ( IOException | ubc.pavlab.rdp.util.ParseException e ) {
+            log.error( "Failed to parse GO terms.", e );
             return;
         }
 
-        log.info( MessageFormat.format( "Gene Ontology loaded, total of {0} items.", count() ) );
-
-        log.info( MessageFormat.format( "Loading annotations from: {0}.", cacheSettings.getAnnotationFile() ) );
+        log.info( MessageFormat.format( "Loading gene2go annotations from: {0}.", cacheSettings.getAnnotationFile() ) );
 
         try {
             Collection<Gene2GoParser.Record> records = gene2GoParser.populateAnnotations( new GZIPInputStream( cacheSettings.getAnnotationFile().getInputStream() ) );
@@ -116,14 +112,10 @@ public class GOServiceImpl implements GOService {
                 for ( Gene2GoParser.Record record : entry.getValue() ) {
                     Taxon taxon = new Taxon();
                     taxon.setId( record.getTaxonId() );
-                    term.getDirectGenes().add( record.getGeneId() );
-                    term.getDirectGenesByTaxon().add( record.getTaxonId(), record.getGeneId() );
+                    term.getDirectGeneIds().add( record.getGeneId() );
+                    term.getDirectGeneIdsByTaxonId().add( record.getTaxonId(), record.getGeneId() );
                 }
             }
-
-            saveAlias( terms );
-
-            log.info( "Finished loading annotations." );
         } catch ( IOException e ) {
             log.error( "Failed to retrieve gene2go annotations.", e );
             return;
@@ -132,7 +124,9 @@ public class GOServiceImpl implements GOService {
             return;
         }
 
-        log.info( "Done loading GO terms." );
+        saveAlias( terms );
+
+        log.info( MessageFormat.format( "Done updating GO terms, total of {0} items.", count() ) );
     }
 
     @Override
@@ -191,7 +185,7 @@ public class GOServiceImpl implements GOService {
 
     @Override
     public long getSizeInTaxon( GeneOntologyTermInfo t, Taxon taxon ) {
-        return t.getDirectGenesByTaxon().getOrDefault( taxon.getId(), Collections.emptyList() ).size();
+        return t.getDirectGeneIdsByTaxonId().getOrDefault( taxon.getId(), Collections.emptyList() ).size();
     }
 
     @Override
@@ -201,9 +195,6 @@ public class GOServiceImpl implements GOService {
 
     @Override
     public Collection<GeneOntologyTermInfo> getChildren( GeneOntologyTermInfo entry, boolean includePartOf ) {
-        if ( entry == null ) {
-            return null;
-        }
         return entry.getChildren().stream()
                 .filter( r -> includePartOf || r.getType().equals( RelationshipType.IS_A ) )
                 .map( Relationship::getTerm )
@@ -248,10 +239,6 @@ public class GOServiceImpl implements GOService {
     @Override
     @Cacheable
     public Collection<GeneOntologyTermInfo> getDescendants( GeneOntologyTermInfo entry, boolean includePartOf ) {
-        if ( entry == null ) {
-            return null;
-        }
-
         Collection<GeneOntologyTermInfo> descendants = new HashSet<>();
 
         for ( GeneOntologyTermInfo child : getChildren( entry, includePartOf ) ) {
@@ -262,53 +249,50 @@ public class GOServiceImpl implements GOService {
         return Collections.unmodifiableCollection( descendants );
     }
 
+    /**
+     * Obtain genes directly associated to this GO term.
+     *
+     * @param term
+     * @return
+     * @deprecated use {@link GeneOntologyTermInfo#getDirectGeneIds()} to obtain direct genes
+     */
     @Override
     @Deprecated
-    public Collection<GeneInfo> getDirectGenes( GeneOntologyTermInfo term ) {
-        return geneInfoService.load( term.getDirectGenes() );
+    public Collection<Integer> getDirectGenes( GeneOntologyTermInfo term ) {
+        return term.getDirectGeneIds();
     }
 
     @Override
-    public Collection<GeneInfo> getGenesInTaxon( String id, Taxon taxon ) {
-        if ( id == null || taxon == null ) return null;
-
-        GeneOntologyTerm term = goRepository.findOne( id );
+    public Collection<Integer> getGenesInTaxon( String id, Taxon taxon ) {
+        GeneOntologyTermInfo term = goRepository.findOne( id );
         if ( term == null ) return Collections.emptySet();
-
-        return getGenesInTaxon( goRepository.findOne( id ), taxon );
+        return getGenesInTaxon( term, taxon );
     }
 
     @Override
-    public Collection<GeneInfo> getGenesInTaxon( GeneOntologyTermInfo t, Taxon taxon ) {
-        if ( t == null || taxon == null ) return null;
+    public Collection<Integer> getGenesInTaxon( GeneOntologyTermInfo t, Taxon taxon ) {
         Collection<GeneOntologyTermInfo> descendants = new HashSet<>( getDescendants( t ) );
 
         descendants.add( t );
 
-        Set<Integer> geneIds = descendants.stream()
-                .flatMap( term -> term.getDirectGenes().stream() )
-                .collect( Collectors.toSet() );
-
-        return geneInfoService.load( geneIds ).stream()
-                .filter( gene -> gene.getTaxon().equals( taxon ) )
+        return descendants.stream()
+                .flatMap( term -> term.getDirectGeneIdsByTaxonId().getOrDefault( taxon.getId(), Collections.emptyList() ).stream() )
                 .collect( Collectors.toSet() );
     }
 
     @Override
-    public Collection<GeneInfo> getGenes( GeneOntologyTermInfo t ) {
-        if ( t == null ) return null;
+    public Collection<Integer> getGenes( GeneOntologyTermInfo t ) {
         Collection<GeneOntologyTermInfo> descendants = new HashSet<GeneOntologyTermInfo>( getDescendants( t ) );
 
         descendants.add( t );
 
-        return geneInfoService.load( descendants.stream()
-                .flatMap( term -> term.getDirectGenes().stream() )
-                .collect( Collectors.toSet() ) );
+        return descendants.stream()
+                .flatMap( term -> term.getDirectGeneIds().stream() )
+                .collect( Collectors.toSet() );
     }
 
     @Override
-    public Collection<GeneInfo> getGenesInTaxon( Collection<GeneOntologyTermInfo> goTerms, Taxon taxon ) {
-        if ( goTerms == null || taxon == null ) return null;
+    public Collection<Integer> getGenesInTaxon( Collection<GeneOntologyTermInfo> goTerms, Taxon taxon ) {
         return goTerms.stream().flatMap( t -> getGenesInTaxon( t, taxon ).stream() ).collect( Collectors.toSet() );
     }
 

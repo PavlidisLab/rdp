@@ -8,6 +8,7 @@ import ubc.pavlab.rdp.model.OrganInfo;
 import ubc.pavlab.rdp.repositories.OrganInfoRepository;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.util.OBOParser;
+import ubc.pavlab.rdp.util.ParseException;
 
 import java.io.IOException;
 import java.text.MessageFormat;
@@ -58,7 +59,7 @@ public class OrganInfoServiceImpl implements OrganInfoService {
                 organInfo.setDescription( term.getDefinition() );
                 organInfoRepository.save( organInfo );
             }
-        } catch ( IOException e ) {
+        } catch ( IOException | ParseException e ) {
             log.error( "Failed to load organ ontology.", e );
         }
 

@@ -14,12 +14,13 @@ import ubc.pavlab.rdp.repositories.GeneInfoRepository;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.util.GeneInfoParser;
 import ubc.pavlab.rdp.util.GeneOrthologsParser;
+import ubc.pavlab.rdp.util.ParseException;
 import ubc.pavlab.rdp.util.SearchResult;
 
 import java.io.IOException;
-import java.text.*;
+import java.text.DecimalFormat;
+import java.text.MessageFormat;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 
@@ -154,11 +155,13 @@ public class GeneInfoServiceImpl implements GeneInfoService {
                 .map( Taxon::getId )
                 .collect( Collectors.toSet() );
 
+        Resource resource = applicationSettings.getCache().getOrthologFile();
+
         List<GeneOrthologsParser.Record> records;
         try {
-            records = geneOrthologsParser.parse( applicationSettings.getCache().getOrthologFile().getInputStream() );
-        } catch ( IOException e ) {
-            log.error( e );
+            records = geneOrthologsParser.parse( new GZIPInputStream( resource.getInputStream() ) );
+        } catch ( IOException | ParseException e ) {
+            log.error( MessageFormat.format( "Failed to parse gene orthologs from {0}.", resource ), e );
             return;
         }
 

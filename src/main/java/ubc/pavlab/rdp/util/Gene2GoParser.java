@@ -7,7 +7,6 @@ import org.springframework.stereotype.Component;
 
 import java.io.*;
 import java.text.MessageFormat;
-import java.text.ParseException;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
@@ -51,7 +50,7 @@ public class Gene2GoParser {
                 throw ioe.getCause();
             }
         } catch ( IOException e ) {
-            throw new ParseException( e.getMessage(), 0 );
+            throw new ParseException( e.getMessage() );
         }
     }
 

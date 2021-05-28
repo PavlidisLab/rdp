@@ -4,10 +4,8 @@ import lombok.*;
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.stereotype.Component;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
+import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -49,10 +47,10 @@ public class OBOParser {
 
     }
 
-    public Map<String, Term> parseStream( InputStream input ) throws IOException {
+    public Map<String, Term> parseStream( InputStream input ) throws IOException, ParseException {
         Map<String, Term> termMap = new HashMap<>();
 
-        try ( BufferedReader br = new BufferedReader( new InputStreamReader( input ) ) ) {
+        try ( LineNumberReader br = new LineNumberReader( new InputStreamReader( input ) ) ) {
             Term currentNode = null;
             Term parentNode;
             String line;
@@ -73,6 +71,9 @@ public class OBOParser {
                     // Within a Term Stanza
                     String[] tagValuePair = line.split( ": ", 2 );
                     String[] values;
+                    if ( tagValuePair.length < 2 ) {
+                        throw new ParseException( MessageFormat.format( "Could not parse line: {0}.", line ), br.getLineNumber() );
+                    }
                     switch ( tagValuePair[0] ) {
                         case "id":
                             if ( !termMap.containsKey( tagValuePair[1] ) ) {
@@ -129,9 +130,12 @@ public class OBOParser {
                         default:
                             break;
                     }
-
                 }
+            }
 
+            // make sure that the last node is saved
+            if ( currentNode != null ) {
+                termMap.put( currentNode.getId(), currentNode );
             }
         }
 

@@ -62,7 +62,7 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private OrganInfoService organInfoService;
     @Autowired
-    UserGeneRepository userGeneRepository;
+    private UserGeneRepository userGeneRepository;
     @Autowired
     private ApplicationEventPublisher eventPublisher;
     @Autowired
@@ -71,6 +71,8 @@ public class UserServiceImpl implements UserService {
     private CacheManager cacheManager;
     @Autowired
     private MessageSource messageSource;
+    @Autowired
+    private GeneInfoService geneInfoService;
 
     @Transactional
     @Override
@@ -447,6 +449,8 @@ public class UserServiceImpl implements UserService {
         Map<Integer, UserGene> userGenesFromTerms = goTerms.stream()
                 .flatMap( term -> goService.getGenesInTaxon( term, taxon ).stream() )
                 .distinct() // terms might refer to the same gene
+                .map( geneInfoService::load )
+                .filter( Objects::nonNull )
                 .map( g -> {
                     UserGene userGene = user.getUserGenes().getOrDefault( g.getGeneId(), new UserGene() );
                     userGene.setUser( user );
@@ -491,7 +495,7 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public long computeTermFrequencyInTaxon( User user, GeneOntologyTerm term, Taxon taxon ) {
-        Set<Integer> geneIds = goService.getGenes( goService.getTerm( term.getGoId() ) ).stream().map( Gene::getGeneId ).collect( Collectors.toSet() );
+        Set<Integer> geneIds = goService.getGenes( goService.getTerm( term.getGoId() ) ).stream().collect( Collectors.toSet() );
         return user.getGenesByTaxonAndTier( taxon, TierType.MANUAL ).stream()
                 .map( UserGene::getGeneId )
                 .filter( geneIds::contains )
