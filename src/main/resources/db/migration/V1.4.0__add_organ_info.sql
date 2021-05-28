@@ -9,7 +9,7 @@ alter table user drop column origin_url;
 alter table gene add column user_privacy_level integer default NULL;
 
 -- we cannot unfortunately just drop the target_taxon column because it was previously part of the primary key
-rename table ortholog to ortholog_tmp;
+alter table ortholog rename to ortholog_tmp;
 create table ortholog (source_gene integer not null, target_gene integer not null, primary key (source_gene, target_gene));
 insert into ortholog (select source_gene, target_gene from ortholog_tmp group by source_gene, target_gene);
 drop table ortholog_tmp;
