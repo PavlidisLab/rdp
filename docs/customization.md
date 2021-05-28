@@ -88,7 +88,40 @@ do not have HTTPS setup for you domain, you can consult the following guides on 
 
  - [medium.com/@raupach/how-to-install-lets-encrypt-with-tomcat-3db8a469e3d2](https://medium.com/@raupach/how-to-install-lets-encrypt-with-tomcat-3db8a469e3d2)
  - [community.letsencrypt.org/t/configuring-lets-encrypt-with-tomcat-6-x-and-7-x/32416](https://community.letsencrypt.org/t/configuring-lets-encrypt-with-tomcat-6-x-and-7-x/32416)
- 
+
+Registries can access each other public data by setting up the `rdp.settings.isearch.apis` configuration key in
+the `application.properties` file. You can put there a comma-delimited list of partner registry URLs.
+
+```
+rdp.settings.isearch.enabled=true
+rdp.settings.isearch.apis=https://register.rare-diseases-catalyst-network.ca/
+```
+
+If your current user has administrative priviledges, a special search token is appended to your remote queries. This
+should be unique to your registry.
+
+To generate a secure token, you can use OpenSSL: `openssl rand -base64 24`.
+
+```
+rdp.settings.isearch.search-token=hrol3Y4z2OE0ayK227i8oHTLDjPtRfb4
+```
+
+Send that token securely to the partner registries.
+
+On the receiving side, the partner registry must create a user that is used to perform privileged searches. This can be
+achieved in the administrative section under `/admin/create-service-account` endpoint.
+
+Let's assume that a user with user ID 522 was created. The partner would then add the token to
+its `rdp.settings.isearch.auth-tokens` setting.
+
+```
+rdp.settings.isearch.user-id=522
+rdp.settings.isearch.auth-tokens=hrol3Y4z2OE0ayK227i8oHTLDjPtRfb4,jLb22QZzsaT6/w3xwDHBObmZPypJgXfb
+```
+
+That's it. You can now query private data from the partner registry when logged in as an administrator on your own
+registry.
+
 ## Tiers
 
 User genes are categorized in tiers corresponding to the level of involvement of a researcher with the gene. Researcher 
