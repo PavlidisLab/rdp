@@ -152,6 +152,7 @@ public class ApplicationSettings {
     private CacheSettings cache;
     private OrganSettings organs;
 
+    private Resource faqFile;
     private boolean sendEmailOnRegistration;
     private long goTermSizeLimit = 100L;
     public List<String> enabledTiers;

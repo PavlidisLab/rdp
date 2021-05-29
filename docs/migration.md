@@ -47,6 +47,13 @@ rdp.settings.cache.organ-file=file:uberon.obo
 We recommend that you move any messages from `application-prod.properties` and `login.properties` into 
 `messages.properties`. More details are available in [Customize your instance](customization.md).
 
+The FAQ defaults are now distributed in the JAR archive and can be overridden with a custom resource. If you had
+a `faq.properties` previously setup, add the following line in your configuration to use it:
+
+```
+rdp.settings.faq-file=file:faq.properties
+```
+
 ## Migrate from 1.3.x to 1.3.2
 
 NCBI gene broke because they introduced genes with unexpected date format. We

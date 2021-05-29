@@ -159,7 +159,12 @@ moved to `messages.properties`.
 
 ## FAQ
 
-The FAQ can be customized in `faq.properties`.
+The FAQ can be customized by relocating the resource to a local file (i.e. `faq.properties`) with
+the `rdp.settings.faq-file` configuration.
+
+```
+rdp.settings.faq-file=file:faq.properties
+```
 
 All the question and answer style items that will display in the frequently asked questions page. Each entry requires 
 two parts: `rdp.faq.questions.<q_key>` and `rdp.faq.answers.<q_key>` which hold the question and the corresponding 
@@ -170,7 +175,7 @@ rdp.faq.questions.<q_key>=A relevant question.
 rdp.faq.answers.<q_key>=A plausible answer.
 ```
 
-Example of a FAQ can be found in [faq.properties](https://github.com/PavlidisLab/rgr/blob/master/faq.properties).
+Example of a FAQ can be found in [faq.properties](https://github.com/PavlidisLab/rgr/tree/master/src/main/resources/faq.properties).
 
 ## Style and static resources
 
