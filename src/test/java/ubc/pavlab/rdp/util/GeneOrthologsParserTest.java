@@ -35,10 +35,4 @@ public class GeneOrthologsParserTest {
         List<GeneOrthologsParser.Record> records = geneOrthologsParser.parse( new GZIPInputStream( new ClassPathResource( "cache/gene_orthologs.gz" ).getInputStream() ) );
         assertThat( records ).isNotEmpty();
     }
-
-    @Test
-    public void parse_whenDIOPT_thenSucceeed() throws IOException, ParseException {
-        List<GeneOrthologsParser.Record> records = geneOrthologsParser.parse( new GZIPInputStream( new UrlResource( "file:DIOPT_v8.tsv.gz" ).getInputStream() ) );
-        assertThat( records ).isNotEmpty();
-    }
 }
