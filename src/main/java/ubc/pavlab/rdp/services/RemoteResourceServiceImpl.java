@@ -11,8 +11,10 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.util.concurrent.ListenableFuture;
+import org.springframework.util.concurrent.ListenableFutureCallback;
+import org.springframework.web.client.AsyncRestTemplate;
 import org.springframework.web.client.RestClientException;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import ubc.pavlab.rdp.exception.RemoteException;
 import ubc.pavlab.rdp.model.Taxon;
@@ -28,6 +30,7 @@ import ubc.pavlab.rdp.util.VersionUtils;
 import java.net.URI;
 import java.text.MessageFormat;
 import java.util.*;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 import static java.util.function.Function.identity;
@@ -52,7 +55,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
     private RoleRepository roleRepository;
 
     @Autowired
-    private RestTemplate restTemplate;
+    private AsyncRestTemplate asyncRestTemplate;
 
     @Override
     @Cacheable
@@ -65,14 +68,14 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
                 .build()
                 .toUri();
         try {
-            OpenAPI openAPI = restTemplate.getForEntity( uri, OpenAPI.class ).getBody();
+            OpenAPI openAPI = asyncRestTemplate.getForEntity( uri, OpenAPI.class ).get().getBody();
             // OpenAPI specification was introduced in 1.4, so we assume 1.0.0 for previous versions
             if ( openAPI.getInfo() == null ) {
                 return "1.0.0";
             } else {
                 return openAPI.getInfo().getVersion();
             }
-        } catch ( RestClientException e ) {
+        } catch ( InterruptedException | ExecutionException e ) {
             throw new RemoteException( MessageFormat.format( "Unsuccessful response received for {0}.", uri ), e );
         }
     }
@@ -144,11 +147,11 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
                 .toUri();
 
         try {
-            ResponseEntity<User> responseEntity = restTemplate.getForEntity( uri, User.class );
+            ResponseEntity<User> responseEntity = asyncRestTemplate.getForEntity( uri, User.class ).get();
             User user = responseEntity.getBody();
             initUser( user );
             return user;
-        } catch ( RestClientException e ) {
+        } catch ( InterruptedException | ExecutionException e ) {
             throw new RemoteException( MessageFormat.format( "Unsuccessful response received for {0}.", uri ), e );
         }
     }
@@ -172,11 +175,11 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
                 .toUri();
 
         try {
-            ResponseEntity<User> responseEntity = restTemplate.getForEntity( uri, User.class );
+            ResponseEntity<User> responseEntity = asyncRestTemplate.getForEntity( uri, User.class ).get();
             User user = responseEntity.getBody();
             initUser( user );
             return user;
-        } catch ( RestClientException e ) {
+        } catch ( InterruptedException | ExecutionException e ) {
             throw new RemoteException( MessageFormat.format( "Unsuccessful response received for {0}.", uri ), e );
         }
     }
@@ -187,11 +190,15 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
                         .path( path )
                         .queryParams( params )
                         .build().toUri() )
-                .map( uri -> {
+                .map( uri -> asyncRestTemplate.getForEntity( uri, arrCls ) )
+                // it's important to collect, otherwise the future will be created and joined on-by-one, defeating the purpose of using them
+                .collect( Collectors.toList() )
+                .stream()
+                .map( future -> {
                     try {
-                        return restTemplate.getForEntity( uri, arrCls );
-                    } catch ( RestClientException e ) {
-                        log.error( MessageFormat.format( "Unsuccessful response received for {0}.", uri ), e );
+                        return future.get( applicationSettings.getIsearch().getRequestTimeout(), TimeUnit.SECONDS );
+                    } catch ( InterruptedException | ExecutionException | TimeoutException e ) {
+                        log.error( "Unsuccessful response received.", e );
                         return null;
                     }
                 } )

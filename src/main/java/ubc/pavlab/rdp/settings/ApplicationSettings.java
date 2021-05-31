@@ -144,6 +144,7 @@ public class ApplicationSettings {
         private String searchToken;
         private String host = null;
         private Integer port = null;
+        private Integer requestTimeout;
     }
 
     private ProfileSettings profile;

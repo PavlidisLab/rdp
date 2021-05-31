@@ -16,9 +16,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.web.client.ExpectedCount;
 import org.springframework.test.web.client.MockRestServiceServer;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.AsyncRestTemplate;
 import ubc.pavlab.rdp.exception.RemoteException;
 import ubc.pavlab.rdp.model.Role;
 import ubc.pavlab.rdp.model.Taxon;
@@ -51,8 +50,8 @@ public class RemoteResourceServiceTest {
         }
 
         @Bean
-        public RestTemplate restTemplate() {
-            return new RestTemplate();
+        public AsyncRestTemplate asyncRestTemplate() {
+            return new AsyncRestTemplate();
         }
 
         @Bean
@@ -80,7 +79,7 @@ public class RemoteResourceServiceTest {
     private ObjectMapper objectMapper;
 
     @Autowired
-    private RestTemplate restTemplate;
+    private AsyncRestTemplate asyncRestTemplate;
 
     @Before
     public void setUp() {
@@ -90,7 +89,7 @@ public class RemoteResourceServiceTest {
 
     @Test
     public void getVersion_thenReturnSuccess() throws JsonProcessingException, RemoteException {
-        MockRestServiceServer mockServer = MockRestServiceServer.createServer( restTemplate );
+        MockRestServiceServer mockServer = MockRestServiceServer.createServer( asyncRestTemplate );
         mockServer.expect( requestTo( "http://example.com/api" ) )
                 .andRespond( withStatus( HttpStatus.OK )
                         .contentType( MediaType.APPLICATION_JSON )
@@ -101,7 +100,7 @@ public class RemoteResourceServiceTest {
 
     @Test
     public void getVersion_whenEndpointReturnPre14Response_thenAssume100() throws RemoteException {
-        MockRestServiceServer mockServer = MockRestServiceServer.createServer( restTemplate );
+        MockRestServiceServer mockServer = MockRestServiceServer.createServer( asyncRestTemplate );
         mockServer.expect( requestTo( "http://example.com/api" ) )
                 .andRespond( withStatus( HttpStatus.OK )
                         .contentType( MediaType.APPLICATION_JSON )
@@ -112,7 +111,7 @@ public class RemoteResourceServiceTest {
 
     @Test
     public void findUserByLikeName_thenReturnSuccess() throws JsonProcessingException {
-        MockRestServiceServer mockServer = MockRestServiceServer.createServer( restTemplate );
+        MockRestServiceServer mockServer = MockRestServiceServer.createServer( asyncRestTemplate );
         mockServer.expect( requestTo( "http://example.com/api/users/search?nameLike=ok&prefix=true" ) )
                 .andRespond( withStatus( HttpStatus.OK )
                         .contentType( MediaType.APPLICATION_JSON )
@@ -124,7 +123,7 @@ public class RemoteResourceServiceTest {
     @Test
     @WithMockUser(roles = { "ADMIN" })
     public void findUserByLikeName_whenAdmin_thenReturnSuccess() throws JsonProcessingException {
-        MockRestServiceServer mockServer = MockRestServiceServer.createServer( restTemplate );
+        MockRestServiceServer mockServer = MockRestServiceServer.createServer( asyncRestTemplate );
         mockServer.expect( requestTo( "http://example.com/api/users/search?nameLike=ok&prefix=true&auth=1234" ) )
                 .andRespond( withStatus( HttpStatus.OK )
                         .contentType( MediaType.APPLICATION_JSON )
@@ -141,7 +140,7 @@ public class RemoteResourceServiceTest {
     @Test
     @Ignore("There an issue with with multiple requests performed against Spring MockServer.")
     public void findGenesBySymbol_whenTier3_isRestricted() throws JsonProcessingException {
-        MockRestServiceServer mockServer = MockRestServiceServer.createServer( restTemplate );
+        MockRestServiceServer mockServer = MockRestServiceServer.createServer( asyncRestTemplate );
         mockServer.expect( requestTo( "http://example.com/api/genes/search?symbol=ok&taxonId=9606&tier=TIER1" ) )
                 .andRespond( withStatus( HttpStatus.OK )
                         .contentType( MediaType.APPLICATION_JSON )
@@ -158,7 +157,7 @@ public class RemoteResourceServiceTest {
     @Test
     public void getRemoteUser_thenReturnSuccess() throws RemoteException, JsonProcessingException {
         User user = createRemoteUser( 1, URI.create( "http://example.com/api/users/1" ) );
-        MockRestServiceServer mockServer = MockRestServiceServer.createServer( restTemplate );
+        MockRestServiceServer mockServer = MockRestServiceServer.createServer( asyncRestTemplate );
         mockServer.expect( requestTo( "http://example.com/api/users/1" ) )
                 .andRespond( withStatus( HttpStatus.OK )
                         .contentType( MediaType.APPLICATION_JSON )
@@ -171,7 +170,7 @@ public class RemoteResourceServiceTest {
     @Test
     public void getRemoteUser_whenAuthorityIsKnownButSchemeDiffers_thenReturnSuccess() throws RemoteException, JsonProcessingException {
         User user = createRemoteUser( 1, URI.create( "http://example.com/api/users/1" ) );
-        MockRestServiceServer mockServer = MockRestServiceServer.createServer( restTemplate );
+        MockRestServiceServer mockServer = MockRestServiceServer.createServer( asyncRestTemplate );
         mockServer.expect( requestTo( "http://example.com/api/users/1" ) )
                 .andRespond( withStatus( HttpStatus.OK )
                         .contentType( MediaType.APPLICATION_JSON )
@@ -184,7 +183,7 @@ public class RemoteResourceServiceTest {
     @Test
     public void getRemoteUser_whenAuthorityIsKnownButPathDiffers_thenReturnSuccess() throws URISyntaxException, RemoteException, JsonProcessingException {
         User user = createRemoteUser( 1, new URI( "http://example.com/api/users/1" ) );
-        MockRestServiceServer mockServer = MockRestServiceServer.createServer( restTemplate );
+        MockRestServiceServer mockServer = MockRestServiceServer.createServer( asyncRestTemplate );
         mockServer.expect( requestTo( "http://example.com/api/users/1" ) )
                 .andRespond( withStatus( HttpStatus.OK )
                         .contentType( MediaType.APPLICATION_JSON )
@@ -197,7 +196,7 @@ public class RemoteResourceServiceTest {
     @Test
     public void getRemoteUser_whenRemoteHostUriContainsPath_thenRelativizeWithEndpoint_thenReturnSuccess() throws RemoteException, JsonProcessingException {
         User user = createRemoteUser( 1, URI.create( "http://example.com/api/users/1" ) );
-        MockRestServiceServer mockServer = MockRestServiceServer.createServer( restTemplate );
+        MockRestServiceServer mockServer = MockRestServiceServer.createServer( asyncRestTemplate );
         mockServer.expect( requestTo( "https://example.com/rgr/api/users/1" ) )
                 .andRespond( withStatus( HttpStatus.OK )
                         .contentType( MediaType.APPLICATION_JSON )
@@ -211,7 +210,7 @@ public class RemoteResourceServiceTest {
     @Test
     public void getRemoteUser_whenRemoteHostUriContainsPath_thenReplaceWithEndpoint_thenReturnSuccess() throws RemoteException, JsonProcessingException {
         User user = createRemoteUser( 1, URI.create( "http://example.com/api/users/1" ) );
-        MockRestServiceServer mockServer = MockRestServiceServer.createServer( restTemplate );
+        MockRestServiceServer mockServer = MockRestServiceServer.createServer( asyncRestTemplate );
         mockServer.expect( requestTo( "http://example.com/api/users/1" ) )
                 .andRespond( withStatus( HttpStatus.OK )
                         .contentType( MediaType.APPLICATION_JSON )
