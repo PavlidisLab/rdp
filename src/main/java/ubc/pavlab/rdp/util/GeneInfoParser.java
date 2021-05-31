@@ -12,7 +12,6 @@ import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static org.apache.commons.lang3.ArrayUtils.indexOf;
@@ -30,7 +29,7 @@ public class GeneInfoParser {
 
     private static DateFormat NCBI_DATE_FORMAT = new SimpleDateFormat( "yyyyMMdd" );
 
-    public List<Record> parse( InputStream input ) throws ParseException, IOException {
+    public List<Record> parse( InputStream input, Integer taxonId ) throws ParseException, IOException {
         try ( LineNumberReader br = new LineNumberReader( new InputStreamReader( input ) ) ) {
             String headerLine = br.readLine();
 
@@ -49,7 +48,7 @@ public class GeneInfoParser {
             try {
                 return br.lines()
                         .map( line -> Record.parseLine( line, header, br.getLineNumber() ) )
-                        .filter( Objects::nonNull )
+                        .filter( record -> record.getTaxonId().equals( taxonId ) )
                         .collect( Collectors.toList() );
             } catch ( UncheckedIOException ioe ) {
                 throw ioe.getCause();

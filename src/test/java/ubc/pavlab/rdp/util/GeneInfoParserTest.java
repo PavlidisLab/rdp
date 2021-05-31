@@ -34,7 +34,7 @@ public class GeneInfoParserTest {
 
     @Test
     public void parse_whenUrlFtp_thenSucceed() throws IOException, ParseException {
-        List<GeneInfoParser.Record> genes = geneInfoParser.parse( new GZIPInputStream( new UrlResource( new URL( "ftp://ftp.ncbi.nlm.nih.gov/gene/DATA/GENE_INFO/Mammalia/Homo_sapiens.gene_info.gz" ) ).getInputStream() ) );
+        List<GeneInfoParser.Record> genes = geneInfoParser.parse( new GZIPInputStream( new UrlResource( new URL( "ftp://ftp.ncbi.nlm.nih.gov/gene/DATA/GENE_INFO/Mammalia/Homo_sapiens.gene_info.gz" ) ).getInputStream() ), 9606 );
         assertThat( genes ).isNotEmpty();
     }
 }

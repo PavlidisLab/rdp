@@ -107,7 +107,7 @@ public class GeneInfoServiceImpl implements GeneInfoService {
                     resource = new UrlResource( taxon.getGeneUrl() );
                 }
                 log.info( MessageFormat.format( "Loading genes for {0} from {1}.", taxon, resource ) );
-                List<GeneInfoParser.Record> data = geneInfoParser.parse( new GZIPInputStream( resource.getInputStream() ) );
+                List<GeneInfoParser.Record> data = geneInfoParser.parse( new GZIPInputStream( resource.getInputStream() ), taxon.getId() );
                 log.info( MessageFormat.format( "Done parsing genes for {0}.", taxon ) );
                 // retrieve all relevant genes in a single database query
                 // note that because of this, we have to make this whole process @Transactional
@@ -121,8 +121,6 @@ public class GeneInfoServiceImpl implements GeneInfoService {
                     log.warn( MessageFormat.format( "No information were found for {0} genes in {1}.", numberOfGenesInTaxon - foundGenesByGeneId.size(), taxon ) );
                 }
                 Set<GeneInfo> geneData = data.stream()
-                        // some gene info file contain data from multiple species
-                        .filter( record -> record.getTaxonId().equals( taxon.getId() ) )
                         .map( record -> {
                             GeneInfo gene = foundGenesByGeneId.getOrDefault( record.getGeneId(), new GeneInfo() );
                             gene.setTaxon( taxon );

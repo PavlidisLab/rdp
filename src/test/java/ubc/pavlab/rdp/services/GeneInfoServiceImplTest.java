@@ -38,6 +38,7 @@ import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static ubc.pavlab.rdp.util.TestUtils.createGene;
@@ -297,9 +298,10 @@ public class GeneInfoServiceImplTest {
         Taxon humanTaxon = taxonRepository.findOne( 9606 );
         when( taxonService.findByActiveTrue() ).thenReturn( Sets.newSet( humanTaxon ) );
         GeneInfoParser.Record updatedGeneRecord = new GeneInfoParser.Record( 9606, 4, "FOO", "", "BAR", Date.from( Instant.now() ) );
-        when( geneInfoParser.parse( any() ) ).thenReturn( Collections.singletonList( updatedGeneRecord ) );
+        when( geneInfoParser.parse( any(), eq( humanTaxon.getId() ) ) ).thenReturn( Collections.singletonList( updatedGeneRecord ) );
         geneService.updateGenes();
         verify( taxonService ).findByActiveTrue();
+        verify( geneInfoParser ).parse( any(), eq( humanTaxon.getId() ) );
         assertThat( geneInfoRepository.findByGeneId( 4 ) )
                 .isNotNull()
                 .hasFieldOrPropertyWithValue( "symbol", "FOO" )
@@ -312,9 +314,10 @@ public class GeneInfoServiceImplTest {
         Taxon humanTaxon = taxonRepository.findOne( 9606 );
         when( taxonService.findByActiveTrue() ).thenReturn( Sets.newSet( humanTaxon ) );
         GeneInfoParser.Record updatedGeneRecord = new GeneInfoParser.Record( 4, 4, "FOO", "", "BAR", Date.from( Instant.now() ) );
-        when( geneInfoParser.parse( any() ) ).thenReturn( Collections.singletonList( updatedGeneRecord ) );
+        when( geneInfoParser.parse( any(), eq( 4 ) ) ).thenReturn( Collections.singletonList( updatedGeneRecord ) );
         geneService.updateGenes();
         verify( taxonService ).findByActiveTrue();
+        verify( geneInfoParser ).parse( any(), eq( 9606 ) );
         assertThat( geneInfoRepository.findByGeneId( 4 ) ).isNull();
     }
 
@@ -323,9 +326,9 @@ public class GeneInfoServiceImplTest {
         Taxon humanTaxon = taxonRepository.findOne( 9606 );
         Taxon otherTaxon = entityManager.persist( createTaxon( 4 ) );
         when( taxonService.findByActiveTrue() ).thenReturn( Sets.newSet( humanTaxon ) );
-        GeneInfo gene = entityManager.persist( createGene( 4, otherTaxon ) );
+        entityManager.persist( createGene( 4, otherTaxon ) );
         GeneInfoParser.Record updatedGeneRecord = new GeneInfoParser.Record( 9606, 4, "FOO", "", "BAR", Date.from( Instant.now() ) );
-        when( geneInfoParser.parse( any() ) ).thenReturn( Collections.singletonList( updatedGeneRecord ) );
+        when( geneInfoParser.parse( any(), eq( humanTaxon.getId() ) ) ).thenReturn( Collections.singletonList( updatedGeneRecord ) );
         geneService.updateGenes();
         verify( taxonService ).findByActiveTrue();
         assertThat( geneInfoRepository.findByGeneId( 4 ) )
@@ -341,9 +344,11 @@ public class GeneInfoServiceImplTest {
         when( taxonService.findByActiveTrue() ).thenReturn( Sets.newSet( fissionYeastTaxon ) );
         GeneInfoParser.Record updatedGeneRecord = new GeneInfoParser.Record( 4896, 4, "FOO", "", "BAR", Date.from( Instant.now() ) );
         GeneInfoParser.Record unrelatedGeneRecord = new GeneInfoParser.Record( 12, 4, "FOO", "", "BAR", Date.from( Instant.now() ) );
-        when( geneInfoParser.parse( any() ) ).thenReturn( Lists.newArrayList( updatedGeneRecord, unrelatedGeneRecord ) );
+        when( geneInfoParser.parse( any(), eq( fissionYeastTaxon.getId() ) ) ).thenReturn( Lists.newArrayList( updatedGeneRecord ) );
+        when( geneInfoParser.parse( any(), eq( 12 ) ) ).thenReturn( Lists.newArrayList( unrelatedGeneRecord ) );
         geneService.updateGenes();
         verify( taxonService ).findByActiveTrue();
+        verify( geneInfoParser ).parse( any(), eq( fissionYeastTaxon.getId() ) );
         assertThat( geneInfoRepository.findByGeneId( 4 ) )
                 .isNotNull()
                 .hasFieldOrPropertyWithValue( "symbol", "FOO" )
