@@ -37,10 +37,10 @@ public class GeneOrthologsParser {
 
         private Integer orthologId;
 
-        public static Record parseLine( String line, String[] header ) throws ParseException {
+        public static Record parseLine( String line, String[] header, int lineNumber ) throws UncheckedParseException {
             String[] pieces = line.split( "\t" );
-            if ( pieces.length < 5 ) {
-                throw new ParseException( "Unexpected number of fields." );
+            if ( pieces.length < header.length ) {
+                throw new UncheckedParseException( "Unexpected number of fields.", lineNumber );
             }
             try {
                 return new Record( Integer.parseInt( pieces[ArrayUtils.indexOf( header, TAXON_ID_FIELD )] ),
@@ -48,9 +48,8 @@ public class GeneOrthologsParser {
                         pieces[ArrayUtils.indexOf( header, RELATIONSHIP_FIELD )],
                         Integer.parseInt( pieces[ArrayUtils.indexOf( header, ORTHOLOG_TAXON_ID_FIELD )] ),
                         Integer.parseInt( pieces[ArrayUtils.indexOf( header, ORTHOLOG_ID_FIELD )] ) );
-
             } catch ( NumberFormatException e ) {
-                throw new ParseException( e.getMessage(), 0 );
+                throw new UncheckedParseException( "Could not parse number.", lineNumber, e );
             }
         }
     }
@@ -60,22 +59,17 @@ public class GeneOrthologsParser {
             String[] header = br.readLine().split( "\t" );
             for ( String expectedField : EXPECTED_FIELDS ) {
                 if ( !ArrayUtils.contains( header, expectedField ) ) {
-                    throw new ParseException( "Header is missing the following field: " + expectedField, 0 );
+                    throw new ParseException( "Header is missing the following field: " + expectedField, br.getLineNumber() );
                 }
             }
             return br.lines()
-                    .map( line -> {
-                        try {
-                            return Record.parseLine( line, header );
-                        } catch ( ParseException e ) {
-                            log.warn( "Failed to parse line: " + line, e );
-                            return null;
-                        }
-                    } )
+                    .map( line -> Record.parseLine( line, header, br.getLineNumber() ) )
                     .filter( Objects::nonNull )
                     .collect( Collectors.toList() );
         } catch ( UncheckedIOException ioe ) {
             throw ioe.getCause();
+        } catch ( UncheckedParseException e ) {
+            throw e.getCause();
         }
     }
 }

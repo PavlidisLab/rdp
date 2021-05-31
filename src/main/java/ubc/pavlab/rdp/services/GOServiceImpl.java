@@ -89,39 +89,39 @@ public class GOServiceImpl implements GOService {
         Map<String, GeneOntologyTermInfo> terms;
         try {
             terms = convertTerms( oboParser.parseStream( cacheSettings.getTermFile().getInputStream() ) );
-        } catch ( IOException | ubc.pavlab.rdp.util.ParseException e ) {
+        } catch ( IOException | ParseException e ) {
             log.error( "Failed to parse GO terms.", e );
             return;
         }
 
         log.info( MessageFormat.format( "Loading gene2go annotations from: {0}.", cacheSettings.getAnnotationFile() ) );
 
+        Collection<Gene2GoParser.Record> records;
         try {
-            Collection<Gene2GoParser.Record> records = gene2GoParser.populateAnnotations( new GZIPInputStream( cacheSettings.getAnnotationFile().getInputStream() ) );
-
-            Map<String, List<Gene2GoParser.Record>> recordsByGoTerm = records.stream().collect( groupingBy( Gene2GoParser.Record::getGoId, Collectors.toList() ) );
-
-            for ( Map.Entry<String, List<Gene2GoParser.Record>> entry : recordsByGoTerm.entrySet() ) {
-                GeneOntologyTermInfo term = terms.get( entry.getKey() );
-
-                if ( term == null ) {
-                    log.warn( MessageFormat.format( "{0} is missing from {1}, its direct genes will be ignored.", entry.getKey(), cacheSettings.getTermFile() ) );
-                    continue;
-                }
-
-                for ( Gene2GoParser.Record record : entry.getValue() ) {
-                    Taxon taxon = new Taxon();
-                    taxon.setId( record.getTaxonId() );
-                    term.getDirectGeneIds().add( record.getGeneId() );
-                    term.getDirectGeneIdsByTaxonId().add( record.getTaxonId(), record.getGeneId() );
-                }
-            }
+            records = gene2GoParser.parse( new GZIPInputStream( cacheSettings.getAnnotationFile().getInputStream() ) );
         } catch ( IOException e ) {
             log.error( "Failed to retrieve gene2go annotations.", e );
             return;
         } catch ( ParseException e ) {
             log.error( "Failed to parse gene2go annotations.", e );
             return;
+        }
+
+        Map<String, List<Gene2GoParser.Record>> recordsByGoTerm = records.stream().collect( groupingBy( Gene2GoParser.Record::getGoId, Collectors.toList() ) );
+        for ( Map.Entry<String, List<Gene2GoParser.Record>> entry : recordsByGoTerm.entrySet() ) {
+            GeneOntologyTermInfo term = terms.get( entry.getKey() );
+
+            if ( term == null ) {
+                log.warn( MessageFormat.format( "{0} is missing from {1}, its direct genes will be ignored.", entry.getKey(), cacheSettings.getTermFile() ) );
+                continue;
+            }
+
+            for ( Gene2GoParser.Record record : entry.getValue() ) {
+                Taxon taxon = new Taxon();
+                taxon.setId( record.getTaxonId() );
+                term.getDirectGeneIds().add( record.getGeneId() );
+                term.getDirectGeneIdsByTaxonId().add( record.getTaxonId(), record.getGeneId() );
+            }
         }
 
         saveAlias( terms );
