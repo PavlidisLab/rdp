@@ -11,7 +11,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import ubc.pavlab.rdp.exception.RemoteException;
@@ -64,12 +64,16 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
                 .path( API_URI )
                 .build()
                 .toUri();
-        OpenAPI openAPI = restTemplate.getForEntity( uri, OpenAPI.class ).getBody();
-        // OpenAPI specification was introduced in 1.4, so we assume 1.0.0 for previous versions
-        if ( openAPI.getInfo() == null ) {
-            return "1.0.0";
-        } else {
-            return openAPI.getInfo().getVersion();
+        try {
+            OpenAPI openAPI = restTemplate.getForEntity( uri, OpenAPI.class ).getBody();
+            // OpenAPI specification was introduced in 1.4, so we assume 1.0.0 for previous versions
+            if ( openAPI.getInfo() == null ) {
+                return "1.0.0";
+            } else {
+                return openAPI.getInfo().getVersion();
+            }
+        } catch ( RestClientException e ) {
+            throw new RemoteException( MessageFormat.format( "Unsuccessful response received for {0}.", uri ), e );
         }
     }
 
@@ -142,12 +146,9 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
         try {
             ResponseEntity<User> responseEntity = restTemplate.getForEntity( uri, User.class );
             User user = responseEntity.getBody();
-            // add back-references to the user
-            user.getUserGenes().values().forEach( ug -> ug.setUser( user ) );
-            user.getUserTerms().forEach( ug -> ug.setUser( user ) );
-            user.getUserOrgans().values().forEach( ug -> ug.setUser( user ) );
+            initUser( user );
             return user;
-        } catch ( HttpClientErrorException e ) {
+        } catch ( RestClientException e ) {
             throw new RemoteException( MessageFormat.format( "Unsuccessful response received for {0}.", uri ), e );
         }
     }
@@ -173,12 +174,9 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
         try {
             ResponseEntity<User> responseEntity = restTemplate.getForEntity( uri, User.class );
             User user = responseEntity.getBody();
-            // add back-references to the user
-            user.getUserGenes().values().forEach( ug -> ug.setUser( user ) );
-            user.getUserTerms().forEach( ug -> ug.setUser( user ) );
-            user.getUserOrgans().values().forEach( ug -> ug.setUser( user ) );
+            initUser( user );
             return user;
-        } catch ( HttpClientErrorException e ) {
+        } catch ( RestClientException e ) {
             throw new RemoteException( MessageFormat.format( "Unsuccessful response received for {0}.", uri ), e );
         }
     }
@@ -192,7 +190,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
                 .map( uri -> {
                     try {
                         return restTemplate.getForEntity( uri, arrCls );
-                    } catch ( HttpClientErrorException e ) {
+                    } catch ( RestClientException e ) {
                         log.error( MessageFormat.format( "Unsuccessful response received for {0}.", uri ), e );
                         return null;
                     }
@@ -212,6 +210,12 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
             throw new RemoteException( MessageFormat.format( "Unknown remote API {0}.", remoteHost.getAuthority() ) );
         }
         return apiUriByAuthority.get( remoteHostAuthority );
+    }
+
+    private void initUser( User user ) {
+        user.getUserGenes().values().forEach( ug -> ug.setUser( user ) );
+        user.getUserTerms().forEach( ug -> ug.setUser( user ) );
+        user.getUserOrgans().values().forEach( ug -> ug.setUser( user ) );
     }
 
     private Set<TierType> restrictTiers( Set<TierType> tiers ) {
