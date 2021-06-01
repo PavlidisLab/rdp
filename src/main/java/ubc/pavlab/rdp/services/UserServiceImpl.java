@@ -48,7 +48,7 @@ public class UserServiceImpl implements UserService {
     public static final String USER_GENES_BY_ANONYMOUS_ID_CACHE_KEY = "ubc.pavlab.rdp.model.UserGene.byAnonymousId";
 
     @Autowired
-    ApplicationSettings applicationSettings;
+    private ApplicationSettings applicationSettings;
     @Autowired
     private UserRepository userRepository;
     @Autowired
@@ -63,8 +63,6 @@ public class UserServiceImpl implements UserService {
     private GOService goService;
     @Autowired
     private OrganInfoService organInfoService;
-    @Autowired
-    private UserGeneRepository userGeneRepository;
     @Autowired
     private ApplicationEventPublisher eventPublisher;
     @Autowired

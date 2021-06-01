@@ -56,7 +56,7 @@ public class UserController {
     private EmailService emailService;
 
     @Autowired
-    ApplicationEventPublisher eventPublisher;
+    private ApplicationEventPublisher eventPublisher;
 
     @GetMapping(value = { "/user/home" })
     public ModelAndView userHome() {
@@ -230,7 +230,7 @@ public class UserController {
             userService.confirmVerificationToken( token );
             redirectAttributes.addFlashAttribute( "Your contact email has been successfully verified." );
         } catch ( TokenException e ) {
-            log.error( MessageFormat.format( "{0} attempt to confirm verification token {1} failed.", userService.findCurrentUser(), token ), e );
+            log.error( MessageFormat.format( "{0} attempt to confirm verification token failed.", userService.findCurrentUser() ), e );
             redirectAttributes.addFlashAttribute( "message", e.getMessage() );
             redirectAttributes.addFlashAttribute( "error", true );
         } finally {
@@ -241,8 +241,8 @@ public class UserController {
     @Data
     static class ProfileWithOrganUberonIds {
         @Valid
-        Profile profile;
-        Set<String> organUberonIds;
+        private Profile profile;
+        private Set<String> organUberonIds;
     }
 
     @ResponseBody

@@ -21,10 +21,10 @@ public enum TierType {
     /**
      * This is the subset of manually assigned tiers which correspond to tier 1 and 2.
      */
-    public static final Set<TierType> MANUAL = EnumSet.of( TIER1, TIER2 );
+    public static final EnumSet<TierType> MANUAL = EnumSet.of( TIER1, TIER2 );
 
     /**
      * Set of all tiers.
      */
-    public static final Set<TierType> ANY = EnumSet.allOf( TierType.class );
+    public static final EnumSet<TierType> ANY = EnumSet.allOf( TierType.class );
 }

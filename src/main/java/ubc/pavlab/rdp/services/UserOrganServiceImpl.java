@@ -18,10 +18,7 @@ import java.util.Set;
 public class UserOrganServiceImpl implements UserOrganService {
 
     @Autowired
-    UserOrganRepository userOrganRepository;
-
-    @Autowired
-    PrivacyService privacyService;
+    private UserOrganRepository userOrganRepository;
 
     @Override
     @PostFilter("hasPermission(filterObject, 'read')")

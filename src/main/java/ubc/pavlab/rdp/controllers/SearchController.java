@@ -500,10 +500,11 @@ public class SearchController {
         User user = userService.findCurrentUser();
         User viewUser;
         if ( remoteHost != null && !remoteHost.isEmpty() ) {
+            URI remoteHostUri = URI.create( remoteHost );
             try {
-                viewUser = remoteResourceService.getRemoteUser( userId, URI.create( remoteHost ) );
+                viewUser = remoteResourceService.getRemoteUser( userId, remoteHostUri );
             } catch ( RemoteException e ) {
-                log.error( MessageFormat.format( "Could not fetch the remote user id {0} from {1}.", userId, remoteHost ), e );
+                log.error( MessageFormat.format( "Could not fetch the remote user id {0} from {1}.", userId, remoteHostUri ), e );
                 modelAndView.setStatus( HttpStatus.SERVICE_UNAVAILABLE );
                 modelAndView.setViewName( "error/503" );
                 return modelAndView;

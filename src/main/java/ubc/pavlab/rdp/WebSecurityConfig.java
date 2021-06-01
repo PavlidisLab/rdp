@@ -40,7 +40,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     private MessageSource messageSource;
 
     @Autowired
-    PermissionEvaluator permissionEvaluator;
+    private PermissionEvaluator permissionEvaluator;
 
     @Override
     protected void configure( AuthenticationManagerBuilder auth ) throws Exception {

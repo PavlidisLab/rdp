@@ -42,8 +42,7 @@ public class EmailServiceImpl implements EmailService {
     private JavaMailSender emailSender;
 
     @Autowired
-    MessageSource messageSource;
-
+    private MessageSource messageSource;
 
     private void sendSimpleMessage( String subject, String content, InternetAddress to, InternetAddress replyTo, InternetAddress cc ) throws AddressException {
 

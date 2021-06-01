@@ -63,7 +63,7 @@ public class UserGeneServiceImpl implements UserGeneService {
     private UserService userService;
 
     @Autowired
-    TierService tierService;
+    private TierService tierService;
 
     @Autowired
     private PermissionEvaluator permissionEvaluator;

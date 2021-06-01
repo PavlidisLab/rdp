@@ -19,10 +19,13 @@ import java.util.Collection;
 public class OrganInfoServiceImpl implements OrganInfoService {
 
     @Autowired
-    OrganInfoRepository organInfoRepository;
+    private OrganInfoRepository organInfoRepository;
 
     @Autowired
     private OBOParser oboParser;
+
+    @Autowired
+    private ApplicationSettings applicationSettings;
 
     @Override
     public Collection<OrganInfo> findAll() {
@@ -38,9 +41,6 @@ public class OrganInfoServiceImpl implements OrganInfoService {
     public Collection<OrganInfo> findByActiveTrueOrderByOrdering() {
         return organInfoRepository.findByActiveTrueOrderByOrdering();
     }
-
-    @Autowired
-    ApplicationSettings applicationSettings;
 
     @Override
     public void updateOrganInfos() {

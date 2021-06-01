@@ -47,7 +47,7 @@ public class ApiController {
     public static final String API_VERSION = "1.4.0";
 
     @Autowired
-    MessageSource messageSource;
+    private MessageSource messageSource;
     @Autowired
     private UserService userService;
     @Autowired
@@ -55,13 +55,9 @@ public class ApiController {
     @Autowired
     private GeneInfoService geneService;
     @Autowired
-    TierService tierService;
-    @Autowired
     private UserOrganService userOrganService;
     @Autowired
-    UserGeneService userGeneService;
-    @Autowired
-    OrganInfoService organInfoService;
+    private UserGeneService userGeneService;
     @Autowired
     private ApplicationSettings applicationSettings;
     @Autowired

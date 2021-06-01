@@ -36,13 +36,13 @@ public class LoginController {
     private UserService userService;
 
     @Autowired
-    PrivacyService privacyService;
+    private PrivacyService privacyService;
 
     @Autowired
-    ApplicationSettings applicationSettings;
+    private ApplicationSettings applicationSettings;
 
     @Autowired
-    ApplicationEventPublisher eventPublisher;
+    private ApplicationEventPublisher eventPublisher;
 
     @GetMapping("/login")
     public ModelAndView login() {

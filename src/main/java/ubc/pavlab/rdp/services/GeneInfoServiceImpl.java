@@ -35,7 +35,7 @@ import static java.util.stream.Collectors.groupingBy;
 public class GeneInfoServiceImpl implements GeneInfoService {
 
     @Autowired
-    GeneInfoRepository geneInfoRepository;
+    private GeneInfoRepository geneInfoRepository;
 
     @Autowired
     private TaxonService taxonService;
@@ -47,7 +47,7 @@ public class GeneInfoServiceImpl implements GeneInfoService {
     private GeneInfoParser geneInfoParser;
 
     @Autowired
-    GeneOrthologsParser geneOrthologsParser;
+    private GeneOrthologsParser geneOrthologsParser;
 
     @Override
     public GeneInfo load( Integer id ) {

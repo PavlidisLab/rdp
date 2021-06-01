@@ -24,10 +24,10 @@ import static ubc.pavlab.rdp.util.CollectionUtils.toNullableMap;
 public class GeneController {
 
     @Autowired
-    GeneInfoService geneService;
+    private GeneInfoService geneService;
 
     @Autowired
-    GOService goService;
+    private GOService goService;
 
     @Autowired
     private TaxonService taxonService;
