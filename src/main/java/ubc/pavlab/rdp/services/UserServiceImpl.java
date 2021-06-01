@@ -343,6 +343,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public Page<User> findAllByPrivacyLevel( PrivacyLevelType privacyLevel, Pageable pageable ) {
+        return userRepository.findAllByProfilePrivacyLevel( privacyLevel, pageable );
+    }
+
+    @Override
     @PostFilter("hasPermission(filterObject, 'read')")
     public Collection<User> findByLikeName( String nameLike, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherTypes, Collection<UserOrgan> userOrgans ) {
         return userRepository.findByProfileNameContainingIgnoreCaseOrProfileLastNameContainingIgnoreCase( nameLike, nameLike ).stream()

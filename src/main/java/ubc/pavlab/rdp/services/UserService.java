@@ -64,6 +64,8 @@ public interface UserService {
 
     Page<User> findAllNoAuth( Pageable pageable );
 
+    Page<User> findAllByPrivacyLevel( PrivacyLevelType privacyLevel, Pageable pageable );
+
     Collection<User> findByLikeName( String nameLike, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherTypes, Collection<UserOrgan> userOrgans );
 
     Collection<User> findByStartsName( String startsName, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherTypes, Collection<UserOrgan> userOrgans );

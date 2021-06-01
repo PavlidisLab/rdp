@@ -31,6 +31,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import ubc.pavlab.rdp.model.*;
+import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.ResearcherCategory;
 import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import ubc.pavlab.rdp.model.enums.TierType;
@@ -73,6 +74,11 @@ public class UserGeneServiceImpl implements UserGeneService {
     @Override
     public Page<UserGene> findAllNoAuth( Pageable pageable ) {
         return userGeneRepository.findAll( pageable );
+    }
+
+    @Override
+    public Page<UserGene> findAllByPrivacyLevel( PrivacyLevelType privacyLevelType, Pageable pageable ) {
+        return userGeneRepository.findAllByPrivacyLevelAndUserProfilePrivacyLevel( privacyLevelType, privacyLevelType, pageable );
     }
 
     @Cacheable(cacheNames = "stats", key = "#root.methodName")

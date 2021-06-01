@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import ubc.pavlab.rdp.exception.ApiException;
 import ubc.pavlab.rdp.exception.TokenException;
 import ubc.pavlab.rdp.model.*;
+import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.ResearcherCategory;
 import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import ubc.pavlab.rdp.model.enums.TierType;
@@ -109,12 +110,16 @@ public class ApiController {
                             @Deprecated @RequestParam(required = false) String auth,
                             Pageable pageable,
                             Locale locale ) {
-        checkAnonymousResultsEnabled();
         checkAuth( authorizationHeader, auth );
-        final Authentication auth2 = SecurityContextHolder.getContext().getAuthentication();
-        return userService.findAllNoAuth( pageable )
-                .map( user -> permissionEvaluator.hasPermission( auth2, user, "read" ) ? user : userService.anonymizeUser( user ) )
-                .map( user -> initUser( user, locale ) );
+        if ( applicationSettings.getPrivacy().isEnableAnonymizedSearchResults() ) {
+            final Authentication auth2 = SecurityContextHolder.getContext().getAuthentication();
+            return userService.findAllNoAuth( pageable )
+                    .map( user -> permissionEvaluator.hasPermission( auth2, user, "read" ) ? user : userService.anonymizeUser( user ) )
+                    .map( user -> initUser( user, locale ) );
+
+        } else {
+            return userService.findAllByPrivacyLevel( PrivacyLevelType.PUBLIC, pageable ).map( user -> initUser( user, locale ) );
+        }
     }
 
     /**
@@ -131,12 +136,15 @@ public class ApiController {
                             @Deprecated @RequestParam(required = false) String auth,
                             Pageable pageable,
                             Locale locale ) {
-        checkAnonymousResultsEnabled();
         checkAuth( authorizationHeader, auth );
-        final Authentication auth2 = SecurityContextHolder.getContext().getAuthentication();
-        return userGeneService.findAllNoAuth( pageable )
-                .map( userGene -> permissionEvaluator.hasPermission( auth2, userGene, "read" ) ? userGene : userService.anonymizeUserGene( userGene ) )
-                .map( userGene -> initUserGene( userGene, locale ) );
+        if ( applicationSettings.getPrivacy().isEnableAnonymizedSearchResults() ) {
+            final Authentication auth2 = SecurityContextHolder.getContext().getAuthentication();
+            return userGeneService.findAllNoAuth( pageable )
+                    .map( userGene -> permissionEvaluator.hasPermission( auth2, userGene, "read" ) ? userGene : userService.anonymizeUserGene( userGene ) )
+                    .map( userGene -> initUserGene( userGene, locale ) );
+        } else {
+            return userGeneService.findAllByPrivacyLevel( PrivacyLevelType.PUBLIC, pageable ).map( userGene -> initUserGene( userGene, locale ) );
+        }
     }
 
     /**
