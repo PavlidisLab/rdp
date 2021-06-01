@@ -7,6 +7,20 @@
     <artifactId>rdp</artifactId>
     <version>1.4.0</version>
 
+    <developers>
+        <developer>
+            <name>Guillaume Poirier-Morency</name>
+            <email>poirigui@msl.ubc.ca</email>
+        </developer>
+    </developers>
+
+    <contributors>
+        <contributor>
+            <name>Sanja Rogic</name>
+            <email>rogic@msl.ubc.ca</email>
+        </contributor>
+    </contributors>
+
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
