@@ -633,7 +633,7 @@ public class UserServiceImpl implements UserService {
         return passToken;
     }
 
-    @Transactional
+    @Transactional(rollbackFor = { TokenException.class })
     @Override
     public User changePasswordByResetToken( int userId, String token, PasswordReset passwordReset ) throws TokenException, ValidationException {
 
@@ -646,7 +646,7 @@ public class UserServiceImpl implements UserService {
 
         passwordResetTokenRepository.delete( passToken );
 
-        return updateNoAuth( user );
+        return userRepository.save( user );
     }
 
     @Transactional
@@ -670,7 +670,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = { TokenException.class })
     public User confirmVerificationToken( String token ) throws TokenException {
         VerificationToken verificationToken = tokenRepository.findByToken( token );
         if ( verificationToken == null ) {
@@ -697,7 +697,7 @@ public class UserServiceImpl implements UserService {
 
         if ( tokenUsed ) {
             tokenRepository.delete( verificationToken );
-            return updateNoAuth( user );
+            return userRepository.save( user );
         } else {
             throw new TokenException( "Verification token email does not match neither the user email nor contact email." );
         }
@@ -714,11 +714,6 @@ public class UserServiceImpl implements UserService {
                 .stream()
                 .map( u -> u.getProfile().getLastName().substring( 0, 1 ).toUpperCase() )
                 .collect( Collectors.toCollection( TreeSet::new ) );
-    }
-
-    @Transactional
-    protected User updateNoAuth( User user ) {
-        return userRepository.save( user );
     }
 
     @Override
