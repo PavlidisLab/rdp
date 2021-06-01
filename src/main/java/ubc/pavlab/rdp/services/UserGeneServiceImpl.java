@@ -96,12 +96,8 @@ public class UserGeneServiceImpl implements UserGeneService {
     @Cacheable(cacheNames = "stats", key = "#root.methodName")
     @Override
     public Map<String, Integer> researcherCountByTaxon() {
-        Map<String, Integer> countByTaxon = new HashMap<>();
-        for ( Taxon taxon : taxonRepository.findByActiveTrueOrderByOrdering() ) {
-            countByTaxon.put( taxon.getCommonName(), userGeneRepository.countDistinctUserByTaxon( taxon ) );
-        }
-
-        return countByTaxon;
+        return taxonRepository.findByActiveTrueOrderByOrdering().stream()
+                .collect( Collectors.toMap( Taxon::getCommonName, userGeneRepository::countDistinctUserByTaxon ) );
     }
 
     @Cacheable(cacheNames = "stats", key = "#root.methodName")

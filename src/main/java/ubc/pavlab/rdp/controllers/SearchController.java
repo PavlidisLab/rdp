@@ -462,10 +462,11 @@ public class SearchController {
         ModelAndView modelAndView = new ModelAndView( "fragments/profile::user-preview" );
         User user;
         if ( remoteHost != null ) {
+            URI remoteHostUri = URI.create( remoteHost );
             try {
-                user = remoteResourceService.getAnonymizedUser( anonymousId, URI.create( remoteHost ) );
+                user = remoteResourceService.getAnonymizedUser( anonymousId, remoteHostUri );
             } catch ( RemoteException e ) {
-                log.error( e );
+                log.error( MessageFormat.format( "Failed to retrieve anonymized user {} from {}.", anonymousId, remoteHostUri ), e );
                 modelAndView.setStatus( HttpStatus.INTERNAL_SERVER_ERROR );
                 modelAndView.setViewName( "fragments/error::message" );
                 modelAndView.addObject( "errorMessage", "Error querying remote anonymous user." );

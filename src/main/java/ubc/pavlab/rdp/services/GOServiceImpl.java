@@ -70,7 +70,7 @@ public class GOServiceImpl implements GOService {
     private static Map<String, GeneOntologyTermInfo> convertTerms( Map<String, OBOParser.Term> parsedTerms ) {
         // using a stream does not work because the GO identifier does not constitute an injective mapping due to
         // aliases
-        Map<String, GeneOntologyTermInfo> goTerms = new HashMap<>();
+        Map<String, GeneOntologyTermInfo> goTerms = new HashMap<>( parsedTerms.size() );
         for ( Map.Entry<String, OBOParser.Term> entry : parsedTerms.entrySet() ) {
             goTerms.put( entry.getKey(), convertTerm( entry.getValue() ) );
         }

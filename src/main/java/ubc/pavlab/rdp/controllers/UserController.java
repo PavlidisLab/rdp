@@ -233,9 +233,8 @@ public class UserController {
             log.error( MessageFormat.format( "{0} attempt to confirm verification token failed.", userService.findCurrentUser() ), e );
             redirectAttributes.addFlashAttribute( "message", e.getMessage() );
             redirectAttributes.addFlashAttribute( "error", true );
-        } finally {
-            return "redirect:/user/profile";
         }
+        return "redirect:/user/profile";
     }
 
     @Data

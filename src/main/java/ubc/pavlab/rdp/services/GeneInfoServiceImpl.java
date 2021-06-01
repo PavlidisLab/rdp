@@ -168,15 +168,17 @@ public class GeneInfoServiceImpl implements GeneInfoService {
                 .filter( record -> activeTaxonIds.contains( record.getTaxonId() ) && activeTaxonIds.contains( record.getOrthologTaxonId() ) )
                 .collect( groupingBy( GeneOrthologsParser.Record::getGeneId ) );
 
-        for ( Integer geneId : recordByGeneId.keySet() ) {
+        for ( Map.Entry<Integer, List<GeneOrthologsParser.Record>> entry : recordByGeneId.entrySet() ) {
+            Integer geneId = entry.getKey();
+            List<GeneOrthologsParser.Record> geneRecords = entry.getValue();
             GeneInfo gene = geneInfoRepository.findByGeneIdWithOrthologs( geneId );
             if ( gene == null ) {
-                log.info( MessageFormat.format( "Ignoring orthologs for {0} since it's missing from the database.",
+                log.info( MessageFormat.format( "Ignoring orthologs for {0} since it is missing from the database.",
                         geneIdFormat.format( geneId ) ) );
                 continue;
             }
             gene.getOrthologs().clear();
-            for ( GeneOrthologsParser.Record record : recordByGeneId.get( geneId ) ) {
+            for ( GeneOrthologsParser.Record record : geneRecords ) {
                 GeneInfo ortholog = geneInfoRepository.findByGeneId( record.getOrthologId() );
                 if ( ortholog == null ) {
                     log.info( MessageFormat.format( "Cannot add ortholog relationship between {0} and {1} since the latter is missing from the database.",

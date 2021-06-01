@@ -39,7 +39,7 @@ public class GeneOntologyTermInfoRepository implements CrudRepository<GeneOntolo
     }
 
     public <S extends GeneOntologyTermInfo> Iterable<S> saveAlias( Map<String, GeneOntologyTermInfo> terms ) {
-        List<GeneOntologyTermInfo> savedTerms = new ArrayList<>();
+        List<GeneOntologyTermInfo> savedTerms = new ArrayList<>( terms.size() );
         for ( Map.Entry<String, GeneOntologyTermInfo> entry : terms.entrySet() ) {
             savedTerms.add( saveAlias( entry.getKey(), entry.getValue() ) );
         }

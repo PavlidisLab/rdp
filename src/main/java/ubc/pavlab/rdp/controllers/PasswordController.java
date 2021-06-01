@@ -22,6 +22,7 @@ import ubc.pavlab.rdp.services.UserService;
 
 import javax.mail.MessagingException;
 import javax.validation.Valid;
+import java.text.MessageFormat;
 import java.util.Locale;
 
 /**
@@ -41,7 +42,7 @@ public class PasswordController {
     public ModelAndView forgotPassword() {
         return new ModelAndView( "forgotPassword" );
     }
-    
+
     @PostMapping(value = "/forgotPassword")
     public ModelAndView resetPassword( @RequestParam("email") String userEmail, Locale locale ) {
         //TODO: require captcha?
@@ -63,7 +64,7 @@ public class PasswordController {
             modelAndView.setStatus( HttpStatus.INTERNAL_SERVER_ERROR );
             modelAndView.addObject( "message", "We had trouble sending an email to your address." );
             modelAndView.addObject( "error", true );
-            log.error( e );
+            log.error( MessageFormat.format( "Failed to send reset token message to {0}.", user ), e );
             return modelAndView;
         }
 

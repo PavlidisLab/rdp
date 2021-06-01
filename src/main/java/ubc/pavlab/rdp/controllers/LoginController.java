@@ -138,7 +138,7 @@ public class LoginController {
             userService.confirmVerificationToken( token );
             modelAndView.setViewName( "redirect:/login" );
         } catch ( TokenException e ) {
-            log.error( e );
+            log.error( "Could not confirm registration token.", e );
             modelAndView.setStatus( HttpStatus.NOT_FOUND );
             modelAndView.setViewName( "error/404" );
         }
