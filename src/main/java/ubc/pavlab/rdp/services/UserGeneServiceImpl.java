@@ -22,6 +22,9 @@ package ubc.pavlab.rdp.services;
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.security.core.Authentication;
@@ -66,6 +69,11 @@ public class UserGeneServiceImpl implements UserGeneService {
 
     @Autowired
     private ApplicationSettings applicationSettings;
+
+    @Override
+    public Page<UserGene> findAllNoAuth( Pageable pageable ) {
+        return userGeneRepository.findAll( pageable );
+    }
 
     @Cacheable(cacheNames = "stats", key = "#root.methodName")
     @Override

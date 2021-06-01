@@ -67,6 +67,8 @@ public class ApiControllerTest {
     @MockBean
     private ApplicationSettings.InternationalSearchSettings iSearchSettings;
     @MockBean
+    private ApplicationSettings.PrivacySettings privacySettings;
+    @MockBean
     private SiteSettings siteSettings;
     @MockBean
     private UserDetailsService userDetailsService;
@@ -76,6 +78,7 @@ public class ApiControllerTest {
     @Before
     public void setUp() {
         when( applicationSettings.getIsearch() ).thenReturn( iSearchSettings );
+        when( applicationSettings.getPrivacy() ).thenReturn( privacySettings );
         when( iSearchSettings.isEnabled() ).thenReturn( true );
         when( siteSettings.getHostUri() ).thenReturn( URI.create( "http://localhost/" ) );
         when( messageSource.getMessage( eq( "rdp.site.shortname" ), any(), any() ) ).thenReturn( "RDMM" );
@@ -339,6 +342,7 @@ public class ApiControllerTest {
     public void getUser_withAnonymousId_thenReturn2xxSuccessful() throws Exception {
         User user = createUser( 1 );
         UUID anonymousId = UUID.randomUUID();
+        when( applicationSettings.getPrivacy().isEnableAnonymizedSearchResults() ).thenReturn( true );
         when( userService.findUserByAnonymousIdNoAuth( anonymousId ) ).thenReturn( user );
         when( userService.anonymizeUser( user ) ).thenReturn( User.builder().anonymousId( anonymousId ).build() );
         mvc.perform( get( "/api/users/by-anonymous-id/{anonymousId}", anonymousId ) )
@@ -347,5 +351,16 @@ public class ApiControllerTest {
                 .andExpect( jsonPath( "$.origin" ).value( "RDMM" ) )
                 .andExpect( jsonPath( "$.originUrl" ).value( "http://localhost" ) );
 
+    }
+
+    @Test
+    public void getUser_withAnonymousIdAndFeatureIsDisabled_thenReturnServiceUnavailable() throws Exception {
+        User user = createUser( 1 );
+        UUID anonymousId = UUID.randomUUID();
+        when( applicationSettings.getPrivacy().isEnableAnonymizedSearchResults() ).thenReturn( false );
+        when( userService.findUserByAnonymousIdNoAuth( anonymousId ) ).thenReturn( user );
+        when( userService.anonymizeUser( user ) ).thenReturn( User.builder().anonymousId( anonymousId ).build() );
+        mvc.perform( get( "/api/users/by-anonymous-id/{anonymousId}", anonymousId ) )
+                .andExpect( status().isServiceUnavailable() );
     }
 }

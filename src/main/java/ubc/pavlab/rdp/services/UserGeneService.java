@@ -19,6 +19,8 @@
 
 package ubc.pavlab.rdp.services;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import ubc.pavlab.rdp.model.Gene;
 import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.model.UserGene;
@@ -35,6 +37,8 @@ import java.util.Set;
  * Created by mjacobson on 17/01/18.
  */
 public interface UserGeneService {
+
+    Page<UserGene> findAllNoAuth( Pageable pageable );
 
     Integer countUniqueAssociations();
 

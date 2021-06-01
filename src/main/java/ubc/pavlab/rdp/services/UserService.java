@@ -1,5 +1,8 @@
 package ubc.pavlab.rdp.services;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.transaction.annotation.Transactional;
 import ubc.pavlab.rdp.exception.TokenException;
@@ -59,6 +62,8 @@ public interface UserService {
 
     Collection<User> findAll();
 
+    Page<User> findAllNoAuth( Pageable pageable );
+
     Collection<User> findByLikeName( String nameLike, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherTypes, Collection<UserOrgan> userOrgans );
 
     Collection<User> findByStartsName( String startsName, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherTypes, Collection<UserOrgan> userOrgans );
@@ -66,6 +71,8 @@ public interface UserService {
     Collection<User> findByDescription( String descriptionLike, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherTypes, Collection<UserOrgan> userOrgans );
 
     long countResearchers();
+
+    long countPublicResearchers();
 
     UserTerm convertTerm( User user, Taxon taxon, GeneOntologyTermInfo term );
 

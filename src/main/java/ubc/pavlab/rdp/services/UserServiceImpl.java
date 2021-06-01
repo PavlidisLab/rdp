@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.MessageSource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PostFilter;
@@ -336,6 +338,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public Page<User> findAllNoAuth( Pageable pageable ) {
+        return userRepository.findAll( pageable );
+    }
+
+    @Override
     @PostFilter("hasPermission(filterObject, 'read')")
     public Collection<User> findByLikeName( String nameLike, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherTypes, Collection<UserOrgan> userOrgans ) {
         return userRepository.findByProfileNameContainingIgnoreCaseOrProfileLastNameContainingIgnoreCase( nameLike, nameLike ).stream()
@@ -368,6 +375,11 @@ public class UserServiceImpl implements UserService {
     @Override
     public long countResearchers() {
         return userRepository.count();
+    }
+
+    @Override
+    public long countPublicResearchers() {
+        return userRepository.countByProfilePrivacyLevel( PrivacyLevelType.PUBLIC );
     }
 
     @Override
