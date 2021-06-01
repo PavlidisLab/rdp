@@ -19,7 +19,7 @@ public class RemoteResourceConfig {
     public AsyncRestTemplate asyncRestTemplate( ApplicationSettings applicationSettings ) {
         String proxyHost = applicationSettings.getIsearch().getHost();
         Integer proxyPort = applicationSettings.getIsearch().getPort();
-        if ( proxyHost != null && proxyPort != null && !proxyHost.equals( "" ) && !proxyPort.equals( "" ) ) {
+        if ( proxyHost != null && proxyPort != null && !proxyHost.equals( "" ) ) {
             SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
             Proxy proxy = new Proxy( Proxy.Type.HTTP, new InetSocketAddress( proxyHost, proxyPort ) );
             requestFactory.setProxy( proxy );

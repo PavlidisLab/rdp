@@ -117,8 +117,6 @@ public class GOServiceImpl implements GOService {
             }
 
             for ( Gene2GoParser.Record record : entry.getValue() ) {
-                Taxon taxon = new Taxon();
-                taxon.setId( record.getTaxonId() );
                 term.getDirectGeneIds().add( record.getGeneId() );
                 term.getDirectGeneIdsByTaxonId().add( record.getTaxonId(), record.getGeneId() );
             }

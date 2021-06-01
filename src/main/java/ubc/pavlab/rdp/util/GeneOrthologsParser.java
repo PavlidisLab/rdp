@@ -43,11 +43,11 @@ public class GeneOrthologsParser {
                 throw new UncheckedParseException( "Unexpected number of fields.", lineNumber );
             }
             try {
-                return new Record( Integer.parseInt( pieces[ArrayUtils.indexOf( header, TAXON_ID_FIELD )] ),
-                        Integer.parseInt( pieces[ArrayUtils.indexOf( header, GENE_ID_FIELD )] ),
+                return new Record( Integer.valueOf( pieces[ArrayUtils.indexOf( header, TAXON_ID_FIELD )] ),
+                        Integer.valueOf( pieces[ArrayUtils.indexOf( header, GENE_ID_FIELD )] ),
                         pieces[ArrayUtils.indexOf( header, RELATIONSHIP_FIELD )],
-                        Integer.parseInt( pieces[ArrayUtils.indexOf( header, ORTHOLOG_TAXON_ID_FIELD )] ),
-                        Integer.parseInt( pieces[ArrayUtils.indexOf( header, ORTHOLOG_ID_FIELD )] ) );
+                        Integer.valueOf( pieces[ArrayUtils.indexOf( header, ORTHOLOG_TAXON_ID_FIELD )] ),
+                        Integer.valueOf( pieces[ArrayUtils.indexOf( header, ORTHOLOG_ID_FIELD )] ) );
             } catch ( NumberFormatException e ) {
                 throw new UncheckedParseException( "Could not parse number.", lineNumber, e );
             }

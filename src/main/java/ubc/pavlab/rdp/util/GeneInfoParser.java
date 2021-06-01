@@ -76,15 +76,15 @@ public class GeneInfoParser {
             }
             Integer taxonId;
             try {
-                taxonId = Integer.parseInt( values[indexOf( header, "#tax_id" )] );
+                taxonId = Integer.valueOf( values[indexOf( header, "#tax_id" )] );
             } catch ( NumberFormatException e ) {
-                throw new UncheckedParseException( "Could not parse taxon id.", lineNumber );
+                throw new UncheckedParseException( "Could not parse taxon id.", lineNumber, e );
             }
             Integer geneId;
             try {
-                geneId = Integer.parseInt( values[indexOf( header, "GeneID" )] );
+                geneId = Integer.valueOf( values[indexOf( header, "GeneID" )] );
             } catch ( NumberFormatException e ) {
-                throw new UncheckedParseException( "Could not parse gene id.", lineNumber );
+                throw new UncheckedParseException( "Could not parse gene id.", lineNumber, e );
             }
             String symbol = values[indexOf( header, "Symbol" )];
             String synonyms = values[indexOf( header, "Synonyms" )];

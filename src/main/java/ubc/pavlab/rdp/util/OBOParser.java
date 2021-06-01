@@ -23,7 +23,7 @@ public class OBOParser {
     @Setter
     @ToString(of = { "id" })
     @EqualsAndHashCode(of = { "id" })
-    public class Term {
+    public static class Term {
 
         private String id;
         private String namespace;
@@ -35,7 +35,7 @@ public class OBOParser {
     }
 
     @Data
-    public class Relationship {
+    public static class Relationship {
 
         private final Term node;
         private final RelationshipType relationshipType;
