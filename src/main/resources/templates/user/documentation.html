@@ -119,6 +119,35 @@
                                                 </li>
                                             </ul>
                                         </div>
+                                        <div th:if="${@applicationSettings.privacy.isCustomizableGeneLevel()}">
+                                            <p>
+                                                Under the model organism tab, you may also have custom gene privacy
+                                                levels. The options are:
+                                            </p>
+                                            <ul>
+                                                <li th:if="${@privacyService.isGenePrivacyLevelEnabled(T(ubc.pavlab.rdp.model.enums.PrivacyLevelType).PRIVATE)}">
+                                                    <b>private</b> - your information will only be accessible by
+                                                    Network administrators for matching you to a new rare disease gene
+                                                    and considering you for funding opportunities.
+                                                </li>
+                                                <li th:if="${@privacyService.isGenePrivacyLevelEnabled(T(ubc.pavlab.rdp.model.enums.PrivacyLevelType).SHARED)}">
+                                                    <b>shared</b> - your information will be accessible by other
+                                                    researchers who are registered. Registered users will be able to
+                                                    access your information through the provided search interface.
+                                                </li>
+                                                <li th:if="${@privacyService.isGenePrivacyLevelEnabled(T(ubc.pavlab.rdp.model.enums.PrivacyLevelType).PUBLIC)}">
+                                                    <b>public</b> - your information will be visible publicly. Your
+                                                    information will be shared (see above) with registered users and
+                                                    will be accessible to non-registered users through the registry’s
+                                                    public search webpage (<i
+                                                        th:text=" ${@siteSettings.getHostUri()}"></i>).
+                                                </li>
+                                            </ul>
+                                            <p>
+                                                Note that if the privacy level of your profile change, the genes will be
+                                                updated to use the new value.
+                                            </p>
+                                        </div>
                                         <p th:if="${@applicationSettings.getPrivacy().isCustomizableSharing()}">
                                             Furthermore, this section gives you the option to set your preference for
                                             sharing your data with the network’s partner registries for the purposes
