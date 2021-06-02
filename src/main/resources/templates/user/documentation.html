@@ -243,15 +243,27 @@
                                             </li>
                                         </ul>
 
-                                        <div th:if="${@applicationSettings.privacy.isCustomizableGeneLevel()}">
+                                        
+
+                                        <p>For more information, see the relevant <a
+                                                th:href="@{/user/faq#genes}">FAQ</a></p>
+
+                                        <p>In the input box below the table you may search genes one by one or type
+                                            in a comma separated list of gene symbols. Add them by pressing the enter
+                                            key or the "+" symbol.</p>
+                                        <p>The added genes will appear at the bottom of the table. You can remove genes
+                                            by clicking the red X on the desired row. You can also change the Primary
+                                            status of genes using the checkbox.</p>
+                                          
+                                          <div th:if="${@applicationSettings.privacy.isCustomizableGeneLevel()}">
                                             <p>
                                                 You may also choose a privacy levels for your genes that differ from
                                                 the global privacy settings in your Profile. The new levels can only be more restrictive than your global privacy level.  Options are:
                                             </p>
                                             <ul>
                                                 <li th:if="${@privacyService.isGenePrivacyLevelEnabled(T(ubc.pavlab.rdp.model.enums.PrivacyLevelType).PRIVATE)}">
-                                                    <b>private</b> - this gene will only be accessible by Network
-                                                    administrators for matching you to a new rare disease gene and
+                                                    <b>private</b> - this gene will only be accessible by the network
+                                                    administrator for matching you to a new rare disease gene and
                                                     considering you for funding opportunities.
                                                 </li>
                                                 <li th:if="${@privacyService.isGenePrivacyLevelEnabled(T(ubc.pavlab.rdp.model.enums.PrivacyLevelType).SHARED)}">
@@ -265,16 +277,6 @@
                                                 updated to use the new value.
                                             </p>
                                         </div>
-
-                                        <p>For more information, see the relevant <a
-                                                th:href="@{/user/faq#genes}">FAQ</a></p>
-
-                                        <p>In the input box below the table you may search genes one by one or type
-                                            in a comma separated list of gene symbols. Add them by pressing the enter
-                                            key or the "+" symbol.</p>
-                                        <p>The added genes will appear at the bottom of the table. You can remove genes
-                                            by clicking the red X on the desired row. You can also change the Primary
-                                            status of genes using the checkbox.</p>
 
                                         <p>Finally, be sure to <b>Save</b>. If you navigate away from the page without
                                             doing so, you will be prompted to confirm.</p>
