@@ -14,7 +14,11 @@ To prevent data from being loaded on startup and recurrently, set the following 
 ```ìni
 rdp.settings.cache.enabled=false
 ```
-### Gene information, GO terms 
+
+You should deploy your RDP instance at least once to have initial data before setting this property and whenever you
+update the software.
+
+### Gene information, GO terms
 
 By default, RDP will retrieve the latest genes and gene-term associations from
 NCBI, and GO terms from [Ontobee](http://www.ontobee.org/ontology/OBI). Users
@@ -27,10 +31,7 @@ enabled, the basename of the URL will be used, relative to `rdp.settings.gene-fi
 select taxon_id, scientific_name, gene_url from taxon;
 ```
 
-You should deploy your RDP instance at least once to have initial data before setting this property and whenever you 
-update the software.
-
-### Default locations for data 
+### Default locations for data
 
 By default, RDP retrieves data from the following locations for orthologs, GO terms, gene2go and Uberon identifiers.
 
