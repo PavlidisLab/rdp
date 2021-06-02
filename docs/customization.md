@@ -92,7 +92,7 @@ do not have HTTPS setup for you domain, you can consult the following guides on 
 Registries can access each other public data by setting up the `rdp.settings.isearch.apis` configuration key in
 the `application.properties` file. You can put there a comma-delimited list of partner registry URLs.
 
-```
+```ini
 rdp.settings.isearch.enabled=true
 rdp.settings.isearch.apis=https://register.rare-diseases-catalyst-network.ca/
 ```
@@ -102,7 +102,7 @@ should be unique to your registry.
 
 To generate a secure token, you can use OpenSSL: `openssl rand -base64 24`.
 
-```
+```ini
 rdp.settings.isearch.search-token=hrol3Y4z2OE0ayK227i8oHTLDjPtRfb4
 ```
 
@@ -114,7 +114,7 @@ achieved in the administrative section under `/admin/create-service-account` end
 Let's assume that a user with user ID 522 was created. The partner would then add the token to
 its `rdp.settings.isearch.auth-tokens` setting.
 
-```
+```ini
 rdp.settings.isearch.user-id=522
 rdp.settings.isearch.auth-tokens=hrol3Y4z2OE0ayK227i8oHTLDjPtRfb4,jLb22QZzsaT6/w3xwDHBObmZPypJgXfb
 ```
@@ -129,7 +129,7 @@ have direct access to their TIER1 genes, and a focus on their TIER2 genes. TIER3
 
 To enable only TIER1 and TIER2, and thus disabling GO terms-related features, add the following to your configuration:
 
-```
+```ini
 rdp.settings.enabled-tiers=TIER1,TIER2
 ```
 
@@ -138,8 +138,31 @@ rdp.settings.enabled-tiers=TIER1,TIER2
 Researcher categories can be enabled or disabled by setting the `rdp.settings.profile.enabled-researcher-categories` to
 a list of desired values:
 
-```
+```ini
 rdp.settings.enabled-researcher-categories=IN_SILICO,IN_VIVO
+```
+
+## Privacy levels
+
+Privacy levels can be selectively enabled for user profiles and genes.
+
+```ini
+rdp.settings.privacy.enabled-levels=PUBLIC,SHARED,PRIVATE
+rdp.settings.privacy.enabled-gene-levels=PUBLIC,SHARED,PRIVATE
+```
+
+Note that any value enabled for genes that is not also enabled for profiles will be ignored.
+
+## Anonymized search results
+
+By default, search results that are not accessible to a given user are anonymized. All identifiable information is
+stripped from the model and numerical identifiers are randomized in such a way that it becomes impossible to relate
+users or genes from different search.
+
+This feature can be disabled by setting the following configuration key to `false`:
+
+```
+rdp.settings.privacy.enable-anonymized-search-results=false
 ```
 
 ## Internationalization and custom messages
@@ -162,7 +185,7 @@ moved to `messages.properties`.
 The FAQ can be customized by relocating the resource to a local file (i.e. `faq.properties`) with
 the `rdp.settings.faq-file` configuration.
 
-```
+```ini
 rdp.settings.faq-file=file:faq.properties
 ```
 
@@ -170,7 +193,7 @@ All the question and answer style items that will display in the frequently aske
 two parts: `rdp.faq.questions.<q_key>` and `rdp.faq.answers.<q_key>` which hold the question and the corresponding 
 answer, respectively.
 
-```
+```ini
 rdp.faq.questions.<q_key>=A relevant question.
 rdp.faq.answers.<q_key>=A plausible answer.
 ```
@@ -214,6 +237,7 @@ packaging the JAR archive yourself.
 
 ```bash
 git clone https://github.com/PavlidisLab/rgr.git
+git checkout v1.4.0
 cd rgr/
 # edit what you want...
 ./mvnw package
