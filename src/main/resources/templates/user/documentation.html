@@ -219,19 +219,26 @@
                                     <div class="card-body">
                                         <p>The main goal of the registry is to collect an accurate
                                             and comprehensive list of the genes that you study or are
-                                            able to study. Genes that you are entering directly into
-                                            the system can be either Primary or Secondary
-                                            (non-Primary).</p>
+                                            able to study.
+                                        </p>
 
-                                        <ul>
-                                            <li><b>Primary genes</b> (Tier 1) are those you currently
+                                        <p th:if="${@tierService.enabledTiers.size()} > 1">
+                                            Genes that you are entering directly into
+                                            the system can be either Primary or Secondary
+                                            (non-Primary).
+                                        </p>
+
+                                        <ul th:if="${@tierService.enabledTiers.size()} > 1">
+                                            <li th:if="${@tierService.isTierEnabled(T(ubc.pavlab.rdp.model.enums.TierType).TIER1)}">
+                                                <b>Primary genes</b> (Tier 1) are those you currently
                                                 work on in a model organism. You must be able to
                                                 immediately, specifically and rapidly study them in your
                                                 laboratory. Genes you have recently published on are
                                                 especially good Primary genes. We expect this to
                                                 typically be between 1-10 genes.
                                             </li>
-                                            <li><b>Secondary genes</b> (Tier 2) are those you do not
+                                            <li th:if="${@tierService.isTierEnabled(T(ubc.pavlab.rdp.model.enums.TierType).TIER2)}">
+                                                <b>Secondary genes</b> (Tier 2) are those you do not
                                                 mark as Primary. Carefully choose genes which you are
                                                 not necessarily actively investigating, but would be able
                                                 to work on rapidly and specifically with minimal set-up
@@ -262,7 +269,8 @@
                                                     <b>public</b> - this gene will be visible publicly. Your
                                                     information will be shared (see above) with registered users and
                                                     will be accessible to non-registered users through the registry’s
-                                                    public search webpage (<i th:text=" ${@siteSettings.getHostUri()}"></i>).
+                                                    public search webpage (<i
+                                                        th:text=" ${@siteSettings.getHostUri()}"></i>).
                                                 </li>
                                             </ul>
                                             <p>
@@ -277,9 +285,11 @@
                                         <p>In the input box below the table you may search genes one by one or type
                                             in a comma separated list of gene symbols. Add them by pressing the enter
                                             key or the "+" symbol.</p>
-                                        <p>The added genes will appear at the bottom of the table. You can remove genes
+                                        <p th:if="${@tierService.enabledTiers.size()} > 1">
+                                            The added genes will appear at the bottom of the table. You can remove genes
                                             by clicking the red X on the desired row. You can also change the Primary
-                                            status of genes using the checkbox.</p>
+                                            status of genes using the checkbox.
+                                        </p>
 
                                         <p>Finally, be sure to <b>Save</b>. If you navigate away from the page without
                                             doing so, you will be prompted to confirm.</p>
@@ -297,7 +307,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="card my-3">
+                            <div th:if="${@tierService.isTierEnabled(T(ubc.pavlab.rdp.model.enums.TierType).TIER3)}" class="card my-3">
                                 <div class="card-header" id="modelterms-heading">
                                     <h5 class="mb-0">
                                         <button class="btn btn-link" data-toggle="collapse" data-target="#modelterms"
@@ -364,7 +374,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="card my-3">
+                            <div th:if="${@tierService.isTierEnabled(T(ubc.pavlab.rdp.model.enums.TierType).TIER3)}"  class="card my-3">
                                 <div class="card-header" id="modeltermsuggest-heading">
                                     <h5 class="mb-0">
                                         <button class="btn btn-link" data-toggle="collapse"
