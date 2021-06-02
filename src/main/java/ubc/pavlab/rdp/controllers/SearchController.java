@@ -466,7 +466,7 @@ public class SearchController {
             try {
                 user = remoteResourceService.getAnonymizedUser( anonymousId, remoteHostUri );
             } catch ( RemoteException e ) {
-                log.error( MessageFormat.format( "Failed to retrieve anonymized user {} from {}.", anonymousId, remoteHostUri ), e );
+                log.error( MessageFormat.format( "Failed to retrieve anonymized user {} from {}.", anonymousId, remoteHostUri.getAuthority() ), e );
                 modelAndView.setStatus( HttpStatus.INTERNAL_SERVER_ERROR );
                 modelAndView.setViewName( "fragments/error::message" );
                 modelAndView.addObject( "errorMessage", "Error querying remote anonymous user." );
@@ -505,7 +505,7 @@ public class SearchController {
             try {
                 viewUser = remoteResourceService.getRemoteUser( userId, remoteHostUri );
             } catch ( RemoteException e ) {
-                log.error( MessageFormat.format( "Could not fetch the remote user id {0} from {1}.", userId, remoteHostUri ), e );
+                log.error( MessageFormat.format( "Could not fetch the remote user id {0} from {1}.", userId, remoteHostUri.getAuthority() ), e );
                 modelAndView.setStatus( HttpStatus.SERVICE_UNAVAILABLE );
                 modelAndView.setViewName( "error/503" );
                 return modelAndView;
