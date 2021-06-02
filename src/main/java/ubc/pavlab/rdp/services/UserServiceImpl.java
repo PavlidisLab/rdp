@@ -73,6 +73,8 @@ public class UserServiceImpl implements UserService {
     private MessageSource messageSource;
     @Autowired
     private GeneInfoService geneInfoService;
+    @Autowired
+    private PrivacyService privacyService;
 
     @Transactional
     @Override
@@ -453,7 +455,12 @@ public class UserServiceImpl implements UserService {
                     userGene.setTier( genesToTierMap.get( g ) );
                     if ( applicationSettings.getPrivacy().isCustomizableGeneLevel() ) {
                         // if no privacy level is set, we inherit the profile value
-                        userGene.setPrivacyLevel( genesToPrivacyLevelMap.getOrDefault( g, null ) );
+                        PrivacyLevelType privacyLevel = genesToPrivacyLevelMap.getOrDefault( g, null );
+                        if ( privacyLevel == null || privacyService.isGenePrivacyLevelEnabled( privacyLevel ) ) {
+                            userGene.setPrivacyLevel( privacyLevel );
+                        } else {
+                            log.warn( MessageFormat.format( "{0} attempted to set {1} privacy level to a value that is not enabled: {2}. The new value was ignored.", findCurrentUser(), g, privacyLevel ) );
+                        }
                     }
                     userGene.updateGene( g );
                     return userGene;
@@ -530,9 +537,6 @@ public class UserServiceImpl implements UserService {
         } else {
             log.warn( MessageFormat.format( "User {0} attempted to set user {1} researcher position to an unknown value {2}.",
                     findCurrentUser(), user, profile.getResearcherPosition() ) );
-            if ( user.getProfile().getPrivacyLevel() != profile.getPrivacyLevel() ) {
-                user.getUserGenes().values().forEach( ug -> ug.setPrivacyLevel( profile.getPrivacyLevel() ) );
-            }
         }
         user.getProfile().setResearcherPosition( profile.getResearcherPosition() );
         user.getProfile().setOrganization( profile.getOrganization() );
@@ -573,12 +577,18 @@ public class UserServiceImpl implements UserService {
 
         // privacy settings
         if ( applicationSettings.getPrivacy().isCustomizableLevel() ) {
-            // reset gene privacy levels if the profile value is changed
-            if ( applicationSettings.getPrivacy().isCustomizableGeneLevel() &&
-                    user.getProfile().getPrivacyLevel() != profile.getPrivacyLevel() ) {
-                user.getUserGenes().values().forEach( ug -> ug.setPrivacyLevel( profile.getPrivacyLevel() ) );
+            if ( privacyService.isPrivacyLevelEnabled( profile.getPrivacyLevel() ) ) {
+                // reset gene privacy levels if the profile value is changed
+                if ( applicationSettings.getPrivacy().isCustomizableGeneLevel() &&
+                        user.getProfile().getPrivacyLevel() != profile.getPrivacyLevel() ) {
+                    // reset gene-level privacy when profile is updated
+                    user.getUserGenes().values().forEach( ug -> ug.setPrivacyLevel( profile.getPrivacyLevel() ) );
+                }
+                user.getProfile().setPrivacyLevel( profile.getPrivacyLevel() );
+            } else {
+                log.warn( MessageFormat.format( "{0} attempted to set {1} its profile privacy level to a disabled value: {2}. The new value was ignored.",
+                        findCurrentUser(), user, profile.getPrivacyLevel() ) );
             }
-            user.getProfile().setPrivacyLevel( profile.getPrivacyLevel() );
         }
         if ( applicationSettings.getPrivacy().isCustomizableSharing() ) {
             user.getProfile().setShared( profile.getShared() );

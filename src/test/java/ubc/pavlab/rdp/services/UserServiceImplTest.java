@@ -137,7 +137,10 @@ public class UserServiceImplTest {
         when( applicationSettings.getGoTermSizeLimit() ).thenReturn( 100L );
         when( applicationSettings.getOrgans() ).thenReturn( organSettings );
         when( organSettings.getEnabled() ).thenReturn( true );
+        when( privacySettings.isCustomizableLevel() ).thenReturn( true );
+        when( privacySettings.getEnabledLevels() ).thenReturn( EnumSet.allOf( PrivacyLevelType.class ).stream().map( PrivacyLevelType::name ).collect( Collectors.toList() ) );
         when( privacySettings.isCustomizableGeneLevel() ).thenReturn( true );
+        when( privacySettings.getEnabledGeneLevels() ).thenReturn( EnumSet.allOf( PrivacyLevelType.class ).stream().map( PrivacyLevelType::name ).collect( Collectors.toList() ) );
         when( applicationSettings.getPrivacy() ).thenReturn( privacySettings );
         when( applicationSettings.getProfile() ).thenReturn( profileSettings );
 
