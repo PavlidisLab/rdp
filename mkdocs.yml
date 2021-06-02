@@ -4,6 +4,8 @@ nav:
   - index.md
   - installation.md
   - customization.md
+  - service-accounts.md
   - deployment.md
   - migration.md
+  - api.md
   - release-notes.md
