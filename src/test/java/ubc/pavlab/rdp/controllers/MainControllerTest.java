@@ -116,9 +116,6 @@ public class MainControllerTest {
         mvc.perform( get( "/stats.html" ) )
                 .andExpect( status().is3xxRedirection() )
                 .andExpect( redirectedUrl( "/stats" ) );
-        mvc.perform( post( "/stats.html" ) )
-                .andExpect( status().is3xxRedirection() )
-                .andExpect( redirectedUrl( "/stats" ) );
     }
 
     @Test
