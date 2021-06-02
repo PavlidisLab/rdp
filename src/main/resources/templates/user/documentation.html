@@ -97,7 +97,7 @@
 
                                             <p>Data Privacy Settings section lets you choose your global data sharing
                                                 preferences.
-                                                The default setting, "private", is pre-selected, but can be changed.
+                                                The default setting is pre-selected, but can be changed.
                                                 The options are:
                                             </p>
                                             <ul>
@@ -112,22 +112,21 @@
                                                     access your information through the  provided search interface.
                                                 </li>
                                                 <li th:if="${@privacyService.isPrivacyLevelEnabled(T(ubc.pavlab.rdp.model.enums.PrivacyLevelType).PUBLIC)}">
-                                                    <b>public</b> - your information will be visible publicly. Your
-                                                    information will be shared (see above) with registered users and
-                                                    will be accessible to non-registered users through the registry’s
+                                                    <b>public</b> - your information will be publicly accessible. If "shared" option is available, your
+                                                    information will be shared with registered users and
+                                                    will also be accessible to non-registered users through the registry’s
                                                     public search webpage (<i th:text=" ${@siteSettings.getHostUri()}"></i>).
                                                 </li>
                                             </ul>
                                         </div>
                                         <p th:if="${@applicationSettings.getPrivacy().isCustomizableSharing()}">
-                                            Furthermore this section gives you the option to set your preference for
+                                            Furthermore, this section gives you the option to set your preference for
                                             sharing your data with the network’s partner registries for the purposes
                                             of establishing connections between clinician sciences who are submitting
                                             their rare disease genes to partner registries and Canadian model organism
                                             researchers. The data shared with partner registries will only be visible to
                                             the administrators of those registries. If your data privacy level is set to
-                                            "public",
-                                            partner registries will gain access automatically.
+                                            "public", partner registries will gain access automatically.
                                         </p>
                                     </div>
                                 </div>
@@ -230,15 +229,15 @@
                                                 immediately, specifically and rapidly study them in your
                                                 laboratory. Genes you have recently published on are
                                                 especially good Primary genes. We expect this to
-                                                typically be between one and ten genes.
+                                                typically be between 1-10 genes.
                                             </li>
                                             <li><b>Secondary genes</b> (Tier 2) are those you do not
                                                 mark as Primary. Carefully choose genes which you are
-                                                not necessarily actively investigating but would be able
+                                                not necessarily actively investigating, but would be able
                                                 to work on rapidly and specifically with minimal set-up
                                                 time. These might be paralogs of Tier 1 genes, or
                                                 members of the same complexes or pathway. For most
-                                                registrants we expect there might be between one and 100
+                                                registrants we expect there might be between 1-100
                                                 non-Primary genes entered.
                                             </li>
                                         </ul>
@@ -248,7 +247,7 @@
 
                                         <p>In the input box below the table you may search genes one by one or type
                                             in a comma separated list of gene symbols. Add them by pressing the enter
-                                            key or the + symbol.</p>
+                                            key or the "+" symbol.</p>
                                         <p>The added genes will appear at the bottom of the table. You can remove genes
                                             by clicking the red X on the desired row. You can also change the Primary
                                             status of genes using the checkbox.</p>
