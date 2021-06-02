@@ -43,12 +43,12 @@
                                     <h5 class="mb-0">
                                         <button class="btn btn-link" data-toggle="collapse" data-target="#profileinfo"
                                                 aria-expanded="false" aria-controls="profileinfo">
-                                            Fill out profile information
+                                            Fill out Profile information
                                         </button>
                                     </h5>
                                 </div>
 
-                                <div id="profileinfo" class="collapse show" aria-labelledby="profileinfo-heading"
+                                <div id="profileinfo" class="collapse" aria-labelledby="profileinfo-heading"
                                      data-parent="#profile-accordion">
                                     <div class="card-body">
                                         <h5>Basic Profile Information</h5>
@@ -187,7 +187,7 @@
                                     </h5>
                                 </div>
 
-                                <div id="modelmanager" class="collapse show" aria-labelledby="modelmanager-heading"
+                                <div id="modelmanager" class="collapse" aria-labelledby="modelmanager-heading"
                                      data-parent="#model-accordion">
                                     <div class="card-body">
                                         <p>
@@ -219,26 +219,19 @@
                                     <div class="card-body">
                                         <p>The main goal of the registry is to collect an accurate
                                             and comprehensive list of the genes that you study or are
-                                            able to study.
-                                        </p>
-
-                                        <p th:if="${@tierService.enabledTiers.size()} > 1">
-                                            Genes that you are entering directly into
+                                            able to study. Genes that you are entering directly into
                                             the system can be either Primary or Secondary
-                                            (non-Primary).
-                                        </p>
+                                            (non-Primary).</p>
 
-                                        <ul th:if="${@tierService.enabledTiers.size()} > 1">
-                                            <li th:if="${@tierService.isTierEnabled(T(ubc.pavlab.rdp.model.enums.TierType).TIER1)}">
-                                                <b>Primary genes</b> (Tier 1) are those you currently
+                                        <ul>
+                                            <li><b>Primary genes</b> (Tier 1) are those you currently
                                                 work on in a model organism. You must be able to
                                                 immediately, specifically and rapidly study them in your
                                                 laboratory. Genes you have recently published on are
                                                 especially good Primary genes. We expect this to
                                                 typically be between 1-10 genes.
                                             </li>
-                                            <li th:if="${@tierService.isTierEnabled(T(ubc.pavlab.rdp.model.enums.TierType).TIER2)}">
-                                                <b>Secondary genes</b> (Tier 2) are those you do not
+                                            <li><b>Secondary genes</b> (Tier 2) are those you do not
                                                 mark as Primary. Carefully choose genes which you are
                                                 not necessarily actively investigating, but would be able
                                                 to work on rapidly and specifically with minimal set-up
@@ -252,7 +245,7 @@
                                         <div th:if="${@applicationSettings.privacy.isCustomizableGeneLevel()}">
                                             <p>
                                                 You may also choose a privacy levels for your genes that differ from
-                                                your profile. The options are:
+                                                the global privacy settings in your Profile. The new levels can only be more restrictive than your global privacy level.  options are:
                                             </p>
                                             <ul>
                                                 <li th:if="${@privacyService.isGenePrivacyLevelEnabled(T(ubc.pavlab.rdp.model.enums.PrivacyLevelType).PRIVATE)}">
@@ -264,17 +257,10 @@
                                                     <b>shared</b> - this gene will be accessible by other researchers
                                                     who are registered. Registered users will be able to access your
                                                     information through the provided search interface.
-                                                </li>
-                                                <li th:if="${@privacyService.isGenePrivacyLevelEnabled(T(ubc.pavlab.rdp.model.enums.PrivacyLevelType).PUBLIC)}">
-                                                    <b>public</b> - this gene will be visible publicly. Your
-                                                    information will be shared (see above) with registered users and
-                                                    will be accessible to non-registered users through the registry’s
-                                                    public search webpage (<i
-                                                        th:text=" ${@siteSettings.getHostUri()}"></i>).
-                                                </li>
+                                                  </li>
                                             </ul>
                                             <p>
-                                                Note that if the privacy level of your profile change, the genes will be
+                                                Note that if you change the global privacy setting in your Profile, the genes will be
                                                 updated to use the new value.
                                             </p>
                                         </div>
@@ -285,11 +271,9 @@
                                         <p>In the input box below the table you may search genes one by one or type
                                             in a comma separated list of gene symbols. Add them by pressing the enter
                                             key or the "+" symbol.</p>
-                                        <p th:if="${@tierService.enabledTiers.size()} > 1">
-                                            The added genes will appear at the bottom of the table. You can remove genes
+                                        <p>The added genes will appear at the bottom of the table. You can remove genes
                                             by clicking the red X on the desired row. You can also change the Primary
-                                            status of genes using the checkbox.
-                                        </p>
+                                            status of genes using the checkbox.</p>
 
                                         <p>Finally, be sure to <b>Save</b>. If you navigate away from the page without
                                             doing so, you will be prompted to confirm.</p>
@@ -307,7 +291,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div th:if="${@tierService.isTierEnabled(T(ubc.pavlab.rdp.model.enums.TierType).TIER3)}" class="card my-3">
+                            <div class="card my-3">
                                 <div class="card-header" id="modelterms-heading">
                                     <h5 class="mb-0">
                                         <button class="btn btn-link" data-toggle="collapse" data-target="#modelterms"
@@ -365,7 +349,7 @@
 
                                         <p><b>Note:</b> that terms who have more
                                             than 100 associated genes will not be
-                                            available for addition to your profile.</p>
+                                            available for addition to your Profile.</p>
 
                                         <p>
                                             Once again, don't forget to <b>Save</b>.
@@ -374,7 +358,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div th:if="${@tierService.isTierEnabled(T(ubc.pavlab.rdp.model.enums.TierType).TIER3)}"  class="card my-3">
+                            <div class="card my-3">
                                 <div class="card-header" id="modeltermsuggest-heading">
                                     <h5 class="mb-0">
                                         <button class="btn btn-link" data-toggle="collapse"
@@ -419,7 +403,7 @@
                                     </button>
                                 </h5>
                             </div>
-                            <div id="searchcrd" class="collapse show" aria-labelledby="searchcrd-heading"
+                            <div id="searchcrd" class="collapse" aria-labelledby="searchcrd-heading"
                                  data-parent="#search-accordion">
                                 <div class="card-body">
                                     <p>
@@ -430,8 +414,8 @@
                                         display/search their "public" users.
                                     </p>
                                     <p>
-                                        There are two ways to search for users: using their name and profile information
-                                        ("researcher" tab) or using gene search ("Gene" tab). In the "researcher" tab
+                                        There are two ways to search for users: using their name and Profile information
+                                        ("Researcher" tab) or using gene search ("Gene" tab). In the "Researcher" tab
                                         you can search in the following ways:
                                     </p>
                                     <ul>
@@ -449,7 +433,7 @@
                                         partner registries" is selected, the partner registries results will be
                                         displayed in a separate section with the indication from which registry the
                                         matches are coming from ("Origin"). Clicking on the "View User Profile" button
-                                        will open a new tab with the user's profile and gene information.
+                                        will open a new tab with the user's Profile and gene information.
                                     </p>
                                     <h5>Search genes</h5>
                                     <p>
@@ -461,26 +445,24 @@
                                         indicate the preferred organism. The ortholog mapping is based on <a
                                             href="https://www.flyrnai.org/diopt"
                                             target="_blank">DIOPT</a> results, filtered for DIOPT score >5 and Rank =
-                                        "high".
+                                        "high" or "moderate".
                                     </p>
                                     <div th:if="${@applicationSettings.organs.enabled}">
                                         <h5>Filter by Organ Systems</h5>
                                         <p>
-                                            In the search interface, you may also filter by organ systems to
-                                            restrict
-                                            the results to the users for whom these systems are relevant. If nothing
-                                            is
-                                            picked, no filtering is performed.
+                                            You can also filter the results of your search by organ systems to restrict
+                                            them to the users for whom these systems are relevant. If nothing
+                                            is selected no filtering is performed.
                                         </p>
                                     </div>
                                     <div th:if="${@applicationSettings.privacy.enableAnonymizedSearchResults}">
                                         <h5>Anonymous Results</h5>
                                         <p>
-                                            If you are lacking the permissions to view a user or a gene result, the you
-                                            may still be able to reach out to that researcher. On the left side of the
-                                            result, a "Request Access" button will appear, and lead you to a page where
-                                            you can contact that user anonymously with a customized message. An email
-                                            will be send and an administrator will be CCed. The researcher may choose to
+                                            If you lack permissions to see the matched researcher information (either their 
+                                            global privacy level or gene privacy level are set to "private"), their name and 
+                                            organization will not be displayed in the result table and the button on the left 
+                                            will say "Request Access" instead of "View User Profile". Clicking this button will 
+                                            take you to the a web form allowing to contact that user. The contacted researcher may choose to
                                             reply, in which case he/she will contact you via your contact email.
                                         </p>
                                     </div>
