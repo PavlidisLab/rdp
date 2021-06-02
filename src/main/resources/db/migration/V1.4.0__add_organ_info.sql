@@ -69,4 +69,7 @@ insert into organ_info (uberon_id, name, active, ordering) values ('UBERON:00041
 
 -- Add commmon frog and fission yeast by default
 insert into taxon (taxon_id, common_name, scientific_name, gene_url, active, ordering) values (4896, 'fission yeast', 'Schizosaccharomyces pombe', 'ftp://ftp.ncbi.nih.gov/gene/DATA/GENE_INFO/Fungi/All_Fungi.gene_info.gz', false, 9);
-insert into taxon (taxon_id, common_name, scientific_name, gene_url, active, ordering) values (8364, 'tropical clawed frog', 'Xenopus tropicalis', 'ftp://ftp.ncbi.nih.gov/gene/DATA/GENE_INFO/Non-mammalian_vertebrates/Xenopus_tropicalis.gene_info.gz', false, 10);
+insert into taxon (taxon_id, common_name, scientific_name, gene_url, active, ordering) values (8364, 'frog', 'Xenopus tropicalis', 'ftp://ftp.ncbi.nih.gov/gene/DATA/GENE_INFO/Non-mammalian_vertebrates/Xenopus_tropicalis.gene_info.gz', false, 10);
+
+-- Update budding yeast common name
+update taxon set common_name = 'budding yeast' where taxon_id = 559292;
