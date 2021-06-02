@@ -10,6 +10,18 @@ disable the data cache service:
 ```ìni
 rdp.settings.cache.enabled=false
 ```
+### Gene information, GO terms 
+
+By default, RDP will retrieve the latest genes and gene-term associations from
+NCBI, and GO terms from [Ontobee](http://www.ontobee.org/ontology/OBI). Users
+genes and terms will be updated in the aftermath of a successful update.
+
+Note that the URL used for retrieving data from NCBI is defined in the database. If `rdp.settings.load-from-disk` is 
+enabled, the basename of the URL will be used, relative to `rdp.settings.gene-files-location`.
+
+```sql
+select taxon_id, scientific_name, gene_url from taxon;
+```
 
 ### Loading data from disk
 
@@ -39,18 +51,6 @@ For example, the following will activate the mouse taxa:
 update taxon set active = 1 where taxon_id = 10090;
 ```
 
-### Gene information, GO terms 
-
-By default, RDP will retrieve the latest genes and gene-term associations from
-NCBI, and GO terms from [Ontobee](http://www.ontobee.org/ontology/OBI). Users
-genes and terms will be updated in the aftermath of a successful update.
-
-Note that the URL used for retrieving data from NCBI is defined in the database. If `rdp.settings.load-from-disk` is 
-enabled, the basename of the URL will be used, relative to `rdp.settings.gene-files-location`.
-
-```sql
-select taxon_id, scientific_name, gene_url from taxon;
-```
 
 ### Ortholog mapping
 
