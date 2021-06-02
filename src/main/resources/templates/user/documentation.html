@@ -27,7 +27,7 @@
                            aria-controls="model"
                            aria-selected="true">Model Organisms</a>
                     </li>
-                    <li class="nav-item">
+                    <li th:if="${@applicationSettings.privacy.registeredSearch}" class="nav-item">
                         <a class="nav-link" id="search-tab" data-toggle="tab" href="#search" role="tab"
                            aria-controls="search"
                            aria-selected="true">Search</a>
@@ -392,7 +392,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="tab-pane fade" id="search" role="tabpanel" aria-labelledby="model-tab">
+                    <div th:if="${@applicationSettings.privacy.registeredSearch}" class="tab-pane fade" id="search" role="tabpanel" aria-labelledby="model-tab">
                         <div class="card my-3">
                             <div class="card-header" id="searchmanager-heading">
                                 <h5 class="mb-0">
