@@ -87,7 +87,7 @@
                                             <h5>Organ Systems</h5>
                                             <p>
                                                 You may select a set of human organ systems that your research is most relevant to. This information can be used when 
-                                                database searches are performed to select researches with expertize in certain organ systems. Selecting no organ systems 
+                                                database searches are performed to select researches with expertise in certain organ systems. Selecting no organ systems 
                                                 is equvalent to selecting all of them.  
                                             </p>
                                         </div>
@@ -104,7 +104,7 @@
                                             <ul>
                                                 <li th:if="${@privacyService.isPrivacyLevelEnabled(T(ubc.pavlab.rdp.model.enums.PrivacyLevelType).PRIVATE)}">
                                                     <b>private</b> - your information will only be accessible by
-                                                    Network administrators for matching you to a new rare disease gene
+                                                    the network administrator for matching you to a new rare disease gene
                                                     and considering you for funding opportunities.
                                                 </li>
                                                 <li th:if="${@privacyService.isPrivacyLevelEnabled(T(ubc.pavlab.rdp.model.enums.PrivacyLevelType).SHARED)}">
@@ -246,7 +246,7 @@
                                         <div th:if="${@applicationSettings.privacy.isCustomizableGeneLevel()}">
                                             <p>
                                                 You may also choose a privacy levels for your genes that differ from
-                                                the global privacy settings in your Profile. The new levels can only be more restrictive than your global privacy level.  options are:
+                                                the global privacy settings in your Profile. The new levels can only be more restrictive than your global privacy level.  Options are:
                                             </p>
                                             <ul>
                                                 <li th:if="${@privacyService.isGenePrivacyLevelEnabled(T(ubc.pavlab.rdp.model.enums.PrivacyLevelType).PRIVATE)}">
