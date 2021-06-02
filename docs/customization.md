@@ -129,15 +129,16 @@ rdp.settings.isearch.search-token=hrol3Y4z2OE0ayK227i8oHTLDjPtRfb4
 
 Send that token securely to the partner registries.
 
-On the receiving side, the partner registry must create a user that is used to perform privileged searches. This can be
-achieved in the administrative section under `/admin/create-service-account` endpoint.
+On the receiving side, the partner registry must create a user that is used to
+perform privileged searches. This can be achieved by creating a [service account](/service-account).
 
-Let's assume that a user with user ID 522 was created. The partner would then add the token to
-its `rdp.settings.isearch.auth-tokens` setting.
+Let's assume that the created user's ID was 522. The partner would then add the
+token to its `rdp.settings.isearch.auth-tokens` setting along any existing
+tokens.
 
 ```ini
 rdp.settings.isearch.user-id=522
-rdp.settings.isearch.auth-tokens=hrol3Y4z2OE0ayK227i8oHTLDjPtRfb4,jLb22QZzsaT6/w3xwDHBObmZPypJgXfb
+rdp.settings.isearch.auth-tokens=jLb22QZzsaT6/w3xwDHBObmZPypJgXfb,hrol3Y4z2OE0ayK227i8oHTLDjPtRfb4
 ```
 
 That's it. You can now query private data from the partner registry when logged in as an administrator on your own
