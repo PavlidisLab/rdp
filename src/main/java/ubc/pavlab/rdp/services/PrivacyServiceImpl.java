@@ -95,7 +95,7 @@ public class PrivacyServiceImpl implements PrivacyService {
                 || ( privacyLevel.equals( PrivacyLevelType.PUBLIC ) ) // Data is public
                 || ( privacyLevel.equals( PrivacyLevelType.SHARED ) && currentUser != null && !currentUser.getId().equals( applicationSettings.getIsearch().getUserId() ) )// data is accessible for registerd users and there is a user logged in who is not the remote admin
                 || ( privacyLevel.equals( PrivacyLevelType.PRIVATE ) && currentUser != null && currentUser.getRoles().contains( getAdminRole() ) && !currentUser.getId().equals( applicationSettings.getIsearch().getUserId() ) )// data is private and there is an admin logged in who is not the remote admin
-                || ( privacyLevel.equals( PrivacyLevelType.PRIVATE ) && currentUser != null && currentUser.getRoles().contains( getServiceAccountRole() ) ) // user is a service account
+                || ( privacyLevel.equals( PrivacyLevelType.PRIVATE ) && currentUser != null && currentUser.getRoles().contains( getServiceAccountRole() ) && !currentUser.getId().equals( applicationSettings.getIsearch().getUserId() ) ) // user is a service account
                 || ( profile.getShared() && currentUser != null && currentUser.getRoles().contains( getAdminRole() ) && currentUser.getId().equals( applicationSettings.getIsearch().getUserId() ) ); // data is designated as remotely shared and there is an admin logged in who is the remote admin
     }
 
