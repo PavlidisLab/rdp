@@ -4,8 +4,12 @@
 
 RDP relies on a rich set of ontologies to describe taxa, GO terms, organ systems, etc.
 
-This data is retrieved from various remote locations at startup and updated on a monthly basis. To prevent this, 
-disable the data cache service:
+This data is retrieved from various remote locations at startup and updated on a monthly basis.
+
+
+### Disable data loading
+
+To prevent data from being loaded on startup and recurrently, set the following parameter:
 
 ```ìni
 rdp.settings.cache.enabled=false
@@ -22,6 +26,23 @@ enabled, the basename of the URL will be used, relative to `rdp.settings.gene-fi
 ```sql
 select taxon_id, scientific_name, gene_url from taxon;
 ```
+
+You should deploy your RDP instance at least once to have initial data before setting this property and whenever you 
+update the software.
+
+### Default locations for data 
+
+By default, RDP retrieves data from the following locations for orthologs, GO terms, gene2go and Uberon identifiers.
+
+```ìni
+rdp.settings.cache.ortholog-file=classpath:cache/DIOPT_filtered_data_May2021.gz
+rdp.settings.cache.term-file=http://purl.obolibrary.org/obo/go.obo
+rdp.settings.cache.annotation-file=ftp://ftp.ncbi.nlm.nih.gov/gene/DATA/gene2go.gz
+rdp.settings.cache.organ-file=http://purl.obolibrary.org/obo/uberon.obo
+```
+
+Gene information are obtained from [NCBI Gene FTP server](https://ftp.ncbi.nih.gov/gene/DATA/GENE_INFO/) with URLs
+stored in the database.
 
 ### Loading data from disk
 
