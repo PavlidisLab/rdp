@@ -587,6 +587,7 @@ public class UserServiceImplTest {
     public void updateUserProfileAndPublicationsAndOrgans_whenContactEmailIsSet_thenSendVerificationEmail() {
         User user = createUser( 1 );
         Profile profile = new Profile();
+        profile.setPrivacyLevel(PrivacyLevelType.PUBLIC);
         profile.setContactEmail( "foo@example.com" );
         userService.updateUserProfileAndPublicationsAndOrgans( user, profile, null, null );
         verify( userListener ).onContactEmailUpdate( any( OnContactEmailUpdateEvent.class ) );
@@ -602,6 +603,7 @@ public class UserServiceImplTest {
     public void updateUserProfileAndPublicationsAndOrgans_whenContactEmailIsEqualToUserEmail_thenAssumeContactEmailIsVerified() {
         User user = createUser( 1 );
         Profile profile = new Profile();
+        profile.setPrivacyLevel(PrivacyLevelType.PUBLIC);
         profile.setContactEmail( user.getEmail() );
         userService.updateUserProfileAndPublicationsAndOrgans( user, profile, null, null );
         assertThat( user.getProfile().getContactEmailVerified() ).isTrue();
@@ -614,6 +616,7 @@ public class UserServiceImplTest {
         user.getProfile().setContactEmail( "foo@example.com" );
         user.getProfile().setContactEmailVerified( true );
         Profile profile = new Profile();
+        profile.setPrivacyLevel(PrivacyLevelType.PUBLIC);
         profile.setContactEmail( null );
         userService.updateUserProfileAndPublicationsAndOrgans( user, profile, null, null );
         assertThat( user.getProfile().getContactEmail() ).isNull();
@@ -627,6 +630,7 @@ public class UserServiceImplTest {
         user.getProfile().setContactEmail( "foo@example.com" );
         user.getProfile().setContactEmailVerified( true );
         Profile profile = new Profile();
+        profile.setPrivacyLevel(PrivacyLevelType.PUBLIC);
         profile.setContactEmail( "" );
         userService.updateUserProfileAndPublicationsAndOrgans( user, profile, null, null );
         assertThat( user.getProfile().getContactEmail() ).isEmpty();
@@ -642,6 +646,7 @@ public class UserServiceImplTest {
         when( profileSettings.getEnabledResearcherPositions() ).thenReturn( researcherPositionNames );
         User user = createUser( 1 );
         Profile profile = new Profile();
+        profile.setPrivacyLevel(PrivacyLevelType.PUBLIC);
         profile.setResearcherPosition( ResearcherPosition.PRINCIPAL_INVESTIGATOR );
         userService.updateUserProfileAndPublicationsAndOrgans( user, profile, null, null );
         assertThat( user.getProfile().getResearcherPosition() ).isEqualTo( ResearcherPosition.PRINCIPAL_INVESTIGATOR );
@@ -657,6 +662,7 @@ public class UserServiceImplTest {
         when( profileSettings.getEnabledResearcherCategories() ).thenReturn( researcherCategoryNames );
         User user = createUser( 1 );
         Profile profile = new Profile();
+        profile.setPrivacyLevel(PrivacyLevelType.PUBLIC);
         profile.getResearcherCategories().add( ResearcherCategory.IN_SILICO );
         userService.updateUserProfileAndPublicationsAndOrgans( user, profile, null, null );
         assertThat( user.getProfile().getResearcherCategories() ).containsExactly( ResearcherCategory.IN_SILICO );
