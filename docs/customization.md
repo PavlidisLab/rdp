@@ -151,8 +151,19 @@ rdp.settings.isearch.search-token=hrol3Y4z2OE0ayK227i8oHTLDjPtRfb4
 ```
 
 
-On the receiving side, the partner registry must create a user that is used to perform privileged searches. This can be
-achieved by creating a [service account](/service-accounts).
+On the receiving side, the partner registry must create a user that is used to perform privileged searches.
+
+This is usually done by creating a remote administrative account:
+
+```sql
+insert into user ( email, enabled, password, privacy_level, description, last_name, name, shared, hide_genelist)
+values(concat(rand(),"@rdmm.com"), 0, md5(rand()), 0, "remote admin profile", "", "", false, false);
+insert into user_role (user_id,role_id) values ((select max(user_id) from user), 1);
+insert into user_role (user_id,role_id) values ((select max(user_id) from user), 2);
+select max(user_id) from user;
+```
+
+However, it can also be achieved by creating a [service account](/service-accounts).
 
 Let's assume that the created user's ID was 522. The partner would then add the token to
 its `rdp.settings.isearch.auth-tokens` setting along any existing tokens.
@@ -175,14 +186,36 @@ To enable only TIER1 and TIER2, and thus disabling GO terms-related features, ad
 rdp.settings.enabled-tiers=TIER1,TIER2
 ```
 
-## Researcher categories
+## Researcher position
 
-Researcher categories can be enabled or disabled by setting the `rdp.settings.profile.enabled-researcher-categories` to
-a list of desired values:
+Researcher positions can be enabled or disabled by setting the
+`rdp.settings.profile.enabled-researcher-positions` to a list of desired
+values.
+
+For the moment, only one value is defined `PRINCIPAL_INVESTIGATOR`.
 
 ```ini
-rdp.settings.enabled-researcher-categories=IN_SILICO,IN_VIVO
+rdp.settings.profile.enabled-researcher-positions=PRINCIPAL_INVESTIGATOR
 ```
+
+To disable this feature, just leave the setting blank.
+
+## Researcher categories
+
+Researcher categories can be enabled or disabled by setting the
+`rdp.settings.profile.enabled-researcher-categories` to a list of desired
+values.
+
+```ini
+rdp.settings.profile.enabled-researcher-categories=IN_SILICO,IN_VIVO
+```
+
+The available values are:
+
+ - `IN_VIVO`
+ - `IN_SILICO`
+
+To disable this feature, just leave the setting blank.
 
 ## Privacy levels
 
@@ -193,7 +226,10 @@ rdp.settings.privacy.enabled-levels=PUBLIC,SHARED,PRIVATE
 rdp.settings.privacy.enabled-gene-levels=PUBLIC,SHARED,PRIVATE
 ```
 
-Note that any value enabled for genes that is not also enabled for profiles will be ignored.
+Note that any value enabled for genes that is not also enabled for profiles
+will be ignored.
+
+To disable gene-level privacy, leave the `rdp.settings.privacy.enabled-gene-levels` blank.
 
 ## Anonymized search results
 

@@ -8,6 +8,7 @@ import lombok.ToString;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import ubc.pavlab.rdp.model.enums.RelationshipType;
+import ubc.pavlab.rdp.services.GOService;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -21,6 +22,12 @@ import java.util.stream.Collectors;
 public class GeneOntologyTermInfo extends GeneOntologyTerm {
 
     private boolean obsolete;
+
+    /**
+     * @deprecated please use {@link GOService#getSizeInTaxon} instead, this is only kept for the view layer.
+     */
+    @Deprecated
+    public long size;
 
     @JsonIgnore
     private Collection<Relationship> parents = new HashSet<>();
