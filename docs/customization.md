@@ -1,10 +1,8 @@
 # Customize your instance
 
-RDP relies on a rich set of ontologies to describe taxa, GO terms, organ systems, etc.
+Most of the data used by the application is retrieved remotely at startup and subsequently updated on a monthly basis.
 
-This data is retrieved from various remote locations at startup and updated on a monthly basis.
-
-To prevent data from being loaded on startup and recurrently, set the following parameter in
+To prevent data from being loaded on startup and/or recurrently, set the following parameter in
 the `application.properties` file:
 
 ```ìni
@@ -16,8 +14,8 @@ update the software.
 
 ## Gene information and GO terms
 
-By default, RDP will retrieve the latest genes and gene-term associations from NCBI, and GO terms
-from [Ontobee](http://www.ontobee.org/ontology/OBI). Users genes and terms will be updated in the aftermath of a
+By default, RDP will retrieve the latest gene information from NCBI, and GO terms
+from [Ontobee](http://www.ontobee.org/ontology/OBI). Users genes and GO terms will be updated after a
 successful update.
 
 Gene information are obtained from [NCBI Gene FTP server](https://ftp.ncbi.nih.gov/gene/DATA/GENE_INFO/)
@@ -26,49 +24,51 @@ with URLs stored in the database. You can retrieve these with the following quer
 ```sql
 select taxon_id, scientific_name, gene_url from taxon;
 ```
-
 For example, the `gene_url` column for *Homo sapiens* would contain `ftp://ftp.ncbi.nlm.nih.gov/gene/DATA/GENE_INFO/Mammalia/Homo_sapiens.gene_info.gz`
 
-GO terms, in the other hand, are obtained from Ontobee:
-
-```ini
-rdp.settings.cache.term-file=http://purl.obolibrary.org/obo/go.obo
-```
-
-Gene-term associations are provided by NCBI Gene FTP server:
+Genes' GO term annotations are also obtained from NCBI:
 
 ```ini
 rdp.settings.cache.annotation-file=ftp://ftp.ncbi.nlm.nih.gov/gene/DATA/gene2go.gz
 ```
 
+GO terms, on the other hand, are obtained from Ontobee:
+
+```ini
+rdp.settings.cache.term-file=http://purl.obolibrary.org/obo/go.obo
+```
+
+
+
 ## Taxon
 
-The taxon table is pre-populated during the first migration, and only human is activated. To enable other organisms, set
-their `active` column to `1` in the database.
+The taxon table is pre-populated during the very first installation of the software, at which time only Human taxon is activated. To enable other taxons, set their `active` column to `1` in the database.
 
 For example, the following will activate the mouse taxon:
 
 ```sql
 update taxon set active = 1 where taxon_id = 10090;
 ```
+Every time the new model organisams are added to the application, they will have to be activated in this manner. 
 
 ## Ortholog mapping
 
-There is a static orthologs mapping included with the application based
-on [DIOPT](https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-12-357), that will automatically
-populate the database on startup. They are also updated monthly.
+There is an ortholog mapping file that is included with the application and will automatically
+populate the database on startup. The ortholog mappings are based
+on [DIOPT](https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-12-357).
 
-The default value points to a classpath resource shipped within RDP archive:
+The default value points to a classpath resource included within RDP archive:
 
 ```ìni
 rdp.settings.cache.ortholog-file=classpath:cache/DIOPT_filtered_data_May2021.gz
 ```
 
-As an alternative, you can also use NCBI gene orthologs:
+It would also be possible to use another orthology resource, as long as it has the same format. For example, to use the NCBI gene orthologs:
 
 ```ini
 rdp.settings.cache.orthologs-file=ftp://ftp.ncbi.nlm.nih.gov/gene/DATA/gene_orthologs.gz
 ```
+As with other remotely downloaded files, this would be updated monthly.
 
 ## Organ systems
 
@@ -101,20 +101,26 @@ rdp.settings.organs.enabled=false
 
 ## Loading data from disk
 
-If you choose to load data from the disk, the following settings will retrieve all the necessary files relative to the
+It's also possible to store all the above mentioned info locally, instead of fetching it remotely. The following settings will retrieve all the necessary files relative to the
 working directory of the Web application:
 
 ```ini
+#this setting relates only to gene info files. Files for all taxons will be stord under gene/
 rdp.settings.cache.load-from-disk=true
 rdp.settings.cache.gene-files-location=file:genes/
-rdp.settings.cache.ortholog-file=file:DIOPT_filtered_data_March2020.txt
+
+#file for GO ontology
 rdp.settings.cache.term-file=file:go.obo
+#file for gene GO annotation
 rdp.settings.cache.annotation-file=file:gene2go.gz
+#file for Uberon anatomy ontology
 rdp.settings.cache.organ-file=file:uberon.obo
+#location of the provided ortholog file which is stored locally by default
+rdp.settings.cache.ortholog-file=file:DIOPT_filtered_data_March2020.txt
 ```
 
-With `rdp.settings.load-from-disk` enabled, the basename of the `gene_url` will
-be used relative to `rdp.settings.gene-files-location`. For example *Homo
+With `rdp.settings.load-from-disk` enabled, the basename from the `gene_url` (mentioned above) will
+be used in conjustion with `rdp.settings.gene-files-location`. For example *Homo
 sapiens* taxon would be retrieved from `genes/Homo_sapiens.gene_info.gz`
 
 ## International data
@@ -125,24 +131,25 @@ do not have HTTPS setup for you domain, you can consult the following guides on 
 - [medium.com/@raupach/how-to-install-lets-encrypt-with-tomcat-3db8a469e3d2](https://medium.com/@raupach/how-to-install-lets-encrypt-with-tomcat-3db8a469e3d2)
 - [community.letsencrypt.org/t/configuring-lets-encrypt-with-tomcat-6-x-and-7-x/32416](https://community.letsencrypt.org/t/configuring-lets-encrypt-with-tomcat-6-x-and-7-x/32416)
 
-Registries can access each other public data by setting up the `rdp.settings.isearch.apis` configuration key in
-the `application.properties` file. You can put there a comma-delimited list of partner registry URLs.
+Registries can access each other public data by enabling `rdp.settings.isearch.enabled` and setting up the `rdp.settings.isearch.apis` in
+the `application.properties` file to contain a comma-delimited list of partner registry URLs.
 
 ```ini
 rdp.settings.isearch.enabled=true
 rdp.settings.isearch.apis=https://register.rare-diseases-catalyst-network.ca/
 ```
 
-If your current user has administrative priviledges, a special search token is appended to your remote queries. This
-should be unique to your registry.
+A secure communication between different instances is achieved using a special search token which gets appended to remote queries. Currently there is one
+token that is used by all partner registries.
 
-To generate a secure token, you can use OpenSSL: `openssl rand -base64 24`.
+The token can be generated using OpenSSL: `openssl rand -base64 24` and it would look something like this: `hrol3Y4z2OE0ayK227i8oHTLDjPtRfb4` (this is just an example). Once generated, this token is shared securely with partner registries.
+
+The token is added to the `application.properties` file in the following way:
 
 ```ini
 rdp.settings.isearch.search-token=hrol3Y4z2OE0ayK227i8oHTLDjPtRfb4
 ```
 
-Send that token securely to the partner registries.
 
 On the receiving side, the partner registry must create a user that is used to perform privileged searches. This can be
 achieved by creating a [service account](/service-accounts).
