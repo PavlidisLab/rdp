@@ -19,6 +19,7 @@ import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.services.UserService;
 import ubc.pavlab.rdp.settings.SiteSettings;
 
+import java.text.MessageFormat;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.stream.Collectors;
@@ -93,7 +94,7 @@ public class AdminController {
     @PostMapping(value = "/admin/users/{user}/create-access-token")
     public Object createAccessTokenForUser( @PathVariable User user, RedirectAttributes redirectAttributes ) {
         AccessToken accessToken = userService.createAccessTokenForUser( user );
-        redirectAttributes.addFlashAttribute( "message", "Successfully created an access token." );
+        redirectAttributes.addFlashAttribute( "message", MessageFormat.format( "Successfully created an access token {0}.", accessToken.getToken() ) );
         return "redirect:/admin/users/{user}";
     }
 
@@ -103,7 +104,7 @@ public class AdminController {
             return ResponseEntity.notFound().build();
         }
         userService.revokeAccessToken( accessToken );
-        redirectAttributes.addFlashAttribute( "message", "Revoked access token." );
+        redirectAttributes.addFlashAttribute( "message", MessageFormat.format( "Revoked access token {0}.", accessToken.getToken() ) );
         return "redirect:/admin/users/{user}";
     }
 

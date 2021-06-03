@@ -33,6 +33,8 @@ import ubc.pavlab.rdp.security.PermissionEvaluatorImpl;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 
 import javax.validation.ValidationException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -83,6 +85,11 @@ public class UserServiceImplTest {
             return new ConcurrentMapCacheManager(
                     UserServiceImpl.USERS_BY_ANONYMOUS_ID_CACHE_KEY,
                     UserServiceImpl.USER_GENES_BY_ANONYMOUS_ID_CACHE_KEY );
+        }
+
+        @Bean
+        public SecureRandom secureRandom() throws NoSuchAlgorithmException {
+            return SecureRandom.getInstanceStrong();
         }
     }
 

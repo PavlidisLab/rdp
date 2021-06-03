@@ -13,6 +13,7 @@ import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import ubc.pavlab.rdp.model.enums.TierType;
 
 import javax.validation.ValidationException;
+import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 /**

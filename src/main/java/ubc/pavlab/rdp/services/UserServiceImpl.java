@@ -29,6 +29,8 @@ import ubc.pavlab.rdp.repositories.*;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 
 import javax.validation.ValidationException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.text.MessageFormat;
 import java.time.Instant;
 import java.util.*;
@@ -75,6 +77,8 @@ public class UserServiceImpl implements UserService {
     private GeneInfoService geneInfoService;
     @Autowired
     private PrivacyService privacyService;
+    @Autowired
+    private SecureRandom secureRandom;
 
     @Transactional
     @Override
@@ -99,7 +103,7 @@ public class UserServiceImpl implements UserService {
     @Secured("ROLE_ADMIN")
     @Transactional
     public User createServiceAccount( User user ) {
-        user.setPassword( bCryptPasswordEncoder.encode( UUID.randomUUID().toString() ) );
+        user.setPassword( bCryptPasswordEncoder.encode( createSecureRandomToken() ) );
         Role serviceAccountRole = roleRepository.findByRole( "ROLE_SERVICE_ACCOUNT" );
         user.getRoles().add( serviceAccountRole );
         user = userRepository.save( user );
@@ -321,7 +325,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public AccessToken createAccessTokenForUser( User user ) {
         AccessToken token = new AccessToken();
-        token.updateToken( UUID.randomUUID().toString() );
+        token.updateToken( createSecureRandomToken() );
         token.setUser( user );
         return accessTokenRepository.save( token );
     }
@@ -618,7 +622,7 @@ public class UserServiceImpl implements UserService {
     public PasswordResetToken createPasswordResetTokenForUser( User user ) {
         PasswordResetToken userToken = new PasswordResetToken();
         userToken.setUser( user );
-        userToken.updateToken( UUID.randomUUID().toString() );
+        userToken.updateToken( createSecureRandomToken() );
         return passwordResetTokenRepository.save( userToken );
     }
 
@@ -663,7 +667,7 @@ public class UserServiceImpl implements UserService {
         VerificationToken userToken = new VerificationToken();
         userToken.setUser( user );
         userToken.setEmail( user.getEmail() );
-        userToken.updateToken( UUID.randomUUID().toString() );
+        userToken.updateToken( createSecureRandomToken() );
         return tokenRepository.save( userToken );
     }
 
@@ -673,7 +677,7 @@ public class UserServiceImpl implements UserService {
         VerificationToken userToken = new VerificationToken();
         userToken.setUser( user );
         userToken.setEmail( user.getProfile().getContactEmail() );
-        userToken.updateToken( UUID.randomUUID().toString() );
+        userToken.updateToken( createSecureRandomToken() );
         return tokenRepository.save( userToken );
     }
 
@@ -741,4 +745,9 @@ public class UserServiceImpl implements UserService {
         log.info( "Done updating user terms." );
     }
 
+    private String createSecureRandomToken() {
+        byte tokenBytes[] = new byte[24];
+        secureRandom.nextBytes( tokenBytes );
+        return Base64.getEncoder().encodeToString( tokenBytes );
+    }
 }
