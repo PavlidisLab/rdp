@@ -1,3 +1,10 @@
+create table gene_info (id integer not null auto_increment, synonyms TEXT, gene_id integer, modification_date date, description TEXT, symbol varchar(63), taxon_id integer not null, primary key (id));
+create index IDXsu8xm3u7b6aod4nx4ygbd61rj on gene_info (gene_id);
+create index IDX5yu2eylrxdoynsllo3dls8c4h on gene_info (gene_id, taxon_id);
+create index IDXqadnox9xnoxkennvla4nxito4 on gene_info (symbol, taxon_id);
+alter table gene_info add constraint UKsu8xm3u7b6aod4nx4ygbd61rj unique (gene_id);
+alter table gene_info add constraint FKjhrcx93vfadlsujyvmudxc7dg foreign key (taxon_id) references taxon (taxon_id);
+
 alter table user modify column enabled bit not null;
 alter table user modify column hide_genelist bit not null;
 alter table user modify column shared bit not null;
