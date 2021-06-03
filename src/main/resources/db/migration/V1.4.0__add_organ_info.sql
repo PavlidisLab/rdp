@@ -15,11 +15,10 @@ alter table user drop column origin;
 alter table user drop column origin_url;
 alter table gene add column user_privacy_level integer default NULL;
 
--- we cannot unfortunately just drop the target_taxon column because it was previously part of the primary key
-alter table ortholog rename to ortholog_tmp;
+-- the previous ortholog table was using gene identifier instead of the primary key of the gene_info table, so it's
+-- unuseable in this release
+drop table ortholog;
 create table ortholog (source_gene integer not null, target_gene integer not null, primary key (source_gene, target_gene));
-insert into ortholog (select source_gene, target_gene from ortholog_tmp group by source_gene, target_gene);
-drop table ortholog_tmp;
 
 create table user_researcher_category (user_id integer not null auto_increment, researcher_category varchar(255), primary key (user_id));
 alter table user_researcher_category add constraint fk_researcher_category_user_id foreign key (user_id) references user (user_id);
