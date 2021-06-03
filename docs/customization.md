@@ -165,10 +165,9 @@ rdp.settings.isearch.auth-tokens=jLb22QZzsaT6/w3xwDHBObmZPypJgXfb,hrol3Y4z2OE0ay
 That's it. You can now query private data from the partner registry when logged in as an administrator on your own
 registry.
 
-## Tiers
+## Gene Tiers
 
-User genes are categorized in tiers corresponding to the level of involvement of a researcher with the gene. Researcher
-have direct access to their TIER1 genes, and a focus on their TIER2 genes. TIER3 genes result from GO term associations.
+Users' genes are categorized in tiers based on their familiarity and experience with the gene. This is explained in detail in the users' documentation and FAQs. Users add TIER1 and TIER2 genes directly, while TIER3 genes are inferred from GO term associations.
 
 To enable only TIER1 and TIER2, and thus disabling GO terms-related features, add the following to your configuration:
 
