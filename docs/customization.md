@@ -24,9 +24,10 @@ Gene information are obtained from [NCBI Gene FTP server](https://ftp.ncbi.nih.g
 with URLs stored in the database. You can retrieve these with the following query:
 
 ```sql
-select taxon_id, scientific_name, gene_url
-from taxon;
+select taxon_id, scientific_name, gene_url from taxon;
 ```
+
+For example, the `gene_url` column for *Homo sapiens* would contain `ftp://ftp.ncbi.nlm.nih.gov/gene/DATA/GENE_INFO/Mammalia/Homo_sapiens.gene_info.gz`
 
 GO terms, in the other hand, are obtained from Ontobee:
 
@@ -40,17 +41,6 @@ Gene-term associations are provided by NCBI Gene FTP server:
 rdp.settings.cache.annotation-file=ftp://ftp.ncbi.nlm.nih.gov/gene/DATA/gene2go.gz
 ```
 
-If `rdp.settings.load-from-disk` is enabled, the basename of the URL will be used, relative
-to `rdp.settings.gene-files-location`.
-
-```ini
-rdp.settings.cache.load-from-disk=true
-rdp.settings.cache.gene-files-location=file:genes/
-```
-
-With the above settings and given that *Homo sapiens* taxon is enabled, RDP will retrieve gene information from
-`genes/Homo_sapiens.gene_info.gz`.
-
 ## Taxon
 
 The taxon table is pre-populated during the first migration, and only human is activated. To enable other organisms, set
@@ -59,9 +49,7 @@ their `active` column to `1` in the database.
 For example, the following will activate the mouse taxon:
 
 ```sql
-update taxon
-set active = 1
-where taxon_id = 10090;
+update taxon set active = 1 where taxon_id = 10090;
 ```
 
 ## Ortholog mapping
@@ -101,6 +89,10 @@ set active = true
 where uberon_id = '<uberon_id>';
 ```
 
+If you activate a non-default organ system, consider adding an icon for it by
+following the instructions in the [Style and static resources](#style-and-static-resources)
+section below.
+
 To disable organ systems altogether, set the following in your configuration:
 
 ```
@@ -120,6 +112,10 @@ rdp.settings.cache.term-file=file:go.obo
 rdp.settings.cache.annotation-file=file:gene2go.gz
 rdp.settings.cache.organ-file=file:uberon.obo
 ```
+
+With `rdp.settings.load-from-disk` enabled, the basename of the `gene_url` will
+be used relative to `rdp.settings.gene-files-location`. For example *Homo
+sapiens* taxon would be retrieved from `genes/Homo_sapiens.gene_info.gz`
 
 ## International data
 
@@ -149,7 +145,7 @@ rdp.settings.isearch.search-token=hrol3Y4z2OE0ayK227i8oHTLDjPtRfb4
 Send that token securely to the partner registries.
 
 On the receiving side, the partner registry must create a user that is used to perform privileged searches. This can be
-achieved by creating a [service account](/service-account).
+achieved by creating a [service account](/service-accounts).
 
 Let's assume that the created user's ID was 522. The partner would then add the token to
 its `rdp.settings.isearch.auth-tokens` setting along any existing tokens.
@@ -236,8 +232,7 @@ rdp.faq.questions.<q_key>=A relevant question.
 rdp.faq.answers.<q_key>=A plausible answer.
 ```
 
-Example of a FAQ can be found
-in [faq.properties](https://github.com/PavlidisLab/rgr/tree/master/src/main/resources/faq.properties).
+Example of a FAQ can be found in [faq.properties](https://github.com/PavlidisLab/rgr/tree/master/src/main/resources/faq.properties).
 
 ## Style and static resources
 
@@ -275,7 +270,6 @@ You can customize RDP by editing the publicly available source code and packagin
 
 ```bash
 git clone https://github.com/PavlidisLab/rgr.git
-git checkout v1.4.0
 cd rgr/
 # edit what you want...
 ./mvnw package
