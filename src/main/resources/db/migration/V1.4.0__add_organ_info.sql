@@ -26,9 +26,8 @@ alter table ortholog add constraint fk_ortholog_target_gene foreign key (target_
 create table user_researcher_category (user_id integer not null auto_increment, researcher_category varchar(255), primary key (user_id));
 alter table user_researcher_category add constraint fk_researcher_category_user_id foreign key (user_id) references user (user_id);
 
--- add service account role
--- some registry might still have a ROLE_MANAGER occupying id = 3
-insert into role values (4, 'ROLE_SERVICE_ACCOUNT');
+-- add service account role to the next available id
+insert into role values (NULL, 'ROLE_SERVICE_ACCOUNT');
 
 create table access_token (id integer not null auto_increment, expiry_date datetime not null, token varchar(255) not null, user_id integer not null, primary key (id));
 alter table access_token add constraint fk_access_token_user_id foreign key (user_id) references user (user_id);
