@@ -141,6 +141,7 @@ public class GeneInfoServiceImpl implements GeneInfoService {
     }
 
     @Override
+    @Transactional
     public void updateGeneOrthologs() {
         log.info( MessageFormat.format( "Updating gene orthologs from {0}...", applicationSettings.getCache().getOrthologFile() ) );
 

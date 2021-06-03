@@ -4,6 +4,7 @@ import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ubc.pavlab.rdp.model.OrganInfo;
 import ubc.pavlab.rdp.repositories.OrganInfoRepository;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
@@ -43,6 +44,7 @@ public class OrganInfoServiceImpl implements OrganInfoService {
     }
 
     @Override
+    @Transactional
     public void updateOrganInfos() {
         try {
             Resource organFile = applicationSettings.getCache().getOrganFile();

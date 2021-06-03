@@ -729,6 +729,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public void updateUserTerms() {
         log.info( "Updating user terms..." );
         for ( User user : userRepository.findAllWithUserTerms() ) {

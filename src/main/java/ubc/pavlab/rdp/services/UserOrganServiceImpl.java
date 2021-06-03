@@ -36,6 +36,7 @@ public class UserOrganServiceImpl implements UserOrganService {
     private OrganInfoRepository organInfoRepository;
 
     @Override
+    @Transactional
     public void updateUserOrgans() {
         log.info( "Updating user organs..." );
         for ( UserOrgan userOrgan : userOrganRepository.findAll() ) {

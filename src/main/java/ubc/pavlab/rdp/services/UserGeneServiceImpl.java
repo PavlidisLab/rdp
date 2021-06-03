@@ -30,6 +30,7 @@ import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.ResearcherCategory;
@@ -171,6 +172,7 @@ public class UserGeneServiceImpl implements UserGeneService {
     }
 
     @Override
+    @Transactional
     public void updateUserGenes() {
         log.info( "Updating user genes..." );
         for ( UserGene userGene : userGeneRepository.findAllWithGeneInfo() ) {
