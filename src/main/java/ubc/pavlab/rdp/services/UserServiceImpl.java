@@ -2,6 +2,7 @@ package ubc.pavlab.rdp.services;
 
 import lombok.NonNull;
 import lombok.extern.apachecommons.CommonsLog;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.ApplicationEventPublisher;
@@ -725,6 +726,7 @@ public class UserServiceImpl implements UserService {
         return findAllWithNonEmptyProfileLastName()
                 .stream()
                 .map( u -> u.getProfile().getLastName().substring( 0, 1 ).toUpperCase() )
+                .filter( StringUtils::isAlpha )
                 .collect( Collectors.toCollection( TreeSet::new ) );
     }
 
