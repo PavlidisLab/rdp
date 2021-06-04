@@ -156,8 +156,8 @@ On the receiving side, the partner registry must create a user that is used to p
 This is usually done by creating a remote administrative account:
 
 ```sql
-insert into user ( email, enabled, password, privacy_level, description, last_name, name, shared, hide_genelist)
-values(concat(rand(),"@rdmm.com"), 0, md5(rand()), 0, "remote admin profile", "", "", false, false);
+insert into user ( email, enabled, password, privacy_level, description, last_name, name, shared, hide_genelist, contact_email_verified)
+values(concat(rand(),"@rdmm.com"), 0, md5(rand()), 0, "remote admin profile", "", "", false, false, false);
 insert into user_role (user_id,role_id) values ((select max(user_id) from user), 1);
 insert into user_role (user_id,role_id) values ((select max(user_id) from user), 2);
 select max(user_id) from user;
