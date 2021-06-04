@@ -295,15 +295,21 @@ public class GOServiceImplTest {
     }
 
     @Test
-    public void getDescendants_whenDefault_thenReturnAllChildren() {
+    public void getDescendants_whenTermIsRoot_thenReturnAllChildren() {
         Collection<GeneOntologyTermInfo> found = goService.getDescendants( terms.get( 0 ) );
         assertThat( found ).containsExactlyInAnyOrder( terms.get( 1 ), terms.get( 2 ), terms.get( 3 ), terms.get( 4 ), terms.get( 5 ) );
     }
 
     @Test
-    public void getDescendants_whenIncludePartOf_thenReturnAllChildren() {
-        Collection<GeneOntologyTermInfo> found = goService.getDescendants( terms.get( 0 ) );
-        assertThat( found ).containsExactlyInAnyOrder( terms.get( 1 ), terms.get( 2 ), terms.get( 3 ), terms.get( 4 ), terms.get( 5 ) );
+    public void getAncestors_whenTermIsLeaf_thenReturnAllAncestors() {
+        assertThat( goService.getAncestors( terms.get( 2 ) ) )
+                .containsExactlyInAnyOrder( terms.get( 0 ), terms.get( 1 ) );
+    }
+
+    @Test
+    public void getAncestors_whenTermIsRoot_thenReturnEmptySet() {
+        assertThat( goService.getAncestors( terms.get( 0 ) ) )
+                .isEmpty();
     }
 
     @Test
