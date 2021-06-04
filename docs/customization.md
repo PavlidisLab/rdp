@@ -163,8 +163,7 @@ insert into user_role (user_id,role_id) values ((select max(user_id) from user),
 select max(user_id) from user;
 ```
 
-This allows you to query private data from the partner registry when logged in as an administrator on your own
-registry.
+
 
 Let's assume that the created user's ID was 522. The partner would then add the token to
 its `rdp.settings.isearch.auth-tokens` setting along any existing tokens.
@@ -174,6 +173,8 @@ rdp.settings.isearch.user-id=522
 rdp.settings.isearch.auth-tokens=jLb22QZzsaT6/w3xwDHBObmZPypJgXfb,hrol3Y4z2OE0ayK227i8oHTLDjPtRfb4
 ```
 
+This allows you to query private data from the partner registry when logged in as an administrator on your own
+registry.
 
 ## Gene Tiers
 
