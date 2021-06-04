@@ -500,6 +500,13 @@ public class UserServiceImpl implements UserService {
         user.getUserTerms().removeIf( e -> e.getTaxon().equals( taxon ) && !userTerms.contains( e ) );
         user.getUserTerms().addAll( userTerms );
 
+        // update frequency and size as those have likely changed with new genes
+        for ( UserTerm userTerm : user.getUserTerms() ) {
+            GeneOntologyTermInfo cachedTerm = goService.getTerm( userTerm.getGoId() );
+            userTerm.setFrequency( computeTermFrequencyInTaxon( user, cachedTerm, taxon ) );
+            userTerm.setSize( goService.getSizeInTaxon( cachedTerm, taxon ) );
+        }
+
         return update( user );
     }
 
@@ -735,12 +742,14 @@ public class UserServiceImpl implements UserService {
         log.info( "Updating user terms..." );
         for ( User user : userRepository.findAllWithUserTerms() ) {
             for ( UserTerm userTerm : user.getUserTerms() ) {
-                GeneOntologyTerm cachedTerm = goService.getTerm( userTerm.getGoId() );
+                GeneOntologyTermInfo cachedTerm = goService.getTerm( userTerm.getGoId() );
                 if ( cachedTerm == null ) {
                     log.warn( MessageFormat.format( "User has a reference to a GO term missing from the cache: {0}.", userTerm ) );
                     continue;
                 }
                 userTerm.updateTerm( cachedTerm );
+                userTerm.setFrequency( computeTermFrequencyInTaxon( user, cachedTerm, userTerm.getTaxon() ) );
+                userTerm.setSize( goService.getSizeInTaxon( cachedTerm, userTerm.getTaxon() ) );
             }
             userRepository.save( user );
         }

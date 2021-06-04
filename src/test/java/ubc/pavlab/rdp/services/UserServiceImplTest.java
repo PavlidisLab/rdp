@@ -781,6 +781,10 @@ public class UserServiceImplTest {
         ).collect( Collectors.toSet() );
         when( geneInfoService.load( any( Integer.class ) ) ).thenAnswer( a -> createGene( a.getArgumentAt( 0, Integer.class ), taxon ) );
 
+        for ( GeneOntologyTermInfo term : terms ) {
+            when( goService.getTerm( term.getGoId() ) ).thenReturn( term );
+        }
+
         Map<GeneInfo, TierType> geneTierMap = terms.stream()
                 .flatMap( t -> goService.getDirectGenes( t ).stream() )
                 .map( geneId -> createGene( geneId, taxon ) )
@@ -792,7 +796,6 @@ public class UserServiceImplTest {
                 .collect( Collectors.toMap( Function.identity(), g -> PrivacyLevelType.PRIVATE ) );
 
         userService.updateTermsAndGenesInTaxon( user, taxon, geneTierMap, privacyLevelMap, terms );
-        System.out.println( user.getUserGenes() );
 
         assertThatUserTermsAreEqualTo( user, taxon, terms );
 
@@ -1079,6 +1082,8 @@ public class UserServiceImplTest {
         Taxon taxon = createTaxon( 1 );
         GeneInfo gene = createGene( 1, taxon );
         GeneOntologyTermInfo term = createTermWithGenes( "GO:0000001", gene );
+        when( goService.getTerm( term.getGoId() ) ).thenReturn( term );
+        when( goService.getGenes( term ) ).thenReturn( Collections.singletonList( gene.getGeneId() ) );
         UserTerm userTerm = createUserTerm( 1, user, term, taxon );
         UserGene userGene = createUserGene( 1, gene, user, TierType.TIER1, PrivacyLevelType.PRIVATE );
         assertThat( user.getUserGenes() ).isEmpty();

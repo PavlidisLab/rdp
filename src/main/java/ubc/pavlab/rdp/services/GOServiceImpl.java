@@ -2,9 +2,13 @@ package ubc.pavlab.rdp.services;
 
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StopWatch;
-import ubc.pavlab.rdp.model.*;
+import ubc.pavlab.rdp.model.Gene;
+import ubc.pavlab.rdp.model.GeneOntologyTermInfo;
+import ubc.pavlab.rdp.model.Relationship;
+import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.model.enums.Aspect;
 import ubc.pavlab.rdp.model.enums.RelationshipType;
 import ubc.pavlab.rdp.model.enums.TermMatchType;
@@ -18,6 +22,8 @@ import ubc.pavlab.rdp.util.SearchResult;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -233,7 +239,7 @@ public class GOServiceImpl implements GOService {
         return getDescendantsInternal( entry );
     }
 
-    private Map<GeneOntologyTermInfo, Set<GeneOntologyTermInfo>> descendantsCache = new HashMap<>();
+    private ConcurrentMap<GeneOntologyTermInfo, Set<GeneOntologyTermInfo>> descendantsCache = new ConcurrentHashMap<>();
 
     private Set<GeneOntologyTermInfo> getDescendantsInternal( GeneOntologyTermInfo entry ) {
         if ( descendantsCache.containsKey( entry ) )
@@ -332,7 +338,7 @@ public class GOServiceImpl implements GOService {
         return getAncestorsInternal( term );
     }
 
-    private Map<GeneOntologyTermInfo, Set<GeneOntologyTermInfo>> ancestorsCache = new HashMap<>();
+    private ConcurrentMap<GeneOntologyTermInfo, Set<GeneOntologyTermInfo>> ancestorsCache = new ConcurrentHashMap<>();
 
     private Collection<GeneOntologyTermInfo> getAncestorsInternal( GeneOntologyTermInfo term ) {
         if ( ancestorsCache.containsKey( term ) )
