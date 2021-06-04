@@ -15,7 +15,9 @@ import ubc.pavlab.rdp.services.TaxonService;
 import ubc.pavlab.rdp.util.SearchResult;
 
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Created by mjacobson on 18/01/18.
@@ -47,8 +49,10 @@ public class TermController {
             term.getMatch().setSize( goService.getSizeInTaxon( term.getMatch(), taxon ) );
         }
 
-        return foundTerms;
-
+        // sort by size in taxon
+        return foundTerms.stream()
+                .sorted( Comparator.comparing( result -> result.getMatch().getSize(), Comparator.reverseOrder() ) )
+                .collect( Collectors.toList() );
     }
 
     @ResponseBody
