@@ -213,7 +213,11 @@ rdp.settings.profile.enabled-researcher-categories=IN_SILICO,IN_VIVO
 The available values are:
 
  - `IN_VIVO`
+ - `IN_VITRO_BIOCHEMICAL`
+ - `IN_VITRO_CELLS`
+ - `IN_VITRO_STRUCTURAL`
  - `IN_SILICO`
+ - `OTHER`
 
 To disable this feature, just leave the setting blank.
 
@@ -229,7 +233,16 @@ rdp.settings.privacy.enabled-gene-levels=PUBLIC,SHARED,PRIVATE
 Note that any value enabled for genes that is not also enabled for profiles
 will be ignored.
 
-To disable gene-level privacy, leave the `rdp.settings.privacy.enabled-gene-levels` blank.
+To allow user to modify the privacy level of their profile and individual
+genes, set the following properties:
+
+```ini
+rdp.settings.privacy.customizable-level=true
+rdp.settings.privacy.customizable-gene-level=true
+```
+
+To disable gene-level privacy, set `rdp.settings.privacy.customizable-gene-level`
+to `false` and leave the `rdp.settings.privacy.enabled-gene-levels` blank.
 
 ## Anonymized search results
 
