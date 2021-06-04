@@ -39,7 +39,7 @@ public class StatsController {
         response.setHeader( "Access-Control-Allow-Origin", "*" );
         response.setHeader( "Access-Control-Allow-Methods", "GET, POST, DELETE, PUT" );
         response.setHeader( "Access-Control-Allow-Headers", "X-Requested-With, Content-Type, X-Codingpedia" );
-        stats.put( "success", true );
+        stats.put( "success", Boolean.TRUE );
         stats.put( "message", "Statistics successfully loaded" );
 
         stats.put( "researchers_registered", userService.countResearchers() );

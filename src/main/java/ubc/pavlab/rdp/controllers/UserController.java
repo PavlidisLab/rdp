@@ -99,7 +99,7 @@ public class UserController {
         } else {
             modelAndView.addObject( "genes", Collections.EMPTY_SET );
         }
-        modelAndView.addObject( "viewOnly", true );
+        modelAndView.addObject( "viewOnly", Boolean.TRUE );
         return modelAndView;
     }
 
@@ -150,12 +150,12 @@ public class UserController {
         try {
             emailService.sendSupportMessage( message, name, user, request, attachment );
             modelAndView.addObject( "message", "Sent. We will get back to you shortly." );
-            modelAndView.addObject( "success", true );
+            modelAndView.addObject( "success", Boolean.TRUE );
         } catch ( MessagingException e ) {
             log.error( MessageFormat.format( "Could not send support message to {0}.", user ), e );
             modelAndView
                     .addObject( "message", "There was a problem sending the support request. Please try again later." );
-            modelAndView.addObject( "success", false );
+            modelAndView.addObject( "success", Boolean.FALSE );
         }
 
         return modelAndView;
@@ -232,7 +232,7 @@ public class UserController {
         } catch ( TokenException e ) {
             log.error( MessageFormat.format( "{0} attempt to confirm verification token failed.", userService.findCurrentUser() ), e );
             redirectAttributes.addFlashAttribute( "message", e.getMessage() );
-            redirectAttributes.addFlashAttribute( "error", true );
+            redirectAttributes.addFlashAttribute( "error", Boolean.TRUE );
         }
         return "redirect:/user/profile";
     }

@@ -53,7 +53,7 @@ public class PasswordController {
         if ( user == null ) {
             modelAndView.setStatus( HttpStatus.NOT_FOUND );
             modelAndView.addObject( "message", "User not found." );
-            modelAndView.addObject( "error", true );
+            modelAndView.addObject( "error", Boolean.TRUE );
             return modelAndView;
         }
 
@@ -63,13 +63,13 @@ public class PasswordController {
         } catch ( MessagingException e ) {
             modelAndView.setStatus( HttpStatus.INTERNAL_SERVER_ERROR );
             modelAndView.addObject( "message", "We had trouble sending an email to your address." );
-            modelAndView.addObject( "error", true );
+            modelAndView.addObject( "error", Boolean.TRUE );
             log.error( MessageFormat.format( "Failed to send reset token message to {0}.", user ), e );
             return modelAndView;
         }
 
         modelAndView.addObject( "message", "Password reset instructions have been sent." );
-        modelAndView.addObject( "error", false );
+        modelAndView.addObject( "error", Boolean.FALSE );
 
         return modelAndView;
     }

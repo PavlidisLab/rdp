@@ -140,7 +140,7 @@ public class SearchController {
                                                   @RequestParam(required = false) Set<String> organUberonIds ) {
         ModelAndView modelAndView = new ModelAndView( "fragments/user-table::user-table" );
         modelAndView.addObject( "users", remoteResourceService.findUsersByLikeName( nameLike, prefix, researcherPositions, researcherCategories, organUberonIds ) );
-        modelAndView.addObject( "remote", true );
+        modelAndView.addObject( "remote", Boolean.TRUE );
         return modelAndView;
     }
 
@@ -185,7 +185,7 @@ public class SearchController {
                                                          @RequestParam(required = false) Set<String> organUberonIds ) {
         ModelAndView modelAndView = new ModelAndView( "fragments/user-table::user-table" );
         modelAndView.addObject( "users", remoteResourceService.findUsersByDescription( descriptionLike, researcherPositions, researcherCategories, organUberonIds ) );
-        modelAndView.addObject( "remote", true );
+        modelAndView.addObject( "remote", Boolean.TRUE );
         return modelAndView;
     }
 
@@ -225,7 +225,7 @@ public class SearchController {
             modelAndView.setStatus( HttpStatus.NOT_FOUND );
             modelAndView.addObject( "message",
                     messageSource.getMessage( "SearchController.errorNoTaxonId", new String[]{ taxonId.toString() }, locale ) );
-            modelAndView.addObject( "error", true );
+            modelAndView.addObject( "error", Boolean.TRUE );
             return modelAndView;
         }
 
@@ -235,7 +235,7 @@ public class SearchController {
             modelAndView.setStatus( HttpStatus.NOT_FOUND );
             modelAndView.addObject( "message",
                     messageSource.getMessage( "SearchController.errorNoGene", new String[]{ symbol, taxon.getScientificName() }, locale ) );
-            modelAndView.addObject( "error", true );
+            modelAndView.addObject( "error", Boolean.TRUE );
             return modelAndView;
         }
 
@@ -252,7 +252,7 @@ public class SearchController {
             modelAndView.setStatus( HttpStatus.NOT_FOUND );
             modelAndView.addObject( "message",
                     messageSource.getMessage( "SearchController.errorNoOrthologs", new String[]{ symbol, orthologTaxon.getScientificName() }, locale ) );
-            modelAndView.addObject( "error", true );
+            modelAndView.addObject( "error", Boolean.TRUE );
             return modelAndView;
         }
 
@@ -419,7 +419,7 @@ public class SearchController {
 
         ModelAndView modelAndView = new ModelAndView( "fragments/user-table::usergenes-table" );
         modelAndView.addObject( "usergenes", userGenes );
-        modelAndView.addObject( "remote", true );
+        modelAndView.addObject( "remote", Boolean.TRUE );
 
         return modelAndView;
     }
@@ -520,7 +520,7 @@ public class SearchController {
         } else {
             modelAndView.addObject( "user", user );
             modelAndView.addObject( "viewUser", viewUser );
-            modelAndView.addObject( "viewOnly", true );
+            modelAndView.addObject( "viewOnly", Boolean.TRUE );
         }
         return modelAndView;
     }
