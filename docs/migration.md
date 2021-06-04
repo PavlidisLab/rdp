@@ -54,6 +54,9 @@ a `faq.properties` previously setup, add the following line in your configuratio
 rdp.settings.faq-file=file:faq.properties
 ```
 
+Consider also taking a look at the packaged [faq.properties](https://github.com/PavlidisLab/rgr/blob/main/src/main/resources/faq.properties)
+file and update your custom FAQ accordingly.
+
 ## Migrate from 1.3.x to 1.3.2
 
 NCBI gene broke because they introduced genes with unexpected date format. We
