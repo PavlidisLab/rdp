@@ -166,8 +166,6 @@ select max(user_id) from user;
 This allows you to query private data from the partner registry when logged in as an administrator on your own
 registry.
 
-However, it can also be achieved by creating a [service account](service-accounts.md).
-
 Let's assume that the created user's ID was 522. The partner would then add the token to
 its `rdp.settings.isearch.auth-tokens` setting along any existing tokens.
 

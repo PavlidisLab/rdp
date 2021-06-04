@@ -4,7 +4,8 @@
 
 ### Service accounts
 
-Service accounts are special kind of users that are used to authenticate external services that integrate with RDP.
+[Service accounts](service-accounts.md) are special kind of users that are used to authenticate external services that
+integrate with RDP.
 
 ### Extensions to the user profile
 
