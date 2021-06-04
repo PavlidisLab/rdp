@@ -49,7 +49,7 @@ For example, the following will activate the mouse taxon:
 ```sql
 update taxon set active = 1 where taxon_id = 10090;
 ```
-Every time the new model organisams are added to the application, they will have to be activated in this manner. 
+Every time the new model organisams are added to the application, they will have to be activated in this manner.
 
 ## Ortholog mapping
 
@@ -163,7 +163,7 @@ insert into user_role (user_id,role_id) values ((select max(user_id) from user),
 select max(user_id) from user;
 ```
 
-However, it can also be achieved by creating a [service account](/service-accounts).
+However, it can also be achieved by creating a [service account](service-accounts.md).
 
 Let's assume that the created user's ID was 522. The partner would then add the token to
 its `rdp.settings.isearch.auth-tokens` setting along any existing tokens.
