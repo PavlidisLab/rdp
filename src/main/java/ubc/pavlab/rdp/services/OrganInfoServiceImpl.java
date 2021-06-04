@@ -50,11 +50,12 @@ public class OrganInfoServiceImpl implements OrganInfoService {
                 OrganInfo organInfo = organInfoRepository.findByUberonId( term.getId() );
                 if ( organInfo == null ) {
                     organInfo = new OrganInfo();
+	            organInfo.setName( term.getName() );
                     organInfo.setUberonId( term.getId() );
                     // only show organs that have been explicitly activated
                     organInfo.setActive( false );
                 }
-                organInfo.setName( term.getName() );
+                
                 organInfo.setDescription( term.getDefinition() );
                 organInfoRepository.save( organInfo );
             }

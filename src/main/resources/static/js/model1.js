@@ -61,6 +61,26 @@
                 row.push('');
                 if (customizableGeneLevel) {
                     row.push('');
+                } else {
+                    row.push('<span class="align-middle"><i class="delete-row align-middle"></i><a href="https://www.ncbi.nlm.nih.gov/gene/' + gene.geneId + '" target="_blank" class="align-middle" rel="noopener">' + gene.symbol + '</a></span>');
+                    row.push(gene.geneId);
+                    row.push('<span class="align-middle">' + gene.name + '</span>');
+                    row.push('<input name="primary" class="align-middle" type="checkbox"/>');
+                    if (customizableGeneLevel) {
+                        var privacyOptions = enabledGenePrivacyLevels.map(function (k) {
+                            var privacyLevel = privacyLevels[k];
+                            if (privacyLevel.ordinal!=1) {
+                                return '<option' +
+                                    ' value="' + privacyLevel.ordinal + '"' +
+                                    (privacyLevel.ordinal === userPrivacyLevel.ordinal ? ' selected' : '') + '>' +
+                                    privacyLevel.label +
+                                    '</option>';
+                            } else {
+                                return '';
+                            }
+                        }).join('');
+                        row.push('<select class="form-control">' + privacyOptions + '</select>');
+                    }
                 }
             } else {
                 /* gene is already in the table */

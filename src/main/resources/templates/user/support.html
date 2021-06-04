@@ -16,54 +16,9 @@
 
     <div class="main-content my-3">
         <div class="registry-support">
-            <p class="mb-4">Question, comment or concern? Our contact form is the best way to
-                get in touch with someone at Registry Help.</p>
-            <form th:action="@{/user/support}" method="POST" enctype="multipart/form-data">
-                <div class="form-group form-row">
-                    <label for="inputName" class="col-sm-2 col-lg-1 col-form-label">Name</label>
-                    <div class="col-sm-10 col-lg-6">
-                        <input id="inputName" type="text" name="name" class="form-control" placeholder="Name" th:value="${user.profile.fullName}"/>
+            <p class="mb-4"><a href="https://modelmatcher.net/Contact.html" target="_blank">Contact requests and support inquiries are handled on the main ModelMatcher page. Click here to send a message to the ModelMatcher team.</a></p>
+            
                     </div>
-                </div>
-
-                <div class="form-group form-row">
-                    <label for="inputMessage" class="col-sm-2 col-lg-1 col-form-label">Message</label>
-                    <div class="col-sm-10 col-lg-6">
-                        <textarea id="inputMessage" name="message" class="form-control"
-                                  placeholder="Describe the issue..." rows="5"></textarea>
-                    </div>
-                </div>
-
-                <div class="form-group form-row">
-                    <label for="inputAttachment" class="col-sm-2 col-lg-1 col-form-label">Attachment</label>
-                    <div class="col-sm-10 col-lg-6">
-                        <span id="file-upload">
-                            <input id="inputAttachment" type="file" name="attachment"/>
-                            <a href="#" class="close" style="display: none;float: none">&times;</a>
-                        </span>
-                    </div>
-                </div>
-
-                <div class="form-group form-row">
-                    <div class="col-sm-4 col-lg-2">
-                        <button class="btn btn-primary" name="Submit" value="Register User" type="Submit">
-                            <i class="oi oi-envelope-closed"></i>
-                            Send
-                        </button>
-                    </div>
-                </div>
-
-                <div class="form-group form-row" th:if="${message}">
-                    <div class="col"
-                         th:text="${message}"
-                         th:classappend="${success} ? 'text-success' : 'text-danger'"></div>
-                </div>
-
-            </form>
-
-            <p><b>Contact Email:</b> <i th:text="${@siteSettings.contactEmail}"></i></p>
-
-        </div>
     </div>
 
 </div>

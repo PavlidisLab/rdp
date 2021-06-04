@@ -64,49 +64,49 @@
                         </div>
                     </div>
                     <table class="table mb-0">
-                        <tr class="edit-container">
+                        <tr th:if="${viewUser.profile.name!=''}" class="edit-container">
                             <td class="align-middle" style="width: 120px;">
                                 <span class="text-muted align-middle">First Name</span>
                             </td>
                             <td>
-                                <input class="data-edit" type="text" name="name"
+                                <input size="70" class="data-edit" type="text" name="name"
                                        th:value="${viewUser.profile.name}"
                                        disabled="disabled"/>
                             </td>
                         </tr>
-                        <tr class="edit-container">
+                        <tr th:if="${viewUser.profile.lastName!=''}" class="edit-container">
                             <td class="align-middle"><span class="text-muted align-middle">Last Name</span></td>
                             <td>
-                                <input class="data-edit" type="text" name="lastName"
+                                <input size="70" class="data-edit" type="text" name="lastName"
                                        th:value="${viewUser.profile.lastName}" disabled="disabled"/>
                             </td>
                         </tr>
-                        <tr class="edit-container">
+                        <tr th:if="${viewUser.profile.organization!=''}" class="edit-container">
                             <td class="align-middle"><span class="text-muted align-middle">Organization</span></td>
                             <td>
-                                <input class="data-edit" type="text" name="organization"
+                                <input size="70" class="data-edit" type="text" name="organization"
                                        th:value="${viewUser.profile.organization}" disabled="disabled"/>
                             </td>
                         </tr>
-                        <tr class="edit-container">
+                        <tr th:if="${viewUser.profile.department!=''}" class="edit-container">
                             <td class="align-middle"><span class="text-muted align-middle">Department</span></td>
                             <td>
-                                <input class="data-edit" type="text" name="department"
+                                <input size="70" class="data-edit" type="text" name="department"
                                        th:value="${viewUser.profile.department}" disabled="disabled"/>
                             </td>
                         </tr>
-                        <tr class="edit-container">
+                        <tr th:if="${viewUser.profile.website!=''}" class="edit-container">
                             <td class="align-middle"><span class="text-muted align-middle">Website</span></td>
                             <td>
-                                <input class="data-edit" type="text" name="website"
+                                <input size="70" class="data-edit" type="text" name="website"
                                        th:value="${viewUser.profile.website}" disabled="disabled"/>
                             </td>
                         </tr>
                         <tr th:unless="${@applicationSettings.profile.enabledResearcherCategories.isEmpty()} or ${viewUser.profile.researcherCategories.isEmpty()}">
-                            <td class="text-muted">Categories</td>
+                            <td class="text-muted">Model Systems</td>
                             <td>
                                 <th:block th:each="researcherCategory, i : ${viewUser.profile.researcherCategories}">
-                                    <input class="data-edit"
+                                    <input size="70" class="data-edit"
                                            type="text"
                                            name="researcherCategories"
                                            th:value="#{'ResearcherCategory.' + ${researcherCategory.name()}}"
@@ -115,12 +115,12 @@
                             </td>
                         </tr>
                         <tr th:unless="${@applicationSettings.profile.enabledResearcherPositions.isEmpty()} or ${viewUser.profile.researcherPosition} == null">
-                            <td class="text-muted">Position</td>
+                            <td class="text-muted">Principle Investigator</td>
                             <td>
-                                <input class="data-edit"
+                                <input size="70" class="data-edit"
                                        type="text"
                                        name="researcherPosition"
-                                       th:value="#{'ResearcherPosition.' + ${viewUser.profile.researcherPosition.name()}}"
+                                       th:value="Yes"
                                        disabled="disabled"/>
                             </td>
                         </tr>
@@ -145,10 +145,10 @@
                                    th:text="${viewUser.verifiedContactEmail.get().address}"></a>
                             </td>
                         </tr>
-                        <tr class="edit-container">
+                        <tr th:if="${viewUser.profile.phone!=''}" class="edit-container">
                             <td class="align-middle"><span class="text-muted align-middle">Phone</span></td>
                             <td>
-                                <input class="data-edit" type="text" name="phone" th:value="${viewUser.profile.phone}"
+                                <input size="70" class="data-edit" type="text" name="phone" th:value="${viewUser.profile.phone}"
                                        disabled="disabled"/>
                             </td>
                         </tr>
@@ -175,7 +175,7 @@
             <div class="col">
                 <div class="card">
                     <div class="card-header">
-                        <h3 class="mb-0">Organ Systems</h3>
+                        <h3 class="mb-0">Organ Systems of Study</h3>
                     </div>
                     <div class="card-body">
                         <div th:replace="fragments/organ::organs(checkedOrganUberonIds = ${viewUser.userOrgans.keySet()})">
@@ -244,7 +244,7 @@
 
         <th:block th:each="taxon : ${viewUser.taxons}">
 
-            <div class="row mb-3">
+            <div th:if="${viewUser.taxonDescriptions.get(taxon)}!=''" class="row mb-3">
                 <div class="col">
                     <div class="card research-info edit-container">
                         <div class="card-header d-flex align-items-center">
@@ -260,22 +260,23 @@
                 </div>
             </div>
 
-            <div th:if="not ${viewUser.profile.hideGenelist} or (${user} == ${viewUser}) or ${user?.roles?.contains(@roleRepository.findByRole('ROLE_ADMIN'))}"
+            <div
                  class="row mb-3">
                 <div class="col">
                     <div class="card">
                         <div class="card-header">
+			    <h4>
+            <span th:if="${taxon.commonName=='e. coli'}"><i>E. coli</i></span>
+            <span th:unless="${taxon.commonName=='e. coli'}" th:text="${#strings.capitalizeWords(taxon.commonName)}">...</span>
+
+    <img th:src="@{${'/images/mod/' +taxon.id + '.png'}}" style="max-width:4%"></img>
+
+</h4>
                             <ul class="nav nav-tabs card-header-tabs" role="tablist">
                                 <li class="nav-item">
                                     <a class="nav-link active genes-tab" data-toggle="tab"
                                        th:href="${'#genes-' + taxon.id}" role="tab"
                                        aria-controls="profile" aria-selected="true">Genes</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link terms-tab" data-toggle="tab"
-                                       th:href="${'#terms-' + taxon.id}" role="tab"
-                                       aria-controls="model"
-                                       aria-selected="true">Terms</a>
                                 </li>
                             </ul>
                         </div>

@@ -102,7 +102,12 @@ public class GeneInfoServiceImpl implements GeneInfoService {
                 } else {
                     log.info( MessageFormat.format( "Loading genes for {0} from {1}.",
                             taxon, taxon.getGeneUrl() ) );
+if(taxon.getId()==8364){
                     data = geneInfoParser.parse( taxon, taxon.getGeneUrl() );
+}
+else{
+data=new HashSet<>();
+}
                 }
                 log.info( MessageFormat.format( "Done parsing genes for {0}.", taxon ) );
                 geneInfoRepository.save( data );
@@ -173,4 +178,4 @@ public class GeneInfoServiceImpl implements GeneInfoService {
 
         return false;
     }
-}
+} 

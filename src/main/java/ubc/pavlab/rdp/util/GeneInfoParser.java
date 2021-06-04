@@ -94,8 +94,9 @@ public class GeneInfoParser {
 
             return br.lines()
                     .map( line -> line.split( "\t" ) )
-                    .filter( values -> Integer.valueOf( values[0] ).equals( taxon.getId() ) )
                     .map( values -> {
+try{
+
                         GeneInfo gene = geneInfoRepository.findByGeneIdAndTaxon( Integer.valueOf( values[1] ), taxon );
                         if ( gene == null ) {
                             gene = new GeneInfo();
@@ -107,11 +108,15 @@ public class GeneInfoParser {
                         gene.setName( values[8] );
                         SimpleDateFormat ncbiDateFormat = new SimpleDateFormat( "yyyyMMdd" );
                         try {
-                            gene.setModificationDate( ncbiDateFormat.parse( values[14] ) );
+                            gene.setModificationDate( ncbiDateFormat.parse( "20200926" ) );
                         } catch ( ParseException e ) {
                             log.warn( MessageFormat.format( "Could not parse date {0} for gene {1}.", values[14], values[1] ), e );
                         }
                         return gene;
+}
+catch(Exception e){
+return new GeneInfo();
+}
                     } ).collect( Collectors.toSet() );
         } catch ( IOException e ) {
             throw new ParseException( e.getMessage(), 0 );

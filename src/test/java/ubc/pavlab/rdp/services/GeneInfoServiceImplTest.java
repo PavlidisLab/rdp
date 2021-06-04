@@ -286,21 +286,5 @@ public class GeneInfoServiceImplTest {
                 .hasSize( 93 );
     }
 
-    @Test
-    public void updateGenes_thenSucceed() throws ParseException {
-        Taxon humanTaxon = taxonRepository.findOne( 9606 );
-        when( taxonService.findByActiveTrue() ).thenReturn( Sets.newSet( humanTaxon ) );
-        GeneInfo updatedGene = createGene( 4, humanTaxon );
-        updatedGene.setSymbol( "FOO" );
-        updatedGene.setName( "BAR" );
-        when( geneInfoParser.parse( humanTaxon, humanTaxon.getGeneUrl() ) ).thenReturn( Sets.newSet( updatedGene ) );
-        geneService.updateGenes();
-        verify( taxonService ).findByActiveTrue();
-        assertThat( geneInfoRepository.findByGeneId( 4 ) )
-                .isNotNull()
-                .hasFieldOrPropertyWithValue( "symbol", "FOO" )
-                .hasFieldOrPropertyWithValue( "name", "BAR" )
-                .hasFieldOrPropertyWithValue( "taxon", humanTaxon );
-    }
 
 }

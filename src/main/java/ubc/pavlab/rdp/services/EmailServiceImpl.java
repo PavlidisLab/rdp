@@ -112,7 +112,7 @@ public class EmailServiceImpl implements EmailService {
 
         // password reset always go through the primary email
         InternetAddress to = new InternetAddress( user.getEmail() );
-        String subject = "Reset your password";
+        String subject = "Reset your ModelMatcher password";
         String content =
                 "Hello " + user.getProfile().getName() + ",\r\n\r\n" +
                         "We recently received a request that you want to reset your password. " +
@@ -131,7 +131,7 @@ public class EmailServiceImpl implements EmailService {
         String registrationEnding = messageSource.getMessage( "rdp.site.email.registration-ending", new String[]{ siteSettings.getContactEmail() }, Locale.getDefault() );
         // registration always go through the primary email
         InternetAddress recipientAddress = new InternetAddress( user.getEmail() );
-        String subject = "Confirm your registration";
+        String subject = "Confirm your ModelMatcher registration";
         String confirmationUrl = UriComponentsBuilder.fromUri( siteSettings.getHostUri() )
                 .path( "registrationConfirm" )
                 .queryParam( "token", token.getToken() )

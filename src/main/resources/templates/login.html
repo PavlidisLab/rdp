@@ -14,8 +14,8 @@
 
 <div class="wrapper d-flex justify-content-center align-items-center">
     <div class="container py-4">
-        <h4 class="form-signin-heading"><a th:href="@{/login}" th:text="#{rdp.site.fullname}"></a></h4>
-        <h6 class="form-signin-subheading">Researcher Registry</h6>
+        <h3 class="form-signin-heading"><a href="https://www.modelmatcher.net/" th:text="#{rdp.site.fullname}"></a></h3>
+        <h6 class="form-signin-subheading">Scientist Registry</h6>
         <div th:replace="layouts/login::message"></div>
         <form th:action="@{/login}" method="POST">
             <div class="row">
@@ -62,10 +62,10 @@
                         </div>
                         <div sec:authorize="hasPermission(null, 'search')"
                              class="col-4 text-center">
-                            <a th:href="@{/search}">Public search</a>
+                            <a th:href="@{/search}">Search</a>
                         </div>
                         <div class="col-4 text-center">
-                            <a th:href="'mailto:' + #{rdp.site.contact-email}">Contact Support</a>
+                            <a href="https://www.modelmatcher.net/Contact.html">Contact Support</a>
                         </div>
                     </div>
                 </div>
