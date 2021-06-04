@@ -163,6 +163,9 @@ insert into user_role (user_id,role_id) values ((select max(user_id) from user),
 select max(user_id) from user;
 ```
 
+This allows you to query private data from the partner registry when logged in as an administrator on your own
+registry.
+
 However, it can also be achieved by creating a [service account](service-accounts.md).
 
 Let's assume that the created user's ID was 522. The partner would then add the token to
@@ -173,8 +176,6 @@ rdp.settings.isearch.user-id=522
 rdp.settings.isearch.auth-tokens=jLb22QZzsaT6/w3xwDHBObmZPypJgXfb,hrol3Y4z2OE0ayK227i8oHTLDjPtRfb4
 ```
 
-That's it. You can now query private data from the partner registry when logged in as an administrator on your own
-registry.
 
 ## Gene Tiers
 
@@ -256,30 +257,26 @@ This feature can be disabled by setting the following configuration key to `fals
 rdp.settings.privacy.enable-anonymized-search-results=false
 ```
 
-## Internationalization and custom messages
+## Customaxing the application's messages
 
-Some text displayed in RDP can be customized and internationalized.
-
-To do so, create a `messages.properties` file in the working directory of the Web application add the entries you want
-to change. Default values are found in
+Some text displayed in RDP can be customized and/or internationalized. To do so, copy a provided `messages.properties` file in the working directory of the Web application and edit it. The file is found in
 [messages.properties](https://github.com/PavlidisLab/rgr/blob/master/src/main/resources/messages.properties)
 
-You can use suffixed like `messages_en_CA.properties` for region-specific localization.
+You can use suffixed like `messages_en_CA.properties` for region-specific customization.
 
 Note that `application-prod.properties` and `login.properties` are also used for messages for backward compatibility.
 New and existing messages should be moved to `messages.properties`.
 
 ## FAQ
 
-The FAQ can be customized by relocating the resource to a local file (i.e. `faq.properties`) with
-the `rdp.settings.faq-file` configuration.
+The FAQs can also be customized in a similar way by editing the provided `faq.properties` file and setting up
+the `rdp.settings.faq-file` parameter:
 
 ```ini
 rdp.settings.faq-file=file:faq.properties
 ```
 
-All the question and answer style items that will display in the frequently asked questions page. Each entry requires
-two parts: `rdp.faq.questions.<q_key>` and `rdp.faq.answers.<q_key>` which hold the question and the corresponding
+In the file, each entry requires two parts: `rdp.faq.questions.<q_key>` and `rdp.faq.answers.<q_key>` which hold the question and the corresponding
 answer, respectively.
 
 ```ini
@@ -287,7 +284,7 @@ rdp.faq.questions.<q_key>=A relevant question.
 rdp.faq.answers.<q_key>=A plausible answer.
 ```
 
-Example of a FAQ can be found in [faq.properties](https://github.com/PavlidisLab/rgr/tree/master/src/main/resources/faq.properties).
+The provided default file can be found in [faq.properties](https://github.com/PavlidisLab/rgr/tree/master/src/main/resources/faq.properties).
 
 ## Style and static resources
 
