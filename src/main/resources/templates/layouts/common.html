@@ -59,8 +59,10 @@
                         <a th:each="taxon : ${@taxonService.findByActiveTrue()}"
                            class="dropdown-item text-capitalize"
                            th:href="@{/user/model/{taxonId}(taxonId=${taxon.id})}"
-                           th:text="${taxon.commonName}"
-                           th:classappend="${@userService.findCurrentUser()?.hasTaxon(taxon)} ? 'hastaxon' : ''"></a>
+                           th:classappend="${@userService.findCurrentUser()?.hasTaxon(taxon)} ? 'hastaxon' : ''">
+                            <span th:text="${taxon.commonName}"></span>
+                            <span th:if="${taxon.id} == 9606"> / other</span>
+                        </a>
                     </div>
                 </li>
                 <li class="nav-item">
