@@ -72,7 +72,7 @@ public class GeneController {
         if ( gene == null ) {
             return ResponseEntity.notFound().build();
         }
-        return goService.getTermsForGene( gene, true, true );
+        return goService.getTermsForGene( gene, true );
     }
 
     @ResponseBody

@@ -121,7 +121,7 @@ public class OBOParser {
                                     parentNode = termMap.get( values[1] );
                                 }
                                 currentNode.getParents().add( new Relationship( parentNode, RelationshipType.PART_OF ) );
-                                parentNode.getParents().add( new Relationship( currentNode, RelationshipType.PART_OF ) );
+                                parentNode.getChildren().add( new Relationship( currentNode, RelationshipType.PART_OF ) );
                             }
                             break;
                         case "is_obsolete":

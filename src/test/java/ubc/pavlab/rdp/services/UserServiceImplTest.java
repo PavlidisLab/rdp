@@ -466,7 +466,7 @@ public class UserServiceImplTest {
         UserGene userGene = createUnpersistedUserGene( gene, user, TierType.TIER1, PrivacyLevelType.PRIVATE );
 
         when( goService.getTerm( term.getGoId() ) ).thenReturn( term );
-        when( goService.getTermsForGene( userGene, true, true ) ).thenReturn( Sets.newSet( term ) );
+        when( goService.getTermsForGene( userGene, true ) ).thenReturn( Sets.newSet( term ) );
         when( goService.getSizeInTaxon( term, taxon ) ).thenReturn( 2L );
         when( goService.getGenes( term ) ).thenReturn( Collections.singleton( gene.getGeneId() ) );
         when( goService.getDirectGenes( term ) ).thenReturn( Collections.singleton( gene.getGeneId() ) );

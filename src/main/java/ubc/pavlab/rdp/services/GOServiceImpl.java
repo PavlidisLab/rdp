@@ -2,8 +2,8 @@ package ubc.pavlab.rdp.services;
 
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StopWatch;
 import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.Aspect;
 import ubc.pavlab.rdp.model.enums.RelationshipType;
@@ -124,13 +124,17 @@ public class GOServiceImpl implements GOService {
 
         saveAlias( terms );
 
+        log.info( "Clearing ancestor and descendants cache as it is no longer fresh." );
+        ancestorsCache.clear();
+        descendantsCache.clear();
+
         log.info( MessageFormat.format( "Done updating GO terms, total of {0} items.", count() ) );
     }
 
     @Override
     public Map<GeneOntologyTermInfo, Long> termFrequencyMap( Collection<? extends Gene> genes ) {
         return genes.stream()
-                .flatMap( g -> getTermsForGene( g, true, true ).stream() )
+                .flatMap( g -> getTermsForGene( g, true ).stream() )
                 .collect( groupingBy( identity(), counting() ) );
     }
 
@@ -183,19 +187,14 @@ public class GOServiceImpl implements GOService {
 
     @Override
     public long getSizeInTaxon( GeneOntologyTermInfo t, Taxon taxon ) {
-        return t.getDirectGeneIdsByTaxonId().getOrDefault( taxon.getId(), Collections.emptyList() ).size();
+        return getGenesInTaxon( t, taxon ).size();
     }
 
     @Override
     public Collection<GeneOntologyTermInfo> getChildren( GeneOntologyTermInfo entry ) {
-        return getChildren( entry, true );
-    }
-
-    @Override
-    public Collection<GeneOntologyTermInfo> getChildren( GeneOntologyTermInfo entry, boolean includePartOf ) {
         return entry.getChildren().stream()
-                .filter( r -> includePartOf || r.getType().equals( RelationshipType.IS_A ) )
                 .map( Relationship::getTerm )
+                .map( this::getTerm )
                 .collect( Collectors.toSet() );
     }
 
@@ -231,20 +230,21 @@ public class GOServiceImpl implements GOService {
 
     @Override
     public Collection<GeneOntologyTermInfo> getDescendants( GeneOntologyTermInfo entry ) {
-        return getDescendants( entry, true );
+        return getDescendantsInternal( entry );
     }
 
-    @Override
-    @Cacheable
-    public Collection<GeneOntologyTermInfo> getDescendants( GeneOntologyTermInfo entry, boolean includePartOf ) {
-        Collection<GeneOntologyTermInfo> descendants = new HashSet<>();
+    private Map<GeneOntologyTermInfo, Set<GeneOntologyTermInfo>> descendantsCache = new HashMap<>();
 
-        for ( GeneOntologyTermInfo child : getChildren( entry, includePartOf ) ) {
-            descendants.add( child );
-            descendants.addAll( getDescendants( child, includePartOf ) );
+    private Set<GeneOntologyTermInfo> getDescendantsInternal( GeneOntologyTermInfo entry ) {
+        if ( descendantsCache.containsKey( entry ) )
+            return descendantsCache.get( entry );
+        Set<GeneOntologyTermInfo> results = new HashSet<>();
+        for ( GeneOntologyTermInfo child : getChildren( entry ) ) {
+            results.add( child );
+            results.addAll( getDescendantsInternal( child ) );
         }
-
-        return Collections.unmodifiableCollection( descendants );
+        descendantsCache.put( entry, results );
+        return results;
     }
 
     /**
@@ -305,7 +305,7 @@ public class GOServiceImpl implements GOService {
     }
 
     @Override
-    public Collection<GeneOntologyTermInfo> getTermsForGene( Gene gene, boolean includePartOf, boolean propagateUpwards ) {
+    public Collection<GeneOntologyTermInfo> getTermsForGene( Gene gene, boolean propagateUpwards ) {
 
         Collection<GeneOntologyTermInfo> allGOTermSet = new HashSet<>();
 
@@ -313,10 +313,36 @@ public class GOServiceImpl implements GOService {
             allGOTermSet.add( term );
 
             if ( propagateUpwards ) {
-                allGOTermSet.addAll( term.getAncestors( includePartOf ) );
+                allGOTermSet.addAll( getAncestors( term ) );
             }
         }
 
         return Collections.unmodifiableCollection( allGOTermSet );
+    }
+
+    private Collection<GeneOntologyTermInfo> getParents( GeneOntologyTermInfo term ) {
+        return term.getParents().stream()
+                .map( Relationship::getTerm )
+                .map( this::getTerm )
+                .collect( Collectors.toSet() );
+    }
+
+    @Override
+    public Collection<GeneOntologyTermInfo> getAncestors( GeneOntologyTermInfo term ) {
+        return getAncestorsInternal( term );
+    }
+
+    private Map<GeneOntologyTermInfo, Set<GeneOntologyTermInfo>> ancestorsCache = new HashMap<>();
+
+    private Collection<GeneOntologyTermInfo> getAncestorsInternal( GeneOntologyTermInfo term ) {
+        if ( ancestorsCache.containsKey( term ) )
+            return ancestorsCache.get( term );
+        Set<GeneOntologyTermInfo> results = new HashSet<>();
+        for ( GeneOntologyTermInfo parent : getParents( term ) ) {
+            results.add( parent );
+            results.addAll( getAncestorsInternal( parent ) );
+        }
+        ancestorsCache.put( term, results );
+        return results;
     }
 }

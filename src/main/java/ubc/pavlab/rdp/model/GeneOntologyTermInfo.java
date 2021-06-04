@@ -40,24 +40,4 @@ public class GeneOntologyTermInfo extends GeneOntologyTerm {
 
     @JsonIgnore
     private MultiValueMap<Integer, Integer> directGeneIdsByTaxonId = new LinkedMultiValueMap<>();
-
-    @JsonIgnore
-    public Collection<GeneOntologyTermInfo> getParents( boolean includePartOf ) {
-        return parents.stream()
-                .filter( r -> includePartOf || r.getType().equals( RelationshipType.IS_A ) )
-                .map( Relationship::getTerm )
-                .collect( Collectors.toSet() );
-    }
-
-    @JsonIgnore
-    public Collection<GeneOntologyTermInfo> getAncestors( boolean includePartOf ) {
-        Collection<GeneOntologyTermInfo> ancestors = new HashSet<>();
-
-        for ( GeneOntologyTermInfo parent : getParents( includePartOf ) ) {
-            ancestors.add( parent );
-            ancestors.addAll( parent.getAncestors( includePartOf ) );
-        }
-
-        return ancestors;
-    }
 }

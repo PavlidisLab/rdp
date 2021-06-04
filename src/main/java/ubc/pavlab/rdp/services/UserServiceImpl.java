@@ -30,7 +30,6 @@ import ubc.pavlab.rdp.repositories.*;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 
 import javax.validation.ValidationException;
-import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.text.MessageFormat;
 import java.time.Instant;
@@ -507,7 +506,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public long computeTermOverlaps( UserTerm userTerm, Collection<GeneInfo> genes ) {
         return genes.stream()
-                .flatMap( g -> goService.getTermsForGene( g, true, true ).stream() )
+                .flatMap( g -> goService.getTermsForGene( g, true ).stream() )
                 .filter( term -> term.getGoId().equals( userTerm.getGoId() ) )
                 .count();
     }

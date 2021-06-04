@@ -26,15 +26,13 @@ public interface GOService {
 
     Collection<GeneOntologyTermInfo> getDescendants( GeneOntologyTermInfo entry );
 
-    Collection<GeneOntologyTermInfo> getDescendants( GeneOntologyTermInfo entry, boolean includePartOf );
+    Collection<GeneOntologyTermInfo> getAncestors( GeneOntologyTermInfo entry );
 
     Map<GeneOntologyTermInfo, Long> termFrequencyMap( Collection<? extends Gene> genes );
 
     List<SearchResult<GeneOntologyTermInfo>> search( String queryString, Taxon taxon, int max );
 
     Collection<GeneOntologyTermInfo> getChildren( GeneOntologyTermInfo entry );
-
-    Collection<GeneOntologyTermInfo> getChildren( GeneOntologyTermInfo entry, boolean includePartOf );
 
     Collection<Integer> getDirectGenes( GeneOntologyTermInfo term );
 
@@ -50,7 +48,7 @@ public interface GOService {
 
     Collection<GeneOntologyTermInfo> getTermsForGene( Gene gene );
 
-    Collection<GeneOntologyTermInfo> getTermsForGene( Gene gene, boolean includePartOf, boolean propagateUpwards );
+    Collection<GeneOntologyTermInfo> getTermsForGene( Gene gene, boolean propagateUpwards );
 
     long getSizeInTaxon( GeneOntologyTermInfo t, Taxon taxon );
 

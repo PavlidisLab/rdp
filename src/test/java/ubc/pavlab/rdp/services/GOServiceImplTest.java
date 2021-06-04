@@ -285,14 +285,8 @@ public class GOServiceImplTest {
 
     @Test
     public void getChildren_whenIncludePartOf_thenReturnAllChildren() {
-        Collection<GeneOntologyTermInfo> found = goService.getChildren( terms.get( 1 ), true );
+        Collection<GeneOntologyTermInfo> found = goService.getChildren( terms.get( 1 ) );
         assertThat( found ).containsExactlyInAnyOrder( terms.get( 2 ), terms.get( 3 ) );
-    }
-
-    @Test
-    public void getChildren_whenNotIncludePartOf_thenReturnIsAChildren() {
-        Collection<GeneOntologyTermInfo> found = goService.getChildren( terms.get( 1 ), false );
-        assertThat( found ).containsExactly( terms.get( 2 ) );
     }
 
     @Test(expected = NullPointerException.class)
@@ -308,14 +302,8 @@ public class GOServiceImplTest {
 
     @Test
     public void getDescendants_whenIncludePartOf_thenReturnAllChildren() {
-        Collection<GeneOntologyTermInfo> found = goService.getDescendants( terms.get( 0 ), true );
+        Collection<GeneOntologyTermInfo> found = goService.getDescendants( terms.get( 0 ) );
         assertThat( found ).containsExactlyInAnyOrder( terms.get( 1 ), terms.get( 2 ), terms.get( 3 ), terms.get( 4 ), terms.get( 5 ) );
-    }
-
-    @Test
-    public void getDescendants_whenNotIncludePartOf_thenReturnIsAChildren() {
-        Collection<GeneOntologyTermInfo> found = goService.getDescendants( terms.get( 0 ), false );
-        assertThat( found ).containsExactlyInAnyOrder( terms.get( 1 ), terms.get( 2 ), terms.get( 4 ), terms.get( 5 ) );
     }
 
     @Test
