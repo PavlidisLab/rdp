@@ -27,7 +27,7 @@ public class GeneInfoParser {
 
     private static final String[] EXPECTED_HEADER_FIELDS = { "#tax_id", "GeneID", "Symbol", "Synonyms", "description", "Modification_date" };
 
-    private final DateFormat NCBI_DATE_FORMAT = new SimpleDateFormat( "yyyyMMdd" );
+    private static DateFormat NCBI_DATE_FORMAT = new SimpleDateFormat( "yyyyMMdd" );
 
     public List<Record> parse( InputStream input, Integer taxonId ) throws ParseException, IOException {
         try ( LineNumberReader br = new LineNumberReader( new InputStreamReader( input ) ) ) {
