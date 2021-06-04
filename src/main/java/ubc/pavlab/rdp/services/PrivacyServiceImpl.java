@@ -84,7 +84,7 @@ public class PrivacyServiceImpl implements PrivacyService {
 
         Profile profile = otherUser.getProfile();
 
-        if ( profile == null || profile.getPrivacyLevel() == null || profile.getShared() == null ) {
+        if ( profile == null || profile.getPrivacyLevel() == null ) {
             log.error( MessageFormat.format( "User without a profile, privacy levels or sharing set: {0}", otherUser ) );
             return false;
         }
@@ -96,7 +96,7 @@ public class PrivacyServiceImpl implements PrivacyService {
                 || ( privacyLevel.equals( PrivacyLevelType.SHARED ) && currentUser != null && !currentUser.getId().equals( applicationSettings.getIsearch().getUserId() ) )// data is accessible for registerd users and there is a user logged in who is not the remote admin
                 || ( privacyLevel.equals( PrivacyLevelType.PRIVATE ) && currentUser != null && currentUser.getRoles().contains( getAdminRole() ) && !currentUser.getId().equals( applicationSettings.getIsearch().getUserId() ) )// data is private and there is an admin logged in who is not the remote admin
                 || ( privacyLevel.equals( PrivacyLevelType.PRIVATE ) && currentUser != null && currentUser.getRoles().contains( getServiceAccountRole() ) && !currentUser.getId().equals( applicationSettings.getIsearch().getUserId() ) ) // user is a service account
-                || ( profile.getShared() && currentUser != null && currentUser.getRoles().contains( getAdminRole() ) && currentUser.getId().equals( applicationSettings.getIsearch().getUserId() ) ); // data is designated as remotely shared and there is an admin logged in who is the remote admin
+                || ( profile.isShared() && currentUser != null && currentUser.getRoles().contains( getAdminRole() ) && currentUser.getId().equals( applicationSettings.getIsearch().getUserId() ) ); // data is designated as remotely shared and there is an admin logged in who is the remote admin
     }
 
     @Cacheable

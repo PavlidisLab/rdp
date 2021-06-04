@@ -116,7 +116,7 @@ public class LoginController {
             modelAndView.setStatus( HttpStatus.NOT_FOUND );
             modelAndView.addObject( "message", "User does not exist." );
             return modelAndView;
-        } else if ( user.getEnabled() ) {
+        } else if ( user.isEnabled() ) {
             // user is already enabled...
             modelAndView.setStatus( HttpStatus.BAD_REQUEST );
             modelAndView.addObject( "message", "User is already enabled." );

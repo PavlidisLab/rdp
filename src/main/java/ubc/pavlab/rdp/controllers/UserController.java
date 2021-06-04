@@ -215,7 +215,7 @@ public class UserController {
     @PostMapping("/user/resend-contact-email-verification")
     public Object resendContactEmailVerification( RedirectAttributes redirectAttributes ) {
         User user = userService.findCurrentUser();
-        if ( user.getProfile().getContactEmailVerified() ) {
+        if ( user.getProfile().isContactEmailVerified() ) {
             return ResponseEntity.badRequest().body( "Contact email is already verified." );
         }
         VerificationToken token = userService.createContactEmailVerificationTokenForUser( user );

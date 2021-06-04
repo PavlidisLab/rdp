@@ -126,18 +126,6 @@ public class UserServiceImpl implements UserService {
                 log.warn( "Received a null 'privacyLevel' value in profile." );
                 user.getProfile().setPrivacyLevel( defaultPrivacyLevel );
             }
-
-            if ( user.getProfile().getShared() == null ) {
-                log.warn( "Received a null 'shared' value in profile." );
-                user.getProfile().setShared( defaultSharing );
-            }
-
-            if ( user.getProfile().getHideGenelist() == null ) {
-                if ( applicationSettings.getPrivacy().isAllowHideGenelist() ) {
-                    log.warn( "Received a null 'hideGeneList' value in profile." );
-                }
-                user.getProfile().setHideGenelist( defaultGenelist );
-            }
         }
 
         PrivacyLevelType userPrivacyLevel = user.getProfile().getPrivacyLevel();
@@ -602,10 +590,10 @@ public class UserServiceImpl implements UserService {
             }
         }
         if ( applicationSettings.getPrivacy().isCustomizableSharing() ) {
-            user.getProfile().setShared( profile.getShared() );
+            user.getProfile().setShared( profile.isShared() );
         }
         if ( applicationSettings.getPrivacy().isAllowHideGenelist() ) {
-            user.getProfile().setHideGenelist( profile.getHideGenelist() );
+            user.getProfile().setHideGenelist( profile.isHideGenelist() );
         }
 
         if ( publications != null ) {

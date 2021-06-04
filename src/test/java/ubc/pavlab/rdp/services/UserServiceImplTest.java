@@ -594,26 +594,26 @@ public class UserServiceImplTest {
     public void updateUserProfileAndPublicationsAndOrgans_whenContactEmailIsSet_thenSendVerificationEmail() {
         User user = createUser( 1 );
         Profile profile = new Profile();
-        profile.setPrivacyLevel(PrivacyLevelType.PUBLIC);
+        profile.setPrivacyLevel( PrivacyLevelType.PUBLIC );
         profile.setContactEmail( "foo@example.com" );
         userService.updateUserProfileAndPublicationsAndOrgans( user, profile, null, null );
         verify( userListener ).onContactEmailUpdate( any( OnContactEmailUpdateEvent.class ) );
-        assertThat( user.getProfile().getContactEmailVerified() ).isFalse();
+        assertThat( user.getProfile().isContactEmailVerified() ).isFalse();
 
         // make sure that if user update its profile later on, he doesn't get spammed
         userService.updateUserProfileAndPublicationsAndOrgans( user, profile, null, null );
         verifyNoMoreInteractions( userListener );
-        assertThat( user.getProfile().getContactEmailVerified() ).isFalse();
+        assertThat( user.getProfile().isContactEmailVerified() ).isFalse();
     }
 
     @Test
     public void updateUserProfileAndPublicationsAndOrgans_whenContactEmailIsEqualToUserEmail_thenAssumeContactEmailIsVerified() {
         User user = createUser( 1 );
         Profile profile = new Profile();
-        profile.setPrivacyLevel(PrivacyLevelType.PUBLIC);
+        profile.setPrivacyLevel( PrivacyLevelType.PUBLIC );
         profile.setContactEmail( user.getEmail() );
         userService.updateUserProfileAndPublicationsAndOrgans( user, profile, null, null );
-        assertThat( user.getProfile().getContactEmailVerified() ).isTrue();
+        assertThat( user.getProfile().isContactEmailVerified() ).isTrue();
         verifyZeroInteractions( userListener );
     }
 
@@ -623,11 +623,11 @@ public class UserServiceImplTest {
         user.getProfile().setContactEmail( "foo@example.com" );
         user.getProfile().setContactEmailVerified( true );
         Profile profile = new Profile();
-        profile.setPrivacyLevel(PrivacyLevelType.PUBLIC);
+        profile.setPrivacyLevel( PrivacyLevelType.PUBLIC );
         profile.setContactEmail( null );
         userService.updateUserProfileAndPublicationsAndOrgans( user, profile, null, null );
         assertThat( user.getProfile().getContactEmail() ).isNull();
-        assertThat( user.getProfile().getContactEmailVerified() ).isFalse();
+        assertThat( user.getProfile().isContactEmailVerified() ).isFalse();
         verifyZeroInteractions( userListener );
     }
 
@@ -637,11 +637,11 @@ public class UserServiceImplTest {
         user.getProfile().setContactEmail( "foo@example.com" );
         user.getProfile().setContactEmailVerified( true );
         Profile profile = new Profile();
-        profile.setPrivacyLevel(PrivacyLevelType.PUBLIC);
+        profile.setPrivacyLevel( PrivacyLevelType.PUBLIC );
         profile.setContactEmail( "" );
         userService.updateUserProfileAndPublicationsAndOrgans( user, profile, null, null );
         assertThat( user.getProfile().getContactEmail() ).isEmpty();
-        assertThat( user.getProfile().getContactEmailVerified() ).isFalse();
+        assertThat( user.getProfile().isContactEmailVerified() ).isFalse();
         verifyZeroInteractions( userListener );
     }
 
@@ -653,7 +653,7 @@ public class UserServiceImplTest {
         when( profileSettings.getEnabledResearcherPositions() ).thenReturn( researcherPositionNames );
         User user = createUser( 1 );
         Profile profile = new Profile();
-        profile.setPrivacyLevel(PrivacyLevelType.PUBLIC);
+        profile.setPrivacyLevel( PrivacyLevelType.PUBLIC );
         profile.setResearcherPosition( ResearcherPosition.PRINCIPAL_INVESTIGATOR );
         userService.updateUserProfileAndPublicationsAndOrgans( user, profile, null, null );
         assertThat( user.getProfile().getResearcherPosition() ).isEqualTo( ResearcherPosition.PRINCIPAL_INVESTIGATOR );
@@ -669,7 +669,7 @@ public class UserServiceImplTest {
         when( profileSettings.getEnabledResearcherCategories() ).thenReturn( researcherCategoryNames );
         User user = createUser( 1 );
         Profile profile = new Profile();
-        profile.setPrivacyLevel(PrivacyLevelType.PUBLIC);
+        profile.setPrivacyLevel( PrivacyLevelType.PUBLIC );
         profile.getResearcherCategories().add( ResearcherCategory.IN_SILICO );
         userService.updateUserProfileAndPublicationsAndOrgans( user, profile, null, null );
         assertThat( user.getProfile().getResearcherCategories() ).containsExactly( ResearcherCategory.IN_SILICO );
@@ -736,7 +736,7 @@ public class UserServiceImplTest {
         setUpVerificationTokenMocks();
 
         User user = userService.confirmVerificationToken( "token1" );
-        assertThat( user.getEnabled() ).isTrue();
+        assertThat( user.isEnabled() ).isTrue();
         verify( tokenRepository ).delete( any( VerificationToken.class ) );
 
     }

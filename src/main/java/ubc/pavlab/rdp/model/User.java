@@ -67,7 +67,7 @@ public class User implements UserContent {
 
     @Column(name = "enabled", nullable = false)
     @JsonIgnore
-    private Boolean enabled;
+    private boolean enabled;
 
     @ManyToMany
     @JoinTable(name = "user_role", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
@@ -168,7 +168,7 @@ public class User implements UserContent {
     @Transient
     public Optional<InternetAddress> getVerifiedContactEmail() {
         try {
-            if ( profile.getContactEmailVerified() ) {
+            if ( profile.isContactEmailVerified() ) {
                 return Optional.of( new InternetAddress( profile.getContactEmail(), profile.getFullName() ) );
             } else if ( enabled ) {
                 return Optional.of( new InternetAddress( email, profile.getFullName() ) );

@@ -24,7 +24,7 @@ public class OrganInfo extends Organ {
 
     @Column(nullable = false)
     @JsonIgnore
-    private Boolean active;
+    private boolean active;
 
     @Column
     @JsonIgnore

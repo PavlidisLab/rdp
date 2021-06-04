@@ -5,9 +5,14 @@ create index IDXqadnox9xnoxkennvla4nxito4 on gene_info (symbol, taxon_id);
 alter table gene_info add constraint UKsu8xm3u7b6aod4nx4ygbd61rj unique (gene_id);
 alter table gene_info add constraint FKjhrcx93vfadlsujyvmudxc7dg foreign key (taxon_id) references taxon (taxon_id);
 
+-- enforce some non-nullable bit fields
+update user set enabled = false where enabled is null;
 alter table user modify column enabled bit not null;
+update user set hide_genelist = true where hide_genelist is null;
 alter table user modify column hide_genelist bit not null;
+update user set shared = false where shared is null;
 alter table user modify column shared bit not null;
+
 alter table user add column researcher_position varchar(255);
 alter table user add column contact_email varchar(255);
 alter table user add column contact_email_verified bit not null;
