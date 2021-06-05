@@ -262,9 +262,9 @@ public class ApiController {
                                            @Deprecated @RequestParam(required = false) String auth,
                                            Locale locale ) {
         Set<TierType> tiers;
-        if ( tier.equals( "TIER_ANY" ) ) {
+        if ( tier.equals( "ANY" ) ) {
             tiers = TierType.ANY;
-        } else if ( tier.equals( "TIER1_2" ) || tier.equals( "TIER_MANUAL" ) ) {
+        } else if ( tier.equals( "TIERS1_2" ) ) {
             tiers = TierType.MANUAL;
         } else {
             try {
