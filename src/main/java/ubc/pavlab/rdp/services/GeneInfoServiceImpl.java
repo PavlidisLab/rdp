@@ -12,10 +12,7 @@ import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.model.enums.GeneMatchType;
 import ubc.pavlab.rdp.repositories.GeneInfoRepository;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
-import ubc.pavlab.rdp.util.GeneInfoParser;
-import ubc.pavlab.rdp.util.GeneOrthologsParser;
-import ubc.pavlab.rdp.util.ParseException;
-import ubc.pavlab.rdp.util.SearchResult;
+import ubc.pavlab.rdp.util.*;
 
 import java.io.IOException;
 import java.text.DecimalFormat;
@@ -172,6 +169,7 @@ public class GeneInfoServiceImpl implements GeneInfoService {
         log.info( MessageFormat.format( "Loading all genes referred by {0}", resource ) );
         Map<Integer, GeneInfo> geneInfoWithOrthologsByGeneId = geneInfoRepository.findAllByGeneIdWithOrthologs( recordByGeneId.keySet() )
                 .stream()
+                .distinct() // for some bizarre reason, this can result in duplicate entries...
                 .collect( Collectors.toMap( GeneInfo::getGeneId, identity() ) );
 
         log.info( MessageFormat.format( "Loading all orthologs referred by {0}", resource ) );
@@ -191,16 +189,13 @@ public class GeneInfoServiceImpl implements GeneInfoService {
                         geneIdFormat.format( geneId ) ) );
                 continue;
             }
-            gene.getOrthologs().clear();
-            for ( GeneOrthologsParser.Record record : geneRecords ) {
-                GeneInfo ortholog = orthologByGeneId.get( record.getOrthologId() );
-                if ( ortholog == null ) {
-                    log.info( MessageFormat.format( "Cannot add ortholog relationship between {0} and {1} since the latter is missing from the database.",
-                            geneIdFormat.format( geneId ), geneIdFormat.format( record.getOrthologId() ) ) );
-                    continue;
-                }
-                gene.getOrthologs().add( ortholog );
-            }
+            Set<GeneInfo> orthologs = geneRecords.stream()
+                    .map( GeneOrthologsParser.Record::getOrthologId )
+                    .map( orthologByGeneId::get )
+                    .filter( Objects::nonNull )
+                    .collect( Collectors.toSet() );
+            gene.getOrthologs().removeIf( o -> !orthologs.contains( o ) );
+            gene.getOrthologs().addAll( orthologs );
             geneInfoRepository.save( gene );
         }
         log.info( "Done updating gene orthologs." );
