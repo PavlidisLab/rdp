@@ -90,3 +90,4 @@ insert into taxon (taxon_id, common_name, scientific_name, gene_url, active, ord
 
 -- Update budding yeast common name
 update taxon set common_name = 'budding yeast' where taxon_id = 559292;
+update taxon set scientific_name = 'Saccharomyces cerevisiae' where taxon_id = 559292;
