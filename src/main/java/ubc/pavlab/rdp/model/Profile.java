@@ -59,7 +59,7 @@ public class Profile {
     private String contactEmail;
 
     @Column(name = "contact_email_verified", nullable = false)
-    private Boolean contactEmailVerified;
+    private boolean contactEmailVerified;
 
     @Column(name = "website")
     @URL
@@ -70,10 +70,10 @@ public class Profile {
     private PrivacyLevelType privacyLevel;
 
     @Column(name = "shared", nullable = false)
-    private Boolean shared;
+    private boolean shared;
 
     @Column(name = "hide_genelist", nullable = false)
-    private Boolean hideGenelist;
+    private boolean hideGenelist;
 
     @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)

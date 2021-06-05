@@ -1,5 +1,7 @@
 package ubc.pavlab.rdp.repositories;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.QueryHints;
@@ -8,6 +10,7 @@ import org.springframework.stereotype.Repository;
 import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.model.UserGene;
 import ubc.pavlab.rdp.model.UserOrgan;
+import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.TierType;
 
 import javax.persistence.QueryHint;
@@ -27,6 +30,8 @@ public interface UserGeneRepository extends JpaRepository<UserGene, Integer> {
 
     @Query("select count(distinct user) FROM UserGene")
     Integer countDistinctUser();
+
+    Page<UserGene> findAllByPrivacyLevelAndUserProfilePrivacyLevel( PrivacyLevelType privacyLevel, PrivacyLevelType userProfilePrivacyLevel, Pageable pageable );
 
     @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
     UserGene findById( int id );

@@ -29,7 +29,7 @@ public class OBOParserIntegrationTest {
     OBOParser oboParser;
 
     @Test
-    public void parseStream_withGoTerms_thenSucceed() throws IOException {
+    public void parseStream_withGoTerms_thenSucceed() throws IOException, ParseException {
         Map<String, OBOParser.Term> parsedTerms = oboParser.parseStream( new ClassPathResource( "cache/go.obo" ).getInputStream() );
         assertThat( parsedTerms ).containsKey( "GO:0000001" );
         OBOParser.Term term = parsedTerms.get( "GO:0000001" );
@@ -41,7 +41,7 @@ public class OBOParserIntegrationTest {
     }
 
     @Test
-    public void parseStream_withUberonTerms_thenSucceed() throws IOException {
+    public void parseStream_withUberonTerms_thenSucceed() throws IOException, ParseException {
         Map<String, OBOParser.Term> parsedTerms = oboParser.parseStream( new ClassPathResource( "cache/uberon.obo" ).getInputStream() );
         assertThat( parsedTerms ).containsKey( "UBERON:0000000" );
         OBOParser.Term term = parsedTerms.get( "UBERON:0000000" );

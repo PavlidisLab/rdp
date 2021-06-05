@@ -7,6 +7,7 @@ import org.junit.runner.RunWith;
 import org.mockito.internal.util.collections.Sets;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -271,10 +272,9 @@ public class GOServiceImplTest {
         assertThat( matches ).hasSize( 90 );
     }
 
-    @Test
+    @Test(expected = NullPointerException.class)
     public void getChildren_whenNull_thenReturnNull() {
         Collection<GeneOntologyTermInfo> found = goService.getChildren( null );
-        assertThat( found ).isNull();
     }
 
     @Test
@@ -285,162 +285,148 @@ public class GOServiceImplTest {
 
     @Test
     public void getChildren_whenIncludePartOf_thenReturnAllChildren() {
-        Collection<GeneOntologyTermInfo> found = goService.getChildren( terms.get( 1 ), true );
+        Collection<GeneOntologyTermInfo> found = goService.getChildren( terms.get( 1 ) );
         assertThat( found ).containsExactlyInAnyOrder( terms.get( 2 ), terms.get( 3 ) );
     }
 
-    @Test
-    public void getChildren_whenNotIncludePartOf_thenReturnIsAChildren() {
-        Collection<GeneOntologyTermInfo> found = goService.getChildren( terms.get( 1 ), false );
-        assertThat( found ).containsExactly( terms.get( 2 ) );
-    }
-
-    @Test
+    @Test(expected = NullPointerException.class)
     public void getDescendants_whenNull_thenReturnNull() {
         Collection<GeneOntologyTermInfo> found = goService.getDescendants( null );
-        assertThat( found ).isNull();
     }
 
     @Test
-    public void getDescendants_whenDefault_thenReturnAllChildren() {
+    public void getDescendants_whenTermIsRoot_thenReturnAllChildren() {
         Collection<GeneOntologyTermInfo> found = goService.getDescendants( terms.get( 0 ) );
         assertThat( found ).containsExactlyInAnyOrder( terms.get( 1 ), terms.get( 2 ), terms.get( 3 ), terms.get( 4 ), terms.get( 5 ) );
     }
 
     @Test
-    public void getDescendants_whenIncludePartOf_thenReturnAllChildren() {
-        Collection<GeneOntologyTermInfo> found = goService.getDescendants( terms.get( 0 ), true );
-        assertThat( found ).containsExactlyInAnyOrder( terms.get( 1 ), terms.get( 2 ), terms.get( 3 ), terms.get( 4 ), terms.get( 5 ) );
+    public void getAncestors_whenTermIsLeaf_thenReturnAllAncestors() {
+        assertThat( goService.getAncestors( terms.get( 2 ) ) )
+                .containsExactlyInAnyOrder( terms.get( 0 ), terms.get( 1 ) );
     }
 
     @Test
-    public void getDescendants_whenNotIncludePartOf_thenReturnIsAChildren() {
-        Collection<GeneOntologyTermInfo> found = goService.getDescendants( terms.get( 0 ), false );
-        assertThat( found ).containsExactlyInAnyOrder( terms.get( 1 ), terms.get( 2 ), terms.get( 4 ), terms.get( 5 ) );
+    public void getAncestors_whenTermIsRoot_thenReturnEmptySet() {
+        assertThat( goService.getAncestors( terms.get( 0 ) ) )
+                .isEmpty();
     }
 
     @Test
     public void getGenes_whenValidStringAndTaxon_thenReturnGenes() {
-        Collection<GeneInfo> found = goService.getGenesInTaxon( terms.get( 0 ).getGoId(), taxon );
-        assertThat( found ).containsExactlyInAnyOrder( genes.get( 1 ), genes.get( 2 ) );
-
+        Collection<Integer> found = goService.getGenesInTaxon( terms.get( 0 ).getGoId(), taxon );
+        assertThat( found ).containsExactlyInAnyOrder( 1, 2 );
     }
 
     @Test
     public void getGenes_whenInvalidString_thenReturnEmpty() {
-        Collection<GeneInfo> found = goService.getGenesInTaxon( "xyz", taxon );
+        Collection<Integer> found = goService.getGenesInTaxon( "xyz", taxon );
         assertThat( found ).isEmpty();
     }
 
     @Test
     public void getGenes_whenValidStringAndInvalidTaxon_thenReturnEmpty() {
-        Collection<GeneInfo> found = goService.getGenesInTaxon( terms.get( 0 ).getGoId(), createTaxon( 2 ) );
+        Collection<Integer> found = goService.getGenesInTaxon( terms.get( 0 ).getGoId(), createTaxon( 2 ) );
         assertThat( found ).isEmpty();
     }
 
     @Test
     public void getGenes_whenNullString_thenReturnNull() {
         String goId = null;
-        Collection<GeneInfo> found = goService.getGenesInTaxon( goId, taxon );
-        assertThat( found ).isNull();
+        Collection<Integer> found = goService.getGenesInTaxon( goId, taxon );
+        assertThat( found ).isEmpty();
     }
 
-    @Test
+    @Test(expected = NullPointerException.class)
     public void getGenes_whenValidStringAndNullTaxon_thenReturnNull() {
-        Collection<GeneInfo> found = goService.getGenesInTaxon( terms.get( 0 ).getGoId(), null );
-        assertThat( found ).isNull();
+        Collection<Integer> found = goService.getGenesInTaxon( terms.get( 0 ).getGoId(), null );
     }
 
     @Test
     public void getGenes_whenValidTerm_thenReturnGenes() {
-        Collection<GeneInfo> found = goService.getGenes( terms.get( 0 ) );
-        assertThat( found ).containsExactlyInAnyOrder( genes.get( 1 ), genes.get( 2 ) );
+        Collection<Integer> found = goService.getGenes( terms.get( 0 ) );
+        assertThat( found ).containsExactlyInAnyOrder( 1, 2 );
     }
 
     @Test
     public void getGenes_whenValidTermHasNoDescendantGenes_thenReturnDirectGenes() {
-        Collection<GeneInfo> found = goService.getGenes( terms.get( 2 ) );
-        assertThat( found ).containsExactly( genes.get( 2 ) );
+        Collection<Integer> found = goService.getGenes( terms.get( 2 ) );
+        assertThat( found ).containsExactly( 2 );
     }
 
     @Test
     public void getGenes_whenInvalidTerm_thenReturnEmpty() {
-        Collection<GeneInfo> found = goService.getGenes( createTerm( toGOId( 999 ) ) );
+        Collection<Integer> found = goService.getGenes( createTerm( toGOId( 999 ) ) );
         assertThat( found ).isEmpty();
     }
 
-    @Test
+    @Test(expected = NullPointerException.class)
     public void getGenes_whenNullTerm_thenReturnNull() {
         GeneOntologyTermInfo term = null;
-        Collection<GeneInfo> found = goService.getGenes( term );
-        assertThat( found ).isNull();
+        Collection<Integer> found = goService.getGenes( term );
     }
 
     @Test
     public void getGenes_whenValidTermAndTaxon_thenReturnGenes() {
-        Collection<GeneInfo> found = goService.getGenesInTaxon( terms.get( 0 ), taxon );
-        assertThat( found ).containsExactlyInAnyOrder( genes.get( 1 ), genes.get( 2 ) );
+        Collection<Integer> found = goService.getGenesInTaxon( terms.get( 0 ), taxon );
+        assertThat( found ).containsExactlyInAnyOrder( 1, 2 );
     }
 
     @Test
     public void getGenes_whenInvalidTermAndValidTaxon_thenReturnEmpty() {
-        Collection<GeneInfo> found = goService.getGenesInTaxon( createTerm( toGOId( 999 ) ), taxon );
+        Collection<Integer> found = goService.getGenesInTaxon( createTerm( toGOId( 999 ) ), taxon );
         assertThat( found ).isEmpty();
     }
 
     @Test
     public void getGenes_whenInvalidTaxon_thenReturnEmpty() {
-        Collection<GeneInfo> found = goService.getGenesInTaxon( terms.get( 0 ), createTaxon( 2 ) );
+        Collection<Integer> found = goService.getGenesInTaxon( terms.get( 0 ), createTaxon( 2 ) );
         assertThat( found ).isEmpty();
     }
 
-    @Test
+    @Test(expected = NullPointerException.class)
     public void getGenes_whenNullTermAndTaxon_thenReturnNull() {
         GeneOntologyTermInfo term = null;
-        Collection<GeneInfo> found = goService.getGenesInTaxon( term, taxon );
-        assertThat( found ).isNull();
+        Collection<Integer> found = goService.getGenesInTaxon( term, taxon );
     }
 
-    @Test
+    @Test(expected = NullPointerException.class)
     public void getGenes_whenNullTaxon_thenReturnNull() {
-        Collection<GeneInfo> found = goService.getGenesInTaxon( terms.get( 0 ), null );
-        assertThat( found ).isNull();
+        Collection<Integer> found = goService.getGenesInTaxon( terms.get( 0 ), null );
     }
 
     //
 
     @Test
     public void getGenes_whenMultipleTermsAndTaxon_thenReturnGenes() {
-        Collection<GeneInfo> found = goService.getGenesInTaxon( Sets.newSet( terms.get( 1 ), terms.get( 4 ) ), taxon );
-        assertThat( found ).containsExactlyInAnyOrder( genes.get( 1 ), genes.get( 2 ) );
+        Collection<Integer> found = goService.getGenesInTaxon( Sets.newSet( terms.get( 1 ), terms.get( 4 ) ), taxon );
+        assertThat( found ).containsExactlyInAnyOrder( 1, 2 );
 
         found = goService.getGenesInTaxon( Sets.newSet( terms.get( 3 ), terms.get( 5 ) ), taxon );
-        assertThat( found ).containsExactly( genes.get( 1 ) );
+        assertThat( found ).containsExactly( 1 );
     }
 
     @Test
     public void getGenes_whenMultipleTermsWithSomeInvalidAndValidTaxon_thenReturnGenes() {
-        Collection<GeneInfo> found = goService.getGenesInTaxon( Sets.newSet( terms.get( 1 ), createTerm( toGOId( 999 ) ) ), taxon );
-        assertThat( found ).containsExactlyInAnyOrder( genes.get( 1 ), genes.get( 2 ) );
+        Collection<Integer> found = goService.getGenesInTaxon( Sets.newSet( terms.get( 1 ), createTerm( toGOId( 999 ) ) ), taxon );
+        assertThat( found ).containsExactlyInAnyOrder( 1, 2 );
     }
 
     @Test
     public void getGenes_whenMultipleTermsAndInvalidTaxon_thenReturnEmpty() {
-        Collection<GeneInfo> found = goService.getGenesInTaxon( Sets.newSet( terms.get( 1 ), terms.get( 4 ) ), createTaxon( 2 ) );
+        Collection<Integer> found = goService.getGenesInTaxon( Sets.newSet( terms.get( 1 ), terms.get( 4 ) ), createTaxon( 2 ) );
         assertThat( found ).isEmpty();
     }
 
-    @Test
+    @Test(expected = NullPointerException.class)
     public void getGenes_whenNullTermsAndTaxon_thenReturnNull() {
         Collection<GeneOntologyTermInfo> terms = null;
-        Collection<GeneInfo> found = goService.getGenesInTaxon( terms, taxon );
-        assertThat( found ).isNull();
+        Collection<Integer> found = goService.getGenesInTaxon( terms, taxon );
     }
 
-    @Test
+    @Test(expected = NullPointerException.class)
     public void getGenes_whenMultipleTermsAndNullTaxon_thenReturnNull() {
-        Collection<GeneInfo> found = goService.getGenesInTaxon( Sets.newSet( terms.get( 1 ), terms.get( 4 ) ), null );
-        assertThat( found ).isNull();
+        Collection<Integer> found = goService.getGenesInTaxon( Sets.newSet( terms.get( 1 ), terms.get( 4 ) ), null );
     }
 
     @Test

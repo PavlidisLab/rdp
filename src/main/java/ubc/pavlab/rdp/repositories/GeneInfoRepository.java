@@ -14,10 +14,10 @@ public interface GeneInfoRepository extends JpaRepository<GeneInfo, Integer> {
 
     GeneInfo findByGeneId( Integer geneId );
 
-    @Query("select gene from GeneInfo gene left join fetch gene.orthologs where gene.geneId = :geneId")
-    GeneInfo findByGeneIdWithOrthologs( @Param("geneId") Integer geneId );
-
     Collection<GeneInfo> findAllByGeneIdIn( Collection<Integer> geneIds );
+
+    @Query("select gene from GeneInfo gene left join fetch gene.orthologs where gene.geneId in :geneIds")
+    Collection<GeneInfo> findAllByGeneIdWithOrthologs( @Param("geneIds") Collection<Integer> geneIds );
 
     GeneInfo findByGeneIdAndTaxon( Integer geneId, Taxon taxon );
 
@@ -34,4 +34,6 @@ public interface GeneInfoRepository extends JpaRepository<GeneInfo, Integer> {
     Collection<GeneInfo> findAllByAliasesContainingIgnoreCaseAndTaxon( String query, Taxon taxon );
 
     Collection<GeneInfo> findAllByTaxonActiveTrue();
+
+    long countByTaxon( Taxon taxon );
 }

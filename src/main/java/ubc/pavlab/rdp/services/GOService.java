@@ -26,7 +26,7 @@ public interface GOService {
 
     Collection<GeneOntologyTermInfo> getDescendants( GeneOntologyTermInfo entry );
 
-    Collection<GeneOntologyTermInfo> getDescendants( GeneOntologyTermInfo entry, boolean includePartOf );
+    Collection<GeneOntologyTermInfo> getAncestors( GeneOntologyTermInfo entry );
 
     Map<GeneOntologyTermInfo, Long> termFrequencyMap( Collection<? extends Gene> genes );
 
@@ -34,23 +34,21 @@ public interface GOService {
 
     Collection<GeneOntologyTermInfo> getChildren( GeneOntologyTermInfo entry );
 
-    Collection<GeneOntologyTermInfo> getChildren( GeneOntologyTermInfo entry, boolean includePartOf );
+    Collection<Integer> getDirectGenes( GeneOntologyTermInfo term );
 
-    Collection<GeneInfo> getDirectGenes( GeneOntologyTermInfo term );
+    Collection<Integer> getGenes( GeneOntologyTermInfo t );
 
-    Collection<GeneInfo> getGenes( GeneOntologyTermInfo t );
+    Collection<Integer> getGenesInTaxon( String id, Taxon taxon );
 
-    Collection<GeneInfo> getGenesInTaxon( String id, Taxon taxon );
+    Collection<Integer> getGenesInTaxon( GeneOntologyTermInfo t, Taxon taxon );
 
-    Collection<GeneInfo> getGenesInTaxon( GeneOntologyTermInfo t, Taxon taxon );
-
-    Collection<GeneInfo> getGenesInTaxon( Collection<GeneOntologyTermInfo> goTerms, Taxon taxon );
+    Collection<Integer> getGenesInTaxon( Collection<GeneOntologyTermInfo> goTerms, Taxon taxon );
 
     GeneOntologyTermInfo getTerm( String goId );
 
     Collection<GeneOntologyTermInfo> getTermsForGene( Gene gene );
 
-    Collection<GeneOntologyTermInfo> getTermsForGene( Gene gene, boolean includePartOf, boolean propagateUpwards );
+    Collection<GeneOntologyTermInfo> getTermsForGene( Gene gene, boolean propagateUpwards );
 
     long getSizeInTaxon( GeneOntologyTermInfo t, Taxon taxon );
 

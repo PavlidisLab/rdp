@@ -140,7 +140,7 @@ public class SearchController {
                                                   @RequestParam(required = false) Set<String> organUberonIds ) {
         ModelAndView modelAndView = new ModelAndView( "fragments/user-table::user-table" );
         modelAndView.addObject( "users", remoteResourceService.findUsersByLikeName( nameLike, prefix, researcherPositions, researcherCategories, organUberonIds ) );
-        modelAndView.addObject( "remote", true );
+        modelAndView.addObject( "remote", Boolean.TRUE );
         return modelAndView;
     }
 
@@ -185,7 +185,7 @@ public class SearchController {
                                                          @RequestParam(required = false) Set<String> organUberonIds ) {
         ModelAndView modelAndView = new ModelAndView( "fragments/user-table::user-table" );
         modelAndView.addObject( "users", remoteResourceService.findUsersByDescription( descriptionLike, researcherPositions, researcherCategories, organUberonIds ) );
-        modelAndView.addObject( "remote", true );
+        modelAndView.addObject( "remote", Boolean.TRUE );
         return modelAndView;
     }
 
@@ -225,7 +225,7 @@ public class SearchController {
             modelAndView.setStatus( HttpStatus.NOT_FOUND );
             modelAndView.addObject( "message",
                     messageSource.getMessage( "SearchController.errorNoTaxonId", new String[]{ taxonId.toString() }, locale ) );
-            modelAndView.addObject( "error", true );
+            modelAndView.addObject( "error", Boolean.TRUE );
             return modelAndView;
         }
 
@@ -235,7 +235,7 @@ public class SearchController {
             modelAndView.setStatus( HttpStatus.NOT_FOUND );
             modelAndView.addObject( "message",
                     messageSource.getMessage( "SearchController.errorNoGene", new String[]{ symbol, taxon.getScientificName() }, locale ) );
-            modelAndView.addObject( "error", true );
+            modelAndView.addObject( "error", Boolean.TRUE );
             return modelAndView;
         }
 
@@ -252,7 +252,7 @@ public class SearchController {
             modelAndView.setStatus( HttpStatus.NOT_FOUND );
             modelAndView.addObject( "message",
                     messageSource.getMessage( "SearchController.errorNoOrthologs", new String[]{ symbol, orthologTaxon.getScientificName() }, locale ) );
-            modelAndView.addObject( "error", true );
+            modelAndView.addObject( "error", Boolean.TRUE );
             return modelAndView;
         }
 
@@ -419,7 +419,7 @@ public class SearchController {
 
         ModelAndView modelAndView = new ModelAndView( "fragments/user-table::usergenes-table" );
         modelAndView.addObject( "usergenes", userGenes );
-        modelAndView.addObject( "remote", true );
+        modelAndView.addObject( "remote", Boolean.TRUE );
 
         return modelAndView;
     }
@@ -462,10 +462,11 @@ public class SearchController {
         ModelAndView modelAndView = new ModelAndView( "fragments/profile::user-preview" );
         User user;
         if ( remoteHost != null ) {
+            URI remoteHostUri = URI.create( remoteHost );
             try {
-                user = remoteResourceService.getAnonymizedUser( anonymousId, URI.create( remoteHost ) );
+                user = remoteResourceService.getAnonymizedUser( anonymousId, remoteHostUri );
             } catch ( RemoteException e ) {
-                log.error( e );
+                log.error( MessageFormat.format( "Failed to retrieve anonymized user {} from {}.", anonymousId, remoteHostUri.getAuthority() ), e );
                 modelAndView.setStatus( HttpStatus.INTERNAL_SERVER_ERROR );
                 modelAndView.setViewName( "fragments/error::message" );
                 modelAndView.addObject( "errorMessage", "Error querying remote anonymous user." );
@@ -500,10 +501,11 @@ public class SearchController {
         User user = userService.findCurrentUser();
         User viewUser;
         if ( remoteHost != null && !remoteHost.isEmpty() ) {
+            URI remoteHostUri = URI.create( remoteHost );
             try {
-                viewUser = remoteResourceService.getRemoteUser( userId, URI.create( remoteHost ) );
+                viewUser = remoteResourceService.getRemoteUser( userId, remoteHostUri );
             } catch ( RemoteException e ) {
-                log.error( MessageFormat.format( "Could not fetch the remote user id {0} from {1}.", userId, remoteHost ), e );
+                log.error( MessageFormat.format( "Could not fetch the remote user id {0} from {1}.", userId, remoteHostUri.getAuthority() ), e );
                 modelAndView.setStatus( HttpStatus.SERVICE_UNAVAILABLE );
                 modelAndView.setViewName( "error/503" );
                 return modelAndView;
@@ -518,7 +520,7 @@ public class SearchController {
         } else {
             modelAndView.addObject( "user", user );
             modelAndView.addObject( "viewUser", viewUser );
-            modelAndView.addObject( "viewOnly", true );
+            modelAndView.addObject( "viewOnly", Boolean.TRUE );
         }
         return modelAndView;
     }

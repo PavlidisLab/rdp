@@ -5,10 +5,14 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import ubc.pavlab.rdp.model.enums.RelationshipType;
+import ubc.pavlab.rdp.services.GOService;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -19,6 +23,12 @@ public class GeneOntologyTermInfo extends GeneOntologyTerm {
 
     private boolean obsolete;
 
+    /**
+     * @deprecated please use {@link GOService#getSizeInTaxon} instead, this is only kept for the view layer.
+     */
+    @Deprecated
+    public long size;
+
     @JsonIgnore
     private Collection<Relationship> parents = new HashSet<>();
 
@@ -26,25 +36,8 @@ public class GeneOntologyTermInfo extends GeneOntologyTerm {
     private Collection<Relationship> children = new HashSet<>();
 
     @JsonIgnore
-    private Set<GeneInfo> directGenes = new HashSet<>();
+    private Set<Integer> directGeneIds = new HashSet<>();
 
     @JsonIgnore
-    public Collection<GeneOntologyTermInfo> getParents( boolean includePartOf ) {
-        return parents.stream()
-                .filter( r -> includePartOf || r.getType().equals( RelationshipType.IS_A ) )
-                .map( Relationship::getTerm )
-                .collect( Collectors.toSet() );
-    }
-
-    @JsonIgnore
-    public Collection<GeneOntologyTermInfo> getAncestors( boolean includePartOf ) {
-        Collection<GeneOntologyTermInfo> ancestors = new HashSet<>();
-
-        for ( GeneOntologyTermInfo parent : getParents( includePartOf ) ) {
-            ancestors.add( parent );
-            ancestors.addAll( parent.getAncestors( includePartOf ) );
-        }
-
-        return ancestors;
-    }
+    private MultiValueMap<Integer, Integer> directGeneIdsByTaxonId = new LinkedMultiValueMap<>();
 }

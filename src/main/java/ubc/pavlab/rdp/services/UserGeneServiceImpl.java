@@ -22,12 +22,17 @@ package ubc.pavlab.rdp.services;
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ubc.pavlab.rdp.model.*;
+import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.ResearcherCategory;
 import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import ubc.pavlab.rdp.model.enums.TierType;
@@ -59,13 +64,23 @@ public class UserGeneServiceImpl implements UserGeneService {
     private UserService userService;
 
     @Autowired
-    TierService tierService;
+    private TierService tierService;
 
     @Autowired
     private PermissionEvaluator permissionEvaluator;
 
     @Autowired
     private ApplicationSettings applicationSettings;
+
+    @Override
+    public Page<UserGene> findAllNoAuth( Pageable pageable ) {
+        return userGeneRepository.findAll( pageable );
+    }
+
+    @Override
+    public Page<UserGene> findAllByPrivacyLevel( PrivacyLevelType privacyLevelType, Pageable pageable ) {
+        return userGeneRepository.findAllByPrivacyLevelAndUserProfilePrivacyLevel( privacyLevelType, privacyLevelType, pageable );
+    }
 
     @Cacheable(cacheNames = "stats", key = "#root.methodName")
     @Override
@@ -82,12 +97,8 @@ public class UserGeneServiceImpl implements UserGeneService {
     @Cacheable(cacheNames = "stats", key = "#root.methodName")
     @Override
     public Map<String, Integer> researcherCountByTaxon() {
-        Map<String, Integer> countByTaxon = new HashMap<>();
-        for ( Taxon taxon : taxonRepository.findByActiveTrueOrderByOrdering() ) {
-            countByTaxon.put( taxon.getCommonName(), userGeneRepository.countDistinctUserByTaxon( taxon ) );
-        }
-
-        return countByTaxon;
+        return taxonRepository.findByActiveTrueOrderByOrdering().stream()
+                .collect( Collectors.toMap( Taxon::getCommonName, userGeneRepository::countDistinctUserByTaxon ) );
     }
 
     @Cacheable(cacheNames = "stats", key = "#root.methodName")
@@ -161,6 +172,7 @@ public class UserGeneServiceImpl implements UserGeneService {
     }
 
     @Override
+    @Transactional
     public void updateUserGenes() {
         log.info( "Updating user genes..." );
         for ( UserGene userGene : userGeneRepository.findAllWithGeneInfo() ) {

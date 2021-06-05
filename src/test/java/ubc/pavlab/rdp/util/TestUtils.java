@@ -4,6 +4,8 @@ import lombok.SneakyThrows;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.TierType;
@@ -11,13 +13,11 @@ import ubc.pavlab.rdp.model.enums.TierType;
 import java.net.URI;
 import java.net.URL;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static java.util.stream.Collectors.counting;
 import static java.util.stream.Collectors.groupingBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -106,12 +106,16 @@ public final class TestUtils {
 
     @SneakyThrows
     public static Taxon createTaxon( int taxonId ) {
+        return createTaxon( taxonId, TAXON_COMMON_NAME, TAXON_SCIENTIFIC_NAME, new URL( "ftp://ftp.ncbi.nlm.nih.gov/gene/DATA/GENE_INFO/Invertebrates/Caenorhabditis_elegans.gene_info.gz" ) );
+    }
+
+    public static Taxon createTaxon( int id, String commonName, String scientificName, URL geneUrl ) {
         Taxon taxon = new Taxon();
-        taxon.setId( taxonId );
+        taxon.setId( id );
         taxon.setActive( true );
-        taxon.setCommonName( TAXON_COMMON_NAME );
-        taxon.setScientificName( TAXON_SCIENTIFIC_NAME );
-        taxon.setGeneUrl( new URL( "ftp://ftp.ncbi.nlm.nih.gov/gene/DATA/GENE_INFO/Invertebrates/Caenorhabditis_elegans.gene_info.gz" ) );
+        taxon.setCommonName( commonName );
+        taxon.setScientificName( scientificName );
+        taxon.setGeneUrl( geneUrl );
         return taxon;
     }
 
@@ -124,7 +128,12 @@ public final class TestUtils {
 
     public static GeneOntologyTermInfo createTermWithGenes( String goId, GeneInfo... genes ) {
         GeneOntologyTermInfo term = createTerm( goId );
-        term.setDirectGenes( new HashSet<>( Arrays.asList( genes ) ) );
+        term.setDirectGeneIds( Arrays.asList( genes ).stream().map( GeneInfo::getGeneId ).collect( Collectors.toSet() ) );
+        MultiValueMap<Integer, Integer> m = new LinkedMultiValueMap();
+        for ( GeneInfo geneInfo : genes ) {
+            m.add( geneInfo.getTaxon().getId(), geneInfo.getGeneId() );
+        }
+        term.setDirectGeneIdsByTaxonId( m );
         return term;
     }
 

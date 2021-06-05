@@ -36,13 +36,13 @@ public class LoginController {
     private UserService userService;
 
     @Autowired
-    PrivacyService privacyService;
+    private PrivacyService privacyService;
 
     @Autowired
-    ApplicationSettings applicationSettings;
+    private ApplicationSettings applicationSettings;
 
     @Autowired
-    ApplicationEventPublisher eventPublisher;
+    private ApplicationEventPublisher eventPublisher;
 
     @GetMapping("/login")
     public ModelAndView login() {
@@ -116,7 +116,7 @@ public class LoginController {
             modelAndView.setStatus( HttpStatus.NOT_FOUND );
             modelAndView.addObject( "message", "User does not exist." );
             return modelAndView;
-        } else if ( user.getEnabled() ) {
+        } else if ( user.isEnabled() ) {
             // user is already enabled...
             modelAndView.setStatus( HttpStatus.BAD_REQUEST );
             modelAndView.addObject( "message", "User is already enabled." );
@@ -138,7 +138,7 @@ public class LoginController {
             userService.confirmVerificationToken( token );
             modelAndView.setViewName( "redirect:/login" );
         } catch ( TokenException e ) {
-            log.error( e );
+            log.error( "Could not confirm registration token.", e );
             modelAndView.setStatus( HttpStatus.NOT_FOUND );
             modelAndView.setViewName( "error/404" );
         }

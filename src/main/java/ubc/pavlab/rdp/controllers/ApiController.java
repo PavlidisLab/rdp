@@ -3,6 +3,7 @@ package ubc.pavlab.rdp.controllers;
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -10,12 +11,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import ubc.pavlab.rdp.exception.ApiException;
 import ubc.pavlab.rdp.exception.TokenException;
 import ubc.pavlab.rdp.model.*;
+import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.ResearcherCategory;
 import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import ubc.pavlab.rdp.model.enums.TierType;
@@ -44,7 +47,7 @@ public class ApiController {
     public static final String API_VERSION = "1.4.0";
 
     @Autowired
-    MessageSource messageSource;
+    private MessageSource messageSource;
     @Autowired
     private UserService userService;
     @Autowired
@@ -52,13 +55,9 @@ public class ApiController {
     @Autowired
     private GeneInfoService geneService;
     @Autowired
-    TierService tierService;
-    @Autowired
     private UserOrganService userOrganService;
     @Autowired
-    UserGeneService userGeneService;
-    @Autowired
-    OrganInfoService organInfoService;
+    private UserGeneService userGeneService;
     @Autowired
     private ApplicationSettings applicationSettings;
     @Autowired
@@ -81,13 +80,67 @@ public class ApiController {
      */
     @GetMapping(value = "/api/stats", produces = MediaType.APPLICATION_JSON_VALUE)
     public Object getStats() {
-        return new Stats( userService.countResearchers(),
-                userGeneService.countUsersWithGenes(),
-                userGeneService.countAssociations(),
-                userGeneService.countUniqueAssociations(),
-                userGeneService.countUniqueAssociationsAllTiers(),
-                userGeneService.countUniqueAssociationsToHumanAllTiers(),
-                userGeneService.researcherCountByTaxon() );
+        return Stats.builder()
+                .users( userService.countResearchers() )
+                .publicUsers( userService.countPublicResearchers() )
+                .usersWithGenes( userGeneService.countUsersWithGenes() )
+                .userGenes( userGeneService.countAssociations() )
+                .uniqueUserGenes( userGeneService.countUniqueAssociations() )
+                .uniqueUserGenesTAll( userGeneService.countUniqueAssociationsAllTiers() )
+                .uniqueUserGenesHumanTAll( userGeneService.countUniqueAssociationsToHumanAllTiers() )
+                .researchersByTaxa( userGeneService.researcherCountByTaxon() )
+                .build();
+    }
+
+    /**
+     * Retrieve all users in a paginated format.
+     * <p>
+     * Results that cannot be displayed are anonymized.
+     *
+     * @param pageable
+     * @param locale
+     * @return
+     */
+    @GetMapping(value = "/api/users", produces = MediaType.APPLICATION_JSON_VALUE)
+    public Object getUsers( @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorizationHeader,
+                            @Deprecated @RequestParam(required = false) String auth,
+                            Pageable pageable,
+                            Locale locale ) {
+        checkAuth( authorizationHeader, auth );
+        if ( applicationSettings.getPrivacy().isEnableAnonymizedSearchResults() ) {
+            final Authentication auth2 = SecurityContextHolder.getContext().getAuthentication();
+            return userService.findAllNoAuth( pageable )
+                    .map( user -> permissionEvaluator.hasPermission( auth2, user, "read" ) ? user : userService.anonymizeUser( user ) )
+                    .map( user -> initUser( user, locale ) );
+
+        } else {
+            return userService.findAllByPrivacyLevel( PrivacyLevelType.PUBLIC, pageable ).map( user -> initUser( user, locale ) );
+        }
+    }
+
+    /**
+     * Retrieve all genes in a paginated format.
+     * <p>
+     * Results that cannot be displayed are anonymized.
+     *
+     * @param pageable
+     * @param locale
+     * @return
+     */
+    @GetMapping(value = "/api/genes", produces = MediaType.APPLICATION_JSON_VALUE)
+    public Object getGenes( @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorizationHeader,
+                            @Deprecated @RequestParam(required = false) String auth,
+                            Pageable pageable,
+                            Locale locale ) {
+        checkAuth( authorizationHeader, auth );
+        if ( applicationSettings.getPrivacy().isEnableAnonymizedSearchResults() ) {
+            final Authentication auth2 = SecurityContextHolder.getContext().getAuthentication();
+            return userGeneService.findAllNoAuth( pageable )
+                    .map( userGene -> permissionEvaluator.hasPermission( auth2, userGene, "read" ) ? userGene : userService.anonymizeUserGene( userGene ) )
+                    .map( userGene -> initUserGene( userGene, locale ) );
+        } else {
+            return userGeneService.findAllByPrivacyLevel( PrivacyLevelType.PUBLIC, pageable ).map( userGene -> initUserGene( userGene, locale ) );
+        }
     }
 
     /**
@@ -187,7 +240,7 @@ public class ApiController {
             return new ResponseEntity<>( messageSource.getMessage( "ApiController.noOrthologsWithGivenParameters", null, locale ), null, HttpStatus.NOT_FOUND );
         }
 
-        return initGeneUsers( userGeneService.handleGeneSearch( gene, restrictTiers( tiers ), orthologTaxon, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ) ), locale );
+        return initUserGenes( userGeneService.handleGeneSearch( gene, restrictTiers( tiers ), orthologTaxon, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ) ), locale );
     }
 
     /**
@@ -217,7 +270,7 @@ public class ApiController {
             try {
                 tiers = EnumSet.of( TierType.valueOf( tier ) );
             } catch ( IllegalArgumentException e ) {
-                log.error( e );
+                log.error( "Could not parse tier type.", e );
                 return ResponseEntity.badRequest().body( MessageFormat.format( "Unknown tier {0}.", tier ) );
             }
         }
@@ -245,6 +298,7 @@ public class ApiController {
                                         @RequestParam(name = "auth", required = false) String auth,
                                         Locale locale ) {
         checkEnabled();
+        checkAnonymousResultsEnabled();
         checkAuth( authorizationHeader, auth );
         User user = userService.findUserByAnonymousIdNoAuth( anonymousId );
         if ( user == null ) {
@@ -260,6 +314,12 @@ public class ApiController {
     private void checkEnabled() {
         if ( !applicationSettings.getIsearch().isEnabled() ) {
             throw new ApiException( HttpStatus.SERVICE_UNAVAILABLE, "Public API is not available for this registry." );
+        }
+    }
+
+    private void checkAnonymousResultsEnabled() {
+        if ( !applicationSettings.getPrivacy().isEnableAnonymizedSearchResults() ) {
+            throw new ApiException( HttpStatus.SERVICE_UNAVAILABLE, "Anonymized search results is not available for this registry." );
         }
     }
 
@@ -301,14 +361,19 @@ public class ApiController {
                 new UsernamePasswordAuthenticationToken( principle, null, principle.getAuthorities() ) );
     }
 
-    private Collection<UserGene> initGeneUsers( Collection<UserGene> genes, Locale locale ) {
+    private Collection<UserGene> initUserGenes( Collection<UserGene> genes, Locale locale ) {
         for ( UserGene gene : genes ) {
-            // Initializing for the json serializer.
-            initUser( gene.getUser(), locale );
-            gene.getUser().getUserGenes().clear();
-            gene.setRemoteUser( gene.getUser() );
+            initUserGene( gene, locale );
         }
         return genes;
+    }
+
+    private UserGene initUserGene( UserGene gene, Locale locale ) {
+        // Initializing for the json serializer.
+        initUser( gene.getUser(), locale );
+        gene.getUser().getUserGenes().clear();
+        gene.setRemoteUser( gene.getUser() );
+        return gene;
     }
 
     private Collection<User> initUsers( Collection<User> users, Locale locale ) {

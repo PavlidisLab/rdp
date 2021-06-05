@@ -2,8 +2,8 @@ package ubc.pavlab.rdp.settings;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
-import org.springframework.stereotype.Component;
 import ubc.pavlab.rdp.model.GeneInfo;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.services.GeneInfoService;
@@ -13,7 +13,7 @@ import java.util.List;
 /**
  * Created by mjacobson on 22/01/18.
  */
-@Component
+@Configuration
 @ConfigurationProperties(prefix = "rdp.settings")
 @Data
 public class ApplicationSettings {
@@ -144,6 +144,7 @@ public class ApplicationSettings {
         private String searchToken;
         private String host = null;
         private Integer port = null;
+        private Integer requestTimeout;
     }
 
     private ProfileSettings profile;
@@ -152,6 +153,7 @@ public class ApplicationSettings {
     private CacheSettings cache;
     private OrganSettings organs;
 
+    private Resource faqFile;
     private boolean sendEmailOnRegistration;
     private long goTermSizeLimit = 100L;
     public List<String> enabledTiers;

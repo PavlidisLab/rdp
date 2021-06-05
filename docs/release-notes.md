@@ -4,7 +4,8 @@
 
 ### Service accounts
 
-Service accounts are special kind of users that are used to authenticate external services that integrate with RDP.
+[Service accounts](service-accounts.md) are special kind of users that are used to authenticate external services that
+integrate with RDP.
 
 ### Extensions to the user profile
 
@@ -22,6 +23,11 @@ and a set of icons kindly provided by [Shinya Yamamoto Lab](https://www.research
 
 User now have more granularity in how they pick the privacy levels of their individual TIER1 and TIER2 genes. They can
 either choose to have it tied to the profile.
+
+### Anonymized search results and match request
+
+Search results that are not available to a given user for privacy reasons can be anonymized. A new feature called
+"Request Access" allow the user to reach out to the researcher.
 
 ### More robust security
 

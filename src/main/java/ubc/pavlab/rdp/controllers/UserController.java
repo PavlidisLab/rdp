@@ -56,7 +56,7 @@ public class UserController {
     private EmailService emailService;
 
     @Autowired
-    ApplicationEventPublisher eventPublisher;
+    private ApplicationEventPublisher eventPublisher;
 
     @GetMapping(value = { "/user/home" })
     public ModelAndView userHome() {
@@ -82,10 +82,16 @@ public class UserController {
         User user = userService.findCurrentUser();
         Taxon taxon = taxonService.findById( taxonId );
 
+        if ( taxon == null ) {
+            modelAndView.setViewName( "error/404" );
+            modelAndView.setStatus( HttpStatus.NOT_FOUND );
+            return modelAndView;
+        }
+
         GeneOntologyTermInfo term = goService.getTerm( goId );
 
         if ( term != null ) {
-            Set<Integer> geneIds = goService.getGenesInTaxon( term, taxon ).stream().map( Gene::getGeneId ).collect( Collectors.toSet() );
+            Collection<Integer> geneIds = goService.getGenesInTaxon( term, taxon );
             modelAndView.addObject( "genes",
                     user.getGenesByTaxonAndTier( taxon, TierType.MANUAL ).stream()
                             .filter( ug -> geneIds.contains( ug.getGeneId() ) )
@@ -93,7 +99,7 @@ public class UserController {
         } else {
             modelAndView.addObject( "genes", Collections.EMPTY_SET );
         }
-        modelAndView.addObject( "viewOnly", true );
+        modelAndView.addObject( "viewOnly", Boolean.TRUE );
         return modelAndView;
     }
 
@@ -144,12 +150,12 @@ public class UserController {
         try {
             emailService.sendSupportMessage( message, name, user, request, attachment );
             modelAndView.addObject( "message", "Sent. We will get back to you shortly." );
-            modelAndView.addObject( "success", true );
+            modelAndView.addObject( "success", Boolean.TRUE );
         } catch ( MessagingException e ) {
             log.error( MessageFormat.format( "Could not send support message to {0}.", user ), e );
             modelAndView
                     .addObject( "message", "There was a problem sending the support request. Please try again later." );
-            modelAndView.addObject( "success", false );
+            modelAndView.addObject( "success", Boolean.FALSE );
         }
 
         return modelAndView;
@@ -209,7 +215,7 @@ public class UserController {
     @PostMapping("/user/resend-contact-email-verification")
     public Object resendContactEmailVerification( RedirectAttributes redirectAttributes ) {
         User user = userService.findCurrentUser();
-        if ( user.getProfile().getContactEmailVerified() ) {
+        if ( user.getProfile().isContactEmailVerified() ) {
             return ResponseEntity.badRequest().body( "Contact email is already verified." );
         }
         VerificationToken token = userService.createContactEmailVerificationTokenForUser( user );
@@ -224,19 +230,18 @@ public class UserController {
             userService.confirmVerificationToken( token );
             redirectAttributes.addFlashAttribute( "Your contact email has been successfully verified." );
         } catch ( TokenException e ) {
-            log.error( MessageFormat.format( "{0} attempt to confirm verification token {1} failed.", userService.findCurrentUser(), token ), e );
+            log.error( MessageFormat.format( "{0} attempt to confirm verification token failed.", userService.findCurrentUser() ), e );
             redirectAttributes.addFlashAttribute( "message", e.getMessage() );
-            redirectAttributes.addFlashAttribute( "error", true );
-        } finally {
-            return "redirect:/user/profile";
+            redirectAttributes.addFlashAttribute( "error", Boolean.TRUE );
         }
+        return "redirect:/user/profile";
     }
 
     @Data
     static class ProfileWithOrganUberonIds {
         @Valid
-        Profile profile;
-        Set<String> organUberonIds;
+        private Profile profile;
+        private Set<String> organUberonIds;
     }
 
     @ResponseBody
@@ -304,7 +309,8 @@ public class UserController {
                 .collect( Collectors.toMap( identity(), g -> model.getGenePrivacyLevelMap().get( g.getGeneId() ) ) );
 
         Set<GeneOntologyTermInfo> terms = model.getGoIds().stream()
-                .map( s -> goService.getTerm( s ) )
+                .map( goService::getTerm )
+                .filter( Objects::nonNull )
                 .collect( Collectors.toSet() );
 
         userService.updateTermsAndGenesInTaxon( user, taxon, genes, privacyLevels, terms );

@@ -15,7 +15,9 @@ import ubc.pavlab.rdp.services.TaxonService;
 import ubc.pavlab.rdp.util.SearchResult;
 
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Created by mjacobson on 18/01/18.
@@ -39,8 +41,18 @@ public class TermController {
         if ( taxon == null ) {
             return ResponseEntity.notFound().build();
         }
-        return goService.search( query, taxon, max );
 
+        Collection<SearchResult<GeneOntologyTermInfo>> foundTerms = goService.search( query, taxon, max );
+
+        // FIXME: this is silly
+        for ( SearchResult<GeneOntologyTermInfo> term : foundTerms ) {
+            term.getMatch().setSize( goService.getSizeInTaxon( term.getMatch(), taxon ) );
+        }
+
+        // sort by size in taxon
+        return foundTerms.stream()
+                .sorted( Comparator.comparing( result -> result.getMatch().getSize(), Comparator.reverseOrder() ) )
+                .collect( Collectors.toList() );
     }
 
     @ResponseBody

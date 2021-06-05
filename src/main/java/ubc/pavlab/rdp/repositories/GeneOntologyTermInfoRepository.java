@@ -23,27 +23,27 @@ public class GeneOntologyTermInfoRepository implements CrudRepository<GeneOntolo
 
     @Override
     public <S extends GeneOntologyTermInfo> Iterable<S> save( Iterable<S> iterable ) {
+        List<GeneOntologyTermInfo> savedTerms = new ArrayList<>();
         for ( GeneOntologyTermInfo term : iterable ) {
-            save( term );
+            savedTerms.add( save( term ) );
         }
-        // TODO: implement return value
-        return null;
+        return (Iterable<S>) savedTerms;
     }
 
     public <S extends GeneOntologyTermInfo> S saveAlias( String alias, S term ) {
         terms.put( alias, term );
-        for ( Gene gene : term.getDirectGenes() ) {
-            geneIdsToTerms.add( gene.getGeneId(), term );
+        for ( Integer geneId : term.getDirectGeneIds() ) {
+            geneIdsToTerms.add( geneId, term );
         }
         return term;
     }
 
     public <S extends GeneOntologyTermInfo> Iterable<S> saveAlias( Map<String, GeneOntologyTermInfo> terms ) {
+        List<GeneOntologyTermInfo> savedTerms = new ArrayList<>( terms.size() );
         for ( Map.Entry<String, GeneOntologyTermInfo> entry : terms.entrySet() ) {
-            saveAlias( entry.getKey(), entry.getValue() );
+            savedTerms.add( saveAlias( entry.getKey(), entry.getValue() ) );
         }
-        // TODO: implement return value
-        return null;
+        return (Iterable<S>) savedTerms;
     }
 
     @Override

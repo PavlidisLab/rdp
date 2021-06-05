@@ -2,10 +2,13 @@ package ubc.pavlab.rdp.services;
 
 import lombok.NonNull;
 import lombok.extern.apachecommons.CommonsLog;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.MessageSource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PostFilter;
@@ -27,6 +30,7 @@ import ubc.pavlab.rdp.repositories.*;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 
 import javax.validation.ValidationException;
+import java.security.SecureRandom;
 import java.text.MessageFormat;
 import java.time.Instant;
 import java.util.*;
@@ -46,7 +50,7 @@ public class UserServiceImpl implements UserService {
     public static final String USER_GENES_BY_ANONYMOUS_ID_CACHE_KEY = "ubc.pavlab.rdp.model.UserGene.byAnonymousId";
 
     @Autowired
-    ApplicationSettings applicationSettings;
+    private ApplicationSettings applicationSettings;
     @Autowired
     private UserRepository userRepository;
     @Autowired
@@ -62,8 +66,6 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private OrganInfoService organInfoService;
     @Autowired
-    UserGeneRepository userGeneRepository;
-    @Autowired
     private ApplicationEventPublisher eventPublisher;
     @Autowired
     private AccessTokenRepository accessTokenRepository;
@@ -71,6 +73,12 @@ public class UserServiceImpl implements UserService {
     private CacheManager cacheManager;
     @Autowired
     private MessageSource messageSource;
+    @Autowired
+    private GeneInfoService geneInfoService;
+    @Autowired
+    private PrivacyService privacyService;
+    @Autowired
+    private SecureRandom secureRandom;
 
     @Transactional
     @Override
@@ -95,7 +103,7 @@ public class UserServiceImpl implements UserService {
     @Secured("ROLE_ADMIN")
     @Transactional
     public User createServiceAccount( User user ) {
-        user.setPassword( bCryptPasswordEncoder.encode( UUID.randomUUID().toString() ) );
+        user.setPassword( bCryptPasswordEncoder.encode( createSecureRandomToken() ) );
         Role serviceAccountRole = roleRepository.findByRole( "ROLE_SERVICE_ACCOUNT" );
         user.getRoles().add( serviceAccountRole );
         user = userRepository.save( user );
@@ -117,18 +125,6 @@ public class UserServiceImpl implements UserService {
             if ( user.getProfile().getPrivacyLevel() == null ) {
                 log.warn( "Received a null 'privacyLevel' value in profile." );
                 user.getProfile().setPrivacyLevel( defaultPrivacyLevel );
-            }
-
-            if ( user.getProfile().getShared() == null ) {
-                log.warn( "Received a null 'shared' value in profile." );
-                user.getProfile().setShared( defaultSharing );
-            }
-
-            if ( user.getProfile().getHideGenelist() == null ) {
-                if ( applicationSettings.getPrivacy().isAllowHideGenelist() ) {
-                    log.warn( "Received a null 'hideGeneList' value in profile." );
-                }
-                user.getProfile().setHideGenelist( defaultGenelist );
             }
         }
 
@@ -317,7 +313,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public AccessToken createAccessTokenForUser( User user ) {
         AccessToken token = new AccessToken();
-        token.updateToken( UUID.randomUUID().toString() );
+        token.updateToken( createSecureRandomToken() );
         token.setUser( user );
         return accessTokenRepository.save( token );
     }
@@ -331,6 +327,16 @@ public class UserServiceImpl implements UserService {
     @PostFilter("hasPermission(filterObject, 'read')")
     public Collection<User> findAll() {
         return userRepository.findAll();
+    }
+
+    @Override
+    public Page<User> findAllNoAuth( Pageable pageable ) {
+        return userRepository.findAll( pageable );
+    }
+
+    @Override
+    public Page<User> findAllByPrivacyLevel( PrivacyLevelType privacyLevel, Pageable pageable ) {
+        return userRepository.findAllByProfilePrivacyLevel( privacyLevel, pageable );
     }
 
     @Override
@@ -369,10 +375,15 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public long countPublicResearchers() {
+        return userRepository.countByProfilePrivacyLevel( PrivacyLevelType.PUBLIC );
+    }
+
+    @Override
     @PostAuthorize("hasPermission(returnObject, 'read')")
     public UserTerm convertTerm( User user, Taxon taxon, GeneOntologyTermInfo term ) {
         UserTerm ut = UserTerm.createUserTerm( user, term, taxon );
-        ut.setFrequency( computeTermFrequency( user, term ) );
+        ut.setFrequency( computeTermFrequencyInTaxon( user, term, taxon ) );
         ut.setSize( goService.getSizeInTaxon( term, taxon ) );
         return ut;
     }
@@ -436,7 +447,12 @@ public class UserServiceImpl implements UserService {
                     userGene.setTier( genesToTierMap.get( g ) );
                     if ( applicationSettings.getPrivacy().isCustomizableGeneLevel() ) {
                         // if no privacy level is set, we inherit the profile value
-                        userGene.setPrivacyLevel( genesToPrivacyLevelMap.getOrDefault( g, null ) );
+                        PrivacyLevelType privacyLevel = genesToPrivacyLevelMap.getOrDefault( g, null );
+                        if ( privacyLevel == null || privacyService.isGenePrivacyLevelEnabled( privacyLevel ) ) {
+                            userGene.setPrivacyLevel( privacyLevel );
+                        } else {
+                            log.warn( MessageFormat.format( "{0} attempted to set {1} privacy level to a value that is not enabled: {2}. The new value was ignored.", findCurrentUser(), g, privacyLevel ) );
+                        }
                     }
                     userGene.updateGene( g );
                     return userGene;
@@ -447,6 +463,8 @@ public class UserServiceImpl implements UserService {
         Map<Integer, UserGene> userGenesFromTerms = goTerms.stream()
                 .flatMap( term -> goService.getGenesInTaxon( term, taxon ).stream() )
                 .distinct() // terms might refer to the same gene
+                .map( geneInfoService::load )
+                .filter( Objects::nonNull )
                 .map( g -> {
                     UserGene userGene = user.getUserGenes().getOrDefault( g.getGeneId(), new UserGene() );
                     userGene.setUser( user );
@@ -470,22 +488,38 @@ public class UserServiceImpl implements UserService {
         user.getUserTerms().removeIf( e -> e.getTaxon().equals( taxon ) && !userTerms.contains( e ) );
         user.getUserTerms().addAll( userTerms );
 
+        // update frequency and size as those have likely changed with new genes
+        for ( UserTerm userTerm : user.getUserTerms() ) {
+            GeneOntologyTermInfo cachedTerm = goService.getTerm( userTerm.getGoId() );
+            userTerm.setFrequency( computeTermFrequencyInTaxon( user, cachedTerm, taxon ) );
+            userTerm.setSize( goService.getSizeInTaxon( cachedTerm, taxon ) );
+        }
+
         return update( user );
     }
 
     @Override
     public long computeTermOverlaps( UserTerm userTerm, Collection<GeneInfo> genes ) {
         return genes.stream()
-                .flatMap( g -> goService.getTermsForGene( g, true, true ).stream() )
+                .flatMap( g -> goService.getTermsForGene( g, true ).stream() )
                 .filter( term -> term.getGoId().equals( userTerm.getGoId() ) )
                 .count();
     }
 
+    /**
+     * Compute the number of TIER1/TIER2 user genes that are associated to a given ontology term.
+     *
+     * @param user
+     * @param term
+     * @param taxon
+     * @return
+     */
     @Override
-    public long computeTermFrequency( User user, GeneOntologyTerm term ) {
-        return user.getUserGenes().values().stream()
-                .flatMap( g -> goService.getTermsForGene( g, true, true ).stream() )
-                .filter( t -> t.getGoId().equals( term.getGoId() ) )
+    public long computeTermFrequencyInTaxon( User user, GeneOntologyTerm term, Taxon taxon ) {
+        Set<Integer> geneIds = goService.getGenes( goService.getTerm( term.getGoId() ) ).stream().collect( Collectors.toSet() );
+        return user.getGenesByTaxonAndTier( taxon, TierType.MANUAL ).stream()
+                .map( UserGene::getGeneId )
+                .filter( geneIds::contains )
                 .count();
     }
 
@@ -502,9 +536,6 @@ public class UserServiceImpl implements UserService {
         } else {
             log.warn( MessageFormat.format( "User {0} attempted to set user {1} researcher position to an unknown value {2}.",
                     findCurrentUser(), user, profile.getResearcherPosition() ) );
-            if ( user.getProfile().getPrivacyLevel() != profile.getPrivacyLevel() ) {
-                user.getUserGenes().values().forEach( ug -> ug.setPrivacyLevel( profile.getPrivacyLevel() ) );
-            }
         }
         user.getProfile().setResearcherPosition( profile.getResearcherPosition() );
         user.getProfile().setOrganization( profile.getOrganization() );
@@ -545,18 +576,24 @@ public class UserServiceImpl implements UserService {
 
         // privacy settings
         if ( applicationSettings.getPrivacy().isCustomizableLevel() ) {
-            // reset gene privacy levels if the profile value is changed
-            if ( applicationSettings.getPrivacy().isCustomizableGeneLevel() &&
-                    user.getProfile().getPrivacyLevel() != profile.getPrivacyLevel() ) {
-                user.getUserGenes().values().forEach( ug -> ug.setPrivacyLevel( profile.getPrivacyLevel() ) );
+            if ( privacyService.isPrivacyLevelEnabled( profile.getPrivacyLevel() ) ) {
+                // reset gene privacy levels if the profile value is changed
+                if ( applicationSettings.getPrivacy().isCustomizableGeneLevel() &&
+                        user.getProfile().getPrivacyLevel() != profile.getPrivacyLevel() ) {
+                    // reset gene-level privacy when profile is updated
+                    user.getUserGenes().values().forEach( ug -> ug.setPrivacyLevel( profile.getPrivacyLevel() ) );
+                }
+                user.getProfile().setPrivacyLevel( profile.getPrivacyLevel() );
+            } else {
+                log.warn( MessageFormat.format( "{0} attempted to set {1} its profile privacy level to a disabled value: {2}. The new value was ignored.",
+                        findCurrentUser(), user, profile.getPrivacyLevel() ) );
             }
-            user.getProfile().setPrivacyLevel( profile.getPrivacyLevel() );
         }
         if ( applicationSettings.getPrivacy().isCustomizableSharing() ) {
-            user.getProfile().setShared( profile.getShared() );
+            user.getProfile().setShared( profile.isShared() );
         }
         if ( applicationSettings.getPrivacy().isAllowHideGenelist() ) {
-            user.getProfile().setHideGenelist( profile.getHideGenelist() );
+            user.getProfile().setHideGenelist( profile.isHideGenelist() );
         }
 
         if ( publications != null ) {
@@ -580,7 +617,7 @@ public class UserServiceImpl implements UserService {
     public PasswordResetToken createPasswordResetTokenForUser( User user ) {
         PasswordResetToken userToken = new PasswordResetToken();
         userToken.setUser( user );
-        userToken.updateToken( UUID.randomUUID().toString() );
+        userToken.updateToken( createSecureRandomToken() );
         return passwordResetTokenRepository.save( userToken );
     }
 
@@ -603,7 +640,7 @@ public class UserServiceImpl implements UserService {
         return passToken;
     }
 
-    @Transactional
+    @Transactional(rollbackFor = { TokenException.class })
     @Override
     public User changePasswordByResetToken( int userId, String token, PasswordReset passwordReset ) throws TokenException, ValidationException {
 
@@ -616,7 +653,7 @@ public class UserServiceImpl implements UserService {
 
         passwordResetTokenRepository.delete( passToken );
 
-        return updateNoAuth( user );
+        return userRepository.save( user );
     }
 
     @Transactional
@@ -625,7 +662,7 @@ public class UserServiceImpl implements UserService {
         VerificationToken userToken = new VerificationToken();
         userToken.setUser( user );
         userToken.setEmail( user.getEmail() );
-        userToken.updateToken( UUID.randomUUID().toString() );
+        userToken.updateToken( createSecureRandomToken() );
         return tokenRepository.save( userToken );
     }
 
@@ -635,12 +672,12 @@ public class UserServiceImpl implements UserService {
         VerificationToken userToken = new VerificationToken();
         userToken.setUser( user );
         userToken.setEmail( user.getProfile().getContactEmail() );
-        userToken.updateToken( UUID.randomUUID().toString() );
+        userToken.updateToken( createSecureRandomToken() );
         return tokenRepository.save( userToken );
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = { TokenException.class })
     public User confirmVerificationToken( String token ) throws TokenException {
         VerificationToken verificationToken = tokenRepository.findByToken( token );
         if ( verificationToken == null ) {
@@ -667,7 +704,7 @@ public class UserServiceImpl implements UserService {
 
         if ( tokenUsed ) {
             tokenRepository.delete( verificationToken );
-            return updateNoAuth( user );
+            return userRepository.save( user );
         } else {
             throw new TokenException( "Verification token email does not match neither the user email nor contact email." );
         }
@@ -683,29 +720,33 @@ public class UserServiceImpl implements UserService {
         return findAllWithNonEmptyProfileLastName()
                 .stream()
                 .map( u -> u.getProfile().getLastName().substring( 0, 1 ).toUpperCase() )
+                .filter( StringUtils::isAlpha )
                 .collect( Collectors.toCollection( TreeSet::new ) );
     }
 
-    @Transactional
-    protected User updateNoAuth( User user ) {
-        return userRepository.save( user );
-    }
-
     @Override
+    @Transactional
     public void updateUserTerms() {
         log.info( "Updating user terms..." );
         for ( User user : userRepository.findAllWithUserTerms() ) {
             for ( UserTerm userTerm : user.getUserTerms() ) {
-                GeneOntologyTerm cachedTerm = goService.getTerm( userTerm.getGoId() );
+                GeneOntologyTermInfo cachedTerm = goService.getTerm( userTerm.getGoId() );
                 if ( cachedTerm == null ) {
                     log.warn( MessageFormat.format( "User has a reference to a GO term missing from the cache: {0}.", userTerm ) );
                     continue;
                 }
                 userTerm.updateTerm( cachedTerm );
+                userTerm.setFrequency( computeTermFrequencyInTaxon( user, cachedTerm, userTerm.getTaxon() ) );
+                userTerm.setSize( goService.getSizeInTaxon( cachedTerm, userTerm.getTaxon() ) );
             }
             userRepository.save( user );
         }
         log.info( "Done updating user terms." );
     }
 
+    private String createSecureRandomToken() {
+        byte tokenBytes[] = new byte[24];
+        secureRandom.nextBytes( tokenBytes );
+        return Base64.getEncoder().encodeToString( tokenBytes );
+    }
 }

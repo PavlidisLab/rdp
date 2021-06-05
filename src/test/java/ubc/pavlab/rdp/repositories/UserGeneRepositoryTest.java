@@ -20,6 +20,8 @@ import ubc.pavlab.rdp.security.PermissionEvaluatorImpl;
 import ubc.pavlab.rdp.services.*;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -56,6 +58,11 @@ public class UserGeneRepositoryTest {
         public UserGeneService userGeneService() {
             return new UserGeneServiceImpl();
         }
+
+        @Bean
+        public SecureRandom secureRandom() throws NoSuchAlgorithmException {
+            return SecureRandom.getInstanceStrong();
+        }
     }
 
     @Autowired
@@ -81,6 +88,9 @@ public class UserGeneRepositoryTest {
 
     @MockBean
     private EmailService emailService;
+
+    @MockBean
+    private GeneInfoService geneinfoService;
 
     private User user;
     private Taxon taxon;

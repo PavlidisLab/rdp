@@ -133,7 +133,8 @@
                                 </div>
                             </td>
                         </tr>
-                        <tr class="edit-container">
+                        <tr th:unless="${@applicationSettings.profile.enabledResearcherPositions.isEmpty()}"
+                            class="edit-container">
                             <td class="align-middle">
                                 <label th:for="${#ids.next('profile.researcherPosition')}"
                                        class="text-muted align-middle mb-0">Position</label>

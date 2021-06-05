@@ -19,10 +19,14 @@
 
 package ubc.pavlab.rdp.services;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import ubc.pavlab.rdp.model.Gene;
 import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.model.UserGene;
 import ubc.pavlab.rdp.model.UserOrgan;
+import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.ResearcherCategory;
 import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import ubc.pavlab.rdp.model.enums.TierType;
@@ -35,6 +39,10 @@ import java.util.Set;
  * Created by mjacobson on 17/01/18.
  */
 public interface UserGeneService {
+
+    Page<UserGene> findAllNoAuth( Pageable pageable );
+
+    Page<UserGene> findAllByPrivacyLevel( PrivacyLevelType privacyLevelType, Pageable pageable );
 
     Integer countUniqueAssociations();
 

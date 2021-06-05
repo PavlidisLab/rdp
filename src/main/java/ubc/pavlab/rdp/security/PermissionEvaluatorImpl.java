@@ -19,13 +19,13 @@ import java.io.Serializable;
 public class PermissionEvaluatorImpl implements PermissionEvaluator {
 
     @Autowired
-    UserService userService;
+    private UserService userService;
 
     @Autowired
-    RoleRepository roleRepository;
+    private RoleRepository roleRepository;
 
     @Autowired
-    PrivacyService privacyService;
+    private PrivacyService privacyService;
 
     @Override
     public boolean hasPermission( Authentication authentication, Object targetDomainObject, Object permission ) {

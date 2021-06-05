@@ -1,21 +1,16 @@
 package ubc.pavlab.rdp.settings;
 
-import lombok.Getter;
-import lombok.Setter;
-import org.hibernate.validator.constraints.Email;
-import org.hibernate.validator.constraints.URL;
+import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.web.util.UriComponentsBuilder;
-import org.springframework.web.util.UrlPathHelper;
 
 /**
  * Created by mjacobson on 22/01/18.
  */
-@Component
+@Configuration
 @ConfigurationProperties(prefix = "rdp.site")
-@Getter
-@Setter
+@Data
 public class SiteSettings {
 
     private String host;

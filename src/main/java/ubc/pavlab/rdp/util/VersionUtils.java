@@ -9,9 +9,9 @@ public class VersionUtils {
         int v = 0;
         String[] components = version.split( "\\." );
         for ( String c : components ) {
-            Integer ci = Integer.parseInt( c );
-            if ( ci > 99 ) {
-                throw new RuntimeException( "Version component must be within 1 and 99." );
+            int ci = Integer.parseInt( c );
+            if ( ci < 0 || ci > 99 ) {
+                throw new RuntimeException( "Version component must be within 0 and 99." );
             }
             v += FACTORS[i++] * ci;
         }

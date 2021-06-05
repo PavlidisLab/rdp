@@ -120,7 +120,7 @@
                     'target="_blank" data-toggle="tooltip" class="align-middle" title="' + term.definition + '">' + term.goId + '</a></span>');
                 row.push('<span class="align-middle">' + term.name + '</span>');
                 row.push('<span class="align-middle">' + term.aspect + '</span>');
-                row.push('<a href="#" class="align-middle overlap-show-modal" data-toggle="modal" data-target="#overlapModal">' + term.frequency + '</a>');
+                row.push('<a href="#" class="align-middle overlap-show-modal" data-toggle="modal" data-target="#overlapModal" data-go-id="' + term.goId + '">' + term.frequency + '</a>');
                 row.push('<span class="align-middle">' + term.size + '</span>');
             }
             rows.push(row);
@@ -470,7 +470,7 @@
     });
 
     $('#overlapModal').on('show.bs.modal', function (e) {
-        var goId = $(e.relatedTarget).closest('tr').find('td')[0].innerText;
+        var goId = $(e.relatedTarget).data('go-id');
         $("#overlapModal").find(".modal-body").load("/user/taxon/" + encodeURIComponent(currentTaxonId) + "/term/" + encodeURIComponent(goId) + "/gene/view");
     });
 

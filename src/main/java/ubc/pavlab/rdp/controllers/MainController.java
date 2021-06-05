@@ -6,7 +6,6 @@ import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 import ubc.pavlab.rdp.services.UserService;
@@ -29,7 +28,7 @@ public class MainController {
         return userService.findCurrentUser() == null ? "redirect:/search" : "redirect:/user/home";
     }
 
-    @RequestMapping(value = "/stats.html")
+    @GetMapping(value = "/stats.html")
     public void handleStatsHTMLEndpoint( HttpServletResponse response ) throws IOException {
         response.sendRedirect( "/stats" );
     }

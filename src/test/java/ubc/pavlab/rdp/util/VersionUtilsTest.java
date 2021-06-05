@@ -19,4 +19,9 @@ public class VersionUtilsTest {
     public void satisfiesVersion_whenVersionIsOver99_thenRaiseRuntimeException() {
         VersionUtils.satisfiesVersion( "1.100", "1.0.0" );
     }
+
+    @Test(expected = RuntimeException.class)
+    public void satisfiesVersion_whenVersionIsUnder0_thenRaiseRuntimeException() {
+        VersionUtils.satisfiesVersion( "1.-1", "1.0.0" );
+    }
 }

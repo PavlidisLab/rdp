@@ -1,12 +1,15 @@
 package ubc.pavlab.rdp.repositories;
 
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import ubc.pavlab.rdp.model.User;
+import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 
 import javax.persistence.QueryHint;
 import java.util.Collection;
@@ -24,6 +27,10 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     @Override
     @Cacheable(cacheNames = "stats", key = "#root.methodName")
     long count();
+
+    long countByProfilePrivacyLevel( PrivacyLevelType aPublic );
+
+    Page<User> findAllByProfilePrivacyLevel( PrivacyLevelType privacyLevel, Pageable pageable );
 
     @Query("select user from User user left join fetch user.roles where lower(user.email) = lower(:email)")
     User findByEmailIgnoreCase( @Param("email") String email );

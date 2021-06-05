@@ -15,6 +15,12 @@ import ubc.pavlab.rdp.model.enums.RelationshipType;
 @ToString
 public class Relationship {
 
-    private final GeneOntologyTermInfo term;
+    private final String term;
     private final RelationshipType type;
+
+    @Deprecated
+    public Relationship( GeneOntologyTermInfo term, RelationshipType type ) {
+        this( term.getGoId(), type );
+    }
+
 }

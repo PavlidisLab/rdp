@@ -1,5 +1,6 @@
 package ubc.pavlab.rdp.services;
 
+import org.assertj.core.util.Lists;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -21,9 +22,13 @@ import ubc.pavlab.rdp.repositories.TaxonRepository;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.util.GeneInfoParser;
 import ubc.pavlab.rdp.util.GeneOrthologsParser;
+import ubc.pavlab.rdp.util.ParseException;
 import ubc.pavlab.rdp.util.SearchResult;
 
-import java.text.ParseException;
+import java.io.IOException;
+import java.net.URL;
+import java.sql.Date;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -32,6 +37,8 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static ubc.pavlab.rdp.util.TestUtils.createGene;
@@ -287,13 +294,41 @@ public class GeneInfoServiceImplTest {
     }
 
     @Test
-    public void updateGenes_thenSucceed() throws ParseException {
+    public void updateGenes_thenSucceed() throws ParseException, IOException {
         Taxon humanTaxon = taxonRepository.findOne( 9606 );
         when( taxonService.findByActiveTrue() ).thenReturn( Sets.newSet( humanTaxon ) );
-        GeneInfo updatedGene = createGene( 4, humanTaxon );
-        updatedGene.setSymbol( "FOO" );
-        updatedGene.setName( "BAR" );
-        when( geneInfoParser.parse( humanTaxon, humanTaxon.getGeneUrl() ) ).thenReturn( Sets.newSet( updatedGene ) );
+        GeneInfoParser.Record updatedGeneRecord = new GeneInfoParser.Record( 9606, 4, "FOO", "", "BAR", Date.from( Instant.now() ) );
+        when( geneInfoParser.parse( any(), eq( humanTaxon.getId() ) ) ).thenReturn( Collections.singletonList( updatedGeneRecord ) );
+        geneService.updateGenes();
+        verify( taxonService ).findByActiveTrue();
+        verify( geneInfoParser ).parse( any(), eq( humanTaxon.getId() ) );
+        assertThat( geneInfoRepository.findByGeneId( 4 ) )
+                .isNotNull()
+                .hasFieldOrPropertyWithValue( "symbol", "FOO" )
+                .hasFieldOrPropertyWithValue( "name", "BAR" )
+                .hasFieldOrPropertyWithValue( "taxon", humanTaxon );
+    }
+
+    @Test
+    public void updateGenes_whenTaxonDiffers_thenIgnoreGeneRecord() throws ParseException, IOException {
+        Taxon humanTaxon = taxonRepository.findOne( 9606 );
+        when( taxonService.findByActiveTrue() ).thenReturn( Sets.newSet( humanTaxon ) );
+        GeneInfoParser.Record updatedGeneRecord = new GeneInfoParser.Record( 4, 4, "FOO", "", "BAR", Date.from( Instant.now() ) );
+        when( geneInfoParser.parse( any(), eq( 4 ) ) ).thenReturn( Collections.singletonList( updatedGeneRecord ) );
+        geneService.updateGenes();
+        verify( taxonService ).findByActiveTrue();
+        verify( geneInfoParser ).parse( any(), eq( 9606 ) );
+        assertThat( geneInfoRepository.findByGeneId( 4 ) ).isNull();
+    }
+
+    @Test
+    public void updateGenes_whenTaxonIsChanged_thenUpdateGene() throws ParseException, IOException {
+        Taxon humanTaxon = taxonRepository.findOne( 9606 );
+        Taxon otherTaxon = entityManager.persist( createTaxon( 4 ) );
+        when( taxonService.findByActiveTrue() ).thenReturn( Sets.newSet( humanTaxon ) );
+        entityManager.persist( createGene( 4, otherTaxon ) );
+        GeneInfoParser.Record updatedGeneRecord = new GeneInfoParser.Record( 9606, 4, "FOO", "", "BAR", Date.from( Instant.now() ) );
+        when( geneInfoParser.parse( any(), eq( humanTaxon.getId() ) ) ).thenReturn( Collections.singletonList( updatedGeneRecord ) );
         geneService.updateGenes();
         verify( taxonService ).findByActiveTrue();
         assertThat( geneInfoRepository.findByGeneId( 4 ) )
@@ -301,6 +336,24 @@ public class GeneInfoServiceImplTest {
                 .hasFieldOrPropertyWithValue( "symbol", "FOO" )
                 .hasFieldOrPropertyWithValue( "name", "BAR" )
                 .hasFieldOrPropertyWithValue( "taxon", humanTaxon );
+    }
+
+    @Test
+    public void updateGenes_whenGeneInfoContainsMultipleTaxon_thenIgnoreUnrelatedTaxon() throws ParseException, IOException {
+        Taxon fissionYeastTaxon = createTaxon( 4896, "fission yeast", "Schizosaccharomyces pombe", new URL( "https://ftp.ncbi.nih.gov/gene/DATA/GENE_INFO/Fungi/All_Fungi.gene_info.gz" ) );
+        when( taxonService.findByActiveTrue() ).thenReturn( Sets.newSet( fissionYeastTaxon ) );
+        GeneInfoParser.Record updatedGeneRecord = new GeneInfoParser.Record( 4896, 4, "FOO", "", "BAR", Date.from( Instant.now() ) );
+        GeneInfoParser.Record unrelatedGeneRecord = new GeneInfoParser.Record( 12, 4, "FOO", "", "BAR", Date.from( Instant.now() ) );
+        when( geneInfoParser.parse( any(), eq( fissionYeastTaxon.getId() ) ) ).thenReturn( Lists.newArrayList( updatedGeneRecord ) );
+        when( geneInfoParser.parse( any(), eq( 12 ) ) ).thenReturn( Lists.newArrayList( unrelatedGeneRecord ) );
+        geneService.updateGenes();
+        verify( taxonService ).findByActiveTrue();
+        verify( geneInfoParser ).parse( any(), eq( fissionYeastTaxon.getId() ) );
+        assertThat( geneInfoRepository.findByGeneId( 4 ) )
+                .isNotNull()
+                .hasFieldOrPropertyWithValue( "symbol", "FOO" )
+                .hasFieldOrPropertyWithValue( "name", "BAR" )
+                .hasFieldOrPropertyWithValue( "taxon", fissionYeastTaxon );
     }
 
 }
