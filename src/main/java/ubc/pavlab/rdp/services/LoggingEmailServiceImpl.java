@@ -39,7 +39,7 @@ public class LoggingEmailServiceImpl implements EmailService {
                 .path( "updatePassword" )
                 .queryParam( "id", user.getId() )
                 .queryParam( "token", token.getToken() )
-                .build().toUriString();
+                .build().encode().toUriString();
         log.info( MessageFormat.format( "Reset URL for {0}: {1}", user, url ) );
     }
 
@@ -49,6 +49,7 @@ public class LoggingEmailServiceImpl implements EmailService {
                 .path( "registrationConfirm" )
                 .queryParam( "token", token.getToken() )
                 .build()
+                .encode()
                 .toUriString();
         log.info( MessageFormat.format( "Confirmation URL for {0}: {1}", user, confirmationUrl ) );
     }
@@ -59,6 +60,7 @@ public class LoggingEmailServiceImpl implements EmailService {
                 .path( "user/verify-contact-email" )
                 .queryParam( "token", token.getToken() )
                 .build()
+                .encode()
                 .toUriString();
         log.info( MessageFormat.format( "Contact email verification URL for {0}: {1}", user, confirmationUrl ) );
     }
