@@ -125,7 +125,7 @@ sapiens* taxon would be retrieved from `genes/Homo_sapiens.gene_info.gz`
 
 ## International data
 
-In order to access the RDMMN shared data system (via the international search), your application must use HTTPS. If you
+In order to access the RDMM shared data system (via the international search), your application must use HTTPS. If you
 do not have HTTPS setup for you domain, you can consult the following guides on how to set it up:
 
 - [medium.com/@raupach/how-to-install-lets-encrypt-with-tomcat-3db8a469e3d2](https://medium.com/@raupach/how-to-install-lets-encrypt-with-tomcat-3db8a469e3d2)
