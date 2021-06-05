@@ -169,10 +169,23 @@ public class GeneInfoServiceImpl implements GeneInfoService {
                 .filter( record -> activeTaxonIds.contains( record.getTaxonId() ) && activeTaxonIds.contains( record.getOrthologTaxonId() ) )
                 .collect( groupingBy( GeneOrthologsParser.Record::getGeneId ) );
 
+        log.info( MessageFormat.format( "Loading all genes referred by {0}", resource ) );
+        Map<Integer, GeneInfo> geneInfoWithOrthologsByGeneId = geneInfoRepository.findAllByGeneIdWithOrthologs( recordByGeneId.keySet() )
+                .stream()
+                .collect( Collectors.toMap( GeneInfo::getGeneId, identity() ) );
+
+        log.info( MessageFormat.format( "Loading all orthologs referred by {0}", resource ) );
+        Set<Integer> orthologGeneIds = records.stream()
+                .map( GeneOrthologsParser.Record::getOrthologId )
+                .collect( Collectors.toSet() );
+        Map<Integer, GeneInfo> orthologByGeneId = geneInfoRepository.findAllByGeneIdIn( orthologGeneIds ).stream()
+                .collect( Collectors.toMap( GeneInfo::getGeneId, identity() ) );
+
+        log.info( "Now updating orthologs..." );
         for ( Map.Entry<Integer, List<GeneOrthologsParser.Record>> entry : recordByGeneId.entrySet() ) {
             Integer geneId = entry.getKey();
             List<GeneOrthologsParser.Record> geneRecords = entry.getValue();
-            GeneInfo gene = geneInfoRepository.findByGeneIdWithOrthologs( geneId );
+            GeneInfo gene = geneInfoWithOrthologsByGeneId.get( geneId );
             if ( gene == null ) {
                 log.info( MessageFormat.format( "Ignoring orthologs for {0} since it is missing from the database.",
                         geneIdFormat.format( geneId ) ) );
@@ -180,7 +193,7 @@ public class GeneInfoServiceImpl implements GeneInfoService {
             }
             gene.getOrthologs().clear();
             for ( GeneOrthologsParser.Record record : geneRecords ) {
-                GeneInfo ortholog = geneInfoRepository.findByGeneId( record.getOrthologId() );
+                GeneInfo ortholog = orthologByGeneId.get( record.getOrthologId() );
                 if ( ortholog == null ) {
                     log.info( MessageFormat.format( "Cannot add ortholog relationship between {0} and {1} since the latter is missing from the database.",
                             geneIdFormat.format( geneId ), geneIdFormat.format( record.getOrthologId() ) ) );
