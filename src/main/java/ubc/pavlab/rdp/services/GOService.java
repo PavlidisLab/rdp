@@ -1,9 +1,6 @@
 package ubc.pavlab.rdp.services;
 
-import ubc.pavlab.rdp.model.Gene;
-import ubc.pavlab.rdp.model.GeneOntologyTerm;
-import ubc.pavlab.rdp.model.Taxon;
-import ubc.pavlab.rdp.model.UserTerm;
+import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.util.SearchResult;
 
 import java.util.Collection;
@@ -15,31 +12,45 @@ import java.util.Map;
  */
 public interface GOService {
 
-    void setTerms( Map<String, GeneOntologyTerm> termMap );
+    GeneOntologyTermInfo save( GeneOntologyTermInfo term );
 
-    Collection<GeneOntologyTerm> getAllTerms();
+    Iterable<GeneOntologyTermInfo> save( Iterable<GeneOntologyTermInfo> terms );
 
-    int size();
+    GeneOntologyTermInfo saveAlias( String goId, GeneOntologyTermInfo term );
 
-    Collection<GeneOntologyTerm> getDescendants( GeneOntologyTerm entry );
+    Iterable<GeneOntologyTermInfo> saveAlias( Map<String, GeneOntologyTermInfo> terms );
 
-    Collection<GeneOntologyTerm> getDescendants( GeneOntologyTerm entry, boolean includePartOf );
+    void deleteAll();
 
-    Map<GeneOntologyTerm, Long> termFrequencyMap( Collection<Gene> genes );
+    long count();
 
-    List<SearchResult<UserTerm>> search( String queryString, Taxon taxon, int max );
+    Collection<GeneOntologyTermInfo> getDescendants( GeneOntologyTermInfo entry );
 
-    Collection<GeneOntologyTerm> getChildren( GeneOntologyTerm entry );
+    Collection<GeneOntologyTermInfo> getAncestors( GeneOntologyTermInfo entry );
 
-    Collection<GeneOntologyTerm> getChildren( GeneOntologyTerm entry, boolean includePartOf );
+    Map<GeneOntologyTermInfo, Long> termFrequencyMap( Collection<? extends Gene> genes );
 
-    Collection<Gene> getGenes( String id, Taxon taxon );
+    List<SearchResult<GeneOntologyTermInfo>> search( String queryString, Taxon taxon, int max );
 
-    Collection<Gene> getGenes( GeneOntologyTerm t, Taxon taxon );
+    Collection<GeneOntologyTermInfo> getChildren( GeneOntologyTermInfo entry );
 
-    Collection<Gene> getGenes( GeneOntologyTerm t );
+    Collection<Integer> getDirectGenes( GeneOntologyTermInfo term );
 
-    Collection<Gene> getGenes( Collection<? extends GeneOntologyTerm> goTerms, Taxon taxon );
+    Collection<Integer> getGenes( GeneOntologyTermInfo t );
 
-    GeneOntologyTerm getTerm( String goId );
+    Collection<Integer> getGenesInTaxon( String id, Taxon taxon );
+
+    Collection<Integer> getGenesInTaxon( GeneOntologyTermInfo t, Taxon taxon );
+
+    Collection<Integer> getGenesInTaxon( Collection<GeneOntologyTermInfo> goTerms, Taxon taxon );
+
+    GeneOntologyTermInfo getTerm( String goId );
+
+    Collection<GeneOntologyTermInfo> getTermsForGene( Gene gene );
+
+    Collection<GeneOntologyTermInfo> getTermsForGene( Gene gene, boolean propagateUpwards );
+
+    long getSizeInTaxon( GeneOntologyTermInfo t, Taxon taxon );
+
+    void updateGoTerms();
 }

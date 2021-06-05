@@ -1,77 +1,51 @@
 <!DOCTYPE html>
 <!--suppress HtmlUnknownTarget css and js folders not recognised after build-->
 <html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:th="http://www.thymeleaf.org">
-
-<head>
-    <title th:text="${@siteSettings.getFullname()}"></title>
-    <link rel="icon" type="image/png" sizes="16x16" th:href="@{/images/favicon-16x16.png}"/>
-    <link rel="icon" type="image/png" sizes="32x32" th:href="@{/images/favicon-32x32.png}"/>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
-          integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous"/>
-    <link rel="stylesheet"
-          href="https://cdnjs.cloudflare.com/ajax/libs/open-iconic/1.1.1/font/css/open-iconic-bootstrap.min.css"/>
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.16/css/dataTables.bootstrap4.min.css"/>
-
-
-    <link rel="stylesheet" type="text/css" th:href="@{/css/common.css}"/>
-    <link rel="stylesheet" type="text/css" th:href="@{/css/profile.css}"/>
-
-    <script src="https://code.jquery.com/jquery-3.3.1.min.js"
-            integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
-            crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
-            integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
-            crossorigin="anonymous"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
-            integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
-            crossorigin="anonymous"></script>
-    <script src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.10.16/js/dataTables.bootstrap4.min.js"></script>
-    <script src="/js/opentip-jquery.min.js"></script>
-    <link href="/css/opentip.css" rel="stylesheet" type="text/css"/>
-
-    <script th:src="@{/js/common.js}"></script>
-    <script th:src="@{/js/profile.js}"></script>
-    <script th:if="${user != null}" th:src="@{/js/activity-monitor.js}"></script>
+      xmlns:th="http://www.thymeleaf.org"
+      lang="en">
+<head th:replace="layouts/common::head(title='Profile')">
+    <meta charset="UTF-8"/>
+    <title>...</title>
 </head>
 
 <body>
-<div th:replace="fragments/header">...</div>
-<div class="container p-4">
-
-    <div th:replace="fragments/title :: title(title='My Account', subtitle='User Profile')" th:remove="tag">...</div>
-
-    <div class="d-flex align-items-center justify-content-center" th:if="${viewOnly != null}">
-        <h3 class="d-inline-block pr-3 mr-3 mb-0" th:text="${user.email}"></h3>
-    </div>
-
-    <div class="main-content p-4">
-        <div class="row justify-content-center success-row" style="display: none;">
-            <div class="col my-3">
-                <div class="alert alert-success alert-dismissible fade show" role="alert">Profile Saved!
-                    <button type="button" class="close" id="saved-button">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
+<div th:replace="layouts/common::header">...</div>
+<div class="container py-4" th:object="${user.profile}">
+    <div class="main-content">
+        <div class="row mb-3">
+            <div class="col-8">
+                <div th:replace="layouts/common::title(title='My Account', subtitle='User Profile')">...</div>
+            </div>
+            <div class="d-flex align-items-center justify-content-center" th:if="${viewOnly != null}">
+                <h3 class="d-inline-block pr-3 mr-3 mb-0" th:text="${user.profile.contactEmail ?: user.email}"></h3>
+            </div>
+            <div class="col-4 my-auto text-right" th:if="${viewOnly == null}">
+                <button type="button" class="btn btn-primary btn-lg save-profile">
+                    <i class="mx-2 d-none spinner"></i>
+                    Save
+                </button>
             </div>
         </div>
-        <div class="row justify-content-center error-row" style="display: none;">
-            <div class="col my-3">
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">Error Saving Profile!
-                    <button type="button" class="close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-            </div>
+
+        <div class="alert alert-success alert-dismissible fade show success-row mb-3" role="alert"
+             style="display: none;">
+            Profile Saved!
+            <button type="button" class="close" id="saved-button">
+                <span aria-hidden="true">&times;</span>
+            </button>
         </div>
-        <div class="row justify-content-center" th:if="${viewOnly == null}">
-            <div class="col-4 my-3">
-                <button type="button" class="btn btn-primary btn-lg btn-block save-profile"><i class="mx-2 d-none spinner"></i>Save</button>
-            </div>
+
+        <div class="alert alert-danger alert-dismissible fade show error-row mb-3" role="alert" style="display: none;">
+            Error Saving Profile!
+            <button type="button" class="close">
+                <span aria-hidden="true">&times;</span>
+            </button>
         </div>
-        <div class="row">
-            <div class="col my-3">
+
+        <div th:replace="layouts/common::message"></div>
+
+        <div class="row mb-3">
+            <div class="col">
                 <div class="card basic-info">
                     <div class="card-header">
                         <div class="d-flex align-items-center">
@@ -80,166 +54,298 @@
                     </div>
                     <table class="table mb-0">
                         <tr class="edit-container">
-                            <td class="align-middle" style="width: 120px;"><span class="text-muted align-middle">First Name</span></td>
-                            <td><i class="editable" th:if="${viewOnly == null}"/>
-                                <input class="data-edit" type="text" name="name" th:value="${user.profile.name}" disabled="disabled"/>
+                            <td class="align-middle" style="width: 120px;">
+                                <label th:for="${#ids.next('profile.name')}" class="text-muted align-middle mb-0">First
+                                    Name</label>
+                            </td>
+                            <td><i class="editable" th:if="${viewOnly == null}"></i>
+                                <input th:id="${#ids.seq('profile.name')}"
+                                       th:field="*{name}"
+                                       type="text"
+                                       class="data-edit"
+                                       disabled="disabled"/>
                             </td>
                         </tr>
                         <tr class="edit-container">
-                            <td class="align-middle"><span class="text-muted align-middle">Last Name</span></td>
-                            <td><i class="editable" th:if="${viewOnly == null}"/>
-                                <input class="data-edit" type="text" name="lastName" th:value="${user.profile.lastName}" disabled="disabled"/>
+                            <td class="align-middle">
+                                <label th:for="${#ids.next('profile.lastName')}" class="text-muted align-middle mb-0">Last
+                                    Name</label>
+                            </td>
+                            <td><i class="editable" th:if="${viewOnly == null}"></i>
+                                <input th:id="${#ids.seq('profile.lastName')}"
+                                       th:field="*{lastName}"
+                                       type="text"
+                                       class="data-edit"
+                                       disabled="disabled"/>
                             </td>
                         </tr>
                         <tr class="edit-container">
-                            <td class="align-middle"><span class="text-muted align-middle">Organization</span></td>
-                            <td><i class="editable" th:if="${viewOnly == null}"/>
-                                <input class="data-edit" type="text" name="organization" th:value="${user.profile.organization}" disabled="disabled"/>
+                            <td class="align-middle">
+                                <label th:for="${#ids.next('profile.organization')}"
+                                       class="text-muted align-middle mb-0">
+                                    Organization
+                                </label>
+                            </td>
+                            <td><i class="editable" th:if="${viewOnly == null}"></i>
+                                <input th:id="${#ids.seq('profile.organization')}"
+                                       th:field="*{organization}"
+                                       class="data-edit" type="text"
+                                       disabled="disabled"/>
                             </td>
                         </tr>
                         <tr class="edit-container">
-                            <td class="align-middle"><span class="text-muted align-middle">Department</span></td>
-                            <td><i class="editable" th:if="${viewOnly == null}"/>
-                                <input class="data-edit" type="text" name="department" th:value="${user.profile.department}" disabled="disabled"/>
+                            <td class="align-middle">
+                                <label th:for="${#ids.next('profile.department')}"
+                                       class="text-muted align-middle mb-0">
+                                    Department
+                                </label>
+                            </td>
+                            <td><i class="editable" th:if="${viewOnly == null}"></i>
+                                <input th:id="${#ids.seq('profile.department')}"
+                                       th:field="*{department}"
+                                       type="text"
+                                       class="data-edit"
+                                       disabled="disabled"/>
                             </td>
                         </tr>
                         <tr class="edit-container">
-                            <td class="align-middle"><span class="text-muted align-middle">Website</span></td>
-                            <td><i class="editable" th:if="${viewOnly == null}"/>
-                                <input class="data-edit" type="text" name="website" th:value="${user.profile.website}" disabled="disabled"/>
+                            <td class="align-middle">
+                                <label th:for="${#ids.next('profile.website')}" class="text-muted align-middle mb-0">
+                                    Website
+                                </label>
+                            </td>
+                            <td><i class="editable" th:if="${viewOnly == null}"></i>
+                                <input th:id="${#ids.seq('profile.website')}"
+                                       th:field="*{website}"
+                                       class="data-edit" type="text"
+                                       disabled="disabled"/>
+                            </td>
+                        </tr>
+                        <tr th:unless="${@applicationSettings.profile.enabledResearcherCategories.isEmpty()}"
+                            class="edit-container">
+                            <td class="align-middle">
+                                <label th:for="${#ids.next('profile.researcherCategories')}"
+                                       class="text-muted align-middle mb-0">Categories</label>
+                            </td>
+                            <td>
+                                <div th:replace="fragments/profile::researcher-categories-selection(selectedResearcherCategories = *{researcherCategories})">
+                                    ...
+                                </div>
+                            </td>
+                        </tr>
+                        <tr th:unless="${@applicationSettings.profile.enabledResearcherPositions.isEmpty()}"
+                            class="edit-container">
+                            <td class="align-middle">
+                                <label th:for="${#ids.next('profile.researcherPosition')}"
+                                       class="text-muted align-middle mb-0">Position</label>
+                            </td>
+                            <td>
+                                <div th:replace="fragments/profile::researcher-position-selection(selectedResearcherPosition=*{researcherPosition})">
+                                    ...
+                                </div>
                             </td>
                         </tr>
                     </table>
                 </div>
             </div>
         </div>
-        <div class="row">
-            <div class="col my-3">
+
+        <div class="row mb-3">
+            <div class="col">
                 <div class="card contact-info">
                     <div class="card-header">
                         <h3 class="mb-0">Contact Information</h3>
                     </div>
                     <table class="table mb-0">
-                        <tr>
-                            <td class="align-middle" style="width: 120px;"><span class="text-muted align-middle">Email</span></td>
-                            <td><span th:text="${user.email}" th:remove="tag"></span></td>
+                        <tr class="edit-container">
+                            <td class="align-middle" style="width: 120px;">
+                                <label th:for="${#ids.next('profile.contactEmail')}"
+                                       class="text-muted align-middle mb-0">
+                                    Contact Email
+                                </label>
+                            </td>
+                            <td>
+                                <i th:if="${viewOnly == null}" class="editable"></i>
+                                <input th:id="${#ids.seq('profile.contactEmail')}"
+                                       th:field="*{contactEmail}"
+                                       class="data-edit"
+                                       type="text"
+                                       disabled="disabled"/>
+                                <span th:if="*{contactEmailVerified}" class="badge badge-success contact-email-verification-badge">Verified</span>
+                                <th:block th:unless="*{contactEmail} == null or *{contactEmail} == '' or *{contactEmailVerified}">
+                                    <form th:action="@{/user/resend-contact-email-verification}" method="post"
+                                          class="d-inline-block">
+                                    <span class="badge badge-warning contact-email-verification-badge"
+                                          data-toggle="tooltip"
+                                          title="Your contact email is not verified, we'll contact you with your primary email instead.">Not verified</span>
+                                        <button class="btn btn-sm" type="submit">
+                                            <i class="oi oi-envelope-closed"></i>
+                                            Resend contact email verification
+                                        </button>
+                                    </form>
+                                </th:block>
+                            </td>
                         </tr>
                         <tr class="edit-container">
-                            <td class="align-middle"><span class="text-muted align-middle">Phone</span></td>
+                            <td class="align-middle">
+                                <label th:for="${#ids.next('profile.phone')}"
+                                       class="text-muted align-middle mb-0">
+                                    Phone
+                                </label>
+                            </td>
                             <td><i class="editable" th:if="${viewOnly == null}"/>
-                                <input class="data-edit" type="text" name="phone" th:value="${user.profile.phone}" disabled="disabled"/>
+                                <input th:id="${#ids.seq('profile.phone')}"
+                                       th:field="*{phone}"
+                                       class="data-edit" type="text"
+                                       disabled="disabled"/>
                             </td>
                         </tr>
                     </table>
                 </div>
             </div>
+        </div>
 
-            <div class="w-100"></div>
-
-            <div class="col my-3">
+        <div class="row mb-3">
+            <div class="col">
                 <div class="card research-info edit-container">
                     <div class="card-header d-flex align-items-center">
                         <i class="editable" th:if="${viewOnly == null}"/>
-                        <h3 class="mb-0 d-inline-block">About My Research</h3>
+                        <h3 class="mb-0 d-inline-block">
+                            <label th:for="${#ids.next('profile.description')}" class="mb-0">About My Research</label>
+                        </h3>
                     </div>
                     <div class="p-2" style="height: 120px;">
-                        <textarea class="data-edit" name="description" th:text="${user.profile.description}" disabled="disabled"></textarea>
+                        <textarea th:id="${#ids.seq('profile.description')}"
+                                  th:field="*{description}"
+                                  class="data-edit"
+                                  disabled="disabled"></textarea>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <div class="w-100" th:if="${@applicationSettings.getPrivacy().isCustomizableLevel()} or ${@applicationSettings.getPrivacy().isCustomizableSharing()} or ${@applicationSettings.getPrivacy().isAllowHideGenelist()}"></div>
-            <div class="col my-3" th:if="${@applicationSettings.getPrivacy().isCustomizableLevel()} or ${@applicationSettings.getPrivacy().isCustomizableSharing()} or ${@applicationSettings.getPrivacy().isAllowHideGenelist()}">
+        <div class="row mb-3"
+             th:if="${@applicationSettings.organs.enabled}">
+            <div class="col">
+                <div class="card organs">
+                    <div class="card-header d-flex align-items-center">
+                        <h3 class="mb-0 d-inline-block">Organ Systems</h3>
+                    </div>
+                    <div class="card-body">
+                        <p>
+                            Choose human organ systems your research is most relevant to:
+                        </p>
+                        <div th:replace="fragments/organ::organs-selection(checkedOrganUberonIds = ${user.userOrgans.keySet()})">
+                            ...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-3">
+            <div class="w-100"
+                 th:if="${@applicationSettings.privacy.isCustomizableLevel()} or ${@applicationSettings.privacy.isCustomizableSharing()} or ${@applicationSettings.privacy.isAllowHideGenelist()}"></div>
+            <div class="col"
+                 th:if="${@applicationSettings.privacy.isCustomizableLevel()} or ${@applicationSettings.privacy.isCustomizableSharing()} or ${@applicationSettings.privacy.isAllowHideGenelist()}">
                 <div class="card privacy-settings edit-container">
                     <div class="card-header d-flex align-items-center">
-                        <h3 class="mb-0 d-inline-block">Data Privacy Settings</h3>
+                        <h3 id="data-privacy-settings" class="mb-0 d-inline-block">Data Privacy Settings</h3>
                     </div>
-                    <div id="privacy-levels" class="w-100 p-2" th:if="${@applicationSettings.getPrivacy().isCustomizableLevel()}">
-                        <p class="radio">
-                            Read more about these settings in the <a href="faq#privacy-settings" target="_blank">FAQ</a>
-                        </p>
-                        <div class="radio" th:if="${@applicationSettings.getPrivacy().getMinLevel() &lt; 1}" >
-                            <label>
-                                <input id="privacyLevelPrivate" type="radio" name="privacy" th:checked="${user.profile.privacyLevel == 0}" value="0" />
-                                Private
-                            </label>
-                            <i class="tip oi oi-question-mark"
-                               data-ot-background="cornflowerblue"
-                               data-ot-border-color="white"
-                               data-ot-shadow-color="lightgray"
-                               data-ot="Your information will only be accessible by administrators">
-                            </i>
+                    <div class="list-group list-group-flush">
+                        <!-- TODO: also check if more than one option is available to display this section -->
+                        <div id="privacy-levels" class="list-group-item"
+                             th:if="${@applicationSettings.privacy.isCustomizableLevel()}">
+                            <h4 class="card-title">Privacy Level</h4>
+
+                            <!--
+                            <p>These settings determine how other users from <strong>this registry</strong> can see your data.</p>
+                            -->
+
+                            <form id="privacy-level">
+                                <div class="form-group">
+                                    <div class="form-check-inline"
+                                         th:each="privacyLevel : ${T(ubc.pavlab.rdp.model.enums.PrivacyLevelType).values()}"
+                                         th:if="${@privacyService.isPrivacyLevelEnabled(privacyLevel)}">
+                                        <input class="form-check-input" type="radio" name="privacyLevel"
+                                               th:id="${#ids.seq('privacyLevel')}"
+                                               th:checked="${user.profile.privacyLevel == privacyLevel}"
+                                               th:value="${privacyLevel.ordinal()}"
+                                               th:attr="data-toggle=${@applicationSettings.privacy.isCustomizableGeneLevel() and privacyLevel != user.profile.privacyLevel} ? 'modal',
+                                                        data-target=${@applicationSettings.privacy.isCustomizableGeneLevel() and privacyLevel != user.profile.privacyLevel} ? '#' + ${#ids.next('confirm-gene-privacy-level-reset')}"/>
+                                        <label class="form-check-label"
+                                               th:for="${#ids.prev('privacyLevel')}">
+                                            <span th:text="#{'PrivacyLevelType.' + ${privacyLevel.name()}}"></span>
+                                            <i class="tip oi oi-question-mark"
+                                               data-toggle="tooltip"
+                                               th:title="#{'PrivacyLevelType.' + ${privacyLevel.name()} + '.description'}"/>
+                                        </label>
+                                    </div>
+                                </div>
+                            </form>
+
+                            <p th:if="${@applicationSettings.privacy.isCustomizableGeneLevel()}">
+                                Your default gene privacy level is determined by this setting.
+                            </p>
+
+                            Read more about privacy settings in the <a th:href="@{/user/faq#privacy-settings}"
+                                                                       target="_blank">FAQ</a>.
                         </div>
-                        <div class="radio" th:if="${@applicationSettings.getPrivacy().getMinLevel() &lt; 2}">
-                            <label>
-                                <input id="privacyLevelRegistered" type="radio" name="privacy" th:checked="${user.profile.privacyLevel == 1}" value="1" />
-                                Shared
-                            </label>
-                            <i class="tip oi oi-question-mark"
-                               data-ot-background="cornflowerblue"
-                               data-ot-border-color="white"
-                               data-ot-shadow-color="lightgray"
-                               data-ot="Your information will be accessible by other researchers who are registered">
-                            </i>
+
+                        <div id="privacy-sharing" class="list-group-item"
+                             th:if="${@applicationSettings.privacy.isCustomizableSharing()}">
+                            <h4 class="card-title">Partner Registry</h4>
+                            <!--
+                            <p>These settings determine whether users from <strong>other registries</strong> can see your data.</p>
+                                -->
+                            <div class="form-group">
+                                <div class="form-check form-check-inline">
+                                    <input th:id="${#ids.seq('profile.shared')}"
+                                           th:field="*{shared}"
+                                           type="checkbox"
+                                           class="form-check-input"/>
+                                    <label class="form-check-label" th:for="${#ids.prev('profile.shared')}">
+                                        Share my data with partner registries
+                                        <i class="tip oi oi-question-mark"
+                                           data-toggle="tooltip"
+                                           title="Administrators of partner registries will be able to view your data">
+                                        </i>
+                                    </label>
+                                </div>
+                            </div>
+                            Read more about international search settings in the
+                            <a th:href="@{/user/faq#isearch}" target="_blank">FAQ</a>.
                         </div>
-                        <div class="radio">
-                            <label>
-                                <input id="privacyLevelPublic" type="radio" name="privacy" th:checked="${user.profile.privacyLevel == 2}" value="2" />
-                                Public
-                            </label>
-                            <i class="tip oi oi-question-mark"
-                               data-ot-background="cornflowerblue"
-                               data-ot-border-color="white"
-                               data-ot-shadow-color="lightgray"
-                               data-ot="Your information will be visible publicly">
-                            </i>
-                        </div>
-                    </div>
-                    <hr th:if="${@applicationSettings.getPrivacy().isCustomizableLevel() == (@applicationSettings.getPrivacy().isCustomizableSharing() == true)}"/>
-                    <div id="privacy-sharing" class="w-100 p-2 margin-chbox" th:if="${@applicationSettings.getPrivacy().isCustomizableSharing()}">
-                        <div class="radio">
-                            Read more about these settings in the <a href="faq#isearch" target="_blank">FAQ</a>
-                        </div>
-                        <div class="col-12">
-                            <label class="form-check-label">
-                                <input id="privacy-sharing-checkbox" type="checkbox" class="form-check-input" th:checked="${user.profile.shared}"/>
-                                Share data with partner registries
-                            </label>
-                            <i class="tip oi oi-question-mark"
-                               data-ot-background="cornflowerblue"
-                               data-ot-border-color="white"
-                               data-ot-shadow-color="lightgray"
-                               data-ot="Administrators of partner registries will be able to view your data">
-                            </i>
-                        </div>
-                    </div>
-                    <hr th:if="${@applicationSettings.getPrivacy().isAllowHideGenelist() == ((@applicationSettings.getPrivacy().isCustomizableLevel() || (@applicationSettings.getPrivacy().isCustomizableSharing()) == true))}"/>
-                    <div id="privacy-genelist" class="d-flex w-100 p-2 margin-chbox" th:if="${@applicationSettings.getPrivacy().isAllowHideGenelist()}">
-                        <div class="col-12"
-                             title="">
-                            <label class="form-check-label">
-                                <input id="privacy-genelist-checkbox" type="checkbox" class="form-check-input" th:checked="${user.profile.hideGenelist}" />
-                                Hide genelist for non-administrative users
-                            </label>
-                            <i class="tip oi oi-question-mark"
-                               data-ot-background="cornflowerblue"
-                               data-ot-border-color="white"
-                               data-ot-shadow-color="lightgray"
-                               data-ot="Hide your gene list when sharing your profile with others">
-                            </i>
+                        <div id="privacy-genelist" class="list-group-item"
+                             th:if="${@applicationSettings.privacy.isAllowHideGenelist()}">
+                            <h5>Content displayed on my profile</h5>
+                            <p>These settings determine which parts of your user profile are visible to other users.</p>
+                            <div class="form-check form-check-inline">
+                                <input th:id="${#ids.seq('profile.hideGenelist')}"
+                                       th:field="*{hideGenelist}"
+                                       type="checkbox"
+                                       class="form-check-input"/>
+                                <label class="form-check-label" th:for="${#ids.prev('profile.hideGenelist')}">
+                                    Hide my gene listing for non-administrative users
+                                    <i class="tip oi oi-question-mark"
+                                       data-toggle="tooltip"
+                                       text="Hide your gene list when sharing your profile with others">
+                                    </i>
+                                </label>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <div class="w-100"></div>
-
-            <div class="col my-3">
-                <div class="card publication-info">
-                    <div class="card-header">
-                        <h3 class="mb-0">Publications</h3>
-                    </div>
-                    <table id="publication-table" class="table mb-0">
+        <div class="card publication-info">
+            <div class="card-header">
+                <h3 class="mb-0">Publications</h3>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <table id="publication-table" class="table">
                         <thead class=".thead-light">
                         <tr>
                             <th scope="col">PubMed</th>
@@ -247,32 +353,49 @@
                         </tr>
                         </thead>
                         <tbody>
-                        <th:block th:each="pub : ${user.profile.publications}">
-                            <tr>
-                                <td><i class="delete-row" th:if="${viewOnly == null}"/><span th:text="${pub.pmid}" th:remove="tag"></span></td>
-                                <td><a th:href="${'https://www.ncbi.nlm.nih.gov/pubmed/' + pub.pmid}" target="_blank" th:text="${pub.title != ''} ? ${pub.title} : 'Unknown Title'"></a></td>
-                            </tr>
-                        </th:block>
-                        </tbody>
-                        <tfoot th:if="${viewOnly == null}">
-                        <tr>
-                            <td colspan="2">
-                                <div class="input-group">
-                                    <div class="input-group-prepend">
-                                        <button class="btn btn-outline-secondary add-row text-success" type="button">+</button>
-                                    </div>
-                                    <input type="text" class="pub-input form-control" placeholder="PubMed Ids: 25363768, 25418537"/>
-                                </div>
+                        <tr th:each="pub : ${user.profile.publications}">
+                            <!-- don't format the following line, the frontend makes assumption -->
+                            <td><i class="delete-row" th:if="${viewOnly == null}"></i> <span th:text="${pub.pmid}" th:remove="tag"></span></td>
+                            <td><a th:href="${'https://www.ncbi.nlm.nih.gov/pubmed/' + pub.pmid}"
+                                   target="_blank"
+                                   th:text="${pub.title != ''} ? ${pub.title} : 'Unknown Title'"
+                                   rel="noopener"></a>
                             </td>
                         </tr>
-                        </tfoot>
+                        </tbody>
                     </table>
+                </div>
+                <div class="input-group" th:if="${viewOnly == null}">
+                    <div class="input-group-prepend" style="background: lightgrey;">
+                        <button class="btn btn-outline-secondary add-row text-success" type="button">+</button>
+                    </div>
+                    <input type="text"
+                           class="pub-input form-control"
+                           placeholder="PubMed Ids: 25363768, 25418537"/>
                 </div>
             </div>
         </div>
     </div>
-
 </div>
-<div th:replace="fragments/footer" th:remove="tag">...</div>
+
+<div th:replace="layouts/common::footer">...</div>
+<div th:replace="layouts/common::scripts"></div>
+<script th:src="@{/js/profile.js}"></script>
+<th:block th:if="${@applicationSettings.privacy.isCustomizableGeneLevel()}">
+    <div th:replace="fragments/modal::confirmation(target=${#ids.seq('confirm-gene-privacy-level-reset')}, title='Your gene privacy levels will be adjusted!', body='Changing your profile privacy setting will reset the privacy levels of the genes associated to your model organisms to the selected value.')"></div>
+    <script th:inline="javascript">
+        (function () {
+            "use strict";
+            var modalId = [[${#ids.prev('confirm-gene-privacy-level-reset')}]];
+            var modal = $('#' + modalId);
+            modal.find('button.confirm').on('click', function () {
+                modal.modal('hide');
+            });
+            modal.find('button.cancel').on('click', function () {
+                document.getElementById('privacy-level').reset();
+            });
+        })();
+    </script>
+</th:block>
 </body>
 </html>

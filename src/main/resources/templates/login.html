@@ -1,85 +1,79 @@
 <!DOCTYPE html>
 <!--suppress ThymeleafVariablesResolveInspection checking for null -->
 <html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:th="http://www.thymeleaf.org">
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      lang="en">
 
-<head>
-    <title th:text="${@siteSettings.getFullname()}"></title>
-    <link rel="icon" type="image/png" sizes="16x16" th:href="@{/images/favicon-16x16.png}"/>
-    <link rel="icon" type="image/png" sizes="32x32" th:href="@{/images/favicon-32x32.png}"/>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
-          integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous"/>
-
-    <link rel="stylesheet" type="text/css" th:href="@{/css/login.css}"/>
-
-    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
-            integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
-            crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
-            integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
-            crossorigin="anonymous"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
-            integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
-            crossorigin="anonymous"></script>
+<head th:replace="layouts/login::head(title='Login')">
+    <meta charset="UTF-8"/>
+    <title>...</title>
 </head>
 
 <body>
 
 <div class="wrapper d-flex justify-content-center align-items-center">
-    <div class="container">
-        <h4 class="form-signin-heading"><a th:href="@{/login}" th:text="${@siteSettings.getFullname()}"></a></h4>
+    <div class="container py-4">
+        <h4 class="form-signin-heading"><a th:href="@{/login}" th:text="#{rdp.site.fullname}"></a></h4>
         <h6 class="form-signin-subheading">Researcher Registry</h6>
+        <div th:replace="layouts/login::message"></div>
+        <form th:action="@{/login}" method="POST">
+            <div class="row">
+                <div class="offset-md-1 col-md-10">
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="text" id="email" name="email" th:placeholder="Email" class="form-control py-2"/>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" placeholder="Password" id="password" name="password"
+                               class="form-control py-2"/>
+                    </div>
+                    <div class="form-group">
+                        <div class="form-check">
+                            <input type="checkbox" id="remember-me" name="remember-me" class="form-check-input"/>
+                            <label class="form-check-label" for="remember-me">Keep me signed in</label>
+                        </div>
+                    </div>
+                    <div class="form-group" th:if="${param.error}">
+                        <div class="text-danger text-center" th:if="${session[SPRING_SECURITY_LAST_EXCEPTION]}"
+                             th:utext="${session[SPRING_SECURITY_LAST_EXCEPTION].message}">
+                            error
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-        <form th:action="@{/login}" method="POST" class="py-3">
             <div class="form-group row">
-                <div class="offset-1 col-10">
-                <input type="text" id="email" name="email" th:placeholder="Email" class="form-control py-2"/>
+                <div class="col-md-4 offset-md-1">
+                    <button class="btn btn-primary btn-block" name="Submit" value="Login" type="Submit"
+                            th:text="Login"></button>
                 </div>
-            </div>
-            <div class="form-group row">
-                <div class="offset-1 col-10">
-                <input type="password" th:placeholder="Password" id="password" name="password" class="form-control py-2"/>
-                </div>
-            </div>
-            <div class="form-check">
-                <div class="offset-1 col-10 py-2">
-                <input type="checkbox" id="remember-me" name="remember-me" class="form-check-input"/>
-                <label class="form-check-label" for="remember-me">Keep me signed in</label>
-                </div>
-            </div>
-            <div class="form-group row" th:if="${param.error}">
-                <div class="offset-1 col-10 text-danger text-center" th:if="${session[SPRING_SECURITY_LAST_EXCEPTION]}" th:utext="${session[SPRING_SECURITY_LAST_EXCEPTION].message}">
-                    error
-                </div>
-            </div>
-
-            <div class="form-group row">
-                <div class="offset-1 col-4">
-                    <button class="btn btn-primary btn-block" name="Submit" value="Login" type="Submit" th:text="Login"></button>
-                </div>
-                <div class="col-5 d-flex align-items-center h100">
+                <div class="col-6 d-flex align-items-center h100">
                     <a th:href="@{/forgotPassword}">Forgot Password?</a>
                 </div>
-
-            </div>
-            <div class="form-group row">
             </div>
 
             <div class="form-group row">
-                <div class="col-4 text-left">
-                    <a th:href="@{/registration}">Create Account</a>
-                </div>
-                <div class="col-4 text-center" th:if="${@applicationSettings.getPrivacy().isPublicSearch()}">
-                    <a th:href="@{/search}">Public search</a>
-                </div>
-                <div class="col-4 text-center" th:if="!${@applicationSettings.getPrivacy().isPublicSearch()}"></div>
-                <div class="col-4 text-right">
-                    <a th:href="${'mailto:' + @siteSettings.getContactEmail()}">Contact Support</a>
+                <div class="col-md-10 offset-md-1">
+                    <div class="row">
+                        <div class="col-4 text-center">
+                            <a th:href="@{/registration}">Create Account</a>
+                        </div>
+                        <div sec:authorize="hasPermission(null, 'search')"
+                             class="col-4 text-center">
+                            <a th:href="@{/search}">Public search</a>
+                        </div>
+                        <div class="col-4 text-center">
+                            <a th:href="'mailto:' + #{rdp.site.contact-email}">Contact Support</a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </form>
     </div>
 
 </div>
+<div th:replace="layouts/login::scripts"></div>
 </body>
 </html>

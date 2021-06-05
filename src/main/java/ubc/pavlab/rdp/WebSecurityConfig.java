@@ -1,7 +1,10 @@
 package ubc.pavlab.rdp;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -10,15 +13,24 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler;
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-import ubc.pavlab.rdp.settings.SiteSettings;
+import org.springframework.web.filter.HiddenHttpMethodFilter;
+import ubc.pavlab.rdp.security.PermissionEvaluatorImpl;
+
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.util.Locale;
 
 /**
  * Created by mjacobson on 16/01/18.
+ *
+ * @see PermissionEvaluatorImpl for details on how hasPermission is defined for pre/post filtering.
  */
 @Configuration
 @EnableWebSecurity
-@EnableGlobalMethodSecurity(securedEnabled = true)
+@EnableGlobalMethodSecurity(securedEnabled = true, prePostEnabled = true)
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
@@ -28,7 +40,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     private UserDetailsService userDetailsService;
 
     @Autowired
-    private SiteSettings siteSettings;
+    private MessageSource messageSource;
+
+    @Autowired
+    private PermissionEvaluator permissionEvaluator;
 
     @Override
     protected void configure( AuthenticationManagerBuilder auth ) throws Exception {
@@ -37,24 +52,62 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     public void configure( WebSecurity web ) {
-        web.ignoring().antMatchers( "/resources/**", "/static/**", "/css/**", "/js/**", "/images/**" );
+        DefaultWebSecurityExpressionHandler expressionHandler = new DefaultWebSecurityExpressionHandler();
+        expressionHandler.setPermissionEvaluator( permissionEvaluator );
+        web
+                .ignoring()
+                    .antMatchers( "/resources/**", "/static/**", "/css/**", "/js/**", "/images/**" )
+                    .and()
+                .expressionHandler( expressionHandler );
     }
 
     @Override
     protected void configure( HttpSecurity http ) throws Exception {
+        http
+                // allow _method in HTML form
+                .addFilterAfter( new HiddenHttpMethodFilter(), BasicAuthenticationFilter.class )
+                .authorizeRequests()
+                    // public endpoints
+                    .antMatchers( "/", "/login", "/registration", "/registrationConfirm", "/stats", "/stats.html",
+                            "/forgotPassword", "/resetPassword", "/updatePassword", "/resendConfirmation", "/search/**",
+                            "/userView/**", "/taxon/**", "/access-denied" )
+                        .permitAll()
+                    // API for international search
+                    .antMatchers("/api/**")
+                        .permitAll()
+                    // administrative endpoints
+                    .antMatchers( "/admin/**" )
+                        .hasRole( "ADMIN" )
+                    // user endpoints
+                    .antMatchers( "/user/**" )
+                        .hasAnyRole("USER", "ADMIN")
+                    .and()
+                // TODO: we should fully comply with CSRF
+                .csrf()
+                    .disable()
+                .formLogin()
+                    .loginPage( "/login" )
+                    .usernameParameter( "email" )
+                    .passwordParameter( "password" )
+                    .defaultSuccessUrl( "/" )
+                    .failureUrl( "/login?error=true" )
+                    .and()
+                .rememberMe()
+                    .rememberMeCookieName( messageSource.getMessage("rdp.site.shortname", null, Locale.getDefault()) + "-remember-me" )
+                    .tokenValiditySeconds( 7 * 24 * 60 * 60 )
+                    .and()
+                .logout()
+                    .logoutRequestMatcher( new AntPathRequestMatcher( "/logout" ) )
+                    .logoutSuccessUrl( "/" )
+                    .and()
+                .exceptionHandling()
+                    .accessDeniedPage( "/access-denied" )
+                    .and();
 
-        http.
-                authorizeRequests()
-                .antMatchers( "/", "/login", "/registration", "/registrationConfirm", "/stats", "/stats.html",
-                        "/forgotPassword", "/resetPassword", "/updatePassword", "/resendConfirmation", "/search/**",
-                        "/userView/**", "/api/**", "/taxon/**", "/access-denied" ).permitAll()
-                .antMatchers( "/admin/**" ).hasRole( "ADMIN" ).antMatchers( "/user/**" ).authenticated().anyRequest()
-                .authenticated().and().csrf().disable().formLogin().loginPage( "/login" )
-                .failureUrl( "/login?error=true" ).defaultSuccessUrl( "/" ).usernameParameter( "email" )
-                .passwordParameter( "password" ).and().rememberMe()
-                .rememberMeCookieName( siteSettings.getShortname() + "-remember-me" )
-                .tokenValiditySeconds( 7 * 24 * 60 * 60 ).and().logout()
-                .logoutRequestMatcher( new AntPathRequestMatcher( "/logout" ) ).logoutSuccessUrl( "/" )
-                .and().exceptionHandling().accessDeniedPage( "/accessDenied" );
+    }
+
+    @Bean
+    public SecureRandom secureRandom() throws NoSuchAlgorithmException {
+        return SecureRandom.getInstanceStrong();
     }
 }

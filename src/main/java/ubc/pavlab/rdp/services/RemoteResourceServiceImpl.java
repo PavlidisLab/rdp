@@ -1,42 +1,49 @@
 package ubc.pavlab.rdp.services;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.jboss.resteasy.client.jaxrs.ResteasyClient;
-import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
-import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
-import org.jboss.resteasy.plugins.providers.RegisterBuiltin;
-import org.jboss.resteasy.plugins.providers.jackson.ResteasyJackson2Provider;
-import org.jboss.resteasy.spi.ResteasyProviderFactory;
+import io.swagger.v3.oas.models.OpenAPI;
+import lombok.Builder;
+import lombok.Data;
+import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.util.concurrent.ListenableFuture;
+import org.springframework.util.concurrent.ListenableFutureCallback;
+import org.springframework.web.client.AsyncRestTemplate;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.util.UriComponentsBuilder;
 import ubc.pavlab.rdp.exception.RemoteException;
 import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.model.User;
 import ubc.pavlab.rdp.model.UserGene;
+import ubc.pavlab.rdp.model.enums.ResearcherCategory;
+import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.repositories.RoleRepository;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
+import ubc.pavlab.rdp.util.VersionUtils;
 
-import javax.ws.rs.client.Client;
-import javax.ws.rs.core.Response;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
+import java.net.URI;
+import java.text.MessageFormat;
 import java.util.*;
+import java.util.concurrent.*;
+import java.util.stream.Collectors;
+
+import static java.util.function.Function.identity;
 
 @Service("RemoteResourceService")
+@CommonsLog
 public class RemoteResourceServiceImpl implements RemoteResourceService {
 
+    private static final String API_URI = "/api";
     private static final String API_USERS_SEARCH_URI = "/api/users/search";
-    private static final String API_USER_GET_URI = "/api/users/%s";
+    private static final String API_USER_GET_URI = "/api/users/{userId}";
+    private static final String API_USER_GET_BY_ANONYMOUS_ID_URI = "/api/users/by-anonymous-id/{anonymousId}";
     private static final String API_GENES_SEARCH_URI = "/api/genes/search";
-    private static Log log = LogFactory.getLog( RemoteResourceServiceImpl.class );
-
-    static {
-        ResteasyProviderFactory instance = ResteasyProviderFactory.getInstance();
-        RegisterBuiltin.register( instance );
-        instance.registerProvider( ResteasyJackson2Provider.class );
-    }
 
     @Autowired
     private ApplicationSettings applicationSettings;
@@ -47,135 +54,255 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
     @Autowired
     private RoleRepository roleRepository;
 
-    @Override
-    public Collection<User> findUsersByLikeName( String nameLike, Boolean prefix ) throws RemoteException {
-        return getRemoteEntities( User[].class, API_USERS_SEARCH_URI, new HashMap<String, String>() {{
-            put( "nameLike", nameLike );
-            put( "prefix", prefix.toString() );
-        }} );
-    }
+    @Autowired
+    private AsyncRestTemplate asyncRestTemplate;
 
     @Override
-    public Collection<User> findUsersByDescription( String descriptionLike ) throws RemoteException {
-        return getRemoteEntities( User[].class, API_USERS_SEARCH_URI, new HashMap<String, String>() {{
-            put( "descriptionLike", descriptionLike );
-        }} );
-    }
-
-    @Override
-    public Collection<UserGene> findGenesBySymbol( String symbol, Taxon taxon, TierType tier, Integer orthologTaxonId )
-            throws RemoteException {
-        return convertRemoteGenes(
-                getRemoteEntities( UserGene[].class, API_GENES_SEARCH_URI, new HashMap<String, String>() {{
-                    put( "symbol", symbol );
-                    put( "taxonId", taxon.getId().toString() );
-                    put( "tier", tier.toString() );
-                    if ( orthologTaxonId != null ) {
-                        put( "orthologTaxonId", orthologTaxonId.toString() );
-                    }
-                }} ) );
-    }
-
-    @Override
-    public User getRemoteUser( Integer userId, String remoteHost ) throws RemoteException {
-        // Check that the remoteHost is one of our known APIs and call it if it is.
-        if ( Arrays.stream( applicationSettings.getIsearch().getApis() ).noneMatch( remoteHost::equals ) ) {
-            return remoteRequest( User.class, remoteHost + String.format( API_USER_GET_URI, userId ),
-                    addAuthParamIfAdmin( new HashMap<>() ) );
-        }
-        return null;
-    }
-
-    private <T> Collection<T> getRemoteEntities( Class<T[]> arrCls, String uri, Map<String, String> args )
-            throws RemoteException {
-        Collection<T> entities = new LinkedList<>();
-        List<RemoteException> errs = new LinkedList<>();
-
-        // Call all APIs
-        for ( String api : applicationSettings.getIsearch().getApis() ) {
-            try {
-                @SuppressWarnings("unchecked") // Should be guaranteed when response is 200 and versions match.
-                        Collection<T> received = Arrays
-                        .asList( remoteRequest( arrCls, api + uri, addAuthParamIfAdmin( args ) ) );
-                entities.addAll( received );
-            } catch ( RemoteException e ) {
-                errs.add( e );
-            }
-        }
-
-        if ( !errs.isEmpty() ) {
-            if(entities.isEmpty()) {
-                // Only throw when there are no results to be displayed
-                throw errs.get( 0 );
-            }
-            // Always log errors
-            for(RemoteException e : errs) {
-                log.error(e);
-            }
-        }
-
-        return entities;
-    }
-
-    private <T> T remoteRequest( Class<T> cls, String remoteUrl, Map<String, String> args ) throws RemoteException {
-
-        String proxyHost = applicationSettings.getIsearch().getHost();
-        String proxyPort = applicationSettings.getIsearch().getPort();
-        ResteasyClient client = null;
-
-        if (proxyHost != null && proxyPort != null &&
-                !proxyHost.equals("") && !proxyPort.equals("") ) {
-            client = new ResteasyClientBuilder().defaultProxy(
-                    proxyHost,
-                    Integer.parseInt( proxyPort )
-            ).build();
-            log.info( "Using " +proxyHost + ":" + proxyPort+ " as proxy for rest client." );
-        } else {
-            client = new ResteasyClientBuilder().build();
-            log.info( "Using default proxy for rest client." );
-        }
-
-        ResteasyWebTarget target = client.target( remoteUrl + encodeParams( args ) );
-        Response response = target.request().get();
-        if ( response.getStatus() != 200 ) {
-            throw new RemoteException( "No data received: " + response.readEntity( String.class ) );
-        }
-
-        return response.readEntity( cls );
-    }
-
-    private String encodeParams( Map<String, String> args ) {
-        StringBuilder s = new StringBuilder( "?" );
-        boolean first = true;
-        for ( String arg : args.keySet() ) {
-            if ( !first ) {
-                s.append( "&" );
+    @Cacheable
+    public String getApiVersion( URI remoteHost ) throws RemoteException {
+        // Ensure that the remoteHost is one of our known APIs by comparing the URI authority component and always use
+        // the URI defined in the configuration
+        URI authority = getApiUri( remoteHost );
+        URI uri = UriComponentsBuilder.fromUri( authority )
+                .path( API_URI )
+                .build()
+                .toUri();
+        try {
+            OpenAPI openAPI = asyncRestTemplate.getForEntity( uri, OpenAPI.class ).get().getBody();
+            // OpenAPI specification was introduced in 1.4, so we assume 1.0.0 for previous versions
+            if ( openAPI.getInfo() == null ) {
+                return "1.0.0";
             } else {
-                first = false;
+                return openAPI.getInfo().getVersion();
             }
-            try {
-                s.append( arg ).append( "=" ).append( URLEncoder.encode( args.get( arg ), "UTF8" ) );
-            } catch ( UnsupportedEncodingException e ) {
-                log.error( e );
-                e.printStackTrace();
-            }
+        } catch ( InterruptedException | ExecutionException e ) {
+            throw new RemoteException( MessageFormat.format( "Unsuccessful response received for {0}.", uri ), e );
         }
-        return s.toString();
     }
 
-    private Collection<UserGene> convertRemoteGenes( Collection<UserGene> genes ) {
-        for ( UserGene gene : genes ) {
-            gene.setUser( gene.getRemoteUser() );
-        }
-        return genes;
+    @Override
+    public Collection<User> findUsersByLikeName( String nameLike, Boolean prefix, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherCategories, Collection<String> organUberonIds ) {
+        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+        params.add( "nameLike", nameLike );
+        params.add( "prefix", prefix.toString() );
+        params.putAll( UserSearchParams.builder()
+                .researcherPositions( researcherPositions )
+                .researcherCategories( researcherCategories )
+                .organUberonIds( organUberonIds )
+                .build().toMultiValueMap() );
+        addAuthParamIfAdmin( params );
+        return getRemoteEntities( User[].class, API_USERS_SEARCH_URI, params );
     }
 
-    private Map<String, String> addAuthParamIfAdmin( Map<String, String> args ) {
+    @Override
+    @PreAuthorize("hasPermission(null, 'international-search')")
+    public Collection<User> findUsersByDescription( String descriptionLike, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherCategories, Collection<String> organUberonIds ) {
+        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+        params.add( "descriptionLike", descriptionLike );
+        params.putAll( UserSearchParams.builder()
+                .researcherPositions( researcherPositions )
+                .researcherCategories( researcherCategories )
+                .organUberonIds( organUberonIds )
+                .build().toMultiValueMap() );
+        addAuthParamIfAdmin( params );
+        return getRemoteEntities( User[].class, API_USERS_SEARCH_URI, params );
+    }
+
+    @Override
+    @PreAuthorize("hasPermission(null, 'international-search')")
+    public Collection<UserGene> findGenesBySymbol( String symbol, Taxon taxon, Set<TierType> tiers, Integer orthologTaxonId, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherCategories, Set<String> organUberonIds ) {
+        List<UserGene> intlUsergenes = new LinkedList<>();
+        for ( TierType tier : restrictTiers( tiers ) ) {
+            MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+            params.add( "symbol", symbol );
+            params.putAll( UserGeneSearchParams.builder()
+                    .taxonId( taxon.getId() )
+                    .tier( tier )
+                    .orthologTaxonId( orthologTaxonId )
+                    .researcherPositions( researcherPositions )
+                    .researcherCategories( researcherCategories )
+                    .organUberonIds( organUberonIds )
+                    .build().toMultiValueMap() );
+            addAuthParamIfAdmin( params );
+            intlUsergenes.addAll( getRemoteEntities( UserGene[].class, API_GENES_SEARCH_URI, params ) );
+        }
+        // add back-reference to user
+        intlUsergenes.forEach( g -> g.setUser( g.getRemoteUser() ) );
+        return intlUsergenes;
+    }
+
+    @Override
+    @PreAuthorize("hasPermission(null, 'international-search')")
+    public User getRemoteUser( Integer userId, URI remoteHost ) throws RemoteException {
+        // Ensure that the remoteHost is one of our known APIs by comparing the URI authority component and always use
+        // the URI defined in the configuration
+        URI authority = getApiUri( remoteHost );
+
+        MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
+        addAuthParamIfAdmin( queryParams );
+        URI uri = UriComponentsBuilder.fromUri( authority )
+                .path( API_USER_GET_URI )
+                .queryParams( queryParams )
+                .buildAndExpand( Collections.singletonMap( "userId", userId ) )
+                .toUri();
+
+        try {
+            ResponseEntity<User> responseEntity = asyncRestTemplate.getForEntity( uri, User.class ).get();
+            User user = responseEntity.getBody();
+            initUser( user );
+            return user;
+        } catch ( InterruptedException | ExecutionException e ) {
+            throw new RemoteException( MessageFormat.format( "Unsuccessful response received for {0}.", uri ), e );
+        }
+    }
+
+    @Override
+    @PreAuthorize("hasPermission(null, 'international-search')")
+    public User getAnonymizedUser( UUID anonymousId, URI remoteHost ) throws RemoteException {
+        URI authority = getApiUri( remoteHost );
+
+        if ( !VersionUtils.satisfiesVersion( getApiVersion( remoteHost ), "1.4.0" ) ) {
+            log.info( MessageFormat.format( "{0} does not support retrieving user by anonymous identifier, will return null instead.", remoteHost ) );
+            return null;
+        }
+
+        MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
+        addAuthParamIfAdmin( queryParams );
+        URI uri = UriComponentsBuilder.fromUri( authority )
+                .path( API_USER_GET_BY_ANONYMOUS_ID_URI )
+                .queryParams( queryParams )
+                .buildAndExpand( Collections.singletonMap( "anonymousId", anonymousId ) )
+                .toUri();
+
+        try {
+            ResponseEntity<User> responseEntity = asyncRestTemplate.getForEntity( uri, User.class ).get();
+            User user = responseEntity.getBody();
+            initUser( user );
+            return user;
+        } catch ( InterruptedException | ExecutionException e ) {
+            throw new RemoteException( MessageFormat.format( "Unsuccessful response received for {0}.", uri ), e );
+        }
+    }
+
+    private <T> Collection<T> getRemoteEntities( Class<T[]> arrCls, String path, MultiValueMap<String, String> params ) {
+        return Arrays.stream( applicationSettings.getIsearch().getApis() )
+                .map( api -> UriComponentsBuilder.fromUriString( api )
+                        .path( path )
+                        .queryParams( params )
+                        .build().toUri() )
+                .map( uri -> asyncRestTemplate.getForEntity( uri, arrCls ) )
+                // it's important to collect, otherwise the future will be created and joined on-by-one, defeating the purpose of using them
+                .collect( Collectors.toList() )
+                .stream()
+                .map( future -> {
+                    try {
+                        return future.get( applicationSettings.getIsearch().getRequestTimeout(), TimeUnit.SECONDS );
+                    } catch ( InterruptedException | ExecutionException | TimeoutException e ) {
+                        log.error( "Unsuccessful response received.", e );
+                        return null;
+                    }
+                } )
+                .filter( Objects::nonNull )
+                .map( ResponseEntity::getBody )
+                .flatMap( Arrays::stream )
+                .collect( Collectors.toList() );
+    }
+
+    private URI getApiUri( URI remoteHost ) throws RemoteException {
+        String remoteHostAuthority = remoteHost.getAuthority();
+        Map<String, URI> apiUriByAuthority = Arrays.stream( applicationSettings.getIsearch().getApis() )
+                .map( URI::create )
+                .collect( Collectors.toMap( URI::getAuthority, identity() ) );
+        if ( !apiUriByAuthority.containsKey( remoteHost.getAuthority() ) ) {
+            throw new RemoteException( MessageFormat.format( "Unknown remote API {0}.", remoteHost.getAuthority() ) );
+        }
+        return apiUriByAuthority.get( remoteHostAuthority );
+    }
+
+    private void initUser( User user ) {
+        user.getUserGenes().values().forEach( ug -> ug.setUser( user ) );
+        user.getUserTerms().forEach( ug -> ug.setUser( user ) );
+        user.getUserOrgans().values().forEach( ug -> ug.setUser( user ) );
+    }
+
+    private Set<TierType> restrictTiers( Set<TierType> tiers ) {
+        return tiers.stream()
+                .filter( t -> t != TierType.TIER3 )
+                .collect( Collectors.toSet() );
+    }
+
+    private void addAuthParamIfAdmin( MultiValueMap<String, String> query ) {
         User user = userService.findCurrentUser();
         if ( user != null && user.getRoles().contains( roleRepository.findByRole( "ROLE_ADMIN" ) ) ) {
-            args.put( "auth", applicationSettings.getIsearch().getSearchToken() );
+            query.add( "auth", applicationSettings.getIsearch().getSearchToken() );
         }
-        return args;
+    }
+
+    @Data
+    @Builder
+    static class UserSearchParams {
+
+        private Collection<ResearcherPosition> researcherPositions;
+        private Collection<ResearcherCategory> researcherCategories;
+        private Collection<String> organUberonIds;
+
+        public MultiValueMap<String, String> toMultiValueMap() {
+            MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+            if ( researcherPositions != null ) {
+                for ( ResearcherPosition researcherPosition : researcherPositions ) {
+                    params.add( "researcherPosition", researcherPosition.name() );
+                }
+            }
+            if ( researcherCategories != null ) {
+                for ( ResearcherCategory researcherCategory : researcherCategories ) {
+                    params.add( "researcherCategory", researcherCategory.name() );
+                }
+            }
+            if ( organUberonIds != null ) {
+                for ( String organUberonId : organUberonIds ) {
+                    params.add( "organUberonIds", organUberonId );
+                }
+            }
+            return params;
+        }
+    }
+
+    @Data
+    @Builder
+    static class UserGeneSearchParams {
+
+        private Integer taxonId;
+        private TierType tier;
+        private Integer orthologTaxonId;
+        private Collection<ResearcherPosition> researcherPositions;
+        private Collection<ResearcherCategory> researcherCategories;
+        private Collection<String> organUberonIds;
+
+        public MultiValueMap<String, String> toMultiValueMap() {
+            MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+            params.add( "taxonId", taxonId.toString() );
+            params.add( "tier", tier.name() );
+            if ( orthologTaxonId != null ) {
+                params.add( "orthologTaxonId", orthologTaxonId.toString() );
+            }
+            if ( researcherPositions != null ) {
+                for ( ResearcherPosition researcherPosition : researcherPositions ) {
+                    params.add( "researcherPosition", researcherPosition.name() );
+                }
+            }
+            if ( researcherCategories != null ) {
+                for ( ResearcherCategory researcherCategory : researcherCategories ) {
+                    params.add( "researcherCategory", researcherCategory.name() );
+                }
+            }
+            if ( organUberonIds != null ) {
+                for ( String organUberonId : organUberonIds ) {
+                    params.add( "organUberonIds", organUberonId );
+                }
+            }
+            return params;
+        }
+
     }
 
 }

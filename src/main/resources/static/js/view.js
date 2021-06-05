@@ -1,12 +1,13 @@
-$(document).ready(function () {
+(function () {
+    "use strict";
 
     $('#publication-table').DataTable({
-        "scrollY":        "200px",
+        "scrollY": "200px",
         "scrollCollapse": true,
-        "paging":         false,
+        "paging": false,
         "searching": false,
         "info": false,
-        "order": [[ 0, "desc" ]]
+        "order": [[0, "desc"]]
     });
 
     $('.gene-table').DataTable({
@@ -19,20 +20,26 @@ $(document).ready(function () {
         "columnDefs": [
             {"name": "Symbol", "targets": 0},
             {"name": "Name", "targets": 1},
-            {"name": "Primary", "targets": 2, "className": "text-center", "orderDataType": "dom-checkbox"}
+            {"name": "Tier", "targets": 2, "className": "text-center", "orderDataType": "dom-checkbox"}
         ],
-        "footerCallback": function (row, data, start, end, display) {
+        "footerCallback": function () {
             var api = this.api();
             var columnData = api.columns().data();
-            var tiers = columnData[columnData.length - 1];
+            var tiers = columnData[2];
             var counts = tiers.reduce(function (acc, curr) {
-                acc[curr] ? acc[curr]++ : acc[curr] = 1;
+                if (acc[curr]) {
+                    acc[curr]++;
+                } else {
+                    acc[curr] = 1;
+                }
                 return acc;
             }, {});
             $(api.column(1).footer()).html(
-                "<b>" + (counts['TIER1'] ? counts['TIER1'] : "0") + "</b> TIER1 <span style='margin: 1em;border-left: 3px solid #F2F7F9;'/> " +
-                "<b>" + (counts['TIER2'] ? counts['TIER2'] : "0") + "</b> TIER2 <span style='margin: 1em;border-left: 3px solid #F2F7F9;'/> " +
-                "<b>" + (counts['TIER3'] ? counts['TIER3'] : "0") + "</b> TIER3"
+                '<span class="mx-1"><b>' + (counts.TIER1 ? counts.TIER1 : "0") + '</b> TIER1' + '</span>' +
+                '<span class="mx-1" style="border-right: 3px solid #f2f7f9;"></span>' +
+                '<span class="mx-1"><b>' + (counts.TIER2 ? counts.TIER2 : "0") + '</b> TIER2' + '</span>' +
+                '<span class="mx-1" style="border-right: 3px solid #F2F7F9;"></span>' +
+                '<span class="mx-1"><b>' + (counts.TIER3 ? counts.TIER3 : "0") + '</b> TIER3' + '</span>'
             );
 
         }
@@ -48,14 +55,12 @@ $(document).ready(function () {
     });
 
     $('#overlapModal').on('show.bs.modal', function (e) {
-
-        var taxon_id = $(e.relatedTarget).closest('div.tab-pane')[0].id.split("-")[1];
-        console.log(taxon_id);
+        var taxonId = $(e.relatedTarget).closest('div.tab-pane')[0].id.split("-")[1];
         var goId = $(e.relatedTarget).closest('tr').find('td')[0].innerText;
-        $("#overlapModal").find(".modal-body").load("/user/taxon/" + taxon_id + "/term/" + goId + "/gene/view");
+        $("#overlapModal").find(".modal-body").load("/user/taxon/" + taxonId + "/term/" + goId + "/gene/view");
     });
 
-    $('.terms-tab').on('shown.bs.tab', function (e) {
+    $('.terms-tab').on('shown.bs.tab', function () {
         $('.term-table').DataTable().draw();
-    })
-});
+    });
+})();

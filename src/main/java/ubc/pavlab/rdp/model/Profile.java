@@ -2,30 +2,45 @@ package ubc.pavlab.rdp.model;
 
 import lombok.*;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.validator.constraints.Email;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.hibernate.validator.constraints.URL;
+import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
+import ubc.pavlab.rdp.model.enums.ResearcherCategory;
+import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 
 import javax.persistence.*;
+import java.text.MessageFormat;
 import java.util.HashSet;
 import java.util.Set;
 
 /**
  * Created by mjacobson on 18/01/18.
  */
-@Embeddable
-@Getter
-@Setter
+@Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString
+@Embeddable
 public class Profile {
     @Column(name = "name")
-    @NotEmpty(message = "*Please provide your name")
+    @NotEmpty(message = "Please provide your name.", groups = { User.ValidationUserAccount.class, User.ValidationServiceAccount.class })
     private String name;
 
     @Column(name = "last_name")
-    @NotEmpty(message = "*Please provide your last name")
+    @NotEmpty(message = "Please provide your last name.", groups = { User.ValidationUserAccount.class })
     private String lastName;
+
+    @Transient
+    public String getFullName() {
+        if ( lastName == null || lastName.isEmpty() ) {
+            return name == null ? "" : name;
+        } else if ( name == null || name.isEmpty() ) {
+            return "";
+        } else {
+            return MessageFormat.format( "{0}, {1}", lastName, name );
+        }
+    }
 
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
@@ -39,21 +54,39 @@ public class Profile {
     @Column(name = "phone")
     private String phone;
 
+    @Email(message = "Your email address is not valid.")
+    @Column(name = "contact_email")
+    private String contactEmail;
+
+    @Column(name = "contact_email_verified", nullable = false)
+    private boolean contactEmailVerified;
+
     @Column(name = "website")
     @URL
     private String website;
 
+    @Enumerated(EnumType.ORDINAL)
     @Column(name = "privacy_level")
-    private Integer privacyLevel;
+    private PrivacyLevelType privacyLevel;
 
-    @Column(name = "shared")
-    private Boolean shared;
+    @Column(name = "shared", nullable = false)
+    private boolean shared;
 
-    @Column(name= "hide_genelist")
-    private Boolean hideGenelist;
+    @Column(name = "hide_genelist", nullable = false)
+    private boolean hideGenelist;
 
     @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "user_id")
-    private Set<Publication> publications = new HashSet<>();
+    private final Set<Publication> publications = new HashSet<>();
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "researcher_position")
+    private ResearcherPosition researcherPosition;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "researcher_category")
+    @ElementCollection
+    @CollectionTable(name = "user_researcher_category", joinColumns = { @JoinColumn(name = "user_id") })
+    private final Set<ResearcherCategory> researcherCategories = new HashSet<>();
 }

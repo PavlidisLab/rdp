@@ -1,31 +1,30 @@
 package ubc.pavlab.rdp.controllers;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-import ubc.pavlab.rdp.model.*;
-import ubc.pavlab.rdp.repositories.RoleRepository;
+import ubc.pavlab.rdp.model.GeneInfo;
+import ubc.pavlab.rdp.model.GeneOntologyTerm;
+import ubc.pavlab.rdp.model.GeneOntologyTermInfo;
+import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.services.GOService;
 import ubc.pavlab.rdp.services.TaxonService;
-import ubc.pavlab.rdp.services.UserService;
-import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.util.SearchResult;
 
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Created by mjacobson on 18/01/18.
  */
-@RestController
+@Controller
+@CommonsLog
 public class TermController {
-
-    private static Log log = LogFactory.getLog( TermController.class );
-    private static Role adminRole;
-
-    @Autowired
-    private UserService userService;
 
     @Autowired
     private GOService goService;
@@ -33,52 +32,51 @@ public class TermController {
     @Autowired
     private TaxonService taxonService;
 
-    @Autowired
-    private ApplicationSettings applicationSettings;
-
-    @Autowired
-    private RoleRepository roleRepository;
-
-    @RequestMapping(value = "/taxon/{taxonId}/term/search/{query}", method = RequestMethod.GET)
-    public List<SearchResult<UserTerm>> searchTermsByQueryAndTaxon( @PathVariable Integer taxonId, @PathVariable String query,
-                                                                    @RequestParam(value = "max", required = false, defaultValue = "-1") int max) {
-        if( searchNotAuthorized() ){
-            return null;
-        }
+    @ResponseBody
+    @GetMapping(value = "/taxon/{taxonId}/term/search")
+    public Object searchTermsByQueryAndTaxon( @PathVariable Integer taxonId,
+                                              @RequestParam String query,
+                                              @RequestParam(value = "max", required = false, defaultValue = "-1") int max ) {
         Taxon taxon = taxonService.findById( taxonId );
+        if ( taxon == null ) {
+            return ResponseEntity.notFound().build();
+        }
 
-        return goService.search( query, taxon, max );
+        Collection<SearchResult<GeneOntologyTermInfo>> foundTerms = goService.search( query, taxon, max );
 
+        // FIXME: this is silly
+        for ( SearchResult<GeneOntologyTermInfo> term : foundTerms ) {
+            term.getMatch().setSize( goService.getSizeInTaxon( term.getMatch(), taxon ) );
+        }
+
+        // sort by size in taxon
+        return foundTerms.stream()
+                .sorted( Comparator.comparing( result -> result.getMatch().getSize(), Comparator.reverseOrder() ) )
+                .collect( Collectors.toList() );
     }
 
-    @RequestMapping(value = "/term/{goId}", method = RequestMethod.GET)
-    public GeneOntologyTerm getTerm( @PathVariable String goId ) {
-        if( searchNotAuthorized() ){
-            return null;
-        }
-        return goService.getTerm( goId );
-    }
-
-    @RequestMapping(value = "/taxon/{taxonId}/term/{goId}/gene", method = RequestMethod.GET)
-    public Collection<Gene> termGenes( @PathVariable Integer taxonId, @PathVariable String goId ) {
-        if( searchNotAuthorized() ){
-            return null;
-        }
-        Taxon taxon = taxonService.findById( taxonId );
+    @ResponseBody
+    @GetMapping(value = "/term/{goId}")
+    public Object getTerm( @PathVariable String goId ) {
         GeneOntologyTerm term = goService.getTerm( goId );
-
-        return goService.getGenes( term, taxon );
+        if ( term == null ) {
+            return ResponseEntity.notFound().build();
+        }
+        return term;
     }
 
-    private boolean searchNotAuthorized() {
-        if ( adminRole == null ) {
-            adminRole = roleRepository.findByRole( "ROLE_ADMIN" );
+    @ResponseBody
+    @GetMapping(value = "/taxon/{taxonId}/term/{goId}/gene")
+    public Object termGenes( @PathVariable Integer taxonId, @PathVariable String goId ) {
+        Taxon taxon = taxonService.findById( taxonId );
+        if ( taxon == null ) {
+            return ResponseEntity.notFound().build();
         }
-        User user = userService.findCurrentUser();
-        return ( !applicationSettings.getPrivacy().isPublicSearch() // Search is public
-                && ( !applicationSettings.getPrivacy().isRegisteredSearch() || user == null )
-                // Search is registered and there is user logged
-                && ( user == null || adminRole == null || !user.getRoles().contains( adminRole ) ) ); // User is admin
+        GeneOntologyTermInfo term = goService.getTerm( goId );
+        if ( term == null ) {
+            return ResponseEntity.notFound().build();
+        }
+        return goService.getGenesInTaxon( term, taxon );
     }
 
 }

@@ -1,41 +1,25 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:th="http://www.thymeleaf.org">
+      xmlns:th="http://www.thymeleaf.org"
+      lang="en">
 
-<head>
-    <title th:text="${@siteSettings.getFullname()}"></title>
-    <link rel="icon" type="image/png" sizes="16x16" th:href="@{/images/favicon-16x16.png}"/>
-    <link rel="icon" type="image/png" sizes="32x32" th:href="@{/images/favicon-32x32.png}"/>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
-          integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous"/>
-    <link rel="stylesheet"
-          href="https://cdnjs.cloudflare.com/ajax/libs/open-iconic/1.1.1/font/css/open-iconic-bootstrap.min.css"/>
-
-    <link rel="stylesheet" type="text/css" th:href="@{/css/common.css}"/>
-
-    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
-            integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
-            crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
-            integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
-            crossorigin="anonymous"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
-            integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
-            crossorigin="anonymous"></script>
+<head th:replace="layouts/common::head(title='FAQ')">
+    <meta charset="UTF-8"/>
+    <title>...</title>
 </head>
 
 <body>
-<div th:replace="fragments/header">...</div>
-<div class="container p-4">
+<div th:replace="layouts/common::header">...</div>
+<div class="container py-4">
 
+    <div th:replace="layouts/common::title(title='Support', subtitle='FAQ')">...</div>
 
-    <div th:replace="fragments/title :: title(title='Support', subtitle='FAQ')" th:remove="tag">...</div>
-
-    <div class="main-content p-4">
+    <div class="main-content my-3">
 
         <nav id="main-nav" class="navbar navbar-light bg-light">
             <nav class="nav flex-column">
-                    <a th:each="question : ${@faqSettings.questions}" th:href="${'#' + question.key}" th:text="${question.value}"></a>
+                <a th:each="question : ${@faqSettings.questions}" th:href="${'#' + question.key}"
+                   th:text="${question.value}"></a>
             </nav>
         </nav>
         <div class="dropdown-divider"></div>
@@ -53,6 +37,7 @@
     </div>
 
 </div>
-<div th:replace="fragments/footer" th:remove="tag">...</div>
+<div th:replace="layouts/common::footer">...</div>
+<div th:replace="layouts/common::scripts"></div>
 </body>
 </html>

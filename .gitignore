@@ -1,7 +1,6 @@
 target/
 out/
-/application.properties
-/application-prod.properties
+/application*.properties
 !.mvn/wrapper/maven-wrapper.jar
 
 ### STS ###
@@ -16,6 +15,8 @@ out/
 .idea
 *.iws
 *.ipr
+!.idea/codeStyles/Project.xml
+!.idea/codeStyles/codeStyleConfig.xml
 
 ### NetBeans ###
 nbproject/private/

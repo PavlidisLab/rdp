@@ -8,18 +8,22 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.test.context.junit4.SpringRunner;
 import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.model.User;
-import ubc.pavlab.rdp.util.BaseTest;
+import ubc.pavlab.rdp.model.enums.ResearcherCategory;
+import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 
 import java.util.Collection;
+import java.util.EnumSet;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static ubc.pavlab.rdp.util.TestUtils.createTaxon;
+import static ubc.pavlab.rdp.util.TestUtils.createUnpersistedUser;
 
 /**
  * Created by mjacobson on 13/02/18.
  */
 @RunWith(SpringRunner.class)
 @DataJpaTest
-public class UserRepositoryTest extends BaseTest {
+public class UserRepositoryTest {
 
     @Autowired
     private TestEntityManager entityManager;
@@ -452,5 +456,16 @@ public class UserRepositoryTest extends BaseTest {
         // then
         assertThat( found ).hasSize( 2 );
         assertThat( found ).containsExactly( user, user2 );
+    }
+
+    @Test
+    public void save_whenUserWithCompleteProfile_thenSucceed() {
+        User user = createUnpersistedUser();
+        user.getProfile().setResearcherPosition( ResearcherPosition.PRINCIPAL_INVESTIGATOR );
+        user.getProfile().getResearcherCategories().add( ResearcherCategory.IN_SILICO );
+        User persistedUser = entityManager.persistAndFlush( user );
+        assertThat( persistedUser.getProfile() )
+                .hasFieldOrPropertyWithValue( "researcherPosition", ResearcherPosition.PRINCIPAL_INVESTIGATOR )
+                .hasFieldOrPropertyWithValue( "researcherCategories", EnumSet.of( ResearcherCategory.IN_SILICO ) );
     }
 }

@@ -1,55 +1,36 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:th="http://www.thymeleaf.org">
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      lang="en">
 
-<head>
-    <title th:text="${@siteSettings.getFullname()}"></title>
-    <link rel="icon" type="image/png" sizes="16x16" th:href="@{/images/favicon-16x16.png}"/>
-    <link rel="icon" type="image/png" sizes="32x32" th:href="@{/images/favicon-32x32.png}"/>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
-          integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous"/>
-    <link rel="stylesheet"
-          href="https://cdnjs.cloudflare.com/ajax/libs/open-iconic/1.1.1/font/css/open-iconic-bootstrap.min.css"/>
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.16/css/dataTables.bootstrap4.min.css"/>
-
-
-    <link rel="stylesheet" type="text/css" th:href="@{/css/common.css}"/>
-    <link rel="stylesheet" type="text/css" th:href="@{/css/profile.css}"/>
-
-    <script src="https://code.jquery.com/jquery-3.3.1.min.js"
-            integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
-            crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
-            integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
-            crossorigin="anonymous"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
-            integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
-            crossorigin="anonymous"></script>
-    <script src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.10.16/js/dataTables.bootstrap4.min.js"></script>
-
-
-    <script th:src="@{/js/common.js}"></script>
-    <script th:src="@{/js/view.js}"></script>
-
+<head th:replace="layouts/common::head(title=${viewUser.profile.fullName})">
+    <meta charset="UTF-8"/>
+    <title>...</title>
 </head>
 
 <body>
-<div th:replace="fragments/header">...</div>
-<div class="container p-4">
+<div th:replace="layouts/common::header">...</div>
+<div class="container py-4">
+    <div class="main-content">
+        <div th:replace="layouts/common::title(title='User Profile', subtitle=${viewUser.profile.fullName})">
+            ...
+        </div>
 
-    <div th:replace="fragments/title :: title(title='View Account', subtitle=${viewUser.email})" th:remove="tag">...</div>
-
-    <div class="main-content p-4">
-        <div class="row justify-content-center success-row" th:if="${viewUser.origin} != null">
-            <div class="col my-3">
-                <div class="alert alert-warning" role="alert">
-                    This is a remote user registered at <a th:text="${viewUser.origin}" th:href="${viewUser.originUrl}" target="_blank"></a>
+        <div th:replace="layouts/common::message"></div>
+        <div class="row justify-content-center success-row mb-3">
+            <div class="col">
+                <div th:if="${viewUser.origin} != null" class="alert alert-info mb-0" role="alert">
+                    This is a remote user registered at
+                    <a th:href="@{{remoteHost}/userView/{userId}(remoteHost=${viewUser.originUrl},userId=${viewUser.id})}"
+                       th:text="${viewUser.origin}"
+                       target="_blank"
+                       rel="noopener"></a>.
                 </div>
             </div>
         </div>
-        <div class="row justify-content-center success-row" style="display: none;">
-            <div class="col my-3">
+        <div class="row justify-content-center success-row mb-3" style="display: none;">
+            <div class="col">
                 <div class="alert alert-success alert-dismissible fade show" role="alert">Profile Saved!
                     <button type="button" class="close">
                         <span aria-hidden="true">&times;</span>
@@ -57,8 +38,8 @@
                 </div>
             </div>
         </div>
-        <div class="row justify-content-center error-row" style="display: none;">
-            <div class="col my-3">
+        <div class="row justify-content-center error-row mb-3" style="display: none;">
+            <div class="col">
                 <div class="alert alert-danger alert-dismissible fade show" role="alert">Error Saving Profile!
                     <button type="button" class="close">
                         <span aria-hidden="true">&times;</span>
@@ -67,8 +48,15 @@
             </div>
         </div>
 
-        <div class="row">
-            <div class="col my-3">
+        <div class="row mb-3">
+            <!--
+            <div th:if="${viewUser.profile.researcherCategory} != null and ${@applicationSettings.profile.enabledResearcherCategories.contains(viewUser.profile.researcherCategory.name())}"
+                 class="col-3 col-lg-2 my-auto">
+                <img th:src="@{/images/researcher-categories/{id}.svg(id=${viewUser.profile.researcherCategory.id})}" class="img-fluid"/>
+                <h3 class="text-center" th:text="${viewUser.profile.researcherCategory.label}">...</h3>
+            </div>
+            -->
+            <div class="col">
                 <div class="card basic-info">
                     <div class="card-header">
                         <div class="d-flex align-items-center">
@@ -77,191 +65,241 @@
                     </div>
                     <table class="table mb-0">
                         <tr class="edit-container">
-                            <td class="align-middle" style="width: 120px;"><span class="text-muted align-middle">First Name</span></td>
+                            <td class="align-middle" style="width: 120px;">
+                                <span class="text-muted align-middle">First Name</span>
+                            </td>
                             <td>
-                                <input class="data-edit" type="text" name="name" th:value="${viewUser.profile.name}" disabled="disabled"/>
+                                <input class="data-edit" type="text" name="name"
+                                       th:value="${viewUser.profile.name}"
+                                       disabled="disabled"/>
                             </td>
                         </tr>
                         <tr class="edit-container">
                             <td class="align-middle"><span class="text-muted align-middle">Last Name</span></td>
                             <td>
-                                <input class="data-edit" type="text" name="lastName" th:value="${viewUser.profile.lastName}" disabled="disabled"/>
+                                <input class="data-edit" type="text" name="lastName"
+                                       th:value="${viewUser.profile.lastName}" disabled="disabled"/>
                             </td>
                         </tr>
                         <tr class="edit-container">
                             <td class="align-middle"><span class="text-muted align-middle">Organization</span></td>
                             <td>
-                                <input class="data-edit" type="text" name="organization" th:value="${viewUser.profile.organization}" disabled="disabled"/>
+                                <input class="data-edit" type="text" name="organization"
+                                       th:value="${viewUser.profile.organization}" disabled="disabled"/>
                             </td>
                         </tr>
                         <tr class="edit-container">
                             <td class="align-middle"><span class="text-muted align-middle">Department</span></td>
                             <td>
-                                <input class="data-edit" type="text" name="department" th:value="${viewUser.profile.department}" disabled="disabled"/>
+                                <input class="data-edit" type="text" name="department"
+                                       th:value="${viewUser.profile.department}" disabled="disabled"/>
                             </td>
                         </tr>
                         <tr class="edit-container">
                             <td class="align-middle"><span class="text-muted align-middle">Website</span></td>
                             <td>
-                                <input class="data-edit" type="text" name="website" th:value="${viewUser.profile.website}" disabled="disabled"/>
+                                <input class="data-edit" type="text" name="website"
+                                       th:value="${viewUser.profile.website}" disabled="disabled"/>
+                            </td>
+                        </tr>
+                        <tr th:unless="${@applicationSettings.profile.enabledResearcherCategories.isEmpty()} or ${viewUser.profile.researcherCategories.isEmpty()}">
+                            <td class="text-muted">Categories</td>
+                            <td>
+                                <th:block th:each="researcherCategory, i : ${viewUser.profile.researcherCategories}">
+                                    <input class="data-edit"
+                                           type="text"
+                                           name="researcherCategories"
+                                           th:value="#{'ResearcherCategory.' + ${researcherCategory.name()}}"
+                                           disabled="disabled"/><br th:unless="${i.last}"/>
+                                </th:block>
+                            </td>
+                        </tr>
+                        <tr th:unless="${@applicationSettings.profile.enabledResearcherPositions.isEmpty()} or ${viewUser.profile.researcherPosition} == null">
+                            <td class="text-muted">Position</td>
+                            <td>
+                                <input class="data-edit"
+                                       type="text"
+                                       name="researcherPosition"
+                                       th:value="#{'ResearcherPosition.' + ${viewUser.profile.researcherPosition.name()}}"
+                                       disabled="disabled"/>
                             </td>
                         </tr>
                     </table>
                 </div>
             </div>
         </div>
-        <div class="row">
-            <div class="col my-3">
+
+        <div class="row mb-3">
+            <div class="col">
                 <div class="card contact-info">
                     <div class="card-header">
                         <h3 class="mb-0">Contact Information</h3>
                     </div>
                     <table class="table mb-0">
-                        <tr>
-                            <td class="align-middle" style="width: 120px;"><span class="text-muted align-middle">Email</span></td>
-                            <td><span th:text="${viewUser.email}" th:remove="tag"></span></td>
+                        <tr th:unless="${viewUser.origin}">
+                            <td class="align-middle" style="width: 120px;"><span
+                                    class="text-muted align-middle">Email</span></td>
+                            <td>
+                                <a th:if="${viewUser.verifiedContactEmail.isPresent()}"
+                                   th:href="${'mailto:' + viewUser.verifiedContactEmail.get().address}"
+                                   th:text="${viewUser.verifiedContactEmail.get().address}"></a>
+                            </td>
                         </tr>
                         <tr class="edit-container">
                             <td class="align-middle"><span class="text-muted align-middle">Phone</span></td>
                             <td>
-                                <input class="data-edit" type="text" name="phone" th:value="${viewUser.profile.phone}" disabled="disabled"/>
+                                <input class="data-edit" type="text" name="phone" th:value="${viewUser.profile.phone}"
+                                       disabled="disabled"/>
                             </td>
                         </tr>
                     </table>
                 </div>
             </div>
+        </div>
 
-            <div class="w-100"></div>
-
-            <div class="col my-3">
+        <div th:unless="${viewUser.profile.description} == ''" class="row mb-3">
+            <div class="col">
                 <div class="card research-info edit-container">
                     <div class="card-header d-flex align-items-center">
                         <h3 class="mb-0 d-inline-block">About My Research</h3>
                     </div>
                     <div class="p-2" style="height: 120px;">
-                        <textarea class="data-edit" name="description" th:text="${viewUser.profile.description}" disabled="disabled"></textarea>
+                        <textarea class="data-edit" name="description" th:text="${viewUser.profile.description}"
+                                  disabled="disabled"></textarea>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <div class="w-100"></div>
-
-            <div class="col my-3" th:if="(${user} != null) and ${user.getRoles().contains(@roleRepository.findByRole('ROLE_ADMIN'))}">
+        <div th:unless="${viewUser.userOrgans.isEmpty()}" class="row mb-3">
+            <div class="col">
                 <div class="card">
                     <div class="card-header">
-                        <h4>Data privacy</h4>
-                        <div>Data privacy:
-                            <b th:if="${viewUser.getProfile().privacyLevel} == 0">private.</b>
-                            <b th:if="${viewUser.getProfile().privacyLevel} == 1">shared.</b>
-                            <b th:if="${viewUser.getProfile().privacyLevel} == 2">public.</b>
-                        </div>
-                        <div>
-                            International sharing:
-                            <b th:if="${viewUser.getProfile().getHideGenelist()}">disabled.</b>
-                            <b th:if="not ${viewUser.getProfile().getHideGenelist()}">enabled.</b>
-                        </div>
-                        <div th:if="${@applicationSettings.getPrivacy().isAllowHideGenelist()}">
-                            International sharing of this users data is
-                            <b th:if="${viewUser.getProfile().getShared()}">enabled.</b>
-                            <b th:if="not ${viewUser.getProfile().getShared()}">disabled.</b>
+                        <h3 class="mb-0">Organ Systems</h3>
+                    </div>
+                    <div class="card-body">
+                        <div th:replace="fragments/organ::organs(checkedOrganUberonIds = ${viewUser.userOrgans.keySet()})">
+                            ...
                         </div>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <div class="w-100"></div>
+        <div sec:authorize="hasRole('ROLE_ADMIN')"
+             class="row mb-3">
+            <div class="col">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="mb-0">Data Privacy</h3>
+                    </div>
+                    <div class="card-body">
+                        <dl class="row mb-0">
+                            <dt class="col-md-2">Profile privacy level:</dt>
+                            <dd th:text="#{'PrivacyLevelType.' + ${viewUser.effectivePrivacyLevel.name()}}"
+                                class="col-md-9"></dd>
+                            <th:block th:if="${@applicationSettings.privacy.isAllowHideGenelist()}">
+                                <dt class="col-md-2">Gene list hidden:</dt>
+                                <dd th:text="${viewUser.profile.hideGenelist} ? 'Enabled' : 'Disabled'"
+                                    class="col-md-9"></dd>
+                            </th:block>
+                            <dt class="col-md-2">International sharing:</dt>
+                            <dd th:text="${viewUser.profile.shared} ? 'Enabled' : 'Disabled'" class="col-md-9"></dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-            <div class="col my-3">
+        <div th:unless="${viewUser.profile.publications.isEmpty()}" class="row mb-3">
+            <div class="col">
                 <div class="card publication-info">
                     <div class="card-header">
                         <h3 class="mb-0">Publications</h3>
                     </div>
-                    <table id="publication-table" class="table mb-0">
-                        <thead class=".thead-light">
-                        <tr>
-                            <th scope="col">PubMed</th>
-                            <th scope="col">Title</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <th:block th:each="pub : ${viewUser.profile.publications}">
+                    <div class="card-body">
+                        <table id="publication-table" class="table mb-0">
+                            <thead class=".thead-light">
                             <tr>
-                                <td><span th:text="${pub.pmid}" th:remove="tag"></span></td>
-                                <td><a th:href="${'https://www.ncbi.nlm.nih.gov/pubmed/' + pub.pmid}" target="_blank" th:text="${pub.title != ''} ? ${pub.title} : 'Unknown Title'"></a></td>
+                                <th scope="col">PubMed</th>
+                                <th scope="col">Title</th>
                             </tr>
-                        </th:block>
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                            <tr th:each="pub : ${viewUser.profile.publications}">
+                                <td th:text="${pub.pmid}"></td>
+                                <td>
+                                    <a th:href="@{https://www.ncbi.nlm.nih.gov/pubmed/{pubmedId}(pubmedId=${pub.pmid})}"
+                                       th:text="${pub.title != ''} ? ${pub.title} : 'Unknown Title'"
+                                       target="_blank"
+                                       rel="noopener"></a>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
-            <th:block th:each="taxon : ${viewUser.taxons}">
-                    <div class="w-100"></div>
+        </div>
 
-                    <div class="col my-3">
-                        <div class="card research-info edit-container">
-                            <div class="card-header d-flex align-items-center">
-                                <h3 class="mb-0 d-inline-block text-capitalize"><span
-                                        th:text="${taxon.commonName + ' Research Focus'}" th:remove="tag"></span></h3>
-                            </div>
-                            <div class="p-2" style="height: 80px;">
+        <th:block th:each="taxon : ${viewUser.taxons}">
+
+            <div class="row mb-3">
+                <div class="col">
+                    <div class="card research-info edit-container">
+                        <div class="card-header d-flex align-items-center">
+                            <h3 th:text="${taxon.commonName + ' Research Focus'}"
+                                class="mb-0 d-inline-block text-capitalize"></h3>
+                        </div>
+                        <div class="p-2" style="height: 80px;">
                                 <textarea class="data-edit" name="description"
-                                          th:text="${viewUser.taxonDescriptions.get(taxon)}" disabled="disabled"></textarea>
-                            </div>
+                                          th:text="${viewUser.taxonDescriptions.get(taxon)}"
+                                          disabled="disabled"></textarea>
                         </div>
                     </div>
+                </div>
+            </div>
 
-                    <div class="w-100"></div>
+            <div th:if="not ${viewUser.profile.hideGenelist} or (${user} == ${viewUser}) or ${user?.roles?.contains(@roleRepository.findByRole('ROLE_ADMIN'))}"
+                 class="row mb-3">
+                <div class="col">
+                    <div class="card">
+                        <div class="card-header">
+                            <ul class="nav nav-tabs card-header-tabs" role="tablist">
+                                <li class="nav-item">
+                                    <a class="nav-link active genes-tab" data-toggle="tab"
+                                       th:href="${'#genes-' + taxon.id}" role="tab"
+                                       aria-controls="profile" aria-selected="true">Genes</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link terms-tab" data-toggle="tab"
+                                       th:href="${'#terms-' + taxon.id}" role="tab"
+                                       aria-controls="model"
+                                       aria-selected="true">Terms</a>
+                                </li>
+                            </ul>
+                        </div>
 
-                    <div class="col my-3" th:if="
-                    not ${viewUser.getProfile().getHideGenelist()}
-                    or ((${user} != null) and ${user.getId() == viewUser.getId()})
-                    or ((${user} != null) and ${user.getRoles().contains(@roleRepository.findByRole('ROLE_ADMIN'))})
-                    ">
-                        <div class="card">
-                            <div class="card-header">
-                                <!--<h3 class="mb-2 text-capitalize"><span th:text="${taxon.commonName}" th:remove="tag"></span></h3>-->
-                                <ul class="nav nav-tabs card-header-tabs" role="tablist">
-                                    <li class="nav-item">
-                                        <a class="nav-link active genes-tab" data-toggle="tab"
-                                           th:href="${'#genes-' + taxon.id}" role="tab"
-                                           aria-controls="profile" aria-selected="true">Genes</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a class="nav-link terms-tab" data-toggle="tab"
-                                           th:href="${'#terms-' + taxon.id}" role="tab"
-                                           aria-controls="model"
-                                           aria-selected="true">Terms</a>
-                                    </li>
-                                </ul>
-                            </div>
-
-                            <div class="card-body">
-                                <div class="tab-content">
-                                    <div class="tab-pane fade show active" th:id="${'genes-' + taxon.id}"
-                                         role="tabpanel">
-                                        <div th:replace="fragments/gene-table :: gene-table(genes=${viewUser.getGenesByTaxon(taxon)})"
-                                             th:remove="tag">...
-                                        </div>
+                        <div class="card-body">
+                            <div class="tab-content">
+                                <div class="tab-pane fade show active" th:id="${'genes-' + taxon.id}"
+                                     role="tabpanel">
+                                    <div th:replace="fragments/gene-table::gene-table(genes=${viewUser.getGenesByTaxon(taxon)}, defaultPrivacyLevel=${viewUser.getEffectivePrivacyLevel()})">
+                                        ...
                                     </div>
-                                    <div class="tab-pane fade" th:id="${'terms-' + taxon.id}" role="tabpanel">
-
-                                        <div th:replace="fragments/term-table :: term-table(userTerms=${viewUser.getTermsByTaxon(taxon)})"
-                                             th:remove="tag">...
-                                        </div>
-
+                                </div>
+                                <div class="tab-pane fade" th:id="${'terms-' + taxon.id}" role="tabpanel">
+                                    <div th:replace="fragments/term-table::term-table(userTerms=${viewUser.getTermsByTaxon(taxon)})">
+                                        ...
                                     </div>
                                 </div>
                             </div>
-
                         </div>
                     </div>
-            </th:block>
-
-
-
-        </div>
+                </div>
+            </div>
+        </th:block>
     </div>
-
 </div>
 
 <div class="modal fade" id="overlapModal" tabindex="-1" role="dialog" aria-labelledby="overlapModal" aria-hidden="true">
@@ -277,6 +315,8 @@
     </div>
 </div>
 
-<div th:replace="fragments/footer" th:remove="tag">...</div>
+<div th:replace="layouts/common::footer">...</div>
+<div th:replace="layouts/common::scripts"></div>
+<script th:src="@{/js/view.js}"></script>
 </body>
 </html>

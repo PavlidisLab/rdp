@@ -11,10 +11,16 @@ import ubc.pavlab.rdp.model.enums.RelationshipType;
  */
 @Getter
 @AllArgsConstructor
-@EqualsAndHashCode(of = {"term"})
+@EqualsAndHashCode(of = { "term" })
 @ToString
 public class Relationship {
 
-    private GeneOntologyTerm term;
-    private RelationshipType type;
+    private final String term;
+    private final RelationshipType type;
+
+    @Deprecated
+    public Relationship( GeneOntologyTermInfo term, RelationshipType type ) {
+        this( term.getGoId(), type );
+    }
+
 }

@@ -1,10 +1,12 @@
 package ubc.pavlab.rdp.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.*;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 import javax.persistence.*;
-import java.util.*;
+import java.util.Date;
 
 /**
  * Created by mjacobson on 17/01/18.
@@ -12,17 +14,15 @@ import java.util.*;
 @MappedSuperclass
 @Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@EqualsAndHashCode(of = {"geneId"})
-@ToString(of = {"geneId", "symbol", "taxon"})
-public class Gene {
+@EqualsAndHashCode(of = { "geneId" })
+@ToString(of = { "geneId", "symbol", "taxon" })
+public abstract class Gene {
 
     @Column(name = "gene_id")
     private int geneId;
 
     @ManyToOne
-    @JoinColumn(name = "taxon_id")
+    @JoinColumn(name = "taxon_id", nullable = false)
     private Taxon taxon;
 
     @Column(name = "symbol", length = 63)
@@ -37,23 +37,4 @@ public class Gene {
     @Temporal(TemporalType.DATE)
     @Column(name = "modification_date")
     private Date modificationDate;
-
-    @Transient
-    @JsonIgnore
-    private Set<GeneOntologyTerm> terms = new HashSet<>();
-
-    public Collection<GeneOntologyTerm> getAllTerms( boolean includePartOf, boolean propagateUpwards ) {
-
-        Collection<GeneOntologyTerm> allGOTermSet = new HashSet<>();
-
-        for ( GeneOntologyTerm term : terms ) {
-            allGOTermSet.add( term );
-
-            if ( propagateUpwards ) {
-                allGOTermSet.addAll( term.getAncestors( includePartOf ) );
-            }
-        }
-
-        return Collections.unmodifiableCollection( allGOTermSet );
-    }
 }

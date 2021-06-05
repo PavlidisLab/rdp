@@ -6,6 +6,8 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.Immutable;
 
 import javax.persistence.*;
+import java.io.Serializable;
+import java.net.URL;
 
 /**
  * Created by mjacobson on 17/01/18.
@@ -18,9 +20,9 @@ import javax.persistence.*;
 @Getter
 @Setter
 @NoArgsConstructor
-@EqualsAndHashCode(of = {"id"})
-@ToString(of = {"id", "scientificName"})
-public class Taxon {
+@EqualsAndHashCode(of = { "id" })
+@ToString(of = { "id", "scientificName" })
+public class Taxon implements Serializable {
 
     @Id
     @Column(name = "taxon_id")
@@ -31,10 +33,12 @@ public class Taxon {
     private String commonName;
 
     @JsonIgnore
-    private String geneUrl;
+    private URL geneUrl;
 
     @JsonIgnore
+    @Column(nullable = false)
     private boolean active;
 
+    @JsonIgnore
     private Integer ordering;
 }

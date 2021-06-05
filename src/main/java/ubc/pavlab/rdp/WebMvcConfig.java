@@ -1,7 +1,5 @@
 package ubc.pavlab.rdp;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,8 +13,6 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 @Configuration
 public class WebMvcConfig extends WebMvcConfigurerAdapter {
 
-    private static Log log = LogFactory.getLog( WebMvcConfig.class );
-
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -25,7 +21,9 @@ public class WebMvcConfig extends WebMvcConfigurerAdapter {
     @Bean
     public MessageSource messageSource() {
         ReloadableResourceBundleMessageSource messageSource = new ReloadableResourceBundleMessageSource();
-        messageSource.addBasenames("classpath:login", "file:login");
+        // application-prod.properties and login.properties is there for backward compatibility since
+        // we used to pull locale strings from there.
+        messageSource.setBasenames( "file:messages", "file:application-prod", "file:login", "classpath:messages" );
         return messageSource;
     }
 

@@ -1,128 +1,76 @@
 package ubc.pavlab.rdp.util;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.commons.net.ftp.FTP;
-import org.apache.commons.net.ftp.FTPClient;
-import org.apache.commons.net.ftp.FTPHTTPClient;
-import ubc.pavlab.rdp.model.Gene;
-import ubc.pavlab.rdp.model.GeneOntologyTerm;
-import ubc.pavlab.rdp.model.Taxon;
-import ubc.pavlab.rdp.services.GOService;
-import ubc.pavlab.rdp.services.GeneService;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.extern.apachecommons.CommonsLog;
+import org.apache.commons.lang3.ArrayUtils;
+import org.springframework.stereotype.Component;
 
 import java.io.*;
-import java.net.URL;
-import java.text.ParseException;
+import java.text.MessageFormat;
 import java.util.Collection;
-import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
-import java.util.zip.GZIPInputStream;
 
 /**
- * Read in the GO OBO file provided by the Gene Ontology Consortium.
+ * Read in the Gene2Go file provided by NCBI.
  * <p>
  * Created by mjacobson on 17/01/18.
  */
-
+@CommonsLog
+@Component
 public class Gene2GoParser {
 
-    private static Log log = LogFactory.getLog( Gene2GoParser.class );
+    private static final String TAXON_ID_FIELD = "#tax_id", GENE_ID_FIELD = "GeneID", GO_ID_FIELD = "GO_ID";
+    private static final String[] EXPECTED_FIELDS = { TAXON_ID_FIELD, GENE_ID_FIELD, GO_ID_FIELD };
 
-    private static final String EXPECTED_HEADER = "#tax_id\tGeneID\tGO_ID\tEvidence\tQualifier\tGO_term\tPubMed\tCategory";
+    @Data
+    @AllArgsConstructor
+    public static class Record {
+        private Integer taxonId;
+        private Integer geneId;
+        private String goId;
 
-    public static void populateAnnotations( URL url, Collection<Taxon> acceptableTaxons, GeneService geneService, GOService goService ) throws ParseException {
-
-        String proxyHost = System.getProperty( "ftp.proxyHost" );
-
-        FTPClient ftp;
-
-        if ( proxyHost != null ) {
-            Integer proxyPort = Integer.parseInt( System.getProperty( "ftp.proxyPort" ) );
-            log.info( "Using HTTP proxy server: " + proxyHost + ":" + proxyPort.toString() );
-            ftp = new FTPHTTPClient( proxyHost, proxyPort );
-        } else {
-            ftp = new FTPClient();
-        }
-
-        try {
-
-            ftp.connect( url.getHost() );
-            ftp.login( "anonymous", "" );
-            ftp.enterLocalPassiveMode();
-            ftp.setFileType( FTP.BINARY_FILE_TYPE );
-            ftp.setBufferSize( 1024 * 1024 );
-
-            populateAnnotations( new GZIPInputStream( ftp.retrieveFileStream( url.getPath() ) ), acceptableTaxons, geneService, goService );
-
-        } catch (IOException e) {
-            throw new ParseException( e.getMessage(), 0 );
-        } finally {
+        public static Record parseLine( String line, String[] headerFields, int lineNumber ) throws UncheckedParseException {
+            String[] values = line.split( "\t" );
+            if ( values.length < headerFields.length ) {
+                throw new UncheckedParseException( MessageFormat.format( "Unexpected number of parts in: {0}", line ), lineNumber );
+            }
             try {
-                if ( ftp.isConnected() ) {
-                    ftp.disconnect();
-                }
-            } catch (IOException ex) {
-                log.error( ex.getMessage() );
+                return new Record( Integer.valueOf( values[ArrayUtils.indexOf( headerFields, TAXON_ID_FIELD )] ),
+                        Integer.valueOf( values[ArrayUtils.indexOf( headerFields, GENE_ID_FIELD )] ),
+                        values[ArrayUtils.indexOf( headerFields, GO_ID_FIELD )] );
+            } catch ( NumberFormatException e ) {
+                throw new UncheckedParseException( MessageFormat.format( "Could not parse number for: {0}.", line ), lineNumber, e );
             }
         }
     }
 
-    public static void populateAnnotations( File file, Collection<Taxon> acceptableTaxons, GeneService geneService, GOService goService ) throws ParseException {
-        try {
-            populateAnnotations( new GZIPInputStream( new FileInputStream( file ) ), acceptableTaxons, geneService, goService );
-        } catch (IOException e) {
-            throw new ParseException( e.getMessage(), 0 );
-        }
-    }
+    public Collection<Record> parse( InputStream input ) throws ParseException, IOException {
+        try ( LineNumberReader br = new LineNumberReader( new InputStreamReader( input ) ) ) {
+            String headerLine = br.readLine();
 
-    private static void populateAnnotations( InputStream input, Collection<Taxon> acceptableTaxons, GeneService geneService, GOService goService ) throws ParseException {
-        Map<Integer, Taxon> fastMap = acceptableTaxons.stream().collect( Collectors.toMap( Taxon::getId, t -> t ) );
-        try {
-
-            BufferedReader br = new BufferedReader( new InputStreamReader( input ) );
-
-            String header = br.readLine();
-
-            if ( header == null ) {
-                throw new ParseException( "Stream contains no data.", 0 );
+            if ( headerLine == null ) {
+                throw new ParseException( "Stream contains no data.", br.getLineNumber() );
             }
 
-            if ( !header.equalsIgnoreCase( EXPECTED_HEADER ) ) {
-                throw new ParseException( "Unexpected Header Line!", 0 );
+            String[] headerFields = headerLine.split( "\t" );
+
+            for ( String field : EXPECTED_FIELDS ) {
+                if ( !ArrayUtils.contains( headerFields, field ) ) {
+                    throw new ParseException( MessageFormat.format( "Unexpected header line: {0}.", headerLine ), br.getLineNumber() );
+                }
             }
 
-            br.lines().map( line -> line.split( "\t" ) ).filter( values -> fastMap.containsKey( Integer.valueOf( values[0] ) ) ).forEach( values -> {
-
-                GeneOntologyTerm term = goService.getTerm( values[2] );
-
-                if ( term == null ) {
-                    log.warn( "Problem finding data for term (" + values[2] + ")" );
-                    return;
-                }
-
-                Gene gene = geneService.load( Integer.valueOf( values[1] ) );
-
-                if ( gene == null ) {
-                    log.warn( "Problem finding data for gene (" + values[1] + ")" );
-                    return;
-                }
-
-                term.getDirectGenes().add( gene );
-                gene.getTerms().add( term );
-
-            } );
-        } catch (IOException e) {
-            throw new ParseException( e.getMessage(), 0 );
-        } finally {
             try {
-                if ( input != null ) {
-                    input.close();
-                }
-            } catch (IOException ex) {
-                log.error( ex.getMessage() );
+                return br.lines()
+                        .map( line -> Record.parseLine( line, headerFields, br.getLineNumber() ) )
+                        .collect( Collectors.toList() );
+            } catch ( UncheckedIOException ioe ) {
+                throw ioe.getCause();
+            } catch ( UncheckedParseException e ) {
+                throw e.getCause();
             }
         }
     }
-
 }

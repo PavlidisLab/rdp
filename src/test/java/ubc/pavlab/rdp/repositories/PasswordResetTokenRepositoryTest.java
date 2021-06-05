@@ -10,19 +10,21 @@ import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.test.context.junit4.SpringRunner;
 import ubc.pavlab.rdp.model.PasswordResetToken;
 import ubc.pavlab.rdp.model.User;
-import ubc.pavlab.rdp.util.BaseTest;
 
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.Date;
 
-import static junit.framework.TestCase.fail;
 import static org.assertj.core.api.Assertions.assertThat;
+import static ubc.pavlab.rdp.util.TestUtils.createUnpersistedUser;
+import static ubc.pavlab.rdp.util.TestUtils.createUser;
 
 /**
  * Created by mjacobson on 26/02/18.
  */
 @RunWith(SpringRunner.class)
 @DataJpaTest
-public class PasswordResetTokenRepositoryTest extends BaseTest {
+public class PasswordResetTokenRepositoryTest {
 
     @Autowired
     private TestEntityManager entityManager;
@@ -50,7 +52,7 @@ public class PasswordResetTokenRepositoryTest extends BaseTest {
         expiredToken = new PasswordResetToken();
         expiredToken.setToken( "expiredtoken" );
         expiredToken.setUser( user2 );
-        expiredToken.setExpiryDate( new Date() );
+        expiredToken.setExpiryDate( Timestamp.from( Instant.now() ) );
         entityManager.persist( expiredToken );
 
         entityManager.flush();
@@ -91,7 +93,7 @@ public class PasswordResetTokenRepositoryTest extends BaseTest {
         assertThat( found ).isEqualTo( expiredToken );
     }
 
-    @Test
+    @Test(expected = IncorrectResultSizeDataAccessException.class)
     public void findByUser_whenValidUserHasMultipleTokens_thenError() {
 
         PasswordResetToken validToken2 = new PasswordResetToken();
@@ -100,13 +102,7 @@ public class PasswordResetTokenRepositoryTest extends BaseTest {
         entityManager.persist( validToken2 );
         entityManager.flush();
 
-        try {
-            PasswordResetToken found = passwordResetTokenRepository.findByUser( user );
-        } catch (IncorrectResultSizeDataAccessException e) {
-            // Expected
-            return;
-        }
-        fail( "Should have thrown IncorrectResultSizeDataAccessException" );
+        passwordResetTokenRepository.findByUser( user );
     }
 
     @Test

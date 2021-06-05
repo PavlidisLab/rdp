@@ -1,20 +1,16 @@
 package ubc.pavlab.rdp.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.Immutable;
 
 import javax.persistence.Cacheable;
 import java.util.Map;
 
-@Getter
-@Setter
-@Immutable
-@Cacheable
-@AllArgsConstructor
+@Data
+@Builder
 public class Stats {
     private Long users;
+    private Long publicUsers;
     private Integer usersWithGenes;
     private Integer userGenes;
     private Integer uniqueUserGenes;

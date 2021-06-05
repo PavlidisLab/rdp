@@ -7,24 +7,63 @@ import org.mockito.internal.util.collections.Sets;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Bean;
+import org.springframework.security.access.PermissionEvaluator;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.context.junit4.SpringRunner;
-import ubc.pavlab.rdp.model.Taxon;
-import ubc.pavlab.rdp.model.User;
-import ubc.pavlab.rdp.model.UserGene;
+import ubc.pavlab.rdp.model.*;
+import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.TierType;
-import ubc.pavlab.rdp.util.BaseTest;
+import ubc.pavlab.rdp.security.PermissionEvaluatorImpl;
+import ubc.pavlab.rdp.services.*;
+import ubc.pavlab.rdp.settings.ApplicationSettings;
 
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumSet;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static ubc.pavlab.rdp.util.TestUtils.*;
 
 /**
  * Created by mjacobson on 26/02/18.
  */
 @RunWith(SpringRunner.class)
 @DataJpaTest
-public class UserGeneRepositoryTest extends BaseTest {
+public class UserGeneRepositoryTest {
+
+    @TestConfiguration
+    static class UserGeneRepositoryTestContextConfiguration {
+
+        @Bean
+        public ApplicationSettings applicationSettings() {
+            return new ApplicationSettings();
+        }
+
+        @Bean
+        public PrivacyService privacyService() {
+            return new PrivacyServiceImpl();
+        }
+
+        @Bean
+        public UserService userService() {
+            return new UserServiceImpl();
+        }
+
+        @Bean
+        public UserGeneService userGeneService() {
+            return new UserGeneServiceImpl();
+        }
+
+        @Bean
+        public SecureRandom secureRandom() throws NoSuchAlgorithmException {
+            return SecureRandom.getInstanceStrong();
+        }
+    }
 
     @Autowired
     private TestEntityManager entityManager;
@@ -32,28 +71,47 @@ public class UserGeneRepositoryTest extends BaseTest {
     @Autowired
     private UserGeneRepository userGeneRepository;
 
+    @MockBean
+    private PermissionEvaluator permissionEvaluator;
+
+    @MockBean
+    private BCryptPasswordEncoder bCryptPasswordEncoder;
+
+    @MockBean
+    private TierService tierService;
+
+    @MockBean
+    private GOService goService;
+
+    @MockBean
+    private OrganInfoService organInfoService;
+
+    @MockBean
+    private EmailService emailService;
+
+    @MockBean
+    private GeneInfoService geneinfoService;
+
     private User user;
     private Taxon taxon;
 
     @Before
     public void setUp() {
-        // given
-        taxon = entityManager.persist( createTaxon( 1 ) );
-        user = entityManager.persist( createUserWithGenes( taxon ) );
-        entityManager.flush();
+        taxon = entityManager.persistAndFlush( createTaxon( 1 ) );
+        user = entityManager.persistAndFlush( createUserWithGenes( taxon ) );
     }
 
     private User createUserWithGenes( Taxon taxon ) {
         User user = createUnpersistedUser();
-        UserGene ug = new UserGene( createGene( 1, taxon ), user, TierType.TIER1 );
+        UserGene ug = UserGene.createUserGeneFromGene( createGene( 1, taxon ), user, TierType.TIER1, PrivacyLevelType.PRIVATE );
         ug.setSymbol( "Gene1" );
         user.getUserGenes().put( ug.getGeneId(), ug );
 
-        ug = new UserGene( createGene( 2, taxon ), user, TierType.TIER2 );
+        ug = UserGene.createUserGeneFromGene( createGene( 2, taxon ), user, TierType.TIER2, PrivacyLevelType.PRIVATE );
         ug.setSymbol( "Gene2" );
         user.getUserGenes().put( ug.getGeneId(), ug );
 
-        ug = new UserGene( createGene( 3, taxon ), user, TierType.TIER3 );
+        ug = UserGene.createUserGeneFromGene( createGene( 3, taxon ), user, TierType.TIER3, PrivacyLevelType.PRIVATE );
         ug.setSymbol( "Gene3" );
         user.getUserGenes().put( ug.getGeneId(), ug );
 
@@ -71,7 +129,7 @@ public class UserGeneRepositoryTest extends BaseTest {
     @Test
     public void countByTierIn_whenTierManualMatch_thenCount() {
 
-        int count = userGeneRepository.countByTierIn( TierType.MANUAL_TIERS );
+        int count = userGeneRepository.countByTierIn( TierType.MANUAL );
 
         assertThat( count ).isEqualTo( 2 );
     }
@@ -79,7 +137,7 @@ public class UserGeneRepositoryTest extends BaseTest {
     @Test
     public void countByTierIn_whenTierNotMatch_thenDontCount() {
 
-        int count = userGeneRepository.countByTierIn( Collections.singleton( TierType.ANY ) );
+        int count = userGeneRepository.countByTierIn( tierService.getEnabledTiers() );
 
         assertThat( count ).isEqualTo( 0 );
     }
@@ -87,12 +145,11 @@ public class UserGeneRepositoryTest extends BaseTest {
     @Test
     public void countByTierIn_whenMultipleMatches_thenCountAll() {
 
-        UserGene ug = new UserGene( createGene( 99, taxon ), user, TierType.TIER1 );
+        UserGene ug = UserGene.createUserGeneFromGene( createGene( 99, taxon ), user, TierType.TIER1, PrivacyLevelType.PRIVATE );
         user.getUserGenes().put( ug.getGeneId(), ug );
-        entityManager.persist( user );
-        entityManager.flush();
+        user = entityManager.persistAndFlush( user );
 
-        int count = userGeneRepository.countByTierIn( Collections.singleton( TierType.TIER1 ) );
+        int count = userGeneRepository.countByTierIn( EnumSet.of( TierType.TIER1 ) );
 
         assertThat( count ).isEqualTo( 2 );
     }
@@ -101,9 +158,8 @@ public class UserGeneRepositoryTest extends BaseTest {
     public void countByTierIn_whenMultipleMatchesInDifferentUsers_thenCountAll() {
 
         entityManager.persist( createUserWithGenes( taxon ) );
-        entityManager.flush();
 
-        int count = userGeneRepository.countByTierIn( Collections.singleton( TierType.TIER1 ) );
+        int count = userGeneRepository.countByTierIn( EnumSet.of( TierType.TIER1 ) );
 
         assertThat( count ).isEqualTo( 2 );
     }
@@ -111,7 +167,7 @@ public class UserGeneRepositoryTest extends BaseTest {
     @Test
     public void countDistinctGeneByTierIn_whenTierExactMatch_thenCount() {
 
-        int count = userGeneRepository.countDistinctGeneByTierIn( Collections.singleton( TierType.TIER1 ) );
+        int count = userGeneRepository.countDistinctGeneByTierIn( EnumSet.of( TierType.TIER1 ) );
 
         assertThat( count ).isEqualTo( 1 );
     }
@@ -119,7 +175,7 @@ public class UserGeneRepositoryTest extends BaseTest {
     @Test
     public void countDistinctGeneByTierIn_whenTierManualMatch_thenCount() {
 
-        int count = userGeneRepository.countDistinctGeneByTierIn( TierType.MANUAL_TIERS );
+        int count = userGeneRepository.countDistinctGeneByTierIn( TierType.MANUAL );
 
         assertThat( count ).isEqualTo( 2 );
     }
@@ -127,7 +183,7 @@ public class UserGeneRepositoryTest extends BaseTest {
     @Test
     public void countDistinctGeneByTierIn_whenTierNotMatch_thenDontCount() {
 
-        int count = userGeneRepository.countDistinctGeneByTierIn( Collections.singleton( TierType.ANY ) );
+        int count = userGeneRepository.countDistinctGeneByTierIn( tierService.getEnabledTiers() );
 
         assertThat( count ).isEqualTo( 0 );
     }
@@ -135,10 +191,9 @@ public class UserGeneRepositoryTest extends BaseTest {
     @Test
     public void countDistinctGeneByTierIn_whenMultipleMatches_thenCountDistinct() {
 
-        UserGene ug = new UserGene( createGene( 99, taxon ), user, TierType.TIER1 );
+        UserGene ug = UserGene.createUserGeneFromGene( createGene( 99, taxon ), user, TierType.TIER1, PrivacyLevelType.PRIVATE );
         user.getUserGenes().put( ug.getGeneId(), ug );
         entityManager.persist( user );
-        entityManager.flush();
 
         int count = userGeneRepository.countDistinctGeneByTierIn( Collections.singleton( TierType.TIER1 ) );
 
@@ -150,9 +205,8 @@ public class UserGeneRepositoryTest extends BaseTest {
 
         // Create another user.
         entityManager.persist( createUserWithGenes( taxon ) );
-        entityManager.flush();
 
-        int count = userGeneRepository.countDistinctGeneByTierIn( TierType.MANUAL_TIERS );
+        int count = userGeneRepository.countDistinctGeneByTierIn( TierType.MANUAL );
 
         assertThat( count ).isEqualTo( 2 );
     }
@@ -176,10 +230,9 @@ public class UserGeneRepositoryTest extends BaseTest {
     @Test
     public void countDistinctUserByTaxon_whenMultipleMatches_thenCountDistinct() {
 
-        UserGene ug = new UserGene( createGene( 99, taxon ), user, TierType.TIER1 );
+        UserGene ug = UserGene.createUserGeneFromGene( createGene( 99, taxon ), user, TierType.TIER1, PrivacyLevelType.PRIVATE );
         user.getUserGenes().put( ug.getGeneId(), ug );
         entityManager.persist( user );
-        entityManager.flush();
 
         int count = userGeneRepository.countDistinctUserByTaxon( taxon );
 
@@ -191,7 +244,6 @@ public class UserGeneRepositoryTest extends BaseTest {
 
         // Create another user.
         entityManager.persist( createUserWithGenes( taxon ) );
-        entityManager.flush();
 
         int count = userGeneRepository.countDistinctUserByTaxon( taxon );
 
@@ -211,7 +263,6 @@ public class UserGeneRepositoryTest extends BaseTest {
 
         // Create another user.
         entityManager.persist( createUserWithGenes( taxon ) );
-        entityManager.flush();
 
         int count = userGeneRepository.countDistinctUser();
 
@@ -223,12 +274,10 @@ public class UserGeneRepositoryTest extends BaseTest {
 
         // Create another user.
         entityManager.persist( createUserWithGenes( taxon ) );
-        entityManager.flush();
 
         // Create another user.
         Taxon taxon2 = entityManager.persist( createTaxon( 2 ) );
         entityManager.persist( createUserWithGenes( taxon2 ) );
-        entityManager.flush();
 
         int count = userGeneRepository.countDistinctUser();
 
@@ -278,7 +327,6 @@ public class UserGeneRepositoryTest extends BaseTest {
 
         // Create another user.
         User user2 = entityManager.persist( createUserWithGenes( taxon ) );
-        entityManager.flush();
 
         Collection<UserGene> ugs = userGeneRepository.findByGeneIdAndTier( 1, TierType.TIER1 );
 
@@ -297,14 +345,13 @@ public class UserGeneRepositoryTest extends BaseTest {
     public void findByGeneIdAndTierIn_whenValidIdAndTierManualMatch_ReturnUserGene() {
 
         User user2 = createUnpersistedUser();
-        UserGene ug = new UserGene( createGene( 1, taxon ), user2, TierType.TIER2 );
+        UserGene ug = UserGene.createUserGeneFromGene( createGene( 1, taxon ), user2, TierType.TIER2, PrivacyLevelType.PRIVATE );
         user2.getUserGenes().put( ug.getGeneId(), ug );
         entityManager.persist( user2 );
-        entityManager.flush();
 
-        Collection<UserGene> ugs = userGeneRepository.findByGeneIdAndTierIn( 1, TierType.MANUAL_TIERS );
+        Collection<UserGene> ugs = userGeneRepository.findByGeneIdAndTierIn( 1, TierType.MANUAL );
 
-        assertThat( ugs ).containsExactly( user.getUserGenes().get( 1 ),  user2.getUserGenes().get( 1 ) );
+        assertThat( ugs ).containsExactly( user.getUserGenes().get( 1 ), user2.getUserGenes().get( 1 ) );
     }
 
     @Test
@@ -326,7 +373,6 @@ public class UserGeneRepositoryTest extends BaseTest {
 
         // Create another user.
         User user2 = entityManager.persist( createUserWithGenes( taxon ) );
-        entityManager.flush();
 
         Collection<UserGene> ugs = userGeneRepository.findByGeneIdAndTierIn( 1, Collections.singleton( TierType.TIER1 ) );
 
@@ -380,7 +426,6 @@ public class UserGeneRepositoryTest extends BaseTest {
 
         // Create another user.
         User user2 = entityManager.persist( createUserWithGenes( taxon ) );
-        entityManager.flush();
 
         Collection<UserGene> ugs = userGeneRepository.findBySymbolContainingIgnoreCaseAndTaxon( "Gene1", taxon );
         assertThat( ugs ).containsExactly( user.getUserGenes().get( 1 ), user2.getUserGenes().get( 1 ) );
@@ -439,7 +484,6 @@ public class UserGeneRepositoryTest extends BaseTest {
 
         // Create another user.
         User user2 = entityManager.persist( createUserWithGenes( taxon ) );
-        entityManager.flush();
 
         Collection<UserGene> ugs = userGeneRepository.findBySymbolContainingIgnoreCaseAndTaxonAndTier( "Gene1", taxon, TierType.TIER1 );
         assertThat( ugs ).containsExactly( user.getUserGenes().get( 1 ), user2.getUserGenes().get( 1 ) );
@@ -455,7 +499,7 @@ public class UserGeneRepositoryTest extends BaseTest {
 
     @Test
     public void findBySymbolContainingIgnoreCaseAndTaxonAndTierIn_whenValidSymbolAndTaxonAndManualTier_ReturnUserGenes() {
-        Collection<UserGene> ugs = userGeneRepository.findBySymbolContainingIgnoreCaseAndTaxonAndTierIn( "Gene", taxon, TierType.MANUAL_TIERS );
+        Collection<UserGene> ugs = userGeneRepository.findBySymbolContainingIgnoreCaseAndTaxonAndTierIn( "Gene", taxon, TierType.MANUAL );
         assertThat( ugs ).containsExactly( user.getUserGenes().get( 1 ), user.getUserGenes().get( 2 ) );
     }
 
@@ -498,7 +542,7 @@ public class UserGeneRepositoryTest extends BaseTest {
     @Test
     public void findBySymbolContainingIgnoreCaseAndTaxonAndTierIn_whenSymbolContains_ReturnUserGenes() {
         Collection<UserGene> ugs = userGeneRepository.findBySymbolContainingIgnoreCaseAndTaxonAndTierIn( "ne", taxon, Sets.newSet( TierType.TIER1, TierType.TIER3 ) );
-        assertThat( ugs ).containsExactly( user.getUserGenes().get( 1 ),  user.getUserGenes().get( 3 ) );
+        assertThat( ugs ).containsExactly( user.getUserGenes().get( 1 ), user.getUserGenes().get( 3 ) );
     }
 
     @Test
@@ -506,10 +550,34 @@ public class UserGeneRepositoryTest extends BaseTest {
 
         // Create another user.
         User user2 = entityManager.persist( createUserWithGenes( taxon ) );
-        entityManager.flush();
 
-        Collection<UserGene> ugs = userGeneRepository.findBySymbolContainingIgnoreCaseAndTaxonAndTierIn( "Gene", taxon, TierType.MANUAL_TIERS );
+        Collection<UserGene> ugs = userGeneRepository.findBySymbolContainingIgnoreCaseAndTaxonAndTierIn( "Gene", taxon, TierType.MANUAL );
         assertThat( ugs ).containsExactly( user.getUserGenes().get( 1 ), user.getUserGenes().get( 2 ), user2.getUserGenes().get( 1 ), user2.getUserGenes().get( 2 ) );
+    }
+
+    @Test
+    public void findById_whenUserGenePrivacyLevelIsHigher_ReturnUserPrivacyLevel() {
+        UserGene userGene = user.getUserGenes().get( 1 );
+        userGene.getUser().getProfile().setPrivacyLevel( PrivacyLevelType.SHARED );
+        userGene.setPrivacyLevel( PrivacyLevelType.PUBLIC );
+        assertThat( userGene.getPrivacyLevel() ).isEqualTo( PrivacyLevelType.PUBLIC );
+        assertThat( userGene.getEffectivePrivacyLevel() ).isEqualTo( PrivacyLevelType.SHARED );
+    }
+
+    @Test
+    public void findByGeneIdAndTierInAndUserUserOrgansIn_whenUserFollowOrgan_ReturnUserGene() {
+        Gene gene = entityManager.persist( createGene( 10, taxon ) );
+        UserGene userGene = entityManager.persist( createUnpersistedUserGene( gene, user, TierType.TIER1, PrivacyLevelType.PRIVATE ) );
+        Organ organ = entityManager.persist( createOrgan( "UBERON_1010101", "Appendages", null ) );
+        UserOrgan userOrgan = entityManager.persist( createUserOrgan( user, organ ) );
+
+        entityManager.refresh( user );
+        assertThat( user.getUserOrgans() )
+                .containsKey( "UBERON_1010101" )
+                .containsValue( userOrgan );
+
+        assertThat( userGeneRepository.findByGeneIdAndTierInAndUserUserOrgansIn( userGene.getGeneId(), Sets.newSet( userGene.getTier() ), Sets.newSet( userOrgan ) ) )
+                .containsExactly( userGene );
     }
 
 }

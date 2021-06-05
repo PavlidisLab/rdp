@@ -1,0 +1,14 @@
+src/main/resources/cache/DIOPT_filtered_data_March2020.gz filter=lfs diff=lfs merge=lfs -text
+src/test/resources/cache/gene_orthologs.gz filter=lfs diff=lfs merge=lfs -text
+src/test/resources/cache/genes filter=lfs diff=lfs merge=lfs -text
+src/test/resources/cache/go.obo filter=lfs diff=lfs merge=lfs -text
+src/test/resources/cache/uberon.obo filter=lfs diff=lfs merge=lfs -text
+src/test/resources/cache/gene2go.gz filter=lfs diff=lfs merge=lfs -text
+src/test/resources/cache/genes/Danio_rerio.gene_info.gz filter=lfs diff=lfs merge=lfs -text
+src/test/resources/cache/genes/Drosophila_melanogaster.gene_info.gz filter=lfs diff=lfs merge=lfs -text
+src/test/resources/cache/genes/Escherichia_coli_str._K-12_substr._MG1655.gene_info.gz filter=lfs diff=lfs merge=lfs -text
+src/test/resources/cache/genes/Homo_sapiens.gene_info.gz filter=lfs diff=lfs merge=lfs -text
+src/test/resources/cache/genes/Mus_musculus.gene_info.gz filter=lfs diff=lfs merge=lfs -text
+src/test/resources/cache/genes/Rattus_norvegicus.gene_info.gz filter=lfs diff=lfs merge=lfs -text
+src/test/resources/cache/genes/Saccharomyces_cerevisiae.gene_info.gz filter=lfs diff=lfs merge=lfs -text
+src/test/resources/cache/genes/Caenorhabditis_elegans.gene_info.gz filter=lfs diff=lfs merge=lfs -text

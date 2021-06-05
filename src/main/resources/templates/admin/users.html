@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      lang="en">
+<head th:replace="layouts/common::head(title='Users')">
+    <meta charset="UTF-8"/>
+    <title>...</title>
+</head>
+<body>
+<div th:replace="layouts/common::header(title='Users')"></div>
+<div class="container py-3">
+    <div th:replace="layouts/common::title(title='Users')"></div>
+    <h2>List of all registered users</h2>
+    <table class="table table-compact">
+        <thead>
+        <tr>
+            <th>Email</th>
+            <th>Full Name</th>
+            <th>Contact Email</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="user : ${users}">
+            <td><a th:href="@{/admin/users/{userId}(userId=${user.id})}" th:text="${user.email}"></a></td>
+            <td th:text="${user.profile.fullName}"></td>
+            <td>
+                <a th:if="${user.verifiedContactEmail.isPresent()}"
+                   th:href="'mailto:' + ${user.verifiedContactEmail.get().address}"
+                   th:text="${user.verifiedContactEmail.get().address}"></a>
+                <span th:unless="${user.verifiedContactEmail.isPresent()}">
+                    No verified contact email.
+                </span>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+<div th:replace="layouts/common::footer"></div>
+<div th:replace="layouts/common::scripts"></div>
+</body>
+</html>

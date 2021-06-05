@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="organs-selection">
+    <div class="form-row">
+        <div th:each="organInfo, iter : ${@organInfoService.findByActiveTrueOrderByOrdering()}"
+             class="form-group col-3 col-md-2 col-lg-1">
+            <div class="form-check"
+                 data-toggle="tooltip"
+                 th:title="${#strings.capitalize(organInfo.name)}">
+                <input type="checkbox"
+                       name="organUberonIds"
+                       th:id="${#ids.seq('organUberonIds')}"
+                       th:value="${organInfo.uberonId}"
+                       th:checked="${checkedOrganUberonIds != null} and ${#lists.contains(checkedOrganUberonIds, organInfo.uberonId)}"
+                       th:disabled="${readonly != null and readonly}"
+                       class="form-check-input"/>
+                <label th:for="${#ids.prev('organUberonIds')}"
+                       class="form-check-label">
+                    <img th:src="@{/images/organs/{uberonId}.svg(uberonId=${organInfo.uberonId})}"
+                         th:alt="${#strings.capitalize(organInfo.name)}"
+                         class="img-fluid"/>
+                </label>
+            </div>
+        </div>
+    </div>
+</div>
+<div th:fragment="organs" class="row">
+    <div th:each="organInfo, iter : ${@organInfoService.findByActiveTrueOrderByOrdering()}"
+         th:if="${#lists.contains(checkedOrganUberonIds, organInfo.uberonId)}"
+         class="col-3 col-md-2 col-lg-1"
+         data-toggle="tooltip"
+         th:title="${#strings.capitalize(organInfo.name)}">
+        <img th:src="@{/images/organs/{uberonId}.svg(uberonId=${organInfo.uberonId})}"
+             th:alt="${#strings.capitalize(organInfo.name)}"
+             class="img-fluid"/>
+    </div>
+</div>
+</body>
+</html>

@@ -1,47 +1,36 @@
 package ubc.pavlab.rdp.services;
 
-import org.springframework.security.access.annotation.Secured;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.transaction.annotation.Transactional;
 import ubc.pavlab.rdp.exception.TokenException;
 import ubc.pavlab.rdp.model.*;
+import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
+import ubc.pavlab.rdp.model.enums.ResearcherCategory;
+import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import ubc.pavlab.rdp.model.enums.TierType;
 
 import javax.validation.ValidationException;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.security.NoSuchAlgorithmException;
+import java.util.*;
 
 /**
  * Created by mjacobson on 16/01/18.
  */
 public interface UserService {
 
-    /**
-     * Privacy level designating that only the administrator can access the users data.
-     */
-    Integer PRIVACY_PRIVATE = 0;
-    /**
-     * Privacy level designating that only the locally registered users can access the users data.
-     */
-    Integer PRIVACY_REGISTERED = 1;
-    /**
-     * Privacy level designating that everybody can access the users data.
-     */
-    Integer PRIVACY_PUBLIC = 2;
-
-    @Transactional
     User create( User user );
 
-    @Transactional
+    User createAdmin( User admin );
+
+    User createServiceAccount( User user );
+
     User update( User user );
 
-    @Secured("ROLE_ADMIN")
-    @Transactional
     void delete( User user );
 
-    @Transactional
     User changePassword( String oldPassword, String newPassword ) throws BadCredentialsException, ValidationException;
 
     String getCurrentUserName();
@@ -52,54 +41,76 @@ public interface UserService {
 
     User findUserById( int id );
 
+    User findUserByAnonymousIdNoAuth( UUID anonymousId );
+
+    UserGene findUserGeneByAnonymousIdNoAuth( UUID anonymousId );
+
     User findUserByIdNoAuth( int id );
 
-    User findUserByEmail( String email );
+    User findUserByEmailNoAuth( String email );
+
+    User findUserByAccessTokenNoAuth( String accessToken ) throws TokenException;
+
+    User anonymizeUser( User user );
+
+    UserGene anonymizeUserGene( UserGene userGene );
+
+    void revokeAccessToken( AccessToken accessToken );
+
+    AccessToken createAccessTokenForUser( User user );
 
     User getRemoteAdmin();
 
-    List<User> findAll();
+    Collection<User> findAll();
 
-    Collection<User> findByLikeName( String nameLike );
+    Page<User> findAllNoAuth( Pageable pageable );
 
-    Collection<User> findByStartsName( String startsName );
+    Page<User> findAllByPrivacyLevel( PrivacyLevelType privacyLevel, Pageable pageable );
 
-    Collection<User> findByDescription( String descriptionLike );
+    Collection<User> findByLikeName( String nameLike, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherTypes, Collection<UserOrgan> userOrgans );
+
+    Collection<User> findByStartsName( String startsName, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherTypes, Collection<UserOrgan> userOrgans );
+
+    Collection<User> findByDescription( String descriptionLike, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherTypes, Collection<UserOrgan> userOrgans );
 
     long countResearchers();
 
-    Collection<UserTerm> convertTerms( User user, Taxon taxon, Collection<GeneOntologyTerm> terms );
+    long countPublicResearchers();
 
-    UserTerm convertTerms( User user, Taxon taxon, GeneOntologyTerm term );
+    UserTerm convertTerm( User user, Taxon taxon, GeneOntologyTermInfo term );
+
+    Collection<UserTerm> convertTerms( User user, Taxon taxon, Collection<GeneOntologyTermInfo> terms );
 
     Collection<UserTerm> recommendTerms( User user, Taxon taxon );
 
-    Collection<UserTerm> recommendTerms( User user, Taxon taxon, int minSize, int maxSize, int minFrequency );
+    Collection<UserTerm> recommendTerms( User user, Taxon taxon, long minSize, long maxSize, long minFrequency );
+
+    User updateTermsAndGenesInTaxon( User user,
+                                     Taxon taxon,
+                                     Map<GeneInfo, TierType> genesToTierMapFrom,
+                                     Map<GeneInfo, PrivacyLevelType> genesToPrivacyLevelMap,
+                                     Collection<GeneOntologyTermInfo> goTerms );
+
+    User updateUserProfileAndPublicationsAndOrgans( User user, Profile profile, Set<Publication> publications, Set<String> organUberonIds );
+
+    PasswordResetToken createPasswordResetTokenForUser( User user );
+
+    PasswordResetToken verifyPasswordResetToken( int userId, String token ) throws TokenException;
+
+    User changePasswordByResetToken( int userId, String token, PasswordReset passwordReset ) throws TokenException;
+
+    VerificationToken createVerificationTokenForUser( User user );
 
     @Transactional
-    void updateTermsAndGenesInTaxon( User user, Taxon taxon, Map<Gene, TierType> genesToTierMap,
-            Collection<GeneOntologyTerm> goTerms );
+    VerificationToken createContactEmailVerificationTokenForUser( User user );
 
-    @Transactional
-    User updatePublications( User user, Set<Publication> publications );
+    User confirmVerificationToken( String token ) throws TokenException;
 
-    @Transactional
-    PasswordResetToken createPasswordResetTokenForUser( User user, String token );
+    SortedSet<String> getLastNamesFirstChar();
 
-    void verifyPasswordResetToken( int userId, String token ) throws TokenException;
+    void updateUserTerms();
 
-    @Transactional
-    User changePasswordByResetToken( int userId, String token, String newPassword );
+    long computeTermOverlaps( UserTerm userTerm, Collection<GeneInfo> genes );
 
-    @Transactional
-    VerificationToken createVerificationTokenForUser( User user, String token );
-
-    @Transactional
-    User confirmVerificationToken( String token );
-
-    boolean checkCurrentUserCanSee( User user );
-
-    boolean checkCurrentUserCanSee( UserGene userGene );
-
-    List<String> getChars();
+    long computeTermFrequencyInTaxon( User user, GeneOntologyTerm term, Taxon taxon );
 }

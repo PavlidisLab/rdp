@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="user-preview(user)">
+    <h4 th:text="${user.profile.fullName}"></h4>
+    <p th:unless="${user.profile.researcherCategories.isEmpty()}">
+        <span th:each="researcherCategory : ${user.profile.researcherCategories}"
+              class="badge badge-info"
+              th:text="#{'ResearcherCategory.' + ${researcherCategory.name()}}"></span>
+    </p>
+    <p th:text="${#strings.abbreviate(user.profile.description, 200)}"></p>
+    <img th:each="element : ${user.userOrgans}"
+         th:src="@{/images/organs/{uberonId}.svg(uberonId=${element.value.uberonId})}"
+         th:alt="${#strings.capitalize(element.value.name)}"
+         width="32"
+         class="mb-3"/>
+</div>
+<div th:fragment="researcher-position-selection(selectedResearcherPosition)">
+    <div th:each="researcherPosition : ${T(ubc.pavlab.rdp.model.enums.ResearcherPosition).values()}"
+         th:if="${@applicationSettings.profile.enabledResearcherPositions.contains(researcherPosition.name())}"
+         class="form-check-inline">
+        <input th:id="${#ids.seq('profile.researcherPosition')}"
+               name="researcherPosition"
+               class="form-check-input"
+               type="checkbox"
+               th:value="${researcherPosition.name()}"
+               th:checked="${researcherPosition} == ${selectedResearcherPosition}"/>
+        <label th:for="${#ids.prev('profile.researcherPosition')}"
+               th:text="'I am a ' + #{'ResearcherPosition.' + ${researcherPosition.name()}}"
+               class="form-check-label">...</label>
+    </div>
+</div>
+<div th:fragment="researcher-categories-selection(selectedResearcherCategories)">
+    <select th:id="${#ids.seq('profile.researcherCategories')}"
+            name="researcherCategories"
+            class="form-control selectpicker"
+            th:title="${selectedResearcherCategories == null} ? 'Show any researcher, or specific categories' : 'Please select one or more categories…'"
+            multiple="multiple">
+        <option th:each="researcherCategory : ${T(ubc.pavlab.rdp.model.enums.ResearcherCategory).values()}"
+                th:if="${@applicationSettings.profile.enabledResearcherCategories.contains(researcherCategory.name())}"
+                th:value="${researcherCategory.name()}"
+                th:text="#{'ResearcherCategory.' + ${researcherCategory.name()}}"
+                th:selected="${#lists.contains(selectedResearcherCategories, researcherCategory)}">...
+        </option>
+    </select>
+</div>
+</body>
+</html>

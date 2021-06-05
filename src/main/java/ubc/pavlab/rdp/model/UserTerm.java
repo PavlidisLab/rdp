@@ -1,29 +1,33 @@
 package ubc.pavlab.rdp.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
+import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 
 import javax.persistence.*;
-import java.util.Collection;
-import java.util.Set;
+import java.util.Optional;
 
 /**
+ * GO term tracked by a user.
+ * <p>
+ * TODO: add user to {@link EqualsAndHashCode} definition to distinguish
+ * between terms from different users.
+ * <p>
  * Created by mjacobson on 28/01/18.
  */
 @Entity
 @Table(name = "term",
-        uniqueConstraints={@UniqueConstraint(columnNames={"user_id", "taxon_id", "go_id"})},
-        indexes = {@Index(columnList = "go_id", name = "go_id_hidx")}
-)
+        uniqueConstraints = { @UniqueConstraint(columnNames = { "user_id", "taxon_id", "go_id" }) },
+        indexes = { @Index(columnList = "go_id") })
 @Cacheable
 @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @Getter
 @Setter
+@EqualsAndHashCode(of = { "user", "taxon" }, callSuper = true)
+@ToString(of = { "user", "taxon" }, callSuper = true)
 @NoArgsConstructor
-public class UserTerm extends GeneOntologyTerm {
+public class UserTerm extends GeneOntologyTerm implements UserContent {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -32,54 +36,42 @@ public class UserTerm extends GeneOntologyTerm {
     private Integer id;
 
     @ManyToOne
+    @JoinColumn(name = "user_id")
+    @JsonIgnore
+    private User user;
+
+    @ManyToOne
     @JoinColumn(name = "taxon_id")
     private Taxon taxon;
 
-    @Column(name = "frequency")
-    private int frequency;
+    @Column
+    private Long frequency;
 
-    @Column(name = "size")
-    private int size;
+    @Column
+    private Long size;
 
-    public void updateTerm(GeneOntologyTerm term) {
-        this.setGoId( term.getGoId() );
+    public static UserTerm createUserTerm( User user, GeneOntologyTerm term, Taxon taxon ) {
+        UserTerm userTerm = new UserTerm();
+        userTerm.setGoId( term.getGoId() );
+        userTerm.updateTerm( term );
+        userTerm.user = user;
+        userTerm.taxon = taxon;
+        return userTerm;
+    }
+
+    public void updateTerm( GeneOntologyTerm term ) {
         this.setName( term.getName() );
         this.setDefinition( term.getDefinition() );
         this.setAspect( term.getAspect() );
-        this.setObsolete( term.isObsolete() );
-
-        this.setParents( term.getParents() );
-        this.setChildren( term.getChildren() );
-        this.setSizesByTaxon( term.getSizesByTaxon() );
-        this.setDirectGenes( term.getDirectGenes() );
     }
 
-    public UserTerm(GeneOntologyTerm term, Taxon taxon, Set<Gene> overlapGenes) {
-        super();
-        this.updateTerm( term );
-        this.taxon = taxon;
-
-        this.size = this.getSize( taxon );
-        if (overlapGenes != null) {
-            this.frequency = computeOverlapFrequency( overlapGenes );
-        }
+    @Override
+    public Optional<User> getOwner() {
+        return Optional.of( user );
     }
 
-    private Integer computeOverlapFrequency( Set<Gene> genes ) {
-        Integer frequency = 0;
-        for ( Gene g : genes ) {
-            Collection<GeneOntologyTerm> directTerms = g.getAllTerms( true, true );
-
-            for ( GeneOntologyTerm term : directTerms ) {
-                if ( term.equals( this ) ) {
-                    frequency++;
-                    // Can break because a gene cannot (and shouldn't) have duplicate terms
-                    break;
-                }
-            }
-
-        }
-        return frequency;
+    @Override
+    public PrivacyLevelType getEffectivePrivacyLevel() {
+        return user.getEffectivePrivacyLevel();
     }
-
 }

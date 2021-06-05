@@ -19,9 +19,16 @@
 
 package ubc.pavlab.rdp.services;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import ubc.pavlab.rdp.model.Gene;
 import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.model.UserGene;
+import ubc.pavlab.rdp.model.UserOrgan;
+import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
+import ubc.pavlab.rdp.model.enums.ResearcherCategory;
+import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import ubc.pavlab.rdp.model.enums.TierType;
 
 import java.util.Collection;
@@ -33,27 +40,23 @@ import java.util.Set;
  */
 public interface UserGeneService {
 
+    Page<UserGene> findAllNoAuth( Pageable pageable );
+
+    Page<UserGene> findAllByPrivacyLevel( PrivacyLevelType privacyLevelType, Pageable pageable );
+
     Integer countUniqueAssociations();
+
     Integer countAssociations();
+
     Map<String, Integer> researcherCountByTaxon();
 
     Integer countUsersWithGenes();
+
     Integer countUniqueAssociationsAllTiers();
+
     Integer countUniqueAssociationsToHumanAllTiers();
 
-    Collection<Integer> findOrthologs(Integer source_gene, Integer targetTaxon);
+    Collection<UserGene> handleGeneSearch( Gene gene, Set<TierType> tiers, Taxon orthologTaxon, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherTypes, Collection<UserOrgan> organs );
 
-    Collection<UserGene> findByGene( int geneId );
-
-    Collection<UserGene> findByGene( int geneId, TierType tier );
-
-    Collection<UserGene> findByGene( int geneId, Set<TierType> tiers );
-
-    Collection<UserGene> findByLikeSymbol( String symbol, Taxon taxon );
-
-    Collection<UserGene> findByLikeSymbol( String symbol, Taxon taxon, TierType tier );
-
-    Collection<UserGene> findByLikeSymbol( String symbol, Taxon taxon, Set<TierType> tiers );
-
-    Collection<Gene> findOrthologs( Gene gene, Integer orthologTaxonId );
+    void updateUserGenes();
 }

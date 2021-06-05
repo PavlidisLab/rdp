@@ -7,7 +7,6 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.test.context.junit4.SpringRunner;
 import ubc.pavlab.rdp.model.Role;
-import ubc.pavlab.rdp.util.BaseTest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -16,7 +15,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @RunWith(SpringRunner.class)
 @DataJpaTest
-public class RoleRepositoryTest extends BaseTest {
+public class RoleRepositoryTest {
 
     @Autowired
     private TestEntityManager entityManager;
@@ -47,6 +46,13 @@ public class RoleRepositoryTest extends BaseTest {
 
         assertThat( found ).isNull();
 
+    }
+
+    @Test
+    public void findByRole_whenExpected_thenReturnRole() {
+        assertThat( roleRepository.findByRole( "ROLE_USER" ) ).isNotNull();
+        assertThat( roleRepository.findByRole( "ROLE_ADMIN" ) ).isNotNull();
+        assertThat( roleRepository.findByRole( "ROLE_SERVICE_ACCOUNT" ) ).isNotNull();
     }
 
 }

@@ -1,181 +1,187 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:th="http://www.thymeleaf.org">
+      xmlns:th="http://www.thymeleaf.org"
+      lang="en">
 
-<head>
-    <title th:text="${@siteSettings.getFullname()}"></title>
-    <link rel="icon" type="image/png" sizes="16x16" th:href="@{/images/favicon-16x16.png}"/>
-    <link rel="icon" type="image/png" sizes="32x32" th:href="@{/images/favicon-32x32.png}"/>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
-          integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous"/>
-    <link rel="stylesheet"
-          href="https://cdnjs.cloudflare.com/ajax/libs/open-iconic/1.1.1/font/css/open-iconic-bootstrap.min.css"/>
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.16/css/dataTables.bootstrap4.min.css"/>
-    <link rel="stylesheet" type="text/css" th:href="@{/css/jquery-ui.min.css}"/>
-
-    <link rel="stylesheet" type="text/css" th:href="@{/css/common.css}"/>
-    <link rel="stylesheet" type="text/css" th:href="@{/css/model.css}"/>
-
-    <script src="https://code.jquery.com/jquery-3.3.1.min.js"
-            integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
-            crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
-            integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
-            crossorigin="anonymous"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
-            integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
-            crossorigin="anonymous"></script>
-    <script src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.10.16/js/dataTables.bootstrap4.min.js"></script>
-    <script th:src="@{/js/jquery-ui.min.js}"></script>
-
-    <script th:src="@{/js/common.js}"></script>
-
-    <script th:inline="javascript">
-        /*<![CDATA[*/
-        // noinspection JSUnusedLocalSymbols used in model.js
-        var currentTaxon = [[${taxon}]];
-
-        /*]]>*/
-    </script>
-    <script th:src="@{/js/model.js}"></script>
-
+<head th:replace="layouts/common::head(title=${#strings.capitalizeWords(taxon.commonName)})">
+    <meta charset="UTF-8"/>
+    <title>...</title>
 </head>
 
 <body>
-<div th:replace="fragments/header">...</div>
-<div class="container p-4">
+<div th:replace="layouts/common::header">...</div>
+<div class="container py-4">
 
-    <div th:replace="fragments/title :: title(title='Model Organisms', subtitle=${#strings.capitalizeWords(taxon.commonName)})"
-         th:remove="tag">...
+    <div class="row">
+        <div class="col-8">
+            <div th:replace="layouts/common::title(title='Model Organisms', subtitle=${#strings.capitalizeWords(taxon.commonName + (taxon.id == 9606 ? ' / other' : ''))})">
+                ...
+            </div>
+        </div>
+        <div class="col-4 my-auto text-right">
+            <button type="button" class="btn btn-primary btn-lg save-model" th:if="${viewOnly == null}">
+                <i class="mx-2 d-none spinner"></i>
+                Save
+            </button>
+        </div>
     </div>
 
     <div class="d-flex align-items-center justify-content-center" th:if="${viewOnly != null}">
         <h3 class="d-inline-block pr-3 mr-3 mb-0" th:text="${user.email}"></h3>
     </div>
 
+    <div class="main-content">
 
-    <div class="main-content p-4">
-        <div class="row justify-content-center success-row" style="display: none;">
-            <div class="col my-3">
-                <div class="alert alert-success alert-dismissible fade show" role="alert">Model Saved!
-                    <button type="button" class="close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-            </div>
+        <div class="alert alert-success alert-dismissible fade show success-row my-3"
+             role="alert"
+             style="display: none;">
+            Model Saved!
+            <button type="button" class="close" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
         </div>
-        <div class="row justify-content-center error-row" style="display: none;">
-            <div class="col my-3">
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">Error Saving Model!
-                    <button type="button" class="close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-            </div>
+
+        <div class="alert alert-danger alert-dismissible fade show error-row my-3" role="alert" style="display: none;">
+            Error Saving Model!
+            <button type="button" class="close" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
         </div>
-        <div class="row justify-content-center">
-            <div class="col-4 mb-4">
-                <button type="button" class="btn btn-primary btn-lg btn-block save-model" th:if="${viewOnly == null}"><i class="mx-2 d-none spinner"></i>Save</button>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col my-3">
+
+        <div class="row my-3">
+            <div class="col">
                 <div class="card research-info edit-container">
                     <div class="card-header d-flex align-items-center">
                         <i class="editable" th:if="${viewOnly == null}"/>
-                        <h3 class="mb-0 d-inline-block">Organism Research Focus</h3>
+                        <h3 class="mb-0 d-inline-block">
+                            <label th:for="${#ids.next('taxonDescriptions')}" class="mb-0">
+                                Organism Research Focus
+                            </label>
+                        </h3>
                     </div>
                     <div class="p-2" style="height: 80px;">
-                        <textarea class="data-edit" name="description" th:text="${user.taxonDescriptions.get(taxon)}" disabled="disabled"></textarea>
+                        <textarea th:id="${#ids.seq('taxonDescriptions')}"
+                                  th:text="${user.taxonDescriptions.get(taxon)}"
+                                  class="data-edit" name="description"
+                                  disabled="disabled"></textarea>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <div class="w-100" th:if="${@applicationSettings.getPrivacy().isCustomizableLevel()} or ${@applicationSettings.getPrivacy().isCustomizableSharing()} or ${@applicationSettings.getPrivacy().isAllowHideGenelist()}"></div>
-            <div class="col my-3" th:if="${@applicationSettings.getPrivacy().isCustomizableLevel()} or ${@applicationSettings.getPrivacy().isCustomizableSharing()} or ${@applicationSettings.getPrivacy().isAllowHideGenelist()}">
-                <div class="card">
-                    <div class="card-header">
-                        <h4>Data privacy</h4>
-                        <div th:if="${@applicationSettings.getPrivacy().isCustomizableLevel()}">Data privacy is set to
-                            <b th:if="${user.getProfile().privacyLevel} == 0">private.</b>
-                            <b th:if="${user.getProfile().privacyLevel} == 1">shared with registered users.</b>
-                            <b th:if="${user.getProfile().privacyLevel} == 2">public.</b>
-                        </div>
-                        <div th:if="(${user.getProfile().privacyLevel} gt 0) and ${@applicationSettings.getPrivacy().isAllowHideGenelist()}">
-                            Non-administrative users that can see your data
-                            <b th:if="${user.getProfile().getHideGenelist()}">can not</b>
-                            <b th:if="not ${user.getProfile().getHideGenelist()}">can</b>
-                            see your gene and terms lists.
-                        </div>
-                        <div th:if="${@applicationSettings.getIsearch().isEnabled()} and ${@applicationSettings.getPrivacy().isCustomizableSharing()}">
-                            International sharing of your data is
-                            <b th:if="${user.getProfile().getShared()}">enabled.</b>
-                            <b th:if="not ${user.getProfile().getShared()}">disabled.</b>
-                        </div>
-                        <hr/>
-                        <div>
-                            To change your settings, please see the <b>Data privacy Settings</b> section in your <a th:href="@{/user/profile}">profile settings.</a>
-                        </div>
-                    </div>
+        <div th:if="${@applicationSettings.privacy.isCustomizableLevel()} or ${@applicationSettings.privacy.isCustomizableSharing()} or ${@applicationSettings.privacy.isAllowHideGenelist()}"
+             class="my-3">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Data Privacy</h3>
+                    <p th:if="${@applicationSettings.privacy.isCustomizableLevel()}">
+                        Your profile privacy level is set to <b
+                            th:text="#{'PrivacyLevelType.' + ${user.effectivePrivacyLevel.name()}}"
+                            style="text-transform: lowercase;"></b>,
+                        which determines your default gene privacy level.<br/>
+                    </p>
+                    <p th:if="${@applicationSettings.privacy.isCustomizableGeneLevel()}">
+                        Your can adjust privacy level for each gene individually, however you can only choose a more
+                        restrictive value than what is set in your profile. You can change privacy settings for all of
+                        your genes by changing your profile privacy setting.
+                    </p>
+                    <p th:if="(${user.effectivePrivacyLevel.ordinal()} gt 0) and ${@applicationSettings.privacy.isAllowHideGenelist()}">
+                        Non-administrative users that can see your data
+                        <b th:if="${user.profile.getHideGenelist()}">can not</b>
+                        <b th:if="not ${user.profile.getHideGenelist()}">can</b>
+                        see your gene and terms lists.
+                    </p>
+                    <p th:if="${@applicationSettings.isearch.isEnabled()} and ${@applicationSettings.privacy.isCustomizableSharing()}">
+                        International sharing of your data is
+                        <b th:if="${user.profile.shared}">enabled</b><b th:if="not ${user.profile.shared}">disabled</b>.
+                    </p>
+                    <hr/>
+                    <p class="mb-0">
+                        To change your settings, please see the <b>Data Privacy Settings</b> section in your
+                        <a th:href="@{/user/profile#data-privacy-settings}">profile settings.</a>
+                    </p>
                 </div>
             </div>
+        </div>
 
-            <div class="w-100"></div>
-            <div class="col my-3">
-                <div class="card">
-                    <div class="card-header">
-                        <ul class="nav nav-tabs card-header-tabs" role="tablist">
-                            <li class="nav-item">
-                                <a class="nav-link active" id="genes-tab" data-toggle="tab" href="#genes" role="tab"
-                                   aria-controls="profile" aria-selected="true">Genes</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" id="terms-tab" data-toggle="tab" href="#terms" role="tab"
-                                   aria-controls="model"
-                                   aria-selected="true">Terms</a>
-                            </li>
-                        </ul>
-                    </div>
-                    <div class="card-body">
-                        <div class="tab-content">
-                            <div class="tab-pane fade show active" id="genes" role="tabpanel"
-                                 aria-labelledby="genes-tab">
-                                <div th:replace="fragments/gene-table :: gene-table(genes=${user.getGenesByTaxonAndTier(taxon, T(ubc.pavlab.rdp.model.enums.TierType).MANUAL_TIERS)})"
-                                     th:remove="tag">...
-                                </div>
-                                <div class="input-group mt-2" th:if="${viewOnly == null}">
-                                    <div class="input-group-prepend" style="background: lightgrey;">
-                                        <button class="btn btn-outline-secondary reset-table text-danger d-none" type="button">-</button>
-                                        <button class="btn btn-outline-secondary add-row text-success" type="button"><i class="mx-2 d-none spinner"></i>+</button>
-                                    </div>
-                                    <input type="text" class="form-control autocomplete"
-                                           placeholder="ex. GRIN1, BRCA1, FOXP2"/>
+        <div class="my-3">
+            <div class="card">
+                <div class="card-header">
+                    <ul class="nav nav-tabs card-header-tabs" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active" id="genes-tab" data-toggle="tab" href="#genes" role="tab"
+                               aria-controls="profile" aria-selected="true">Genes</a>
+                        </li>
+                        <li th:if="${@tierService.isTierEnabled(T(ubc.pavlab.rdp.model.enums.TierType).TIER3)}"
+                            class="nav-item">
+                            <a class="nav-link" id="terms-tab" data-toggle="tab" href="#terms" role="tab"
+                               aria-controls="model"
+                               aria-selected="true">Terms</a>
+                        </li>
+                        <li th:if="${@tierService.isTierEnabled(T(ubc.pavlab.rdp.model.enums.TierType).TIER3)} and ${viewOnly == null}"
+                            class="nav-item ml-auto">
+                            <a href="#terms"
+                               class="btn btn-primary btn-sm recommend-terms"
+                               data-toggle="tooltip"
+                               title="Recommend relevant gene ontology terms based the genes from your profile.">
+                                <i class="mx-2 d-none spinner"></i>
+                                <i class="oi oi-heart"></i>
+                                Recommend Terms
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card-body">
+                    <div class="tab-content">
+                        <div class="tab-pane fade show active" id="genes" role="tabpanel"
+                             aria-labelledby="genes-tab">
+                            <div class="mb-3">
+                                <div th:replace="fragments/gene-table::gene-table(genes=${user.getGenesByTaxonAndTier(taxon, T(ubc.pavlab.rdp.model.enums.TierType).MANUAL)}, defaultPrivacyLevel=${user.getEffectivePrivacyLevel()})">
+                                    ...
                                 </div>
                             </div>
-                            <div class="tab-pane fade" id="terms" role="tabpanel" aria-labelledby="terms-tab">
-                                <div class="row justify-content-center" th:if="${viewOnly == null}">
-                                    <div class="mb-3">
-                                        <button type="button" class="btn btn-primary recommend-terms"><i class="mx-2 d-none spinner"></i>Recommend Terms</button>
-                                    </div>
+                            <div class="input-group" th:if="${viewOnly == null}">
+                                <div class="input-group-prepend" style="background: lightgrey;">
+                                    <button class="btn btn-outline-secondary add-row text-success"
+                                            type="button">
+                                        <i class="mx-2 d-none spinner"></i>
+                                        +
+                                    </button>
                                 </div>
-                                <div class="row justify-content-center recommend-message" th:if="${viewOnly == null}">
-                                </div>
-
-                                <div th:replace="fragments/term-table :: term-table(userTerms=${user.getTermsByTaxon(taxon)})"
-                                     th:remove="tag">...
-                                </div>
-
-                                <div class="input-group mt-2" th:if="${viewOnly == null}">
-                                    <div class="input-group-prepend" style="background: lightgrey;">
-                                        <button class="btn btn-outline-secondary reset-table text-danger d-none" type="button">-</button>
-                                        <button class="btn btn-outline-secondary add-row text-success" type="button"><i class="mx-2 d-none spinner"></i>+</button>
-                                    </div>
-                                    <input type="text" class="form-control autocomplete"
-                                           placeholder="Search Terms"/>
-                                </div>
-
+                                <input type="text" class="form-control autocomplete"
+                                       placeholder="ex. GRIN1, BRCA1, FOXP2"/>
                             </div>
+                        </div>
+
+                        <div th:if="${@tierService.isTierEnabled(T(ubc.pavlab.rdp.model.enums.TierType).TIER3)}"
+                             class="tab-pane fade" id="terms" role="tabpanel" aria-labelledby="terms-tab">
+
+                            <div class="alert recommend-message d-none" role="alert"></div>
+
+                            <div class="row mb-3">
+                                <div class="col">
+                                    <div th:replace="fragments/term-table::term-table(userTerms=${user.getTermsByTaxon(taxon)})">
+                                        ...
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col">
+                                    <div class="input-group" th:if="${viewOnly == null}">
+                                        <div class="input-group-prepend" style="background: lightgrey;">
+                                            <button class="btn btn-outline-secondary add-row text-success"
+                                                    type="button">
+                                                <i class="mx-2 d-none spinner"></i>
+                                                +
+                                            </button>
+                                        </div>
+                                        <input type="text" class="form-control autocomplete"
+                                               placeholder="Search Terms"/>
+                                    </div>
+                                </div>
+                            </div>
+
                         </div>
                     </div>
                 </div>
@@ -184,7 +190,8 @@
     </div>
 </div>
 
-<div class="modal fade" id="overlapModal" tabindex="-1" role="dialog" aria-labelledby="overlapModal" aria-hidden="true">
+<div class="modal fade" id="overlapModal" tabindex="-1" role="dialog" aria-labelledby="overlapModal"
+     aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-body pb-0">
@@ -197,6 +204,26 @@
     </div>
 </div>
 
-<div th:replace="fragments/footer" th:remove="tag">...</div>
+<div th:replace="layouts/common::footer">...</div>
+
+<div th:replace="layouts/common::scripts"></div>
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    // noinspection JSUnusedLocalSymbols used in model.js
+    var currentTaxonId = [[${taxon.id}]];
+    var userProfile = [[${user.profile}]];
+    // TODO: serialize and use PrivacyLevelType instead of hardcoded values
+    var PrivacyLevelType = [[${T(ubc.pavlab.rdp.model.enums.PrivacyLevelType).values()}]];
+    var privacyLevels = {
+        'PUBLIC': {'label': 'Public', 'ordinal': 2},
+        'SHARED': {'label': 'Shared', 'ordinal': 1},
+        'PRIVATE': {'label': 'Private', 'ordinal': 0}
+    };
+    var enabledGenePrivacyLevels = [[${@applicationSettings.privacy.enabledGeneLevels}]];
+    var customizableGeneLevel = [[${@applicationSettings.privacy.customizableGeneLevel}]]
+    var userPrivacyLevel = privacyLevels[userProfile.privacyLevel['$name']];
+    /*]]>*/
+</script>
+<script th:src="@{/js/model.js}"></script>
 </body>
 </html>

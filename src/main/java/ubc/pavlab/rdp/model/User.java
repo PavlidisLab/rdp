@@ -3,59 +3,94 @@ package ubc.pavlab.rdp.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import lombok.*;
-import org.hibernate.annotations.CacheConcurrencyStrategy;
+import lombok.extern.apachecommons.CommonsLog;
 import org.hibernate.validator.constraints.Email;
 import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.NotEmpty;
-import org.springframework.data.annotation.Transient;
-import ubc.pavlab.rdp.listeners.UserEntityListener;
+import org.springframework.util.StringUtils;
+import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.TierType;
 
+import javax.mail.internet.InternetAddress;
 import javax.persistence.*;
+import javax.validation.Valid;
+import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.text.MessageFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
-
 @Entity
 @Table(name = "user")
-@EntityListeners(UserEntityListener.class)
 @Cacheable
-@org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @Getter
 @Setter
+@Builder
+@EqualsAndHashCode(of = { "id" })
 @NoArgsConstructor
-@EqualsAndHashCode(of = {"id"})
-@ToString( of = {"id", "email", "enabled"})
-public class User{
+@AllArgsConstructor
+@ToString(of = { "id", "anonymousId", "email", "enabled" })
+@CommonsLog
+public class User implements UserContent {
+
+    /**
+     * Constraints for regular user accounts.
+     */
+    public interface ValidationUserAccount {
+    }
+
+    /**
+     * Constraints for service accounts.
+     */
+    public interface ValidationServiceAccount {
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "user_id")
     private Integer id;
 
-	@Column(name = "email")
-	@Email(message = "*Please provide a valid Email")
-	@NotEmpty(message = "*Please provide an email")
-	private String email;
+    @Transient
+    private UUID anonymousId;
 
-	@Column(name = "password")
-	@Length(min = 6, message = "*Your password must have at least 6 characters")
-	@NotEmpty(message = "*Please provide your password")
+    @Column(name = "email")
+    @Email(message = "Your email address is not valid.", groups = { ValidationUserAccount.class })
+    @NotEmpty(message = "Please provide an email address.", groups = { ValidationUserAccount.class, ValidationServiceAccount.class })
+    private String email;
+
+    @Column(name = "password")
+    @Length(min = 6, message = "Your password must have at least 6 characters.", groups = { ValidationUserAccount.class })
+    @NotEmpty(message = "Please provide your password.", groups = { ValidationUserAccount.class })
     @JsonIgnore
-	@Transient
-	private String password;
+    @org.springframework.data.annotation.Transient
+    private String password;
 
-	@Column(name = "enabled")
+    @Column(name = "enabled", nullable = false)
     @JsonIgnore
-	private boolean enabled;
+    private boolean enabled;
 
-    @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-	@ManyToMany(fetch = FetchType.EAGER)
-	@JoinTable(name = "user_role", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
+    @ManyToMany
+    @JoinTable(name = "user_role", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
     @JsonIgnore
-	private Set<Role> roles = new HashSet<>();
+    private final Set<Role> roles = new HashSet<>();
 
-	@Embedded
+    @OneToMany(cascade = CascadeType.ALL)
+    @JoinColumn(name = "user_id")
+    @JsonIgnore
+    private final Set<AccessToken> accessTokens = new HashSet<>();
+
+    @OneToMany(cascade = CascadeType.ALL)
+    @JoinColumn(name = "user_id")
+    @JsonIgnore
+    private final Set<VerificationToken> verificationTokens = new HashSet<>();
+
+    @OneToMany(cascade = CascadeType.ALL)
+    @JoinColumn(name = "user_id")
+    @JsonIgnore
+    private final Set<PasswordResetToken> passwordResetTokens = new HashSet<>();
+
+    @Valid
+    @Embedded
     @JsonUnwrapped
     private Profile profile;
 
@@ -63,39 +98,49 @@ public class User{
     private String origin;
 
     @Transient
-    private String originUrl;
+    private URI originUrl;
+
+    /**
+     * Ensure that the path of the URL is effectively stripped from any trailing slashes.
+     */
+    @SneakyThrows
+    public void setOriginUrl( URI originUrl ) {
+        this.originUrl = new URI( originUrl.getScheme(), originUrl.getAuthority(), StringUtils.trimTrailingCharacter( originUrl.getPath(), '/' ), null, null );
+    }
 
     /* Research related information */
 
-    @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-    @ElementCollection(fetch = FetchType.EAGER)
+    // @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+    @ElementCollection
     @CollectionTable(name = "descriptions", joinColumns = @JoinColumn(name = "user_id"))
-	@MapKeyJoinColumn(name="taxon_id")
+    @MapKeyJoinColumn(name = "taxon_id")
     @Column(name = "description", columnDefinition = "TEXT")
     @JsonIgnore
-    private Map<Taxon, String> taxonDescriptions = new HashMap<>();
+    private final Map<Taxon, String> taxonDescriptions = new HashMap<>();
 
-    @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-	@OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-	@JoinColumn(name = "user_id")
-	private List<UserTerm> userTerms = new ArrayList<>();
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "user_id")
+    private final Set<UserTerm> userTerms = new HashSet<>();
 
-    @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "user")
     @MapKey(name = "geneId")
-	private Map<Integer, UserGene> userGenes = new HashMap<>();
+    private final Map<Integer, UserGene> userGenes = new HashMap<>();
+
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "user")
+    @MapKey(name = "uberonId")
+    private final Map<String, UserOrgan> userOrgans = new HashMap<>();
 
     @JsonIgnore
     @Transient
-    public Set<Gene> getGenesByTaxon( Taxon taxon ) {
+    public Set<UserGene> getGenesByTaxon( Taxon taxon ) {
         return this.getUserGenes().values().stream().filter( gene -> gene.getTaxon().equals( taxon ) ).collect( Collectors.toSet() );
     }
 
     @JsonIgnore
     @Transient
-    public Set<Gene> getGenesByTaxonAndTier( Taxon taxon, Set<TierType> tiers) {
+    public Set<UserGene> getGenesByTaxonAndTier( Taxon taxon, Set<TierType> tiers ) {
         return this.getUserGenes().values().stream()
-                .filter( gene -> gene.getTaxon().equals( taxon ) && tiers.contains( gene.getTier()) ).collect( Collectors.toSet() );
+                .filter( gene -> gene.getTaxon().equals( taxon ) && tiers.contains( gene.getTier() ) ).collect( Collectors.toSet() );
     }
 
     @JsonIgnore
@@ -106,7 +151,7 @@ public class User{
 
     @JsonIgnore
     @Transient
-    public boolean hasTaxon( Taxon taxon ) {
+    public boolean hasTaxon( @NonNull Taxon taxon ) {
         return this.getUserGenes().values().stream().anyMatch( g -> g.getTaxon().equals( taxon ) );
     }
 
@@ -114,5 +159,42 @@ public class User{
     @Transient
     public Set<Taxon> getTaxons() {
         return this.getUserGenes().values().stream().map( Gene::getTaxon ).collect( Collectors.toSet() );
+    }
+
+    /**
+     * Obtain a verified contact email for the user if available.
+     */
+    @JsonIgnore
+    @Transient
+    public Optional<InternetAddress> getVerifiedContactEmail() {
+        try {
+            if ( profile.isContactEmailVerified() ) {
+                return Optional.of( new InternetAddress( profile.getContactEmail(), profile.getFullName() ) );
+            } else if ( enabled ) {
+                return Optional.of( new InternetAddress( email, profile.getFullName() ) );
+            } else {
+                return Optional.empty();
+            }
+        } catch ( UnsupportedEncodingException e ) {
+            log.error( MessageFormat.format( "Could not encode a verified internet address for {0}.", this ) );
+            return Optional.empty();
+        }
+    }
+
+    @Override
+    @JsonIgnore
+    public Optional<User> getOwner() {
+        return Optional.of( this );
+    }
+
+    @Override
+    @JsonIgnore
+    public PrivacyLevelType getEffectivePrivacyLevel() {
+        // this is a fallback
+        if ( getProfile() == null || getProfile().getPrivacyLevel() == null ) {
+            log.warn( MessageFormat.format( "User {0} has no profile or a null privacy level defined in its profile.", this ) );
+            return PrivacyLevelType.PRIVATE;
+        }
+        return getProfile().getPrivacyLevel();
     }
 }

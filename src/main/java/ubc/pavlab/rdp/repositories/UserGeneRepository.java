@@ -1,5 +1,7 @@
 package ubc.pavlab.rdp.repositories;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.QueryHints;
@@ -7,7 +9,8 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.model.UserGene;
-import ubc.pavlab.rdp.model.Gene;
+import ubc.pavlab.rdp.model.UserOrgan;
+import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.TierType;
 
 import javax.persistence.QueryHint;
@@ -16,6 +19,7 @@ import java.util.Set;
 
 @Repository
 public interface UserGeneRepository extends JpaRepository<UserGene, Integer> {
+
     Integer countByTierIn( Collection<TierType> tiers );
 
     @Query("select count(distinct geneId) FROM UserGene WHERE tier IN (:tiers)")
@@ -27,35 +31,52 @@ public interface UserGeneRepository extends JpaRepository<UserGene, Integer> {
     @Query("select count(distinct user) FROM UserGene")
     Integer countDistinctUser();
 
-    @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
-    @Query("select targetGene FROM Ortholog where sourceGene = :source_gene and targetTaxon = :target_taxon ")
-    Collection<Integer> findOrthologs(@Param("source_gene") Integer sourceGene, @Param( "target_taxon" ) Integer targetTaxon);
+    Page<UserGene> findAllByPrivacyLevelAndUserProfilePrivacyLevel( PrivacyLevelType privacyLevel, PrivacyLevelType userProfilePrivacyLevel, Pageable pageable );
 
     @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
-    Collection<UserGene> findByGeneId(int geneId);
-    @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
-    Collection<UserGene> findByGeneIdAndTier(int geneId, TierType tier);
-    @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
-    Collection<UserGene> findByGeneIdAndTierIn(int geneId, Set<TierType> tiers);
-    @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
-    Collection<UserGene> findBySymbolContainingIgnoreCaseAndTaxon(String symbolContaining, Taxon taxon);
-    @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
-    Collection<UserGene> findBySymbolContainingIgnoreCaseAndTaxonAndTier(String symbolContaining, Taxon taxon, TierType tier);
-    @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
-    Collection<UserGene> findBySymbolContainingIgnoreCaseAndTaxonAndTierIn(String symbolContaining, Taxon taxon, Set<TierType> tiers);
+    UserGene findById( int id );
 
-    // Return gene IDs of all associations in tiers
     @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
-    @Query("select distinct geneId FROM UserGene WHERE tier IN (:tiers)")
-    Collection<Integer> findDistinctGeneByTierIn( @Param("tiers") Collection<TierType> tiers );
+    Collection<UserGene> findByGeneId( int geneId );
 
-    // Return the reverse-mapped human gene(s) for a given ortholog target. 
     @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
-    @Query("select sourceGene FROM Ortholog where targetGene IN (:target_gene) ")
-    Collection<Integer> findHumanGenesForTarget(@Param("target_gene") Collection<Integer> targetGene);
+    Collection<UserGene> findByGeneIdAndTier( int geneId, TierType tier );
+
+    @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
+    Collection<UserGene> findByGeneIdAndTierIn( int geneId, Set<TierType> tiers );
+
+    @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
+    Collection<UserGene> findBySymbolContainingIgnoreCaseAndTaxon( String symbolContaining, Taxon taxon );
+
+    @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
+    Collection<UserGene> findBySymbolContainingIgnoreCaseAndTaxonAndTier( String symbolContaining, Taxon taxon, TierType tier );
+
+    @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
+    Collection<UserGene> findBySymbolContainingIgnoreCaseAndTaxonAndTierIn( String symbolContaining, Taxon taxon, Set<TierType> tiers );
+
+    UserGene findBySymbolAndTaxon( String symbol, Taxon taxon );
+
+    Collection<UserGene> findByGeneIdAndTierAndUserUserOrgansIn( int geneId, TierType tier, Collection<UserOrgan> organs );
+
+    Collection<UserGene> findByGeneIdAndTierInAndUserUserOrgansIn( int geneId, Set<TierType> tiers, Collection<UserOrgan> organs );
+
+    /**
+     * Find all user genes ortholog to a given gene.
+     */
+    @Query("select user_gene from UserGene user_gene where user_gene.geneId in (select ortholog.geneId from GeneInfo gene_info join gene_info.orthologs as ortholog where gene_info.geneId = :geneId)")
+    Collection<UserGene> findOrthologsByGeneId( @Param("geneId") Integer geneId );
+
+    /**
+     * Find user genes within a given taxon that are ortholog to a given gene.
+     */
+    @Query("select user_gene from UserGene user_gene where user_gene.geneId in (select ortholog.geneId from GeneInfo gene_info join gene_info.orthologs as ortholog where gene_info.geneId = :geneId and ortholog.taxon = :taxon)")
+    Collection<UserGene> findOrthologsByGeneIdAndTaxon( @Param("geneId") Integer geneId, @Param("taxon") Taxon taxon );
 
     // Return all human genes.
     @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
     @Query("select geneId FROM UserGene where taxon = '9606'")
     Collection<Integer> findAllHumanGenes();
+
+    @Query("select gene from UserGene gene left join fetch gene.geneInfo")
+    Collection<UserGene> findAllWithGeneInfo();
 }

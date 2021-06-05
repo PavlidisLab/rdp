@@ -1,121 +1,101 @@
 package ubc.pavlab.rdp.util;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.commons.net.ftp.FTP;
-import org.apache.commons.net.ftp.FTPClient;
-import org.apache.commons.net.ftp.FTPHTTPClient;
-import ubc.pavlab.rdp.model.Gene;
-import ubc.pavlab.rdp.model.Taxon;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.extern.apachecommons.CommonsLog;
+import org.apache.commons.lang3.ArrayUtils;
+import org.springframework.stereotype.Component;
 
 import java.io.*;
-import java.net.URL;
-import java.sql.Date;
+import java.text.DateFormat;
 import java.text.MessageFormat;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Set;
+import java.util.Date;
+import java.util.List;
 import java.util.stream.Collectors;
-import java.util.zip.GZIPInputStream;
+
+import static org.apache.commons.lang3.ArrayUtils.indexOf;
 
 /**
- * Read in the GO OBO file provided by the Gene Ontology Consortium.
- * <p>
- * Created by mjacobson on 17/01/18.
+ * Read in gene info provided by the NCBI.
+ *
+ * @author poirigui
  */
-
+@Component
+@CommonsLog
 public class GeneInfoParser {
 
-    private static Log log = LogFactory.getLog( GeneInfoParser.class );
+    private static final String[] EXPECTED_HEADER_FIELDS = { "#tax_id", "GeneID", "Symbol", "Synonyms", "description", "Modification_date" };
 
-    private static String EXPECTED_HEADER = "#tax_id\tGeneID\tSymbol\tLocusTag\tSynonyms\tdbXrefs\tchromosome\tmap_location\tdescription\ttype_of_gene\tSymbol_from_nomenclature_authority\tFull_name_from_nomenclature_authority\tNomenclature_status\tOther_designations\tModification_date\tFeature_type";
+    private static final DateFormat NCBI_DATE_FORMAT = new SimpleDateFormat( "yyyyMMdd" );
 
-    public static Set<Gene> parse( Taxon taxon, URL url ) throws ParseException {
+    public List<Record> parse( InputStream input, Integer taxonId ) throws ParseException, IOException {
+        try ( LineNumberReader br = new LineNumberReader( new InputStreamReader( input ) ) ) {
+            String headerLine = br.readLine();
 
-        String proxyHost = System.getProperty( "ftp.proxyHost" );
+            if ( headerLine == null ) {
+                throw new ParseException( "Stream contains no data.", br.getLineNumber() );
+            }
 
-        FTPClient ftp;
+            String[] header = headerLine.split( "\t" );
 
-        if ( proxyHost != null ) {
-            Integer proxyPort = Integer.parseInt( System.getProperty( "ftp.proxyPort" ) );
-            log.info( "Using HTTP proxy server: " + proxyHost + ":" + proxyPort.toString() );
-            ftp = new FTPHTTPClient( proxyHost, proxyPort );
-        } else {
-            ftp = new FTPClient();
-        }
+            for ( String expectedField : EXPECTED_HEADER_FIELDS ) {
+                if ( !ArrayUtils.contains( header, expectedField ) ) {
+                    throw new ParseException( MessageFormat.format( "Gene information is missing the following field: {0}.", expectedField ), br.getLineNumber() );
+                }
+            }
 
-        try {
-
-            ftp.connect( url.getHost() );
-            ftp.login( "anonymous", "" );
-            ftp.enterLocalPassiveMode();
-            ftp.setFileType( FTP.BINARY_FILE_TYPE );
-            ftp.setBufferSize( 1024 * 1024 );
-
-            return parse( taxon, new GZIPInputStream( ftp.retrieveFileStream( url.getPath() ) ) );
-
-        } catch (IOException e) {
-            throw new ParseException( e.getMessage(), 0 );
-        } finally {
             try {
-                if ( ftp.isConnected() ) {
-                    ftp.disconnect();
-                }
-            } catch (IOException ex) {
-                log.error( ex.getMessage() );
+                return br.lines()
+                        .map( line -> Record.parseLine( line, header, br.getLineNumber() ) )
+                        .filter( record -> record.getTaxonId().equals( taxonId ) )
+                        .collect( Collectors.toList() );
+            } catch ( UncheckedIOException ioe ) {
+                throw ioe.getCause();
+            } catch ( UncheckedParseException e ) {
+                throw e.getCause();
             }
         }
     }
 
-    public static Set<Gene> parse( Taxon taxon, File file ) throws ParseException {
-        try {
-            return parse( taxon, new GZIPInputStream( new FileInputStream( file ) ) );
-        } catch (IOException e) {
-            throw new ParseException( e.getMessage(), 0 );
-        }
-    }
+    @Data
+    @AllArgsConstructor
+    public static class Record {
 
-    private static Set<Gene> parse( Taxon taxon, InputStream input ) throws ParseException {
-        try {
+        private Integer taxonId;
+        private Integer GeneId;
+        private String symbol;
+        private String synonyms;
+        private String description;
+        private Date modificationDate;
 
-            BufferedReader br = new BufferedReader( new InputStreamReader( input ) );
-
-            String header = br.readLine();
-
-            if ( header == null ) {
-                throw new ParseException( "Stream contains no data.", 0 );
+        public static Record parseLine( String line, String[] header, int lineNumber ) throws UncheckedParseException {
+            String[] values = line.split( "\t" );
+            if ( values.length < header.length ) {
+                throw new UncheckedParseException( "Line does not have the expected number of fields.", lineNumber );
             }
-
-            if ( !header.equalsIgnoreCase( EXPECTED_HEADER ) ) {
-                throw new ParseException( "Unexpected Header Line!", 0 );
-            }
-
-            return br.lines().map( line -> line.split( "\t" ) ).filter( values -> Integer.valueOf( values[0] ).equals( taxon.getId() ) ).map( values -> {
-                Gene gene = new Gene();
-                gene.setTaxon( taxon );
-                gene.setGeneId( Integer.valueOf( values[1] ) );
-                gene.setSymbol( values[2] );
-                gene.setAliases( values[4] );
-                gene.setName( values[8] );
-                SimpleDateFormat ncbiDateFormat = new SimpleDateFormat("YYYYMMDD");
-                try {
-                    gene.setModificationDate( ncbiDateFormat.parse( values[14] ) );
-                } catch ( ParseException e ) {
-                    log.warn( MessageFormat.format("Could not parse date {0} for gene {1}.", values[14], values[1]), e);
-                }
-                return gene;
-            } ).collect( Collectors.toSet() );
-        } catch (IOException e) {
-            throw new ParseException( e.getMessage(), 0 );
-        } finally {
+            Integer taxonId;
             try {
-                if ( input != null ) {
-                    input.close();
-                }
-            } catch (IOException ex) {
-                log.error( ex.getMessage() );
+                taxonId = Integer.valueOf( values[indexOf( header, "#tax_id" )] );
+            } catch ( NumberFormatException e ) {
+                throw new UncheckedParseException( "Could not parse taxon id.", lineNumber, e );
             }
+            Integer geneId;
+            try {
+                geneId = Integer.valueOf( values[indexOf( header, "GeneID" )] );
+            } catch ( NumberFormatException e ) {
+                throw new UncheckedParseException( "Could not parse gene id.", lineNumber, e );
+            }
+            String symbol = values[indexOf( header, "Symbol" )];
+            String synonyms = values[indexOf( header, "Synonyms" )];
+            String description = values[indexOf( header, "description" )];
+            Date modificationDate = null;
+            try {
+                modificationDate = NCBI_DATE_FORMAT.parse( values[indexOf( header, "Modification_date" )] );
+            } catch ( java.text.ParseException e ) {
+                log.warn( MessageFormat.format( "Malformed date for gene {0} in taxon {1}, value will be ignored.", geneId, taxonId ), e );
+            }
+            return new Record( taxonId, geneId, symbol, synonyms, description, modificationDate );
         }
     }
-
 }

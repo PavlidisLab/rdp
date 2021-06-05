@@ -10,19 +10,21 @@ import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.test.context.junit4.SpringRunner;
 import ubc.pavlab.rdp.model.User;
 import ubc.pavlab.rdp.model.VerificationToken;
-import ubc.pavlab.rdp.util.BaseTest;
 
-import java.util.Date;
+import java.sql.Timestamp;
+import java.time.Instant;
 
 import static junit.framework.TestCase.fail;
 import static org.assertj.core.api.Assertions.assertThat;
+import static ubc.pavlab.rdp.util.TestUtils.createUnpersistedUser;
+import static ubc.pavlab.rdp.util.TestUtils.createUser;
 
 /**
  * Created by mjacobson on 26/02/18.
  */
 @RunWith(SpringRunner.class)
 @DataJpaTest
-public class VerificationTokenRepositoryTest extends BaseTest {
+public class VerificationTokenRepositoryTest {
 
     @Autowired
     private TestEntityManager entityManager;
@@ -43,15 +45,17 @@ public class VerificationTokenRepositoryTest extends BaseTest {
         validToken = new VerificationToken();
         validToken.updateToken( "validtoken" );
         validToken.setUser( user );
+        validToken.setEmail( user.getEmail() );
         entityManager.persist( validToken );
 
-        user2 = entityManager.persist( createUnpersistedUser() );
+        user2 = entityManager.persistAndFlush( createUnpersistedUser() );
 
         expiredToken = new VerificationToken();
         expiredToken.setToken( "expiredtoken" );
         expiredToken.setUser( user2 );
-        expiredToken.setExpiryDate( new Date() );
-        entityManager.persist( expiredToken );
+        expiredToken.setEmail( user2.getEmail() );
+        expiredToken.setExpiryDate( Timestamp.from( Instant.now() ) );
+        expiredToken = entityManager.persistAndFlush( expiredToken );
 
         entityManager.flush();
     }
@@ -91,22 +95,17 @@ public class VerificationTokenRepositoryTest extends BaseTest {
         assertThat( found ).isEqualTo( expiredToken );
     }
 
-    @Test
+    @Test(expected = IncorrectResultSizeDataAccessException.class)
     public void findByUser_whenValidUserHasMultipleTokens_thenError() {
 
         VerificationToken validToken2 = new VerificationToken();
         validToken2.updateToken( "validtoken2" );
         validToken2.setUser( user );
+        validToken2.setEmail( user.getEmail() );
         entityManager.persist( validToken2 );
         entityManager.flush();
 
-        try {
-            VerificationToken found = verificationTokenRepository.findByUser( user );
-        } catch (IncorrectResultSizeDataAccessException e) {
-            // Expected
-            return;
-        }
-        fail( "Should have thrown IncorrectResultSizeDataAccessException" );
+        verificationTokenRepository.findByUser( user );
     }
 
     @Test
@@ -118,7 +117,7 @@ public class VerificationTokenRepositoryTest extends BaseTest {
 
     @Test
     public void deleteAllExpiredSince_whenValidDate_thenDeleteTokens() {
-        verificationTokenRepository.deleteAllExpiredSince( new Date() );
+        verificationTokenRepository.deleteAllExpiredSince( Timestamp.from( Instant.now() ) );
         assertThat( verificationTokenRepository.findAll() ).containsExactly( validToken );
 
     }

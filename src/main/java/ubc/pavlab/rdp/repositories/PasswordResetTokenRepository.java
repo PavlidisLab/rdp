@@ -11,10 +11,11 @@ import java.util.Date;
 
 @Repository
 public interface PasswordResetTokenRepository extends JpaRepository<PasswordResetToken, Integer> {
-    PasswordResetToken findByToken(String token);
-    PasswordResetToken findByUser(User user);
+    PasswordResetToken findByToken( String token );
+
+    PasswordResetToken findByUser( User user );
 
     @Modifying
     @Query("delete from PasswordResetToken t where t.expiryDate <= ?1")
-    void deleteAllExpiredSince(Date now);
+    void deleteAllExpiredSince( Date now );
 }
