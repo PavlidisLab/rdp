@@ -1,9 +1,8 @@
 package ubc.pavlab.rdp.model;
 
-import lombok.*;
-import org.hibernate.annotations.Immutable;
+import lombok.Builder;
+import lombok.Data;
 
-import javax.persistence.Cacheable;
 import java.util.Map;
 
 @Data

@@ -16,7 +16,7 @@ import java.net.URL;
 @Table(name = "taxon")
 @Immutable
 @Cacheable
-@org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+@org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_ONLY)
 @Getter
 @Setter
 @NoArgsConstructor
