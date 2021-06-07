@@ -1,6 +1,7 @@
 package ubc.pavlab.rdp.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -25,6 +26,7 @@ import javax.persistence.*;
 @Setter
 @NoArgsConstructor
 @ToString(callSuper = true)
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class UserGene extends Gene {
 
     @Id
