@@ -96,6 +96,9 @@ public class GeneInfoServiceImpl implements GeneInfoService {
         ApplicationSettings.CacheSettings cacheSettings = applicationSettings.getCache();
         log.info( "Updating genes..." );
         for ( Taxon taxon : taxonService.findByActiveTrue() ) {
+            if ( taxon.getGeneUrl() == null ) {
+                log.warn( MessageFormat.format( "Gene info URL for {0} is not defined, skipping this taxon.", taxon ) );
+            }
             try {
                 Resource resource;
                 if ( cacheSettings.isLoadFromDisk() ) {
@@ -140,7 +143,14 @@ public class GeneInfoServiceImpl implements GeneInfoService {
     @Override
     @Transactional
     public void updateGeneOrthologs() {
-        log.info( MessageFormat.format( "Updating gene orthologs from {0}...", applicationSettings.getCache().getOrthologFile() ) );
+        Resource resource = applicationSettings.getCache().getOrthologFile();
+
+        if ( resource == null ) {
+            log.warn( "No orthologs file found, skipping update of gene orthologs." );
+            return;
+        }
+
+        log.info( MessageFormat.format( "Updating gene orthologs from {0}...", resource ) );
 
         DecimalFormat geneIdFormat = new DecimalFormat();
         geneIdFormat.setGroupingUsed( false );
@@ -150,8 +160,6 @@ public class GeneInfoServiceImpl implements GeneInfoService {
                 .stream()
                 .map( Taxon::getId )
                 .collect( Collectors.toSet() );
-
-        Resource resource = applicationSettings.getCache().getOrthologFile();
 
         List<GeneOrthologsParser.Record> records;
         try {

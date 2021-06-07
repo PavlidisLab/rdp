@@ -48,6 +48,10 @@ public class OrganInfoServiceImpl implements OrganInfoService {
     public void updateOrganInfos() {
         try {
             Resource organFile = applicationSettings.getCache().getOrganFile();
+            if ( organFile == null ) {
+                log.warn( "No organ system ontology file found, skipping update." );
+                return;
+            }
             log.info( MessageFormat.format( "Loading organ ontology from {0}...", organFile ) );
             for ( OBOParser.Term term : oboParser.parseStream( organFile.getInputStream() ).values() ) {
                 OrganInfo organInfo = organInfoRepository.findByUberonId( term.getId() );

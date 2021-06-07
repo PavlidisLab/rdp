@@ -92,6 +92,16 @@ public class GOServiceImpl implements GOService {
 
         log.info( MessageFormat.format( "Loading GO terms from: {0}.", cacheSettings.getTermFile() ) );
 
+        if ( cacheSettings.getTermFile() == null ) {
+            log.warn( "No term file is defined, skipping update of GO terms." );
+            return;
+        }
+
+        if ( cacheSettings.getAnnotationFile() == null ) {
+            log.warn( "No gene2go annotations file is defined, skipping update of GO terms." );
+            return;
+        }
+
         Map<String, GeneOntologyTermInfo> terms;
         try {
             terms = convertTerms( oboParser.parseStream( cacheSettings.getTermFile().getInputStream() ) );
