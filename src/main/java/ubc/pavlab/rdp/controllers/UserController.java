@@ -24,6 +24,7 @@ import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.services.*;
+import ubc.pavlab.rdp.settings.ApplicationSettings;
 
 import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
@@ -57,6 +58,9 @@ public class UserController {
 
     @Autowired
     private ApplicationEventPublisher eventPublisher;
+
+    @Autowired
+    private ApplicationSettings applicationSettings;
 
     @GetMapping(value = { "/user/home" })
     public ModelAndView userHome() {
@@ -123,8 +127,13 @@ public class UserController {
     @GetMapping(value = { "/user/faq" })
     public ModelAndView faq() {
         ModelAndView modelAndView = new ModelAndView( "user/faq" );
-        User user = userService.findCurrentUser();
-        modelAndView.addObject( "user", user );
+        if ( applicationSettings.getFaqFile() == null ) {
+            modelAndView.setStatus( HttpStatus.NOT_FOUND );
+            modelAndView.setViewName( "error/404" );
+        } else {
+            User user = userService.findCurrentUser();
+            modelAndView.addObject( "user", user );
+        }
         return modelAndView;
     }
 
