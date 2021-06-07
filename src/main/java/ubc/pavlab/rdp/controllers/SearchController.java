@@ -54,9 +54,6 @@ public class SearchController {
     private TaxonService taxonService;
 
     @Autowired
-    private GeneInfoService geneService;
-
-    @Autowired
     private UserGeneService userGeneService;
 
     @Autowired
@@ -64,9 +61,6 @@ public class SearchController {
 
     @Autowired
     private RemoteResourceService remoteResourceService;
-
-    @Autowired
-    private PrivacyService privacyService;
 
     @Autowired
     private GeneInfoService geneInfoService;
@@ -229,7 +223,7 @@ public class SearchController {
             return modelAndView;
         }
 
-        GeneInfo gene = geneService.findBySymbolAndTaxon( symbol, taxon );
+        GeneInfo gene = geneInfoService.findBySymbolAndTaxon( symbol, taxon );
 
         if ( gene == null ) {
             modelAndView.setStatus( HttpStatus.NOT_FOUND );
@@ -294,7 +288,7 @@ public class SearchController {
             return modelAndView;
         }
 
-        GeneInfo gene = geneService.findBySymbolAndTaxon( symbol, taxon );
+        GeneInfo gene = geneInfoService.findBySymbolAndTaxon( symbol, taxon );
 
         if ( gene == null ) {
             modelAndView.setStatus( HttpStatus.NOT_FOUND );

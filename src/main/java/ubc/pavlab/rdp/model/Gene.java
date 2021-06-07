@@ -6,6 +6,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.util.Date;
 
 /**
@@ -16,7 +17,7 @@ import java.util.Date;
 @Setter
 @EqualsAndHashCode(of = { "geneId" })
 @ToString(of = { "geneId", "symbol", "taxon" })
-public abstract class Gene {
+public abstract class Gene implements Serializable {
 
     @Column(name = "gene_id")
     private int geneId;
