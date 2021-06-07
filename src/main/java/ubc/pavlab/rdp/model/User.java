@@ -1,6 +1,7 @@
 package ubc.pavlab.rdp.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import lombok.*;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
@@ -26,6 +27,7 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 @EqualsAndHashCode(of = {"id"})
 @ToString( of = {"id", "email", "enabled"})
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class User{
 
     @Id
