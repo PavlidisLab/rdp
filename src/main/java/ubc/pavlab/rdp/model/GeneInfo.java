@@ -22,7 +22,7 @@ import java.util.Set;
                 @Index(columnList = "symbol, taxon_id") })
 @Getter
 @Transactional
-public class GeneInfo extends Gene implements Serializable {
+public class GeneInfo extends Gene {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

@@ -274,7 +274,7 @@ public class ApiControllerTest {
     }
 
     @Test
-    public void searchGenes_withTier12_thenReturn200() throws Exception {
+    public void searchGenes_withTiers12_thenReturn200() throws Exception {
         Taxon humanTaxon = createTaxon( 9606 );
         User user = createUser( 1 );
         GeneInfo cdh1GeneInfo = createGene( 1, humanTaxon );
@@ -288,7 +288,7 @@ public class ApiControllerTest {
         mvc.perform( get( "/api/genes/search" )
                 .param( "symbol", "CDH1" )
                 .param( "taxonId", "9606" )
-                .param( "tier", "TIER1_2" ) )
+                .param( "tier", "TIERS1_2" ) )
                 .andExpect( status().is2xxSuccessful() )
                 .andExpect( content().contentTypeCompatibleWith( MediaType.APPLICATION_JSON ) );
 
@@ -310,7 +310,7 @@ public class ApiControllerTest {
         mvc.perform( get( "/api/genes/search" )
                 .param( "symbol", "CDH1" )
                 .param( "taxonId", "9606" )
-                .param( "tier", "TIER_ANY" ) )
+                .param( "tier", "ANY" ) )
                 .andExpect( status().is2xxSuccessful() )
                 .andExpect( content().contentTypeCompatibleWith( MediaType.APPLICATION_JSON ) );
 

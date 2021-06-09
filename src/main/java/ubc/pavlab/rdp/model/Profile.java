@@ -75,7 +75,6 @@ public class Profile {
     @Column(name = "hide_genelist", nullable = false)
     private boolean hideGenelist;
 
-    @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "user_id")
     private final Set<Publication> publications = new HashSet<>();

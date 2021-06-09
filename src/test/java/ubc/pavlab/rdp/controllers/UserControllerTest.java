@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -178,6 +179,7 @@ public class UserControllerTest {
     public void getUserStaticEndpoints_thenReturnSuccess() throws Exception {
         User user = createUser( 1 );
         when( userService.findCurrentUser() ).thenReturn( user );
+        when( applicationSettings.getFaqFile() ).thenReturn( new ClassPathResource( "faq.properties" ) );
         mvc.perform( get( "/user/home" ) )
                 .andExpect( status().isOk() )
                 .andExpect( view().name( "user/home" ) );
@@ -187,6 +189,15 @@ public class UserControllerTest {
         mvc.perform( get( "/user/faq" ) )
                 .andExpect( status().isOk() )
                 .andExpect( view().name( "user/faq" ) );
+    }
+
+    @Test
+    @WithMockUser
+    public void getUserFaq_whenFaqIsDisabled_thenReturn404() throws Exception {
+        when( applicationSettings.getFaqFile() ).thenReturn( null );
+        mvc.perform( get( "/user/faq" ) )
+                .andExpect( status().isNotFound() )
+                .andExpect( view().name( "error/404" ) );
     }
 
     @Test

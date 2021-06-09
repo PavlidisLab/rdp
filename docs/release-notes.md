@@ -1,5 +1,24 @@
 # Release Notes
 
+## 1.4.1
+
+This patch release fix some issues encountered while running the 1.4.0 in a production setup.
+
+Defaults for the Ehcache have been vastly improved, allowing more users and genes to be cached.
+
+Fix URLs encoding which posed an issue since random token can contain '+' signs.
+
+Fix regression when parsing TierType values. The 'ANY' has been inadvertently changed to 'TIER_ANY', and 'TIERS1_2' to
+'TIER1_2'.
+
+Validate the database schema on startup. If you are getting error from Hibernate validation with this release, please
+get in touch with our dev team to adjust your database.
+
+Hide the FAQ menu option if `rdp.settings.faq-file` is undefined.
+
+If you are still running RDP from the 1.3 series, you must update to 1.3.4 to operate with a 1.4 registry. This is due
+to the unfortunate default behaviour of Jackson to choke on unknown properties when deserializing JSON.
+
 ## 1.4.0
 
 ### Service accounts

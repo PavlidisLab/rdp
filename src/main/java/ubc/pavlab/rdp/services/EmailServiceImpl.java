@@ -102,7 +102,7 @@ public class EmailServiceImpl implements EmailService {
                 .path( "updatePassword" )
                 .queryParam( "id", user.getId() )
                 .queryParam( "token", token.getToken() )
-                .build().toUriString();
+                .build().encode().toUriString();
 
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter
                 .ofLocalizedDateTime( FormatStyle.SHORT )
@@ -135,6 +135,7 @@ public class EmailServiceImpl implements EmailService {
                 .path( "registrationConfirm" )
                 .queryParam( "token", token.getToken() )
                 .build()
+                .encode()
                 .toUriString();
         String message = registrationWelcome +
                 "\r\n\r\nPlease confirm your registration by clicking on the following link:\r\n\r\n" +
@@ -152,6 +153,7 @@ public class EmailServiceImpl implements EmailService {
                 .path( "user/verify-contact-email" )
                 .queryParam( "token", token.getToken() )
                 .build()
+                .encode()
                 .toUriString();
         String message = MessageFormat.format( "Please verify your contact email by clicking on the following link:\r\n\r\n{0}",
                 confirmationUrl );
@@ -169,6 +171,7 @@ public class EmailServiceImpl implements EmailService {
         String viewUserUrl = UriComponentsBuilder.fromUri( siteSettings.getHostUri() )
                 .path( "userView/{userId}" )
                 .buildAndExpand( Collections.singletonMap( "userId", replyTo.getId() ) )
+                .encode()
                 .toUriString();
         InternetAddress to = userGene.getUser().getVerifiedContactEmail().orElseThrow( () -> new MessagingException( "Could not find a verified email address for user." ) );
         InternetAddress replyToAddress = replyTo.getVerifiedContactEmail().orElseThrow( () -> new MessagingException( "Could not find a verified email address for user." ) );

@@ -3,6 +3,7 @@ package ubc.pavlab.rdp.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import lombok.extern.apachecommons.CommonsLog;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.ColumnDefault;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.TierType;
@@ -31,6 +32,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @EqualsAndHashCode(of = { "user" }, callSuper = true)
 @CommonsLog
+@org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @ToString(of = { "user", "tier", "privacyLevel" }, callSuper = true)
 public class UserGene extends Gene implements UserContent {
 

@@ -106,6 +106,20 @@ public class EmailServiceImplTest {
         assertThat( mailMessageCaptor.getValue().getText() ).
                 contains( "http://localhost/user/verify-contact-email?token=1234" );
     }
+    @Test
+    public void sendContactEmailVerificationMessage_whenTokenContainsInvalidCharacter_thenSucceed() throws MessagingException {
+        User user = createUser( 1 );
+        user.getProfile().setContactEmail( "foo@example.com" );
+        VerificationToken token = createContactEmailVerificationToken( user, "1234+" );
+        emailService.sendContactEmailVerificationMessage( user, token );
+        ArgumentCaptor<SimpleMailMessage> mailMessageCaptor = ArgumentCaptor.forClass( SimpleMailMessage.class );
+        verify( emailSender ).send( mailMessageCaptor.capture() );
+        assertThat( mailMessageCaptor.getValue() )
+                .hasFieldOrPropertyWithValue( "from", "RDMM <admin@example.com>" )
+                .hasFieldOrPropertyWithValue( "to", new String[]{ "foo@example.com" } );
+        assertThat( mailMessageCaptor.getValue().getText() ).
+                contains( "http://localhost/user/verify-contact-email?token=1234%2B" );
+    }
 
     @Test
     public void sendUserGeneAccessRequest_thenSucceed() throws MessagingException {
