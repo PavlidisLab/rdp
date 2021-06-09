@@ -131,11 +131,13 @@ public class LoginController {
     }
 
     @GetMapping(value = "/registrationConfirm")
-    public ModelAndView confirmRegistration( @RequestParam("token") String token ) {
+    public ModelAndView confirmRegistration( @RequestParam("token") String token,
+                                             RedirectAttributes redirectAttributes ) {
         ModelAndView modelAndView = new ModelAndView();
 
         try {
             userService.confirmVerificationToken( token );
+            redirectAttributes.addFlashAttribute( "message", "Your account has been enabled successfully, and you can now proceed to login." );
             modelAndView.setViewName( "redirect:/login" );
         } catch ( TokenException e ) {
             log.error( "Could not confirm registration token.", e );
