@@ -75,7 +75,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
             } else {
                 return openAPI.getInfo().getVersion();
             }
-        } catch ( InterruptedException | ExecutionException e ) {
+        } catch ( ExecutionException e ) {
             throw new RemoteException( MessageFormat.format( "Unsuccessful response received for {0}.", uri ), e );
         }
     }
@@ -151,7 +151,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
             User user = responseEntity.getBody();
             initUser( user );
             return user;
-        } catch ( InterruptedException | ExecutionException e ) {
+        } catch ( ExecutionException e ) {
             throw new RemoteException( MessageFormat.format( "Unsuccessful response received for {0}.", uri ), e );
         }
     }
@@ -179,7 +179,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
             User user = responseEntity.getBody();
             initUser( user );
             return user;
-        } catch ( InterruptedException | ExecutionException e ) {
+        } catch ( ExecutionException e ) {
             throw new RemoteException( MessageFormat.format( "Unsuccessful response received for {0}.", uri ), e );
         }
     }
@@ -197,7 +197,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
                 .map( future -> {
                     try {
                         return future.get( applicationSettings.getIsearch().getRequestTimeout(), TimeUnit.SECONDS );
-                    } catch ( InterruptedException | ExecutionException | TimeoutException e ) {
+                    } catch ( ExecutionException | TimeoutException e ) {
                         log.error( "Unsuccessful response received.", e );
                         return null;
                     }
