@@ -707,7 +707,8 @@ public class UserControllerTest {
         when( userService.findCurrentUser() ).thenReturn( user );
         mvc.perform( get( "/user/verify-contact-email" ).param( "token", "1234" ) )
                 .andExpect( status().is3xxRedirection() )
-                .andExpect( redirectedUrl( "/user/profile" ) );
+                .andExpect( redirectedUrl( "/user/profile" ) )
+                .andExpect( flash().attributeExists( "message" ) );
         verify( userService ).confirmVerificationToken( "1234" );
         verifyNoMoreInteractions( userService );
     }

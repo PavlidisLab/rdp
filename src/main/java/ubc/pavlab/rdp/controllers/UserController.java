@@ -237,7 +237,7 @@ public class UserController {
     public String verifyContactEmail( @RequestParam String token, RedirectAttributes redirectAttributes ) {
         try {
             userService.confirmVerificationToken( token );
-            redirectAttributes.addFlashAttribute( "Your contact email has been successfully verified." );
+            redirectAttributes.addFlashAttribute( "message", "Your contact email has been successfully verified." );
         } catch ( TokenException e ) {
             log.error( MessageFormat.format( "{0} attempt to confirm verification token failed.", userService.findCurrentUser() ), e );
             redirectAttributes.addFlashAttribute( "message", e.getMessage() );
