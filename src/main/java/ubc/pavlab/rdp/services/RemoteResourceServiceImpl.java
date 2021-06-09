@@ -77,6 +77,9 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
             }
         } catch ( ExecutionException e ) {
             throw new RemoteException( MessageFormat.format( "Unsuccessful response received for {0}.", uri ), e );
+        } catch ( InterruptedException e ) {
+            Thread.currentThread().interrupt();
+            throw new RemoteException( MessageFormat.format( "The current thread was interrupted while waiting for {0} response.", uri ), e );
         }
     }
 
@@ -153,6 +156,9 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
             return user;
         } catch ( ExecutionException e ) {
             throw new RemoteException( MessageFormat.format( "Unsuccessful response received for {0}.", uri ), e );
+        } catch ( InterruptedException e ) {
+            Thread.currentThread().interrupt();
+            throw new RemoteException( MessageFormat.format( "The current thread was interrupted while waiting for {0} response.", uri ), e );
         }
     }
 
@@ -181,6 +187,9 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
             return user;
         } catch ( ExecutionException e ) {
             throw new RemoteException( MessageFormat.format( "Unsuccessful response received for {0}.", uri ), e );
+        } catch ( InterruptedException e ) {
+            Thread.currentThread().interrupt();
+            throw new RemoteException( MessageFormat.format( "The current thread was interrupted while waiting for {0} response.", uri ), e );
         }
     }
 
@@ -199,6 +208,10 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
                         return future.get( applicationSettings.getIsearch().getRequestTimeout(), TimeUnit.SECONDS );
                     } catch ( ExecutionException | TimeoutException e ) {
                         log.error( "Unsuccessful response received.", e );
+                        return null;
+                    } catch ( InterruptedException e ) {
+                        Thread.currentThread().interrupt();
+                        log.error( "The current thread was interrupted while waiting for a response.", e );
                         return null;
                     }
                 } )
