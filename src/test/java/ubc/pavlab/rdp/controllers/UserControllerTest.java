@@ -564,10 +564,10 @@ public class UserControllerTest {
             throws Exception {
 
         User user = createUser( 1 );
+        user.getProfile().setWebsite( "malformed url" );
 
         when( userService.findCurrentUser() ).thenReturn( user );
         JSONObject profileJson = new JSONObject( user.getProfile() );
-        profileJson.put("website", "malformed url");
         JSONObject payload = new JSONObject();
         payload.put( "profile", profileJson );
 
