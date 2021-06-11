@@ -109,6 +109,8 @@ public class UserGeneServiceImpl implements UserGeneService {
     @Cacheable(cacheNames = "ubc.pavlab.rdp.stats", key = "#root.methodName")
     @Override
     public Integer countUniqueAssociationsAllTiers() {
+        if ( tierService.getEnabledTiers().isEmpty() )
+            return 0;
         return userGeneRepository.countDistinctGeneByTierIn( tierService.getEnabledTiers() );
     }
 
