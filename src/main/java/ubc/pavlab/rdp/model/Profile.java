@@ -62,7 +62,7 @@ public class Profile {
 
     @Column(name = "contact_email_verified", nullable = false)
     private boolean contactEmailVerified;
-    
+
     @Column(name = "website")
     private String website;
 
