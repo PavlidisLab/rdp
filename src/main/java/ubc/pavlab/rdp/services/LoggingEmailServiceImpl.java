@@ -13,6 +13,7 @@ import ubc.pavlab.rdp.model.VerificationToken;
 import ubc.pavlab.rdp.settings.SiteSettings;
 
 import javax.servlet.http.HttpServletRequest;
+import java.net.URI;
 import java.text.MessageFormat;
 import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
@@ -37,35 +38,31 @@ public class LoggingEmailServiceImpl implements EmailService {
 
     @Override
     public Future<Void> sendResetTokenMessage( User user, PasswordResetToken token, Locale locale ) {
-        String url = UriComponentsBuilder.fromUri( siteSettings.getHostUri() )
+        URI url = UriComponentsBuilder.fromUri( siteSettings.getHostUri() )
                 .path( "updatePassword" )
-                .queryParam( "id", user.getId() )
-                .queryParam( "token", token.getToken() )
-                .build().encode().toUriString();
+                .queryParam( "id", "{id}" )
+                .queryParam( "token", "{token}" )
+                .build( user.getId(), token.getToken() );
         log.info( MessageFormat.format( "Reset URL for {0}: {1}", user, url ) );
         return CompletableFuture.completedFuture( null );
     }
 
     @Override
     public Future<Void> sendRegistrationMessage( User user, VerificationToken token, Locale locale ) {
-        String confirmationUrl = UriComponentsBuilder.fromUri( siteSettings.getHostUri() )
+        URI confirmationUrl = UriComponentsBuilder.fromUri( siteSettings.getHostUri() )
                 .path( "registrationConfirm" )
-                .queryParam( "token", token.getToken() )
-                .build()
-                .encode()
-                .toUriString();
+                .queryParam( "token", "{token}" )
+                .build( token.getToken() );
         log.info( MessageFormat.format( "Confirmation URL for {0}: {1}", user, confirmationUrl ) );
         return CompletableFuture.completedFuture( null );
     }
 
     @Override
     public Future<Void> sendContactEmailVerificationMessage( User user, VerificationToken token, Locale locale ) {
-        String confirmationUrl = UriComponentsBuilder.fromUri( siteSettings.getHostUri() )
+        URI confirmationUrl = UriComponentsBuilder.fromUri( siteSettings.getHostUri() )
                 .path( "user/verify-contact-email" )
-                .queryParam( "token", token.getToken() )
-                .build()
-                .encode()
-                .toUriString();
+                .queryParam( "token", "{token}" )
+                .build( token.getToken() );
         log.info( MessageFormat.format( "Contact email verification URL for {0}: {1}", user, confirmationUrl ) );
         return CompletableFuture.completedFuture( null );
     }
