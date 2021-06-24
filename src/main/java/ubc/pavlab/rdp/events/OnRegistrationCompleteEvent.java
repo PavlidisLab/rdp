@@ -7,6 +7,8 @@ import org.springframework.context.ApplicationEvent;
 import ubc.pavlab.rdp.model.User;
 import ubc.pavlab.rdp.model.VerificationToken;
 
+import java.util.Locale;
+
 /**
  * Created by mjacobson on 22/01/18.
  */
@@ -18,9 +20,12 @@ public class OnRegistrationCompleteEvent extends ApplicationEvent {
 
     private final VerificationToken token;
 
-    public OnRegistrationCompleteEvent( User user, VerificationToken token ) {
+    private final Locale locale;
+
+    public OnRegistrationCompleteEvent( User user, VerificationToken token, Locale locale ) {
         super( user );
         this.user = user;
         this.token = token;
+        this.locale = locale;
     }
 }

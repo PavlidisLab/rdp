@@ -149,7 +149,8 @@ public class UserController {
     public ModelAndView supportPost( HttpServletRequest request,
                                      @RequestParam String name,
                                      @RequestParam String message,
-                                     @RequestParam(required = false) MultipartFile attachment ) {
+                                     @RequestParam(required = false) MultipartFile attachment,
+                                     Locale locale ) {
         ModelAndView modelAndView = new ModelAndView( "user/support" );
         User user = userService.findCurrentUser();
         modelAndView.addObject( "user", user );
@@ -157,7 +158,7 @@ public class UserController {
         log.info( MessageFormat.format( "{0} is attempting to contact support.", user ) );
 
         try {
-            emailService.sendSupportMessage( message, name, user, request, attachment );
+            emailService.sendSupportMessage( message, name, user, request.getHeader( "User-Agent" ), attachment, locale );
             modelAndView.addObject( "message", "Sent. We will get back to you shortly." );
             modelAndView.addObject( "success", Boolean.TRUE );
         } catch ( MessagingException e ) {
@@ -222,13 +223,13 @@ public class UserController {
 
     @Transactional
     @PostMapping("/user/resend-contact-email-verification")
-    public Object resendContactEmailVerification( RedirectAttributes redirectAttributes ) {
+    public Object resendContactEmailVerification( RedirectAttributes redirectAttributes, Locale locale ) {
         User user = userService.findCurrentUser();
         if ( user.getProfile().isContactEmailVerified() ) {
             return ResponseEntity.badRequest().body( "Contact email is already verified." );
         }
         VerificationToken token = userService.createContactEmailVerificationTokenForUser( user );
-        eventPublisher.publishEvent( new OnContactEmailUpdateEvent( user, token ) );
+        eventPublisher.publishEvent( new OnContactEmailUpdateEvent( user, token, locale ) );
         redirectAttributes.addFlashAttribute( "message", MessageFormat.format( "We will send an email to {0} with a link to verify your contact email.", user.getProfile().getContactEmail() ) );
         return "redirect:/user/profile";
     }
@@ -255,9 +256,9 @@ public class UserController {
 
     @ResponseBody
     @PostMapping(value = "/user/profile", produces = MediaType.TEXT_PLAIN_VALUE)
-    public String saveProfile( @RequestBody ProfileWithOrganUberonIds profileWithOrganUberonIds ) {
+    public String saveProfile( @RequestBody ProfileWithOrganUberonIds profileWithOrganUberonIds, Locale locale ) {
         User user = userService.findCurrentUser();
-        userService.updateUserProfileAndPublicationsAndOrgans( user, profileWithOrganUberonIds.profile, profileWithOrganUberonIds.profile.getPublications(), profileWithOrganUberonIds.organUberonIds );
+        userService.updateUserProfileAndPublicationsAndOrgans( user, profileWithOrganUberonIds.profile, profileWithOrganUberonIds.profile.getPublications(), profileWithOrganUberonIds.organUberonIds, locale );
         return "Saved.";
     }
 
