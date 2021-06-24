@@ -3,7 +3,11 @@ package ubc.pavlab.rdp;
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.task.AsyncListenableTaskExecutor;
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.client.AsyncRestTemplate;
 import org.springframework.web.client.RestTemplate;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
@@ -23,6 +27,7 @@ public class RemoteResourceConfig {
             SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
             Proxy proxy = new Proxy( Proxy.Type.HTTP, new InetSocketAddress( proxyHost, proxyPort ) );
             requestFactory.setProxy( proxy );
+            requestFactory.setTaskExecutor( new SimpleAsyncTaskExecutor() );
             return new AsyncRestTemplate( requestFactory );
         } else {
             return new AsyncRestTemplate();
