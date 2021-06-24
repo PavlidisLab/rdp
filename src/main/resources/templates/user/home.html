@@ -16,7 +16,8 @@
 
     <div class="main-content my-3">
 
-        <div th:utext="#{rdp.site.welcome}" th:remove="tag"></div>
+        <div th:utext="#{rdp.site.welcome(#{rdp.site.shortname}, @{/user/profile}, @{/user/faq}, @{/user/documentation}, @{/user/support})}"
+             th:remove="tag"></div>
 
         <hr/>
 

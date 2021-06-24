@@ -126,7 +126,8 @@ public class EmailServiceImpl implements EmailService {
 
     @Override
     public void sendRegistrationMessage( User user, VerificationToken token ) throws MessagingException {
-        String registrationWelcome = messageSource.getMessage( "rdp.site.email.registration-welcome", new String[]{ siteSettings.getHostUri().toString() }, Locale.getDefault() );
+        String shortName = messageSource.getMessage( "rdp.site.shortname", new String[]{ siteSettings.getHostUri().toString() }, Locale.getDefault() );
+        String registrationWelcome = messageSource.getMessage( "rdp.site.email.registration-welcome", new String[]{ siteSettings.getHostUri().toString(), shortName }, Locale.getDefault() );
         String registrationEnding = messageSource.getMessage( "rdp.site.email.registration-ending", new String[]{ siteSettings.getContactEmail() }, Locale.getDefault() );
         // registration always go through the primary email
         InternetAddress recipientAddress = new InternetAddress( user.getEmail() );
