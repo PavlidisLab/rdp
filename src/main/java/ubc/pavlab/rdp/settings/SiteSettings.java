@@ -25,8 +25,5 @@ public class SiteSettings {
 
     private String adminEmail;
 
-    private String proxyHost;
-    private String proxyPort;
-
     private String gaTracker;
 }
