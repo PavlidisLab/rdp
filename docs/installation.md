@@ -13,7 +13,7 @@ This section describes the essential steps to deploy an RDP registry.
 Download the [latest jar distribution](https://github.com/PavlidisLab/rgr/releases/latest) from GitHub.
 
 ```bash
-wget -O rdp.jar https://github.com/PavlidisLab/rgr/releases/download/v1.3.2/rdp-1.3.2.jar
+wget https://github.com/PavlidisLab/rgr/releases/download/v{{ config.extra.rdp_version }}/rdp-{{ config.extra.rdp_version }}.jar
 ```
 
 The jar contains the core application, including an embedded webserver (Tomcat 8.5.x),
@@ -64,7 +64,7 @@ That should be enough to get the Web service started. Now you can launch it by
 issuing the following command:
 
 ```bash
-java -jar rdp.jar
+java -jar rdp-{{ config.extra.rdp_version }}.jar
 ```
 
 If your email server is not properly configured, you will see an error from the

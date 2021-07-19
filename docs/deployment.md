@@ -21,16 +21,16 @@ not enough entropy to feed them in `/dev/random`.
 
 Set `-Dhttp.proxyHost` and `-Dhttp.proxyPort` to perform HTTP accesses through a proxy.
 
-Likewise, you can set up a proxy for FTP connections with `-Dftp.proxyHost` and `ftp.proxyPort`.
+Likewise, you can set up a proxy for FTP connections with `-Dftp.proxyHost` and `-Dftp.proxyPort`.
 
 ## General steps
 
 1. Create a working directory for the web service: `mkdir -p /project/directory`
 2. Move into that directory: `cd /project/directory`
-3. Download the latest release: `wget https://github.com/PavlidisLab/modinvreg/releases/download/vx.x/rdp-x.x.x.jar`
+3. Download the latest release: `wget -O rdp-{{ config.extra.rdp_version }}.jar https://github.com/PavlidisLab/rdp/releases/download/v{{ config.extra.rdp_version }}/rdp-{{ config.extra.rdp_version }}.jar`
 4. Create `application.properties`, and optionally `faq.properties` and
    `messages.properties` if you want to [customize messages](customization.md#customizing-the-applications-messages).
-5. Test your setup: `java -jar rdp-x.x.x.jar`
+5. Test your setup: `java -jar rdp-{{ config.extra.rdp_version }}.jar`
 6. Log into the database and activate other organisms and organ systems (optional)
 7. Deploy using Systemd (see below) or a Docker container
 
@@ -51,7 +51,7 @@ After=syslog.target
 User=tomcat
 Group=tomcat
 WorkingDirectory=/project/directory
-ExecStart=/bin/java -Xms256m -Xmx3g -Dserver.port=<port> -Djava.security.egd=file:/dev/./urandom -jar rdp-x.x.x.jar
+ExecStart=/bin/java -Xms256m -Xmx3g -Dserver.port=<port> -Djava.security.egd=file:/dev/urandom -jar rdp-{{ config.extra.rdp_version }}.jar
 SuccessExitStatus=143
 
 [Install]
