@@ -2,8 +2,6 @@ package ubc.pavlab.rdp.listeners;
 
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.event.EventListener;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
 import ubc.pavlab.rdp.events.OnContactEmailUpdateEvent;
@@ -37,7 +35,7 @@ public class UserListener {
         }
 
         try {
-            emailService.sendRegistrationMessage( event.getUser(), event.getToken() );
+            emailService.sendRegistrationMessage( event.getUser(), event.getToken(), event.getLocale() );
         } catch ( MessagingException e ) {
             log.error( MessageFormat.format( "Could not send registration email to {0}.", event.getUser() ), e );
         }
@@ -46,7 +44,7 @@ public class UserListener {
     @TransactionalEventListener
     public void onContactEmailUpdate( OnContactEmailUpdateEvent event ) {
         try {
-            emailService.sendContactEmailVerificationMessage( event.getUser(), event.getToken() );
+            emailService.sendContactEmailVerificationMessage( event.getUser(), event.getToken(), event.getLocale() );
         } catch ( MessagingException e ) {
             log.error( MessageFormat.format( "Could not send contact email verification to {0}.", event.getUser() ), e );
         }

@@ -1,5 +1,28 @@
 # Release Notes
 
+## 1.4.2
+
+Restore rdp.site.shortname and rdp.site.fullname in `application.properties` since they're still being used in the user
+FAQ.
+
+Fix missing TaskExecutor when using an HTTP proxy. It now uses native`-Dhttp.proxyHost` and `-Dhttp.proxyPort` JVM flags;
+the proxy settings in `SiteSettings` and `InternationalSearchSetings` have been simply removed.
+
+Interpolate shortname and URLs in messages.
+
+Move all email text into messages.properties so they can be adjusted and translated
+
+Fix missing flash messages after confirming registration and contact email.
+
+Fix /api/users API endpoint for registries that are not using gene-level privacy. In this case, the gene privacy level
+is always set to `null` and the value in the profile must be used instead as a fallback.
+
+Require MySQL 5.7+ and add instructions for using MySQL 5.6 and prior. This is due to a index size limit that is busted
+with access and verification token when 4-bytes character encoding is used (i.e. utf8mb4).
+
+Fix incorrect primary key for researcher categories that resulted in the impossibility of adding more than one category to
+a given user profile.
+
 ## 1.4.1
 
 This patch release fix some issues encountered while running the 1.4.0 in a production setup.

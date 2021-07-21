@@ -256,7 +256,7 @@ This feature can be disabled by setting the following configuration key to `fals
 rdp.settings.privacy.enable-anonymized-search-results=false
 ```
 
-## Customaxing the application's messages
+## Customizing the application's messages
 
 Some text displayed in RDP can be customized and/or internationalized. To do so, copy a provided `messages.properties` file in the working directory of the Web application and edit it. The file is found in
 [messages.properties](https://github.com/PavlidisLab/rgr/blob/master/src/main/resources/messages.properties)

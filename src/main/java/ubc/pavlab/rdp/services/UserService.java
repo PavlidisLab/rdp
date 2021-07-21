@@ -2,7 +2,6 @@ package ubc.pavlab.rdp.services;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.transaction.annotation.Transactional;
 import ubc.pavlab.rdp.exception.TokenException;
@@ -13,7 +12,6 @@ import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import ubc.pavlab.rdp.model.enums.TierType;
 
 import javax.validation.ValidationException;
-import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 /**
@@ -91,7 +89,7 @@ public interface UserService {
                                      Map<GeneInfo, PrivacyLevelType> genesToPrivacyLevelMap,
                                      Collection<GeneOntologyTermInfo> goTerms );
 
-    User updateUserProfileAndPublicationsAndOrgans( User user, Profile profile, Set<Publication> publications, Set<String> organUberonIds );
+    User updateUserProfileAndPublicationsAndOrgans( User user, Profile profile, Set<Publication> publications, Set<String> organUberonIds, Locale locale );
 
     PasswordResetToken createPasswordResetTokenForUser( User user );
 

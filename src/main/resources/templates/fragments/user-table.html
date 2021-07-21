@@ -93,6 +93,7 @@
                 <i class="oi oi-person"></i>
                 View User Profile
             </a>
+            <!-- FIXME: this is not supported yet
             <a th:if="${ug.anonymousId} and ${remote}"
                th:href="@{/search/gene/by-anonymous-id/{anonymousId}/request-access(anonymousId=${ug.anonymousId},remoteHost=${ug.user.originUrl})}"
                th:attr="data-anonymous-user-id=${ug.user.anonymousId},data-remote-host=${ug.user.originUrl}"
@@ -100,6 +101,7 @@
                 <i class="oi oi-lock-locked"></i>
                 Request Access
             </a>
+            -->
             <a th:if="${ug.anonymousId} and not ${remote}"
                th:href="@{/search/gene/by-anonymous-id/{anonymousId}/request-access(anonymousId=${ug.anonymousId})}"
                th:attr="data-anonymous-user-id=${ug.user.anonymousId}"

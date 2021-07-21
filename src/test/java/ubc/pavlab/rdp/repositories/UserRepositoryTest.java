@@ -468,4 +468,12 @@ public class UserRepositoryTest {
                 .hasFieldOrPropertyWithValue( "researcherPosition", ResearcherPosition.PRINCIPAL_INVESTIGATOR )
                 .hasFieldOrPropertyWithValue( "researcherCategories", EnumSet.of( ResearcherCategory.IN_SILICO ) );
     }
+
+    @Test
+    public void save_whenUserHasMultipleResearcherCategories_thenSucceed() {
+        User user = createUnpersistedUser();
+        user.getProfile().getResearcherCategories().add( ResearcherCategory.IN_SILICO );
+        user.getProfile().getResearcherCategories().add( ResearcherCategory.IN_VIVO );
+        user = entityManager.persistAndFlush( user );
+    }
 }

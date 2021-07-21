@@ -5,7 +5,7 @@ This section describes the essential steps to deploy an RDP registry.
 ## Requirements
 
 - Java 8+
-- MySQL 5.5+ or equivalent
+- MySQL 5.7+ or equivalent
 - SMTP mail server
 
 ## Obtain a distribution of RDP
@@ -13,7 +13,7 @@ This section describes the essential steps to deploy an RDP registry.
 Download the [latest jar distribution](https://github.com/PavlidisLab/rgr/releases/latest) from GitHub.
 
 ```bash
-wget -O rdp.jar https://github.com/PavlidisLab/rgr/releases/download/v1.3.2/rdp-1.3.2.jar
+wget https://github.com/PavlidisLab/rgr/releases/download/v{{ config.extra.rdp_version }}/rdp-{{ config.extra.rdp_version }}.jar
 ```
 
 The jar contains the core application, including an embedded webserver (Tomcat 8.5.x),
@@ -25,10 +25,14 @@ Create the database and an associated user that the application will use to
 store and retrieve data.
 
 ```sql
-create database <database name> character set utf8mb4 collate utf8mb4_unicode_ci;
+create database <database name> character set utf8mb4 collate utf8mb4_general_ci;
 create user  '<database username>'@'%' identified by '<database password>';
 grant all on rdp.* to '<database username>'@'%';
 ```
+
+If you're using MySQL 5.6 or prior, use the `utf8` character set and `utf8_general_ci` collate. It is a 3 bytes subset
+of the typical 4-bytes UTF-8 character encoding. Otherwise, you will face issues with the index size limit of 767 bytes
+due to some of our indexed columns containing 255 characters (4 * 255 = 1020 > 767, but 3 * 255 = 765).
 
 ## Setup application.properties
 
@@ -60,7 +64,7 @@ That should be enough to get the Web service started. Now you can launch it by
 issuing the following command:
 
 ```bash
-java -jar rdp.jar
+java -jar rdp-{{ config.extra.rdp_version }}.jar
 ```
 
 If your email server is not properly configured, you will see an error from the

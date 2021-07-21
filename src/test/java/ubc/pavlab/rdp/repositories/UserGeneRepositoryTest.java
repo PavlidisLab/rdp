@@ -10,6 +10,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -282,6 +283,53 @@ public class UserGeneRepositoryTest {
         int count = userGeneRepository.countDistinctUser();
 
         assertThat( count ).isEqualTo( 3 );
+    }
+
+    @Test
+    public void findAllByPrivacyLevelAndUserProfilePrivacyLevel() {
+        Gene gene1 = entityManager.persist( createGene( 1, taxon ) );
+        Gene gene2 = entityManager.persist( createGene( 2, taxon ) );
+        Gene gene3 = entityManager.persist( createGene( 3, taxon ) );
+        user.getProfile().setPrivacyLevel( PrivacyLevelType.PUBLIC );
+        user.getUserGenes().clear();
+        user = entityManager.persistAndFlush( user );
+        UserGene userGene = entityManager.persist( createUnpersistedUserGene( gene1, user, TierType.TIER1, PrivacyLevelType.PUBLIC ) );
+        UserGene sharedUserGene = entityManager.persist( createUnpersistedUserGene( gene2, user, TierType.TIER1, PrivacyLevelType.SHARED ) );
+        UserGene privateUserGene = entityManager.persist( createUnpersistedUserGene( gene3, user, TierType.TIER1, PrivacyLevelType.PRIVATE ) );
+        assertThat( userGeneRepository.findAllByPrivacyLevelAndUserProfilePrivacyLevel( PrivacyLevelType.PUBLIC, null ) )
+                .containsExactly( userGene );
+        assertThat( userGeneRepository.findAllByPrivacyLevelAndUserProfilePrivacyLevel( PrivacyLevelType.SHARED, null ) )
+                .containsExactly( sharedUserGene );
+        assertThat( userGeneRepository.findAllByPrivacyLevelAndUserProfilePrivacyLevel( PrivacyLevelType.PRIVATE, null ) )
+                .containsExactly( privateUserGene );
+    }
+
+    @Test
+    public void findAllByPrivacyLevelAndUserProfilePrivacyLevel_whenProfileIsPrivate() {
+        Gene gene1 = entityManager.persist( createGene( 1, taxon ) );
+        Gene gene2 = entityManager.persist( createGene( 2, taxon ) );
+        Gene gene3 = entityManager.persist( createGene( 3, taxon ) );
+        user.getProfile().setPrivacyLevel( PrivacyLevelType.PRIVATE );
+        user.getUserGenes().clear();
+        user = entityManager.persistAndFlush( user );
+        UserGene userGene = entityManager.persist( createUnpersistedUserGene( gene1, user, TierType.TIER1, PrivacyLevelType.PUBLIC ) );
+        UserGene sharedUserGene = entityManager.persist( createUnpersistedUserGene( gene2, user, TierType.TIER1, PrivacyLevelType.SHARED ) );
+        UserGene privateUserGene = entityManager.persist( createUnpersistedUserGene( gene3, user, TierType.TIER1, PrivacyLevelType.PRIVATE ) );
+        assertThat( userGeneRepository.findAllByPrivacyLevelAndUserProfilePrivacyLevel( PrivacyLevelType.PUBLIC, null ) ).isEmpty();
+        assertThat( userGeneRepository.findAllByPrivacyLevelAndUserProfilePrivacyLevel( PrivacyLevelType.SHARED, null ) ).isEmpty();
+        assertThat( userGeneRepository.findAllByPrivacyLevelAndUserProfilePrivacyLevel( PrivacyLevelType.PRIVATE, null ) )
+                .containsExactly( userGene, sharedUserGene, privateUserGene );
+    }
+
+    @Test
+    public void findAllByPrivacyLevelAndUserProfilePrivacyLevel_whenGenePrivacyLevelIsNull_thenFallbackOnProfile() {
+        Gene gene = entityManager.persist( createGene( 1, taxon ) );
+        user.getProfile().setPrivacyLevel( PrivacyLevelType.PUBLIC );
+        user.getUserGenes().clear();
+        user = entityManager.persistAndFlush( user );
+        UserGene userGene = entityManager.persist( createUnpersistedUserGene( gene, user, TierType.TIER1, null ) );
+        assertThat( userGeneRepository.findAllByPrivacyLevelAndUserProfilePrivacyLevel( PrivacyLevelType.PUBLIC, null ) )
+                .containsExactly( userGene );
     }
 
     @Test

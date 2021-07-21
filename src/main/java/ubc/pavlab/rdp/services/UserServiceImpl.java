@@ -526,7 +526,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     @Override
     @PreAuthorize("hasPermission(#user, 'update')")
-    public User updateUserProfileAndPublicationsAndOrgans( User user, Profile profile, Set<Publication> publications, Set<String> organUberonIds ) {
+    public User updateUserProfileAndPublicationsAndOrgans( User user, Profile profile, Set<Publication> publications, Set<String> organUberonIds, Locale locale ) {
         user.getProfile().setDepartment( profile.getDepartment() );
         user.getProfile().setDescription( profile.getDescription() );
         user.getProfile().setLastName( profile.getLastName() );
@@ -563,7 +563,7 @@ public class UserServiceImpl implements UserService {
                 } else {
                     user.getProfile().setContactEmailVerified( false );
                     VerificationToken token = createContactEmailVerificationTokenForUser( user );
-                    eventPublisher.publishEvent( new OnContactEmailUpdateEvent( user, token ) );
+                    eventPublisher.publishEvent( new OnContactEmailUpdateEvent( user, token, locale ) );
                 }
             } else {
                 // contact email is unset, so we don't need to send a confirmation
