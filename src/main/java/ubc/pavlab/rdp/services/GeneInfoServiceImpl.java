@@ -95,7 +95,11 @@ public class GeneInfoServiceImpl implements GeneInfoService {
     public void updateGenes() {
         ApplicationSettings.CacheSettings cacheSettings = applicationSettings.getCache();
         log.info( "Updating genes..." );
-        for ( Taxon taxon : taxonService.findByActiveTrue() ) {
+        Collection<Taxon> activeTaxons = taxonService.findByActiveTrue();
+        if ( activeTaxons.isEmpty() ) {
+            log.warn( "No taxon are active, no genes will be updated." );
+        }
+        for ( Taxon taxon : activeTaxons ) {
             if ( taxon.getGeneUrl() == null ) {
                 log.warn( MessageFormat.format( "Gene info URL for {0} is not defined, skipping this taxon.", taxon ) );
             }
@@ -161,6 +165,11 @@ public class GeneInfoServiceImpl implements GeneInfoService {
                 .map( Taxon::getId )
                 .collect( Collectors.toSet() );
 
+        if ( activeTaxonIds.isEmpty() ) {
+            log.warn( "No taxon are active, skipping gene ortholog update." );
+            return;
+        }
+
         List<GeneOrthologsParser.Record> records;
         try {
             records = geneOrthologsParser.parse( new GZIPInputStream( resource.getInputStream() ) );
@@ -173,6 +182,11 @@ public class GeneInfoServiceImpl implements GeneInfoService {
                 .filter( record -> record.getRelationship().equals( "Ortholog" ) )
                 .filter( record -> activeTaxonIds.contains( record.getTaxonId() ) && activeTaxonIds.contains( record.getOrthologTaxonId() ) )
                 .collect( groupingBy( GeneOrthologsParser.Record::getGeneId ) );
+
+        if ( recordByGeneId.isEmpty() ) {
+            log.warn( MessageFormat.format( "No gene orthologs were found in {0} for active taxon. Make sure that the correct file is used.", resource ) );
+            return;
+        }
 
         log.info( MessageFormat.format( "Loading all genes referred by {0}", resource ) );
         Map<Integer, GeneInfo> geneInfoWithOrthologsByGeneId = geneInfoRepository.findAllByGeneIdWithOrthologs( recordByGeneId.keySet() )
