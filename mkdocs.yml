@@ -9,3 +9,7 @@ nav:
   - migration.md
   - api.md
   - release-notes.md
+plugins:
+  - macros
+extra:
+  rdp_version: 1.4.2

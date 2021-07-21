@@ -7,7 +7,6 @@ import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.mail.SimpleMailMessage;
@@ -23,7 +22,6 @@ import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.settings.SiteSettings;
 
 import javax.mail.MessagingException;
-
 import java.net.URI;
 import java.util.Locale;
 
@@ -54,9 +52,6 @@ public class EmailServiceImplTest {
     @MockBean
     private JavaMailSender emailSender;
 
-    @Autowired
-    private MessageSource messageSource;
-
     @Before
     public void setUp() {
         when( siteSettings.getAdminEmail() ).thenReturn( "admin@example.com" );
@@ -64,6 +59,38 @@ public class EmailServiceImplTest {
     }
 
     @Test
+    public void sendUserRegistered_thenSucceed() throws MessagingException {
+        User user = createUser( 1 );
+        emailService.sendUserRegisteredEmail( user );
+        ArgumentCaptor<SimpleMailMessage> mailMessageCaptor = ArgumentCaptor.forClass( SimpleMailMessage.class );
+        verify( emailSender ).send( mailMessageCaptor.capture() );
+        assertThat( mailMessageCaptor.getValue() )
+                .hasFieldOrPropertyWithValue( "from", "RDMM <admin@example.com>" )
+                .hasFieldOrPropertyWithValue( "to", new String[]{ "RDMM <admin@example.com>" } );
+        assertThat( mailMessageCaptor.getValue().getSubject() ).contains( "RDMM" );
+        assertThat( mailMessageCaptor.getValue().getText() )
+                .contains( user.getEmail() );
+    }
+
+    @Test
+    public void sendSupportMessage_thenSucceed() throws MessagingException {
+        User user = createUser( 1 );
+        user.setEnabled( true );
+        emailService.sendSupportMessage( "I need help!", "John Doe", user, "Google Chrome", null, Locale.getDefault() );
+        ArgumentCaptor<SimpleMailMessage> mailMessageCaptor = ArgumentCaptor.forClass( SimpleMailMessage.class );
+        verify( emailSender ).send( mailMessageCaptor.capture() );
+        assertThat( mailMessageCaptor.getValue() )
+                .hasFieldOrPropertyWithValue( "from", "RDMM <admin@example.com>" )
+                .hasFieldOrPropertyWithValue( "to", new String[]{ "RDMM <admin@example.com>" } )
+                .hasFieldOrPropertyWithValue( "replyTo", "\"Wayne, Bruce\" <bruce@wayne.com>" );
+        assertThat( mailMessageCaptor.getValue().getSubject() ).contains( "RDMM" );
+        assertThat( mailMessageCaptor.getValue().getText() )
+                .contains( "John Doe" )
+                .contains( user.getEmail() )
+                .contains( "Google Chrome" )
+                .contains( "I need help!" );
+    }
+
     public void sendResetTokenMessage_thenSucceed() throws MessagingException {
         when( siteSettings.getHostUri() ).thenReturn( URI.create( "http://localhost" ) );
         User user = createUser( 1 );
@@ -74,6 +101,7 @@ public class EmailServiceImplTest {
         assertThat( mailMessageCaptor.getValue() )
                 .hasFieldOrPropertyWithValue( "from", "RDMM <admin@example.com>" )
                 .hasFieldOrPropertyWithValue( "to", new String[]{ user.getEmail() } );
+        assertThat( mailMessageCaptor.getValue().getSubject() ).contains( "RDMM" );
         assertThat( mailMessageCaptor.getValue().getText() )
                 .contains( "http://localhost/updatePassword?id=1&token=1234" );
     }
@@ -82,12 +110,13 @@ public class EmailServiceImplTest {
     public void sendRegistrationMessageMessage_thenSucceed() throws MessagingException {
         User user = createUser( 1 );
         VerificationToken token = createVerificationToken( user, "1234" );
-        emailService.sendRegistrationMessage( user, token );
+        emailService.sendRegistrationMessage( user, token, Locale.getDefault() );
         ArgumentCaptor<SimpleMailMessage> mailMessageCaptor = ArgumentCaptor.forClass( SimpleMailMessage.class );
         verify( emailSender ).send( mailMessageCaptor.capture() );
         assertThat( mailMessageCaptor.getValue() )
                 .hasFieldOrPropertyWithValue( "from", "RDMM <admin@example.com>" )
                 .hasFieldOrPropertyWithValue( "to", new String[]{ user.getEmail() } );
+        assertThat( mailMessageCaptor.getValue().getSubject() ).contains( "RDMM" );
         assertThat( mailMessageCaptor.getValue().getText() ).
                 contains( "http://localhost/registrationConfirm?token=1234" );
     }
@@ -97,26 +126,29 @@ public class EmailServiceImplTest {
         User user = createUser( 1 );
         user.getProfile().setContactEmail( "foo@example.com" );
         VerificationToken token = createContactEmailVerificationToken( user, "1234" );
-        emailService.sendContactEmailVerificationMessage( user, token );
+        emailService.sendContactEmailVerificationMessage( user, token, Locale.getDefault() );
         ArgumentCaptor<SimpleMailMessage> mailMessageCaptor = ArgumentCaptor.forClass( SimpleMailMessage.class );
         verify( emailSender ).send( mailMessageCaptor.capture() );
         assertThat( mailMessageCaptor.getValue() )
                 .hasFieldOrPropertyWithValue( "from", "RDMM <admin@example.com>" )
                 .hasFieldOrPropertyWithValue( "to", new String[]{ "foo@example.com" } );
+        assertThat( mailMessageCaptor.getValue().getSubject() ).contains( "RDMM" );
         assertThat( mailMessageCaptor.getValue().getText() ).
                 contains( "http://localhost/user/verify-contact-email?token=1234" );
     }
+
     @Test
     public void sendContactEmailVerificationMessage_whenTokenContainsInvalidCharacter_thenSucceed() throws MessagingException {
         User user = createUser( 1 );
         user.getProfile().setContactEmail( "foo@example.com" );
         VerificationToken token = createContactEmailVerificationToken( user, "1234+" );
-        emailService.sendContactEmailVerificationMessage( user, token );
+        emailService.sendContactEmailVerificationMessage( user, token, Locale.getDefault() );
         ArgumentCaptor<SimpleMailMessage> mailMessageCaptor = ArgumentCaptor.forClass( SimpleMailMessage.class );
         verify( emailSender ).send( mailMessageCaptor.capture() );
         assertThat( mailMessageCaptor.getValue() )
                 .hasFieldOrPropertyWithValue( "from", "RDMM <admin@example.com>" )
                 .hasFieldOrPropertyWithValue( "to", new String[]{ "foo@example.com" } );
+        assertThat( mailMessageCaptor.getValue().getSubject() ).contains( "RDMM" );
         assertThat( mailMessageCaptor.getValue().getText() ).
                 contains( "http://localhost/user/verify-contact-email?token=1234%2B" );
     }
@@ -139,8 +171,10 @@ public class EmailServiceImplTest {
                 .hasFieldOrPropertyWithValue( "to", new String[]{ "\"Wayne, Bruce\" <bar@example.com>" } )
                 .hasFieldOrPropertyWithValue( "replyTo", "\"Wayne, Bruce\" <foo@example.com>" )
                 .hasFieldOrPropertyWithValue( "cc", new String[]{ "RDMM <admin@example.com>" } );
+        assertThat( mailMessageCaptor.getValue().getSubject() ).contains( "RDMM" );
         assertThat( mailMessage.getText() )
                 .contains( userGene.getSymbol() )
+                .contains( user.getProfile().getFullName() )
                 .contains( "http://localhost/userView/1" );
     }
 }

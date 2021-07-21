@@ -79,7 +79,7 @@ public class UserGeneServiceImpl implements UserGeneService {
 
     @Override
     public Page<UserGene> findAllByPrivacyLevel( PrivacyLevelType privacyLevelType, Pageable pageable ) {
-        return userGeneRepository.findAllByPrivacyLevelAndUserProfilePrivacyLevel( privacyLevelType, privacyLevelType, pageable );
+        return userGeneRepository.findAllByPrivacyLevelAndUserProfilePrivacyLevel( privacyLevelType, pageable );
     }
 
     @Cacheable(cacheNames = "stats", key = "#root.methodName")

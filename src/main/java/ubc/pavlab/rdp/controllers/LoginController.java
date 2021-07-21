@@ -25,6 +25,8 @@ import ubc.pavlab.rdp.services.PrivacyService;
 import ubc.pavlab.rdp.services.UserService;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 
+import java.util.Locale;
+
 /**
  * Created by mjacobson on 16/01/18.
  */
@@ -69,7 +71,8 @@ public class LoginController {
     @PostMapping("/registration")
     public ModelAndView createNewUser( @Validated(User.ValidationUserAccount.class) User user,
                                        BindingResult bindingResult,
-                                       RedirectAttributes redirectAttributes ) {
+                                       RedirectAttributes redirectAttributes,
+                                       Locale locale ) {
         ModelAndView modelAndView = new ModelAndView( "registration" );
         User userExists = userService.findUserByEmailNoAuth( user.getEmail() );
 
@@ -92,7 +95,7 @@ public class LoginController {
         } else {
             user = userService.create( user );
             VerificationToken token = userService.createVerificationTokenForUser( user );
-            eventPublisher.publishEvent( new OnRegistrationCompleteEvent( user, token ) );
+            eventPublisher.publishEvent( new OnRegistrationCompleteEvent( user, token, locale ) );
             redirectAttributes.addFlashAttribute( "message", "Your user account was registered successfully. Please check your email for completing the completing the registration process." );
             modelAndView.setViewName( "redirect:/login" );
         }
@@ -107,7 +110,7 @@ public class LoginController {
 
     @Transactional
     @PostMapping(value = "/resendConfirmation")
-    public ModelAndView resendConfirmation( @RequestParam("email") String email ) {
+    public ModelAndView resendConfirmation( @RequestParam("email") String email, Locale locale ) {
         ModelAndView modelAndView = new ModelAndView( "resendConfirmation" );
         User user = userService.findUserByEmailNoAuth( email );
 
@@ -123,7 +126,7 @@ public class LoginController {
             return modelAndView;
         } else {
             VerificationToken token = userService.createVerificationTokenForUser( user );
-            eventPublisher.publishEvent( new OnRegistrationCompleteEvent( user, token ) );
+            eventPublisher.publishEvent( new OnRegistrationCompleteEvent( user, token, locale ) );
             modelAndView.addObject( "message", "Confirmation email sent." );
         }
 
@@ -131,11 +134,13 @@ public class LoginController {
     }
 
     @GetMapping(value = "/registrationConfirm")
-    public ModelAndView confirmRegistration( @RequestParam("token") String token ) {
+    public ModelAndView confirmRegistration( @RequestParam("token") String token,
+                                             RedirectAttributes redirectAttributes ) {
         ModelAndView modelAndView = new ModelAndView();
 
         try {
             userService.confirmVerificationToken( token );
+            redirectAttributes.addFlashAttribute( "message", "Your account has been enabled successfully, and you can now proceed to login." );
             modelAndView.setViewName( "redirect:/login" );
         } catch ( TokenException e ) {
             log.error( "Could not confirm registration token.", e );

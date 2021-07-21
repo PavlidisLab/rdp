@@ -12,7 +12,6 @@ import ubc.pavlab.rdp.model.UserGene;
 import ubc.pavlab.rdp.model.VerificationToken;
 import ubc.pavlab.rdp.settings.SiteSettings;
 
-import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
 import java.text.MessageFormat;
 import java.util.Locale;
@@ -29,7 +28,7 @@ public class LoggingEmailServiceImpl implements EmailService {
     private SiteSettings siteSettings;
 
     @Override
-    public void sendSupportMessage( String message, String name, User user, HttpServletRequest request, MultipartFile attachment ) {
+    public void sendSupportMessage( String message, String name, User user, String userAgent, MultipartFile attachment, Locale locale ) {
         log.info( MessageFormat.format( "Support message for {0}:\n{1}", user, message ) );
     }
 
@@ -44,7 +43,7 @@ public class LoggingEmailServiceImpl implements EmailService {
     }
 
     @Override
-    public void sendRegistrationMessage( User user, VerificationToken token ) {
+    public void sendRegistrationMessage( User user, VerificationToken token, Locale locale ) {
         String confirmationUrl = UriComponentsBuilder.fromUri( siteSettings.getHostUri() )
                 .path( "registrationConfirm" )
                 .queryParam( "token", token.getToken() )
@@ -55,7 +54,7 @@ public class LoggingEmailServiceImpl implements EmailService {
     }
 
     @Override
-    public void sendContactEmailVerificationMessage( User user, VerificationToken token ) {
+    public void sendContactEmailVerificationMessage( User user, VerificationToken token, Locale locale ) {
         String confirmationUrl = UriComponentsBuilder.fromUri( siteSettings.getHostUri() )
                 .path( "user/verify-contact-email" )
                 .queryParam( "token", token.getToken() )

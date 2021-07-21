@@ -38,9 +38,8 @@ import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.settings.FaqSettings;
 import ubc.pavlab.rdp.settings.SiteSettings;
 
-import java.util.Collection;
+import java.util.Locale;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.contains;
@@ -215,11 +214,12 @@ public class UserControllerTest {
 
         mvc.perform( post( "/user/support" )
                 .param( "name", "John Doe" )
-                .param( "message", "Is everything okay?" ) )
+                .param( "message", "Is everything okay?" )
+                .locale( Locale.ENGLISH ) )
                 .andExpect( status().isOk() )
                 .andExpect( view().name( "user/support" ) );
 
-        verify( emailService ).sendSupportMessage( eq( "Is everything okay?" ), eq( "John Doe" ), eq( user ), any(), isNull( MultipartFile.class ) );
+        verify( emailService ).sendSupportMessage( eq( "Is everything okay?" ), eq( "John Doe" ), eq( user ), any(), isNull( MultipartFile.class ), eq( Locale.ENGLISH ) );
     }
 
     @Test
@@ -555,10 +555,11 @@ public class UserControllerTest {
 
         mvc.perform( post( "/user/profile" )
                 .contentType( MediaType.APPLICATION_JSON )
-                .content( objectMapper.writeValueAsString( payload ) ) )
+                .content( objectMapper.writeValueAsString( payload ) )
+                .locale( Locale.ENGLISH ) )
                 .andExpect( status().isOk() );
 
-        verify( userService ).updateUserProfileAndPublicationsAndOrgans( user, updatedProfile, updatedProfile.getPublications(), null );
+        verify( userService ).updateUserProfileAndPublicationsAndOrgans( user, updatedProfile, updatedProfile.getPublications(), null, Locale.ENGLISH );
     }
 
     @Test
@@ -600,12 +601,13 @@ public class UserControllerTest {
 
         mvc.perform( post( "/user/profile" )
                 .contentType( MediaType.APPLICATION_JSON )
-                .content( payload.toString() ) )
+                .content( payload.toString() )
+                .locale( Locale.ENGLISH ) )
                 .andExpect( status().isOk() );
 
         Profile profile = user.getProfile();
         profile.setPrivacyLevel( PrivacyLevelType.SHARED );
-        verify( userService ).updateUserProfileAndPublicationsAndOrgans( user, profile, profile.getPublications(), null );
+        verify( userService ).updateUserProfileAndPublicationsAndOrgans( user, profile, profile.getPublications(), null, Locale.ENGLISH );
     }
 
     @Test
@@ -630,10 +632,11 @@ public class UserControllerTest {
 
         mvc.perform( post( "/user/profile" )
                 .contentType( MediaType.APPLICATION_JSON )
-                .content( payload.toString() ) )
+                .content( payload.toString() )
+                .locale( Locale.ENGLISH ) )
                 .andExpect( status().isOk() );
 
-        verify( userService ).updateUserProfileAndPublicationsAndOrgans( user, user.getProfile(), user.getProfile().getPublications(), Sets.newSet( organ.getUberonId() ) );
+        verify( userService ).updateUserProfileAndPublicationsAndOrgans( user, user.getProfile(), user.getProfile().getPublications(), Sets.newSet( organ.getUberonId() ), Locale.ENGLISH );
     }
 
     @Test
@@ -707,7 +710,8 @@ public class UserControllerTest {
         when( userService.findCurrentUser() ).thenReturn( user );
         mvc.perform( get( "/user/verify-contact-email" ).param( "token", "1234" ) )
                 .andExpect( status().is3xxRedirection() )
-                .andExpect( redirectedUrl( "/user/profile" ) );
+                .andExpect( redirectedUrl( "/user/profile" ) )
+                .andExpect( flash().attributeExists( "message" ) );
         verify( userService ).confirmVerificationToken( "1234" );
         verifyNoMoreInteractions( userService );
     }

@@ -126,7 +126,8 @@ public class LoginControllerTest {
         mvc.perform( get( "/registrationConfirm" )
                 .param( "token", "1234" ) )
                 .andExpect( status().is3xxRedirection() )
-                .andExpect( redirectedUrl( "/login" ) );
+                .andExpect( redirectedUrl( "/login" ) )
+                .andExpect( flash().attributeExists( "message" ) );
     }
 
     @Test
