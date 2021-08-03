@@ -82,7 +82,7 @@ public class EmailServiceImplTest {
         assertThat( mailMessageCaptor.getValue() )
                 .hasFieldOrPropertyWithValue( "from", "RDMM <admin@example.com>" )
                 .hasFieldOrPropertyWithValue( "to", new String[]{ "RDMM <admin@example.com>" } )
-                .hasFieldOrPropertyWithValue( "replyTo", "\"Wayne, Bruce\" <bruce@wayne.com>" );
+                .hasFieldOrPropertyWithValue( "replyTo", String.format( "\"Wayne, Bruce\" <%s>", user.getEmail() ) );
         assertThat( mailMessageCaptor.getValue().getSubject() ).contains( "RDMM" );
         assertThat( mailMessageCaptor.getValue().getText() )
                 .contains( "John Doe" )

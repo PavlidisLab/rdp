@@ -55,7 +55,7 @@ public class User implements UserContent {
     @Transient
     private UUID anonymousId;
 
-    @Column(name = "email")
+    @Column(name = "email", unique = true, nullable = false)
     @Email(message = "Your email address is not valid.", groups = { ValidationUserAccount.class })
     @NotEmpty(message = "Please provide an email address.", groups = { ValidationUserAccount.class, ValidationServiceAccount.class })
     private String email;
