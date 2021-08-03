@@ -22,15 +22,15 @@ fields, but this is ultimately at your discretion.
 
 ## 1.4.2
 
-Restore rdp.site.shortname and rdp.site.fullname in `application.properties` since they're still being used in the user
-FAQ.
+Restore rdp.site.shortname and `rdp.site.fullname` in `application.properties` since they're still being used in the
+user FAQ.
 
-Fix missing TaskExecutor when using an HTTP proxy. It now uses native`-Dhttp.proxyHost` and `-Dhttp.proxyPort` JVM flags;
-the proxy settings in `SiteSettings` and `InternationalSearchSetings` have been simply removed.
+Fix missing TaskExecutor when using an HTTP proxy. It now uses native`-Dhttp.proxyHost` and `-Dhttp.proxyPort` JVM
+flags; the proxy settings in `SiteSettings` and `InternationalSearchSetings` have been simply removed.
 
 Interpolate shortname and URLs in messages.
 
-Move all email text into messages.properties so they can be adjusted and translated
+Move all email text into messages.properties, so they can be adjusted and translated
 
 Fix missing flash messages after confirming registration and contact email.
 
@@ -40,8 +40,8 @@ is always set to `null` and the value in the profile must be used instead as a f
 Require MySQL 5.7+ and add instructions for using MySQL 5.6 and prior. This is due to a index size limit that is busted
 with access and verification token when 4-bytes character encoding is used (i.e. utf8mb4).
 
-Fix incorrect primary key for researcher categories that resulted in the impossibility of adding more than one category to
-a given user profile.
+Fix incorrect primary key for researcher categories that resulted in the impossibility of adding more than one category
+to a given user profile.
 
 ## 1.4.1
 
@@ -73,13 +73,15 @@ integrate with RDP.
 
 Users can pick a researcher position to indicate if they are a Principal Investigator.
 
-User profiles now feature researcher categories, allowing search results to be narrowed by a specific kind of expertise. 
+User profiles now feature researcher categories, allowing search results to be narrowed by a specific kind of expertise.
 These categories include *in vivo*, *in vitro* and *in silico* denominations.
 
 ### Organ systems
 
-Users can select a set of organ systems they focus their research on. These organs are based on [Uberon multi-species anatomy ontology](http://www.obofoundry.org/ontology/uberon.html) 
-and a set of icons kindly provided by [Shinya Yamamoto Lab](https://www.researchgate.net/lab/Shinya-Yamamoto-Lab) in Houston.
+Users can select a set of organ systems they focus their research on. These organs are based
+on [Uberon multi-species anatomy ontology](http://www.obofoundry.org/ontology/uberon.html)
+and a set of icons kindly provided by [Shinya Yamamoto Lab](https://www.researchgate.net/lab/Shinya-Yamamoto-Lab) in
+Houston.
 
 ### Gene privacy levels
 
@@ -98,7 +100,7 @@ wrong hands.
 
 ### Up-to-date cached data
 
-Cached data (including gene information, orthologs, GO terms, etc...) and their corresponding user associations are 
+Cached data (including gene information, orthologs, GO terms, etc...) and their corresponding user associations are
 updated monthly and don't impede the boot time (except for GO terms and gene2go annotations).
 
 Gene information are stored in the database, allowing very efficient queries of orthologs.
@@ -109,7 +111,7 @@ Complete integration of Flyway to manage production database migrations.
 
 Initial data is part of the migration process.
 
-Eliminate eager fetching of model relationships in favour of more selective optimized fetch join queries where it is 
+Eliminate eager fetching of model relationships in favour of more selective optimized fetch join queries where it is
 truly needed.
 
 Orthologs are now a proper many-to-many relationship that uses efficient SQL jointures.
@@ -117,9 +119,9 @@ Orthologs are now a proper many-to-many relationship that uses efficient SQL joi
 ### Canonical search URLs
 
 Search feature not produces canonical URLs that can be shared.
-   
+
 ### Dependencies updates
 
- - move to Spring Boot to 1.5.22 (latest stable release of the 1.5 series)
- - use jQuery 3.2.1 consistently
- - use external resources from CDN
+- move to Spring Boot to 1.5.22 (the latest stable release of the 1.5 series)
+- use jQuery 3.2.1 consistently
+- use external resources from CDN

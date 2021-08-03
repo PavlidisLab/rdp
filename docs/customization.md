@@ -15,8 +15,7 @@ update the software.
 ## Gene information and GO terms
 
 By default, RDP will retrieve the latest gene information from NCBI, and GO terms
-from [Ontobee](http://www.ontobee.org/ontology/OBI). Users genes and GO terms will be updated after a
-successful update.
+from [Ontobee](http://www.ontobee.org/ontology/OBI). Users genes and GO terms will be updated after a successful update.
 
 Gene information are obtained from [NCBI Gene FTP server](https://ftp.ncbi.nih.gov/gene/DATA/GENE_INFO/)
 with URLs stored in the database. You can retrieve these with the following query:
@@ -24,7 +23,9 @@ with URLs stored in the database. You can retrieve these with the following quer
 ```sql
 select taxon_id, scientific_name, gene_url from taxon;
 ```
-For example, the `gene_url` column for *Homo sapiens* would contain `ftp://ftp.ncbi.nlm.nih.gov/gene/DATA/GENE_INFO/Mammalia/Homo_sapiens.gene_info.gz`
+
+For example, the `gene_url` column for *Homo sapiens* would
+contain `ftp://ftp.ncbi.nlm.nih.gov/gene/DATA/GENE_INFO/Mammalia/Homo_sapiens.gene_info.gz`
 
 Genes' GO term annotations are also obtained from NCBI:
 
@@ -38,23 +39,23 @@ GO terms, on the other hand, are obtained from Ontobee:
 rdp.settings.cache.term-file=http://purl.obolibrary.org/obo/go.obo
 ```
 
-
-
 ## Taxon
 
-The taxon table is pre-populated during the very first installation of the software, at which time only Human taxon is activated. To enable other taxons, set their `active` column to `1` in the database.
+The taxon table is pre-populated during the very first installation of the software, at which time only Human taxon is
+activated. To enable other taxon, set their `active` column to `1` in the database.
 
 For example, the following will activate the mouse taxon:
 
 ```sql
 update taxon set active = 1 where taxon_id = 10090;
 ```
-Every time the new model organisams are added to the application, they will have to be activated in this manner.
+
+Every time the new model organisms are added to the application, they will have to be activated in this manner.
 
 ## Ortholog mapping
 
-There is an ortholog mapping file that is included with the application and will automatically
-populate the database on startup. The ortholog mappings are based
+There is an ortholog mapping file that is included with the application and will automatically populate the database on
+startup. The ortholog mappings are based
 on [DIOPT](https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-12-357).
 
 The default value points to a classpath resource included within RDP archive:
@@ -63,11 +64,13 @@ The default value points to a classpath resource included within RDP archive:
 rdp.settings.cache.ortholog-file=classpath:cache/DIOPT_filtered_data_May2021.gz
 ```
 
-It would also be possible to use another orthology resource, as long as it has the same format. For example, to use the NCBI gene orthologs:
+It would also be possible to use another ortholog resource, as long as it has the same format. For example, to use the
+NCBI gene orthologs:
 
 ```ini
 rdp.settings.cache.orthologs-file=ftp://ftp.ncbi.nlm.nih.gov/gene/DATA/gene_orthologs.gz
 ```
+
 As with other remotely downloaded files, this would be updated monthly.
 
 ## Organ systems
@@ -80,8 +83,8 @@ and updated monthly.
 rdp.settings.cache.organ-file=http://purl.obolibrary.org/obo/uberon.obo
 ```
 
-Only a select few organ systems are active by default. You can activate more by running the following SQL command with a
-Uberon identifier of your choice:
+Only a select few organ systems are active by default. You can activate more by running the following SQL command with
+an Uberon identifier of your choice:
 
 ```sql
 update organ_info
@@ -89,8 +92,8 @@ set active = true
 where uberon_id = '<uberon_id>';
 ```
 
-If you activate a non-default organ system, consider adding an icon for it by
-following the instructions in the [Style and static resources](#style-and-static-resources)
+If you activate a non-default organ system, consider adding an icon for it by following the instructions in
+the [Style and static resources](#style-and-static-resources)
 section below.
 
 To disable organ systems altogether, set the following in your configuration:
@@ -101,8 +104,8 @@ rdp.settings.organs.enabled=false
 
 ## Loading data from disk
 
-It's also possible to store all the above mentioned info locally, instead of fetching it remotely. The following settings will retrieve all the necessary files relative to the
-working directory of the Web application:
+It's also possible to store all the above mentioned info locally, instead of fetching it remotely. The following
+settings will retrieve all the necessary files relative to the working directory of the Web application:
 
 ```ini
 #this setting relates only to gene info files. Files for all taxons will be stord under gene/
@@ -119,9 +122,9 @@ rdp.settings.cache.organ-file=file:uberon.obo
 rdp.settings.cache.ortholog-file=file:DIOPT_filtered_data_March2020.txt
 ```
 
-With `rdp.settings.load-from-disk` enabled, the basename from the `gene_url` (mentioned above) will
-be used in conjustion with `rdp.settings.gene-files-location`. For example *Homo
-sapiens* taxon would be retrieved from `genes/Homo_sapiens.gene_info.gz`
+With `rdp.settings.load-from-disk` enabled, the basename from the `gene_url` (mentioned above) will be used in
+conjunction with `rdp.settings.gene-files-location`. For example *Homo sapiens* taxon would be retrieved
+from `genes/Homo_sapiens.gene_info.gz`
 
 ## International data
 
@@ -131,18 +134,21 @@ do not have HTTPS setup for you domain, you can consult the following guides on 
 - [medium.com/@raupach/how-to-install-lets-encrypt-with-tomcat-3db8a469e3d2](https://medium.com/@raupach/how-to-install-lets-encrypt-with-tomcat-3db8a469e3d2)
 - [community.letsencrypt.org/t/configuring-lets-encrypt-with-tomcat-6-x-and-7-x/32416](https://community.letsencrypt.org/t/configuring-lets-encrypt-with-tomcat-6-x-and-7-x/32416)
 
-Registries can access each other public data by enabling `rdp.settings.isearch.enabled` and setting up the `rdp.settings.isearch.apis` in
-the `application.properties` file to contain a comma-delimited list of partner registry URLs.
+Registries can access each other public data by enabling `rdp.settings.isearch.enabled` and setting up
+the `rdp.settings.isearch.apis` in the `application.properties` file to contain a comma-delimited list of partner
+registry URLs.
 
 ```ini
 rdp.settings.isearch.enabled=true
 rdp.settings.isearch.apis=https://register.rare-diseases-catalyst-network.ca/
 ```
 
-A secure communication between different instances is achieved using a special search token which gets appended to remote queries. Currently there is one
-token that is used by all partner registries.
+A secure communication between different instances is achieved using a special search token which gets appended to
+remote queries. Currently, there is one token that is used by all partner registries.
 
-The token can be generated using OpenSSL: `openssl rand -base64 24` and it would look something like this: `hrol3Y4z2OE0ayK227i8oHTLDjPtRfb4` (this is just an example). Once generated, this token is shared securely with partner registries.
+The token can be generated using OpenSSL: `openssl rand -base64 24` and it would look something like
+this: `hrol3Y4z2OE0ayK227i8oHTLDjPtRfb4` (this is just an example). Once generated, this token is shared securely with
+partner registries.
 
 The token is added to the `application.properties` file in the following way:
 
@@ -150,20 +156,17 @@ The token is added to the `application.properties` file in the following way:
 rdp.settings.isearch.search-token=hrol3Y4z2OE0ayK227i8oHTLDjPtRfb4
 ```
 
-
 On the receiving side, the partner registry must create a user that is used to perform privileged searches.
 
 This is usually done by creating a remote administrative account:
 
 ```sql
 insert into user ( email, enabled, password, privacy_level, description, last_name, name, shared, hide_genelist, contact_email_verified)
-values(concat(rand(),"@rdmm.com"), 0, md5(rand()), 0, "remote admin profile", "", "", false, false, false);
+values(concat(rand(),'@rdmm.com'), 0, md5(rand()), 0, 'remote admin profile', '', '', false, false, false);
 insert into user_role (user_id,role_id) values ((select max(user_id) from user), 1);
 insert into user_role (user_id,role_id) values ((select max(user_id) from user), 2);
 select max(user_id) from user;
 ```
-
-
 
 Let's assume that the created user's ID was 522. The partner would then add the token to
 its `rdp.settings.isearch.auth-tokens` setting along any existing tokens.
@@ -173,12 +176,13 @@ rdp.settings.isearch.user-id=522
 rdp.settings.isearch.auth-tokens=jLb22QZzsaT6/w3xwDHBObmZPypJgXfb,hrol3Y4z2OE0ayK227i8oHTLDjPtRfb4
 ```
 
-This allows you to query private data from the partner registry when logged in as an administrator on your own
-registry.
+This allows you to query private data from the partner registry when logged in as an administrator on your own registry.
 
 ## Gene Tiers
 
-Users' genes are categorized in tiers based on their familiarity and experience with the gene. This is explained in detail in the users' documentation and FAQs. Users add TIER1 and TIER2 genes directly, while TIER3 genes are inferred from GO term associations.
+Users' genes are categorized in tiers based on their familiarity and experience with the gene. This is explained in
+detail in the users' documentation and FAQs. Users add TIER1 and TIER2 genes directly, while TIER3 genes are inferred
+from GO term associations.
 
 To enable only TIER1 and TIER2, and thus disabling GO terms-related features, add the following to your configuration:
 
@@ -189,8 +193,7 @@ rdp.settings.enabled-tiers=TIER1,TIER2
 ## Researcher position
 
 Researcher positions can be enabled or disabled by setting the
-`rdp.settings.profile.enabled-researcher-positions` to a list of desired
-values.
+`rdp.settings.profile.enabled-researcher-positions` to a list of desired values.
 
 For the moment, only one value is defined `PRINCIPAL_INVESTIGATOR`.
 
@@ -203,8 +206,7 @@ To disable this feature, just leave the setting blank.
 ## Researcher categories
 
 Researcher categories can be enabled or disabled by setting the
-`rdp.settings.profile.enabled-researcher-categories` to a list of desired
-values.
+`rdp.settings.profile.enabled-researcher-categories` to a list of desired values.
 
 ```ini
 rdp.settings.profile.enabled-researcher-categories=IN_SILICO,IN_VIVO
@@ -212,12 +214,12 @@ rdp.settings.profile.enabled-researcher-categories=IN_SILICO,IN_VIVO
 
 The available values are:
 
- - `IN_VIVO`
- - `IN_VITRO_BIOCHEMICAL`
- - `IN_VITRO_CELLS`
- - `IN_VITRO_STRUCTURAL`
- - `IN_SILICO`
- - `OTHER`
+- `IN_VIVO`
+- `IN_VITRO_BIOCHEMICAL`
+- `IN_VITRO_CELLS`
+- `IN_VITRO_STRUCTURAL`
+- `IN_SILICO`
+- `OTHER`
 
 To disable this feature, just leave the setting blank.
 
@@ -230,11 +232,9 @@ rdp.settings.privacy.enabled-levels=PUBLIC,SHARED,PRIVATE
 rdp.settings.privacy.enabled-gene-levels=PUBLIC,SHARED,PRIVATE
 ```
 
-Note that any value enabled for genes that is not also enabled for profiles
-will be ignored.
+Note that any value enabled for genes that is not also enabled for profiles will be ignored.
 
-To allow user to modify the privacy level of their profile and individual
-genes, set the following properties:
+To allow user to modify the privacy level of their profile and individual genes, set the following properties:
 
 ```ini
 rdp.settings.privacy.customizable-level=true
@@ -258,7 +258,8 @@ rdp.settings.privacy.enable-anonymized-search-results=false
 
 ## Customizing the application's messages
 
-Some text displayed in RDP can be customized and/or internationalized. To do so, copy a provided `messages.properties` file in the working directory of the Web application and edit it. The file is found in
+Some text displayed in RDP can be customized and/or internationalized. To do so, copy a provided `messages.properties`
+file in the working directory of the Web application and edit it. The file is found in
 [messages.properties](https://github.com/PavlidisLab/rgr/blob/master/src/main/resources/messages.properties)
 
 You can use suffixed like `messages_en_CA.properties` for region-specific customization.
@@ -275,15 +276,16 @@ the `rdp.settings.faq-file` parameter:
 rdp.settings.faq-file=file:faq.properties
 ```
 
-In the file, each entry requires two parts: `rdp.faq.questions.<q_key>` and `rdp.faq.answers.<q_key>` which hold the question and the corresponding
-answer, respectively.
+In the file, each entry requires two parts: `rdp.faq.questions.<q_key>` and `rdp.faq.answers.<q_key>` which hold the
+question and the corresponding answer, respectively.
 
 ```ini
 rdp.faq.questions.<q_key>=A relevant question.
 rdp.faq.answers.<q_key>=A plausible answer.
 ```
 
-The provided default file can be found in [faq.properties](https://github.com/PavlidisLab/rgr/tree/master/src/main/resources/faq.properties).
+The provided default file can be found
+in [faq.properties](https://github.com/PavlidisLab/rgr/tree/master/src/main/resources/faq.properties).
 
 ## Style and static resources
 
