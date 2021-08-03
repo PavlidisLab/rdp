@@ -87,8 +87,8 @@
                     </p>
                     <p th:if="(${user.effectivePrivacyLevel.ordinal()} gt 0) and ${@applicationSettings.privacy.isAllowHideGenelist()}">
                         Non-administrative users that can see your data
-                        <b th:if="${user.profile.getHideGenelist()}">can not</b>
-                        <b th:if="not ${user.profile.getHideGenelist()}">can</b>
+                        <b th:if="${user.profile.hideGenelist}">can not</b>
+                        <b th:if="not ${user.profile.hideGenelist}">can</b>
                         see your gene and terms lists.
                     </p>
                     <p th:if="${@applicationSettings.isearch.isEnabled()} and ${@applicationSettings.privacy.isCustomizableSharing()}">
