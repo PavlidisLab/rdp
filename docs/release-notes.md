@@ -1,5 +1,25 @@
 # Release Notes
 
+## 1.4.3
+
+Fix `hideGenelist` accessor in the user profile template which resulted in an error. For now on, property names will be
+used across all templates, and Thymeleaf will be tasked with inferring the right accessor.
+
+Before running this migration, ensure that no email is duplicated. You can list users with duplicated email with the
+following SQL query:
+
+```sql
+select *
+from user
+where email in (select email
+                from user
+                group by email
+                having count(email) > 1);
+```
+
+You should then take action by removing or merging those users. We recommend removing those with the latest `id`
+fields, but this is ultimately at your discretion.
+
 ## 1.4.2
 
 Restore rdp.site.shortname and rdp.site.fullname in `application.properties` since they're still being used in the user
