@@ -92,7 +92,7 @@
                                             </p>
                                         </div>
 
-                                        <div th:if="${@applicationSettings.privacy.isCustomizableLevel()}">
+                                        <div th:if="${@applicationSettings.privacy.customizableLevel}">
                                             <h5>Privacy Settings</h5>
                                             
 
@@ -116,11 +116,11 @@
                                                     <b>public</b> - your information will be publicly accessible. If "shared" option is available, your
                                                     information will be shared with registered users and
                                                     will also be accessible to non-registered users through the registry’s
-                                                    public search webpage (<i th:text=" ${@siteSettings.getHostUri()}"></i>).
+                                                    public search webpage (<i th:text=" ${@siteSettings.hostUri}"></i>).
                                                 </li>
                                             </ul>
                                         </div>
-                                        <p th:if="${@applicationSettings.getPrivacy().isCustomizableSharing()}">
+                                        <p th:if="${@applicationSettings.privacy.customizableSharing}">
                                             Furthermore, this section gives you the option to set your preference for
                                             sharing your data with the network’s partner registries for the purposes
                                             of establishing connections between clinician sciences who are submitting
@@ -262,7 +262,7 @@
                                             by clicking the red X on the desired row. You can also change the Primary
                                             status of genes using the checkbox.</p>
                                           
-                                          <div th:if="${@applicationSettings.privacy.isCustomizableGeneLevel()}">
+                                          <div th:if="${@applicationSettings.privacy.customizableGeneLevel}">
                                             <p>
                                                 You may also choose a privacy levels for your genes that differ from
                                                 the global privacy settings in your Profile. The new levels can only be more restrictive than your global privacy level.  Options are:
