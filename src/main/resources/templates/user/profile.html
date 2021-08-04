@@ -245,9 +245,9 @@
 
         <div class="row mb-3">
             <div class="w-100"
-                 th:if="${@applicationSettings.privacy.isCustomizableLevel()} or ${@applicationSettings.privacy.isCustomizableSharing()} or ${@applicationSettings.privacy.isAllowHideGenelist()}"></div>
+                 th:if="${@applicationSettings.privacy.customizableLevel} or ${@applicationSettings.privacy.customizableSharing} or ${@applicationSettings.privacy.allowHideGenelist}"></div>
             <div class="col"
-                 th:if="${@applicationSettings.privacy.isCustomizableLevel()} or ${@applicationSettings.privacy.isCustomizableSharing()} or ${@applicationSettings.privacy.isAllowHideGenelist()}">
+                 th:if="${@applicationSettings.privacy.customizableLevel} or ${@applicationSettings.privacy.customizableSharing} or ${@applicationSettings.privacy.allowHideGenelist}">
                 <div class="card privacy-settings edit-container">
                     <div class="card-header d-flex align-items-center">
                         <h3 id="data-privacy-settings" class="mb-0 d-inline-block">Data Privacy Settings</h3>
@@ -255,7 +255,7 @@
                     <div class="list-group list-group-flush">
                         <!-- TODO: also check if more than one option is available to display this section -->
                         <div id="privacy-levels" class="list-group-item"
-                             th:if="${@applicationSettings.privacy.isCustomizableLevel()}">
+                             th:if="${@applicationSettings.privacy.customizableLevel}">
                             <h4 class="card-title">Privacy Level</h4>
 
                             <!--
@@ -271,8 +271,8 @@
                                                th:id="${#ids.seq('privacyLevel')}"
                                                th:checked="${user.profile.privacyLevel == privacyLevel}"
                                                th:value="${privacyLevel.ordinal()}"
-                                               th:attr="data-toggle=${@applicationSettings.privacy.isCustomizableGeneLevel() and privacyLevel != user.profile.privacyLevel} ? 'modal',
-                                                        data-target=${@applicationSettings.privacy.isCustomizableGeneLevel() and privacyLevel != user.profile.privacyLevel} ? '#' + ${#ids.next('confirm-gene-privacy-level-reset')}"/>
+                                               th:attr="data-toggle=${@applicationSettings.privacy.customizableGeneLevel and privacyLevel != user.profile.privacyLevel} ? 'modal',
+                                                        data-target=${@applicationSettings.privacy.customizableGeneLevel and privacyLevel != user.profile.privacyLevel} ? '#' + ${#ids.next('confirm-gene-privacy-level-reset')}"/>
                                         <label class="form-check-label"
                                                th:for="${#ids.prev('privacyLevel')}">
                                             <span th:text="#{'PrivacyLevelType.' + ${privacyLevel.name()}}"></span>
@@ -284,7 +284,7 @@
                                 </div>
                             </form>
 
-                            <p th:if="${@applicationSettings.privacy.isCustomizableGeneLevel()}">
+                            <p th:if="${@applicationSettings.privacy.customizableGeneLevel}">
                                 Your default gene privacy level is determined by this setting.
                             </p>
 
@@ -293,7 +293,7 @@
                         </div>
 
                         <div id="privacy-sharing" class="list-group-item"
-                             th:if="${@applicationSettings.privacy.isCustomizableSharing()}">
+                             th:if="${@applicationSettings.privacy.customizableSharing}">
                             <h4 class="card-title">Partner Registry</h4>
                             <!--
                             <p>These settings determine whether users from <strong>other registries</strong> can see your data.</p>
@@ -317,7 +317,7 @@
                             <a th:href="@{/user/faq#isearch}" target="_blank">FAQ</a>.
                         </div>
                         <div id="privacy-genelist" class="list-group-item"
-                             th:if="${@applicationSettings.privacy.isAllowHideGenelist()}">
+                             th:if="${@applicationSettings.privacy.allowHideGenelist}">
                             <h5>Content displayed on my profile</h5>
                             <p>These settings determine which parts of your user profile are visible to other users.</p>
                             <div class="form-check form-check-inline">
@@ -381,7 +381,7 @@
 <div th:replace="layouts/common::footer">...</div>
 <div th:replace="layouts/common::scripts"></div>
 <script th:src="@{/js/profile.js}"></script>
-<th:block th:if="${@applicationSettings.privacy.isCustomizableGeneLevel()}">
+<th:block th:if="${@applicationSettings.privacy.customizableGeneLevel}">
     <div th:replace="fragments/modal::confirmation(target=${#ids.seq('confirm-gene-privacy-level-reset')}, title='Your gene privacy levels will be adjusted!', body='Changing your profile privacy setting will reset the privacy levels of the genes associated to your model organisms to the selected value.')"></div>
     <script th:inline="javascript">
         (function () {

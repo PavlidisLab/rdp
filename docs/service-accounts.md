@@ -12,6 +12,6 @@ To create a service account, go under `/admin/create-service-account` as an admi
 and email. Newly created service account have an access token setup that can be used for accessing your registry through
 its [public API](api.md).
 
-You can revoke an access token granted to a service account under its user page
-in the administration. You can find all users under `/admin/users`.
+You can revoke an access token granted to a service account under its user page in the administration. You can find all
+users under `/admin/users`.
 

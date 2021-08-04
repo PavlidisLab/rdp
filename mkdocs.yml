@@ -12,4 +12,4 @@ nav:
 plugins:
   - macros
 extra:
-  rdp_version: 1.4.2
+  rdp_version: 1.4.3

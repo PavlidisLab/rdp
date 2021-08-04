@@ -18,7 +18,7 @@
             <span th:text="${viewOnly == null} ? 'Primary' : 'Tier'"></span>
             <i class="tip oi oi-question-mark"></i>
         </th>
-        <th th:if="${viewOnly == null} and ${@applicationSettings.privacy.isCustomizableGeneLevel()}"
+        <th th:if="${viewOnly == null} and ${@applicationSettings.privacy.customizableGeneLevel}"
             class="text-center"
             scope="col"
             data-toggle="tooltip"

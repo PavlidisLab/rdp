@@ -16,13 +16,12 @@ Download the [latest jar distribution](https://github.com/PavlidisLab/rgr/releas
 wget https://github.com/PavlidisLab/rgr/releases/download/v{{ config.extra.rdp_version }}/rdp-{{ config.extra.rdp_version }}.jar
 ```
 
-The jar contains the core application, including an embedded webserver (Tomcat 8.5.x),
-a task scheduler, an in-memory cache, and much more!
+The jar contains the core application, including an embedded webserver (Tomcat 8.5.x), a task scheduler, an in-memory
+cache, and much more!
 
-## Setup the MySQL database
+## Set up the MySQL database
 
-Create the database and an associated user that the application will use to
-store and retrieve data.
+Create the database and an associated user that the application will use to store and retrieve data.
 
 ```sql
 create database <database name> character set utf8mb4 collate utf8mb4_general_ci;
@@ -54,21 +53,21 @@ spring.mail.properties.mail.smtp.auth=true
 spring.mail.properties.mail.smtp.starttls.enable=true
 ```
 
-This file contains the database and SMTP credentials and various runtime
-configurations. Make sure it's only readable by the user that will run the
-instance.
+This file contains the database and SMTP credentials and various runtime configurations. Make sure it's only readable by
+the user that will run the instance.
 
-Documentation for options with their default values are available in [application.properties](https://github.com/PavlidisLab/rgr/blob/development/src/main/resources/application.properties).
+Documentation for options with their default values are available
+in [application.properties](https://github.com/PavlidisLab/rgr/blob/development/src/main/resources/application.properties)
+.
 
-That should be enough to get the Web service started. Now you can launch it by
-issuing the following command:
+That should be enough to get the Web service started. Now you can launch it by issuing the following command:
 
 ```bash
 java -jar rdp-{{ config.extra.rdp_version }}.jar
 ```
 
-If your email server is not properly configured, you will see an error from the
-Spring Actuator health check. You can detect further issues by looking at the
+If your email server is not properly configured, you will see an error from the Spring Actuator health check. You can
+detect further issues by looking at the
 `/admin/health` endpoint with administrative privilege.
 
 ## Create an administrative account
