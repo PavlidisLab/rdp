@@ -5,6 +5,7 @@ import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.servers.Server;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.info.BuildProperties;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,6 +25,9 @@ public class ApiConfig {
     @Autowired
     private SiteSettings siteSettings;
 
+    @Autowired
+    private BuildProperties buildProperties;
+
     @Bean
     public OpenAPI openAPI( MessageSource messageSource ) {
         // FIXME: retrieve that from the request context
@@ -34,7 +38,7 @@ public class ApiConfig {
                         .title( messageSource.getMessage( "ApiConfig.title", new String[]{ shortname }, locale ) )
                         .description( messageSource.getMessage( "ApiConfig.description", new String[]{ shortname }, locale ) )
                         .contact( new Contact().email( siteSettings.getContactEmail() ) )
-                        .version( ApiController.API_VERSION ) )
+                        .version( buildProperties.getVersion() ) )
                 .servers( Collections.singletonList( new Server().url( siteSettings.getHostUri().toString() ) ) );
 
     }

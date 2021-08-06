@@ -41,11 +41,6 @@ import java.util.stream.Collectors;
 @CommonsLog
 public class ApiController {
 
-    /**
-     * API version
-     */
-    public static final String API_VERSION = "1.4.0";
-
     @Autowired
     private MessageSource messageSource;
     @Autowired
