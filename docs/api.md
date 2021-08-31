@@ -14,9 +14,8 @@ Authorization: Bearer {accessToken}
 
 Passing the authorization token via `auth` query parameter is deprecated as of 1.4.0.
 
-Keep in mind that the token you use is tied to a user that has permissions.
-What you can see through the API will be restricted to what the corresponding
-user is authorized to read.
+Keep in mind that the token you use is tied to a user that has permissions. What you can see through the API will be
+restricted to what the corresponding user is authorized to read.
 
 ## List all users
 
@@ -55,7 +54,7 @@ GET /api/users/search HTTP/1.1
 By name:
 
 - `nameLike` a name in the user profile
-- `prefix` a boolean `true` or `false` as to whether the name search is matching a prefix
+- `prefix` a boolean `true` or `false` whether the name search is matching a prefix
 
 By description:
 

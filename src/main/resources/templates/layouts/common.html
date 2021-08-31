@@ -87,7 +87,7 @@
                     <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownUser" role="button"
                        data-toggle="dropdown"
                        aria-haspopup="true" aria-expanded="false">
-                        <span th:text="${@userService.getCurrentUserName()}"/>
+                        <span th:text="${@userService.currentUserName}"/>
                     </a>
                     <div class="dropdown-menu" aria-labelledby="navbarDropdownUser">
                         <th:block sec:authorize="hasRole('ROLE_ADMIN')">

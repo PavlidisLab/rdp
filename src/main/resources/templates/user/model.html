@@ -69,29 +69,29 @@
             </div>
         </div>
 
-        <div th:if="${@applicationSettings.privacy.isCustomizableLevel()} or ${@applicationSettings.privacy.isCustomizableSharing()} or ${@applicationSettings.privacy.isAllowHideGenelist()}"
+        <div th:if="${@applicationSettings.privacy.customizableLevel} or ${@applicationSettings.privacy.customizableSharing} or ${@applicationSettings.privacy.allowHideGenelist}"
              class="my-3">
             <div class="card">
                 <div class="card-header">
                     <h3 class="card-title">Data Privacy</h3>
-                    <p th:if="${@applicationSettings.privacy.isCustomizableLevel()}">
+                    <p th:if="${@applicationSettings.privacy.customizableLevel}">
                         Your profile privacy level is set to <b
                             th:text="#{'PrivacyLevelType.' + ${user.effectivePrivacyLevel.name()}}"
                             style="text-transform: lowercase;"></b>,
                         which determines your default gene privacy level.<br/>
                     </p>
-                    <p th:if="${@applicationSettings.privacy.isCustomizableGeneLevel()}">
+                    <p th:if="${@applicationSettings.privacy.customizableGeneLevel}">
                         Your can adjust privacy level for each gene individually, however you can only choose a more
                         restrictive value than what is set in your profile. You can change privacy settings for all of
                         your genes by changing your profile privacy setting.
                     </p>
-                    <p th:if="(${user.effectivePrivacyLevel.ordinal()} gt 0) and ${@applicationSettings.privacy.isAllowHideGenelist()}">
+                    <p th:if="(${user.effectivePrivacyLevel.ordinal()} gt 0) and ${@applicationSettings.privacy.allowHideGenelist}">
                         Non-administrative users that can see your data
-                        <b th:if="${user.profile.getHideGenelist()}">can not</b>
-                        <b th:if="not ${user.profile.getHideGenelist()}">can</b>
+                        <b th:if="${user.profile.hideGenelist}">can not</b>
+                        <b th:if="not ${user.profile.hideGenelist}">can</b>
                         see your gene and terms lists.
                     </p>
-                    <p th:if="${@applicationSettings.isearch.isEnabled()} and ${@applicationSettings.privacy.isCustomizableSharing()}">
+                    <p th:if="${@applicationSettings.isearch.enabled} and ${@applicationSettings.privacy.customizableSharing}">
                         International sharing of your data is
                         <b th:if="${user.profile.shared}">enabled</b><b th:if="not ${user.profile.shared}">disabled</b>.
                     </p>
@@ -136,7 +136,7 @@
                         <div class="tab-pane fade show active" id="genes" role="tabpanel"
                              aria-labelledby="genes-tab">
                             <div class="mb-3">
-                                <div th:replace="fragments/gene-table::gene-table(genes=${user.getGenesByTaxonAndTier(taxon, T(ubc.pavlab.rdp.model.enums.TierType).MANUAL)}, defaultPrivacyLevel=${user.getEffectivePrivacyLevel()})">
+                                <div th:replace="fragments/gene-table::gene-table(genes=${user.getGenesByTaxonAndTier(taxon, T(ubc.pavlab.rdp.model.enums.TierType).MANUAL)}, defaultPrivacyLevel=${user.effectivePrivacyLevel})">
                                     ...
                                 </div>
                             </div>

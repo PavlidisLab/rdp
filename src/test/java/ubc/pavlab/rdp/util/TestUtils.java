@@ -28,7 +28,7 @@ import static org.mockito.Mockito.when;
 @SuppressWarnings("WeakerAccess")
 public final class TestUtils {
 
-    public static final String EMAIL = "bruce@wayne.com";
+    public static final String EMAIL_FORMAT = "bruce%d@wayne.com";
     public static final String ENCODED_PASSWORD = "$2a$10$ny8JDrJGVcf27xs7RqsHh.ytcFQYhXqr4vI9Kq57HE1tQgePfQXyC";
     public static final String PASSWORD = "imbatman";
     public static final String NAME = "Bruce";
@@ -36,6 +36,8 @@ public final class TestUtils {
 
     public static final String TAXON_COMMON_NAME = "Honey Bee";
     public static final String TAXON_SCIENTIFIC_NAME = "Apis mellifera";
+
+    private static int emailCount = 0;
 
     public static void becomeUser( User user ) {
         UserPrinciple up = new UserPrinciple( user );
@@ -63,7 +65,7 @@ public final class TestUtils {
                 .hideGenelist( false )
                 .contactEmailVerified( false ).build();
         return User.builder()
-                .email( EMAIL )
+                .email( String.format( EMAIL_FORMAT, emailCount++ ) )
                 .password( ENCODED_PASSWORD ) // imbatman
                 .enabled( false )
                 .profile( profile ).build();
