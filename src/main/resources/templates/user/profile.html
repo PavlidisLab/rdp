@@ -165,25 +165,36 @@
                                 </label>
                             </td>
                             <td>
-                                <i th:if="${viewOnly == null}" class="editable"></i>
-                                <input th:id="${#ids.seq('profile.contactEmail')}"
-                                       th:field="*{contactEmail}"
-                                       class="data-edit"
-                                       type="text"
-                                       disabled="disabled"/>
-                                <span th:if="*{contactEmailVerified}" class="badge badge-success contact-email-verification-badge">Verified</span>
-                                <th:block th:unless="*{contactEmail} == null or *{contactEmail} == '' or *{contactEmailVerified}">
-                                    <form th:action="@{/user/resend-contact-email-verification}" method="post"
-                                          class="d-inline-block">
-                                    <span class="badge badge-warning contact-email-verification-badge"
-                                          data-toggle="tooltip"
-                                          title="Your contact email is not verified, we'll contact you with your primary email instead.">Not verified</span>
-                                        <button class="btn btn-sm" type="submit">
-                                            <i class="oi oi-envelope-closed"></i>
-                                            Resend contact email verification
-                                        </button>
-                                    </form>
-                                </th:block>
+                                <div class="d-flex">
+                                    <div class="flex-column">
+                                        <i th:if="${viewOnly == null}" class="editable"></i>
+                                    </div>
+                                    <div class="flex-column"
+                                         style="flex-grow: 1;">
+                                        <input th:id="${#ids.seq('profile.contactEmail')}"
+                                               th:field="*{contactEmail}"
+                                               class="data-edit"
+                                               type="text"
+                                               disabled="disabled"
+                                               style="width: 100%"/>
+                                    </div>
+                                    <div class="flex-column">
+                                        <span th:if="*{contactEmailVerified}"
+                                              class="badge badge-success contact-email-verification-badge">Verified</span>
+                                        <div th:unless="*{contactEmail} == null or *{contactEmail} == '' or *{contactEmailVerified}">
+                                            <form th:action="@{/user/resend-contact-email-verification}" method="post"
+                                                  class="d-inline-block">
+                                                <span class="badge badge-warning contact-email-verification-badge"
+                                                      data-toggle="tooltip"
+                                                      title="Your contact email is not verified, we'll contact you with your primary email instead.">Not verified</span>
+                                                <button class="btn btn-sm" type="submit">
+                                                    <i class="oi oi-envelope-closed"></i>
+                                                    Resend contact email verification
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
                             </td>
                         </tr>
                         <tr class="edit-container">
