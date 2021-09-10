@@ -6,17 +6,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.test.context.junit4.SpringRunner;
-import ubc.pavlab.rdp.model.Taxon;
-import ubc.pavlab.rdp.model.User;
+import ubc.pavlab.rdp.model.*;
+import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.ResearcherCategory;
 import ubc.pavlab.rdp.model.enums.ResearcherPosition;
+import ubc.pavlab.rdp.model.enums.TierType;
 
 import java.util.Collection;
 import java.util.EnumSet;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static ubc.pavlab.rdp.util.TestUtils.createTaxon;
-import static ubc.pavlab.rdp.util.TestUtils.createUnpersistedUser;
+import static ubc.pavlab.rdp.util.TestUtils.*;
 
 /**
  * Created by mjacobson on 13/02/18.
@@ -475,5 +475,23 @@ public class UserRepositoryTest {
         user.getProfile().getResearcherCategories().add( ResearcherCategory.IN_SILICO );
         user.getProfile().getResearcherCategories().add( ResearcherCategory.IN_VIVO );
         user = entityManager.persistAndFlush( user );
+    }
+
+    @Test
+    public void delete_whenVerificationToken_thenSucceed() {
+        User user = createUnpersistedUser();
+        user = entityManager.persist( user );
+
+        VerificationToken token = entityManager.persist( createVerificationToken( user, "token123" ) );
+        Taxon humanTaxon = entityManager.find( Taxon.class, 9606 );
+        Gene gene = createGene( 1, humanTaxon );
+        UserGene userGene = entityManager.persist( createUnpersistedUserGene( gene, user, TierType.TIER1, PrivacyLevelType.PRIVATE ) );
+
+        entityManager.refresh( user );
+
+        assertThat( user.getVerificationTokens() ).contains( token );
+        assertThat( user.getUserGenes().values() ).contains( userGene );
+
+        userRepository.delete( user );
     }
 }

@@ -27,7 +27,7 @@
            eternal="true"/>
 
     <cache name="ubc.pavlab.rdp.model.UserGene"
-           maxElementsInMemory="1000"
+           maxElementsInMemory="10000"
            timeToLiveSeconds="600"/>
 
     <cache name="ubc.pavlab.rdp.model.UserTerm"

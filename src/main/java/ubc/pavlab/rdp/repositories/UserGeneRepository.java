@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import ubc.pavlab.rdp.model.GeneInfo;
 import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.model.UserGene;
 import ubc.pavlab.rdp.model.UserOrgan;
@@ -81,6 +82,14 @@ public interface UserGeneRepository extends JpaRepository<UserGene, Integer> {
      */
     @Query("select user_gene from UserGene user_gene where user_gene.geneId in (select ortholog.geneId from GeneInfo gene_info join gene_info.orthologs as ortholog where gene_info.geneId = :geneId and ortholog.taxon = :taxon)")
     Collection<UserGene> findOrthologsByGeneIdAndTaxon( @Param("geneId") Integer geneId, @Param("taxon") Taxon taxon );
+
+    /**
+     * @param taxonId a taxon identifier in which to perform orthology search from
+     * @return a collection of tuple whose first element is a {@link UserGene} and second element is the corresponding
+     * {@link GeneInfo} ortholog in the supplied taxon.
+     */
+    @Query(value = "select gi.gene_id from gene_info as gi join ortholog on gi.id = ortholog.source_gene  join gene_info as gi2 on gi2.id = ortholog.target_gene join gene ug on ug.gene_id = gi2.gene_id where gi.taxon_id = :taxonId", nativeQuery = true)
+    Collection<Integer> findOrthologGeneIdsByOrthologToTaxon( @Param("taxonId") Integer taxonId );
 
     // Return all human genes.
     @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))

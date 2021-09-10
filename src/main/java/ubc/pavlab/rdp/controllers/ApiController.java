@@ -31,7 +31,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * This class provides API access for remote applications
+ * This class provides API accesses for remote applications
  * <p>
  * It's worth mentioning that the '/api' endpoint is delegated to springdoc OpenAPI JSON generator and welcome the
  * client with a specification of the endpoints of this API.
@@ -40,11 +40,6 @@ import java.util.stream.Collectors;
 @RestController
 @CommonsLog
 public class ApiController {
-
-    /**
-     * API version
-     */
-    public static final String API_VERSION = "1.4.0";
 
     @Autowired
     private MessageSource messageSource;
@@ -66,12 +61,12 @@ public class ApiController {
     private PermissionEvaluator permissionEvaluator;
 
     @ExceptionHandler({ AuthenticationException.class })
-    public ResponseEntity handleAuthenticationException() {
+    public ResponseEntity<?> handleAuthenticationException() {
         return ResponseEntity.status( HttpStatus.UNAUTHORIZED ).build();
     }
 
     @ExceptionHandler({ ApiException.class })
-    public ResponseEntity handleApiException( ApiException e ) {
+    public ResponseEntity<String> handleApiException( ApiException e ) {
         return ResponseEntity.status( e.getStatus() ).body( e.getMessage() );
     }
 
@@ -96,10 +91,6 @@ public class ApiController {
      * Retrieve all users in a paginated format.
      * <p>
      * Results that cannot be displayed are anonymized.
-     *
-     * @param pageable
-     * @param locale
-     * @return
      */
     @GetMapping(value = "/api/users", produces = MediaType.APPLICATION_JSON_VALUE)
     public Object getUsers( @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorizationHeader,
@@ -122,10 +113,6 @@ public class ApiController {
      * Retrieve all genes in a paginated format.
      * <p>
      * Results that cannot be displayed are anonymized.
-     *
-     * @param pageable
-     * @param locale
-     * @return
      */
     @GetMapping(value = "/api/genes", produces = MediaType.APPLICATION_JSON_VALUE)
     public Object getGenes( @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorizationHeader,

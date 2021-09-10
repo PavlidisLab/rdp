@@ -210,7 +210,7 @@ public final class TestUtils {
         VerificationToken t = new VerificationToken();
         t.setUser( user );
         t.setEmail( user.getEmail() );
-        t.setToken( token );
+        t.updateToken( token );
         return t;
     }
 

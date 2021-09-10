@@ -113,20 +113,17 @@ public class UserGeneServiceImpl implements UserGeneService {
         return userGeneRepository.countDistinctGeneByTierIn( tierService.getEnabledTiers() );
     }
 
+    /**
+     * Count the number of unique associations to human genes that are either direct or indirect via orthology among all
+     * tiers.
+     * <p>
+     * This is also known as the "human gene coverage".
+     */
     @Cacheable(cacheNames = "stats", key = "#root.methodName")
     @Override
     public Integer countUniqueAssociationsToHumanAllTiers() {
-        /* This is also called the "human gene coverage" */
         Collection<Integer> humanGenes = new HashSet<>( userGeneRepository.findAllHumanGenes() );
-
-        // Add orthologs mapped to humans
-        // TODO
-        // humanGenes.addAll( userGeneRepository.findHumanGenesForTarget(
-        //         userGeneRepository.findDistinctGeneByTierIn( TierType.ANY )
-        // ));
-
-        // Add directly entered human genes
-
+        humanGenes.addAll( userGeneRepository.findOrthologGeneIdsByOrthologToTaxon( 9606 ) );
         return humanGenes.size();
     }
 

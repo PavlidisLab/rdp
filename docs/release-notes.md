@@ -1,5 +1,15 @@
 # Release Notes
 
+## 1.4.4
+
+Use the build version for the OpenAPI specification so that it is always up-to-date.
+
+Fix calculation of human gene coverage, the orthologs were commented out and the SQL query has been added.
+
+Fix field length in the profile to use the value previously set in `profile.css`. The CSS code it contains as well as
+other files have been merged in `common.css`. A flexbox is used for the email since it needs to also account for the
+verify button.
+
 ## 1.4.3
 
 Fix `hideGenelist` accessor in the user profile template which resulted in an error. For now on, property names will be
@@ -17,12 +27,20 @@ where email in (select email
                 having count(email) > 1);
 ```
 
-You should then take action by removing or merging those users. We recommend removing those with the latest `id`
+You should then take action by removing or merging those users. We recommend removing those with the latest `user_id`
 fields, but this is ultimately at your discretion.
+
+Since these users are not valid, you will have to remove the verification token that was generated at registration
+before removing the user itself:
+
+```sql
+delete from verification_token where user_id = ?;
+delete from user where user_id = ?;
+```
 
 ## 1.4.2
 
-Restore rdp.site.shortname and `rdp.site.fullname` in `application.properties` since they're still being used in the
+Restore `rdp.site.shortname` and `rdp.site.fullname` in `application.properties` since they're still being used in the
 user FAQ.
 
 Fix missing TaskExecutor when using an HTTP proxy. It now uses native`-Dhttp.proxyHost` and `-Dhttp.proxyPort` JVM
@@ -34,7 +52,7 @@ Move all email text into messages.properties, so they can be adjusted and transl
 
 Fix missing flash messages after confirming registration and contact email.
 
-Fix /api/users API endpoint for registries that are not using gene-level privacy. In this case, the gene privacy level
+Fix `/api/users` API endpoint for registries that are not using gene-level privacy. In this case, the gene privacy level
 is always set to `null` and the value in the profile must be used instead as a fallback.
 
 Require MySQL 5.7+ and add instructions for using MySQL 5.6 and prior. This is due to a index size limit that is busted

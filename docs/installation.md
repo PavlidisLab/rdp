@@ -24,14 +24,14 @@ cache, and much more!
 Create the database and an associated user that the application will use to store and retrieve data.
 
 ```sql
-create database <database name> character set utf8mb4 collate utf8mb4_general_ci;
+create database '<database name>' character set utf8mb4;
 create user  '<database username>'@'%' identified by '<database password>';
 grant all on rdp.* to '<database username>'@'%';
 ```
 
-If you're using MySQL 5.6 or prior, use the `utf8` character set and `utf8_general_ci` collate. It is a 3 bytes subset
-of the typical 4-bytes UTF-8 character encoding. Otherwise, you will face issues with the index size limit of 767 bytes
-due to some of our indexed columns containing 255 characters (4 * 255 = 1020 > 767, but 3 * 255 = 765).
+If you're using MySQL 5.6 or prior, use the `utf8` character set. It is a 3 bytes subset of the typical 4-bytes UTF-8
+character encoding. Otherwise, you will face issues with the index size limit of 767 bytes due to some of our indexed
+columns containing 255 characters (4 * 255 = 1020 > 767, but 3 * 255 = 765).
 
 ## Setup application.properties
 
