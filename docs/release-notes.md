@@ -1,5 +1,15 @@
 # Release Notes
 
+## 1.4.4
+
+Use the build version for the OpenAPI specification so that it is always up-to-date.
+
+Fix calculation of human gene coverage, the orthologs were commented out and the SQL query has been added.
+
+Fix field length in the profile to use the value previously set in `profile.css`. The CSS code it contains as well as
+other files have been merged in `common.css`. A flexbox is used for the email since it needs to also account for the
+verify button.
+
 ## 1.4.3
 
 Fix `hideGenelist` accessor in the user profile template which resulted in an error. For now on, property names will be
