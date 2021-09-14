@@ -5,6 +5,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.mockito.internal.util.collections.Sets;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +22,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.context.junit4.SpringRunner;
 import ubc.pavlab.rdp.WebMvcConfig;
 import ubc.pavlab.rdp.events.OnContactEmailUpdateEvent;
+import ubc.pavlab.rdp.events.OnRegistrationCompleteEvent;
+import ubc.pavlab.rdp.events.OnRequestAccessEvent;
+import ubc.pavlab.rdp.events.OnUserPasswordResetEvent;
 import ubc.pavlab.rdp.exception.TokenException;
 import ubc.pavlab.rdp.listeners.UserListener;
 import ubc.pavlab.rdp.model.*;
@@ -32,6 +36,7 @@ import ubc.pavlab.rdp.repositories.*;
 import ubc.pavlab.rdp.security.PermissionEvaluatorImpl;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 
+import javax.mail.MessagingException;
 import javax.validation.ValidationException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -678,15 +683,16 @@ public class UserServiceImplTest {
     }
 
     @Test
-    public void createPasswordResetTokenForUser_hasCorrectExpiration() {
+    public void createPasswordResetTokenForUser_hasCorrectExpiration() throws MessagingException {
         User user = createUser( 1 );
-        PasswordResetToken passwordResetToken = userService.createPasswordResetTokenForUser( user );
+        PasswordResetToken passwordResetToken = userService.createPasswordResetTokenForUser( user, Locale.getDefault() );
 
         Instant lowerBound = Instant.now().plus( 2, ChronoUnit.HOURS ).minus( 1, ChronoUnit.MINUTES );
         Instant upperBound = Instant.now().plus( 2, ChronoUnit.HOURS ).plus( 1, ChronoUnit.MINUTES );
 
         // one minute tolerance
         assertThat( passwordResetToken.getExpiryDate().toInstant() ).isBetween( lowerBound, upperBound );
+        verify( userListener ).onUserPasswordReset( new OnUserPasswordResetEvent( user, passwordResetToken, Locale.getDefault() ) );
     }
 
     @Test
@@ -721,14 +727,14 @@ public class UserServiceImplTest {
     @Test
     public void createVerificationTokenForUser_hasCorrectExpiration() {
         User user = createUser( 1 );
-        VerificationToken verificationToken = userService.createVerificationTokenForUser( user );
+        VerificationToken verificationToken = userService.createVerificationTokenForUser( user, Locale.getDefault() );
 
         Instant lowerBound = Instant.now().plus( 24, ChronoUnit.HOURS ).minus( 1, ChronoUnit.MINUTES );
         Instant upperBound = Instant.now().plus( 24, ChronoUnit.HOURS ).plus( 1, ChronoUnit.MINUTES );
 
         // one minute tolerance
         assertThat( verificationToken.getExpiryDate().toInstant() ).isBetween( lowerBound, upperBound );
-
+        verify( userListener ).onRegistrationComplete( any( OnRegistrationCompleteEvent.class ) );
     }
 
     @Test
@@ -1295,6 +1301,20 @@ public class UserServiceImplTest {
                 .isEqualToIgnoringGivenFields( userService.anonymizeUser( user ), "anonymousId" );
         assertThat( userService.findUserGeneByAnonymousIdNoAuth( anonymizedUserGene.getAnonymousId() ) )
                 .isEqualTo( userGene );
+    }
+
+    @Test
+    public void sendGeneAccessRequest_thenTriggerOnRequestAccessEvent() {
+        User user = createUser( 1 );
+        Taxon taxon = createTaxon( 1 );
+        UserGene userGene = createUserGene( 1, createGene( 1, taxon ), user, TierType.TIER1, PrivacyLevelType.PRIVATE );
+        userService.sendGeneAccessRequest( user, userGene, "Because." );
+        ArgumentCaptor<OnRequestAccessEvent> captor = ArgumentCaptor.forClass( OnRequestAccessEvent.class );
+        verify( userListener ).onGeneRequestAccess( captor.capture() );
+        assertThat( captor.getValue() )
+                .hasFieldOrPropertyWithValue( "user", user )
+                .hasFieldOrPropertyWithValue( "object", userGene )
+                .hasFieldOrPropertyWithValue( "reason", "Because." );
     }
 
     private GeneOntologyTermInfo createTermWithGenes( String id, GeneInfo... genes ) {

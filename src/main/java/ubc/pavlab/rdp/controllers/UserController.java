@@ -12,13 +12,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Controller;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import ubc.pavlab.rdp.events.OnContactEmailUpdateEvent;
 import ubc.pavlab.rdp.exception.TokenException;
 import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
@@ -55,9 +53,6 @@ public class UserController {
 
     @Autowired
     private EmailService emailService;
-
-    @Autowired
-    private ApplicationEventPublisher eventPublisher;
 
     @Autowired
     private ApplicationSettings applicationSettings;
@@ -221,15 +216,13 @@ public class UserController {
         return modelAndView;
     }
 
-    @Transactional
     @PostMapping("/user/resend-contact-email-verification")
     public Object resendContactEmailVerification( RedirectAttributes redirectAttributes, Locale locale ) {
         User user = userService.findCurrentUser();
         if ( user.getProfile().isContactEmailVerified() ) {
             return ResponseEntity.badRequest().body( "Contact email is already verified." );
         }
-        VerificationToken token = userService.createContactEmailVerificationTokenForUser( user );
-        eventPublisher.publishEvent( new OnContactEmailUpdateEvent( user, token, locale ) );
+        userService.createContactEmailVerificationTokenForUser( user, locale );
         redirectAttributes.addFlashAttribute( "message", MessageFormat.format( "We will send an email to {0} with a link to verify your contact email.", user.getProfile().getContactEmail() ) );
         return "redirect:/user/profile";
     }

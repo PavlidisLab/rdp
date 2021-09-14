@@ -9,7 +9,7 @@ import ubc.pavlab.rdp.model.VerificationToken;
 import java.util.Locale;
 
 @Getter
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode
 public class OnContactEmailUpdateEvent extends ApplicationEvent {
 
     private final User user;

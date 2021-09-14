@@ -2,10 +2,8 @@ package ubc.pavlab.rdp.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.*;
-import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -21,7 +19,6 @@ import java.util.Set;
                 @Index(columnList = "gene_id, taxon_id"),
                 @Index(columnList = "symbol, taxon_id") })
 @Getter
-@Transactional
 public class GeneInfo extends Gene {
 
     @Id

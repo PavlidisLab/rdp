@@ -22,6 +22,8 @@ import ubc.pavlab.rdp.services.UserDetailsServiceImpl;
 import ubc.pavlab.rdp.services.UserService;
 import ubc.pavlab.rdp.settings.SiteSettings;
 
+import java.util.Locale;
+
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
@@ -78,13 +80,13 @@ public class PasswordControllerTest {
         when( userService.findUserByEmailNoAuth( "foo@example.com" ) ).thenReturn( user );
 
         mvc.perform( post( "/forgotPassword" )
-                .param( "email", "foo@example.com" ) )
+                        .locale( Locale.getDefault() )
+                        .param( "email", "foo@example.com" ) )
                 .andExpect( status().isOk() )
                 .andExpect( view().name( "forgotPassword" ) )
                 .andExpect( model().attribute( "error", false ) );
 
-        verify( userService ).createPasswordResetTokenForUser( eq( user ) );
-        verify( emailService ).sendResetTokenMessage( eq( user ), any(), any() );
+        verify( userService ).createPasswordResetTokenForUser( eq( user ), eq( Locale.getDefault() ) );
     }
 
     @Test
