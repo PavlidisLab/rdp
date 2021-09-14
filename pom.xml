@@ -210,6 +210,7 @@
                         <featureBranchPrefix>feature-</featureBranchPrefix>
                         <hotfixBranchPrefix>hotfix-</hotfixBranchPrefix>
                         <supportBranchPrefix>support-</supportBranchPrefix>
+                        <versionTagPrefix>v</versionTagPrefix>
                     </gitFlowConfig>
                 </configuration>
             </plugin>
