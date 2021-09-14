@@ -1,10 +1,12 @@
 package ubc.pavlab.rdp.events;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import org.springframework.context.ApplicationEvent;
 import ubc.pavlab.rdp.model.User;
 
 @Getter
+@EqualsAndHashCode
 public class OnRequestAccessEvent<T> extends ApplicationEvent {
 
     private User user;

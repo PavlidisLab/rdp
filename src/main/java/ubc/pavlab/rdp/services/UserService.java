@@ -91,16 +91,15 @@ public interface UserService {
 
     User updateUserProfileAndPublicationsAndOrgans( User user, Profile profile, Set<Publication> publications, Set<String> organUberonIds, Locale locale );
 
-    PasswordResetToken createPasswordResetTokenForUser( User user );
+    PasswordResetToken createPasswordResetTokenForUser( User user, Locale locale );
 
     PasswordResetToken verifyPasswordResetToken( int userId, String token ) throws TokenException;
 
     User changePasswordByResetToken( int userId, String token, PasswordReset passwordReset ) throws TokenException;
 
-    VerificationToken createVerificationTokenForUser( User user );
+    VerificationToken createVerificationTokenForUser( User user, Locale locale );
 
-    @Transactional
-    VerificationToken createContactEmailVerificationTokenForUser( User user );
+    VerificationToken createContactEmailVerificationTokenForUser( User user, Locale locale );
 
     User confirmVerificationToken( String token ) throws TokenException;
 
@@ -111,4 +110,6 @@ public interface UserService {
     long computeTermOverlaps( UserTerm userTerm, Collection<GeneInfo> genes );
 
     long computeTermFrequencyInTaxon( User user, GeneOntologyTerm term, Taxon taxon );
+
+    void sendGeneAccessRequest( User requestingUser, UserGene userGene, String reason );
 }

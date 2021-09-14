@@ -13,14 +13,14 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import ubc.pavlab.rdp.WebSecurityConfig;
-import ubc.pavlab.rdp.events.OnRegistrationCompleteEvent;
 import ubc.pavlab.rdp.exception.TokenException;
-import ubc.pavlab.rdp.listeners.UserListener;
 import ubc.pavlab.rdp.model.User;
 import ubc.pavlab.rdp.services.PrivacyService;
 import ubc.pavlab.rdp.services.UserService;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.settings.SiteSettings;
+
+import java.util.Locale;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
@@ -62,9 +62,6 @@ public class LoginControllerTest {
     @MockBean
     private PermissionEvaluator permissionEvaluator;
 
-    @MockBean
-    UserListener userListener;
-
     @Test
     public void login_thenReturnSuccess() throws Exception {
         mvc.perform( get( "/login" ) )
@@ -101,7 +98,8 @@ public class LoginControllerTest {
 
     @Test
     public void resendConfirmation_thenReturnSuccess() throws Exception {
-        mvc.perform( get( "/resendConfirmation" ) )
+        mvc.perform( get( "/resendConfirmation" )
+                        .locale( Locale.getDefault() ) )
                 .andExpect( status().isOk() )
                 .andExpect( view().name( "resendConfirmation" ) );
 
@@ -110,13 +108,13 @@ public class LoginControllerTest {
         when( userService.findUserByEmailNoAuth( "foo@example.com" ) ).thenReturn( user );
 
         mvc.perform( post( "/resendConfirmation" )
-                .param( "email", "foo@example.com" ) )
+                        .locale( Locale.getDefault() )
+                        .param( "email", "foo@example.com" ) )
                 .andExpect( status().isOk() )
                 .andExpect( view().name( "resendConfirmation" ) );
 
         verify( userService ).findUserByEmailNoAuth( "foo@example.com" );
-        verify( userService ).createVerificationTokenForUser( user );
-        verify( userListener ).onRegistrationComplete( any( OnRegistrationCompleteEvent.class ) );
+        verify( userService ).createVerificationTokenForUser( user, Locale.getDefault() );
     }
 
     @Test

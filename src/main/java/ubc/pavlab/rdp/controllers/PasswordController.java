@@ -1,17 +1,21 @@
 package ubc.pavlab.rdp.controllers;
 
+import ch.qos.logback.core.joran.spi.EventPlayer;
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
+import ubc.pavlab.rdp.events.OnUserPasswordResetEvent;
 import ubc.pavlab.rdp.exception.TokenException;
 import ubc.pavlab.rdp.model.PasswordReset;
 import ubc.pavlab.rdp.model.PasswordResetToken;
@@ -35,9 +39,6 @@ public class PasswordController {
     @Autowired
     private UserService userService;
 
-    @Autowired
-    private EmailService emailService;
-
     @GetMapping(value = "/forgotPassword")
     public ModelAndView forgotPassword() {
         return new ModelAndView( "forgotPassword" );
@@ -57,16 +58,7 @@ public class PasswordController {
             return modelAndView;
         }
 
-        PasswordResetToken token = userService.createPasswordResetTokenForUser( user );
-        try {
-            emailService.sendResetTokenMessage( user, token, locale );
-        } catch ( MessagingException e ) {
-            modelAndView.setStatus( HttpStatus.INTERNAL_SERVER_ERROR );
-            modelAndView.addObject( "message", "We had trouble sending an email to your address." );
-            modelAndView.addObject( "error", Boolean.TRUE );
-            log.error( MessageFormat.format( "Failed to send reset token message to {0}.", user ), e );
-            return modelAndView;
-        }
+        userService.createPasswordResetTokenForUser( user, locale );
 
         modelAndView.addObject( "message", "Password reset instructions have been sent." );
         modelAndView.addObject( "error", Boolean.FALSE );

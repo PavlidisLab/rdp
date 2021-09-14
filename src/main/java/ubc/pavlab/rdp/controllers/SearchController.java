@@ -4,7 +4,6 @@ import lombok.Data;
 import lombok.extern.apachecommons.CommonsLog;
 import org.hibernate.validator.constraints.NotBlank;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.PermissionEvaluator;
@@ -13,7 +12,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,7 +21,6 @@ import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import org.springframework.web.servlet.view.RedirectView;
-import ubc.pavlab.rdp.events.OnRequestAccessEvent;
 import ubc.pavlab.rdp.exception.RemoteException;
 import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.ResearcherCategory;
@@ -67,9 +64,6 @@ public class SearchController {
 
     @Autowired
     private PermissionEvaluator permissionEvaluator;
-
-    @Autowired
-    private ApplicationEventPublisher eventPublisher;
 
     @PreAuthorize("hasPermission(null, 'search')")
     @GetMapping(value = "/search")
@@ -550,7 +544,6 @@ public class SearchController {
         return modelAndView;
     }
 
-    @Transactional
     @Secured({ "ROLE_USER", "ROLE_ADMIN" })
     @PostMapping("/search/gene/by-anonymous-id/{anonymousId}/request-access")
     public ModelAndView requestGeneAccess( @PathVariable UUID anonymousId,
@@ -570,7 +563,7 @@ public class SearchController {
         if ( bindingResult.hasErrors() ) {
             modelAndView.setStatus( HttpStatus.BAD_REQUEST );
         } else {
-            eventPublisher.publishEvent( new OnRequestAccessEvent( userService.findCurrentUser(), userGene, requestAccessForm.reason ) );
+            userService.sendGeneAccessRequest( userService.findCurrentUser(), userGene, requestAccessForm.getReason() );
             redirectAttributes.addFlashAttribute( "message", "An access request has been sent and will be reviewed." );
             return new ModelAndView( "redirect:/search" );
         }

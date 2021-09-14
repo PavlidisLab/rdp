@@ -2,7 +2,6 @@ package ubc.pavlab.rdp.controllers;
 
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -16,11 +15,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import ubc.pavlab.rdp.events.OnRegistrationCompleteEvent;
 import ubc.pavlab.rdp.exception.TokenException;
 import ubc.pavlab.rdp.model.Profile;
 import ubc.pavlab.rdp.model.User;
-import ubc.pavlab.rdp.model.VerificationToken;
 import ubc.pavlab.rdp.services.PrivacyService;
 import ubc.pavlab.rdp.services.UserService;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
@@ -43,9 +40,6 @@ public class LoginController {
     @Autowired
     private ApplicationSettings applicationSettings;
 
-    @Autowired
-    private ApplicationEventPublisher eventPublisher;
-
     @GetMapping("/login")
     public ModelAndView login() {
         ModelAndView modelAndView = new ModelAndView( "login" );
@@ -67,7 +61,6 @@ public class LoginController {
         return modelAndView;
     }
 
-    @Transactional
     @PostMapping("/registration")
     public ModelAndView createNewUser( @Validated(User.ValidationUserAccount.class) User user,
                                        BindingResult bindingResult,
@@ -94,8 +87,7 @@ public class LoginController {
             modelAndView.setStatus( HttpStatus.BAD_REQUEST );
         } else {
             user = userService.create( user );
-            VerificationToken token = userService.createVerificationTokenForUser( user );
-            eventPublisher.publishEvent( new OnRegistrationCompleteEvent( user, token, locale ) );
+            userService.createVerificationTokenForUser( user, locale );
             redirectAttributes.addFlashAttribute( "message", "Your user account was registered successfully. Please check your email for completing the completing the registration process." );
             modelAndView.setViewName( "redirect:/login" );
         }
@@ -108,7 +100,6 @@ public class LoginController {
         return new ModelAndView( "resendConfirmation" );
     }
 
-    @Transactional
     @PostMapping(value = "/resendConfirmation")
     public ModelAndView resendConfirmation( @RequestParam("email") String email, Locale locale ) {
         ModelAndView modelAndView = new ModelAndView( "resendConfirmation" );
@@ -125,8 +116,7 @@ public class LoginController {
             modelAndView.addObject( "message", "User is already enabled." );
             return modelAndView;
         } else {
-            VerificationToken token = userService.createVerificationTokenForUser( user );
-            eventPublisher.publishEvent( new OnRegistrationCompleteEvent( user, token, locale ) );
+            userService.createVerificationTokenForUser( user, locale );
             modelAndView.addObject( "message", "Confirmation email sent." );
         }
 
