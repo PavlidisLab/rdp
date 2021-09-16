@@ -24,6 +24,7 @@ import ubc.pavlab.rdp.settings.SiteSettings;
 import javax.mail.MessagingException;
 import java.net.URI;
 import java.util.Locale;
+import java.util.concurrent.ExecutionException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
@@ -59,9 +60,9 @@ public class EmailServiceImplTest {
     }
 
     @Test
-    public void sendUserRegistered_thenSucceed() throws MessagingException {
+    public void sendUserRegistered_thenSucceed() throws MessagingException, ExecutionException, InterruptedException {
         User user = createUser( 1 );
-        emailService.sendUserRegisteredEmail( user );
+        emailService.sendUserRegisteredEmail( user ).get();
         ArgumentCaptor<SimpleMailMessage> mailMessageCaptor = ArgumentCaptor.forClass( SimpleMailMessage.class );
         verify( emailSender ).send( mailMessageCaptor.capture() );
         assertThat( mailMessageCaptor.getValue() )
@@ -73,10 +74,10 @@ public class EmailServiceImplTest {
     }
 
     @Test
-    public void sendSupportMessage_thenSucceed() throws MessagingException {
+    public void sendSupportMessage_thenSucceed() throws MessagingException, ExecutionException, InterruptedException {
         User user = createUser( 1 );
         user.setEnabled( true );
-        emailService.sendSupportMessage( "I need help!", "John Doe", user, "Google Chrome", null, Locale.getDefault() );
+        emailService.sendSupportMessage( "I need help!", "John Doe", user, "Google Chrome", null, Locale.getDefault() ).get();
         ArgumentCaptor<SimpleMailMessage> mailMessageCaptor = ArgumentCaptor.forClass( SimpleMailMessage.class );
         verify( emailSender ).send( mailMessageCaptor.capture() );
         assertThat( mailMessageCaptor.getValue() )
@@ -107,10 +108,10 @@ public class EmailServiceImplTest {
     }
 
     @Test
-    public void sendRegistrationMessageMessage_thenSucceed() throws MessagingException {
+    public void sendRegistrationMessageMessage_thenSucceed() throws MessagingException, ExecutionException, InterruptedException {
         User user = createUser( 1 );
         VerificationToken token = createVerificationToken( user, "1234" );
-        emailService.sendRegistrationMessage( user, token, Locale.getDefault() );
+        emailService.sendRegistrationMessage( user, token, Locale.getDefault() ).get();
         ArgumentCaptor<SimpleMailMessage> mailMessageCaptor = ArgumentCaptor.forClass( SimpleMailMessage.class );
         verify( emailSender ).send( mailMessageCaptor.capture() );
         assertThat( mailMessageCaptor.getValue() )
@@ -122,11 +123,11 @@ public class EmailServiceImplTest {
     }
 
     @Test
-    public void sendContactEmailVerificationMessage_thenSucceed() throws MessagingException {
+    public void sendContactEmailVerificationMessage_thenSucceed() throws MessagingException, ExecutionException, InterruptedException {
         User user = createUser( 1 );
         user.getProfile().setContactEmail( "foo@example.com" );
         VerificationToken token = createContactEmailVerificationToken( user, "1234" );
-        emailService.sendContactEmailVerificationMessage( user, token, Locale.getDefault() );
+        emailService.sendContactEmailVerificationMessage( user, token, Locale.getDefault() ).get();
         ArgumentCaptor<SimpleMailMessage> mailMessageCaptor = ArgumentCaptor.forClass( SimpleMailMessage.class );
         verify( emailSender ).send( mailMessageCaptor.capture() );
         assertThat( mailMessageCaptor.getValue() )
@@ -138,11 +139,11 @@ public class EmailServiceImplTest {
     }
 
     @Test
-    public void sendContactEmailVerificationMessage_whenTokenContainsInvalidCharacter_thenSucceed() throws MessagingException {
+    public void sendContactEmailVerificationMessage_whenTokenContainsInvalidCharacter_thenSucceed() throws MessagingException, ExecutionException, InterruptedException {
         User user = createUser( 1 );
         user.getProfile().setContactEmail( "foo@example.com" );
         VerificationToken token = createContactEmailVerificationToken( user, "1234+" );
-        emailService.sendContactEmailVerificationMessage( user, token, Locale.getDefault() );
+        emailService.sendContactEmailVerificationMessage( user, token, Locale.getDefault() ).get();
         ArgumentCaptor<SimpleMailMessage> mailMessageCaptor = ArgumentCaptor.forClass( SimpleMailMessage.class );
         verify( emailSender ).send( mailMessageCaptor.capture() );
         assertThat( mailMessageCaptor.getValue() )
@@ -154,7 +155,7 @@ public class EmailServiceImplTest {
     }
 
     @Test
-    public void sendUserGeneAccessRequest_thenSucceed() throws MessagingException {
+    public void sendUserGeneAccessRequest_thenSucceed() throws MessagingException, ExecutionException, InterruptedException {
         User user = createUser( 1 );
         user.getProfile().setContactEmail( "foo@example.com" );
         user.getProfile().setContactEmailVerified( true );
@@ -162,7 +163,7 @@ public class EmailServiceImplTest {
         user2.getProfile().setContactEmail( "bar@example.com" );
         user2.getProfile().setContactEmailVerified( true );
         UserGene userGene = createUserGene( 1, createGene( 1, createTaxon( 1 ) ), user2, TierType.TIER1, PrivacyLevelType.PRIVATE );
-        emailService.sendUserGeneAccessRequest( userGene, user, "Because." );
+        emailService.sendUserGeneAccessRequest( userGene, user, "Because." ).get();
         ArgumentCaptor<SimpleMailMessage> mailMessageCaptor = ArgumentCaptor.forClass( SimpleMailMessage.class );
         verify( emailSender ).send( mailMessageCaptor.capture() );
         SimpleMailMessage mailMessage = mailMessageCaptor.getValue();
