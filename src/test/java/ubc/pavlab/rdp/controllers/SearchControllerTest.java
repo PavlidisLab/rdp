@@ -351,16 +351,11 @@ public class SearchControllerTest {
         verify( userService ).anonymizeUserGene( userGene );
 
         mvc.perform( post( "/search/gene/by-anonymous-id/{anonymousId}/request-access", anonymizedUserGene.getAnonymousId() )
-                .param( "reason", "Because." ) )
+                        .param( "reason", "Because." ) )
                 .andExpect( status().is3xxRedirection() )
                 .andExpect( redirectedUrl( "/search" ) )
                 .andExpect( flash().attributeExists( "message" ) );
-        ArgumentCaptor<OnRequestAccessEvent> captor = ArgumentCaptor.forClass( OnRequestAccessEvent.class );
-        verify( userListener ).onGeneRequestAccess( captor.capture() );
-        assertThat( captor.getValue() )
-                .hasFieldOrPropertyWithValue( "user", user )
-                .hasFieldOrPropertyWithValue( "object", userGene )
-                .hasFieldOrPropertyWithValue( "reason", "Because." );
+        verify( userService ).sendGeneAccessRequest( user, userGene, "Because." );
     }
 
     @Test

@@ -20,6 +20,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ubc.pavlab.rdp.events.OnContactEmailUpdateEvent;
+import ubc.pavlab.rdp.events.OnRegistrationCompleteEvent;
+import ubc.pavlab.rdp.events.OnRequestAccessEvent;
+import ubc.pavlab.rdp.events.OnUserPasswordResetEvent;
 import ubc.pavlab.rdp.exception.TokenException;
 import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
@@ -523,6 +526,12 @@ public class UserServiceImpl implements UserService {
                 .count();
     }
 
+    @Override
+    @Transactional
+    public void sendGeneAccessRequest( User requestingUser, UserGene userGene, String reason ) {
+        eventPublisher.publishEvent( new OnRequestAccessEvent( requestingUser, userGene, reason ) );
+    }
+
     @Transactional
     @Override
     @PreAuthorize("hasPermission(#user, 'update')")
@@ -562,8 +571,7 @@ public class UserServiceImpl implements UserService {
                     user.getProfile().setContactEmailVerified( true );
                 } else {
                     user.getProfile().setContactEmailVerified( false );
-                    VerificationToken token = createContactEmailVerificationTokenForUser( user );
-                    eventPublisher.publishEvent( new OnContactEmailUpdateEvent( user, token, locale ) );
+                    VerificationToken token = createContactEmailVerificationTokenForUser( user, locale );
                 }
             } else {
                 // contact email is unset, so we don't need to send a confirmation
@@ -614,11 +622,13 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     @Override
-    public PasswordResetToken createPasswordResetTokenForUser( User user ) {
+    public PasswordResetToken createPasswordResetTokenForUser( User user, Locale locale ) {
         PasswordResetToken userToken = new PasswordResetToken();
         userToken.setUser( user );
         userToken.updateToken( createSecureRandomToken() );
-        return passwordResetTokenRepository.save( userToken );
+        userToken = passwordResetTokenRepository.save( userToken );
+        eventPublisher.publishEvent( new OnUserPasswordResetEvent( user, userToken, locale ) );
+        return userToken;
     }
 
     @Override
@@ -658,22 +668,26 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     @Override
-    public VerificationToken createVerificationTokenForUser( User user ) {
+    public VerificationToken createVerificationTokenForUser( User user, Locale locale ) {
         VerificationToken userToken = new VerificationToken();
         userToken.setUser( user );
         userToken.setEmail( user.getEmail() );
         userToken.updateToken( createSecureRandomToken() );
-        return tokenRepository.save( userToken );
+        userToken = tokenRepository.save( userToken );
+        eventPublisher.publishEvent( new OnRegistrationCompleteEvent( user, userToken, locale ) );
+        return userToken;
     }
 
     @Transactional
     @Override
-    public VerificationToken createContactEmailVerificationTokenForUser( User user ) {
+    public VerificationToken createContactEmailVerificationTokenForUser( User user, Locale locale ) {
         VerificationToken userToken = new VerificationToken();
         userToken.setUser( user );
         userToken.setEmail( user.getProfile().getContactEmail() );
         userToken.updateToken( createSecureRandomToken() );
-        return tokenRepository.save( userToken );
+        userToken = tokenRepository.save( userToken );
+        eventPublisher.publishEvent( new OnContactEmailUpdateEvent( user, userToken, locale ) );
+        return userToken;
     }
 
     @Override

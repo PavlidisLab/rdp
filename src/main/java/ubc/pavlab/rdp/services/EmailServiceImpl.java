@@ -6,6 +6,8 @@ import org.springframework.context.MessageSource;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -26,6 +28,8 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.Collections;
 import java.util.Locale;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 
 /**
  * Created by mjacobson on 19/01/18.
@@ -43,8 +47,7 @@ public class EmailServiceImpl implements EmailService {
     @Autowired
     private MessageSource messageSource;
 
-    private void sendSimpleMessage( String subject, String content, InternetAddress to, InternetAddress replyTo, InternetAddress cc ) throws AddressException {
-
+    private Future<Void> sendSimpleMessage( String subject, String content, InternetAddress to, InternetAddress replyTo, InternetAddress cc ) throws AddressException {
         SimpleMailMessage email = new SimpleMailMessage();
 
         email.setSubject( subject );
@@ -58,11 +61,10 @@ public class EmailServiceImpl implements EmailService {
             email.setCc( cc.toString() );
         }
 
-        emailSender.send( email );
-
+        return CompletableFuture.runAsync( () -> emailSender.send( email ) );
     }
 
-    private void sendMultipartMessage( String subject, String content, InternetAddress to, InternetAddress replyTo, MultipartFile attachment ) throws MessagingException {
+    private Future<Void> sendMultipartMessage( String subject, String content, InternetAddress to, InternetAddress replyTo, MultipartFile attachment ) throws MessagingException {
         MimeMessage message = emailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper( message, true );
 
@@ -76,11 +78,11 @@ public class EmailServiceImpl implements EmailService {
 
         helper.addAttachment( attachment.getOriginalFilename(), attachment );
 
-        emailSender.send( message );
+        return CompletableFuture.runAsync( () -> emailSender.send( message ) );
     }
 
     @Override
-    public void sendSupportMessage( String message, String name, User user, String userAgent, MultipartFile attachment, Locale locale ) throws MessagingException {
+    public Future<Void> sendSupportMessage( String message, String name, User user, String userAgent, MultipartFile attachment, Locale locale ) throws MessagingException {
         InternetAddress replyTo = user.getVerifiedContactEmail().orElseThrow( () -> new MessagingException( "Could not find a verified email address for user." ) );
         String shortName = messageSource.getMessage( "rdp.site.shortname", new String[]{ siteSettings.getHostUri().toString() }, Locale.getDefault() );
         String subject = messageSource.getMessage( "EmailService.sendSupportMessage.subject", new String[]{ shortName }, locale );
@@ -90,14 +92,14 @@ public class EmailServiceImpl implements EmailService {
                 "Message: " + message + "\r\n" +
                 "File Attached: " + ( attachment != null && !attachment.getOriginalFilename().equals( "" ) );
         if ( attachment == null ) {
-            sendSimpleMessage( subject, content, getAdminAddress(), replyTo, null );
+            return sendSimpleMessage( subject, content, getAdminAddress(), replyTo, null );
         } else {
-            sendMultipartMessage( subject, content, getAdminAddress(), replyTo, attachment );
+            return sendMultipartMessage( subject, content, getAdminAddress(), replyTo, attachment );
         }
     }
 
     @Override
-    public void sendResetTokenMessage( User user, PasswordResetToken token, Locale locale ) throws MessagingException {
+    public Future<Void> sendResetTokenMessage( User user, PasswordResetToken token, Locale locale ) throws MessagingException {
         String url = UriComponentsBuilder.fromUri( siteSettings.getHostUri() )
                 .path( "updatePassword" )
                 .queryParam( "id", user.getId() )
@@ -116,11 +118,11 @@ public class EmailServiceImpl implements EmailService {
         String content = messageSource.getMessage( "EmailService.sendResetTokenMessage", new String[]{
                 user.getProfile().getName(), url, dateTimeFormatter.format( token.getExpiryDate().toInstant() ) }, locale );
 
-        sendSimpleMessage( subject, content, to, null, null );
+        return sendSimpleMessage( subject, content, to, null, null );
     }
 
     @Override
-    public void sendRegistrationMessage( User user, VerificationToken token, Locale locale ) throws MessagingException {
+    public Future<Void> sendRegistrationMessage( User user, VerificationToken token, Locale locale ) throws MessagingException {
         String shortName = messageSource.getMessage( "rdp.site.shortname", new String[]{ siteSettings.getHostUri().toString() }, locale );
         String registrationWelcome = messageSource.getMessage( "rdp.site.email.registration-welcome", new String[]{ siteSettings.getHostUri().toString(), shortName }, locale );
         String registrationEnding = messageSource.getMessage( "rdp.site.email.registration-ending", new String[]{ siteSettings.getContactEmail() }, locale );
@@ -136,11 +138,11 @@ public class EmailServiceImpl implements EmailService {
         String message = registrationWelcome + "\r\n\r\n" +
                 messageSource.getMessage( "EmailService.sendRegistrationMessage", new String[]{ confirmationUrl }, locale ) + "\r\n\r\n" +
                 registrationEnding;
-        sendSimpleMessage( subject, message, recipientAddress, null, null );
+        return sendSimpleMessage( subject, message, recipientAddress, null, null );
     }
 
     @Override
-    public void sendContactEmailVerificationMessage( User user, VerificationToken token, Locale locale ) throws MessagingException {
+    public Future<Void> sendContactEmailVerificationMessage( User user, VerificationToken token, Locale locale ) throws MessagingException {
         InternetAddress recipientAddress = new InternetAddress( user.getProfile().getContactEmail() );
         String shortName = messageSource.getMessage( "rdp.site.shortname", new String[]{ siteSettings.getHostUri().toString() }, locale );
         String subject = messageSource.getMessage( "EmailService.sendContactEmailVerificationMessage.subject", new String[]{ shortName }, locale );
@@ -151,21 +153,21 @@ public class EmailServiceImpl implements EmailService {
                 .encode()
                 .toUriString();
         String message = messageSource.getMessage( "EmailService.sendContactEmailVerificationMessage", new String[]{ confirmationUrl }, locale );
-        sendSimpleMessage( subject, message, recipientAddress, null, null );
+        return sendSimpleMessage( subject, message, recipientAddress, null, null );
     }
 
     @Override
-    public void sendUserRegisteredEmail( User user ) throws MessagingException {
+    public Future<Void> sendUserRegisteredEmail( User user ) throws MessagingException {
         // unfortunately, there's no way to tell the dmin locale
         Locale locale = Locale.getDefault();
         String shortname = messageSource.getMessage( "rdp.site.shortname", null, locale );
         String subject = messageSource.getMessage( "EmailService.sendUserRegisteredEmail.subject", new String[]{ shortname }, locale );
         String content = messageSource.getMessage( "EmailService.sendUserRegisteredEmail", new String[]{ user.getEmail() }, locale );
-        sendSimpleMessage( subject, content, getAdminAddress(), null, null );
+        return sendSimpleMessage( subject, content, getAdminAddress(), null, null );
     }
 
     @Override
-    public void sendUserGeneAccessRequest( UserGene userGene, User replyTo, String reason ) throws MessagingException {
+    public Future<Void> sendUserGeneAccessRequest( UserGene userGene, User replyTo, String reason ) throws MessagingException {
         String viewUserUrl = UriComponentsBuilder.fromUri( siteSettings.getHostUri() )
                 .path( "userView/{userId}" )
                 .buildAndExpand( Collections.singletonMap( "userId", replyTo.getId() ) )
@@ -179,7 +181,7 @@ public class EmailServiceImpl implements EmailService {
         String subject = messageSource.getMessage( "EmailService.sendUserGeneAccessRequest.subject", new String[]{ shortname }, locale );
         String content = messageSource.getMessage( "EmailService.sendUserGeneAccessRequest",
                 new String[]{ replyTo.getProfile().getFullName(), userGene.getSymbol(), reason, viewUserUrl }, locale );
-        sendSimpleMessage( subject, content, to, replyToAddress, getAdminAddress() );
+        return sendSimpleMessage( subject, content, to, replyToAddress, getAdminAddress() );
     }
 
     private InternetAddress getAdminAddress() throws AddressException {

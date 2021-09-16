@@ -9,7 +9,6 @@ import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.mockito.internal.util.collections.Sets;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,9 +25,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.multipart.MultipartFile;
 import ubc.pavlab.rdp.WebSecurityConfig;
-import ubc.pavlab.rdp.events.OnContactEmailUpdateEvent;
 import ubc.pavlab.rdp.exception.TokenException;
-import ubc.pavlab.rdp.listeners.UserListener;
 import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.Aspect;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
@@ -119,9 +116,6 @@ public class UserControllerTest {
 
     @MockBean
     private EmailService emailService;
-
-    @MockBean
-    private UserListener userListener;
 
     @Before
     public void setUp() {
@@ -738,15 +732,12 @@ public class UserControllerTest {
         User user = createUser( 1 );
         VerificationToken token = createContactEmailVerificationToken( user, "1234" );
         when( userService.findCurrentUser() ).thenReturn( user );
-        when( userService.createContactEmailVerificationTokenForUser( user ) ).thenReturn( token );
-        mvc.perform( post( "/user/resend-contact-email-verification" ) )
+        when( userService.createContactEmailVerificationTokenForUser( user, Locale.getDefault() ) ).thenReturn( token );
+        mvc.perform( post( "/user/resend-contact-email-verification" )
+                        .locale( Locale.getDefault() ) )
                 .andExpect( status().is3xxRedirection() )
                 .andExpect( redirectedUrl( "/user/profile" ) )
                 .andExpect( flash().attributeExists( "message" ) );
-        verify( userService ).createContactEmailVerificationTokenForUser( user );
-        ArgumentCaptor<OnContactEmailUpdateEvent> eventCaptor = ArgumentCaptor.forClass( OnContactEmailUpdateEvent.class );
-        verify( userListener ).onContactEmailUpdate( eventCaptor.capture() );
-        assertThat( eventCaptor.getValue().getUser() ).isEqualTo( user );
-        assertThat( eventCaptor.getValue().getToken() ).isEqualTo( token );
+        verify( userService ).createContactEmailVerificationTokenForUser( user, Locale.getDefault() );
     }
 }

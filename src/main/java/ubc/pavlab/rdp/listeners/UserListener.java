@@ -2,11 +2,14 @@ package ubc.pavlab.rdp.listeners;
 
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 import ubc.pavlab.rdp.events.OnContactEmailUpdateEvent;
 import ubc.pavlab.rdp.events.OnRegistrationCompleteEvent;
 import ubc.pavlab.rdp.events.OnRequestAccessEvent;
+import ubc.pavlab.rdp.events.OnUserPasswordResetEvent;
 import ubc.pavlab.rdp.model.UserGene;
 import ubc.pavlab.rdp.services.EmailService;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
@@ -38,6 +41,15 @@ public class UserListener {
             emailService.sendRegistrationMessage( event.getUser(), event.getToken(), event.getLocale() );
         } catch ( MessagingException e ) {
             log.error( MessageFormat.format( "Could not send registration email to {0}.", event.getUser() ), e );
+        }
+    }
+
+    @TransactionalEventListener
+    public void onUserPasswordReset( OnUserPasswordResetEvent event ) {
+        try {
+            emailService.sendResetTokenMessage( event.getUser(), event.getToken(), event.getLocale() );
+        } catch ( MessagingException e ) {
+            log.error( MessageFormat.format( "Could not send password reset email to {0}.", event.getUser() ), e );
         }
     }
 

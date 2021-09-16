@@ -15,6 +15,8 @@ import ubc.pavlab.rdp.settings.SiteSettings;
 import javax.servlet.http.HttpServletRequest;
 import java.text.MessageFormat;
 import java.util.Locale;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 
 /**
  * Email service implementation used for development that simply pastes the email content into the logs.
@@ -28,22 +30,24 @@ public class LoggingEmailServiceImpl implements EmailService {
     private SiteSettings siteSettings;
 
     @Override
-    public void sendSupportMessage( String message, String name, User user, String userAgent, MultipartFile attachment, Locale locale ) {
+    public Future<Void> sendSupportMessage( String message, String name, User user, String userAgent, MultipartFile attachment, Locale locale ) {
         log.info( MessageFormat.format( "Support message for {0}:\n{1}", user, message ) );
+        return CompletableFuture.completedFuture( null );
     }
 
     @Override
-    public void sendResetTokenMessage( User user, PasswordResetToken token, Locale locale ) {
+    public Future<Void> sendResetTokenMessage( User user, PasswordResetToken token, Locale locale ) {
         String url = UriComponentsBuilder.fromUri( siteSettings.getHostUri() )
                 .path( "updatePassword" )
                 .queryParam( "id", user.getId() )
                 .queryParam( "token", token.getToken() )
                 .build().encode().toUriString();
         log.info( MessageFormat.format( "Reset URL for {0}: {1}", user, url ) );
+        return CompletableFuture.completedFuture( null );
     }
 
     @Override
-    public void sendRegistrationMessage( User user, VerificationToken token, Locale locale ) {
+    public Future<Void> sendRegistrationMessage( User user, VerificationToken token, Locale locale ) {
         String confirmationUrl = UriComponentsBuilder.fromUri( siteSettings.getHostUri() )
                 .path( "registrationConfirm" )
                 .queryParam( "token", token.getToken() )
@@ -51,10 +55,11 @@ public class LoggingEmailServiceImpl implements EmailService {
                 .encode()
                 .toUriString();
         log.info( MessageFormat.format( "Confirmation URL for {0}: {1}", user, confirmationUrl ) );
+        return CompletableFuture.completedFuture( null );
     }
 
     @Override
-    public void sendContactEmailVerificationMessage( User user, VerificationToken token, Locale locale ) {
+    public Future<Void> sendContactEmailVerificationMessage( User user, VerificationToken token, Locale locale ) {
         String confirmationUrl = UriComponentsBuilder.fromUri( siteSettings.getHostUri() )
                 .path( "user/verify-contact-email" )
                 .queryParam( "token", token.getToken() )
@@ -62,15 +67,18 @@ public class LoggingEmailServiceImpl implements EmailService {
                 .encode()
                 .toUriString();
         log.info( MessageFormat.format( "Contact email verification URL for {0}: {1}", user, confirmationUrl ) );
+        return CompletableFuture.completedFuture( null );
     }
 
     @Override
-    public void sendUserRegisteredEmail( User user ) {
+    public Future<Void> sendUserRegisteredEmail( User user ) {
         log.info( MessageFormat.format( "{0} has been registered.", user ) );
+        return CompletableFuture.completedFuture( null );
     }
 
     @Override
-    public void sendUserGeneAccessRequest( UserGene userGene, User by, String reason ) {
+    public Future<Void> sendUserGeneAccessRequest( UserGene userGene, User by, String reason ) {
         log.info( MessageFormat.format( "{0} has been requested by {1} for: {2}.", userGene, by, reason ) );
+        return CompletableFuture.completedFuture( null );
     }
 }
