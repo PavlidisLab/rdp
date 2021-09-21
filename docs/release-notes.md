@@ -1,5 +1,13 @@
 # Release Notes
 
+## 1.4.5
+
+This release resolves an issue with slow SMTP servers causing a proxy timeout by sending emails asynchronously.
+
+Cleanup usage of `@Transactional` annotations in the service layer and reorganize email logic in the services instead of
+controllers. This way, we ensure that the email is sent whenever the transaction that involve creating a token &mdash;
+or whichever relevant entity &mdash; is committed.
+
 ## 1.4.4
 
 Use the build version for the OpenAPI specification so that it is always up-to-date.
