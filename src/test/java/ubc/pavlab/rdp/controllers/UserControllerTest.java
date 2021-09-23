@@ -127,6 +127,7 @@ public class UserControllerTest {
         when( applicationSettings.getOrgans() ).thenReturn( organSettings );
         when( applicationSettings.getIsearch() ).thenReturn( iSearchSettings );
         when( taxonService.findById( any() ) ).then( i -> createTaxon( i.getArgumentAt( 0, Integer.class ) ) );
+        when( userService.updateUserProfileAndPublicationsAndOrgans( any(), any(), any(), any(), any() ) ).thenAnswer( arg -> arg.getArgumentAt( 0, User.class ) );
     }
 
     @Test
