@@ -5,7 +5,7 @@ import lombok.EqualsAndHashCode;
 import lombok.extern.apachecommons.CommonsLog;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +13,7 @@ import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
@@ -56,6 +57,9 @@ public class UserController {
 
     @Autowired
     private ApplicationSettings applicationSettings;
+
+    @Autowired
+    private MessageSource messageSource;
 
     @GetMapping(value = { "/user/home" })
     public ModelAndView userHome() {
@@ -243,16 +247,54 @@ public class UserController {
     @Data
     static class ProfileWithOrganUberonIds {
         @Valid
-        private Profile profile;
-        private Set<String> organUberonIds;
+        private final Profile profile;
+        private final Set<String> organUberonIds;
+    }
+
+    @Data
+    static class ProfileSavedModel {
+        private final String message;
+        private final boolean contactEmailVerified;
+    }
+
+    @Data
+    static class FieldErrorModel {
+        private final String field;
+        private final String message;
+        private final Object rejectedValue;
+
+        public static FieldErrorModel fromFieldError( FieldError fieldError ) {
+            return new FieldErrorModel( fieldError.getField(), fieldError.getDefaultMessage(), fieldError.getRejectedValue() );
+        }
+    }
+
+    @Data
+    static class BindingResultModel {
+        private final List<FieldErrorModel> fieldErrors;
+
+        public static BindingResultModel fromBindingResult( BindingResult bindingResult ) {
+            return new BindingResultModel( bindingResult.getFieldErrors().stream().map( FieldErrorModel::fromFieldError ).collect( Collectors.toList() ) );
+        }
     }
 
     @ResponseBody
-    @PostMapping(value = "/user/profile", produces = MediaType.TEXT_PLAIN_VALUE)
-    public String saveProfile( @RequestBody ProfileWithOrganUberonIds profileWithOrganUberonIds, Locale locale ) {
+    @PostMapping(value = "/user/profile", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> saveProfile( @Valid @RequestBody ProfileWithOrganUberonIds profileWithOrganUberonIds, BindingResult bindingResult, Locale locale ) {
         User user = userService.findCurrentUser();
-        userService.updateUserProfileAndPublicationsAndOrgans( user, profileWithOrganUberonIds.profile, profileWithOrganUberonIds.profile.getPublications(), profileWithOrganUberonIds.organUberonIds, locale );
-        return "Saved.";
+        if ( bindingResult.hasErrors() ) {
+            return ResponseEntity.badRequest()
+                    .body( BindingResultModel.fromBindingResult( bindingResult ) );
+        } else {
+            String previousContactEmail = user.getProfile().getContactEmail();
+            user = userService.updateUserProfileAndPublicationsAndOrgans( user, profileWithOrganUberonIds.profile, profileWithOrganUberonIds.profile.getPublications(), profileWithOrganUberonIds.organUberonIds, locale );
+            String message = messageSource.getMessage( "UserController.profileSaved", new Object[]{ user.getProfile().getContactEmail() }, locale );
+            if ( user.getProfile().getContactEmail() != null &&
+                    !user.getProfile().getContactEmail().equals( previousContactEmail ) &&
+                    !user.getProfile().isContactEmailVerified() ) {
+                message = messageSource.getMessage( "UserController.profileSavedAndContactEmailUpdated", new String[]{ user.getProfile().getContactEmail() }, locale );
+            }
+            return ResponseEntity.ok( new ProfileSavedModel( message, user.getProfile().isContactEmailVerified() ) );
+        }
     }
 
     @ResponseBody

@@ -740,4 +740,20 @@ public class UserControllerTest {
                 .andExpect( flash().attributeExists( "message" ) );
         verify( userService ).createContactEmailVerificationTokenForUser( user, Locale.getDefault() );
     }
+
+    @Test
+    @WithMockUser
+    public void saveProfile_whenInvalidUrlIsProvided_thenReturnBadRequestWithMeaningfulValidationMessage() throws Exception {
+        User user = createUser( 1 );
+        when( userService.findCurrentUser() ).thenReturn( user );
+        Profile updatedProfile = new Profile();
+        updatedProfile.setWebsite( "bad-url" );
+        UserController.ProfileWithOrganUberonIds profileWithOrganUberonIds = new UserController.ProfileWithOrganUberonIds( updatedProfile, null );
+        mvc.perform( post( "/user/profile" )
+                        .contentType( MediaType.APPLICATION_JSON )
+                        .content( objectMapper.writeValueAsString( profileWithOrganUberonIds ) ) )
+                .andExpect( status().isBadRequest() )
+                .andExpect( jsonPath( "$.fieldErrors[0].field" ).value( "profile.website" ) )
+                .andExpect( jsonPath( "$.fieldErrors[0].rejectedValue" ).value( "bad-url" ) );
+    }
 }
