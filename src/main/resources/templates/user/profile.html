@@ -27,16 +27,18 @@
             </div>
         </div>
 
-        <div class="alert alert-success alert-dismissible fade show success-row mb-3" role="alert"
+        <div id="profile-success-alert" class="alert alert-success alert-dismissible fade show mb-3"
+             role="alert"
              style="display: none;">
-            Profile Saved!
+            <div id="profile-success-alert-message"></div>
             <button type="button" class="close" id="saved-button">
                 <span aria-hidden="true">&times;</span>
             </button>
         </div>
 
-        <div class="alert alert-danger alert-dismissible fade show error-row mb-3" role="alert" style="display: none;">
-            Error Saving Profile!
+        <div id="profile-error-alert" class="alert alert-danger alert-dismissible fade show mb-3" role="alert"
+             style="display: none;">
+            <div id="profile-error-alert-message"></div>
             <button type="button" class="close">
                 <span aria-hidden="true">&times;</span>
             </button>
@@ -180,14 +182,17 @@
                                     </div>
                                     <div class="flex-column">
                                         <span th:if="*{contactEmailVerified}"
-                                              class="badge badge-success contact-email-verification-badge">Verified</span>
+                                              id="contact-email-verified-badge"
+                                              class="badge badge-success">Verified</span>
                                         <div th:unless="*{contactEmail} == null or *{contactEmail} == '' or *{contactEmailVerified}">
                                             <form th:action="@{/user/resend-contact-email-verification}" method="post"
                                                   class="d-inline-block">
-                                                <span class="badge badge-warning contact-email-verification-badge"
+                                                <span id="contact-email-not-verified-badge"
+                                                      class="badge badge-warning"
                                                       data-toggle="tooltip"
                                                       title="Your contact email is not verified, we'll contact you with your primary email instead.">Not verified</span>
-                                                <button class="btn btn-sm" type="submit">
+                                                <button id="contact-email-resend-verification-email-button"
+                                                        class="btn btn-sm" type="submit">
                                                     <i class="oi oi-envelope-closed"></i>
                                                     Resend contact email verification
                                                 </button>
