@@ -15,13 +15,18 @@ public class VersionUtilsTest {
         assertThat( VersionUtils.satisfiesVersion( "0.99", "0.9" ) ).isTrue();
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test(expected = IllegalArgumentException.class)
     public void satisfiesVersion_whenVersionIsOver99_thenRaiseRuntimeException() {
         VersionUtils.satisfiesVersion( "1.100", "1.0.0" );
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test(expected = IllegalArgumentException.class)
     public void satisfiesVersion_whenVersionIsUnder0_thenRaiseRuntimeException() {
         VersionUtils.satisfiesVersion( "1.-1", "1.0.0" );
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void satisfiesVersion_whenVersionIsInvalid_thenRaiseIllegalArgumentException() {
+        VersionUtils.satisfiesVersion( "v0", "1.4.0" );
     }
 }
