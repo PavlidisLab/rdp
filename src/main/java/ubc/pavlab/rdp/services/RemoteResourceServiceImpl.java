@@ -145,14 +145,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
                 .buildAndExpand( Collections.singletonMap( "userId", userId ) )
                 .toUri();
 
-        try {
-            ResponseEntity<User> responseEntity = asyncRestTemplate.getForEntity( uri, User.class ).get();
-            User user = responseEntity.getBody();
-            initUser( user );
-            return user;
-        } catch ( InterruptedException | ExecutionException e ) {
-            throw new RemoteException( MessageFormat.format( "Unsuccessful response received for {0}.", uri ), e );
-        }
+        return getUserByUri( uri );
     }
 
     @Override
@@ -173,6 +166,10 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
                 .buildAndExpand( Collections.singletonMap( "anonymousId", anonymousId ) )
                 .toUri();
 
+        return getUserByUri( uri );
+    }
+
+    private User getUserByUri( URI uri ) throws RemoteException {
         try {
             ResponseEntity<User> responseEntity = asyncRestTemplate.getForEntity( uri, User.class ).get();
             User user = responseEntity.getBody();
