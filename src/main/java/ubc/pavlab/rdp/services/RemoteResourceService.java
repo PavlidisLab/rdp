@@ -1,5 +1,6 @@
 package ubc.pavlab.rdp.services;
 
+import ubc.pavlab.rdp.controllers.ApiController;
 import ubc.pavlab.rdp.exception.RemoteException;
 import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.model.User;
@@ -10,6 +11,7 @@ import ubc.pavlab.rdp.model.enums.TierType;
 
 import java.net.URI;
 import java.util.Collection;
+import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
 
@@ -19,15 +21,47 @@ import java.util.UUID;
  */
 public interface RemoteResourceService {
 
+    /**
+     * Get the version of the remote API by reading its OpenAPI specification.
+     *
+     * @param remoteHost from which only the authority is used with {@link URI#getAuthority()}
+     * @return the API version
+     * @throws RemoteException if any error occured while retrieving the API version
+     */
     String getApiVersion( URI remoteHost ) throws RemoteException;
 
+    /**
+     * Find users by name among all partner registries.
+     *
+     * @see ApiController#searchUsersByName(String, Boolean, Set, Set, Set, String, String, Locale)
+     */
     Collection<User> findUsersByLikeName( String nameLike, Boolean prefix, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherTypes, Collection<String> organUberonIds );
 
+    /**
+     * Find users by description among all partner registries.
+     *
+     * @see ApiController#searchUsersByDescription(String, Set, Set, Set, String, String, Locale)
+     */
     Collection<User> findUsersByDescription( String descriptionLike, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherTypes, Collection<String> organUberonIds );
 
+    /**
+     * Find genes by symbol among all partner registries.
+     *
+     * @see ApiController#searchUsersByGeneSymbol(String, Integer, Set, Integer, Set, Set, Set, String, String, Locale)
+     */
     Collection<UserGene> findGenesBySymbol( String symbol, Taxon taxon, Set<TierType> tier, Integer orthologTaxonId, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherTypes, Set<String> organUberonIds );
 
+    /**
+     * Retrieve a user from a specific registry.
+     *
+     * @see ApiController#getUserById(Integer, String, String, Locale)
+     */
     User getRemoteUser( Integer userId, URI remoteHost ) throws RemoteException;
 
+    /**
+     * Retrieve an anonymized user from a specific registry.
+     *
+     * @see ApiController#getUserByAnonymousId(UUID, String, String, Locale)
+     */
     User getAnonymizedUser( UUID anonymousId, URI remoteHost ) throws RemoteException;
 }
