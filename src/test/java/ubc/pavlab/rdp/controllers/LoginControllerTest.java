@@ -167,7 +167,7 @@ public class LoginControllerTest {
         User user = createUser( 1 );
         when( userService.confirmVerificationToken( "1234" ) ).thenReturn( user );
         mvc.perform( get( "/registrationConfirm" )
-                .param( "token", "1234" ) )
+                        .param( "token", "1234" ) )
                 .andExpect( status().is3xxRedirection() )
                 .andExpect( redirectedUrl( "/login" ) )
                 .andExpect( flash().attributeExists( "message" ) );
@@ -177,7 +177,7 @@ public class LoginControllerTest {
     public void registrationConfirm_whenTokenDoesNotExist_thenReturnError() throws Exception {
         when( userService.confirmVerificationToken( "1234" ) ).thenThrow( TokenException.class );
         mvc.perform( get( "/registrationConfirm" )
-                .param( "token", "1234" ) )
+                        .param( "token", "1234" ) )
                 .andExpect( status().isNotFound() )
                 .andExpect( view().name( "error/404" ) );
     }

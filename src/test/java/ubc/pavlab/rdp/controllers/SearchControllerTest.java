@@ -136,9 +136,9 @@ public class SearchControllerTest {
     public void getSearch_ByNameLike_return200() throws Exception {
         when( permissionEvaluator.hasPermission( any(), isNull(), eq( "search" ) ) ).thenReturn( true );
         mvc.perform( get( "/search" )
-                .param( "nameLike", "K" )
-                .param( "prefix", "true" )
-                .param( "iSearch", "false" ) )
+                        .param( "nameLike", "K" )
+                        .param( "prefix", "true" )
+                        .param( "iSearch", "false" ) )
                 .andExpect( status().isOk() )
                 .andExpect( view().name( "search" ) )
                 .andExpect( model().attributeExists( "users" ) );
@@ -148,8 +148,8 @@ public class SearchControllerTest {
     public void getSearch_ByDescriptionLike_return200() throws Exception {
         when( permissionEvaluator.hasPermission( any(), isNull(), eq( "search" ) ) ).thenReturn( true );
         mvc.perform( get( "/search" )
-                .param( "descriptionLike", "pancake" )
-                .param( "iSearch", "false" ) )
+                        .param( "descriptionLike", "pancake" )
+                        .param( "iSearch", "false" ) )
                 .andExpect( status().isOk() )
                 .andExpect( view().name( "search" ) )
                 .andExpect( model().attributeExists( "users" ) );
@@ -163,9 +163,9 @@ public class SearchControllerTest {
         when( taxonService.findById( 9606 ) ).thenReturn( humanTaxon );
         when( geneService.findBySymbolAndTaxon( "BRCA1", humanTaxon ) ).thenReturn( gene );
         mvc.perform( get( "/search" )
-                .param( "symbol", "BRCA1" )
-                .param( "taxonId", "9606" )
-                .param( "iSearch", "false" ) )
+                        .param( "symbol", "BRCA1" )
+                        .param( "taxonId", "9606" )
+                        .param( "iSearch", "false" ) )
                 .andExpect( status().isOk() )
                 .andExpect( view().name( "search" ) )
                 .andExpect( model().attributeExists( "usergenes" ) );
@@ -197,7 +197,7 @@ public class SearchControllerTest {
         when( remoteResourceService.getRemoteUser( user.getId(), URI.create( "example.com" ) ) ).thenReturn( user );
         when( privacyService.checkCurrentUserCanSearch( true ) ).thenReturn( true );
         mvc.perform( get( "/userView/{userId}", user.getId() )
-                .param( "remoteHost", "example.com" ) )
+                        .param( "remoteHost", "example.com" ) )
                 .andExpect( status().isOk() )
                 .andExpect( view().name( "userView" ) );
         verify( remoteResourceService ).getRemoteUser( user.getId(), URI.create( "example.com" ) );
@@ -208,7 +208,7 @@ public class SearchControllerTest {
         when( remoteResourceService.getRemoteUser( 1, URI.create( "example.com" ) ) ).thenReturn( null );
         when( privacyService.checkCurrentUserCanSearch( true ) ).thenReturn( true );
         mvc.perform( get( "/userView/{userId}", 1 )
-                .param( "remoteHost", "example.com" ) )
+                        .param( "remoteHost", "example.com" ) )
                 .andExpect( status().isNotFound() );
         verify( remoteResourceService ).getRemoteUser( 1, URI.create( "example.com" ) );
     }
@@ -218,7 +218,7 @@ public class SearchControllerTest {
         when( remoteResourceService.getRemoteUser( 1, URI.create( "example.com" ) ) ).thenThrow( RemoteException.class );
         when( privacyService.checkCurrentUserCanSearch( true ) ).thenReturn( true );
         mvc.perform( get( "/userView/{userId}", 1 )
-                .param( "remoteHost", "example.com" ) )
+                        .param( "remoteHost", "example.com" ) )
                 .andExpect( status().isServiceUnavailable() );
         verify( remoteResourceService ).getRemoteUser( 1, URI.create( "example.com" ) );
     }
@@ -230,8 +230,8 @@ public class SearchControllerTest {
         when( remoteResourceService.findUsersByLikeName( "Mark", true, null, null, null ) )
                 .thenReturn( Collections.singleton( user ) );
         mvc.perform( get( "/search/view/international" )
-                .param( "nameLike", "Mark" )
-                .param( "prefix", "true" ) )
+                        .param( "nameLike", "Mark" )
+                        .param( "prefix", "true" ) )
                 .andExpect( status().isOk() )
                 .andExpect( view().name( "fragments/user-table::user-table" ) );
     }
@@ -242,7 +242,7 @@ public class SearchControllerTest {
         when( remoteResourceService.getRemoteUser( user.getId(), URI.create( "example.com" ) ) ).thenThrow( RemoteException.class );
         when( privacyService.checkCurrentUserCanSearch( true ) ).thenReturn( true );
         mvc.perform( get( "/userView/{userId}", user.getId() )
-                .param( "remoteHost", "example.com" ) )
+                        .param( "remoteHost", "example.com" ) )
                 .andExpect( status().isServiceUnavailable() );
         verify( remoteResourceService ).getRemoteUser( user.getId(), URI.create( "example.com" ) );
     }
@@ -273,7 +273,7 @@ public class SearchControllerTest {
         when( userService.findUserById( 1 ) ).thenReturn( user );
         when( remoteResourceService.getRemoteUser( 1, URI.create( "http://localhost/" ) ) ).thenReturn( user );
         mvc.perform( get( "/search/view/user-preview/{userId}", user.getId() )
-                .param( "remoteHost", "http://localhost/" ) )
+                        .param( "remoteHost", "http://localhost/" ) )
                 .andExpect( status().isOk() );
         verify( remoteResourceService ).getRemoteUser( 1, URI.create( "http://localhost/" ) );
     }
@@ -312,7 +312,7 @@ public class SearchControllerTest {
         when( remoteResourceService.getApiVersion( URI.create( "http://localhost/" ) ) ).thenReturn( "1.4.0" );
         when( remoteResourceService.getAnonymizedUser( anonymousUser.getAnonymousId(), URI.create( "http://localhost/" ) ) ).thenReturn( anonymousUser );
         mvc.perform( get( "/search/view/user-preview/by-anonymous-id/{anonymousId}", anonymousUser.getAnonymousId() )
-                .param( "remoteHost", "http://localhost/" ) )
+                        .param( "remoteHost", "http://localhost/" ) )
                 .andExpect( status().isOk() )
                 .andExpect( view().name( "fragments/profile::user-preview" ) )
                 .andExpect( model().attribute( "user", anonymousUser ) );
@@ -325,7 +325,7 @@ public class SearchControllerTest {
         anonymousUser.getProfile().getResearcherCategories().add( ResearcherCategory.IN_SILICO );
         when( remoteResourceService.getApiVersion( URI.create( "http://localhost/" ) ) ).thenReturn( "1.0.0" );
         mvc.perform( get( "/search/view/user-preview/by-anonymous-id/{anonymousId}", anonymousUser.getAnonymousId() )
-                .param( "remoteHost", "http://localhost/" ) )
+                        .param( "remoteHost", "http://localhost/" ) )
                 .andExpect( status().isNotFound() )
                 .andExpect( view().name( "fragments/error::message" ) );
     }

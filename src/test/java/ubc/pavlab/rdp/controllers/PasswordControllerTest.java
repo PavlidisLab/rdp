@@ -93,7 +93,7 @@ public class PasswordControllerTest {
     public void forgotPassword_whenUserDoesNotExist_thenReturnNotFound() throws Exception {
         when( userService.findUserByEmailNoAuth( "foo@example.com" ) ).thenReturn( null );
         mvc.perform( post( "/forgotPassword" )
-                .param( "email", "foo@example.com" ) )
+                        .param( "email", "foo@example.com" ) )
                 .andExpect( status().isNotFound() )
                 .andExpect( view().name( "forgotPassword" ) );
     }
@@ -103,18 +103,18 @@ public class PasswordControllerTest {
         User user = createUser( 1 );
         when( userService.findUserByIdNoAuth( 1 ) ).thenReturn( user );
         mvc.perform( get( "/updatePassword" )
-                .param( "id", "1" )
-                .param( "token", "1234" ) )
+                        .param( "id", "1" )
+                        .param( "token", "1234" ) )
                 .andExpect( status().isOk() )
                 .andExpect( view().name( "updatePassword" ) );
 
         verify( userService ).verifyPasswordResetToken( 1, "1234" );
 
         mvc.perform( post( "/updatePassword" )
-                .param( "id", "1" )
-                .param( "token", "1234" )
-                .param( "newPassword", "123456" )
-                .param( "passwordConfirm", "123456" ) )
+                        .param( "id", "1" )
+                        .param( "token", "1234" )
+                        .param( "newPassword", "123456" )
+                        .param( "passwordConfirm", "123456" ) )
                 .andExpect( status().is3xxRedirection() )
                 .andExpect( redirectedUrl( "/user/home" ) );
 
@@ -124,10 +124,10 @@ public class PasswordControllerTest {
     @Test
     public void changePasswordByResetToken_whenNewPasswordIsTooShort_thenThrowValidationException() throws Exception {
         mvc.perform( post( "/updatePassword" )
-                .param( "id", "1" )
-                .param( "token", "1234" )
-                .param( "newPassword", "12345" )
-                .param( "passwordConfirm", "12345" ) )
+                        .param( "id", "1" )
+                        .param( "token", "1234" )
+                        .param( "newPassword", "12345" )
+                        .param( "passwordConfirm", "12345" ) )
                 .andExpect( status().isBadRequest() )
                 .andExpect( view().name( "updatePassword" ) );
     }
