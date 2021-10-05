@@ -132,8 +132,8 @@ public class AdminControllerTest {
             return createdUser;
         } );
         mvc.perform( post( "/admin/create-service-account" )
-                .param( "profile.name", "Service Account" )
-                .param( "email", "service-account" ) )
+                        .param( "profile.name", "Service Account" )
+                        .param( "email", "service-account" ) )
                 .andExpect( status().is3xxRedirection() )
                 .andExpect( redirectedUrl( "/admin/users/1" ) );
         ArgumentCaptor<User> captor = ArgumentCaptor.forClass( User.class );
@@ -178,7 +178,7 @@ public class AdminControllerTest {
         when( userService.findUserById( eq( 1 ) ) ).thenReturn( user );
 
         mvc.perform( get( "/admin/users/{userId}", user.getId() )
-                .contentType( MediaType.APPLICATION_JSON ) )
+                        .contentType( MediaType.APPLICATION_JSON ) )
                 .andExpect( status().is3xxRedirection() );
     }
 
@@ -192,7 +192,7 @@ public class AdminControllerTest {
         when( userService.findUserById( eq( 1 ) ) ).thenReturn( me );
 
         mvc.perform( get( "/admin/users/{userId}", me.getId() )
-                .contentType( MediaType.APPLICATION_JSON ) )
+                        .contentType( MediaType.APPLICATION_JSON ) )
                 .andExpect( status().isForbidden() );
     }
 
@@ -206,7 +206,7 @@ public class AdminControllerTest {
         when( userService.findUserById( eq( 1 ) ) ).thenReturn( me );
 
         mvc.perform( delete( "/admin/users/{userId}", me.getId() )
-                .param( "email", me.getEmail() ) )
+                        .param( "email", me.getEmail() ) )
                 .andExpect( status().is3xxRedirection() )
                 .andExpect( redirectedUrl( "/admin/users" ) );
 
@@ -222,7 +222,7 @@ public class AdminControllerTest {
         when( userService.findUserById( eq( 1 ) ) ).thenReturn( me );
 
         mvc.perform( delete( "/admin/users/{userId}", me.getId() )
-                .param( "email", "123@example.com" ) )
+                        .param( "email", "123@example.com" ) )
                 .andExpect( status().isBadRequest() )
                 .andExpect( view().name( "admin/user" ) );
 

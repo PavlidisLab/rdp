@@ -1,11 +1,14 @@
 package ubc.pavlab.rdp.controllers;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.convert.converter.Converter;
+import org.springframework.format.support.FormattingConversionService;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -14,7 +17,9 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import ubc.pavlab.rdp.WebSecurityConfig;
 import ubc.pavlab.rdp.exception.TokenException;
+import ubc.pavlab.rdp.model.Profile;
 import ubc.pavlab.rdp.model.User;
+import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.services.PrivacyService;
 import ubc.pavlab.rdp.services.UserService;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
@@ -62,6 +67,15 @@ public class LoginControllerTest {
     @MockBean
     private PermissionEvaluator permissionEvaluator;
 
+    @Autowired
+    private FormattingConversionService formattingConversionService;
+
+    @Before
+    public void setUp() {
+        when( applicationSettings.getPrivacy() ).thenReturn( privacySettings );
+        when( privacyService.getDefaultPrivacyLevel() ).thenReturn( PrivacyLevelType.PRIVATE );
+    }
+
     @Test
     public void login_thenReturnSuccess() throws Exception {
         mvc.perform( get( "/login" ) )
@@ -97,6 +111,37 @@ public class LoginControllerTest {
     }
 
     @Test
+    public void register_whenEmailIsUsedButNotEnabled_thenResendConfirmation() throws Exception {
+        User user = User.builder()
+                .email( "foo@example.com" )
+                .enabled( false )
+                .profile( new Profile() )
+                .build();
+        when( userService.findUserByEmailNoAuth( "foo@example.com" ) ).thenReturn( user );
+
+        //noinspection Convert2Lambda
+        formattingConversionService.addConverter( new Converter<Object, User>() {
+            @Override
+            public User convert( Object o ) {
+                return User.builder()
+                        .profile( Profile.builder().name( "Foo" ).build() )
+                        .email( "foo@example.com" )
+                        .build();
+            }
+        } );
+
+        mvc.perform( post( "/registration" )
+                        .locale( Locale.getDefault() )
+                        .param( "user.profile.name", "Foo" )
+                        .param( "user.email", "foo@example.com" ) )
+                .andExpect( status().isBadRequest() )
+                .andExpect( view().name( "registration" ) )
+                .andExpect( model().attribute( "user", new User() ) );
+
+        verify( userService ).createVerificationTokenForUser( user, Locale.getDefault() );
+    }
+
+    @Test
     public void resendConfirmation_thenReturnSuccess() throws Exception {
         mvc.perform( get( "/resendConfirmation" )
                         .locale( Locale.getDefault() ) )
@@ -122,7 +167,7 @@ public class LoginControllerTest {
         User user = createUser( 1 );
         when( userService.confirmVerificationToken( "1234" ) ).thenReturn( user );
         mvc.perform( get( "/registrationConfirm" )
-                .param( "token", "1234" ) )
+                        .param( "token", "1234" ) )
                 .andExpect( status().is3xxRedirection() )
                 .andExpect( redirectedUrl( "/login" ) )
                 .andExpect( flash().attributeExists( "message" ) );
@@ -132,7 +177,7 @@ public class LoginControllerTest {
     public void registrationConfirm_whenTokenDoesNotExist_thenReturnError() throws Exception {
         when( userService.confirmVerificationToken( "1234" ) ).thenThrow( TokenException.class );
         mvc.perform( get( "/registrationConfirm" )
-                .param( "token", "1234" ) )
+                        .param( "token", "1234" ) )
                 .andExpect( status().isNotFound() )
                 .andExpect( view().name( "error/404" ) );
     }

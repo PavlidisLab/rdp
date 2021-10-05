@@ -244,7 +244,8 @@
 
         <th:block th:each="taxon : ${viewUser.taxons}">
 
-            <div class="row mb-3">
+            <div class="row mb-3"
+                 th:unless="${#strings.isEmpty(viewUser.taxonDescriptions.get(taxon))}">
                 <div class="col">
                     <div class="card research-info edit-container">
                         <div class="card-header d-flex align-items-center">

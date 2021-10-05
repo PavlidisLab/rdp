@@ -127,6 +127,7 @@ public class UserControllerTest {
         when( applicationSettings.getOrgans() ).thenReturn( organSettings );
         when( applicationSettings.getIsearch() ).thenReturn( iSearchSettings );
         when( taxonService.findById( any() ) ).then( i -> createTaxon( i.getArgumentAt( 0, Integer.class ) ) );
+        when( userService.updateUserProfileAndPublicationsAndOrgans( any(), any(), any(), any(), any() ) ).thenAnswer( arg -> arg.getArgumentAt( 0, User.class ) );
     }
 
     @Test
@@ -207,9 +208,9 @@ public class UserControllerTest {
                 .andExpect( view().name( "user/support" ) );
 
         mvc.perform( post( "/user/support" )
-                .param( "name", "John Doe" )
-                .param( "message", "Is everything okay?" )
-                .locale( Locale.ENGLISH ) )
+                        .param( "name", "John Doe" )
+                        .param( "message", "Is everything okay?" )
+                        .locale( Locale.ENGLISH ) )
                 .andExpect( status().isOk() )
                 .andExpect( view().name( "user/support" ) );
 
@@ -225,7 +226,7 @@ public class UserControllerTest {
         when( userService.findCurrentUser() ).thenReturn( user );
 
         mvc.perform( get( "/user" )
-                .contentType( MediaType.APPLICATION_JSON ) )
+                        .contentType( MediaType.APPLICATION_JSON ) )
                 .andExpect( status().is3xxRedirection() );
     }
 
@@ -239,7 +240,7 @@ public class UserControllerTest {
         when( userService.findCurrentUser() ).thenReturn( user );
 
         mvc.perform( get( "/user" )
-                .contentType( MediaType.APPLICATION_JSON ) )
+                        .contentType( MediaType.APPLICATION_JSON ) )
                 .andExpect( status().isOk() )
                 .andExpect( jsonPath( "$.email" ).value( user.getEmail() ) )
                 .andExpect( jsonPath( "$.password" ).doesNotExist() );
@@ -254,7 +255,7 @@ public class UserControllerTest {
         when( userService.findCurrentUser() ).thenReturn( user );
 
         mvc.perform( get( "/user/taxon" )
-                .contentType( MediaType.APPLICATION_JSON ) )
+                        .contentType( MediaType.APPLICATION_JSON ) )
                 .andExpect( status().is3xxRedirection() );
     }
 
@@ -270,7 +271,7 @@ public class UserControllerTest {
         when( userService.findCurrentUser() ).thenReturn( user );
 
         mvc.perform( get( "/user/taxon" )
-                .contentType( MediaType.APPLICATION_JSON ) )
+                        .contentType( MediaType.APPLICATION_JSON ) )
                 .andExpect( status().isOk() )
                 .andExpect( jsonPath( "$[0].id" ).value( taxon.getId() ) )
                 .andExpect( jsonPath( "$[0].commonName" ).value( taxon.getCommonName() ) );
@@ -285,7 +286,7 @@ public class UserControllerTest {
         when( userService.findCurrentUser() ).thenReturn( user );
 
         mvc.perform( get( "/user/gene" )
-                .contentType( MediaType.APPLICATION_JSON ) )
+                        .contentType( MediaType.APPLICATION_JSON ) )
                 .andExpect( status().is3xxRedirection() );
     }
 
@@ -304,7 +305,7 @@ public class UserControllerTest {
         when( userService.findCurrentUser() ).thenReturn( user );
 
         mvc.perform( get( "/user/gene" )
-                .contentType( MediaType.APPLICATION_JSON ) )
+                        .contentType( MediaType.APPLICATION_JSON ) )
                 .andExpect( status().isOk() )
                 .andExpect( jsonPath( "$[0].geneId" ).value( gene.getGeneId() ) )
                 .andExpect( jsonPath( "$[0].symbol" ).value( gene.getSymbol() ) )
@@ -321,7 +322,7 @@ public class UserControllerTest {
         when( userService.findCurrentUser() ).thenReturn( user );
 
         mvc.perform( get( "/user/term" )
-                .contentType( MediaType.APPLICATION_JSON ) )
+                        .contentType( MediaType.APPLICATION_JSON ) )
                 .andExpect( status().is3xxRedirection() );
     }
 
@@ -341,7 +342,7 @@ public class UserControllerTest {
         when( userService.findCurrentUser() ).thenReturn( user );
 
         mvc.perform( get( "/user/term" )
-                .contentType( MediaType.APPLICATION_JSON ) )
+                        .contentType( MediaType.APPLICATION_JSON ) )
                 .andExpect( status().isOk() )
                 .andExpect( jsonPath( "$[0].goId" ).value( term.getGoId() ) )
                 .andExpect( jsonPath( "$[0].name" ).value( term.getName() ) )
@@ -358,7 +359,7 @@ public class UserControllerTest {
         when( userService.findCurrentUser() ).thenReturn( user );
 
         mvc.perform( get( "/user/taxon/9606/gene" )
-                .contentType( MediaType.APPLICATION_JSON ) )
+                        .contentType( MediaType.APPLICATION_JSON ) )
                 .andExpect( status().is3xxRedirection() );
     }
 
@@ -382,7 +383,7 @@ public class UserControllerTest {
         when( userService.findCurrentUser() ).thenReturn( user );
 
         mvc.perform( get( "/user/taxon/1/gene" )
-                .contentType( MediaType.APPLICATION_JSON ) )
+                        .contentType( MediaType.APPLICATION_JSON ) )
                 .andExpect( status().isOk() )
                 .andExpect( jsonPath( "$[0].geneId" ).value( gene.getGeneId() ) )
                 .andExpect( jsonPath( "$[0].symbol" ).value( gene.getSymbol() ) )
@@ -390,7 +391,7 @@ public class UserControllerTest {
                 .andExpect( jsonPath( "$[0].taxon.id" ).value( taxon.getId() ) );
 
         mvc.perform( get( "/user/taxon/2/gene" )
-                .contentType( MediaType.APPLICATION_JSON ) )
+                        .contentType( MediaType.APPLICATION_JSON ) )
                 .andExpect( status().isOk() )
                 .andExpect( jsonPath( "$[0].geneId" ).value( gene2.getGeneId() ) )
                 .andExpect( jsonPath( "$[0].symbol" ).value( gene2.getSymbol() ) )
@@ -407,7 +408,7 @@ public class UserControllerTest {
         when( userService.findCurrentUser() ).thenReturn( user );
 
         mvc.perform( get( "/user/taxon/9606/term" )
-                .contentType( MediaType.APPLICATION_JSON ) )
+                        .contentType( MediaType.APPLICATION_JSON ) )
                 .andExpect( status().is3xxRedirection() );
     }
 
@@ -433,7 +434,7 @@ public class UserControllerTest {
         when( userService.findCurrentUser() ).thenReturn( user );
 
         mvc.perform( get( "/user/taxon/1/term" )
-                .contentType( MediaType.APPLICATION_JSON ) )
+                        .contentType( MediaType.APPLICATION_JSON ) )
                 .andExpect( status().isOk() )
                 .andExpect( jsonPath( "$[0].goId" ).value( term.getGoId() ) )
                 .andExpect( jsonPath( "$[0].name" ).value( term.getName() ) )
@@ -442,7 +443,7 @@ public class UserControllerTest {
                 .andExpect( jsonPath( "$[0].taxon.id" ).value( taxon.getId() ) );
 
         mvc.perform( get( "/user/taxon/2/term" )
-                .contentType( MediaType.APPLICATION_JSON ) )
+                        .contentType( MediaType.APPLICATION_JSON ) )
                 .andExpect( status().isOk() )
                 .andExpect( jsonPath( "$[0].goId" ).value( term2.getGoId() ) )
                 .andExpect( jsonPath( "$[0].name" ).value( term2.getName() ) )
@@ -460,7 +461,7 @@ public class UserControllerTest {
         when( userService.findCurrentUser() ).thenReturn( user );
 
         mvc.perform( get( "/user/taxon/1/term/recommend" )
-                .contentType( MediaType.APPLICATION_JSON ) )
+                        .contentType( MediaType.APPLICATION_JSON ) )
                 .andExpect( status().is3xxRedirection() );
     }
 
@@ -485,14 +486,14 @@ public class UserControllerTest {
         when( userService.recommendTerms( any(), eq( taxon2 ) ) ).thenReturn( Sets.newSet( t3, t4 ) );
 
         mvc.perform( get( "/user/taxon/1/term/recommend" )
-                .contentType( MediaType.APPLICATION_JSON ) )
+                        .contentType( MediaType.APPLICATION_JSON ) )
                 .andExpect( status().isOk() )
                 .andExpect( jsonPath( "$", hasSize( 2 ) ) )
                 .andExpect( jsonPath( "$[*].goId" ).value( containsInAnyOrder( t1.getGoId(), t2.getGoId() ) ) )
                 .andExpect( jsonPath( "$[*].taxon.id" ).value( contains( taxon.getId(), taxon.getId() ) ) );
 
         mvc.perform( get( "/user/taxon/2/term/recommend" )
-                .contentType( MediaType.APPLICATION_JSON ) )
+                        .contentType( MediaType.APPLICATION_JSON ) )
                 .andExpect( status().isOk() )
                 .andExpect( jsonPath( "$" ).value( hasSize( 2 ) ) )
                 .andExpect( jsonPath( "$[*].goId" ).value( containsInAnyOrder( t3.getGoId(), t4.getGoId() ) ) )
@@ -510,8 +511,8 @@ public class UserControllerTest {
         when( userService.findCurrentUser() ).thenReturn( user );
 
         mvc.perform( post( "/user/profile" )
-                .contentType( MediaType.APPLICATION_JSON )
-                .content( "" ) )
+                        .contentType( MediaType.APPLICATION_JSON )
+                        .content( "" ) )
                 .andExpect( status().is3xxRedirection() );
     }
 
@@ -548,9 +549,9 @@ public class UserControllerTest {
         payload.setProfile( updatedProfile );
 
         mvc.perform( post( "/user/profile" )
-                .contentType( MediaType.APPLICATION_JSON )
-                .content( objectMapper.writeValueAsString( payload ) )
-                .locale( Locale.ENGLISH ) )
+                        .contentType( MediaType.APPLICATION_JSON )
+                        .content( objectMapper.writeValueAsString( payload ) )
+                        .locale( Locale.ENGLISH ) )
                 .andExpect( status().isOk() );
 
         verify( userService ).updateUserProfileAndPublicationsAndOrgans( user, updatedProfile, updatedProfile.getPublications(), null, Locale.ENGLISH );
@@ -570,8 +571,8 @@ public class UserControllerTest {
         payload.put( "profile", profileJson );
 
         mvc.perform( post( "/user/profile" )
-                .contentType( MediaType.APPLICATION_JSON )
-                .content( payload.toString() ) )
+                        .contentType( MediaType.APPLICATION_JSON )
+                        .content( payload.toString() ) )
                 .andExpect( status().isBadRequest() );
 
     }
@@ -594,9 +595,9 @@ public class UserControllerTest {
         payload.put( "profile", profileJson );
 
         mvc.perform( post( "/user/profile" )
-                .contentType( MediaType.APPLICATION_JSON )
-                .content( payload.toString() )
-                .locale( Locale.ENGLISH ) )
+                        .contentType( MediaType.APPLICATION_JSON )
+                        .content( payload.toString() )
+                        .locale( Locale.ENGLISH ) )
                 .andExpect( status().isOk() );
 
         Profile profile = user.getProfile();
@@ -625,9 +626,9 @@ public class UserControllerTest {
         payload.put( "organUberonIds", new JSONArray( new String[]{ organ.getUberonId() } ) );
 
         mvc.perform( post( "/user/profile" )
-                .contentType( MediaType.APPLICATION_JSON )
-                .content( payload.toString() )
-                .locale( Locale.ENGLISH ) )
+                        .contentType( MediaType.APPLICATION_JSON )
+                        .content( payload.toString() )
+                        .locale( Locale.ENGLISH ) )
                 .andExpect( status().isOk() );
 
         verify( userService ).updateUserProfileAndPublicationsAndOrgans( user, user.getProfile(), user.getProfile().getPublications(), Sets.newSet( organ.getUberonId() ), Locale.ENGLISH );
@@ -642,8 +643,8 @@ public class UserControllerTest {
         when( userService.findCurrentUser() ).thenReturn( user );
 
         mvc.perform( post( "/user/taxon/1/term/search" )
-                .contentType( MediaType.APPLICATION_JSON )
-                .content( "" ) )
+                        .contentType( MediaType.APPLICATION_JSON )
+                        .content( "" ) )
                 .andExpect( status().is3xxRedirection() );
     }
 
@@ -662,9 +663,9 @@ public class UserControllerTest {
         when( userService.findCurrentUser() ).thenReturn( user );
 
         mvc.perform( get( "/user/taxon/1/term/search" )
-                .param( "goIds", toGOId( 1 ) )
-                .param( "goIds", toGOId( 2 ) )
-                .param( "goIds", toGOId( 3 ) ) )
+                        .param( "goIds", toGOId( 1 ) )
+                        .param( "goIds", toGOId( 2 ) )
+                        .param( "goIds", toGOId( 3 ) ) )
                 .andExpect( status().isOk() )
                 .andExpect( jsonPath( "$['GO:0000001'].goId" ).value( toGOId( 1 ) ) )
                 .andExpect( jsonPath( "$['GO:0000002'].goId" ).value( toGOId( 2 ) ) )
@@ -674,9 +675,9 @@ public class UserControllerTest {
                 .andExpect( jsonPath( "$['GO:0000003'].taxon.id" ).value( taxon.getId() ) );
 
         mvc.perform( get( "/user/taxon/2/term/search" )
-                .param( "goIds", toGOId( 1 ) )
-                .param( "goIds", toGOId( 2 ) )
-                .param( "goIds", toGOId( 3 ) ) )
+                        .param( "goIds", toGOId( 1 ) )
+                        .param( "goIds", toGOId( 2 ) )
+                        .param( "goIds", toGOId( 3 ) ) )
                 .andExpect( status().isOk() )
                 .andExpect( jsonPath( "$['GO:0000001']" ).isEmpty() )
                 .andExpect( jsonPath( "$['GO:0000002']" ).isEmpty() )
@@ -692,8 +693,8 @@ public class UserControllerTest {
         when( userService.findCurrentUser() ).thenReturn( user );
 
         mvc.perform( post( "/user/model/1" )
-                .contentType( MediaType.APPLICATION_JSON )
-                .content( "" ) )
+                        .contentType( MediaType.APPLICATION_JSON )
+                        .content( "" ) )
                 .andExpect( status().is3xxRedirection() );
     }
 
@@ -719,7 +720,7 @@ public class UserControllerTest {
             throw new TokenException( "Verification token does not exist." );
         } );
         mvc.perform( get( "/user/verify-contact-email" )
-                .param( "token", "1234" ) )
+                        .param( "token", "1234" ) )
                 .andExpect( status().is3xxRedirection() )
                 .andExpect( flash().attributeExists( "message" ) )
                 .andExpect( flash().attribute( "error", true ) );
@@ -739,5 +740,21 @@ public class UserControllerTest {
                 .andExpect( redirectedUrl( "/user/profile" ) )
                 .andExpect( flash().attributeExists( "message" ) );
         verify( userService ).createContactEmailVerificationTokenForUser( user, Locale.getDefault() );
+    }
+
+    @Test
+    @WithMockUser
+    public void saveProfile_whenInvalidUrlIsProvided_thenReturnBadRequestWithMeaningfulValidationMessage() throws Exception {
+        User user = createUser( 1 );
+        when( userService.findCurrentUser() ).thenReturn( user );
+        Profile updatedProfile = new Profile();
+        updatedProfile.setWebsite( "bad-url" );
+        UserController.ProfileWithOrganUberonIds profileWithOrganUberonIds = new UserController.ProfileWithOrganUberonIds( updatedProfile, null );
+        mvc.perform( post( "/user/profile" )
+                        .contentType( MediaType.APPLICATION_JSON )
+                        .content( objectMapper.writeValueAsString( profileWithOrganUberonIds ) ) )
+                .andExpect( status().isBadRequest() )
+                .andExpect( jsonPath( "$.fieldErrors[0].field" ).value( "profile.website" ) )
+                .andExpect( jsonPath( "$.fieldErrors[0].rejectedValue" ).value( "bad-url" ) );
     }
 }

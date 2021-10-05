@@ -162,40 +162,45 @@
         var profile = collectProfile();
 
         var spinner = $(this).find('.spinner');
-        spinner.removeClass("d-none");
+        spinner.toggleClass('d-none', false);
+
+        // reset any invalid state
+        $('.is-invalid').toggleClass('is-invalid', false);
+        $('.invalid-feedback').remove();
 
         // noinspection JSUnusedLocalSymbols
         $.ajax({
             type: "POST",
             url: window.location.href,
             data: JSON.stringify(profile),
-            contentType: "application/json",
-            success: function (r) {
-                $('.success-row').show();
-                $('.error-row').hide();
-                spinner.addClass("d-none");
-                initialProfile = collectProfile();
-                $('.new-row').removeClass("new-row");
-                $('#saved-button').focus();
-                // hide the verification badge
-                $('.contact-email-verification-badge').toggleClass('d-none', true);
-            },
-            error: function (r) {
-                var errorMessages = [];
-                try {
-                    $.each(r.responseJSON.errors, function (idx, item) {
-                        errorMessages.push(item.field + " - " + item.defaultMessage);
-                    });
-                } finally {
-                    var message = "Profile Not Saved: " + errorMessages.join(", ");
-
-                    $('.success-row').hide();
-                    var $error = $('.error-row');
-                    $error.find('div.alert').text(message);
-                    $error.show();
-                    spinner.addClass("d-none");
-                }
+            contentType: "application/json"
+        }).done(function (r) {
+            // update the initial profile to the newly saved one
+            initialProfile = profile;
+            $('#profile-success-alert-message').text(r.message);
+            $('#profile-success-alert').show();
+            $('#profile-error-alert').hide();
+            // display the verified badge if the email is verified
+            // hide the not verified badge and resend link if the email is verified
+            // sorry for the inversed logic here, the d-none class hides the tag
+            $('#contact-email-verified-badge').toggleClass('d-none', !r.contactEmailVerified);
+            $('#contact-email-not-verified-badge').toggleClass('d-none', r.contactEmailVerified);
+            $('#contact-email-resend-verification-email-button').toggleClass('d-none', r.contactEmailVerified);
+            $('#saved-button').focus();
+        }).fail(function (r) {
+            var message = "Your profile could not be saved.";
+            if ('fieldErrors' in r.responseJSON) {
+                r.responseJSON.fieldErrors.forEach(function (fieldError) {
+                    $('[name="' + fieldError.field + '"]')
+                        .toggleClass('is-invalid', true)
+                        .after($('<div/>', {'class': 'invalid-feedback text-danger d-block'}).text(fieldError.message));
+                });
             }
+            $('#profile-error-alert-message').html(message);
+            $('#profile-error-alert').show();
+            $('#profile-success-alert').hide();
+        }).always(function () {
+            spinner.toggleClass('d-none', true);
         });
     });
 })();

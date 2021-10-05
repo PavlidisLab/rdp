@@ -53,8 +53,8 @@ public class TermControllerTest {
         GeneOntologyTerm term = createTerm( "GO:0000001" );
         when( goService.search( "GO:0000001", taxon, 10 ) ).thenReturn( Collections.singletonList( new SearchResult( TermMatchType.EXACT_ID, term ) ) );
         mvc.perform( get( "/taxon/1/term/search" )
-                .param( "query", "GO:0000001" )
-                .param( "max", "10" ) )
+                        .param( "query", "GO:0000001" )
+                        .param( "max", "10" ) )
                 .andExpect( jsonPath( "$[0].matchType" ).value( "Exact Id" ) )
                 .andExpect( jsonPath( "$[0].match" ).value( term ) );
     }
