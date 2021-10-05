@@ -11,10 +11,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.util.concurrent.ListenableFuture;
-import org.springframework.util.concurrent.ListenableFutureCallback;
 import org.springframework.web.client.AsyncRestTemplate;
-import org.springframework.web.client.RestClientException;
 import org.springframework.web.util.UriComponentsBuilder;
 import ubc.pavlab.rdp.exception.RemoteException;
 import ubc.pavlab.rdp.model.Taxon;
@@ -69,9 +66,11 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
                 .toUri();
         try {
             OpenAPI openAPI = asyncRestTemplate.getForEntity( uri, OpenAPI.class ).get().getBody();
-            // OpenAPI specification was introduced in 1.4, so we assume 1.0.0 for previous versions
+            // The OpenAPI specification was introduced in 1.4, so we assume 1.0.0 for previous versions
             if ( openAPI.getInfo() == null ) {
                 return "1.0.0";
+            } else if ( openAPI.getInfo().getVersion().equals( "v0" ) ) {
+                return "1.4.0"; // the version number was missing in early 1.4
             } else {
                 return openAPI.getInfo().getVersion();
             }
@@ -149,17 +148,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
                 .buildAndExpand( Collections.singletonMap( "userId", userId ) )
                 .toUri();
 
-        try {
-            ResponseEntity<User> responseEntity = asyncRestTemplate.getForEntity( uri, User.class ).get();
-            User user = responseEntity.getBody();
-            initUser( user );
-            return user;
-        } catch ( ExecutionException e ) {
-            throw new RemoteException( MessageFormat.format( "Unsuccessful response received for {0}.", uri ), e );
-        } catch ( InterruptedException e ) {
-            Thread.currentThread().interrupt();
-            throw new RemoteException( MessageFormat.format( "The current thread was interrupted while waiting for {0} response.", uri ), e );
-        }
+        return getUserByUri( uri );
     }
 
     @Override
@@ -180,6 +169,10 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
                 .buildAndExpand( Collections.singletonMap( "anonymousId", anonymousId ) )
                 .toUri();
 
+        return getUserByUri( uri );
+    }
+
+    private User getUserByUri( URI uri ) throws RemoteException {
         try {
             ResponseEntity<User> responseEntity = asyncRestTemplate.getForEntity( uri, User.class ).get();
             User user = responseEntity.getBody();

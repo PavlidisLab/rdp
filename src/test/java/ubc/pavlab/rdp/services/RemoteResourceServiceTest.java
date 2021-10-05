@@ -26,6 +26,7 @@ import ubc.pavlab.rdp.model.UserGene;
 import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.repositories.RoleRepository;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
+import ubc.pavlab.rdp.util.VersionUtils;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -106,6 +107,17 @@ public class RemoteResourceServiceTest {
                         .contentType( MediaType.APPLICATION_JSON )
                         .body( "{\"message\":\"This is this applications API. Please see documentation.\",\"version\":\"1.0.0\"}" ) );
         assertThat( remoteResourceService.getApiVersion( URI.create( "http://example.com/" ) ) ).isEqualTo( "1.0.0" );
+        mockServer.verify();
+    }
+
+    @Test
+    public void getVersion_whenEndpointReturnEarly14Response_thenAssume140() throws RemoteException, JsonProcessingException {
+        MockRestServiceServer mockServer = MockRestServiceServer.createServer( asyncRestTemplate );
+        mockServer.expect( requestTo( "http://example.com/api" ) )
+                .andRespond( withStatus( HttpStatus.OK )
+                        .contentType( MediaType.APPLICATION_JSON )
+                        .body( objectMapper.writeValueAsString( new OpenAPI().info( new Info().version( "v0" ) ) ) ) );
+        assertThat( remoteResourceService.getApiVersion( URI.create( "http://example.com/" ) ) ).isEqualTo( "1.4.0" );
         mockServer.verify();
     }
 

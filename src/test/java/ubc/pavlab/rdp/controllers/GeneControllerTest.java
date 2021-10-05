@@ -63,7 +63,7 @@ public class GeneControllerTest {
         when( taxonService.findById( 1 ) ).thenReturn( taxon );
         when( geneService.findBySymbolAndTaxon( "BRCA1", taxon ) ).thenReturn( gene );
         mvc.perform( get( "/taxon/{taxonId}/gene/search", 1 )
-                .param( "symbols", "BRCA1" ) )
+                        .param( "symbols", "BRCA1" ) )
                 .andExpect( status().isOk() )
                 .andExpect( jsonPath( "$.BRCA1" ).value( gene ) );
         verify( geneService ).findBySymbolAndTaxon( "BRCA1", taxon );
@@ -76,8 +76,8 @@ public class GeneControllerTest {
         when( taxonService.findById( 1 ) ).thenReturn( taxon );
         when( geneService.autocomplete( "BRCA1", taxon, 10 ) ).thenReturn( Collections.singleton( new SearchResult( GeneMatchType.EXACT_SYMBOL, gene ) ) );
         mvc.perform( get( "/taxon/{taxonId}/gene/search", 1 )
-                .param( "query", "BRCA1" )
-                .param( "max", "10" ) )
+                        .param( "query", "BRCA1" )
+                        .param( "max", "10" ) )
                 .andExpect( status().isOk() )
                 .andExpect( content().contentTypeCompatibleWith( MediaType.APPLICATION_JSON ) )
                 .andExpect( jsonPath( "$[0].matchType" ).value( "Exact Symbol" ) )

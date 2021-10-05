@@ -31,6 +31,9 @@ public class UserRepositoryTest {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private RoleRepository roleRepository;
+
     @Test
     public void findByEmail_whenMatch_thenReturnUser() {
         // given
@@ -480,12 +483,14 @@ public class UserRepositoryTest {
     @Test
     public void delete_whenVerificationToken_thenSucceed() {
         User user = createUnpersistedUser();
-        user = entityManager.persist( user );
+        user = entityManager.persistAndFlush( user );
 
-        VerificationToken token = entityManager.persist( createVerificationToken( user, "token123" ) );
+        VerificationToken token = entityManager.persistAndFlush( createVerificationToken( user, "token123" ) );
         Taxon humanTaxon = entityManager.find( Taxon.class, 9606 );
         Gene gene = createGene( 1, humanTaxon );
         UserGene userGene = entityManager.persist( createUnpersistedUserGene( gene, user, TierType.TIER1, PrivacyLevelType.PRIVATE ) );
+
+        entityManager.persistAndFlush( user );
 
         entityManager.refresh( user );
 
@@ -493,5 +498,41 @@ public class UserRepositoryTest {
         assertThat( user.getUserGenes().values() ).contains( userGene );
 
         userRepository.delete( user );
+        userRepository.flush();
+    }
+
+    @Autowired
+    private VerificationTokenRepository accessTokenRepository;
+
+    @Test
+    public void delete_whenUserHasMultipleAssociations_thenSucceed() {
+        User user = createUnpersistedUser();
+        user = entityManager.persist( user );
+
+        VerificationToken token = entityManager.persistAndFlush( createVerificationToken( user, "token123" ) );
+        Taxon humanTaxon = entityManager.find( Taxon.class, 9606 );
+        Gene gene = createGene( 1, humanTaxon );
+        UserGene userGene = entityManager.persist( createUnpersistedUserGene( gene, user, TierType.TIER1, PrivacyLevelType.PRIVATE ) );
+        OrganInfo organInfo = new OrganInfo();
+        organInfo.setUberonId( "UBERON:00001" );
+        UserOrgan userOrgan = entityManager.persistAndFlush( createUserOrgan( user, organInfo ) );
+
+        user.getVerificationTokens().add( token );
+        user.getRoles().add( roleRepository.findByRole( "ROLE_USER" ) );
+        user.getProfile().getResearcherCategories().add( ResearcherCategory.IN_SILICO );
+        user.getUserOrgans().put( userOrgan.getUberonId(), userOrgan );
+        user.getTaxonDescriptions().put( humanTaxon, "I'm a human researcher." );
+        entityManager.persistAndFlush( user );
+
+        entityManager.refresh( user );
+        assertThat( user.getVerificationTokens() ).contains( token );
+        assertThat( user.getUserGenes().values() ).contains( userGene );
+        assertThat( user.getUserOrgans().values() ).contains( userOrgan );
+
+        userRepository.delete( user );
+        userRepository.flush();
+
+        // make sure that the token is not lingering
+        assertThat( accessTokenRepository.exists( token.getId() ) ).isFalse();
     }
 }

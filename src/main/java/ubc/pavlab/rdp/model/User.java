@@ -76,17 +76,17 @@ public class User implements UserContent {
     @JsonIgnore
     private final Set<Role> roles = new HashSet<>();
 
-    @OneToMany(cascade = CascadeType.ALL)
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "user_id")
     @JsonIgnore
     private final Set<AccessToken> accessTokens = new HashSet<>();
 
-    @OneToMany(cascade = CascadeType.ALL)
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "user_id")
     @JsonIgnore
     private final Set<VerificationToken> verificationTokens = new HashSet<>();
 
-    @OneToMany(cascade = CascadeType.ALL)
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "user_id")
     @JsonIgnore
     private final Set<PasswordResetToken> passwordResetTokens = new HashSet<>();

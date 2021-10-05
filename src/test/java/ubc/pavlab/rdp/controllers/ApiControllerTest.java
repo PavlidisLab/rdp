@@ -88,10 +88,10 @@ public class ApiControllerTest {
     public void searchGenes_withSearchDisabled_thenReturnServiceUnavailable() throws Exception {
         when( iSearchSettings.isEnabled() ).thenReturn( false );
         mvc.perform( get( "/api/genes/search" )
-                .header( "Authorization", "Bearer 1234" )
-                .param( "symbol", "CDH1" )
-                .param( "taxonId", "9606" )
-                .param( "tier", "TIER1" ) )
+                        .header( "Authorization", "Bearer 1234" )
+                        .param( "symbol", "CDH1" )
+                        .param( "taxonId", "9606" )
+                        .param( "tier", "TIER1" ) )
                 .andExpect( status().isServiceUnavailable() );
     }
 
@@ -112,10 +112,10 @@ public class ApiControllerTest {
                 .thenReturn( Sets.newSet( cdh1UserGene ) );
 
         mvc.perform( get( "/api/genes/search" )
-                .header( "Authorization", "Bearer 1234" )
-                .param( "symbol", "CDH1" )
-                .param( "taxonId", "9606" )
-                .param( "tier", "TIER1" ) )
+                        .header( "Authorization", "Bearer 1234" )
+                        .param( "symbol", "CDH1" )
+                        .param( "taxonId", "9606" )
+                        .param( "tier", "TIER1" ) )
                 .andExpect( status().is2xxSuccessful() );
 
         verify( userService ).getRemoteAdmin();
@@ -138,10 +138,10 @@ public class ApiControllerTest {
                 .thenReturn( Sets.newSet( cdh1UserGene ) );
 
         mvc.perform( get( "/api/genes/search" )
-                .param( "symbol", "CDH1" )
-                .param( "taxonId", "9606" )
-                .param( "tier", "TIER1" )
-                .param( "auth", "1234" ) )
+                        .param( "symbol", "CDH1" )
+                        .param( "taxonId", "9606" )
+                        .param( "tier", "TIER1" )
+                        .param( "auth", "1234" ) )
                 .andExpect( status().is2xxSuccessful() );
 
         verify( userService ).getRemoteAdmin();
@@ -150,20 +150,20 @@ public class ApiControllerTest {
     @Test
     public void searchGenes_withInvalidAuthToken_thenReturnUnauthorized() throws Exception {
         mvc.perform( get( "/api/genes/search" )
-                .header( "Authorization", "Bearer unknownToken" )
-                .param( "symbol", "CDH1" )
-                .param( "taxonId", "9606" )
-                .param( "tier", "TIER1" ) )
+                        .header( "Authorization", "Bearer unknownToken" )
+                        .param( "symbol", "CDH1" )
+                        .param( "taxonId", "9606" )
+                        .param( "tier", "TIER1" ) )
                 .andExpect( status().isUnauthorized() );
     }
 
     @Test
     public void searchGenes_withInvalidAuthToken_thenReturnBadRequest() throws Exception {
         mvc.perform( get( "/api/genes/search" )
-                .header( "Authorization", "Basic unknownToken" )
-                .param( "symbol", "CDH1" )
-                .param( "taxonId", "9606" )
-                .param( "tier", "TIER1" ) )
+                        .header( "Authorization", "Basic unknownToken" )
+                        .param( "symbol", "CDH1" )
+                        .param( "taxonId", "9606" )
+                        .param( "tier", "TIER1" ) )
                 .andExpect( status().isBadRequest() );
     }
 
@@ -171,10 +171,10 @@ public class ApiControllerTest {
     public void searchGenes_whenMisconfiguredRemoteAdmin_thenReturnServiceUnavailable() throws Exception {
         when( iSearchSettings.getAuthTokens() ).thenReturn( Collections.singletonList( "1234" ) );
         mvc.perform( get( "/api/genes/search" )
-                .header( "Authorization", "Bearer 1234" )
-                .param( "symbol", "CDH1" )
-                .param( "taxonId", "9606" )
-                .param( "tier", "TIER1" ) )
+                        .header( "Authorization", "Bearer 1234" )
+                        .param( "symbol", "CDH1" )
+                        .param( "taxonId", "9606" )
+                        .param( "tier", "TIER1" ) )
                 .andExpect( status().isServiceUnavailable() );
     }
 
@@ -191,9 +191,9 @@ public class ApiControllerTest {
                 .thenReturn( Sets.newSet( cdh1UserGene ) );
 
         mvc.perform( get( "/api/genes/search" )
-                .param( "symbol", "CDH1" )
-                .param( "taxonId", "9606" )
-                .param( "tier", "TIER1" ) )
+                        .param( "symbol", "CDH1" )
+                        .param( "taxonId", "9606" )
+                        .param( "tier", "TIER1" ) )
                 .andExpect( status().is2xxSuccessful() )
                 .andExpect( content().contentTypeCompatibleWith( MediaType.APPLICATION_JSON ) );
 
@@ -213,10 +213,10 @@ public class ApiControllerTest {
                 .thenReturn( Sets.newSet( cdh1UserGene ) );
 
         mvc.perform( get( "/api/genes/search" )
-                .param( "symbol", "CDH1" )
-                .param( "taxonId", "9606" )
-                .param( "tiers", "TIER1" )
-                .param( "tiers", "TIER2" ) )
+                        .param( "symbol", "CDH1" )
+                        .param( "taxonId", "9606" )
+                        .param( "tiers", "TIER1" )
+                        .param( "tiers", "TIER2" ) )
                 .andExpect( status().is2xxSuccessful() )
                 .andExpect( content().contentTypeCompatibleWith( MediaType.APPLICATION_JSON ) );
 
@@ -236,11 +236,11 @@ public class ApiControllerTest {
                 .thenReturn( Sets.newSet( cdh1UserGene ) );
 
         mvc.perform( get( "/api/genes/search" )
-                .param( "symbol", "CDH1" )
-                .param( "taxonId", "9606" )
-                .param( "tiers", "TIER1" )
-                .param( "tiers", "TIER2" )
-                .param( "tiers", "TIER3" ) )
+                        .param( "symbol", "CDH1" )
+                        .param( "taxonId", "9606" )
+                        .param( "tiers", "TIER1" )
+                        .param( "tiers", "TIER2" )
+                        .param( "tiers", "TIER3" ) )
                 .andExpect( status().is2xxSuccessful() )
                 .andExpect( content().contentTypeCompatibleWith( MediaType.APPLICATION_JSON ) );
 
@@ -265,8 +265,8 @@ public class ApiControllerTest {
                 .thenReturn( Sets.newSet( cdh1UserGene ) );
 
         mvc.perform( get( "/api/genes/search" )
-                .param( "symbol", "CDH1" )
-                .param( "taxonId", "9606" ) )
+                        .param( "symbol", "CDH1" )
+                        .param( "taxonId", "9606" ) )
                 .andExpect( status().is2xxSuccessful() )
                 .andExpect( content().contentTypeCompatibleWith( MediaType.APPLICATION_JSON ) );
 
@@ -286,9 +286,9 @@ public class ApiControllerTest {
                 .thenReturn( Sets.newSet( cdh1UserGene ) );
 
         mvc.perform( get( "/api/genes/search" )
-                .param( "symbol", "CDH1" )
-                .param( "taxonId", "9606" )
-                .param( "tier", "TIERS1_2" ) )
+                        .param( "symbol", "CDH1" )
+                        .param( "taxonId", "9606" )
+                        .param( "tier", "TIERS1_2" ) )
                 .andExpect( status().is2xxSuccessful() )
                 .andExpect( content().contentTypeCompatibleWith( MediaType.APPLICATION_JSON ) );
 
@@ -308,9 +308,9 @@ public class ApiControllerTest {
                 .thenReturn( Sets.newSet( cdh1UserGene ) );
 
         mvc.perform( get( "/api/genes/search" )
-                .param( "symbol", "CDH1" )
-                .param( "taxonId", "9606" )
-                .param( "tier", "ANY" ) )
+                        .param( "symbol", "CDH1" )
+                        .param( "taxonId", "9606" )
+                        .param( "tier", "ANY" ) )
                 .andExpect( status().is2xxSuccessful() )
                 .andExpect( content().contentTypeCompatibleWith( MediaType.APPLICATION_JSON ) );
 
@@ -320,9 +320,9 @@ public class ApiControllerTest {
     @Test
     public void searchGenes_withInvalidTier_thenReturnBadRequest() throws Exception {
         mvc.perform( get( "/api/genes/search" )
-                .param( "symbol", "CDH1" )
-                .param( "taxonId", "9606" )
-                .param( "tier", "TIER4" ) )
+                        .param( "symbol", "CDH1" )
+                        .param( "taxonId", "9606" )
+                        .param( "tier", "TIER4" ) )
                 .andExpect( status().isBadRequest() )
                 .andExpect( content().contentTypeCompatibleWith( MediaType.APPLICATION_JSON ) );
     }
