@@ -49,7 +49,7 @@ public class UserGene extends Gene implements UserContent {
     @Column(length = 5)
     private TierType tier;
 
-    @ManyToOne(optional = false)
+    @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     @JsonIgnore
     private User user;

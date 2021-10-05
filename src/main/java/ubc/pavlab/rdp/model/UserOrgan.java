@@ -29,7 +29,7 @@ public class UserOrgan extends Organ implements UserContent {
     @JsonIgnore
     private Integer id;
 
-    @ManyToOne(optional = false)
+    @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     @JsonIgnore
     private User user;
