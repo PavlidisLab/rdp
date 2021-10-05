@@ -67,7 +67,7 @@ public class LoginController {
                                        RedirectAttributes redirectAttributes,
                                        Locale locale ) {
         ModelAndView modelAndView = new ModelAndView( "registration" );
-        User userExists = userService.findUserByEmailNoAuth( user.getEmail() );
+        User existingUser = userService.findUserByEmailNoAuth( user.getEmail() );
 
         user.setEnabled( false );
 
@@ -78,9 +78,15 @@ public class LoginController {
         userProfile.setHideGenelist( false );
         userProfile.setContactEmailVerified( false );
 
-        if ( userExists != null ) {
-            bindingResult.rejectValue( "email", "error.user", "There is already a user registered this email." );
-            log.warn( "Trying to register an already registered email." );
+        if ( existingUser != null ) {
+            if ( existingUser.isEnabled() ) {
+                bindingResult.rejectValue( "email", "error.user", "There is already a user registered this email." );
+            } else {
+                // maybe the user is attempting to re-register, unaware that the confirmation hasn't been processed
+                userService.createVerificationTokenForUser( existingUser, locale );
+                bindingResult.rejectValue( "email", "error.user", "You have already registered an account with this email. We just sent you a new confirmation email." );
+            }
+            log.warn( "Trying to register an already registered email: " + user.getEmail() + "." );
         }
 
         if ( bindingResult.hasErrors() ) {
