@@ -21,7 +21,8 @@ import ubc.pavlab.rdp.security.PermissionEvaluatorImpl;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
-import java.util.Locale;
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 
 /**
  * Created by mjacobson on 16/01/18.
@@ -93,8 +94,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                     .failureUrl( "/login?error=true" )
                     .and()
                 .rememberMe()
-                    .rememberMeCookieName( messageSource.getMessage("rdp.site.shortname", null, Locale.getDefault()) + "-remember-me" )
-                    .tokenValiditySeconds( 7 * 24 * 60 * 60 )
+                    .tokenValiditySeconds( (int) Duration.of( 7, ChronoUnit.DAYS ).getSeconds() )
                     .and()
                 .logout()
                     .logoutRequestMatcher( new AntPathRequestMatcher( "/logout" ) )
