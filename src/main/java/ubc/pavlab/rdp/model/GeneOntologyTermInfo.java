@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 
 @Getter
 @Setter
-@ToString(of = { "directGenes" }, callSuper = true)
+@ToString(of = { "directGeneIds" }, callSuper = true)
 public class GeneOntologyTermInfo extends GeneOntologyTerm {
 
     private boolean obsolete;

@@ -13,7 +13,7 @@ import java.util.Locale;
  * Created by mjacobson on 22/01/18.
  */
 @Getter
-@EqualsAndHashCode
+@EqualsAndHashCode(callSuper = false)
 public class OnRegistrationCompleteEvent extends ApplicationEvent {
 
     private final User user;
