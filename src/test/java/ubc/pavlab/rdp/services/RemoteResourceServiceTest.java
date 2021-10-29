@@ -31,6 +31,7 @@ import ubc.pavlab.rdp.util.VersionUtils;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.EnumSet;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -236,6 +237,25 @@ public class RemoteResourceServiceTest {
     @Test(expected = RemoteException.class)
     public void getRemoteUser_whenRemoteDoesNotExist_thenRaiseException() throws RemoteException {
         remoteResourceService.getRemoteUser( 1, URI.create( "http://example1.com" ) );
+    }
+
+    @Test
+    public void getAnonymizedUser_whenEndpointHasAPreReleaseVersion_thenReturnSuccess() throws JsonProcessingException, RemoteException {
+        MockRestServiceServer mockServer = MockRestServiceServer.createServer( asyncRestTemplate );
+        mockServer.expect( requestTo( "http://example.com/api" ) )
+                .andRespond( withStatus( HttpStatus.OK )
+                        .contentType( MediaType.APPLICATION_JSON )
+                        .body( objectMapper.writeValueAsString( new OpenAPI().info( new Info().version( "1.4.0-SNAPSHOT" ) ) ) ) );
+        UUID uuid = UUID.randomUUID();
+        User user = createRemoteUser( 1, URI.create( "http://example.com" ) );
+        mockServer.expect( requestTo( "http://example.com/api/users/by-anonymous-id/" + uuid ) )
+                .andRespond( withStatus( HttpStatus.OK )
+                        .contentType( MediaType.APPLICATION_JSON )
+                        .body( objectMapper.writeValueAsString( user ) ) );
+        assertThat( remoteResourceService.getAnonymizedUser( uuid, URI.create( "http://example.com/" ) ) )
+                .isNotNull()
+                .hasFieldOrPropertyWithValue( "email", user.getEmail() );
+        mockServer.verify();
     }
 
 }
