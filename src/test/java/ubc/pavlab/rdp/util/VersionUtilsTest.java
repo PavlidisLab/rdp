@@ -26,7 +26,7 @@ public class VersionUtilsTest {
         VersionUtils.satisfiesVersion( "1.-1", "1.0.0" );
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = VersionException.class)
     public void satisfiesVersion_whenVersionIsInvalid_thenRaiseIllegalArgumentException() {
         VersionUtils.satisfiesVersion( "v0", "1.4.0" );
     }
