@@ -154,19 +154,6 @@ public class UserServiceImpl implements UserService {
     @Transactional
     @Override
     public void delete( User user ) {
-
-        VerificationToken verificationToken = tokenRepository.findByUser( user );
-
-        if ( verificationToken != null ) {
-            tokenRepository.delete( verificationToken );
-        }
-
-        PasswordResetToken passwordToken = passwordResetTokenRepository.findByUser( user );
-
-        if ( passwordToken != null ) {
-            passwordResetTokenRepository.delete( passwordToken );
-        }
-
         userRepository.delete( user );
     }
 
