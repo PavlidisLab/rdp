@@ -44,6 +44,13 @@
             </button>
         </div>
 
+        <div th:if="${user.userGenes.isEmpty()}"
+             class="alert alert-info mb-3" role="alert">
+            You have no genes associated to your user profile. Get started by choosing a
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown">Model Organism</a>
+            <div th:replace="fragments/taxon::taxon-dropdown-menu"></div>
+        </div>
+
         <div th:replace="layouts/common::message"></div>
 
         <div class="row mb-3">
@@ -268,13 +275,7 @@
                     <div class="card-body" role="alert">
                         To add genes to your profile, start by choosing a
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown">Model Organism</a>.
-                        <div class="dropdown-menu">
-                            <a th:each="taxon : ${@taxonService.findByActiveTrue()}"
-                               th:if="${taxon.id} != 9606"
-                               class="dropdown-item"
-                               th:href="@{/user/model/{taxonId}(taxonId=${taxon.id})}"
-                               th:text="${#strings.capitalize(taxon.commonName)}">...</a>
-                        </div>
+                        <div th:replace="fragments/taxon::taxon-dropdown-menu"></div>
                     </div>
                 </div>
             </div>
