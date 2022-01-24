@@ -43,6 +43,25 @@
                 <span aria-hidden="true">&times;</span>
             </button>
         </div>
+        <div th:if="${user.userGenes.isEmpty()}"
+             class="alert alert-info alert-dismissible fade show mb-3" role="alert">
+            You have no genes associated to your user profile. Get started by choosing a Model Organism:
+            <div class="btn-group">
+                <a class="btn btn-primary btn-sm" th:href="@{/user/model/9606}">Human / Other</a>
+                <a class="btn btn-primary btn-sm dropdown-toggle dropdown-toggle-split"
+                   data-toggle="dropdown"
+                   aria-expanded="false">
+                    <span class="sr-only">Toggle Dropdown</span>
+                </a>
+                <div class="dropdown-menu">
+                    <a th:each="taxon : ${@taxonService.findByActiveTrue()}"
+                       th:if="${taxon.id} != 9606"
+                       class="dropdown-item"
+                       th:href="@{/user/model/{taxonId}(taxonId=${taxon.id})}"
+                       th:text="${#strings.capitalize(taxon.commonName)}">...</a>
+                </div>
+            </div>
+        </div>
 
         <div th:replace="layouts/common::message"></div>
 
