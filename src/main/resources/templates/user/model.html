@@ -19,7 +19,6 @@
             </div>
         </div>
         <div class="col-5 my-auto text-right">
-            <a class="btn btn-lg d-none d-xl-inline" th:href="@{/userView/{userId}(userId=${user.id})} + '#' + ${taxon.commonName} + '-research-focus'">View <span th:text="${#strings.capitalizeWords(taxon.commonName + (taxon.id == 9606 ? ' / other' : ''))}"></span> on your public profile</a>
             <button type="button" class="btn btn-primary btn-lg save-model" th:if="${viewOnly == null}">
                 <i class="mx-2 d-none spinner"></i>
                 Save
