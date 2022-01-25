@@ -74,7 +74,7 @@
         "paging": false,
         "searching": false,
         "info": false,
-        "order": [[0, "desc"]]
+        "order": [[0, "asc"]]
     });
 
     // Create initial profile

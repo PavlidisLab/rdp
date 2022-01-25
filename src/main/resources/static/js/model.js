@@ -162,7 +162,7 @@
         "paging": false,
         "searching": false,
         "info": false,
-        "order": [[0, "desc"]],
+        "order": [[0, "asc"]],
         "columnDefs": geneTableColumnDefs
     });
 
@@ -172,7 +172,7 @@
         "paging": false,
         "searching": false,
         "info": false,
-        "order": [[0, "desc"]]
+        "order": [[0, "asc"]]
     });
 
     var initialModel = collectModel();
