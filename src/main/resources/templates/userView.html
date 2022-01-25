@@ -242,64 +242,50 @@
             </div>
         </div>
 
-        <th:block th:each="taxon : ${viewUser.taxons}">
+        <div th:each="taxon : ${viewUser.taxons}" class="row mb-3">
+            <div class="col">
+                <div th:id="${taxon.commonName} + '-research-focus'" class="card research-info edit-container">
+                    <div class="card-header align-items-center">
+                        <h3 th:text="${taxon.commonName + ' Research Focus'}" class="text-capitalize"></h3>
 
-            <div class="row mb-3"
-                 th:unless="${#strings.isEmpty(viewUser.taxonDescriptions.get(taxon))}">
-                <div class="col">
-                    <div class="card research-info edit-container">
-                        <div class="card-header d-flex align-items-center">
-                            <h3 th:text="${taxon.commonName + ' Research Focus'}"
-                                class="mb-0 d-inline-block text-capitalize"></h3>
-                        </div>
-                        <div class="p-2" style="height: 80px;">
-                                <textarea class="data-edit" name="description"
-                                          th:text="${viewUser.taxonDescriptions.get(taxon)}"
-                                          disabled="disabled"></textarea>
-                        </div>
+                        <p th:unless="${#strings.isEmpty(viewUser.taxonDescriptions.get(taxon))}"
+                           th:text="${viewUser.taxonDescriptions.get(taxon)}">...</p>
+
+                        <ul th:if="not ${viewUser.profile.hideGenelist} or (${user} == ${viewUser}) or ${user?.roles?.contains(@roleRepository.findByRole('ROLE_ADMIN'))}"
+                            class="nav nav-tabs card-header-tabs" role="tablist">
+                            <li class="nav-item">
+                                <a class="nav-link active genes-tab" data-toggle="tab"
+                                   th:href="${'#genes-' + taxon.id}" role="tab"
+                                   aria-controls="profile" aria-selected="true">Genes</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link terms-tab" data-toggle="tab"
+                                   th:href="${'#terms-' + taxon.id}" role="tab"
+                                   aria-controls="model"
+                                   aria-selected="true">Terms</a>
+                            </li>
+                        </ul>
                     </div>
-                </div>
-            </div>
 
-            <div th:if="not ${viewUser.profile.hideGenelist} or (${user} == ${viewUser}) or ${user?.roles?.contains(@roleRepository.findByRole('ROLE_ADMIN'))}"
-                 class="row mb-3">
-                <div class="col">
-                    <div class="card">
-                        <div class="card-header">
-                            <ul class="nav nav-tabs card-header-tabs" role="tablist">
-                                <li class="nav-item">
-                                    <a class="nav-link active genes-tab" data-toggle="tab"
-                                       th:href="${'#genes-' + taxon.id}" role="tab"
-                                       aria-controls="profile" aria-selected="true">Genes</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link terms-tab" data-toggle="tab"
-                                       th:href="${'#terms-' + taxon.id}" role="tab"
-                                       aria-controls="model"
-                                       aria-selected="true">Terms</a>
-                                </li>
-                            </ul>
-                        </div>
-
-                        <div class="card-body">
-                            <div class="tab-content">
-                                <div class="tab-pane fade show active" th:id="${'genes-' + taxon.id}"
-                                     role="tabpanel">
-                                    <div th:replace="fragments/gene-table::gene-table(genes=${viewUser.getGenesByTaxon(taxon)}, defaultPrivacyLevel=${viewUser.effectivePrivacyLevel})">
-                                        ...
-                                    </div>
+                    <div th:if="not ${viewUser.profile.hideGenelist} or (${user} == ${viewUser}) or ${user?.roles?.contains(@roleRepository.findByRole('ROLE_ADMIN'))}"
+                         class="card-body">
+                        <div class="tab-content">
+                            <div class="tab-pane fade show active" th:id="${'genes-' + taxon.id}"
+                                 role="tabpanel">
+                                <div th:replace="fragments/gene-table::gene-table(genes=${viewUser.getGenesByTaxon(taxon)}, defaultPrivacyLevel=${viewUser.effectivePrivacyLevel})">
+                                    ...
                                 </div>
-                                <div class="tab-pane fade" th:id="${'terms-' + taxon.id}" role="tabpanel">
-                                    <div th:replace="fragments/term-table::term-table(userTerms=${viewUser.getTermsByTaxon(taxon)})">
-                                        ...
-                                    </div>
+                            </div>
+                            <div class="tab-pane fade" th:id="${'terms-' + taxon.id}" role="tabpanel">
+                                <div th:replace="fragments/term-table::term-table(userTerms=${viewUser.getTermsByTaxon(taxon)})">
+                                    ...
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </th:block>
+        </div>
     </div>
 </div>
 
