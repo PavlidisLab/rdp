@@ -57,7 +57,7 @@
             </div>
             -->
             <div class="col">
-                <div class="card basic-info">
+                <div id="basic-information" class="card basic-info">
                     <div class="card-header">
                         <div class="d-flex align-items-center">
                             <h3 class="mb-0">Basic Information</h3>
@@ -131,7 +131,7 @@
 
         <div class="row mb-3">
             <div class="col">
-                <div class="card contact-info">
+                <div id="contact-information" class="card contact-info">
                     <div class="card-header">
                         <h3 class="mb-0">Contact Information</h3>
                     </div>
@@ -159,7 +159,7 @@
 
         <div th:unless="${viewUser.profile.description} == ''" class="row mb-3">
             <div class="col">
-                <div class="card research-info edit-container">
+                <div id="about-my-research" class="card research-info edit-container">
                     <div class="card-header d-flex align-items-center">
                         <h3 class="mb-0 d-inline-block">About My Research</h3>
                     </div>
@@ -173,7 +173,7 @@
 
         <div th:unless="${viewUser.userOrgans.isEmpty()}" class="row mb-3">
             <div class="col">
-                <div class="card">
+                <div id="organ-systems" class="card">
                     <div class="card-header">
                         <h3 class="mb-0">Organ Systems</h3>
                     </div>
@@ -189,7 +189,7 @@
         <div sec:authorize="hasRole('ROLE_ADMIN')"
              class="row mb-3">
             <div class="col">
-                <div class="card">
+                <div id="data-privacy" class="card">
                     <div class="card-header">
                         <h3 class="mb-0">Data Privacy</h3>
                     </div>
@@ -213,7 +213,7 @@
 
         <div th:unless="${viewUser.profile.publications.isEmpty()}" class="row mb-3">
             <div class="col">
-                <div class="card publication-info">
+                <div id="publications" class="card publication-info">
                     <div class="card-header">
                         <h3 class="mb-0">Publications</h3>
                     </div>
