@@ -133,7 +133,7 @@
             $.each(ids, function (idx, pubmed) {
                 /* check if it's already in the table */
                 var val = '<i class="delete-row"></i> ' + pubmed;
-                if (table.column(0).data().indexOf(val) != -1) {
+                if (table.column(0).data().indexOf(val) !== -1) {
                     return;
                 }
                 var row = [];

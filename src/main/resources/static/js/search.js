@@ -149,7 +149,7 @@
                     return;
                 }
 
-                if (term.includes(",")) {
+                if (term.indexOf(",") !== -1) {
                     return;
                 }
 

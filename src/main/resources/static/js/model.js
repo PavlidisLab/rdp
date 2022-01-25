@@ -58,7 +58,7 @@
                 }
             } else {
                 /* gene is already in the table */
-                if (table.column(1).data().toArray().includes(gene.geneId + '')) {
+                if (table.column(1).data().indexOf(gene.geneId + '') !== -1) {
                     continue;
                 }
                 row.push('<span class="align-middle"><i class="delete-row align-middle"></i><a href="https://www.ncbi.nlm.nih.gov/gene/' + gene.geneId + '" target="_blank" class="align-middle" rel="noopener">' + gene.symbol + '</a></span>');
@@ -105,7 +105,7 @@
                 row.push('');
                 row.push('');
             } else {
-                if (table.column(0).data().toArray().includes(term.goId)) {
+                if (table.column(0).data().indexOf(term.goId) !== -1) {
                     continue;
                 }
                 row.push('<span class="align-middle">' +
@@ -224,7 +224,7 @@
                     return;
                 }
 
-                if (term.includes(",")) {
+                if (term.indexOf(",") !== -1) {
                     return;
                 }
 
@@ -334,7 +334,7 @@
                     return;
                 }
 
-                if (term.includes(",")) {
+                if (term.indexOf(",") !== -1) {
                     return;
                 }
                 $.getJSON("/taxon/" + encodeURIComponent(currentTaxonId) + "/term/search", {query: term, max: 10})
