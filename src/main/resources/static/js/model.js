@@ -5,12 +5,6 @@
     var geneTable = $('#gene-table');
     var termTable = $('#term-table');
 
-    function arrayContains(term) {
-        return function (elem) {
-            return elem.includes(term);
-        };
-    }
-
     function collectModel() {
         var model = {};
 
@@ -64,11 +58,11 @@
                 }
             } else {
                 /* gene is already in the table */
-                if (table.column(1).data().toArray().some(arrayContains(gene.geneId + ''))) {
+                if (table.column(1).data().toArray().includes(gene.geneId + '')) {
                     continue;
                 }
                 row.push('<span class="align-middle"><i class="delete-row align-middle"></i><a href="https://www.ncbi.nlm.nih.gov/gene/' + gene.geneId + '" target="_blank" class="align-middle" rel="noopener">' + gene.symbol + '</a></span>');
-                row.push(gene.geneId);
+                row.push(gene.geneId + '');
                 row.push('<span class="align-middle">' + gene.name + '</span>');
                 row.push('<input name="primary" class="align-middle" type="checkbox"/>');
                 if (customizableGeneLevel) {
@@ -111,7 +105,7 @@
                 row.push('');
                 row.push('');
             } else {
-                if (table.column(0).data().toArray().some(arrayContains(term.goId))) {
+                if (table.column(0).data().toArray().includes(term.goId)) {
                     continue;
                 }
                 row.push('<span class="align-middle">' +
