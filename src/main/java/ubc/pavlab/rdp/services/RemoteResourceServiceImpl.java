@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.AsyncRestTemplate;
+import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 import ubc.pavlab.rdp.exception.RemoteException;
 import ubc.pavlab.rdp.model.Taxon;
@@ -27,7 +28,9 @@ import ubc.pavlab.rdp.util.VersionUtils;
 import java.net.URI;
 import java.text.MessageFormat;
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 import static java.util.function.Function.identity;
@@ -89,7 +92,6 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
                 .researcherCategories( researcherCategories )
                 .organUberonIds( organUberonIds )
                 .build().toMultiValueMap() );
-        addAuthParamIfAdmin( params );
         return getRemoteEntities( User[].class, API_USERS_SEARCH_URI, params );
     }
 
@@ -103,7 +105,6 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
                 .researcherCategories( researcherCategories )
                 .organUberonIds( organUberonIds )
                 .build().toMultiValueMap() );
-        addAuthParamIfAdmin( params );
         return getRemoteEntities( User[].class, API_USERS_SEARCH_URI, params );
     }
 
@@ -122,7 +123,6 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
                     .researcherCategories( researcherCategories )
                     .organUberonIds( organUberonIds )
                     .build().toMultiValueMap() );
-            addAuthParamIfAdmin( params );
             intlUsergenes.addAll( getRemoteEntities( UserGene[].class, API_GENES_SEARCH_URI, params ) );
         }
         // add back-reference to user
@@ -138,10 +138,10 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
         URI authority = getApiUri( remoteHost );
 
         MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
-        addAuthParamIfAdmin( queryParams );
+        addAuthParamIfAdmin( authority, queryParams );
         URI uri = UriComponentsBuilder.fromUri( authority )
                 .path( API_USER_GET_URI )
-                .queryParams( queryParams )
+                .replaceQueryParams( queryParams )
                 .buildAndExpand( Collections.singletonMap( "userId", userId ) )
                 .toUri();
 
@@ -159,10 +159,10 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
         }
 
         MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
-        addAuthParamIfAdmin( queryParams );
+        addAuthParamIfAdmin( authority, queryParams );
         URI uri = UriComponentsBuilder.fromUri( authority )
                 .path( API_USER_GET_BY_ANONYMOUS_ID_URI )
-                .queryParams( queryParams )
+                .replaceQueryParams( queryParams )
                 .buildAndExpand( Collections.singletonMap( "anonymousId", anonymousId ) )
                 .toUri();
 
@@ -182,18 +182,22 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
 
     private <T> Collection<T> getRemoteEntities( Class<T[]> arrCls, String path, MultiValueMap<String, String> params ) {
         return Arrays.stream( applicationSettings.getIsearch().getApis() )
-                .map( api -> UriComponentsBuilder.fromUriString( api )
-                        .path( path )
-                        .queryParams( params )
-                        .build().toUri() )
-                .map( uri -> asyncRestTemplate.getForEntity( uri, arrCls ) )
+                .map( URI::create )
+                .map( api -> {
+                    // work on a copy because we'll be selectively adding auth information
+                    LinkedMultiValueMap<String, String> apiParams = new LinkedMultiValueMap<>( params );
+                    addAuthParamIfAdmin( api, apiParams );
+                    return UriComponentsBuilder.fromUri( api )
+                            .path( path )
+                            .replaceQueryParams( apiParams )
+                            .build().toUri();
+                } ).map( uri -> asyncRestTemplate.getForEntity( uri, arrCls ) )
                 // it's important to collect, otherwise the future will be created and joined on-by-one, defeating the purpose of using them
-                .collect( Collectors.toList() )
-                .stream()
-                .map( future -> {
+                .collect( Collectors.toList() ).stream().map( future -> {
                     try {
                         return future.get( applicationSettings.getIsearch().getRequestTimeout(), TimeUnit.SECONDS );
                     } catch ( InterruptedException | ExecutionException | TimeoutException e ) {
+                        // TODO: indicate the origin of the unsuccessful response
                         log.error( "Unsuccessful response received.", e );
                         return null;
                     }
@@ -227,10 +231,19 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
                 .collect( Collectors.toSet() );
     }
 
-    private void addAuthParamIfAdmin( MultiValueMap<String, String> query ) {
+    private void addAuthParamIfAdmin( URI apiUri, MultiValueMap<String, String> query ) {
         User user = userService.findCurrentUser();
         if ( user != null && user.getRoles().contains( roleRepository.findByRole( "ROLE_ADMIN" ) ) ) {
-            query.add( "auth", applicationSettings.getIsearch().getSearchToken() );
+            UriComponents apiUriComponents = UriComponentsBuilder.fromUri( apiUri ).build();
+            if ( apiUriComponents.getQueryParams().containsKey( "noauth" ) ) {
+                // do nothing, we don't have admin access for this partner
+            } else if ( apiUriComponents.getQueryParams().containsKey( "auth" ) ) {
+                // use a specific search token
+                query.add( "auth", apiUriComponents.getQueryParams().getFirst( "auth" ) );
+            } else {
+                // use the default search token
+                query.add( "auth", applicationSettings.getIsearch().getSearchToken() );
+            }
         }
     }
 
