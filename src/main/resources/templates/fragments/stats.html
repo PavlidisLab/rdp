@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <!--suppress ThymeleafVariablesResolveInspection java variables not visible in fragments-->
-<html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org">
 <body>
 <ul th:fragment="stats (data)">
     <li><span th:text="${data.uniqueUserGenes}" th:remove="tag"></span>&nbsp;<span class="label">genes researched by</span></li>
