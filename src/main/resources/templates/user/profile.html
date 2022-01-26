@@ -260,6 +260,71 @@
         </div>
 
         <div class="row mb-3">
+            <div class="col">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="mb-0">Genes</h3>
+                    </div>
+                    <div class="card-body" role="alert">
+                        To add genes to your profile, start by choosing a
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Model Organism</a>.
+                        <div class="dropdown-menu">
+                            <a th:each="taxon : ${@taxonService.findByActiveTrue()}"
+                               th:if="${taxon.id} != 9606"
+                               class="dropdown-item"
+                               th:href="@{/user/model/{taxonId}(taxonId=${taxon.id})}"
+                               th:text="${#strings.capitalize(taxon.commonName)}">...</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-3">
+            <div class="col">
+                <div class="card publication-info">
+                    <div class="card-header">
+                        <h3 class="mb-0">Publications</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <table id="publication-table" class="table">
+                                <thead class=".thead-light">
+                                <tr>
+                                    <th scope="col">PubMed</th>
+                                    <th scope="col">Title</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr th:each="pub : ${user.profile.publications}">
+                                    <!-- don't format the following line, the frontend makes assumption -->
+                                    <td><i class="delete-row" th:if="${viewOnly == null}"></i> <span
+                                            th:text="${pub.pmid}"
+                                            th:remove="tag"></span>
+                                    </td>
+                                    <td><a th:href="${'https://www.ncbi.nlm.nih.gov/pubmed/' + pub.pmid}"
+                                           target="_blank"
+                                           th:text="${pub.title != ''} ? ${pub.title} : 'Unknown Title'"
+                                           rel="noopener"></a>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="input-group" th:if="${viewOnly == null}">
+                            <div class="input-group-prepend" style="background: lightgrey;">
+                                <button class="btn btn-outline-secondary add-row text-success" type="button">+</button>
+                            </div>
+                            <input type="text"
+                                   class="pub-input form-control"
+                                   placeholder="PubMed Ids: 25363768, 25418537"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-3">
             <div class="w-100"
                  th:if="${@applicationSettings.privacy.customizableLevel} or ${@applicationSettings.privacy.customizableSharing} or ${@applicationSettings.privacy.allowHideGenelist}"></div>
             <div class="col"
@@ -349,71 +414,6 @@
                                     </i>
                                 </label>
                             </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="row mb-3">
-            <div class="col">
-                <div class="card publication-info">
-                    <div class="card-header">
-                        <h3 class="mb-0">Publications</h3>
-                    </div>
-                    <div class="card-body">
-                        <div class="mb-3">
-                            <table id="publication-table" class="table">
-                                <thead class=".thead-light">
-                                <tr>
-                                    <th scope="col">PubMed</th>
-                                    <th scope="col">Title</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                <tr th:each="pub : ${user.profile.publications}">
-                                    <!-- don't format the following line, the frontend makes assumption -->
-                                    <td><i class="delete-row" th:if="${viewOnly == null}"></i> <span
-                                            th:text="${pub.pmid}"
-                                            th:remove="tag"></span>
-                                    </td>
-                                    <td><a th:href="${'https://www.ncbi.nlm.nih.gov/pubmed/' + pub.pmid}"
-                                           target="_blank"
-                                           th:text="${pub.title != ''} ? ${pub.title} : 'Unknown Title'"
-                                           rel="noopener"></a>
-                                    </td>
-                                </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        <div class="input-group" th:if="${viewOnly == null}">
-                            <div class="input-group-prepend" style="background: lightgrey;">
-                                <button class="btn btn-outline-secondary add-row text-success" type="button">+</button>
-                            </div>
-                            <input type="text"
-                                   class="pub-input form-control"
-                                   placeholder="PubMed Ids: 25363768, 25418537"/>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="row">
-            <div class="col">
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="mb-0">Genes</h3>
-                    </div>
-                    <div class="card-body" role="alert">
-                        To add genes to your profile, start by choosing a
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Model Organism</a>.
-                        <div class="dropdown-menu">
-                            <a th:each="taxon : ${@taxonService.findByActiveTrue()}"
-                               th:if="${taxon.id} != 9606"
-                               class="dropdown-item"
-                               th:href="@{/user/model/{taxonId}(taxonId=${taxon.id})}"
-                               th:text="${#strings.capitalize(taxon.commonName)}">...</a>
                         </div>
                     </div>
                 </div>
