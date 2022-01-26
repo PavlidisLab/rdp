@@ -24,7 +24,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.security.core.Authentication;
@@ -129,20 +128,27 @@ public class UserGeneServiceImpl implements UserGeneService {
 
     @Override
     @PostFilter("hasPermission(filterObject, 'read')")
-    public Collection<UserGene> handleGeneSearch( Gene gene, Set<TierType> tiers, Taxon orthologTaxon, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherCategories, Collection<UserOrgan> organs ) {
+    public List<UserGene> handleGeneSearch( Gene gene, Set<TierType> tiers, Taxon orthologTaxon, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherCategories, Collection<UserOrgan> organs ) {
+        Set<UserGene> results;
         if ( applicationSettings.getPrivacy().isEnableAnonymizedSearchResults() ) {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-            return handleGeneSearchInternal( gene, tiers, orthologTaxon, researcherPositions, researcherCategories, organs ).stream()
+            results = handleGeneSearchInternal
+                    ( gene, tiers, orthologTaxon, researcherPositions, researcherCategories, organs ).stream()
                     .map( ug -> permissionEvaluator.hasPermission( auth, ug, "read" ) ? ug : userService.anonymizeUserGene( ug ) )
-                    .sorted( comparing( UserGene::getAnonymousId, nullsFirst( naturalOrder() ) ) )
-                    .collect( Collectors.toList() ); // we need to preserve the search order
+                    .collect( Collectors.toSet() );
         } else {
-            return handleGeneSearchInternal( gene, tiers, orthologTaxon, researcherPositions, researcherCategories, organs );
+            results = handleGeneSearchInternal( gene, tiers, orthologTaxon, researcherPositions, researcherCategories, organs );
         }
+        return results.stream()
+                .sorted( comparing( UserGene::getAnonymousId, nullsFirst( naturalOrder() ) )
+                        .thenComparing( UserGene::getTaxon )
+                        .thenComparing( UserGene::getTier )
+                        .thenComparing( ug -> ug.getUser().getProfile().getFullName() ) )
+                .collect( Collectors.toList() ); // we need to preserve the search order
     }
 
-    private Collection<UserGene> handleGeneSearchInternal( Gene gene, Set<TierType> tiers, Taxon orthologTaxon, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherCategories, Collection<UserOrgan> organs ) {
-        Collection<UserGene> uGenes = new LinkedHashSet<>();
+    private Set<UserGene> handleGeneSearchInternal( Gene gene, Set<TierType> tiers, Taxon orthologTaxon, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherCategories, Collection<UserOrgan> organs ) {
+        Set<UserGene> uGenes = new LinkedHashSet<>();
 
         // ortholog relationship is not reflexive (i.e. a gene is not its own ortholog), but we still want to display
         // that gene first when ortholog search is performed in the same MO
@@ -159,7 +165,7 @@ public class UserGeneServiceImpl implements UserGeneService {
         return uGenes;
     }
 
-    private Collection<UserGene> handleOrthologSearchInternal( Gene gene, Set<TierType> tiers, Taxon orthologTaxon, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherCategories, Collection<UserOrgan> userOrgans ) {
+    private Set<UserGene> handleOrthologSearchInternal( Gene gene, Set<TierType> tiers, Taxon orthologTaxon, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherCategories, Collection<UserOrgan> userOrgans ) {
         return ( orthologTaxon == null ? userGeneRepository.findOrthologsByGeneId( gene.getGeneId() ) : userGeneRepository.findOrthologsByGeneIdAndTaxon( gene.getGeneId(), orthologTaxon ) ).stream()
                 .filter( ortholog -> tiers.contains( ortholog.getTier() ) )
                 .filter( ug -> researcherPositions == null || researcherPositions.contains( ug.getUser().getProfile().getResearcherPosition() ) )
