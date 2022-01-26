@@ -406,21 +406,14 @@
                         <h3 class="mb-0">Genes</h3>
                     </div>
                     <div class="card-body" role="alert">
-                        To add genes to your profile, pick a Model Organism:
-                        <div class="btn-group">
-                            <a class="btn btn-primary btn-sm" th:href="@{/user/model/9606}">Human / Other</a>
-                            <a class="btn btn-primary btn-sm dropdown-toggle dropdown-toggle-split"
-                               data-toggle="dropdown"
-                               aria-expanded="false">
-                                <span class="sr-only">Toggle Dropdown</span>
-                            </a>
-                            <div class="dropdown-menu">
-                                <a th:each="taxon : ${@taxonService.findByActiveTrue()}"
-                                   th:if="${taxon.id} != 9606"
-                                   class="dropdown-item"
-                                   th:href="@{/user/model/{taxonId}(taxonId=${taxon.id})}"
-                                   th:text="${#strings.capitalize(taxon.commonName)}">...</a>
-                            </div>
+                        To add genes to your profile, start by choosing a
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Model Organism</a>.
+                        <div class="dropdown-menu">
+                            <a th:each="taxon : ${@taxonService.findByActiveTrue()}"
+                               th:if="${taxon.id} != 9606"
+                               class="dropdown-item"
+                               th:href="@{/user/model/{taxonId}(taxonId=${taxon.id})}"
+                               th:text="${#strings.capitalize(taxon.commonName)}">...</a>
                         </div>
                     </div>
                 </div>
