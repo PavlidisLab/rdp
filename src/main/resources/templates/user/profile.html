@@ -46,7 +46,7 @@
 
         <div th:if="${user.userGenes.isEmpty()}"
              class="alert alert-info mb-3" role="alert">
-            You have no genes associated to your user profile. Get started by choosing a
+            There are no genes associated with your profile. Get started by choosing a
             <a href="#" class="dropdown-toggle" data-toggle="dropdown">Model Organism</a>
             <div th:replace="fragments/taxon::taxon-dropdown-menu"></div>
         </div>
@@ -274,7 +274,7 @@
                     </div>
                     <div class="card-body" role="alert">
                         To add genes to your profile, start by choosing a
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Model Organism</a>.
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Model Organism</a>
                         <div th:replace="fragments/taxon::taxon-dropdown-menu"></div>
                     </div>
                 </div>
