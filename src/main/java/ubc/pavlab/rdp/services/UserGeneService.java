@@ -21,7 +21,6 @@ package ubc.pavlab.rdp.services;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
 import ubc.pavlab.rdp.model.Gene;
 import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.model.UserGene;
@@ -32,6 +31,7 @@ import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import ubc.pavlab.rdp.model.enums.TierType;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -56,7 +56,12 @@ public interface UserGeneService {
 
     Integer countUniqueAssociationsToHumanAllTiers();
 
-    Collection<UserGene> handleGeneSearch( Gene gene, Set<TierType> tiers, Taxon orthologTaxon, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherTypes, Collection<UserOrgan> organs );
+    /**
+     * Results are sorted by taxon (according to {@link Taxon#getOrdering()}), tier type, researcher last name and
+     * first name. Anonymous results are always displayed last.
+     * @return
+     */
+    List<UserGene> handleGeneSearch( Gene gene, Set<TierType> tiers, Taxon orthologTaxon, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherTypes, Collection<UserOrgan> organs );
 
     void updateUserGenes();
 }

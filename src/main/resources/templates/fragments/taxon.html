@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Title</title>
+</head>
+<body>
+<div th:fragment="taxon-dropdown-menu" class="dropdown-menu" aria-labelledby="navbarDropdownModel">
+    <a th:each="taxon : ${@taxonService.findByActiveTrue()}"
+       class="dropdown-item text-capitalize"
+       th:href="@{/user/model/{taxonId}(taxonId=${taxon.id})}"
+       th:classappend="${@userService.findCurrentUser()?.hasTaxon(taxon)} ? 'hastaxon' : ''">
+        <span th:text="${taxon.commonName}"></span>
+        <span th:if="${taxon.id} == 9606"> / other</span>
+    </a>
+</div>
+</body>
+</html>

@@ -62,7 +62,7 @@ public class UserGeneRepositoryTest {
 
         @Bean
         public SecureRandom secureRandom() throws NoSuchAlgorithmException {
-            return SecureRandom.getInstanceStrong();
+            return SecureRandom.getInstance( "SHA1PRNG" );
         }
     }
 

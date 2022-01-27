@@ -1,9 +1,9 @@
 package ubc.pavlab.rdp.controllers;
 
+import org.assertj.core.util.Lists;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.internal.util.collections.Sets;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -109,7 +109,7 @@ public class ApiControllerTest {
         when( taxonService.findById( 9606 ) ).thenReturn( humanTaxon );
         when( geneService.findBySymbolAndTaxon( "CDH1", humanTaxon ) ).thenReturn( cdh1GeneInfo );
         when( userGeneService.handleGeneSearch( cdh1GeneInfo, EnumSet.of( TierType.TIER1 ), humanTaxon, null, null, null ) )
-                .thenReturn( Sets.newSet( cdh1UserGene ) );
+                .thenReturn( Lists.newArrayList( cdh1UserGene ) );
 
         mvc.perform( get( "/api/genes/search" )
                         .header( "Authorization", "Bearer 1234" )
@@ -135,7 +135,7 @@ public class ApiControllerTest {
         when( taxonService.findById( 9606 ) ).thenReturn( humanTaxon );
         when( geneService.findBySymbolAndTaxon( "CDH1", humanTaxon ) ).thenReturn( cdh1GeneInfo );
         when( userGeneService.handleGeneSearch( cdh1GeneInfo, EnumSet.of( TierType.TIER1 ), humanTaxon, null, null, null ) )
-                .thenReturn( Sets.newSet( cdh1UserGene ) );
+                .thenReturn( Lists.newArrayList( cdh1UserGene ) );
 
         mvc.perform( get( "/api/genes/search" )
                         .param( "symbol", "CDH1" )
@@ -188,7 +188,7 @@ public class ApiControllerTest {
         when( taxonService.findById( 9606 ) ).thenReturn( humanTaxon );
         when( geneService.findBySymbolAndTaxon( "CDH1", humanTaxon ) ).thenReturn( cdh1GeneInfo );
         when( userGeneService.handleGeneSearch( cdh1GeneInfo, EnumSet.of( TierType.TIER1 ), humanTaxon, null, null, null ) )
-                .thenReturn( Sets.newSet( cdh1UserGene ) );
+                .thenReturn( Lists.newArrayList( cdh1UserGene ) );
 
         mvc.perform( get( "/api/genes/search" )
                         .param( "symbol", "CDH1" )
@@ -210,7 +210,7 @@ public class ApiControllerTest {
         when( taxonService.findById( 9606 ) ).thenReturn( humanTaxon );
         when( geneService.findBySymbolAndTaxon( "CDH1", humanTaxon ) ).thenReturn( cdh1GeneInfo );
         when( userGeneService.handleGeneSearch( cdh1GeneInfo, EnumSet.of( TierType.TIER1, TierType.TIER2 ), humanTaxon, null, null, null ) )
-                .thenReturn( Sets.newSet( cdh1UserGene ) );
+                .thenReturn( Lists.newArrayList( cdh1UserGene ) );
 
         mvc.perform( get( "/api/genes/search" )
                         .param( "symbol", "CDH1" )
@@ -233,7 +233,7 @@ public class ApiControllerTest {
         when( taxonService.findById( 9606 ) ).thenReturn( humanTaxon );
         when( geneService.findBySymbolAndTaxon( "CDH1", humanTaxon ) ).thenReturn( cdh1GeneInfo );
         when( userGeneService.handleGeneSearch( cdh1GeneInfo, EnumSet.of( TierType.TIER1, TierType.TIER2 ), humanTaxon, null, null, null ) )
-                .thenReturn( Sets.newSet( cdh1UserGene ) );
+                .thenReturn( Lists.newArrayList( cdh1UserGene ) );
 
         mvc.perform( get( "/api/genes/search" )
                         .param( "symbol", "CDH1" )
@@ -257,12 +257,12 @@ public class ApiControllerTest {
         when( taxonService.findById( 9606 ) ).thenReturn( humanTaxon );
         when( geneService.findBySymbolAndTaxon( "CDH1", humanTaxon ) ).thenReturn( cdh1GeneInfo );
         when( userGeneService.handleGeneSearch( cdh1GeneInfo, EnumSet.of( TierType.TIER1, TierType.TIER2 ), humanTaxon, null, null, null ) )
-                .thenReturn( Sets.newSet( cdh1UserGene ) );
+                .thenReturn( Lists.newArrayList( cdh1UserGene ) );
 
         when( taxonService.findById( 9606 ) ).thenReturn( humanTaxon );
         when( geneService.findBySymbolAndTaxon( "CDH1", humanTaxon ) ).thenReturn( cdh1GeneInfo );
         when( userGeneService.handleGeneSearch( cdh1GeneInfo, EnumSet.of( TierType.TIER1 ), humanTaxon, null, null, null ) )
-                .thenReturn( Sets.newSet( cdh1UserGene ) );
+                .thenReturn( Lists.newArrayList( cdh1UserGene ) );
 
         mvc.perform( get( "/api/genes/search" )
                         .param( "symbol", "CDH1" )
@@ -283,7 +283,7 @@ public class ApiControllerTest {
         when( taxonService.findById( 9606 ) ).thenReturn( humanTaxon );
         when( geneService.findBySymbolAndTaxon( "CDH1", humanTaxon ) ).thenReturn( cdh1GeneInfo );
         when( userGeneService.handleGeneSearch( cdh1GeneInfo, EnumSet.of( TierType.TIER1 ), humanTaxon, null, null, null ) )
-                .thenReturn( Sets.newSet( cdh1UserGene ) );
+                .thenReturn( Lists.newArrayList( cdh1UserGene ) );
 
         mvc.perform( get( "/api/genes/search" )
                         .param( "symbol", "CDH1" )
@@ -305,7 +305,7 @@ public class ApiControllerTest {
         when( taxonService.findById( 9606 ) ).thenReturn( humanTaxon );
         when( geneService.findBySymbolAndTaxon( "CDH1", humanTaxon ) ).thenReturn( cdh1GeneInfo );
         when( userGeneService.handleGeneSearch( cdh1GeneInfo, EnumSet.of( TierType.TIER1 ), humanTaxon, null, null, null ) )
-                .thenReturn( Sets.newSet( cdh1UserGene ) );
+                .thenReturn( Lists.newArrayList( cdh1UserGene ) );
 
         mvc.perform( get( "/api/genes/search" )
                         .param( "symbol", "CDH1" )

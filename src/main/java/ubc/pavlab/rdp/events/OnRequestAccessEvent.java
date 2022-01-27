@@ -6,7 +6,7 @@ import org.springframework.context.ApplicationEvent;
 import ubc.pavlab.rdp.model.User;
 
 @Getter
-@EqualsAndHashCode
+@EqualsAndHashCode(callSuper = false)
 public class OnRequestAccessEvent<T> extends ApplicationEvent {
 
     private User user;

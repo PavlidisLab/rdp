@@ -73,9 +73,15 @@ public class UserController {
         ModelAndView modelAndView = new ModelAndView( "user/model" );
         User user = userService.findCurrentUser();
         Taxon taxon = taxonService.findById( taxonId );
-        modelAndView.addObject( "viewOnly", null );
-        modelAndView.addObject( "user", user );
-        modelAndView.addObject( "taxon", taxon );
+        if ( taxon == null ) {
+            modelAndView.setViewName( "error/404" );
+            modelAndView.setStatus( HttpStatus.NOT_FOUND );
+            modelAndView.addObject( "message", "Unknown taxon identifier: + " + taxonId + "." );
+        } else {
+            modelAndView.addObject( "viewOnly", null );
+            modelAndView.addObject( "user", user );
+            modelAndView.addObject( "taxon", taxon );
+        }
         return modelAndView;
     }
 

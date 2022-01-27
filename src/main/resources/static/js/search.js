@@ -16,7 +16,7 @@
         $.get(popoverUrl, remoteHost ? {'remoteHost': remoteHost} : {})
             .done(function (data, textStatus, jqXHR) {
                 /* handle no content status code when the popover is empty */
-                if (jqXHR.status == 204) {
+                if (jqXHR.status === 204) {
                     return;
                 }
                 element.popover({
@@ -149,7 +149,7 @@
                     return;
                 }
 
-                if (term.includes(",")) {
+                if (term.indexOf(",") !== -1) {
                     return;
                 }
 

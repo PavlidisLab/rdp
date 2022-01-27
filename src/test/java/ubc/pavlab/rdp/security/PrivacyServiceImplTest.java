@@ -68,7 +68,9 @@ public class PrivacyServiceImplTest {
         Role roleAdmin = createRole( 3, "ROLE_ADMIN" );
         Role roleServiceAccount = createRole( 4, "ROLE_SERVICE_ACCOUNT" );
         user = createUser( 1 );
+        user.setEnabled( true );
         otherUser = createUser( 2 );
+        otherUser.setEnabled( true );
         adminUser = createUserWithRoles( 3, roleAdmin );
         serviceAccountUser = createUserWithRoles( 4, roleServiceAccount );
         when( roleRepository.findByRole( "ROLE_ADMIN" ) ).thenReturn( roleAdmin );

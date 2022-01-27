@@ -22,7 +22,7 @@ import java.net.URL;
 @NoArgsConstructor
 @EqualsAndHashCode(of = { "id" })
 @ToString(of = { "id", "scientificName" })
-public class Taxon implements Serializable {
+public class Taxon implements Comparable<Taxon>, Serializable {
 
     @Id
     @Column(name = "taxon_id")
@@ -41,4 +41,9 @@ public class Taxon implements Serializable {
 
     @JsonIgnore
     private Integer ordering;
+
+    @Override
+    public int compareTo( Taxon taxon ) {
+        return ordering.compareTo( taxon.ordering );
+    }
 }

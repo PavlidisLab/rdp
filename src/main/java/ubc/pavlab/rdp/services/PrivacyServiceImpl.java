@@ -82,6 +82,11 @@ public class PrivacyServiceImpl implements PrivacyService {
             return false;
         }
 
+        // never show unverified accounts
+        if ( !otherUser.isEnabled() ) {
+            return false;
+        }
+
         Profile profile = otherUser.getProfile();
 
         if ( profile == null || profile.getPrivacyLevel() == null ) {

@@ -1,6 +1,5 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:th="http://www.thymeleaf.org"
+<html xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head th:fragment="head">
     <meta charset="UTF-8"/>
@@ -53,15 +52,7 @@
                     <!--suppress HtmlUnknownTarget -->
                     <a class="nav-link dropdown-toggle" href="/user/model" id="navbarDropdownModel" role="button"
                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Model Organisms</a>
-                    <div class="dropdown-menu" aria-labelledby="navbarDropdownModel">
-                        <a th:each="taxon : ${@taxonService.findByActiveTrue()}"
-                           class="dropdown-item text-capitalize"
-                           th:href="@{/user/model/{taxonId}(taxonId=${taxon.id})}"
-                           th:classappend="${@userService.findCurrentUser()?.hasTaxon(taxon)} ? 'hastaxon' : ''">
-                            <span th:text="${taxon.commonName}"></span>
-                            <span th:if="${taxon.id} == 9606"> / other</span>
-                        </a>
-                    </div>
+                    <div th:replace="fragments/taxon::taxon-dropdown-menu" aria-labelledby="navbarDropdownModel"></div>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" th:href="@{/user/documentation}" href="/user/documentation">Documentation</a>
@@ -90,7 +81,8 @@
                     <div class="dropdown-menu" aria-labelledby="navbarDropdownUser">
                         <th:block sec:authorize="hasRole('ROLE_ADMIN')">
                             <a th:href="@{/admin/users}" class="dropdown-item">View Users</a>
-                            <a th:href="@{/admin/create-service-account}" class="dropdown-item">Create Service Account</a>
+                            <a th:href="@{/admin/create-service-account}" class="dropdown-item">Create Service
+                                Account</a>
                         </th:block>
                         <a class="dropdown-item" th:href="@{/user/password}" href="/user/password">Change Password</a>
                         <a class="dropdown-item" th:href="@{/logout}" href="/logout">Logout</a>
@@ -151,8 +143,8 @@
             crossorigin="=anonymous"></script>
     <script th:src="@{/js/common.js}"></script>
     <script sec:authorize="isAuthenticated()" th:src="@{/js/activity-monitor.js}"></script>
-    <!-- Global site tag (gtag.js) - Google Analytics -->
-    <th:block th:if="${@siteSettings.gaTracker}">
+    <th:block th:unless="${#strings.isEmpty(@siteSettings.gaTracker)}">
+        <!-- Global site tag (gtag.js) - Google Analytics -->
         <script th:src="@{https://www.googletagmanager.com/gtag/js(id=${@siteSettings.gaTracker})}"></script>
         <script th:inline="javascript">
             window.dataLayer = window.dataLayer || [];

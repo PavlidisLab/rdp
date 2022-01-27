@@ -80,43 +80,9 @@ public class PasswordResetTokenRepositoryTest {
     }
 
     @Test
-    public void findByUser_whenValidUser_thenReturnToken() {
-
-        PasswordResetToken found = passwordResetTokenRepository.findByUser( user );
-        assertThat( found ).isEqualTo( validToken );
-    }
-
-    @Test
-    public void findByUser_whenValidUserHasOnlyExpiredToken_thenReturnToken() {
-
-        PasswordResetToken found = passwordResetTokenRepository.findByUser( user2 );
-        assertThat( found ).isEqualTo( expiredToken );
-    }
-
-    @Test(expected = IncorrectResultSizeDataAccessException.class)
-    public void findByUser_whenValidUserHasMultipleTokens_thenError() {
-
-        PasswordResetToken validToken2 = new PasswordResetToken();
-        validToken2.updateToken( "validtoken2" );
-        validToken2.setUser( user );
-        entityManager.persist( validToken2 );
-        entityManager.flush();
-
-        passwordResetTokenRepository.findByUser( user );
-    }
-
-    @Test
-    public void findByUser_whenInvalidUser_thenReturnNull() {
-
-        PasswordResetToken found = passwordResetTokenRepository.findByUser( createUser( -1 ) );
-        assertThat( found ).isNull();
-    }
-
-    @Test
     public void deleteAllExpiredSince_whenValidDate_thenDeleteTokens() {
         passwordResetTokenRepository.deleteAllExpiredSince( new Date() );
         assertThat( passwordResetTokenRepository.findAll() ).containsExactly( validToken );
-
     }
 
 }

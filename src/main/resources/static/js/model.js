@@ -5,12 +5,6 @@
     var geneTable = $('#gene-table');
     var termTable = $('#term-table');
 
-    function arrayContains(term) {
-        return function (elem) {
-            return elem.includes(term);
-        };
-    }
-
     function collectModel() {
         var model = {};
 
@@ -51,41 +45,44 @@
         var table = geneTable.DataTable();
         var rows = [];
         for (var symbol in data) {
-            var gene = data[symbol];
-            var row = [];
-            if (gene === null) {
-                window.console.log("Issue obtaining metadata for: " + symbol);
-                row.push('<span class="align-middle text-danger"><i class="delete-row align-middle"></i>' + symbol + '</span>');
-                row.push('');
-                row.push('<span class="align-middle text-danger">Could not find gene for provided gene identifier.</span>');
-                row.push('');
-                if (customizableGeneLevel) {
+            if (data.hasOwnProperty(symbol)) {
+                var gene = data[symbol];
+                var row = [];
+                if (gene === null) {
+                    window.console.log("Issue obtaining metadata for: " + symbol);
+                    row.push('<span class="align-middle text-danger"><i class="delete-row align-middle"></i>' + symbol + '</span>');
                     row.push('');
+                    row.push('<span class="align-middle text-danger">Could not find gene for provided gene identifier.</span>');
+                    row.push('');
+                    if (customizableGeneLevel) {
+                        row.push('');
+                    }
+                } else {
+                    var geneId = gene.geneId + '';
+                    /* gene is already in the table */
+                    if (table.column(1).data().indexOf(geneId + '') !== -1) {
+                        continue;
+                    }
+                    row.push('<span class="align-middle"><i class="delete-row align-middle"></i><a href="https://www.ncbi.nlm.nih.gov/gene/' + encodeURIComponent(geneId) + '" target="_blank" class="align-middle" rel="noopener">' + gene.symbol + '</a></span>');
+                    row.push(geneId + '');
+                    row.push('<span class="align-middle">' + gene.name + '</span>');
+                    row.push('<input name="primary" class="align-middle" type="checkbox"/>');
+                    if (customizableGeneLevel) {
+                        var privacyOptions = enabledGenePrivacyLevels.map(function (k) {
+                            var privacyLevel = privacyLevels[k];
+                            if (privacyLevel.ordinal <= userPrivacyLevel.ordinal) {
+                                return '<option value="' + privacyLevel.ordinal + '"' +
+                                    (privacyLevel.ordinal === userPrivacyLevel.ordinal ? ' selected' : '') + '>' +
+                                    privacyLevel.label + '</option>';
+                            } else {
+                                return '';
+                            }
+                        }).join('');
+                        row.push('<select class="form-control">' + privacyOptions + '</select>');
+                    }
                 }
-            } else {
-                /* gene is already in the table */
-                if (table.column(1).data().toArray().some(arrayContains(gene.geneId + ''))) {
-                    continue;
-                }
-                row.push('<span class="align-middle"><i class="delete-row align-middle"></i><a href="https://www.ncbi.nlm.nih.gov/gene/' + gene.geneId + '" target="_blank" class="align-middle" rel="noopener">' + gene.symbol + '</a></span>');
-                row.push(gene.geneId);
-                row.push('<span class="align-middle">' + gene.name + '</span>');
-                row.push('<input name="primary" class="align-middle" type="checkbox"/>');
-                if (customizableGeneLevel) {
-                    var privacyOptions = enabledGenePrivacyLevels.map(function (k) {
-                        var privacyLevel = privacyLevels[k];
-                        if (privacyLevel.ordinal <= userPrivacyLevel.ordinal) {
-                            return '<option value="' + privacyLevel.ordinal + '"' +
-                                (privacyLevel.ordinal === userPrivacyLevel.ordinal ? ' selected' : '') + '>' +
-                                privacyLevel.label + '</option>';
-                        } else {
-                            return '';
-                        }
-                    }).join('');
-                    row.push('<select class="form-control">' + privacyOptions + '</select>');
-                }
+                rows.push(row);
             }
-            rows.push(row);
         }
 
         table.rows.add(rows).nodes()
@@ -101,29 +98,31 @@
         var table = termTable.DataTable();
         var rows = [];
         for (var goId in data) {
-            var term = data[goId];
-            var row = [];
-            if (term === null) {
-                window.console.log("Issue obtaining metadata for: " + goId);
-                row.push('<span class="align-middle text-danger"><i class="delete-row align-middle"></i>' + goId + '</span>');
-                row.push('<span class="align-middle text-danger">Could not find term for provided GO identifier.</span>');
-                row.push('');
-                row.push('');
-                row.push('');
-            } else {
-                if (table.column(0).data().toArray().some(arrayContains(term.goId))) {
-                    continue;
+            if (data.hasOwnProperty(goId)) {
+                var term = data[goId];
+                var row = [];
+                if (term === null) {
+                    window.console.log("Issue obtaining metadata for: " + goId);
+                    row.push('<span class="align-middle text-danger"><i class="delete-row align-middle"></i>' + goId + '</span>');
+                    row.push('<span class="align-middle text-danger">Could not find term for provided GO identifier.</span>');
+                    row.push('');
+                    row.push('');
+                    row.push('');
+                } else {
+                    if (table.column(0).data().indexOf(term.goId) !== -1) {
+                        continue;
+                    }
+                    row.push('<span class="align-middle">' +
+                        '<i class="delete-row"></i>' +
+                        '<a href="https://www.ebi.ac.uk/QuickGO/GTerm?id=' + encodeURIComponent(term.goId) + '" ' +
+                        'target="_blank" data-toggle="tooltip" class="align-middle" title="' + term.definition + '">' + term.goId + '</a></span>');
+                    row.push('<span class="align-middle">' + term.name + '</span>');
+                    row.push('<span class="align-middle">' + term.aspect + '</span>');
+                    row.push('<a href="#" class="align-middle overlap-show-modal" data-toggle="modal" data-target="#overlapModal" data-go-id="' + term.goId + '">' + term.frequency + '</a>');
+                    row.push('<span class="align-middle">' + term.size + '</span>');
                 }
-                row.push('<span class="align-middle">' +
-                    '<i class="delete-row"></i>' +
-                    '<a href="http://www.ebi.ac.uk/QuickGO/GTerm?id=' + encodeURIComponent(term.goId) + '" ' +
-                    'target="_blank" data-toggle="tooltip" class="align-middle" title="' + term.definition + '">' + term.goId + '</a></span>');
-                row.push('<span class="align-middle">' + term.name + '</span>');
-                row.push('<span class="align-middle">' + term.aspect + '</span>');
-                row.push('<a href="#" class="align-middle overlap-show-modal" data-toggle="modal" data-target="#overlapModal" data-go-id="' + term.goId + '">' + term.frequency + '</a>');
-                row.push('<span class="align-middle">' + term.size + '</span>');
+                rows.push(row);
             }
-            rows.push(row);
         }
 
         table.rows.add(rows).nodes()
@@ -163,7 +162,7 @@
         "paging": false,
         "searching": false,
         "info": false,
-        "order": [[0, "desc"]],
+        "order": [[0, "asc"]],
         "columnDefs": geneTableColumnDefs
     });
 
@@ -173,7 +172,7 @@
         "paging": false,
         "searching": false,
         "info": false,
-        "order": [[0, "desc"]]
+        "order": [[0, "asc"]]
     });
 
     var initialModel = collectModel();
@@ -230,7 +229,7 @@
                     return;
                 }
 
-                if (term.includes(",")) {
+                if (term.indexOf(",") !== -1) {
                     return;
                 }
 
@@ -340,7 +339,7 @@
                     return;
                 }
 
-                if (term.includes(",")) {
+                if (term.indexOf(",") !== -1) {
                     return;
                 }
                 $.getJSON("/taxon/" + encodeURIComponent(currentTaxonId) + "/term/search", {query: term, max: 10})
