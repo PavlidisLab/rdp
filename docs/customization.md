@@ -178,6 +178,24 @@ rdp.settings.isearch.auth-tokens=jLb22QZzsaT6/w3xwDHBObmZPypJgXfb,hrol3Y4z2OE0ay
 
 This allows you to query private data from the partner registry when logged in as an administrator on your own registry.
 
+### Out of network partners
+
+To share data with partners outside the RDMM network that may use a different search token or no token at all, you may
+use either the `auth` or `noauth` query parameter in the `rdp.settings.isearch.apis` configuration.
+
+To deal with non-admin partners, specify the `noauth` query parameter, which will prevent leakage of the remote search
+token from administrative accounts.
+
+```ini
+rdp.settings.isearch.apis=https://register.rare-diseases-catalyst-network.ca?noauth
+```
+
+If a partner uses a different search token, you may use the `auth` query parameter to specify that token.
+
+```ini
+rdp.settings.isearch.apis=https://register.rare-diseases-catalyst-network.ca?auth=jLb22QZzsaT6/w3xwDHBObmZPypJgXfb
+```
+
 ## Gene Tiers
 
 Users' genes are categorized in tiers based on their familiarity and experience with the gene. This is explained in

@@ -9,7 +9,7 @@ import ubc.pavlab.rdp.model.User;
 import java.util.Locale;
 
 @Getter
-@EqualsAndHashCode
+@EqualsAndHashCode(callSuper = false)
 public class OnUserPasswordResetEvent extends ApplicationEvent {
 
     private final User user;

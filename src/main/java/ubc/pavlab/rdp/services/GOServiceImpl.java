@@ -124,11 +124,12 @@ public class GOServiceImpl implements GOService {
         }
 
         Map<String, List<Gene2GoParser.Record>> recordsByGoTerm = records.stream().collect( groupingBy( Gene2GoParser.Record::getGoId, Collectors.toList() ) );
+        Set<String> missingFromTermFile = new HashSet<>();
         for ( Map.Entry<String, List<Gene2GoParser.Record>> entry : recordsByGoTerm.entrySet() ) {
             GeneOntologyTermInfo term = terms.get( entry.getKey() );
 
             if ( term == null ) {
-                log.warn( MessageFormat.format( "{0} is missing from {1}, its direct genes will be ignored.", entry.getKey(), cacheSettings.getTermFile() ) );
+                missingFromTermFile.add( entry.getKey() );
                 continue;
             }
 
@@ -139,6 +140,14 @@ public class GOServiceImpl implements GOService {
         }
 
         saveAlias( terms );
+
+        // this tends to produce a lot of warnings, so we just warn for the first 5 or so
+        for ( String goTerm : missingFromTermFile.stream().limit( 5 ).collect( Collectors.toSet() ) ) {
+            log.warn( MessageFormat.format( "{0} is missing from {1}, its direct genes will be ignored.", goTerm, cacheSettings.getTermFile() ) );
+        }
+        if ( missingFromTermFile.size() > 5 ) {
+            log.warn( MessageFormat.format( "{0} more terms were missing from {1}, their direct genes will also be ignored.", missingFromTermFile.size() - 5, cacheSettings.getTermFile() ) );
+        }
 
         log.info( "Clearing ancestor and descendants cache as it is no longer fresh." );
         ancestorsCache.clear();

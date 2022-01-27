@@ -7,7 +7,7 @@
         "paging": false,
         "searching": false,
         "info": false,
-        "order": [[0, "desc"]]
+        "order": [[0, "asc"]]
     });
 
     $('.gene-table').DataTable({
@@ -16,7 +16,7 @@
         "paging": false,
         "searching": false,
         "info": false,
-        "order": [[2, "asc"], [0, "desc"]],
+        "order": [[2, "asc"], [0, "asc"]],
         "columnDefs": [
             {"name": "Symbol", "targets": 0},
             {"name": "Name", "targets": 1},
@@ -51,7 +51,7 @@
         "paging": false,
         "searching": false,
         "info": false,
-        "order": [[0, "desc"]]
+        "order": [[0, "asc"]]
     });
 
     $('#overlapModal').on('show.bs.modal', function (e) {

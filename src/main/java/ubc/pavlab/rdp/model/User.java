@@ -159,8 +159,10 @@ public class User implements UserContent {
 
     @JsonIgnore
     @Transient
-    public Set<Taxon> getTaxons() {
-        return this.getUserGenes().values().stream().map( Gene::getTaxon ).collect( Collectors.toSet() );
+    public SortedSet<Taxon> getTaxons() {
+        return this.getUserGenes().values().stream().map( Gene::getTaxon )
+                .sorted() // taxon are ordered by the ordering field
+                .collect( Collectors.toCollection( TreeSet::new ) );
     }
 
     /**

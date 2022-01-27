@@ -6,7 +6,6 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.test.context.junit4.SpringRunner;
 import ubc.pavlab.rdp.model.User;
 import ubc.pavlab.rdp.model.VerificationToken;
@@ -14,10 +13,8 @@ import ubc.pavlab.rdp.model.VerificationToken;
 import java.sql.Timestamp;
 import java.time.Instant;
 
-import static junit.framework.TestCase.fail;
 import static org.assertj.core.api.Assertions.assertThat;
 import static ubc.pavlab.rdp.util.TestUtils.createUnpersistedUser;
-import static ubc.pavlab.rdp.util.TestUtils.createUser;
 
 /**
  * Created by mjacobson on 26/02/18.
@@ -78,40 +75,6 @@ public class VerificationTokenRepositoryTest {
     public void findByToken_whenInvalidToken_thenReturnNull() {
 
         VerificationToken found = verificationTokenRepository.findByToken( "invalidtoken" );
-        assertThat( found ).isNull();
-    }
-
-    @Test
-    public void findByUser_whenValidUser_thenReturnToken() {
-
-        VerificationToken found = verificationTokenRepository.findByUser( user );
-        assertThat( found ).isEqualTo( validToken );
-    }
-
-    @Test
-    public void findByUser_whenValidUserHasOnlyExpiredToken_thenReturnToken() {
-
-        VerificationToken found = verificationTokenRepository.findByUser( user2 );
-        assertThat( found ).isEqualTo( expiredToken );
-    }
-
-    @Test(expected = IncorrectResultSizeDataAccessException.class)
-    public void findByUser_whenValidUserHasMultipleTokens_thenError() {
-
-        VerificationToken validToken2 = new VerificationToken();
-        validToken2.updateToken( "validtoken2" );
-        validToken2.setUser( user );
-        validToken2.setEmail( user.getEmail() );
-        entityManager.persist( validToken2 );
-        entityManager.flush();
-
-        verificationTokenRepository.findByUser( user );
-    }
-
-    @Test
-    public void findByUser_whenInvalidUser_thenReturnNull() {
-
-        VerificationToken found = verificationTokenRepository.findByUser( createUser( -1 ) );
         assertThat( found ).isNull();
     }
 
