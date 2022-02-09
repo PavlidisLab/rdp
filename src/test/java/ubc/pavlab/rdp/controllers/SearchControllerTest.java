@@ -197,8 +197,8 @@ public class SearchControllerTest {
 
     @Test
     public void viewUser_whenUserIsRemote_thenReturnSuccess() throws Exception {
-        User user = createUser( 1 );
-        when( remoteResourceService.getRemoteUser( user.getId(), URI.create( "example.com" ) ) ).thenReturn( user );
+        User user = createRemoteUser( 1, URI.create( "https://example.com/" ) );
+        when( remoteResourceService.getRemoteUser( user.getId(), URI.create( "example.com" ) ) ).thenReturn( remotify( user, User.class ) );
         when( privacyService.checkCurrentUserCanSearch( true ) ).thenReturn( true );
         mvc.perform( get( "/userView/{userId}", user.getId() )
                         .param( "remoteHost", "example.com" ) )
@@ -216,8 +216,7 @@ public class SearchControllerTest {
         Gene cdh1 = createGene( 1, humanTaxon );
         Gene brca1 = createGene( 2, mouseTaxon );
         User user = createUserWithGenes( 1, cdh1, brca1 );
-        user.setOrigin( "Example Partner" );
-        user.setOriginUrl( URI.create( "http://example.com/" ) );
+        user.setOriginUrl( URI.create( "https://example.com/" ) );
         assertThat( user.getTaxons() ).hasSize( 2 );
         User remoteUser = remotify( user, User.class );
         assertThat( remoteUser.getTaxons() ).hasSize( 2 ).extracting( "ordering" ).containsOnly( (Integer) null );
@@ -254,10 +253,10 @@ public class SearchControllerTest {
 
     @Test
     public void searchItlUsersByNameView_thenReturnSuccess() throws Exception {
-        User user = createUser( 1 );
+        User user = createRemoteUser( 1, URI.create( "http://example.com/" ) );
         when( permissionEvaluator.hasPermission( any(), isNull(), eq( "international-search" ) ) ).thenReturn( true );
         when( remoteResourceService.findUsersByLikeName( "Mark", true, null, null, null ) )
-                .thenReturn( Collections.singleton( user ) );
+                .thenReturn( Collections.singleton( remotify( user, User.class ) ) );
         mvc.perform( get( "/search/view/international" )
                         .param( "nameLike", "Mark" )
                         .param( "prefix", "true" ) )
@@ -267,7 +266,7 @@ public class SearchControllerTest {
 
     @Test
     public void viewUser_whenRemoteUserCannotBeRetrieved_thenReturnNotFound() throws Exception {
-        User user = createUser( 1 );
+        User user = createRemoteUser( 1, URI.create( "https://example.com/" ) );
         when( remoteResourceService.getRemoteUser( user.getId(), URI.create( "example.com" ) ) ).thenThrow( RemoteException.class );
         when( privacyService.checkCurrentUserCanSearch( true ) ).thenReturn( true );
         mvc.perform( get( "/userView/{userId}", user.getId() )
@@ -297,10 +296,10 @@ public class SearchControllerTest {
 
     @Test
     public void previewUser_whenUserIsRemote_thenReturnSuccess() throws Exception {
-        User user = createUser( 1 );
+        User user = createRemoteUser( 1, URI.create( "https://example.com/" ) );
         user.getProfile().setDescription( "This is a description." );
         when( userService.findUserById( 1 ) ).thenReturn( user );
-        when( remoteResourceService.getRemoteUser( 1, URI.create( "http://localhost/" ) ) ).thenReturn( user );
+        when( remoteResourceService.getRemoteUser( 1, URI.create( "http://localhost/" ) ) ).thenReturn( remotify( user, User.class ) );
         mvc.perform( get( "/search/view/user-preview/{userId}", user.getId() )
                         .param( "remoteHost", "http://localhost/" ) )
                 .andExpect( status().isOk() );
@@ -336,10 +335,10 @@ public class SearchControllerTest {
 
     @Test
     public void previewAnonymousUser_whenUserIsRemote_thenReturnSuccess() throws Exception {
-        User anonymousUser = createAnonymousUser();
+        User anonymousUser = createAnonymousRemoteUser( URI.create( "http://example.com/" ) );
         anonymousUser.getProfile().getResearcherCategories().add( ResearcherCategory.IN_SILICO );
         when( remoteResourceService.getApiVersion( URI.create( "http://localhost/" ) ) ).thenReturn( "1.4.0" );
-        when( remoteResourceService.getAnonymizedUser( anonymousUser.getAnonymousId(), URI.create( "http://localhost/" ) ) ).thenReturn( anonymousUser );
+        when( remoteResourceService.getAnonymizedUser( anonymousUser.getAnonymousId(), URI.create( "http://localhost/" ) ) ).thenReturn( remotify( anonymousUser, User.class ) );
         mvc.perform( get( "/search/view/user-preview/by-anonymous-id/{anonymousId}", anonymousUser.getAnonymousId() )
                         .param( "remoteHost", "http://localhost/" ) )
                 .andExpect( status().isOk() )
