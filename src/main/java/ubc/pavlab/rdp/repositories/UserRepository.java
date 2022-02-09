@@ -25,7 +25,6 @@ public interface UserRepository extends JpaRepository<User, Integer> {
 
     @SuppressWarnings("SpringCacheAnnotationsOnInterfaceInspection")
     @Override
-    @Cacheable(cacheNames = "stats", key = "#root.methodName")
     long count();
 
     long countByProfilePrivacyLevel( PrivacyLevelType aPublic );

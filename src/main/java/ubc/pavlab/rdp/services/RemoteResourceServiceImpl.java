@@ -58,7 +58,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
     private AsyncRestTemplate asyncRestTemplate;
 
     @Override
-    @Cacheable
+    @Cacheable(value = "ubc.pavlab.rdp.services.RemoteResourceService.apiVersionByRemoteHostAuthority", key = "#remoteHost.authority")
     public String getApiVersion( URI remoteHost ) throws RemoteException {
         // Ensure that the remoteHost is one of our known APIs by comparing the URI authority component and always use
         // the URI defined in the configuration

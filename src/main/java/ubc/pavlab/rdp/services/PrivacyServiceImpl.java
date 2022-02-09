@@ -104,12 +104,12 @@ public class PrivacyServiceImpl implements PrivacyService {
                 || ( profile.isShared() && currentUser != null && currentUser.getRoles().contains( getAdminRole() ) && currentUser.getId().equals( applicationSettings.getIsearch().getUserId() ) ); // data is designated as remotely shared and there is an admin logged in who is the remote admin
     }
 
-    @Cacheable
+    @Cacheable(value = "ubc.pavlab.rdp.model.Role.byRole", key = "'ROLE_ADMIN'")
     public Role getAdminRole() {
         return roleRepository.findByRole( "ROLE_ADMIN" );
     }
 
-    @Cacheable
+    @Cacheable(value = "ubc.pavlab.rdp.model.Role.byRole", key = "'ROLE_SERVICE_ACCOUNT'")
     public Role getServiceAccountRole() {
         return roleRepository.findByRole( "ROLE_SERVICE_ACCOUNT" );
     }

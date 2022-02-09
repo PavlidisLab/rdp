@@ -81,32 +81,32 @@ public class UserGeneServiceImpl implements UserGeneService {
         return userGeneRepository.findAllByPrivacyLevelAndUserProfilePrivacyLevel( privacyLevelType, pageable );
     }
 
-    @Cacheable(cacheNames = "stats", key = "#root.methodName")
+    @Cacheable(cacheNames = "ubc.pavlab.rdp.stats", key = "#root.methodName")
     @Override
     public Integer countUniqueAssociations() {
         return userGeneRepository.countDistinctGeneByTierIn( TierType.MANUAL );
     }
 
-    @Cacheable(cacheNames = "stats", key = "#root.methodName")
+    @Cacheable(cacheNames = "ubc.pavlab.rdp.stats", key = "#root.methodName")
     @Override
     public Integer countAssociations() {
         return userGeneRepository.countByTierIn( TierType.MANUAL );
     }
 
-    @Cacheable(cacheNames = "stats", key = "#root.methodName")
+    @Cacheable(cacheNames = "ubc.pavlab.rdp.stats", key = "#root.methodName")
     @Override
     public Map<String, Integer> researcherCountByTaxon() {
         return taxonRepository.findByActiveTrueOrderByOrdering().stream()
                 .collect( Collectors.toMap( Taxon::getCommonName, userGeneRepository::countDistinctUserByTaxon ) );
     }
 
-    @Cacheable(cacheNames = "stats", key = "#root.methodName")
+    @Cacheable(cacheNames = "ubc.pavlab.rdp.stats", key = "#root.methodName")
     @Override
     public Integer countUsersWithGenes() {
         return userGeneRepository.countDistinctUser();
     }
 
-    @Cacheable(cacheNames = "stats", key = "#root.methodName")
+    @Cacheable(cacheNames = "ubc.pavlab.rdp.stats", key = "#root.methodName")
     @Override
     public Integer countUniqueAssociationsAllTiers() {
         return userGeneRepository.countDistinctGeneByTierIn( tierService.getEnabledTiers() );
@@ -118,7 +118,7 @@ public class UserGeneServiceImpl implements UserGeneService {
      * <p>
      * This is also known as the "human gene coverage".
      */
-    @Cacheable(cacheNames = "stats", key = "#root.methodName")
+    @Cacheable(cacheNames = "ubc.pavlab.rdp.stats", key = "#root.methodName")
     @Override
     public Integer countUniqueAssociationsToHumanAllTiers() {
         Collection<Integer> humanGenes = new HashSet<>( userGeneRepository.findAllHumanGenes() );
