@@ -42,7 +42,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static ubc.pavlab.rdp.util.TestUtils.*;
 
 @RunWith(SpringRunner.class)
-@WebMvcTest(SearchController.class)
+@WebMvcTest({ SearchController.class, SearchViewController.class })
 @Import(WebSecurityConfig.class)
 public class SearchControllerTest {
 
@@ -249,6 +249,34 @@ public class SearchControllerTest {
                         .param( "remoteHost", "example.com" ) )
                 .andExpect( status().isServiceUnavailable() );
         verify( remoteResourceService ).getRemoteUser( 1, URI.create( "example.com" ) );
+    }
+
+    @Test
+    public void searchUsersByNameView_thenReturnSuccess() throws Exception {
+        User user = createRemoteUser( 1, URI.create( "https://example.com/" ) );
+        when( permissionEvaluator.hasPermission( any(), isNull(), eq( "search" ) ) ).thenReturn( true );
+        when( remoteResourceService.findUsersByLikeName( "Mark", true, null, null, null ) )
+                .thenReturn( Collections.singleton( remotify( user, User.class ) ) );
+        mvc.perform( get( "/search/view" )
+                        .param( "nameLike", "Mark" )
+                        .param( "prefix", "true" ) )
+                .andExpect( status().isOk() )
+                .andExpect( view().name( "fragments/user-table::user-table" ) );
+    }
+
+    @Test
+    public void searchUsersByNameView_whenSearchIsUnavailable_thenReturnUnauthorized() throws Exception {
+        // The frontend cannot handle 3xx redirection to the login page as that would return a full-fledged HTML
+        // document, so instead it must produce a 401 Not Authorized exception
+        User user = createRemoteUser( 1, URI.create( "https://example.com/" ) );
+        when( permissionEvaluator.hasPermission( any(), isNull(), eq( "search" ) ) ).thenReturn( false );
+        when( remoteResourceService.findUsersByLikeName( "Mark", true, null, null, null ) )
+                .thenReturn( Collections.singleton( remotify( user, User.class ) ) );
+        mvc.perform( get( "/search/view" )
+                        .param( "nameLike", "Mark" )
+                        .param( "prefix", "true" ) )
+                .andExpect( status().isUnauthorized() )
+                .andExpect( view().name( "fragments/error::message" ) );
     }
 
     @Test
