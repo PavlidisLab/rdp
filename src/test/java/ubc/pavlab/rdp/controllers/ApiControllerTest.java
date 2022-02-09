@@ -85,6 +85,13 @@ public class ApiControllerTest {
     }
 
     @Test
+    public void accessUnmappedRoute_thenReturn404() throws Exception {
+        mvc.perform( get( "/api/notfound" ) )
+                .andExpect( status().isNotFound() )
+                .andExpect( content().contentType( MediaType.TEXT_PLAIN ) );
+    }
+
+    @Test
     public void searchGenes_withSearchDisabled_thenReturnServiceUnavailable() throws Exception {
         when( iSearchSettings.isEnabled() ).thenReturn( false );
         mvc.perform( get( "/api/genes/search" )

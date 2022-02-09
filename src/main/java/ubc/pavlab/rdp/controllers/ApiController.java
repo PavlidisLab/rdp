@@ -67,7 +67,18 @@ public class ApiController {
 
     @ExceptionHandler({ ApiException.class })
     public ResponseEntity<String> handleApiException( ApiException e ) {
-        return ResponseEntity.status( e.getStatus() ).body( e.getMessage() );
+        return ResponseEntity
+                .status( e.getStatus() )
+                .contentType( MediaType.TEXT_PLAIN )
+                .body( e.getMessage() );
+    }
+
+    /**
+     * Handle all unmapped API requests with a 404 error.
+     */
+    @RequestMapping(value = "/api/*")
+    public void handleMissingRoute() {
+        throw new ApiException( HttpStatus.NOT_FOUND, "No endpoint found for your request URL." );
     }
 
     /**
