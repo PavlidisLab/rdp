@@ -6,7 +6,6 @@ import org.hibernate.validator.constraints.NotBlank;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -14,7 +13,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -193,6 +195,7 @@ public class SearchController {
         return modelAndView;
     }
 
+    @PreAuthorize("hasPermission(null, #remoteHost == null ? 'search' : 'international-search')")
     @GetMapping(value = "/userView/{userId}")
     public ModelAndView viewUser( @PathVariable Integer userId,
                                   @RequestParam(required = false) String remoteHost ) {
@@ -230,7 +233,7 @@ public class SearchController {
         private String reason;
     }
 
-    @Secured({ "ROLE_USER", "ROLE_ADMIN" })
+    @PreAuthorize("hasPermission(null, 'search') and hasAnyRole('USER', 'ADMIN')")
     @GetMapping("/search/gene/by-anonymous-id/{anonymousId}/request-access")
     public Object requestGeneAccessView( @PathVariable UUID anonymousId,
                                          RedirectAttributes redirectAttributes ) {
@@ -255,7 +258,7 @@ public class SearchController {
         return modelAndView;
     }
 
-    @Secured({ "ROLE_USER", "ROLE_ADMIN" })
+    @PreAuthorize("hasPermission(null, 'search') and hasAnyRole('USER', 'ADMIN')")
     @PostMapping("/search/gene/by-anonymous-id/{anonymousId}/request-access")
     public ModelAndView requestGeneAccess( @PathVariable UUID anonymousId,
                                            @Valid RequestAccessForm requestAccessForm,

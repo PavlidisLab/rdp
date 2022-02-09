@@ -118,11 +118,12 @@ public class SearchControllerTest {
         when( profileSettings.getEnabledResearcherPositions() ).thenReturn( Lists.newArrayList( "PRINCIPAL_INVESTIGATOR" ) );
         when( applicationSettings.getOrgans() ).thenReturn( organSettings );
         when( applicationSettings.getIsearch() ).thenReturn( iSearchSettings );
+        when( permissionEvaluator.hasPermission( any(), isNull(), eq( "search" ) ) ).thenReturn( true );
+        when( permissionEvaluator.hasPermission( any(), isNull(), eq( "international-search" ) ) ).thenReturn( true );
     }
 
     @Test
     public void getSearch_return200() throws Exception {
-        when( permissionEvaluator.hasPermission( any(), isNull(), eq( "search" ) ) ).thenReturn( true );
         mvc.perform( get( "/search" ) )
                 .andExpect( status().isOk() )
                 .andExpect( view().name( "search" ) );
@@ -138,7 +139,6 @@ public class SearchControllerTest {
 
     @Test
     public void getSearch_ByNameLike_return200() throws Exception {
-        when( permissionEvaluator.hasPermission( any(), isNull(), eq( "search" ) ) ).thenReturn( true );
         mvc.perform( get( "/search" )
                         .param( "nameLike", "K" )
                         .param( "prefix", "true" )
@@ -150,7 +150,6 @@ public class SearchControllerTest {
 
     @Test
     public void getSearch_ByDescriptionLike_return200() throws Exception {
-        when( permissionEvaluator.hasPermission( any(), isNull(), eq( "search" ) ) ).thenReturn( true );
         mvc.perform( get( "/search" )
                         .param( "descriptionLike", "pancake" )
                         .param( "iSearch", "false" ) )
@@ -161,7 +160,6 @@ public class SearchControllerTest {
 
     @Test
     public void getSearch_ByGeneSymbol_return200() throws Exception {
-        when( permissionEvaluator.hasPermission( any(), isNull(), eq( "search" ) ) ).thenReturn( true );
         Taxon humanTaxon = createTaxon( 9606 );
         GeneInfo gene = createGene( 1, humanTaxon );
         when( taxonService.findById( 9606 ) ).thenReturn( humanTaxon );
@@ -254,7 +252,6 @@ public class SearchControllerTest {
     @Test
     public void searchUsersByNameView_thenReturnSuccess() throws Exception {
         User user = createRemoteUser( 1, URI.create( "https://example.com/" ) );
-        when( permissionEvaluator.hasPermission( any(), isNull(), eq( "search" ) ) ).thenReturn( true );
         when( remoteResourceService.findUsersByLikeName( "Mark", true, null, null, null ) )
                 .thenReturn( Collections.singleton( remotify( user, User.class ) ) );
         mvc.perform( get( "/search/view" )
@@ -268,8 +265,8 @@ public class SearchControllerTest {
     public void searchUsersByNameView_whenSearchIsUnavailable_thenReturnUnauthorized() throws Exception {
         // The frontend cannot handle 3xx redirection to the login page as that would return a full-fledged HTML
         // document, so instead it must produce a 401 Not Authorized exception
-        User user = createRemoteUser( 1, URI.create( "https://example.com/" ) );
         when( permissionEvaluator.hasPermission( any(), isNull(), eq( "search" ) ) ).thenReturn( false );
+        User user = createRemoteUser( 1, URI.create( "https://example.com/" ) );
         when( remoteResourceService.findUsersByLikeName( "Mark", true, null, null, null ) )
                 .thenReturn( Collections.singleton( remotify( user, User.class ) ) );
         mvc.perform( get( "/search/view" )
@@ -282,7 +279,6 @@ public class SearchControllerTest {
     @Test
     public void searchItlUsersByNameView_thenReturnSuccess() throws Exception {
         User user = createRemoteUser( 1, URI.create( "http://example.com/" ) );
-        when( permissionEvaluator.hasPermission( any(), isNull(), eq( "international-search" ) ) ).thenReturn( true );
         when( remoteResourceService.findUsersByLikeName( "Mark", true, null, null, null ) )
                 .thenReturn( Collections.singleton( remotify( user, User.class ) ) );
         mvc.perform( get( "/search/view/international" )

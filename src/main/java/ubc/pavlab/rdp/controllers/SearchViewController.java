@@ -270,6 +270,7 @@ public class SearchViewController {
         return modelAndView;
     }
 
+    @PreAuthorize("hasPermission(null, #remoteHost == null ? 'search' : 'international-search')")
     @GetMapping(value = "/search/view/user-preview/{userId}")
     public ModelAndView previewUser( @PathVariable Integer userId,
                                      @RequestParam(required = false) String remoteHost ) {
@@ -302,6 +303,7 @@ public class SearchViewController {
         return modelAndView;
     }
 
+    @PreAuthorize("hasPermission(null, #remoteHost == null ? 'search' : 'international-search')")
     @GetMapping(value = "/search/view/user-preview/by-anonymous-id/{anonymousId}")
     public ModelAndView previewAnonymousUser( @PathVariable UUID anonymousId,
                                               @RequestParam(required = false) String remoteHost ) {
