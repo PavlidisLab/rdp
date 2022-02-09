@@ -156,7 +156,7 @@ public class UserServiceImplTest {
         when( applicationSettings.getPrivacy() ).thenReturn( privacySettings );
         when( applicationSettings.getProfile() ).thenReturn( profileSettings );
 
-        when( geneInfoService.load( anyCollection() ) ).thenAnswer(
+        when( geneInfoService.load( anyCollectionOf( Integer.class ) ) ).thenAnswer(
                 a -> a.getArgumentAt( 0, Collection.class ).stream()
                         .map( o -> geneInfoService.load( (Integer) o ) )
                         .filter( Objects::nonNull )
@@ -229,9 +229,7 @@ public class UserServiceImplTest {
         termFrequencies.put( t99, 1L );
         when( goService.getDescendants( t98 ) ).thenReturn( Collections.singleton( t99 ) );
 
-        termFrequencies.forEach( ( key, value ) -> {
-            when( goService.getSizeInTaxon( key, taxon ) ).thenReturn( value + 9 );
-        } );
+        termFrequencies.forEach( ( key, value ) -> when( goService.getSizeInTaxon( key, taxon ) ).thenReturn( value + 9 ) );
 
         Map<String, GeneOntologyTermInfo> termMap = termFrequencies.keySet().stream()
                 .collect( Collectors.toMap( GeneOntologyTerm::getGoId, Function.identity() ) );
@@ -551,16 +549,29 @@ public class UserServiceImplTest {
 
     @Test
     public void updateUserProfileAndPublication_whenOrgansIsEnabled_thenSaveOrgans() {
+        when( applicationSettings.getOrgans().getEnabled() ).thenReturn( true );
         User user = createUser( 1 );
-        userService.updateUserProfileAndPublicationsAndOrgans( user, user.getProfile(), null, null, Locale.getDefault() );
-        // assertThat( user.getUserOrgans() ).containsValue( userOrgan );
+        //noinspection unchecked
+        when( organInfoService.findByUberonIdIn( anyCollectionOf( String.class ) ) )
+                .thenAnswer( a -> ( (Collection<String>) a.getArgumentAt( 0, Collection.class ) ).stream()
+                        .map( id -> createOrgan( id, null, null ) )
+                        .collect( Collectors.toSet() ) );
+        Set<String> organUberonIds = Sets.newSet( "UBERON:00001", "UBERON:00002" );
+        user = userService.updateUserProfileAndPublicationsAndOrgans( user, user.getProfile(), null, organUberonIds, Locale.getDefault() );
+        verify( organInfoService ).findByUberonIdIn( organUberonIds );
+        assertThat( user.getUserOrgans().values() )
+                .extracting( "uberonId" )
+                .containsExactlyInAnyOrder( "UBERON:00001", "UBERON:00002" );
     }
 
     @Test
     public void updateUserProfileAndPublication_whenOrgansIsNotEnabled_thenIgnoreOrgans() {
-        when( applicationSettings.getOrgans().getEnabled() ).thenReturn( true );
+        when( applicationSettings.getOrgans().getEnabled() ).thenReturn( false );
         User user = createUser( 1 );
-        userService.updateUserProfileAndPublicationsAndOrgans( user, user.getProfile(), null, null, Locale.getDefault() );
+        Set<String> organUberonIds = Sets.newSet( "UBERON:00001", "UBERON:00002" );
+        user = userService.updateUserProfileAndPublicationsAndOrgans( user, user.getProfile(), null, organUberonIds, Locale.getDefault() );
+        verifyZeroInteractions( organInfoService );
+        assertThat( user.getUserOrgans() ).isEmpty();
     }
 
     @Test
@@ -683,7 +694,7 @@ public class UserServiceImplTest {
     }
 
     @Test
-    public void createPasswordResetTokenForUser_hasCorrectExpiration() throws MessagingException {
+    public void createPasswordResetTokenForUser_hasCorrectExpiration() {
         User user = createUser( 1 );
         PasswordResetToken passwordResetToken = userService.createPasswordResetTokenForUser( user, Locale.getDefault() );
 

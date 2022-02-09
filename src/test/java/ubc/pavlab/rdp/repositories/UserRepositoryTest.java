@@ -478,6 +478,8 @@ public class UserRepositoryTest {
         user.getProfile().getResearcherCategories().add( ResearcherCategory.IN_SILICO );
         user.getProfile().getResearcherCategories().add( ResearcherCategory.IN_VIVO );
         user = entityManager.persistAndFlush( user );
+        assertThat( user.getProfile().getResearcherCategories() )
+                .containsExactly( ResearcherCategory.IN_SILICO, ResearcherCategory.IN_VIVO );
     }
 
     @Test
