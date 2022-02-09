@@ -1,10 +1,11 @@
 package ubc.pavlab.rdp.controllers;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.assertj.core.util.Lists;
+import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -16,7 +17,6 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import ubc.pavlab.rdp.WebSecurityConfig;
-import ubc.pavlab.rdp.events.OnRequestAccessEvent;
 import ubc.pavlab.rdp.exception.RemoteException;
 import ubc.pavlab.rdp.listeners.UserListener;
 import ubc.pavlab.rdp.model.*;
@@ -27,6 +27,7 @@ import ubc.pavlab.rdp.services.*;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.settings.SiteSettings;
 
+import java.io.IOException;
 import java.net.URI;
 import java.util.Collections;
 import java.util.UUID;
@@ -47,6 +48,9 @@ public class SearchControllerTest {
 
     @Autowired
     private MockMvc mvc;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @MockBean(name = "applicationSettings")
     private ApplicationSettings applicationSettings;
@@ -200,6 +204,31 @@ public class SearchControllerTest {
                         .param( "remoteHost", "example.com" ) )
                 .andExpect( status().isOk() )
                 .andExpect( view().name( "userView" ) );
+        verify( remoteResourceService ).getRemoteUser( user.getId(), URI.create( "example.com" ) );
+    }
+
+    @Test
+    public void viewUser_whenUserIsRemoteAndHasTaxonWithoutOrdering_thenReturnSuccess() throws Exception {
+        Taxon humanTaxon = createTaxon( 9606 );
+        Taxon mouseTaxon = createTaxon( 12145 );
+        humanTaxon.setOrdering( 1 );
+        mouseTaxon.setOrdering( 2 );
+        Gene cdh1 = createGene( 1, humanTaxon );
+        Gene brca1 = createGene( 2, mouseTaxon );
+        User user = createUserWithGenes( 1, cdh1, brca1 );
+        user.setOrigin( "Example Partner" );
+        user.setOriginUrl( URI.create( "http://example.com/" ) );
+        assertThat( user.getTaxons() ).hasSize( 2 );
+        User remoteUser = remotify( user, User.class );
+        assertThat( remoteUser.getTaxons() ).hasSize( 2 ).extracting( "ordering" ).containsOnly( (Integer) null );
+        when( remoteResourceService.getRemoteUser( user.getId(), URI.create( "example.com" ) ) ).thenReturn( remoteUser );
+        when( privacyService.checkCurrentUserCanSearch( true ) ).thenReturn( true );
+        mvc.perform( get( "/userView/{userId}", user.getId() )
+                        .param( "remoteHost", "example.com" ) )
+                .andExpect( status().isOk() )
+                .andExpect( view().name( "userView" ) )
+                .andExpect( model().attribute( "viewUser", Matchers.hasProperty( "taxons",
+                        Matchers.everyItem( Matchers.hasProperty( "ordering", Matchers.nullValue() ) ) ) ) );
         verify( remoteResourceService ).getRemoteUser( user.getId(), URI.create( "example.com" ) );
     }
 
@@ -381,5 +410,14 @@ public class SearchControllerTest {
                 .andExpect( flash().attributeExists( "message" ) );
     }
 
-
+    /**
+     * Emulate the behaviour of an object retrieved from a partner API.
+     * <p>
+     * Note: this is obviously incomplete, a better way to do this would be to inject an {@link ApiController}, but that
+     * is not appropriate for unit testing. Keep in mind that varying versions of the software will produce different
+     * serialization.
+     */
+    private <T> T remotify( Object object, Class<T> objectClass ) throws IOException {
+        return objectMapper.readValue( objectMapper.writeValueAsBytes( object ), objectClass );
+    }
 }
