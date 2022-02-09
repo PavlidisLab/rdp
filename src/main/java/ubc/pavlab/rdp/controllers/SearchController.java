@@ -232,11 +232,8 @@ public class SearchController {
                 .filter( g -> orthologTaxon == null || g.getTaxon().equals( orthologTaxon ) )
                 .collect( Collectors.toSet() );
 
-        if (
-            // Check if there is a ortholog request for a different taxon than the original gene
-                ( orthologTaxonId != null && !orthologTaxonId.equals( gene.getTaxon().getId() ) ) &&
-                        // Check if we got some ortholog results
-                        ( orthologs == null || orthologs.isEmpty() ) ) {
+        // Check if there is an ortholog request for a different taxon than the original gene
+        if ( orthologTaxon != null && !orthologTaxon.equals( gene.getTaxon() ) && orthologs.isEmpty() ) {
             modelAndView.setStatus( HttpStatus.NOT_FOUND );
             modelAndView.addObject( "message",
                     messageSource.getMessage( "SearchController.errorNoOrthologs", new String[]{ symbol, orthologTaxon.getScientificName() }, locale ) );
@@ -303,11 +300,8 @@ public class SearchController {
                 .filter( g -> orthologTaxon == null || g.getTaxon().equals( orthologTaxon ) )
                 .collect( Collectors.toSet() );
 
-        if (
-            // Check if there is a ortholog request for a different taxon than the original gene
-                ( orthologTaxonId != null && !orthologTaxonId.equals( gene.getTaxon().getId() ) )
-                        // Check if we got some ortholog results
-                        && orthologs.isEmpty() ) {
+        // Check if there is an ortholog request for a different taxon than the original gene
+        if ( orthologTaxon != null && !orthologTaxon.equals( gene.getTaxon() ) && orthologs.isEmpty() ) {
             modelAndView.setViewName( "fragments/error::message" );
             modelAndView.addObject( "errorMessage",
                     messageSource.getMessage( "SearchController.errorNoOrthologs", new String[]{ symbol, orthologTaxon.getScientificName() }, locale ) );
@@ -364,11 +358,8 @@ public class SearchController {
                 .filter( g -> orthologTaxon == null || g.getTaxon().equals( orthologTaxon ) )
                 .collect( Collectors.toSet() );
 
-        if (
-            // Check if there is a ortholog request for a different taxon than the original gene
-                ( orthologTaxonId != null && !orthologTaxonId.equals( gene.getTaxon().getId() ) )
-                        // Check if we got some ortholog results
-                        && orthologs.isEmpty() ) {
+        // Check if there is an ortholog request for a different taxon than the original gene
+        if ( orthologTaxon != null && !orthologTaxon.equals( gene.getTaxon() ) && orthologs.isEmpty() ) {
             modelAndView.setStatus( HttpStatus.BAD_REQUEST );
             modelAndView.setViewName( "fragments/error::message" );
             modelAndView.addObject( "errorMessage",
