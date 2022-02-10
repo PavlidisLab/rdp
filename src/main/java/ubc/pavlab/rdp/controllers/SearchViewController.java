@@ -7,10 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 import ubc.pavlab.rdp.exception.RemoteException;
 import ubc.pavlab.rdp.model.*;
@@ -55,6 +52,19 @@ public class SearchViewController {
         modelAndView.setStatus( HttpStatus.UNAUTHORIZED );
         modelAndView.setViewName( "fragments/error::message" );
         modelAndView.addObject( "errorMessage", exception.getMessage() );
+        return modelAndView;
+    }
+
+    /**
+     * Usually, we would have this handled by a 404 error page, but in the case of this endpoint, it will break the
+     * client expecting a partial HTML fragment.
+     */
+    @RequestMapping("/search/view/*")
+    public ModelAndView handleMissingRoute() {
+        ModelAndView modelAndView = new ModelAndView();
+        modelAndView.setStatus( HttpStatus.NOT_FOUND );
+        modelAndView.setViewName( "fragments/error::message" );
+        modelAndView.addObject( "errorMessage", "No endpoint found for your request URL." );
         return modelAndView;
     }
 
