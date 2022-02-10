@@ -8,6 +8,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -60,9 +61,11 @@ public class ApiController {
     @Autowired
     private PermissionEvaluator permissionEvaluator;
 
-    @ExceptionHandler({ AuthenticationException.class })
-    public ResponseEntity<?> handleAuthenticationException() {
-        return ResponseEntity.status( HttpStatus.UNAUTHORIZED ).build();
+    @ExceptionHandler({ AuthenticationException.class, AccessDeniedException.class })
+    public ResponseEntity<?> handleAuthenticationExceptionAndAccessDeniedException( Exception e ) {
+        return ResponseEntity.status( HttpStatus.UNAUTHORIZED )
+                .contentType( MediaType.TEXT_PLAIN )
+                .body( e.getMessage() );
     }
 
     @ExceptionHandler({ ApiException.class })

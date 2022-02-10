@@ -10,6 +10,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -89,6 +90,16 @@ public class ApiControllerTest {
         mvc.perform( get( "/api/notfound" ) )
                 .andExpect( status().isNotFound() )
                 .andExpect( content().contentType( MediaType.TEXT_PLAIN ) );
+    }
+
+    @Test
+    public void accessWithoutProperRole_thenReturn401() throws Exception {
+        when( userService.countResearchers() )
+                .thenThrow( AccessDeniedException.class );
+        mvc.perform( get( "/api/stats" ) )
+                .andExpect( status().isUnauthorized() )
+                .andExpect( content().contentType( MediaType.TEXT_PLAIN ) );
+        verify( userService ).countResearchers();
     }
 
     @Test
