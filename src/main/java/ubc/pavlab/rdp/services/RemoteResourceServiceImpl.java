@@ -4,6 +4,7 @@ import io.swagger.v3.oas.models.OpenAPI;
 import lombok.Builder;
 import lombok.Data;
 import lombok.extern.apachecommons.CommonsLog;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.ResponseEntity;
@@ -191,14 +192,15 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
                             .path( path )
                             .replaceQueryParams( apiParams )
                             .build().toUri();
-                } ).map( uri -> asyncRestTemplate.getForEntity( uri, arrCls ) )
+                } )
+                .map( uri -> Pair.of( uri, asyncRestTemplate.getForEntity( uri, arrCls ) ) )
                 // it's important to collect, otherwise the future will be created and joined on-by-one, defeating the purpose of using them
-                .collect( Collectors.toList() ).stream().map( future -> {
+                .collect( Collectors.toList() ).stream()
+                .map( uriAndFuture -> {
                     try {
-                        return future.get( applicationSettings.getIsearch().getRequestTimeout(), TimeUnit.SECONDS );
+                        return uriAndFuture.getRight().get( applicationSettings.getIsearch().getRequestTimeout(), TimeUnit.SECONDS );
                     } catch ( InterruptedException | ExecutionException | TimeoutException e ) {
-                        // TODO: indicate the origin of the unsuccessful response
-                        log.error( "Unsuccessful response received.", e );
+                        log.error( MessageFormat.format( "Unsuccessful response received for {0}.", uriAndFuture.getLeft() ), e );
                         return null;
                     }
                 } )
