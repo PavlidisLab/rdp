@@ -233,11 +233,8 @@ public class ApiController {
                 .filter( g -> orthologTaxon == null || g.getTaxon().equals( orthologTaxon ) )
                 .collect( Collectors.toSet() );
 
-        if (
-            // Check if there is a ortholog request for a different taxon than the original gene
-                ( orthologTaxonId != null && !orthologTaxonId.equals( gene.getTaxon().getId() ) )
-                        // Check if we got some ortholog results
-                        && ( orthologs == null || orthologs.isEmpty() ) ) {
+        // Check if there is an ortholog request for a different taxon than the original gene
+        if ( orthologTaxon != null && !orthologTaxon.equals( gene.getTaxon() ) && orthologs.isEmpty() ) {
             return new ResponseEntity<>( messageSource.getMessage( "ApiController.noOrthologsWithGivenParameters", null, locale ), null, HttpStatus.NOT_FOUND );
         }
 
