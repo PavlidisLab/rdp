@@ -38,6 +38,7 @@ import static java.util.function.Function.identity;
 
 @Service("RemoteResourceService")
 @CommonsLog
+@PreAuthorize("hasPermission(null, 'international-search')")
 public class RemoteResourceServiceImpl implements RemoteResourceService {
 
     private static final String API_URI = "/api";
@@ -97,7 +98,6 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
     }
 
     @Override
-    @PreAuthorize("hasPermission(null, 'international-search')")
     public Collection<User> findUsersByDescription( String descriptionLike, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherCategories, Collection<String> organUberonIds ) {
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add( "descriptionLike", descriptionLike );
@@ -110,7 +110,6 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
     }
 
     @Override
-    @PreAuthorize("hasPermission(null, 'international-search')")
     public Collection<UserGene> findGenesBySymbol( String symbol, Taxon taxon, Set<TierType> tiers, Integer orthologTaxonId, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherCategories, Set<String> organUberonIds ) {
         List<UserGene> intlUsergenes = new LinkedList<>();
         for ( TierType tier : restrictTiers( tiers ) ) {
@@ -132,7 +131,6 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
     }
 
     @Override
-    @PreAuthorize("hasPermission(null, 'international-search')")
     public User getRemoteUser( Integer userId, URI remoteHost ) throws RemoteException {
         // Ensure that the remoteHost is one of our known APIs by comparing the URI authority component and always use
         // the URI defined in the configuration
@@ -150,7 +148,6 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
     }
 
     @Override
-    @PreAuthorize("hasPermission(null, 'international-search')")
     public User getAnonymizedUser( UUID anonymousId, URI remoteHost ) throws RemoteException {
         URI authority = getApiUri( remoteHost );
 
