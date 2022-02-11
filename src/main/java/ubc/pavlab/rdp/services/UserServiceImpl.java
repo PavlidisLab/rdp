@@ -273,6 +273,8 @@ public class UserServiceImpl implements UserService {
                 .id( 0 )
                 .anonymousId( UUID.randomUUID() )
                 .profile( profile )
+                // FIXME: a disabled user will still cause an AccessDeniedException
+                .enabled( user.isEnabled() )
                 .build();
         // TODO: check if this is leaking too much personal information
         anonymizedUser.getUserOrgans().putAll( user.getUserOrgans() );

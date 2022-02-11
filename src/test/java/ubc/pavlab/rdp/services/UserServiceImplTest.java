@@ -1288,9 +1288,11 @@ public class UserServiceImplTest {
         when( privacySettings.getDefaultLevel() ).thenReturn( 2 );
         when( privacySettings.isEnableAnonymizedSearchResults() ).thenReturn( true );
         User user = createUser( 1 );
+        user.setEnabled( true );
         user.getProfile().setPrivacyLevel( PrivacyLevelType.PRIVATE );
         User anonymizedUser = userService.anonymizeUser( user );
         assertThat( anonymizedUser )
+                .hasFieldOrPropertyWithValue( "enabled", true )
                 .hasFieldOrPropertyWithValue( "email", null )
                 .hasFieldOrPropertyWithValue( "profile.privacyLevel", PrivacyLevelType.PUBLIC );
         assertThat( anonymizedUser.getUserGenes() ).isEmpty();
