@@ -27,6 +27,7 @@ import ubc.pavlab.rdp.services.*;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.settings.SiteSettings;
 
+import javax.servlet.http.HttpServletRequest;
 import java.text.MessageFormat;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -62,7 +63,8 @@ public class ApiController {
     private PermissionEvaluator permissionEvaluator;
 
     @ExceptionHandler({ AuthenticationException.class, AccessDeniedException.class })
-    public ResponseEntity<?> handleAuthenticationExceptionAndAccessDeniedException( Exception e ) {
+    public ResponseEntity<?> handleAuthenticationExceptionAndAccessDeniedException( HttpServletRequest req, Exception e ) {
+        log.warn( "Unauthorized access to the API via " + req.getRequestURI() + ".", e );
         return ResponseEntity.status( HttpStatus.UNAUTHORIZED )
                 .contentType( MediaType.TEXT_PLAIN )
                 .body( e.getMessage() );

@@ -16,6 +16,7 @@ import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.services.*;
 
+import javax.servlet.http.HttpServletRequest;
 import java.net.URI;
 import java.text.MessageFormat;
 import java.util.*;
@@ -47,7 +48,8 @@ public class SearchViewController {
     private GeneInfoService geneInfoService;
 
     @ExceptionHandler({ AccessDeniedException.class })
-    public ModelAndView handleAccessDeniedForViewTemplates( AccessDeniedException exception ) {
+    public ModelAndView handleAccessDeniedForViewTemplates( HttpServletRequest req, AccessDeniedException exception ) {
+        log.warn( "Unauthorized access to the search view via " + req.getRequestURI() + ".", exception );
         ModelAndView modelAndView = new ModelAndView();
         modelAndView.setStatus( HttpStatus.UNAUTHORIZED );
         modelAndView.setViewName( "fragments/error::message" );
