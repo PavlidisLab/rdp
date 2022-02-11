@@ -58,4 +58,8 @@
     <cache name="ubc.pavlab.rdp.services.RemoteResourceService.apiVersionByRemoteHostAuthority"
            maxElementsInMemory="10"
            timeToLiveSeconds="10"/>
+
+    <cache name="ubc.pavlab.rdp.services.UserService.remoteSearchUser"
+           maxElementsInMemory="1"
+           eternal="true"/>
 </ehcache>

@@ -310,8 +310,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User getRemoteAdmin() {
-        return userRepository.findOneWithRoles( applicationSettings.getIsearch().getUserId() );
+    @Cacheable("ubc.pavlab.rdp.services.UserService.remoteSearchUser")
+    public Optional<User> getRemoteSearchUser() {
+        if ( applicationSettings.getIsearch().getUserId() == null ) {
+            // there is no configured remote search user
+            return Optional.empty();
+        }
+        return Optional.ofNullable( userRepository.findOneWithRoles( applicationSettings.getIsearch().getUserId() ) );
     }
 
     @Override

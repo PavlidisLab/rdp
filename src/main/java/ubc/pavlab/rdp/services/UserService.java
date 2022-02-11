@@ -3,7 +3,6 @@ package ubc.pavlab.rdp.services;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.transaction.annotation.Transactional;
 import ubc.pavlab.rdp.exception.TokenException;
 import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
@@ -57,7 +56,7 @@ public interface UserService {
 
     AccessToken createAccessTokenForUser( User user );
 
-    User getRemoteAdmin();
+    Optional<User> getRemoteSearchUser();
 
     Collection<User> findAll();
 

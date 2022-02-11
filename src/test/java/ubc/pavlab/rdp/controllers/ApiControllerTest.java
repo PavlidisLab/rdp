@@ -29,6 +29,7 @@ import ubc.pavlab.rdp.settings.SiteSettings;
 import java.net.URI;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.mockito.Matchers.any;
@@ -83,6 +84,7 @@ public class ApiControllerTest {
         when( iSearchSettings.isEnabled() ).thenReturn( true );
         when( siteSettings.getHostUri() ).thenReturn( URI.create( "http://localhost/" ) );
         when( messageSource.getMessage( eq( "rdp.site.shortname" ), any(), any() ) ).thenReturn( "RDMM" );
+        when( userService.getRemoteSearchUser() ).thenReturn( Optional.empty() );
     }
 
     @Test
@@ -117,7 +119,7 @@ public class ApiControllerTest {
     public void searchGenes_withAuthToken_thenReturnSuccess() throws Exception {
         // configure remote authentication
         when( iSearchSettings.getAuthTokens() ).thenReturn( Collections.singletonList( "1234" ) );
-        when( userService.getRemoteAdmin() ).thenReturn( createUser( 1 ) );
+        when( userService.getRemoteSearchUser() ).thenReturn( Optional.of( createUser( 1 ) ) );
 
         // configure one search result
         Taxon humanTaxon = createTaxon( 9606 );
@@ -136,14 +138,14 @@ public class ApiControllerTest {
                         .param( "tier", "TIER1" ) )
                 .andExpect( status().is2xxSuccessful() );
 
-        verify( userService ).getRemoteAdmin();
+        verify( userService ).getRemoteSearchUser();
     }
 
     @Test
     public void searchGenes_withAuthTokenInQuery_thenReturnSuccess() throws Exception {
         // configure remote authentication
         when( iSearchSettings.getAuthTokens() ).thenReturn( Collections.singletonList( "1234" ) );
-        when( userService.getRemoteAdmin() ).thenReturn( createUser( 1 ) );
+        when( userService.getRemoteSearchUser() ).thenReturn( Optional.of( createUser( 1 ) ) );
 
         // configure one search result
         Taxon humanTaxon = createTaxon( 9606 );
@@ -162,7 +164,7 @@ public class ApiControllerTest {
                         .param( "auth", "1234" ) )
                 .andExpect( status().is2xxSuccessful() );
 
-        verify( userService ).getRemoteAdmin();
+        verify( userService ).getRemoteSearchUser();
     }
 
     @Test

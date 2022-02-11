@@ -317,10 +317,8 @@ public class ApiController {
             return;
         } else if ( applicationSettings.getIsearch().getAuthTokens().contains( authToken ) ) {
             // remote admin authentication
-            u = userService.getRemoteAdmin();
-            if ( u == null ) {
-                throw new ApiException( HttpStatus.SERVICE_UNAVAILABLE, messageSource.getMessage( "ApiController.misconfiguredRemoteAdmin", null, Locale.getDefault() ) );
-            }
+            u = userService.getRemoteSearchUser()
+                    .orElseThrow( () -> new ApiException( HttpStatus.SERVICE_UNAVAILABLE, messageSource.getMessage( "ApiController.misconfiguredRemoteAdmin", null, Locale.getDefault() ) ) );
         } else {
             // authentication via access token
             try {
