@@ -39,7 +39,7 @@ public class SearchViewController {
     private UserGeneService userGeneService;
 
     @Autowired
-    private UserOrganService userOrganService;
+    private OrganInfoService organInfoService;
 
     @Autowired
     private RemoteResourceService remoteResourceService;
@@ -354,7 +354,7 @@ public class SearchViewController {
                 user.getUserOrgans().isEmpty();
     }
 
-    private Collection<UserOrgan> organsFromUberonIds( Set<String> organUberonIds ) {
-        return organUberonIds == null ? null : userOrganService.findByUberonIdIn( organUberonIds );
+    private Collection<OrganInfo> organsFromUberonIds( Set<String> organUberonIds ) {
+        return organUberonIds == null ? null : organInfoService.findByUberonIdIn( organUberonIds );
     }
 }

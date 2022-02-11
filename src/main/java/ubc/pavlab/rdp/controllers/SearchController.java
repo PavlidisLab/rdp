@@ -54,7 +54,7 @@ public class SearchController {
     private UserGeneService userGeneService;
 
     @Autowired
-    private UserOrganService userOrganService;
+    private OrganInfoService organInfoService;
 
     @Autowired
     private RemoteResourceService remoteResourceService;
@@ -284,7 +284,7 @@ public class SearchController {
         return modelAndView;
     }
 
-    private Collection<UserOrgan> organsFromUberonIds( Set<String> organUberonIds ) {
-        return organUberonIds == null ? null : userOrganService.findByUberonIdIn( organUberonIds );
+    private Collection<OrganInfo> organsFromUberonIds( Set<String> organUberonIds ) {
+        return organUberonIds == null ? null : organInfoService.findByUberonIdIn( organUberonIds );
     }
 }

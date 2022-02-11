@@ -52,7 +52,7 @@ public class ApiController {
     @Autowired
     private GeneInfoService geneService;
     @Autowired
-    private UserOrganService userOrganService;
+    private OrganInfoService organInfoService;
     @Autowired
     private UserGeneService userGeneService;
     @Autowired
@@ -380,8 +380,8 @@ public class ApiController {
                 .collect( Collectors.toSet() );
     }
 
-    private Collection<UserOrgan> organsFromUberonIds( Set<String> organUberonIds ) {
-        return organUberonIds == null ? null : userOrganService.findByUberonIdIn( organUberonIds );
+    private Collection<OrganInfo> organsFromUberonIds( Set<String> organUberonIds ) {
+        return organUberonIds == null ? null : organInfoService.findByUberonIdIn( organUberonIds );
     }
 
 }

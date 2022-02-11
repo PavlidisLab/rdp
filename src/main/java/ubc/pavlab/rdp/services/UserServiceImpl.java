@@ -337,32 +337,43 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @PostFilter("hasPermission(filterObject, 'read')")
-    public Collection<User> findByLikeName( String nameLike, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherTypes, Collection<UserOrgan> userOrgans ) {
+    public Collection<User> findByLikeName( String nameLike, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherTypes, Collection<OrganInfo> organs ) {
+        final Set<String> organUberonIds = organUberonIdsFromOrgans( organs );
         return userRepository.findByProfileNameContainingIgnoreCaseOrProfileLastNameContainingIgnoreCase( nameLike, nameLike ).stream()
                 .filter( u -> researcherPositions == null || researcherPositions.contains( u.getProfile().getResearcherPosition() ) )
                 .filter( u -> researcherTypes == null || containsAny( researcherTypes, u.getProfile().getResearcherCategories() ) )
-                .filter( u -> userOrgans == null || containsAny( userOrgans, u.getUserOrgans().values() ) )
+                .filter( u -> organUberonIds == null || containsAny( organUberonIds, u.getUserOrgans().values().stream().map( UserOrgan::getUberonId ).collect( Collectors.toSet() ) ) )
                 .collect( Collectors.toSet() );
     }
 
     @Override
     @PostFilter("hasPermission(filterObject, 'read')")
-    public Collection<User> findByStartsName( String startsName, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherTypes, Collection<UserOrgan> userOrgans ) {
+    public Collection<User> findByStartsName( String startsName, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherTypes, Collection<OrganInfo> organs ) {
+        final Set<String> organUberonIds = organUberonIdsFromOrgans( organs );
         return userRepository.findByProfileLastNameStartsWithIgnoreCase( startsName ).stream()
                 .filter( u -> researcherPositions == null || researcherPositions.contains( u.getProfile().getResearcherPosition() ) )
                 .filter( u -> researcherTypes == null || containsAny( researcherTypes, u.getProfile().getResearcherCategories() ) )
-                .filter( u -> userOrgans == null || containsAny( userOrgans, u.getUserOrgans().values() ) )
+                .filter( u -> organUberonIds == null || containsAny( organUberonIds, u.getUserOrgans().values().stream().map( UserOrgan::getUberonId ).collect( Collectors.toSet() ) ) )
                 .collect( Collectors.toSet() );
     }
 
     @Override
     @PostFilter("hasPermission(filterObject, 'read')")
-    public Collection<User> findByDescription( String descriptionLike, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherTypes, Collection<UserOrgan> userOrgans ) {
+    public Collection<User> findByDescription( String descriptionLike, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherTypes, Collection<OrganInfo> organs ) {
+        final Set<String> organUberonIds = organUberonIdsFromOrgans( organs );
         return userRepository.findByProfileDescriptionContainingIgnoreCaseOrTaxonDescriptionsContainingIgnoreCase( descriptionLike, descriptionLike ).stream()
                 .filter( u -> researcherPositions == null || researcherPositions.contains( u.getProfile().getResearcherPosition() ) )
                 .filter( u -> researcherTypes == null || containsAny( researcherTypes, u.getProfile().getResearcherCategories() ) )
-                .filter( u -> userOrgans == null || containsAny( userOrgans, u.getUserOrgans().values() ) )
+                .filter( u -> organUberonIds == null || containsAny( organUberonIds, u.getUserOrgans().values().stream().map( UserOrgan::getUberonId ).collect( Collectors.toSet() ) ) )
                 .collect( Collectors.toSet() );
+    }
+
+    private Set<String> organUberonIdsFromOrgans( Collection<OrganInfo> organs ) {
+        if ( organs != null ) {
+            return organs.stream().map( Organ::getUberonId ).collect( Collectors.toSet() );
+        } else {
+            return null;
+        }
     }
 
     @Override

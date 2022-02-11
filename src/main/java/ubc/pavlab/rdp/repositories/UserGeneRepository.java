@@ -67,8 +67,6 @@ public interface UserGeneRepository extends JpaRepository<UserGene, Integer> {
 
     UserGene findBySymbolAndTaxon( String symbol, Taxon taxon );
 
-    Collection<UserGene> findByGeneIdAndTierAndUserUserOrgansIn( int geneId, TierType tier, Collection<UserOrgan> organs );
-
     Collection<UserGene> findByGeneIdAndTierInAndUserUserOrgansIn( int geneId, Set<TierType> tiers, Collection<UserOrgan> organs );
 
     /**
