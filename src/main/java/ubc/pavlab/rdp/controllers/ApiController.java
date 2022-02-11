@@ -144,26 +144,6 @@ public class ApiController {
         }
     }
 
-    /**
-     * Hides the default users search 400 page when no parameters are provided.
-     *
-     * @return 404.
-     */
-    @GetMapping(value = "/api/users/search", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Object searchUsers() {
-        return ResponseEntity.notFound().build();
-    }
-
-    /**
-     * Hides the default genes search 400 page when no parameters are provided.
-     *
-     * @return 404.
-     */
-    @GetMapping(value = "/api/genes/search", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Object searchGenes() {
-        return ResponseEntity.notFound().build();
-    }
-
     @GetMapping(value = "/api/users/search", params = { "nameLike" }, produces = MediaType.APPLICATION_JSON_VALUE)
     public Object searchUsersByName( @RequestParam String nameLike,
                                      @RequestParam Boolean prefix,
