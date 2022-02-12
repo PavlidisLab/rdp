@@ -116,7 +116,7 @@ public class ApiController {
         checkAuth( authorizationHeader, auth );
         if ( applicationSettings.getPrivacy().isEnableAnonymizedSearchResults() ) {
             final Authentication auth2 = SecurityContextHolder.getContext().getAuthentication();
-            return userService.findAllNoAuth( pageable )
+            return userService.findAllByIsEnabledNoAuth( pageable )
                     .map( user -> permissionEvaluator.hasPermission( auth2, user, "read" ) ? user : userService.anonymizeUser( user ) )
                     .map( user -> initUser( user, locale ) );
 

@@ -48,8 +48,40 @@ public interface UserService {
 
     User findUserByAccessTokenNoAuth( String accessToken ) throws TokenException;
 
+    /**
+     * Anonymize the given user.
+     * <p>
+     * The {@link User#getId()} is replaced by zero, an {@link User#getAnonymousId()} is generated and the following
+     * fields are exposed in the returned object: researcher categories and organ systems.
+     * <p>
+     * The original user is stored in a cache so that it can be retrieved by {@link #findUserByAnonymousIdNoAuth(UUID)}
+     * using the anonymized ID.
+     * <p>
+     * Note: when using this, ensure that the user is enabled as per {@link User#isEnabled()}, otherwise a
+     * {@link org.springframework.security.access.AccessDeniedException} will be raised. That is because a non-enabled
+     * user will not satisfy the 'read' permission for any user as defined in {@link ubc.pavlab.rdp.security.PermissionEvaluatorImpl}
+     * and {@link PrivacyService#checkUserCanSee(User, UserContent)}.
+     *
+     * @throws org.springframework.security.access.AccessDeniedException if the user is not enabled
+     */
     User anonymizeUser( User user );
 
+    /**
+     * Anonymize the given gene.
+     * <p>
+     * The {@link UserGene#getUser()} is anonymized in the process as per {@link #anonymizeUser(User)}. the {@link UserGene#getId()}
+     * is set to zero, an {@link UserGene#getAnonymousId()} is generated. The following fields are preserved in the
+     * returned object: gene ID, symbol, name taxon, modification date, tier.
+     * <p>
+     * The original gene is stored in a cache so that it can be retrieved by {@link #findUserGeneByAnonymousIdNoAuth(UUID)}
+     * using the anonymized ID.
+     * <p></p>
+     * Note: when using this, ensure that the user associated to the gene is enabled as per {@link User#isEnabled()},
+     * otherwise a {@link org.springframework.security.access.AccessDeniedException} will be raised.
+     *
+     * @throws org.springframework.security.access.AccessDeniedException if the corresponding user of the gene is not
+     *                                                                   enabled
+     */
     UserGene anonymizeUserGene( UserGene userGene );
 
     void revokeAccessToken( AccessToken accessToken );
@@ -60,7 +92,7 @@ public interface UserService {
 
     Collection<User> findAll();
 
-    Page<User> findAllNoAuth( Pageable pageable );
+    Page<User> findAllByIsEnabledNoAuth( Pageable pageable );
 
     Page<User> findAllByPrivacyLevel( PrivacyLevelType privacyLevel, Pageable pageable );
 

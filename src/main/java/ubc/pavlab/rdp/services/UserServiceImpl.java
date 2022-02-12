@@ -328,8 +328,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Page<User> findAllNoAuth( Pageable pageable ) {
-        return userRepository.findAll( pageable );
+    public Page<User> findAllByIsEnabledNoAuth( Pageable pageable ) {
+        return userRepository.findAllByEnabled( pageable );
     }
 
     @Override

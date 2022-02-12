@@ -73,7 +73,7 @@ public class UserGeneServiceImpl implements UserGeneService {
 
     @Override
     public Page<UserGene> findAllNoAuth( Pageable pageable ) {
-        return userGeneRepository.findAll( pageable );
+        return userGeneRepository.findAllByUserEnabled( pageable );
     }
 
     @Override
