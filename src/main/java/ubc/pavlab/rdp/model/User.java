@@ -164,7 +164,8 @@ public class User implements UserContent {
                 .map( UserGene::getTaxon )
                 // taxon are ordered by the ordering field, however the ordering field is not set for remote users
                 // because it is ignored in JSON serialization
-                .sorted( Comparator.comparing( Taxon::getOrdering, Comparator.nullsLast( Comparator.naturalOrder() ) ) )
+                .sorted( Comparator.comparing( Taxon::getOrdering, Comparator.nullsLast( Comparator.naturalOrder() ) )
+                        .thenComparing( Taxon::getCommonName ) )
                 .collect( Collectors.toCollection( LinkedHashSet::new ) );
     }
 

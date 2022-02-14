@@ -142,6 +142,7 @@ public class UserGeneServiceImpl implements UserGeneService {
         return results.stream()
                 .sorted( comparing( UserGene::getAnonymousId, nullsFirst( naturalOrder() ) )
                         .thenComparing( ug -> ug.getTaxon().getOrdering(), Comparator.nullsLast( naturalOrder() ) )
+                        .thenComparing( ug -> ug.getTaxon().getCommonName() )
                         .thenComparing( UserGene::getTier )
                         .thenComparing( ug -> ug.getUser().getProfile().getFullName() ) )
                 .collect( Collectors.toList() ); // we need to preserve the search order
