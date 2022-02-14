@@ -8,6 +8,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -26,6 +27,7 @@ import ubc.pavlab.rdp.services.*;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.settings.SiteSettings;
 
+import javax.servlet.http.HttpServletRequest;
 import java.text.MessageFormat;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -50,7 +52,7 @@ public class ApiController {
     @Autowired
     private GeneInfoService geneService;
     @Autowired
-    private UserOrganService userOrganService;
+    private OrganInfoService organInfoService;
     @Autowired
     private UserGeneService userGeneService;
     @Autowired
@@ -60,14 +62,28 @@ public class ApiController {
     @Autowired
     private PermissionEvaluator permissionEvaluator;
 
-    @ExceptionHandler({ AuthenticationException.class })
-    public ResponseEntity<?> handleAuthenticationException() {
-        return ResponseEntity.status( HttpStatus.UNAUTHORIZED ).build();
+    @ExceptionHandler({ AuthenticationException.class, AccessDeniedException.class })
+    public ResponseEntity<?> handleAuthenticationExceptionAndAccessDeniedException( HttpServletRequest req, Exception e ) {
+        log.warn( "Unauthorized access to the API via " + req.getRequestURI() + ".", e );
+        return ResponseEntity.status( HttpStatus.UNAUTHORIZED )
+                .contentType( MediaType.TEXT_PLAIN )
+                .body( e.getMessage() );
     }
 
     @ExceptionHandler({ ApiException.class })
     public ResponseEntity<String> handleApiException( ApiException e ) {
-        return ResponseEntity.status( e.getStatus() ).body( e.getMessage() );
+        return ResponseEntity
+                .status( e.getStatus() )
+                .contentType( MediaType.TEXT_PLAIN )
+                .body( e.getMessage() );
+    }
+
+    /**
+     * Handle all unmapped API requests with a 404 error.
+     */
+    @RequestMapping(value = "/api/*")
+    public void handleMissingRoute() {
+        throw new ApiException( HttpStatus.NOT_FOUND, "No endpoint found for your request URL." );
     }
 
     /**
@@ -100,7 +116,7 @@ public class ApiController {
         checkAuth( authorizationHeader, auth );
         if ( applicationSettings.getPrivacy().isEnableAnonymizedSearchResults() ) {
             final Authentication auth2 = SecurityContextHolder.getContext().getAuthentication();
-            return userService.findAllNoAuth( pageable )
+            return userService.findAllByIsEnabledNoAuth( pageable )
                     .map( user -> permissionEvaluator.hasPermission( auth2, user, "read" ) ? user : userService.anonymizeUser( user ) )
                     .map( user -> initUser( user, locale ) );
 
@@ -128,26 +144,6 @@ public class ApiController {
         } else {
             return userGeneService.findAllByPrivacyLevel( PrivacyLevelType.PUBLIC, pageable ).map( userGene -> initUserGene( userGene, locale ) );
         }
-    }
-
-    /**
-     * Hides the default users search 400 page when no parameters are provided.
-     *
-     * @return 404.
-     */
-    @GetMapping(value = "/api/users/search", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Object searchUsers() {
-        return ResponseEntity.notFound().build();
-    }
-
-    /**
-     * Hides the default genes search 400 page when no parameters are provided.
-     *
-     * @return 404.
-     */
-    @GetMapping(value = "/api/genes/search", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Object searchGenes() {
-        return ResponseEntity.notFound().build();
     }
 
     @GetMapping(value = "/api/users/search", params = { "nameLike" }, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -219,11 +215,8 @@ public class ApiController {
                 .filter( g -> orthologTaxon == null || g.getTaxon().equals( orthologTaxon ) )
                 .collect( Collectors.toSet() );
 
-        if (
-            // Check if there is a ortholog request for a different taxon than the original gene
-                ( orthologTaxonId != null && !orthologTaxonId.equals( gene.getTaxon().getId() ) )
-                        // Check if we got some ortholog results
-                        && ( orthologs == null || orthologs.isEmpty() ) ) {
+        // Check if there is an ortholog request for a different taxon than the original gene
+        if ( orthologTaxon != null && !orthologTaxon.equals( gene.getTaxon() ) && orthologs.isEmpty() ) {
             return new ResponseEntity<>( messageSource.getMessage( "ApiController.noOrthologsWithGivenParameters", null, locale ), null, HttpStatus.NOT_FOUND );
         }
 
@@ -326,10 +319,8 @@ public class ApiController {
             return;
         } else if ( applicationSettings.getIsearch().getAuthTokens().contains( authToken ) ) {
             // remote admin authentication
-            u = userService.getRemoteAdmin();
-            if ( u == null ) {
-                throw new ApiException( HttpStatus.SERVICE_UNAVAILABLE, messageSource.getMessage( "ApiController.misconfiguredRemoteAdmin", null, Locale.getDefault() ) );
-            }
+            u = userService.getRemoteSearchUser()
+                    .orElseThrow( () -> new ApiException( HttpStatus.SERVICE_UNAVAILABLE, messageSource.getMessage( "ApiController.misconfiguredRemoteAdmin", null, Locale.getDefault() ) ) );
         } else {
             // authentication via access token
             try {
@@ -389,8 +380,8 @@ public class ApiController {
                 .collect( Collectors.toSet() );
     }
 
-    private Collection<UserOrgan> organsFromUberonIds( Set<String> organUberonIds ) {
-        return organUberonIds == null ? null : userOrganService.findByUberonIdIn( organUberonIds );
+    private Collection<OrganInfo> organsFromUberonIds( Set<String> organUberonIds ) {
+        return organUberonIds == null ? null : organInfoService.findByUberonIdIn( organUberonIds );
     }
 
 }

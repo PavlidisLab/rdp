@@ -5,6 +5,7 @@ import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
@@ -272,6 +273,8 @@ public class UserServiceImpl implements UserService {
                 .id( 0 )
                 .anonymousId( UUID.randomUUID() )
                 .profile( profile )
+                // FIXME: a disabled user will still cause an AccessDeniedException
+                .enabled( user.isEnabled() )
                 .build();
         // TODO: check if this is leaking too much personal information
         anonymizedUser.getUserOrgans().putAll( user.getUserOrgans() );
@@ -309,8 +312,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User getRemoteAdmin() {
-        return userRepository.findOneWithRoles( applicationSettings.getIsearch().getUserId() );
+    @Cacheable("ubc.pavlab.rdp.services.UserService.remoteSearchUser")
+    public Optional<User> getRemoteSearchUser() {
+        if ( applicationSettings.getIsearch().getUserId() == null ) {
+            // there is no configured remote search user
+            return Optional.empty();
+        }
+        return Optional.ofNullable( userRepository.findOneWithRoles( applicationSettings.getIsearch().getUserId() ) );
     }
 
     @Override
@@ -320,8 +328,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Page<User> findAllNoAuth( Pageable pageable ) {
-        return userRepository.findAll( pageable );
+    public Page<User> findAllByIsEnabledNoAuth( Pageable pageable ) {
+        return userRepository.findAllByEnabled( pageable );
     }
 
     @Override
@@ -331,35 +339,47 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @PostFilter("hasPermission(filterObject, 'read')")
-    public Collection<User> findByLikeName( String nameLike, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherTypes, Collection<UserOrgan> userOrgans ) {
+    public Collection<User> findByLikeName( String nameLike, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherTypes, Collection<OrganInfo> organs ) {
+        final Set<String> organUberonIds = organUberonIdsFromOrgans( organs );
         return userRepository.findByProfileNameContainingIgnoreCaseOrProfileLastNameContainingIgnoreCase( nameLike, nameLike ).stream()
                 .filter( u -> researcherPositions == null || researcherPositions.contains( u.getProfile().getResearcherPosition() ) )
                 .filter( u -> researcherTypes == null || containsAny( researcherTypes, u.getProfile().getResearcherCategories() ) )
-                .filter( u -> userOrgans == null || containsAny( userOrgans, u.getUserOrgans().values() ) )
+                .filter( u -> organUberonIds == null || containsAny( organUberonIds, u.getUserOrgans().values().stream().map( UserOrgan::getUberonId ).collect( Collectors.toSet() ) ) )
                 .collect( Collectors.toSet() );
     }
 
     @Override
     @PostFilter("hasPermission(filterObject, 'read')")
-    public Collection<User> findByStartsName( String startsName, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherTypes, Collection<UserOrgan> userOrgans ) {
+    public Collection<User> findByStartsName( String startsName, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherTypes, Collection<OrganInfo> organs ) {
+        final Set<String> organUberonIds = organUberonIdsFromOrgans( organs );
         return userRepository.findByProfileLastNameStartsWithIgnoreCase( startsName ).stream()
                 .filter( u -> researcherPositions == null || researcherPositions.contains( u.getProfile().getResearcherPosition() ) )
                 .filter( u -> researcherTypes == null || containsAny( researcherTypes, u.getProfile().getResearcherCategories() ) )
-                .filter( u -> userOrgans == null || containsAny( userOrgans, u.getUserOrgans().values() ) )
+                .filter( u -> organUberonIds == null || containsAny( organUberonIds, u.getUserOrgans().values().stream().map( UserOrgan::getUberonId ).collect( Collectors.toSet() ) ) )
                 .collect( Collectors.toSet() );
     }
 
     @Override
     @PostFilter("hasPermission(filterObject, 'read')")
-    public Collection<User> findByDescription( String descriptionLike, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherTypes, Collection<UserOrgan> userOrgans ) {
+    public Collection<User> findByDescription( String descriptionLike, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherTypes, Collection<OrganInfo> organs ) {
+        final Set<String> organUberonIds = organUberonIdsFromOrgans( organs );
         return userRepository.findByProfileDescriptionContainingIgnoreCaseOrTaxonDescriptionsContainingIgnoreCase( descriptionLike, descriptionLike ).stream()
                 .filter( u -> researcherPositions == null || researcherPositions.contains( u.getProfile().getResearcherPosition() ) )
                 .filter( u -> researcherTypes == null || containsAny( researcherTypes, u.getProfile().getResearcherCategories() ) )
-                .filter( u -> userOrgans == null || containsAny( userOrgans, u.getUserOrgans().values() ) )
+                .filter( u -> organUberonIds == null || containsAny( organUberonIds, u.getUserOrgans().values().stream().map( UserOrgan::getUberonId ).collect( Collectors.toSet() ) ) )
                 .collect( Collectors.toSet() );
     }
 
+    private Set<String> organUberonIdsFromOrgans( Collection<OrganInfo> organs ) {
+        if ( organs != null ) {
+            return organs.stream().map( Organ::getUberonId ).collect( Collectors.toSet() );
+        } else {
+            return null;
+        }
+    }
+
     @Override
+    @Cacheable(cacheNames = "ubc.pavlab.rdp.stats", key = "#root.methodName")
     public long countResearchers() {
         return userRepository.count();
     }

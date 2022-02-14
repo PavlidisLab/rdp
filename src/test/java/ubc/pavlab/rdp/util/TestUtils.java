@@ -106,6 +106,12 @@ public final class TestUtils {
                 .build();
     }
 
+    public static User createAnonymousRemoteUser( URI originUrl ) {
+        User user = createAnonymousUser();
+        user.setOriginUrl( originUrl );
+        return user;
+    }
+
     @SneakyThrows
     public static Taxon createTaxon( int taxonId ) {
         return createTaxon( taxonId, TAXON_COMMON_NAME, TAXON_SCIENTIFIC_NAME, new URL( "ftp://ftp.ncbi.nlm.nih.gov/gene/DATA/GENE_INFO/Invertebrates/Caenorhabditis_elegans.gene_info.gz" ) );

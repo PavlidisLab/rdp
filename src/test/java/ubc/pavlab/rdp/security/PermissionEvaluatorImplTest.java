@@ -39,14 +39,11 @@ public class PermissionEvaluatorImplTest {
     UserService userService;
 
     @MockBean
-    RoleRepository roleRepository;
-
-    @MockBean
     PrivacyService privacyService;
 
-    Authentication auth;
-
-    UserContent userContent;
+    /* fixtures */
+    private Authentication auth;
+    private UserContent userContent;
 
     @Before
     public void setUp() {

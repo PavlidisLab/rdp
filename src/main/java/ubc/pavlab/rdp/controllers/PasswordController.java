@@ -1,32 +1,24 @@
 package ubc.pavlab.rdp.controllers;
 
-import ch.qos.logback.core.joran.spi.EventPlayer;
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
-import ubc.pavlab.rdp.events.OnUserPasswordResetEvent;
 import ubc.pavlab.rdp.exception.TokenException;
 import ubc.pavlab.rdp.model.PasswordReset;
-import ubc.pavlab.rdp.model.PasswordResetToken;
 import ubc.pavlab.rdp.model.User;
 import ubc.pavlab.rdp.model.UserPrinciple;
-import ubc.pavlab.rdp.services.EmailService;
 import ubc.pavlab.rdp.services.UserService;
 
-import javax.mail.MessagingException;
 import javax.validation.Valid;
-import java.text.MessageFormat;
 import java.util.Locale;
 
 /**

@@ -73,12 +73,12 @@ public class PrivacyServiceImpl implements PrivacyService {
     @Override
     public boolean checkUserCanUpdate( User user, UserContent userContent ) {
         // only admins or rightful owner can update user content
-        return user.getRoles().contains( getAdminRole() ) || userContent.getOwner().map( u -> u.equals( user ) ).orElse( false );
+        return user.getRoles().contains( getAdminRole() ) || userContent.getOwner().filter( user::equals ).isPresent();
     }
 
     private boolean checkUserCanSeeOtherUserContentWithPrivacyLevel( User currentUser, User otherUser, PrivacyLevelType privacyLevel ) {
         // Never show the remote admin profile (or accidental null users)
-        if ( otherUser == null || ( applicationSettings.getIsearch() != null && otherUser.getId().equals( applicationSettings.getIsearch().getUserId() ) ) ) {
+        if ( otherUser == null || ( applicationSettings.getIsearch() != null && isRemoteSearchUser( otherUser ) ) ) {
             return false;
         }
 
@@ -94,23 +94,28 @@ public class PrivacyServiceImpl implements PrivacyService {
             return false;
         }
 
+
         // Either the user is looking at himself, or the user is public, or shared with registered users - check for any logged-in user, or private - check for admin; If logged-in user is admin, we have to
         // check whether this user is the designated actor for the authenticated remote search, in which case we have to check for remote search privileges on the user.
         return otherUser.equals( currentUser ) // User is looking at himself
-                || ( privacyLevel.equals( PrivacyLevelType.PUBLIC ) ) // Data is public
-                || ( privacyLevel.equals( PrivacyLevelType.SHARED ) && currentUser != null && !currentUser.getId().equals( applicationSettings.getIsearch().getUserId() ) )// data is accessible for registerd users and there is a user logged in who is not the remote admin
-                || ( privacyLevel.equals( PrivacyLevelType.PRIVATE ) && currentUser != null && currentUser.getRoles().contains( getAdminRole() ) && !currentUser.getId().equals( applicationSettings.getIsearch().getUserId() ) )// data is private and there is an admin logged in who is not the remote admin
-                || ( privacyLevel.equals( PrivacyLevelType.PRIVATE ) && currentUser != null && currentUser.getRoles().contains( getServiceAccountRole() ) && !currentUser.getId().equals( applicationSettings.getIsearch().getUserId() ) ) // user is a service account
-                || ( profile.isShared() && currentUser != null && currentUser.getRoles().contains( getAdminRole() ) && currentUser.getId().equals( applicationSettings.getIsearch().getUserId() ) ); // data is designated as remotely shared and there is an admin logged in who is the remote admin
+                || ( privacyLevel == PrivacyLevelType.PUBLIC ) // Data is public
+                || ( privacyLevel == PrivacyLevelType.SHARED && currentUser != null && !isRemoteSearchUser( currentUser ) )// data is accessible for registerd users and there is a user logged in who is not the remote admin
+                || ( privacyLevel == PrivacyLevelType.PRIVATE && currentUser != null && currentUser.getRoles().contains( getAdminRole() ) && !isRemoteSearchUser( currentUser ) )// data is private and there is an admin logged in who is not the remote search user
+                || ( privacyLevel == PrivacyLevelType.PRIVATE && currentUser != null && currentUser.getRoles().contains( getServiceAccountRole() ) && !isRemoteSearchUser( currentUser ) ) // user is a service account
+                || ( profile.isShared() && currentUser != null && currentUser.getRoles().contains( getAdminRole() ) && isRemoteSearchUser( currentUser ) ); // data is designated as remotely shared and there is an admin logged in who is the remote search user
     }
 
-    @Cacheable
+    @Cacheable(value = "ubc.pavlab.rdp.model.Role.byRole", key = "'ROLE_ADMIN'")
     public Role getAdminRole() {
         return roleRepository.findByRole( "ROLE_ADMIN" );
     }
 
-    @Cacheable
+    @Cacheable(value = "ubc.pavlab.rdp.model.Role.byRole", key = "'ROLE_SERVICE_ACCOUNT'")
     public Role getServiceAccountRole() {
         return roleRepository.findByRole( "ROLE_SERVICE_ACCOUNT" );
+    }
+
+    private boolean isRemoteSearchUser( User user ) {
+        return userService.getRemoteSearchUser().filter( user::equals ).isPresent();
     }
 }

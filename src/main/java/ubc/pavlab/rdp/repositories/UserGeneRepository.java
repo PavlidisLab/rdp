@@ -33,6 +33,11 @@ public interface UserGeneRepository extends JpaRepository<UserGene, Integer> {
     Integer countDistinctUser();
 
     /**
+     * Find all genes from enabled users.
+     */
+    Page<UserGene> findAllByUserEnabled( Pageable pageable );
+
+    /**
      * Select all user genes that fall within a given privacy level.
      * <p>
      * If the user gene privacy level is less strict than the profile value or null, then the profile value is taken.
@@ -66,8 +71,6 @@ public interface UserGeneRepository extends JpaRepository<UserGene, Integer> {
     Collection<UserGene> findBySymbolContainingIgnoreCaseAndTaxonAndTierIn( String symbolContaining, Taxon taxon, Set<TierType> tiers );
 
     UserGene findBySymbolAndTaxon( String symbol, Taxon taxon );
-
-    Collection<UserGene> findByGeneIdAndTierAndUserUserOrgansIn( int geneId, TierType tier, Collection<UserOrgan> organs );
 
     Collection<UserGene> findByGeneIdAndTierInAndUserUserOrgansIn( int geneId, Set<TierType> tiers, Collection<UserOrgan> organs );
 
