@@ -59,6 +59,9 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
     @Autowired
     private AsyncRestTemplate asyncRestTemplate;
 
+    @Autowired
+    private TaxonService taxonService;
+
     @Override
     @Cacheable(value = "ubc.pavlab.rdp.services.RemoteResourceService.apiVersionByRemoteHostAuthority", key = "#remoteHost.authority")
     public String getApiVersion( URI remoteHost ) throws RemoteException {
@@ -125,8 +128,14 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
                     .build().toMultiValueMap() );
             intlUsergenes.addAll( getRemoteEntities( UserGene[].class, API_GENES_SEARCH_URI, params ) );
         }
-        // add back-reference to user
-        intlUsergenes.forEach( g -> g.setUser( g.getRemoteUser() ) );
+        Map<Integer, Integer> taxonOrderingById = taxonService.findByActiveTrue().stream()
+                .collect( Collectors.toMap( Taxon::getId, Taxon::getOrdering ) );
+        for ( UserGene g : intlUsergenes ) {
+            // add back-reference to user
+            g.setUser( g.getRemoteUser() );
+            // populate taxon ordering
+            g.getTaxon().setOrdering( taxonOrderingById.getOrDefault( g.getTaxon().getId(), null ) );
+        }
         return intlUsergenes;
     }
 

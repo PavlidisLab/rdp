@@ -74,6 +74,9 @@ public class RemoteResourceServiceTest {
     @MockBean
     private RoleRepository roleRepository;
 
+    @MockBean
+    private TaxonService taxonService;
+
     @Autowired
     private ObjectMapper objectMapper;
 
