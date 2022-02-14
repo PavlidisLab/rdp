@@ -23,9 +23,6 @@ public class UserOrganRepositoryTest {
     TestEntityManager entityManager;
 
     @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
     private UserOrganRepository userOrganRepository;
 
     private UserOrgan createUserOrgan( User user, String uberonId, String name, String description ) {

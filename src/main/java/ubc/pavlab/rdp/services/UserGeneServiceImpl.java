@@ -73,7 +73,7 @@ public class UserGeneServiceImpl implements UserGeneService {
 
     @Override
     public Page<UserGene> findAllNoAuth( Pageable pageable ) {
-        return userGeneRepository.findAll( pageable );
+        return userGeneRepository.findAllByUserEnabled( pageable );
     }
 
     @Override
@@ -81,32 +81,32 @@ public class UserGeneServiceImpl implements UserGeneService {
         return userGeneRepository.findAllByPrivacyLevelAndUserProfilePrivacyLevel( privacyLevelType, pageable );
     }
 
-    @Cacheable(cacheNames = "stats", key = "#root.methodName")
+    @Cacheable(cacheNames = "ubc.pavlab.rdp.stats", key = "#root.methodName")
     @Override
     public Integer countUniqueAssociations() {
         return userGeneRepository.countDistinctGeneByTierIn( TierType.MANUAL );
     }
 
-    @Cacheable(cacheNames = "stats", key = "#root.methodName")
+    @Cacheable(cacheNames = "ubc.pavlab.rdp.stats", key = "#root.methodName")
     @Override
     public Integer countAssociations() {
         return userGeneRepository.countByTierIn( TierType.MANUAL );
     }
 
-    @Cacheable(cacheNames = "stats", key = "#root.methodName")
+    @Cacheable(cacheNames = "ubc.pavlab.rdp.stats", key = "#root.methodName")
     @Override
     public Map<String, Integer> researcherCountByTaxon() {
         return taxonRepository.findByActiveTrueOrderByOrdering().stream()
                 .collect( Collectors.toMap( Taxon::getCommonName, userGeneRepository::countDistinctUserByTaxon ) );
     }
 
-    @Cacheable(cacheNames = "stats", key = "#root.methodName")
+    @Cacheable(cacheNames = "ubc.pavlab.rdp.stats", key = "#root.methodName")
     @Override
     public Integer countUsersWithGenes() {
         return userGeneRepository.countDistinctUser();
     }
 
-    @Cacheable(cacheNames = "stats", key = "#root.methodName")
+    @Cacheable(cacheNames = "ubc.pavlab.rdp.stats", key = "#root.methodName")
     @Override
     public Integer countUniqueAssociationsAllTiers() {
         return userGeneRepository.countDistinctGeneByTierIn( tierService.getEnabledTiers() );
@@ -118,7 +118,7 @@ public class UserGeneServiceImpl implements UserGeneService {
      * <p>
      * This is also known as the "human gene coverage".
      */
-    @Cacheable(cacheNames = "stats", key = "#root.methodName")
+    @Cacheable(cacheNames = "ubc.pavlab.rdp.stats", key = "#root.methodName")
     @Override
     public Integer countUniqueAssociationsToHumanAllTiers() {
         Collection<Integer> humanGenes = new HashSet<>( userGeneRepository.findAllHumanGenes() );
@@ -128,7 +128,7 @@ public class UserGeneServiceImpl implements UserGeneService {
 
     @Override
     @PostFilter("hasPermission(filterObject, 'read')")
-    public List<UserGene> handleGeneSearch( Gene gene, Set<TierType> tiers, Taxon orthologTaxon, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherCategories, Collection<UserOrgan> organs ) {
+    public List<UserGene> handleGeneSearch( Gene gene, Set<TierType> tiers, Taxon orthologTaxon, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherCategories, Collection<OrganInfo> organs ) {
         Set<UserGene> results;
         if ( applicationSettings.getPrivacy().isEnableAnonymizedSearchResults() ) {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -140,15 +140,20 @@ public class UserGeneServiceImpl implements UserGeneService {
             results = handleGeneSearchInternal( gene, tiers, orthologTaxon, researcherPositions, researcherCategories, organs );
         }
         return results.stream()
-                .sorted( comparing( UserGene::getAnonymousId, nullsFirst( naturalOrder() ) )
-                        .thenComparing( UserGene::getTaxon )
-                        .thenComparing( UserGene::getTier )
-                        .thenComparing( ug -> ug.getUser().getProfile().getFullName() ) )
+                .sorted( getUserGeneComparator() )
                 .collect( Collectors.toList() ); // we need to preserve the search order
     }
 
-    private Set<UserGene> handleGeneSearchInternal( Gene gene, Set<TierType> tiers, Taxon orthologTaxon, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherCategories, Collection<UserOrgan> organs ) {
+    private Set<UserGene> handleGeneSearchInternal( Gene gene, Set<TierType> tiers, Taxon orthologTaxon, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherCategories, Collection<OrganInfo> organs ) {
         Set<UserGene> uGenes = new LinkedHashSet<>();
+
+        // do this once to save time in the inner loop
+        final Set<String> organUberonIds;
+        if ( organs != null ) {
+            organUberonIds = organs.stream().map( Organ::getUberonId ).collect( Collectors.toSet() );
+        } else {
+            organUberonIds = null;
+        }
 
         // ortholog relationship is not reflexive (i.e. a gene is not its own ortholog), but we still want to display
         // that gene first when ortholog search is performed in the same MO
@@ -156,22 +161,31 @@ public class UserGeneServiceImpl implements UserGeneService {
             uGenes.addAll( userGeneRepository.findByGeneIdAndTierIn( gene.getGeneId(), tiers ).stream()
                     .filter( ug -> researcherPositions == null || researcherPositions.contains( ug.getUser().getProfile().getResearcherPosition() ) )
                     .filter( ug -> researcherCategories == null || containsAny( researcherCategories, ug.getUser().getProfile().getResearcherCategories() ) )
-                    .filter( ortholog -> organs == null || containsAny( organs, ortholog.getUser().getUserOrgans().values() ) )
+                    .filter( ortholog -> organUberonIds == null || containsAny( organUberonIds, ortholog.getUser().getUserOrgans().values().stream().map( UserOrgan::getUberonId ).collect( Collectors.toSet() ) ) )
                     .collect( Collectors.toSet() ) );
         }
 
-        uGenes.addAll( handleOrthologSearchInternal( gene, tiers, orthologTaxon, researcherPositions, researcherCategories, organs ) );
+        uGenes.addAll( handleOrthologSearchInternal( gene, tiers, orthologTaxon, researcherPositions, researcherCategories, organUberonIds ) );
 
         return uGenes;
     }
 
-    private Set<UserGene> handleOrthologSearchInternal( Gene gene, Set<TierType> tiers, Taxon orthologTaxon, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherCategories, Collection<UserOrgan> userOrgans ) {
+    private Set<UserGene> handleOrthologSearchInternal( Gene gene, Set<TierType> tiers, Taxon orthologTaxon, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherCategories, Collection<String> organUberonIds ) {
         return ( orthologTaxon == null ? userGeneRepository.findOrthologsByGeneId( gene.getGeneId() ) : userGeneRepository.findOrthologsByGeneIdAndTaxon( gene.getGeneId(), orthologTaxon ) ).stream()
                 .filter( ortholog -> tiers.contains( ortholog.getTier() ) )
                 .filter( ug -> researcherPositions == null || researcherPositions.contains( ug.getUser().getProfile().getResearcherPosition() ) )
                 .filter( ug -> researcherCategories == null || containsAny( researcherCategories, ug.getUser().getProfile().getResearcherCategories() ) )
-                .filter( ortholog -> userOrgans == null || containsAny( userOrgans, ortholog.getUser().getUserOrgans().values() ) )
+                .filter( ortholog -> organUberonIds == null || containsAny( organUberonIds, ortholog.getUser().getUserOrgans().values().stream().map( UserOrgan::getUberonId ).collect( Collectors.toSet() ) ) )
                 .collect( Collectors.toSet() );
+    }
+
+    @Override
+    public Comparator<UserGene> getUserGeneComparator() {
+        return comparing( UserGene::getAnonymousId, nullsFirst( naturalOrder() ) )
+                .thenComparing( ug -> ug.getTaxon().getOrdering(), Comparator.nullsLast( naturalOrder() ) )
+                .thenComparing( ug -> ug.getTaxon().getCommonName() )
+                .thenComparing( UserGene::getTier )
+                .thenComparing( ug -> ug.getUser().getProfile().getFullName() );
     }
 
     @Override

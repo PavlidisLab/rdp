@@ -72,7 +72,13 @@ public class RemoteResourceServiceTest {
     private UserService userService;
 
     @MockBean
+    private UserGeneService userGeneService;
+
+    @MockBean
     private RoleRepository roleRepository;
+
+    @MockBean
+    private TaxonService taxonService;
 
     @Autowired
     private ObjectMapper objectMapper;

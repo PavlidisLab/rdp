@@ -113,7 +113,7 @@ public class EmailServiceImpl implements EmailService {
 
         // password reset always go through the primary email
         InternetAddress to = new InternetAddress( user.getEmail() );
-        String shortName = messageSource.getMessage( "rdp.site.shortname", new String[]{ siteSettings.getHostUri().toString() }, Locale.getDefault() );
+        String shortName = messageSource.getMessage( "rdp.site.shortname", new String[]{ siteSettings.getHostUri().toString() }, locale );
         String subject = messageSource.getMessage( "EmailService.sendResetTokenMessage.subject", new String[]{ shortName }, locale );
         String content = messageSource.getMessage( "EmailService.sendResetTokenMessage", new String[]{
                 user.getProfile().getName(), url, dateTimeFormatter.format( token.getExpiryDate().toInstant() ) }, locale );

@@ -26,6 +26,10 @@
            maxElementsInMemory="10"
            eternal="true"/>
 
+    <cache name="ubc.pavlab.rdp.model.Role.byRole"
+           maxElementsInMemory="10"
+           eternal="true"/>
+
     <cache name="ubc.pavlab.rdp.model.UserGene"
            maxElementsInMemory="10000"
            timeToLiveSeconds="600"/>
@@ -47,7 +51,15 @@
            timeToLiveSeconds="3600"
            memoryStoreEvictionPolicy="FIFO"/>
 
-    <cache name="stats"
+    <cache name="ubc.pavlab.rdp.stats"
            maxElementsInMemory="10"
            timeToLiveSeconds="30"/>
+
+    <cache name="ubc.pavlab.rdp.services.RemoteResourceService.apiVersionByRemoteHostAuthority"
+           maxElementsInMemory="10"
+           timeToLiveSeconds="10"/>
+
+    <cache name="ubc.pavlab.rdp.services.UserService.remoteSearchUser"
+           maxElementsInMemory="1"
+           eternal="true"/>
 </ehcache>

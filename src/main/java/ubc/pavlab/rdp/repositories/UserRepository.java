@@ -1,6 +1,5 @@
 package ubc.pavlab.rdp.repositories;
 
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -25,10 +24,14 @@ public interface UserRepository extends JpaRepository<User, Integer> {
 
     @SuppressWarnings("SpringCacheAnnotationsOnInterfaceInspection")
     @Override
-    @Cacheable(cacheNames = "stats", key = "#root.methodName")
     long count();
 
     long countByProfilePrivacyLevel( PrivacyLevelType aPublic );
+
+    /**
+     * Find all enabled users.
+     */
+    Page<User> findAllByEnabled( Pageable pageable );
 
     Page<User> findAllByProfilePrivacyLevel( PrivacyLevelType privacyLevel, Pageable pageable );
 

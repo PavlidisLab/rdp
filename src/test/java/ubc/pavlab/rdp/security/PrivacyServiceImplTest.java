@@ -78,6 +78,7 @@ public class PrivacyServiceImplTest {
         when( applicationSettings.getPrivacy() ).thenReturn( privacySettings );
         when( applicationSettings.getIsearch() ).thenReturn( iSearchSettings );
         when( privacySettings.isRegisteredSearch() ).thenReturn( true );
+        when( userService.getRemoteSearchUser() ).thenReturn( Optional.empty() );
     }
 
     @Test

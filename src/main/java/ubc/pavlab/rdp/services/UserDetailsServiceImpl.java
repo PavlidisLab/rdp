@@ -19,7 +19,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     private UserRepository userRepository;
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public UserPrinciple loadUserByUsername( String email ) {
         User user = userRepository.findByEmailIgnoreCase( email );
         if ( user == null ) {

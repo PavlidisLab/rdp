@@ -4,6 +4,7 @@ import io.swagger.v3.oas.models.OpenAPI;
 import lombok.Builder;
 import lombok.Data;
 import lombok.extern.apachecommons.CommonsLog;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.ResponseEntity;
@@ -33,10 +34,13 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
+import static java.util.Comparator.*;
+import static java.util.Comparator.naturalOrder;
 import static java.util.function.Function.identity;
 
 @Service("RemoteResourceService")
 @CommonsLog
+@PreAuthorize("hasPermission(null, 'international-search')")
 public class RemoteResourceServiceImpl implements RemoteResourceService {
 
     private static final String API_URI = "/api";
@@ -52,13 +56,19 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
     private UserService userService;
 
     @Autowired
+    private UserGeneService userGeneService;
+
+    @Autowired
     private RoleRepository roleRepository;
 
     @Autowired
     private AsyncRestTemplate asyncRestTemplate;
 
+    @Autowired
+    private TaxonService taxonService;
+
     @Override
-    @Cacheable
+    @Cacheable(value = "ubc.pavlab.rdp.services.RemoteResourceService.apiVersionByRemoteHostAuthority", key = "#remoteHost.authority")
     public String getApiVersion( URI remoteHost ) throws RemoteException {
         // Ensure that the remoteHost is one of our known APIs by comparing the URI authority component and always use
         // the URI defined in the configuration
@@ -81,7 +91,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
             throw new RemoteException( MessageFormat.format( "Unsuccessful response received for {0}.", uri ), e );
         } catch ( InterruptedException e ) {
             Thread.currentThread().interrupt();
-            throw new RemoteException( MessageFormat.format( "The current thread was interrupted while waiting for {0} response.", uri ), e );
+            throw new RemoteException( MessageFormat.format( "A thread was interrupted while waiting for {0} response.", uri ), e );
         }
     }
 
@@ -99,7 +109,6 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
     }
 
     @Override
-    @PreAuthorize("hasPermission(null, 'international-search')")
     public Collection<User> findUsersByDescription( String descriptionLike, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherCategories, Collection<String> organUberonIds ) {
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add( "descriptionLike", descriptionLike );
@@ -112,7 +121,6 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
     }
 
     @Override
-    @PreAuthorize("hasPermission(null, 'international-search')")
     public Collection<UserGene> findGenesBySymbol( String symbol, Taxon taxon, Set<TierType> tiers, Integer orthologTaxonId, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherCategories, Set<String> organUberonIds ) {
         List<UserGene> intlUsergenes = new LinkedList<>();
         for ( TierType tier : restrictTiers( tiers ) ) {
@@ -128,13 +136,21 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
                     .build().toMultiValueMap() );
             intlUsergenes.addAll( getRemoteEntities( UserGene[].class, API_GENES_SEARCH_URI, params ) );
         }
-        // add back-reference to user
-        intlUsergenes.forEach( g -> g.setUser( g.getRemoteUser() ) );
-        return intlUsergenes;
+        Map<Integer, Integer> taxonOrderingById = taxonService.findByActiveTrue().stream()
+                .collect( Collectors.toMap( Taxon::getId, Taxon::getOrdering ) );
+        for ( UserGene g : intlUsergenes ) {
+            // add back-reference to user
+            g.setUser( g.getRemoteUser() );
+            // populate taxon ordering
+            g.getTaxon().setOrdering( taxonOrderingById.getOrDefault( g.getTaxon().getId(), null ) );
+        }
+        // sort results from different sources
+        return intlUsergenes.stream()
+                .sorted( userGeneService.getUserGeneComparator() )
+                .collect( Collectors.toList() ); // we need to preserve the search order
     }
 
     @Override
-    @PreAuthorize("hasPermission(null, 'international-search')")
     public User getRemoteUser( Integer userId, URI remoteHost ) throws RemoteException {
         // Ensure that the remoteHost is one of our known APIs by comparing the URI authority component and always use
         // the URI defined in the configuration
@@ -152,7 +168,6 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
     }
 
     @Override
-    @PreAuthorize("hasPermission(null, 'international-search')")
     public User getAnonymizedUser( UUID anonymousId, URI remoteHost ) throws RemoteException {
         URI authority = getApiUri( remoteHost );
 
@@ -182,7 +197,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
             throw new RemoteException( MessageFormat.format( "Unsuccessful response received for {0}.", uri ), e );
         } catch ( InterruptedException e ) {
             Thread.currentThread().interrupt();
-            throw new RemoteException( MessageFormat.format( "The current thread was interrupted while waiting for {0} response.", uri ), e );
+            throw new RemoteException( MessageFormat.format( "A thread was interrupted while waiting for {0} response.", uri ), e );
         }
     }
 
@@ -197,18 +212,19 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
                             .path( path )
                             .replaceQueryParams( apiParams )
                             .build().toUri();
-                } ).map( uri -> asyncRestTemplate.getForEntity( uri, arrCls ) )
+                } )
+                .map( uri -> Pair.of( uri, asyncRestTemplate.getForEntity( uri, arrCls ) ) )
                 // it's important to collect, otherwise the future will be created and joined on-by-one, defeating the purpose of using them
-                .collect( Collectors.toList() ).stream().map( future -> {
+                .collect( Collectors.toList() ).stream()
+                .map( uriAndFuture -> {
                     try {
-                        return future.get( applicationSettings.getIsearch().getRequestTimeout(), TimeUnit.SECONDS );
+                        return uriAndFuture.getRight().get( applicationSettings.getIsearch().getRequestTimeout(), TimeUnit.SECONDS );
                     } catch ( ExecutionException | TimeoutException e ) {
-                        // TODO: indicate the origin of the unsuccessful response
-                        log.error( "Unsuccessful response received.", e );
+                        log.error( MessageFormat.format( "Unsuccessful response received for {0}.", uriAndFuture.getLeft() ), e );
                         return null;
                     } catch ( InterruptedException e ) {
                         Thread.currentThread().interrupt();
-                        log.error( "The current thread was interrupted while waiting for a response.", e );
+                        log.error( MessageFormat.format( "A thread was interrupted while waiting for {0} response.", uriAndFuture.getLeft() ), e );
                         return null;
                     }
                 } )

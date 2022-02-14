@@ -21,19 +21,13 @@ package ubc.pavlab.rdp.services;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import ubc.pavlab.rdp.model.Gene;
-import ubc.pavlab.rdp.model.Taxon;
-import ubc.pavlab.rdp.model.UserGene;
-import ubc.pavlab.rdp.model.UserOrgan;
+import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.ResearcherCategory;
 import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import ubc.pavlab.rdp.model.enums.TierType;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Created by mjacobson on 17/01/18.
@@ -57,11 +51,22 @@ public interface UserGeneService {
     Integer countUniqueAssociationsToHumanAllTiers();
 
     /**
+     * Perform a search and retrieve all the user genes that match the provided gene description and optional
+     * constraints.
+     * <p>
      * Results are sorted by taxon (according to {@link Taxon#getOrdering()}), tier type, researcher last name and
      * first name. Anonymous results are always displayed last.
-     * @return
+     *  @param tiers               only retain results in the given {@link TierType}, or any if null
+     * @param orthologTaxon       only retain results in the given ortholog {@link Taxon}, or any if null
+     * @param researcherPositions only retain results where the corresponding {@link User} holds any given {@link ResearcherPosition},
+ *                            or any if null
+     * @param researcherTypes     only retain results where the corresponding {@link User} has any of the given {@link ResearcherCategory}
+*                            or any if null
+     * @param organs              only retain results where the corresponding {@link User} tracks any of the given {@link UserOrgan}
      */
-    List<UserGene> handleGeneSearch( Gene gene, Set<TierType> tiers, Taxon orthologTaxon, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherTypes, Collection<UserOrgan> organs );
+    List<UserGene> handleGeneSearch( Gene gene, Set<TierType> tiers, Taxon orthologTaxon, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherTypes, Collection<OrganInfo> organs );
+
+    Comparator<UserGene> getUserGeneComparator();
 
     void updateUserGenes();
 }

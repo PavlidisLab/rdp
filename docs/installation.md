@@ -42,6 +42,7 @@ file that contains at least the following entries:
 spring.profiles.active=prod
 
 spring.datasource.url=jdbc:mysql://<database host>:3306/<database name>
+spring.datasource-driver-class-name=com.mysql.cj.jdbc.Driver
 spring.datasource.username=<database username>
 spring.datasource.password=<database password>
 

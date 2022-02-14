@@ -8,7 +8,6 @@ import org.springframework.stereotype.Component;
 import ubc.pavlab.rdp.model.User;
 import ubc.pavlab.rdp.model.UserContent;
 import ubc.pavlab.rdp.model.UserPrinciple;
-import ubc.pavlab.rdp.repositories.RoleRepository;
 import ubc.pavlab.rdp.services.PrivacyService;
 import ubc.pavlab.rdp.services.UserService;
 
@@ -20,9 +19,6 @@ public class PermissionEvaluatorImpl implements PermissionEvaluator {
 
     @Autowired
     private UserService userService;
-
-    @Autowired
-    private RoleRepository roleRepository;
 
     @Autowired
     private PrivacyService privacyService;
@@ -42,11 +38,11 @@ public class PermissionEvaluatorImpl implements PermissionEvaluator {
             }
         }
 
-        throw new UnsupportedOperationException( "" );
+        throw new UnsupportedOperationException( "Permission " + permission + " is not supported." );
     }
 
     @Override
     public boolean hasPermission( Authentication authentication, Serializable targetId, String targetType, Object permission ) {
-        throw new UnsupportedOperationException( "" );
+        throw new UnsupportedOperationException( "Permission on target ID is not supported." );
     }
 }
