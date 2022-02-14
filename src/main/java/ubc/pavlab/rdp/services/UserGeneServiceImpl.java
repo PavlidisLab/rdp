@@ -140,11 +140,7 @@ public class UserGeneServiceImpl implements UserGeneService {
             results = handleGeneSearchInternal( gene, tiers, orthologTaxon, researcherPositions, researcherCategories, organs );
         }
         return results.stream()
-                .sorted( comparing( UserGene::getAnonymousId, nullsFirst( naturalOrder() ) )
-                        .thenComparing( ug -> ug.getTaxon().getOrdering(), Comparator.nullsLast( naturalOrder() ) )
-                        .thenComparing( ug -> ug.getTaxon().getCommonName() )
-                        .thenComparing( UserGene::getTier )
-                        .thenComparing( ug -> ug.getUser().getProfile().getFullName() ) )
+                .sorted( getUserGeneComparator() )
                 .collect( Collectors.toList() ); // we need to preserve the search order
     }
 
@@ -181,6 +177,15 @@ public class UserGeneServiceImpl implements UserGeneService {
                 .filter( ug -> researcherCategories == null || containsAny( researcherCategories, ug.getUser().getProfile().getResearcherCategories() ) )
                 .filter( ortholog -> organUberonIds == null || containsAny( organUberonIds, ortholog.getUser().getUserOrgans().values().stream().map( UserOrgan::getUberonId ).collect( Collectors.toSet() ) ) )
                 .collect( Collectors.toSet() );
+    }
+
+    @Override
+    public Comparator<UserGene> getUserGeneComparator() {
+        return comparing( UserGene::getAnonymousId, nullsFirst( naturalOrder() ) )
+                .thenComparing( ug -> ug.getTaxon().getOrdering(), Comparator.nullsLast( naturalOrder() ) )
+                .thenComparing( ug -> ug.getTaxon().getCommonName() )
+                .thenComparing( UserGene::getTier )
+                .thenComparing( ug -> ug.getUser().getProfile().getFullName() );
     }
 
     @Override

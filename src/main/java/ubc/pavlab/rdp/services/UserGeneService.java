@@ -27,10 +27,7 @@ import ubc.pavlab.rdp.model.enums.ResearcherCategory;
 import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import ubc.pavlab.rdp.model.enums.TierType;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Created by mjacobson on 17/01/18.
@@ -68,6 +65,8 @@ public interface UserGeneService {
      * @param organs              only retain results where the corresponding {@link User} tracks any of the given {@link UserOrgan}
      */
     List<UserGene> handleGeneSearch( Gene gene, Set<TierType> tiers, Taxon orthologTaxon, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherTypes, Collection<OrganInfo> organs );
+
+    Comparator<UserGene> getUserGeneComparator();
 
     void updateUserGenes();
 }

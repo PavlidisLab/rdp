@@ -34,6 +34,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
+import static java.util.Comparator.*;
+import static java.util.Comparator.naturalOrder;
 import static java.util.function.Function.identity;
 
 @Service("RemoteResourceService")
@@ -52,6 +54,9 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private UserGeneService userGeneService;
 
     @Autowired
     private RoleRepository roleRepository;
@@ -136,7 +141,10 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
             // populate taxon ordering
             g.getTaxon().setOrdering( taxonOrderingById.getOrDefault( g.getTaxon().getId(), null ) );
         }
-        return intlUsergenes;
+        // sort results from different sources
+        return intlUsergenes.stream()
+                .sorted( userGeneService.getUserGeneComparator() )
+                .collect( Collectors.toList() ); // we need to preserve the search order
     }
 
     @Override
