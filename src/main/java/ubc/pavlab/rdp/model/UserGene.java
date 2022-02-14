@@ -100,7 +100,7 @@ public class UserGene extends Gene implements UserContent {
     @Override
     @JsonIgnore
     public PrivacyLevelType getEffectivePrivacyLevel() {
-        PrivacyLevelType privacyLevel = Optional.ofNullable( getPrivacyLevel() ).orElse( getUser().getProfile().getPrivacyLevel() );
+        PrivacyLevelType privacyLevel = getPrivacyLevel() != null ? getPrivacyLevel() : getUser().getProfile().getPrivacyLevel();
         if ( privacyLevel.ordinal() > getUser().getEffectivePrivacyLevel().ordinal() ) {
             log.warn( MessageFormat.format( "Gene privacy level {0} of {1} is looser than that of the user profile {2}, and will be capped to {3}.",
                     privacyLevel, this, getUser(), getUser().getEffectivePrivacyLevel() ) );
