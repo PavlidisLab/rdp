@@ -92,9 +92,9 @@ public interface UserService {
 
     Collection<User> findAll();
 
-    Page<User> findAllByIsEnabledNoAuth( Pageable pageable );
+    Page<User> findByEnabledTrueNoAuth( Pageable pageable );
 
-    Page<User> findAllByPrivacyLevel( PrivacyLevelType privacyLevel, Pageable pageable );
+    Page<User> findByEnabledTrueAndPrivacyLevelNoAuth( PrivacyLevelType privacyLevel, Pageable pageable );
 
     Collection<User> findByLikeName( String nameLike, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherTypes, Collection<OrganInfo> userOrgans );
 

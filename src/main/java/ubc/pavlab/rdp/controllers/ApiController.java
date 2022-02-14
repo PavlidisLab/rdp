@@ -116,12 +116,12 @@ public class ApiController {
         checkAuth( authorizationHeader, auth );
         if ( applicationSettings.getPrivacy().isEnableAnonymizedSearchResults() ) {
             final Authentication auth2 = SecurityContextHolder.getContext().getAuthentication();
-            return userService.findAllByIsEnabledNoAuth( pageable )
+            return userService.findByEnabledTrueNoAuth( pageable )
                     .map( user -> permissionEvaluator.hasPermission( auth2, user, "read" ) ? user : userService.anonymizeUser( user ) )
                     .map( user -> initUser( user, locale ) );
 
         } else {
-            return userService.findAllByPrivacyLevel( PrivacyLevelType.PUBLIC, pageable ).map( user -> initUser( user, locale ) );
+            return userService.findByEnabledTrueAndPrivacyLevelNoAuth( PrivacyLevelType.PUBLIC, pageable ).map( user -> initUser( user, locale ) );
         }
     }
 
@@ -138,11 +138,11 @@ public class ApiController {
         checkAuth( authorizationHeader, auth );
         if ( applicationSettings.getPrivacy().isEnableAnonymizedSearchResults() ) {
             final Authentication auth2 = SecurityContextHolder.getContext().getAuthentication();
-            return userGeneService.findAllNoAuth( pageable )
+            return userGeneService.findByUserEnabledTrueNoAuth( pageable )
                     .map( userGene -> permissionEvaluator.hasPermission( auth2, userGene, "read" ) ? userGene : userService.anonymizeUserGene( userGene ) )
                     .map( userGene -> initUserGene( userGene, locale ) );
         } else {
-            return userGeneService.findAllByPrivacyLevel( PrivacyLevelType.PUBLIC, pageable ).map( userGene -> initUserGene( userGene, locale ) );
+            return userGeneService.findByUserEnabledTrueAndPrivacyLevelNoAuth( PrivacyLevelType.PUBLIC, pageable ).map( userGene -> initUserGene( userGene, locale ) );
         }
     }
 

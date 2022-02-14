@@ -35,19 +35,15 @@ public interface UserGeneRepository extends JpaRepository<UserGene, Integer> {
     /**
      * Find all genes from enabled users.
      */
-    Page<UserGene> findAllByUserEnabled( Pageable pageable );
+    Page<UserGene> findByUserEnabledTrue( Pageable pageable );
 
     /**
-     * Select all user genes that fall within a given privacy level.
+     * Find all user genes that fall within a given privacy level amonng enabled users.
      * <p>
      * If the user gene privacy level is less strict than the profile value or null, then the profile value is taken.
-     *
-     * @param privacyLevel
-     * @param pageable
-     * @return
      */
-    @Query("select ug from UserGene as ug join ug.user where (case when ug.privacyLevel is null or ug.privacyLevel > ug.user.profile.privacyLevel then ug.user.profile.privacyLevel else ug.privacyLevel end) = :privacyLevel")
-    Page<UserGene> findAllByPrivacyLevelAndUserProfilePrivacyLevel( @Param("privacyLevel") PrivacyLevelType privacyLevel, Pageable pageable );
+    @Query("select ug from UserGene as ug join ug.user where ug.user.enabled is true and (case when ug.privacyLevel is null or ug.privacyLevel > ug.user.profile.privacyLevel then ug.user.profile.privacyLevel else ug.privacyLevel end) = :privacyLevel")
+    Page<UserGene> findByPrivacyLevelAndUserEnabledTrueAndUserProfilePrivacyLevel( @Param("privacyLevel") PrivacyLevelType privacyLevel, Pageable pageable );
 
     @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
     UserGene findById( int id );

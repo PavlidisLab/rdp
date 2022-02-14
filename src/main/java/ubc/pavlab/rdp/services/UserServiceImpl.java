@@ -328,13 +328,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Page<User> findAllByIsEnabledNoAuth( Pageable pageable ) {
-        return userRepository.findAllByEnabled( pageable );
+    public Page<User> findByEnabledTrueNoAuth( Pageable pageable ) {
+        return userRepository.findByEnabledTrue( pageable );
     }
 
     @Override
-    public Page<User> findAllByPrivacyLevel( PrivacyLevelType privacyLevel, Pageable pageable ) {
-        return userRepository.findAllByProfilePrivacyLevel( privacyLevel, pageable );
+    public Page<User> findByEnabledTrueAndPrivacyLevelNoAuth( PrivacyLevelType privacyLevel, Pageable pageable ) {
+        return userRepository.findByEnabledTrueAndProfilePrivacyLevel( privacyLevel, pageable );
     }
 
     @Override

@@ -34,9 +34,9 @@ import java.util.*;
  */
 public interface UserGeneService {
 
-    Page<UserGene> findAllNoAuth( Pageable pageable );
+    Page<UserGene> findByUserEnabledTrueNoAuth( Pageable pageable );
 
-    Page<UserGene> findAllByPrivacyLevel( PrivacyLevelType privacyLevelType, Pageable pageable );
+    Page<UserGene> findByUserEnabledTrueAndPrivacyLevelNoAuth( PrivacyLevelType privacyLevelType, Pageable pageable );
 
     Integer countUniqueAssociations();
 
@@ -56,13 +56,14 @@ public interface UserGeneService {
      * <p>
      * Results are sorted by taxon (according to {@link Taxon#getOrdering()}), tier type, researcher last name and
      * first name. Anonymous results are always displayed last.
-     *  @param tiers               only retain results in the given {@link TierType}, or any if null
+     *
+     * @param tiers               only retain results in the given {@link TierType}, or any if null
      * @param orthologTaxon       only retain results in the given ortholog {@link Taxon}, or any if null
      * @param researcherPositions only retain results where the corresponding {@link User} holds any given {@link ResearcherPosition},
- *                            or any if null
+     *                            or any if null
      * @param researcherTypes     only retain results where the corresponding {@link User} has any of the given {@link ResearcherCategory}
-*                            or any if null
-     * @param organs              only retain results where the corresponding {@link User} tracks any of the given {@link UserOrgan}
+     *                            or any if null
+     * @param organs              only retain results where the corresponding {@link User} tracks any of the given {@link OrganInfo}
      */
     List<UserGene> handleGeneSearch( Gene gene, Set<TierType> tiers, Taxon orthologTaxon, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherTypes, Collection<OrganInfo> organs );
 

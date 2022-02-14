@@ -72,13 +72,13 @@ public class UserGeneServiceImpl implements UserGeneService {
     private ApplicationSettings applicationSettings;
 
     @Override
-    public Page<UserGene> findAllNoAuth( Pageable pageable ) {
-        return userGeneRepository.findAllByUserEnabled( pageable );
+    public Page<UserGene> findByUserEnabledTrueNoAuth( Pageable pageable ) {
+        return userGeneRepository.findByUserEnabledTrue( pageable );
     }
 
     @Override
-    public Page<UserGene> findAllByPrivacyLevel( PrivacyLevelType privacyLevelType, Pageable pageable ) {
-        return userGeneRepository.findAllByPrivacyLevelAndUserProfilePrivacyLevel( privacyLevelType, pageable );
+    public Page<UserGene> findByUserEnabledTrueAndPrivacyLevelNoAuth( PrivacyLevelType privacyLevelType, Pageable pageable ) {
+        return userGeneRepository.findByPrivacyLevelAndUserEnabledTrueAndUserProfilePrivacyLevel( privacyLevelType, pageable );
     }
 
     @Cacheable(cacheNames = "ubc.pavlab.rdp.stats", key = "#root.methodName")
@@ -132,8 +132,7 @@ public class UserGeneServiceImpl implements UserGeneService {
         Set<UserGene> results;
         if ( applicationSettings.getPrivacy().isEnableAnonymizedSearchResults() ) {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-            results = handleGeneSearchInternal
-                    ( gene, tiers, orthologTaxon, researcherPositions, researcherCategories, organs ).stream()
+            results = handleGeneSearchInternal( gene, tiers, orthologTaxon, researcherPositions, researcherCategories, organs ).stream()
                     .map( ug -> permissionEvaluator.hasPermission( auth, ug, "read" ) ? ug : userService.anonymizeUserGene( ug ) )
                     .collect( Collectors.toSet() );
         } else {
