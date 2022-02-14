@@ -62,4 +62,12 @@
     <cache name="ubc.pavlab.rdp.services.UserService.remoteSearchUser"
            maxElementsInMemory="1"
            eternal="true"/>
+
+    <cache name="ubc.pavlab.rdp.services.GOService.ancestors"
+           maxElementsInMemory="10000"
+           eternal="true"/>
+
+    <cache name="ubc.pavlab.rdp.services.GOService.descendants"
+           maxElementsInMemory="10000"
+           eternal="true"/>
 </ehcache>

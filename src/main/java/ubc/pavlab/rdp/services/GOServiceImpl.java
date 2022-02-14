@@ -22,11 +22,10 @@ import ubc.pavlab.rdp.util.SearchResult;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 import java.util.zip.GZIPInputStream;
 
 import static java.util.function.Function.identity;
@@ -40,6 +39,10 @@ import static java.util.stream.Collectors.groupingBy;
 @CommonsLog
 public class GOServiceImpl implements GOService {
 
+    private static String
+            ANCESTORS_CACHE_NAME = "ubc.pavlab.rdp.services.GOService.ancestors",
+            DESCENDANTS_CACHE_NAME = "ubc.pavlab.rdp.services.GOService.descendants";
+
     @Autowired
     private GeneOntologyTermInfoRepository goRepository;
 
@@ -51,6 +54,9 @@ public class GOServiceImpl implements GOService {
 
     @Autowired
     private Gene2GoParser gene2GoParser;
+
+    @Autowired
+    private CacheManager cacheManager;
 
     private static Relationship convertRelationship( OBOParser.Relationship parsedRelationship ) {
         return new Relationship( convertTermIgnoringRelationship( parsedRelationship.getNode() ),
@@ -149,10 +155,6 @@ public class GOServiceImpl implements GOService {
             log.warn( MessageFormat.format( "{0} more terms were missing from {1}, their direct genes will also be ignored.", missingFromTermFile.size() - 5, cacheSettings.getTermFile() ) );
         }
 
-        log.info( "Clearing ancestor and descendants cache as it is no longer fresh." );
-        ancestorsCache.clear();
-        descendantsCache.clear();
-
         log.info( MessageFormat.format( "Done updating GO terms, total of {0} items.", count() ) );
     }
 
@@ -225,27 +227,47 @@ public class GOServiceImpl implements GOService {
 
     @Override
     public GeneOntologyTermInfo save( GeneOntologyTermInfo term ) {
-        return goRepository.save( term );
+        try {
+            return goRepository.save( term );
+        } finally {
+            evict( term );
+        }
     }
 
     @Override
     public Iterable<GeneOntologyTermInfo> save( Iterable<GeneOntologyTermInfo> terms ) {
-        return goRepository.save( terms );
+        try {
+            return goRepository.save( terms );
+        } finally {
+            evict( terms );
+        }
     }
 
     @Override
     public GeneOntologyTermInfo saveAlias( String goId, GeneOntologyTermInfo term ) {
-        return goRepository.saveAlias( goId, term );
+        try {
+            return goRepository.saveAlias( goId, term );
+        } finally {
+            evict( term );
+        }
     }
 
     @Override
     public Iterable<GeneOntologyTermInfo> saveAlias( Map<String, GeneOntologyTermInfo> terms ) {
-        return goRepository.saveAlias( terms );
+        try {
+            return goRepository.saveAlias( terms );
+        } finally {
+            evict( terms.values() );
+        }
     }
 
     @Override
     public void deleteAll() {
-        goRepository.deleteAll();
+        try {
+            goRepository.deleteAll();
+        } finally {
+            evictAll();
+        }
     }
 
     @Override
@@ -258,12 +280,14 @@ public class GOServiceImpl implements GOService {
         return getDescendantsInternal( entry );
     }
 
-    private ConcurrentMap<GeneOntologyTermInfo, Set<GeneOntologyTermInfo>> descendantsCache = new ConcurrentHashMap<>();
-
     private Set<GeneOntologyTermInfo> getDescendantsInternal( GeneOntologyTermInfo entry ) {
-        if ( descendantsCache.containsKey( entry ) )
-            return descendantsCache.get( entry );
-        Set<GeneOntologyTermInfo> results = new HashSet<>();
+        Cache descendantsCache = cacheManager.getCache( DESCENDANTS_CACHE_NAME );
+        //noinspection unchecked
+        Set<GeneOntologyTermInfo> results = descendantsCache.get( entry, Set.class );
+        if ( results != null ) {
+            return results;
+        }
+        results = new HashSet<>();
         for ( GeneOntologyTermInfo child : getChildren( entry ) ) {
             results.add( child );
             results.addAll( getDescendantsInternal( child ) );
@@ -357,17 +381,59 @@ public class GOServiceImpl implements GOService {
         return getAncestorsInternal( term );
     }
 
-    private ConcurrentMap<GeneOntologyTermInfo, Set<GeneOntologyTermInfo>> ancestorsCache = new ConcurrentHashMap<>();
-
     private Collection<GeneOntologyTermInfo> getAncestorsInternal( GeneOntologyTermInfo term ) {
-        if ( ancestorsCache.containsKey( term ) )
-            return ancestorsCache.get( term );
-        Set<GeneOntologyTermInfo> results = new HashSet<>();
+        Cache ancestorsCache = cacheManager.getCache( ANCESTORS_CACHE_NAME );
+        //noinspection unchecked
+        Set<GeneOntologyTermInfo> results = ancestorsCache.get( term, Set.class );
+        if ( results != null )
+            return results;
+        results = new HashSet<>();
         for ( GeneOntologyTermInfo parent : getParents( term ) ) {
             results.add( parent );
             results.addAll( getAncestorsInternal( parent ) );
         }
         ancestorsCache.put( term, results );
         return results;
+    }
+
+    private void evict( GeneOntologyTermInfo term ) {
+        evict( Collections.singleton( term ) );
+    }
+
+    private void evict( Iterable<GeneOntologyTermInfo> terms ) {
+        Cache ancestorsCache = cacheManager.getCache( ANCESTORS_CACHE_NAME );
+        Cache descendantsCache = cacheManager.getCache( DESCENDANTS_CACHE_NAME );
+
+        // first, let's retrieve what we already have in the cache
+        Collection<GeneOntologyTermInfo> ancestors = StreamSupport.stream( terms.spliterator(), false )
+                .map( this::getAncestors )
+                .flatMap( Collection::stream )
+                .collect( Collectors.toSet() );
+        Collection<GeneOntologyTermInfo> descendants = StreamSupport.stream( terms.spliterator(), false )
+                .map( this::getDescendants )
+                .flatMap( Collection::stream )
+                .collect( Collectors.toSet() );
+
+        // evict the terms from both caches
+        for ( GeneOntologyTermInfo term : terms ) {
+            ancestorsCache.evict( term );
+            descendantsCache.evict( term );
+        }
+
+        // all the ancestors mention one of the updated terms in their descendants, so we evict those
+        for ( GeneOntologyTermInfo ancestor : ancestors ) {
+            descendantsCache.evict( ancestor );
+        }
+
+        // conversely, all the descendants mention one of the updated term in their ancestors
+        for ( GeneOntologyTermInfo descendant : descendants ) {
+            ancestorsCache.evict( descendant );
+        }
+    }
+
+    private void evictAll() {
+        log.info( "Clearing ancestor and descendants cache as it is no longer fresh." );
+        cacheManager.getCache( ANCESTORS_CACHE_NAME ).clear();
+        cacheManager.getCache( DESCENDANTS_CACHE_NAME ).clear();
     }
 }
