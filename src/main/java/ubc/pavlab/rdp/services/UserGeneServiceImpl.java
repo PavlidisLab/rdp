@@ -133,6 +133,10 @@ public class UserGeneServiceImpl implements UserGeneService {
         if ( applicationSettings.getPrivacy().isEnableAnonymizedSearchResults() ) {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             results = handleGeneSearchInternal( gene, tiers, orthologTaxon, researcherPositions, researcherCategories, organs ).stream()
+                    // These must be excluded because anonymizeUserGene cannot receive a non-verified user.
+                    // FIXME: Ideally, we would not fetch them altogether, but it's really cumbersome adjust all those
+                    //        methods in the repository layer to exclude non-verified account.
+                    .filter( ug -> ug.getUser().isEnabled() )
                     .map( ug -> permissionEvaluator.hasPermission( auth, ug, "read" ) ? ug : userService.anonymizeUserGene( ug ) )
                     .collect( Collectors.toSet() );
         } else {
