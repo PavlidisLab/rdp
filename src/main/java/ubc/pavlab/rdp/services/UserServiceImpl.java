@@ -10,6 +10,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PostFilter;
@@ -83,6 +84,8 @@ public class UserServiceImpl implements UserService {
     private PrivacyService privacyService;
     @Autowired
     private SecureRandom secureRandom;
+    @Autowired
+    private PermissionEvaluator permissionEvaluator;
 
     @Transactional
     @Override
@@ -731,15 +734,12 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    @PostFilter("hasPermission(filterObject, 'read')")
-    private Collection<User> findAllWithNonEmptyProfileLastName() {
-        return userRepository.findAllWithNonEmptyProfileLastName();
-    }
-
     @Override
     public SortedSet<String> getLastNamesFirstChar() {
-        return findAllWithNonEmptyProfileLastName()
+        final Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return userRepository.findAllWithNonEmptyProfileLastName()
                 .stream()
+                .filter( user -> permissionEvaluator.hasPermission( auth, user, "read" ) )
                 .map( u -> u.getProfile().getLastName().substring( 0, 1 ).toUpperCase() )
                 .filter( StringUtils::isAlpha )
                 .collect( Collectors.toCollection( TreeSet::new ) );
