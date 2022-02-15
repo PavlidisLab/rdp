@@ -30,15 +30,17 @@ public class PermissionEvaluatorImpl implements PermissionEvaluator {
             return privacyService.checkUserCanSearch( user, false );
         } else if ( permission.equals( "international-search" ) ) {
             return privacyService.checkUserCanSearch( user, true );
-        } else if ( targetDomainObject instanceof UserContent ) {
-            if ( permission.equals( "read" ) ) {
-                return privacyService.checkUserCanSee( user, (UserContent) targetDomainObject );
-            } else if ( permission.equals( "update" ) ) {
-                return privacyService.checkUserCanUpdate( user, (UserContent) targetDomainObject );
-            }
+        } else if ( permission.equals( "read" ) && targetDomainObject == null ) {
+            // null objects must be let through, so they can be handled as a 404 if necessary
+            return true;
+        } else if ( permission.equals( "read" ) && targetDomainObject instanceof UserContent ) {
+            return privacyService.checkUserCanSee( user, (UserContent) targetDomainObject );
+        } else if ( permission.equals( "update" ) && targetDomainObject instanceof UserContent ) {
+            return privacyService.checkUserCanUpdate( user, (UserContent) targetDomainObject );
+        } else {
+            throw new UnsupportedOperationException( "Permission " + permission + " is not supported." );
         }
 
-        throw new UnsupportedOperationException( "Permission " + permission + " is not supported." );
     }
 
     @Override

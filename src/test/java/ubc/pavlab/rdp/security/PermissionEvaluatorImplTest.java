@@ -17,6 +17,7 @@ import ubc.pavlab.rdp.repositories.RoleRepository;
 import ubc.pavlab.rdp.services.PrivacyService;
 import ubc.pavlab.rdp.services.UserService;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 import static ubc.pavlab.rdp.util.TestUtils.createUser;
 
@@ -87,10 +88,10 @@ public class PermissionEvaluatorImplTest {
         verify( privacyService ).checkUserCanUpdate( user, userContent );
     }
 
-    @Test(expected = UnsupportedOperationException.class)
-    public void hasPermission_whenUserContentIsNull_thenRaiseException() {
+    @Test
+    public void hasPermission_whenUserContentIsNull_thenReturnTrue() {
         when( auth.getPrincipal() ).thenReturn( "anonymousUser" );
-        permissionEvaluator.hasPermission( auth, null, "read" );
+        assertThat( permissionEvaluator.hasPermission( auth, null, "read" ) ).isTrue();
     }
 
     @Test(expected = UnsupportedOperationException.class)
