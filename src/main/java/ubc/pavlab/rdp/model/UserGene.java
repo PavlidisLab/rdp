@@ -51,10 +51,9 @@ public class UserGene extends Gene implements UserContent {
      * </ul>
      */
     public static Comparator<UserGene> getComparator() {
-        return comparing( UserGene::getAnonymousId, nullsFirst( naturalOrder() ) )
-                .thenComparing( UserGene::getTaxon, Taxon.getComparator() )
-                .thenComparing( UserGene::getTier )
-                .thenComparing( UserGene::getUser, User.getComparator() );
+        return Comparator.comparing( UserGene::getTaxon, Taxon.getComparator() )
+                        .thenComparing( UserGene::getTier )
+                        .thenComparing( UserGene::getUser, User.getComparator() );
     }
 
     @Id
