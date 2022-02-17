@@ -143,7 +143,7 @@ public class UserGeneServiceImpl implements UserGeneService {
             results = handleGeneSearchInternal( gene, tiers, orthologTaxon, researcherPositions, researcherCategories, organs );
         }
         return results.stream()
-                .sorted( getUserGeneComparator() )
+                .sorted( UserGene.getComparator() )
                 .collect( Collectors.toList() ); // we need to preserve the search order
     }
 
@@ -182,14 +182,6 @@ public class UserGeneServiceImpl implements UserGeneService {
                 .collect( Collectors.toSet() );
     }
 
-    @Override
-    public Comparator<UserGene> getUserGeneComparator() {
-        return comparing( UserGene::getAnonymousId, nullsFirst( naturalOrder() ) )
-                .thenComparing( ug -> ug.getTaxon().getOrdering(), Comparator.nullsLast( naturalOrder() ) )
-                .thenComparing( ug -> ug.getTaxon().getCommonName() )
-                .thenComparing( UserGene::getTier )
-                .thenComparing( ug -> ug.getUser().getProfile().getFullName() );
-    }
 
     @Override
     @Transactional

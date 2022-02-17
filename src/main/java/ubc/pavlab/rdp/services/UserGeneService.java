@@ -67,7 +67,5 @@ public interface UserGeneService {
      */
     List<UserGene> handleGeneSearch( Gene gene, Set<TierType> tiers, Taxon orthologTaxon, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherTypes, Collection<OrganInfo> organs );
 
-    Comparator<UserGene> getUserGeneComparator();
-
     void updateUserGenes();
 }

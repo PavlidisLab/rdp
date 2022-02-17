@@ -253,7 +253,7 @@ public class SearchControllerTest {
     public void searchUsersByNameView_thenReturnSuccess() throws Exception {
         User user = createRemoteUser( 1, URI.create( "https://example.com/" ) );
         when( remoteResourceService.findUsersByLikeName( "Mark", true, null, null, null ) )
-                .thenReturn( Collections.singleton( remotify( user, User.class ) ) );
+                .thenReturn( Collections.singletonList( remotify( user, User.class ) ) );
         mvc.perform( get( "/search/view" )
                         .param( "nameLike", "Mark" )
                         .param( "prefix", "true" ) )
@@ -268,7 +268,7 @@ public class SearchControllerTest {
         when( permissionEvaluator.hasPermission( any(), isNull(), eq( "search" ) ) ).thenReturn( false );
         User user = createRemoteUser( 1, URI.create( "https://example.com/" ) );
         when( remoteResourceService.findUsersByLikeName( "Mark", true, null, null, null ) )
-                .thenReturn( Collections.singleton( remotify( user, User.class ) ) );
+                .thenReturn( Collections.singletonList( remotify( user, User.class ) ) );
         mvc.perform( get( "/search/view" )
                         .param( "nameLike", "Mark" )
                         .param( "prefix", "true" ) )
@@ -280,7 +280,7 @@ public class SearchControllerTest {
     public void searchItlUsersByNameView_thenReturnSuccess() throws Exception {
         User user = createRemoteUser( 1, URI.create( "http://example.com/" ) );
         when( remoteResourceService.findUsersByLikeName( "Mark", true, null, null, null ) )
-                .thenReturn( Collections.singleton( remotify( user, User.class ) ) );
+                .thenReturn( Collections.singletonList( remotify( user, User.class ) ) );
         mvc.perform( get( "/search/view/international" )
                         .param( "nameLike", "Mark" )
                         .param( "prefix", "true" ) )

@@ -96,11 +96,26 @@ public interface UserService {
 
     Page<User> findByEnabledTrueAndPrivacyLevelNoAuth( PrivacyLevelType privacyLevel, Pageable pageable );
 
-    Collection<User> findByLikeName( String nameLike, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherTypes, Collection<OrganInfo> userOrgans );
+    /**
+     * Find users by their name.
+     * <p>
+     * Note: results are sorted according to {@link #getUserComparator()}.
+     */
+    List<User> findByLikeName( String nameLike, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherTypes, Collection<OrganInfo> userOrgans );
 
-    Collection<User> findByStartsName( String startsName, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherTypes, Collection<OrganInfo> userOrgans );
+    /**
+     * Find users by their name using a prefix match.
+     * <p>
+     * Note: results are sorted according to {@link #getUserComparator()}.
+     */
+    List<User> findByStartsName( String startsName, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherTypes, Collection<OrganInfo> userOrgans );
 
-    Collection<User> findByDescription( String descriptionLike, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherTypes, Collection<OrganInfo> userOrgans );
+    /**
+     * Find users by their description and sorted according to {@link #getUserComparator()}.
+     * <p>
+     * Note: results are sorted according to {@link #getUserComparator()}.
+     */
+    List<User> findByDescription( String descriptionLike, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherTypes, Collection<OrganInfo> userOrgans );
 
     long countResearchers();
 
