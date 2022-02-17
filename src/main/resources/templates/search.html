@@ -94,11 +94,11 @@
                                 class="form-control custom-select ortholog-select"
                                 id="ortholog-select"
                                 title="Taxon to run primary search on">
-                            <option th:value="null">All</option>
+                            <option th:value="null" th:selected="${orthologTaxonId} == null">All</option>
                             <option th:each="taxon : ${@taxonService.findByActiveTrue()}"
                                     th:value="${taxon.id}"
                                     th:text="${#strings.capitalizeWords(taxon.commonName)}"
-                                    th:selected="${taxon.id} == ${orthologTaxonId ?: 9606}"></option>
+                                    th:selected="${taxon.id} == ${orthologTaxonId }"></option>
                         </select>
                     </div>
                     <div class="form-group col-md-3">
