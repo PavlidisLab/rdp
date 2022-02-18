@@ -86,7 +86,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
                 return openAPI.getInfo().getVersion();
             }
         } catch ( ExecutionException e ) {
-            throw new RemoteException( MessageFormat.format( "Unsuccessful response received for {0}.", uri ), e );
+            throw new RemoteException( MessageFormat.format( "Unsuccessful response received for {0}.", uri ), e.getCause() );
         } catch ( InterruptedException e ) {
             Thread.currentThread().interrupt();
             throw new RemoteException( MessageFormat.format( "A thread was interrupted while waiting for {0} response.", uri ), e );
@@ -196,7 +196,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
             initUser( user );
             return user;
         } catch ( ExecutionException e ) {
-            throw new RemoteException( MessageFormat.format( "Unsuccessful response received for {0}.", uri ), e );
+            throw new RemoteException( MessageFormat.format( "Unsuccessful response received for {0}.", uri ), e.getCause() );
         } catch ( InterruptedException e ) {
             Thread.currentThread().interrupt();
             throw new RemoteException( MessageFormat.format( "A thread was interrupted while waiting for {0} response.", uri ), e );
@@ -221,8 +221,12 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
                 .map( uriAndFuture -> {
                     try {
                         return uriAndFuture.getRight().get( applicationSettings.getIsearch().getRequestTimeout(), TimeUnit.SECONDS );
-                    } catch ( ExecutionException | TimeoutException e ) {
-                        log.error( MessageFormat.format( "Unsuccessful response received for {0}.", uriAndFuture.getLeft() ), e );
+                    } catch ( ExecutionException e ) {
+                        log.error( MessageFormat.format( "Unsuccessful response received for {0}.", uriAndFuture.getLeft() ), e.getCause() );
+                        return null;
+                    } catch ( TimeoutException e ) {
+                        // no need for the stacktrace in case of timeout
+                        log.warn( MessageFormat.format( "Partner registry {0} has timed out.", uriAndFuture.getLeft() ) );
                         return null;
                     } catch ( InterruptedException e ) {
                         Thread.currentThread().interrupt();
