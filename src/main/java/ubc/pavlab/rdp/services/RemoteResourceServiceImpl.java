@@ -204,6 +204,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
     }
 
     private <T> Collection<T> getRemoteEntities( Class<T[]> arrCls, String path, MultiValueMap<String, String> params ) {
+        Integer requestTimeout = applicationSettings.getIsearch().getRequestTimeout();
         return Arrays.stream( applicationSettings.getIsearch().getApis() )
                 .map( URI::create )
                 .map( api -> {
@@ -220,13 +221,19 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
                 .collect( Collectors.toList() ).stream()
                 .map( uriAndFuture -> {
                     try {
-                        return uriAndFuture.getRight().get( applicationSettings.getIsearch().getRequestTimeout(), TimeUnit.SECONDS );
+                        if ( requestTimeout != null ) {
+                            return uriAndFuture.getRight().get( requestTimeout.longValue(), TimeUnit.SECONDS );
+                        } else {
+                            return uriAndFuture.getRight().get();
+                        }
                     } catch ( ExecutionException e ) {
                         log.error( MessageFormat.format( "Unsuccessful response received for {0}.", uriAndFuture.getLeft() ), e.getCause() );
                         return null;
                     } catch ( TimeoutException e ) {
                         // no need for the stacktrace in case of timeout
-                        log.warn( MessageFormat.format( "Partner registry {0} has timed out.", uriAndFuture.getLeft() ) );
+                        log.warn( MessageFormat.format( "Partner registry {0} has timed out after {1}s.",
+                                uriAndFuture.getLeft(),
+                                requestTimeout ) );
                         return null;
                     } catch ( InterruptedException e ) {
                         Thread.currentThread().interrupt();
