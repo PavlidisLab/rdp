@@ -184,7 +184,8 @@ public class ApiControllerTest {
                         .param( "symbol", "CDH1" )
                         .param( "taxonId", "9606" )
                         .param( "tier", "TIER1" ) )
-                .andExpect( status().isBadRequest() );
+                .andExpect( status().isBadRequest() )
+                .andExpect( content().contentTypeCompatibleWith( MediaType.TEXT_PLAIN ) );
     }
 
     @Test
@@ -344,7 +345,7 @@ public class ApiControllerTest {
                         .param( "taxonId", "9606" )
                         .param( "tier", "TIER4" ) )
                 .andExpect( status().isBadRequest() )
-                .andExpect( content().contentTypeCompatibleWith( MediaType.APPLICATION_JSON ) );
+                .andExpect( content().contentTypeCompatibleWith( MediaType.TEXT_PLAIN ) );
     }
 
     @Test

@@ -31,9 +31,9 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     /**
      * Find all enabled users.
      */
-    Page<User> findAllByEnabled( Pageable pageable );
+    Page<User> findByEnabledTrue( Pageable pageable );
 
-    Page<User> findAllByProfilePrivacyLevel( PrivacyLevelType privacyLevel, Pageable pageable );
+    Page<User> findByEnabledTrueAndProfilePrivacyLevel( PrivacyLevelType privacyLevel, Pageable pageable );
 
     @Query("select user from User user left join fetch user.roles where lower(user.email) = lower(:email)")
     User findByEmailIgnoreCase( @Param("email") String email );

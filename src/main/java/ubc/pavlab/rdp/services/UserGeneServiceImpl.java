@@ -72,13 +72,13 @@ public class UserGeneServiceImpl implements UserGeneService {
     private ApplicationSettings applicationSettings;
 
     @Override
-    public Page<UserGene> findAllNoAuth( Pageable pageable ) {
-        return userGeneRepository.findAllByUserEnabled( pageable );
+    public Page<UserGene> findByUserEnabledTrueNoAuth( Pageable pageable ) {
+        return userGeneRepository.findByUserEnabledTrue( pageable );
     }
 
     @Override
-    public Page<UserGene> findAllByPrivacyLevel( PrivacyLevelType privacyLevelType, Pageable pageable ) {
-        return userGeneRepository.findAllByPrivacyLevelAndUserProfilePrivacyLevel( privacyLevelType, pageable );
+    public Page<UserGene> findByUserEnabledTrueAndPrivacyLevelNoAuth( PrivacyLevelType privacyLevelType, Pageable pageable ) {
+        return userGeneRepository.findByPrivacyLevelAndUserEnabledTrueAndUserProfilePrivacyLevel( privacyLevelType, pageable );
     }
 
     @Cacheable(cacheNames = "ubc.pavlab.rdp.stats", key = "#root.methodName")
@@ -132,15 +132,18 @@ public class UserGeneServiceImpl implements UserGeneService {
         Set<UserGene> results;
         if ( applicationSettings.getPrivacy().isEnableAnonymizedSearchResults() ) {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-            results = handleGeneSearchInternal
-                    ( gene, tiers, orthologTaxon, researcherPositions, researcherCategories, organs ).stream()
+            results = handleGeneSearchInternal( gene, tiers, orthologTaxon, researcherPositions, researcherCategories, organs ).stream()
+                    // These must be excluded because anonymizeUserGene cannot receive a non-verified user.
+                    // FIXME: Ideally, we would not fetch them altogether, but it's really cumbersome adjust all those
+                    //        methods in the repository layer to exclude non-verified account.
+                    .filter( ug -> ug.getUser().isEnabled() )
                     .map( ug -> permissionEvaluator.hasPermission( auth, ug, "read" ) ? ug : userService.anonymizeUserGene( ug ) )
                     .collect( Collectors.toSet() );
         } else {
             results = handleGeneSearchInternal( gene, tiers, orthologTaxon, researcherPositions, researcherCategories, organs );
         }
         return results.stream()
-                .sorted( getUserGeneComparator() )
+                .sorted( UserGene.getComparator() )
                 .collect( Collectors.toList() ); // we need to preserve the search order
     }
 
@@ -179,14 +182,6 @@ public class UserGeneServiceImpl implements UserGeneService {
                 .collect( Collectors.toSet() );
     }
 
-    @Override
-    public Comparator<UserGene> getUserGeneComparator() {
-        return comparing( UserGene::getAnonymousId, nullsFirst( naturalOrder() ) )
-                .thenComparing( ug -> ug.getTaxon().getOrdering(), Comparator.nullsLast( naturalOrder() ) )
-                .thenComparing( ug -> ug.getTaxon().getCommonName() )
-                .thenComparing( UserGene::getTier )
-                .thenComparing( ug -> ug.getUser().getProfile().getFullName() );
-    }
 
     @Override
     @Transactional

@@ -10,10 +10,7 @@ import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import ubc.pavlab.rdp.model.enums.TierType;
 
 import java.net.URI;
-import java.util.Collection;
-import java.util.Locale;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Interface for remote resource methods. These mirror methods from UserService and UserGeneService, but the implementation
@@ -33,23 +30,26 @@ public interface RemoteResourceService {
     /**
      * Find users by name among all partner registries.
      *
+     * @return matching users sorted according to {@link UserService#getUserComparator()}.
      * @see ApiController#searchUsersByName(String, Boolean, Set, Set, Set, String, String, Locale)
      */
-    Collection<User> findUsersByLikeName( String nameLike, Boolean prefix, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherTypes, Collection<String> organUberonIds );
+    List<User> findUsersByLikeName( String nameLike, Boolean prefix, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherTypes, Collection<String> organUberonIds );
 
     /**
      * Find users by description among all partner registries.
      *
+     * @return matching users sorted according to {@link UserService#getUserComparator()}.
      * @see ApiController#searchUsersByDescription(String, Set, Set, Set, String, String, Locale)
      */
-    Collection<User> findUsersByDescription( String descriptionLike, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherTypes, Collection<String> organUberonIds );
+    List<User> findUsersByDescription( String descriptionLike, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherTypes, Collection<String> organUberonIds );
 
     /**
      * Find genes by symbol among all partner registries.
      *
+     * @return matching genes sorted according to {@link UserGeneService#getUserGeneComparator()}.
      * @see ApiController#searchUsersByGeneSymbol(String, Integer, Set, Integer, Set, Set, Set, String, String, Locale)
      */
-    Collection<UserGene> findGenesBySymbol( String symbol, Taxon taxon, Set<TierType> tier, Integer orthologTaxonId, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherTypes, Set<String> organUberonIds );
+    List<UserGene> findGenesBySymbol( String symbol, Taxon taxon, Set<TierType> tier, Integer orthologTaxonId, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherTypes, Set<String> organUberonIds );
 
     /**
      * Retrieve a user from a specific registry.

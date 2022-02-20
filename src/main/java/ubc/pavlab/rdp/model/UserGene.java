@@ -10,8 +10,12 @@ import ubc.pavlab.rdp.model.enums.TierType;
 
 import javax.persistence.*;
 import java.text.MessageFormat;
+import java.util.Comparator;
 import java.util.Optional;
 import java.util.UUID;
+
+import static java.util.Comparator.*;
+import static java.util.Comparator.naturalOrder;
 
 /**
  * Created by mjacobson on 17/01/18.
@@ -35,6 +39,22 @@ import java.util.UUID;
 @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @ToString(of = { "user", "tier", "privacyLevel" }, callSuper = true)
 public class UserGene extends Gene implements UserContent {
+
+    /**
+     * Obtain a comparator for comparing {@link UserGene}.
+     *
+     * <ul>
+     *     <li>by anonymity, anonymous users are displayed after</li>
+     *     <li>by taxon, see {@link Taxon#getComparator()}</li>
+     *     <li>by tier</li>
+     *     <li>by user, see {@link User#getComparator()}</li>
+     * </ul>
+     */
+    public static Comparator<UserGene> getComparator() {
+        return Comparator.comparing( UserGene::getTaxon, Taxon.getComparator() )
+                        .thenComparing( UserGene::getTier )
+                        .thenComparing( UserGene::getUser, User.getComparator() );
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

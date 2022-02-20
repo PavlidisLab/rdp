@@ -10,6 +10,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PostFilter;
@@ -83,6 +84,8 @@ public class UserServiceImpl implements UserService {
     private PrivacyService privacyService;
     @Autowired
     private SecureRandom secureRandom;
+    @Autowired
+    private PermissionEvaluator permissionEvaluator;
 
     @Transactional
     @Override
@@ -328,46 +331,49 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Page<User> findAllByIsEnabledNoAuth( Pageable pageable ) {
-        return userRepository.findAllByEnabled( pageable );
+    public Page<User> findByEnabledTrueNoAuth( Pageable pageable ) {
+        return userRepository.findByEnabledTrue( pageable );
     }
 
     @Override
-    public Page<User> findAllByPrivacyLevel( PrivacyLevelType privacyLevel, Pageable pageable ) {
-        return userRepository.findAllByProfilePrivacyLevel( privacyLevel, pageable );
+    public Page<User> findByEnabledTrueAndPrivacyLevelNoAuth( PrivacyLevelType privacyLevel, Pageable pageable ) {
+        return userRepository.findByEnabledTrueAndProfilePrivacyLevel( privacyLevel, pageable );
     }
 
     @Override
     @PostFilter("hasPermission(filterObject, 'read')")
-    public Collection<User> findByLikeName( String nameLike, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherTypes, Collection<OrganInfo> organs ) {
+    public List<User> findByLikeName( String nameLike, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherTypes, Collection<OrganInfo> organs ) {
         final Set<String> organUberonIds = organUberonIdsFromOrgans( organs );
         return userRepository.findByProfileNameContainingIgnoreCaseOrProfileLastNameContainingIgnoreCase( nameLike, nameLike ).stream()
                 .filter( u -> researcherPositions == null || researcherPositions.contains( u.getProfile().getResearcherPosition() ) )
                 .filter( u -> researcherTypes == null || containsAny( researcherTypes, u.getProfile().getResearcherCategories() ) )
                 .filter( u -> organUberonIds == null || containsAny( organUberonIds, u.getUserOrgans().values().stream().map( UserOrgan::getUberonId ).collect( Collectors.toSet() ) ) )
-                .collect( Collectors.toSet() );
+                .sorted( User.getComparator() )
+                .collect( Collectors.toList() );
     }
 
     @Override
     @PostFilter("hasPermission(filterObject, 'read')")
-    public Collection<User> findByStartsName( String startsName, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherTypes, Collection<OrganInfo> organs ) {
+    public List<User> findByStartsName( String startsName, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherTypes, Collection<OrganInfo> organs ) {
         final Set<String> organUberonIds = organUberonIdsFromOrgans( organs );
         return userRepository.findByProfileLastNameStartsWithIgnoreCase( startsName ).stream()
                 .filter( u -> researcherPositions == null || researcherPositions.contains( u.getProfile().getResearcherPosition() ) )
                 .filter( u -> researcherTypes == null || containsAny( researcherTypes, u.getProfile().getResearcherCategories() ) )
                 .filter( u -> organUberonIds == null || containsAny( organUberonIds, u.getUserOrgans().values().stream().map( UserOrgan::getUberonId ).collect( Collectors.toSet() ) ) )
-                .collect( Collectors.toSet() );
+                .sorted( User.getComparator() )
+                .collect( Collectors.toList() );
     }
 
     @Override
     @PostFilter("hasPermission(filterObject, 'read')")
-    public Collection<User> findByDescription( String descriptionLike, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherTypes, Collection<OrganInfo> organs ) {
+    public List<User> findByDescription( String descriptionLike, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherTypes, Collection<OrganInfo> organs ) {
         final Set<String> organUberonIds = organUberonIdsFromOrgans( organs );
         return userRepository.findByProfileDescriptionContainingIgnoreCaseOrTaxonDescriptionsContainingIgnoreCase( descriptionLike, descriptionLike ).stream()
                 .filter( u -> researcherPositions == null || researcherPositions.contains( u.getProfile().getResearcherPosition() ) )
                 .filter( u -> researcherTypes == null || containsAny( researcherTypes, u.getProfile().getResearcherCategories() ) )
                 .filter( u -> organUberonIds == null || containsAny( organUberonIds, u.getUserOrgans().values().stream().map( UserOrgan::getUberonId ).collect( Collectors.toSet() ) ) )
-                .collect( Collectors.toSet() );
+                .sorted( User.getComparator() )
+                .collect( Collectors.toList() );
     }
 
     private Set<String> organUberonIdsFromOrgans( Collection<OrganInfo> organs ) {
@@ -731,15 +737,12 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    @PostFilter("hasPermission(filterObject, 'read')")
-    private Collection<User> findAllWithNonEmptyProfileLastName() {
-        return userRepository.findAllWithNonEmptyProfileLastName();
-    }
-
     @Override
     public SortedSet<String> getLastNamesFirstChar() {
-        return findAllWithNonEmptyProfileLastName()
+        final Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return userRepository.findAllWithNonEmptyProfileLastName()
                 .stream()
+                .filter( user -> permissionEvaluator.hasPermission( auth, user, "read" ) )
                 .map( u -> u.getProfile().getLastName().substring( 0, 1 ).toUpperCase() )
                 .filter( StringUtils::isAlpha )
                 .collect( Collectors.toCollection( TreeSet::new ) );

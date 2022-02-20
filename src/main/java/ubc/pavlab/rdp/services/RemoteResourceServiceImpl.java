@@ -34,8 +34,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
-import static java.util.Comparator.*;
-import static java.util.Comparator.naturalOrder;
 import static java.util.function.Function.identity;
 
 @Service("RemoteResourceService")
@@ -88,7 +86,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
                 return openAPI.getInfo().getVersion();
             }
         } catch ( ExecutionException e ) {
-            throw new RemoteException( MessageFormat.format( "Unsuccessful response received for {0}.", uri ), e );
+            throw new RemoteException( MessageFormat.format( "Unsuccessful response received for {0}.", uri ), e.getCause() );
         } catch ( InterruptedException e ) {
             Thread.currentThread().interrupt();
             throw new RemoteException( MessageFormat.format( "A thread was interrupted while waiting for {0} response.", uri ), e );
@@ -96,7 +94,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
     }
 
     @Override
-    public Collection<User> findUsersByLikeName( String nameLike, Boolean prefix, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherCategories, Collection<String> organUberonIds ) {
+    public List<User> findUsersByLikeName( String nameLike, Boolean prefix, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherCategories, Collection<String> organUberonIds ) {
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add( "nameLike", nameLike );
         params.add( "prefix", prefix.toString() );
@@ -105,11 +103,13 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
                 .researcherCategories( researcherCategories )
                 .organUberonIds( organUberonIds )
                 .build().toMultiValueMap() );
-        return getRemoteEntities( User[].class, API_USERS_SEARCH_URI, params );
+        return getRemoteEntities( User[].class, API_USERS_SEARCH_URI, params ).stream()
+                .sorted( User.getComparator() )
+                .collect( Collectors.toList() );
     }
 
     @Override
-    public Collection<User> findUsersByDescription( String descriptionLike, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherCategories, Collection<String> organUberonIds ) {
+    public List<User> findUsersByDescription( String descriptionLike, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherCategories, Collection<String> organUberonIds ) {
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add( "descriptionLike", descriptionLike );
         params.putAll( UserSearchParams.builder()
@@ -117,11 +117,13 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
                 .researcherCategories( researcherCategories )
                 .organUberonIds( organUberonIds )
                 .build().toMultiValueMap() );
-        return getRemoteEntities( User[].class, API_USERS_SEARCH_URI, params );
+        return getRemoteEntities( User[].class, API_USERS_SEARCH_URI, params ).stream()
+                .sorted( User.getComparator() )
+                .collect( Collectors.toList() );
     }
 
     @Override
-    public Collection<UserGene> findGenesBySymbol( String symbol, Taxon taxon, Set<TierType> tiers, Integer orthologTaxonId, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherCategories, Set<String> organUberonIds ) {
+    public List<UserGene> findGenesBySymbol( String symbol, Taxon taxon, Set<TierType> tiers, Integer orthologTaxonId, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherCategories, Set<String> organUberonIds ) {
         List<UserGene> intlUsergenes = new LinkedList<>();
         for ( TierType tier : restrictTiers( tiers ) ) {
             MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
@@ -146,7 +148,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
         }
         // sort results from different sources
         return intlUsergenes.stream()
-                .sorted( userGeneService.getUserGeneComparator() )
+                .sorted( UserGene.getComparator() )
                 .collect( Collectors.toList() ); // we need to preserve the search order
     }
 
@@ -194,7 +196,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
             initUser( user );
             return user;
         } catch ( ExecutionException e ) {
-            throw new RemoteException( MessageFormat.format( "Unsuccessful response received for {0}.", uri ), e );
+            throw new RemoteException( MessageFormat.format( "Unsuccessful response received for {0}.", uri ), e.getCause() );
         } catch ( InterruptedException e ) {
             Thread.currentThread().interrupt();
             throw new RemoteException( MessageFormat.format( "A thread was interrupted while waiting for {0} response.", uri ), e );
@@ -202,6 +204,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
     }
 
     private <T> Collection<T> getRemoteEntities( Class<T[]> arrCls, String path, MultiValueMap<String, String> params ) {
+        Integer requestTimeout = applicationSettings.getIsearch().getRequestTimeout();
         return Arrays.stream( applicationSettings.getIsearch().getApis() )
                 .map( URI::create )
                 .map( api -> {
@@ -218,9 +221,19 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
                 .collect( Collectors.toList() ).stream()
                 .map( uriAndFuture -> {
                     try {
-                        return uriAndFuture.getRight().get( applicationSettings.getIsearch().getRequestTimeout(), TimeUnit.SECONDS );
-                    } catch ( ExecutionException | TimeoutException e ) {
-                        log.error( MessageFormat.format( "Unsuccessful response received for {0}.", uriAndFuture.getLeft() ), e );
+                        if ( requestTimeout != null ) {
+                            return uriAndFuture.getRight().get( requestTimeout.longValue(), TimeUnit.SECONDS );
+                        } else {
+                            return uriAndFuture.getRight().get();
+                        }
+                    } catch ( ExecutionException e ) {
+                        log.error( MessageFormat.format( "Unsuccessful response received for {0}.", uriAndFuture.getLeft() ), e.getCause() );
+                        return null;
+                    } catch ( TimeoutException e ) {
+                        // no need for the stacktrace in case of timeout
+                        log.warn( MessageFormat.format( "Partner registry {0} has timed out after {1}s.",
+                                uriAndFuture.getLeft(),
+                                requestTimeout ) );
                         return null;
                     } catch ( InterruptedException e ) {
                         Thread.currentThread().interrupt();
