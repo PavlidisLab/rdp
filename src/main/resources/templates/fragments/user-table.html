@@ -76,7 +76,8 @@
     </tr>
     </thead>
     <tbody>
-    <tr th:each="ug : ${usergenes}">
+    <!-- remote anonymous user genes are not yet supported -->
+    <tr th:each="ug : ${usergenes}" th:unless="${ug.anonymousId} and ${remote}">
         <td class="text-center" style="width: 10em;">
             <a th:if="${ug.anonymousId} == null and ${remote}"
                th:href="@{/userView/{userId}(userId=${ug.user.id},remoteHost=${ug.user.originUrl})}"

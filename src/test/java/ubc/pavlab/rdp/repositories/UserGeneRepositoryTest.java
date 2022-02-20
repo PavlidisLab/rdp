@@ -10,14 +10,12 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.context.junit4.SpringRunner;
 import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.TierType;
-import ubc.pavlab.rdp.security.PermissionEvaluatorImpl;
 import ubc.pavlab.rdp.services.*;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 
@@ -286,21 +284,46 @@ public class UserGeneRepositoryTest {
     }
 
     @Test
+    public void findByUserEnabledTrue() {
+        Gene gene = entityManager.persist( createGene( 1, taxon ) );
+        user.setEnabled( true );
+        user.getProfile().setPrivacyLevel( PrivacyLevelType.PUBLIC );
+        user.getUserGenes().clear();
+        user = entityManager.persistAndFlush( user );
+        UserGene userGene = entityManager.persist( createUnpersistedUserGene( gene, user, TierType.TIER1, PrivacyLevelType.PUBLIC ) );
+        assertThat( userGeneRepository.findByUserEnabledTrue( null ) )
+                .contains( userGene );
+    }
+
+    @Test
+    public void findByUserEnabledTrue_whenUserIsNotEnabled_thenExcludeTheGene() {
+        Gene gene = entityManager.persist( createGene( 1, taxon ) );
+        user.getProfile().setPrivacyLevel( PrivacyLevelType.PUBLIC );
+        user.getUserGenes().clear();
+        user = entityManager.persistAndFlush( user );
+        UserGene userGene = entityManager.persist( createUnpersistedUserGene( gene, user, TierType.TIER1, PrivacyLevelType.PUBLIC ) );
+        assertThat( user.isEnabled() ).isFalse();
+        assertThat( userGeneRepository.findByUserEnabledTrue( null ) )
+                .doesNotContain( userGene );
+    }
+
+    @Test
     public void findAllByPrivacyLevelAndUserProfilePrivacyLevel() {
         Gene gene1 = entityManager.persist( createGene( 1, taxon ) );
         Gene gene2 = entityManager.persist( createGene( 2, taxon ) );
         Gene gene3 = entityManager.persist( createGene( 3, taxon ) );
+        user.setEnabled( true );
         user.getProfile().setPrivacyLevel( PrivacyLevelType.PUBLIC );
         user.getUserGenes().clear();
         user = entityManager.persistAndFlush( user );
         UserGene userGene = entityManager.persist( createUnpersistedUserGene( gene1, user, TierType.TIER1, PrivacyLevelType.PUBLIC ) );
         UserGene sharedUserGene = entityManager.persist( createUnpersistedUserGene( gene2, user, TierType.TIER1, PrivacyLevelType.SHARED ) );
         UserGene privateUserGene = entityManager.persist( createUnpersistedUserGene( gene3, user, TierType.TIER1, PrivacyLevelType.PRIVATE ) );
-        assertThat( userGeneRepository.findAllByPrivacyLevelAndUserProfilePrivacyLevel( PrivacyLevelType.PUBLIC, null ) )
+        assertThat( userGeneRepository.findByPrivacyLevelAndUserEnabledTrueAndUserProfilePrivacyLevel( PrivacyLevelType.PUBLIC, null ) )
                 .containsExactly( userGene );
-        assertThat( userGeneRepository.findAllByPrivacyLevelAndUserProfilePrivacyLevel( PrivacyLevelType.SHARED, null ) )
+        assertThat( userGeneRepository.findByPrivacyLevelAndUserEnabledTrueAndUserProfilePrivacyLevel( PrivacyLevelType.SHARED, null ) )
                 .containsExactly( sharedUserGene );
-        assertThat( userGeneRepository.findAllByPrivacyLevelAndUserProfilePrivacyLevel( PrivacyLevelType.PRIVATE, null ) )
+        assertThat( userGeneRepository.findByPrivacyLevelAndUserEnabledTrueAndUserProfilePrivacyLevel( PrivacyLevelType.PRIVATE, null ) )
                 .containsExactly( privateUserGene );
     }
 
@@ -309,27 +332,46 @@ public class UserGeneRepositoryTest {
         Gene gene1 = entityManager.persist( createGene( 1, taxon ) );
         Gene gene2 = entityManager.persist( createGene( 2, taxon ) );
         Gene gene3 = entityManager.persist( createGene( 3, taxon ) );
+        user.setEnabled( true );
         user.getProfile().setPrivacyLevel( PrivacyLevelType.PRIVATE );
         user.getUserGenes().clear();
         user = entityManager.persistAndFlush( user );
         UserGene userGene = entityManager.persist( createUnpersistedUserGene( gene1, user, TierType.TIER1, PrivacyLevelType.PUBLIC ) );
         UserGene sharedUserGene = entityManager.persist( createUnpersistedUserGene( gene2, user, TierType.TIER1, PrivacyLevelType.SHARED ) );
         UserGene privateUserGene = entityManager.persist( createUnpersistedUserGene( gene3, user, TierType.TIER1, PrivacyLevelType.PRIVATE ) );
-        assertThat( userGeneRepository.findAllByPrivacyLevelAndUserProfilePrivacyLevel( PrivacyLevelType.PUBLIC, null ) ).isEmpty();
-        assertThat( userGeneRepository.findAllByPrivacyLevelAndUserProfilePrivacyLevel( PrivacyLevelType.SHARED, null ) ).isEmpty();
-        assertThat( userGeneRepository.findAllByPrivacyLevelAndUserProfilePrivacyLevel( PrivacyLevelType.PRIVATE, null ) )
+        assertThat( userGeneRepository.findByPrivacyLevelAndUserEnabledTrueAndUserProfilePrivacyLevel( PrivacyLevelType.PUBLIC, null ) ).isEmpty();
+        assertThat( userGeneRepository.findByPrivacyLevelAndUserEnabledTrueAndUserProfilePrivacyLevel( PrivacyLevelType.SHARED, null ) ).isEmpty();
+        assertThat( userGeneRepository.findByPrivacyLevelAndUserEnabledTrueAndUserProfilePrivacyLevel( PrivacyLevelType.PRIVATE, null ) )
                 .containsExactly( userGene, sharedUserGene, privateUserGene );
     }
 
     @Test
     public void findAllByPrivacyLevelAndUserProfilePrivacyLevel_whenGenePrivacyLevelIsNull_thenFallbackOnProfile() {
         Gene gene = entityManager.persist( createGene( 1, taxon ) );
+        user.setEnabled( true );
         user.getProfile().setPrivacyLevel( PrivacyLevelType.PUBLIC );
         user.getUserGenes().clear();
         user = entityManager.persistAndFlush( user );
         UserGene userGene = entityManager.persist( createUnpersistedUserGene( gene, user, TierType.TIER1, null ) );
-        assertThat( userGeneRepository.findAllByPrivacyLevelAndUserProfilePrivacyLevel( PrivacyLevelType.PUBLIC, null ) )
+        assertThat( userGeneRepository.findByPrivacyLevelAndUserEnabledTrueAndUserProfilePrivacyLevel( PrivacyLevelType.PUBLIC, null ) )
                 .containsExactly( userGene );
+    }
+
+    @Test
+    public void findByPrivacyLevelAndUserEnabledTrueAndUserProfilePrivacyLevel_whenUserIsNotEnabled_thenReturnNothing() {
+        Gene gene = entityManager.persist( createGene( 1, taxon ) );
+        user.getProfile().setPrivacyLevel( PrivacyLevelType.PUBLIC );
+        user.getUserGenes().clear();
+        user = entityManager.persistAndFlush( user );
+        UserGene userGene = entityManager.persist( createUnpersistedUserGene( gene, user, TierType.TIER1, PrivacyLevelType.PUBLIC ) );
+
+        // ensure that the gene would be public if it were not for the enabled status of the user
+        assertThat( user.isEnabled() ).isFalse();
+        assertThat( user.getEffectivePrivacyLevel() ).isEqualTo( PrivacyLevelType.PUBLIC );
+        assertThat( userGene.getEffectivePrivacyLevel() ).isEqualTo( PrivacyLevelType.PUBLIC );
+
+        assertThat( userGeneRepository.findByPrivacyLevelAndUserEnabledTrueAndUserProfilePrivacyLevel( PrivacyLevelType.PUBLIC, null ) )
+                .doesNotContain( userGene );
     }
 
     @Test

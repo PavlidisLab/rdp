@@ -47,6 +47,10 @@ public class User implements UserContent {
     public interface ValidationServiceAccount {
     }
 
+    public static Comparator<User> getComparator() {
+        return Comparator.comparing( u -> u.getProfile().getFullName() );
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "user_id")
@@ -162,10 +166,7 @@ public class User implements UserContent {
     public Set<Taxon> getTaxons() {
         return this.getUserGenes().values().stream()
                 .map( UserGene::getTaxon )
-                // taxon are ordered by the ordering field, however the ordering field is not set for remote users
-                // because it is ignored in JSON serialization
-                .sorted( Comparator.comparing( Taxon::getOrdering, Comparator.nullsLast( Comparator.naturalOrder() ) )
-                        .thenComparing( Taxon::getCommonName ) )
+                .sorted( Taxon.getComparator() )
                 .collect( Collectors.toCollection( LinkedHashSet::new ) );
     }
 

@@ -233,8 +233,9 @@ public class SearchViewController {
             return modelAndView;
         }
 
-        SortedMap<Taxon, Set<GeneInfo>> orthologMap = orthologs.stream()
-                .collect( Collectors.groupingBy( GeneInfo::getTaxon, TreeMap::new, Collectors.toSet() ) );
+        Map<Taxon, Set<GeneInfo>> orthologMap = orthologs.stream()
+                .sorted( Comparator.comparing( GeneInfo::getTaxon, Taxon.getComparator() ) )
+                .collect( Collectors.groupingBy( GeneInfo::getTaxon, LinkedHashMap::new, Collectors.toSet() ) );
 
         modelAndView.addObject( "orthologs", orthologMap );
 

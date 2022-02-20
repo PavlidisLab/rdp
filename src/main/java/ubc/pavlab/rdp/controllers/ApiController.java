@@ -28,7 +28,6 @@ import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.settings.SiteSettings;
 
 import javax.servlet.http.HttpServletRequest;
-import java.text.MessageFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -116,12 +115,12 @@ public class ApiController {
         checkAuth( authorizationHeader, auth );
         if ( applicationSettings.getPrivacy().isEnableAnonymizedSearchResults() ) {
             final Authentication auth2 = SecurityContextHolder.getContext().getAuthentication();
-            return userService.findAllByIsEnabledNoAuth( pageable )
+            return userService.findByEnabledTrueNoAuth( pageable )
                     .map( user -> permissionEvaluator.hasPermission( auth2, user, "read" ) ? user : userService.anonymizeUser( user ) )
                     .map( user -> initUser( user, locale ) );
 
         } else {
-            return userService.findAllByPrivacyLevel( PrivacyLevelType.PUBLIC, pageable ).map( user -> initUser( user, locale ) );
+            return userService.findByEnabledTrueAndPrivacyLevelNoAuth( PrivacyLevelType.PUBLIC, pageable ).map( user -> initUser( user, locale ) );
         }
     }
 
@@ -138,11 +137,11 @@ public class ApiController {
         checkAuth( authorizationHeader, auth );
         if ( applicationSettings.getPrivacy().isEnableAnonymizedSearchResults() ) {
             final Authentication auth2 = SecurityContextHolder.getContext().getAuthentication();
-            return userGeneService.findAllNoAuth( pageable )
+            return userGeneService.findByUserEnabledTrueNoAuth( pageable )
                     .map( userGene -> permissionEvaluator.hasPermission( auth2, userGene, "read" ) ? userGene : userService.anonymizeUserGene( userGene ) )
                     .map( userGene -> initUserGene( userGene, locale ) );
         } else {
-            return userGeneService.findAllByPrivacyLevel( PrivacyLevelType.PUBLIC, pageable ).map( userGene -> initUserGene( userGene, locale ) );
+            return userGeneService.findByUserEnabledTrueAndPrivacyLevelNoAuth( PrivacyLevelType.PUBLIC, pageable ).map( userGene -> initUserGene( userGene, locale ) );
         }
     }
 
@@ -197,13 +196,13 @@ public class ApiController {
         Taxon taxon = taxonService.findById( taxonId );
 
         if ( taxon == null ) {
-            return ResponseEntity.notFound().build();
+            throw new ApiException( HttpStatus.NOT_FOUND, String.format( locale, "Unknown taxon ID: %s.", taxonId ) );
         }
 
         GeneInfo gene = geneService.findBySymbolAndTaxon( symbol, taxon );
 
         if ( gene == null ) {
-            return ResponseEntity.notFound().build();
+            throw new ApiException( HttpStatus.NOT_FOUND, String.format( locale, "Unknown gene with symbol: %s.", symbol ) );
         }
 
         if ( tiers == null ) {
@@ -217,7 +216,7 @@ public class ApiController {
 
         // Check if there is an ortholog request for a different taxon than the original gene
         if ( orthologTaxon != null && !orthologTaxon.equals( gene.getTaxon() ) && orthologs.isEmpty() ) {
-            return new ResponseEntity<>( messageSource.getMessage( "ApiController.noOrthologsWithGivenParameters", null, locale ), null, HttpStatus.NOT_FOUND );
+            throw new ApiException( HttpStatus.NOT_FOUND, messageSource.getMessage( "ApiController.noOrthologsWithGivenParameters", null, locale ) );
         }
 
         return initUserGenes( userGeneService.handleGeneSearch( gene, restrictTiers( tiers ), orthologTaxon, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ) ), locale );
@@ -251,7 +250,7 @@ public class ApiController {
                 tiers = EnumSet.of( TierType.valueOf( tier ) );
             } catch ( IllegalArgumentException e ) {
                 log.error( "Could not parse tier type.", e );
-                return ResponseEntity.badRequest().body( MessageFormat.format( "Unknown tier {0}.", tier ) );
+                throw new ApiException( HttpStatus.BAD_REQUEST, String.format( locale, "Unknown tier: %s.", tier ), e );
             }
         }
 
@@ -267,7 +266,7 @@ public class ApiController {
         checkAuth( authorizationHeader, auth );
         User user = userService.findUserById( userId );
         if ( user == null ) {
-            return ResponseEntity.notFound().build();
+            throw new ApiException( HttpStatus.NOT_FOUND, String.format( locale, "Unknown user with ID: %d.", userId ) );
         }
         return initUser( user, locale );
     }
@@ -282,7 +281,7 @@ public class ApiController {
         checkAuth( authorizationHeader, auth );
         User user = userService.findUserByAnonymousIdNoAuth( anonymousId );
         if ( user == null ) {
-            return ResponseEntity.notFound().build();
+            throw new ApiException( HttpStatus.NOT_FOUND, String.format( "Unknown user with anonymous ID: %s.", anonymousId ) );
         }
         if ( permissionEvaluator.hasPermission( SecurityContextHolder.getContext().getAuthentication(), user, "read" ) ) {
             return initUser( user, locale );

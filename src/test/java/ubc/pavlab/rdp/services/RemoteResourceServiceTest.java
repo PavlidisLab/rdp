@@ -32,7 +32,7 @@ import java.util.EnumSet;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
 import static ubc.pavlab.rdp.util.TestUtils.*;
@@ -176,6 +176,21 @@ public class RemoteResourceServiceTest {
         Taxon taxon = createTaxon( 9606 );
         remoteResourceService.findGenesBySymbol( "ok", taxon, EnumSet.of( TierType.TIER1, TierType.TIER2, TierType.TIER3 ), null, null, null, null );
         mockServer.verify();
+    }
+
+    @Test
+    public void findGenesBySymbol_whenRequestTimeoutIsSet_thenSucceed() throws JsonProcessingException {
+        when( iSearchSettings.getRequestTimeout() ).thenReturn( 3 );
+        MockRestServiceServer mockServer = MockRestServiceServer.createServer( asyncRestTemplate );
+        mockServer.expect( requestTo( "http://example.com/api/genes/search?symbol=ok&taxonId=9606&tier=TIER1" ) )
+                .andRespond( withStatus( HttpStatus.OK )
+                        .contentType( MediaType.APPLICATION_JSON )
+                        .body( objectMapper.writeValueAsString( new UserGene[]{} ) ) );
+        Taxon taxon = createTaxon( 9606 );
+        remoteResourceService.findGenesBySymbol( "ok", taxon, EnumSet.of( TierType.TIER1 ), null, null, null, null );
+        mockServer.verify();
+        // TODO: this test case does not actually check if Future.get() is invoked with a timeout, but I haven't found a
+        // good way to do that insofar
     }
 
     @Test
