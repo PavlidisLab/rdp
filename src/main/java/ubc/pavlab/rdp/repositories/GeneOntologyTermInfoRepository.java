@@ -12,9 +12,9 @@ import java.util.*;
 @Repository
 public class GeneOntologyTermInfoRepository implements CrudRepository<GeneOntologyTermInfo, String> {
 
-    private Map<String, GeneOntologyTermInfo> terms = new HashMap<>();
+    private final Map<String, GeneOntologyTermInfo> terms = new HashMap<>();
 
-    private MultiValueMap<Integer, GeneOntologyTermInfo> geneIdsToTerms = new LinkedMultiValueMap<>();
+    private final MultiValueMap<Integer, GeneOntologyTermInfo> geneIdsToTerms = new LinkedMultiValueMap<>();
 
     @Override
     public <S extends GeneOntologyTermInfo> S save( S term ) {
@@ -23,11 +23,11 @@ public class GeneOntologyTermInfoRepository implements CrudRepository<GeneOntolo
 
     @Override
     public <S extends GeneOntologyTermInfo> Iterable<S> save( Iterable<S> iterable ) {
-        List<GeneOntologyTermInfo> savedTerms = new ArrayList<>();
-        for ( GeneOntologyTermInfo term : iterable ) {
+        List<S> savedTerms = new ArrayList<>();
+        for ( S term : iterable ) {
             savedTerms.add( save( term ) );
         }
-        return (Iterable<S>) savedTerms;
+        return savedTerms;
     }
 
     public <S extends GeneOntologyTermInfo> S saveAlias( String alias, S term ) {
@@ -38,12 +38,12 @@ public class GeneOntologyTermInfoRepository implements CrudRepository<GeneOntolo
         return term;
     }
 
-    public <S extends GeneOntologyTermInfo> Iterable<S> saveAlias( Map<String, GeneOntologyTermInfo> terms ) {
-        List<GeneOntologyTermInfo> savedTerms = new ArrayList<>( terms.size() );
-        for ( Map.Entry<String, GeneOntologyTermInfo> entry : terms.entrySet() ) {
+    public <S extends GeneOntologyTermInfo> Iterable<S> saveAlias( Map<String, S> terms ) {
+        List<S> savedTerms = new ArrayList<>( terms.size() );
+        for ( Map.Entry<String, S> entry : terms.entrySet() ) {
             savedTerms.add( saveAlias( entry.getKey(), entry.getValue() ) );
         }
-        return (Iterable<S>) savedTerms;
+        return savedTerms;
     }
 
     @Override
@@ -70,6 +70,7 @@ public class GeneOntologyTermInfoRepository implements CrudRepository<GeneOntolo
         return results;
     }
 
+    @SuppressWarnings("SpringDataMethodInconsistencyInspection")
     public Collection<GeneOntologyTermInfo> findAllByGene( Gene gene ) {
         return geneIdsToTerms.getOrDefault( gene.getGeneId(), Collections.emptyList() );
     }
