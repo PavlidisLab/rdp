@@ -25,7 +25,6 @@ import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 import java.util.zip.GZIPInputStream;
 
 import static java.util.function.Function.identity;
@@ -404,18 +403,25 @@ public class GOServiceImpl implements GOService {
         Cache ancestorsCache = cacheManager.getCache( ANCESTORS_CACHE_NAME );
         Cache descendantsCache = cacheManager.getCache( DESCENDANTS_CACHE_NAME );
 
+        Set<GeneOntologyTermInfo> termsToEvict = new HashSet<>();
+        for ( GeneOntologyTermInfo term : terms ) {
+            termsToEvict.add( term );
+        }
+
+        log.info( String.format( "Evicting %d terms from the GO ancestors and descendants caches.", termsToEvict.size() ) );
+
         // first, let's retrieve what we already have in the cache
-        Collection<GeneOntologyTermInfo> ancestors = StreamSupport.stream( terms.spliterator(), false )
+        Collection<GeneOntologyTermInfo> ancestors = termsToEvict.stream()
                 .map( this::getAncestors )
                 .flatMap( Collection::stream )
                 .collect( Collectors.toSet() );
-        Collection<GeneOntologyTermInfo> descendants = StreamSupport.stream( terms.spliterator(), false )
+        Collection<GeneOntologyTermInfo> descendants = termsToEvict.stream()
                 .map( this::getDescendants )
                 .flatMap( Collection::stream )
                 .collect( Collectors.toSet() );
 
         // evict the terms from both caches
-        for ( GeneOntologyTermInfo term : terms ) {
+        for ( GeneOntologyTermInfo term : termsToEvict ) {
             ancestorsCache.evict( term );
             descendantsCache.evict( term );
         }
@@ -432,7 +438,7 @@ public class GOServiceImpl implements GOService {
     }
 
     private void evictAll() {
-        log.info( "Clearing ancestor and descendants cache as it is no longer fresh." );
+        log.info( "Evicting all the terms from ancestors and descendants caches." );
         cacheManager.getCache( ANCESTORS_CACHE_NAME ).clear();
         cacheManager.getCache( DESCENDANTS_CACHE_NAME ).clear();
     }
