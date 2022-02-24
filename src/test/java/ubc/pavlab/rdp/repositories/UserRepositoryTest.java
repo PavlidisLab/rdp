@@ -285,7 +285,7 @@ public class UserRepositoryTest {
 
         // when
         String search = "xyz";
-        Collection<User> found = userRepository.findByProfileDescriptionContainingIgnoreCaseOrTaxonDescriptionsContainingIgnoreCase( search, search );
+        Collection<User> found = userRepository.findDistinctByProfileDescriptionContainingIgnoreCaseOrTaxonDescriptionsContainingIgnoreCase( search, search );
 
         // then
         assertThat( found ).isEmpty();
@@ -304,7 +304,7 @@ public class UserRepositoryTest {
 
         // when
         String search = "Description";
-        Collection<User> found = userRepository.findByProfileDescriptionContainingIgnoreCaseOrTaxonDescriptionsContainingIgnoreCase( search, search );
+        Collection<User> found = userRepository.findDistinctByProfileDescriptionContainingIgnoreCaseOrTaxonDescriptionsContainingIgnoreCase( search, search );
 
         // then
         assertThat( found ).hasSize( 1 );
@@ -322,7 +322,7 @@ public class UserRepositoryTest {
 
         // when
         String search = user.getProfile().getDescription().toUpperCase();
-        Collection<User> found = userRepository.findByProfileDescriptionContainingIgnoreCaseOrTaxonDescriptionsContainingIgnoreCase( search, search );
+        Collection<User> found = userRepository.findDistinctByProfileDescriptionContainingIgnoreCaseOrTaxonDescriptionsContainingIgnoreCase( search, search );
 
         // then
         assertThat( found ).hasSize( 1 );
@@ -340,7 +340,7 @@ public class UserRepositoryTest {
 
         // when
         String search = user.getProfile().getDescription().substring( 0, 3 );
-        Collection<User> found = userRepository.findByProfileDescriptionContainingIgnoreCaseOrTaxonDescriptionsContainingIgnoreCase( search, search );
+        Collection<User> found = userRepository.findDistinctByProfileDescriptionContainingIgnoreCaseOrTaxonDescriptionsContainingIgnoreCase( search, search );
 
         // then
         assertThat( found ).hasSize( 1 );
@@ -358,7 +358,7 @@ public class UserRepositoryTest {
 
         // when
         String search = user.getProfile().getDescription().substring( 3 );
-        Collection<User> found = userRepository.findByProfileDescriptionContainingIgnoreCaseOrTaxonDescriptionsContainingIgnoreCase( search, search );
+        Collection<User> found = userRepository.findDistinctByProfileDescriptionContainingIgnoreCaseOrTaxonDescriptionsContainingIgnoreCase( search, search );
 
         // then
         assertThat( found ).hasSize( 1 );
@@ -376,7 +376,7 @@ public class UserRepositoryTest {
 
         // when
         String search = user.getProfile().getDescription().substring( 1, 3 );
-        Collection<User> found = userRepository.findByProfileDescriptionContainingIgnoreCaseOrTaxonDescriptionsContainingIgnoreCase( search, search );
+        Collection<User> found = userRepository.findDistinctByProfileDescriptionContainingIgnoreCaseOrTaxonDescriptionsContainingIgnoreCase( search, search );
 
         // then
         assertThat( found ).hasSize( 1 );
@@ -395,7 +395,7 @@ public class UserRepositoryTest {
 
         // when
         String search = user.getTaxonDescriptions().get( taxon ).substring( 0, 3 );
-        Collection<User> found = userRepository.findByProfileDescriptionContainingIgnoreCaseOrTaxonDescriptionsContainingIgnoreCase( search, search );
+        Collection<User> found = userRepository.findDistinctByProfileDescriptionContainingIgnoreCaseOrTaxonDescriptionsContainingIgnoreCase( search, search );
 
         // then
         assertThat( found ).hasSize( 1 );
@@ -414,7 +414,7 @@ public class UserRepositoryTest {
 
         // when
         String search = user.getTaxonDescriptions().get( taxon ).substring( 3 );
-        Collection<User> found = userRepository.findByProfileDescriptionContainingIgnoreCaseOrTaxonDescriptionsContainingIgnoreCase( search, search );
+        Collection<User> found = userRepository.findDistinctByProfileDescriptionContainingIgnoreCaseOrTaxonDescriptionsContainingIgnoreCase( search, search );
 
         // then
         assertThat( found ).hasSize( 1 );
@@ -433,7 +433,7 @@ public class UserRepositoryTest {
 
         // when
         String search = user.getTaxonDescriptions().get( taxon ).substring( 1, 3 );
-        Collection<User> found = userRepository.findByProfileDescriptionContainingIgnoreCaseOrTaxonDescriptionsContainingIgnoreCase( search, search );
+        Collection<User> found = userRepository.findDistinctByProfileDescriptionContainingIgnoreCaseOrTaxonDescriptionsContainingIgnoreCase( search, search );
 
         // then
         assertThat( found ).hasSize( 1 );
@@ -454,11 +454,35 @@ public class UserRepositoryTest {
 
         // when
         String search = user.getProfile().getDescription();
-        Collection<User> found = userRepository.findByProfileDescriptionContainingIgnoreCaseOrTaxonDescriptionsContainingIgnoreCase( search, search );
+        Collection<User> found = userRepository.findDistinctByProfileDescriptionContainingIgnoreCaseOrTaxonDescriptionsContainingIgnoreCase( search, search );
 
         // then
         assertThat( found ).hasSize( 2 );
         assertThat( found ).containsExactly( user, user2 );
+    }
+
+    @Test
+    public void findByDescriptionLike_whenMultipleMatchInMultipleTaxa_thenReturnSingleUser() {
+        // given
+        User user = createUnpersistedUser();
+        user.getProfile().setDescription( "Test Description" );
+
+        Taxon taxon = entityManager.persist( createTaxon( 1 ) );
+        user.getTaxonDescriptions().put( taxon, "Taxon Description" );
+
+        Taxon taxon2 = entityManager.persist( createTaxon( 2 ) );
+        user.getTaxonDescriptions().put( taxon2, "Taxon Description" );
+
+        entityManager.persist( user );
+        entityManager.flush();
+
+        // when
+        String search = "Description";
+        Collection<User> found = userRepository.findDistinctByProfileDescriptionContainingIgnoreCaseOrTaxonDescriptionsContainingIgnoreCase( search, search );
+
+        // then
+        assertThat( found ).hasSize( 1 );
+        assertThat( found.iterator().next() ).isEqualTo( user );
     }
 
     @Test

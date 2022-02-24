@@ -22,7 +22,6 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     @Query("select user from User user left join fetch user.userTerms")
     Collection<User> findAllWithUserTerms();
 
-    @SuppressWarnings("SpringCacheAnnotationsOnInterfaceInspection")
     @Override
     long count();
 
@@ -49,8 +48,7 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     Collection<User> findByProfileNameContainingIgnoreCaseOrProfileLastNameContainingIgnoreCase( String nameLike,
                                                                                                  String lastNameLike );
 
-    @SuppressWarnings("SpringDataRepositoryMethodParametersInspection")
     @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
-    Collection<User> findByProfileDescriptionContainingIgnoreCaseOrTaxonDescriptionsContainingIgnoreCase(
+    Collection<User> findDistinctByProfileDescriptionContainingIgnoreCaseOrTaxonDescriptionsContainingIgnoreCase(
             String descriptionLike, String taxonDescriptionLike );
 }
