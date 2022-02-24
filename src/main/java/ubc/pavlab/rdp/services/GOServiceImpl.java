@@ -350,7 +350,7 @@ public class GOServiceImpl implements GOService {
 
     @Override
     public Collection<GeneOntologyTermInfo> getTermsForGene( Gene gene ) {
-        return goRepository.findAllByGene( gene );
+        return goRepository.findByDirectGeneIdsContaining( gene.getGeneId() );
     }
 
     @Override
@@ -358,7 +358,7 @@ public class GOServiceImpl implements GOService {
 
         Collection<GeneOntologyTermInfo> allGOTermSet = new HashSet<>();
 
-        for ( GeneOntologyTermInfo term : goRepository.findAllByGene( gene ) ) {
+        for ( GeneOntologyTermInfo term : goRepository.findByDirectGeneIdsContaining( gene.getGeneId() ) ) {
             allGOTermSet.add( term );
 
             if ( propagateUpwards ) {

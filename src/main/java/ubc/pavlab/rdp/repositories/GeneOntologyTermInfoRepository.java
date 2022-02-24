@@ -4,11 +4,19 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import ubc.pavlab.rdp.model.Gene;
 import ubc.pavlab.rdp.model.GeneOntologyTermInfo;
 
 import java.util.*;
 
+/**
+ * Repository of gene ontology terms and gene-to-term relationships.
+ * <p>
+ * Note: this repository does not support {@link org.springframework.transaction.annotation.Transactional} operations,
+ * nor should be considered thread-safe. We highly recommend initializing it once and updating it periodically from a
+ * single thread.
+ *
+ * @author poirigui
+ */
 @Repository
 public class GeneOntologyTermInfoRepository implements CrudRepository<GeneOntologyTermInfo, String> {
 
@@ -70,9 +78,8 @@ public class GeneOntologyTermInfoRepository implements CrudRepository<GeneOntolo
         return results;
     }
 
-    @SuppressWarnings("SpringDataMethodInconsistencyInspection")
-    public Collection<GeneOntologyTermInfo> findAllByGene( Gene gene ) {
-        return geneIdsToTerms.getOrDefault( gene.getGeneId(), Collections.emptyList() );
+    public Collection<GeneOntologyTermInfo> findByDirectGeneIdsContaining( Integer geneId ) {
+        return geneIdsToTerms.getOrDefault( geneId, Collections.emptyList() );
     }
 
     @Override
