@@ -13,12 +13,10 @@ import java.util.Optional;
  * Created by mjacobson on 19/01/18.
  */
 @Entity
-@Table(name = "password_reset_token",
-        uniqueConstraints = { @UniqueConstraint(columnNames = { "token" }) })
+@Table(name = "password_reset_token")
 @Getter
 @Setter
 @NoArgsConstructor
-@EqualsAndHashCode(of = { "user" }, callSuper = true)
 @ToString(of = { "user" }, callSuper = true)
 public class PasswordResetToken extends Token implements UserContent {
 

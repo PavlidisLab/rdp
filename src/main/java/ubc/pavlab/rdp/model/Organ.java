@@ -4,6 +4,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.annotations.NaturalId;
 
 import javax.persistence.Column;
 import javax.persistence.MappedSuperclass;
@@ -15,6 +16,7 @@ import javax.persistence.MappedSuperclass;
 @ToString(of = { "uberonId" })
 public abstract class Organ {
 
+    @NaturalId
     @Column(name = "uberon_id", length = 14)
     private String uberonId;
 

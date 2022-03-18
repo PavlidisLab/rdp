@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.NaturalId;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 
 import javax.persistence.*;
@@ -29,6 +30,7 @@ public class UserOrgan extends Organ implements UserContent {
     @JsonIgnore
     private Integer id;
 
+    @NaturalId // alongside uberonId defiend in the parent class
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     @JsonIgnore

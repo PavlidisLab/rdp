@@ -2,6 +2,7 @@ package ubc.pavlab.rdp.model;
 
 import lombok.*;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.annotations.NaturalId;
 
 import javax.persistence.*;
 
@@ -24,6 +25,7 @@ public class Publication {
     @Column(name = "publication_id")
     private Integer id;
 
+    @NaturalId
     @Column(name = "pmid")
     private int pmid;
 

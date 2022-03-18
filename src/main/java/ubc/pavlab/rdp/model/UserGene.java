@@ -5,6 +5,7 @@ import lombok.*;
 import lombok.extern.apachecommons.CommonsLog;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.NaturalId;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.TierType;
 
@@ -52,8 +53,8 @@ public class UserGene extends Gene implements UserContent {
      */
     public static Comparator<UserGene> getComparator() {
         return Comparator.comparing( UserGene::getTaxon, Taxon.getComparator() )
-                        .thenComparing( UserGene::getTier )
-                        .thenComparing( UserGene::getUser, User.getComparator() );
+                .thenComparing( UserGene::getTier )
+                .thenComparing( UserGene::getUser, User.getComparator() );
     }
 
     @Id
@@ -69,6 +70,7 @@ public class UserGene extends Gene implements UserContent {
     @Column(length = 5)
     private TierType tier;
 
+    @NaturalId // alongside geneId defined in the parent class
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     @JsonIgnore

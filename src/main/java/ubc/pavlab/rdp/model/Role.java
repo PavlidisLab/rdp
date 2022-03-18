@@ -3,6 +3,7 @@ package ubc.pavlab.rdp.model;
 import lombok.*;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.Immutable;
+import org.hibernate.annotations.NaturalId;
 
 import javax.persistence.*;
 
@@ -17,7 +18,7 @@ import javax.persistence.*;
 @Getter
 @Setter
 @NoArgsConstructor
-@EqualsAndHashCode(of = { "id" })
+@EqualsAndHashCode(of = { "role" })
 @ToString
 public class Role {
 
@@ -26,6 +27,7 @@ public class Role {
     @Column(name = "role_id")
     private Integer id;
 
-    @Column(name = "role")
+    @NaturalId
+    @Column(name = "role", unique = true)
     private String role;
 }

@@ -348,14 +348,18 @@ public class UserServiceImplTest {
     @Test
     public void findCurrentUser_returnCurrentUser() {
         User user = createUser( 1 );
+        when( userRepository.findOneWithRoles( 1 ) ).thenReturn( user );
         becomeUser( user );
         assertThat( userService.findCurrentUser() ).isEqualTo( user );
+        verify( userRepository ).findOneWithRoles( 1 );
     }
 
     @Test
     public void findUserById_whenValidId_thenReturnUser() {
         User user = createUser( 1 );
+        when( userRepository.findOne( 1 ) ).thenReturn( user );
         assertThat( userService.findUserById( user.getId() ) ).isEqualTo( user );
+        verify( userRepository ).findOne( 1 );
     }
 
     @Test
@@ -366,7 +370,9 @@ public class UserServiceImplTest {
     @Test
     public void findUserByIdNoAuth_whenValidId_thenReturnUser() {
         User user = createUser( 1 );
+        when( userRepository.findOneWithRoles( 1 ) ).thenReturn( user );
         assertThat( userService.findUserByIdNoAuth( user.getId() ) ).isEqualTo( user );
+        verify( userRepository ).findOneWithRoles( 1 );
     }
 
     @Test

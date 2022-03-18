@@ -4,6 +4,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.annotations.NaturalId;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -19,6 +20,7 @@ import java.util.Date;
 @ToString(of = { "geneId", "symbol", "taxon" })
 public abstract class Gene implements Serializable {
 
+    @NaturalId
     @Column(name = "gene_id")
     private int geneId;
 
