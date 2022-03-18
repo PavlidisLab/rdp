@@ -42,6 +42,7 @@ public class Profile {
         }
     }
 
+    @Lob
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 

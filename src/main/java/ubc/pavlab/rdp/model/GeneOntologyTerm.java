@@ -24,9 +24,11 @@ public abstract class GeneOntologyTerm {
     @Column(name = "go_id", length = 10)
     private String goId;
 
+    @Lob
     @Column(name = "name", columnDefinition = "TEXT")
     private String name;
 
+    @Lob
     @Column(name = "definition", columnDefinition = "TEXT")
     private String definition;
 

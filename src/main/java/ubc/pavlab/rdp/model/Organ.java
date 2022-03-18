@@ -7,6 +7,7 @@ import lombok.ToString;
 import org.hibernate.annotations.NaturalId;
 
 import javax.persistence.Column;
+import javax.persistence.Lob;
 import javax.persistence.MappedSuperclass;
 
 @MappedSuperclass
@@ -20,9 +21,11 @@ public abstract class Organ {
     @Column(name = "uberon_id", length = 14)
     private String uberonId;
 
+    @Lob
     @Column(columnDefinition = "TEXT")
     private String name;
 
+    @Lob
     @Column(columnDefinition = "TEXT")
     private String description;
 }
