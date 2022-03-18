@@ -29,9 +29,11 @@ public abstract class Gene implements Serializable {
     @Column(name = "symbol", length = 63)
     private String symbol;
 
+    @Lob
     @Column(name = "description", columnDefinition = "TEXT")
     private String name;
 
+    @Lob
     @Column(name = "synonyms", columnDefinition = "TEXT")
     private String aliases;
 

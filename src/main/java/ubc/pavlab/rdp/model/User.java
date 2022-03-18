@@ -118,6 +118,7 @@ public class User implements UserContent {
     /* Research related information */
 
     // @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+    @Lob
     @ElementCollection
     @CollectionTable(name = "descriptions", joinColumns = @JoinColumn(name = "user_id"))
     @MapKeyJoinColumn(name = "taxon_id")
