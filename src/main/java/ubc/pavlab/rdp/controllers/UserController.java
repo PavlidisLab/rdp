@@ -3,7 +3,6 @@ package ubc.pavlab.rdp.controllers;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.apachecommons.CommonsLog;
-import org.hibernate.validator.constraints.NotEmpty;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
@@ -28,6 +27,8 @@ import ubc.pavlab.rdp.settings.ApplicationSettings;
 import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import java.text.MessageFormat;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -180,7 +181,8 @@ public class UserController {
     @EqualsAndHashCode(callSuper = true)
     public static class PasswordChange extends PasswordReset {
 
-        @NotEmpty(message = "Current password cannot be empty.")
+        @NotNull(message = "Current password cannot be empty.")
+        @Size(min = 1, message = "Current password cannot be empty.")
         private String oldPassword;
     }
 
