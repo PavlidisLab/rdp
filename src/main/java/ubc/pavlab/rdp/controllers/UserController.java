@@ -3,17 +3,19 @@ package ubc.pavlab.rdp.controllers;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.apachecommons.CommonsLog;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.InvalidMediaTypeException;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Controller;
-import org.springframework.validation.BindingResult;
-import org.springframework.validation.FieldError;
+import org.springframework.validation.*;
+import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
@@ -26,8 +28,9 @@ import ubc.pavlab.rdp.services.*;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 
 import javax.mail.MessagingException;
-import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import java.text.MessageFormat;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -143,33 +146,101 @@ public class UserController {
     }
 
     @GetMapping(value = { "/user/support" })
-    public ModelAndView support() {
+    public ModelAndView support( SupportForm supportForm ) {
         ModelAndView modelAndView = new ModelAndView( "user/support" );
         User user = userService.findCurrentUser();
+        supportForm.setName( user.getProfile().getFullName() );
         modelAndView.addObject( "user", user );
+        modelAndView.addObject( "supportForm", supportForm );
         return modelAndView;
     }
 
+    @Data
+    private static class SupportForm {
+        @NotNull
+        @Size(min = 1, message = "Your must provide your name.")
+        private String name;
+        @NotNull
+        @Size(min = 1, message = "The message must not be empty.")
+        private String message;
+        private MultipartFile attachment;
+    }
+
+    private static class SupportFormValidator implements Validator {
+
+        /**
+         * List of accepted media types as attachment for the support form.
+         */
+        private static final MediaType[] ACCEPTED_MEDIA_TYPES = { MediaType.TEXT_PLAIN, MediaType.IMAGE_JPEG, MediaType.IMAGE_PNG };
+
+        private final String ACCEPTED_MEDIA_TYPES_ERROR_MESSAGE =
+                Arrays.stream( ACCEPTED_MEDIA_TYPES )
+                        .map( MediaType::toString )
+                        .collect( Collectors.joining( ", " ) );
+
+        @Override
+        public boolean supports( Class<?> clazz ) {
+            return SupportForm.class.isAssignableFrom( clazz );
+        }
+
+        @Override
+        public void validate( Object target, Errors errors ) {
+            SupportForm supportForm = (SupportForm) target;
+            MultipartFile multipartFile = supportForm.getAttachment();
+            if ( multipartFile == null || multipartFile.isEmpty() )
+                return;
+            if ( StringUtils.isBlank( multipartFile.getOriginalFilename() ) ) {
+                errors.rejectValue( "attachment", "UserController.SupportFormValidator.attachment.missingFilename" );
+            }
+            if ( multipartFile.getContentType() == null ) {
+                errors.rejectValue( "attachment", "UserController.SupportFormValidator.attachment.missingMediaType",
+                        new String[]{ ACCEPTED_MEDIA_TYPES_ERROR_MESSAGE }, null );
+            }
+            try {
+                MediaType contentType = MediaType.parseMediaType( multipartFile.getContentType() );
+                if ( Arrays.stream( ACCEPTED_MEDIA_TYPES ).noneMatch( mediaType -> mediaType.includes( contentType ) ) ) {
+                    errors.rejectValue( "attachment", "UserController.SupportFormValidator.attachment.unsupportedMediaType",
+                            new String[]{ multipartFile.getContentType(), ACCEPTED_MEDIA_TYPES_ERROR_MESSAGE }, null );
+                }
+            } catch ( InvalidMediaTypeException e ) {
+                errors.rejectValue( "attachment", "UserController.SupportFormValidator.attachment.invalidMediaType",
+                        new String[]{ multipartFile.getContentType(), ACCEPTED_MEDIA_TYPES_ERROR_MESSAGE }, null );
+            }
+        }
+    }
+
+    @InitBinder("supportForm")
+    public void initBinder( WebDataBinder webDataBinder ) {
+        webDataBinder.addValidators( new SupportFormValidator() );
+    }
+
     @PostMapping(value = { "/user/support" })
-    public ModelAndView supportPost( HttpServletRequest request,
-                                     @RequestParam String name,
-                                     @RequestParam String message,
-                                     @RequestParam(required = false) MultipartFile attachment,
-                                     Locale locale ) {
+    public ModelAndView supportPost( @RequestHeader(value = "User-Agent", required = false) String userAgent, @Valid @ModelAttribute("supportForm") SupportForm supportForm, BindingResult bindingResult, Locale locale ) {
         ModelAndView modelAndView = new ModelAndView( "user/support" );
         User user = userService.findCurrentUser();
         modelAndView.addObject( "user", user );
+
+        // ignore empty attachment
+        if ( supportForm.getAttachment().isEmpty() ) {
+            supportForm.setAttachment( null );
+        }
+
+        if ( bindingResult.hasErrors() ) {
+            modelAndView.setStatus( HttpStatus.BAD_REQUEST );
+            modelAndView.addObject( "success", Boolean.FALSE );
+            return modelAndView;
+        }
 
         log.info( MessageFormat.format( "{0} is attempting to contact support.", user ) );
 
         try {
-            emailService.sendSupportMessage( message, name, user, request.getHeader( "User-Agent" ), attachment, locale );
+            emailService.sendSupportMessage( supportForm.getMessage(), supportForm.getName(), user, userAgent, supportForm.getAttachment(), locale );
             modelAndView.addObject( "message", "Sent. We will get back to you shortly." );
             modelAndView.addObject( "success", Boolean.TRUE );
         } catch ( MessagingException e ) {
             log.error( MessageFormat.format( "Could not send support message to {0}.", user ), e );
-            modelAndView
-                    .addObject( "message", "There was a problem sending the support request. Please try again later." );
+            modelAndView.setStatus( HttpStatus.INTERNAL_SERVER_ERROR );
+            modelAndView.addObject( "message", "There was a problem sending the support request. Please try again later." );
             modelAndView.addObject( "success", Boolean.FALSE );
         }
 
