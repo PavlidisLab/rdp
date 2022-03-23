@@ -221,7 +221,7 @@ public class UserController {
         modelAndView.addObject( "user", user );
 
         // ignore empty attachment
-        if ( supportForm.getAttachment().isEmpty() ) {
+        if ( supportForm.getAttachment() == null || supportForm.getAttachment().isEmpty() ) {
             supportForm.setAttachment( null );
         }
 
