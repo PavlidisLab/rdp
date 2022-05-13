@@ -14,6 +14,7 @@ import ubc.pavlab.rdp.repositories.GeneInfoRepository;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.util.*;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.MessageFormat;
@@ -137,6 +138,8 @@ public class GeneInfoServiceImpl implements GeneInfoService {
                         } ).collect( Collectors.toSet() );
                 geneInfoRepository.save( geneData );
                 log.info( MessageFormat.format( "Done updating genes for {0}.", taxon ) );
+            } catch ( FileNotFoundException e ) {
+                log.warn( String.format( "Could not locate a gene info file for %s: %s.", taxon, e.getMessage() ) );
             } catch ( ParseException | IOException e ) {
                 log.error( MessageFormat.format( "Issue loading genes for {0}.", taxon ), e );
             }
