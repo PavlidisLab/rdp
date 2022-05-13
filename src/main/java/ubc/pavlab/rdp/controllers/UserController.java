@@ -1,8 +1,8 @@
 package ubc.pavlab.rdp.controllers;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.*;
 import lombok.extern.apachecommons.CommonsLog;
+import lombok.extern.jackson.Jacksonized;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
@@ -28,6 +28,7 @@ import ubc.pavlab.rdp.settings.ApplicationSettings;
 import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import java.text.MessageFormat;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -251,10 +252,35 @@ public class UserController {
     }
 
     @Data
-    static class ProfileWithOrganUberonIds {
+    @Builder
+    @Jacksonized
+    static class ProfileWithOrganUberonIdsAndOntologyTerms {
+        /**
+         * Profile
+         */
         @Valid
         private final Profile profile;
+
+        /**
+         * Uberon IDs for organ systems.
+         */
         private final Set<String> organUberonIds;
+
+        /**
+         * Ontology terms.
+         */
+        @Valid
+        private final Set<OntologyTermModel> ontologyTerms;
+    }
+
+    @Data
+    @Builder
+    @Jacksonized
+    static class OntologyTermModel {
+        @NotNull
+        private final String id;
+        @NotNull
+        private final String ontologyId;
     }
 
     @Data
@@ -285,14 +311,14 @@ public class UserController {
 
     @ResponseBody
     @PostMapping(value = "/user/profile", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> saveProfile( @Valid @RequestBody ProfileWithOrganUberonIds profileWithOrganUberonIds, BindingResult bindingResult, Locale locale ) {
+    public ResponseEntity<?> saveProfile( @Valid @RequestBody ProfileWithOrganUberonIdsAndOntologyTerms profileWithOrganUberonIdsAndOntologyTerms, BindingResult bindingResult, Locale locale ) {
         User user = userService.findCurrentUser();
         if ( bindingResult.hasErrors() ) {
             return ResponseEntity.badRequest()
                     .body( BindingResultModel.fromBindingResult( bindingResult ) );
         } else {
             String previousContactEmail = user.getProfile().getContactEmail();
-            user = userService.updateUserProfileAndPublicationsAndOrgans( user, profileWithOrganUberonIds.profile, profileWithOrganUberonIds.profile.getPublications(), profileWithOrganUberonIds.organUberonIds, locale );
+            user = userService.updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( user, profileWithOrganUberonIdsAndOntologyTerms.profile, profileWithOrganUberonIdsAndOntologyTerms.profile.getPublications(), profileWithOrganUberonIdsAndOntologyTerms.organUberonIds, null, locale );
             String message = messageSource.getMessage( "UserController.profileSaved", new Object[]{ user.getProfile().getContactEmail() }, locale );
             if ( user.getProfile().getContactEmail() != null &&
                     !user.getProfile().getContactEmail().equals( previousContactEmail ) &&

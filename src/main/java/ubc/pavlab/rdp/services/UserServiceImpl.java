@@ -21,6 +21,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 import ubc.pavlab.rdp.events.OnContactEmailUpdateEvent;
 import ubc.pavlab.rdp.events.OnRegistrationCompleteEvent;
 import ubc.pavlab.rdp.events.OnRequestAccessEvent;
@@ -31,9 +32,12 @@ import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.ResearcherCategory;
 import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import ubc.pavlab.rdp.model.enums.TierType;
+import ubc.pavlab.rdp.model.ontology.OntologyTermInfo;
+import ubc.pavlab.rdp.model.ontology.UserOntologyTerm;
 import ubc.pavlab.rdp.repositories.*;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 
+import javax.annotation.Nullable;
 import javax.validation.ValidationException;
 import java.security.SecureRandom;
 import java.text.MessageFormat;
@@ -86,6 +90,8 @@ public class UserServiceImpl implements UserService {
     private SecureRandom secureRandom;
     @Autowired
     private PermissionEvaluator permissionEvaluator;
+    @Autowired
+    private OntologyService ontologyService;
 
     @Transactional
     @Override
@@ -548,7 +554,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     @Override
     @PreAuthorize("hasPermission(#user, 'update')")
-    public User updateUserProfileAndPublicationsAndOrgans( User user, Profile profile, Set<Publication> publications, Set<String> organUberonIds, Locale locale ) {
+    public User updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( User user, Profile profile, Set<Publication> publications, Set<String> organUberonIds, @Nullable Map<String, List<String>> termIdsByOntologyId, Locale locale ) {
         user.getProfile().setDepartment( profile.getDepartment() );
         user.getProfile().setDescription( profile.getDescription() );
         user.getProfile().setLastName( profile.getLastName() );
@@ -628,6 +634,23 @@ public class UserServiceImpl implements UserService {
                     .collect( Collectors.toMap( Organ::getUberonId, identity() ) );
             user.getUserOrgans().clear();
             user.getUserOrgans().putAll( userOrgans );
+        }
+
+        if ( termIdsByOntologyId != null ) {
+            Set<UserOntologyTerm> userOntologyTerms = new HashSet<>();
+            for ( Map.Entry<String, List<String>> entry : termIdsByOntologyId.entrySet() ) {
+                for ( String termId : entry.getValue() ) {
+                    OntologyTermInfo termInfo = ontologyService.findTermInfoById( termId );
+                    if ( termInfo == null ) {
+                        log.warn( String.format( "Unknown term %s in ontology %s.", termId, entry.getKey() ) );
+                        continue;
+                    }
+                    // FIXME: reuse if already exist?
+                    userOntologyTerms.add( UserOntologyTerm.fromOntologyTermInfo( user, termInfo ) );
+                }
+            }
+            user.getUserOntologyTerms().clear();
+            user.getUserOntologyTerms().addAll( userOntologyTerms );
         }
 
         return update( user );

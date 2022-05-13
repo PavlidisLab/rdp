@@ -135,7 +135,7 @@ public interface UserService {
                                      Map<GeneInfo, PrivacyLevelType> genesToPrivacyLevelMap,
                                      Collection<GeneOntologyTermInfo> goTerms );
 
-    User updateUserProfileAndPublicationsAndOrgans( User user, Profile profile, Set<Publication> publications, Set<String> organUberonIds, Locale locale );
+    User updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( User user, Profile profile, Set<Publication> publications, Set<String> organUberonIds, Map<String, List<String>> termIdsByOntologyId, Locale locale );
 
     PasswordResetToken createPasswordResetTokenForUser( User user, Locale locale );
 

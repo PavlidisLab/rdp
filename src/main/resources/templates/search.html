@@ -134,6 +134,18 @@
                         </div>
                     </div>
                 </div>
+
+                <div th:unless="${@ontologyService.findAllTerms().isEmpty()}"
+                     class="form-row d-none">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <label for="ontologyTerms">With the following ontology terms (or any if none are
+                                selected):</label>
+                            <div th:replace="fragments/ontology::all-terms-selection"></div>
+                        </div>
+                    </div>
+                </div>
+
                 <input type="hidden" name="iSearch" th:value="${iSearch}"/>
             </form>
 
@@ -244,6 +256,17 @@
                     </div>
                 </div>
             </form>
+
+            <div th:unless="${@ontologyService.findAllTerms().isEmpty()}"
+                 class="form-row d-none">
+                <div class="col-md-12">
+                    <div class="form-group">
+                        <label for="ontologyTerms">With the following ontology terms (or any if none are
+                            selected):</label>
+                        <div th:replace="fragments/ontology::all-terms-selection"></div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 

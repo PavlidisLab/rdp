@@ -127,7 +127,7 @@ public class UserControllerTest {
         when( applicationSettings.getOrgans() ).thenReturn( organSettings );
         when( applicationSettings.getIsearch() ).thenReturn( iSearchSettings );
         when( taxonService.findById( any() ) ).then( i -> createTaxon( i.getArgumentAt( 0, Integer.class ) ) );
-        when( userService.updateUserProfileAndPublicationsAndOrgans( any(), any(), any(), any(), any() ) ).thenAnswer( arg -> arg.getArgumentAt( 0, User.class ) );
+        when( userService.updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( any(), any(), any(), any(), any(), any() ) ).thenAnswer( arg -> arg.getArgumentAt( 0, User.class ) );
     }
 
     @Test
@@ -554,7 +554,7 @@ public class UserControllerTest {
                         .locale( Locale.ENGLISH ) )
                 .andExpect( status().isOk() );
 
-        verify( userService ).updateUserProfileAndPublicationsAndOrgans( user, updatedProfile, updatedProfile.getPublications(), null, Locale.ENGLISH );
+        verify( userService ).updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( user, updatedProfile, updatedProfile.getPublications(), null, null, Locale.ENGLISH );
     }
 
     @Test
@@ -602,7 +602,7 @@ public class UserControllerTest {
 
         Profile profile = user.getProfile();
         profile.setPrivacyLevel( PrivacyLevelType.SHARED );
-        verify( userService ).updateUserProfileAndPublicationsAndOrgans( user, profile, profile.getPublications(), null, Locale.ENGLISH );
+        verify( userService ).updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( user, profile, profile.getPublications(), null, null, Locale.ENGLISH );
     }
 
     @Test
@@ -631,7 +631,7 @@ public class UserControllerTest {
                         .locale( Locale.ENGLISH ) )
                 .andExpect( status().isOk() );
 
-        verify( userService ).updateUserProfileAndPublicationsAndOrgans( user, user.getProfile(), user.getProfile().getPublications(), Sets.newSet( organ.getUberonId() ), Locale.ENGLISH );
+        verify( userService ).updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( user, user.getProfile(), user.getProfile().getPublications(), Sets.newSet( organ.getUberonId() ), null, Locale.ENGLISH );
     }
 
     @Test
@@ -749,10 +749,10 @@ public class UserControllerTest {
         when( userService.findCurrentUser() ).thenReturn( user );
         Profile updatedProfile = new Profile();
         updatedProfile.setWebsite( "bad-url" );
-        UserController.ProfileWithOrganUberonIds profileWithOrganUberonIds = new UserController.ProfileWithOrganUberonIds( updatedProfile, null );
+        UserController.ProfileWithOrganUberonIdsAndOntologyTerms profileWithOrganUberonIdsAndOntologyTerms = UserController.ProfileWithOrganUberonIdsAndOntologyTerms.builder().profile( updatedProfile ).build();
         mvc.perform( post( "/user/profile" )
                         .contentType( MediaType.APPLICATION_JSON )
-                        .content( objectMapper.writeValueAsString( profileWithOrganUberonIds ) ) )
+                        .content( objectMapper.writeValueAsString( profileWithOrganUberonIdsAndOntologyTerms ) ) )
                 .andExpect( status().isBadRequest() )
                 .andExpect( jsonPath( "$.fieldErrors[0].field" ).value( "profile.website" ) )
                 .andExpect( jsonPath( "$.fieldErrors[0].rejectedValue" ).value( "bad-url" ) );

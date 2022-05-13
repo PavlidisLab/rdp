@@ -59,7 +59,11 @@
                 return elem.value;
             }).get();
 
-        return {'profile': profile, 'organUberonIds': organUberonIds};
+        return {
+            'profile': profile,
+            'organUberonIds': organUberonIds,
+            'ontologyTerms': [{'id': 'RMODEL:10101', 'ontologyId': 'RMODEL'}]
+        };
     }
 
     // auto-hide save message

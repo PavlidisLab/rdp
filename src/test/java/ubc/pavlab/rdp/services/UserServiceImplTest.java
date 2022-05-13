@@ -36,7 +36,6 @@ import ubc.pavlab.rdp.repositories.*;
 import ubc.pavlab.rdp.security.PermissionEvaluatorImpl;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 
-import javax.mail.MessagingException;
 import javax.validation.ValidationException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -541,7 +540,7 @@ public class UserServiceImplTest {
                 }
         ).collect( Collectors.toSet() );
 
-        User updatedUser = userService.updateUserProfileAndPublicationsAndOrgans( user, user.getProfile(), newPublications, null, Locale.getDefault() );
+        User updatedUser = userService.updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( user, user.getProfile(), newPublications, null, null, Locale.getDefault() );
 
         assertThat( updatedUser.getProfile().getPublications() ).containsExactlyElementsOf( newPublications );
 
@@ -557,7 +556,7 @@ public class UserServiceImplTest {
                         .map( id -> createOrgan( id, null, null ) )
                         .collect( Collectors.toSet() ) );
         Set<String> organUberonIds = Sets.newSet( "UBERON:00001", "UBERON:00002" );
-        user = userService.updateUserProfileAndPublicationsAndOrgans( user, user.getProfile(), null, organUberonIds, Locale.getDefault() );
+        user = userService.updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( user, user.getProfile(), null, organUberonIds, null, Locale.getDefault() );
         verify( organInfoService ).findByUberonIdIn( organUberonIds );
         assertThat( user.getUserOrgans().values() )
                 .extracting( "uberonId" )
@@ -569,7 +568,7 @@ public class UserServiceImplTest {
         when( applicationSettings.getOrgans().getEnabled() ).thenReturn( false );
         User user = createUser( 1 );
         Set<String> organUberonIds = Sets.newSet( "UBERON:00001", "UBERON:00002" );
-        user = userService.updateUserProfileAndPublicationsAndOrgans( user, user.getProfile(), null, organUberonIds, Locale.getDefault() );
+        user = userService.updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( user, user.getProfile(), null, organUberonIds, null, Locale.getDefault() );
         verifyZeroInteractions( organInfoService );
         assertThat( user.getUserOrgans() ).isEmpty();
     }
@@ -582,7 +581,7 @@ public class UserServiceImplTest {
 
         Profile profile = new Profile();
         profile.setPrivacyLevel( PrivacyLevelType.SHARED );
-        userService.updateUserProfileAndPublicationsAndOrgans( user, profile, null, null, Locale.getDefault() );
+        userService.updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( user, profile, null, null, null, Locale.getDefault() );
 
         assertThat( user.getProfile() ).hasFieldOrPropertyWithValue( "privacyLevel", PrivacyLevelType.PUBLIC );
     }
@@ -598,7 +597,7 @@ public class UserServiceImplTest {
 
         Profile profile = new Profile();
         profile.setPrivacyLevel( PrivacyLevelType.SHARED );
-        userService.updateUserProfileAndPublicationsAndOrgans( user, profile, null, null, Locale.getDefault() );
+        userService.updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( user, profile, null, null, null, Locale.getDefault() );
 
         assertThat( user.getProfile() )
                 .hasFieldOrPropertyWithValue( "privacyLevel", PrivacyLevelType.SHARED );
@@ -612,12 +611,12 @@ public class UserServiceImplTest {
         Profile profile = new Profile();
         profile.setPrivacyLevel( PrivacyLevelType.PUBLIC );
         profile.setContactEmail( "foo@example.com" );
-        userService.updateUserProfileAndPublicationsAndOrgans( user, profile, null, null, Locale.getDefault() );
+        userService.updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( user, profile, null, null, null, Locale.getDefault() );
         verify( userListener ).onContactEmailUpdate( any( OnContactEmailUpdateEvent.class ) );
         assertThat( user.getProfile().isContactEmailVerified() ).isFalse();
 
         // make sure that if user update its profile later on, he doesn't get spammed
-        userService.updateUserProfileAndPublicationsAndOrgans( user, profile, null, null, Locale.getDefault() );
+        userService.updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( user, profile, null, null, null, Locale.getDefault() );
         verifyNoMoreInteractions( userListener );
         assertThat( user.getProfile().isContactEmailVerified() ).isFalse();
     }
@@ -628,7 +627,7 @@ public class UserServiceImplTest {
         Profile profile = new Profile();
         profile.setPrivacyLevel( PrivacyLevelType.PUBLIC );
         profile.setContactEmail( user.getEmail() );
-        userService.updateUserProfileAndPublicationsAndOrgans( user, profile, null, null, Locale.getDefault() );
+        userService.updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( user, profile, null, null, null, Locale.getDefault() );
         assertThat( user.getProfile().isContactEmailVerified() ).isTrue();
         verifyZeroInteractions( userListener );
     }
@@ -641,7 +640,7 @@ public class UserServiceImplTest {
         Profile profile = new Profile();
         profile.setPrivacyLevel( PrivacyLevelType.PUBLIC );
         profile.setContactEmail( null );
-        userService.updateUserProfileAndPublicationsAndOrgans( user, profile, null, null, Locale.getDefault() );
+        userService.updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( user, profile, null, null, null, Locale.getDefault() );
         assertThat( user.getProfile().getContactEmail() ).isNull();
         assertThat( user.getProfile().isContactEmailVerified() ).isFalse();
         verifyZeroInteractions( userListener );
@@ -655,7 +654,7 @@ public class UserServiceImplTest {
         Profile profile = new Profile();
         profile.setPrivacyLevel( PrivacyLevelType.PUBLIC );
         profile.setContactEmail( "" );
-        userService.updateUserProfileAndPublicationsAndOrgans( user, profile, null, null, Locale.getDefault() );
+        userService.updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( user, profile, null, null, null, Locale.getDefault() );
         assertThat( user.getProfile().getContactEmail() ).isEmpty();
         assertThat( user.getProfile().isContactEmailVerified() ).isFalse();
         verifyZeroInteractions( userListener );
@@ -671,7 +670,7 @@ public class UserServiceImplTest {
         Profile profile = new Profile();
         profile.setPrivacyLevel( PrivacyLevelType.PUBLIC );
         profile.setResearcherPosition( ResearcherPosition.PRINCIPAL_INVESTIGATOR );
-        userService.updateUserProfileAndPublicationsAndOrgans( user, profile, null, null, Locale.getDefault() );
+        userService.updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( user, profile, null, null, null, Locale.getDefault() );
         assertThat( user.getProfile().getResearcherPosition() ).isEqualTo( ResearcherPosition.PRINCIPAL_INVESTIGATOR );
         verify( profileSettings ).getEnabledResearcherPositions();
         verify( userRepository ).save( user );
@@ -687,7 +686,7 @@ public class UserServiceImplTest {
         Profile profile = new Profile();
         profile.setPrivacyLevel( PrivacyLevelType.PUBLIC );
         profile.getResearcherCategories().add( ResearcherCategory.IN_SILICO );
-        userService.updateUserProfileAndPublicationsAndOrgans( user, profile, null, null, Locale.getDefault() );
+        userService.updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( user, profile, null, null, null, Locale.getDefault() );
         assertThat( user.getProfile().getResearcherCategories() ).containsExactly( ResearcherCategory.IN_SILICO );
         verify( profileSettings ).getEnabledResearcherCategories();
         verify( userRepository ).save( user );

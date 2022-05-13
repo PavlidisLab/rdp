@@ -185,6 +185,22 @@
             </div>
         </div>
 
+        <div th:each="ontology : ${@ontologyService.findAllOntologies()}"
+             class="row mb-3">
+            <div class="col">
+                <div th:id="'category-' + ${ontology.id}" class="card">
+                    <div class="card-header">
+                        <h3 class="mb-0" th:text="#{'rdp.ontologies.' + ${ontology.name} +  '.title'}"></h3>
+                    </div>
+                    <div class="card-body">
+                        <div th:replace="fragments/ontology::term-display(ontology = ${ontology}, selectedTerms=${viewUser.userOntologyTerms}, termsHaveIcons=${ontology.termsHaveIcons})">
+                            ...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div th:each="taxon : ${viewUser.taxons}" class="row mb-3">
             <div class="col">
                 <div th:id="${taxon.commonName} + '-research-focus'" class="card research-info edit-container">

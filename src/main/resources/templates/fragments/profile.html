@@ -44,5 +44,59 @@
         </option>
     </select>
 </div>
+<div th:fragment="ontology-terms-selection(ontology, selectedTerms, termsHaveIcons)">
+    <div
+            th:classappend="${termsHaveIcons} ? 'form-row'">
+        <div th:each="term : ${ontology.terms}" class="form-group"
+             th:classappend="${termsHaveIcons} ? 'col-3 col-md-2 col-lg-1'">
+            <div th:if="${term.group}">
+                <h5 th:unless="${termsHaveIcons}"
+                    th:text="#{'rdp.ontologies.' + ${ontology.name} + '.terms.' + ${term.name} + '.title'}"></h5>
+                <div class="form-row">
+                    <div th:each="subTerm: ${term.subTerms}"
+                         th:class="${term.name == 'gene-centric' ? 'col-1' : 'col-2'}">
+                        <div class="form-check-inline">
+                            <input type="checkbox"
+                                   th:id="${ontology.id} + '-' + ${term.id}"
+                                   name="ontologyTerms"
+                                   th:attr="data-ontology-id=${ontology.id}"
+                                   th:value="${term.id}"
+                                   th:checked="${selectedTerms.contains(term)}"
+                                   class="form-check-input"/>
+                            <label class="form-check-label"
+                                   th:text="#{'rdp.ontologies.' + ${ontology.name} + '.terms.' + ${subTerm.name} + '.title'}"
+                            ></label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div th:unless="${term.group}" class="form-check"
+                 data-toggle="tooltip"
+                 th:title="${term.hasIcon} ? #{'rdp.ontologies.' + ${ontology.name} + '.terms.' + ${term.name} + '.title'}">
+                <input type="checkbox"
+                       th:id="${ontology.id} + '-' + ${term.id}"
+                       name="ontologyTerms"
+                       th:attr="data-ontology-id=${ontology.id}"
+                       th:value="${term.id}"
+                       th:checked="${selectedTerms.contains(term)}"
+                       class="form-check-input"/>
+                <label th:for="${ontology.id} + '-' + ${term.id}"
+                       class="form-check-label">
+                    <img th:if="${term.hasIcon}"
+                         th:src="@{/images/ontologies/{ontologyName}/{termName}.svg(ontologyName=${ontology.name},termName=${term.name})}"
+                         class="img-fluid d-block"/>
+                    <th:block th:unless="${term.hasIcon}">
+                        <!-- generate a simple textual icon -->
+                        <th:block th:if="${termsHaveIcons}">
+                            <span th:replace="fragments/ontology::textual-icon(term = ${term})"></span>
+                        </th:block>
+                        <span th:unless="${termsHaveIcons}"
+                              th:text="#{'rdp.ontologies.' + ${ontology.name} + '.terms.' + ${term.name} + '.title'}"></span>
+                    </th:block>
+                </label>
+            </div>
+        </div>
+    </div>
+</div>
 </body>
 </html>

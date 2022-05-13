@@ -3,6 +3,7 @@ package ubc.pavlab.rdp.model;
 import lombok.NonNull;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 
+import javax.annotation.Nonnull;
 import java.util.Optional;
 
 /**
@@ -21,6 +22,6 @@ public interface UserContent {
      * In many cases, content have intrinsic privacy level that might be undefined; the implementation has to perform
      * cascading generally by using the owner privacy level.
      */
-    @NonNull
+    @Nonnull
     PrivacyLevelType getEffectivePrivacyLevel();
 }

@@ -19,7 +19,8 @@
                 <h3 class="d-inline-block pr-3 mr-3 mb-0" th:text="${user.profile.contactEmail ?: user.email}"></h3>
             </div>
             <div class="col-4 my-auto text-right" th:if="${viewOnly == null}">
-                <a class="btn btn-lg d-none d-lg-inline" th:href="@{/userView/{userId}(userId=${user.id})}">View your public profile</a>
+                <a class="btn btn-lg d-none d-lg-inline" th:href="@{/userView/{userId}(userId=${user.id})}">View your
+                    public profile</a>
                 <button type="button" class="btn btn-primary btn-lg save-profile">
                     <i class="mx-2 d-none spinner"></i>
                     Save
@@ -266,7 +267,26 @@
             </div>
         </div>
 
-        <div class="row mb-3">
+        <div class="row mb-3" th:each="ontology : ${@ontologyService.findAllOntologies()}">
+            <div class="col">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 th:text="#{'rdp.ontologies.' + ${ontology.name} +  '.title'}"
+                            class="mb-0"></h3>
+                    </div>
+                    <div class="card-body">
+                        <p>Choose <span th:text="#{'rdp.ontologies.' + ${ontology.name} + '.title'}"></span> your
+                            research is most
+                            relevant to:</p>
+                        <div th:replace="fragments/profile::ontology-terms-selection(ontology = ${ontology}, selectedTerms=${user.userOntologyTerms}, termsHaveIcons=${ontology.termsHaveIcons})">
+                            ...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div th:if="false" class="row mb-3">
             <div class="col">
                 <div class="card">
                     <div class="card-header">
@@ -288,6 +308,9 @@
                         <h3 class="mb-0">Publications</h3>
                     </div>
                     <div class="card-body">
+                        <div class="alert alert-info">
+                            Please indicate publications directly linked to your identified expertise.
+                        </div>
                         <div class="mb-3">
                             <table id="publication-table" class="table">
                                 <thead class=".thead-light">
