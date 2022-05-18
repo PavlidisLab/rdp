@@ -84,12 +84,13 @@ public class OntologyService {
                 .build();
         SortedSet<OntologyTermInfo> researchTechnologyTerms = new TreeSet<>( OntologyTermInfo.getComparator() );
         researchTechnologyTerms.add( OntologyTermInfo.builder().id( "RTECH:" + ++termId ).ontology( researchTechnologyOntology ).order( 1 ).name( "high-throughput" ).build() );
-        researchTechnologyTerms.add( OntologyTermInfo.builder().id( "RTECH:" + ++termId ).ontology( researchTechnologyOntology ).order( 2 ).name( "proteomics" ).build() );
-        researchTechnologyTerms.add( OntologyTermInfo.builder().id( "RTECH:" + ++termId ).ontology( researchTechnologyOntology ).order( 3 ).name( "genomics" ).build() );
-        researchTechnologyTerms.add( OntologyTermInfo.builder().id( "RTECH:" + ++termId ).ontology( researchTechnologyOntology ).order( 4 ).name( "genome-editing" ).build() );
-        researchTechnologyTerms.add( OntologyTermInfo.builder().id( "RTECH:" + ++termId ).ontology( researchTechnologyOntology ).order( 5 ).name( "metabolomics" ).build() );
-        researchTechnologyTerms.add( OntologyTermInfo.builder().id( "RTECH:" + ++termId ).ontology( researchTechnologyOntology ).order( 6 ).name( "epigenetics" ).build() );
-        researchTechnologyTerms.add( OntologyTermInfo.builder().id( "RTECH:" + ++termId ).ontology( researchTechnologyOntology ).order( 7 ).name( "bioinformatics" ).build() );
+        researchTechnologyTerms.add( OntologyTermInfo.builder().id( "RTECH:" + ++termId ).ontology( researchTechnologyOntology ).order( 2 ).name( "cell-therapy" ).build() );
+        researchTechnologyTerms.add( OntologyTermInfo.builder().id( "RTECH:" + ++termId ).ontology( researchTechnologyOntology ).order( 3 ).name( "proteomics" ).build() );
+        researchTechnologyTerms.add( OntologyTermInfo.builder().id( "RTECH:" + ++termId ).ontology( researchTechnologyOntology ).order( 4 ).name( "genomics" ).build() );
+        researchTechnologyTerms.add( OntologyTermInfo.builder().id( "RTECH:" + ++termId ).ontology( researchTechnologyOntology ).order( 5 ).name( "genome-editing" ).build() );
+        researchTechnologyTerms.add( OntologyTermInfo.builder().id( "RTECH:" + ++termId ).ontology( researchTechnologyOntology ).order( 6 ).name( "metabolomics" ).build() );
+        researchTechnologyTerms.add( OntologyTermInfo.builder().id( "RTECH:" + ++termId ).ontology( researchTechnologyOntology ).order( 7 ).name( "epigenetics" ).build() );
+        researchTechnologyTerms.add( OntologyTermInfo.builder().id( "RTECH:" + ++termId ).ontology( researchTechnologyOntology ).order( 8 ).name( "bioinformatics" ).build() );
         researchTechnologyOntology.setTerms( researchTechnologyTerms );
 
         ontologies.add( researchTechnologyOntology );
