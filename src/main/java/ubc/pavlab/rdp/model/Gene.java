@@ -22,7 +22,7 @@ public abstract class Gene implements Serializable {
     @Column(name = "gene_id")
     private int geneId;
 
-    @ManyToOne
+    @ManyToOne(optional = false)
     @JoinColumn(name = "taxon_id", nullable = false)
     private Taxon taxon;
 

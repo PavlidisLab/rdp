@@ -35,12 +35,12 @@ public class UserTerm extends GeneOntologyTerm implements UserContent {
     @JsonIgnore
     private Integer id;
 
-    @ManyToOne
+    @ManyToOne(optional = false)
     @JoinColumn(name = "user_id")
     @JsonIgnore
     private User user;
 
-    @ManyToOne
+    @ManyToOne(optional = false)
     @JoinColumn(name = "taxon_id")
     private Taxon taxon;
 
