@@ -117,6 +117,9 @@ public class UserControllerTest {
     @MockBean
     private EmailService emailService;
 
+    @MockBean(name = "ontologyService")
+    private OntologyService ontologyService;
+
     @Before
     public void setUp() {
         when( applicationSettings.getEnabledTiers() ).thenReturn( Lists.newArrayList( "TIER1", "TIER2", "TIER3" ) );

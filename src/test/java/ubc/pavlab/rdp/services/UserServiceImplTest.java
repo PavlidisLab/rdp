@@ -134,6 +134,8 @@ public class UserServiceImplTest {
     private ApplicationSettings.PrivacySettings privacySettings;
     @MockBean
     private ApplicationSettings.ProfileSettings profileSettings;
+    @MockBean
+    private OntologyService ontologyService;
 
     @Before
     public void setUp() {

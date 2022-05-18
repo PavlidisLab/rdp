@@ -16,6 +16,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.TierType;
+import ubc.pavlab.rdp.repositories.ontology.OntologyRepository;
+import ubc.pavlab.rdp.repositories.ontology.OntologyTermInfoRepository;
 import ubc.pavlab.rdp.services.*;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 
@@ -61,6 +63,11 @@ public class UserGeneRepositoryTest {
         @Bean
         public SecureRandom secureRandom() throws NoSuchAlgorithmException {
             return SecureRandom.getInstance( "SHA1PRNG" );
+        }
+
+        @Bean
+        public OntologyService ontologyService( OntologyRepository ontologyRepository, OntologyTermInfoRepository ontologyTermInfoRepository ) {
+            return new OntologyService( ontologyRepository, ontologyTermInfoRepository );
         }
     }
 
