@@ -38,7 +38,7 @@ public class UserTerm extends GeneOntologyTerm implements UserContent {
 
     @NaturalId // alongside goId defined in the parent class
     @ManyToOne(optional = false)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", nullable = false)
     @JsonIgnore
     private User user;
 

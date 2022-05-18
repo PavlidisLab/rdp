@@ -1,1 +1,0 @@
-alter table role add constraint uk_role_role unique (role);

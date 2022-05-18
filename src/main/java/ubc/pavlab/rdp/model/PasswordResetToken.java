@@ -25,8 +25,7 @@ public class PasswordResetToken extends Token implements UserContent {
     private Integer id;
 
     @ManyToOne(optional = false)
-    // FIXME: make this token non-nullable, see https://github.com/PavlidisLab/rdp/issues/166
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     @Override
