@@ -99,21 +99,21 @@ public interface UserService {
     /**
      * Find users by their name.
      * <p>
-     * Note: results are sorted according to {@link #getUserComparator()}.
+     * Note: results are sorted according to {@link User#getComparator()}.
      */
     List<User> findByLikeName( String nameLike, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherTypes, Collection<OrganInfo> userOrgans );
 
     /**
      * Find users by their name using a prefix match.
      * <p>
-     * Note: results are sorted according to {@link #getUserComparator()}.
+     * Note: results are sorted according to {@link User#getComparator()}.
      */
     List<User> findByStartsName( String startsName, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherTypes, Collection<OrganInfo> userOrgans );
 
     /**
-     * Find users by their description and sorted according to {@link #getUserComparator()}.
+     * Find users by their description and sorted according to {@link User#getComparator()}.
      * <p>
-     * Note: results are sorted according to {@link #getUserComparator()}.
+     * Note: results are sorted according to {@link User#getComparator()}.
      */
     List<User> findByDescription( String descriptionLike, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherTypes, Collection<OrganInfo> userOrgans );
 
@@ -135,7 +135,12 @@ public interface UserService {
                                      Map<GeneInfo, PrivacyLevelType> genesToPrivacyLevelMap,
                                      Collection<GeneOntologyTermInfo> goTerms );
 
-    User updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( User user, Profile profile, Set<Publication> publications, Set<String> organUberonIds, Map<String, List<String>> termIdsByOntologyId, Locale locale );
+    User updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( User user,
+                                                                    Profile profile,
+                                                                    Set<Publication> publications,
+                                                                    Set<String> organUberonIds,
+                                                                    Map<Integer, List<String>> termIdsByOntologyId,
+                                                                    Locale locale );
 
     PasswordResetToken createPasswordResetTokenForUser( User user, Locale locale );
 

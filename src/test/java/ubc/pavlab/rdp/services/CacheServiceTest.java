@@ -54,6 +54,9 @@ public class CacheServiceTest {
     @MockBean
     private UserService userService;
 
+    @MockBean
+    private OntologyService ontologyService;
+
     @Test
     public void updateCache_thenSucceed() {
         cacheService.updateCache();

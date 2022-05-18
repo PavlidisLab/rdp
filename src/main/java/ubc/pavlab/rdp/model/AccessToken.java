@@ -4,7 +4,6 @@ import lombok.Getter;
 import lombok.Setter;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 
-import javax.annotation.Nonnull;
 import javax.persistence.*;
 import java.time.Duration;
 import java.time.Period;
@@ -39,7 +38,6 @@ public class AccessToken extends Token implements UserContent {
     }
 
     @Override
-    @Nonnull
     public PrivacyLevelType getEffectivePrivacyLevel() {
         return PrivacyLevelType.PRIVATE;
     }

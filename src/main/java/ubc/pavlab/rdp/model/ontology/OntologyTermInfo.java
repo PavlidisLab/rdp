@@ -1,16 +1,12 @@
 package ubc.pavlab.rdp.model.ontology;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.Singular;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 
-import javax.persistence.Column;
-import javax.persistence.Transient;
-import java.util.Comparator;
-import java.util.Set;
-import java.util.SortedSet;
+import javax.persistence.*;
+import java.io.Serializable;
+import java.util.*;
 
 /**
  * Unassociated ontology term.
@@ -21,25 +17,53 @@ import java.util.SortedSet;
  *
  * @author poirigui
  */
-@Data
-@EqualsAndHashCode(callSuper = true)
+
+@Entity
+@Table(name = "ontology_term_info",
+        uniqueConstraints = { @UniqueConstraint(columnNames = { "ontology_id", "term_id" }) })
+@Getter
+@Setter
+@NoArgsConstructor
+@ToString(of = { "id" }, callSuper = true)
 @SuperBuilder
-public class OntologyTermInfo extends OntologyTerm implements Comparable<OntologyTermInfo> {
+public class OntologyTermInfo extends OntologyTerm implements Serializable, Comparable<OntologyTermInfo> {
+
+    public static OntologyTermInfoBuilder<?, ?> builder( Ontology ontology, String termId ) {
+        return new OntologyTermInfo.OntologyTermInfoBuilderImpl()
+                .ontology( ontology )
+                .termId( termId );
+    }
 
     /**
      *
      */
     public static Comparator<OntologyTermInfo> getComparator() {
-        return Comparator.comparing( OntologyTermInfo::getOntology, Ontology.getComparator() )
-                .thenComparing( OntologyTermInfo::getOrder, Comparator.nullsLast( Comparator.naturalOrder() ) )
-                .thenComparing( OntologyTermInfo::getName );
+        return Comparator.comparing( OntologyTermInfo::getOntology, Comparator.nullsLast( Ontology.getComparator() ) )
+                .thenComparing( OntologyTermInfo::getOrdering, Comparator.nullsLast( Comparator.naturalOrder() ) )
+                .thenComparing( OntologyTermInfo::getName, Comparator.nullsLast( Comparator.naturalOrder() ) );
     }
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "ontology_term_info_id")
+    private Integer id;
+
+    @Lob
+    @Column(columnDefinition = "TEXT")
+    private String definition;
+
+    /**
+     * Indicate if the term is obsolete.
+     */
+    @JsonIgnore
+    @Column(nullable = false)
+    private boolean obsolete;
 
     /**
      * Indicate if the term is active.
      */
     @JsonIgnore
-    @Column
+    @Column(nullable = false)
     private boolean active;
 
     /**
@@ -49,19 +73,52 @@ public class OntologyTermInfo extends OntologyTerm implements Comparable<Ontolog
      */
     @JsonIgnore
     @Column
-    private Integer order;
+    private Integer ordering;
 
     /**
      * Indicate if the term has an icon and should be displayed.
      */
     @JsonIgnore
-    @Transient
+    @Column(nullable = false)
     private boolean hasIcon;
 
+    /**
+     * Indicate if the term is merely a grouping of other terms, in which case it will be displayed but it won't be
+     * selectable and thus convertible into a {@link UserOntologyTerm}.
+     * <p>
+     * TODO: this can be renamed
+     */
+    @Column(nullable = false)
     private boolean isGroup;
 
+    /**
+     * An inverse mapping of {@link #subTerms} to walk up the "is-a" class hierarchy.
+     * <p>
+     * If empty, the term has no parents and can be considered as a root term in the ontology.
+     */
+    @Builder.Default
+    @ManyToMany(mappedBy = "subTerms")
+    private Set<OntologyTermInfo> superTerms = new HashSet<>();
+
+    /**
+     * Collection of terms that satisfy the "is-a" subclassing.
+     * <p>
+     * Terms are ordered as per {@link OntologyTermInfo#getComparator()} although the actual ordering is performed by
+     * Hibernate via an {@link OrderBy} annotation.
+     * <p>
+     * We only cascade when the term is initially persisted to make save() operation simpler. This means that you can
+     * create a full term structure without having to attach them the ontology.
+     * <p>
+     * Cascaded removal only occurs when the ontology itself is removed. See {@link Ontology#getTerms()} for the full
+     * details.
+     */
     @Singular
-    private SortedSet<OntologyTermInfo> subTerms;
+    @ManyToMany(cascade = CascadeType.PERSIST)
+    @JoinTable(name = "ontology_term_info_sub_terms",
+            joinColumns = @JoinColumn(name = "ontology_term_info_id"),
+            inverseJoinColumns = @JoinColumn(name = "ontology_sub_term_info_id"))
+    @OrderBy("ordering asc, name asc")
+    private SortedSet<OntologyTermInfo> subTerms = new TreeSet<>();
 
     @Override
     public int compareTo( OntologyTermInfo ontologyTermInfo ) {

@@ -43,6 +43,9 @@ public class CacheService {
     @Autowired
     private UserOrganService userOrganService;
 
+    @Autowired
+    private OntologyService ontologyService;
+
     /**
      * Cached data are updated on startup and then monthly.
      * <p>
@@ -62,6 +65,7 @@ public class CacheService {
             userService.updateUserTerms();
             organInfoService.updateOrganInfos();
             userOrganService.updateUserOrgans();
+            ontologyService.updateOntologies();
             CronSequenceGenerator sequenceGenerator = new CronSequenceGenerator( UPDATE_CACHE_CRON );
             log.info( MessageFormat.format( "Done updating cached data. Next update is scheduled on {0}.",
                     sequenceGenerator.next( Date.from( Instant.now() ) ) ) );

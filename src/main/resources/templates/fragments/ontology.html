@@ -10,6 +10,7 @@
             <div th:if="${term.group}">
                 <h5 th:unless="${termsHaveIcons}"
                     th:text="#{'rdp.ontologies.' + ${ontology.name} + '.terms.' + ${term.name} + '.title'}"></h5>
+                <!-- we only display a single layer of sub-terms -->
                 <th:block th:each="subTerm, i : ${term.subTerms}">
                     <span th:text="#{'rdp.ontologies.' + ${ontology.name} + '.terms.' + ${subTerm.name} + '.title'}"></span><span th:unless="${i.last}">,</span>
                 </th:block>

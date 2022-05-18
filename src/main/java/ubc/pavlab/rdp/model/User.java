@@ -141,7 +141,7 @@ public class User implements UserContent {
     /**
      * Associated terms to the user profile.
      */
-    @Transient
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private final Set<UserOntologyTerm> userOntologyTerms = new HashSet<>();
 
     @JsonIgnore

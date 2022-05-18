@@ -1,6 +1,7 @@
 package ubc.pavlab.rdp.services;
 
 import lombok.extern.apachecommons.CommonsLog;
+import org.hibernate.annotations.TypeDef;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ubc.pavlab.rdp.model.Gene;
@@ -58,9 +59,9 @@ public class GOServiceImpl implements GOService {
     }
 
     private static RelationshipType convertTypedef( OBOParser.Typedef typedef ) {
-        if ( typedef.getId().equals( "is_a" ) ) {
+        if ( typedef.equals( OBOParser.Typedef.IS_A ) ) {
             return RelationshipType.IS_A;
-        } else if ( typedef.getId().equals( "part_of" ) ) {
+        } else if ( typedef.equals( OBOParser.Typedef.PART_OF ) ) {
             return RelationshipType.PART_OF;
         } else {
             throw new IllegalArgumentException( String.format( "Unknown relationship type: %s.", typedef ) );

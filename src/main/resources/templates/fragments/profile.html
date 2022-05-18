@@ -48,6 +48,7 @@
     <div
             th:classappend="${termsHaveIcons} ? 'form-row'">
         <div th:each="term : ${ontology.terms}" class="form-group"
+             th:if="${term.superTerms.isEmpty()}"
              th:classappend="${termsHaveIcons} ? 'col-3 col-md-2 col-lg-1'">
             <div th:if="${term.group}">
                 <h5 th:unless="${termsHaveIcons}"

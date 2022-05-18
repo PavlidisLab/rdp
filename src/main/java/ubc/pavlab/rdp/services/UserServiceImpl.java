@@ -37,7 +37,6 @@ import ubc.pavlab.rdp.model.ontology.UserOntologyTerm;
 import ubc.pavlab.rdp.repositories.*;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 
-import javax.annotation.Nullable;
 import javax.validation.ValidationException;
 import java.security.SecureRandom;
 import java.text.MessageFormat;
@@ -554,7 +553,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     @Override
     @PreAuthorize("hasPermission(#user, 'update')")
-    public User updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( User user, Profile profile, Set<Publication> publications, Set<String> organUberonIds, @Nullable Map<String, List<String>> termIdsByOntologyId, Locale locale ) {
+    public User updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( User user, Profile profile, Set<Publication> publications, Set<String> organUberonIds, Map<Integer, List<String>> termIdsByOntologyId, Locale locale ) {
         user.getProfile().setDepartment( profile.getDepartment() );
         user.getProfile().setDescription( profile.getDescription() );
         user.getProfile().setLastName( profile.getLastName() );
@@ -638,9 +637,9 @@ public class UserServiceImpl implements UserService {
 
         if ( termIdsByOntologyId != null ) {
             Set<UserOntologyTerm> userOntologyTerms = new HashSet<>();
-            for ( Map.Entry<String, List<String>> entry : termIdsByOntologyId.entrySet() ) {
+            for ( Map.Entry<Integer, List<String>> entry : termIdsByOntologyId.entrySet() ) {
                 for ( String termId : entry.getValue() ) {
-                    OntologyTermInfo termInfo = ontologyService.findTermInfoById( termId );
+                    OntologyTermInfo termInfo = ontologyService.findByTermIdAndOntologyId( termId, entry.getKey() );
                     if ( termInfo == null ) {
                         log.warn( String.format( "Unknown term %s in ontology %s.", termId, entry.getKey() ) );
                         continue;
