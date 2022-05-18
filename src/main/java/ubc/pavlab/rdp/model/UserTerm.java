@@ -37,13 +37,13 @@ public class UserTerm extends GeneOntologyTerm implements UserContent {
     private Integer id;
 
     @NaturalId // alongside goId defined in the parent class
-    @ManyToOne
+    @ManyToOne(optional = false)
     @JoinColumn(name = "user_id")
     @JsonIgnore
     private User user;
 
     @NaturalId
-    @ManyToOne
+    @ManyToOne(optional = false)
     @JoinColumn(name = "taxon_id")
     private Taxon taxon;
 

@@ -31,7 +31,7 @@ public class UserOrgan extends Organ implements UserContent {
     private Integer id;
 
     @NaturalId // alongside uberonId defiend in the parent class
-    @ManyToOne
+    @ManyToOne(optional = false)
     @JoinColumn(name = "user_id", nullable = false)
     @JsonIgnore
     private User user;

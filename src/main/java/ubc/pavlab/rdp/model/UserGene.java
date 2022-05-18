@@ -71,7 +71,7 @@ public class UserGene extends Gene implements UserContent {
     private TierType tier;
 
     @NaturalId // alongside geneId defined in the parent class
-    @ManyToOne
+    @ManyToOne(optional = false)
     @JoinColumn(name = "user_id", nullable = false)
     @JsonIgnore
     private User user;

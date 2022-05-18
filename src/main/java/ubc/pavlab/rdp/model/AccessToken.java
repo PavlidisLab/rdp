@@ -23,6 +23,7 @@ public class AccessToken extends Token implements UserContent {
     private Integer id;
 
     @ManyToOne(optional = false)
+    // FIXME: make this token non-nullable, see https://github.com/PavlidisLab/rdp/issues/166
     @JoinColumn(name = "user_id")
     private User user;
 
