@@ -62,4 +62,15 @@ public class OBOParserIntegrationTest {
                 .hasFieldOrPropertyWithValue( "name", "processual entity" )
                 .hasFieldOrPropertyWithValue( "definition", "An occurrent [span:Occurrent] that exists in time by occurring or happening, has temporal parts and always involves and depends on some entity." );
     }
+
+    @Test
+    public void parse_withMondoTerms_thenSucceed() throws IOException, ParseException {
+        Map<String, OBOParser.Term> parsedTerms = oboParser.parse( new InputStreamReader( new ClassPathResource( "cache/mondo.obo" ).getInputStream() ),
+                OBOParser.Configuration.builder().build() );
+        assertThat( parsedTerms.get( "MONDO:0000003" ) )
+                .isNotNull()
+                .hasFieldOrPropertyWithValue( "id", "MONDO:0000003" )
+                .hasFieldOrPropertyWithValue( "name", "obsolete 17-hydroxysteroid dehydrogenase deficiency" )
+                .hasFieldOrPropertyWithValue( "obsolete", true );
+    }
 }
