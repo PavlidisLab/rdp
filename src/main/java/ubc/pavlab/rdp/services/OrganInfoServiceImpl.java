@@ -12,6 +12,8 @@ import ubc.pavlab.rdp.util.OBOParser;
 import ubc.pavlab.rdp.util.ParseException;
 
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.text.MessageFormat;
 import java.util.Collection;
 
@@ -46,28 +48,30 @@ public class OrganInfoServiceImpl implements OrganInfoService {
     @Override
     @Transactional
     public void updateOrganInfos() {
-        try {
-            Resource organFile = applicationSettings.getCache().getOrganFile();
-            if ( organFile == null ) {
-                log.warn( "No organ system ontology file found, skipping update." );
-                return;
-            }
-            log.info( MessageFormat.format( "Loading organ ontology from {0}...", organFile ) );
-            for ( OBOParser.Term term : oboParser.parseStream( organFile.getInputStream() ).values() ) {
-                OrganInfo organInfo = organInfoRepository.findByUberonId( term.getId() );
-                if ( organInfo == null ) {
-                    organInfo = new OrganInfo();
-                    organInfo.setUberonId( term.getId() );
-                    // only show organs that have been explicitly activated
-                    organInfo.setActive( false );
-                }
-                organInfo.setName( term.getName() );
-                organInfo.setDescription( term.getDefinition() );
-                organInfoRepository.save( organInfo );
-            }
+        Resource organFile = applicationSettings.getCache().getOrganFile();
+        if ( organFile == null ) {
+            log.warn( "No organ system ontology file found, skipping update." );
+            return;
+        }
+        log.info( MessageFormat.format( "Loading organ ontology from {0}...", organFile ) );
+        Collection<OBOParser.Term> parsedTerms;
+        try ( Reader reader = new InputStreamReader( organFile.getInputStream() ) ) {
+            parsedTerms = oboParser.parse( reader ).values();
         } catch ( IOException | ParseException e ) {
             log.error( "Failed to load organ ontology.", e );
+            return;
         }
-
+        for ( OBOParser.Term term : parsedTerms ) {
+            OrganInfo organInfo = organInfoRepository.findByUberonId( term.getId() );
+            if ( organInfo == null ) {
+                organInfo = new OrganInfo();
+                organInfo.setUberonId( term.getId() );
+                // only show organs that have been explicitly activated
+                organInfo.setActive( false );
+            }
+            organInfo.setName( term.getName() );
+            organInfo.setDescription( term.getDefinition() );
+            organInfoRepository.save( organInfo );
+        }
     }
 }

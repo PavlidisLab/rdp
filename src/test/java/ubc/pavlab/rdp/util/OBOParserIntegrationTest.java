@@ -9,6 +9,7 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -26,11 +27,14 @@ public class OBOParserIntegrationTest {
     }
 
     @Autowired
-    OBOParser oboParser;
+    private OBOParser oboParser;
 
     @Test
-    public void parseStream_withGoTerms_thenSucceed() throws IOException, ParseException {
-        Map<String, OBOParser.Term> parsedTerms = oboParser.parseStream( new ClassPathResource( "cache/go.obo" ).getInputStream() );
+    public void parse_withGoTerms_thenSucceed() throws IOException, ParseException {
+        Map<String, OBOParser.Term> parsedTerms = oboParser.parse( new InputStreamReader( new ClassPathResource( "cache/go.obo" ).getInputStream() ),
+                OBOParser.Configuration.builder()
+                        .includeTypedef( OBOParser.Typedef.PART_OF )
+                        .build() );
         assertThat( parsedTerms ).containsKey( "GO:0000001" );
         OBOParser.Term term = parsedTerms.get( "GO:0000001" );
         assertThat( term )
@@ -38,11 +42,20 @@ public class OBOParserIntegrationTest {
                 .hasFieldOrPropertyWithValue( "name", "mitochondrion inheritance" )
                 .hasFieldOrPropertyWithValue( "namespace", "biological_process" )
                 .hasFieldOrPropertyWithValue( "definition", "The distribution of mitochondria, including the mitochondrial genome, into daughter cells after mitosis or meiosis, mediated by interactions between mitochondria and the cytoskeleton." );
+
+        OBOParser.Term parentTerm = parsedTerms.get( "GO:0048308" );
+        assertThat( term.getRelationships() ).contains( new OBOParser.Term.Relationship( parentTerm, OBOParser.Typedef.IS_A ) );
+        assertThat( parentTerm.getInverseRelationships() ).contains( new OBOParser.Term.Relationship( term, OBOParser.Typedef.IS_A ) );
+
+        // ensure that "part_of" are also included
+        assertThat( parsedTerms.get( "GO:0000015" ).getRelationships() ).contains( new OBOParser.Term.Relationship( parsedTerms.get( "GO:0005829" ), OBOParser.Typedef.PART_OF ) );
+        assertThat( parsedTerms.get( "GO:0005829" ).getInverseRelationships() ).contains( new OBOParser.Term.Relationship( parsedTerms.get( "GO:0000015" ), OBOParser.Typedef.PART_OF ) );
     }
 
     @Test
-    public void parseStream_withUberonTerms_thenSucceed() throws IOException, ParseException {
-        Map<String, OBOParser.Term> parsedTerms = oboParser.parseStream( new ClassPathResource( "cache/uberon.obo" ).getInputStream() );
+    public void parse_withUberonTerms_thenSucceed() throws IOException, ParseException {
+        Map<String, OBOParser.Term> parsedTerms = oboParser.parse( new InputStreamReader( new ClassPathResource( "cache/uberon.obo" ).getInputStream() ),
+                OBOParser.Configuration.builder().build() );
         assertThat( parsedTerms ).containsKey( "UBERON:0000000" );
         OBOParser.Term term = parsedTerms.get( "UBERON:0000000" );
         assertThat( term )

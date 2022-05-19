@@ -19,38 +19,77 @@ import java.util.Set;
 @CommonsLog
 public class OBOParser {
 
+    /**
+     * Term as defined by a [Term] record.
+     */
     @Getter
     @Setter
     @ToString(of = { "id" })
     @EqualsAndHashCode(of = { "id" })
     public static class Term {
 
+        @Data
+        public static class Relationship {
+
+            private final Term node;
+            private final Typedef typedef;
+        }
+
         private String id;
         private String namespace;
         private String name;
         private String definition;
         private Boolean obsolete;
-        private transient Set<Relationship> parents = new HashSet<>();
-        private transient Set<Relationship> children = new HashSet<>();
+
+        /* we map both directions of a relationship */
+        private transient Set<Relationship> relationships = new HashSet<>();
+        private transient Set<Relationship> inverseRelationships = new HashSet<>();
     }
 
+    /**
+     * Types of relationship as defined by [Typedef] records.
+     */
     @Data
-    public static class Relationship {
+    @EqualsAndHashCode(of = { "id" })
+    public static class Typedef {
+        /**
+         * This is not a term relationship as per OBO format, but rather defining a class hierarchy.
+         */
+        public static final Typedef IS_A = new Typedef( "is_a" );
+        /**
+         * http://purl.obolibrary.org/obo/BFO_0000050
+         */
+        public static final Typedef PART_OF = new Typedef( "part_of" );
 
-        private final Term node;
-        private final RelationshipType relationshipType;
+        private final String id;
     }
 
-    public enum RelationshipType {
-        IS_A,
-        PART_OF
+    /**
+     * Configuration for parsing OBO input.
+     */
+    @Data
+    @Builder
+    public static class Configuration {
 
+        /**
+         * Set of included relationships when parsing the OBO format.
+         */
+        @Singular
+        Set<Typedef> includeTypedefs;
     }
 
-    public Map<String, Term> parseStream( InputStream input ) throws IOException, ParseException {
+    /**
+     * Parse terms from a reader in the OBO format.
+     *
+     * @param reader a reader from which terms will be parsed
+     * @return parsed terms
+     * @throws IOException    if any I/O operation fails
+     * @throws ParseException if any parsing fails
+     */
+    public Map<String, Term> parse( Reader reader, Configuration configuration ) throws IOException, ParseException {
         Map<String, Term> termMap = new HashMap<>();
-
-        try ( LineNumberReader br = new LineNumberReader( new InputStreamReader( input ) ) ) {
+        Map<String, Typedef> typedefMap = new HashMap<>();
+        try ( LineNumberReader br = new LineNumberReader( reader ) ) {
             Term currentNode = null;
             Term parentNode;
             String line;
@@ -65,6 +104,10 @@ public class OBOParser {
                     } // Else Finished unimportant Stanza
 
                 } else if ( line.equals( "[Term]" ) ) {
+                    // check if the current node was closed properly
+                    if ( currentNode != null ) {
+                        throw new ParseException( String.format( "Previous node %s was not closed properly by an empty line.", currentNode ), br.getLineNumber() );
+                    }
                     // Starting a Term Stanza
                     currentNode = new Term();
                 } else if ( currentNode != null ) {
@@ -97,6 +140,9 @@ public class OBOParser {
                             break;
                         case "is_a":
                             values = tagValuePair[1].split( " " );
+                            if ( values.length < 2 ) {
+                                throw new ParseException( String.format( "Could not parse the right hand side %s of line: %s.", tagValuePair[1], line ), br.getLineNumber() );
+                            }
                             if ( !termMap.containsKey( values[0] ) ) {
                                 // parent exists in map
                                 parentNode = new Term();
@@ -105,23 +151,31 @@ public class OBOParser {
                             } else {
                                 parentNode = termMap.get( values[0] );
                             }
-                            currentNode.getParents().add( new Relationship( parentNode, RelationshipType.IS_A ) );
-                            parentNode.getChildren().add( new Relationship( currentNode, RelationshipType.IS_A ) );
+                            currentNode.getRelationships().add( new Term.Relationship( parentNode, Typedef.IS_A ) );
+                            parentNode.getInverseRelationships().add( new Term.Relationship( currentNode, Typedef.IS_A ) );
                             break;
                         case "relationship":
                             values = tagValuePair[1].split( " " );
-                            if ( values[0].equals( "part_of" ) ) {
-
-                                if ( !termMap.containsKey( values[1] ) ) {
+                            if ( values.length < 2 ) {
+                                throw new ParseException( String.format( "Could not parse the right hand side %s of line: %s.", tagValuePair[1], line ), br.getLineNumber() );
+                            }
+                            String typedefId = values[0];
+                            String termId = values[1];
+                            if ( !typedefMap.containsKey( typedefId ) ) {
+                                typedefMap.put( typedefId, new Typedef( typedefId ) );
+                            }
+                            Typedef typedef = typedefMap.get( typedefId );
+                            if ( configuration.getIncludeTypedefs().contains( typedef ) ) {
+                                if ( !termMap.containsKey( termId ) ) {
                                     // parent exists in map
                                     parentNode = new Term();
-                                    parentNode.setId( values[1] );
-                                    termMap.put( values[1], parentNode );
+                                    parentNode.setId( termId );
+                                    termMap.put( termId, parentNode );
                                 } else {
                                     parentNode = termMap.get( values[1] );
                                 }
-                                currentNode.getParents().add( new Relationship( parentNode, RelationshipType.PART_OF ) );
-                                parentNode.getChildren().add( new Relationship( currentNode, RelationshipType.PART_OF ) );
+                                currentNode.getRelationships().add( new Term.Relationship( parentNode, typedef ) );
+                                parentNode.getInverseRelationships().add( new Term.Relationship( currentNode, typedef ) );
                             }
                             break;
                         case "is_obsolete":
@@ -140,5 +194,14 @@ public class OBOParser {
         }
 
         return termMap;
+    }
+
+    /**
+     * Default strategy for parsing OBO format which only considers the "is_a" hierarchy.
+     *
+     * @see #parse(Reader, Configuration)
+     */
+    public Map<String, Term> parse( Reader reader ) throws IOException, ParseException {
+        return parse( reader, Configuration.builder().build() );
     }
 }

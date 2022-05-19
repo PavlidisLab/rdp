@@ -2,8 +2,6 @@ package ubc.pavlab.rdp.services;
 
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.Cache;
-import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Service;
 import ubc.pavlab.rdp.model.Gene;
 import ubc.pavlab.rdp.model.GeneOntologyTermInfo;
@@ -20,6 +18,8 @@ import ubc.pavlab.rdp.util.ParseException;
 import ubc.pavlab.rdp.util.SearchResult;
 
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.text.MessageFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -52,9 +52,19 @@ public class GOServiceImpl implements GOService {
     @Autowired
     private Gene2GoParser gene2GoParser;
 
-    private static Relationship convertRelationship( OBOParser.Relationship parsedRelationship ) {
+    private static Relationship convertRelationship( OBOParser.Term.Relationship parsedRelationship ) {
         return new Relationship( convertTermIgnoringRelationship( parsedRelationship.getNode() ),
-                RelationshipType.valueOf( parsedRelationship.getRelationshipType().toString() ) );
+                convertTypedef( parsedRelationship.getTypedef() ) );
+    }
+
+    private static RelationshipType convertTypedef( OBOParser.Typedef typedef ) {
+        if ( typedef.getId().equals( "is_a" ) ) {
+            return RelationshipType.IS_A;
+        } else if ( typedef.getId().equals( "part_of" ) ) {
+            return RelationshipType.PART_OF;
+        } else {
+            throw new IllegalArgumentException( String.format( "Unknown relationship type: %s.", typedef ) );
+        }
     }
 
     private static GeneOntologyTermInfo convertTermIgnoringRelationship( OBOParser.Term parsedTerm ) {
@@ -68,8 +78,8 @@ public class GOServiceImpl implements GOService {
 
     private static GeneOntologyTermInfo convertTerm( OBOParser.Term parsedTerm ) {
         GeneOntologyTermInfo geneOntologyTerm = convertTermIgnoringRelationship( parsedTerm );
-        geneOntologyTerm.setParents( parsedTerm.getParents().stream().map( GOServiceImpl::convertRelationship ).collect( Collectors.toSet() ) );
-        geneOntologyTerm.setChildren( parsedTerm.getChildren().stream().map( GOServiceImpl::convertRelationship ).collect( Collectors.toSet() ) );
+        geneOntologyTerm.setParents( parsedTerm.getRelationships().stream().map( GOServiceImpl::convertRelationship ).collect( Collectors.toSet() ) );
+        geneOntologyTerm.setChildren( parsedTerm.getInverseRelationships().stream().map( GOServiceImpl::convertRelationship ).collect( Collectors.toSet() ) );
         return geneOntologyTerm;
     }
 
@@ -103,8 +113,10 @@ public class GOServiceImpl implements GOService {
         }
 
         Map<String, GeneOntologyTermInfo> terms;
-        try {
-            terms = convertTerms( oboParser.parseStream( cacheSettings.getTermFile().getInputStream() ) );
+        try ( Reader reader = new InputStreamReader( cacheSettings.getTermFile().getInputStream() ) ) {
+            terms = convertTerms( oboParser.parse( reader, OBOParser.Configuration.builder()
+                    .includeTypedef( OBOParser.Typedef.PART_OF )
+                    .build() ) );
         } catch ( IOException | ParseException e ) {
             log.error( "Failed to parse GO terms.", e );
             return;
