@@ -175,7 +175,6 @@ public class UserServiceImplTest {
         token.setUser( user );
         token.updateToken( "token1" );
         when( passwordResetTokenRepository.findByToken( token.getToken() ) ).thenReturn( token );
-        System.out.println( token.getExpiryDate() );
 
         token = new PasswordResetToken();
         token.setUser( user );
