@@ -250,7 +250,7 @@ public class ApiController {
             try {
                 tiers = EnumSet.of( TierType.valueOf( tier ) );
             } catch ( IllegalArgumentException e ) {
-                log.error( "Could not parse tier type.", e );
+                log.error( String.format( "Could not parse tier type: %s.", e.getMessage() ) );
                 throw new ApiException( HttpStatus.BAD_REQUEST, String.format( locale, "Unknown tier: %s.", tier ), e );
             }
         }
