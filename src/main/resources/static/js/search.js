@@ -173,46 +173,60 @@
                     });
             },
             select: function (event, ui) {
-                autocomplete.val(ui.item.match.symbol);
+                $(this).val(ui.item.label);
                 return false;
             }
         });
-        autocomplete.autocomplete("instance")._renderItem = function (ul, item) {
-            return $("<li>")
-                .append("<div class='pl-3'><b>" + item.match.symbol + "</b>: " + item.match.name + " (<i>" + item.match.aliases + "</i>)</div>")
-                .appendTo(ul);
-        };
-        autocomplete.autocomplete("instance")._create = function () {
-            this._super();
-            this.widget().menu("option", "items", "> :not(.ui-autocomplete-category)");
-        };
-        autocomplete.autocomplete("instance")._renderMenu = function (ul, items) {
-            var that = this,
-                currentCategory = "";
+    });
 
-            if (items.length === 1 && items[0].noresults) {
-                ul.append("<li aria-label='noresults' class='ui-autocomplete-category my-1 p-2 font-weight-bold' style='background-color: #fddce5; font-size: 1rem;'>No Results</li>");
-                return;
+    $('[name="nameLikeBtn"]').click(function () {
+        $('[name="nameLikeBtn"]').toggleClass('active', false);
+        $(this).toggleClass('active', true);
+    });
+
+    $('.term-autocomplete').autocomplete({
+        minLength: 2,
+        delay: 300,
+        source: function (request, response) {
+            var term = request.term;
+            var offset;
+            if ((offset = term.lastIndexOf(',')) !== -1) {
+                term = term.substring(offset + 1, term.length);
             }
-
-            $.each(items, function (index, item) {
-                var li;
-                var label = item.matchType + " : " + item.match.symbol;
-                if (item.matchType !== currentCategory) {
-                    ul.append("<li aria-label='" + label + "' class='ui-autocomplete-category my-1 p-2 font-weight-bold' style='background-color: #e3f2fd; font-size: 1rem;'>" + item.matchType + "</li>");
-                    currentCategory = item.matchType;
+            term = term.trim();
+            $.getJSON('/search/ontology-terms/autocomplete', {query: term}).done(function (data) {
+                if (!data.length) {
+                    return response([{
+                        noresults: true,
+                        label: 'No matches found for "' + term + '".',
+                        value: term
+                    }
+                    ]);
+                } else {
+                    response(data);
                 }
-                li = that._renderItemData(ul, item);
-                if (item.matchType) {
-                    li.attr("aria-label", label);
-                }
+            }).fail(function () {
+                response([{noresults: true, label: 'Error querying search endpoint.', value: term}]);
             });
-        };
-
-        $('[name="nameLikeBtn"]').click(function () {
-            $('[name="nameLikeBtn"]').toggleClass('active', false);
-            $(this).toggleClass('active', true);
-        });
+        },
+        focus: function () {
+            // prevent value inserted on focus
+            return false;
+        },
+        select: function (event, ui) {
+            var term = $(this).val();
+            var offset;
+            if ((offset = term.lastIndexOf(',')) !== -1) {
+                $(this).val(term.substring(0, offset) + ', ' + ui.item.label + ', ');
+            } else {
+                $(this).val(ui.item.label + ', ');
+            }
+            // add the term ID to the selection
+            $('<input name="ontologyTermIds" type="hidden">')
+                .val(ui.item.id)
+                .insertAfter($(this));
+            return false;
+        }
     });
 
     /* initialize user preview popovers */

@@ -9,10 +9,13 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.context.junit4.SpringRunner;
+import ubc.pavlab.rdp.WebMvcConfig;
 import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.TierType;
@@ -21,6 +24,7 @@ import ubc.pavlab.rdp.repositories.ontology.OntologyTermInfoRepository;
 import ubc.pavlab.rdp.services.*;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 
+import javax.persistence.EntityManager;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Collection;
@@ -66,8 +70,8 @@ public class UserGeneRepositoryTest {
         }
 
         @Bean
-        public OntologyService ontologyService( OntologyRepository ontologyRepository, OntologyTermInfoRepository ontologyTermInfoRepository ) {
-            return new OntologyService( ontologyRepository, ontologyTermInfoRepository );
+        public OntologyService ontologyService( OntologyRepository ontologyRepository, OntologyTermInfoRepository ontologyTermInfoRepository, MessageSource messageSource ) {
+            return new OntologyService( ontologyRepository, ontologyTermInfoRepository, messageSource );
         }
     }
 

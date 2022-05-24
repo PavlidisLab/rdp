@@ -6,10 +6,9 @@ import org.springframework.stereotype.Component;
 
 import java.io.*;
 import java.text.MessageFormat;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * OBO ontology parser
@@ -18,6 +17,17 @@ import java.util.Set;
 @AllArgsConstructor
 @CommonsLog
 public class OBOParser {
+
+    private static final Pattern DEFINITION_PATTERN = Pattern.compile( "\"(.+?)\" .*" );
+    private static final Pattern SYNONYM_PATTERN = Pattern.compile( "\"(.+?)\" (.+?) .*" );
+
+    @Data
+    public static class Ontology {
+        private String formatVersion;
+        private String dataVersion;
+        private String defaultNamespace;
+        private String name;
+    }
 
     /**
      * Term as defined by a [Term] record.
@@ -29,6 +39,12 @@ public class OBOParser {
     public static class Term {
 
         @Data
+        public static class Synonym {
+            private final String synonym;
+            private final String type;
+        }
+
+        @Data
         public static class Relationship {
 
             private final Term node;
@@ -36,14 +52,17 @@ public class OBOParser {
         }
 
         private String id;
+        private List<String> altIds = new ArrayList<>();
         private String namespace;
         private String name;
         private String definition;
+        private List<Synonym> synonyms = new ArrayList<>();
         private Boolean obsolete;
 
         /* we map both directions of a relationship */
         private transient Set<Relationship> relationships = new HashSet<>();
         private transient Set<Relationship> inverseRelationships = new HashSet<>();
+
     }
 
     /**
@@ -78,6 +97,17 @@ public class OBOParser {
         Set<Typedef> includeTypedefs;
     }
 
+    @Data
+    public static class ParsingResult {
+
+        private final Ontology ontology;
+        private final List<Term> terms;
+
+        /* conveniences */
+        private final Map<String, Term> termsByIdOrAltId;
+        private final Map<String, Typedef> typedefsById;
+    }
+
     /**
      * Parse terms from a reader in the OBO format.
      *
@@ -86,19 +116,24 @@ public class OBOParser {
      * @throws IOException    if any I/O operation fails
      * @throws ParseException if any parsing fails
      */
-    public Map<String, Term> parse( Reader reader, Configuration configuration ) throws IOException, ParseException {
+    public ParsingResult parse( Reader reader, Configuration configuration ) throws IOException, ParseException {
+        Ontology ontology = new Ontology();
+        List<Term> terms = new ArrayList<>();
+        List<Typedef> typedefs = new ArrayList<>();
         Map<String, Term> termMap = new HashMap<>();
         Map<String, Typedef> typedefMap = new HashMap<>();
         try ( LineNumberReader br = new LineNumberReader( reader ) ) {
             Term currentNode = null;
             Term parentNode;
             String line;
+            Matcher m;
             while ( ( line = br.readLine() ) != null ) {
                 if ( line.isEmpty() ) {
                     // Finished/Between Stanza
                     if ( currentNode != null ) {
                         // Just finished Term Stanza
                         // Create Node
+                        terms.add( currentNode );
                         termMap.put( currentNode.getId(), currentNode );
                         currentNode = null;
                     } // Else Finished unimportant Stanza
@@ -110,6 +145,8 @@ public class OBOParser {
                     }
                     // Starting a Term Stanza
                     currentNode = new Term();
+                } else if ( line.equals( "[Typedef]" ) ) {
+                    // TODO
                 } else if ( currentNode != null ) {
                     // Within a Term Stanza
                     String[] tagValuePair = line.split( ": ", 2 );
@@ -124,7 +161,6 @@ public class OBOParser {
                             } else {
                                 currentNode = termMap.get( tagValuePair[1] );
                             }
-
                             break;
                         case "name":
                             currentNode.setName( tagValuePair[1] );
@@ -133,16 +169,18 @@ public class OBOParser {
                             currentNode.setNamespace( tagValuePair[1] );
                             break;
                         case "alt_id":
+                            currentNode.altIds.add( tagValuePair[1] );
                             termMap.put( tagValuePair[1], currentNode );
                             break;
                         case "def":
-                            currentNode.setDefinition( tagValuePair[1].split( "\"" )[1] );
+                            m = DEFINITION_PATTERN.matcher( tagValuePair[1] );
+                            if ( !m.matches() ) {
+                                throw new ParseException( String.format( "Could not parse the right hand side %s of line: %s.", tagValuePair[1], line ), br.getLineNumber() );
+                            }
+                            currentNode.setDefinition( m.group( 1 ) );
                             break;
                         case "is_a":
                             values = tagValuePair[1].split( " " );
-                            if ( values.length < 2 ) {
-                                throw new ParseException( String.format( "Could not parse the right hand side %s of line: %s.", tagValuePair[1], line ), br.getLineNumber() );
-                            }
                             if ( !termMap.containsKey( values[0] ) ) {
                                 // parent exists in map
                                 parentNode = new Term();
@@ -181,7 +219,33 @@ public class OBOParser {
                         case "is_obsolete":
                             currentNode.setObsolete( tagValuePair[1].equals( "true" ) );
                             break;
+                        case "synonym":
+                            m = SYNONYM_PATTERN.matcher( tagValuePair[1] );
+                            if ( !m.matches() ) {
+                                throw new ParseException( String.format( "Could not parse the right hand side %s of line: %s.", tagValuePair[1], line ), br.getLineNumber() );
+                            }
+                            currentNode.getSynonyms().add( new Term.Synonym( m.group( 1 ), m.group( 2 ) ) );
                         default:
+                            break;
+                    }
+                } else {
+                    // Within a Term Stanza
+                    String[] tagValuePair = line.split( ": ", 2 );
+                    if ( tagValuePair.length < 2 ) {
+                        throw new ParseException( String.format( "Expected two parts: %s", line ), br.getLineNumber() );
+                    }
+                    switch ( tagValuePair[0] ) {
+                        case "format-version":
+                            ontology.setFormatVersion( tagValuePair[1] );
+                            break;
+                        case "data-version":
+                            ontology.setDataVersion( tagValuePair[1] );
+                            break;
+                        case "default-namespace":
+                            ontology.setDefaultNamespace( tagValuePair[1] );
+                            break;
+                        case "ontology":
+                            ontology.setName( tagValuePair[1] );
                             break;
                     }
                 }
@@ -193,7 +257,7 @@ public class OBOParser {
             }
         }
 
-        return termMap;
+        return new ParsingResult( ontology, terms, termMap, typedefMap );
     }
 
     /**
@@ -201,7 +265,7 @@ public class OBOParser {
      *
      * @see #parse(Reader, Configuration)
      */
-    public Map<String, Term> parse( Reader reader ) throws IOException, ParseException {
+    public ParsingResult parse( Reader reader ) throws IOException, ParseException {
         return parse( reader, Configuration.builder().build() );
     }
 }

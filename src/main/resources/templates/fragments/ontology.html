@@ -2,8 +2,10 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
 <div th:fragment="term-display(ontology, selectedTerms, termsHaveIcons)">
-    <div th:classappend="${termsHaveIcons} ? 'row'">
+    <div th:if="${ontology.terms.size()} lt 20"
+         th:classappend="${termsHaveIcons} ? 'row'">
         <div th:each="term : ${ontology.terms}"
+             th:if="${term.superTerms.isEmpty()}"
              th:classappend="${termsHaveIcons} ? 'col-3 col-md-2 col-lg-1'"
              data-toggle="tooltip"
              th:title="${term.hasIcon} ? #{'rdp.ontologies.' + ${ontology.name} + '.terms.' + ${term.name} + '.title'}">
@@ -11,9 +13,12 @@
                 <h5 th:unless="${termsHaveIcons}"
                     th:text="#{'rdp.ontologies.' + ${ontology.name} + '.terms.' + ${term.name} + '.title'}"></h5>
                 <!-- we only display a single layer of sub-terms -->
-                <th:block th:each="subTerm, i : ${term.subTerms}">
-                    <span th:text="#{'rdp.ontologies.' + ${ontology.name} + '.terms.' + ${subTerm.name} + '.title'}"></span><span th:unless="${i.last}">,</span>
-                </th:block>
+                <p>
+                    <th:block th:each="subTerm, i : ${term.subTerms}">
+                        <span th:text="#{'rdp.ontologies.' + ${ontology.name} + '.terms.' + ${subTerm.name} + '.title'}"></span><span
+                            th:unless="${i.last}">,</span>
+                    </th:block>
+                </p>
             </div>
             <th:block th:unless="${term.group}">
                 <img th:if="${term.hasIcon}"
@@ -30,12 +35,20 @@
             </th:block>
         </div>
     </div>
+    <div th:unless="${ontology.terms.size()} lt 20" class="alert-warning">
+        <p>This is still experimental!</p>
+        <p>
+            The <span th:text="#{'rdp.ontologies.' + ${ontology.name} + '.title'}"></span> ontology is actually way too big
+            for displaying here.
+        </p>
+    </div>
 </div>
 <div th:fragment="all-terms-selection">
     <select class="form-control"
             id="ontologyTerms"
             name="ontologyTerms" multiple="multiple">
         <optgroup th:each="ontology: ${@ontologyService.findAllOntologies()}"
+                  th:if="${ontology.terms.size()} lt 20"
                   th:label="#{'rdp.ontologies.' + ${ontology.name} + '.title'}">
             <option th:each="term : ${ontology.terms}"
                     th:text="#{'rdp.ontologies.'+${ontology.name}+'.terms.' + ${term.name} + '.title'}"

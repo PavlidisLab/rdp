@@ -44,4 +44,80 @@
     });
 
     $('[data-toggle="tooltip"]').tooltip();
+
+    /**
+     *
+     * @param {Number} id
+     * @param {String} label
+     * @param {String} description
+     * @param {String?} extras
+     * @param {String} matchType
+     * @param {*} match
+     * @param {Number} score
+     * @param {Object} attributes
+     * @constructor
+     */
+    function SearchResult(id, label, description, extras, matchType, match, score, attributes) {
+        this.noresults = false;
+        this.id = id;
+        this.label = label;
+        this.description = description;
+        this.extras = extras;
+        this.matchType = matchType;
+        this.match = match;
+        this.score = score;
+        this.attributes = attributes;
+    }
+
+    /* autocomplete look & feel based on SearchResult */
+    $.widget('ui.autocomplete', $.ui.autocomplete, {
+        _create: function () {
+            this._super();
+            this.widget().menu("option", "items", "> :not(.ui-autocomplete-category)");
+        },
+        /**
+         * @param ul
+         * @param {SearchResult} item
+         * @returns {*|jQuery}
+         */
+        _renderItem: function (ul, item) {
+            var div = $('<div class="pl-3">')
+                .append($("<b>").text(item.label))
+                .append(": ")
+                .append(item.description);
+            if (item.extras) {
+                div.append(" (").append($("<i>").text(item.extras)).append(")");
+            }
+            return $("<li>")
+                .append(div)
+                .appendTo(ul);
+        },
+        /**
+         * @param ul
+         * @param {SearchResult[]} items
+         */
+        _renderMenu: function (ul, items) {
+            var that = this;
+            if (items.length === 1 && items[0].noresults) {
+                ul.append($("<li aria-label='noresults' class='ui-autocomplete-category my-1 p-2 font-weight-bold alert-danger'>")
+                    .text("No Results"));
+                return;
+            }
+            var currentCategory = null;
+            items.forEach(function (item) {
+                var label = item.matchType + " : " + item.label;
+                if (item.matchType !== currentCategory) {
+                    ul.append($("<li class='ui-autocomplete-category my-1 p-2 font-weight-bold alert-info'>")
+                        .attr("aria-label", label)
+                        .text(item.matchType));
+                    currentCategory = item.matchType;
+                }
+                var li = that._renderItemData(ul, item);
+                if (item.matchType) {
+                    li.attr("aria-label", label);
+                }
+            });
+        }
+    });
+
 })();

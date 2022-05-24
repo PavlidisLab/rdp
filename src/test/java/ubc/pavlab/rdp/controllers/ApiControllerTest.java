@@ -76,6 +76,8 @@ public class ApiControllerTest {
     private UserDetailsService userDetailsService;
     @MockBean
     private PermissionEvaluator permissionEvaluator;
+    @MockBean
+    private OntologyService ontologyService;
 
     @Before
     public void setUp() {

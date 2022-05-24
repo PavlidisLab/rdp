@@ -74,14 +74,17 @@ public class GeneControllerTest {
         Taxon taxon = createTaxon( 1 );
         GeneInfo gene = createGene( 1, taxon );
         when( taxonService.findById( 1 ) ).thenReturn( taxon );
-        when( geneService.autocomplete( "BRCA1", taxon, 10 ) ).thenReturn( Collections.singleton( new SearchResult( GeneMatchType.EXACT_SYMBOL, gene ) ) );
+        when( geneService.autocomplete( "BRCA1", taxon, 10 ) ).thenReturn( Collections.singleton( new SearchResult<>( GeneMatchType.EXACT_SYMBOL, gene.getGeneId(), gene.getSymbol(), gene.getName(), gene.getAliases(), gene ) ) );
         mvc.perform( get( "/taxon/{taxonId}/gene/search", 1 )
                         .param( "query", "BRCA1" )
                         .param( "max", "10" ) )
                 .andExpect( status().isOk() )
                 .andExpect( content().contentTypeCompatibleWith( MediaType.APPLICATION_JSON ) )
                 .andExpect( jsonPath( "$[0].matchType" ).value( "Exact Symbol" ) )
-                .andExpect( jsonPath( "$[0].match" ).value( gene ) );
+                .andExpect( jsonPath( "$[0].id" ).value( gene.getGeneId() ) )
+                .andExpect( jsonPath( "$[0].label" ).value( gene.getSymbol() ) )
+                .andExpect( jsonPath( "$[0].description" ).value( gene.getName() ) )
+                .andExpect( jsonPath( "$[0].extras" ).value( (String) null ) );
         verify( geneService ).autocomplete( "BRCA1", taxon, 10 );
     }
 }

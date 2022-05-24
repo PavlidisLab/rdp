@@ -1,7 +1,6 @@
 package ubc.pavlab.rdp.services;
 
 import lombok.extern.apachecommons.CommonsLog;
-import org.hibernate.annotations.TypeDef;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ubc.pavlab.rdp.model.Gene;
@@ -117,7 +116,7 @@ public class GOServiceImpl implements GOService {
         try ( Reader reader = new InputStreamReader( cacheSettings.getTermFile().getInputStream() ) ) {
             terms = convertTerms( oboParser.parse( reader, OBOParser.Configuration.builder()
                     .includeTypedef( OBOParser.Typedef.PART_OF )
-                    .build() ) );
+                    .build() ).getTermsByIdOrAltId() );
         } catch ( IOException | ParseException e ) {
             log.error( "Failed to parse GO terms.", e );
             return;
@@ -178,16 +177,16 @@ public class GOServiceImpl implements GOService {
 
     private SearchResult<GeneOntologyTermInfo> queryTerm( String queryString, GeneOntologyTermInfo term ) {
         if ( term.getGoId().equalsIgnoreCase( queryString ) || term.getGoId().equalsIgnoreCase( "GO:" + queryString ) ) {
-            return new SearchResult<>( TermMatchType.EXACT_ID, term );
+            return new SearchResult<>( TermMatchType.EXACT_ID, 0, term.getGoId(), term.getName(), null, term );
         }
 
         String pattern = "(?i:.*" + Pattern.quote( queryString ) + ".*)";
         if ( term.getName().matches( pattern ) ) {
-            return new SearchResult<>( TermMatchType.NAME_CONTAINS, term );
+            return new SearchResult<>( TermMatchType.NAME_CONTAINS, 0, term.getGoId(), term.getName(), null, term );
         }
 
         if ( term.getDefinition().matches( pattern ) ) {
-            return new SearchResult<>( TermMatchType.DEFINITION_CONTAINS, term );
+            return new SearchResult<>( TermMatchType.DEFINITION_CONTAINS, 0, term.getGoId(), term.getName(), null, term );
         }
 
         List<String> splitPatternlist = Arrays.stream( queryString.split( " " ) )
@@ -196,13 +195,13 @@ public class GOServiceImpl implements GOService {
 
         for ( String splitPattern : splitPatternlist ) {
             if ( term.getName().matches( splitPattern ) ) {
-                return new SearchResult<>( TermMatchType.NAME_CONTAINS_PART, term );
+                return new SearchResult<>( TermMatchType.NAME_CONTAINS_PART, 0, term.getGoId(), term.getName(), null, term );
             }
         }
 
         for ( String splitPattern : splitPatternlist ) {
             if ( term.getDefinition().matches( splitPattern ) ) {
-                return new SearchResult<>( TermMatchType.DEFINITION_CONTAINS_PART, term );
+                return new SearchResult<>( TermMatchType.DEFINITION_CONTAINS_PART, 0, term.getGoId(), term.getName(), null, term );
             }
         }
         return null;

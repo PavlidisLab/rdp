@@ -35,7 +35,7 @@ public class UserOntologyRepositoryTest {
 
     @Test
     public void delete_whenUserHasTerm_thenSetTermInfoToNull() {
-        Ontology ontology = Ontology.builder().name( "ABC" ).build();
+        Ontology ontology = Ontology.builder( "ABC" ).build();
         OntologyTermInfo subTerm = OntologyTermInfo.builder( ontology, "ABC:124" )
                 .name( "subterm of ABC:123" )
                 .build();
@@ -43,7 +43,6 @@ public class UserOntologyRepositoryTest {
                 .name( "abc" )
                 .subTerm( subTerm )
                 .build();
-        ontology.setTerms( new TreeSet<>() );
         ontology.getTerms().add( term );
         ontology.getTerms().add( subTerm );
         ontologyRepository.saveAndFlush( ontology );

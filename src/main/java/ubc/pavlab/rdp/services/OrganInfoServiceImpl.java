@@ -56,7 +56,7 @@ public class OrganInfoServiceImpl implements OrganInfoService {
         log.info( MessageFormat.format( "Loading organ ontology from {0}...", organFile ) );
         Collection<OBOParser.Term> parsedTerms;
         try ( Reader reader = new InputStreamReader( organFile.getInputStream() ) ) {
-            parsedTerms = oboParser.parse( reader ).values();
+            parsedTerms = oboParser.parse( reader ).getTermsByIdOrAltId().values();
         } catch ( IOException | ParseException e ) {
             log.error( "Failed to load organ ontology.", e );
             return;

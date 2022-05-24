@@ -2,6 +2,8 @@ package ubc.pavlab.rdp.model.ontology;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
+import org.hibernate.annotations.LazyCollection;
+import org.hibernate.annotations.LazyCollectionOption;
 
 import javax.persistence.*;
 import java.net.URL;
@@ -11,8 +13,6 @@ import java.util.TreeSet;
 
 /**
  * An ontology of terms.
- * <p>
- * TODO: mimic the structure of a OWL record.
  *
  * @author poirigui
  */
@@ -25,7 +25,11 @@ import java.util.TreeSet;
 @Builder
 @EqualsAndHashCode(of = { "name" })
 @ToString(of = { "id", "name" })
-public class Ontology {
+public class Ontology implements Comparable<Ontology> {
+
+    public static OntologyBuilder builder( @NonNull String name ) {
+        return new OntologyBuilder().name( name );
+    }
 
     /**
      * Obtain a comparator for ordering categories.
@@ -47,21 +51,27 @@ public class Ontology {
 
     /**
      * Set of terms associated to this category.
+     * <p>
+     * The {@link LazyCollectionOption#EXTRA} makes it such that calling terms.size() or terms.contains() does not
+     * result in a full initialization.
+     * <p>
+     * Be extremely careful with this collection.
      */
-    @Singular
     @OneToMany(mappedBy = "ontology", cascade = CascadeType.ALL, orphanRemoval = true)
-    @OrderBy("ordering asc, name asc")
+    @OrderBy("ordering asc, name asc, termId asc")
     @JsonIgnore
-    private SortedSet<OntologyTermInfo> terms = new TreeSet<>();
+    @LazyCollection(LazyCollectionOption.EXTRA)
+    private final SortedSet<OntologyTermInfo> terms = new TreeSet<>();
 
     /**
      * Indicate if the terms in this category are expected to contain icons.
+     * <p>
+     * Note that ontologies with more than 20 terms cannot have icons.
      */
     @JsonIgnore
     @Transient
     public boolean getTermsHaveIcons() {
-        return terms.stream()
-                .anyMatch( OntologyTermInfo::isHasIcon );
+        return terms.size() <= 20 && terms.stream().anyMatch( OntologyTermInfo::isHasIcon );
     }
 
     /**
@@ -83,4 +93,9 @@ public class Ontology {
      */
     @JsonIgnore
     private Integer ordering;
+
+    @Override
+    public int compareTo( Ontology ontology ) {
+        return getComparator().compare( this, ontology );
+    }
 }

@@ -6,12 +6,18 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.junit4.SpringRunner;
 import ubc.pavlab.rdp.model.ontology.Ontology;
 import ubc.pavlab.rdp.model.ontology.OntologyTermInfo;
 
 import javax.persistence.EntityManager;
+import java.util.List;
+import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -35,12 +41,34 @@ public class OntologyRepositoryTest {
 
     @Test
     public void findAllByActiveTrueAndOntologyActiveTrue() {
-        ontologyTermInfoRepository.findAllByActiveTrueAndOntologyActiveTrue();
+        final Ontology ontology = ontologyRepository.save( Ontology.builder( "ABC" ).active( true ).build() );
+        SortedSet<OntologyTermInfo> terms = IntStream.range( 0, 100 )
+                .mapToObj( i -> OntologyTermInfo.builder( ontology, "ABC:" + i ).active( true ).build() )
+                .collect( Collectors.toCollection( TreeSet::new ) );
+        ontology.getTerms().addAll( terms );
+        ontologyRepository.saveAndFlush( ontology );
+
+        List<OntologyTermInfo> termsFromRepo = ontologyTermInfoRepository.findAllByActiveTrueAndOntologyActiveTrue()
+                .collect( Collectors.toList() );
+        assertThat( termsFromRepo ).hasSize( 100 );
+    }
+
+    @Test
+    public void findAllByActiveTrueAndOntology() {
+        final Ontology ontology = ontologyRepository.save( Ontology.builder( "ABC" ).build() );
+        SortedSet<OntologyTermInfo> terms = IntStream.range( 0, 100 )
+                .mapToObj( i -> OntologyTermInfo.builder( ontology, "ABC:" + i ).active( true ).build() )
+                .collect( Collectors.toCollection( TreeSet::new ) );
+        ontology.getTerms().addAll( terms );
+        ontologyRepository.saveAndFlush( ontology );
+
+        Page<OntologyTermInfo> page = ontologyTermInfoRepository.findAllByActiveTrueAndOntology( ontology, new PageRequest( 0, 10 ) );
+        assertThat( page.getTotalElements() ).isEqualTo( 100 );
     }
 
     @Test
     public void saveTermInfo() {
-        Ontology ontology = ontologyRepository.save( Ontology.builder().name( "ABC" ).build() );
+        Ontology ontology = ontologyRepository.save( Ontology.builder( "ABC" ).build() );
         ontologyTermInfoRepository.saveAndFlush( OntologyTermInfo.builder( ontology, "ABC:123" )
                 .name( "abc" )
                 .build() );
@@ -48,7 +76,7 @@ public class OntologyRepositoryTest {
 
     @Test
     public void saveTermInfo_whenTermHasSubTerms_thenCascadeToSubTerms() {
-        Ontology ontology = ontologyRepository.save( Ontology.builder().name( "ABC" ).build() );
+        Ontology ontology = ontologyRepository.save( Ontology.builder( "ABC" ).build() );
         OntologyTermInfo subTerm = OntologyTermInfo.builder( ontology, "ABC:124" )
                 .name( "subterm of ABC:123" )
                 .build();
@@ -65,7 +93,7 @@ public class OntologyRepositoryTest {
 
     @Test
     public void save_whenTermHasSubTerms_thenCascadeToSubTerms() {
-        Ontology ontology = Ontology.builder().name( "ABC" ).build();
+        Ontology ontology = Ontology.builder( "ABC" ).build();
         OntologyTermInfo subTerm = OntologyTermInfo.builder( ontology, "ABC:124" )
                 .name( "subterm of ABC:123" )
                 .build();
@@ -74,7 +102,6 @@ public class OntologyRepositoryTest {
                 .subTerm( subTerm )
                 .build();
 
-        ontology.setTerms( new TreeSet<>() );
         ontology.getTerms().add( term );
         ontology.getTerms().add( subTerm );
 
@@ -84,7 +111,7 @@ public class OntologyRepositoryTest {
 
     @Test
     public void save_whenTermIsOrphaned_thenSubTermsAreUpdatedAccordingly() {
-        Ontology ontology = Ontology.builder().name( "ABC" ).build();
+        Ontology ontology = Ontology.builder( "ABC" ).build();
         OntologyTermInfo subTerm = OntologyTermInfo.builder( ontology, "ABC:124" )
                 .name( "subterm of ABC:123" )
                 .build();
@@ -93,7 +120,6 @@ public class OntologyRepositoryTest {
                 .subTerm( subTerm )
                 .build();
 
-        ontology.setTerms( new TreeSet<>() );
         ontology.getTerms().add( term );
         ontology.getTerms().add( subTerm );
 
@@ -117,7 +143,7 @@ public class OntologyRepositoryTest {
 
     @Test
     public void delete_whenTermHasSubTerm_thenCascadeAccordingly() {
-        Ontology ontology = Ontology.builder().name( "ABC" ).build();
+        Ontology ontology = Ontology.builder( "ABC" ).build();
         assertThat( ontology.getTerms() ).isNotNull();
         OntologyTermInfo subTerm = OntologyTermInfo.builder( ontology, "ABC:124" )
                 .name( "subterm of ABC:123" )
@@ -127,7 +153,6 @@ public class OntologyRepositoryTest {
                 .subTerm( subTerm )
                 .build();
 
-        ontology.setTerms( new TreeSet<>() );
         ontology.getTerms().add( term );
         ontology.getTerms().add( subTerm );
 

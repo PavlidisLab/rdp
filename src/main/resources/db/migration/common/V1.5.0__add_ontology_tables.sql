@@ -2,7 +2,6 @@ create table ontology
 (
     ontology_id  integer      not null auto_increment,
     name         varchar(255) not null,
-    definition   text,
     ontology_url varchar(255),
     active       bit          not null,
     ordering     integer,
@@ -30,6 +29,32 @@ alter table ontology_term_info
     add constraint fk_ontology_term_info_ontology foreign key (ontology_id) references ontology (ontology_id);
 alter table ontology_term_info
     add constraint uk_ontology_term_info_ontology_term unique (ontology_id, term_id);
+create index
+    ix_ontology_term_info_term_id on ontology_term_info (term_id);
+create index
+    ix_ontology_term_info_name on ontology_term_info (name);
+
+create table ontology_term_info_alt_ids
+(
+    ontology_term_info_id integer      not null,
+    alt_id                varchar(255) not null,
+    primary key (ontology_term_info_id, alt_id)
+);
+alter table ontology_term_info_alt_ids
+    add constraint fk_ontology_term_info_alt_ids_term foreign key (ontology_term_info_id) references ontology_term_info (ontology_term_info_id);
+create index
+    ix_ontology_term_info_alt_ids_alt_id on ontology_term_info_alt_ids (alt_id);
+
+create table ontology_term_info_synonyms
+(
+    ontology_term_info_id integer      not null,
+    synonym               varchar(255) not null,
+    primary key (ontology_term_info_id, synonym)
+);
+alter table ontology_term_info_synonyms
+    add constraint fk_ontology_term_info_synonyms_term foreign key (ontology_term_info_id) references ontology_term_info (ontology_term_info_id);
+create index
+    ix_ontology_term_info_synonyms_synonym on ontology_term_info_synonyms (synonym);
 
 create table ontology_term_info_sub_terms
 (

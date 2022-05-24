@@ -226,11 +226,11 @@ public class GeneInfoServiceImpl implements GeneInfoService {
         log.info( "Done updating gene orthologs." );
     }
 
-    private <T> boolean addAll( Collection<SearchResult<T>> container, Collection<T> newValues, GeneMatchType match, int maxSize ) {
+    private <T extends GeneInfo> boolean addAll( Collection<SearchResult<T>> container, Collection<T> newValues, GeneMatchType match, int maxSize ) {
 
         for ( T newValue : newValues ) {
             if ( maxSize == -1 || container.size() < maxSize ) {
-                container.add( new SearchResult<>( match, newValue ) );
+                container.add( new SearchResult<>( match, newValue.getId(), newValue.getSymbol(), newValue.getName(), newValue.getAliases(), newValue ) );
             } else {
                 return true;
             }

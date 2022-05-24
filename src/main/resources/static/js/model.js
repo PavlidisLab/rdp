@@ -252,42 +252,10 @@
                     });
             },
             select: function (event, ui) {
-                autocomplete.val(ui.item.match.symbol);
+                $(this).val(ui.item.label);
                 return false;
             }
         });
-        autocomplete.autocomplete("instance")._renderItem = function (ul, item) {
-            return $("<li>")
-                .append("<div class='pl-3'><b>" + item.match.symbol + "</b>: " + item.match.name + " (<i>" + item.match.aliases + "</i>)</div>")
-                .appendTo(ul);
-        };
-        autocomplete.autocomplete("instance")._create = function () {
-            this._super();
-            this.widget().menu("option", "items", "> :not(.ui-autocomplete-category)");
-        };
-        autocomplete.autocomplete("instance")._renderMenu = function (ul, items) {
-            var that = this,
-                currentCategory = "";
-
-            if (items.length === 1 && items[0].noresults) {
-                ul.append("<li aria-label='noresults' class='ui-autocomplete-category my-1 p-2 font-weight-bold' style='background-color: #fddce5; font-size: 1rem;'>No Results</li>");
-                return;
-            }
-
-            $.each(items, function (index, item) {
-                var li;
-                var label = item.matchType + " : " + item.match.symbol;
-                if (item.matchType !== currentCategory) {
-                    ul.append("<li aria-label='" + label + "' class='ui-autocomplete-category my-1 p-2 font-weight-bold' style='background-color: #e3f2fd; font-size: 1rem;'>" + item.matchType + "</li>");
-                    currentCategory = item.matchType;
-                }
-                li = that._renderItemData(ul, item);
-                if (item.matchType) {
-                    li.attr("aria-label", label);
-                }
-            });
-        };
-
     });
 
     $("#genes").on("click", ".add-row", function () {
@@ -328,8 +296,7 @@
 
     $(function () {
         var cache = {};
-        var autocomplete = $("#terms").find(".autocomplete");
-        autocomplete.autocomplete({
+        $("#terms").find(".autocomplete").autocomplete({
             minLength: 2,
             delay: 500,
             source: function (request, response) {
@@ -361,42 +328,10 @@
                     });
             },
             select: function (event, ui) {
-                autocomplete.val(ui.item.match.goId);
+                $(this).val(ui.item.label);
                 return false;
             }
         });
-        autocomplete.autocomplete("instance")._renderItem = function (ul, item) {
-            return $("<li>")
-                .append("<div class='pl-3'><b>" + item.match.goId + "</b>: " + item.match.name + " (Size: " + item.match.size + ")</div>")
-                .appendTo(ul);
-        };
-        autocomplete.autocomplete("instance")._create = function () {
-            this._super();
-            this.widget().menu("option", "items", "> :not(.ui-autocomplete-category)");
-        };
-        autocomplete.autocomplete("instance")._renderMenu = function (ul, items) {
-            var that = this,
-                currentCategory = "";
-
-            if (items.length === 1 && items[0].noresults) {
-                ul.append("<li aria-label='noresults' class='ui-autocomplete-category my-1 p-2 font-weight-bold' style='background-color: #fddce5; font-size: 1rem;'>No Results</li>");
-                return;
-            }
-
-            $.each(items, function (index, item) {
-                var li;
-                var label = item.matchType + " : " + item.match.goId;
-                if (item.matchType !== currentCategory) {
-                    ul.append("<li aria-label='" + label + "' class='ui-autocomplete-category my-1 p-2 font-weight-bold' style='background-color: #e3f2fd; font-size: 1rem;'>" + item.matchType + "</li>");
-                    currentCategory = item.matchType;
-                }
-                li = that._renderItemData(ul, item);
-                if (item.matchType) {
-                    li.attr("aria-label", label);
-                }
-            });
-        };
-
     });
 
     $("#terms").on("click", ".add-row", function () {

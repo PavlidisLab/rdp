@@ -3,6 +3,7 @@ package ubc.pavlab.rdp.model.ontology;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -20,15 +21,23 @@ import java.util.*;
 
 @Entity
 @Table(name = "ontology_term_info",
-        uniqueConstraints = { @UniqueConstraint(columnNames = { "ontology_id", "term_id" }) })
+        uniqueConstraints = { @UniqueConstraint(columnNames = { "ontology_id", "term_id" }) },
+        indexes = { @Index(columnList = "name") })
 @Getter
 @Setter
 @NoArgsConstructor
 @ToString(of = { "id" }, callSuper = true)
+@org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 @SuperBuilder
 public class OntologyTermInfo extends OntologyTerm implements Serializable, Comparable<OntologyTermInfo> {
 
-    public static OntologyTermInfoBuilder<?, ?> builder( Ontology ontology, String termId ) {
+    /**
+     * Maximum size of
+     * TODO: gather this information from the metamodel.
+     */
+    public static final int MAX_SYNONYM_LENGTH = 255;
+
+    public static OntologyTermInfoBuilder<?, ?> builder( @NonNull Ontology ontology, @NonNull String termId ) {
         return new OntologyTermInfo.OntologyTermInfoBuilderImpl()
                 .ontology( ontology )
                 .termId( termId );
@@ -40,7 +49,8 @@ public class OntologyTermInfo extends OntologyTerm implements Serializable, Comp
     public static Comparator<OntologyTermInfo> getComparator() {
         return Comparator.comparing( OntologyTermInfo::getOntology, Comparator.nullsLast( Ontology.getComparator() ) )
                 .thenComparing( OntologyTermInfo::getOrdering, Comparator.nullsLast( Comparator.naturalOrder() ) )
-                .thenComparing( OntologyTermInfo::getName, Comparator.nullsLast( Comparator.naturalOrder() ) );
+                .thenComparing( OntologyTermInfo::getName, Comparator.nullsLast( Comparator.naturalOrder() ) )
+                .thenComparing( OntologyTermInfo::getTermId );
     }
 
     @Id
@@ -48,9 +58,19 @@ public class OntologyTermInfo extends OntologyTerm implements Serializable, Comp
     @Column(name = "ontology_term_info_id")
     private Integer id;
 
+    @ElementCollection
+    @CollectionTable(name = "ontology_term_info_alt_ids", joinColumns = { @JoinColumn(name = "ontology_term_info_id") })
+    @Column(name = "alt_id", nullable = false)
+    private final Set<String> altTermIds = new HashSet<>();
+
     @Lob
     @Column(columnDefinition = "TEXT")
     private String definition;
+
+    @ElementCollection
+    @CollectionTable(name = "ontology_term_info_synonyms", joinColumns = { @JoinColumn(name = "ontology_term_info_id") })
+    @Column(name = "synonym", nullable = false)
+    private final Set<String> synonyms = new HashSet<>();
 
     /**
      * Indicate if the term is obsolete.
@@ -88,6 +108,7 @@ public class OntologyTermInfo extends OntologyTerm implements Serializable, Comp
      * <p>
      * TODO: this can be renamed
      */
+    @JsonIgnore
     @Column(nullable = false)
     private boolean isGroup;
 
@@ -98,7 +119,9 @@ public class OntologyTermInfo extends OntologyTerm implements Serializable, Comp
      */
     @Builder.Default
     @ManyToMany(mappedBy = "subTerms")
-    private Set<OntologyTermInfo> superTerms = new HashSet<>();
+    @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
+    @JsonIgnore
+    private final Set<OntologyTermInfo> superTerms = new HashSet<>();
 
     /**
      * Collection of terms that satisfy the "is-a" subclassing.
@@ -113,11 +136,13 @@ public class OntologyTermInfo extends OntologyTerm implements Serializable, Comp
      * details.
      */
     @Singular
+    @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
     @ManyToMany(cascade = CascadeType.PERSIST)
     @JoinTable(name = "ontology_term_info_sub_terms",
             joinColumns = @JoinColumn(name = "ontology_term_info_id"),
             inverseJoinColumns = @JoinColumn(name = "ontology_sub_term_info_id"))
-    @OrderBy("ordering asc, name asc")
+    @OrderBy("ordering asc, name asc, termId asc")
+    @JsonIgnore
     private SortedSet<OntologyTermInfo> subTerms = new TreeSet<>();
 
     @Override

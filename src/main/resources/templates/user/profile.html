@@ -275,7 +275,7 @@
                             class="mb-0"></h3>
                     </div>
                     <div class="card-body">
-                        <p>Choose <span th:text="#{'rdp.ontologies.' + ${ontology.name} + '.title'}"></span> your
+                        <p>Choose <b th:text="#{'rdp.ontologies.' + ${ontology.name} + '.title'}"></b> terms your
                             research is most
                             relevant to:</p>
                         <div th:replace="fragments/profile::ontology-terms-selection(ontology = ${ontology}, selectedTerms=${user.userOntologyTerms}, termsHaveIcons=${ontology.termsHaveIcons})">

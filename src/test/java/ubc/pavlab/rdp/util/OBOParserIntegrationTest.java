@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.IOException;
@@ -34,7 +35,7 @@ public class OBOParserIntegrationTest {
         Map<String, OBOParser.Term> parsedTerms = oboParser.parse( new InputStreamReader( new ClassPathResource( "cache/go.obo" ).getInputStream() ),
                 OBOParser.Configuration.builder()
                         .includeTypedef( OBOParser.Typedef.PART_OF )
-                        .build() );
+                        .build() ).getTermsByIdOrAltId();
         assertThat( parsedTerms ).containsKey( "GO:0000001" );
         OBOParser.Term term = parsedTerms.get( "GO:0000001" );
         assertThat( term )
@@ -54,8 +55,25 @@ public class OBOParserIntegrationTest {
 
     @Test
     public void parse_withUberonTerms_thenSucceed() throws IOException, ParseException {
-        Map<String, OBOParser.Term> parsedTerms = oboParser.parse( new InputStreamReader( new ClassPathResource( "cache/uberon.obo" ).getInputStream() ),
+        OBOParser.ParsingResult parsingResult = oboParser.parse( new InputStreamReader( new ClassPathResource( "cache/uberon.obo" ).getInputStream() ),
                 OBOParser.Configuration.builder().build() );
+        assertThat( parsingResult.getOntology().getName() ).isEqualTo( "uberon" );
+        Map<String, OBOParser.Term> parsedTerms = parsingResult.getTermsByIdOrAltId();
+        assertThat( parsedTerms ).containsKey( "UBERON:0000000" );
+        OBOParser.Term term = parsedTerms.get( "UBERON:0000000" );
+        assertThat( term )
+                .hasFieldOrPropertyWithValue( "name", "processual entity" )
+                .hasFieldOrPropertyWithValue( "definition", "An occurrent [span:Occurrent] that exists in time by occurring or happening, has temporal parts and always involves and depends on some entity." );
+        assertThat( parsedTerms.get( "UBERON:0000002" ).getSynonyms() )
+                .contains( new OBOParser.Term.Synonym( "canalis cervicis uteri", "EXACT" ) );
+    }
+
+    @Test
+    public void parse_withUberonTermsOnline_thenSucceed() throws IOException, ParseException {
+        OBOParser.ParsingResult parsingResult = oboParser.parse( new InputStreamReader( new UrlResource( "https://github.com/obophenotype/uberon/releases/latest/download/uberon.obo" ).getInputStream() ),
+                OBOParser.Configuration.builder().build() );
+        assertThat( parsingResult.getOntology().getName() ).isEqualTo( "uberon" );
+        Map<String, OBOParser.Term> parsedTerms = parsingResult.getTermsByIdOrAltId();
         assertThat( parsedTerms ).containsKey( "UBERON:0000000" );
         OBOParser.Term term = parsedTerms.get( "UBERON:0000000" );
         assertThat( term )
@@ -65,8 +83,10 @@ public class OBOParserIntegrationTest {
 
     @Test
     public void parse_withMondoTerms_thenSucceed() throws IOException, ParseException {
-        Map<String, OBOParser.Term> parsedTerms = oboParser.parse( new InputStreamReader( new ClassPathResource( "cache/mondo.obo" ).getInputStream() ),
+        OBOParser.ParsingResult parsingResult = oboParser.parse( new InputStreamReader( new ClassPathResource( "cache/mondo.obo" ).getInputStream() ),
                 OBOParser.Configuration.builder().build() );
+        assertThat( parsingResult.getOntology().getName() ).isEqualTo( "mondo" );
+        Map<String, OBOParser.Term> parsedTerms = parsingResult.getTermsByIdOrAltId();
         assertThat( parsedTerms.get( "MONDO:0000003" ) )
                 .isNotNull()
                 .hasFieldOrPropertyWithValue( "id", "MONDO:0000003" )

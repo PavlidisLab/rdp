@@ -2,14 +2,18 @@ package ubc.pavlab.rdp.services;
 
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.event.EventListener;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ubc.pavlab.rdp.model.ontology.Ontology;
 import ubc.pavlab.rdp.model.ontology.OntologyTermInfo;
 import ubc.pavlab.rdp.repositories.ontology.OntologyRepository;
+import ubc.pavlab.rdp.util.ParseException;
 
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.util.*;
 
 @Service
@@ -19,8 +23,12 @@ public class OntologyStubService {
     private final OntologyRepository ontologyRepository;
 
     @Autowired
-    public OntologyStubService( OntologyRepository ontologyRepository ) {
+    private final OntologyService ontologyService;
+
+    @Autowired
+    public OntologyStubService( OntologyRepository ontologyRepository, OntologyService ontologyService ) {
         this.ontologyRepository = ontologyRepository;
+        this.ontologyService = ontologyService;
     }
 
     /**
@@ -31,20 +39,18 @@ public class OntologyStubService {
      * @return a list of created stubs
      */
     @Transactional
-    @EventListener(ApplicationReadyEvent.class)
     public void createStubs() {
-        int termId = 0;
-
-        Ontology researchModelOntology = Ontology.builder()
-                .name( "research-models" )
-                .active( true )
-                .ordering( 2 )
-                .build();
-
-        if ( ontologyRepository.existsByName( researchModelOntology.getName() ) ) {
+        if ( ontologyRepository.existsByName( "research-models" ) ) {
             log.info( "Ontology stubs already created, skipping..." );
             return;
         }
+
+        int termId = 0;
+
+        Ontology researchModelOntology = Ontology.builder( "research-models" )
+                .active( true )
+                .ordering( 2 )
+                .build();
 
         SortedSet<OntologyTermInfo> researchModelTerms = new TreeSet<>( OntologyTermInfo.getComparator() );
         researchModelTerms.add( OntologyTermInfo.builder( researchModelOntology, "RMODEL:" + ++termId )
@@ -87,13 +93,12 @@ public class OntologyStubService {
             researchModelTerms.addAll( ontologyTermInfo.getSubTerms() );
         }
 
-        researchModelOntology.setTerms( researchModelTerms );
+        researchModelOntology.getTerms().addAll( researchModelTerms );
 
         researchModelOntology = ontologyRepository.saveAndFlush( researchModelOntology );
 
         termId = 0;
-        Ontology researchTechnologyOntology = Ontology.builder()
-                .name( "research-technology" )
+        Ontology researchTechnologyOntology = Ontology.builder( "research-technology" )
                 .active( true )
                 .ordering( 3 )
                 .build();
@@ -106,13 +111,12 @@ public class OntologyStubService {
         researchTechnologyTerms.add( OntologyTermInfo.builder( researchTechnologyOntology, "RTECH:" + ++termId ).active( true ).ordering( 6 ).name( "metabolomics" ).build() );
         researchTechnologyTerms.add( OntologyTermInfo.builder( researchTechnologyOntology, "RTECH:" + ++termId ).active( true ).ordering( 7 ).name( "epigenetics" ).build() );
         researchTechnologyTerms.add( OntologyTermInfo.builder( researchTechnologyOntology, "RTECH:" + ++termId ).active( true ).ordering( 8 ).name( "bioinformatics" ).build() );
-        researchTechnologyOntology.setTerms( researchTechnologyTerms );
+        researchTechnologyOntology.getTerms().addAll( researchTechnologyTerms );
 
         researchTechnologyOntology = ontologyRepository.saveAndFlush( researchTechnologyOntology );
 
         termId = 0;
-        Ontology tumorTissueOntology = Ontology.builder()
-                .name( "tumor-tissues" )
+        Ontology tumorTissueOntology = Ontology.builder( "tumor-tissues" )
                 .active( true )
                 .ordering( 1 )
                 .build();
@@ -128,10 +132,39 @@ public class OntologyStubService {
         tumorTissueTerms.add( OntologyTermInfo.builder( tumorTissueOntology, "TISSUE:" + ++termId ).hasIcon( true ).ordering( 8 ).name( "hepatoblastoma" ).active( true ).build() );
         tumorTissueTerms.add( OntologyTermInfo.builder( tumorTissueOntology, "TISSUE:" + ++termId ).hasIcon( false ).ordering( 9 ).name( "germ-cell" ).active( true ).build() );
         tumorTissueTerms.add( OntologyTermInfo.builder( tumorTissueOntology, "TISSUE:" + ++termId ).hasIcon( false ).ordering( 10 ).name( "unspecified" ).active( true ).build() );
-        tumorTissueOntology.setTerms( tumorTissueTerms );
+        tumorTissueOntology.getTerms().addAll( tumorTissueTerms );
 
         tumorTissueOntology = ontologyRepository.saveAndFlush( tumorTissueOntology );
     }
+
+    @Transactional
+    public Ontology setupOntology( String ont ) throws IOException, OntologyNameAlreadyUsedException, ParseException {
+        if ( ontologyRepository.existsByName( ont ) ) {
+            log.info( String.format( "%s ontology already setup, skipping...", ont ) );
+            return ontologyRepository.findByName( ont );
+        }
+        Resource resource = new ClassPathResource( "cache/" + ont + ".obo" );
+        try ( Reader reader = new InputStreamReader( resource.getInputStream() ) ) {
+            Ontology ontology = ontologyService.createFromObo( reader );
+            ontology.setOntologyUrl( resource.getURL() );
+            ontologyService.activate( ontology );
+            return ontology;
+        }
+    }
+
+    @Transactional
+    public void setupOntologies() {
+        String[] ontologies = { "mondo", "uberon", "go" };
+        for ( String ont : ontologies ) {
+            log.info( "Setting up " + ont + " ontology..." );
+            try {
+                setupOntology( ont );
+            } catch ( IOException | ParseException | OntologyNameAlreadyUsedException e ) {
+                log.error( String.format( "Failed to setup %s ontology.", ont ), e );
+            }
+        }
+    }
+
 
     public List<Ontology> findAllOntologyStubs() {
         return ontologyRepository.findAllByNameIn( Arrays.asList( "research-models", "research-technology", "tumor-tissues" ) );

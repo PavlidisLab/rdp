@@ -45,8 +45,8 @@
     </select>
 </div>
 <div th:fragment="ontology-terms-selection(ontology, selectedTerms, termsHaveIcons)">
-    <div
-            th:classappend="${termsHaveIcons} ? 'form-row'">
+    <div th:if="${ontology.terms.size()} lt 20"
+         th:classappend="${termsHaveIcons} ? 'form-row'">
         <div th:each="term : ${ontology.terms}" class="form-group"
              th:if="${term.superTerms.isEmpty()}"
              th:classappend="${termsHaveIcons} ? 'col-3 col-md-2 col-lg-1'">
@@ -97,6 +97,13 @@
                 </label>
             </div>
         </div>
+    </div>
+    <div th:unless="${ontology.terms.size()} lt 20" class="alert-warning">
+        <p>This is still experimental!</p>
+        <p>
+            The <span th:text="#{'rdp.ontologies.' + ${ontology.name} + '.title'}"></span> ontology is actually way too big
+            for displaying here.
+        </p>
     </div>
 </div>
 </body>

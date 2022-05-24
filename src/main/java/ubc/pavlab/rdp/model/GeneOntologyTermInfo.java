@@ -10,16 +10,17 @@ import org.springframework.util.MultiValueMap;
 import ubc.pavlab.rdp.model.enums.RelationshipType;
 import ubc.pavlab.rdp.services.GOService;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Getter
 @Setter
 @ToString(of = { "directGeneIds" }, callSuper = true)
-public class GeneOntologyTermInfo extends GeneOntologyTerm {
+public class GeneOntologyTermInfo extends GeneOntologyTerm implements Comparable<GeneOntologyTermInfo> {
+
+    public static Comparator<GeneOntologyTermInfo> getComparator() {
+        return Comparator.comparing( GeneOntologyTermInfo::getSize, Comparator.reverseOrder() );
+    }
 
     private boolean obsolete;
 
@@ -40,4 +41,9 @@ public class GeneOntologyTermInfo extends GeneOntologyTerm {
 
     @JsonIgnore
     private MultiValueMap<Integer, Integer> directGeneIdsByTaxonId = new LinkedMultiValueMap<>();
+
+    @Override
+    public int compareTo( GeneOntologyTermInfo other ) {
+        return getComparator().compare( this, other );
+    }
 }

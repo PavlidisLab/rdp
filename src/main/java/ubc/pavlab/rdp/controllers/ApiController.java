@@ -3,6 +3,7 @@ package ubc.pavlab.rdp.controllers;
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -23,6 +24,8 @@ import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.ResearcherCategory;
 import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import ubc.pavlab.rdp.model.enums.TierType;
+import ubc.pavlab.rdp.model.ontology.Ontology;
+import ubc.pavlab.rdp.model.ontology.OntologyTermInfo;
 import ubc.pavlab.rdp.services.*;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.settings.SiteSettings;
@@ -60,6 +63,8 @@ public class ApiController {
     private SiteSettings siteSettings;
     @Autowired
     private PermissionEvaluator permissionEvaluator;
+    @Autowired
+    private OntologyService ontologyService;
 
     @ExceptionHandler({ AuthenticationException.class, AccessDeniedException.class })
     public ResponseEntity<?> handleAuthenticationExceptionAndAccessDeniedException( HttpServletRequest req, Exception e ) {
@@ -143,6 +148,25 @@ public class ApiController {
         } else {
             return userGeneService.findByUserEnabledTrueAndPrivacyLevelNoAuth( PrivacyLevelType.PUBLIC, pageable ).map( userGene -> initUserGene( userGene, locale ) );
         }
+    }
+
+    @GetMapping(value = "/api/ontologies")
+    public List<Ontology> getOntologies() {
+        return ontologyService.findAllOntologies();
+    }
+
+    @GetMapping(value = "/api/ontologies/{ontologyId}")
+    public Ontology getOntology( @PathVariable Integer ontologyId ) {
+        return ontologyService.findById( ontologyId );
+    }
+
+    @GetMapping(value = "/api/ontologies/{ontologyId}/terms")
+    public Page<OntologyTermInfo> getOntologyTerms( @PathVariable Integer ontologyId, Pageable pageable, Locale locale ) {
+        Ontology ontology = ontologyService.findById( ontologyId );
+        if ( ontology == null ) {
+            throw new ApiException( HttpStatus.NOT_FOUND, String.format( locale, "No ontology with ID %d.", ontologyId ) );
+        }
+        return ontologyService.findAllTermsByOntology( ontology, pageable );
     }
 
     @GetMapping(value = "/api/users/search", params = { "nameLike" }, produces = MediaType.APPLICATION_JSON_VALUE)

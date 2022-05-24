@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      lang="en">
+<head th:replace="layouts/common::head(title='Admin')">
+    <meta charset="UTF-8"/>
+    <title>Title</title>
+</head>
+<body>
+<div th:replace="layouts/common::header"></div>
+<div class="container py-3">
+    <div th:replace="layouts/common::title(title='Manage Ontology', subtitle='')"></div>
+    <div th:replace="layouts/common::message"></div>
+    <div>
+        <h2>
+            <span th:text="${ontology.name}"></span>
+        </h2>
+        <p>
+            Status:
+            <span th:if="${ontology.active}"
+                  class="badge badge-success">active</span>
+            <span th:unless="${ontology.active}"
+                  class="badge badge-warning">inactive</span>
+        </p>
+        <p>
+            Source:
+            <a th:href="${ontology.ontologyUrl}"
+               th:text="${ontology.ontologyUrl}"></a>
+        </p>
+        <p>This ontology contains <span th:text="${ontology.terms.size()}"></span> terms.</p>
+        <form th:unless="${ontology.active}"
+              th:action="@{/admin/ontologies/{ontologyId}/activate(ontologyId=${ontology.id})}" method="post">
+            <button class="btn btn-primary" type="submit">Activate</button>
+        </form>
+        <div class="row">
+            <div class="col-4">
+                <div class="card ">
+                    <div class="card-header">
+                        <h3 class="mb-0">Activate a term</h3>
+                    </div>
+                    <div class="card-body alert-info">
+                        When activating a term subtree, all the terms defined under it as per the <code>is a</code>
+                        subclass relationship will be activated.
+                    </div>
+                    <div class="card-body">
+                        <form th:action="@{/admin/ontologies/{ontologyId}/activate-term(ontologyId=${ontology.id})}"
+                              th:object="${activateTermForm}"
+                              method="post">
+                            <div class="form-group">
+                                <input class="form-control" th:field="*{ontologyTermInfoId}"
+                                       th:errorclass="is-invalid"
+                                       type="text"
+                                       placeholder="Term ID"/>
+                                <div class="invalid-feedback" th:errors="*{ontologyTermInfoId}"></div>
+                            </div>
+                            <div class="form-group">
+                                <div class="form-check">
+                                    <input id="includeSubtree"
+                                           class="form-check-input" th:field="*{includeSubtree}"
+                                           th:errorclass="is-invalid"
+                                           type="checkbox"/>
+                                    <label for="includeSubtree" class="form-check-label">Include subtree</label>
+                                </div>
+                                <div class="invalid-feedback" th:errors="*{includeSubtree}"></div>
+                            </div>
+                            <div class="form-group">
+                                <button class="btn btn-primary" type="submit">Activate Term</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div th:replace="layouts/common::footer"></div>
+<div th:replace="layouts/common::scripts"></div>
+</body>
+</html>

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      lang="en">
+<head th:replace="layouts/common::head(title='Admin')">
+    <meta charset="UTF-8"/>
+    <title>Title</title>
+</head>
+<body>
+<div th:replace="layouts/common::header"></div>
+<div class="container py-3">
+    <div th:replace="layouts/common::title(title='Ontologies', subtitle='Manage ontologies')"></div>
+    <div th:replace="layouts/common::message"></div>
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-8 border-right">
+                    <h2>Import Ontology</h2>
+                    <form th:object="${importOntologyForm}"
+                          action="/admin/ontologies/import"
+                          method="post" enctype="multipart/form-data">
+                        <div class="form-row">
+                            <div class="col-6">
+                                <div class="form-group">
+                                    <label>Import from URL</label>
+                                    <input th:field="*{ontologyUrl}"
+                                           class="form-control" type="url" placeholder="http://purl.obo.org/"/>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="form-group">
+                                    <label>Import from file</label>
+                                    <input th:field="*{ontologyFile}" type="file" class="form-control-file"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <button class="btn btn-primary import-ontology-btn" type="submit">
+                                <span class="spinner d-none"></span>
+                                Import Ontology
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <div class="col-4">
+                    <h2>Create Stubs</h2>
+                    <form th:action="@{/admin/ontologies/create-stubs}" method="post">
+                        <p>RDP provides stubbed ontologies for tumor tissues, research models and research technologies
+                            that can be setup.</p>
+                        <th:block th:if="${@ontologyStubService.findAllOntologyStubs().size() lt 3}">
+                            <p class="text-warning">Careful here because this action is not reversible!</p>
+                            <button class="btn btn-warning" type="submit">
+                                <span class="spinner d-none"></span>
+                                Create and activate stubs
+                            </button>
+                        </th:block>
+                        <p th:if="${@ontologyStubService.findAllOntologyStubs().size() eq 3}"
+                           class="text-success">
+                            Stubs are already setup.
+                        </p>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div th:each="ontology : ${@ontologyService.findAllOntologiesIncludingInactive()}"
+         class="card mb-3">
+        <div class="card-header">
+            <h3 th:text="#{'rdp.ontologies.' + ${ontology.name} + '.title'}"></h3>
+            <div>
+                <span class="badge badge-info"><span th:text="${ontology.terms.size()}"></span> terms</span>
+                <a th:if="${ontology.ontologyUrl}" class="badge badge-success" th:href="${ontology.ontologyUrl}">
+                    available
+                    online
+                </a>
+            </div>
+            <form th:unless="${ontology.active}"
+                  th:action="@{/admin/ontologies/{ontologyId}/activate(ontologyId=${ontology.id})}"
+                  method="post"
+                  enctype="application/x-www-form-urlencoded">
+            </form>
+        </div>
+        <div class="card-body">
+            <a th:href="@{/admin/ontologies/{ontologyId}(ontologyId=${ontology.id})}"
+               class="btn btn-primary">Get more details...</a>
+        </div>
+    </div>
+</div>
+<div th:replace="layouts/common::footer"></div>
+<div th:replace="layouts/common::scripts"></div>
+<script>
+    $('.import-ontology-btn').click(function () {
+        $(this).find('.spinner').toggleClass('d-none', false);
+    });
+</script>
+</body>
+</html>

@@ -51,6 +51,16 @@
            timeToLiveSeconds="3600"
            memoryStoreEvictionPolicy="FIFO"/>
 
+    <cache name="ubc.pavlab.rdp.model.ontology.OntologyTermInfo"
+           maxElementsInMemory="10000"
+           timeToLiveSeconds="600"/>
+    <cache name="ubc.pavlab.rdp.model.ontology.OntologyTermInfo.superTerms"
+           maxElementsInMemory="10000"
+           timeToLiveSeconds="600"/>
+    <cache name="ubc.pavlab.rdp.model.ontology.OntologyTermInfo.subTerms"
+           maxElementsInMemory="100000"
+           timeToLiveSeconds="600"/>
+
     <cache name="ubc.pavlab.rdp.stats"
            maxElementsInMemory="10"
            timeToLiveSeconds="30"/>
