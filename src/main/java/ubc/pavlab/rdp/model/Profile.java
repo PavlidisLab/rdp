@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.validator.constraints.URL;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.ResearcherCategory;
 import ubc.pavlab.rdp.model.enums.ResearcherPosition;
@@ -11,7 +12,6 @@ import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import javax.persistence.*;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotEmpty;
-import java.net.URL;
 import java.text.MessageFormat;
 import java.util.HashSet;
 import java.util.Set;
@@ -63,6 +63,7 @@ public class Profile {
     @Column(name = "contact_email_verified", nullable = false)
     private boolean contactEmailVerified;
 
+    @URL
     @Column(name = "website")
     private String website;
 
