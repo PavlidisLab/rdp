@@ -10,7 +10,6 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
-import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -181,9 +180,11 @@ public class UserGeneRepositoryTest {
     }
 
     @Test
-    public void countDistinctGeneByTierIn_whenTierNotMatch_thenRaiseException() {
-        assertThat( tierService.getEnabledTiers() ).isEmpty();
-        assertThat( userGeneRepository.countDistinctGeneByTierIn( tierService.getEnabledTiers() ) ).isEqualTo( 0 );
+    public void countDistinctGeneByTierIn_whenTierNotMatch_thenDontCount() {
+
+        int count = userGeneRepository.countDistinctGeneByTierIn( tierService.getEnabledTiers() );
+
+        assertThat( count ).isEqualTo( 0 );
     }
 
     @Test
