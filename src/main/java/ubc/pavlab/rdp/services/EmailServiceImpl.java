@@ -142,12 +142,11 @@ public class EmailServiceImpl implements EmailService {
         InternetAddress recipientAddress = new InternetAddress( user.getProfile().getContactEmail() );
         String shortName = messageSource.getMessage( "rdp.site.shortname", new String[]{ siteSettings.getHostUri().toString() }, locale );
         String subject = messageSource.getMessage( "EmailService.sendContactEmailVerificationMessage.subject", new String[]{ shortName }, locale );
-        String confirmationUrl = UriComponentsBuilder.fromUri( siteSettings.getHostUri() )
+        URI confirmationUrl = UriComponentsBuilder.fromUri( siteSettings.getHostUri() )
                 .path( "user/verify-contact-email" )
-                .queryParam( "token", token.getToken() )
-                .build()
-                .toUriString();
-        String message = messageSource.getMessage( "EmailService.sendContactEmailVerificationMessage", new String[]{ confirmationUrl }, locale );
+                .queryParam( "token", "{token}" )
+                .build( token.getToken() );
+        String message = messageSource.getMessage( "EmailService.sendContactEmailVerificationMessage", new String[]{ confirmationUrl.toString() }, locale );
         return sendSimpleMessage( subject, message, recipientAddress, null, null );
     }
 
