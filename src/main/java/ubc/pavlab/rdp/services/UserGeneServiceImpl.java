@@ -63,9 +63,6 @@ public class UserGeneServiceImpl implements UserGeneService {
     private UserService userService;
 
     @Autowired
-    private TierService tierService;
-
-    @Autowired
     private PermissionEvaluator permissionEvaluator;
 
     @Autowired
@@ -109,7 +106,7 @@ public class UserGeneServiceImpl implements UserGeneService {
     @Cacheable(cacheNames = "ubc.pavlab.rdp.stats", key = "#root.methodName")
     @Override
     public Integer countUniqueAssociationsAllTiers() {
-        return userGeneRepository.countDistinctGeneByTierIn( tierService.getEnabledTiers() );
+        return userGeneRepository.countDistinctGeneByTierIn( applicationSettings.getEnabledTiers() );
     }
 
     /**

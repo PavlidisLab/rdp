@@ -27,14 +27,14 @@ public class PrivacyServiceImpl implements PrivacyService {
     @Override
     @SuppressWarnings("deprecation")
     public boolean isPrivacyLevelEnabled( PrivacyLevelType privacyLevel ) {
-        return applicationSettings.getPrivacy().getEnabledLevels().contains( privacyLevel.toString() ) &&
+        return applicationSettings.getPrivacy().getEnabledLevels().contains( privacyLevel ) &&
                 privacyLevel.ordinal() >= applicationSettings.getPrivacy().getMinLevel();
     }
 
     @Override
     public boolean isGenePrivacyLevelEnabled( PrivacyLevelType privacyLevel ) {
         return isPrivacyLevelEnabled( privacyLevel ) &&
-                applicationSettings.getPrivacy().getEnabledGeneLevels().contains( privacyLevel.toString() );
+                applicationSettings.getPrivacy().getEnabledGeneLevels().contains( privacyLevel );
     }
 
     @Override

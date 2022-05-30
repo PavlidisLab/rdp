@@ -53,8 +53,6 @@ public class UserGeneServiceImplTest {
     private UserService userService;
 
     @MockBean
-    private TierService tierService;
-    @MockBean
     private PermissionEvaluator permissionEvaluator;
 
     @MockBean

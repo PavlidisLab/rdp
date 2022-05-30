@@ -1,13 +1,20 @@
 package ubc.pavlab.rdp.settings;
 
 import lombok.Data;
+import org.hibernate.validator.constraints.Range;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
 import ubc.pavlab.rdp.model.GeneInfo;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
+import ubc.pavlab.rdp.model.enums.ResearcherCategory;
+import ubc.pavlab.rdp.model.enums.ResearcherPosition;
+import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.services.GeneInfoService;
 
+import javax.validation.constraints.Min;
+import java.net.URI;
+import java.util.EnumSet;
 import java.util.List;
 
 /**
@@ -60,11 +67,11 @@ public class ApplicationSettings {
         /**
          * Enabled researcher positions under the user profile.
          */
-        private List<String> enabledResearcherPositions;
+        private EnumSet<ResearcherPosition> enabledResearcherPositions;
         /**
          * Enabled researcher categories under the user profile.
          */
-        private List<String> enabledResearcherCategories;
+        private EnumSet<ResearcherCategory> enabledResearcherCategories;
     }
 
     @Data
@@ -72,31 +79,40 @@ public class ApplicationSettings {
         /**
          * Enable organ systems.
          */
-        private Boolean enabled;
+        private boolean enabled;
     }
 
     @SuppressWarnings("WeakerAccess") //Used in frontend
     @Data
     public static class PrivacySettings {
         /**
-         * Must be one of enabledLevels
+         * Default privacy level for new user accounts.
+         * <p>
+         * Must be one of {@link #enabledLevels}.
          */
-        private Integer defaultLevel;
+        @Range(min = 0, max = 2)
+        private int defaultLevel;
         /**
          * Minimum level of privacy for user profiles.
          *
-         * @deprecated The setting is still honored, but you should use enabledLevels instead.
+         * @deprecated The setting is still honored, but you should use {@link #enabledLevels} instead.
          */
         @Deprecated
-        private Integer minLevel;
+        @Range(min = 0, max = 2)
+        private int minLevel;
         /**
          * List of enabled privacy levels for user profiles.
+         * <p>
+         * At least one level must be enabled and one of the must be used for {@link #defaultLevel}.
          */
-        private List<String> enabledLevels;
+        @Min(1)
+        private EnumSet<PrivacyLevelType> enabledLevels;
         /**
          * List of enabled privacy levels for user-associated genes.
+         * <p>
+         * If no levels are enabled, the profile value will be cascaded.
          */
-        private List<String> enabledGeneLevels;
+        private EnumSet<PrivacyLevelType> enabledGeneLevels;
         /**
          * Indicate if user profiles are shared publicly by default.
          */
@@ -136,12 +152,34 @@ public class ApplicationSettings {
     @SuppressWarnings("WeakerAccess") //Used in frontend
     @Data
     public static class InternationalSearchSettings {
+        /**
+         * Whether partner search is enabled.
+         */
         private boolean enabled;
+        /**
+         * Whether partner search is enabled by default in the search interface.
+         */
         private boolean defaultOn;
+        /**
+         * User ID for the remote search user, or null to disable.
+         */
         private Integer userId;
-        private String[] apis;
+        /**
+         * List of partner APIs endpoints.
+         */
+        private URI[] apis;
+        /**
+         * List of tokens used to authorize partner requests. If the token is matched, the operations will be performed
+         * by the user with ID {@link #userId}.
+         */
         private List<String> authTokens;
+        /**
+         * Token used to query other partner registries.
+         */
         private String searchToken;
+        /**
+         * Request timeout when querying partner registries, or null to disable.
+         */
         private Integer requestTimeout;
     }
 
@@ -153,6 +191,13 @@ public class ApplicationSettings {
 
     private Resource faqFile;
     private boolean sendEmailOnRegistration;
+    /**
+     * Maximum number of GO terms.
+     */
+    @Min(0)
     private long goTermSizeLimit;
-    public List<String> enabledTiers;
+    /**
+     * Enabled tier types.
+     */
+    public EnumSet<TierType> enabledTiers;
 }

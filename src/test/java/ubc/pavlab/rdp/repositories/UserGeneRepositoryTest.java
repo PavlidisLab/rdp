@@ -76,8 +76,6 @@ public class UserGeneRepositoryTest {
     @MockBean
     private BCryptPasswordEncoder bCryptPasswordEncoder;
 
-    @MockBean
-    private TierService tierService;
 
     @MockBean
     private GOService goService;
@@ -135,9 +133,7 @@ public class UserGeneRepositoryTest {
 
     @Test
     public void countByTierIn_whenTierNotMatch_thenDontCount() {
-
-        int count = userGeneRepository.countByTierIn( tierService.getEnabledTiers() );
-
+        int count = userGeneRepository.countByTierIn( EnumSet.noneOf( TierType.class ) );
         assertThat( count ).isEqualTo( 0 );
     }
 
@@ -181,9 +177,7 @@ public class UserGeneRepositoryTest {
 
     @Test
     public void countDistinctGeneByTierIn_whenTierNotMatch_thenDontCount() {
-
-        int count = userGeneRepository.countDistinctGeneByTierIn( tierService.getEnabledTiers() );
-
+        int count = userGeneRepository.countDistinctGeneByTierIn( EnumSet.noneOf( TierType.class ) );
         assertThat( count ).isEqualTo( 0 );
     }
 

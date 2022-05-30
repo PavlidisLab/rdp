@@ -76,7 +76,7 @@
                                 multiple="multiple">
                             <!--suppress ThymeleafVariablesResolveInspection -->
                             <option th:each="tier : ${T(ubc.pavlab.rdp.model.enums.TierType).values()}"
-                                    th:if="${@tierService.isTierEnabled(tier)}"
+                                    th:if="${@applicationSettings.enabledTiers.contains(tier)}"
                                     th:value="${tier}"
                                     th:text="#{'TierType.' + ${tier.name()}}"
                                     th:selected="${tiers != null and tiers.contains(tier)}"></option>

@@ -206,7 +206,6 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
     private <T> Collection<T> getRemoteEntities( Class<T[]> arrCls, String path, MultiValueMap<String, String> params ) {
         Integer requestTimeout = applicationSettings.getIsearch().getRequestTimeout();
         return Arrays.stream( applicationSettings.getIsearch().getApis() )
-                .map( URI::create )
                 .map( api -> {
                     // work on a copy because we'll be selectively adding auth information
                     LinkedMultiValueMap<String, String> apiParams = new LinkedMultiValueMap<>( params );
@@ -250,7 +249,6 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
     private URI getApiUri( URI remoteHost ) throws RemoteException {
         String remoteHostAuthority = remoteHost.getAuthority();
         Map<String, URI> apiUriByAuthority = Arrays.stream( applicationSettings.getIsearch().getApis() )
-                .map( URI::create )
                 .collect( Collectors.toMap( URI::getAuthority, identity() ) );
         if ( !apiUriByAuthority.containsKey( remoteHost.getAuthority() ) ) {
             throw new RemoteException( MessageFormat.format( "Unknown remote API {0}.", remoteHost.getAuthority() ) );

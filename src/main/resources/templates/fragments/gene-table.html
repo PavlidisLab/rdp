@@ -9,7 +9,7 @@
         <th scope="col">Symbol</th>
         <th scope="col" class="d-none" th:if="${viewOnly == null}">Id</th>
         <th scope="col">Name</th>
-        <th th:if="${@tierService.isTierEnabled(T(ubc.pavlab.rdp.model.enums.TierType).TIER1)} and ${@tierService.isTierEnabled(T(ubc.pavlab.rdp.model.enums.TierType).TIER2)}"
+        <th th:if="${@applicationSettings.enabledTiers.contains(T(ubc.pavlab.rdp.model.enums.TierType).TIER1)} and ${@applicationSettings.enabledTiers.contains(T(ubc.pavlab.rdp.model.enums.TierType).TIER2)}"
             class="text-center"
             scope="col"
             data-toggle="tooltip"
@@ -42,7 +42,7 @@
         </td>
         <td class="align-middle" th:text="${gene.name}"></td>
         <th:block
-                th:if="${@tierService.isTierEnabled(T(ubc.pavlab.rdp.model.enums.TierType).TIER1)} and ${@tierService.isTierEnabled(T(ubc.pavlab.rdp.model.enums.TierType).TIER2)}">
+                th:if="${@applicationSettings.enabledTiers.contains(T(ubc.pavlab.rdp.model.enums.TierType).TIER1)} and ${@applicationSettings.enabledTiers.contains(T(ubc.pavlab.rdp.model.enums.TierType).TIER2)}">
             <td class="text-center" th:if="${viewOnly == null}">
                 <input name="primary" type="checkbox" class="align-middle"
                        th:checked="${gene.tier == T(ubc.pavlab.rdp.model.enums.TierType).TIER1}"/>

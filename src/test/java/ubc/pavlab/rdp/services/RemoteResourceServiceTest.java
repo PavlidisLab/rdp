@@ -93,7 +93,7 @@ public class RemoteResourceServiceTest {
     @Before
     public void setUp() {
         when( applicationSettings.getIsearch() ).thenReturn( iSearchSettings );
-        when( iSearchSettings.getApis() ).thenReturn( new String[]{ "http://example.com" } );
+        when( iSearchSettings.getApis() ).thenReturn( new URI[]{ URI.create( "http://example.com" ) } );
         // admin user used for remote admin search
         adminUser = new User();
         adminUser.setId( 1 );
@@ -240,7 +240,7 @@ public class RemoteResourceServiceTest {
                 .andRespond( withStatus( HttpStatus.OK )
                         .contentType( MediaType.APPLICATION_JSON )
                         .body( objectMapper.writeValueAsString( user ) ) );
-        when( iSearchSettings.getApis() ).thenReturn( new String[]{ "https://example.com/rgr" } );
+        when( iSearchSettings.getApis() ).thenReturn( new URI[]{ URI.create( "https://example.com/rgr" ) } );
         User remoteUser = remoteResourceService.getRemoteUser( 1, URI.create( "https://example.com/rgr" ) );
         assertThat( remoteUser ).isEqualTo( user );
         mockServer.verify();
@@ -254,7 +254,7 @@ public class RemoteResourceServiceTest {
                 .andRespond( withStatus( HttpStatus.OK )
                         .contentType( MediaType.APPLICATION_JSON )
                         .body( objectMapper.writeValueAsString( user ) ) );
-        when( iSearchSettings.getApis() ).thenReturn( new String[]{ "http://example.com/" } );
+        when( iSearchSettings.getApis() ).thenReturn( new URI[]{ URI.create( "http://example.com/" ) } );
         User remoteUser = remoteResourceService.getRemoteUser( 1, URI.create( "http://example.com/" ) );
         assertThat( remoteUser ).isEqualTo( user );
         mockServer.verify();
@@ -286,7 +286,7 @@ public class RemoteResourceServiceTest {
 
     @Test
     public void getRemoteUser_whenSearchTokenIsSetAndUserIsAdmin_thenUseTheSearchToken() throws JsonProcessingException, RemoteException {
-        when( iSearchSettings.getApis() ).thenReturn( new String[]{ "http://example.com/" } );
+        when( iSearchSettings.getApis() ).thenReturn( new URI[]{ URI.create( "http://example.com/" ) } );
         when( iSearchSettings.getSearchToken() ).thenReturn( "abcd" );
         when( userService.findCurrentUser() ).thenReturn( adminUser );
         User user = createRemoteUser( 1, URI.create( "http://example.com/api/users/1" ) );
@@ -302,7 +302,7 @@ public class RemoteResourceServiceTest {
 
     @Test
     public void getRemoteUser_whenSearchTokenIsSetAndUserIsAdminAndRemotePartnerHasNoAuth_thenDoNotLeakSearchTokenNorTheNoAuthQueryParameter() throws JsonProcessingException, RemoteException {
-        when( iSearchSettings.getApis() ).thenReturn( new String[]{ "http://example.com?noauth" } );
+        when( iSearchSettings.getApis() ).thenReturn( new URI[]{ URI.create( "http://example.com?noauth" ) } );
         when( iSearchSettings.getSearchToken() ).thenReturn( "abcd" );
         when( userService.findCurrentUser() ).thenReturn( adminUser );
         User user = createRemoteUser( 1, URI.create( "http://example.com/api/users/1" ) );
@@ -319,7 +319,7 @@ public class RemoteResourceServiceTest {
     @Test
     public void getRemoteUser_whenSearchTokenIsSetAndUserIsNotAdmin_thenDontLeakTheSearchToken() throws JsonProcessingException, RemoteException {
         when( iSearchSettings.getSearchToken() ).thenReturn( "abcd" );
-        when( iSearchSettings.getApis() ).thenReturn( new String[]{ "http://example.com" } );
+        when( iSearchSettings.getApis() ).thenReturn( new URI[]{ URI.create( "http://example.com" ) } );
         User user = createRemoteUser( 1, URI.create( "http://example.com/api/users/1" ) );
         MockRestServiceServer mockServer = MockRestServiceServer.createServer( asyncRestTemplate );
         mockServer.expect( requestTo( "http://example.com/api/users/1" ) )
@@ -334,7 +334,7 @@ public class RemoteResourceServiceTest {
     @Test
     public void getRemoteUser_whenSpecificSearchTokenIsSetAndUserIsAdmin_thenUseSpecificToken() throws JsonProcessingException, RemoteException {
         when( iSearchSettings.getSearchToken() ).thenReturn( "abcd" );
-        when( iSearchSettings.getApis() ).thenReturn( new String[]{ "http://example.com?auth=efgh" } );
+        when( iSearchSettings.getApis() ).thenReturn( new URI[]{ URI.create( "http://example.com?auth=efgh" ) } );
         when( userService.findCurrentUser() ).thenReturn( adminUser );
         User user = createRemoteUser( 1, URI.create( "http://example.com/api/users/1" ) );
         MockRestServiceServer mockServer = MockRestServiceServer.createServer( asyncRestTemplate );
@@ -350,7 +350,7 @@ public class RemoteResourceServiceTest {
     @Test
     public void getRemoteUser_whenSpecificSearchTokenIsSetAndUserIsNotAdmin_thenDontLeakSpecificToken() throws JsonProcessingException, RemoteException {
         when( iSearchSettings.getSearchToken() ).thenReturn( "abcd" );
-        when( iSearchSettings.getApis() ).thenReturn( new String[]{ "http://example.com?auth=efgh" } );
+        when( iSearchSettings.getApis() ).thenReturn( new URI[]{ URI.create( "http://example.com?auth=efgh" ) } );
         User user = createRemoteUser( 1, URI.create( "http://example.com/api/users/1" ) );
         MockRestServiceServer mockServer = MockRestServiceServer.createServer( asyncRestTemplate );
         mockServer.expect( requestTo( "http://example.com/api/users/1" ) )

@@ -142,11 +142,13 @@ public class UserServiceImplTest {
 
         when( applicationSettings.getGoTermSizeLimit() ).thenReturn( 100L );
         when( applicationSettings.getOrgans() ).thenReturn( organSettings );
-        when( organSettings.getEnabled() ).thenReturn( true );
+        when( organSettings.isEnabled() ).thenReturn( true );
         when( privacySettings.isCustomizableLevel() ).thenReturn( true );
-        when( privacySettings.getEnabledLevels() ).thenReturn( EnumSet.allOf( PrivacyLevelType.class ).stream().map( PrivacyLevelType::name ).collect( Collectors.toList() ) );
+        when( privacySettings.getEnabledLevels() ).thenReturn( EnumSet.allOf( PrivacyLevelType.class ) );
         when( privacySettings.isCustomizableGeneLevel() ).thenReturn( true );
-        when( privacySettings.getEnabledGeneLevels() ).thenReturn( EnumSet.allOf( PrivacyLevelType.class ).stream().map( PrivacyLevelType::name ).collect( Collectors.toList() ) );
+        when( privacySettings.getEnabledGeneLevels() ).thenReturn( EnumSet.allOf( PrivacyLevelType.class ) );
+        when( profileSettings.getEnabledResearcherPositions() ).thenReturn( EnumSet.allOf( ResearcherPosition.class ) );
+        when( profileSettings.getEnabledResearcherCategories() ).thenReturn( EnumSet.allOf( ResearcherCategory.class ) );
         when( applicationSettings.getPrivacy() ).thenReturn( privacySettings );
         when( applicationSettings.getProfile() ).thenReturn( profileSettings );
 
@@ -543,7 +545,7 @@ public class UserServiceImplTest {
 
     @Test
     public void updateUserProfileAndPublication_whenOrgansIsEnabled_thenSaveOrgans() {
-        when( applicationSettings.getOrgans().getEnabled() ).thenReturn( true );
+        when( applicationSettings.getOrgans().isEnabled() ).thenReturn( true );
         User user = createUser( 1 );
         //noinspection unchecked
         when( organInfoService.findByUberonIdIn( anyCollection() ) )
@@ -560,7 +562,7 @@ public class UserServiceImplTest {
 
     @Test
     public void updateUserProfileAndPublication_whenOrgansIsNotEnabled_thenIgnoreOrgans() {
-        when( applicationSettings.getOrgans().getEnabled() ).thenReturn( false );
+        when( applicationSettings.getOrgans().isEnabled() ).thenReturn( false );
         User user = createUser( 1 );
         Set<String> organUberonIds = Sets.newSet( "UBERON:00001", "UBERON:00002" );
         user = userService.updateUserProfileAndPublicationsAndOrgans( user, user.getProfile(), null, organUberonIds, Locale.getDefault() );
@@ -657,10 +659,7 @@ public class UserServiceImplTest {
 
     @Test
     public void updateUserProfileAndPublicationsAndOrgans_whenResearcherPositionIsSet_thenUpdateResearcherPosition() {
-        List<String> researcherPositionNames = Arrays.stream( ResearcherPosition.values() )
-                .map( ResearcherPosition::name )
-                .collect( Collectors.toList() );
-        when( profileSettings.getEnabledResearcherPositions() ).thenReturn( researcherPositionNames );
+        when( profileSettings.getEnabledResearcherPositions() ).thenReturn( EnumSet.allOf( ResearcherPosition.class ) );
         User user = createUser( 1 );
         Profile profile = new Profile();
         profile.setPrivacyLevel( PrivacyLevelType.PUBLIC );
@@ -673,10 +672,7 @@ public class UserServiceImplTest {
 
     @Test
     public void updateUserProfileAndPublicationsAndOrgans_whenResearcherCategoriesAreSet_thenUpdateResearcherCategories() {
-        List<String> researcherCategoryNames = Arrays.stream( ResearcherCategory.values() )
-                .map( ResearcherCategory::name )
-                .collect( Collectors.toList() );
-        when( profileSettings.getEnabledResearcherCategories() ).thenReturn( researcherCategoryNames );
+        when( profileSettings.getEnabledResearcherCategories() ).thenReturn( EnumSet.allOf( ResearcherCategory.class ) );
         User user = createUser( 1 );
         Profile profile = new Profile();
         profile.setPrivacyLevel( PrivacyLevelType.PUBLIC );

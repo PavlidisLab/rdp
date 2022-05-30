@@ -56,8 +56,6 @@ public class ApiControllerTest {
     @MockBean
     private GeneInfoService geneService;
     @MockBean
-    TierService tierService;
-    @MockBean
     private UserOrganService userOrganService;
     @MockBean
     UserGeneService userGeneService;

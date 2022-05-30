@@ -111,13 +111,13 @@
                             <a class="nav-link active" id="genes-tab" data-toggle="tab" href="#genes" role="tab"
                                aria-controls="profile" aria-selected="true">Genes</a>
                         </li>
-                        <li th:if="${@tierService.isTierEnabled(T(ubc.pavlab.rdp.model.enums.TierType).TIER3)}"
+                        <li th:if="${@applicationSettings.enabledTiers.contains(T(ubc.pavlab.rdp.model.enums.TierType).TIER3)}"
                             class="nav-item">
                             <a class="nav-link" id="terms-tab" data-toggle="tab" href="#terms" role="tab"
                                aria-controls="model"
                                aria-selected="true">Terms</a>
                         </li>
-                        <li th:if="${@tierService.isTierEnabled(T(ubc.pavlab.rdp.model.enums.TierType).TIER3)} and ${viewOnly == null}"
+                        <li th:if="${@applicationSettings.enabledTiers.contains(T(ubc.pavlab.rdp.model.enums.TierType).TIER3)} and ${viewOnly == null}"
                             class="nav-item ml-auto">
                             <a href="#terms"
                                class="btn btn-primary btn-sm recommend-terms"
@@ -152,7 +152,7 @@
                             </div>
                         </div>
 
-                        <div th:if="${@tierService.isTierEnabled(T(ubc.pavlab.rdp.model.enums.TierType).TIER3)}"
+                        <div th:if="${@applicationSettings.enabledTiers.contains(T(ubc.pavlab.rdp.model.enums.TierType).TIER3)}"
                              class="tab-pane fade" id="terms" role="tabpanel" aria-labelledby="terms-tab">
 
                             <div class="alert recommend-message d-none" role="alert"></div>

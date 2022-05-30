@@ -547,7 +547,7 @@ public class UserServiceImpl implements UserService {
         user.getProfile().setDescription( profile.getDescription() );
         user.getProfile().setLastName( profile.getLastName() );
         user.getProfile().setName( profile.getName() );
-        if ( profile.getResearcherPosition() == null || applicationSettings.getProfile().getEnabledResearcherPositions().contains( profile.getResearcherPosition().name() ) ) {
+        if ( profile.getResearcherPosition() == null || applicationSettings.getProfile().getEnabledResearcherPositions().contains( profile.getResearcherPosition() ) ) {
             user.getProfile().setResearcherPosition( profile.getResearcherPosition() );
         } else {
             log.warn( MessageFormat.format( "User {0} attempted to set user {1} researcher position to an unknown value {2}.",
@@ -557,10 +557,7 @@ public class UserServiceImpl implements UserService {
         user.getProfile().setOrganization( profile.getOrganization() );
 
         if ( profile.getResearcherCategories() != null ) {
-            Set<String> researcherCategoryNames = profile.getResearcherCategories().stream()
-                    .map( ResearcherCategory::name )
-                    .collect( Collectors.toSet() );
-            if ( applicationSettings.getProfile().getEnabledResearcherCategories().containsAll( researcherCategoryNames ) ) {
+            if ( applicationSettings.getProfile().getEnabledResearcherCategories().containsAll( profile.getResearcherCategories() ) ) {
                 user.getProfile().getResearcherCategories().retainAll( profile.getResearcherCategories() );
                 user.getProfile().getResearcherCategories().addAll( profile.getResearcherCategories() );
             } else {
@@ -616,7 +613,7 @@ public class UserServiceImpl implements UserService {
             user.getProfile().getPublications().addAll( publications );
         }
 
-        if ( applicationSettings.getOrgans().getEnabled() ) {
+        if ( applicationSettings.getOrgans().isEnabled() ) {
             Map<String, UserOrgan> userOrgans = organInfoService.findByUberonIdIn( organUberonIds ).stream()
                     .map( organInfo -> user.getUserOrgans().getOrDefault( organInfo.getUberonId(), UserOrgan.createFromOrganInfo( user, organInfo ) ) )
                     .collect( Collectors.toMap( Organ::getUberonId, identity() ) );
