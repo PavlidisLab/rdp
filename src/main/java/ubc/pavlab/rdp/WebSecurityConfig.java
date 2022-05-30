@@ -104,9 +104,4 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                     .and();
 
     }
-
-    @Bean
-    public SecureRandom secureRandom() throws NoSuchAlgorithmException {
-        return SecureRandom.getInstance( "SHA1PRNG" );
-    }
 }

@@ -15,7 +15,6 @@ import org.springframework.cache.CacheManager;
 import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
-import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -35,7 +34,6 @@ import ubc.pavlab.rdp.model.enums.ResearcherCategory;
 import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.repositories.*;
-import ubc.pavlab.rdp.security.PermissionEvaluatorImpl;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 
 import javax.mail.MessagingException;
@@ -72,11 +70,6 @@ public class UserServiceImplTest {
         }
 
         @Bean
-        public UserPrivacyService userPrivacyService() {
-            return new UserPrivacyService();
-        }
-
-        @Bean
         public UserService userService() {
             return new UserServiceImpl();
         }
@@ -84,11 +77,6 @@ public class UserServiceImplTest {
         @Bean
         public BCryptPasswordEncoder passwordEncoder() {
             return new BCryptPasswordEncoder();
-        }
-
-        @Bean
-        public PermissionEvaluator permissionEvaluator() {
-            return new PermissionEvaluatorImpl();
         }
 
         @Bean
