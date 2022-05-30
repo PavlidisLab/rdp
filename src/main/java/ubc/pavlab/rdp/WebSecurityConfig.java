@@ -55,11 +55,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     public void configure( WebSecurity web ) {
         DefaultWebSecurityExpressionHandler expressionHandler = new DefaultWebSecurityExpressionHandler();
         expressionHandler.setPermissionEvaluator( permissionEvaluator );
-        web
-                .ignoring()
-                    .antMatchers( "/resources/**", "/static/**", "/css/**", "/js/**", "/images/**" )
-                    .and()
-                .expressionHandler( expressionHandler );
+        web.expressionHandler( expressionHandler );
     }
 
     @Override
@@ -72,6 +68,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                     .antMatchers( "/", "/login", "/registration", "/registrationConfirm", "/stats", "/stats.html",
                             "/forgotPassword", "/resetPassword", "/updatePassword", "/resendConfirmation", "/search/**",
                             "/userView/**", "/taxon/**", "/access-denied" )
+                        .permitAll()
+                    // static assets
+                    .antMatchers( "/resources/**", "/static/**", "/css/**", "/js/**", "/images/**" )
                         .permitAll()
                     // API for international search
                     .antMatchers("/api/**")
@@ -104,10 +103,5 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                     .accessDeniedPage( "/access-denied" )
                     .and();
 
-    }
-
-    @Bean
-    public SecureRandom secureRandom() throws NoSuchAlgorithmException {
-        return SecureRandom.getInstance( "SHA1PRNG" );
     }
 }

@@ -559,6 +559,6 @@ public class UserRepositoryTest {
         userRepository.flush();
 
         // make sure that the token is not lingering
-        assertThat( accessTokenRepository.exists( token.getId() ) ).isFalse();
+        assertThat( accessTokenRepository.existsById( token.getId() ) ).isFalse();
     }
 }

@@ -10,7 +10,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PostFilter;
@@ -84,8 +83,6 @@ public class UserServiceImpl implements UserService {
     private PrivacyService privacyService;
     @Autowired
     private SecureRandom secureRandom;
-    @Autowired
-    private PermissionEvaluator permissionEvaluator;
 
     @Transactional
     @Override
@@ -203,7 +200,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @PostAuthorize("hasPermission(returnObject, 'read')")
     public User findUserById( int id ) {
-        return userRepository.findOne( id );
+        return userRepository.findById( id ).orElse( null );
     }
 
 
@@ -242,7 +239,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public User findUserByIdNoAuth( int id ) {
         // Only use this in placed where no authentication of user is needed
-        return userRepository.findOneWithRoles( id );
+        return userRepository.findOneWithRoles( id ).orElse( null );
     }
 
     @Override
@@ -317,11 +314,8 @@ public class UserServiceImpl implements UserService {
     @Override
     @Cacheable("ubc.pavlab.rdp.services.UserService.remoteSearchUser")
     public Optional<User> getRemoteSearchUser() {
-        if ( applicationSettings.getIsearch().getUserId() == null ) {
-            // there is no configured remote search user
-            return Optional.empty();
-        }
-        return Optional.ofNullable( userRepository.findOneWithRoles( applicationSettings.getIsearch().getUserId() ) );
+        return Optional.ofNullable( applicationSettings.getIsearch().getUserId() )
+                .flatMap( userRepository::findOneWithRoles );
     }
 
     @Override
@@ -739,10 +733,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public SortedSet<String> getLastNamesFirstChar() {
-        final Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        return userRepository.findAllWithNonEmptyProfileLastName()
+        return userRepository.findAllWithNonEmptyProfileLastNameAndProfilePrivacyLevelGreaterOrEqualThan( findCurrentUser() == null ? PrivacyLevelType.PUBLIC : PrivacyLevelType.SHARED )
                 .stream()
-                .filter( user -> permissionEvaluator.hasPermission( auth, user, "read" ) )
                 .map( u -> u.getProfile().getLastName().substring( 0, 1 ).toUpperCase() )
                 .filter( StringUtils::isAlpha )
                 .collect( Collectors.toCollection( TreeSet::new ) );

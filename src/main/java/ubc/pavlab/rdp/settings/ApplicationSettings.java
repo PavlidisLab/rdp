@@ -24,7 +24,7 @@ public class ApplicationSettings {
         /**
          * Enable loading and scheduled update of cached data.
          */
-        private boolean enabled = true;
+        private boolean enabled;
         /**
          * Load resources from the disk.
          * <p>
@@ -81,14 +81,14 @@ public class ApplicationSettings {
         /**
          * Must be one of enabledLevels
          */
-        private Integer defaultLevel = PrivacyLevelType.PRIVATE.ordinal();
+        private Integer defaultLevel;
         /**
          * Minimum level of privacy for user profiles.
          *
          * @deprecated The setting is still honored, but you should use enabledLevels instead.
          */
         @Deprecated
-        private Integer minLevel = PrivacyLevelType.PRIVATE.ordinal();
+        private Integer minLevel;
         /**
          * List of enabled privacy levels for user profiles.
          */
@@ -100,45 +100,45 @@ public class ApplicationSettings {
         /**
          * Indicate if user profiles are shared publicly by default.
          */
-        private boolean defaultSharing = false;
+        private boolean defaultSharing;
         /**
          * Whether or not privacy settings are customizable at profile-level.
          */
-        private boolean customizableLevel = true;
+        private boolean customizableLevel;
         /**
          * Whether or not privacy settings are customizable at gene-level.
          * <p>
          * It's possible to customize gene privacy even if the profile levels are not customizable.
          */
-        private boolean customizableGeneLevel = false;
+        private boolean customizableGeneLevel;
         /**
          * Allow users to choose whether or not their data is shared publicly.
          */
-        private boolean customizableSharing = true;
+        private boolean customizableSharing;
         /**
          * Enable public search from unauthenticated users.
          */
-        private boolean publicSearch = false;
+        private boolean publicSearch;
         /**
          * Enable registered search from authenticated users.
          */
-        private boolean registeredSearch = false;
+        private boolean registeredSearch;
         /**
          * Allow users to choose whether or not their genes can be hidden from their public profile.
          */
-        private boolean allowHideGenelist = false;
+        private boolean allowHideGenelist;
         /**
          * Allow anonymized search results to be displayed.
          */
-        private boolean enableAnonymizedSearchResults = true;
+        private boolean enableAnonymizedSearchResults;
     }
 
     @SuppressWarnings("WeakerAccess") //Used in frontend
     @Data
     public static class InternationalSearchSettings {
-        private boolean enabled = false;
-        private boolean defaultOn = false;
-        private Integer userId = 1;
+        private boolean enabled;
+        private boolean defaultOn;
+        private Integer userId;
         private String[] apis;
         private List<String> authTokens;
         private String searchToken;
@@ -153,6 +153,6 @@ public class ApplicationSettings {
 
     private Resource faqFile;
     private boolean sendEmailOnRegistration;
-    private long goTermSizeLimit = 100L;
+    private long goTermSizeLimit;
     public List<String> enabledTiers;
 }

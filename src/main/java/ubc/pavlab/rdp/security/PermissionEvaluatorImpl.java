@@ -9,6 +9,7 @@ import ubc.pavlab.rdp.model.User;
 import ubc.pavlab.rdp.model.UserContent;
 import ubc.pavlab.rdp.model.UserPrinciple;
 import ubc.pavlab.rdp.services.PrivacyService;
+import ubc.pavlab.rdp.services.UserPrivacyService;
 import ubc.pavlab.rdp.services.UserService;
 
 import java.io.Serializable;
@@ -21,7 +22,7 @@ public class PermissionEvaluatorImpl implements PermissionEvaluator {
     private UserService userService;
 
     @Autowired
-    private PrivacyService privacyService;
+    private UserPrivacyService privacyService;
 
     @Override
     public boolean hasPermission( Authentication authentication, Object targetDomainObject, Object permission ) {

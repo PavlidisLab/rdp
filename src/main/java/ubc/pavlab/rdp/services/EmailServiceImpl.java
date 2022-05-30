@@ -6,8 +6,6 @@ import org.springframework.context.MessageSource;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -21,12 +19,13 @@ import javax.mail.MessagingException;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
-import javax.servlet.http.HttpServletRequest;
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
@@ -100,11 +99,16 @@ public class EmailServiceImpl implements EmailService {
 
     @Override
     public Future<Void> sendResetTokenMessage( User user, PasswordResetToken token, Locale locale ) throws MessagingException {
-        String url = UriComponentsBuilder.fromUri( siteSettings.getHostUri() )
+        URI url = UriComponentsBuilder.fromUri( siteSettings.getHostUri() )
                 .path( "updatePassword" )
-                .queryParam( "id", user.getId() )
-                .queryParam( "token", token.getToken() )
-                .build().encode().toUriString();
+                .queryParam( "id", "{id}" )
+                .queryParam( "token", "{token}" )
+                .build( new HashMap<String, String>() {
+                    {
+                        put( "id", user.getId().toString() );
+                        put( "token", token.getToken() );
+                    }
+                } );
 
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter
                 .ofLocalizedDateTime( FormatStyle.SHORT )
@@ -116,7 +120,7 @@ public class EmailServiceImpl implements EmailService {
         String shortName = messageSource.getMessage( "rdp.site.shortname", new String[]{ siteSettings.getHostUri().toString() }, locale );
         String subject = messageSource.getMessage( "EmailService.sendResetTokenMessage.subject", new String[]{ shortName }, locale );
         String content = messageSource.getMessage( "EmailService.sendResetTokenMessage", new String[]{
-                user.getProfile().getName(), url, dateTimeFormatter.format( token.getExpiryDate().toInstant() ) }, locale );
+                user.getProfile().getName(), url.toString(), dateTimeFormatter.format( token.getExpiryDate().toInstant() ) }, locale );
 
         return sendSimpleMessage( subject, content, to, null, null );
     }
@@ -129,14 +133,12 @@ public class EmailServiceImpl implements EmailService {
         // registration always go through the primary email
         InternetAddress recipientAddress = new InternetAddress( user.getEmail() );
         String subject = messageSource.getMessage( "EmailService.sendRegistrationMessage.subject", new String[]{ shortName }, locale );
-        String confirmationUrl = UriComponentsBuilder.fromUri( siteSettings.getHostUri() )
+        URI confirmationUrl = UriComponentsBuilder.fromUri( siteSettings.getHostUri() )
                 .path( "registrationConfirm" )
-                .queryParam( "token", token.getToken() )
-                .build()
-                .encode()
-                .toUriString();
+                .queryParam( "token", "{token}" )
+                .build( Collections.singletonMap( "token", token.getToken() ) );
         String message = registrationWelcome + "\r\n\r\n" +
-                messageSource.getMessage( "EmailService.sendRegistrationMessage", new String[]{ confirmationUrl }, locale ) + "\r\n\r\n" +
+                messageSource.getMessage( "EmailService.sendRegistrationMessage", new String[]{ confirmationUrl.toString() }, locale ) + "\r\n\r\n" +
                 registrationEnding;
         return sendSimpleMessage( subject, message, recipientAddress, null, null );
     }
@@ -146,13 +148,11 @@ public class EmailServiceImpl implements EmailService {
         InternetAddress recipientAddress = new InternetAddress( user.getProfile().getContactEmail() );
         String shortName = messageSource.getMessage( "rdp.site.shortname", new String[]{ siteSettings.getHostUri().toString() }, locale );
         String subject = messageSource.getMessage( "EmailService.sendContactEmailVerificationMessage.subject", new String[]{ shortName }, locale );
-        String confirmationUrl = UriComponentsBuilder.fromUri( siteSettings.getHostUri() )
+        URI confirmationUrl = UriComponentsBuilder.fromUri( siteSettings.getHostUri() )
                 .path( "user/verify-contact-email" )
-                .queryParam( "token", token.getToken() )
-                .build()
-                .encode()
-                .toUriString();
-        String message = messageSource.getMessage( "EmailService.sendContactEmailVerificationMessage", new String[]{ confirmationUrl }, locale );
+                .queryParam( "token", "{token}" )
+                .build( Collections.singletonMap( "token", token.getToken() ) );
+        String message = messageSource.getMessage( "EmailService.sendContactEmailVerificationMessage", new String[]{ confirmationUrl.toString() }, locale );
         return sendSimpleMessage( subject, message, recipientAddress, null, null );
     }
 
@@ -168,11 +168,9 @@ public class EmailServiceImpl implements EmailService {
 
     @Override
     public Future<Void> sendUserGeneAccessRequest( UserGene userGene, User replyTo, String reason ) throws MessagingException {
-        String viewUserUrl = UriComponentsBuilder.fromUri( siteSettings.getHostUri() )
+        URI viewUserUrl = UriComponentsBuilder.fromUri( siteSettings.getHostUri() )
                 .path( "userView/{userId}" )
-                .buildAndExpand( Collections.singletonMap( "userId", replyTo.getId() ) )
-                .encode()
-                .toUriString();
+                .build( Collections.singletonMap( "userId", replyTo.getId() ) );
         InternetAddress to = userGene.getUser().getVerifiedContactEmail().orElseThrow( () -> new MessagingException( "Could not find a verified email address for user." ) );
         InternetAddress replyToAddress = replyTo.getVerifiedContactEmail().orElseThrow( () -> new MessagingException( "Could not find a verified email address for user." ) );
         // unfortunately, there's no way to tell the recipient locale for now
@@ -180,7 +178,7 @@ public class EmailServiceImpl implements EmailService {
         String shortname = messageSource.getMessage( "rdp.site.shortname", null, locale );
         String subject = messageSource.getMessage( "EmailService.sendUserGeneAccessRequest.subject", new String[]{ shortname }, locale );
         String content = messageSource.getMessage( "EmailService.sendUserGeneAccessRequest",
-                new String[]{ replyTo.getProfile().getFullName(), userGene.getSymbol(), reason, viewUserUrl }, locale );
+                new String[]{ replyTo.getProfile().getFullName(), userGene.getSymbol(), reason, viewUserUrl.toString() }, locale );
         return sendSimpleMessage( subject, content, to, replyToAddress, getAdminAddress() );
     }
 

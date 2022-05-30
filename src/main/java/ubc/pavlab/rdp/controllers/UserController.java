@@ -80,6 +80,7 @@ public class UserController {
         } else {
             modelAndView.addObject( "viewOnly", null );
             modelAndView.addObject( "user", user );
+            modelAndView.addObject( "userGenes", user.getGenesByTaxonAndTier( taxon, TierType.MANUAL ) );
             modelAndView.addObject( "taxon", taxon );
         }
         return modelAndView;

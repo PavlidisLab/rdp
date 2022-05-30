@@ -33,7 +33,7 @@ import java.util.Collections;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -92,7 +92,7 @@ public class SearchControllerTest {
     private RemoteResourceService remoteResourceService;
 
     @MockBean
-    private PrivacyService privacyService;
+    private UserPrivacyService privacyService;
 
     @MockBean
     private UserDetailsService userDetailsService;
