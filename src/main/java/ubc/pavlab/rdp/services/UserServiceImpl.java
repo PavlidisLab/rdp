@@ -736,7 +736,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public SortedSet<String> getLastNamesFirstChar() {
-        return userRepository.findAllWithNonEmptyProfileLastNameAndProfilePrivacyLevelNotPrivate()
+        return userRepository.findAllWithNonEmptyProfileLastNameAndProfilePrivacyLevelGreaterOrEqualThan( findCurrentUser() == null ? PrivacyLevelType.PUBLIC : PrivacyLevelType.SHARED )
                 .stream()
                 .map( u -> u.getProfile().getLastName().substring( 0, 1 ).toUpperCase() )
                 .filter( StringUtils::isAlpha )

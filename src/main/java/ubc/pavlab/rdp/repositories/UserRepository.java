@@ -38,8 +38,8 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     User findByEmailIgnoreCase( @Param("email") String email );
 
     @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
-    @Query("select u from User u where u.profile.lastName is not NULL and u.profile.lastName <> '' and u.profile.privacyLevel <> ubc.pavlab.rdp.model.enums.PrivacyLevelType.PRIVATE")
-    Collection<User> findAllWithNonEmptyProfileLastNameAndProfilePrivacyLevelNotPrivate();
+    @Query("select u from User u where u.profile.lastName is not NULL and u.profile.lastName <> '' and u.profile.privacyLevel >= :privacyLevel")
+    Collection<User> findAllWithNonEmptyProfileLastNameAndProfilePrivacyLevelGreaterOrEqualThan( @Param("privacyLevel") PrivacyLevelType privacyLevel );
 
     @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
     Collection<User> findByProfileLastNameStartsWithIgnoreCase( String lastNameLike );
