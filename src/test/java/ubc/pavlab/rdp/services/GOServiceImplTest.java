@@ -27,8 +27,8 @@ import java.util.stream.IntStream;
 
 import static java.util.function.Function.identity;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.eq;
 import static ubc.pavlab.rdp.util.TestUtils.*;
 
 /**

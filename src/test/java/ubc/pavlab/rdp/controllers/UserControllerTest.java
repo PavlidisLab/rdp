@@ -215,7 +215,7 @@ public class UserControllerTest {
                 .andExpect( status().isOk() )
                 .andExpect( view().name( "user/support" ) );
 
-        verify( emailService ).sendSupportMessage( eq( "Is everything okay?" ), eq( "John Doe" ), eq( user ), any(), isNull( MultipartFile.class ), eq( Locale.ENGLISH ) );
+        verify( emailService ).sendSupportMessage( eq( "Is everything okay?" ), eq( "John Doe" ), eq( user ), any(), isNull(), eq( Locale.ENGLISH ) );
     }
 
     @Test
