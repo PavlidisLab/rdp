@@ -43,6 +43,7 @@ public class GOServiceImplTest {
         @Bean
         public ApplicationSettings applicationSettings() {
             ApplicationSettings a = new ApplicationSettings();
+            a.setGoTermSizeLimit( 50L );
             ApplicationSettings.CacheSettings cacheSettings = new ApplicationSettings.CacheSettings();
             cacheSettings.setEnabled( false );
             cacheSettings.setTermFile( new ClassPathResource( "cache/go.obo" ) );
