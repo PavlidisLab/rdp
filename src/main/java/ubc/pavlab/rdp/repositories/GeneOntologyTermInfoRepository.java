@@ -4,17 +4,25 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import ubc.pavlab.rdp.model.Gene;
 import ubc.pavlab.rdp.model.GeneOntologyTermInfo;
 
 import java.util.*;
 
+/**
+ * Repository of gene ontology terms and gene-to-term relationships.
+ * <p>
+ * Note: this repository does not support {@link org.springframework.transaction.annotation.Transactional} operations,
+ * nor should be considered thread-safe. We highly recommend initializing it once and updating it periodically from a
+ * single thread.
+ *
+ * @author poirigui
+ */
 @Repository
 public class GeneOntologyTermInfoRepository implements CrudRepository<GeneOntologyTermInfo, String> {
 
-    private Map<String, GeneOntologyTermInfo> terms = new HashMap<>();
+    private final Map<String, GeneOntologyTermInfo> terms = new HashMap<>();
 
-    private MultiValueMap<Integer, GeneOntologyTermInfo> geneIdsToTerms = new LinkedMultiValueMap<>();
+    private final MultiValueMap<Integer, GeneOntologyTermInfo> geneIdsToTerms = new LinkedMultiValueMap<>();
 
     @Override
     public <S extends GeneOntologyTermInfo> S save( S term ) {
@@ -22,12 +30,12 @@ public class GeneOntologyTermInfoRepository implements CrudRepository<GeneOntolo
     }
 
     @Override
-    public <S extends GeneOntologyTermInfo> Iterable<S> saveAll( Iterable<S> iterable ) {
-        List<GeneOntologyTermInfo> savedTerms = new ArrayList<>();
-        for ( GeneOntologyTermInfo term : iterable ) {
+        public <S extends GeneOntologyTermInfo> Iterable<S> saveAll( Iterable<S> iterable ) {
+        List<S> savedTerms = new ArrayList<>();
+        for ( S term : iterable ) {
             savedTerms.add( save( term ) );
         }
-        return (Iterable<S>) savedTerms;
+        return savedTerms;
     }
 
     @Override
@@ -48,12 +56,12 @@ public class GeneOntologyTermInfoRepository implements CrudRepository<GeneOntolo
         return term;
     }
 
-    public <S extends GeneOntologyTermInfo> Iterable<S> saveAllByAlias( Map<String, GeneOntologyTermInfo> terms ) {
-        List<GeneOntologyTermInfo> savedTerms = new ArrayList<>( terms.size() );
-        for ( Map.Entry<String, GeneOntologyTermInfo> entry : terms.entrySet() ) {
+    public <S extends GeneOntologyTermInfo> Iterable<S> saveAllByAlias( Map<String, S> terms ) {
+        List<S> savedTerms = new ArrayList<>( terms.size() );
+        for ( Map.Entry<String, S> entry : terms.entrySet() ) {
             savedTerms.add( saveByAlias( entry.getKey(), entry.getValue() ) );
         }
-        return (Iterable<S>) savedTerms;
+        return savedTerms;
     }
 
     @Override
@@ -72,8 +80,8 @@ public class GeneOntologyTermInfoRepository implements CrudRepository<GeneOntolo
         return results;
     }
 
-    public Collection<GeneOntologyTermInfo> findAllByGene( Gene gene ) {
-        return geneIdsToTerms.getOrDefault( gene.getGeneId(), Collections.emptyList() );
+    public Collection<GeneOntologyTermInfo> findByDirectGeneIdsContaining( Integer geneId ) {
+        return geneIdsToTerms.getOrDefault( geneId, Collections.emptyList() );
     }
 
     @Override
