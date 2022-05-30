@@ -92,7 +92,7 @@ public class SearchControllerTest {
     private RemoteResourceService remoteResourceService;
 
     @MockBean
-    private PrivacyService privacyService;
+    private UserPrivacyService privacyService;
 
     @MockBean
     private UserDetailsService userDetailsService;

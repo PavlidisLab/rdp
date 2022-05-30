@@ -15,6 +15,7 @@ import ubc.pavlab.rdp.model.UserContent;
 import ubc.pavlab.rdp.model.UserPrinciple;
 import ubc.pavlab.rdp.repositories.RoleRepository;
 import ubc.pavlab.rdp.services.PrivacyService;
+import ubc.pavlab.rdp.services.UserPrivacyService;
 import ubc.pavlab.rdp.services.UserService;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -40,7 +41,7 @@ public class PermissionEvaluatorImplTest {
     UserService userService;
 
     @MockBean
-    PrivacyService privacyService;
+    UserPrivacyService privacyService;
 
     /* fixtures */
     private Authentication auth;

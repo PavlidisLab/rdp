@@ -72,6 +72,11 @@ public class UserServiceImplTest {
         }
 
         @Bean
+        public UserPrivacyService userPrivacyService() {
+            return new UserPrivacyService();
+        }
+
+        @Bean
         public UserService userService() {
             return new UserServiceImpl();
         }

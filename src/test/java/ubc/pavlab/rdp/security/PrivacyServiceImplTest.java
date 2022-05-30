@@ -15,6 +15,7 @@ import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.repositories.RoleRepository;
 import ubc.pavlab.rdp.services.PrivacyService;
 import ubc.pavlab.rdp.services.PrivacyServiceImpl;
+import ubc.pavlab.rdp.services.UserPrivacyService;
 import ubc.pavlab.rdp.services.UserService;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 
@@ -32,13 +33,13 @@ public class PrivacyServiceImplTest {
     static class PrivacyServiceImplTestContextConfiguration {
 
         @Bean
-        public PrivacyService privacyService() {
-            return new PrivacyServiceImpl();
+        public UserPrivacyService privacyService() {
+            return new UserPrivacyService();
         }
     }
 
     @Autowired
-    private PrivacyService privacyService;
+    private UserPrivacyService privacyService;
 
     @MockBean
     private ApplicationSettings applicationSettings;
