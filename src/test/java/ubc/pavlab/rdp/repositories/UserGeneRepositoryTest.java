@@ -180,9 +180,10 @@ public class UserGeneRepositoryTest {
         assertThat( count ).isEqualTo( 2 );
     }
 
-    @Test(expected = InvalidDataAccessResourceUsageException.class)
+    @Test
     public void countDistinctGeneByTierIn_whenTierNotMatch_thenRaiseException() {
-        userGeneRepository.countDistinctGeneByTierIn( tierService.getEnabledTiers() );
+        assertThat( tierService.getEnabledTiers() ).isEmpty();
+        assertThat( userGeneRepository.countDistinctGeneByTierIn( tierService.getEnabledTiers() ) ).isEqualTo( 0 );
     }
 
     @Test
