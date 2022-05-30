@@ -7,9 +7,8 @@ import org.junit.runner.RunWith;
 import org.mockito.internal.util.collections.Sets;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.cache.CacheManager;
-import org.springframework.cache.ehcache.EhCacheCacheManager;
+import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -29,8 +28,6 @@ import java.util.stream.IntStream;
 
 import static java.util.function.Function.identity;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.eq;
 import static ubc.pavlab.rdp.util.TestUtils.*;
 
 /**
@@ -76,7 +73,7 @@ public class GOServiceImplTest {
 
         @Bean
         public CacheManager cacheManager() {
-            return new EhCacheCacheManager();
+            return new ConcurrentMapCacheManager();
         }
     }
 
