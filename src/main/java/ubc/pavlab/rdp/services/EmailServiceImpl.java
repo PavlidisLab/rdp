@@ -25,6 +25,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
@@ -102,7 +103,12 @@ public class EmailServiceImpl implements EmailService {
                 .path( "updatePassword" )
                 .queryParam( "id", "{id}" )
                 .queryParam( "token", "{token}" )
-                .build( user.getId(), token.getToken() );
+                .build( new HashMap<String, String>() {
+                    {
+                        put( "id", user.getId().toString() );
+                        put( "token", token.getToken() );
+                    }
+                } );
 
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter
                 .ofLocalizedDateTime( FormatStyle.SHORT )
@@ -130,7 +136,7 @@ public class EmailServiceImpl implements EmailService {
         URI confirmationUrl = UriComponentsBuilder.fromUri( siteSettings.getHostUri() )
                 .path( "registrationConfirm" )
                 .queryParam( "token", "{token}" )
-                .build( token.getToken() );
+                .build( Collections.singletonMap( "token", token.getToken() ) );
         String message = registrationWelcome + "\r\n\r\n" +
                 messageSource.getMessage( "EmailService.sendRegistrationMessage", new String[]{ confirmationUrl.toString() }, locale ) + "\r\n\r\n" +
                 registrationEnding;
@@ -145,7 +151,7 @@ public class EmailServiceImpl implements EmailService {
         URI confirmationUrl = UriComponentsBuilder.fromUri( siteSettings.getHostUri() )
                 .path( "user/verify-contact-email" )
                 .queryParam( "token", "{token}" )
-                .build( token.getToken() );
+                .build( Collections.singletonMap( "token", token.getToken() ) );
         String message = messageSource.getMessage( "EmailService.sendContactEmailVerificationMessage", new String[]{ confirmationUrl.toString() }, locale );
         return sendSimpleMessage( subject, message, recipientAddress, null, null );
     }
