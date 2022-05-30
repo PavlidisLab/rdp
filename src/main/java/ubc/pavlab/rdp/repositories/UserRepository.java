@@ -12,12 +12,13 @@ import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 
 import javax.persistence.QueryHint;
 import java.util.Collection;
+import java.util.Optional;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Integer> {
 
     @Query("select user from User user left join fetch user.roles where user.id = :id")
-    User findOneWithRoles( @Param("id") int id );
+    Optional<User> findOneWithRoles( @Param("id") int id );
 
     @Query("select user from User user left join fetch user.userTerms")
     Collection<User> findAllWithUserTerms();

@@ -135,7 +135,7 @@ public class UserServiceImplTest {
         User user = createUser( 1 );
 
         when( userRepository.findById( user.getId() ) ).thenReturn( Optional.of( user ) );
-        when( userRepository.findOneWithRoles( user.getId() ) ).thenReturn( user );
+        when( userRepository.findOneWithRoles( user.getId() ) ).thenReturn( Optional.of( user ) );
         when( userRepository.save( any( User.class ) ) ).then( i -> i.getArgument( 0, User.class ) );
         when( passwordResetTokenRepository.save( any( PasswordResetToken.class ) ) ).then( i -> i.getArgument( 0, PasswordResetToken.class ) );
         when( tokenRepository.save( any( VerificationToken.class ) ) ).then( i -> i.getArgument( 0, VerificationToken.class ) );

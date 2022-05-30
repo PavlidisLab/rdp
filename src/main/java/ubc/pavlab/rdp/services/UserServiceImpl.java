@@ -239,7 +239,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public User findUserByIdNoAuth( int id ) {
         // Only use this in placed where no authentication of user is needed
-        return userRepository.findOneWithRoles( id );
+        return userRepository.findOneWithRoles( id ).orElse( null );
     }
 
     @Override
@@ -314,11 +314,8 @@ public class UserServiceImpl implements UserService {
     @Override
     @Cacheable("ubc.pavlab.rdp.services.UserService.remoteSearchUser")
     public Optional<User> getRemoteSearchUser() {
-        if ( applicationSettings.getIsearch().getUserId() == null ) {
-            // there is no configured remote search user
-            return Optional.empty();
-        }
-        return Optional.ofNullable( userRepository.findOneWithRoles( applicationSettings.getIsearch().getUserId() ) );
+        return Optional.ofNullable( applicationSettings.getIsearch().getUserId() )
+                .flatMap( userRepository::findOneWithRoles );
     }
 
     @Override
