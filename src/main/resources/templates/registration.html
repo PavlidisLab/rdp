@@ -32,7 +32,7 @@
             <div class="form-row">
                 <div class="form-group offset-md-1 col-md-10">
                     <label th:for="${#ids.next('email')}">Email</label>
-                    <input type="text" th:field="*{email}" placeholder="Email" class="form-control"
+                    <input type="email" th:field="*{email}" placeholder="Email" class="form-control"
                            th:classappend="${#fields.hasErrors('email')} ? 'is-invalid'"/>
                     <div class="invalid-feedback" th:errors="*{email}"></div>
                 </div>
