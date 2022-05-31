@@ -1,6 +1,7 @@
 package ubc.pavlab.rdp;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -81,6 +82,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                     // user endpoints
                     .antMatchers( "/user/**" )
                         .hasAnyRole("USER", "ADMIN")
+                    // ensure that actuator endpoints are secured regardless of the basepath they are mounted on
+                    .requestMatchers( EndpointRequest.toAnyEndpoint() )
+                        .hasRole( "ADMIN" )
                     .and()
                 // TODO: we should fully comply with CSRF
                 .csrf()
