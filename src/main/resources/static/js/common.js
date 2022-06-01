@@ -100,7 +100,7 @@
             var that = this;
             if (items.length === 1 && items[0].noresults) {
                 ul.append($("<li aria-label='noresults' class='ui-autocomplete-category my-1 p-2 font-weight-bold alert-danger'>")
-                    .text("No Results"));
+                    .text(items[0].label));
                 return;
             }
             var currentCategory = null;

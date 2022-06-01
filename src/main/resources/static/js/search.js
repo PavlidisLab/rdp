@@ -160,7 +160,7 @@
                             data = [
                                 {
                                     noresults: true,
-                                    label: 'No matches found',
+                                    label: 'No matches found for "' + term + '".',
                                     value: term
                                 }
                             ];
