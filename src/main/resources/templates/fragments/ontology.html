@@ -49,7 +49,12 @@
             </thead>
             <tbody>
             <tr th:each="term : ${selectedTerms}">
-                <td th:text="${term.termId}"></td>
+                <td>
+                    <a th:href="#{'rdp.ontologies.' + ${term.ontology.name} + '.term-url-pattern'(${term.termId})}"
+                       th:text="${term.termId}"
+                       target="_blank"
+                       rel="noopener"></a>
+                </td>
                 <td th:text="${term.name}"></td>
                 <td th:text="${term.termInfo.definition}"></td>
             </tr>

@@ -48,6 +48,11 @@ public class OntologyServiceTest {
         }
 
         @Bean
+        public ReactomeService reactomeService( OntologyService ontologyService, ApplicationSettings applicationSettings ) {
+            return new ReactomeService( ontologyService, applicationSettings );
+        }
+
+        @Bean
         public OntologyStubService ontologyStubService( OntologyRepository ontologyRepository, OntologyService ontologyService ) {
             return new OntologyStubService( ontologyRepository, ontologyService );
         }
@@ -57,10 +62,19 @@ public class OntologyServiceTest {
     private OntologyService ontologyService;
 
     @Autowired
+    private ReactomeService reactomeService;
+
+    @Autowired
     private OntologyStubService ontologyStubService;
 
     @Autowired
     private EntityManager entityManager;
+
+    @MockBean
+    private ApplicationSettings applicationSettings;
+
+    @MockBean
+    private ApplicationSettings.OntologySettings ontologySettings;
 
     @Test
     public void findAllTerms() {
@@ -269,5 +283,18 @@ public class OntologyServiceTest {
         OntologyTermInfo term = ontologyService.findByTermIdAndOntology( "MONDO:0000001", mondo );
         int activatedTerms = ontologyService.activateTermSubtree( term );
         assertThat( activatedTerms ).isEqualTo( 22027 );
+    }
+
+    @Test
+    public void importReactomePathways() throws IOException {
+        when( applicationSettings.getOntology() ).thenReturn( ontologySettings );
+        when( ontologySettings.getReactomePathwaysFile() ).thenReturn( new ClassPathResource( "cache/ReactomePathways.txt" ) );
+        when( ontologySettings.getReactomePathwaysHierarchyFile() ).thenReturn( new ClassPathResource( "cache/ReactomePathwaysRelation.txt" ) );
+        when( ontologySettings.getReactomeStableIdentifiersFile() ).thenReturn( new ClassPathResource( "cache/reactome_stable_ids.txt" ) );
+        Ontology reactome = reactomeService.importReactomePathways();
+        assertThat( reactome.getTerms() ).hasSize( 2580 );
+        // the TSV does not have a header, so we must ensure that the first record is kept
+        assertThat( ontologyService.findByTermIdAndOntology( "R-HSA-164843", reactome ) ).isNotNull();
+        assertThat( ontologyService.autocomplete( "R-HSA-164843", 10, Locale.getDefault() ) ).hasSize( 1 );
     }
 }

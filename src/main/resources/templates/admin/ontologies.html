@@ -58,6 +58,15 @@
                             Stubs are already setup.
                         </p>
                     </form>
+                    <h2>Reactome</h2>
+                    <p>RDP also provides capability of importing Reactome pathways.</p>
+                    <form th:action="@{/admin/ontologies/import-reactome}" method="post">
+                        <button class="btn btn-primary" type="submit">
+                            <span th:if="${@ontologyService.existsByName('reactome')}">Import</span>
+                            <span th:unless="${@ontologyService.existsByName('reactome')}">Update</span>
+                            Reactome Pathways
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>

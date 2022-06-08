@@ -25,10 +25,7 @@ import ubc.pavlab.rdp.model.User;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.ontology.Ontology;
 import ubc.pavlab.rdp.model.ontology.OntologyTermInfo;
-import ubc.pavlab.rdp.services.OntologyNameAlreadyUsedException;
-import ubc.pavlab.rdp.services.OntologyService;
-import ubc.pavlab.rdp.services.OntologyStubService;
-import ubc.pavlab.rdp.services.UserService;
+import ubc.pavlab.rdp.services.*;
 import ubc.pavlab.rdp.settings.SiteSettings;
 import ubc.pavlab.rdp.util.ParseException;
 
@@ -54,6 +51,9 @@ public class AdminController {
 
     @Autowired
     private OntologyService ontologyService;
+
+    @Autowired
+    private ReactomeService reactomeService;
 
     @Autowired
     private OntologyStubService ontologyStubService;
@@ -222,6 +222,21 @@ public class AdminController {
             modelAndView.addObject( "error", true );
             return modelAndView;
         }
+    }
+
+    /**
+     *
+     */
+    @PostMapping("/admin/ontologies/import-reactome")
+    public Object importReactome( RedirectAttributes redirectAttributes ) {
+        try {
+            reactomeService.importReactomePathways();
+            redirectAttributes.addFlashAttribute( "message", "Successfully imported Reactome pathways!" );
+        } catch ( IOException e ) {
+            redirectAttributes.addFlashAttribute( "message", "Failed to import Reactome pathways: " + e.getMessage() + "." );
+            redirectAttributes.addFlashAttribute( "error", true );
+        }
+        return "redirect:/admin/ontologies";
     }
 
     @PostMapping("/admin/ontologies/{ontology}/activate")

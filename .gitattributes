@@ -13,3 +13,6 @@ src/test/resources/cache/genes/Rattus_norvegicus.gene_info.gz filter=lfs diff=lf
 src/test/resources/cache/genes/Saccharomyces_cerevisiae.gene_info.gz filter=lfs diff=lfs merge=lfs -text
 src/test/resources/cache/genes/Caenorhabditis_elegans.gene_info.gz filter=lfs diff=lfs merge=lfs -text
 src/test/resources/cache/mondo.obo filter=lfs diff=lfs merge=lfs -text
+src/test/resources/cache/ReactomePathways.txt filter=lfs diff=lfs merge=lfs -text
+src/test/resources/cache/ReactomePathwaysRelation.txt filter=lfs diff=lfs merge=lfs -text
+src/test/resources/cache/reactome_stable_ids.txt filter=lfs diff=lfs merge=lfs -text

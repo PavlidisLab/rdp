@@ -146,11 +146,19 @@ public class ApplicationSettings {
         private Integer requestTimeout;
     }
 
+    @Data
+    public static class OntologySettings {
+        Resource reactomePathwaysFile;
+        Resource reactomePathwaysHierarchyFile;
+        Resource reactomeStableIdentifiersFile;
+    }
+
     private ProfileSettings profile;
     private InternationalSearchSettings isearch;
     private PrivacySettings privacy;
     private CacheSettings cache;
     private OrganSettings organs;
+    private OntologySettings ontology;
 
     private Resource faqFile;
     private boolean sendEmailOnRegistration;
