@@ -57,8 +57,11 @@ public class CacheServiceTest {
     @MockBean
     private OntologyService ontologyService;
 
+    @MockBean
+    private ReactomeService reactomeService;
+
     @Test
-    public void updateCache_thenSucceed() {
+    public void updateCache_thenSucceed() throws ReactomeException {
         cacheService.updateCache();
         verify( geneService ).updateGenes();
         verify( geneService ).updateGeneOrthologs();
@@ -67,6 +70,8 @@ public class CacheServiceTest {
         verify( userService ).updateUserTerms();
         verify( organInfoService ).updateOrganInfos();
         verify( userOrganService ).updateUserOrgans();
+        verify( reactomeService ).updatePathwaysOntology();
+        verify( reactomeService ).updatePathwaySummations( null );
     }
 
 }

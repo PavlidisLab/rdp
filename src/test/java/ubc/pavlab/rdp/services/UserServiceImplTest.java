@@ -35,6 +35,7 @@ import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.repositories.*;
 import ubc.pavlab.rdp.security.PermissionEvaluatorImpl;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
+import ubc.pavlab.rdp.util.OntologyMessageSource;
 
 import javax.validation.ValidationException;
 import java.security.NoSuchAlgorithmException;
@@ -136,6 +137,8 @@ public class UserServiceImplTest {
     private ApplicationSettings.ProfileSettings profileSettings;
     @MockBean
     private OntologyService ontologyService;
+    @MockBean
+    private OntologyMessageSource ontologyMessageSource;
 
     @Before
     public void setUp() {

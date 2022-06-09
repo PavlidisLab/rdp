@@ -14,7 +14,15 @@
     $(document).on("mousedown", '.editable', function (e) {
         e.preventDefault();
     });
-    $(document).on("click", 'table.dataTable .delete-row', function () {
+
+    $(document).on("click", 'table.dataTable .delete-row', function (event) {
+        event.preventDefault();
+        var table = $(this).closest('table').DataTable();
+        table.row($(this).closest('tr')).remove().draw();
+    });
+
+    $(document).on("click", 'table.dataTable .close', function (event) {
+        event.preventDefault();
         var table = $(this).closest('table').DataTable();
         table.row($(this).closest('tr')).remove().draw();
     });
@@ -23,9 +31,21 @@
     //     $(this).closest('table').find('tr.new-row').remove();
     // });
 
-    $(document).on("click", ".close", function () {
+    $(document).on("click", ".row .close", function (event) {
+        event.preventDefault();
         $(this).closest('.row').hide();
     });
+
+    $(document).on("click", ".form-row .close", function (event) {
+        event.preventDefault();
+        $(this).closest('.form-row').remove();
+    });
+
+    $(document).on('click', '.badge .close', function (event) {
+        event.preventDefault();
+        $(this).closest('.badge').remove();
+    });
+
 
     $(document).on("focusout", ".edit-container", function () {
         $(this).find('.data-edit').prop('disabled', true);
@@ -39,8 +59,9 @@
     });
 
     /* we use a hide behaviour on alert instead of bootstrap defaults to remove the element from DOM */
-    $('.alert .close').on('click', function () {
+    $('.alert .close').on('click', function (event) {
         $(this).parent().hide();
+        event.preventDefault();
     });
 
     $('[data-toggle="tooltip"]').tooltip();

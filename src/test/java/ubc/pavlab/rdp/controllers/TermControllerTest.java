@@ -17,6 +17,7 @@ import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.model.enums.TermMatchType;
 import ubc.pavlab.rdp.services.GOService;
 import ubc.pavlab.rdp.services.TaxonService;
+import ubc.pavlab.rdp.util.OntologyMessageSource;
 import ubc.pavlab.rdp.util.SearchResult;
 
 import java.util.Collections;
@@ -47,6 +48,8 @@ public class TermControllerTest {
     @MockBean
     private PermissionEvaluator permissionEvaluator;
 
+    @MockBean
+    private OntologyMessageSource ontologyMessageSource;
     @Test
     public void searchTermsByQueryAndTaxon_thenReturnMatchingTerms() throws Exception {
         Taxon taxon = createTaxon( 1 );

@@ -137,24 +137,12 @@
 
                 <div th:if="${@ontologyService.countTerms()} > 0"
                      class="form-row">
-                    <div class="col-md-12 warning alert-warning">
-                        <p>
-                            This section is a prototype for searching and selecting terms. It essentially provides two
-                            modes: multiple selection via manual selection for relatively small ontologies (&lt;20
-                            active
-                            terms) and a full-fledged autocomplete feature for larger ones.
-                        </p>
-                        <div class="form-group">
-                            <label for="ontologyTerms">With the following ontology terms (or any if none are
-                                selected):</label>
-                            <div th:replace="fragments/ontology::all-terms-selection"></div>
-                        </div>
-                        <div class="form-group">
-                            <input class="form-control term-autocomplete" placeholder="Terms"
-                                   th:value="${ontologyTermLabels != null ? #strings.listJoin(ontologyTermLabels,', ') : ''}"/>
-                            <input th:each="o : ${ontologyTerms}" th:value="${o.id}"
-                                   name="ontologyTermIds"
-                                   type="hidden"/>
+                    <div class="col-md-12">
+                        <div class="form-group mb-0">
+                            <label th:for="${#ids.next('ontologyTermIds')}">
+                                With the following terms (or any if none are selected):
+                            </label>
+                            <div th:replace="fragments/ontology::terms-autocomplete-selection(selectedTerms = ${ontologyTerms})"></div>
                         </div>
                     </div>
                 </div>
@@ -271,15 +259,17 @@
             </form>
 
             <div th:if="${@ontologyService.countTerms()} > 0"
-                 class="form-row d-none">
+                 class="form-row">
                 <div class="col-md-12">
-                    <div class="form-group">
-                        <label for="ontologyTerms">With the following ontology terms (or any if none are
-                            selected):</label>
-                        <div th:replace="fragments/ontology::all-terms-selection"></div>
+                    <div class="form-group mb-0">
+                        <label th:for="${#ids.next('ontologyTermIds')}">
+                            With the following terms (or any if none are selected):
+                        </label>
+                        <div th:replace="fragments/ontology::terms-autocomplete-selection(selectedTerms = ${ontologyTerms})"></div>
                     </div>
                 </div>
             </div>
+
         </div>
     </div>
 

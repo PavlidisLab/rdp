@@ -144,7 +144,7 @@ public class RemoteResourceServiceTest {
                 .andRespond( withStatus( HttpStatus.OK )
                         .contentType( MediaType.APPLICATION_JSON )
                         .body( objectMapper.writeValueAsString( new User[]{} ) ) );
-        remoteResourceService.findUsersByLikeName( "ok", true, null, null, null );
+        remoteResourceService.findUsersByLikeName( "ok", true, null, null, null, null );
         mockServer.verify();
     }
 
@@ -157,7 +157,7 @@ public class RemoteResourceServiceTest {
                         .body( objectMapper.writeValueAsString( new User[]{} ) ) );
         when( iSearchSettings.getSearchToken() ).thenReturn( "1234" );
         when( userService.findCurrentUser() ).thenReturn( adminUser );
-        remoteResourceService.findUsersByLikeName( "ok", true, null, null, null );
+        remoteResourceService.findUsersByLikeName( "ok", true, null, null, null, null );
         mockServer.verify();
     }
 
@@ -174,7 +174,7 @@ public class RemoteResourceServiceTest {
                         .contentType( MediaType.APPLICATION_JSON )
                         .body( objectMapper.writeValueAsString( new UserGene[]{} ) ) );
         Taxon taxon = createTaxon( 9606 );
-        remoteResourceService.findGenesBySymbol( "ok", taxon, EnumSet.of( TierType.TIER1, TierType.TIER2, TierType.TIER3 ), null, null, null, null );
+        remoteResourceService.findGenesBySymbol( "ok", taxon, EnumSet.of( TierType.TIER1, TierType.TIER2, TierType.TIER3 ), null, null, null, null, null );
         mockServer.verify();
     }
 
@@ -187,7 +187,7 @@ public class RemoteResourceServiceTest {
                         .contentType( MediaType.APPLICATION_JSON )
                         .body( objectMapper.writeValueAsString( new UserGene[]{} ) ) );
         Taxon taxon = createTaxon( 9606 );
-        remoteResourceService.findGenesBySymbol( "ok", taxon, EnumSet.of( TierType.TIER1 ), null, null, null, null );
+        remoteResourceService.findGenesBySymbol( "ok", taxon, EnumSet.of( TierType.TIER1 ), null, null, null, null, null );
         mockServer.verify();
         // TODO: this test case does not actually check if Future.get() is invoked with a timeout, but I haven't found a
         // good way to do that insofar

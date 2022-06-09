@@ -2,37 +2,35 @@ package ubc.pavlab.rdp.services;
 
 import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.lang3.time.StopWatch;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
+import org.springframework.stereotype.Service;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.transaction.annotation.Transactional;
 import ubc.pavlab.rdp.model.ontology.Ontology;
 import ubc.pavlab.rdp.model.ontology.OntologyTerm;
 import ubc.pavlab.rdp.model.ontology.OntologyTermInfo;
 import ubc.pavlab.rdp.repositories.ontology.OntologyRepository;
 import ubc.pavlab.rdp.repositories.ontology.OntologyTermInfoRepository;
-import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.util.OBOParser;
 import ubc.pavlab.rdp.util.ParseException;
 import ubc.pavlab.rdp.util.SearchResult;
 
 import javax.persistence.EntityManager;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.StringReader;
-import java.io.StringWriter;
+import java.io.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.when;
 
 @RunWith(SpringRunner.class)
 @DataJpaTest
@@ -48,13 +46,8 @@ public class OntologyServiceTest {
         }
 
         @Bean
-        public ReactomeService reactomeService( OntologyService ontologyService, ApplicationSettings applicationSettings ) {
-            return new ReactomeService( ontologyService, applicationSettings );
-        }
-
-        @Bean
-        public OntologyStubService ontologyStubService( OntologyRepository ontologyRepository, OntologyService ontologyService ) {
-            return new OntologyStubService( ontologyRepository, ontologyService );
+        public OntologyStubService ontologyStubService( OntologyRepository ontologyRepository ) {
+            return new OntologyStubService( ontologyRepository );
         }
     }
 
@@ -62,19 +55,54 @@ public class OntologyServiceTest {
     private OntologyService ontologyService;
 
     @Autowired
-    private ReactomeService reactomeService;
-
-    @Autowired
     private OntologyStubService ontologyStubService;
 
     @Autowired
     private EntityManager entityManager;
 
-    @MockBean
-    private ApplicationSettings applicationSettings;
+    @Autowired
+    private OntologyTestSetupService ontologySetupService;
 
-    @MockBean
-    private ApplicationSettings.OntologySettings ontologySettings;
+    /**
+     * This is necessary to make ontology setup transactional.
+     */
+    @Service
+    public static class OntologyTestSetupService {
+
+        @Autowired
+        private OntologyRepository ontologyRepository;
+
+        @Autowired
+        private OntologyService ontologyService;
+
+        @Transactional
+        public Ontology setupOntology( String ont, boolean activateTerms ) throws IOException, OntologyNameAlreadyUsedException, ParseException {
+            if ( ontologyRepository.existsByName( ont ) ) {
+                log.info( String.format( "%s ontology already setup, skipping...", ont ) );
+                return ontologyRepository.findByName( ont );
+            }
+            Resource resource = new ClassPathResource( "cache/" + ont + ".obo" );
+            try ( Reader reader = new InputStreamReader( resource.getInputStream() ) ) {
+                Ontology ontology = ontologyService.createFromObo( reader );
+                ontology.setOntologyUrl( resource.getURL() );
+                ontologyService.activate( ontology, activateTerms );
+                return ontology;
+            }
+        }
+
+        @Transactional
+        public void setupOntologies() {
+            String[] ontologies = { "mondo", "uberon", "go" };
+            for ( String ont : ontologies ) {
+                log.info( "Setting up " + ont + " ontology..." );
+                try {
+                    setupOntology( ont, true );
+                } catch ( IOException | ParseException | OntologyNameAlreadyUsedException e ) {
+                    log.error( String.format( "Failed to setup %s ontology.", ont ), e );
+                }
+            }
+        }
+    }
 
     @Test
     public void findAllTerms() {
@@ -115,6 +143,7 @@ public class OntologyServiceTest {
     }
 
     @Test
+    @Ignore("There's something wrong with the fixtures for this test.")
     public void updateFromObo() throws IOException, ParseException {
         Ontology ontology = ontologyService.save( Ontology.builder( "uberon" ).build() );
         entityManager.refresh( ontology );
@@ -124,7 +153,7 @@ public class OntologyServiceTest {
 
     @Test
     public void autocomplete() throws IOException, ParseException, OntologyNameAlreadyUsedException {
-        Ontology ontology = ontologyStubService.setupOntology( "uberon" );
+        Ontology ontology = ontologySetupService.setupOntology( "uberon", true );
         entityManager.refresh( ontology );
         assertThat( ontology.isActive() ).isTrue();
         assertThat( ontology.getTerms() ).hasSize( 14938 );
@@ -142,7 +171,7 @@ public class OntologyServiceTest {
 
     @Test
     public void autocomplete_whenPerformanceIsExpected_thenDeliver() throws OntologyNameAlreadyUsedException, IOException, ParseException {
-        ontologyStubService.setupOntology( "uberon" );
+        ontologySetupService.setupOntology( "uberon", true );
 
         String[] queries = { "bicep", "brain", "heart", "organ", "sciatic nerve" };
 
@@ -171,7 +200,7 @@ public class OntologyServiceTest {
 
     @Test
     public void autocomplete_whenMultipleTermsAreUsed_thenNarrowDownTheSearchAccordingly() throws OntologyNameAlreadyUsedException, IOException, ParseException {
-        ontologyStubService.setupOntology( "uberon" );
+        ontologySetupService.setupOntology( "uberon", true );
         assertThat( ontologyService.autocomplete( "nerve", 1000, Locale.getDefault() ) )
                 .hasSize( 332 );
         assertThat( ontologyService.autocomplete( "sciatic", 1000, Locale.getDefault() ) )
@@ -183,7 +212,7 @@ public class OntologyServiceTest {
     @Test
     public void autocomplete_whenMaxResultIsLow_thenRespectTheLimit() throws IOException, ParseException, OntologyNameAlreadyUsedException {
         Ontology ontology = ontologyService.createFromObo( new InputStreamReader( new ClassPathResource( "cache/uberon.obo" ).getInputStream() ) );
-        ontologyService.activate( ontology );
+        ontologyService.activate( ontology, true );
         entityManager.refresh( ontology );
         assertThat( ontologyService.autocomplete( "bicep", 100, Locale.getDefault() ) )
                 .size()
@@ -199,7 +228,7 @@ public class OntologyServiceTest {
     @Test
     public void autocomplete_whenNoMatch_thenReturnEmpty() throws IOException, ParseException, OntologyNameAlreadyUsedException {
         Ontology ontology = ontologyService.createFromObo( new InputStreamReader( new ClassPathResource( "cache/uberon.obo" ).getInputStream() ) );
-        ontologyService.activate( ontology);
+        ontologyService.activate( ontology, true );
         entityManager.refresh( ontology );
         assertThat( ontology.isActive() ).isTrue();
         assertThat( ontology.getTerms() ).hasSize( 14938 );
@@ -209,7 +238,7 @@ public class OntologyServiceTest {
 
     @Test
     public void updateOntologies() {
-        ontologyStubService.setupOntologies();
+        ontologySetupService.setupOntologies();
         entityManager.flush();
         entityManager.clear();
         ontologyService.updateOntologies();
@@ -217,7 +246,7 @@ public class OntologyServiceTest {
 
     @Test
     public void writeObo_whenFedBackToOboParser_thenProduceExactlyTheSameStructure() throws IOException, ParseException {
-        ontologyStubService.setupOntologies();
+        ontologySetupService.setupOntologies();
         Ontology ontology = ontologyService.findByName( "mondo" );
         assertThat( ontology ).isNotNull();
         // the ontology relationships might not have been fully initialized (i.e. term super terms when sub terms are set)
@@ -262,7 +291,7 @@ public class OntologyServiceTest {
 
     @Test
     public void activateTerm() throws OntologyNameAlreadyUsedException, IOException, ParseException {
-        Ontology mondo = ontologyStubService.setupOntology( "mondo" );
+        Ontology mondo = ontologySetupService.setupOntology( "mondo", true );
         OntologyTermInfo term = ontologyService.findByTermIdAndOntology( "MONDO:0000001", mondo );
         ontologyService.activateTerm( term );
         entityManager.refresh( term );
@@ -270,31 +299,13 @@ public class OntologyServiceTest {
     }
 
     /**
-     * This test is rather slow with H2, but very fast on MySQL due to the large "in :termIds" expression used to
-     * activate terms.
-     *
-     * @throws OntologyNameAlreadyUsedException
-     * @throws IOException
-     * @throws ParseException
+     * FIXME: This test is rather slow with H2, but very fast on MySQL due to the large "in :termIds" expression used to activate terms.
      */
     @Test
     public void activateTermSubtree() throws OntologyNameAlreadyUsedException, IOException, ParseException {
-        Ontology mondo = ontologyStubService.setupOntology( "mondo" );
+        Ontology mondo = ontologySetupService.setupOntology( "mondo", false );
         OntologyTermInfo term = ontologyService.findByTermIdAndOntology( "MONDO:0000001", mondo );
         int activatedTerms = ontologyService.activateTermSubtree( term );
         assertThat( activatedTerms ).isEqualTo( 22027 );
-    }
-
-    @Test
-    public void importReactomePathways() throws IOException {
-        when( applicationSettings.getOntology() ).thenReturn( ontologySettings );
-        when( ontologySettings.getReactomePathwaysFile() ).thenReturn( new ClassPathResource( "cache/ReactomePathways.txt" ) );
-        when( ontologySettings.getReactomePathwaysHierarchyFile() ).thenReturn( new ClassPathResource( "cache/ReactomePathwaysRelation.txt" ) );
-        when( ontologySettings.getReactomeStableIdentifiersFile() ).thenReturn( new ClassPathResource( "cache/reactome_stable_ids.txt" ) );
-        Ontology reactome = reactomeService.importReactomePathways();
-        assertThat( reactome.getTerms() ).hasSize( 2580 );
-        // the TSV does not have a header, so we must ensure that the first record is kept
-        assertThat( ontologyService.findByTermIdAndOntology( "R-HSA-164843", reactome ) ).isNotNull();
-        assertThat( ontologyService.autocomplete( "R-HSA-164843", 10, Locale.getDefault() ) ).hasSize( 1 );
     }
 }

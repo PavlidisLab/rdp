@@ -20,6 +20,7 @@ import ubc.pavlab.rdp.model.VerificationToken;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.settings.SiteSettings;
+import ubc.pavlab.rdp.util.OntologyMessageSource;
 
 import javax.mail.MessagingException;
 import java.net.URI;
@@ -52,6 +53,9 @@ public class EmailServiceImplTest {
 
     @MockBean
     private JavaMailSender emailSender;
+
+    @MockBean
+    private OntologyMessageSource ontologyMessageSource;
 
     @Before
     public void setUp() {

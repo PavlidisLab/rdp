@@ -150,23 +150,36 @@ public class ApiController {
         }
     }
 
-    @GetMapping(value = "/api/ontologies")
+    @GetMapping(value = "/api/ontologies", produces = MediaType.APPLICATION_JSON_VALUE)
     public List<Ontology> getOntologies() {
         return ontologyService.findAllOntologies();
     }
 
-    @GetMapping(value = "/api/ontologies/{ontologyId}")
-    public Ontology getOntology( @PathVariable Integer ontologyId ) {
-        return ontologyService.findById( ontologyId );
+    @GetMapping(value = "/api/ontologies/{ontologyName}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public Ontology getOntology( @PathVariable String ontologyName, Locale locale ) {
+        Ontology ontology = ontologyService.findByName( ontologyName );
+        if ( ontology == null || !ontology.isActive() ) {
+            throw new ApiException( HttpStatus.NOT_FOUND, String.format( locale, "No ontology %s.", ontologyName ) );
+        }
+        return ontology;
     }
 
-    @GetMapping(value = "/api/ontologies/{ontologyId}/terms")
-    public Page<OntologyTermInfo> getOntologyTerms( @PathVariable Integer ontologyId, Pageable pageable, Locale locale ) {
-        Ontology ontology = ontologyService.findById( ontologyId );
-        if ( ontology == null ) {
-            throw new ApiException( HttpStatus.NOT_FOUND, String.format( locale, "No ontology with ID %d.", ontologyId ) );
+    @GetMapping(value = "/api/ontologies/{ontologyName}/terms", produces = MediaType.APPLICATION_JSON_VALUE)
+    public Page<OntologyTermInfo> getOntologyTerms( @PathVariable String ontologyName, Pageable pageable, Locale locale ) {
+        Ontology ontology = ontologyService.findByName( ontologyName );
+        if ( ontology == null || !ontology.isActive() ) {
+            throw new ApiException( HttpStatus.NOT_FOUND, String.format( locale, "No ontology %s.", ontologyName ) );
         }
         return ontologyService.findAllTermsByOntology( ontology, pageable );
+    }
+
+    @GetMapping(value = "/api/ontologies/{ontologyName}/terms/{termId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public OntologyTermInfo getOntologyTerm( @PathVariable String ontologyName, @PathVariable String termId, Locale locale ) {
+        OntologyTermInfo ontologyTermInfo = ontologyService.findTermByTermIdAndOntologyName( termId, ontologyName );
+        if ( ontologyTermInfo == null || !ontologyTermInfo.isActive() || !ontologyTermInfo.getOntology().isActive() ) {
+            throw new ApiException( HttpStatus.NOT_FOUND, String.format( locale, "No ontology term %s in ontology %s.", termId, ontologyName ) );
+        }
+        return ontologyTermInfo;
     }
 
     @GetMapping(value = "/api/users/search", params = { "nameLike" }, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -175,15 +188,16 @@ public class ApiController {
                                      @RequestParam(required = false) Set<ResearcherPosition> researcherPositions,
                                      @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
                                      @RequestParam(required = false) Set<String> organUberonIds,
+                                     @RequestParam(required = false) Set<Integer> ontologyTermIds,
                                      @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorizationHeader,
                                      @Deprecated @RequestParam(required = false) String auth,
                                      Locale locale ) {
         checkEnabled();
         checkAuth( authorizationHeader, auth );
         if ( prefix ) {
-            return initUsers( userService.findByStartsName( nameLike, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ) ), locale );
+            return initUsers( userService.findByStartsName( nameLike, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ), ontologyTermsFromIds( ontologyTermIds ) ), locale );
         } else {
-            return initUsers( userService.findByLikeName( nameLike, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ) ), locale );
+            return initUsers( userService.findByLikeName( nameLike, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ), ontologyTermsFromIds( ontologyTermIds ) ), locale );
         }
     }
 
@@ -192,12 +206,13 @@ public class ApiController {
                                             @RequestParam(required = false) Set<ResearcherPosition> researcherPositions,
                                             @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
                                             @RequestParam(required = false) Set<String> organUberonIds,
+                                            @RequestParam(required = false) Set<Integer> ontologyTermIds,
                                             @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorizationHeader,
                                             @Deprecated @RequestParam(required = false) String auth,
                                             Locale locale ) {
         checkEnabled();
         checkAuth( authorizationHeader, auth );
-        return initUsers( userService.findByDescription( descriptionLike, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ) ), locale );
+        return initUsers( userService.findByDescription( descriptionLike, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ), ontologyTermsFromIds( ontologyTermIds ) ), locale );
     }
 
     /**
@@ -211,6 +226,7 @@ public class ApiController {
                                            @RequestParam(required = false) Set<ResearcherPosition> researcherPositions,
                                            @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
                                            @RequestParam(required = false) Set<String> organUberonIds,
+                                           @RequestParam(required = false) Set<Integer> ontologyTermIds,
                                            @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorizationHeader,
                                            @Deprecated @RequestParam(required = false) String auth,
                                            Locale locale ) {
@@ -243,7 +259,7 @@ public class ApiController {
             throw new ApiException( HttpStatus.NOT_FOUND, messageSource.getMessage( "ApiController.noOrthologsWithGivenParameters", null, locale ) );
         }
 
-        return initUserGenes( userGeneService.handleGeneSearch( gene, restrictTiers( tiers ), orthologTaxon, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ) ), locale );
+        return initUserGenes( userGeneService.handleGeneSearch( gene, restrictTiers( tiers ), orthologTaxon, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ), ontologyTermsFromIds( ontologyTermIds ) ), locale );
     }
 
     /**
@@ -261,6 +277,7 @@ public class ApiController {
                                            @RequestParam(required = false) Set<ResearcherPosition> researcherPositions,
                                            @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
                                            @RequestParam(required = false) Set<String> organUberonIds,
+                                           @RequestParam(required = false) Set<Integer> ontologyTermIds,
                                            @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorizationHeader,
                                            @Deprecated @RequestParam(required = false) String auth,
                                            Locale locale ) {
@@ -278,7 +295,7 @@ public class ApiController {
             }
         }
 
-        return searchUsersByGeneSymbol( symbol, taxonId, tiers, orthologTaxonId, researcherPositions, researcherCategories, organUberonIds, authorizationHeader, auth, locale );
+        return searchUsersByGeneSymbol( symbol, taxonId, tiers, orthologTaxonId, researcherPositions, researcherCategories, organUberonIds, ontologyTermIds, authorizationHeader, auth, locale );
     }
 
     @GetMapping(value = "/api/users/{userId}", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -407,4 +424,7 @@ public class ApiController {
         return organUberonIds == null ? null : organInfoService.findByUberonIdIn( organUberonIds );
     }
 
+    private Collection<OntologyTermInfo> ontologyTermsFromIds( Collection<Integer> ontologyTermIds ) {
+        return ontologyTermIds == null ? null : ontologyService.findAllTermsByIdIn( ontologyTermIds );
+    }
 }

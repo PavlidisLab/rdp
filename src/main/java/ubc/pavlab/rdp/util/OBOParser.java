@@ -4,7 +4,9 @@ import lombok.*;
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.stereotype.Component;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.LineNumberReader;
+import java.io.Reader;
 import java.text.MessageFormat;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -22,6 +24,7 @@ public class OBOParser {
     private static final Pattern SYNONYM_PATTERN = Pattern.compile( "\"(.+?)\" (.+?) .*" );
 
     @Data
+    @NoArgsConstructor
     public static class Ontology {
         private String formatVersion;
         private String dataVersion;
@@ -29,14 +32,18 @@ public class OBOParser {
         private String name;
     }
 
+    @Data
+    public static class Stanza {
+    }
+
     /**
      * Term as defined by a [Term] record.
      */
-    @Getter
-    @Setter
+    @Data
+    @NoArgsConstructor
     @ToString(of = { "id" })
-    @EqualsAndHashCode(of = { "id" })
-    public static class Term {
+    @EqualsAndHashCode(of = { "id" }, callSuper = false)
+    public static class Term extends Stanza {
 
         @Data
         public static class Synonym {
@@ -69,18 +76,24 @@ public class OBOParser {
      * Types of relationship as defined by [Typedef] records.
      */
     @Data
-    @EqualsAndHashCode(of = { "id" })
-    public static class Typedef {
+    @NoArgsConstructor
+    @EqualsAndHashCode(of = { "id" }, callSuper = false)
+    public static class Typedef extends Stanza {
         /**
          * This is not a term relationship as per OBO format, but rather defining a class hierarchy.
          */
+        @Deprecated
         public static final Typedef IS_A = new Typedef( "is_a" );
         /**
-         * http://purl.obolibrary.org/obo/BFO_0000050
+         * <a href="http://purl.obolibrary.org/obo/BFO_0000050">BFO_0000050</a>
          */
         public static final Typedef PART_OF = new Typedef( "part_of" );
 
-        private final String id;
+        private String id;
+
+        private Typedef( String id ) {
+            this.id = id;
+        }
     }
 
     /**
@@ -102,6 +115,7 @@ public class OBOParser {
 
         private final Ontology ontology;
         private final List<Term> terms;
+        private final List<Typedef> typedefs;
 
         /* conveniences */
         private final Map<String, Term> termsByIdOrAltId;
@@ -123,31 +137,47 @@ public class OBOParser {
         Map<String, Term> termMap = new HashMap<>();
         Map<String, Typedef> typedefMap = new HashMap<>();
         try ( LineNumberReader br = new LineNumberReader( reader ) ) {
-            Term currentNode = null;
+            Stanza currentStanza = null;
             Term parentNode;
             String line;
             Matcher m;
             while ( ( line = br.readLine() ) != null ) {
                 if ( line.isEmpty() ) {
                     // Finished/Between Stanza
-                    if ( currentNode != null ) {
-                        // Just finished Term Stanza
-                        // Create Node
+                    if ( currentStanza instanceof Term ) {
+                        Term currentNode = (Term) currentStanza;
                         terms.add( currentNode );
                         termMap.put( currentNode.getId(), currentNode );
-                        currentNode = null;
-                    } // Else Finished unimportant Stanza
-
+                        currentStanza = null;
+                    } else if ( currentStanza instanceof Typedef ) {
+                        Typedef currentTypedef = (Typedef) currentStanza;
+                        typedefs.add( currentTypedef );
+                        currentStanza = null;
+                    }
                 } else if ( line.equals( "[Term]" ) ) {
                     // check if the current node was closed properly
-                    if ( currentNode != null ) {
-                        throw new ParseException( String.format( "Previous node %s was not closed properly by an empty line.", currentNode ), br.getLineNumber() );
+                    if ( currentStanza != null ) {
+                        throw new ParseException( String.format( "Previous node %s was not closed properly by an empty line.", currentStanza ), br.getLineNumber() );
                     }
                     // Starting a Term Stanza
-                    currentNode = new Term();
+                    currentStanza = new Term();
                 } else if ( line.equals( "[Typedef]" ) ) {
-                    // TODO
-                } else if ( currentNode != null ) {
+                    if ( currentStanza != null ) {
+                        throw new ParseException( String.format( "Previous node %s was not closed properly by an empty line.", currentStanza ), br.getLineNumber() );
+                    }
+                    currentStanza = new Typedef();
+                } else if ( currentStanza instanceof Typedef ) {
+                    Typedef currentTypedef = (Typedef) currentStanza;
+                    String[] tagValuePair = line.split( ": ", 2 );
+                    if ( tagValuePair[0].equals( "id" ) ) {
+                        if ( typedefMap.containsKey( tagValuePair[0] ) ) {
+                            currentStanza = typedefMap.get( tagValuePair[0] );
+                        } else {
+                            currentTypedef.setId( tagValuePair[1] );
+                        }
+                    }
+                } else if ( currentStanza instanceof Term ) {
+                    Term currentNode = (Term) currentStanza;
                     // Within a Term Stanza
                     String[] tagValuePair = line.split( ": ", 2 );
                     String[] values;
@@ -159,7 +189,7 @@ public class OBOParser {
                             if ( !termMap.containsKey( tagValuePair[1] ) ) {
                                 currentNode.setId( tagValuePair[1] );
                             } else {
-                                currentNode = termMap.get( tagValuePair[1] );
+                                currentStanza = termMap.get( tagValuePair[1] );
                             }
                             break;
                         case "name":
@@ -252,12 +282,25 @@ public class OBOParser {
             }
 
             // make sure that the last node is saved
-            if ( currentNode != null ) {
+            if ( currentStanza instanceof Term ) {
+                Term currentNode = (Term) currentStanza;
+                terms.add( currentNode );
                 termMap.put( currentNode.getId(), currentNode );
+            }
+
+            // make sure that the last node is saved
+            if ( currentStanza instanceof Typedef ) {
+                Typedef currentNode = (Typedef) currentStanza;
+                typedefs.add( currentNode );
+                typedefMap.put( currentNode.getId(), currentNode );
             }
         }
 
-        return new ParsingResult( ontology, terms, termMap, typedefMap );
+        if ( ontology.getName() == null ) {
+            throw new ParseException( "The ontology name declaration is missing.", 0 );
+        }
+
+        return new ParsingResult( ontology, terms, typedefs, termMap, typedefMap );
     }
 
     /**

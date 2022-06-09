@@ -66,6 +66,8 @@ public class OBOParserIntegrationTest {
                 .hasFieldOrPropertyWithValue( "definition", "An occurrent [span:Occurrent] that exists in time by occurring or happening, has temporal parts and always involves and depends on some entity." );
         assertThat( parsedTerms.get( "UBERON:0000002" ).getSynonyms() )
                 .contains( new OBOParser.Term.Synonym( "canalis cervicis uteri", "EXACT" ) );
+        assertThat( parsingResult.getTypedefs() ).extracting( "id" )
+                .contains( "RO:0002473" );
     }
 
     @Test

@@ -22,6 +22,7 @@ import ubc.pavlab.rdp.services.TierService;
 import ubc.pavlab.rdp.services.UserService;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.settings.SiteSettings;
+import ubc.pavlab.rdp.util.OntologyMessageSource;
 
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.when;
@@ -73,6 +74,9 @@ public class MainControllerTest {
 
     @MockBean
     private PermissionEvaluator permissionEvaluator;
+
+    @MockBean
+    private OntologyMessageSource ontologyMessageSource;
 
     @Before
     public void setUp() {

@@ -8,9 +8,7 @@ import org.springframework.cache.annotation.Cacheable;
 
 import javax.persistence.*;
 import java.net.URL;
-import java.util.Comparator;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.*;
 
 /**
  * An ontology of terms.
@@ -45,6 +43,7 @@ public class Ontology implements Comparable<Ontology> {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "ontology_id")
+    @JsonIgnore
     private Integer id;
 
     @Column(unique = true, nullable = false)
@@ -57,23 +56,15 @@ public class Ontology implements Comparable<Ontology> {
      * result in a full initialization.
      * <p>
      * Be extremely careful with this collection.
+     * <p>
+     * Note: I know it's tempting to map this by term ID with {@link MapKey}, but don't. This collection can get pretty
+     * huge.
      */
     @OneToMany(mappedBy = "ontology", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("ordering asc, name asc, termId asc")
     @JsonIgnore
     @LazyCollection(LazyCollectionOption.EXTRA)
     private final SortedSet<OntologyTermInfo> terms = new TreeSet<>();
-
-    /**
-     * Indicate if the terms in this category are expected to contain icons.
-     * <p>
-     * Note that ontologies with more than 20 terms cannot have icons.
-     */
-    @JsonIgnore
-    @Transient
-    public boolean getTermsHaveIcons() {
-        return terms.size() <= 20 && terms.stream().anyMatch( OntologyTermInfo::isHasIcon );
-    }
 
     /**
      * URL used to resolve the ontology source.

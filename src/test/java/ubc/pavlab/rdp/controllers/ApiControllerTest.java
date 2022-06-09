@@ -9,6 +9,10 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.repository.support.PageableExecutionUtils;
+import org.springframework.data.web.config.EnableSpringDataWebSupport;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.PermissionEvaluator;
@@ -22,16 +26,17 @@ import ubc.pavlab.rdp.model.User;
 import ubc.pavlab.rdp.model.UserGene;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.TierType;
+import ubc.pavlab.rdp.model.ontology.Ontology;
+import ubc.pavlab.rdp.model.ontology.OntologyTermInfo;
 import ubc.pavlab.rdp.services.*;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.settings.SiteSettings;
 
 import java.net.URI;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
@@ -43,6 +48,7 @@ import static ubc.pavlab.rdp.util.TestUtils.*;
 @WebMvcTest(ApiController.class)
 @RunWith(SpringRunner.class)
 @Import(WebSecurityConfig.class)
+@EnableSpringDataWebSupport
 public class ApiControllerTest {
 
     @Autowired
@@ -130,7 +136,7 @@ public class ApiControllerTest {
         UserGene cdh1UserGene = createUserGene( 1, cdh1GeneInfo, user, TierType.TIER1, PrivacyLevelType.PRIVATE );
         when( taxonService.findById( 9606 ) ).thenReturn( humanTaxon );
         when( geneService.findBySymbolAndTaxon( "CDH1", humanTaxon ) ).thenReturn( cdh1GeneInfo );
-        when( userGeneService.handleGeneSearch( cdh1GeneInfo, EnumSet.of( TierType.TIER1 ), humanTaxon, null, null, null ) )
+        when( userGeneService.handleGeneSearch( cdh1GeneInfo, EnumSet.of( TierType.TIER1 ), humanTaxon, null, null, null, null ) )
                 .thenReturn( Lists.newArrayList( cdh1UserGene ) );
 
         mvc.perform( get( "/api/genes/search" )
@@ -156,7 +162,7 @@ public class ApiControllerTest {
         UserGene cdh1UserGene = createUserGene( 1, cdh1GeneInfo, user, TierType.TIER1, PrivacyLevelType.PRIVATE );
         when( taxonService.findById( 9606 ) ).thenReturn( humanTaxon );
         when( geneService.findBySymbolAndTaxon( "CDH1", humanTaxon ) ).thenReturn( cdh1GeneInfo );
-        when( userGeneService.handleGeneSearch( cdh1GeneInfo, EnumSet.of( TierType.TIER1 ), humanTaxon, null, null, null ) )
+        when( userGeneService.handleGeneSearch( cdh1GeneInfo, EnumSet.of( TierType.TIER1 ), humanTaxon, null, null, null, null ) )
                 .thenReturn( Lists.newArrayList( cdh1UserGene ) );
 
         mvc.perform( get( "/api/genes/search" )
@@ -210,7 +216,7 @@ public class ApiControllerTest {
 
         when( taxonService.findById( 9606 ) ).thenReturn( humanTaxon );
         when( geneService.findBySymbolAndTaxon( "CDH1", humanTaxon ) ).thenReturn( cdh1GeneInfo );
-        when( userGeneService.handleGeneSearch( cdh1GeneInfo, EnumSet.of( TierType.TIER1 ), humanTaxon, null, null, null ) )
+        when( userGeneService.handleGeneSearch( cdh1GeneInfo, EnumSet.of( TierType.TIER1 ), humanTaxon, null, null, null, null ) )
                 .thenReturn( Lists.newArrayList( cdh1UserGene ) );
 
         mvc.perform( get( "/api/genes/search" )
@@ -220,7 +226,7 @@ public class ApiControllerTest {
                 .andExpect( status().is2xxSuccessful() )
                 .andExpect( content().contentTypeCompatibleWith( MediaType.APPLICATION_JSON ) );
 
-        verify( userGeneService ).handleGeneSearch( cdh1GeneInfo, EnumSet.of( TierType.TIER1 ), null, null, null, null );
+        verify( userGeneService ).handleGeneSearch( cdh1GeneInfo, EnumSet.of( TierType.TIER1 ), null, null, null, null, null );
     }
 
     @Test
@@ -232,7 +238,7 @@ public class ApiControllerTest {
 
         when( taxonService.findById( 9606 ) ).thenReturn( humanTaxon );
         when( geneService.findBySymbolAndTaxon( "CDH1", humanTaxon ) ).thenReturn( cdh1GeneInfo );
-        when( userGeneService.handleGeneSearch( cdh1GeneInfo, EnumSet.of( TierType.TIER1, TierType.TIER2 ), humanTaxon, null, null, null ) )
+        when( userGeneService.handleGeneSearch( cdh1GeneInfo, EnumSet.of( TierType.TIER1, TierType.TIER2 ), humanTaxon, null, null, null, null ) )
                 .thenReturn( Lists.newArrayList( cdh1UserGene ) );
 
         mvc.perform( get( "/api/genes/search" )
@@ -243,7 +249,7 @@ public class ApiControllerTest {
                 .andExpect( status().is2xxSuccessful() )
                 .andExpect( content().contentTypeCompatibleWith( MediaType.APPLICATION_JSON ) );
 
-        verify( userGeneService ).handleGeneSearch( cdh1GeneInfo, EnumSet.of( TierType.TIER1, TierType.TIER2 ), null, null, null, null );
+        verify( userGeneService ).handleGeneSearch( cdh1GeneInfo, EnumSet.of( TierType.TIER1, TierType.TIER2 ), null, null, null, null, null );
     }
 
     @Test
@@ -255,7 +261,7 @@ public class ApiControllerTest {
 
         when( taxonService.findById( 9606 ) ).thenReturn( humanTaxon );
         when( geneService.findBySymbolAndTaxon( "CDH1", humanTaxon ) ).thenReturn( cdh1GeneInfo );
-        when( userGeneService.handleGeneSearch( cdh1GeneInfo, EnumSet.of( TierType.TIER1, TierType.TIER2 ), humanTaxon, null, null, null ) )
+        when( userGeneService.handleGeneSearch( cdh1GeneInfo, EnumSet.of( TierType.TIER1, TierType.TIER2 ), humanTaxon, null, null, null, null ) )
                 .thenReturn( Lists.newArrayList( cdh1UserGene ) );
 
         mvc.perform( get( "/api/genes/search" )
@@ -267,7 +273,7 @@ public class ApiControllerTest {
                 .andExpect( status().is2xxSuccessful() )
                 .andExpect( content().contentTypeCompatibleWith( MediaType.APPLICATION_JSON ) );
 
-        verify( userGeneService ).handleGeneSearch( cdh1GeneInfo, EnumSet.of( TierType.TIER1, TierType.TIER2 ), null, null, null, null );
+        verify( userGeneService ).handleGeneSearch( cdh1GeneInfo, EnumSet.of( TierType.TIER1, TierType.TIER2 ), null, null, null, null, null );
     }
 
     @Test
@@ -279,12 +285,12 @@ public class ApiControllerTest {
 
         when( taxonService.findById( 9606 ) ).thenReturn( humanTaxon );
         when( geneService.findBySymbolAndTaxon( "CDH1", humanTaxon ) ).thenReturn( cdh1GeneInfo );
-        when( userGeneService.handleGeneSearch( cdh1GeneInfo, EnumSet.of( TierType.TIER1, TierType.TIER2 ), humanTaxon, null, null, null ) )
+        when( userGeneService.handleGeneSearch( cdh1GeneInfo, EnumSet.of( TierType.TIER1, TierType.TIER2 ), humanTaxon, null, null, null, null ) )
                 .thenReturn( Lists.newArrayList( cdh1UserGene ) );
 
         when( taxonService.findById( 9606 ) ).thenReturn( humanTaxon );
         when( geneService.findBySymbolAndTaxon( "CDH1", humanTaxon ) ).thenReturn( cdh1GeneInfo );
-        when( userGeneService.handleGeneSearch( cdh1GeneInfo, EnumSet.of( TierType.TIER1 ), humanTaxon, null, null, null ) )
+        when( userGeneService.handleGeneSearch( cdh1GeneInfo, EnumSet.of( TierType.TIER1 ), humanTaxon, null, null, null, null ) )
                 .thenReturn( Lists.newArrayList( cdh1UserGene ) );
 
         mvc.perform( get( "/api/genes/search" )
@@ -293,7 +299,7 @@ public class ApiControllerTest {
                 .andExpect( status().is2xxSuccessful() )
                 .andExpect( content().contentTypeCompatibleWith( MediaType.APPLICATION_JSON ) );
 
-        verify( userGeneService ).handleGeneSearch( cdh1GeneInfo, TierType.MANUAL, null, null, null, null );
+        verify( userGeneService ).handleGeneSearch( cdh1GeneInfo, TierType.MANUAL, null, null, null, null, null );
     }
 
     @Test
@@ -305,7 +311,7 @@ public class ApiControllerTest {
 
         when( taxonService.findById( 9606 ) ).thenReturn( humanTaxon );
         when( geneService.findBySymbolAndTaxon( "CDH1", humanTaxon ) ).thenReturn( cdh1GeneInfo );
-        when( userGeneService.handleGeneSearch( cdh1GeneInfo, EnumSet.of( TierType.TIER1 ), humanTaxon, null, null, null ) )
+        when( userGeneService.handleGeneSearch( cdh1GeneInfo, EnumSet.of( TierType.TIER1 ), humanTaxon, null, null, null, null ) )
                 .thenReturn( Lists.newArrayList( cdh1UserGene ) );
 
         mvc.perform( get( "/api/genes/search" )
@@ -315,7 +321,7 @@ public class ApiControllerTest {
                 .andExpect( status().is2xxSuccessful() )
                 .andExpect( content().contentTypeCompatibleWith( MediaType.APPLICATION_JSON ) );
 
-        verify( userGeneService ).handleGeneSearch( cdh1GeneInfo, TierType.MANUAL, null, null, null, null );
+        verify( userGeneService ).handleGeneSearch( cdh1GeneInfo, TierType.MANUAL, null, null, null, null, null );
     }
 
     @Test
@@ -327,7 +333,7 @@ public class ApiControllerTest {
 
         when( taxonService.findById( 9606 ) ).thenReturn( humanTaxon );
         when( geneService.findBySymbolAndTaxon( "CDH1", humanTaxon ) ).thenReturn( cdh1GeneInfo );
-        when( userGeneService.handleGeneSearch( cdh1GeneInfo, EnumSet.of( TierType.TIER1 ), humanTaxon, null, null, null ) )
+        when( userGeneService.handleGeneSearch( cdh1GeneInfo, EnumSet.of( TierType.TIER1 ), humanTaxon, null, null, null, null ) )
                 .thenReturn( Lists.newArrayList( cdh1UserGene ) );
 
         mvc.perform( get( "/api/genes/search" )
@@ -337,7 +343,7 @@ public class ApiControllerTest {
                 .andExpect( status().is2xxSuccessful() )
                 .andExpect( content().contentTypeCompatibleWith( MediaType.APPLICATION_JSON ) );
 
-        verify( userGeneService ).handleGeneSearch( cdh1GeneInfo, TierType.MANUAL, null, null, null, null );
+        verify( userGeneService ).handleGeneSearch( cdh1GeneInfo, TierType.MANUAL, null, null, null, null, null );
     }
 
     @Test
@@ -385,5 +391,86 @@ public class ApiControllerTest {
         when( userService.anonymizeUser( user ) ).thenReturn( User.builder().anonymousId( anonymousId ).build() );
         mvc.perform( get( "/api/users/by-anonymous-id/{anonymousId}", anonymousId ) )
                 .andExpect( status().isServiceUnavailable() );
+    }
+
+    @Test
+    public void createOntology_() {
+        assertThat( createOntology( "uberon", 1, 3 ).getTerms() )
+                .hasSize( 3 );
+        assertThat( createOntology( "uberon", 3, 3 ).getTerms() )
+                .hasSize( 3 + ( 3 * 3 ) + ( 3 * 3 * 3 ) );
+    }
+
+    @Test
+    public void getOntologies() throws Exception {
+        when( ontologyService.findAllOntologies() ).thenReturn( Lists.newArrayList(
+                createOntology( "uberon", 5, 4 ),
+                createOntology( "mondo", 5, 4 ) ) );
+        mvc.perform( get( "/api/ontologies" ) )
+                .andExpect( status().isOk() )
+                .andExpect( jsonPath( "$[0].id" ).doesNotExist() )
+                .andExpect( jsonPath( "$[0].name" ).value( "uberon" ) )
+                .andExpect( jsonPath( "$[1].id" ).doesNotExist() )
+                .andExpect( jsonPath( "$[1].name" ).value( "mondo" ) );
+        verify( ontologyService ).findAllOntologies();
+    }
+
+    @Test
+    public void getOntology() throws Exception {
+        Ontology ont = createOntology( "uberon", 5, 4 );
+        ont.setActive( true );
+        when( ontologyService.findByName( "uberon" ) ).thenReturn( ont );
+        mvc.perform( get( "/api/ontologies/{ontologyName}", "uberon" ) )
+                .andExpect( status().isOk() )
+                .andExpect( jsonPath( "$.name" ).value( "uberon" ) );
+        verify( ontologyService ).findByName( "uberon" );
+    }
+
+    @Test
+    public void getOntology_whenOntologyIsNotActive_thenReturn404() throws Exception {
+        Ontology ont = createOntology( "uberon", 5, 4 );
+        ont.setActive( false );
+        when( ontologyService.findByName( "uberon" ) ).thenReturn( ont );
+        mvc.perform( get( "/api/ontologies/{ontologyName}", "uberon" ) )
+                .andExpect( status().isNotFound() );
+        verify( ontologyService ).findByName( "uberon" );
+    }
+
+
+    @Test
+    public void getOntologyTerms() throws Exception {
+        Ontology ont = createOntology( "uberon", 3, 2 );
+        when( ontologyService.findByName( "uberon" ) ).thenReturn( ont );
+        when( ontologyService.findAllTermsByOntology( eq( ont ), any() ) )
+                .thenAnswer( a -> PageableExecutionUtils.getPage( new ArrayList<>( ont.getTerms() ),
+                        a.getArgumentAt( 1, Pageable.class ), () -> ont.getTerms().size() ) );
+        mvc.perform( get( "/api/ontologies/{ontologyName}/terms", "uberon" ) )
+                .andExpect( status().isOk() )
+                .andExpect( jsonPath( "$.totalElements" ).value( ont.getTerms().size() ) );
+        verify( ontologyService ).findAllTermsByOntology( ont, new PageRequest( 0, 20 ) );
+    }
+
+    @Test
+    public void getOntologyTerm() throws Exception {
+        Ontology ont = createOntology( "uberon", 3, 2 );
+        when( ontologyService.findTermByTermIdAndOntologyName( any(), eq( "uberon" ) ) )
+                .thenAnswer( arg -> ont.getTerms().stream()
+                        .filter( t -> t.getTermId().equals( arg.getArgumentAt( 0, String.class ) ) )
+                        .findFirst()
+                        .orElse( null ) );
+        mvc.perform( get( "/api/ontologies/{ontologyName}/terms/{termId}", "uberon", "UBERON:00001" ) )
+                .andExpect( status().isOk() )
+                .andExpect( jsonPath( "$.id" ).doesNotExist() );
+        verify( ontologyService ).findTermByTermIdAndOntologyName( "UBERON:00001", "uberon" );
+    }
+
+    @Test
+    public void getOntologyTerm_whenTermIsNotActive_thenReturn404() throws Exception {
+        Ontology ont = createOntology( "uberon", 3, 2 );
+        OntologyTermInfo inactiveTerm = OntologyTermInfo.builder( ont, "UBERON:00001" ).build();
+        when( ontologyService.findTermByTermIdAndOntologyName( "UBERON:00001", "uberon" ) ).thenReturn( inactiveTerm );
+        mvc.perform( get( "/api/ontologies/{ontologyName}/terms/{termId}", "uberon", "UBERON:00001" ) )
+                .andExpect( status().isNotFound() );
+        verify( ontologyService ).findTermByTermIdAndOntologyName( "UBERON:00001", "uberon" );
     }
 }

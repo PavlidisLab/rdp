@@ -3,7 +3,9 @@
 
     var publicationTable = $('#publication-table');
 
-    $('.ontology-term-table').DataTable({
+    var ontologyTermTable = $('.ontology-term-table');
+
+    ontologyTermTable.DataTable({
         info: false,
         paging: false,
         searching: false,
@@ -11,6 +13,13 @@
             {
                 targets: [0],
                 visible: false
+            },
+            {
+                targets: [1],
+                orderable: false,
+                render: function () {
+                    return $('<button class="text-danger close">').text('×')[0].outerHTML;
+                }
             }
         ]
     });
@@ -77,7 +86,7 @@
             }).get();
 
         // gather the term IDs from all tables
-        $('.ontology-term-table').each(function (i, elem) {
+        ontologyTermTable.each(function (i, elem) {
             var ids = $(elem).DataTable().column(0).data().toArray()
                 .map(function (value) {
                     return parseInt(value);
@@ -235,7 +244,7 @@
     });
 
     $('.term-autocomplete').autocomplete({
-        minLength: 2,
+        minLength: 3,
         delay: 200,
         source: function (request, response) {
             var term = request.term;
@@ -261,7 +270,7 @@
         select: function (event, ui) {
             var termTable = $(document.getElementById($(this).data('for-table'))).DataTable();
             termTable.row
-                .add([ui.item.id, ui.item.match.termId, ui.item.match.name, ui.item.match.definition])
+                .add([ui.item.id, null, ui.item.match.termId, ui.item.match.name, ui.item.match.definition])
                 .draw()
                 .nodes()
                 .to$().addClass('alert-success');

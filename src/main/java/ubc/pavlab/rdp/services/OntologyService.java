@@ -22,10 +22,7 @@ import ubc.pavlab.rdp.repositories.ontology.OntologyRepository;
 import ubc.pavlab.rdp.repositories.ontology.OntologyTermInfoRepository;
 import ubc.pavlab.rdp.util.*;
 
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.io.Writer;
+import java.io.*;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -61,13 +58,13 @@ public class OntologyService implements InitializingBean {
     @Override
     public void afterPropertiesSet() {
         try {
-            ontologyTermInfoRepository.findAllByActiveTrueAndOntologyInAndNameMatch( Collections.singleton( 1 ), "test" );
+            ontologyTermInfoRepository.findAllByOntologyInAndNameMatchAndActive( Collections.singleton( 1 ), "test", true );
             this.isFullTextSupported = true;
             log.info( "Full-text is supported by the database engine, it will be used for querying ontology terms efficiently." );
         } catch ( InvalidDataAccessResourceUsageException e ) {
             if ( e.getCause() instanceof SQLGrammarException ) {
                 this.isFullTextSupported = false;
-                log.warn( "Full-text is not supported." );
+                log.warn( "Full-text is not supported, ontology term matching will use the SQL LIKE syntax." );
             } else {
                 throw e;
             }
@@ -82,9 +79,21 @@ public class OntologyService implements InitializingBean {
         return ontologyRepository.findByName( name );
     }
 
+    public List<OntologyTermInfo> findTermByNameAndOntologyName( String name, String ontologyName ) {
+        return ontologyTermInfoRepository.findAllByActiveTrueAndNameAndOntologyName( name, ontologyName );
+    }
+
     @Transactional(readOnly = true)
-    public List<OntologyTermInfo> findAllTermsByIdIn( List<Integer> ontologyTermIds ) {
-        return ontologyTermIds.stream().map( ontologyTermInfoRepository::findOne ).collect( Collectors.toList() );
+    public List<OntologyTermInfo> findAllTermsByIdIn( Collection<Integer> ontologyTermIds ) {
+        return ontologyTermInfoRepository.findAllByActiveTrueAndIdIn( ontologyTermIds );
+    }
+
+    @Transactional(readOnly = true)
+    public List<OntologyTermInfo> findAllTermsByIdInMaintainingOrder( List<Integer> ontologyTermIds ) {
+        return ontologyTermInfoRepository.findAll( ontologyTermIds ).stream()
+                // FIXME: this is O(n^2)!
+                .sorted( Comparator.comparing( oti -> ontologyTermIds.indexOf( oti.getId() ) ) )
+                .collect( Collectors.toList() );
     }
 
     public List<Ontology> findAllOntologies() {
@@ -105,6 +114,10 @@ public class OntologyService implements InitializingBean {
 
     public Page<OntologyTermInfo> findAllTermsByOntology( Ontology ontology, Pageable pageable ) {
         return ontologyTermInfoRepository.findAllByActiveTrueAndOntology( ontology, pageable );
+    }
+
+    public Page<OntologyTermInfo> findAllTermsByOntologyIncludingInactive( Ontology ontology, Pageable pageable ) {
+        return ontologyTermInfoRepository.findAllByOntology( ontology, pageable );
     }
 
     /**
@@ -131,7 +144,6 @@ public class OntologyService implements InitializingBean {
         return ontologyTermInfoRepository.countByActiveTrue();
     }
 
-    @Secured("ROLE_ADMIN")
     @Transactional(readOnly = true)
     public boolean existsByName( String name ) {
         return ontologyRepository.existsByName( name );
@@ -149,6 +161,9 @@ public class OntologyService implements InitializingBean {
     public Ontology createFromObo( Reader reader ) throws IOException, ParseException, OntologyNameAlreadyUsedException {
         OBOParser.ParsingResult parsingResult = new OBOParser().parse( reader );
         String ontologyName = parsingResult.getOntology().getName();
+        if ( ontologyName == null ) {
+            throw new IllegalArgumentException( "Ontology has no defined name." );
+        }
         if ( ontologyRepository.existsByName( ontologyName ) ) {
             throw new OntologyNameAlreadyUsedException( ontologyName );
         }
@@ -229,13 +244,18 @@ public class OntologyService implements InitializingBean {
      * <p>
      * Obsolete terms are ignored.
      *
+     * @param includeTerms indicate if terms in the ontology should be activated as well
      * @return the number of activated terms in the ontology
      */
     @Secured("ROLE_ADMIN")
     @Transactional
-    public int activate( Ontology ontology ) {
+    public int activate( Ontology ontology, boolean includeTerms ) {
         ontologyRepository.activate( ontology );
-        return ontologyTermInfoRepository.activateByOntologyAndObsoleteFalse( ontology );
+        if ( includeTerms ) {
+            return ontologyTermInfoRepository.activateByOntologyAndActiveFalseAndObsoleteFalse( ontology );
+        } else {
+            return 0;
+        }
     }
 
     @Secured("ROLE_ADMIN")
@@ -278,7 +298,7 @@ public class OntologyService implements InitializingBean {
             fringe.clear();
             fringe.addAll( subTermIds );
         }
-        return ontologyTermInfoRepository.activateByTermIdsAndObsoleteFalse( V );
+        return ontologyTermInfoRepository.activateByTermIdsAndActiveFalseAndObsoleteFalse( V );
     }
 
     @Transactional
@@ -299,11 +319,17 @@ public class OntologyService implements InitializingBean {
         log.info( "Ontologies have been successfully updated." );
     }
 
+    /**
+     * Write the provided ontology to OBO format.
+     * <p>
+     * TODO: how should inactive terms be handled?
+     */
     @Transactional(readOnly = true)
     public void writeObo( Ontology ontology, Writer writer ) throws IOException {
-        try ( LineWriter bw = new LineWriter( writer ) ) {
+        try ( OboWriter bw = new OboWriter( writer ) ) {
             bw.writeLine( "format-version: 1.2" );
             bw.writeLine( "ontology: " + ontology.getName() );
+            boolean hasOrderedTerms = false, hasGroupingTerms = false;
             for ( OntologyTermInfo term : ontology.getTerms() ) {
                 bw.newLine();
                 bw.writeLine( "[Term]" );
@@ -316,17 +342,73 @@ public class OntologyService implements InitializingBean {
                     bw.writeLine( "is_a: " + superTerm.getTermId() + " ! " + superTerm.getName() );
                 }
                 if ( term.getOrdering() != null ) {
-                    bw.writeLine( "relationship: has_order {order=" + '"' + term.getOrdering() + '"' + "}" );
+                    hasOrderedTerms = true;
+                    bw.writeLine( String.format( "relationship: has_order %s {order=\"%d\"}", term.getTermId(), term.getOrdering() ) );
+                }
+                if ( term.isGroup() ) {
+                    hasGroupingTerms = true;
+                    bw.writeLine( String.format( "relationship: is_grouping %s", term.getTermId() ) );
                 }
             }
+            if ( hasOrderedTerms ) {
+                bw.writeTypedef( "has_order", "Term has relative order to other terms defined at the same subclass level." );
+            }
+            if ( hasGroupingTerms ) {
+                bw.writeTypedef( "is_grouping", "Indicate that the term is merely grouping other terms." );
+            }
+        }
+    }
 
-            bw.newLine();
-            bw.writeLine( "[Typedef]" );
-            bw.writeLine( "id: has_order" );
-            bw.writeLine( "name: has_order" );
-            bw.writeLine( "def: " + '"' + "Term has relative order to other terms defined at the same subclass level." + '"' + " []" );
-            bw.writeLine( "is_reflexive: true" );
-            bw.writeLine( "is_metadata_tag: true" );
+
+    @Transactional
+    @Secured("ROLE_ADMIN")
+    public Ontology create( Ontology ontology ) throws OntologyNameAlreadyUsedException {
+        if ( ontology.getId() != null ) {
+            throw new IllegalArgumentException( "Ontology alredy exists." );
+        }
+        if ( ontologyRepository.existsByName( ontology.getName() ) ) {
+            throw new OntologyNameAlreadyUsedException( ontology.getName() );
+        }
+        return ontologyRepository.save( ontology );
+    }
+
+    @Transactional
+    @Secured("ROLE_ADMIN")
+    public Ontology updateNameAndTerms( Ontology ontology, String name, SortedSet<OntologyTermInfo> terms ) {
+        ontology.setName( name );
+        ontology.getTerms().removeIf( t -> !terms.contains( t ) );
+        ontology.getTerms().addAll( terms );
+        return ontologyRepository.save( ontology );
+    }
+
+    @Transactional
+    public List<OntologyTermInfo> saveTerms( Iterable<OntologyTermInfo> terms ) {
+        return ontologyTermInfoRepository.save( terms );
+    }
+
+    @Transactional(readOnly = true)
+    public OntologyTermInfo findTermByTermIdAndOntologyName( String termId, String ontologyName ) {
+        return ontologyTermInfoRepository.findByTermIdAndOntologyName( termId, ontologyName );
+    }
+
+    private static class OboWriter extends BufferedWriter {
+
+        public OboWriter( Writer out ) {
+            super( out );
+        }
+
+        public void writeTypedef( String id, String definition ) throws IOException {
+            newLine();
+            writeLine( "[Typedef]" );
+            writeLine( String.format( "id: %s", id ) );
+            writeLine( "def: " + '"' + definition + '"' + " []" );
+            writeLine( "is_reflexive: true" );
+            writeLine( "is_metadata_tag: true" );
+        }
+
+        public void writeLine( String s ) throws IOException {
+            write( s );
+            newLine();
         }
     }
 
@@ -338,15 +420,26 @@ public class OntologyService implements InitializingBean {
 
     @Transactional(readOnly = true)
     public Collection<SearchResult<OntologyTermInfo>> autocomplete( String query, Ontology ontology, int maxResults, Locale locale ) {
-        return autocomplete( query, Collections.singleton( ontology ), maxResults, locale );
+        return autocomplete( query, Collections.singleton( ontology ), false, maxResults, locale );
     }
 
     @Transactional(readOnly = true)
     public Collection<SearchResult<OntologyTermInfo>> autocomplete( String query, int maxResults, Locale locale ) {
-        return autocomplete( query, new HashSet<>( ontologyRepository.findAllByActiveTrue() ), maxResults, locale );
+        return autocomplete( query, new HashSet<>( ontologyRepository.findAllByActiveTrue() ), true, maxResults, locale );
     }
 
-    private Collection<SearchResult<OntologyTermInfo>> autocomplete( String query, Set<Ontology> ontologies, int maxResults, Locale locale ) {
+    /**
+     * Autocomplete inactive terms.
+     * <p>
+     * This is meant for the administrative section.
+     */
+    @Secured("ROLE_ADMIN")
+    @Transactional(readOnly = true)
+    public Object autocompleteInactiveTerms( String query, Ontology ontology, int maxResults, Locale locale ) {
+        return autocomplete( query, Collections.singleton( ontology ), false, maxResults, locale );
+    }
+
+    private Collection<SearchResult<OntologyTermInfo>> autocomplete( String query, Set<Ontology> ontologies, boolean active, int maxResults, Locale locale ) {
         List<SearchResult<OntologyTermInfo>> results = new ArrayList<>( maxResults );
 
         String normalizedQuery = TextUtils.normalize( query );
@@ -372,12 +465,12 @@ public class OntologyService implements InitializingBean {
         StopWatch initialQueryTimer = StopWatch.createStarted();
 
         // ID
-        results = ontologyTermInfoRepository.findAllByActiveTrueAndOntologyInAndTermIdIgnoreCase( ontologies, normalizedQuery ).stream()
+        results = ontologyTermInfoRepository.findAllByOntologyInAndTermIdIgnoreCaseAndActive( ontologies, normalizedQuery, active ).stream()
                 .map( t1 -> toSearchResult( t1, OntologyTermMatchType.TERM_ID_EXACT, null, 1.0, locale ) )
                 .collect( CollectionUtils.into( results ) );
 
         // alt IDs
-        results = ontologyTermInfoRepository.findAllByActiveTrueAndOntologyInAndAltTermIdsContainingIgnoreCase( ontologies, normalizedQuery ).stream()
+        results = ontologyTermInfoRepository.findAllByOntologyInAndAltTermIdsContainingIgnoreCaseAndActive( ontologies, normalizedQuery, active ).stream()
                 .map( t1 -> toSearchResult( t1, OntologyTermMatchType.ALT_ID_EXACT, String.join( ", ", t1.getAltTermIds() ), 1.0, locale ) )
                 .collect( CollectionUtils.into( results ) );
 
@@ -387,18 +480,18 @@ public class OntologyService implements InitializingBean {
             // then some occurrences in the term name
             // by full text (if supported)
             if ( isFullTextSupported ) {
-                results = ontologyTermInfoRepository.findAllByActiveTrueAndOntologyInAndNameMatch( ontologyIds, fullTextQuery ).stream()
+                results = ontologyTermInfoRepository.findAllByOntologyInAndNameMatchAndActive( ontologyIds, fullTextQuery, active ).stream()
                         .map( row -> Pair.of( ontologyTermInfoRepository.findOne( (Integer) row[0] ), (Double) row[1] ) )
                         .map( t1 -> toSearchResult( t1.getFirst(), OntologyTermMatchType.TERM_NAME_MATCH, null, t1.getSecond() / TextUtils.tokenize( t1.getFirst().getName() ).size(), locale ) )
                         .collect( CollectionUtils.into( results ) );
             } else {
-                results = ontologyTermInfoRepository.findAllByActiveTrueAndOntologyInAndNameIgnoreCase( ontologies, normalizedQuery ).stream()
+                results = ontologyTermInfoRepository.findAllByOntologyInAndNameIgnoreCaseAndActive( ontologies, normalizedQuery, active ).stream()
                         .map( t1 -> toSearchResult( t1, OntologyTermMatchType.TERM_NAME_EXACT, null, 0.0, locale ) )
                         .collect( CollectionUtils.into( results ) );
-                results = ontologyTermInfoRepository.findAllByActiveTrueAndOntologyInAndNameLikeIgnoreCase( ontologies, normalizedQuery + "%" ).stream()
+                results = ontologyTermInfoRepository.findAllByOntologyInAndNameLikeIgnoreCaseAndActive( ontologies, normalizedQuery + "%", active ).stream()
                         .map( t1 -> toSearchResult( t1, OntologyTermMatchType.TERM_NAME_STARTS_WITH, null, 0.0, locale ) )
                         .collect( CollectionUtils.into( results ) );
-                results = ontologyTermInfoRepository.findAllByActiveTrueAndOntologyInAndNameLikeIgnoreCase( ontologies, "%" + normalizedQuery + "%" ).stream()
+                results = ontologyTermInfoRepository.findAllByOntologyInAndNameLikeIgnoreCaseAndActive( ontologies, "%" + normalizedQuery + "%", active ).stream()
                         .map( t1 -> toSearchResult( t1, OntologyTermMatchType.TERM_NAME_CONTAINS, null, 0.0, locale ) )
                         .collect( CollectionUtils.into( results ) );
             }
@@ -408,18 +501,18 @@ public class OntologyService implements InitializingBean {
         if ( results.size() < maxResults ) {
             // full text (if available)
             if ( isFullTextSupported ) {
-                results = ontologyTermInfoRepository.findAllByActiveTrueAndOntologyInAndSynonymsMatch( ontologies, fullTextQuery ).stream()
+                results = ontologyTermInfoRepository.findAllByOntologyInAndSynonymsMatchAndActive( ontologies, fullTextQuery, active ).stream()
                         .map( row -> Pair.of( ontologyTermInfoRepository.findOne( (Integer) row[0] ), (Double) row[1] ) )
                         .map( t1 -> toSearchResult( t1.getFirst(), OntologyTermMatchType.SYNONYM_MATCH, String.join( ", ", t1.getFirst().getSynonyms() ), t1.getSecond(), locale ) )
                         .collect( CollectionUtils.into( results ) );
             } else {
-                results = ontologyTermInfoRepository.findAllByActiveTrueAndOntologyInAndSynonymsContainingIgnoreCase( ontologies, normalizedQuery ).stream()
+                results = ontologyTermInfoRepository.findAllByOntologyInAndSynonymsContainingIgnoreCaseAndActive( ontologies, normalizedQuery, active ).stream()
                         .map( t1 -> toSearchResult( t1, OntologyTermMatchType.SYNONYM_EXACT, String.join( ", ", t1.getSynonyms() ), 0.0, locale ) )
                         .collect( CollectionUtils.into( results ) );
-                results = ontologyTermInfoRepository.findAllByActiveTrueAndOntologyInAndSynonymsLikeIgnoreCase( ontologies, normalizedQuery + "%" ).stream()
+                results = ontologyTermInfoRepository.findAllByOntologyInAndSynonymsLikeIgnoreCaseAndActive( ontologies, normalizedQuery + "%", active ).stream()
                         .map( t1 -> toSearchResult( t1, OntologyTermMatchType.SYNONYM_STARTS_WITH, String.join( ", ", t1.getSynonyms() ), 0.0, locale ) )
                         .collect( CollectionUtils.into( results ) );
-                results = ontologyTermInfoRepository.findAllByActiveTrueAndOntologyInAndSynonymsLikeIgnoreCase( ontologies, "%" + normalizedQuery + "%" ).stream()
+                results = ontologyTermInfoRepository.findAllByOntologyInAndSynonymsLikeIgnoreCaseAndActive( ontologies, "%" + normalizedQuery + "%", active ).stream()
                         .map( t1 -> toSearchResult( t1, OntologyTermMatchType.SYNONYM_CONTAINS, String.join( ", ", t1.getSynonyms() ), 0.0, locale ) )
                         .collect( CollectionUtils.into( results ) );
             }
@@ -428,13 +521,13 @@ public class OntologyService implements InitializingBean {
         // then some definitions
         if ( results.size() < maxResults ) {
             if ( isFullTextSupported ) {
-                results = ontologyTermInfoRepository.findAllByActiveTrueAndOntologyInAndDefinitionMatch( ontologyIds, fullTextQuery ).stream()
+                results = ontologyTermInfoRepository.findAllByOntologyInAndDefinitionMatchAndActive( ontologyIds, fullTextQuery, active ).stream()
                         .map( row -> Pair.of( ontologyTermInfoRepository.findOne( (Integer) row[0] ), (Double) row[1] ) )
                         .map( t -> toSearchResult( t.getFirst(), OntologyTermMatchType.DEFINITION_MATCH, t.getFirst().getDefinition(), t.getSecond(), locale ) )
                         .collect( CollectionUtils.into( results ) );
 
             } else {
-                results = ontologyTermInfoRepository.findAllByActiveTrueAndOntologyInAndDefinitionLikeIgnoreCase( ontologies, "%" + normalizedQuery + "%" ).stream()
+                results = ontologyTermInfoRepository.findAllByOntologyInAndDefinitionLikeIgnoreCaseAndActive( ontologies, "%" + normalizedQuery + "%", active ).stream()
                         .map( t -> toSearchResult( t, OntologyTermMatchType.DEFINITION_CONTAINS, t.getDefinition(), 0.0, locale ) )
                         .collect( CollectionUtils.into( results ) );
             }
@@ -449,9 +542,8 @@ public class OntologyService implements InitializingBean {
                 .collect( Collectors.toCollection( LinkedHashSet::new ) );
         topoSortTimer.stop();
 
-        if ( timer.getTime() > ( isFullTextSupported ? 200 : 1000 ) ) {
-            log.warn( String.format( "Found %d results (%d prior to sorting) suitable for autocompletion for query '%s' (normalized as %s, full-text as %s) in %d ms (initial query: %d ms, topological sort and ranking: %d ms).",
-                    sortedResults.size(),
+        if ( timer.getTime() > ( isFullTextSupported ? 500 : 1000 ) ) {
+            log.warn( String.format( "Found %d suitable results for autocompletion of query '%s' (normalized as '%s', full-text as '%s') in %d ms (initial query: %d ms, topological sort and ranking: %d ms).",
                     results.size(),
                     query,
                     normalizedQuery,
@@ -643,5 +735,20 @@ public class OntologyService implements InitializingBean {
 
     public OntologyTermInfo findByTermIdAndOntology( String ontologyTermInfoId, Ontology ontology ) {
         return ontologyTermInfoRepository.findByTermIdAndOntology( ontologyTermInfoId, ontology );
+    }
+
+    @Transactional(readOnly = true)
+    public long countTermsWithIcons( Ontology ontology ) {
+        return ontologyTermInfoRepository.countByOntologyAndActiveTrueAndHasIconTrue( ontology );
+    }
+
+    @Transactional(readOnly = true)
+    public long countActiveTerms( Ontology ontology ) {
+        return ontologyTermInfoRepository.countByOntologyAndActiveTrue( ontology );
+    }
+
+    @Transactional(readOnly = true)
+    public long countObsoleteTerms( Ontology ontology ) {
+        return ontologyTermInfoRepository.countByOntologyAndObsoleteTrue( ontology );
     }
 }

@@ -22,6 +22,7 @@ import ubc.pavlab.rdp.model.UserGene;
 import ubc.pavlab.rdp.model.enums.ResearcherCategory;
 import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import ubc.pavlab.rdp.model.enums.TierType;
+import ubc.pavlab.rdp.model.ontology.OntologyTermInfo;
 import ubc.pavlab.rdp.repositories.RoleRepository;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.util.VersionUtils;
@@ -94,7 +95,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
     }
 
     @Override
-    public List<User> findUsersByLikeName( String nameLike, Boolean prefix, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherCategories, Collection<String> organUberonIds ) {
+    public List<User> findUsersByLikeName( String nameLike, Boolean prefix, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherCategories, Collection<String> organUberonIds, Collection<OntologyTermInfo> ontologyTermInfos ) {
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add( "nameLike", nameLike );
         params.add( "prefix", prefix.toString() );
@@ -109,7 +110,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
     }
 
     @Override
-    public List<User> findUsersByDescription( String descriptionLike, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherCategories, Collection<String> organUberonIds ) {
+    public List<User> findUsersByDescription( String descriptionLike, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherCategories, Collection<String> organUberonIds, Collection<OntologyTermInfo> ontologyTermInfos ) {
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add( "descriptionLike", descriptionLike );
         params.putAll( UserSearchParams.builder()
@@ -123,7 +124,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
     }
 
     @Override
-    public List<UserGene> findGenesBySymbol( String symbol, Taxon taxon, Set<TierType> tiers, Integer orthologTaxonId, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherCategories, Set<String> organUberonIds ) {
+    public List<UserGene> findGenesBySymbol( String symbol, Taxon taxon, Set<TierType> tiers, Integer orthologTaxonId, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherCategories, Set<String> organUberonIds, Collection<OntologyTermInfo> ontologyTermInfos ) {
         List<UserGene> intlUsergenes = new LinkedList<>();
         for ( TierType tier : restrictTiers( tiers ) ) {
             MultiValueMap<String, String> params = new LinkedMultiValueMap<>();

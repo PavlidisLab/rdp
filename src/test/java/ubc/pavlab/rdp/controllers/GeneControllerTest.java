@@ -12,6 +12,7 @@ import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
+import ubc.pavlab.rdp.WebMvcConfig;
 import ubc.pavlab.rdp.WebSecurityConfig;
 import ubc.pavlab.rdp.model.GeneInfo;
 import ubc.pavlab.rdp.model.Taxon;
@@ -19,6 +20,7 @@ import ubc.pavlab.rdp.model.enums.GeneMatchType;
 import ubc.pavlab.rdp.services.GOService;
 import ubc.pavlab.rdp.services.GeneInfoService;
 import ubc.pavlab.rdp.services.TaxonService;
+import ubc.pavlab.rdp.util.OntologyMessageSource;
 import ubc.pavlab.rdp.util.SearchResult;
 
 import java.util.Collections;
@@ -55,6 +57,9 @@ public class GeneControllerTest {
 
     @MockBean
     private PermissionEvaluator permissionEvaluator;
+
+    @MockBean
+    private OntologyMessageSource ontologyMessageSource;
 
     @Test
     public void searchGenesByTaxonAndSymbols_thenReturnMatchingGenes() throws Exception {

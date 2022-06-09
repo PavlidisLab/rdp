@@ -8,7 +8,7 @@ import ubc.pavlab.rdp.model.GeneInfo;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.services.GeneInfoService;
 
-import java.net.Socket;
+import java.net.URI;
 import java.util.List;
 
 /**
@@ -148,9 +148,11 @@ public class ApplicationSettings {
 
     @Data
     public static class OntologySettings {
-        Resource reactomePathwaysFile;
-        Resource reactomePathwaysHierarchyFile;
-        Resource reactomeStableIdentifiersFile;
+        private String reactomePathwaysOntologyName;
+        private Resource reactomePathwaysFile;
+        private Resource reactomePathwaysHierarchyFile;
+        private Resource reactomeStableIdentifiersFile;
+        private URI reactomeContentServiceUrl;
     }
 
     private ProfileSettings profile;

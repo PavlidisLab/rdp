@@ -34,6 +34,7 @@ import ubc.pavlab.rdp.services.*;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.settings.FaqSettings;
 import ubc.pavlab.rdp.settings.SiteSettings;
+import ubc.pavlab.rdp.util.OntologyMessageSource;
 
 import java.util.Locale;
 import java.util.Set;
@@ -119,6 +120,9 @@ public class UserControllerTest {
 
     @MockBean(name = "ontologyService")
     private OntologyService ontologyService;
+
+    @MockBean
+    private OntologyMessageSource ontologyMessageSource;
 
     @Before
     public void setUp() {

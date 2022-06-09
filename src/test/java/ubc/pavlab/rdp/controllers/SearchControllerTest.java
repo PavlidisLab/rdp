@@ -26,6 +26,7 @@ import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.services.*;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.settings.SiteSettings;
+import ubc.pavlab.rdp.util.OntologyMessageSource;
 
 import java.io.IOException;
 import java.net.URI;
@@ -112,6 +113,9 @@ public class SearchControllerTest {
     @MockBean(name = "ontologyService")
     private OntologyService ontologyService;
 
+    @MockBean
+    private OntologyMessageSource ontologyMessageSource;
+
     @Before
     public void setUp() {
         when( applicationSettings.getEnabledTiers() ).thenReturn( Lists.newArrayList( "TIER1", "TIER2", "TIER3" ) );
@@ -174,7 +178,7 @@ public class SearchControllerTest {
                 .andExpect( status().isOk() )
                 .andExpect( view().name( "search" ) )
                 .andExpect( model().attributeExists( "usergenes" ) );
-        verify( userGeneService ).handleGeneSearch( gene, TierType.ANY, null, null, null, null );
+        verify( userGeneService ).handleGeneSearch( gene, TierType.ANY, null, null, null, null, null );
     }
 
     @Test
@@ -255,7 +259,7 @@ public class SearchControllerTest {
     @Test
     public void searchUsersByNameView_thenReturnSuccess() throws Exception {
         User user = createRemoteUser( 1, URI.create( "https://example.com/" ) );
-        when( remoteResourceService.findUsersByLikeName( "Mark", true, null, null, null ) )
+        when( remoteResourceService.findUsersByLikeName( "Mark", true, null, null, null, null ) )
                 .thenReturn( Collections.singletonList( remotify( user, User.class ) ) );
         mvc.perform( get( "/search/view" )
                         .param( "nameLike", "Mark" )
@@ -270,7 +274,7 @@ public class SearchControllerTest {
         // document, so instead it must produce a 401 Not Authorized exception
         when( permissionEvaluator.hasPermission( any(), isNull(), eq( "search" ) ) ).thenReturn( false );
         User user = createRemoteUser( 1, URI.create( "https://example.com/" ) );
-        when( remoteResourceService.findUsersByLikeName( "Mark", true, null, null, null ) )
+        when( remoteResourceService.findUsersByLikeName( "Mark", true, null, null, null, null ) )
                 .thenReturn( Collections.singletonList( remotify( user, User.class ) ) );
         mvc.perform( get( "/search/view" )
                         .param( "nameLike", "Mark" )
@@ -282,7 +286,7 @@ public class SearchControllerTest {
     @Test
     public void searchItlUsersByNameView_thenReturnSuccess() throws Exception {
         User user = createRemoteUser( 1, URI.create( "http://example.com/" ) );
-        when( remoteResourceService.findUsersByLikeName( "Mark", true, null, null, null ) )
+        when( remoteResourceService.findUsersByLikeName( "Mark", true, null, null, null, null ) )
                 .thenReturn( Collections.singletonList( remotify( user, User.class ) ) );
         mvc.perform( get( "/search/view/international" )
                         .param( "nameLike", "Mark" )

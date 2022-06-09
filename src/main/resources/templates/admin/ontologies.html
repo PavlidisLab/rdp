@@ -11,10 +11,13 @@
     <div th:replace="layouts/common::title(title='Ontologies', subtitle='Manage ontologies')"></div>
     <div th:replace="layouts/common::message"></div>
     <div class="card mb-3">
-        <div class="card-body">
-            <div class="row">
+        <div class="card-body border-bottom">
+            <div class="row mb-3">
                 <div class="col-8 border-right">
                     <h2>Import Ontology</h2>
+                    <div class="alert alert-info">
+                        Importing via an URL will also activate periodic update of the terms.
+                    </div>
                     <form th:object="${importOntologyForm}"
                           action="/admin/ontologies/import"
                           method="post" enctype="multipart/form-data">
@@ -23,21 +26,28 @@
                                 <div class="form-group">
                                     <label>Import from URL</label>
                                     <input th:field="*{ontologyUrl}"
-                                           class="form-control" type="url" placeholder="http://purl.obo.org/"/>
+                                           class="form-control" type="url" placeholder="http://purl.obo.org/"
+                                           th:errorclass="is-invalid"/>
+                                    <div class="invalid-feedback" th:errors="*{ontologyUrl}"></div>
                                 </div>
                             </div>
                             <div class="col-6">
                                 <div class="form-group">
                                     <label>Import from file</label>
-                                    <input th:field="*{ontologyFile}" type="file" class="form-control-file"/>
+                                    <input th:field="*{ontologyFile}" type="file" class="form-control-file"
+                                           th:errorclass="is-invalid"/>
+                                    <div class="invalid-feedback" th:errors="*{ontologyFile}"></div>
                                 </div>
                             </div>
                         </div>
                         <div class="form-row">
-                            <button class="btn btn-primary import-ontology-btn" type="submit">
-                                <span class="spinner d-none"></span>
-                                Import Ontology
-                            </button>
+                            <div class="col">
+                                <button class="btn btn-primary import-ontology-btn" type="submit">
+                                    <span class="spinner d-none"></span>
+                                    <i class="oi oi-cloud-download"></i>
+                                    Import Ontology
+                                </button>
+                            </div>
                         </div>
                     </form>
                 </div>
@@ -58,17 +68,45 @@
                             Stubs are already setup.
                         </p>
                     </form>
-                    <h2>Reactome</h2>
-                    <p>RDP also provides capability of importing Reactome pathways.</p>
-                    <form th:action="@{/admin/ontologies/import-reactome}" method="post">
-                        <button class="btn btn-primary" type="submit">
-                            <span th:if="${@ontologyService.existsByName('reactome')}">Import</span>
-                            <span th:unless="${@ontologyService.existsByName('reactome')}">Update</span>
-                            Reactome Pathways
-                        </button>
-                    </form>
+                    <div th:with="reactome=${@reactomeService.findPathwaysOntology()}">
+                        <h2>Reactome Pathways</h2>
+                        <p>RDP provides capability of importing Reactome pathways.</p>
+                        <p th:if="${reactome} != null" class="text-success">
+                            Reactome is already setup.
+                            <a th:href="@{/admin/ontologies/{ontologyId}(ontologyId=${reactome.id})}">View Reactome</a>
+                        </p>
+                        <form th:action="${reactome} != null ? @{/admin/ontologies/{ontologyId}/update-reactome-pathways(ontologyId=${reactome.id})} : @{/admin/ontologies/import-reactome-pathways}"
+                              method="post">
+                            <div class="form-group">
+                                <button class="btn btn-primary" type="submit">
+                                    <i class="oi oi-cloud-download"></i>
+                                    <span th:if="${reactome} != null">Update</span>
+                                    <span th:if="${reactome} == null">Import</span>
+                                    Reactome Pathways
+                                </button>
+                            </div>
+                        </form>
+                        <div th:if="${reactome} != null">
+                            <div class="form-group">
+                                <a th:href="@{/admin/ontologies/{ontologyId}/update-reactome-pathway-summations(ontologyId=${reactome.id})}"
+                                   th:attr="data-reactome-ontology-id=${reactome.id}"
+                                   class="btn btn-primary update-reactome-pathway-summations-btn">
+                                    <i class="oi oi-cloud-download"></i>
+                                    Update Reactome Pathways Summations
+                                </a>
+                                <div>
+                                    <small class="progress-feedback"></small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
+        </div>
+        <div class="card-body">
+            <h2 class="mb-0">Create Simple Ontology</h2>
+            <p>As an alternative to the OBO format, you may also manage small ontologies by hand.</p>
+            <div th:replace="fragments/ontology::simple-ontology-form(ontology = null, simpleOntologyForm = ${simpleOntologyForm})"></div>
         </div>
     </div>
     <div th:each="ontology : ${@ontologyService.findAllOntologiesIncludingInactive()}"
@@ -96,10 +134,6 @@
 </div>
 <div th:replace="layouts/common::footer"></div>
 <div th:replace="layouts/common::scripts"></div>
-<script>
-    $('.import-ontology-btn').click(function () {
-        $(this).find('.spinner').toggleClass('d-none', false);
-    });
-</script>
+<script th:src="@{/js/ontology.js}"></script>
 </body>
 </html>

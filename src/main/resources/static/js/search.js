@@ -209,22 +209,14 @@
                 response([{noresults: true, label: 'Error querying search endpoint.', value: term}]);
             });
         },
-        focus: function () {
-            // prevent value inserted on focus
-            return false;
-        },
         select: function (event, ui) {
-            var term = $(this).val();
-            var offset;
-            if ((offset = term.lastIndexOf(',')) !== -1) {
-                $(this).val(term.substring(0, offset) + ', ' + ui.item.label + ', ');
-            } else {
-                $(this).val(ui.item.label + ', ');
-            }
             // add the term ID to the selection
-            $('<input name="ontologyTermIds" type="hidden">')
-                .val(ui.item.id)
-                .insertAfter($(this));
+            $('<span class="badge badge-primary mb-1">')
+                .append($('<span class="align-middle">').text(ui.item.match.name))
+                .append($('<button class="align-middle close">').text('×'))
+                .append($('<input name="ontologyTermIds" type="hidden">').val(ui.item.id))
+                .insertBefore($(this));
+            $(this).val('');
             return false;
         }
     });

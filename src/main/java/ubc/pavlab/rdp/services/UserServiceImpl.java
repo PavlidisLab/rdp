@@ -21,7 +21,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.CollectionUtils;
 import ubc.pavlab.rdp.events.OnContactEmailUpdateEvent;
 import ubc.pavlab.rdp.events.OnRegistrationCompleteEvent;
 import ubc.pavlab.rdp.events.OnRequestAccessEvent;
@@ -347,7 +346,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @PostFilter("hasPermission(filterObject, 'read')")
-    public List<User> findByLikeName( String nameLike, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherTypes, Collection<OrganInfo> organs ) {
+    public List<User> findByLikeName( String nameLike, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherTypes, Collection<OrganInfo> organs, Collection<OntologyTermInfo> ontologyTermInfos ) {
         final Set<String> organUberonIds = organUberonIdsFromOrgans( organs );
         return userRepository.findByProfileNameContainingIgnoreCaseOrProfileLastNameContainingIgnoreCase( nameLike, nameLike ).stream()
                 .filter( u -> researcherPositions == null || researcherPositions.contains( u.getProfile().getResearcherPosition() ) )
@@ -359,7 +358,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @PostFilter("hasPermission(filterObject, 'read')")
-    public List<User> findByStartsName( String startsName, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherTypes, Collection<OrganInfo> organs ) {
+    public List<User> findByStartsName( String startsName, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherTypes, Collection<OrganInfo> organs, Collection<OntologyTermInfo> ontologyTermInfos ) {
         final Set<String> organUberonIds = organUberonIdsFromOrgans( organs );
         return userRepository.findByProfileLastNameStartsWithIgnoreCase( startsName ).stream()
                 .filter( u -> researcherPositions == null || researcherPositions.contains( u.getProfile().getResearcherPosition() ) )
@@ -371,7 +370,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @PostFilter("hasPermission(filterObject, 'read')")
-    public List<User> findByDescription( String descriptionLike, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherTypes, Collection<OrganInfo> organs ) {
+    public List<User> findByDescription( String descriptionLike, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherTypes, Collection<OrganInfo> organs, Collection<OntologyTermInfo> ontologyTermInfos ) {
         final Set<String> organUberonIds = organUberonIdsFromOrgans( organs );
         return userRepository.findDistinctByProfileDescriptionContainingIgnoreCaseOrTaxonDescriptionsContainingIgnoreCase( descriptionLike, descriptionLike ).stream()
                 .filter( u -> researcherPositions == null || researcherPositions.contains( u.getProfile().getResearcherPosition() ) )

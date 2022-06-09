@@ -332,3 +332,11 @@ hr {
     content: "Could Not Find Term.";
     color: red;
 }
+
+
+.ontology-term-definition {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: b2;
+    overflow: hidden;
+}

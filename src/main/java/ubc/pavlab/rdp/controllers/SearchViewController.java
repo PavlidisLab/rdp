@@ -14,6 +14,7 @@ import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.ResearcherCategory;
 import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import ubc.pavlab.rdp.model.enums.TierType;
+import ubc.pavlab.rdp.model.ontology.OntologyTermInfo;
 import ubc.pavlab.rdp.services.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -40,6 +41,9 @@ public class SearchViewController {
 
     @Autowired
     private OrganInfoService organInfoService;
+
+    @Autowired
+    private OntologyService ontologyService;
 
     @Autowired
     private RemoteResourceService remoteResourceService;
@@ -76,9 +80,10 @@ public class SearchViewController {
                                                   @RequestParam Boolean prefix,
                                                   @RequestParam(required = false) Set<ResearcherPosition> researcherPositions,
                                                   @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
-                                                  @RequestParam(required = false) Set<String> organUberonIds ) {
+                                                  @RequestParam(required = false) Set<String> organUberonIds,
+                                                  @RequestParam(required = false) Set<Integer> ontologyTermIds ) {
         ModelAndView modelAndView = new ModelAndView( "fragments/user-table::user-table" );
-        modelAndView.addObject( "users", remoteResourceService.findUsersByLikeName( nameLike, prefix, researcherPositions, researcherCategories, organUberonIds ) );
+        modelAndView.addObject( "users", remoteResourceService.findUsersByLikeName( nameLike, prefix, researcherPositions, researcherCategories, organUberonIds, ontologyTermsFromIds( ontologyTermIds ) ) );
         modelAndView.addObject( "remote", Boolean.TRUE );
         return modelAndView;
     }
@@ -89,12 +94,13 @@ public class SearchViewController {
                                                @RequestParam Boolean prefix,
                                                @RequestParam(required = false) Set<ResearcherPosition> researcherPositions,
                                                @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
-                                               @RequestParam(required = false) Set<String> organUberonIds ) {
+                                               @RequestParam(required = false) Set<String> organUberonIds,
+                                               @RequestParam(required = false) Set<Integer> ontologyTermIds ) {
         Collection<User> users;
         if ( prefix ) {
-            users = userService.findByStartsName( nameLike, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ) );
+            users = userService.findByStartsName( nameLike, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ), ontologyTermsFromIds( ontologyTermIds ) );
         } else {
-            users = userService.findByLikeName( nameLike, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ) );
+            users = userService.findByLikeName( nameLike, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ), ontologyTermsFromIds( ontologyTermIds ) );
         }
         ModelAndView modelAndView = new ModelAndView( "fragments/user-table::user-table" );
         modelAndView.addObject( "users", users );
@@ -106,9 +112,10 @@ public class SearchViewController {
     public ModelAndView searchUsersByDescriptionView( @RequestParam String descriptionLike,
                                                       @RequestParam(required = false) Set<ResearcherPosition> researcherPositions,
                                                       @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
-                                                      @RequestParam(required = false) Set<String> organUberonIds ) {
+                                                      @RequestParam(required = false) Set<String> organUberonIds,
+                                                      @RequestParam(required = false) Set<Integer> ontologyTermIds ) {
         ModelAndView modelAndView = new ModelAndView( "fragments/user-table::user-table" );
-        modelAndView.addObject( "users", userService.findByDescription( descriptionLike, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ) ) );
+        modelAndView.addObject( "users", userService.findByDescription( descriptionLike, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ), ontologyTermsFromIds( ontologyTermIds ) ) );
         return modelAndView;
     }
 
@@ -121,6 +128,7 @@ public class SearchViewController {
                                                @RequestParam(required = false) Set<ResearcherPosition> researcherPositions,
                                                @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
                                                @RequestParam(required = false) Set<String> organUberonIds,
+                                               @RequestParam(required = false) Set<Integer> ontologyTermIds,
                                                Locale locale ) {
         ModelAndView modelAndView = new ModelAndView( "fragments/user-table::usergenes-table" );
 
@@ -174,7 +182,7 @@ public class SearchViewController {
             return modelAndView;
         }
 
-        modelAndView.addObject( "usergenes", userGeneService.handleGeneSearch( gene, tiers, orthologTaxon, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ) ) );
+        modelAndView.addObject( "usergenes", userGeneService.handleGeneSearch( gene, tiers, orthologTaxon, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ), ontologyTermsFromIds( ontologyTermIds ) ) );
 
         return modelAndView;
     }
@@ -185,9 +193,6 @@ public class SearchViewController {
                                                 @RequestParam Integer taxonId,
                                                 @RequestParam(required = false) Set<TierType> tiers,
                                                 @RequestParam(required = false) Integer orthologTaxonId,
-                                                @RequestParam(required = false) Set<ResearcherPosition> researcherPositions,
-                                                @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
-                                                @RequestParam(required = false) Set<String> organUberonIds,
                                                 Locale locale ) {
         ModelAndView modelAndView = new ModelAndView( "fragments/ortholog-table::ortholog-table" );
 
@@ -247,9 +252,10 @@ public class SearchViewController {
     public ModelAndView searchItlUsersByDescriptionView( @RequestParam String descriptionLike,
                                                          @RequestParam(required = false) Set<ResearcherPosition> researcherPositions,
                                                          @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
-                                                         @RequestParam(required = false) Set<String> organUberonIds ) {
+                                                         @RequestParam(required = false) Set<String> organUberonIds,
+                                                         @RequestParam(required = false) Set<Integer> ontologyTermIds ) {
         ModelAndView modelAndView = new ModelAndView( "fragments/user-table::user-table" );
-        modelAndView.addObject( "users", remoteResourceService.findUsersByDescription( descriptionLike, researcherPositions, researcherCategories, organUberonIds ) );
+        modelAndView.addObject( "users", remoteResourceService.findUsersByDescription( descriptionLike, researcherPositions, researcherCategories, organUberonIds, ontologyTermsFromIds( ontologyTermIds ) ) );
         modelAndView.addObject( "remote", Boolean.TRUE );
         return modelAndView;
     }
@@ -263,7 +269,8 @@ public class SearchViewController {
                                                   @RequestParam(required = false) Integer orthologTaxonId,
                                                   @RequestParam(required = false) Set<ResearcherPosition> researcherPositions,
                                                   @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
-                                                  @RequestParam(required = false) Set<String> organUberonIds ) {
+                                                  @RequestParam(required = false) Set<String> organUberonIds,
+                                                  @RequestParam(required = false) Set<Integer> ontologyTermIds ) {
         // Only look for orthologs when taxon is human
         if ( taxonId != 9606 ) {
             orthologTaxonId = null;
@@ -274,7 +281,7 @@ public class SearchViewController {
         }
 
         Taxon taxon = taxonService.findById( taxonId );
-        Collection<UserGene> userGenes = remoteResourceService.findGenesBySymbol( symbol, taxon, tiers, orthologTaxonId, researcherPositions, researcherCategories, organUberonIds );
+        Collection<UserGene> userGenes = remoteResourceService.findGenesBySymbol( symbol, taxon, tiers, orthologTaxonId, researcherPositions, researcherCategories, organUberonIds, ontologyTermsFromIds( ontologyTermIds ) );
 
         ModelAndView modelAndView = new ModelAndView( "fragments/user-table::usergenes-table" );
         modelAndView.addObject( "usergenes", userGenes );
@@ -357,5 +364,9 @@ public class SearchViewController {
 
     private Collection<OrganInfo> organsFromUberonIds( Set<String> organUberonIds ) {
         return organUberonIds == null ? null : organInfoService.findByUberonIdIn( organUberonIds );
+    }
+
+    private Collection<OntologyTermInfo> ontologyTermsFromIds( Collection<Integer> ontologyTermIds ) {
+        return ontologyTermIds == null ? null : ontologyService.findAllTermsByIdIn( ontologyTermIds );
     }
 }

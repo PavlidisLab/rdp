@@ -24,6 +24,7 @@ import ubc.pavlab.rdp.services.PrivacyService;
 import ubc.pavlab.rdp.services.UserService;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.settings.SiteSettings;
+import ubc.pavlab.rdp.util.OntologyMessageSource;
 
 import java.util.Locale;
 
@@ -69,6 +70,9 @@ public class LoginControllerTest {
 
     @Autowired
     private FormattingConversionService formattingConversionService;
+
+    @MockBean
+    private OntologyMessageSource ontologyMessageSource;
 
     @Before
     public void setUp() {

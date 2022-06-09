@@ -35,6 +35,7 @@ import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.ResearcherCategory;
 import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import ubc.pavlab.rdp.model.enums.TierType;
+import ubc.pavlab.rdp.model.ontology.OntologyTermInfo;
 import ubc.pavlab.rdp.repositories.TaxonRepository;
 import ubc.pavlab.rdp.repositories.UserGeneRepository;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
@@ -43,7 +44,6 @@ import java.text.MessageFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static java.util.Comparator.*;
 import static org.springframework.util.CollectionUtils.containsAny;
 
 /**
@@ -128,7 +128,7 @@ public class UserGeneServiceImpl implements UserGeneService {
 
     @Override
     @PostFilter("hasPermission(filterObject, 'read')")
-    public List<UserGene> handleGeneSearch( Gene gene, Set<TierType> tiers, Taxon orthologTaxon, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherCategories, Collection<OrganInfo> organs ) {
+    public List<UserGene> handleGeneSearch( Gene gene, Set<TierType> tiers, Taxon orthologTaxon, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherCategories, Collection<OrganInfo> organs, Collection<OntologyTermInfo> ontologyTermInfos ) {
         Set<UserGene> results;
         if ( applicationSettings.getPrivacy().isEnableAnonymizedSearchResults() ) {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();

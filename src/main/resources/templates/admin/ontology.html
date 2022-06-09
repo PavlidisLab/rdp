@@ -8,50 +8,106 @@
 <body>
 <div th:replace="layouts/common::header"></div>
 <div class="container py-3">
-    <div th:replace="layouts/common::title(title=#{'rdp.ontologies.' + ${ontology.name} + '.title'}, subtitle='Manage')"></div>
+    <div th:replace="layouts/common::title(title=#{'rdp.ontologies.' + ${ontology.name} + '.title'}, subtitle='Manage ' + #{'rdp.ontologies.' + ${ontology.name} + '.title'} + ' terms')"></div>
     <div th:replace="layouts/common::message"></div>
     <div>
         <p>
-            Status:
             <span th:if="${ontology.active}"
                   class="badge badge-success">active</span>
             <span th:unless="${ontology.active}"
                   class="badge badge-warning">inactive</span>
         </p>
-        <p>
-            Source:
-            <a th:href="${ontology.ontologyUrl}"
-               th:text="${ontology.ontologyUrl}"></a>
-        </p>
-        <p>This ontology contains <span th:text="${ontology.terms.size()}"></span> terms.</p>
+        <dl class="dl-inline">
+            <th:block if="${ontology.ontologyUrl} != null">
+                <dt>Source</dt>
+                <dd>
+                    <a th:href="${ontology.ontologyUrl}"
+                       th:text="${ontology.ontologyUrl}"></a>
+                </dd>
+            </th:block>
+            <dt>Total terms</dt>
+            <dd th:text="${ontology.terms.size()}"></dd>
+            <dt>Active terms</dt>
+            <dd th:text="${@ontologyService.countActiveTerms(ontology)}"></dd>
+            <dt>Obsolete terms</dt>
+            <dd th:text="${@ontologyService.countObsoleteTerms(ontology)}"></dd>
+        </dl>
+        <div class="mb-3">
+            <form th:if="${ontology.ontologyUrl} != null"
+                  th:action="@{/admin/ontologies/{ontologyId}/update(ontologyId=${ontology.id})}" method="post"
+                  class="d-inline-block">
+                <button class="btn btn-primary" type="submit">
+                    <i class="oi oi-cloud-download"></i>
+                    Update
+                    <span th:if="${ontology.ontologyUrl.authority} != null">
+                        from <span th:text="${ontology.ontologyUrl.authority}"></span>
+                    </span>
+                </button>
+            </form>
+            <a class="btn btn-primary"
+               th:href="@{/admin/ontologies/{ontologyId}/download(ontologyId=${ontology.id})}">
+                <i class="oi oi-data-transfer-download"></i>
+                Download as OBO
+            </a>
+        </div>
         <div class="row">
-            <div class="col-4">
+            <div th:if="${ontology.active}" class="col-lg-4 col-md-6">
                 <div class="card">
                     <div class="card-header">
-                        <h3 class="mb-0">Activate/deactivate </h3>
+                        <h3 class="mb-0">
+                            Deactivate
+                            <span th:text="#{'rdp.ontologies.' + ${ontology.name} + '.title'}"></span>
+                        </h3>
                     </div>
-                    <div th:if="${ontology.active}" class="card-body alert-warning">
-                        Deactivating the ontology will deactivate the ontology, but maintain the state of active
-                        terms.
+                    <div class="card-body alert-warning">
+                        If you deactivate this ontology, individual terms will keep their activation status.
                     </div>
                     <div class="card-body">
                         <form th:if="${ontology.active}"
                               th:action="@{/admin/ontologies/{ontologyId}/deactivate(ontologyId=${ontology.id})}"
-                              method="post">
+                              method="post" class="d-inline-block">
                             <button class="btn btn-warning" type="submit">Deactivate</button>
-                        </form>
-                        <form th:unless="${ontology.active}"
-                              th:action="@{/admin/ontologies/{ontologyId}/activate(ontologyId=${ontology.id})}"
-                              method="post">
-                            <button class="btn btn-primary" type="submit">Activate</button>
                         </form>
                     </div>
                 </div>
             </div>
-            <div class="col-4">
-                <div class="card ">
+            <div th:unless="${ontology.active}" class="col-lg-4 col-md-6">
+                <div class="card">
                     <div class="card-header">
-                        <h3 class="mb-0">Activate a term</h3>
+                        <h3 class="mb-0">
+                            Activate
+                            <span th:text="#{'rdp.ontologies.' + ${ontology.name} + '.title'}"></span>
+                        </h3>
+                    </div>
+                    <div class="card-body alert-info">
+                        If you check "Include terms?", all the non-obsolete terms in the ontology will be activated. To
+                        activate obsolete terms, use the autocomplete prompt on the right.
+                    </div>
+                    <div class="card-body">
+                        <form th:action="@{/admin/ontologies/{ontologyId}/activate(ontologyId=${ontology.id})}"
+                              th:object="${activateOntologyForm}"
+                              method="post">
+                            <div class="form-group">
+                                <div class="form-check">
+                                    <input class="form-check-input" th:field="*{includeTerms}" type="checkbox"/>
+                                    <label class="form-check-label">Include terms?</label>
+                                </div>
+                            </div>
+                            <button class="btn btn-primary" type="submit">
+                                Activate
+                                <span th:text="#{'rdp.ontologies.' + ${ontology.name} + '.title'}"></span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <div th:if="${ontology.terms.size()} gt 20" class="card mb-3">
+                    <div class="card-header">
+                        <h3 class="mb-0">
+                            Activate a term in
+                            <span th:text="#{'rdp.ontologies.' + ${ontology.name} + '.title'}"></span>
+                        </h3>
                     </div>
                     <div class="card-body alert-info">
                         When activating a term subtree, all the terms defined under it as per the <code>is a</code>
@@ -62,7 +118,7 @@
                               th:object="${activateTermForm}"
                               method="post">
                             <div class="form-group">
-                                <input class="form-control" th:field="*{ontologyTermInfoId}"
+                                <input class="form-control ontology-term-autocomplete" th:field="*{ontologyTermInfoId}"
                                        th:errorclass="is-invalid"
                                        type="text"
                                        placeholder="Term ID"/>
@@ -74,7 +130,7 @@
                                            class="form-check-input" th:field="*{includeSubtree}"
                                            th:errorclass="is-invalid"
                                            type="checkbox"/>
-                                    <label for="includeSubtree" class="form-check-label">Include subtree</label>
+                                    <label for="includeSubtree" class="form-check-label">Include term subtree?</label>
                                 </div>
                                 <div class="invalid-feedback" th:errors="*{includeSubtree}"></div>
                             </div>
@@ -84,9 +140,30 @@
                 </div>
             </div>
         </div>
+        <div th:unless="${ontology.terms.size()} gt 20" class="card">
+            <div class="card-header">
+                <h3 class="mb-0">Edit Simple Ontology</h3>
+            </div>
+            <div class="card-body alert-info">
+                <p>
+                    This editor only applies to ontologies with 20 terms or less. For larger ontologies, you must
+                    provide terms in the OBO format.
+                </p>
+                If you check "has icon", make sure that you provide an icon in the static assets under
+                <code>static/img/ontologies/{ontologyName}/{termName}.svg</code>, otherwise a textual icon will be used
+                as a fallback.
+            </div>
+            <div class="card-body">
+                <div th:replace="fragments/ontology::simple-ontology-form(ontology = ${ontology}, simpleOntologyForm = ${simpleOntologyForm})"></div>
+            </div>
+        </div>
     </div>
 </div>
 <div th:replace="layouts/common::footer"></div>
 <div th:replace="layouts/common::scripts"></div>
+<script th:inline="javascript">
+    var ontologyId = [[${ontology.id}]];
+</script>
+<script th:src="@{/js/ontology.js}"></script>
 </body>
 </html>

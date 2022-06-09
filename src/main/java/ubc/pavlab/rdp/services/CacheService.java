@@ -10,11 +10,8 @@ import org.springframework.stereotype.Service;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 
 import java.sql.Date;
-import java.text.DateFormat;
 import java.text.MessageFormat;
-import java.text.SimpleDateFormat;
 import java.time.Instant;
-import java.time.format.DateTimeFormatter;
 
 @CommonsLog
 @Service
@@ -46,6 +43,9 @@ public class CacheService {
     @Autowired
     private OntologyService ontologyService;
 
+    @Autowired
+    private ReactomeService reactomeService;
+
     /**
      * Cached data are updated on startup and then monthly.
      * <p>
@@ -66,6 +66,12 @@ public class CacheService {
             organInfoService.updateOrganInfos();
             userOrganService.updateUserOrgans();
             ontologyService.updateOntologies();
+            try {
+                reactomeService.updatePathwaysOntology();
+                reactomeService.updatePathwaySummations( null );
+            } catch ( ReactomeException e ) {
+                log.error( "", e );
+            }
             CronSequenceGenerator sequenceGenerator = new CronSequenceGenerator( UPDATE_CACHE_CRON );
             log.info( MessageFormat.format( "Done updating cached data. Next update is scheduled on {0}.",
                     sequenceGenerator.next( Date.from( Instant.now() ) ) ) );

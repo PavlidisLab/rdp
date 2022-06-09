@@ -2,18 +2,12 @@ package ubc.pavlab.rdp.services;
 
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ubc.pavlab.rdp.model.ontology.Ontology;
 import ubc.pavlab.rdp.model.ontology.OntologyTermInfo;
 import ubc.pavlab.rdp.repositories.ontology.OntologyRepository;
-import ubc.pavlab.rdp.util.ParseException;
 
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
 import java.util.*;
 
 @Service
@@ -23,12 +17,8 @@ public class OntologyStubService {
     private final OntologyRepository ontologyRepository;
 
     @Autowired
-    private final OntologyService ontologyService;
-
-    @Autowired
-    public OntologyStubService( OntologyRepository ontologyRepository, OntologyService ontologyService ) {
+    public OntologyStubService( OntologyRepository ontologyRepository ) {
         this.ontologyRepository = ontologyRepository;
-        this.ontologyService = ontologyService;
     }
 
     /**
@@ -135,34 +125,6 @@ public class OntologyStubService {
         tumorTissueOntology.getTerms().addAll( tumorTissueTerms );
 
         tumorTissueOntology = ontologyRepository.saveAndFlush( tumorTissueOntology );
-    }
-
-    @Transactional
-    public Ontology setupOntology( String ont ) throws IOException, OntologyNameAlreadyUsedException, ParseException {
-        if ( ontologyRepository.existsByName( ont ) ) {
-            log.info( String.format( "%s ontology already setup, skipping...", ont ) );
-            return ontologyRepository.findByName( ont );
-        }
-        Resource resource = new ClassPathResource( "cache/" + ont + ".obo" );
-        try ( Reader reader = new InputStreamReader( resource.getInputStream() ) ) {
-            Ontology ontology = ontologyService.createFromObo( reader );
-            ontology.setOntologyUrl( resource.getURL() );
-            ontologyService.activate( ontology );
-            return ontology;
-        }
-    }
-
-    @Transactional
-    public void setupOntologies() {
-        String[] ontologies = { "mondo", "uberon", "go" };
-        for ( String ont : ontologies ) {
-            log.info( "Setting up " + ont + " ontology..." );
-            try {
-                setupOntology( ont );
-            } catch ( IOException | ParseException | OntologyNameAlreadyUsedException e ) {
-                log.error( String.format( "Failed to setup %s ontology.", ont ), e );
-            }
-        }
     }
 
     public List<Ontology> findAllOntologyStubs() {

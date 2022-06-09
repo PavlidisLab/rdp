@@ -25,7 +25,6 @@ import ubc.pavlab.rdp.model.enums.ResearcherCategory;
 import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.model.ontology.Ontology;
-import ubc.pavlab.rdp.model.ontology.OntologyTerm;
 import ubc.pavlab.rdp.model.ontology.OntologyTermInfo;
 import ubc.pavlab.rdp.services.*;
 import ubc.pavlab.rdp.util.SearchResult;
@@ -91,23 +90,22 @@ public class SearchController {
         ModelAndView modelAndView = new ModelAndView( "search" );
         Collection<User> users;
         if ( prefix ) {
-            users = userService.findByStartsName( nameLike, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ) );
+            users = userService.findByStartsName( nameLike, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ), ontologyTermsFromIds( ontologyTermIds ) );
         } else {
-            users = userService.findByLikeName( nameLike, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ) );
+            users = userService.findByLikeName( nameLike, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ), ontologyTermsFromIds( ontologyTermIds ) );
         }
         modelAndView.addObject( "nameLike", nameLike );
         modelAndView.addObject( "organUberonIds", organUberonIds );
         if ( ontologyTermIds != null ) {
-            List<OntologyTermInfo> ontologyTerms = ontologyService.findAllTermsByIdIn( ontologyTermIds );
+            List<OntologyTermInfo> ontologyTerms = ontologyService.findAllTermsByIdInMaintainingOrder( ontologyTermIds );
             modelAndView.addObject( "ontologyTerms", ontologyTerms );
-            modelAndView.addObject( "ontologyTermLabels", ontologyTerms.stream().map( OntologyTerm::getTermId ).collect( Collectors.toList() ) );
         }
         modelAndView.addObject( "chars", userService.getLastNamesFirstChar() );
         modelAndView.addObject( "user", userService.findCurrentUser() );
         modelAndView.addObject( "users", users );
         modelAndView.addObject( "iSearch", iSearch );
         if ( iSearch ) {
-            modelAndView.addObject( "itlUsers", remoteResourceService.findUsersByLikeName( nameLike, prefix, researcherPositions, researcherCategories, organUberonIds ) );
+            modelAndView.addObject( "itlUsers", remoteResourceService.findUsersByLikeName( nameLike, prefix, researcherPositions, researcherCategories, organUberonIds, null ) );
         }
         return modelAndView;
     }
@@ -124,18 +122,17 @@ public class SearchController {
         modelAndView.addObject( "descriptionLike", descriptionLike );
         modelAndView.addObject( "organUberonIds", organUberonIds );
         if ( ontologyTermIds != null ) {
-            List<OntologyTermInfo> ontologyTerms = ontologyService.findAllTermsByIdIn( ontologyTermIds );
+            List<OntologyTermInfo> ontologyTerms = ontologyService.findAllTermsByIdInMaintainingOrder( ontologyTermIds );
             modelAndView.addObject( "ontologyTerms", ontologyTerms );
-            modelAndView.addObject( "ontologyTermLabels", ontologyTerms.stream().map( OntologyTerm::getTermId ).collect( Collectors.toList() ) );
         }
         modelAndView.addObject( "chars", userService.getLastNamesFirstChar() );
         modelAndView.addObject( "iSearch", iSearch );
 
         modelAndView.addObject( "user", userService.findCurrentUser() );
 
-        modelAndView.addObject( "users", userService.findByDescription( descriptionLike, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ) ) );
+        modelAndView.addObject( "users", userService.findByDescription( descriptionLike, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ), ontologyTermsFromIds( ontologyTermIds ) ) );
         if ( iSearch ) {
-            modelAndView.addObject( "itlUsers", remoteResourceService.findUsersByDescription( descriptionLike, researcherPositions, researcherCategories, organUberonIds ) );
+            modelAndView.addObject( "itlUsers", remoteResourceService.findUsersByDescription( descriptionLike, researcherPositions, researcherCategories, organUberonIds, ontologyTermsFromIds( ontologyTermIds ) ) );
         }
         return modelAndView;
     }
@@ -170,9 +167,8 @@ public class SearchController {
         modelAndView.addObject( "tiers", tiers );
         modelAndView.addObject( "organUberonIds", organUberonIds );
         if ( ontologyTermIds != null ) {
-            List<OntologyTermInfo> ontologyTerms = ontologyService.findAllTermsByIdIn( ontologyTermIds );
+            List<OntologyTermInfo> ontologyTerms = ontologyService.findAllTermsByIdInMaintainingOrder( ontologyTermIds );
             modelAndView.addObject( "ontologyTerms", ontologyTerms );
-            modelAndView.addObject( "ontologyTermLabels", ontologyTerms.stream().map( OntologyTerm::getTermId ).collect( Collectors.toList() ) );
         }
         modelAndView.addObject( "iSearch", iSearch );
 
@@ -210,9 +206,9 @@ public class SearchController {
             return modelAndView;
         }
 
-        modelAndView.addObject( "usergenes", userGeneService.handleGeneSearch( gene, tiers, orthologTaxon, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ) ) );
+        modelAndView.addObject( "usergenes", userGeneService.handleGeneSearch( gene, tiers, orthologTaxon, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ), ontologyTermsFromIds( ontologyTermIds ) ) );
         if ( iSearch ) {
-            modelAndView.addObject( "itlUsergenes", remoteResourceService.findGenesBySymbol( symbol, taxon, tiers, orthologTaxonId, researcherPositions, researcherCategories, organUberonIds ) );
+            modelAndView.addObject( "itlUsergenes", remoteResourceService.findGenesBySymbol( symbol, taxon, tiers, orthologTaxonId, researcherPositions, researcherCategories, organUberonIds, ontologyTermsFromIds( ontologyTermIds ) ) );
         }
 
         return modelAndView;
@@ -332,5 +328,9 @@ public class SearchController {
 
     private Collection<OrganInfo> organsFromUberonIds( Set<String> organUberonIds ) {
         return organUberonIds == null ? null : organInfoService.findByUberonIdIn( organUberonIds );
+    }
+
+    private Collection<OntologyTermInfo> ontologyTermsFromIds( Collection<Integer> ontologyTermIds ) {
+        return ontologyTermIds == null ? null : ontologyService.findAllTermsByIdIn( ontologyTermIds );
     }
 }

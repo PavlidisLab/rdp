@@ -56,6 +56,7 @@ public class OntologyTermInfo extends OntologyTerm implements Serializable, Comp
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "ontology_term_info_id")
+    @JsonIgnore
     private Integer id;
 
     @ElementCollection
@@ -106,7 +107,7 @@ public class OntologyTermInfo extends OntologyTerm implements Serializable, Comp
      * Indicate if the term is merely a grouping of other terms, in which case it will be displayed but it won't be
      * selectable and thus convertible into a {@link UserOntologyTerm}.
      * <p>
-     * TODO: this can be renamed
+     * TODO: this can be renamed to isGrouping
      */
     @JsonIgnore
     @Column(nullable = false)

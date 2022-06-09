@@ -135,10 +135,9 @@ public class OntologyRepositoryTest {
     }
 
     @Test(expected = DataIntegrityViolationException.class)
-    public void save_whenOntologyIsNull_thenFail() {
-        ontologyTermInfoRepository.saveAndFlush( OntologyTermInfo.builder( null, "ABC:123" )
-                .name( "abc" )
-                .build() );
+    public void save_whenOntologyAlreadyExists_thenFail() {
+        ontologyRepository.saveAndFlush( Ontology.builder( "uberon" ).build() );
+        ontologyRepository.saveAndFlush( Ontology.builder( "uberon" ).build() );
     }
 
     @Test

@@ -9,16 +9,18 @@ import org.springframework.util.MultiValueMap;
 import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.TierType;
+import ubc.pavlab.rdp.model.ontology.Ontology;
+import ubc.pavlab.rdp.model.ontology.OntologyTermInfo;
 
+import javax.sound.midi.Sequence;
 import java.net.URI;
 import java.net.URL;
-import java.util.Arrays;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
-import static java.util.stream.Collectors.groupingBy;
+import static java.util.function.Function.identity;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -57,18 +59,9 @@ public final class TestUtils {
     }
 
     public static User createUnpersistedUser() {
-        Profile profile = Profile.builder()
-                .name( NAME )
-                .lastName( LAST_NAME )
-                .privacyLevel( PrivacyLevelType.PUBLIC )
-                .shared( false )
-                .hideGenelist( false )
-                .contactEmailVerified( false ).build();
-        return User.builder()
-                .email( String.format( EMAIL_FORMAT, emailCount++ ) )
-                .password( ENCODED_PASSWORD ) // imbatman
-                .enabled( false )
-                .profile( profile ).build();
+        Profile profile = Profile.builder().name( NAME ).lastName( LAST_NAME ).privacyLevel( PrivacyLevelType.PUBLIC ).shared( false ).hideGenelist( false ).contactEmailVerified( false ).build();
+        return User.builder().email( String.format( EMAIL_FORMAT, emailCount++ ) ).password( ENCODED_PASSWORD ) // imbatman
+                .enabled( false ).profile( profile ).build();
     }
 
     public static User createUser( int id ) {
@@ -86,9 +79,7 @@ public final class TestUtils {
 
     public static User createUserWithGenes( int id, Gene... genes ) {
         User user = createUser( id );
-        Map<Integer, UserGene> userGenes = Arrays.stream( genes )
-                .map( g -> createUnpersistedUserGene( g, user, TierType.TIER1, PrivacyLevelType.PRIVATE ) )
-                .collect( Collectors.toMap( UserGene::getGeneId, Function.identity() ) );
+        Map<Integer, UserGene> userGenes = Arrays.stream( genes ).map( g -> createUnpersistedUserGene( g, user, TierType.TIER1, PrivacyLevelType.PRIVATE ) ).collect( Collectors.toMap( UserGene::getGeneId, identity() ) );
         user.getUserGenes().putAll( userGenes );
         return user;
     }
@@ -100,10 +91,7 @@ public final class TestUtils {
     }
 
     public static User createAnonymousUser() {
-        return User.builder()
-                .anonymousId( UUID.randomUUID() )
-                .profile( new Profile() )
-                .build();
+        return User.builder().anonymousId( UUID.randomUUID() ).profile( new Profile() ).build();
     }
 
     public static User createAnonymousRemoteUser( URI originUrl ) {
@@ -234,5 +222,64 @@ public final class TestUtils {
         accessToken.setUser( user );
         accessToken.updateToken( token );
         return accessToken;
+    }
+
+
+    /**
+     * Create an ontology with random terms.
+     * <p>
+     * Terms are generated sequentially.
+     *
+     * @param name
+     * @param children
+     * @param depth
+     * @return
+     */
+    public static Ontology createOntology( String name, int children, int depth ) {
+        int size = 0;
+        for ( int i = 1; i <= depth; i++ ) {
+            size += Math.pow( children, i );
+        }
+        if ( size > 2000 ) {
+            throw new IllegalArgumentException( String.format( "The provided parameters will generate %d nodes! Try reducing the depth of the ontology.", size ) );
+        }
+        Ontology ontology = Ontology.builder( name )
+                .active( true )
+                .build();
+        addSubTerms( ontology, children, depth, new SequenceGenerator() );
+        assert ontology.getTerms().size() == size;
+        return ontology;
+    }
+
+    /**
+     * Add sub-terms to a given ontology.
+     *
+     * @param ontology the ontology to which sub-terms will be appended (to {@link Ontology#getTerms()} and returned
+     * @param k        the number of children per node
+     * @param d        the depth of the tree
+     * @param random   a seeded random number generator for reproducible trees
+     * @return
+     */
+    private static Collection<OntologyTermInfo> addSubTerms( Ontology ontology, int k, int d, SequenceGenerator random ) {
+        if ( d == 0 ) {
+            return Collections.emptyList();
+        }
+        Collection<OntologyTermInfo> terms = IntStream.range( 0, k )
+                .mapToObj( i -> OntologyTermInfo.builder( ontology, String.format( "%s:%05d", ontology.getName().toUpperCase(), random.nextInt() ) )
+                        .subTerms( addSubTerms( ontology, k, d - 1, random ) )
+                        .ordering( i )
+                        .active( true )
+                        .build() )
+                .collect( Collectors.toSet() );
+        ontology.getTerms().addAll( terms );
+        return terms;
+    }
+
+    private static class SequenceGenerator {
+        private int state = 1;
+
+        public int nextInt() {
+            return state++;
+        }
     }
 }
