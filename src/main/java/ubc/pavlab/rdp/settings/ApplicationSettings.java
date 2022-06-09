@@ -8,6 +8,7 @@ import ubc.pavlab.rdp.model.GeneInfo;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.services.GeneInfoService;
 
+import java.net.Socket;
 import java.util.List;
 
 /**

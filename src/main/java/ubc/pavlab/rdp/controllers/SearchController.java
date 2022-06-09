@@ -6,6 +6,8 @@ import org.hibernate.validator.constraints.NotBlank;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -22,6 +24,7 @@ import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.ResearcherCategory;
 import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import ubc.pavlab.rdp.model.enums.TierType;
+import ubc.pavlab.rdp.model.ontology.Ontology;
 import ubc.pavlab.rdp.model.ontology.OntologyTerm;
 import ubc.pavlab.rdp.model.ontology.OntologyTermInfo;
 import ubc.pavlab.rdp.services.*;
@@ -312,8 +315,19 @@ public class SearchController {
      */
     @ResponseBody
     @GetMapping("/search/ontology-terms/autocomplete")
-    public Collection<SearchResult<OntologyTermInfo>> autocompleteTerms( @RequestParam String query, Locale locale ) {
-        return ontologyService.autocomplete( query, 20, locale );
+    public Object autocompleteTerms( @RequestParam String query, @RequestParam(required = false) Integer ontologyId, Locale locale ) {
+        if ( ontologyId != null ) {
+            Ontology ontology = ontologyService.findById( ontologyId );
+            if ( ontology == null || !ontology.isActive() ) {
+                return ResponseEntity
+                        .status( HttpStatus.NOT_FOUND )
+                        .contentType( MediaType.TEXT_PLAIN )
+                        .body( String.format( "No ontology with ID %d exists or is active.", ontologyId ) );
+            }
+            return ontologyService.autocomplete( query, ontology, 20, locale );
+        } else {
+            return ontologyService.autocomplete( query, 20, locale );
+        }
     }
 
     private Collection<OrganInfo> organsFromUberonIds( Set<String> organUberonIds ) {

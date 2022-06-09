@@ -8,12 +8,9 @@
 <body>
 <div th:replace="layouts/common::header"></div>
 <div class="container py-3">
-    <div th:replace="layouts/common::title(title='Manage Ontology', subtitle='')"></div>
+    <div th:replace="layouts/common::title(title=#{'rdp.ontologies.' + ${ontology.name} + '.title'}, subtitle='Manage')"></div>
     <div th:replace="layouts/common::message"></div>
     <div>
-        <h2>
-            <span th:text="${ontology.name}"></span>
-        </h2>
         <p>
             Status:
             <span th:if="${ontology.active}"
@@ -27,11 +24,30 @@
                th:text="${ontology.ontologyUrl}"></a>
         </p>
         <p>This ontology contains <span th:text="${ontology.terms.size()}"></span> terms.</p>
-        <form th:unless="${ontology.active}"
-              th:action="@{/admin/ontologies/{ontologyId}/activate(ontologyId=${ontology.id})}" method="post">
-            <button class="btn btn-primary" type="submit">Activate</button>
-        </form>
         <div class="row">
+            <div class="col-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="mb-0">Activate/deactivate </h3>
+                    </div>
+                    <div th:if="${ontology.active}" class="card-body alert-warning">
+                        Deactivating the ontology will deactivate the ontology, but maintain the state of active
+                        terms.
+                    </div>
+                    <div class="card-body">
+                        <form th:if="${ontology.active}"
+                              th:action="@{/admin/ontologies/{ontologyId}/deactivate(ontologyId=${ontology.id})}"
+                              method="post">
+                            <button class="btn btn-warning" type="submit">Deactivate</button>
+                        </form>
+                        <form th:unless="${ontology.active}"
+                              th:action="@{/admin/ontologies/{ontologyId}/activate(ontologyId=${ontology.id})}"
+                              method="post">
+                            <button class="btn btn-primary" type="submit">Activate</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
             <div class="col-4">
                 <div class="card ">
                     <div class="card-header">
@@ -62,9 +78,7 @@
                                 </div>
                                 <div class="invalid-feedback" th:errors="*{includeSubtree}"></div>
                             </div>
-                            <div class="form-group">
-                                <button class="btn btn-primary" type="submit">Activate Term</button>
-                            </div>
+                            <button class="btn btn-primary" type="submit">Activate Term</button>
                         </form>
                     </div>
                 </div>

@@ -4,8 +4,11 @@ import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.NaturalId;
 import ubc.pavlab.rdp.model.User;
+import ubc.pavlab.rdp.model.UserContent;
+import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 
 import javax.persistence.*;
+import java.util.Optional;
 
 /**
  * User-associated ontology term.
@@ -22,7 +25,7 @@ import javax.persistence.*;
 @EqualsAndHashCode(of = { "user" }, callSuper = true)
 @ToString(of = { "user" }, callSuper = true)
 @SuperBuilder
-public class UserOntologyTerm extends OntologyTerm {
+public class UserOntologyTerm extends OntologyTerm implements UserContent {
 
     public static UserOntologyTermBuilder<?, ?> builder( User user, Ontology ontology, String termId ) {
         return new UserOntologyTermBuilderImpl()
@@ -36,7 +39,7 @@ public class UserOntologyTerm extends OntologyTerm {
      */
     public static UserOntologyTerm fromOntologyTermInfo( User user, OntologyTermInfo term ) {
         if ( term.isGroup() ) {
-            throw new IllegalArgumentException( "Grouping terms cannot be converted to user terms." );
+            throw new IllegalArgumentException( String.format( "Grouping term %s cannot be converted to user term.", term ) );
         }
         return UserOntologyTerm.builder( user, term.getOntology(), term.getTermId() )
                 .name( term.getName() )
@@ -65,4 +68,14 @@ public class UserOntologyTerm extends OntologyTerm {
     @ManyToOne(optional = false)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
+
+    @Override
+    public Optional<User> getOwner() {
+        return Optional.of( user );
+    }
+
+    @Override
+    public @NonNull PrivacyLevelType getEffectivePrivacyLevel() {
+        return user.getEffectivePrivacyLevel();
+    }
 }

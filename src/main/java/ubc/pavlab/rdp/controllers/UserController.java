@@ -22,6 +22,7 @@ import ubc.pavlab.rdp.exception.TokenException;
 import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.TierType;
+import ubc.pavlab.rdp.model.ontology.UserOntologyTerm;
 import ubc.pavlab.rdp.services.*;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 
@@ -269,18 +270,7 @@ public class UserController {
         /**
          * Ontology terms.
          */
-        @Valid
-        private final Set<OntologyTermModel> ontologyTerms;
-    }
-
-    @Data
-    @Builder
-    @Jacksonized
-    static class OntologyTermModel {
-        @NotNull
-        private final String id;
-        @NotNull
-        private final String ontologyId;
+        private final Set<Integer> ontologyTermIds;
     }
 
     @Data
@@ -318,7 +308,7 @@ public class UserController {
                     .body( BindingResultModel.fromBindingResult( bindingResult ) );
         } else {
             String previousContactEmail = user.getProfile().getContactEmail();
-            user = userService.updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( user, profileWithOrganUberonIdsAndOntologyTerms.profile, profileWithOrganUberonIdsAndOntologyTerms.profile.getPublications(), profileWithOrganUberonIdsAndOntologyTerms.organUberonIds, null, locale );
+            user = userService.updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( user, profileWithOrganUberonIdsAndOntologyTerms.profile, profileWithOrganUberonIdsAndOntologyTerms.profile.getPublications(), profileWithOrganUberonIdsAndOntologyTerms.organUberonIds, profileWithOrganUberonIdsAndOntologyTerms.ontologyTermIds, locale );
             String message = messageSource.getMessage( "UserController.profileSaved", new Object[]{ user.getProfile().getContactEmail() }, locale );
             if ( user.getProfile().getContactEmail() != null &&
                     !user.getProfile().getContactEmail().equals( previousContactEmail ) &&
@@ -351,6 +341,12 @@ public class UserController {
     @GetMapping(value = "/user/term", produces = MediaType.APPLICATION_JSON_VALUE)
     public Collection<UserTerm> getTerms() {
         return userService.findCurrentUser().getUserTerms();
+    }
+
+    @ResponseBody
+    @GetMapping(value = "/user/ontology-terms", produces = MediaType.APPLICATION_JSON_VALUE)
+    public Collection<UserOntologyTerm> getOntologyTerms() {
+        return userService.findCurrentUser().getUserOntologyTerms();
     }
 
     @Data

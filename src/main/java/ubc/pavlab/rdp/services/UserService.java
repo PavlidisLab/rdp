@@ -139,7 +139,7 @@ public interface UserService {
                                                                     Profile profile,
                                                                     Set<Publication> publications,
                                                                     Set<String> organUberonIds,
-                                                                    Map<Integer, List<String>> termIdsByOntologyId,
+                                                                    Set<Integer> ontologyTermIds,
                                                                     Locale locale );
 
     PasswordResetToken createPasswordResetTokenForUser( User user, Locale locale );

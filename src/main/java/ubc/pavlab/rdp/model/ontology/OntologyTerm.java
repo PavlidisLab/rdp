@@ -6,6 +6,7 @@ import org.hibernate.annotations.NaturalId;
 import ubc.pavlab.rdp.model.Taxon;
 
 import javax.persistence.*;
+import java.util.Collection;
 
 /**
  * Represents an ontology term in a category.

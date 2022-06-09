@@ -186,6 +186,7 @@
         </div>
 
         <div th:each="ontology : ${@ontologyService.findAllOntologies()}"
+             th:unless="${viewUser.getUserOntologyTermsByOntology(ontology).isEmpty()}"
              class="row mb-3">
             <div class="col">
                 <div th:id="'category-' + ${ontology.id}" class="card">
@@ -193,7 +194,7 @@
                         <h3 class="mb-0" th:text="#{'rdp.ontologies.' + ${ontology.name} +  '.title'}"></h3>
                     </div>
                     <div class="card-body">
-                        <div th:replace="fragments/ontology::term-display(ontology = ${ontology}, selectedTerms=${viewUser.userOntologyTerms}, termsHaveIcons=${ontology.termsHaveIcons})">
+                        <div th:replace="fragments/ontology::terms-display(ontology = ${ontology}, selectedTerms=${viewUser.getUserOntologyTermsByOntology(ontology)})">
                             ...
                         </div>
                     </div>

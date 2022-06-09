@@ -7,6 +7,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.io.ClassPathResource;
@@ -16,6 +17,7 @@ import ubc.pavlab.rdp.model.ontology.OntologyTerm;
 import ubc.pavlab.rdp.model.ontology.OntologyTermInfo;
 import ubc.pavlab.rdp.repositories.ontology.OntologyRepository;
 import ubc.pavlab.rdp.repositories.ontology.OntologyTermInfoRepository;
+import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.util.OBOParser;
 import ubc.pavlab.rdp.util.ParseException;
 import ubc.pavlab.rdp.util.SearchResult;
@@ -30,6 +32,7 @@ import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.when;
 
 @RunWith(SpringRunner.class)
 @DataJpaTest
@@ -115,25 +118,12 @@ public class OntologyServiceTest {
         assertThat( results ).extracting( "match" )
                 .extracting( "termId" )
                 // the topological order is not unique :(
-                .containsExactlyInAnyOrder( "UBERON:0001507",
-                        "UBERON:0001374",
-                        "UBERON:0008188",
-                        "UBERON:0007168",
-                        "UBERON:0007169",
-                        "UBERON:0004502",
-                        "UBERON:0018305",
-                        "UBERON:0011368",
-                        "UBERON:0011366",
-                        "UBERON:0001379",
-                        "UBERON:0001506",
-                        "UBERON:0001505",
-                        "UBERON:0011110",
-                        "UBERON:0009991",
-                        "UBERON:0001414",
-                        "UBERON:0001106",
-                        "UBERON:0001398",
-                        "UBERON:4200183",
-                        "UBERON:0010760" );
+                .containsExactlyInAnyOrder( "UBERON:0001507", "UBERON:0001374", "UBERON:0008188", "UBERON:0007168",
+                        "UBERON:0007169", "UBERON:0004502", "UBERON:0018305", "UBERON:0011368", "UBERON:0011366", "UBERON:0001379",
+                        "UBERON:0001506", "UBERON:0001505", "UBERON:0011110", "UBERON:0009991", "UBERON:0001414", "UBERON:0001106",
+                        "UBERON:0001398", "UBERON:4200183", "UBERON:0010760" );
+
+        assertThat( ontologyService.autocomplete( "UBERON:0001507", 10, Locale.getDefault() ) ).hasSize( 1 );
     }
 
     @Test
@@ -153,7 +143,7 @@ public class OntologyServiceTest {
             timer.stop();
 
             assertThat( results ).isNotEmpty();
-            assertThat( timer.getTime() ).isLessThan( 3000 );
+            assertThat( timer.getTime() ).isLessThan( 1500 );
 
             // cached results (subTerms, etc.)
             timer = StopWatch.createStarted();
@@ -169,7 +159,7 @@ public class OntologyServiceTest {
     public void autocomplete_whenMultipleTermsAreUsed_thenNarrowDownTheSearchAccordingly() throws OntologyNameAlreadyUsedException, IOException, ParseException {
         ontologyStubService.setupOntology( "uberon" );
         assertThat( ontologyService.autocomplete( "nerve", 1000, Locale.getDefault() ) )
-                .hasSize( 641 );
+                .hasSize( 332 );
         assertThat( ontologyService.autocomplete( "sciatic", 1000, Locale.getDefault() ) )
                 .hasSize( 11 );
         assertThat( ontologyService.autocomplete( "sciatic nerve", 1000, Locale.getDefault() ) )
@@ -195,7 +185,7 @@ public class OntologyServiceTest {
     @Test
     public void autocomplete_whenNoMatch_thenReturnEmpty() throws IOException, ParseException, OntologyNameAlreadyUsedException {
         Ontology ontology = ontologyService.createFromObo( new InputStreamReader( new ClassPathResource( "cache/uberon.obo" ).getInputStream() ) );
-        ontologyService.activate( ontology );
+        ontologyService.activate( ontology);
         entityManager.refresh( ontology );
         assertThat( ontology.isActive() ).isTrue();
         assertThat( ontology.getTerms() ).hasSize( 14938 );

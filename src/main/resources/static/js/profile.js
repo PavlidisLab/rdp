@@ -3,6 +3,18 @@
 
     var publicationTable = $('#publication-table');
 
+    $('.ontology-term-table').DataTable({
+        info: false,
+        paging: false,
+        searching: false,
+        columnDefs: [
+            {
+                targets: [0],
+                visible: false
+            }
+        ]
+    });
+
     function collectProfile() {
         var profile = {};
 
@@ -59,10 +71,24 @@
                 return elem.value;
             }).get();
 
+        var ontologyTermIds = $('[name="ontologyTermIds"]:checked')
+            .map(function (i, elem) {
+                return parseInt(elem.value);
+            }).get();
+
+        // gather the term IDs from all tables
+        $('.ontology-term-table').each(function (i, elem) {
+            var ids = $(elem).DataTable().column(0).data().toArray()
+                .map(function (value) {
+                    return parseInt(value);
+                });
+            Array.prototype.push.apply(ontologyTermIds, ids);
+        });
+
         return {
             'profile': profile,
             'organUberonIds': organUberonIds,
-            'ontologyTerms': [{'id': 'RMODEL:10101', 'ontologyId': 'RMODEL'}]
+            'ontologyTermIds': ontologyTermIds
         };
     }
 
@@ -157,7 +183,7 @@
         }).done(function () {
             table.rows.add(rows).draw().nodes()
                 .to$()
-                .addClass('new-row');
+                .addClass('alert-success');
         });
 
     });
@@ -207,4 +233,42 @@
             spinner.toggleClass('d-none', true);
         });
     });
+
+    $('.term-autocomplete').autocomplete({
+        minLength: 2,
+        delay: 200,
+        source: function (request, response) {
+            var term = request.term;
+            var ontologyId = $(this.element).data('ontology-id');
+            $.getJSON('/search/ontology-terms/autocomplete', {
+                query: term,
+                ontologyId: ontologyId
+            }).done(function (data) {
+                if (!data.length) {
+                    return response([{
+                        noresults: true,
+                        label: 'No matches found for "' + term + '".',
+                        value: term
+                    }
+                    ]);
+                } else {
+                    response(data);
+                }
+            }).fail(function () {
+                response([{noresults: true, label: 'Error querying search endpoint.', value: term}]);
+            });
+        },
+        select: function (event, ui) {
+            var termTable = $(document.getElementById($(this).data('for-table'))).DataTable();
+            termTable.row
+                .add([ui.item.id, ui.item.match.termId, ui.item.match.name, ui.item.match.definition])
+                .draw()
+                .nodes()
+                .to$().addClass('alert-success');
+            $(this).val('');
+            return false;
+        }
+    });
+
+
 })();

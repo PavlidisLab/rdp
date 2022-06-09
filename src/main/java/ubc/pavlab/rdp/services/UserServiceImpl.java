@@ -553,7 +553,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     @Override
     @PreAuthorize("hasPermission(#user, 'update')")
-    public User updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( User user, Profile profile, Set<Publication> publications, Set<String> organUberonIds, Map<Integer, List<String>> termIdsByOntologyId, Locale locale ) {
+    public User updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( User user, Profile profile, Set<Publication> publications, Set<String> organUberonIds, Set<Integer> termIdsByOntologyId, Locale locale ) {
         user.getProfile().setDepartment( profile.getDepartment() );
         user.getProfile().setDescription( profile.getDescription() );
         user.getProfile().setLastName( profile.getLastName() );
@@ -637,18 +637,15 @@ public class UserServiceImpl implements UserService {
 
         if ( termIdsByOntologyId != null ) {
             Set<UserOntologyTerm> userOntologyTerms = new HashSet<>();
-            for ( Map.Entry<Integer, List<String>> entry : termIdsByOntologyId.entrySet() ) {
-                for ( String termId : entry.getValue() ) {
-                    OntologyTermInfo termInfo = ontologyService.findByTermIdAndOntologyId( termId, entry.getKey() );
-                    if ( termInfo == null ) {
-                        log.warn( String.format( "Unknown term %s in ontology %s.", termId, entry.getKey() ) );
-                        continue;
-                    }
-                    // FIXME: reuse if already exist?
-                    userOntologyTerms.add( UserOntologyTerm.fromOntologyTermInfo( user, termInfo ) );
+            for ( Integer ontologyTermId : termIdsByOntologyId ) {
+                OntologyTermInfo termInfo = ontologyService.findTermById( ontologyTermId );
+                if ( termInfo == null ) {
+                    log.warn( String.format( "Unknown term with ID %d.", ontologyTermId ) );
+                    continue;
                 }
+                userOntologyTerms.add( UserOntologyTerm.fromOntologyTermInfo( user, termInfo ) );
             }
-            user.getUserOntologyTerms().clear();
+            user.getUserOntologyTerms().removeIf( t -> !userOntologyTerms.contains( t ) );
             user.getUserOntologyTerms().addAll( userOntologyTerms );
         }
 

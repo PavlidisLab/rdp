@@ -53,11 +53,9 @@
      * @param {String?} extras
      * @param {String} matchType
      * @param {*} match
-     * @param {Number} score
-     * @param {Object} attributes
      * @constructor
      */
-    function SearchResult(id, label, description, extras, matchType, match, score, attributes) {
+    function SearchResult(id, label, description, extras, matchType, match) {
         this.noresults = false;
         this.id = id;
         this.label = label;
@@ -65,8 +63,6 @@
         this.extras = extras;
         this.matchType = matchType;
         this.match = match;
-        this.score = score;
-        this.attributes = attributes;
     }
 
     /* autocomplete look & feel based on SearchResult */
@@ -119,5 +115,4 @@
             });
         }
     });
-
 })();

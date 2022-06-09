@@ -11,6 +11,8 @@ import org.hibernate.validator.constraints.NotEmpty;
 import org.springframework.util.StringUtils;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.TierType;
+import ubc.pavlab.rdp.model.ontology.Ontology;
+import ubc.pavlab.rdp.model.ontology.OntologyTerm;
 import ubc.pavlab.rdp.model.ontology.UserOntologyTerm;
 
 import javax.mail.internet.InternetAddress;
@@ -143,6 +145,12 @@ public class User implements UserContent {
      */
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private final Set<UserOntologyTerm> userOntologyTerms = new HashSet<>();
+
+    @Transient
+    @JsonIgnore
+    public Set<UserOntologyTerm> getUserOntologyTermsByOntology( Ontology ontology ) {
+        return userOntologyTerms.stream().filter( uo -> uo.getOntology().equals( ontology ) ).collect( Collectors.toSet() );
+    }
 
     @JsonIgnore
     @Transient

@@ -13,9 +13,19 @@ public class TextUtilsTest {
     }
 
     @Test
+    public void tokenize_whenQueryContainsNumbers_thenIgnoreSinceTheyBreakFullTextSearch() {
+        assertThat( TextUtils.tokenize( "type 1 diabetes" ) )
+                .containsExactly( "TYPE", "1", "DIABETES" );
+    }
+
+    @Test
     public void tokenize_whenTokenisOntologyIdentifier_thenPreserveItWhole() {
         assertThat( TextUtils.tokenize( "MONDO:0001291" ) )
                 .containsExactly( "MONDO:0001291" );
+        assertThat( TextUtils.tokenize( "R-HSA-164843" ) )
+                .containsExactly( "R-HSA-164843" );
+        assertThat( TextUtils.tokenize( "REACT_118575" ) )
+                .containsExactly( "REACT_118575" );
     }
 
     @Test

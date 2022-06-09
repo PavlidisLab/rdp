@@ -1,12 +1,7 @@
 package ubc.pavlab.rdp.util;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.*;
-import ubc.pavlab.rdp.model.ontology.OntologyTermInfo;
-
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Map;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 /**
  * Represents a search result.
@@ -19,12 +14,12 @@ import java.util.Map;
  */
 @Data
 @EqualsAndHashCode(of = { "match" })
-public class SearchResult<T extends Comparable> {
+public class SearchResult<T extends Comparable<?>> {
     private final MatchType matchType;
     private final Integer id;
     private final String label;
     private final String description;
     private final String extras;
-    @JsonIgnore
     private final T match;
+    private double score;
 }

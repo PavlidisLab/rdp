@@ -186,7 +186,7 @@
 
     $('.term-autocomplete').autocomplete({
         minLength: 2,
-        delay: 300,
+        delay: 200,
         source: function (request, response) {
             var term = request.term;
             var offset;

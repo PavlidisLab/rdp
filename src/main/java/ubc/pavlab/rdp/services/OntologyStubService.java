@@ -165,7 +165,6 @@ public class OntologyStubService {
         }
     }
 
-
     public List<Ontology> findAllOntologyStubs() {
         return ontologyRepository.findAllByNameIn( Arrays.asList( "research-models", "research-technology", "tumor-tissues" ) );
     }

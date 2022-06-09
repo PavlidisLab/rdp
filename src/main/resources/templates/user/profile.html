@@ -278,7 +278,7 @@
                         <p>Choose <b th:text="#{'rdp.ontologies.' + ${ontology.name} + '.title'}"></b> terms your
                             research is most
                             relevant to:</p>
-                        <div th:replace="fragments/profile::ontology-terms-selection(ontology = ${ontology}, selectedTerms=${user.userOntologyTerms}, termsHaveIcons=${ontology.termsHaveIcons})">
+                        <div th:replace="fragments/ontology::terms-selection(ontology = ${ontology}, selectedTerms=${user.getUserOntologyTermsByOntology(ontology)})">
                             ...
                         </div>
                     </div>

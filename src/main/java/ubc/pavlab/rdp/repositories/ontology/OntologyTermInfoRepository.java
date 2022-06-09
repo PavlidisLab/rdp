@@ -1,21 +1,21 @@
 package ubc.pavlab.rdp.repositories.ontology;
 
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.repository.query.Param;
+import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Repository;
 import ubc.pavlab.rdp.model.ontology.Ontology;
 import ubc.pavlab.rdp.model.ontology.OntologyTermInfo;
 
-import javax.persistence.NamedQuery;
-import java.util.Arrays;
+import javax.persistence.Tuple;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -49,41 +49,45 @@ public interface OntologyTermInfoRepository extends JpaRepository<OntologyTermIn
      * In general, this corresponds to only one term, but our system does not prevent multiple ontologies from sharing
      * terms.
      */
-    List<OntologyTermInfo> findAllByActiveTrueAndOntologyActiveTrueAndTermIdIgnoreCase( String query );
+    List<OntologyTermInfo> findAllByActiveTrueAndOntologyInAndTermIdIgnoreCase( Set<Ontology> ontologies, String query );
 
-    @Query("select t from OntologyTermInfo t join t.altTermIds a where t.active = true and t.obsolete = false and upper(a) = upper(:query)")
-    List<OntologyTermInfo> findAllByActiveTrueAndOntologyActiveTrueAndAltTermIdsContainingIgnoreCase( @Param("query") String query );
+    @Query("select t from OntologyTermInfo t join t.altTermIds a where t.active = true and t.ontology in :ontologies and upper(a) = upper(:query)")
+    List<OntologyTermInfo> findAllByActiveTrueAndOntologyInAndAltTermIdsContainingIgnoreCase( @Param("ontologies") Set<Ontology> ontologies, @Param("query") String query );
 
-    List<OntologyTermInfo> findAllByActiveTrueAndOntologyActiveTrueAndNameIgnoreCase( String query );
+    List<OntologyTermInfo> findAllByActiveTrueAndOntologyInAndNameIgnoreCase( Set<Ontology> ontologies, String query );
 
     /**
      * Retrieve all active terms from active ontologies whose term name that match the given pattern.
      */
-    List<OntologyTermInfo> findAllByActiveTrueAndOntologyActiveTrueAndNameLikeIgnoreCase( String pattern, Pageable pageable );
+    List<OntologyTermInfo> findAllByActiveTrueAndOntologyInAndNameLikeIgnoreCase( Set<Ontology> ontologies, String pattern );
 
     /**
+     * Retrieve all ontology term info.
+     * <p>
      * This will only work on the MySQL vendor.
+     *
+     * @return a list two elements arrays where the first is the {@link OntologyTermInfo} ID and second its full text
+     * score against the query
      */
-    @Query(value = "select * from ontology_term_info t join ontology o on t.ontology_id = o.ontology_id where t.active and o.active and match(t.name) against(:query in boolean mode) limit :maxResults", nativeQuery = true)
-    List<OntologyTermInfo> findAllByActiveTrueAndOntologyActiveTrueAndNameMatch( @Param("query") String query, @Param("maxResults") int maxResults );
+    @Query(value = "select t.ontology_term_info_id, match(t.name) against(:query in boolean mode) as score from ontology_term_info t join ontology o on t.ontology_id = o.ontology_id where t.active and o.ontology_id in (:ontologyIds) having score > 0", nativeQuery = true)
+    List<Object[]> findAllByActiveTrueAndOntologyInAndNameMatch( @Param("ontologyIds") Set<Integer> ontologyIds, @Param("query") String query );
 
-    @Query("select t from OntologyTermInfo t join t.synonyms s where t.active = true and t.obsolete = false and upper(s) = upper(:query)")
-    List<OntologyTermInfo> findAllByActiveTrueAndOntologyActiveTrueAndSynonymsContainingIgnoreCase( @Param("query") String query, Pageable pageable );
+    @Query("select t from OntologyTermInfo t join t.synonyms s where t.active = true and t.ontology in :ontologies and upper(s) = upper(:query)")
+    List<OntologyTermInfo> findAllByActiveTrueAndOntologyInAndSynonymsContainingIgnoreCase( @Param("ontologies") Set<Ontology> ontologies, @Param("query") String query );
 
-    @Query("select t from OntologyTermInfo t join t.synonyms s where t.active = true and t.obsolete = false and upper(s) like upper(:query)")
-    List<OntologyTermInfo> findAllByActiveTrueAndOntologyActiveTrueAndSynonymsLikeIgnoreCase( @Param("query") String query, Pageable pageRequest );
+    @Query("select t from OntologyTermInfo t join t.synonyms s where t.active = true and t.ontology in :ontologies and upper(s) like upper(:query)")
+    List<OntologyTermInfo> findAllByActiveTrueAndOntologyInAndSynonymsLikeIgnoreCase( @Param("ontologies") Set<Ontology> ontologies, @Param("query") String query );
 
-    @Query(value = "select * from ontology_term_info t join ontology o on o.ontology_id = t.ontology_id join ontology_term_info_synonyms otis on t.ontology_term_info_id = otis.ontology_term_info_id where t.active and o.active and match(otis.synonym) against (:query in boolean mode) limit :maxResults", nativeQuery = true)
-    List<OntologyTermInfo> findAllByActiveTrueAndOntologyActiveTrueAndSynonymsMatch( @Param("query") String query, @Param("maxResults") int maxResults );
+    @Query(value = "select t.ontology_term_info_id, match(otis.synonym) against (:query in boolean mode) as score from ontology_term_info t join ontology o on o.ontology_id = t.ontology_id join ontology_term_info_synonyms otis on t.ontology_term_info_id = otis.ontology_term_info_id where t.active and o.ontology_id in :ontologyIds having score > 0", nativeQuery = true)
+    List<Object[]> findAllByActiveTrueAndOntologyInAndSynonymsMatch( @Param("ontologyIds") Set<Ontology> ontologyIds, @Param("query") String query );
 
     /**
      * Retrieve all active terms from active ontologies whose definition match the given pattern.
-     * TODO: this would benefit some full text search
      */
-    List<OntologyTermInfo> findAllByActiveTrueAndOntologyActiveTrueAndDefinitionLikeIgnoreCase( String pattern, Pageable pageable );
+    List<OntologyTermInfo> findAllByActiveTrueAndOntologyInAndDefinitionLikeIgnoreCase( Set<Ontology> ontologies, String pattern );
 
-    @Query(value = "select * from ontology_term_info t join ontology o on o.ontology_id = t.ontology_id where t.active and o.active and match(t.definition) against (:query in boolean mode) limit :maxResults", nativeQuery = true)
-    List<OntologyTermInfo> findAllByActiveTrueAndOntologyActiveTrueAndDefinitionMatch( @Param("query") String query, @Param("maxResults") int maxResults );
+    @Query(value = "select t.ontology_term_info_id, match(t.definition) against (:query in boolean mode) as score from ontology_term_info t join ontology o on o.ontology_id = t.ontology_id where t.active and o.ontology_id in :ontologyIds having score > 0", nativeQuery = true)
+    List<Object[]> findAllByActiveTrueAndOntologyInAndDefinitionMatch( @Param("ontologyIds") Set<Integer> ontologyIds, @Param("query") String query );
 
     /**
      * Count the number of active terms.

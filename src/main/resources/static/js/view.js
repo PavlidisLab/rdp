@@ -54,6 +54,13 @@
         "order": [[0, "asc"]]
     });
 
+    $('.ontology-term-table').DataTable({
+        "paging": false,
+        "searching": false,
+        "info": false,
+        "order": [[0, "asc"]]
+    });
+
     $('#overlapModal').on('show.bs.modal', function (e) {
         var taxonId = $(e.relatedTarget).closest('div.tab-pane')[0].id.split("-")[1];
         var goId = $(e.relatedTarget).closest('tr').find('td')[0].innerText;

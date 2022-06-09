@@ -225,9 +225,21 @@ public class AdminController {
     }
 
     @PostMapping("/admin/ontologies/{ontology}/activate")
-    public String activateOntology( @PathVariable Ontology ontology, RedirectAttributes redirectAttributes ) {
+    public String activateOntology( @PathVariable Ontology ontology, ActivateOntologyForm activateOntologyForm, RedirectAttributes redirectAttributes ) {
         ontologyService.activate( ontology );
         redirectAttributes.addFlashAttribute( "message", String.format( "%s ontology has been activated.", ontology.getName() ) );
+        return "redirect:/admin/ontologies/" + ontology.getId();
+    }
+
+    @Data
+    private static class ActivateOntologyForm {
+        private boolean includeTerms;
+    }
+
+    @PostMapping("/admin/ontologies/{ontology}/deactivate")
+    public String deactivateOntology( @PathVariable Ontology ontology, RedirectAttributes redirectAttributes ) {
+        ontologyService.deactivate( ontology );
+        redirectAttributes.addFlashAttribute( "message", String.format( "%s ontology has been deactivated.", ontology.getName() ) );
         return "redirect:/admin/ontologies/" + ontology.getId();
     }
 
