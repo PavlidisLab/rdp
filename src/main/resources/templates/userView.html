@@ -12,8 +12,19 @@
 <div th:replace="layouts/common::header">...</div>
 <div class="container py-4">
     <div class="main-content">
-        <div th:replace="layouts/common::title(title='User Profile', subtitle=${viewUser.profile.fullName})">
-            ...
+        <div class="row">
+            <div class="col">
+                <div th:replace="layouts/common::title(title='User Profile', subtitle=${viewUser.profile.fullName})">
+                    ...
+                </div>
+            </div>
+            <div th:if="${viewUser} eq ${@userService.findCurrentUser()}" class="col my-auto text-right">
+                <a class="btn btn-primary btn-lg float-right"
+                   th:href="@{/user/profile}">
+                    <i class="oi oi-pencil"></i>
+                    Edit
+                </a>
+            </div>
         </div>
 
         <div th:replace="layouts/common::message"></div>
