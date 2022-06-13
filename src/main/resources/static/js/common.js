@@ -1,5 +1,28 @@
+var $ = require('jquery');
+window.$ = window.jQuery = $;
+require('jquery-ui/ui/widgets/autocomplete');
+require('popper.js');
+require('bootstrap');
+require('bootstrap-select');
+require('datatables.net');
+require('datatables.net-bs4');
+
+/* style */
+require('bootstrap/dist/css/bootstrap.css');
+require('open-iconic/font/css/open-iconic-bootstrap.css');
+require('bootstrap-select/dist/css/bootstrap-select.css');
+require('jquery-ui/themes/base/core.css');
+require('jquery-ui/themes/base/menu.css');
+require('jquery-ui/themes/base/autocomplete.css');
+require('jquery-ui/themes/base/theme.css');
+require('datatables.net-bs4/css/dataTables.bootstrap4.css');
+
+require('../css/common.css');
+
 (function () {
     "use strict";
+
+    var $ = require('jquery');
 
     $(document).on("click", '.editable', function () {
         var inputs = $(this).closest(".edit-container").find(".data-edit");

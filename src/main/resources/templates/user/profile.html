@@ -425,7 +425,7 @@
 
 <div th:replace="layouts/common::footer">...</div>
 <div th:replace="layouts/common::scripts"></div>
-<script th:src="@{/js/profile.js}"></script>
+<script th:src="@{/dist/profile.bundle.js}"></script>
 <th:block th:if="${@applicationSettings.privacy.customizableGeneLevel}">
     <div th:replace="fragments/modal::confirmation(target=${#ids.seq('confirm-gene-privacy-level-reset')}, title='Your gene privacy levels will be adjusted!', body='Changing your profile privacy setting will reset the privacy levels of the genes associated to your model organisms to the selected value.')"></div>
     <script th:inline="javascript">
