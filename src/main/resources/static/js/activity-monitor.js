@@ -12,6 +12,8 @@
 (function () {
     "use strict";
 
+    var $ = require('jquery');
+
     // Constants
     var ONE_MINUTE = 60 * 1000;
     var serverTimeCookieName = 'serverTime';
