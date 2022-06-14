@@ -212,15 +212,14 @@
     var currentTaxonId = [[${taxon.id}]];
     var userProfile = [[${user.profile}]];
     // TODO: serialize and use PrivacyLevelType instead of hardcoded values
-    var PrivacyLevelType = [[${T(ubc.pavlab.rdp.model.enums.PrivacyLevelType).values()}]];
-    var privacyLevels = {
-        'PUBLIC': {'label': 'Public', 'ordinal': 2},
-        'SHARED': {'label': 'Shared', 'ordinal': 1},
-        'PRIVATE': {'label': 'Private', 'ordinal': 0}
-    };
+    var privacyLevels = [
+        {label: 'Private', ordinal: 0},
+        {label: 'Shared', ordinal: 1},
+        {label: 'Public', ordinal: 2}
+    ];
     var enabledGenePrivacyLevels = [[${@applicationSettings.privacy.enabledGeneLevels}]];
     var customizableGeneLevel = [[${@applicationSettings.privacy.customizableGeneLevel}]]
-    var userPrivacyLevel = privacyLevels[userProfile.privacyLevel['$name']];
+    var userPrivacyLevel = privacyLevels[userProfile.privacyLevel];
     /*]]>*/
 </script>
 <script th:src="@{/dist/model.bundle.js}"></script>
