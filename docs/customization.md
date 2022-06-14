@@ -317,9 +317,6 @@ Here's the list of paths that can be adjusted using the above setting:
 
 ```
 static/
-    css/
-        common.css # general pages
-        login.css  # login-like pages (i.e. registration, reset password, etc.)
     images/
         model-organisms/
             <taxon_id>.svg
@@ -333,11 +330,14 @@ static/
         header.jpg
 ```
 
-We strongly recommend against overriding JavaScript files as it could break functionalities of the website.
+To customize static CSS and JavaScript assets, you have to build from sources.
 
 ## Building from source
 
 You can customize RDP by editing the publicly available source code and packaging the JAR archive yourself.
+
+To build from sources, you will need a working version of [Node.js](https://nodejs.org/) installed as well as a Java 8+
+JDK.
 
 ```bash
 git clone https://github.com/PavlidisLab/rgr.git
@@ -347,3 +347,9 @@ cd rgr/
 ```
 
 The new build will be available in the `target` directory.
+
+## Editing assets
+
+CSS and JavaScript assets are bundled with [Webpack](https://webpack.js.org/). You may edit the files found
+under `src/main/resources/css` and `src/main/resources/js` and then issue a `./mvnw package` command to rebuild the JAR
+archive.
