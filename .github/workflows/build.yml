@@ -15,5 +15,11 @@ jobs:
       uses: actions/setup-java@v1.4.3
       with:
         java-version: 1.8
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: 16
+    - name: Install Node.js dependencies
+      run: npm --prefix src/main/resources ci
     - name: Test code with Maven
       run: ./mvnw test
