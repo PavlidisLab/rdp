@@ -19,7 +19,7 @@ public enum OntologyTermMatchType implements MatchType {
     SYNONYM_EXACT( "Synonym", 2 ),
     SYNONYM_STARTS_WITH( "Synonym", 2 ),
     SYNONYM_CONTAINS( "Synonym", 2 ),
-    SYNONYM_MATCH("Synonym", 2),
+    SYNONYM_MATCH( "Synonym", 2 ),
 
     DEFINITION_CONTAINS( "Definition", 3 ),
     DEFINITION_MATCH( "Definition", 3 );
@@ -31,4 +31,4 @@ public enum OntologyTermMatchType implements MatchType {
     public String getLabel() {
         return label;
     }
-    }
+}
