@@ -7,6 +7,7 @@ import org.apache.commons.lang3.time.StopWatch;
 import org.hibernate.exception.SQLGrammarException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.MessageSource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -28,6 +29,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static java.util.function.UnaryOperator.identity;
+
 /**
  * /**
  * This service combines both {@link OntologyTermInfoRepository} and {@link OntologyRepository}.
@@ -41,15 +44,16 @@ public class OntologyService implements InitializingBean {
     private final OntologyRepository ontologyRepository;
     private final OntologyTermInfoRepository ontologyTermInfoRepository;
 
-    private final MessageSource messageSource;
+    @Autowired
+    @Qualifier("messageSourceWithoutOntologyMessageSource")
+    private MessageSource messageSource;
 
     private boolean isFullTextSupported = false;
 
     @Autowired
-    public OntologyService( OntologyRepository ontologyRepository, OntologyTermInfoRepository ontologyTermInfoRepository, MessageSource messageSource ) {
+    public OntologyService( OntologyRepository ontologyRepository, OntologyTermInfoRepository ontologyTermInfoRepository ) {
         this.ontologyRepository = ontologyRepository;
         this.ontologyTermInfoRepository = ontologyTermInfoRepository;
-        this.messageSource = messageSource;
     }
 
     /**
@@ -121,13 +125,35 @@ public class OntologyService implements InitializingBean {
     }
 
     /**
-     * Indicate if a collection of user terms contains a given ontology term.
+     * Test for term equality in a loose sense.
      * <p>
      * This is necessary because {@link UserOntologyTerm} and {@link OntologyTermInfo} do not have the same definition
      * of equality.
      */
-    public boolean userTermsContains( Collection<UserOntologyTerm> userOntologyTerms, OntologyTerm term ) {
-        return userOntologyTerms.stream().anyMatch( ut -> ut.getOntology().equals( term.getOntology() ) && ut.getTermId().equals( term.getTermId() ) );
+    public boolean termEquals( OntologyTerm ontologyTerm, OntologyTerm other ) {
+        return ontologyTerm.getOntology().equals( other.getOntology() ) && ontologyTerm.getTermId().equals( other.getTermId() );
+    }
+
+    /**
+     * Test if a term is contained in a given collection using the {@link #termEquals(OntologyTerm, OntologyTerm)}
+     * definition for equality.
+     */
+    public boolean termIsIn( OntologyTerm term, Collection<? extends OntologyTerm> selectedTerms ) {
+        return selectedTerms.stream().anyMatch( t -> termEquals( term, t ) );
+    }
+
+    /**
+     * Restrict terms from an iterable to those contained in a given selected terms collection using {@link #termEquals(OntologyTerm, OntologyTerm)}
+     * definition for equality.
+     */
+    public <T extends OntologyTerm> List<T> onlyTermsIn( Iterable<T> terms, Collection<? extends OntologyTerm> selectedTerms ) {
+        List<T> results = new ArrayList<>();
+        for ( T term : terms ) {
+            if ( termIsIn( term, selectedTerms ) ) {
+                results.add( term );
+            }
+        }
+        return results;
     }
 
     /**
@@ -190,20 +216,20 @@ public class OntologyService implements InitializingBean {
         Map<String, OntologyTermInfo> existingTermsById = ontology.getTerms().stream()
                 .collect( Collectors.toMap( OntologyTermInfo::getTermId, t -> t ) );
 
-        Map<String, OntologyTermInfo> convertedTerms = new HashMap<>();
+        Set<OntologyTermInfo> convertedTerms = new HashSet<>();
 
         // first pass for saving terms
-        int i = 0;
         for ( OBOParser.Term term : parsingResult.getTerms() ) {
             assert term.getId() != null;
             assert term.getName() != null;
             OntologyTermInfo t = existingTermsById.get( term.getId() );
             if ( t == null ) {
-                t = OntologyTermInfo.builder( ontology, term.getId() )
-                        .name( term.getName() )
-                        .ordering( ++i )
-                        .build();
+                t = OntologyTermInfo.builder( ontology, term.getId() ).build();
             }
+
+            t.setName( term.getName() );
+            t.setOrdering( convertedTerms.size() + 1 );
+
             t.setDefinition( term.getDefinition() );
 
             t.getAltTermIds().clear();
@@ -220,8 +246,11 @@ public class OntologyService implements InitializingBean {
             }
 
             t.setObsolete( term.getObsolete() != null && term.getObsolete() );
-            convertedTerms.put( t.getTermId(), t );
+            convertedTerms.add( t );
         }
+
+        Map<String, OntologyTermInfo> convertedTermsById = convertedTerms.stream()
+                .collect( Collectors.toMap( OntologyTermInfo::getTermId, identity() ) );
 
         // second pass for setting relationships
         for ( OBOParser.Term term : parsingResult.getTerms() ) {
@@ -229,12 +258,13 @@ public class OntologyService implements InitializingBean {
                     .filter( rel -> rel.getTypedef().equals( OBOParser.Typedef.IS_A ) )
                     .map( OBOParser.Term.Relationship::getNode )
                     .map( OBOParser.Term::getId )
-                    .map( convertedTerms::get )
+                    .map( convertedTermsById::get )
                     .collect( Collectors.toCollection( TreeSet::new ) );
-            convertedTerms.get( term.getId() ).setSubTerms( subTerms );
+            convertedTermsById.get( term.getId() ).setSubTerms( subTerms );
         }
 
-        ontology.getTerms().addAll( convertedTerms.values() );
+        ontology.getTerms().removeIf( t -> !convertedTerms.contains( t.getTermId() ) );
+        ontology.getTerms().addAll( convertedTerms );
 
         return ontologyRepository.save( ontology );
     }
@@ -364,7 +394,7 @@ public class OntologyService implements InitializingBean {
     @Secured("ROLE_ADMIN")
     public Ontology create( Ontology ontology ) throws OntologyNameAlreadyUsedException {
         if ( ontology.getId() != null ) {
-            throw new IllegalArgumentException( "Ontology alredy exists." );
+            throw new IllegalArgumentException( String.format( "Ontology %s already exists, it cannot be created.", ontology.getName() ) );
         }
         if ( ontologyRepository.existsByName( ontology.getName() ) ) {
             throw new OntologyNameAlreadyUsedException( ontology.getName() );
@@ -374,21 +404,46 @@ public class OntologyService implements InitializingBean {
 
     @Transactional
     @Secured("ROLE_ADMIN")
-    public Ontology updateNameAndTerms( Ontology ontology, String name, SortedSet<OntologyTermInfo> terms ) {
+    public Ontology updateNameAndOrderingAndTerms( Ontology ontology, String name, Integer ordering, SortedSet<OntologyTermInfo> terms ) throws OntologyNameAlreadyUsedException {
+        if ( ontology.getId() == null ) {
+            throw new IllegalArgumentException( String.format( "Ontology %s does not exist, it cannot be updated.", ontology.getName() ) );
+        }
+        if ( !ontology.getName().equals( name ) && ontologyRepository.existsByName( name ) ) {
+            throw new OntologyNameAlreadyUsedException( "Ontology already exists." );
+        }
         ontology.setName( name );
+        ontology.setOrdering( ordering );
         ontology.getTerms().removeIf( t -> !terms.contains( t ) );
         ontology.getTerms().addAll( terms );
         return ontologyRepository.save( ontology );
     }
 
+    @Secured("ROLE_ADMIN")
     @Transactional
     public List<OntologyTermInfo> saveTerms( Iterable<OntologyTermInfo> terms ) {
+        return ontologyTermInfoRepository.save( terms );
+    }
+
+    @Transactional
+    public List<OntologyTermInfo> saveTermsNoAuth( Iterable<OntologyTermInfo> terms ) {
         return ontologyTermInfoRepository.save( terms );
     }
 
     @Transactional(readOnly = true)
     public OntologyTermInfo findTermByTermIdAndOntologyName( String termId, String ontologyName ) {
         return ontologyTermInfoRepository.findByTermIdAndOntologyName( termId, ontologyName );
+    }
+
+    @Transactional
+    public Ontology saveNoAuth( Ontology ontology ) {
+        return ontologyRepository.save( ontology );
+    }
+
+    @Transactional(readOnly = true)
+    public String findDefinitionByTermNameAndOntologyName( String termName, String ontologyName ) {
+        return ontologyTermInfoRepository.findAllDefinitionsByNameAndOntologyName( termName, ontologyName ).stream()
+                .findAny() // TODO: there might be a better strategy for picking the definition
+                .orElse( null );
     }
 
     private static class OboWriter extends BufferedWriter {
@@ -418,11 +473,17 @@ public class OntologyService implements InitializingBean {
         ontologyRepository.delete( ontologies );
     }
 
+    /**
+     * Autocomplete terms from a given ontology.
+     */
     @Transactional(readOnly = true)
     public Collection<SearchResult<OntologyTermInfo>> autocomplete( String query, Ontology ontology, int maxResults, Locale locale ) {
-        return autocomplete( query, Collections.singleton( ontology ), false, maxResults, locale );
+        return autocomplete( query, Collections.singleton( ontology ), true, maxResults, locale );
     }
 
+    /**
+     * Autocomplete terms from all active ontologies.
+     */
     @Transactional(readOnly = true)
     public Collection<SearchResult<OntologyTermInfo>> autocomplete( String query, int maxResults, Locale locale ) {
         return autocomplete( query, new HashSet<>( ontologyRepository.findAllByActiveTrue() ), true, maxResults, locale );
@@ -501,7 +562,7 @@ public class OntologyService implements InitializingBean {
         if ( results.size() < maxResults ) {
             // full text (if available)
             if ( isFullTextSupported ) {
-                results = ontologyTermInfoRepository.findAllByOntologyInAndSynonymsMatchAndActive( ontologies, fullTextQuery, active ).stream()
+                results = ontologyTermInfoRepository.findAllByOntologyInAndSynonymsMatchAndActive( ontologyIds, fullTextQuery, active ).stream()
                         .map( row -> Pair.of( ontologyTermInfoRepository.findOne( (Integer) row[0] ), (Double) row[1] ) )
                         .map( t1 -> toSearchResult( t1.getFirst(), OntologyTermMatchType.SYNONYM_MATCH, String.join( ", ", t1.getFirst().getSynonyms() ), t1.getSecond(), locale ) )
                         .collect( CollectionUtils.into( results ) );
@@ -542,15 +603,13 @@ public class OntologyService implements InitializingBean {
                 .collect( Collectors.toCollection( LinkedHashSet::new ) );
         topoSortTimer.stop();
 
+        String searchSummary = String.format( "Found %d suitable results for autocompletion of query '%s' (normalized as '%s', full-text as '%s') in %d ms (initial query: %d ms, topological sort and ranking: %d ms).",
+                results.size(), query, normalizedQuery, fullTextQuery, timer.getTime(), initialQueryTimer.getTime(), topoSortTimer.getTime() );
+
         if ( timer.getTime() > ( isFullTextSupported ? 500 : 1000 ) ) {
-            log.warn( String.format( "Found %d suitable results for autocompletion of query '%s' (normalized as '%s', full-text as '%s') in %d ms (initial query: %d ms, topological sort and ranking: %d ms).",
-                    results.size(),
-                    query,
-                    normalizedQuery,
-                    fullTextQuery,
-                    timer.getTime(),
-                    initialQueryTimer.getTime(),
-                    topoSortTimer.getTime() ) );
+            log.warn( searchSummary );
+        } else {
+            log.debug( searchSummary );
         }
 
         return sortedResults;
@@ -737,16 +796,25 @@ public class OntologyService implements InitializingBean {
         return ontologyTermInfoRepository.findByTermIdAndOntology( ontologyTermInfoId, ontology );
     }
 
+    /**
+     * Indicate if the ontology has active terms with icons.
+     */
     @Transactional(readOnly = true)
-    public long countTermsWithIcons( Ontology ontology ) {
-        return ontologyTermInfoRepository.countByOntologyAndActiveTrueAndHasIconTrue( ontology );
+    public boolean hasIcons( Ontology ontology ) {
+        return ontologyTermInfoRepository.countByOntologyAndActiveTrueAndHasIconTrue( ontology ) > 0;
     }
 
+    /**
+     * Count the number of active terms in a given ontology.
+     */
     @Transactional(readOnly = true)
     public long countActiveTerms( Ontology ontology ) {
         return ontologyTermInfoRepository.countByOntologyAndActiveTrue( ontology );
     }
 
+    /**
+     * Count the number of obsolete terms in a given ontology.
+     */
     @Transactional(readOnly = true)
     public long countObsoleteTerms( Ontology ontology ) {
         return ontologyTermInfoRepository.countByOntologyAndObsoleteTrue( ontology );

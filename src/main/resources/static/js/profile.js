@@ -20,6 +20,12 @@
                 render: function () {
                     return $('<button class="text-danger close">').text('×')[0].outerHTML;
                 }
+            },
+            {
+                targets: [4],
+                render: function (data) {
+                    return $('<span class="ontology-term-definition">').text(data)[0].outerHTML;
+                }
             }
         ]
     });

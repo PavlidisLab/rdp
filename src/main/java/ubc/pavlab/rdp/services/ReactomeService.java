@@ -149,7 +149,7 @@ public class ReactomeService {
         ontology.getTerms().removeIf( p -> !pathwayById.containsKey( p.getTermId() ) );
         ontology.getTerms().addAll( pathwayById.values() );
 
-        ontology = ontologyService.save( ontology );
+        ontology = ontologyService.saveNoAuth( ontology );
 
         return ontology;
     }
@@ -203,7 +203,7 @@ public class ReactomeService {
                         term.setDefinition( results.get( term.getTermId() ) );
                     }
                 }
-                ontologyService.saveTerms( page );
+                ontologyService.saveTermsNoAuth( page );
             } else {
                 log.error( String.format( "Unexpected response from Reactome content service: %s", entity ) );
             }

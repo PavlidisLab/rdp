@@ -165,4 +165,24 @@ public class OntologyRepositoryTest {
         assertThat( ontologyTermInfoRepository.findOne( term.getId() ) ).isNull();
         assertThat( ontologyTermInfoRepository.findOne( subTerm.getId() ) ).isNull();
     }
+
+    @Test
+    public void findAllDefinitionsByNameAndOntologyName() {
+        Ontology ontology = Ontology.builder( "test" ).build();
+        OntologyTermInfo term = OntologyTermInfo.builder( ontology, "TERM:0001" )
+                .name( "test1" )
+                .definition( "This is a nice definition" )
+                .build();
+        OntologyTermInfo term2 = OntologyTermInfo.builder( ontology, "TERM:0002" )
+                .name( "test1" )
+                .definition( "This is a nice definition2" )
+                .build();
+        ontology.getTerms().add( term );
+        ontology.getTerms().add( term2 );
+        ontologyRepository.save( ontology );
+        assertThat( ontologyTermInfoRepository.findAllDefinitionsByNameAndOntologyName( "test1", "test" ) )
+                .containsExactlyInAnyOrder( "This is a nice definition", "This is a nice definition2" );
+        assertThat( ontologyTermInfoRepository.findAllDefinitionsByNameAndOntologyName( "test2", "test" ) )
+                .isEmpty();
+    }
 }

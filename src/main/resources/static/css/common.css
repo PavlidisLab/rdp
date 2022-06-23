@@ -333,10 +333,9 @@ hr {
     color: red;
 }
 
-
 .ontology-term-definition {
     display: -webkit-box;
     -webkit-box-orient: vertical;
-    -webkit-line-clamp: b2;
+    -webkit-line-clamp: 2;
     overflow: hidden;
 }

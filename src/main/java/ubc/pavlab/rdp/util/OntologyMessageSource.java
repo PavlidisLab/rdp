@@ -26,46 +26,48 @@ import java.util.regex.Pattern;
 @Component
 public class OntologyMessageSource extends AbstractMessageSource {
 
-    private final static Pattern ONTOLOGY_VIEW_TERM_URL = Pattern.compile( "^rdp\\.ontologies\\.(.*?)\\.view-term-url-pattern$" );
+    private final static Pattern ONTOLOGY_VIEW_TERM_URL = Pattern.compile( "^rdp\\.ontologies\\..*?\\.view-term-url-pattern$" );
 
     private final static Pattern ONTOLOGY_TERM_INFO_DEFINITION = Pattern.compile( "^rdp\\.ontologies\\.(.*?)\\.terms\\.(.*?).definition$" );
+    private final static String DEFAULT_URL_ENCODED_IRI_PREFIX;
+
+    static {
+        try {
+            DEFAULT_URL_ENCODED_IRI_PREFIX = URLEncoder.encode( "http://purl.obolibrary.org/obo/", "UTF-8" );
+        } catch ( UnsupportedEncodingException e ) {
+            throw new RuntimeException( e );
+        }
+    }
 
     /**
      * FIXME: use {@link OntologyService}, but that creates a circular dependency since OntologyService depends on
      * MessageSource.
      */
     @Autowired
-    private OntologyTermInfoRepository ontologyTermInfoRepository;
+    private OntologyService ontologyService;
+
 
     @Override
-    @SneakyThrows(UnsupportedEncodingException.class)
     protected MessageFormat resolveCode( String code, Locale locale ) {
-        Matcher matcher;
-
-        matcher = ONTOLOGY_VIEW_TERM_URL.matcher( code );
+        Matcher matcher = ONTOLOGY_VIEW_TERM_URL.matcher( code );
         if ( matcher.matches() ) {
-            String ontologyName = matcher.group( 1 );
             return new MessageFormat( UriComponentsBuilder.fromHttpUrl( "https://www.ebi.ac.uk/ols/ontologies/{0}/terms" )
-                    .queryParam( "iri", URLEncoder.encode( "http://purl.obolibrary.org/obo/", "UTF-8" ) + "{1}" )
+                    .queryParam( "iri", DEFAULT_URL_ENCODED_IRI_PREFIX + "{1}" )
                     .build()
                     .toUriString(), locale );
         }
+        /* unresolved */
+        return null;
+    }
 
-        matcher = ONTOLOGY_TERM_INFO_DEFINITION.matcher( code );
+    @Override
+    protected String resolveCodeWithoutArguments( String code, Locale locale ) {
+        Matcher matcher = ONTOLOGY_TERM_INFO_DEFINITION.matcher( code );
         if ( matcher.matches() ) {
             String ontologyName = matcher.group( 1 );
             String termName = matcher.group( 2 );
-            OntologyTermInfo ontologyTermInfo = ontologyTermInfoRepository.findAllByActiveTrueAndNameAndOntologyName( termName, ontologyName ).stream()
-                    .findAny()
-                    .orElse( null );
-            if ( ontologyTermInfo == null ) {
-                // no such term...
-                return new MessageFormat( "" );
-            }
-            return new MessageFormat( ontologyTermInfo.getDefinition(), locale );
+            return ontologyService.findDefinitionByTermNameAndOntologyName( termName, ontologyName );
         }
-
-        /* unresolved */
-        return null;
+        return super.resolveCodeWithoutArguments( code, locale );
     }
 }

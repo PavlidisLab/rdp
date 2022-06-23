@@ -75,7 +75,7 @@ public interface OntologyTermInfoRepository extends JpaRepository<OntologyTermIn
      * @return a list two elements arrays where the first is the {@link OntologyTermInfo} ID and second its full text
      * score against the query
      */
-    @Query(value = "select t.ontology_term_info_id, match(t.name) against(:query in boolean mode) as score from ontology_term_info t join ontology o on t.ontology_id = o.ontology_id where t.active = :active and o.ontology_id in (:ontologyIds) having score > 0", nativeQuery = true)
+    @Query(value = "select t.ontology_term_info_id, match(t.name) against(:query in boolean mode) as score from ontology_term_info t join ontology o on t.ontology_id = o.ontology_id where t.active = :active and o.ontology_id in (:ontologyIds) group by t.ontology_term_info_id having score > 0", nativeQuery = true)
     List<Object[]> findAllByOntologyInAndNameMatchAndActive( @Param("ontologyIds") Set<Integer> ontologyIds, @Param("query") String query, @Param("active") boolean active );
 
     @Query("select t from OntologyTermInfo t join t.synonyms s where t.active = :active and t.ontology in :ontologies and upper(s) = upper(:query)")
@@ -84,15 +84,15 @@ public interface OntologyTermInfoRepository extends JpaRepository<OntologyTermIn
     @Query("select t from OntologyTermInfo t join t.synonyms s where t.active = :active and t.ontology in :ontologies and upper(s) like upper(:query)")
     List<OntologyTermInfo> findAllByOntologyInAndSynonymsLikeIgnoreCaseAndActive( @Param("ontologies") Set<Ontology> ontologies, @Param("query") String query, @Param("active") boolean active );
 
-    @Query(value = "select t.ontology_term_info_id, match(otis.synonym) against (:query in boolean mode) as score from ontology_term_info t join ontology o on o.ontology_id = t.ontology_id join ontology_term_info_synonyms otis on t.ontology_term_info_id = otis.ontology_term_info_id where t.active = :active and o.ontology_id in :ontologyIds having score > 0", nativeQuery = true)
-    List<Object[]> findAllByOntologyInAndSynonymsMatchAndActive( @Param("ontologyIds") Set<Ontology> ontologyIds, @Param("query") String query, @Param("active") boolean active );
+    @Query(value = "select t.ontology_term_info_id, match(otis.synonym) against (:query in boolean mode) as score from ontology_term_info t join ontology o on o.ontology_id = t.ontology_id join ontology_term_info_synonyms otis on t.ontology_term_info_id = otis.ontology_term_info_id where t.active = :active and o.ontology_id in :ontologyIds group by t.ontology_term_info_id having score > 0", nativeQuery = true)
+    List<Object[]> findAllByOntologyInAndSynonymsMatchAndActive( @Param("ontologyIds") Set<Integer> ontologyIds, @Param("query") String query, @Param("active") boolean active );
 
     /**
      * Retrieve all active terms from active ontologies whose definition match the given pattern.
      */
     List<OntologyTermInfo> findAllByOntologyInAndDefinitionLikeIgnoreCaseAndActive( Set<Ontology> ontologies, String pattern, boolean active );
 
-    @Query(value = "select t.ontology_term_info_id, match(t.definition) against (:query in boolean mode) as score from ontology_term_info t join ontology o on o.ontology_id = t.ontology_id where t.active = :active and o.ontology_id in :ontologyIds having score > 0", nativeQuery = true)
+    @Query(value = "select t.ontology_term_info_id, match(t.definition) against (:query in boolean mode) as score from ontology_term_info t join ontology o on o.ontology_id = t.ontology_id where t.active = :active and o.ontology_id in :ontologyIds group by t.ontology_term_info_id having score > 0", nativeQuery = true)
     List<Object[]> findAllByOntologyInAndDefinitionMatchAndActive( @Param("ontologyIds") Set<Integer> ontologyIds, @Param("query") String query, @Param("active") boolean active );
 
     /**
@@ -147,4 +147,8 @@ public interface OntologyTermInfoRepository extends JpaRepository<OntologyTermIn
     List<Integer> findSubTermsIdsByTermIdIn( @Param("termIds") Set<Integer> termIds );
 
     OntologyTermInfo findByTermIdAndOntologyName( String termId, String ontologyName );
+
+    @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
+    @Query("select t.definition from OntologyTermInfo t where t.name = :termName and t.ontology.name = :ontologyName")
+    List<String> findAllDefinitionsByNameAndOntologyName( @Param("termName") String termName, @Param("ontologyName") String ontologyName );
 }

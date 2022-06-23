@@ -417,10 +417,38 @@ public class AdminControllerTest {
         Ontology ontology = Ontology.builder( "mondo" ).id( 1 ).build();
         when( ontologyService.findById( ontology.getId() ) ).thenReturn( ontology );
         mvc.perform( post( "/admin/ontologies/{ontologyId}/update-simple-ontology", ontology.getId() )
+                        .param( "ontologyName", "new name" )
+                        .param( "ordering", "2" ) )
+                .andExpect( status().is3xxRedirection() )
+                .andExpect( redirectedUrl( "/admin/ontologies/1" ) );
+        verify( ontologyService ).findById( 1 );
+        verify( ontologyService ).updateNameAndOrderingAndTerms( ontology, "new name", 2, new TreeSet<>() );
+    }
+
+    @Test
+    @WithMockUser(roles = { "ADMIN" })
+    public void updateSimpleOntology_whenOrderingIsEmpty_thenUseNull() throws Exception {
+        Ontology ontology = Ontology.builder( "mondo" ).id( 1 ).build();
+        when( ontologyService.findById( ontology.getId() ) ).thenReturn( ontology );
+        mvc.perform( post( "/admin/ontologies/{ontologyId}/update-simple-ontology", ontology.getId() )
+                        .param( "ontologyName", "new name" )
+                        .param( "ordering", "" ) )
+                .andExpect( status().is3xxRedirection() )
+                .andExpect( redirectedUrl( "/admin/ontologies/1" ) );
+        verify( ontologyService ).findById( 1 );
+        verify( ontologyService ).updateNameAndOrderingAndTerms( ontology, "new name", null, new TreeSet<>() );
+    }
+
+    @Test
+    @WithMockUser(roles = { "ADMIN" })
+    public void updateSimpleOntology_whenOrderingIsMissing_thenUseNull() throws Exception {
+        Ontology ontology = Ontology.builder( "mondo" ).id( 1 ).build();
+        when( ontologyService.findById( ontology.getId() ) ).thenReturn( ontology );
+        mvc.perform( post( "/admin/ontologies/{ontologyId}/update-simple-ontology", ontology.getId() )
                         .param( "ontologyName", "new name" ) ).andExpect( status().is3xxRedirection() )
                 .andExpect( redirectedUrl( "/admin/ontologies/1" ) );
         verify( ontologyService ).findById( 1 );
-        verify( ontologyService ).updateNameAndTerms( ontology, "new name", new TreeSet<>() );
+        verify( ontologyService ).updateNameAndOrderingAndTerms( ontology, "new name", null, new TreeSet<>() );
     }
 
     @Test
@@ -502,7 +530,7 @@ public class AdminControllerTest {
 
     @Test
     @WithMockUser(roles = { "ADMIN" })
-    public void importOntology_withSourceIsFile() throws Exception {
+    public void importOntology_whenSourceIsFile() throws Exception {
         Ontology ontology = Ontology.builder( "mondo" ).id( 1 ).build();
         when( ontologyService.createFromObo( any( FileReader.class ) ) ).thenReturn( ontology );
         byte[] fileContents = StreamUtils.copyToByteArray( new ClassPathResource( "cache/mondo.obo" ).getInputStream() );
@@ -511,6 +539,17 @@ public class AdminControllerTest {
                 .andExpect( status().is3xxRedirection() )
                 .andExpect( redirectedUrl( "/admin/ontologies/" + ontology.getId() ) );
         verify( ontologyService ).createFromObo( any( InputStreamReader.class ) );
+    }
+
+    @Test
+    @WithMockUser(roles = { "ADMIN" })
+    public void importOntology_whenSourceIsEmptyFile_thenReturnBadRequest() throws Exception {
+        Ontology ontology = Ontology.builder( "mondo" ).id( 1 ).build();
+        when( ontologyService.createFromObo( any( FileReader.class ) ) ).thenReturn( ontology );
+        mvc.perform( fileUpload( "/admin/ontologies/import" )
+                        .file( "ontologyFile", new byte[0] ) )
+                .andExpect( status().isBadRequest() )
+                .andExpect( model().attributeHasErrors( "importOntologyForm" ) );
     }
 
     @Test
@@ -537,8 +576,7 @@ public class AdminControllerTest {
                         .param( "ontologyUrl", "file:src/test/resources/cache/mondo.obo" ) )
                 .andExpect( status().isBadRequest() )
                 .andExpect( view().name( "admin/ontologies" ) )
-                .andExpect( model().attribute( "message", "An ontology with the same name 'uberon' is already used." ) )
-                .andExpect( model().attribute( "error", true ) );
+                .andExpect( model().attributeHasErrors( "importOntologyForm" ) );
     }
 
     @Test
@@ -550,8 +588,16 @@ public class AdminControllerTest {
                         .param( "ontologyUrl", "file:src/test/resources/cache/mondo.obo" ) )
                 .andExpect( status().isInternalServerError() )
                 .andExpect( view().name( "admin/ontologies" ) )
-                .andExpect( model().attribute( "message", "Failed to parse the ontology OBO format from mondo.obo: " + parseException.getMessage() ) )
-                .andExpect( model().attribute( "error", true ) );
+                .andExpect( model().attributeHasErrors( "importOntologyForm" ) );
+    }
+
+    @Test
+    @WithMockUser(roles = { "ADMIN" })
+    public void importOntology_whenNoSourceAreSupplied_thenReturnBadRequest() throws Exception {
+        mvc.perform( post( "/admin/ontologies/import" ) )
+                .andExpect( status().isBadRequest() )
+                .andExpect( view().name( "admin/ontologies" ) )
+                .andExpect( model().attributeHasErrors( "importOntologyForm" ) );
     }
 
     @Test
@@ -563,7 +609,7 @@ public class AdminControllerTest {
                         .param( "ontologyUrl", "file:src/test/resources/cache/mondo.obo" ) )
                 .andExpect( status().isBadRequest() )
                 .andExpect( view().name( "admin/ontologies" ) )
-                .andExpect( model().attributeHasFieldErrors( "importOntologyForm", "ontologyUrl", "ontologyFile" ) );
+                .andExpect( model().attributeHasErrors( "importOntologyForm" ) );
     }
 
     @Test

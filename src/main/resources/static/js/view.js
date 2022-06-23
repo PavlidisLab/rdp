@@ -55,10 +55,18 @@
     });
 
     $('.ontology-term-table').DataTable({
-        "paging": false,
-        "searching": false,
-        "info": false,
-        "order": [[0, "asc"]]
+        paging: false,
+        searching: false,
+        info: false,
+        order: [[0, "asc"]],
+        columnDefs: [
+            {
+                targets: [2],
+                render: function (data) {
+                    return $('<span class="ontology-term-definition">').text(data)[0].outerHTML;
+                }
+            }
+        ]
     });
 
     $('#overlapModal').on('show.bs.modal', function (e) {

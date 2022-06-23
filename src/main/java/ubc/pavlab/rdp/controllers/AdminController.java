@@ -29,6 +29,7 @@ import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.util.UriUtils;
 import ubc.pavlab.rdp.model.AccessToken;
 import ubc.pavlab.rdp.model.Profile;
 import ubc.pavlab.rdp.model.User;
@@ -41,6 +42,7 @@ import ubc.pavlab.rdp.settings.SiteSettings;
 import ubc.pavlab.rdp.util.ParseException;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.io.*;
@@ -188,7 +190,7 @@ public class AdminController {
         modelAndView.addObject( "activateTermForm", new ActivateTermForm() );
         modelAndView.addObject( "activateOntologyForm", new ActivateOntologyForm() );
         if ( ontology.getTerms().size() <= 20 ) {
-            modelAndView.addObject( "simpleOntologyForm", ontology.getTerms().isEmpty() ? SimpleOntologyForm.withInitialRows( 5 ) : SimpleOntologyForm.fromOntology( ontology ) );
+            modelAndView.addObject( "simpleOntologyForm", SimpleOntologyForm.fromOntology( ontology ) );
         }
         return modelAndView;
     }
@@ -202,7 +204,9 @@ public class AdminController {
             return modelAndView;
         }
         try {
-            Ontology ontology = Ontology.builder( simpleOntologyForm.getOntologyName() ).build();
+            Ontology ontology = Ontology.builder( simpleOntologyForm.getOntologyName() )
+                    .ordering( simpleOntologyForm.getOrdering() )
+                    .build();
             ontology.getTerms().addAll( parseTerms( ontology, simpleOntologyForm.getOntologyTerms() ) );
             ontology = ontologyService.create( ontology );
             return "redirect:/admin/ontologies/" + ontology.getId();
@@ -216,26 +220,43 @@ public class AdminController {
     }
 
     @PostMapping("/admin/ontologies/{ontology}/update-simple-ontology")
-    public Object updateSimpleOntology( Ontology ontology, @Valid SimpleOntologyForm simpleOntologyForm, BindingResult bindingResult ) {
+    public Object updateSimpleOntology( Ontology ontology, @Valid SimpleOntologyForm simpleOntologyForm, BindingResult bindingResult, RedirectAttributes redirectAttributes ) {
         if ( bindingResult.hasErrors() ) {
-            ModelAndView modelAndView = new ModelAndView( "admin/ontology" );
-            modelAndView.setStatus( HttpStatus.BAD_REQUEST );
+            ModelAndView modelAndView = new ModelAndView( "admin/ontology", HttpStatus.BAD_REQUEST );
             modelAndView.addObject( "activateTermForm", new ActivateTermForm() );
             modelAndView.addObject( "activateOntologyForm", new ActivateOntologyForm() );
             return modelAndView;
         }
-        ontologyService.updateNameAndTerms( ontology, simpleOntologyForm.ontologyName, parseTerms( ontology, simpleOntologyForm.getOntologyTerms() ) );
-        return "redirect:/admin/ontologies/" + ontology.getId();
+        try {
+            ontologyService.updateNameAndOrderingAndTerms( ontology, simpleOntologyForm.ontologyName, simpleOntologyForm.ordering, parseTerms( ontology, simpleOntologyForm.getOntologyTerms() ) );
+            redirectAttributes.addFlashAttribute( "message", String.format( "Ontology %s has been successfully updated.", ontology.getName() ) );
+            return "redirect:/admin/ontologies/" + ontology.getId();
+        } catch ( OntologyNameAlreadyUsedException e ) {
+            bindingResult.rejectValue( "ontologyName", "AdminController.SimpleOntologyForm.ontologyName.alreadyUsed" );
+            ModelAndView modelAndView = new ModelAndView( "admin/ontology", HttpStatus.BAD_REQUEST );
+            modelAndView.addObject( "activateTermForm", new ActivateTermForm() );
+            modelAndView.addObject( "activateOntologyForm", new ActivateOntologyForm() );
+            return modelAndView;
+        }
     }
 
     @Data
     private static class SimpleOntologyForm {
+
         public static SimpleOntologyForm fromOntology( Ontology ontology ) {
             SimpleOntologyForm updateSimpleForm = new SimpleOntologyForm();
             updateSimpleForm.setOntologyName( ontology.getName() );
+            updateSimpleForm.setOrdering( ontology.getOrdering() );
             for ( OntologyTermInfo term : ontology.getTerms() ) {
                 updateSimpleForm.ontologyTerms.add( new SimpleOntologyTermForm( term.getTermId(), term.getName(), term.isGroup(), term.isHasIcon(), term.isActive() ) );
             }
+
+            // pad to 5 rows, the last one unconditionally
+            for ( int i = ontology.getTerms().size(); i < 4; i++ ) {
+                updateSimpleForm.ontologyTerms.add( SimpleOntologyTermForm.emptyRow() );
+            }
+            updateSimpleForm.ontologyTerms.add( SimpleOntologyTermForm.emptyRow() );
+
             return updateSimpleForm;
         }
 
@@ -243,7 +264,7 @@ public class AdminController {
             SimpleOntologyForm updateSimpleForm = new SimpleOntologyForm();
             updateSimpleForm.ontologyName = null;
             for ( int i = 0; i < initialRows; i++ ) {
-                updateSimpleForm.ontologyTerms.add( new SimpleOntologyTermForm( "", "", false, false, false ) );
+                updateSimpleForm.ontologyTerms.add( SimpleOntologyTermForm.emptyRow() );
             }
             return updateSimpleForm;
         }
@@ -251,6 +272,12 @@ public class AdminController {
         @NotNull
         @Size(min = 1, max = 255)
         private String ontologyName;
+
+        /**
+         * A value between 1 and ..., can be null.
+         */
+        @Min(1)
+        private Integer ordering;
 
         @Valid
         @Size(max = 20)
@@ -265,11 +292,16 @@ public class AdminController {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class SimpleOntologyTermForm {
+
         /**
          * Mark validation rules that apply only when the row is non-empty as per {@link #isEmpty()}.
          */
         public interface RowNotEmpty {
 
+        }
+
+        public static SimpleOntologyTermForm emptyRow() {
+            return new SimpleOntologyTermForm( "", "", false, false, false );
         }
 
         @NotNull(groups = RowNotEmpty.class)
@@ -308,6 +340,8 @@ public class AdminController {
             term.setOrdering( terms.size() + 1 ); // 1-based ordering
             term.setHasIcon( simpleOntologyTermForm.isHasIcon() );
             term.setActive( simpleOntologyTermForm.isActive() );
+            // this is necessary to proactively evict the ancestors cache
+            term.getSuperTerms().clear();
             term.setSubTerms( new TreeSet<>() );
             if ( term.isGroup() ) {
                 lastGroupingTerm = term;
@@ -399,19 +433,19 @@ public class AdminController {
             ontologyService.save( ontology );
             return "redirect:/admin/ontologies/" + ontology.getId();
         } catch ( OntologyNameAlreadyUsedException e ) {
+            bindingResult.reject( "AdminController.ImportOntologyForm.ontologyWithSameNameAlreadyUsed", new String[]{ e.getOntologyName() },
+                    String.format( "An ontology with the same name '%s' is already used.", e.getOntologyName() ) );
             ModelAndView modelAndView = new ModelAndView( "admin/ontologies" );
             modelAndView.setStatus( HttpStatus.BAD_REQUEST );
             modelAndView.addObject( "simpleOntologyForm", SimpleOntologyForm.withInitialRows( 5 ) );
-            modelAndView.addObject( "message", String.format( "An ontology with the same name '%s' is already used.", e.getOntologyName() ) );
-            modelAndView.addObject( "error", true );
             return modelAndView;
         } catch ( IOException | ParseException e ) {
             log.error( String.format( "Failed to import ontology from submitted form: %s.", importOntologyForm ), e );
+            bindingResult.reject( "AdminController.ImportOntologyForm.failedToParseOboFormat", new String[]{ importOntologyForm.getFilename(), e.getMessage() },
+                    String.format( "Failed to parse the ontology OBO format from %s: %s", importOntologyForm.getFilename(), e.getMessage() ) );
             ModelAndView modelAndView = new ModelAndView( "admin/ontologies" );
             modelAndView.setStatus( HttpStatus.INTERNAL_SERVER_ERROR );
             modelAndView.addObject( "simpleOntologyForm", SimpleOntologyForm.withInitialRows( 5 ) );
-            modelAndView.addObject( "message", String.format( "Failed to parse the ontology OBO format from %s: %s", importOntologyForm.getFilename(), e.getMessage() ) );
-            modelAndView.addObject( "error", true );
             return modelAndView;
         }
     }
@@ -423,12 +457,12 @@ public class AdminController {
     public Object importReactomePathways( RedirectAttributes redirectAttributes ) {
         Ontology reactomeOntology = reactomeService.findPathwaysOntology();
         if ( reactomeOntology != null ) {
-            redirectAttributes.addFlashAttribute( "message", "Reactome ontology has already been imported." );
+            redirectAttributes.addFlashAttribute( "message", "The Reactome pathways ontology has already been imported." );
             return "redirect:/admin/ontologies/" + reactomeOntology.getId();
         }
         try {
             reactomeOntology = reactomeService.importPathwaysOntology();
-            redirectAttributes.addFlashAttribute( "message", "Successfully imported Reactome pathways!" );
+            redirectAttributes.addFlashAttribute( "message", "Successfully imported Reactome pathways ontology." );
             return "redirect:/admin/ontologies/" + reactomeOntology.getId();
         } catch ( ReactomeException e ) {
             log.error( "Failed to import Reactome pathways. Could this be an issue with the ontology configuration?", e );
@@ -445,7 +479,7 @@ public class AdminController {
         }
         try {
             Ontology reactomeOntology = reactomeService.updatePathwaysOntology();
-            redirectAttributes.addFlashAttribute( "message", "Successfully imported Reactome pathways!" );
+            redirectAttributes.addFlashAttribute( "message", "Successfully updated Reactome pathways ontology." );
             return "redirect:/admin/ontologies/" + reactomeOntology.getId();
         } catch ( ReactomeException e ) {
             log.error( "Failed to update Reactome pathways. Could this be an issue with the ontology configuration?", e );
@@ -544,20 +578,20 @@ public class AdminController {
         if ( !bindingResult.hasFieldErrors( "ontologyTermInfoId" ) ) {
             ontologyTermInfo = ontologyService.findByTermIdAndOntology( activateTermForm.ontologyTermInfoId, ontology );
             if ( ontologyTermInfo == null ) {
-                bindingResult.rejectValue( "ontologyTermInfoId", "AdminController.ActivateTermForm.unknownTermInOntology", String.format( "Unknown term %s in ontology %s.", activateTermForm.getOntologyTermInfoId(), ontology.getName() ) );
+                bindingResult.rejectValue( "ontologyTermInfoId", "AdminController.ActivateTermForm.unknownTermInOntology", new String[]{ activateTermForm.getOntologyTermInfoId(), ontology.getName() }, String.format( "Unknown term %s in ontology %s.", activateTermForm.getOntologyTermInfoId(), ontology.getName() ) );
             }
         }
 
         // check if the term belongs to the ontology
         if ( ontologyTermInfo != null && !ontologyTermInfo.getOntology().equals( ontology ) ) {
-            bindingResult.rejectValue( "ontologyTermInfoId", "", String.format( "Term %s is not part of ontology %s.", ontologyTermInfo.getTermId(), ontology.getName() ) );
+            bindingResult.rejectValue( "ontologyTermInfoId", "", new String[]{ ontologyTermInfo.getTermId(), ontology.getName() }, String.format( "Term %s is not part of ontology %s.", ontologyTermInfo.getTermId(), ontology.getName() ) );
         }
 
         if ( bindingResult.hasErrors() ) {
             ModelAndView modelAndView = new ModelAndView( "admin/ontology" );
             modelAndView.setStatus( HttpStatus.BAD_REQUEST );
             modelAndView.addObject( "activateOntologyForm", new ActivateOntologyForm() );
-            modelAndView.addObject( "simpleOntologyForm", SimpleOntologyForm.withInitialRows( 5 ) );
+            modelAndView.addObject( "simpleOntologyForm", SimpleOntologyForm.fromOntology( ontology ) );
             return modelAndView;
         }
 
@@ -607,20 +641,32 @@ public class AdminController {
         private MultipartFile ontologyFile;
 
         public String getFilename() {
-            return ontologyUrl != null ? FilenameUtils.getName( ontologyUrl.getPath() ) : ontologyFile.getOriginalFilename();
+            if ( ontologyUrl != null ) {
+                // path cannot be null, but it can be empty if missing (i.e. http://github.com)
+                return FilenameUtils.getName( ontologyUrl.getPath() );
+            } else if ( !isMultipartFileEmpty( ontologyFile ) ) {
+                return ontologyFile.getOriginalFilename();
+            } else {
+                return null;
+            }
         }
 
         public Reader getReader() throws IOException {
             InputStream is;
             if ( ontologyUrl != null ) {
                 is = new UrlResource( ontologyUrl ).getInputStream();
-            } else if ( ontologyFile != null ) {
+            } else if ( !isMultipartFileEmpty( ontologyFile ) ) {
                 is = ontologyFile.getInputStream();
             } else {
-                throw new IllegalStateException( "Either ontologyUrl or ontologyFile must be set." );
+                return null;
             }
-            return new InputStreamReader( FilenameUtils.isExtension( getFilename(), "gz" ) ? new GZIPInputStream( is ) : is );
+            boolean hasGzipExtension = FilenameUtils.isExtension( getFilename(), "gz" );
+            return new InputStreamReader( hasGzipExtension ? new GZIPInputStream( is ) : is );
         }
+    }
+
+    private static boolean isMultipartFileEmpty( MultipartFile mp ) {
+        return mp == null || mp.isEmpty();
     }
 
     private static class ImportOntologyFormValidator implements Validator {
@@ -633,23 +679,23 @@ public class AdminController {
         @Override
         public void validate( Object target, Errors errors ) {
             ImportOntologyForm form = (ImportOntologyForm) target;
-            if ( form.ontologyUrl == null && form.ontologyFile == null ) {
-                errors.reject( "AdminController.ImportOntologyForm.atLeastOnceSourceMustBeProvided", "At least once source must be provided." );
+            if ( form.ontologyUrl == null && isMultipartFileEmpty( form.ontologyFile ) ) {
+                errors.reject( "AdminController.ImportOntologyForm.atLeastOnceSourceMustBeProvided" );
             }
-            if ( form.ontologyUrl != null && form.ontologyFile != null ) {
-                errors.rejectValue( "ontologyUrl", "AdminController.ImportOntologyForm.urlAndFileCannotCoexist", "An URL import cannot be specified alongside a file." );
-                errors.rejectValue( "ontologyFile", "AdminController.ImportOntologyForm.fileAndUrlCannotCoexist", "A file import cannot be specified alongside an URL." );
+            if ( form.ontologyUrl != null && !isMultipartFileEmpty( form.ontologyFile ) ) {
+                errors.reject( "AdminController.ImportOntologyForm.urlAndFileCannotCoexist" );
             }
             // check if the filename ends with .obo or .obo.gz
             // the filename can also be empty if there is no original filename attached multipart upload, in which case
             // it's better to just rely on the OBO parser to provide feedback
+            // filename can also be null, see MultipartFile.getFilename() specification
             String filename = form.getFilename();
-            if ( !filename.isEmpty() ) {
+            if ( filename != null && !filename.isEmpty() ) {
                 if ( FilenameUtils.isExtension( filename, "gz" ) ) {
                     filename = FilenameUtils.removeExtension( filename );
                 }
                 if ( !FilenameUtils.isExtension( filename, "obo" ) ) {
-                    errors.rejectValue( "ontologyFile", "AdminController.ImportOntologyForm.ontologyFile.unsupportedOntologyFileFormat", "The specified file must be in OBO format." );
+                    errors.rejectValue( "ontologyFile", "AdminController.ImportOntologyForm.ontologyFile.unsupportedOntologyFileFormat" );
                 }
             }
         }

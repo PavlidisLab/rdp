@@ -8,14 +8,14 @@
 <body>
 <div th:replace="layouts/common::header"></div>
 <div class="container py-3">
-    <div th:replace="layouts/common::title(title=#{'rdp.ontologies.' + ${ontology.name} + '.title'}, subtitle='Manage ' + #{'rdp.ontologies.' + ${ontology.name} + '.title'} + ' terms')"></div>
+    <div th:replace="layouts/common::title(title=${#messages.msgOrNull('rdp.ontologies.' + ontology.name + '.title') ?: ontology.name}, subtitle='Manage ' + ${#messages.msgOrNull('rdp.ontologies.' + ontology.name + '.title') ?: ontology.name} + ' terms')"></div>
     <div th:replace="layouts/common::message"></div>
     <div>
         <p>
             <span th:if="${ontology.active}"
                   class="badge badge-success">active</span>
             <span th:unless="${ontology.active}"
-                  class="badge badge-warning">inactive</span>
+                  class="badge badge-secondary">inactive</span>
         </p>
         <dl class="dl-inline">
             <th:block if="${ontology.ontologyUrl} != null">
@@ -50,13 +50,13 @@
                 Download as OBO
             </a>
         </div>
-        <div class="row">
+        <div class="row mb-3">
             <div th:if="${ontology.active}" class="col-lg-4 col-md-6">
                 <div class="card">
                     <div class="card-header">
                         <h3 class="mb-0">
                             Deactivate
-                            <span th:text="#{'rdp.ontologies.' + ${ontology.name} + '.title'}"></span>
+                            <span th:text="${#messages.msgOrNull('rdp.ontologies.' + ontology.name + '.title')}"></span>
                         </h3>
                     </div>
                     <div class="card-body alert-warning">
@@ -76,7 +76,7 @@
                     <div class="card-header">
                         <h3 class="mb-0">
                             Activate
-                            <span th:text="#{'rdp.ontologies.' + ${ontology.name} + '.title'}"></span>
+                            <span th:text="${#messages.msgOrNull('rdp.ontologies.' + ontology.name + '.title') ?: ontology.name}"></span>
                         </h3>
                     </div>
                     <div class="card-body alert-info">
@@ -90,12 +90,12 @@
                             <div class="form-group">
                                 <div class="form-check">
                                     <input class="form-check-input" th:field="*{includeTerms}" type="checkbox"/>
-                                    <label class="form-check-label">Include terms?</label>
+                                    <label for="includeTerms1" class="form-check-label">Include terms?</label>
                                 </div>
                             </div>
                             <button class="btn btn-primary" type="submit">
                                 Activate
-                                <span th:text="#{'rdp.ontologies.' + ${ontology.name} + '.title'}"></span>
+                                <span th:text="${#messages.msgOrNull('rdp.ontologies.' + ontology.name + '.title') ?: ontology.name}"></span>
                             </button>
                         </form>
                     </div>
@@ -105,8 +105,8 @@
                 <div th:if="${ontology.terms.size()} gt 20" class="card mb-3">
                     <div class="card-header">
                         <h3 class="mb-0">
-                            Activate a term in
-                            <span th:text="#{'rdp.ontologies.' + ${ontology.name} + '.title'}"></span>
+                            Activate terms in
+                            <span th:text="${#messages.msgOrNull('rdp.ontologies.' + ontology.name + '.title') ?: ontology.name}"></span>
                         </h3>
                     </div>
                     <div class="card-body alert-info">
@@ -149,9 +149,16 @@
                     This editor only applies to ontologies with 20 terms or less. For larger ontologies, you must
                     provide terms in the OBO format.
                 </p>
-                If you check "has icon", make sure that you provide an icon in the static assets under
-                <code>static/img/ontologies/{ontologyName}/{termName}.svg</code>, otherwise a textual icon will be used
-                as a fallback.
+                <p>
+                    Terms following a grouping term will be added as sub-terms until another grouping term is
+                    encountered.
+                </p>
+                <p class="mb-0">
+                    If you check "Has icon?", make sure that you provide an icon in the static assets under
+                    <code>static/img/ontologies/{ontologyName}/{termName}.svg</code>, otherwise a textual icon will be
+                    used
+                    as a fallback.
+                </p>
             </div>
             <div class="card-body">
                 <div th:replace="fragments/ontology::simple-ontology-form(ontology = ${ontology}, simpleOntologyForm = ${simpleOntologyForm})"></div>

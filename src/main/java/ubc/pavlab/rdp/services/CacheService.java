@@ -68,7 +68,9 @@ public class CacheService {
             ontologyService.updateOntologies();
             try {
                 reactomeService.updatePathwaysOntology();
-                reactomeService.updatePathwaySummations( null );
+                reactomeService.updatePathwaySummations( ( progress, maxProgress ) -> {
+                    log.info( String.format( "Updated %d out of %d Reactome pathway summations.", progress, maxProgress ) );
+                } );
             } catch ( ReactomeException e ) {
                 log.error( "", e );
             }

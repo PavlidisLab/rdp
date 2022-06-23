@@ -3,21 +3,19 @@
 <body>
 <div th:fragment="terms-display(ontology, selectedTerms)">
     <div th:if="${ontology.terms.size()} lt 20"
-         th:classappend="${@ontologyService.countTermsWithIcons(ontology) gt 0} ? 'row'">
+         th:classappend="${@ontologyService.hasIcons(ontology)} ? 'row'">
         <div th:each="term : ${ontology.terms}"
-             th:if="${term.superTerms.isEmpty()} and (${term.group} or ${@ontologyService.userTermsContains(selectedTerms, term)})"
-             th:classappend="${@ontologyService.countTermsWithIcons(ontology) gt 0} ? 'col-3 col-md-2 col-lg-1'"
+             th:if="${term.superTerms.isEmpty()} and (${term.group} or ${@ontologyService.termIsIn(term, selectedTerms)})"
+             th:classappend="${@ontologyService.hasIcons(ontology)} ? 'col-3 col-md-2 col-lg-1'"
              data-toggle="tooltip"
              th:title="${term.hasIcon} ? #{'rdp.ontologies.' + ${ontology.name} + '.terms.' + ${term.name} + '.title'}">
             <div th:if="${term.group}">
-                <h5 th:unless="${@ontologyService.countTermsWithIcons(ontology) gt 0}"
-                    th:text="#{'rdp.ontologies.' + ${ontology.name} + '.terms.' + ${term.name} + '.title'}"></h5>
+                <h5 th:text="${#messages.msgOrNull('rdp.ontologies.' + ontology.name + '.terms.' + term.name + '.title') ?: term.name}"></h5>
                 <!-- we only display a single layer of sub-terms -->
-                <p>
-                    <th:block th:each="subTerm, i : ${term.subTerms}"
-                              th:if="${@ontologyService.userTermsContains(selectedTerms, subTerm)}">
-                        <span th:text="#{'rdp.ontologies.' + ${ontology.name} + '.terms.' + ${subTerm.name} + '.title'}"></span><span
-                            th:unless="${i.last}">,</span>
+                <p th:with="selectedSubTerms=${@ontologyService.onlyTermsIn(term.subTerms, selectedTerms)}">
+                    <th:block th:each="subTerm, i : ${selectedSubTerms}">
+                        <span th:text="${#messages.msgOrNull('rdp.ontologies.' + ontology.name + '.terms.' + subTerm.name + '.title') ?: subTerm.name}"></span><span
+                            th:if="${i.last}">.</span><span th:unless="${i.last}">,</span>
                     </th:block>
                 </p>
             </div>
@@ -29,11 +27,11 @@
                      alt="The term definition that describes the icon."/>
                 <th:block th:unless=" ${term.hasIcon}">
                     <!-- generate a simple textual icon -->
-                    <th:block th:if="${@ontologyService.countTermsWithIcons(ontology) gt 0}">
+                    <th:block th:if="${@ontologyService.hasIcons(ontology)}">
                         <span th:replace="fragments/ontology::textual-icon(term = ${term})"></span>
                     </th:block>
-                    <span th:unless="${@ontologyService.countTermsWithIcons(ontology) gt 0}"
-                          th:text="#{'rdp.ontologies.' + ${ontology.name} + '.terms.' + ${term.name} + '.title'}"></span>
+                    <span th:unless="${@ontologyService.hasIcons(ontology)}"
+                          th:text="${#messages.msgOrNull('rdp.ontologies.' + ontology.name + '.terms.' + term.name + '.title') ?: term.name}"></span>
                 </th:block>
             </th:block>
         </div>
@@ -56,7 +54,7 @@
                        rel="noopener"></a>
                 </td>
                 <td th:text="${term.name}"></td>
-                <td th:text="${term.termInfo.definition}"></td>
+                <td th:text="${term.termInfo?.definition}"></td>
             </tr>
             </tbody>
         </table>
@@ -78,15 +76,18 @@
 </div>
 <div th:fragment="terms-selection(ontology, selectedTerms)">
     <div th:if="${ontology.terms.size()} lt 20"
-         th:classappend="${@ontologyService.countTermsWithIcons(ontology) gt 0} ? 'form-row'">
+         th:classappend="${@ontologyService.hasIcons(ontology)} ? 'form-row'">
         <div th:each="term : ${ontology.terms}" class="form-group"
              th:if="${term.superTerms.isEmpty()}"
-             th:classappend="${@ontologyService.countTermsWithIcons(ontology) gt 0} ? 'col-3 col-md-2 col-lg-1'">
+             th:classappend="${@ontologyService.hasIcons(ontology)} ? 'col-3 col-md-2 col-lg-1'">
+
+            <!-- grouping term -->
             <div th:if="${term.group}">
-                <h5 th:unless="${@ontologyService.countTermsWithIcons(ontology) gt 0}"
-                    th:text="#{'rdp.ontologies.' + ${ontology.name} + '.terms.' + ${term.name} + '.title'}"></h5>
+                <h5 th:unless="${@ontologyService.hasIcons(ontology)}"
+                    th:text="${#messages.msgOrNull('rdp.ontologies.' + ontology.name + '.terms.' + term.name + '.title') ?: term.name}"></h5>
                 <div class="form-row">
                     <div th:each="subTerm: ${term.subTerms}"
+                         th:if="${subTerm.active}"
                          th:class="${term.name == 'gene-centric' ? 'col-1' : 'col-2'}">
                         <div class="form-check-inline">
                             <input type="checkbox"
@@ -94,43 +95,48 @@
                                    name="ontologyTermIds"
                                    th:attr="data-ontology-id=${ontology.id}"
                                    th:value="${subTerm.id}"
-                                   th:checked="${@ontologyService.userTermsContains(selectedTerms, subTerm)}"
+                                   th:checked="${@ontologyService.termIsIn(subTerm, selectedTerms)}"
                                    class="form-check-input"/>
                             <label class="form-check-label"
-                                   th:text="#{'rdp.ontologies.' + ${ontology.name} + '.terms.' + ${subTerm.name} + '.title'}"
+                                   th:text="${#messages.msgOrNull('rdp.ontologies.' + ontology.name + '.terms.' + subTerm.name + '.title') ?: subTerm.name}"
                                    th:for="${#ids.prev('ontologyTermIds')}"
                             ></label>
                         </div>
                     </div>
                 </div>
             </div>
-            <div th:unless="${term.group}" class="form-check"
-                 data-toggle="tooltip"
-                 th:title="${term.hasIcon} ? #{'rdp.ontologies.' + ${ontology.name} + '.terms.' + ${term.name} + '.title'}">
-                <input type="checkbox"
-                       th:id="${ontology.id} + '-' + ${term.id}"
-                       name="ontologyTermIds"
-                       th:attr="data-ontology-id=${ontology.id}"
-                       th:value="${term.id}"
-                       th:checked="${@ontologyService.userTermsContains(selectedTerms, term)}"
-                       class="form-check-input"/>
-                <label th:for="${ontology.id} + '-' + ${term.id}"
-                       class="form-check-label">
-                    <img th:if="${term.hasIcon}"
-                         th:src="@{/images/ontologies/{ontologyName}/{termName}.svg(ontologyName=${ontology.name},termName=${term.name})}"
-                         th:alt="${term.definition}"
-                         class="img-fluid d-block"
-                         alt="The term definition that describes its icon."/>
-                    <th:block th:unless="${term.hasIcon}">
-                        <!-- generate a simple textual icon -->
-                        <th:block th:if="${@ontologyService.countTermsWithIcons(ontology) gt 0}">
-                            <span th:replace="fragments/ontology::textual-icon(term = ${term})"></span>
+
+            <!-- non-grouping term -->
+            <th:block th:unless="${term.group}">
+                <div th:if="${term.active}"
+                     class="form-check"
+                     data-toggle="tooltip"
+                     th:title="${term.hasIcon} ? #{'rdp.ontologies.' + ${ontology.name} + '.terms.' + ${term.name} + '.title'}">
+                    <input type="checkbox"
+                           th:id="${ontology.id} + '-' + ${term.id}"
+                           name="ontologyTermIds"
+                           th:attr="data-ontology-id=${ontology.id}"
+                           th:value="${term.id}"
+                           th:checked="${@ontologyService.termIsIn(term, selectedTerms)}"
+                           class="form-check-input"/>
+                    <label th:for="${ontology.id} + '-' + ${term.id}"
+                           class="form-check-label">
+                        <img th:if="${term.hasIcon}"
+                             th:src="@{/images/ontologies/{ontologyName}/{termName}.svg(ontologyName=${ontology.name},termName=${term.name})}"
+                             th:alt="${term.definition}"
+                             class="img-fluid d-block"
+                             alt="The term definition that describes its icon."/>
+                        <th:block th:unless="${term.hasIcon}">
+                            <!-- generate a simple textual icon -->
+                            <th:block th:if="${@ontologyService.hasIcons(ontology)}">
+                                <span th:replace="fragments/ontology::textual-icon(term = ${term})"></span>
+                            </th:block>
+                            <span th:unless="${@ontologyService.hasIcons(ontology)}"
+                                  th:text="${#messages.msgOrNull('rdp.ontologies.' + ontology.name + '.terms.' + term.name + '.title') ?: term.name}"></span>
                         </th:block>
-                        <span th:unless="${@ontologyService.countTermsWithIcons(ontology) gt 0}"
-                              th:text="#{'rdp.ontologies.' + ${ontology.name} + '.terms.' + ${term.name} + '.title'}"></span>
-                    </th:block>
-                </label>
-            </div>
+                    </label>
+                </div>
+            </th:block>
         </div>
     </div>
     <div th:unless="${ontology.terms.size()} lt 20">
@@ -150,9 +156,7 @@
                 <td></td>
                 <td th:text="${term.termId}"></td>
                 <td th:text="${term.name}"></td>
-                <td>
-                    <div th:text="${term.termInfo.definition}" class="ontology-term-definition"></div>
-                </td>
+                <td th:text="${term.termInfo?.definition}"></td>
             </tr>
             </tbody>
         </table>
@@ -165,7 +169,7 @@
     <span th:each="term : ${selectedTerms}"
           class="badge badge-primary mb-1">
         <span th:text="${term.name}" class="align-middle"></span>
-        <button class="close">&times;</button>
+        <button type="button">&times;</button>
             <input type="hidden"
                    th:value="${term.id}"/>
     </span>
@@ -176,7 +180,7 @@
      viewbox="0 0 100 100">
     <rect x="0" y="0" width="100" height="100" fill="none" stroke="black"
           stroke-width="2"></rect>
-    <text th:text="#{'rdp.ontologies.' + ${term.ontology.name} + '.terms.' + ${term.name} + '.title'}"
+    <text th:text="${#messages.msgOrNull('rdp.ontologies.' + term.ontology.name + '.terms.' + term.name + '.title') ?: term.name}"
           x="50%"
           y="50%" text-anchor="middle" dominant-baseline="middle"/>
 </svg>
@@ -187,13 +191,22 @@
       id="simple-ontology-form">
     <div class="form-row mb-2">
         <div class="col">
-            <div class="form-group mb-0">
+            <div class="form-group">
                 <label>Ontology Name</label>
                 <input class="form-control"
                        th:field="*{ontologyName}"
                        th:errorclass="is-invalid"
                        placeholder="Ontology name"/>
                 <div th:errors="*{ontologyName}" class="invalid-feedback"></div>
+            </div>
+            <div class="form-group mb-0">
+                <label>Ordering (leave empty to use alphabetic order)</label>
+                <input class="form-control"
+                       type="number"
+                       th:field="*{ordering}"
+                       th:errorclass="is-invalid"
+                       placeholder="1, 2, 3, ..."/>
+                <div th:errors="*{ordering}" class="invalid-feedback"></div>
             </div>
         </div>
     </div>
@@ -268,7 +281,7 @@
         </div>
         <div class="col-md-auto my-auto d-none d-lg-block">
             <!--<i class="oi oi-move"></i>-->
-            <button class="close text-danger">&times;</button>
+            <button type="button" class="close text-danger">&times;</button>
         </div>
     </div>
     <!-- feedback row for all terms -->

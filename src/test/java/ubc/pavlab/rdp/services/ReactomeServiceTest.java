@@ -45,8 +45,8 @@ public class ReactomeServiceTest {
     public static class OntologyServiceTestContextConfiguration {
 
         @Bean
-        public OntologyService ontologyService( OntologyRepository ontologyRepository, OntologyTermInfoRepository ontologyTermInfoRepository, MessageSource messageSource ) {
-            return new OntologyService( ontologyRepository, ontologyTermInfoRepository, messageSource );
+        public OntologyService ontologyService( OntologyRepository ontologyRepository, OntologyTermInfoRepository ontologyTermInfoRepository ) {
+            return new OntologyService( ontologyRepository, ontologyTermInfoRepository );
         }
 
         @Bean

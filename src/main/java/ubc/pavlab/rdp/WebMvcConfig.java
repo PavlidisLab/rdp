@@ -1,5 +1,6 @@
 package ubc.pavlab.rdp;
 
+import org.springframework.context.HierarchicalMessageSource;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -19,15 +20,24 @@ public class WebMvcConfig extends WebMvcConfigurerAdapter {
         return new BCryptPasswordEncoder();
     }
 
+    /**
+     * This bean provides message source resolution without {@link OntologyMessageSource}.
+     */
     @Bean
-    public MessageSource messageSource( OntologyMessageSource ontologyMessageSource ) {
+    public HierarchicalMessageSource messageSourceWithoutOntologyMessageSource() {
         ReloadableResourceBundleMessageSource messageSource = new ReloadableResourceBundleMessageSource();
-        // if it cannot be resolved in messages.properties, then lookup some of our built-in resolution for
-        // ontology-related patterns
-        messageSource.setParentMessageSource( ontologyMessageSource );
         // application-prod.properties and login.properties is there for backward compatibility since
         // we used to pull locale strings from there.
         messageSource.setBasenames( "file:messages", "file:application-prod", "file:login", "classpath:messages" );
+        return messageSource;
+    }
+
+    @Bean
+    public MessageSource messageSource( OntologyMessageSource ontologyMessageSource ) {
+        HierarchicalMessageSource messageSource = messageSourceWithoutOntologyMessageSource();
+        // if it cannot be resolved in messages.properties, then lookup some of our built-in resolution for
+        // ontology-related patterns
+        messageSource.setParentMessageSource( ontologyMessageSource );
         return messageSource;
     }
 

@@ -15,15 +15,16 @@
             <div class="row mb-3">
                 <div class="col-8 border-right">
                     <h2>Import Ontology</h2>
-                    <div class="alert alert-info">
-                        Importing via an URL will also activate periodic update of the terms.
-                    </div>
+                    <p>
+                        Import an ontology from an URL or a file represented in the OBO format. If imported via an URL,
+                        periodic update of the terms will also be activated.
+                    </p>
                     <form th:object="${importOntologyForm}"
-                          action="/admin/ontologies/import"
+                          th:action="@{/admin/ontologies/import}"
                           method="post" enctype="multipart/form-data">
                         <div class="form-row">
                             <div class="col-6">
-                                <div class="form-group">
+                                <div class="form-group mb-0">
                                     <label>Import from URL</label>
                                     <input th:field="*{ontologyUrl}"
                                            class="form-control" type="url" placeholder="http://purl.obo.org/"
@@ -32,15 +33,21 @@
                                 </div>
                             </div>
                             <div class="col-6">
-                                <div class="form-group">
+                                <div class="form-group mb-0">
                                     <label>Import from file</label>
                                     <input th:field="*{ontologyFile}" type="file" class="form-control-file"
                                            th:errorclass="is-invalid"/>
-                                    <div class="invalid-feedback" th:errors="*{ontologyFile}"></div>
+                                    <!-- The version of Bootstrap 4 that we are using has a bug, so we need to set d-block: https://github.com/twbs/bootstrap/issues/24831 -->
+                                    <div class="invalid-feedback d-block" th:errors="*{ontologyFile}"></div>
                                 </div>
                             </div>
                         </div>
                         <div class="form-row">
+                            <div class="col">
+                                <small th:errors="${importOntologyForm}" class="text-danger"></small>
+                            </div>
+                        </div>
+                        <div class="form-row mt-3">
                             <div class="col">
                                 <button class="btn btn-primary import-ontology-btn" type="submit">
                                     <span class="spinner d-none"></span>
@@ -109,26 +116,31 @@
             <div th:replace="fragments/ontology::simple-ontology-form(ontology = null, simpleOntologyForm = ${simpleOntologyForm})"></div>
         </div>
     </div>
-    <div th:each="ontology : ${@ontologyService.findAllOntologiesIncludingInactive()}"
-         class="card mb-3">
-        <div class="card-header">
-            <h3 th:text="#{'rdp.ontologies.' + ${ontology.name} + '.title'}"></h3>
-            <div>
-                <span class="badge badge-info"><span th:text="${ontology.terms.size()}"></span> terms</span>
-                <a th:if="${ontology.ontologyUrl}" class="badge badge-success" th:href="${ontology.ontologyUrl}">
-                    available
-                    online
-                </a>
+    <div class="row">
+        <div th:each="ontology : ${@ontologyService.findAllOntologiesIncludingInactive()}"
+             class="col-sm-6 col-xl-4">
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h3 th:text="${#messages.msgOrNull('rdp.ontologies.' + ontology.name + '.title') ?: ontology.name}"></h3>
+                    <div>
+                        <span th:if="${ontology.active}" class="badge badge-success">active</span>
+                        <span th:unless="${ontology.active}" class="badge badge-secondary">inactive</span>
+                        <span class="badge badge-info"><span th:text="${ontology.terms.size()}"></span> terms</span>
+                    </div>
+                    <form th:unless="${ontology.active}"
+                          th:action="@{/admin/ontologies/{ontologyId}/activate(ontologyId=${ontology.id})}"
+                          method="post"
+                          enctype="application/x-www-form-urlencoded">
+                    </form>
+                </div>
+                <div class="card-body">
+                    <a th:href="@{/admin/ontologies/{ontologyId}(ontologyId=${ontology.id})}"
+                       class="btn btn-primary">
+                        View
+                        <span th:text="${#messages.msgOrNull('rdp.ontologies.' + ontology.name + '.title') ?: ontology.name}"></span>
+                    </a>
+                </div>
             </div>
-            <form th:unless="${ontology.active}"
-                  th:action="@{/admin/ontologies/{ontologyId}/activate(ontologyId=${ontology.id})}"
-                  method="post"
-                  enctype="application/x-www-form-urlencoded">
-            </form>
-        </div>
-        <div class="card-body">
-            <a th:href="@{/admin/ontologies/{ontologyId}(ontologyId=${ontology.id})}"
-               class="btn btn-primary">Get more details...</a>
         </div>
     </div>
 </div>

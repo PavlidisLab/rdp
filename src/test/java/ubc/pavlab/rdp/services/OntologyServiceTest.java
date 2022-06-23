@@ -8,6 +8,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.io.ClassPathResource;
@@ -31,6 +32,8 @@ import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Matchers.*;
+import static org.mockito.Mockito.verify;
 
 @RunWith(SpringRunner.class)
 @DataJpaTest
@@ -41,8 +44,8 @@ public class OntologyServiceTest {
     public static class OntologyServiceTestContextConfiguration {
 
         @Bean
-        public OntologyService ontologyService( OntologyRepository ontologyRepository, OntologyTermInfoRepository ontologyTermInfoRepository, MessageSource messageSource ) {
-            return new OntologyService( ontologyRepository, ontologyTermInfoRepository, messageSource );
+        public OntologyService ontologyService( OntologyRepository ontologyRepository, OntologyTermInfoRepository ontologyTermInfoRepository ) {
+            return new OntologyService( ontologyRepository, ontologyTermInfoRepository );
         }
 
         @Bean
@@ -62,6 +65,9 @@ public class OntologyServiceTest {
 
     @Autowired
     private OntologyTestSetupService ontologySetupService;
+
+    @MockBean(name = "messageSourceWithoutOntologyMessageSource")
+    private MessageSource messageSource;
 
     /**
      * This is necessary to make ontology setup transactional.
@@ -167,6 +173,7 @@ public class OntologyServiceTest {
                         "UBERON:0001398", "UBERON:4200183", "UBERON:0010760" );
 
         assertThat( ontologyService.autocomplete( "UBERON:0001507", 10, Locale.getDefault() ) ).hasSize( 1 );
+        verify( messageSource ).getMessage( "rdp.ontologies.uberon.terms.biceps brachii.title", null, "bicep brachii", Locale.getDefault() );
     }
 
     @Test
