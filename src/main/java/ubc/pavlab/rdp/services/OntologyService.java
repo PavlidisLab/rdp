@@ -446,7 +446,7 @@ public class OntologyService implements InitializingBean {
     @Transactional(readOnly = true)
     public String findDefinitionByTermNameAndOntologyName( String termName, String ontologyName ) {
         return ontologyTermInfoRepository.findAllDefinitionsByNameAndOntologyName( termName, ontologyName ).stream()
-                .findAny() // TODO: there might be a better strategy for picking the definition
+                .findFirst()
                 .orElse( null );
     }
 
