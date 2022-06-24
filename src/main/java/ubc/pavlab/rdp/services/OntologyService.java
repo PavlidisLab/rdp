@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.MessageSource;
 import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.io.UrlResource;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.domain.Page;
@@ -331,12 +332,15 @@ public class OntologyService implements InitializingBean {
         return ontologyTermInfoRepository.activateByTermIdsAndActiveFalseAndObsoleteFalse( V );
     }
 
+    @Autowired
+    private ResourceLoader resourceLoader;
+
     @Transactional
     public void updateOntologies() {
         log.info( "Updating all active ontologies..." );
         for ( Ontology ontology : findAllOntologies() ) {
             if ( ontology.getOntologyUrl() != null ) {
-                Resource resource = new UrlResource( ontology.getOntologyUrl() );
+                Resource resource = resourceLoader.getResource( ontology.getOntologyUrl().toString() );
                 log.info( "Updating " + ontology + " from " + resource + "..." );
                 try ( Reader reader = new InputStreamReader( resource.getInputStream() ) ) {
                     updateFromObo( ontology, reader );

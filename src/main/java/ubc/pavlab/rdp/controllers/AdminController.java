@@ -9,6 +9,8 @@ import org.apache.commons.lang3.time.StopWatch;
 import org.hibernate.validator.constraints.NotBlank;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -40,6 +42,7 @@ import ubc.pavlab.rdp.model.ontology.OntologyTermInfo;
 import ubc.pavlab.rdp.services.*;
 import ubc.pavlab.rdp.settings.SiteSettings;
 import ubc.pavlab.rdp.util.ParseException;
+import ubc.pavlab.rdp.util.PurlResolver;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
@@ -390,6 +393,9 @@ public class AdminController {
         webDataBinder.addValidators( new SimpleOntologyFormValidator() );
     }
 
+    @Autowired
+    private ResourceLoader resourceLoader;
+
     @PostMapping("/admin/ontologies/{ontology}/update")
     public Object updateOntology( Ontology ontology, RedirectAttributes redirectAttributes ) {
         if ( ontology.getOntologyUrl() == null ) {
@@ -400,7 +406,9 @@ public class AdminController {
             modelAndView.setStatus( HttpStatus.BAD_REQUEST );
             return modelAndView;
         } else {
-            try ( Reader reader = new InputStreamReader( new UrlResource( ontology.getOntologyUrl() ).getInputStream() ) ) {
+            // TODO: have some kind of general resolver at Spring-level
+            Resource urlResource = resourceLoader.getResource( ontology.getOntologyUrl().toString() );
+            try ( Reader reader = new InputStreamReader( urlResource.getInputStream() ) ) {
                 ontologyService.updateFromObo( ontology, reader );
                 redirectAttributes.addFlashAttribute( String.format( "Updated %s from %s.", ontology.getName(), ontology.getOntologyUrl() ) );
             } catch ( IOException | ParseException e ) {
@@ -427,7 +435,7 @@ public class AdminController {
             modelAndView.addObject( "simpleOntologyForm", SimpleOntologyForm.withInitialRows( 5 ) );
             return modelAndView;
         }
-        try ( Reader reader = importOntologyForm.getReader() ) {
+        try ( Reader reader = getReader( importOntologyForm ) ) {
             Ontology ontology = ontologyService.createFromObo( reader );
             ontology.setOntologyUrl( importOntologyForm.ontologyUrl );
             ontologyService.save( ontology );
@@ -651,18 +659,26 @@ public class AdminController {
             }
         }
 
-        public Reader getReader() throws IOException {
-            InputStream is;
-            if ( ontologyUrl != null ) {
-                is = new UrlResource( ontologyUrl ).getInputStream();
-            } else if ( !isMultipartFileEmpty( ontologyFile ) ) {
-                is = ontologyFile.getInputStream();
-            } else {
-                return null;
-            }
-            boolean hasGzipExtension = FilenameUtils.isExtension( getFilename(), "gz" );
-            return new InputStreamReader( hasGzipExtension ? new GZIPInputStream( is ) : is );
+    }
+
+    /**
+     * Obtain a {@link Reader} over the contents of an ontology described by an import form.
+     *
+     * @param importOntologyForm
+     * @return
+     * @throws IOException
+     */
+    public Reader getReader( ImportOntologyForm importOntologyForm ) throws IOException {
+        InputStream is;
+        if ( importOntologyForm.ontologyUrl != null ) {
+            is = resourceLoader.getResource( importOntologyForm.ontologyUrl.toString() ).getInputStream();
+        } else if ( !isMultipartFileEmpty( importOntologyForm.ontologyFile ) ) {
+            is = importOntologyForm.ontologyFile.getInputStream();
+        } else {
+            return null;
         }
+        boolean hasGzipExtension = FilenameUtils.isExtension( importOntologyForm.getFilename(), "gz" );
+        return new InputStreamReader( hasGzipExtension ? new GZIPInputStream( is ) : is );
     }
 
     private static boolean isMultipartFileEmpty( MultipartFile mp ) {
