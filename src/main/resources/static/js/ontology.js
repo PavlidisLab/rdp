@@ -34,6 +34,7 @@
         },
     });
 
+
     var renameOntologyTermInputName = function (attr, newIndex) {
         var parts = attr.split(/[\[\]]/, 3);
         return parts[0] + '[' + newIndex + ']' + parts[2];
@@ -87,9 +88,10 @@
                 return renameOntologyTermInputName(attr, rows.length);
             })
             .val(function (i, val) {
+                var inputName = $(this).attr('name');
                 var inputType = $(this).attr('type');
                 // FIXME: this is not the best way of detecting companion hidden input to checkboxes
-                if (inputType === 'checkbox' || inputType === 'hidden') {
+                if (inputType === 'checkbox' || (inputType === 'hidden' && inputName.startsWith('_'))) {
                     return val;
                 } else {
                     return '';
@@ -99,8 +101,15 @@
         newRow.find('label').attr('for', function (i, attr) {
             return attr + '_' + idCounter;
         });
+        // reset the term ID because it will be generated
+        newRow.find('.ontology-term-id').text('');
         newRow.insertAfter(rows.last());
         idCounter += 1;
+    });
+
+    $(document).on('click', '.ontology-term-row .remove-ontology-term-row', function (event) {
+        event.preventDefault();
+        $(this).closest('.form-row').remove();
     });
 
     $('.update-reactome-pathway-summations-btn').click(function (event) {

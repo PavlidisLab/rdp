@@ -144,19 +144,19 @@
             <thead>
             <tr>
                 <th>ID</th>
-                <th></th>
                 <th>Term ID</th>
                 <th>Name</th>
                 <th>Definition</th>
+                <td></td>
             </tr>
             </thead>
             <tbody>
             <tr th:each="term : ${selectedTerms}">
                 <td th:text="${term.termInfo.id}"></td>
-                <td></td>
                 <td th:text="${term.termId}"></td>
                 <td th:text="${term.name}"></td>
                 <td th:text="${term.termInfo?.definition}"></td>
+                <td></td>
             </tr>
             </tbody>
         </table>
@@ -167,11 +167,11 @@
 </div>
 <div th:fragment="terms-autocomplete-selection(selectedTerms)">
     <span th:each="term : ${selectedTerms}"
+          th:object="${term}"
           class="badge badge-primary mb-1">
-        <span th:text="${term.name}" class="align-middle"></span>
-        <button type="button">&times;</button>
-            <input type="hidden"
-                   th:value="${term.id}"/>
+        <span th:text="${term.name}" class="align-middle my-auto"></span>
+        <button class="close" type="button">&times;</button>
+        <input type="hidden" th:name="ontologyTermInfoIds" th:value="*{id}"/>
     </span>
     <input th:id="${#ids.seq('ontologyTermIds')}" class="form-control term-autocomplete" placeholder="Terms"/>
 </div>
@@ -224,9 +224,13 @@
     <div th:each="term, i : ${simpleOntologyForm.ontologyTerms}"
          class="form-row mt-1 ontology-term-row" draggable="true">
 
-        <div class="col-sm-6 col-lg">
-            <label th:for="'ontologyTerms' + ${i.index} + '.termId'" class="d-lg-none">Term ID</label>
-            <input type="text"
+        <div class="col-sm-12 col-lg my-auto">
+            <label th:for="'ontologyTerms' + ${i.index} + '.termId'" class="mb-0">
+                <h4 th:text="*{ontologyTerms[__${i.index}__].termId}" class="d-lg-none ontology-term-id"></h4>
+                <span th:text="*{ontologyTerms[__${i.index}__].termId}"
+                      class="d-none d-lg-inline-block ontology-term-id"></span>
+            </label>
+            <input type="hidden"
                    th:field="*{ontologyTerms[__${i.index}__].termId}"
                    class="form-control"
                    th:errorclass="is-invalid"/>
@@ -281,7 +285,7 @@
         </div>
         <div class="col-md-auto my-auto d-none d-lg-block">
             <!--<i class="oi oi-move"></i>-->
-            <button type="button" class="close text-danger">&times;</button>
+            <button type="button" class="close text-danger remove-ontology-term-row">&times;</button>
         </div>
     </div>
     <!-- feedback row for all terms -->

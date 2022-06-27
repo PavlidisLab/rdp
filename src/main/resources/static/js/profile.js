@@ -15,16 +15,16 @@
                 visible: false
             },
             {
-                targets: [1],
-                orderable: false,
-                render: function () {
-                    return $('<button class="text-danger close">').text('×')[0].outerHTML;
+                targets: [3],
+                render: function (data) {
+                    return $('<span class="ontology-term-definition">').text(data)[0].outerHTML;
                 }
             },
             {
                 targets: [4],
-                render: function (data) {
-                    return $('<span class="ontology-term-definition">').text(data)[0].outerHTML;
+                sortable: false,
+                render: function () {
+                    return $('<button class="data-table-remove-row text-danger close">').text('×')[0].outerHTML;
                 }
             }
         ]
@@ -119,7 +119,17 @@
         "paging": false,
         "searching": false,
         "info": false,
-        "order": [[0, "asc"]]
+        "order": [[0, "asc"]],
+        columnDefs: [
+            {
+                targets: [2],
+                sortable: false,
+                render: function () {
+                    return $('<button type="button" class="data-table-delete-row close text-danger">')
+                        .text('×')[0].outerHTML;
+                }
+            }
+        ]
     });
 
     // Create initial profile
@@ -175,24 +185,24 @@
         // Try to get metadata for the articles
         var rows = [];
         $.get('https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=pubmed&amp;id=' + encodeURIComponent(ids.join(",")) + '&amp;retmode=json', function (data) {
-            $.each(ids, function (idx, pubmed) {
+            $.each(ids, function (idx, pubmedId) {
                 /* check if it's already in the table */
-                var val = '<i class="delete-row"></i> ' + pubmed;
-                if (table.column(0).data().indexOf(val) !== -1) {
+                if (table.column(0).data().indexOf(pubmedId) !== -1) {
                     return;
                 }
                 var row = [];
-                row.push(val);
+                row.push(pubmedId);
                 try {
-                    var title = data.result[pubmed].title;
+                    var title = data.result[pubmedId].title;
                     title = title.length > 100 ?
                         title.substring(0, 100 - 3) + "..." :
                         title;
 
-                    row.push('<a href="https://www.ncbi.nlm.nih.gov/pubmed/' + encodeURIComponent(pubmed) + '" target="_blank" rel="noopener">' + (title ? title : 'Unknown Title') + '</a>');
+                    row.push('<a href="https://www.ncbi.nlm.nih.gov/pubmed/' + encodeURIComponent(pubmedId) + '" target="_blank" rel="noopener">' + (title ? title : 'Unknown Title') + '</a>');
                 } catch (e) {
-                    window.console.log("Issue obtaining metadata for: " + pubmed, e);
+                    row.push("Issue obtaining metadata for: " + pubmedId + ".");
                 }
+                row.push(null);
                 rows.push(row);
             });
         }).done(function () {
@@ -276,7 +286,7 @@
         select: function (event, ui) {
             var termTable = $(document.getElementById($(this).data('for-table'))).DataTable();
             termTable.row
-                .add([ui.item.id, null, ui.item.match.termId, ui.item.match.name, ui.item.match.definition])
+                .add([ui.item.id, ui.item.match.termId, ui.item.match.name, ui.item.match.definition, null])
                 .draw()
                 .nodes()
                 .to$().addClass('alert-success');

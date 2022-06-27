@@ -15,35 +15,21 @@
         e.preventDefault();
     });
 
-    $(document).on("click", 'table.dataTable .delete-row', function (event) {
+    $(document).on("click", 'table.dataTable .data-table-delete-row', function (event) {
         event.preventDefault();
         var table = $(this).closest('table').DataTable();
         table.row($(this).closest('tr')).remove().draw();
     });
 
-    $(document).on("click", 'table.dataTable .close', function (event) {
+    /* we use a hide behaviour on alert instead of bootstrap defaults to remove the element from DOM */
+    $('.alert > .close').on('click', function (event) {
         event.preventDefault();
-        var table = $(this).closest('table').DataTable();
-        table.row($(this).closest('tr')).remove().draw();
+        $(this).parent().hide();
     });
 
-    // $(document).on("click", '.reset-table', function () {
-    //     $(this).closest('table').find('tr.new-row').remove();
-    // });
-
-    $(document).on("click", ".row .close", function (event) {
+    $(document).on('click', '.badge > .close', function (event) {
         event.preventDefault();
-        $(this).closest('.row').hide();
-    });
-
-    $(document).on("click", ".form-row .close", function (event) {
-        event.preventDefault();
-        $(this).closest('.form-row').remove();
-    });
-
-    $(document).on('click', '.badge .close', function (event) {
-        event.preventDefault();
-        $(this).closest('.badge').remove();
+        $(this).parent().remove();
     });
 
 
@@ -56,12 +42,6 @@
         if (e.which === 13) {
             $(this).focusout();
         }
-    });
-
-    /* we use a hide behaviour on alert instead of bootstrap defaults to remove the element from DOM */
-    $('.alert .close').on('click', function (event) {
-        $(this).parent().hide();
-        event.preventDefault();
     });
 
     $('[data-toggle="tooltip"]').tooltip();
