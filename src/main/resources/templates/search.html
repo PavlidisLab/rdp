@@ -20,16 +20,20 @@
     <p class="lead mb-3" th:text="#{rdp.site.welcome-public(#{rdp.site.shortname})}">...</p>
 
     <ul class="nav nav-tabs mt-3">
-        <li class="nav-item"><a class="nav-link active" id="gene-tab" data-toggle="tab"
-                                href="#gene-search">Genes</a></li>
+        <li class="nav-item"><a class="nav-link" id="gene-tab" data-toggle="tab"
+                                href="#gene-search"
+                                th:classappend="${activeSearchTab} == 'gene' ? 'active'">Genes</a>
+        </li>
         <li class="nav-item"><a class="nav-link" id="res-tab" data-toggle="tab"
-                                href="#user-search">Researchers</a></li>
+                                href="#user-search"
+                                th:classappend="${activeSearchTab} == 'user' ? 'active'">Researchers</a></li>
     </ul>
 
     <div class="tab-content border-left border-right border-bottom p-3 mb-3">
         <!--Genes-->
         <div id="gene-search" role="tabpanel" aria-labelledby="gene-tab"
-             class="tab-pane fade show active">
+             class="tab-pane fade show"
+             th:classappend="${activeSearchTab} == 'gene' ? 'active'">
             <form class="search">
                 <div class="form-row">
                     <div class="col-md-9">
@@ -152,7 +156,8 @@
 
         </div>
 
-        <div id="user-search" role="tabpanel" aria-labelledby="res-tab" class="tab-pane fade">
+        <div id="user-search" role="tabpanel" aria-labelledby="res-tab" class="tab-pane  fade show"
+             th:classappend="${activeSearchTab} == 'user' ? 'active'">
             <!--Researchers alphabetically-->
             <div th:unless="${chars.isEmpty()}" class="form-row d-none d-lg-block">
                 <div class="col-md-12">

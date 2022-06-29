@@ -73,6 +73,7 @@ public class SearchController {
     @GetMapping(value = "/search")
     public ModelAndView search() {
         ModelAndView modelAndView = new ModelAndView( "search" );
+        modelAndView.addObject( "activeSearchTab", "gene" );
         modelAndView.addObject( "chars", userService.getLastNamesFirstChar() );
         modelAndView.addObject( "user", userService.findCurrentUser() );
         return modelAndView;
@@ -94,6 +95,7 @@ public class SearchController {
         } else {
             users = userService.findByLikeName( nameLike, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ), ontologyTermsFromIds( ontologyTermIds ) );
         }
+        modelAndView.addObject( "activeSearchTab", "user" );
         modelAndView.addObject( "nameLike", nameLike );
         modelAndView.addObject( "organUberonIds", organUberonIds );
         if ( ontologyTermIds != null ) {
@@ -119,6 +121,7 @@ public class SearchController {
                                                   @RequestParam(required = false) Set<String> organUberonIds,
                                                   @RequestParam(required = false) List<Integer> ontologyTermIds ) {
         ModelAndView modelAndView = new ModelAndView( "search" );
+        modelAndView.addObject( "activeSearchTab", "user" );
         modelAndView.addObject( "descriptionLike", descriptionLike );
         modelAndView.addObject( "organUberonIds", organUberonIds );
         if ( ontologyTermIds != null ) {
@@ -160,6 +163,7 @@ public class SearchController {
 
         ModelAndView modelAndView = new ModelAndView( "search" );
 
+        modelAndView.addObject( "activeSearchTab", "gene" );
         modelAndView.addObject( "chars", userService.getLastNamesFirstChar() );
         modelAndView.addObject( "symbol", symbol );
         modelAndView.addObject( "taxonId", taxonId );
