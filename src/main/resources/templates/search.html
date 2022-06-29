@@ -26,7 +26,7 @@
             <a class="nav-link" data-toggle="tab"
                th:id="${searchModeId} + '-tab'"
                th:href="@{#{searchModeId}-search(searchModeId=${searchModeId})}"
-               th:classappend="${i.first} ? 'active'"
+               th:classappend="${activeSearchMode} == ${searchMode} ? 'active'"
                th:text="#{'SearchMode.' + ${searchMode}}">
             </a>
         </li>
@@ -38,7 +38,7 @@
              th:with="searchMode=${T(ubc.pavlab.rdp.settings.ApplicationSettings$SearchSettings$SearchMode).BY_GENE},searchModeId=${searchMode.toString().replace('_', '-').toLowerCase()}"
              th:id="${searchModeId} + '-search'"
              th:attr="aria-labelledby=${searchModeId} + '-tab'"
-             th:classappend="${@applicationSettings.search.enabledSearchModes.stream().findFirst().get()} == ${searchMode} ? 'active'"
+             th:classappend="${activeSearchMode} == ${searchMode} ? 'active'"
              role="tabpanel" class="tab-pane fade show">
             <form class="search">
                 <div class="form-row">
@@ -153,7 +153,7 @@
              th:with="searchMode=${T(ubc.pavlab.rdp.settings.ApplicationSettings$SearchSettings$SearchMode).BY_RESEARCHER},searchModeId=${searchMode.toString().replace('_', '-').toLowerCase()}"
              th:id="${searchModeId} + '-search'"
              th:attr="aria-labelledby=${searchModeId} + '-tab'"
-             th:classappend="${@applicationSettings.search.enabledSearchModes.stream().findFirst().get()} == ${searchMode} ? 'active'"
+             th:classappend="${activeSearchMode} == ${searchMode} ? 'active'"
              role="tabpanel" class="tab-pane fade show">
             <!--Researchers alphabetically-->
             <div th:unless=" ${chars.isEmpty()}" class="form-row d-none d-lg-block">

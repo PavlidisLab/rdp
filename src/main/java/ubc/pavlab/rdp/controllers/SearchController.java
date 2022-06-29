@@ -27,6 +27,7 @@ import ubc.pavlab.rdp.model.enums.ResearcherCategory;
 import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.services.*;
+import ubc.pavlab.rdp.settings.ApplicationSettings;
 
 import javax.validation.Valid;
 import java.net.URI;
@@ -65,10 +66,14 @@ public class SearchController {
     @Autowired
     private PermissionEvaluator permissionEvaluator;
 
+    @Autowired
+    private ApplicationSettings applicationSettings;
+
     @PreAuthorize("hasPermission(null, 'search')")
     @GetMapping(value = "/search")
     public ModelAndView search() {
         ModelAndView modelAndView = new ModelAndView( "search" );
+        modelAndView.addObject( "activeSearchMode", applicationSettings.getSearch().getEnabledSearchModes().stream().findFirst().orElse( null ) );
         modelAndView.addObject( "chars", userService.getLastNamesFirstChar() );
         modelAndView.addObject( "user", userService.findCurrentUser() );
         return modelAndView;
@@ -89,6 +94,7 @@ public class SearchController {
         } else {
             users = userService.findByLikeName( nameLike, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ) );
         }
+        modelAndView.addObject( "activeSearchMode", ApplicationSettings.SearchSettings.SearchMode.BY_RESEARCHER );
         modelAndView.addObject( "nameLike", nameLike );
         modelAndView.addObject( "organUberonIds", organUberonIds );
         modelAndView.addObject( "chars", userService.getLastNamesFirstChar() );
@@ -109,6 +115,7 @@ public class SearchController {
                                                   @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
                                                   @RequestParam(required = false) Set<String> organUberonIds ) {
         ModelAndView modelAndView = new ModelAndView( "search" );
+        modelAndView.addObject( "activeSearchMode", ApplicationSettings.SearchSettings.SearchMode.BY_RESEARCHER );
         modelAndView.addObject( "descriptionLike", descriptionLike );
         modelAndView.addObject( "organUberonIds", organUberonIds );
         modelAndView.addObject( "chars", userService.getLastNamesFirstChar() );
@@ -145,6 +152,7 @@ public class SearchController {
 
         ModelAndView modelAndView = new ModelAndView( "search" );
 
+        modelAndView.addObject( "activeSearchMode", ApplicationSettings.SearchSettings.SearchMode.BY_GENE );
         modelAndView.addObject( "chars", userService.getLastNamesFirstChar() );
         modelAndView.addObject( "symbol", symbol );
         modelAndView.addObject( "taxonId", taxonId );
