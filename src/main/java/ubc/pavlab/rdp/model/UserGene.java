@@ -1,6 +1,7 @@
 package ubc.pavlab.rdp.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
 import lombok.extern.apachecommons.CommonsLog;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
@@ -52,8 +53,8 @@ public class UserGene extends Gene implements UserContent {
      */
     public static Comparator<UserGene> getComparator() {
         return Comparator.comparing( UserGene::getTaxon, Taxon.getComparator() )
-                        .thenComparing( UserGene::getTier )
-                        .thenComparing( UserGene::getUser, User.getComparator() );
+                .thenComparing( UserGene::getTier )
+                .thenComparing( UserGene::getUser, User.getComparator() );
     }
 
     @Id
@@ -63,6 +64,7 @@ public class UserGene extends Gene implements UserContent {
     private Integer id;
 
     @Transient
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private UUID anonymousId;
 
     @Enumerated(EnumType.STRING)

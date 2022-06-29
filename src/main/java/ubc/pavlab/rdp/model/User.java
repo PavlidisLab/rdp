@@ -1,6 +1,7 @@
 package ubc.pavlab.rdp.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import lombok.*;
 import lombok.extern.apachecommons.CommonsLog;
@@ -60,6 +61,7 @@ public class User implements UserContent {
     private Integer id;
 
     @Transient
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private UUID anonymousId;
 
     @Column(name = "email", unique = true, nullable = false)
