@@ -641,13 +641,13 @@ public class AdminControllerTest {
         Ontology ontology = Ontology.builder( "mondo" ).id( 1 ).build();
         OntologyTermInfo term = OntologyTermInfo.builder( ontology, "test" ).build();
         when( ontologyService.findById( 1 ) ).thenReturn( ontology );
-        when( ontologyService.findByTermIdAndOntology( "test", ontology ) ).thenReturn( term );
+        when( ontologyService.findTermByTermIdAndOntology( "test", ontology ) ).thenReturn( term );
         mvc.perform( post( "/admin/ontologies/{ontologyId}/activate-term", ontology.getId() )
                         .param( "ontologyTermInfoId", "test" ) )
                 .andExpect( status().is3xxRedirection() )
                 .andExpect( redirectedUrl( "/admin/ontologies/" + ontology.getId() ) );
         verify( ontologyService ).findById( 1 );
-        verify( ontologyService ).findByTermIdAndOntology( "test", ontology );
+        verify( ontologyService ).findTermByTermIdAndOntology( "test", ontology );
         verify( ontologyService ).activateTerm( term );
     }
 
@@ -657,14 +657,14 @@ public class AdminControllerTest {
         Ontology ontology = Ontology.builder( "mondo" ).id( 1 ).build();
         OntologyTermInfo term = OntologyTermInfo.builder( ontology, "test" ).build();
         when( ontologyService.findById( 1 ) ).thenReturn( ontology );
-        when( ontologyService.findByTermIdAndOntology( "test", ontology ) ).thenReturn( term );
+        when( ontologyService.findTermByTermIdAndOntology( "test", ontology ) ).thenReturn( term );
         mvc.perform( post( "/admin/ontologies/{ontologyId}/activate-term", ontology.getId() )
                         .param( "ontologyTermInfoId", "test" )
                         .param( "includeSubtree", "true" ) )
                 .andExpect( status().is3xxRedirection() )
                 .andExpect( redirectedUrl( "/admin/ontologies/" + ontology.getId() ) );
         verify( ontologyService ).findById( 1 );
-        verify( ontologyService ).findByTermIdAndOntology( "test", ontology );
+        verify( ontologyService ).findTermByTermIdAndOntology( "test", ontology );
         verify( ontologyService ).activateTermSubtree( term );
     }
 
@@ -674,7 +674,7 @@ public class AdminControllerTest {
         Ontology ontology = Ontology.builder( "mondo" ).id( 1 ).build();
         OntologyTermInfo term = OntologyTermInfo.builder( ontology, "test" ).build();
         when( ontologyService.findById( 1 ) ).thenReturn( ontology );
-        when( ontologyService.findByTermIdAndOntology( "test", ontology ) ).thenReturn( term );
+        when( ontologyService.findTermByTermIdAndOntology( "test", ontology ) ).thenReturn( term );
         mvc.perform( post( "/admin/ontologies/{ontologyId}/activate-term", ontology.getId() )
                         .param( "ontologyTermInfoId", "" )
                         .param( "includeSubtree", "true" ) )
@@ -692,14 +692,14 @@ public class AdminControllerTest {
     public void activateOntologyTermInfo_whenTermIsNotInOntology() throws Exception {
         Ontology ontology = Ontology.builder( "mondo" ).id( 1 ).build();
         when( ontologyService.findById( 1 ) ).thenReturn( ontology );
-        when( ontologyService.findByTermIdAndOntology( "test", ontology ) ).thenReturn( null );
+        when( ontologyService.findTermByTermIdAndOntology( "test", ontology ) ).thenReturn( null );
         mvc.perform( post( "/admin/ontologies/{ontologyId}/activate-term", ontology.getId() )
                         .param( "ontologyTermInfoId", "test" ) )
                 .andExpect( status().isBadRequest() )
                 .andExpect( view().name( "admin/ontology" ) )
                 .andExpect( model().attributeHasFieldErrorCode( "activateTermForm", "ontologyTermInfoId", "AdminController.ActivateTermForm.unknownTermInOntology" ) );
         verify( ontologyService ).findById( 1 );
-        verify( ontologyService ).findByTermIdAndOntology( "test", ontology );
+        verify( ontologyService ).findTermByTermIdAndOntology( "test", ontology );
         verify( ontologyService ).countActiveTerms( ontology );
         verify( ontologyService ).countObsoleteTerms( ontology );
         verifyNoMoreInteractions( ontologyService );
@@ -808,5 +808,32 @@ public class AdminControllerTest {
 
         verify( ontologyService ).findById( 1 );
         verify( reactomeService ).updatePathwaySummations( any() );
+    }
+
+    @Test
+    public void getOntologyTermPrefix() {
+        assertThat( AdminController.getOntologyTermPrefix( Ontology.builder( "uberon" ).build() ) )
+                .isEqualTo( "UBERON" );
+
+        assertThat( AdminController.getOntologyTermPrefix( Ontology.builder( "fruits of the garden" ).build() ) )
+                .isEqualTo( "FRUITSOFTHEGARDEN" );
+
+        assertThat( AdminController.getOntologyTermPrefix( Ontology.builder( "research-model" ).build() ) )
+                .isEqualTo( "RESEARCHMODEL" );
+
+        assertThat( AdminController.getOntologyTermPrefix( Ontology.builder( "Is this really an ontology?" ).build() ) )
+                .isEqualTo( "ISTHISREALLYANONTOLOGY" );
+    }
+
+    @Test
+    public void nextAvailableTermId() {
+        Ontology ontology = Ontology.builder( "mondo" ).build();
+
+        assertThat( AdminController.nextAvailableTermId( ontology, Collections.emptySet() ) ).isEqualTo( "MONDO:0000001" );
+
+        ontology.getTerms().add( OntologyTermInfo.builder( ontology, "MONDO:0000054" ).build() );
+
+        assertThat( AdminController.nextAvailableTermId( ontology, Collections.emptySet() ) )
+                .isEqualTo( "MONDO:0000055" );
     }
 }

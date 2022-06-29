@@ -1,8 +1,8 @@
 package ubc.pavlab.rdp.services;
 
 import io.swagger.v3.oas.models.OpenAPI;
-import lombok.Builder;
 import lombok.Data;
+import lombok.experimental.SuperBuilder;
 import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,9 +53,6 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
 
     @Autowired
     private UserService userService;
-
-    @Autowired
-    private UserGeneService userGeneService;
 
     @Autowired
     private RoleRepository roleRepository;
@@ -288,12 +285,13 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
     }
 
     @Data
-    @Builder
+    @SuperBuilder
     static class UserSearchParams {
 
         private Collection<ResearcherPosition> researcherPositions;
         private Collection<ResearcherCategory> researcherCategories;
         private Collection<String> organUberonIds;
+        private Collection<OntologyTermInfo> ontologyTermInfos;
 
         public MultiValueMap<String, String> toMultiValueMap() {
             MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
@@ -310,6 +308,12 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
             if ( organUberonIds != null ) {
                 for ( String organUberonId : organUberonIds ) {
                     params.add( "organUberonIds", organUberonId );
+                }
+            }
+            if ( ontologyTermInfos != null ) {
+                for ( OntologyTermInfo ontologyTermInfo : ontologyTermInfos ) {
+                    params.add( "ontologyNames", ontologyTermInfo.getOntology().getName() );
+                    params.add( "ontologyTermIds", ontologyTermInfo.getTermId() );
                 }
             }
             return params;
@@ -317,37 +321,20 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
     }
 
     @Data
-    @Builder
-    static class UserGeneSearchParams {
+    @SuperBuilder
+    static class UserGeneSearchParams extends UserSearchParams {
 
         private Integer taxonId;
         private TierType tier;
         private Integer orthologTaxonId;
-        private Collection<ResearcherPosition> researcherPositions;
-        private Collection<ResearcherCategory> researcherCategories;
-        private Collection<String> organUberonIds;
 
+        @Override
         public MultiValueMap<String, String> toMultiValueMap() {
-            MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+            MultiValueMap<String, String> params = super.toMultiValueMap();
             params.add( "taxonId", taxonId.toString() );
             params.add( "tier", tier.name() );
             if ( orthologTaxonId != null ) {
                 params.add( "orthologTaxonId", orthologTaxonId.toString() );
-            }
-            if ( researcherPositions != null ) {
-                for ( ResearcherPosition researcherPosition : researcherPositions ) {
-                    params.add( "researcherPosition", researcherPosition.name() );
-                }
-            }
-            if ( researcherCategories != null ) {
-                for ( ResearcherCategory researcherCategory : researcherCategories ) {
-                    params.add( "researcherCategory", researcherCategory.name() );
-                }
-            }
-            if ( organUberonIds != null ) {
-                for ( String organUberonId : organUberonIds ) {
-                    params.add( "organUberonIds", organUberonId );
-                }
             }
             return params;
         }

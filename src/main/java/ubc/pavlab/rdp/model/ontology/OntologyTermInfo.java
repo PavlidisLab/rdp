@@ -57,7 +57,6 @@ public class OntologyTermInfo extends OntologyTerm implements Serializable, Comp
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "ontology_term_info_id")
-    @JsonIgnore
     private Integer id;
 
     @ElementCollection

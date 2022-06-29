@@ -148,6 +148,10 @@ public class ApplicationSettings {
 
     @Data
     public static class OntologySettings {
+        /**
+         * Enable ontologies.
+         */
+        private boolean enabled;
         private String reactomePathwaysOntologyName;
         private Resource reactomePathwaysFile;
         private Resource reactomePathwaysHierarchyFile;

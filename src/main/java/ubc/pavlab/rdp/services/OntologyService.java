@@ -11,7 +11,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.MessageSource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
-import org.springframework.core.io.UrlResource;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -317,20 +316,9 @@ public class OntologyService implements InitializingBean {
     @Secured("ROLE_ADMIN")
     @Transactional
     public int activateTermSubtree( OntologyTermInfo ontologyTermInfo ) {
-        Set<Integer> fringe = new HashSet<>();
-        Set<Integer> V = new HashSet<>();
-        fringe.add( ontologyTermInfo.getId() );
-        while ( !fringe.isEmpty() ) {
-            List<Integer> subTermIds = ontologyTermInfoRepository.findSubTermsIdsByTermIdIn( fringe );
-            V.addAll( fringe );
-            // remove already visited nodes
-            subTermIds.removeIf( V::contains );
-            // set the fringe
-            fringe.clear();
-            fringe.addAll( subTermIds );
-        }
-        return ontologyTermInfoRepository.activateByTermIdsAndActiveFalseAndObsoleteFalse( V );
+        return ontologyTermInfoRepository.activateByTermIdsAndActiveFalseAndObsoleteFalse( getDescendentIds( Collections.singleton( ontologyTermInfo ) ) );
     }
+
 
     @Autowired
     private ResourceLoader resourceLoader;
@@ -619,6 +607,25 @@ public class OntologyService implements InitializingBean {
         return sortedResults;
     }
 
+    /**
+     * Infer a set of terms numerical IDs meant by a collection of ontology terms.
+     * <p>
+     * Caching makes most sense for top terms which are more expensive to infer due to the large number of descendents.
+     */
+    @Transactional(readOnly = true)
+    public Set<Integer> inferTermIds( Collection<OntologyTermInfo> ontologyTermInfos ) {
+        StopWatch timer = StopWatch.createStarted();
+        try {
+            return getDescendentIds( ontologyTermInfos );
+        } finally {
+            if ( timer.getTime( TimeUnit.MILLISECONDS ) > 500 ) {
+                log.warn( String.format( "Term inference took %d ms for the following terms: %s.",
+                        timer.getTime( TimeUnit.MILLISECONDS ),
+                        ontologyTermInfos.stream().map( OntologyTermInfo::toString ).collect( Collectors.joining( ", " ) ) ) );
+            }
+        }
+    }
+
     private SearchResult<OntologyTermInfo> toSearchResult( OntologyTermInfo t, OntologyTermMatchType matchType, String extras, double tfIdf, Locale locale ) {
         SearchResult<OntologyTermInfo> result = new SearchResult<>(
                 matchType,
@@ -796,7 +803,7 @@ public class OntologyService implements InitializingBean {
         return Comparator.comparingInt( t -> Ls.getOrDefault( t, maxResults ) );
     }
 
-    public OntologyTermInfo findByTermIdAndOntology( String ontologyTermInfoId, Ontology ontology ) {
+    public OntologyTermInfo findTermByTermIdAndOntology( String ontologyTermInfoId, Ontology ontology ) {
         return ontologyTermInfoRepository.findByTermIdAndOntology( ontologyTermInfoId, ontology );
     }
 
@@ -822,5 +829,25 @@ public class OntologyService implements InitializingBean {
     @Transactional(readOnly = true)
     public long countObsoleteTerms( Ontology ontology ) {
         return ontologyTermInfoRepository.countByOntologyAndObsoleteTrue( ontology );
+    }
+
+    /**
+     * Obtain the IDs of the descendent terms.
+     */
+    private Set<Integer> getDescendentIds( Collection<OntologyTermInfo> terms ) {
+        Set<Integer> fringe = terms.stream()
+                .map( OntologyTermInfo::getId )
+                .collect( Collectors.toSet() );
+        Set<Integer> V = new HashSet<>();
+        while ( !fringe.isEmpty() ) {
+            List<Integer> subTermIds = ontologyTermInfoRepository.findSubTermsIdsByTermIdIn( fringe );
+            V.addAll( fringe );
+            // remove already visited nodes
+            subTermIds.removeIf( V::contains );
+            // set the fringe
+            fringe.clear();
+            fringe.addAll( subTermIds );
+        }
+        return V;
     }
 }

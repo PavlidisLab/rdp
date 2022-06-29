@@ -31,12 +31,7 @@
     <tbody>
     <tr th:each="gene : ${genes}">
         <td th:text="${gene.geneId}"></td>
-        <td class="align-middle">
-            <a th:href="@{https://www.ncbi.nlm.nih.gov/gene/{geneId}(geneId=${gene.geneId})}"
-               th:text="${gene.symbol}"
-               target="_blank"
-               class="align-middle"></a>
-        </td>
+        <td class="align-middle" th:text="${gene.symbol}"></td>
         <td class="align-middle" th:text="${gene.name}"></td>
         <th:block
                 th:if="${@tierService.isTierEnabled(T(ubc.pavlab.rdp.model.enums.TierType).TIER1)} and ${@tierService.isTierEnabled(T(ubc.pavlab.rdp.model.enums.TierType).TIER2)}">
@@ -63,7 +58,8 @@
     </tbody>
     <tfoot th:if="${viewOnly != null}">
     <tr>
-        <td colspan="3"></td>
+        <td></td>
+        <td class="text-center"></td>
     </tr>
     </tfoot>
 </table>

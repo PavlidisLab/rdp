@@ -28,11 +28,11 @@ import ubc.pavlab.rdp.util.SearchResult;
 import javax.persistence.EntityManager;
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.verify;
 
 @RunWith(SpringRunner.class)
@@ -134,7 +134,7 @@ public class OntologyServiceTest {
         assertThat( term.getSynonyms() )
                 .hasSize( 9 )
                 .contains( "canalis cervicis uteri" );
-        term = ontologyService.findByTermIdAndOntology( "UBERON:0000044", ontology );
+        term = ontologyService.findTermByTermIdAndOntology( "UBERON:0000044", ontology );
         assertThat( term ).isNotNull();
         assertThat( term.getAltTermIds() )
                 .containsExactly( "UBERON:0026602" );
@@ -299,7 +299,7 @@ public class OntologyServiceTest {
     @Test
     public void activateTerm() throws OntologyNameAlreadyUsedException, IOException, ParseException {
         Ontology mondo = ontologySetupService.setupOntology( "mondo", true );
-        OntologyTermInfo term = ontologyService.findByTermIdAndOntology( "MONDO:0000001", mondo );
+        OntologyTermInfo term = ontologyService.findTermByTermIdAndOntology( "MONDO:0000001", mondo );
         ontologyService.activateTerm( term );
         entityManager.refresh( term );
         assertThat( term.isActive() ).isTrue();
@@ -311,8 +311,29 @@ public class OntologyServiceTest {
     @Test
     public void activateTermSubtree() throws OntologyNameAlreadyUsedException, IOException, ParseException {
         Ontology mondo = ontologySetupService.setupOntology( "mondo", false );
-        OntologyTermInfo term = ontologyService.findByTermIdAndOntology( "MONDO:0000001", mondo );
+        OntologyTermInfo term = ontologyService.findTermByTermIdAndOntology( "MONDO:0000001", mondo );
         int activatedTerms = ontologyService.activateTermSubtree( term );
         assertThat( activatedTerms ).isEqualTo( 22027 );
+    }
+
+    @Test
+    public void inferTermIds() throws OntologyNameAlreadyUsedException, IOException, ParseException {
+        Ontology uberon = ontologySetupService.setupOntology( "uberon", true );
+        OntologyTermInfo brainTerm = ontologyService.findTermByTermIdAndOntologyName( "UBERON:0000955", "uberon" );
+        Set<OntologyTermInfo> inferredTerms = ontologyService.inferTermIds( Collections.singleton( brainTerm ) ).stream().map( ontologyService::findTermById ).collect( Collectors.toSet() );
+        assertThat( inferredTerms )
+                .extracting( "termId" )
+                .containsExactlyInAnyOrder( "UBERON:0008823", "UBERON:6003624", "UBERON:6001920", "UBERON:6001060", "UBERON:0000955" );
+    }
+
+    @Test
+    public void inferTermIds_whenTopTermIsUsed() throws OntologyNameAlreadyUsedException, IOException, ParseException {
+        Ontology uberon = ontologySetupService.setupOntology( "uberon", true );
+        StopWatch stopWatch = StopWatch.createStarted();
+        OntologyTermInfo brainTerm = ontologyService.findTermByTermIdAndOntology( "UBERON:0001062", uberon );
+        stopWatch.stop();
+        Set<Integer> inferredTerms = ontologyService.inferTermIds( Collections.singleton( brainTerm ) );
+        assertThat( inferredTerms ).hasSize( 13848 );
+        assertThat( stopWatch.getTime( TimeUnit.MILLISECONDS ) ).isLessThan( 500 );
     }
 }

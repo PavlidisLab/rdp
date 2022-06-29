@@ -275,7 +275,9 @@
                             class="mb-0"></h3>
                     </div>
                     <div class="card-body">
-                        <p>Choose <b th:text="${#messages.msgOrNull('rdp.ontologies.' + ontology.name + '.title') ?: ontology.name}"></b> terms your
+                        <p>Choose <b
+                                th:text="${#messages.msgOrNull('rdp.ontologies.' + ontology.name + '.title') ?: ontology.name}"></b>
+                            terms your
                             research is most
                             relevant to:</p>
                         <div th:replace="fragments/ontology::terms-selection(ontology = ${ontology}, selectedTerms=${user.getUserOntologyTermsByOntology(ontology)})">
@@ -317,20 +319,22 @@
                                 <tr>
                                     <th scope="col">PubMed</th>
                                     <th scope="col">Title</th>
+                                    <th></th>
                                 </tr>
                                 </thead>
                                 <tbody>
                                 <tr th:each="pub : ${user.profile.publications}">
                                     <!-- don't format the following line, the frontend makes assumption -->
-                                    <td><i class="delete-row" th:if="${viewOnly == null}"></i> <span
-                                            th:text="${pub.pmid}"
-                                            th:remove="tag"></span>
+                                    <td>
+                                        <span th:text="${pub.pmid}"
+                                              th:remove="tag"></span>
                                     </td>
                                     <td><a th:href="${'https://www.ncbi.nlm.nih.gov/pubmed/' + pub.pmid}"
                                            target="_blank"
                                            th:text="${pub.title != ''} ? ${pub.title} : 'Unknown Title'"
                                            rel="noopener"></a>
                                     </td>
+                                    <td></td>
                                 </tr>
                                 </tbody>
                             </table>

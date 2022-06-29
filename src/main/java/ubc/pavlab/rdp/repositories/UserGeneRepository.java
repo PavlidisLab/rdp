@@ -2,7 +2,9 @@ package ubc.pavlab.rdp.repositories;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.repository.query.Param;
@@ -15,10 +17,11 @@ import ubc.pavlab.rdp.model.enums.TierType;
 
 import javax.persistence.QueryHint;
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.Set;
 
 @Repository
-public interface UserGeneRepository extends JpaRepository<UserGene, Integer> {
+public interface UserGeneRepository extends JpaRepository<UserGene, Integer>, JpaSpecificationExecutor<UserGene> {
 
     Integer countByTierIn( Collection<TierType> tiers );
 

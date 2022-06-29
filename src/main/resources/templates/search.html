@@ -258,7 +258,7 @@
                 </div>
             </form>
 
-            <div th:if="${@ontologyService.countTerms()} > 0"
+            <div th:if="${@applicationSettings.ontology.enabled}"
                  class="form-row">
                 <div class="col-md-12">
                     <div class="form-group mb-0">

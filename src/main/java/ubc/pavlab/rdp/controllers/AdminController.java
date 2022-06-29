@@ -11,7 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
-import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -31,7 +30,6 @@ import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import org.springframework.web.util.UriUtils;
 import ubc.pavlab.rdp.model.AccessToken;
 import ubc.pavlab.rdp.model.Profile;
 import ubc.pavlab.rdp.model.User;
@@ -42,7 +40,6 @@ import ubc.pavlab.rdp.model.ontology.OntologyTermInfo;
 import ubc.pavlab.rdp.services.*;
 import ubc.pavlab.rdp.settings.SiteSettings;
 import ubc.pavlab.rdp.util.ParseException;
-import ubc.pavlab.rdp.util.PurlResolver;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
@@ -57,6 +54,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 
@@ -84,6 +83,7 @@ public class AdminController {
 
     @Autowired
     private SmartValidator smartValidator;
+
 
     /**
      * List all users
@@ -307,8 +307,10 @@ public class AdminController {
             return new SimpleOntologyTermForm( "", "", false, false, false );
         }
 
-        @NotNull(groups = RowNotEmpty.class)
-        @Size(min = 1, max = 255, groups = RowNotEmpty.class)
+        /**
+         * Auto-generated if null or empty, which is why we allow zero as a size.
+         */
+        @Size(max = 255, groups = RowNotEmpty.class)
         private String termId;
         @NotNull(groups = RowNotEmpty.class)
         @Size(min = 1, max = 255, groups = RowNotEmpty.class)
@@ -334,9 +336,16 @@ public class AdminController {
             if ( simpleOntologyTermForm.isEmpty() ) {
                 continue; // empty row, ignore it
             }
-            OntologyTermInfo term = termById.get( simpleOntologyTermForm.getTermId() );
-            if ( term == null ) {
-                term = OntologyTermInfo.builder( ontology, simpleOntologyTermForm.getTermId() ).build();
+            String termId = simpleOntologyTermForm.getTermId();
+            OntologyTermInfo term;
+            if ( termId == null || termId.isEmpty() ) {
+                termId = nextAvailableTermId( ontology, terms );
+                term = OntologyTermInfo.builder( ontology, termId ).build();
+            } else {
+                term = termById.get( termId );
+                if ( term == null ) {
+                    term = OntologyTermInfo.builder( ontology, termId ).build();
+                }
             }
             term.setName( simpleOntologyTermForm.getName() );
             term.setGroup( simpleOntologyTermForm.isGrouping() );
@@ -354,6 +363,42 @@ public class AdminController {
             terms.add( term );
         }
         return terms;
+    }
+
+    /**
+     * Infer the ontology term prefix to use for term IDs.
+     *
+     * @see #nextAvailableTermId(Ontology, Set)
+     */
+    static String getOntologyTermPrefix( Ontology ontology ) {
+        return ontology.getName().replaceAll( "\\W", "" ).toUpperCase();
+    }
+
+    /**
+     * Generate the next available term ID for a given ontology.
+     *
+     * @param ontology        ontology from which the term ID is generated
+     * @param additionalTerms additional terms, which might not be part of the ontology yet but whose term IDs will be
+     *                        used
+     * @return a unique, unused term ID
+     */
+    static String nextAvailableTermId( Ontology ontology, Set<OntologyTermInfo> additionalTerms ) {
+        String termPrefix = getOntologyTermPrefix( ontology );
+        Pattern termIdPattern = Pattern.compile( "^" + Pattern.quote( termPrefix ) + ":(\\d{7})$" );
+        Set<OntologyTermInfo> usedTerms = new HashSet<>();
+        usedTerms.addAll( ontology.getTerms() );
+        usedTerms.addAll( additionalTerms );
+        int maxTermId = usedTerms.stream()
+                .map( OntologyTermInfo::getTermId )
+                .map( termIdPattern::matcher )
+                .filter( Matcher::matches )
+                .mapToInt( m -> Integer.parseInt( m.group( 1 ) ) )
+                .max().orElse( 0 );
+        if ( maxTermId > 9999999 ) {
+            // bad news I guess
+            throw new IllegalStateException( "The maximum term ID has already been reached." );
+        }
+        return String.format( "%s:%07d", termPrefix, maxTermId + 1 );
     }
 
     private class SimpleOntologyFormValidator implements Validator {
@@ -584,7 +629,7 @@ public class AdminController {
     public Object activateOntologyTermInfo( @PathVariable Ontology ontology, @Valid ActivateTermForm activateTermForm, BindingResult bindingResult, RedirectAttributes redirectAttributes ) {
         OntologyTermInfo ontologyTermInfo = null;
         if ( !bindingResult.hasFieldErrors( "ontologyTermInfoId" ) ) {
-            ontologyTermInfo = ontologyService.findByTermIdAndOntology( activateTermForm.ontologyTermInfoId, ontology );
+            ontologyTermInfo = ontologyService.findTermByTermIdAndOntology( activateTermForm.ontologyTermInfoId, ontology );
             if ( ontologyTermInfo == null ) {
                 bindingResult.rejectValue( "ontologyTermInfoId", "AdminController.ActivateTermForm.unknownTermInOntology", new String[]{ activateTermForm.getOntologyTermInfoId(), ontology.getName() }, String.format( "Unknown term %s in ontology %s.", activateTermForm.getOntologyTermInfoId(), ontology.getName() ) );
             }

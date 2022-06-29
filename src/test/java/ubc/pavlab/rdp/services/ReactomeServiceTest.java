@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.io.ClassPathResource;
@@ -88,7 +87,7 @@ public class ReactomeServiceTest {
     public void importReactomePathways() {
         assertThat( reactome.getTerms() ).hasSize( 2580 );
         // the TSV does not have a header, so we must ensure that the first record is kept
-        assertThat( ontologyService.findByTermIdAndOntology( "R-HSA-164843", reactome ) ).isNotNull();
+        assertThat( ontologyService.findTermByTermIdAndOntology( "R-HSA-164843", reactome ) ).isNotNull();
         assertThat( ontologyService.autocomplete( "R-HSA-164843", 10, Locale.getDefault() ) ).hasSize( 1 );
     }
 
@@ -118,7 +117,7 @@ public class ReactomeServiceTest {
 
         reactomeService.updatePathwaySummations( null );
 
-        assertThat( ontologyService.findByTermIdAndOntology( "R-HSA-164843", reactome ) )
+        assertThat( ontologyService.findTermByTermIdAndOntology( "R-HSA-164843", reactome ) )
                 .isNotNull()
                 .hasFieldOrPropertyWithValue( "definition", "the new summation" );
 
