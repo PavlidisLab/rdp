@@ -71,6 +71,9 @@ public class SearchControllerTest {
     @MockBean
     private ApplicationSettings.InternationalSearchSettings iSearchSettings;
 
+    @MockBean
+    private ApplicationSettings.OntologySettings ontologySettings;
+
     @MockBean(name = "userService")
     private UserService userService;
 
@@ -125,6 +128,7 @@ public class SearchControllerTest {
         when( profileSettings.getEnabledResearcherPositions() ).thenReturn( Lists.newArrayList( "PRINCIPAL_INVESTIGATOR" ) );
         when( applicationSettings.getOrgans() ).thenReturn( organSettings );
         when( applicationSettings.getIsearch() ).thenReturn( iSearchSettings );
+        when( applicationSettings.getOntology() ).thenReturn( ontologySettings );
         when( permissionEvaluator.hasPermission( any(), isNull(), eq( "search" ) ) ).thenReturn( true );
         when( permissionEvaluator.hasPermission( any(), isNull(), eq( "international-search" ) ) ).thenReturn( true );
     }

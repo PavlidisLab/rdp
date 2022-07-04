@@ -31,7 +31,7 @@
             }).fail(function () {
                 response([{noresults: true, label: 'Error querying search endpoint.', value: term}]);
             });
-        },
+        }
     });
 
 
@@ -102,7 +102,7 @@
             return attr + '_' + idCounter;
         });
         // reset the term ID because it will be generated
-        newRow.find('.ontology-term-id').text('');
+        newRow.find('.ontology-term-id').html($('<em>').text('Term ID will be generated'));
         newRow.insertAfter(rows.last());
         idCounter += 1;
     });
@@ -112,6 +112,12 @@
         $(this).closest('.form-row').remove();
     });
 
+    function ProgressPayload(processedElements, totalElements, elapsedTime) {
+        this.processedElements = processedElements;
+        this.totalElements = totalElements;
+        this.elapsedTime = elapsedTime;
+    }
+
     $('.update-reactome-pathway-summations-btn').click(function (event) {
         event.preventDefault();
         var reactomeOntologyId = $(this).data('reactome-ontology-id');
@@ -120,6 +126,9 @@
         var evtSource = new window.EventSource('/admin/ontologies/' + reactomeOntologyId + '/update-reactome-pathway-summations');
         $(progressFeedback).toggleClass('text-success', false);
         evtSource.onmessage = function (e) {
+            /**
+             * @type {ProgressPayload}
+             */
             var progressPayload = window.JSON.parse(e.data);
             if (progressPayload.processedElements === progressPayload.totalElements) {
                 $(progressFeedback)

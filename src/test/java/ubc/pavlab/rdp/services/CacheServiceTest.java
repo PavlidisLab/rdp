@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.junit4.SpringRunner;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
 
 @RunWith(SpringRunner.class)
@@ -71,7 +72,7 @@ public class CacheServiceTest {
         verify( organInfoService ).updateOrganInfos();
         verify( userOrganService ).updateUserOrgans();
         verify( reactomeService ).updatePathwaysOntology();
-        verify( reactomeService ).updatePathwaySummations( null );
+        verify( reactomeService ).updatePathwaySummations( any() );
     }
 
 }

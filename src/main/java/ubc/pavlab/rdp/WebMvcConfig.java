@@ -24,7 +24,7 @@ public class WebMvcConfig extends WebMvcConfigurerAdapter {
      * This bean provides message source resolution without {@link OntologyMessageSource}.
      */
     @Bean
-    public HierarchicalMessageSource messageSourceWithoutOntologyMessageSource() {
+    public HierarchicalMessageSource messageSourceWithoutOntology() {
         ReloadableResourceBundleMessageSource messageSource = new ReloadableResourceBundleMessageSource();
         // application-prod.properties and login.properties is there for backward compatibility since
         // we used to pull locale strings from there.
@@ -34,7 +34,7 @@ public class WebMvcConfig extends WebMvcConfigurerAdapter {
 
     @Bean
     public MessageSource messageSource( OntologyMessageSource ontologyMessageSource ) {
-        HierarchicalMessageSource messageSource = messageSourceWithoutOntologyMessageSource();
+        HierarchicalMessageSource messageSource = messageSourceWithoutOntology();
         // if it cannot be resolved in messages.properties, then lookup some of our built-in resolution for
         // ontology-related patterns
         messageSource.setParentMessageSource( ontologyMessageSource );

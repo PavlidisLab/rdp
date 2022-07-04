@@ -188,12 +188,7 @@
         minLength: 2,
         delay: 200,
         source: function (request, response) {
-            var term = request.term;
-            var offset;
-            if ((offset = term.lastIndexOf(',')) !== -1) {
-                term = term.substring(offset + 1, term.length);
-            }
-            term = term.trim();
+            var term = request.term.trim();
             $.getJSON('/search/ontology-terms/autocomplete', {query: term}).done(function (data) {
                 if (!data.length) {
                     return response([{
@@ -209,10 +204,16 @@
                 response([{noresults: true, label: 'Error querying search endpoint.', value: term}]);
             });
         },
+        /**
+         *
+         * @param event
+         * @param ui {SearchResult}
+         * @returns {boolean}
+         */
         select: function (event, ui) {
             // add the term ID to the selection
             $('<span class="badge badge-primary mb-1">')
-                .append($('<span class="align-middle">').text(ui.item.match.name))
+                .append($('<span class="align-middle">').text(ui.item.description))
                 .append($('<button class="align-middle close" type="button">').text('×'))
                 .append($('<input name="ontologyTermIds" type="hidden">').val(ui.item.id))
                 .insertBefore($(this));

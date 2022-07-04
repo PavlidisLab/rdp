@@ -3,15 +3,14 @@ package ubc.pavlab.rdp.model.ontology;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.NaturalId;
-import ubc.pavlab.rdp.model.Taxon;
 
-import javax.persistence.*;
-import java.util.Collection;
+import javax.persistence.Column;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.MappedSuperclass;
 
 /**
  * Represents an ontology term in a category.
- * <p>
- * TODO: mimic the structure of a OWL [Term] record.
  *
  * @author poirigui
  */

@@ -18,6 +18,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import ubc.pavlab.rdp.model.ontology.Ontology;
 import ubc.pavlab.rdp.model.ontology.OntologyTermInfo;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
+import ubc.pavlab.rdp.util.CollectionUtils;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -146,8 +147,7 @@ public class ReactomeService {
             throw new ReactomeException( String.format( "Failed to open the Reactome pathways hierarchy file %s.", applicationSettings.getOntology().getReactomePathwaysHierarchyFile() ), e );
         }
 
-        ontology.getTerms().removeIf( p -> !pathwayById.containsKey( p.getTermId() ) );
-        ontology.getTerms().addAll( pathwayById.values() );
+        CollectionUtils.updateWithMap( ontology.getTerms(), OntologyTermInfo::getTermId, pathwayById );
 
         ontology = ontologyService.saveNoAuth( ontology );
 

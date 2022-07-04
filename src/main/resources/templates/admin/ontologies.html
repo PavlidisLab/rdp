@@ -8,15 +8,15 @@
 <body>
 <div th:replace="layouts/common::header"></div>
 <div class="container py-3">
-    <div th:replace="layouts/common::title(title='Ontologies', subtitle='Manage ontologies')"></div>
+    <div th:replace="layouts/common::title(title='Manage Profile Categories', subtitle='')"></div>
     <div th:replace="layouts/common::message"></div>
     <div class="card mb-3">
         <div class="card-body border-bottom">
             <div class="row mb-3">
                 <div class="col-8 border-right">
-                    <h2>Import Ontology</h2>
+                    <h2>Import Category from OBO Ontology Format</h2>
                     <p>
-                        Import an ontology from an URL or a file represented in the OBO format. If imported via an URL,
+                        Import a category from an URL or a file represented in the OBO format. If imported via an URL,
                         periodic update of the terms will also be activated.
                     </p>
                     <form th:object="${importOntologyForm}"
@@ -52,7 +52,7 @@
                                 <button class="btn btn-primary import-ontology-btn" type="submit">
                                     <span class="spinner d-none"></span>
                                     <i class="oi oi-cloud-download"></i>
-                                    Import Ontology
+                                    Import from OBO
                                 </button>
                             </div>
                         </div>
@@ -71,8 +71,8 @@
                 <div class="col-4">
                     <h2>Stubs</h2>
                     <form th:action="@{/admin/ontologies/create-stubs}" method="post">
-                        <p>RDP provides stubbed ontologies for tumor tissues, research models and research technologies
-                            that can be setup.</p>
+                        <p>RDP provides stubbed categories for tumor tissues, research models and research technologies
+                            that can be setup at a glance.</p>
                         <th:block th:if="${@ontologyStubService.findAllOntologyStubs().size() lt 3}">
                             <p class="text-warning">Careful here because this action is not reversible!</p>
                             <button class="btn btn-warning" type="submit">
@@ -121,8 +121,8 @@
             </div>
         </div>
         <div class="card-body">
-            <h2 class="mb-0">Create Simple Ontology</h2>
-            <p>As an alternative to the OBO format, you may also manage small ontologies by hand.</p>
+            <h2 class="mb-0">Create Simple Category</h2>
+            <p>As an alternative to the OBO format import, you may also manage small categories by hand.</p>
             <div th:replace="fragments/ontology::simple-ontology-form(ontology = null, simpleOntologyForm = ${simpleOntologyForm})"></div>
         </div>
     </div>
@@ -131,23 +131,21 @@
              class="col-sm-6 col-xl-4">
             <div class="card mb-3">
                 <div class="card-header">
-                    <h3 th:text="${#messages.msgOrNull('rdp.ontologies.' + ontology.name + '.title') ?: ontology.name}"></h3>
+                    <h3>
+                        <span th:replace="fragments/ontology::ontology-name(${ontology})"></span>
+                    </h3>
                     <div>
                         <span th:if="${ontology.active}" class="badge badge-success">active</span>
                         <span th:unless="${ontology.active}" class="badge badge-secondary">inactive</span>
                         <span class="badge badge-info"><span th:text="${ontology.terms.size()}"></span> terms</span>
                     </div>
-                    <form th:unless="${ontology.active}"
-                          th:action="@{/admin/ontologies/{ontologyId}/activate(ontologyId=${ontology.id})}"
-                          method="post"
-                          enctype="application/x-www-form-urlencoded">
-                    </form>
                 </div>
                 <div class="card-body">
+                    <p th:text="${#messages.msgOrNull('rdp.ontologies.' + ontology.name + '.definition')} ?: 'There is no definition for this category.'"></p>
                     <a th:href="@{/admin/ontologies/{ontologyId}(ontologyId=${ontology.id})}"
                        class="btn btn-primary">
-                        View
-                        <span th:text="${#messages.msgOrNull('rdp.ontologies.' + ontology.name + '.title') ?: ontology.name}"></span>
+                        <i class="oi oi-pencil"></i>
+                        Manage Category
                     </a>
                 </div>
             </div>

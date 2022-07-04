@@ -9,8 +9,11 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.junit4.SpringRunner;
+import ubc.pavlab.rdp.model.User;
 import ubc.pavlab.rdp.model.ontology.Ontology;
 import ubc.pavlab.rdp.model.ontology.OntologyTermInfo;
+import ubc.pavlab.rdp.model.ontology.UserOntologyTerm;
+import ubc.pavlab.rdp.repositories.UserRepository;
 
 import javax.persistence.EntityManager;
 import java.util.List;
@@ -20,6 +23,8 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static ubc.pavlab.rdp.util.TestUtils.createUnpersistedUser;
+import static ubc.pavlab.rdp.util.TestUtils.createUser;
 
 /**
  * This test also include tests for {@link OntologyTermInfoRepository} since the two repositories are closely linked.
@@ -184,5 +189,26 @@ public class OntologyRepositoryTest {
                 .containsExactlyInAnyOrder( "This is a nice definition", "This is a nice definition2" );
         assertThat( ontologyTermInfoRepository.findAllDefinitionsByNameAndOntologyName( "test2", "test" ) )
                 .isEmpty();
+    }
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Test(expected = DataIntegrityViolationException.class)
+    public void deleteOntology_whenUserHasAssociatedTerms() {
+        User user = userRepository.save( createUnpersistedUser() );
+        Ontology ontology = Ontology.builder( "test" ).build();
+        OntologyTermInfo term = OntologyTermInfo.builder( ontology, "TERM:0001" )
+                .name( "test1" )
+                .definition( "This is a nice definition" )
+                .build();
+        ontology.getTerms().add( term );
+        ontology = ontologyRepository.save( ontology );
+        UserOntologyTerm ut = UserOntologyTerm.fromOntologyTermInfo( user, term );
+        user.getUserOntologyTerms().add( ut );
+        user = userRepository.save( user );
+
+        ontologyRepository.delete( ontology );
+        ontologyRepository.flush();
     }
 }

@@ -24,7 +24,7 @@
                 targets: [4],
                 sortable: false,
                 render: function () {
-                    return $('<button class="data-table-remove-row text-danger close">').text('×')[0].outerHTML;
+                    return $('<button class="data-table-delete-row text-danger close">').text('×')[0].outerHTML;
                 }
             }
         ]

@@ -155,15 +155,6 @@ public class ApiController {
         return ontologyService.findAllOntologies();
     }
 
-    @GetMapping(value = "/api/ontologies/{ontologyName}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Ontology getOntology( @PathVariable String ontologyName, Locale locale ) {
-        Ontology ontology = ontologyService.findByName( ontologyName );
-        if ( ontology == null || !ontology.isActive() ) {
-            throw new ApiException( HttpStatus.NOT_FOUND, String.format( locale, "No ontology %s.", ontologyName ) );
-        }
-        return ontology;
-    }
-
     @GetMapping(value = "/api/ontologies/{ontologyName}/terms", produces = MediaType.APPLICATION_JSON_VALUE)
     public Page<OntologyTermInfo> getOntologyTerms( @PathVariable String ontologyName, Pageable pageable, Locale locale ) {
         Ontology ontology = ontologyService.findByName( ontologyName );
@@ -430,15 +421,21 @@ public class ApiController {
 
     private Collection<OntologyTermInfo> ontologyTermsFromOntologyWithTermIds( List<String> ontologyNames, List<String> termIds ) {
         if ( ontologyNames == null || termIds == null ) {
-            return Collections.emptyList();
+            return null;
         }
         if ( ontologyNames.size() != termIds.size() ) {
-            throw new IllegalArgumentException( "The 'ontologyTermInfoOntologyNames' and 'ontologyTermInfoTermId' lists must have the same size." );
+            throw new ApiException( HttpStatus.BAD_REQUEST, "The 'ontologyNames' and 'ontologyTermIds' lists must have the same size." );
         }
         // TODO: perform this in a single query
         List<OntologyTermInfo> results = new ArrayList<>( ontologyNames.size() );
         for ( int i = 0; i < ontologyNames.size(); i++ ) {
-            results.add( ontologyService.findTermByTermIdAndOntologyName( termIds.get( i ), ontologyNames.get( i ) ) );
+            OntologyTermInfo oti = ontologyService.findTermByTermIdAndOntologyName( termIds.get( i ), ontologyNames.get( i ) );
+            if ( oti != null ) {
+                results.add( oti );
+            }
+        }
+        if ( results.isEmpty() ) {
+            throw new ApiException( HttpStatus.NOT_FOUND, "None of the supplied terms could be found." );
         }
         return results;
     }

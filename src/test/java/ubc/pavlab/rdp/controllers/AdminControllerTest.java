@@ -6,12 +6,15 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
+import org.mockito.internal.verification.VerificationModeFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.ResourceLoader;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.format.support.FormattingConversionService;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
@@ -115,6 +118,9 @@ public class AdminControllerTest {
     @Autowired
     private FormattingConversionService conversionService;
 
+    @Autowired
+    private ResourceLoader resourceLoader;
+
     private class UserIdToUserConverter implements Converter<String, User> {
 
         @Override
@@ -149,6 +155,7 @@ public class AdminControllerTest {
     @Before
     public void setUp() {
         when( applicationSettings.getPrivacy() ).thenReturn( privacySettings );
+        when( ontologyService.resolveOntologyUrl( any( URL.class ) ) ).thenAnswer( a -> resourceLoader.getResource( a.getArgumentAt( 0, URL.class ).toString() ) );
         conversionService.addConverter( new UserIdToUserConverter() );
         conversionService.addConverter( new AccessTokenIdToAccessTokenConverter() );
         conversionService.addConverter( new RoleIdToRoleConverter() );
@@ -287,6 +294,18 @@ public class AdminControllerTest {
 
     @Test
     @WithMockUser(roles = { "ADMIN" })
+    public void getOntology_whenOntologyDoesNotExist_thenReturnNotFound() throws Exception {
+        when( ontologyService.findById( 1 ) ).thenReturn( null );
+        mvc.perform( get( "/admin/ontologies/{ontologyId}", 1 ) )
+                .andExpect( status().isNotFound() )
+                .andExpect( view().name( "error/404" ) )
+                .andExpect( model().attributeExists( "message" ) );
+        verify( ontologyService ).findById( 1 );
+        verifyNoMoreInteractions( ontologyService );
+    }
+
+    @Test
+    @WithMockUser(roles = { "ADMIN" })
     public void createSimpleOntology() throws Exception {
         Ontology expectedOntology = Ontology.builder( "mondo" ).id( 1 ).build();
         ArgumentCaptor<Ontology> ontologyArg = ArgumentCaptor.forClass( Ontology.class );
@@ -328,20 +347,39 @@ public class AdminControllerTest {
                 .andExpect( model().attributeHasFieldErrorCode( "simpleOntologyForm", "ontologyTerms[0].name", "NotNull" ) );
     }
 
+    @Test
+    @WithMockUser(roles = { "ADMIN" })
+    public void createSimpleOntology_whenTermIdIsMissing_thenUseNextAvailableTermId() throws Exception {
+        Ontology expectedOntology = Ontology.builder( "mondo" ).id( 1 ).build();
+        ArgumentCaptor<Ontology> ontologyArg = ArgumentCaptor.forClass( Ontology.class );
+        when( ontologyService.create( ontologyArg.capture() ) ).thenReturn( expectedOntology );
+        mvc.perform( post( "/admin/ontologies/create-simple-ontology" )
+                        .param( "ontologyName", "mondo" )
+                        .param( "ontologyTerms[0].name", "a name" )
+                        .param( "ontologyTerms[0].grouping", "false" )
+                        .param( "ontologyTerms[0].hasIcon", "false" ) )
+                .andExpect( status().is3xxRedirection() )
+                .andExpect( redirectedUrl( "/admin/ontologies/1" ) );
+        assertThat( ontologyArg.getValue().getTerms() ).contains( OntologyTermInfo.builder( expectedOntology, "MONDO:0000001" ).build() );
+    }
 
     @Test
     @WithMockUser(roles = { "ADMIN" })
-    public void createSimpleOntology_whenTermNameIsEmpty_thenReturnBadRequest() throws Exception {
+    public void createSimpleOntology_whenTermIdIsEmpty_thenUseNextAvailableTermId() throws Exception {
+        Ontology expectedOntology = Ontology.builder( "mondo" ).id( 1 ).build();
+        ArgumentCaptor<Ontology> ontologyArg = ArgumentCaptor.forClass( Ontology.class );
+        when( ontologyService.create( ontologyArg.capture() ) ).thenReturn( expectedOntology );
         mvc.perform( post( "/admin/ontologies/create-simple-ontology" )
                         .param( "ontologyName", "mondo" )
                         .param( "ontologyTerms[0].termId", "" )
                         .param( "ontologyTerms[0].name", "a name" )
                         .param( "ontologyTerms[0].grouping", "false" )
                         .param( "ontologyTerms[0].hasIcon", "false" ) )
-                .andExpect( status().isBadRequest() )
-                .andExpect( view().name( "admin/ontologies" ) )
-                .andExpect( model().attributeHasFieldErrorCode( "simpleOntologyForm", "ontologyTerms[0].termId", "Size" ) );
+                .andExpect( status().is3xxRedirection() )
+                .andExpect( redirectedUrl( "/admin/ontologies/1" ) );
+        assertThat( ontologyArg.getValue().getTerms() ).contains( OntologyTermInfo.builder( expectedOntology, "MONDO:0000001" ).build() );
     }
+
 
     @Test
     @WithMockUser(roles = { "ADMIN" })
@@ -423,6 +461,22 @@ public class AdminControllerTest {
                 .andExpect( redirectedUrl( "/admin/ontologies/1" ) );
         verify( ontologyService ).findById( 1 );
         verify( ontologyService ).updateNameAndOrderingAndTerms( ontology, "new name", 2, new TreeSet<>() );
+    }
+
+    @Test
+    @WithMockUser(roles = { "ADMIN" })
+    public void updateSimpleOntology_whenTermIdIsMissingAndExistingTermExists_thenUseNextAvailableTermId() throws Exception {
+        Ontology ontology = Ontology.builder( "mondo" ).id( 1 ).build();
+        ontology.getTerms().add( OntologyTermInfo.builder( ontology, "MONDO:0000057" ).build() );
+        when( ontologyService.findById( ontology.getId() ) ).thenReturn( ontology );
+        mvc.perform( post( "/admin/ontologies/{ontologyId}/update-simple-ontology", ontology.getId() )
+                        .param( "ontologyName", "mondo" )
+                        .param( "ordering", "2" )
+                        .param( "ontologyTerms[0].name", "test" ) )
+                .andExpect( status().is3xxRedirection() )
+                .andExpect( redirectedUrl( "/admin/ontologies/1" ) );
+        verify( ontologyService ).findById( 1 );
+        verify( ontologyService ).updateNameAndOrderingAndTerms( ontology, "mondo", 2, Collections.singleton( OntologyTermInfo.builder( ontology, "MONDO:0000058" ).build() ) );
     }
 
     @Test
@@ -513,6 +567,25 @@ public class AdminControllerTest {
         verify( ontologyService ).findById( 1 );
         verify( ontologyService ).countActiveTerms( ontology );
         verify( ontologyService ).countObsoleteTerms( ontology );
+        verifyNoMoreInteractions( ontologyService );
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    public void updateOntology_whenResourceCannotBeResolved_thenReturnBadRequest() throws Exception {
+        Ontology ontology = Ontology.builder( "mondo" )
+                .id( 1 )
+                .ontologyUrl( new URL( "file:/tmp/qei1092u9r4ht" ) )
+                .build();
+        when( ontologyService.findById( 1 ) ).thenReturn( ontology );
+        mvc.perform( post( "/admin/ontologies/{ontologyId}/update", ontology.getId() ) )
+                .andExpect( status().isBadRequest() )
+                .andExpect( view().name( "admin/ontology" ) )
+                .andExpect( model().attributeExists( "message", "error" ) );
+        verify( ontologyService ).findById( 1 );
+        verify( ontologyService ).countActiveTerms( ontology );
+        verify( ontologyService ).countObsoleteTerms( ontology );
+        verify( ontologyService, VerificationModeFactory.atLeastOnce() ).resolveOntologyUrl( ontology.getOntologyUrl() );
         verifyNoMoreInteractions( ontologyService );
     }
 
@@ -630,7 +703,7 @@ public class AdminControllerTest {
         mvc.perform( post( "/admin/ontologies/{ontologyId}/activate", ontology.getId() ) )
                 .andExpect( status().is3xxRedirection() )
                 .andExpect( redirectedUrl( "/admin/ontologies/" + ontology.getId() ) )
-                .andExpect( flash().attribute( "message", "mondo ontology has been activated." ) );
+                .andExpect( flash().attribute( "message", "MONDO ontology has been activated." ) );
         verify( ontologyService ).findById( 1 );
         verify( ontologyService ).activate( ontology, false );
     }
@@ -715,11 +788,11 @@ public class AdminControllerTest {
                     .andExpect( status().isOk() )
                     .andExpect( content().contentType( MediaType.TEXT_PLAIN ) )
                     .andExpect( header().string( "Content-Disposition", "attachment; filename=mondo.obo" ) );
+            verify( ontologyService ).writeObo( eq( ontology ), any( OutputStreamWriter.class ) );
         } catch ( ConcurrentModificationException e ) {
             // FIXME: find the cause if this error, it seems to be a bug in Spring MVC test framework
             Assume.assumeNoException( "This test randomly raises this exception when iterating headers.", e );
         }
-        verify( ontologyService ).writeObo( eq( ontology ), any( OutputStreamWriter.class ) );
     }
 
     @Test
@@ -740,7 +813,7 @@ public class AdminControllerTest {
         mvc.perform( post( "/admin/ontologies/import-reactome-pathways" ) )
                 .andExpect( status().is3xxRedirection() )
                 .andExpect( redirectedUrl( "/admin/ontologies/1" ) )
-                .andExpect( flash().attribute( "message", "Reactome ontology has already been imported." ) );
+                .andExpect( flash().attribute( "message", "The Reactome pathways ontology has already been imported." ) );
         verify( reactomeService ).findPathwaysOntology();
         verifyZeroInteractions( reactomeService );
     }
@@ -776,6 +849,7 @@ public class AdminControllerTest {
     @WithMockUser(roles = { "ADMIN" })
     public void updateReactomePathways_whenSuppliedOntologyIsNotReactome_thenReturn404Error() throws Exception {
         Ontology notReactome = Ontology.builder( "not-reactome" ).id( 1 ).build();
+        when( ontologyService.findById( 1 ) ).thenReturn( notReactome );
         when( reactomeService.findPathwaysOntology() ).thenReturn( Ontology.builder( "reactome" ).id( 2 ).build() );
         mvc.perform( post( "/admin/ontologies/{ontologyId}/update-reactome-pathways", notReactome.getId() ) )
                 .andExpect( status().isNotFound() );
@@ -826,14 +900,53 @@ public class AdminControllerTest {
     }
 
     @Test
-    public void nextAvailableTermId() {
-        Ontology ontology = Ontology.builder( "mondo" ).build();
+    @WithMockUser(roles = "ADMIN")
+    public void deleteOntology() throws Exception {
+        Ontology ontology = Ontology.builder( "mondo" ).id( 1 ).build();
+        when( ontologyService.findById( 1 ) ).thenReturn( ontology );
+        mvc.perform( delete( "/admin/ontologies/{ontologyId}", ontology.getId() )
+                        .param( "ontologyNameConfirmation", "mondo" ) )
+                .andExpect( status().is3xxRedirection() )
+                .andExpect( redirectedUrl( "/admin/ontologies" ) )
+                .andExpect( flash().attributeExists( "message" ) );
+        verify( ontologyService ).findById( 1 );
+        verify( ontologyService ).delete( ontology );
+    }
 
-        assertThat( AdminController.nextAvailableTermId( ontology, Collections.emptySet() ) ).isEqualTo( "MONDO:0000001" );
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    public void deleteOntology_whenUserHaveAssociatedTerms_thenReturnBadRequest() throws Exception {
+        Ontology ontology = Ontology.builder( "mondo" ).id( 1 ).build();
+        when( ontologyService.findById( 1 ) ).thenReturn( ontology );
+        doThrow( DataIntegrityViolationException.class ).when( ontologyService ).delete( ontology );
+        mvc.perform( delete( "/admin/ontologies/{ontologyId}", ontology.getId() )
+                        .param( "ontologyNameConfirmation", "mondo" ) )
+                .andExpect( status().isBadRequest() )
+                .andExpect( model().attribute( "message", "The MONDO category could not be deleted: null." ) )
+                .andExpect( model().attribute( "error", true ) );
+        verify( ontologyService ).findById( 1 );
+        verify( ontologyService ).delete( ontology );
+    }
 
-        ontology.getTerms().add( OntologyTermInfo.builder( ontology, "MONDO:0000054" ).build() );
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    public void deleteOntology_whenNameConfirmationDoesNotMatch_thenReturnBadRequest() throws Exception {
+        Ontology ontology = Ontology.builder( "mondo" ).id( 1 ).build();
+        when( ontologyService.findById( 1 ) ).thenReturn( ontology );
+        mvc.perform( delete( "/admin/ontologies/{ontologyId}", ontology.getId() )
+                        .param( "ontologyNameConfirmation", "mond" ) )
+                .andExpect( status().isBadRequest() )
+                .andExpect( view().name( "admin/ontology" ) )
+                .andExpect( model().attributeHasFieldErrorCode( "deleteOntologyForm", "ontologyNameConfirmation", "AdminController.DeleteOntologyForm.ontologyNameConfirmation.doesNotMatchOntologyName" ) );
+        verify( ontologyService ).findById( 1 );
+    }
 
-        assertThat( AdminController.nextAvailableTermId( ontology, Collections.emptySet() ) )
-                .isEqualTo( "MONDO:0000055" );
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    public void refreshMessages() throws Exception {
+        mvc.perform( post( "/admin/refresh-messages" ) )
+                .andExpect( status().is3xxRedirection() )
+                .andExpect( redirectedUrl( "/admin/ontologies" ) )
+                .andExpect( flash().attribute( "message", "Messages cache have been updated." ) );
     }
 }

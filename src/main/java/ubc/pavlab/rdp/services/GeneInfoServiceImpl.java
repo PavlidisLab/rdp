@@ -219,8 +219,7 @@ public class GeneInfoServiceImpl implements GeneInfoService {
                     .map( orthologByGeneId::get )
                     .filter( Objects::nonNull )
                     .collect( Collectors.toSet() );
-            gene.getOrthologs().removeIf( o -> !orthologs.contains( o ) );
-            gene.getOrthologs().addAll( orthologs );
+            CollectionUtils.update( gene.getOrthologs(), orthologs );
             geneInfoRepository.save( gene );
         }
         log.info( "Done updating gene orthologs." );

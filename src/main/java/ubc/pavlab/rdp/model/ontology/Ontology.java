@@ -1,14 +1,15 @@
 package ubc.pavlab.rdp.model.ontology;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.*;
 import org.hibernate.annotations.LazyCollection;
 import org.hibernate.annotations.LazyCollectionOption;
-import org.springframework.cache.annotation.Cacheable;
 
 import javax.persistence.*;
 import java.net.URL;
-import java.util.*;
+import java.util.Comparator;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 /**
  * An ontology of terms.
@@ -43,7 +44,6 @@ public class Ontology implements Comparable<Ontology> {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "ontology_id")
-    @JsonIgnore
     private Integer id;
 
     @Column(unique = true, nullable = false)
@@ -62,7 +62,6 @@ public class Ontology implements Comparable<Ontology> {
      */
     @OneToMany(mappedBy = "ontology", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("ordering asc, name asc, termId asc")
-    @JsonIgnore
     @LazyCollection(LazyCollectionOption.EXTRA)
     private final SortedSet<OntologyTermInfo> terms = new TreeSet<>();
 
@@ -71,23 +70,25 @@ public class Ontology implements Comparable<Ontology> {
      * <p>
      * The only supported format for now is OBO.
      */
-    @JsonIgnore
     private URL ontologyUrl;
 
     /**
      * Indicate if the ontology is active.
      */
-    @JsonIgnore
     private boolean active;
 
     /**
      * Relative order of categories when sorted as per {@link #getComparator()}.
      */
-    @JsonIgnore
     private Integer ordering;
 
     @Override
     public int compareTo( Ontology ontology ) {
         return getComparator().compare( this, ontology );
+    }
+
+    @JsonValue
+    public String getName() {
+        return name;
     }
 }

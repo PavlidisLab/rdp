@@ -1,5 +1,6 @@
 package ubc.pavlab.rdp.model.ontology;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.NaturalId;
@@ -50,6 +51,7 @@ public class UserOntologyTerm extends OntologyTerm implements UserContent {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "user_ontology_term_id")
+    @JsonIgnore
     private Integer id;
 
     /**
@@ -59,6 +61,7 @@ public class UserOntologyTerm extends OntologyTerm implements UserContent {
     @JoinColumns(value = {
             @JoinColumn(name = "ontology_id", referencedColumnName = "ontology_id", insertable = false, updatable = false),
             @JoinColumn(name = "term_id", referencedColumnName = "term_id", insertable = false, updatable = false) })
+    @JsonIgnore
     private OntologyTermInfo termInfo;
 
     /**
@@ -67,14 +70,17 @@ public class UserOntologyTerm extends OntologyTerm implements UserContent {
     @NaturalId
     @ManyToOne(optional = false)
     @JoinColumn(name = "user_id", nullable = false)
+    @JsonIgnore
     private User user;
 
     @Override
+    @JsonIgnore
     public Optional<User> getOwner() {
         return Optional.of( user );
     }
 
     @Override
+    @JsonIgnore
     public @NonNull PrivacyLevelType getEffectivePrivacyLevel() {
         return user.getEffectivePrivacyLevel();
     }

@@ -36,7 +36,6 @@ import java.net.URI;
 import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
@@ -52,10 +51,10 @@ import static ubc.pavlab.rdp.util.TestUtils.*;
 public class ApiControllerTest {
 
     @Autowired
-    MockMvc mvc;
+    private MockMvc mvc;
 
-    @MockBean
-    MessageSource messageSource;
+    @MockBean(name = "messageSource")
+    private MessageSource messageSource;
     @MockBean
     private UserService userService;
     @MockBean
@@ -63,13 +62,13 @@ public class ApiControllerTest {
     @MockBean
     private GeneInfoService geneService;
     @MockBean
-    TierService tierService;
+    private TierService tierService;
     @MockBean
     private UserOrganService userOrganService;
     @MockBean
-    UserGeneService userGeneService;
+    private UserGeneService userGeneService;
     @MockBean
-    OrganInfoService organInfoService;
+    private OrganInfoService organInfoService;
     @MockBean
     private ApplicationSettings applicationSettings;
     @MockBean
@@ -408,34 +407,11 @@ public class ApiControllerTest {
                 createOntology( "mondo", 5, 4 ) ) );
         mvc.perform( get( "/api/ontologies" ) )
                 .andExpect( status().isOk() )
-                .andExpect( jsonPath( "$[0].id" ).doesNotExist() )
-                .andExpect( jsonPath( "$[0].name" ).value( "uberon" ) )
-                .andExpect( jsonPath( "$[1].id" ).doesNotExist() )
-                .andExpect( jsonPath( "$[1].name" ).value( "mondo" ) );
+                .andExpect( jsonPath( "$" ).isArray() )
+                .andExpect( jsonPath( "$[0]" ).value( "uberon" ) )
+                .andExpect( jsonPath( "$[1]" ).value( "mondo" ) );
         verify( ontologyService ).findAllOntologies();
     }
-
-    @Test
-    public void getOntology() throws Exception {
-        Ontology ont = createOntology( "uberon", 5, 4 );
-        ont.setActive( true );
-        when( ontologyService.findByName( "uberon" ) ).thenReturn( ont );
-        mvc.perform( get( "/api/ontologies/{ontologyName}", "uberon" ) )
-                .andExpect( status().isOk() )
-                .andExpect( jsonPath( "$.name" ).value( "uberon" ) );
-        verify( ontologyService ).findByName( "uberon" );
-    }
-
-    @Test
-    public void getOntology_whenOntologyIsNotActive_thenReturn404() throws Exception {
-        Ontology ont = createOntology( "uberon", 5, 4 );
-        ont.setActive( false );
-        when( ontologyService.findByName( "uberon" ) ).thenReturn( ont );
-        mvc.perform( get( "/api/ontologies/{ontologyName}", "uberon" ) )
-                .andExpect( status().isNotFound() );
-        verify( ontologyService ).findByName( "uberon" );
-    }
-
 
     @Test
     public void getOntologyTerms() throws Exception {

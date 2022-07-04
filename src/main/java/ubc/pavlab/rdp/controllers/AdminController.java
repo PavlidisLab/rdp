@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -87,16 +88,14 @@ public class AdminController {
     @Autowired
     private ReloadableResourceBundleMessageSource messageSource;
 
-
     /**
      * List all users
      */
     @GetMapping(value = "/admin/users")
     public Object getAllUsers() {
         Collection<User> users = userService.findAll().stream().sorted( Comparator.comparing( u -> u.getProfile().getFullName() ) ).collect( Collectors.toList() );
-        ModelAndView view = new ModelAndView( "admin/users" );
-        view.addObject( "users", users );
-        return view;
+        return new ModelAndView( "admin/users" )
+                .addObject( "users", users );
     }
 
     @GetMapping(value = "/admin/create-service-account")
@@ -146,7 +145,7 @@ public class AdminController {
     public Object createAccessTokenForUser( @PathVariable User user, RedirectAttributes redirectAttributes ) {
         AccessToken accessToken = userService.createAccessTokenForUser( user );
         redirectAttributes.addFlashAttribute( "message", MessageFormat.format( "Successfully created an access token {0}.", accessToken.getToken() ) );
-        return "redirect:/admin/users/{user}";
+        return "redirect:/admin/users/" + user.getId();
     }
 
     @PostMapping(value = "/admin/users/{user}/revoke-access-token/{accessToken}")
@@ -156,7 +155,7 @@ public class AdminController {
         }
         userService.revokeAccessToken( accessToken );
         redirectAttributes.addFlashAttribute( "message", MessageFormat.format( "Revoked access token {0}.", accessToken.getToken() ) );
-        return "redirect:/admin/users/{user}";
+        return "redirect:/admin/users/" + user.getId();
     }
 
     /**
@@ -173,9 +172,7 @@ public class AdminController {
         }
 
         if ( bindingResult.hasErrors() ) {
-            ModelAndView view = new ModelAndView( "admin/user" );
-            view.setStatus( HttpStatus.BAD_REQUEST );
-            return view;
+            return new ModelAndView( "admin/user", HttpStatus.BAD_REQUEST );
         } else {
             userService.delete( user );
             return "redirect:/admin/users";
@@ -183,31 +180,75 @@ public class AdminController {
     }
 
     @GetMapping("/admin/ontologies")
-    public ModelAndView getOntologies() {
-        ModelAndView modelAndView = new ModelAndView( "admin/ontologies" );
-        modelAndView.addObject( "importOntologyForm", new ImportOntologyForm() );
-        modelAndView.addObject( "simpleOntologyForm", SimpleOntologyForm.withInitialRows( 5 ) );
-        return modelAndView;
+    public ModelAndView getOntologies( @SuppressWarnings("unused") ImportOntologyForm importOntologyForm ) {
+        return new ModelAndView( "admin/ontologies" )
+                .addObject( "simpleOntologyForm", SimpleOntologyForm.withInitialRows( 5 ) );
     }
 
     @GetMapping("/admin/ontologies/{ontology}")
-    public ModelAndView getOntology( @SuppressWarnings("unused") Ontology ontology ) {
+    public ModelAndView getOntology( @PathVariable Ontology ontology,
+                                     @SuppressWarnings("unused") ActivateTermForm activateTermForm,
+                                     @SuppressWarnings("unused") ActivateOntologyForm activateOntologyForm,
+                                     @SuppressWarnings("unused") DeleteOntologyForm deleteOntologyForm ) {
+        if ( ontology == null ) {
+            return new ModelAndView( "error/404", HttpStatus.NOT_FOUND )
+                    .addObject( "message", "No ontology with the provided ID." );
+        }
         ModelAndView modelAndView = new ModelAndView( "admin/ontology" );
-        modelAndView.addObject( "activateTermForm", new ActivateTermForm() );
-        modelAndView.addObject( "activateOntologyForm", new ActivateOntologyForm() );
         if ( ontology.getTerms().size() <= 20 ) {
             modelAndView.addObject( "simpleOntologyForm", SimpleOntologyForm.fromOntology( ontology ) );
         }
         return modelAndView;
     }
 
+    @DeleteMapping("/admin/ontologies/{ontology}")
+    public Object deleteOntology( @PathVariable Ontology ontology,
+                                  @SuppressWarnings("unused") ActivateTermForm activateTermForm,
+                                  @SuppressWarnings("unused") ActivateOntologyForm activateOntologyForm,
+                                  @Valid DeleteOntologyForm deleteOntologyForm, BindingResult bindingResult,
+                                  RedirectAttributes redirectAttributes, Locale locale ) {
+        if ( ontology == null ) {
+            return new ModelAndView( "error/404", HttpStatus.NOT_FOUND )
+                    .addObject( "message", "Ontology does not exist." );
+        }
+
+        ModelAndView modelAndView = new ModelAndView( "admin/ontology", HttpStatus.BAD_REQUEST );
+
+        if ( ontology.getTerms().size() <= 20 ) {
+            modelAndView.addObject( "simpleOntologyForm", SimpleOntologyForm.fromOntology( ontology ) );
+        }
+
+        if ( !deleteOntologyForm.ontologyNameConfirmation.equals( ontology.getName() ) ) {
+            bindingResult.rejectValue( "ontologyNameConfirmation", "AdminController.DeleteOntologyForm.ontologyNameConfirmation.doesNotMatchOntologyName" );
+        }
+
+        if ( !bindingResult.hasErrors() ) {
+            try {
+                ontologyService.delete( ontology );
+                redirectAttributes.addFlashAttribute( "message", String.format( "The %s category has been deleted.", resolveOntologyName( ontology, locale ) ) );
+                return "redirect:/admin/ontologies";
+            } catch ( DataIntegrityViolationException e ) {
+                log.error( String.format( "An administrator attempted to delete %s, but it failed.", ontology ), e );
+                modelAndView.setStatus( HttpStatus.BAD_REQUEST );
+                modelAndView.addObject( "error", true );
+                modelAndView.addObject( "message", String.format( "The %s category could not be deleted: %s.", resolveOntologyName( ontology, locale ), e.getMessage() ) );
+            }
+        }
+
+        return modelAndView;
+    }
+
+    @Data
+    private static class DeleteOntologyForm {
+        @NotNull
+        private String ontologyNameConfirmation;
+    }
+
     @PostMapping("/admin/ontologies/create-simple-ontology")
-    public Object createSimpleOntology( @Valid SimpleOntologyForm simpleOntologyForm, BindingResult bindingResult ) {
+    public Object createSimpleOntology( @SuppressWarnings("unused") ImportOntologyForm importOntologyForm,
+                                        @Valid SimpleOntologyForm simpleOntologyForm, BindingResult bindingResult ) {
         if ( bindingResult.hasErrors() ) {
-            ModelAndView modelAndView = new ModelAndView( "admin/ontologies" );
-            modelAndView.setStatus( HttpStatus.BAD_REQUEST );
-            modelAndView.addObject( "importOntologyForm", new ImportOntologyForm() );
-            return modelAndView;
+            return new ModelAndView( "admin/ontologies", HttpStatus.BAD_REQUEST );
         }
         try {
             Ontology ontology = Ontology.builder( simpleOntologyForm.getOntologyName() )
@@ -218,20 +259,19 @@ public class AdminController {
             return "redirect:/admin/ontologies/" + ontology.getId();
         } catch ( OntologyNameAlreadyUsedException e ) {
             bindingResult.rejectValue( "ontologyName", "AdminController.SimpleOntologyForm.ontologyName.alreadyUsed" );
-            ModelAndView modelAndView = new ModelAndView( "admin/ontologies" );
-            modelAndView.setStatus( HttpStatus.BAD_REQUEST );
-            modelAndView.addObject( "importOntologyForm", new ImportOntologyForm() );
-            return modelAndView;
+            return new ModelAndView( "admin/ontologies", HttpStatus.BAD_REQUEST );
         }
     }
 
     @PostMapping("/admin/ontologies/{ontology}/update-simple-ontology")
-    public Object updateSimpleOntology( Ontology ontology, @Valid SimpleOntologyForm simpleOntologyForm, BindingResult bindingResult, RedirectAttributes redirectAttributes ) {
+    public Object updateSimpleOntology( @PathVariable Ontology ontology,
+                                        @SuppressWarnings("unused") ActivateTermForm activateTermForm,
+                                        @SuppressWarnings("unused") ActivateOntologyForm activateOntologyForm,
+                                        @SuppressWarnings("unused") DeleteOntologyForm deleteOntologyForm,
+                                        @Valid SimpleOntologyForm simpleOntologyForm, BindingResult bindingResult,
+                                        RedirectAttributes redirectAttributes ) {
         if ( bindingResult.hasErrors() ) {
-            ModelAndView modelAndView = new ModelAndView( "admin/ontology", HttpStatus.BAD_REQUEST );
-            modelAndView.addObject( "activateTermForm", new ActivateTermForm() );
-            modelAndView.addObject( "activateOntologyForm", new ActivateOntologyForm() );
-            return modelAndView;
+            return new ModelAndView( "admin/ontology", HttpStatus.BAD_REQUEST );
         }
         try {
             ontologyService.updateNameAndOrderingAndTerms( ontology, simpleOntologyForm.ontologyName, simpleOntologyForm.ordering, parseTerms( ontology, simpleOntologyForm.getOntologyTerms() ) );
@@ -239,10 +279,7 @@ public class AdminController {
             return "redirect:/admin/ontologies/" + ontology.getId();
         } catch ( OntologyNameAlreadyUsedException e ) {
             bindingResult.rejectValue( "ontologyName", "AdminController.SimpleOntologyForm.ontologyName.alreadyUsed" );
-            ModelAndView modelAndView = new ModelAndView( "admin/ontology", HttpStatus.BAD_REQUEST );
-            modelAndView.addObject( "activateTermForm", new ActivateTermForm() );
-            modelAndView.addObject( "activateOntologyForm", new ActivateOntologyForm() );
-            return modelAndView;
+            return new ModelAndView( "admin/ontology", HttpStatus.BAD_REQUEST );
         }
     }
 
@@ -307,7 +344,7 @@ public class AdminController {
         }
 
         public static SimpleOntologyTermForm emptyRow() {
-            return new SimpleOntologyTermForm( "", "", false, false, false );
+            return new SimpleOntologyTermForm( null, "", false, false, false );
         }
 
         /**
@@ -416,7 +453,11 @@ public class AdminController {
             SimpleOntologyForm simpleOntologyForm = (SimpleOntologyForm) target;
 
             // check if term IDs are unique, ignoring empty rows
-            Map<String, Long> countsByTermId = simpleOntologyForm.ontologyTerms.stream().filter( row -> !row.isEmpty() ).map( SimpleOntologyTermForm::getTermId ).collect( Collectors.groupingBy( t -> t, Collectors.counting() ) );
+            Map<String, Long> countsByTermId = simpleOntologyForm.ontologyTerms.stream()
+                    .filter( row -> !row.isEmpty() )
+                    .map( SimpleOntologyTermForm::getTermId )
+                    .filter( termId -> !StringUtils.isEmpty( termId ) ) // empty or null term IDs are generated
+                    .collect( Collectors.groupingBy( t -> t, Collectors.counting() ) );
             if ( countsByTermId.values().stream().anyMatch( x -> x > 1 ) ) {
                 errors.rejectValue( "ontologyTerms", "AdminController.SimpleOntologyForm.ontologyTerms.nonUniqueTermIds", "termId must be unique" );
             }
@@ -441,28 +482,25 @@ public class AdminController {
         webDataBinder.addValidators( new SimpleOntologyFormValidator() );
     }
 
-    @Autowired
-    private ResourceLoader resourceLoader;
-
     @PostMapping("/admin/ontologies/{ontology}/update")
-    public Object updateOntology( Ontology ontology, RedirectAttributes redirectAttributes ) {
+    public Object updateOntology( @PathVariable Ontology ontology,
+                                  @SuppressWarnings("unused") ActivateTermForm activateTermForm,
+                                  @SuppressWarnings("unused") ActivateOntologyForm activateOntologyForm,
+                                  @SuppressWarnings("unused") DeleteOntologyForm deleteOntologyForm,
+                                  @SuppressWarnings("unused") SimpleOntologyForm simpleOntologyForm,
+                                  RedirectAttributes redirectAttributes ) {
         if ( ontology.getOntologyUrl() == null ) {
-            ModelAndView modelAndView = new ModelAndView( "admin/ontology" );
-            modelAndView.addObject( "activateTermForm", new ActivateTermForm() );
-            modelAndView.addObject( "activateOntologyForm", new ActivateOntologyForm() );
-            modelAndView.addObject( "simpleOntologyForm", new SimpleOntologyForm() );
-            modelAndView.setStatus( HttpStatus.BAD_REQUEST );
-            return modelAndView;
+            return new ModelAndView( "admin/ontology", HttpStatus.BAD_REQUEST );
         } else {
-            // TODO: have some kind of general resolver at Spring-level
-            Resource urlResource = resourceLoader.getResource( ontology.getOntologyUrl().toString() );
+            Resource urlResource = ontologyService.resolveOntologyUrl( ontology.getOntologyUrl() );
             try ( Reader reader = new InputStreamReader( urlResource.getInputStream() ) ) {
                 ontologyService.updateFromObo( ontology, reader );
                 redirectAttributes.addFlashAttribute( String.format( "Updated %s from %s.", ontology.getName(), ontology.getOntologyUrl() ) );
             } catch ( IOException | ParseException e ) {
                 log.error( String.format( "Failed to update ontology %s from administrative section.", ontology ), e );
-                redirectAttributes.addFlashAttribute( "message", String.format( "Failed to update %s: %s", ontology.getName(), e.getMessage() ) );
-                redirectAttributes.addFlashAttribute( "error", true );
+                return new ModelAndView( "admin/ontology", HttpStatus.BAD_REQUEST )
+                        .addObject( "message", String.format( "Failed to update %s: %s", ontology.getName(), e.getMessage() ) )
+                        .addObject( "error", true );
             }
         }
         return "redirect:/admin/ontologies/" + ontology.getId();
@@ -478,10 +516,8 @@ public class AdminController {
     @PostMapping("/admin/ontologies/import")
     public Object importOntology( @Valid ImportOntologyForm importOntologyForm, BindingResult bindingResult ) {
         if ( bindingResult.hasErrors() ) {
-            ModelAndView modelAndView = new ModelAndView( "admin/ontologies" );
-            modelAndView.setStatus( HttpStatus.BAD_REQUEST );
-            modelAndView.addObject( "simpleOntologyForm", SimpleOntologyForm.withInitialRows( 5 ) );
-            return modelAndView;
+            return new ModelAndView( "admin/ontologies", HttpStatus.BAD_REQUEST )
+                    .addObject( "simpleOntologyForm", SimpleOntologyForm.withInitialRows( 5 ) );
         }
         try ( Reader reader = getReader( importOntologyForm ) ) {
             Ontology ontology = ontologyService.createFromObo( reader );
@@ -491,18 +527,14 @@ public class AdminController {
         } catch ( OntologyNameAlreadyUsedException e ) {
             bindingResult.reject( "AdminController.ImportOntologyForm.ontologyWithSameNameAlreadyUsed", new String[]{ e.getOntologyName() },
                     String.format( "An ontology with the same name '%s' is already used.", e.getOntologyName() ) );
-            ModelAndView modelAndView = new ModelAndView( "admin/ontologies" );
-            modelAndView.setStatus( HttpStatus.BAD_REQUEST );
-            modelAndView.addObject( "simpleOntologyForm", SimpleOntologyForm.withInitialRows( 5 ) );
-            return modelAndView;
+            return new ModelAndView( "admin/ontologies", HttpStatus.BAD_REQUEST )
+                    .addObject( "simpleOntologyForm", SimpleOntologyForm.withInitialRows( 5 ) );
         } catch ( IOException | ParseException e ) {
             log.error( String.format( "Failed to import ontology from submitted form: %s.", importOntologyForm ), e );
             bindingResult.reject( "AdminController.ImportOntologyForm.failedToParseOboFormat", new String[]{ importOntologyForm.getFilename(), e.getMessage() },
                     String.format( "Failed to parse the ontology OBO format from %s: %s", importOntologyForm.getFilename(), e.getMessage() ) );
-            ModelAndView modelAndView = new ModelAndView( "admin/ontologies" );
-            modelAndView.setStatus( HttpStatus.INTERNAL_SERVER_ERROR );
-            modelAndView.addObject( "simpleOntologyForm", SimpleOntologyForm.withInitialRows( 5 ) );
-            return modelAndView;
+            return new ModelAndView( "admin/ontologies", HttpStatus.INTERNAL_SERVER_ERROR )
+                    .addObject( "simpleOntologyForm", SimpleOntologyForm.withInitialRows( 5 ) );
         }
     }
 
@@ -529,7 +561,7 @@ public class AdminController {
     }
 
     @PostMapping("/admin/ontologies/{ontology}/update-reactome-pathways")
-    public Object updateReactomePathways( Ontology ontology, RedirectAttributes redirectAttributes ) {
+    public Object updateReactomePathways( @PathVariable Ontology ontology, RedirectAttributes redirectAttributes ) {
         if ( !ontology.equals( reactomeService.findPathwaysOntology() ) ) {
             return ResponseEntity.notFound().build();
         }
@@ -547,12 +579,9 @@ public class AdminController {
 
     /**
      * Unfortunately, this cannot be implemented using a POST method since it's not part of the SSE specification.
-     *
-     * @param ontology
-     * @return
      */
     @GetMapping(value = "/admin/ontologies/{ontology}/update-reactome-pathway-summations", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Object updateReactomePathwaySummationsSse( Ontology ontology ) {
+    public Object updateReactomePathwaySummationsSse( @PathVariable Ontology ontology ) {
         if ( !reactomeService.findPathwaysOntology().equals( ontology ) ) {
             return ResponseEntity.notFound().build();
         }
@@ -560,9 +589,7 @@ public class AdminController {
         final AtomicBoolean completed = new AtomicBoolean( false );
         SseEmitter emitter = new SseEmitter( 600 * 1000L );
         emitter.onCompletion( () -> completed.set( true ) );
-        emitter.onTimeout( () -> {
-            log.warn( "Updating Reactome pathway summations took more time than expected. The SSE stream will be closed, but the update will proceed in the background." );
-        } );
+        emitter.onTimeout( () -> log.warn( "Updating Reactome pathway summations took more time than expected. The SSE stream will be closed, but the update will proceed in the background." ) );
         StopWatch timer = StopWatch.createStarted();
         Executors.newSingleThreadExecutor().execute( () -> {
             try {
@@ -599,8 +626,7 @@ public class AdminController {
     @PostMapping("/admin/ontologies/{ontology}/activate")
     public String activateOntology( @PathVariable Ontology ontology, ActivateOntologyForm activateOntologyForm, RedirectAttributes redirectAttributes, Locale locale ) {
         int activatedTerms = ontologyService.activate( ontology, activateOntologyForm.includeTerms );
-        redirectAttributes.addFlashAttribute( "message", String.format( "%s ontology has been activated.",
-                messageSource.getMessage( "rdp.ontologies." + ontology.getName() + ".title", new Object[]{}, ontology.getName(), locale ) )
+        redirectAttributes.addFlashAttribute( "message", String.format( "%s ontology has been activated.", resolveOntologyName( ontology, locale ) )
                 + ( activatedTerms > 0 ? String.format( " In addition, %d terms have been activated.", activatedTerms ) : "" ) );
         return "redirect:/admin/ontologies/" + ontology.getId();
     }
@@ -613,8 +639,7 @@ public class AdminController {
     @PostMapping("/admin/ontologies/{ontology}/deactivate")
     public String deactivateOntology( @PathVariable Ontology ontology, RedirectAttributes redirectAttributes, Locale locale ) {
         ontologyService.deactivate( ontology );
-        redirectAttributes.addFlashAttribute( "message", String.format( "%s ontology has been deactivated.",
-                messageSource.getMessage( "rdp.ontologies." + ontology.getName() + ".title", new Object[]{}, ontology.getName(), locale ) ) );
+        redirectAttributes.addFlashAttribute( "message", String.format( "%s ontology has been deactivated.", resolveOntologyName( ontology, locale ) ) );
         return "redirect:/admin/ontologies/" + ontology.getId();
     }
 
@@ -626,7 +651,11 @@ public class AdminController {
     }
 
     @PostMapping("/admin/ontologies/{ontology}/activate-term")
-    public Object activateOntologyTermInfo( @PathVariable Ontology ontology, @Valid ActivateTermForm activateTermForm, BindingResult bindingResult, RedirectAttributes redirectAttributes ) {
+    public Object activateOntologyTermInfo( @PathVariable Ontology ontology,
+                                            @SuppressWarnings("unused") ActivateOntologyForm activateOntologyForm,
+                                            @SuppressWarnings("unused") DeleteOntologyForm deleteOntologyForm,
+                                            @Valid ActivateTermForm activateTermForm, BindingResult bindingResult,
+                                            RedirectAttributes redirectAttributes ) {
         OntologyTermInfo ontologyTermInfo = null;
         if ( !bindingResult.hasFieldErrors( "ontologyTermInfoId" ) ) {
             ontologyTermInfo = ontologyService.findTermByTermIdAndOntology( activateTermForm.ontologyTermInfoId, ontology );
@@ -641,11 +670,8 @@ public class AdminController {
         }
 
         if ( bindingResult.hasErrors() ) {
-            ModelAndView modelAndView = new ModelAndView( "admin/ontology" );
-            modelAndView.setStatus( HttpStatus.BAD_REQUEST );
-            modelAndView.addObject( "activateOntologyForm", new ActivateOntologyForm() );
-            modelAndView.addObject( "simpleOntologyForm", SimpleOntologyForm.fromOntology( ontology ) );
-            return modelAndView;
+            return new ModelAndView( "admin/ontology", HttpStatus.BAD_REQUEST )
+                    .addObject( "simpleOntologyForm", SimpleOntologyForm.fromOntology( ontology ) );
         }
 
         // nullity check is ensured by bindingResult
@@ -715,15 +741,11 @@ public class AdminController {
 
     /**
      * Obtain a {@link Reader} over the contents of an ontology described by an import form.
-     *
-     * @param importOntologyForm
-     * @return
-     * @throws IOException
      */
     public Reader getReader( ImportOntologyForm importOntologyForm ) throws IOException {
         InputStream is;
         if ( importOntologyForm.ontologyUrl != null ) {
-            is = resourceLoader.getResource( importOntologyForm.ontologyUrl.toString() ).getInputStream();
+            is = ontologyService.resolveOntologyUrl( importOntologyForm.ontologyUrl ).getInputStream();
         } else if ( !isMultipartFileEmpty( importOntologyForm.ontologyFile ) ) {
             is = importOntologyForm.ontologyFile.getInputStream();
         } else {
@@ -772,5 +794,9 @@ public class AdminController {
     @InitBinder("importOntologyForm")
     public void initBinder( WebDataBinder webDataBinder ) {
         webDataBinder.addValidators( new ImportOntologyFormValidator() );
+    }
+
+    private String resolveOntologyName( Ontology ontology, Locale locale ) {
+        return messageSource.getMessage( "rdp.ontologies." + ontology.getName() + ".title", null, ontology.getName().toUpperCase(), locale );
     }
 }

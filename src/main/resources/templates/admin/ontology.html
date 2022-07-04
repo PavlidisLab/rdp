@@ -8,7 +8,7 @@
 <body>
 <div th:replace="layouts/common::header"></div>
 <div class="container py-3">
-    <div th:replace="layouts/common::title(title=${#messages.msgOrNull('rdp.ontologies.' + ontology.name + '.title') ?: ontology.name}, subtitle='Manage ' + ${#messages.msgOrNull('rdp.ontologies.' + ontology.name + '.title') ?: ontology.name} + ' terms')"></div>
+    <div th:replace="layouts/common::title(title='Manage Profile Category', subtitle=${#messages.msgOrNull('rdp.ontologies.' + ontology.name + '.title') ?: #strings.toUpperCase(ontology.name)})"></div>
     <div th:replace="layouts/common::message"></div>
     <div>
         <p>
@@ -17,12 +17,28 @@
             <span th:unless="${ontology.active}"
                   class="badge badge-secondary">inactive</span>
         </p>
+        <p th:if="${#messages.msgOrNull('rdp.ontologies.' + ontology.name + '.definition')} != null"
+           class="lead"
+           th:text="#{'rdp.ontologies.' + ontology.name + '.definition'}"></p>
+        <div th:unless="${#messages.msgOrNull('rdp.ontologies.' + ontology.name + '.definition')} != null"
+             class="alert alert-warning">
+            This category lacks a definition. Consider adding an entry for <code>rdp.ontologies.<span
+                th:text="${ontology.name}"></span>.definition</code>
+            in your <code>messages.properties</code> file to let users know what this category is about.
+        </div>
         <dl class="dl-inline">
             <th:block if="${ontology.ontologyUrl} != null">
-                <dt>Source</dt>
+                <dt>Source URL</dt>
                 <dd>
                     <a th:href="${ontology.ontologyUrl}"
                        th:text="${ontology.ontologyUrl}"></a>
+                    <th:block th:if="${ontology.ontologyUrl} != null and not ${@ontologyService.resolveOntologyUrl(ontology.ontologyUrl).exists()}">
+                        <br/>
+                        <small
+                                class="text-danger">
+                            Yikes! It looks like the resource used to update this category is not available.
+                        </small>
+                    </th:block>
                 </dd>
             </th:block>
             <dt>Total terms</dt>
@@ -38,9 +54,12 @@
                   class="d-inline-block">
                 <button class="btn btn-primary" type="submit">
                     <i class="oi oi-cloud-download"></i>
-                    Update
-                    <span th:if="${ontology.ontologyUrl.authority} != null">
-                        from <span th:text="${ontology.ontologyUrl.authority}"></span>
+                    Update from
+                    <span th:if="${ontology.ontologyUrl.authority} != null"
+                          th:text="${ontology.ontologyUrl.authority}">
+                    </span>
+                    <span th:if="${ontology.ontologyUrl.authority} == null">
+                        disk
                     </span>
                 </button>
             </form>
@@ -56,7 +75,7 @@
                     <div class="card-header">
                         <h3 class="mb-0">
                             Deactivate
-                            <span th:text="${#messages.msgOrNull('rdp.ontologies.' + ontology.name + '.title')}"></span>
+                            <span th:replace="fragments/ontology::ontology-name(${ontology})"></span>
                         </h3>
                     </div>
                     <div class="card-body alert-warning">
@@ -76,7 +95,7 @@
                     <div class="card-header">
                         <h3 class="mb-0">
                             Activate
-                            <span th:text="${#messages.msgOrNull('rdp.ontologies.' + ontology.name + '.title') ?: ontology.name}"></span>
+                            <span th:text="${#messages.msgOrNull('rdp.ontologies.' + ontology.name + '.title') ?: #strings.toUpperCase(ontology.name)}"></span>
                         </h3>
                     </div>
                     <div class="card-body alert-info">
@@ -139,10 +158,41 @@
                     </div>
                 </div>
             </div>
+            <div class="col">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="mb-0">
+                            Delete
+                            <span th:replace="fragments/ontology::ontology-name(${ontology})"></span>
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <form th:href="@{/admin/ontologies/{ontologyId}}" th:method="delete"
+                              th:object="${deleteOntologyForm}"
+                              class="d-inline-block pull-right">
+                            <div class="form-group">
+                                <label for="confirmOntologyName" class="form-control-label">Type the ontology name to
+                                    confirm:</label>
+                                <input th:field="*{ontologyNameConfirmation}" class="form-control"
+                                       th:placeholder="${ontology.name}"
+                                       th:errorclass="is-invalid"/>
+                                <div class="invalid-feedback" th:errors="*{ontologyNameConfirmation}"></div>
+                            </div>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="oi oi-trash"></i>
+                                Delete
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
         </div>
         <div th:unless="${ontology.terms.size()} gt 20" class="card">
             <div class="card-header">
-                <h3 class="mb-0">Edit Simple Ontology</h3>
+                <h3 class="mb-0">
+                    Edit
+                    <span th:replace="fragments/ontology::ontology-name(${ontology})"></span>
+                </h3>
             </div>
             <div class="card-body alert-info">
                 <p>

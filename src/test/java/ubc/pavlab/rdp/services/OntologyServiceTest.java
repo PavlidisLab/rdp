@@ -5,6 +5,7 @@ import org.apache.commons.lang3.time.StopWatch;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.internal.verification.VerificationModeFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -66,7 +67,7 @@ public class OntologyServiceTest {
     @Autowired
     private OntologyTestSetupService ontologySetupService;
 
-    @MockBean(name = "messageSourceWithoutOntologyMessageSource")
+    @MockBean(name = "messageSourceWithoutOntology")
     private MessageSource messageSource;
 
     /**
@@ -173,7 +174,7 @@ public class OntologyServiceTest {
                         "UBERON:0001398", "UBERON:4200183", "UBERON:0010760" );
 
         assertThat( ontologyService.autocomplete( "UBERON:0001507", 10, Locale.getDefault() ) ).hasSize( 1 );
-        verify( messageSource ).getMessage( "rdp.ontologies.uberon.terms.biceps brachii.title", null, "bicep brachii", Locale.getDefault() );
+        verify( messageSource, VerificationModeFactory.atLeastOnce() ).getMessage( "rdp.ontologies.uberon.terms.biceps brachii.title", null, "biceps brachii", Locale.getDefault() );
     }
 
     @Test

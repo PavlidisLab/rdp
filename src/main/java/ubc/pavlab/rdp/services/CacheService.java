@@ -69,10 +69,10 @@ public class CacheService {
             try {
                 reactomeService.updatePathwaysOntology();
                 reactomeService.updatePathwaySummations( ( progress, maxProgress ) -> {
-                    log.info( String.format( "Updated %d out of %d Reactome pathway summations.", progress, maxProgress ) );
+                    log.debug( String.format( "Updated %d out of %d Reactome pathway summations.", progress, maxProgress ) );
                 } );
             } catch ( ReactomeException e ) {
-                log.error( "", e );
+                log.error( "There was an issue with the update of Reactome Pathways.", e );
             }
             CronSequenceGenerator sequenceGenerator = new CronSequenceGenerator( UPDATE_CACHE_CRON );
             log.info( MessageFormat.format( "Done updating cached data. Next update is scheduled on {0}.",

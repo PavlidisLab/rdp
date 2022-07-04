@@ -10,9 +10,11 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.context.junit4.SpringRunner;
+import ubc.pavlab.rdp.WebMvcConfig;
 import ubc.pavlab.rdp.model.Gene;
 import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.model.User;
@@ -23,6 +25,7 @@ import ubc.pavlab.rdp.repositories.ontology.OntologyRepository;
 import ubc.pavlab.rdp.repositories.ontology.OntologyTermInfoRepository;
 import ubc.pavlab.rdp.services.*;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
+import ubc.pavlab.rdp.util.OntologyMessageSource;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -37,6 +40,7 @@ import static ubc.pavlab.rdp.util.TestUtils.*;
  * Created by mjacobson on 26/02/18.
  */
 @RunWith(SpringRunner.class)
+@Import(WebMvcConfig.class)
 @DataJpaTest
 public class UserGeneRepositoryTest {
 
@@ -100,6 +104,9 @@ public class UserGeneRepositoryTest {
 
     @MockBean
     private GeneInfoService geneinfoService;
+
+    @MockBean
+    private OntologyMessageSource ontologyMessageSource;
 
     private User user;
     private Taxon taxon;

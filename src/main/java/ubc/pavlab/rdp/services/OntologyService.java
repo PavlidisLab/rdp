@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.MessageSource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -24,6 +25,7 @@ import ubc.pavlab.rdp.repositories.ontology.OntologyTermInfoRepository;
 import ubc.pavlab.rdp.util.*;
 
 import java.io.*;
+import java.net.URL;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -45,8 +47,11 @@ public class OntologyService implements InitializingBean {
     private final OntologyTermInfoRepository ontologyTermInfoRepository;
 
     @Autowired
-    @Qualifier("messageSourceWithoutOntologyMessageSource")
+    @Qualifier("messageSourceWithoutOntology")
     private MessageSource messageSource;
+
+    @Autowired
+    private ResourceLoader resourceLoader;
 
     private boolean isFullTextSupported = false;
 
@@ -263,8 +268,7 @@ public class OntologyService implements InitializingBean {
             convertedTermsById.get( term.getId() ).setSubTerms( subTerms );
         }
 
-        ontology.getTerms().removeIf( t -> !convertedTerms.contains( t.getTermId() ) );
-        ontology.getTerms().addAll( convertedTerms );
+        CollectionUtils.update( ontology.getTerms(), convertedTerms );
 
         return ontologyRepository.save( ontology );
     }
@@ -319,16 +323,19 @@ public class OntologyService implements InitializingBean {
         return ontologyTermInfoRepository.activateByTermIdsAndActiveFalseAndObsoleteFalse( getDescendentIds( Collections.singleton( ontologyTermInfo ) ) );
     }
 
-
-    @Autowired
-    private ResourceLoader resourceLoader;
+    /**
+     * Resolve an ontology URL into a {@link Resource}.
+     */
+    public Resource resolveOntologyUrl( URL ontologyUrl ) {
+        return resourceLoader.getResource( ontologyUrl.toString() );
+    }
 
     @Transactional
     public void updateOntologies() {
         log.info( "Updating all active ontologies..." );
         for ( Ontology ontology : findAllOntologies() ) {
             if ( ontology.getOntologyUrl() != null ) {
-                Resource resource = resourceLoader.getResource( ontology.getOntologyUrl().toString() );
+                Resource resource = resolveOntologyUrl( ontology.getOntologyUrl() );
                 log.info( "Updating " + ontology + " from " + resource + "..." );
                 try ( Reader reader = new InputStreamReader( resource.getInputStream() ) ) {
                     updateFromObo( ontology, reader );
@@ -398,7 +405,7 @@ public class OntologyService implements InitializingBean {
 
     @Transactional
     @Secured("ROLE_ADMIN")
-    public Ontology updateNameAndOrderingAndTerms( Ontology ontology, String name, Integer ordering, SortedSet<OntologyTermInfo> terms ) throws OntologyNameAlreadyUsedException {
+    public Ontology updateNameAndOrderingAndTerms( Ontology ontology, String name, Integer ordering, Set<OntologyTermInfo> terms ) throws OntologyNameAlreadyUsedException {
         if ( ontology.getId() == null ) {
             throw new IllegalArgumentException( String.format( "Ontology %s does not exist, it cannot be updated.", ontology.getName() ) );
         }
@@ -407,8 +414,7 @@ public class OntologyService implements InitializingBean {
         }
         ontology.setName( name );
         ontology.setOrdering( ordering );
-        ontology.getTerms().removeIf( t -> !terms.contains( t ) );
-        ontology.getTerms().addAll( terms );
+        CollectionUtils.update( ontology.getTerms(), terms );
         return ontologyRepository.save( ontology );
     }
 
@@ -461,10 +467,20 @@ public class OntologyService implements InitializingBean {
         }
     }
 
+    /**
+     * Delete an ontology.
+     * <p>
+     * Important note: this will fail if any user has an {@link UserOntologyTerm} associated to the supplied ontology.
+     * There is no implicit cascading, so you must delete the user terms first.
+     *
+     * @throws DataIntegrityViolationException generally if a user still has a term associated to that ontology, but
+     *                                         it could because by something else
+     */
     @Secured("ROLE_ADMIN")
     @Transactional
-    public void delete( List<Ontology> ontologies ) {
-        ontologyRepository.delete( ontologies );
+    public void delete( Ontology ontology ) throws DataIntegrityViolationException {
+        ontologyRepository.delete( ontology );
+        ontologyRepository.flush(); // necessary if we want to raise the DataIntegrityViolationException
     }
 
     /**
@@ -612,7 +628,12 @@ public class OntologyService implements InitializingBean {
     /**
      * Infer a set of terms numerical IDs meant by a collection of ontology terms.
      * <p>
+     * Note: the returned terms are not filtered for their active state as it would be too inefficient to do this here
+     * without loading the terms.
+     * <p>
      * Caching makes most sense for top terms which are more expensive to infer due to the large number of descendents.
+     *
+     * @return inferred term IDs
      */
     @Transactional(readOnly = true)
     public Set<Integer> inferTermIds( Collection<OntologyTermInfo> ontologyTermInfos ) {
@@ -621,7 +642,7 @@ public class OntologyService implements InitializingBean {
             return getDescendentIds( ontologyTermInfos );
         } finally {
             if ( timer.getTime( TimeUnit.MILLISECONDS ) > 500 ) {
-                log.warn( String.format( "Term inference took %d ms for the following terms: %s.",
+                log.warn( String.format( "Inference took %d ms for the following terms: %s.",
                         timer.getTime( TimeUnit.MILLISECONDS ),
                         ontologyTermInfos.stream().map( OntologyTermInfo::toString ).collect( Collectors.joining( ", " ) ) ) );
             }

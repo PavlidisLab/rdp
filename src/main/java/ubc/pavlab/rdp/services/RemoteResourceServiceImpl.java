@@ -100,6 +100,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
                 .researcherPositions( researcherPositions )
                 .researcherCategories( researcherCategories )
                 .organUberonIds( organUberonIds )
+                .ontologyTermInfos( ontologyTermInfos )
                 .build().toMultiValueMap() );
         return getRemoteEntities( User[].class, API_USERS_SEARCH_URI, params ).stream()
                 .sorted( User.getComparator() )
@@ -114,6 +115,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
                 .researcherPositions( researcherPositions )
                 .researcherCategories( researcherCategories )
                 .organUberonIds( organUberonIds )
+                .ontologyTermInfos( ontologyTermInfos )
                 .build().toMultiValueMap() );
         return getRemoteEntities( User[].class, API_USERS_SEARCH_URI, params ).stream()
                 .sorted( User.getComparator() )
@@ -133,6 +135,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
                     .researcherPositions( researcherPositions )
                     .researcherCategories( researcherCategories )
                     .organUberonIds( organUberonIds )
+                    .ontologyTermInfos( ontologyTermInfos )
                     .build().toMultiValueMap() );
             intlUsergenes.addAll( getRemoteEntities( UserGene[].class, API_GENES_SEARCH_URI, params ) );
         }
