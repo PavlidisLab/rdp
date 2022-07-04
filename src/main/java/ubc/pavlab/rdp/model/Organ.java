@@ -18,7 +18,7 @@ import javax.persistence.MappedSuperclass;
 public abstract class Organ {
 
     @NaturalId
-    @Column(name = "uberon_id", length = 14)
+    @Column(name = "uberon_id", nullable = false)
     private String uberonId;
 
     @Lob
