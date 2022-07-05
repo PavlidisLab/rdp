@@ -8,7 +8,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.time.StopWatch;
 import org.hibernate.validator.constraints.NotBlank;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.MessageSource;
+import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.HttpHeaders;
@@ -83,6 +83,9 @@ public class AdminController {
 
     @Autowired
     private SmartValidator smartValidator;
+
+    @Autowired
+    private ReloadableResourceBundleMessageSource messageSource;
 
 
     /**
@@ -593,9 +596,6 @@ public class AdminController {
         private final Duration elapsedTime;
     }
 
-    @Autowired
-    private MessageSource messageSource;
-
     @PostMapping("/admin/ontologies/{ontology}/activate")
     public String activateOntology( @PathVariable Ontology ontology, ActivateOntologyForm activateOntologyForm, RedirectAttributes redirectAttributes, Locale locale ) {
         int activatedTerms = ontologyService.activate( ontology, activateOntologyForm.includeTerms );
@@ -681,6 +681,13 @@ public class AdminController {
     @GetMapping("/admin/ontologies/{ontology}/autocomplete-terms")
     public Object autocompleteOntologyTerms( @PathVariable Ontology ontology, @RequestParam String query, Locale locale ) {
         return ontologyService.autocompleteInactiveTerms( query, ontology, 20, locale );
+    }
+
+    @PostMapping("/admin/refresh-messages")
+    public String refreshMessages( RedirectAttributes redirectAttributes ) {
+        messageSource.clearCacheIncludingAncestors();
+        redirectAttributes.addFlashAttribute( "message", "Messages cache have been updated." );
+        return "redirect:/admin/ontologies";
     }
 
     @Data

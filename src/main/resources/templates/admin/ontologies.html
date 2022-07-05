@@ -47,7 +47,7 @@
                                 <small th:errors="${importOntologyForm}" class="text-danger"></small>
                             </div>
                         </div>
-                        <div class="form-row mt-3">
+                        <div class="form-row my-3">
                             <div class="col">
                                 <button class="btn btn-primary import-ontology-btn" type="submit">
                                     <span class="spinner d-none"></span>
@@ -56,6 +56,16 @@
                                 </button>
                             </div>
                         </div>
+                    </form>
+                    <p>
+                        If you have custom messages for your ontologies in <code>messages.properties</code>, you can
+                        reload them without restarting RDP.
+                    </p>
+                    <form th:action="@{/admin/refresh-messages}" method="post">
+                        <button class="btn btn-primary">
+                            <i class="oi oi-reload"></i>
+                            Refresh Messages
+                        </button>
                     </form>
                 </div>
                 <div class="col-4">

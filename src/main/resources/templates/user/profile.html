@@ -271,15 +271,14 @@
             <div class="col">
                 <div class="card">
                     <div class="card-header">
-                        <h3 th:text="${#messages.msgOrNull('rdp.ontologies.' + ontology.name +  '.title') ?: ontology.name}"
+                        <h3 th:text="${#messages.msgOrNull('rdp.ontologies.' + ontology.name +  '.title') ?: #strings.toUpperCase(ontology.name)}"
                             class="mb-0"></h3>
                     </div>
                     <div class="card-body">
-                        <p>Choose <b
-                                th:text="${#messages.msgOrNull('rdp.ontologies.' + ontology.name + '.title') ?: ontology.name}"></b>
-                            terms your
-                            research is most
-                            relevant to:</p>
+                        <p>
+                            Choose <b th:text="${#messages.msgOrNull('rdp.ontologies.' + ontology.name + '.title') ?: #strings.toUpperCase(ontology.name)}"></b>
+                            terms your research is most relevant to:
+                        </p>
                         <div th:replace="fragments/ontology::terms-selection(ontology = ${ontology}, selectedTerms=${user.getUserOntologyTermsByOntology(ontology)})">
                             ...
                         </div>
