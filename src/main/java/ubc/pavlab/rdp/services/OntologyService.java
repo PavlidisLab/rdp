@@ -333,6 +333,8 @@ public class OntologyService implements InitializingBean {
                 try ( Reader reader = new InputStreamReader( resource.getInputStream() ) ) {
                     updateFromObo( ontology, reader );
                     log.info( "Updated " + ontology + " from " + resource + "." );
+                } catch ( FileNotFoundException e ) {
+                    log.warn( String.format( "The update of %s will be skipped: %s does not exist.", ontology, resource ) );
                 } catch ( IOException | ParseException e ) {
                     log.error( "Failed to update " + ontology + ".", e );
                 }
