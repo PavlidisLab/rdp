@@ -293,13 +293,6 @@ public class AdminController {
             for ( OntologyTermInfo term : ontology.getTerms() ) {
                 updateSimpleForm.ontologyTerms.add( new SimpleOntologyTermForm( term.getTermId(), term.getName(), term.isGroup(), term.isHasIcon(), term.isActive() ) );
             }
-
-            // pad to 5 rows, the last one unconditionally
-            for ( int i = ontology.getTerms().size(); i < 4; i++ ) {
-                updateSimpleForm.ontologyTerms.add( SimpleOntologyTermForm.emptyRow() );
-            }
-            updateSimpleForm.ontologyTerms.add( SimpleOntologyTermForm.emptyRow() );
-
             return updateSimpleForm;
         }
 
