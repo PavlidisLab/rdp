@@ -16,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.concurrent.DelegatingSecurityContextRunnable;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
@@ -49,6 +50,7 @@ import java.net.URL;
 import java.text.MessageFormat;
 import java.time.Duration;
 import java.util.*;
+import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -585,6 +587,13 @@ public class AdminController {
     }
 
     /**
+     * Executor used for updating Reactome pathways summations.
+     * <p>
+     * Only one task is allowed to run at a time.
+     */
+    private final Executor updateReactomePathwaySummationsExecutor = Executors.newSingleThreadExecutor();
+
+    /**
      * Unfortunately, this cannot be implemented using a POST method since it's not part of the SSE specification.
      */
     @GetMapping(value = "/admin/ontologies/{ontology}/update-reactome-pathway-summations", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
@@ -600,7 +609,7 @@ public class AdminController {
         emitter.onCompletion( () -> completed.set( true ) );
         emitter.onTimeout( () -> log.warn( "Updating Reactome pathway summations took more time than expected. The SSE stream will be closed, but the update will proceed in the background." ) );
         StopWatch timer = StopWatch.createStarted();
-        Executors.newSingleThreadExecutor().execute( () -> {
+        updateReactomePathwaySummationsExecutor.execute( new DelegatingSecurityContextRunnable( () -> {
             try {
                 reactomeService.updatePathwaySummations( ( progress, maxProgress ) -> {
                     if ( !completed.get() ) {
@@ -617,11 +626,12 @@ public class AdminController {
                         }
                     }
                 } );
+                emitter.complete();
             } catch ( ReactomeException e ) {
                 log.error( "Failed to update Reactome pathways summations. The progress monitoring stream will be closed." );
                 emitter.completeWithError( e );
             }
-        } );
+        } ) );
         return emitter;
     }
 

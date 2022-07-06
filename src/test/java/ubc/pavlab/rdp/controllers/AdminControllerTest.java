@@ -1,6 +1,5 @@
 package ubc.pavlab.rdp.controllers;
 
-import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -47,17 +46,16 @@ import java.io.*;
 import java.net.URI;
 import java.net.URL;
 import java.util.Collections;
-import java.util.ConcurrentModificationException;
 import java.util.TreeSet;
 import java.util.zip.GZIPOutputStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.mockito.BDDMockito.when;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.request;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static ubc.pavlab.rdp.util.TestUtils.createRole;
 import static ubc.pavlab.rdp.util.TestUtils.createUser;
@@ -755,16 +753,19 @@ public class AdminControllerTest {
     public void downloadOntology() throws Exception {
         Ontology ontology = Ontology.builder( "mondo" ).id( 1 ).build();
         when( ontologyService.findById( 1 ) ).thenReturn( ontology );
-        try {
-            mvc.perform( get( "/admin/ontologies/{ontologyId}/download", ontology.getId() ) )
-                    .andExpect( status().isOk() )
-                    .andExpect( content().contentType( MediaType.TEXT_PLAIN ) )
-                    .andExpect( header().string( "Content-Disposition", "attachment; filename=mondo.obo" ) );
-            verify( ontologyService ).writeObo( eq( ontology ), any( OutputStreamWriter.class ) );
-        } catch ( ConcurrentModificationException e ) {
-            // FIXME: find the cause if this error, it seems to be a bug in Spring MVC test framework
-            Assume.assumeNoException( "This test randomly raises this exception when iterating headers.", e );
-        }
+        doAnswer( a -> {
+            a.getArgumentAt( 1, Writer.class ).write( "test" );
+            return null;
+        } ).when( ontologyService ).writeObo( eq( ontology ), any( Writer.class ) );
+
+        mvc.perform( get( "/admin/ontologies/{ontologyId}/download", ontology.getId() ) )
+                .andExpect( status().isOk() )
+                .andExpect( content().contentType( MediaType.TEXT_PLAIN ) )
+                .andExpect( header().string( "Content-Disposition", "attachment; filename=mondo.obo" ) )
+                .andDo( MvcResult::getAsyncResult )
+                .andExpect( content().string( "test" ) );
+
+        verify( ontologyService ).writeObo( eq( ontology ), any( OutputStreamWriter.class ) );
     }
 
     @Test
@@ -845,12 +846,11 @@ public class AdminControllerTest {
             return null;
         } ).when( reactomeService ).updatePathwaySummations( any() );
 
-        MvcResult mvcResult = mvc.perform( get( "/admin/ontologies/{ontologyId}/update-reactome-pathway-summations", ontology.getId() ) )
+        mvc.perform( get( "/admin/ontologies/{ontologyId}/update-reactome-pathway-summations", ontology.getId() ) )
                 .andExpect( status().isOk() )
                 .andExpect( content().contentTypeCompatibleWith( MediaType.TEXT_EVENT_STREAM ) )
-                .andExpect( request().asyncStarted() )
-                .andReturn();
-        // TODO: test the content of the SSE stream
+                .andDo( MvcResult::getAsyncResult )
+                .andExpect( content().string( containsString( "processedElements" ) ) );
 
         verify( ontologyService ).findById( 1 );
         verify( reactomeService ).updatePathwaySummations( any() );
