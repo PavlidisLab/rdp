@@ -337,4 +337,49 @@ public class OntologyServiceTest {
         assertThat( inferredTerms ).hasSize( 13848 );
         assertThat( stopWatch.getTime( TimeUnit.MILLISECONDS ) ).isLessThan( 500 );
     }
+
+    @Test
+    public void move() {
+        for ( int i = 0; i < 5; i++ ) {
+            entityManager.persist( Ontology.builder( "ont" + i )
+                    .ordering( i + 1 )
+                    .active( true )
+                    .build() );
+        }
+
+        assertThat( ontologyService.findAllOntologies() )
+                .extracting( "name" )
+                .containsExactly( "ont0", "ont1", "ont2", "ont3", "ont4" );
+
+        Ontology ontology = ontologyService.findByName( "ont" + 3 );
+        assertThat( ontology ).hasFieldOrPropertyWithValue( "ordering", 4 );
+
+        ontologyService.move( ontology, OntologyService.Direction.UP );
+
+        assertThat( ontologyService.findAllOntologies() )
+                .extracting( "name" )
+                .containsExactly( "ont0", "ont1", "ont3", "ont2", "ont4" );
+    }
+
+    @Test
+    public void move_whenOntologiesDontHaveSpecifiedOrder() {
+        for ( int i = 0; i < 5; i++ ) {
+            entityManager.persist( Ontology.builder( "ont" + i )
+                    .active( true )
+                    .build() );
+        }
+
+        assertThat( ontologyService.findAllOntologies() )
+                .extracting( "name" )
+                .containsExactly( "ont0", "ont1", "ont2", "ont3", "ont4" );
+
+        Ontology ontology = ontologyService.findByName( "ont" + 3 );
+        assertThat( ontology ).hasFieldOrPropertyWithValue( "ordering", null );
+
+        ontologyService.move( ontology, OntologyService.Direction.UP );
+
+        assertThat( ontologyService.findAllOntologies() )
+                .extracting( "name" )
+                .containsExactly( "ont0", "ont1", "ont3", "ont2", "ont4" );
+    }
 }

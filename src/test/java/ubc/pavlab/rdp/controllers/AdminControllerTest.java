@@ -455,12 +455,11 @@ public class AdminControllerTest {
         Ontology ontology = Ontology.builder( "mondo" ).id( 1 ).build();
         when( ontologyService.findById( ontology.getId() ) ).thenReturn( ontology );
         mvc.perform( post( "/admin/ontologies/{ontologyId}/update-simple-ontology", ontology.getId() )
-                        .param( "ontologyName", "new name" )
-                        .param( "ordering", "2" ) )
+                        .param( "ontologyName", "new name" ) )
                 .andExpect( status().is3xxRedirection() )
                 .andExpect( redirectedUrl( "/admin/ontologies/1" ) );
         verify( ontologyService ).findById( 1 );
-        verify( ontologyService ).updateNameAndOrderingAndTerms( ontology, "new name", 2, new TreeSet<>() );
+        verify( ontologyService ).updateNameAndTerms( ontology, "new name", new TreeSet<>() );
     }
 
     @Test
@@ -471,38 +470,11 @@ public class AdminControllerTest {
         when( ontologyService.findById( ontology.getId() ) ).thenReturn( ontology );
         mvc.perform( post( "/admin/ontologies/{ontologyId}/update-simple-ontology", ontology.getId() )
                         .param( "ontologyName", "mondo" )
-                        .param( "ordering", "2" )
                         .param( "ontologyTerms[0].name", "test" ) )
                 .andExpect( status().is3xxRedirection() )
                 .andExpect( redirectedUrl( "/admin/ontologies/1" ) );
         verify( ontologyService ).findById( 1 );
-        verify( ontologyService ).updateNameAndOrderingAndTerms( ontology, "mondo", 2, Collections.singleton( OntologyTermInfo.builder( ontology, "MONDO:0000058" ).build() ) );
-    }
-
-    @Test
-    @WithMockUser(roles = { "ADMIN" })
-    public void updateSimpleOntology_whenOrderingIsEmpty_thenUseNull() throws Exception {
-        Ontology ontology = Ontology.builder( "mondo" ).id( 1 ).build();
-        when( ontologyService.findById( ontology.getId() ) ).thenReturn( ontology );
-        mvc.perform( post( "/admin/ontologies/{ontologyId}/update-simple-ontology", ontology.getId() )
-                        .param( "ontologyName", "new name" )
-                        .param( "ordering", "" ) )
-                .andExpect( status().is3xxRedirection() )
-                .andExpect( redirectedUrl( "/admin/ontologies/1" ) );
-        verify( ontologyService ).findById( 1 );
-        verify( ontologyService ).updateNameAndOrderingAndTerms( ontology, "new name", null, new TreeSet<>() );
-    }
-
-    @Test
-    @WithMockUser(roles = { "ADMIN" })
-    public void updateSimpleOntology_whenOrderingIsMissing_thenUseNull() throws Exception {
-        Ontology ontology = Ontology.builder( "mondo" ).id( 1 ).build();
-        when( ontologyService.findById( ontology.getId() ) ).thenReturn( ontology );
-        mvc.perform( post( "/admin/ontologies/{ontologyId}/update-simple-ontology", ontology.getId() )
-                        .param( "ontologyName", "new name" ) ).andExpect( status().is3xxRedirection() )
-                .andExpect( redirectedUrl( "/admin/ontologies/1" ) );
-        verify( ontologyService ).findById( 1 );
-        verify( ontologyService ).updateNameAndOrderingAndTerms( ontology, "new name", null, new TreeSet<>() );
+        verify( ontologyService ).updateNameAndTerms( ontology, "mondo", Collections.singleton( OntologyTermInfo.builder( ontology, "MONDO:0000058" ).build() ) );
     }
 
     @Test
@@ -948,5 +920,27 @@ public class AdminControllerTest {
                 .andExpect( status().is3xxRedirection() )
                 .andExpect( redirectedUrl( "/admin/ontologies" ) )
                 .andExpect( flash().attribute( "message", "Messages cache have been updated." ) );
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    public void move() throws Exception {
+        Ontology ontology = Ontology.builder( "mondo" ).id( 1 ).build();
+        when( ontologyService.findById( 1 ) ).thenReturn( ontology );
+        mvc.perform( post( "/admin/ontologies/{ontologyId}/move", ontology.getId() )
+                        .param( "direction", "up" ) )
+                .andExpect( status().is3xxRedirection() )
+                .andExpect( redirectedUrl( "/admin/ontologies" ) );
+        verify( ontologyService ).move( ontology, OntologyService.Direction.UP );
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    public void move_whenDirectionIsInvalid_thenReturnBadRequest() throws Exception {
+        Ontology ontology = Ontology.builder( "mondo" ).id( 1 ).build();
+        when( ontologyService.findById( 1 ) ).thenReturn( ontology );
+        mvc.perform( post( "/admin/ontologies/{ontologyId}/move", ontology.getId() )
+                        .param( "direction", "bleh" ) )
+                .andExpect( status().isBadRequest() );
     }
 }

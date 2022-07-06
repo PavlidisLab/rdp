@@ -127,10 +127,25 @@
         </div>
     </div>
     <div class="row">
-        <div th:each="ontology : ${@ontologyService.findAllOntologiesIncludingInactive()}"
+        <div th:each="ontology, i : ${@ontologyService.findAllOntologiesIncludingInactive()}"
              class="col-sm-6 col-xl-4">
             <div class="card mb-3">
                 <div class="card-header">
+                    <form th:action="@{/admin/ontologies/{ontologyId}/move(ontologyId=${ontology.id})}"
+                          method="post" class="float-right">
+                        <div class="btn-group btn-group-sm">
+                            <button th:unless="${i.first}" class="btn btn-light" type="submit" name="direction"
+                                    value="up"
+                                    title="Move up">
+                                <i class="oi oi-caret-top"></i>
+                            </button>
+                            <button th:unless="${i.last}" class="btn btn-light" type="submit" name="direction"
+                                    value="down"
+                                    title="Move down">
+                                <i class="oi oi-caret-bottom"></i>
+                            </button>
+                        </div>
+                    </form>
                     <h3>
                         <span th:replace="fragments/ontology::ontology-name(${ontology})"></span>
                     </h3>

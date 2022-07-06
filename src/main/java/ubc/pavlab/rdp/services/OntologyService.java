@@ -323,6 +323,39 @@ public class OntologyService implements InitializingBean {
         return ontologyTermInfoRepository.activateByTermIdsAndActiveFalseAndObsoleteFalse( getDescendentIds( Collections.singleton( ontologyTermInfo ) ) );
     }
 
+    @Secured("ROLE_ADMIN")
+    @Transactional
+    public void move( Ontology ontology, Direction direction ) {
+        List<Ontology> ontologies = ontologyRepository.findAllByActiveTrue();
+        ontologies.sort( Ontology.getComparator() );
+
+        // compute the original position
+        int i = ontologies.indexOf( ontology );
+
+        if ( i == -1 ) {
+            throw new IllegalArgumentException( "Noooo!" );
+        }
+
+        // compute the target position
+        int destination = Math.min( Math.max( i + ( direction == Direction.UP ? -1 : 1 ), 0 ), ontologies.size() - 1 );
+
+        // reinsert the ontology at the target position
+        ontologies.remove( i );
+        ontologies.add( destination, ontology );
+
+        // reset ordering for everything
+        int position = 0;
+        for ( Ontology o : ontologies ) {
+            o.setOrdering( position++ );
+        }
+
+        ontologyRepository.save( ontologies );
+    }
+
+    public enum Direction {
+        UP, DOWN
+    }
+
     /**
      * Resolve an ontology URL into a {@link Resource}.
      */
@@ -405,7 +438,7 @@ public class OntologyService implements InitializingBean {
 
     @Transactional
     @Secured("ROLE_ADMIN")
-    public Ontology updateNameAndOrderingAndTerms( Ontology ontology, String name, Integer ordering, Set<OntologyTermInfo> terms ) throws OntologyNameAlreadyUsedException {
+    public Ontology updateNameAndTerms( Ontology ontology, String name, Set<OntologyTermInfo> terms ) throws OntologyNameAlreadyUsedException {
         if ( ontology.getId() == null ) {
             throw new IllegalArgumentException( String.format( "Ontology %s does not exist, it cannot be updated.", ontology.getName() ) );
         }
@@ -413,7 +446,6 @@ public class OntologyService implements InitializingBean {
             throw new OntologyNameAlreadyUsedException( "Ontology already exists." );
         }
         ontology.setName( name );
-        ontology.setOrdering( ordering );
         CollectionUtils.update( ontology.getTerms(), terms );
         return ontologyRepository.save( ontology );
     }

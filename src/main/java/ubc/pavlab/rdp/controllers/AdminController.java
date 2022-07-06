@@ -43,7 +43,6 @@ import ubc.pavlab.rdp.settings.SiteSettings;
 import ubc.pavlab.rdp.util.ParseException;
 
 import javax.validation.Valid;
-import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.io.*;
@@ -252,7 +251,6 @@ public class AdminController {
         }
         try {
             Ontology ontology = Ontology.builder( simpleOntologyForm.getOntologyName() )
-                    .ordering( simpleOntologyForm.getOrdering() )
                     .build();
             ontology.getTerms().addAll( parseTerms( ontology, simpleOntologyForm.getOntologyTerms() ) );
             ontology = ontologyService.create( ontology );
@@ -274,7 +272,7 @@ public class AdminController {
             return new ModelAndView( "admin/ontology", HttpStatus.BAD_REQUEST );
         }
         try {
-            ontologyService.updateNameAndOrderingAndTerms( ontology, simpleOntologyForm.ontologyName, simpleOntologyForm.ordering, parseTerms( ontology, simpleOntologyForm.getOntologyTerms() ) );
+            ontologyService.updateNameAndTerms( ontology, simpleOntologyForm.ontologyName, parseTerms( ontology, simpleOntologyForm.getOntologyTerms() ) );
             redirectAttributes.addFlashAttribute( "message", String.format( "Ontology %s has been successfully updated.", ontology.getName() ) );
             return "redirect:/admin/ontologies/" + ontology.getId();
         } catch ( OntologyNameAlreadyUsedException e ) {
@@ -289,7 +287,6 @@ public class AdminController {
         public static SimpleOntologyForm fromOntology( Ontology ontology ) {
             SimpleOntologyForm updateSimpleForm = new SimpleOntologyForm();
             updateSimpleForm.setOntologyName( ontology.getName() );
-            updateSimpleForm.setOrdering( ontology.getOrdering() );
             for ( OntologyTermInfo term : ontology.getTerms() ) {
                 updateSimpleForm.ontologyTerms.add( new SimpleOntologyTermForm( term.getTermId(), term.getName(), term.isGroup(), term.isHasIcon(), term.isActive() ) );
             }
@@ -308,12 +305,6 @@ public class AdminController {
         @NotNull
         @Size(min = 1, max = 255)
         private String ontologyName;
-
-        /**
-         * A value between 1 and ..., can be null.
-         */
-        @Min(1)
-        private Integer ordering;
 
         @Valid
         @Size(max = 20)
@@ -706,6 +697,29 @@ public class AdminController {
     public String refreshMessages( RedirectAttributes redirectAttributes ) {
         messageSource.clearCacheIncludingAncestors();
         redirectAttributes.addFlashAttribute( "message", "Messages cache have been updated." );
+        return "redirect:/admin/ontologies";
+    }
+
+    @PostMapping("/admin/ontologies/{ontology}/move")
+    public Object move( @PathVariable Ontology ontology, @RequestParam String direction,
+                        @SuppressWarnings("unused") ImportOntologyForm importOntologyForm,
+                        Locale locale ) {
+        if ( ontology == null ) {
+            return new ModelAndView( "error/404", HttpStatus.NOT_FOUND )
+                    .addObject( "message", messageSource.getMessage( "AdminController.ontologyNotFoundById", null, locale ) );
+        }
+        OntologyService.Direction d;
+        if ( direction.equals( "up" ) ) {
+            d = OntologyService.Direction.UP;
+        } else if ( direction.equals( "down" ) ) {
+            d = OntologyService.Direction.DOWN;
+        } else {
+            return new ModelAndView( "admin/ontologies", HttpStatus.BAD_REQUEST )
+                    .addObject( "error", true )
+                    .addObject( "message", String.format( "Invalid direction %s.", direction ) )
+                    .addObject( "simpleOntologyForm", SimpleOntologyForm.withInitialRows( 5 ) );
+        }
+        ontologyService.move( ontology, d );
         return "redirect:/admin/ontologies";
     }
 

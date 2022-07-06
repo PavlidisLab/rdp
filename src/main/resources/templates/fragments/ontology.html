@@ -162,15 +162,6 @@
                        placeholder="Category Name"/>
                 <div th:errors="*{ontologyName}" class="invalid-feedback"></div>
             </div>
-            <div class="form-group">
-                <label for="ordering">Ordering (leave empty to use alphabetic order)</label>
-                <input class="form-control"
-                       type="number"
-                       th:field="*{ordering}"
-                       th:errorclass="is-invalid"
-                       placeholder="1, 2, 3, ..."/>
-                <div th:errors="*{ordering}" class="invalid-feedback"></div>
-            </div>
         </div>
     </div>
     <div class="form-row d-none d-lg-flex">
