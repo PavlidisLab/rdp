@@ -77,9 +77,6 @@ public class AdminController {
     private ReactomeService reactomeService;
 
     @Autowired
-    private OntologyStubService ontologyStubService;
-
-    @Autowired
     private SiteSettings siteSettings;
 
     @Autowired
@@ -511,13 +508,6 @@ public class AdminController {
             }
         }
         return "redirect:/admin/ontologies/" + ontology.getId();
-    }
-
-    @PostMapping("/admin/ontologies/create-stubs")
-    public Object createStubs( RedirectAttributes redirectAttributes ) {
-        ontologyStubService.createStubs();
-        redirectAttributes.addFlashAttribute( "message", "Successfully created stubs!" );
-        return "redirect:/admin/ontologies";
     }
 
     @PostMapping("/admin/ontologies/import")

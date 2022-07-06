@@ -69,22 +69,6 @@
                     </form>
                 </div>
                 <div class="col-4">
-                    <h2>Stubs</h2>
-                    <form th:action="@{/admin/ontologies/create-stubs}" method="post">
-                        <p>RDP provides stubbed categories for tumor tissues, research models and research technologies
-                            that can be setup at a glance.</p>
-                        <th:block th:if="${@ontologyStubService.findAllOntologyStubs().size() lt 3}">
-                            <p class="text-warning">Careful here because this action is not reversible!</p>
-                            <button class="btn btn-warning" type="submit">
-                                <span class="spinner d-none"></span>
-                                Create and activate stubs
-                            </button>
-                        </th:block>
-                        <p th:if="${@ontologyStubService.findAllOntologyStubs().size() eq 3}"
-                           class="text-success">
-                            Stubs are already setup.
-                        </p>
-                    </form>
                     <div th:with="reactome=${@reactomeService.findPathwaysOntology()}">
                         <h2>Reactome Pathways</h2>
                         <p>RDP provides capability of importing Reactome pathways.</p>

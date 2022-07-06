@@ -107,9 +107,6 @@ public class AdminControllerTest {
     @MockBean(name = "ontologyService")
     private OntologyService ontologyService;
 
-    @MockBean(name = "ontologyStubService")
-    private OntologyStubService ontologyStubService;
-
     @MockBean
     private OntologyMessageSource ontologyMessageSource;
 
