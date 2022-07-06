@@ -10,7 +10,6 @@ import org.hibernate.validator.constraints.NotBlank;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.ResourceLoader;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -133,24 +132,33 @@ public class AdminController {
      * Retrieve a user's details.
      */
     @GetMapping(value = "/admin/users/{user}")
-    public Object getUser( @PathVariable User user, @SuppressWarnings("unused") ConfirmEmailForm confirmEmailForm ) {
+    public Object getUser( @PathVariable User user, @SuppressWarnings("unused") ConfirmEmailForm confirmEmailForm, Locale locale ) {
         if ( user == null ) {
-            return ResponseEntity.notFound().build();
+            return new ModelAndView( "error/404", HttpStatus.NOT_FOUND )
+                    .addObject( "message", messageSource.getMessage( "AdminController.userNotFoundById", null, locale ) );
         }
         return "admin/user";
     }
 
     @PostMapping(value = "/admin/users/{user}/create-access-token")
-    public Object createAccessTokenForUser( @PathVariable User user, RedirectAttributes redirectAttributes ) {
+    public Object createAccessTokenForUser( @PathVariable User user, RedirectAttributes redirectAttributes, Locale locale ) {
+        if ( user == null ) {
+            return new ModelAndView( "error/404", HttpStatus.NOT_FOUND )
+                    .addObject( "message", messageSource.getMessage( "AdminController.userNotFoundById", null, locale ) );
+        }
         AccessToken accessToken = userService.createAccessTokenForUser( user );
         redirectAttributes.addFlashAttribute( "message", MessageFormat.format( "Successfully created an access token {0}.", accessToken.getToken() ) );
         return "redirect:/admin/users/" + user.getId();
     }
 
     @PostMapping(value = "/admin/users/{user}/revoke-access-token/{accessToken}")
-    public Object revokeAccessTn( @PathVariable User user, @PathVariable AccessToken accessToken, RedirectAttributes redirectAttributes ) {
-        if ( !accessToken.getUser().equals( user ) ) {
-            return ResponseEntity.notFound().build();
+    public Object revokeAccessTn( @PathVariable User user, @PathVariable AccessToken accessToken, RedirectAttributes redirectAttributes, Locale locale ) {
+        if ( user == null ) {
+            return new ModelAndView( "error/404", HttpStatus.NOT_FOUND )
+                    .addObject( "message", messageSource.getMessage( "AdminController.userNotFoundById", null, locale ) );
+        }
+        if ( accessToken == null || !accessToken.getUser().equals( user ) ) {
+            return ResponseEntity.badRequest().build();
         }
         userService.revokeAccessToken( accessToken );
         redirectAttributes.addFlashAttribute( "message", MessageFormat.format( "Revoked access token {0}.", accessToken.getToken() ) );
@@ -161,9 +169,10 @@ public class AdminController {
      * Delete a given user.
      */
     @DeleteMapping(value = "/admin/users/{user}")
-    public Object deleteUser( @PathVariable User user, @Validated ConfirmEmailForm confirmEmailForm, BindingResult bindingResult ) {
+    public Object deleteUser( @PathVariable User user, @Validated ConfirmEmailForm confirmEmailForm, BindingResult bindingResult, Locale locale ) {
         if ( user == null ) {
-            return ResponseEntity.notFound().build();
+            return new ModelAndView( "error/404", HttpStatus.NOT_FOUND )
+                    .addObject( "message", messageSource.getMessage( "AdminController.userNotFoundById", null, locale ) );
         }
 
         if ( !user.getEmail().equals( confirmEmailForm.getEmail() ) ) {
@@ -188,10 +197,11 @@ public class AdminController {
     public ModelAndView getOntology( @PathVariable Ontology ontology,
                                      @SuppressWarnings("unused") ActivateTermForm activateTermForm,
                                      @SuppressWarnings("unused") ActivateOntologyForm activateOntologyForm,
-                                     @SuppressWarnings("unused") DeleteOntologyForm deleteOntologyForm ) {
+                                     @SuppressWarnings("unused") DeleteOntologyForm deleteOntologyForm,
+                                     Locale locale ) {
         if ( ontology == null ) {
             return new ModelAndView( "error/404", HttpStatus.NOT_FOUND )
-                    .addObject( "message", "No ontology with the provided ID." );
+                    .addObject( "message", messageSource.getMessage( "AdminController.ontologyNotFoundById", null, locale ) );
         }
         ModelAndView modelAndView = new ModelAndView( "admin/ontology" );
         if ( ontology.getTerms().size() <= 20 ) {
@@ -205,10 +215,11 @@ public class AdminController {
                                   @SuppressWarnings("unused") ActivateTermForm activateTermForm,
                                   @SuppressWarnings("unused") ActivateOntologyForm activateOntologyForm,
                                   @Valid DeleteOntologyForm deleteOntologyForm, BindingResult bindingResult,
-                                  RedirectAttributes redirectAttributes, Locale locale ) {
+                                  RedirectAttributes redirectAttributes,
+                                  Locale locale ) {
         if ( ontology == null ) {
             return new ModelAndView( "error/404", HttpStatus.NOT_FOUND )
-                    .addObject( "message", "Ontology does not exist." );
+                    .addObject( "message", messageSource.getMessage( "AdminController.ontologyNotFoundById", null, locale ) );
         }
 
         ModelAndView modelAndView = new ModelAndView( "admin/ontology", HttpStatus.BAD_REQUEST );
@@ -267,7 +278,12 @@ public class AdminController {
                                         @SuppressWarnings("unused") ActivateOntologyForm activateOntologyForm,
                                         @SuppressWarnings("unused") DeleteOntologyForm deleteOntologyForm,
                                         @Valid SimpleOntologyForm simpleOntologyForm, BindingResult bindingResult,
-                                        RedirectAttributes redirectAttributes ) {
+                                        RedirectAttributes redirectAttributes,
+                                        Locale locale ) {
+        if ( ontology == null ) {
+            return new ModelAndView( "error/404", HttpStatus.NOT_FOUND )
+                    .addObject( "message", messageSource.getMessage( "AdminController.ontologyNotFoundById", null, locale ) );
+        }
         if ( bindingResult.hasErrors() ) {
             return new ModelAndView( "admin/ontology", HttpStatus.BAD_REQUEST );
         }
@@ -472,7 +488,12 @@ public class AdminController {
                                   @SuppressWarnings("unused") ActivateOntologyForm activateOntologyForm,
                                   @SuppressWarnings("unused") DeleteOntologyForm deleteOntologyForm,
                                   @SuppressWarnings("unused") SimpleOntologyForm simpleOntologyForm,
-                                  RedirectAttributes redirectAttributes ) {
+                                  RedirectAttributes redirectAttributes,
+                                  Locale locale ) {
+        if ( ontology == null ) {
+            return new ModelAndView( "error/404", HttpStatus.NOT_FOUND )
+                    .addObject( "message", messageSource.getMessage( "AdminController.ontologyNotFoundById", null, locale ) );
+        }
         if ( ontology.getOntologyUrl() == null ) {
             return new ModelAndView( "admin/ontology", HttpStatus.BAD_REQUEST );
         } else {
@@ -503,7 +524,7 @@ public class AdminController {
             return new ModelAndView( "admin/ontologies", HttpStatus.BAD_REQUEST )
                     .addObject( "simpleOntologyForm", SimpleOntologyForm.withInitialRows( 5 ) );
         }
-        try ( Reader reader = getReader( importOntologyForm ) ) {
+        try ( Reader reader = getReaderForImportOntologyForm( importOntologyForm ) ) {
             Ontology ontology = ontologyService.createFromObo( reader );
             ontology.setOntologyUrl( importOntologyForm.ontologyUrl );
             ontologyService.save( ontology );
@@ -545,9 +566,11 @@ public class AdminController {
     }
 
     @PostMapping("/admin/ontologies/{ontology}/update-reactome-pathways")
-    public Object updateReactomePathways( @PathVariable Ontology ontology, RedirectAttributes redirectAttributes ) {
-        if ( !ontology.equals( reactomeService.findPathwaysOntology() ) ) {
-            return ResponseEntity.notFound().build();
+    public Object updateReactomePathways( @PathVariable Ontology ontology, RedirectAttributes redirectAttributes, Locale locale ) {
+        // null-check is not necessary, but can save a database call
+        if ( ontology == null || !ontology.equals( reactomeService.findPathwaysOntology() ) ) {
+            return new ModelAndView( "error/404", HttpStatus.NOT_FOUND )
+                    .addObject( "message", messageSource.getMessage( "AdminController.ontologyNotFoundById", null, locale ) );
         }
         try {
             Ontology reactomeOntology = reactomeService.updatePathwaysOntology();
@@ -565,9 +588,11 @@ public class AdminController {
      * Unfortunately, this cannot be implemented using a POST method since it's not part of the SSE specification.
      */
     @GetMapping(value = "/admin/ontologies/{ontology}/update-reactome-pathway-summations", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Object updateReactomePathwaySummationsSse( @PathVariable Ontology ontology ) {
-        if ( !reactomeService.findPathwaysOntology().equals( ontology ) ) {
-            return ResponseEntity.notFound().build();
+    public Object updateReactomePathwaySummationsSse( @PathVariable Ontology ontology, Locale locale ) {
+        // null-check is not necessary, but can save a database call
+        if ( ontology == null || !reactomeService.findPathwaysOntology().equals( ontology ) ) {
+            return ResponseEntity.status( HttpStatus.NOT_FOUND )
+                    .body( messageSource.getMessage( "AdminController.ontologyNotFoundById", null, locale ) );
         }
         final AtomicInteger eventId = new AtomicInteger( 1 );
         final AtomicBoolean completed = new AtomicBoolean( false );
@@ -608,7 +633,11 @@ public class AdminController {
     }
 
     @PostMapping("/admin/ontologies/{ontology}/activate")
-    public String activateOntology( @PathVariable Ontology ontology, ActivateOntologyForm activateOntologyForm, RedirectAttributes redirectAttributes, Locale locale ) {
+    public Object activateOntology( @PathVariable Ontology ontology, ActivateOntologyForm activateOntologyForm, RedirectAttributes redirectAttributes, Locale locale ) {
+        if ( ontology == null ) {
+            return new ModelAndView( "error/404", HttpStatus.NOT_FOUND )
+                    .addObject( "message", messageSource.getMessage( "AdminController.ontologyNotFoundById", null, locale ) );
+        }
         int activatedTerms = ontologyService.activate( ontology, activateOntologyForm.includeTerms );
         redirectAttributes.addFlashAttribute( "message", String.format( "%s ontology has been activated.", resolveOntologyName( ontology, locale ) )
                 + ( activatedTerms > 0 ? String.format( " In addition, %d terms have been activated.", activatedTerms ) : "" ) );
@@ -621,7 +650,11 @@ public class AdminController {
     }
 
     @PostMapping("/admin/ontologies/{ontology}/deactivate")
-    public String deactivateOntology( @PathVariable Ontology ontology, RedirectAttributes redirectAttributes, Locale locale ) {
+    public Object deactivateOntology( @PathVariable Ontology ontology, RedirectAttributes redirectAttributes, Locale locale ) {
+        if ( ontology == null ) {
+            return new ModelAndView( "error/404", HttpStatus.NOT_FOUND )
+                    .addObject( "message", messageSource.getMessage( "AdminController.ontologyNotFoundById", null, locale ) );
+        }
         ontologyService.deactivate( ontology );
         redirectAttributes.addFlashAttribute( "message", String.format( "%s ontology has been deactivated.", resolveOntologyName( ontology, locale ) ) );
         return "redirect:/admin/ontologies/" + ontology.getId();
@@ -639,7 +672,13 @@ public class AdminController {
                                             @SuppressWarnings("unused") ActivateOntologyForm activateOntologyForm,
                                             @SuppressWarnings("unused") DeleteOntologyForm deleteOntologyForm,
                                             @Valid ActivateTermForm activateTermForm, BindingResult bindingResult,
-                                            RedirectAttributes redirectAttributes ) {
+                                            RedirectAttributes redirectAttributes,
+                                            Locale locale ) {
+        if ( ontology == null ) {
+            return new ModelAndView( "error/404", HttpStatus.NOT_FOUND )
+                    .addObject( "message", messageSource.getMessage( "AdminController.ontologyNotFoundById", null, locale ) );
+        }
+
         OntologyTermInfo ontologyTermInfo = null;
         if ( !bindingResult.hasFieldErrors( "ontologyTermInfoId" ) ) {
             ontologyTermInfo = ontologyService.findTermByTermIdAndOntology( activateTermForm.ontologyTermInfoId, ontology );
@@ -677,6 +716,9 @@ public class AdminController {
      */
     @GetMapping(value = "/admin/ontologies/{ontology}/download", produces = "text/plain")
     public ResponseEntity<StreamingResponseBody> downloadOntology( @PathVariable Ontology ontology ) {
+        if ( ontology == null ) {
+            return ResponseEntity.notFound().build();
+        }
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType( MediaType.TEXT_PLAIN );
         headers.set( "Content-Disposition", String.format( "attachment; filename=%s.obo", ontology.getName() ) );
@@ -690,6 +732,10 @@ public class AdminController {
     @ResponseBody
     @GetMapping("/admin/ontologies/{ontology}/autocomplete-terms")
     public Object autocompleteOntologyTerms( @PathVariable Ontology ontology, @RequestParam String query, Locale locale ) {
+        if ( ontology == null ) {
+            return ResponseEntity.status( HttpStatus.NOT_FOUND )
+                    .body( messageSource.getMessage( "AdminController.ontologyNotFoundById", null, locale ) );
+        }
         return ontologyService.autocompleteInactiveTerms( query, ontology, 20, locale );
     }
 
@@ -749,7 +795,7 @@ public class AdminController {
     /**
      * Obtain a {@link Reader} over the contents of an ontology described by an import form.
      */
-    public Reader getReader( ImportOntologyForm importOntologyForm ) throws IOException {
+    private Reader getReaderForImportOntologyForm( ImportOntologyForm importOntologyForm ) throws IOException {
         InputStream is;
         if ( importOntologyForm.ontologyUrl != null ) {
             is = ontologyService.resolveOntologyUrl( importOntologyForm.ontologyUrl ).getInputStream();
