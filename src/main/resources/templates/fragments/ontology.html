@@ -182,7 +182,6 @@
         </div>
         <div class="col-lg"></div>
         <div class="col-lg"></div>
-        <div class="col-lg"></div>
     </div>
     <div th:each="term, i : ${simpleOntologyForm.ontologyTerms}"
          class="form-row mt-1 ontology-term-row" draggable="true">
@@ -238,18 +237,6 @@
                     Has icon?
                 </label>
                 <div class="invalid-feedback" th:errors="*{ontologyTerms[__${i.index}__].hasIcon}"></div>
-            </div>
-        </div>
-        <div class="col-sm-6 col-lg my-auto">
-            <div class="form-check">
-                <input class="form-check-input"
-                       type="checkbox"
-                       th:field="*{ontologyTerms[__${i.index}__].active}" th:errorclass="is-invalid"/>
-                <label th:for="'ontologyTerms' + ${i.index} + '.active1'"
-                       class="form-check-label">
-                    Is active?
-                </label>
-                <div class="invalid-feedback" th:errors="*{ontologyTerms[__${i.index}__].active}"></div>
             </div>
         </div>
         <div class="col-md-auto my-auto d-none d-lg-block">

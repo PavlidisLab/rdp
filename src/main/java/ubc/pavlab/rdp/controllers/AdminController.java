@@ -390,7 +390,8 @@ public class AdminController {
             term.setGroup( simpleOntologyTermForm.isGrouping() );
             term.setOrdering( terms.size() + 1 ); // 1-based ordering
             term.setHasIcon( simpleOntologyTermForm.isHasIcon() );
-            term.setActive( simpleOntologyTermForm.isActive() );
+            // terms are always active, unless grouping is set so they won't appear in autocomplete
+            term.setActive( !simpleOntologyTermForm.isGrouping() );
             // this is necessary to proactively evict the ancestors cache
             term.getSuperTerms().clear();
             term.setSubTerms( new TreeSet<>() );

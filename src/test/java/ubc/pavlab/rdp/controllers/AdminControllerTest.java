@@ -315,8 +315,11 @@ public class AdminControllerTest {
                 .andExpect( redirectedUrl( "/admin/ontologies/1" ) );
         verify( ontologyService ).create( expectedOntology );
         assertThat( ontologyArg.getValue().getTerms() )
-                .extracting( "termId" )
-                .containsExactly( "TERM:00001" );
+                .first()
+                .hasFieldOrPropertyWithValue( "termId", "TERM:00001" )
+                .hasFieldOrPropertyWithValue( "name", "the best term" )
+                .hasFieldOrPropertyWithValue( "group", false )
+                .hasFieldOrPropertyWithValue( "active", true );
     }
 
     @Test
@@ -412,12 +415,10 @@ public class AdminControllerTest {
                         .param( "ontologyTerms[0].name", "a name" )
                         .param( "ontologyTerms[0].grouping", "false" )
                         .param( "ontologyTerms[0].hasIcon", "false" )
-                        .param( "ontologyTerms[0].active", "false" )
                         .param( "ontologyTerms[2].termId", "MONDO:000002" )
                         .param( "ontologyTerms[2].name", "a name" )
                         .param( "ontologyTerms[2].grouping", "false" )
-                        .param( "ontologyTerms[2].hasIcon", "false" )
-                        .param( "ontologyTerms[2].active", "false" ) )
+                        .param( "ontologyTerms[2].hasIcon", "false" ) )
                 .andExpect( status().is3xxRedirection() )
                 .andExpect( redirectedUrl( "/admin/ontologies/1" ) );
         verify( ontologyService ).create( any() );
@@ -435,7 +436,6 @@ public class AdminControllerTest {
             termsMap.add( "ontologyTerms[" + i + "].name", "a name" );
             termsMap.add( "ontologyTerms[" + i + "].grouping", "false" );
             termsMap.add( "ontologyTerms[" + i + "].hasIcon", "false" );
-            termsMap.add( "ontologyTerms[" + i + "].active", "false" );
         }
         mvc.perform( post( "/admin/ontologies/create-simple-ontology" )
                         .param( "ontologyName", "mondo" )
@@ -483,7 +483,6 @@ public class AdminControllerTest {
             termsMap.add( "ontologyTerms[" + i + "].name", "a name" );
             termsMap.add( "ontologyTerms[" + i + "].grouping", "false" );
             termsMap.add( "ontologyTerms[" + i + "].hasIcon", "false" );
-            termsMap.add( "ontologyTerms[" + i + "].active", "false" );
         }
         mvc.perform( post( "/admin/ontologies/{ontologyId}/update-simple-ontology", ontology.getId() )
                         .param( "ontologyName", "mondo" )
