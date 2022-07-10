@@ -1,6 +1,6 @@
 package ubc.pavlab.rdp.model.ontology;
 
-import com.fasterxml.jackson.annotation.JsonValue;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import org.hibernate.annotations.LazyCollection;
 import org.hibernate.annotations.LazyCollectionOption;
@@ -41,6 +41,7 @@ public class Ontology implements Comparable<Ontology> {
                 .thenComparing( Ontology::getName );
     }
 
+    @JsonIgnore
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "ontology_id")
@@ -48,6 +49,23 @@ public class Ontology implements Comparable<Ontology> {
 
     @Column(unique = true, nullable = false)
     private String name;
+
+    /**
+     * For the public API.
+     */
+    @Transient
+    private String definition;
+
+    /**
+     * For the public API.
+     * <p>
+     * If you need to get the number of terms, use {@link #getTerms()} with 'size', it's very efficient!
+     */
+    @Transient
+    private Long numberOfTerms;
+
+    @Transient
+    private Long numberOfObsoleteTerms;
 
     /**
      * Set of terms associated to this category.
@@ -60,6 +78,7 @@ public class Ontology implements Comparable<Ontology> {
      * Note: I know it's tempting to map this by term ID with {@link MapKey}, but don't. This collection can get pretty
      * huge.
      */
+    @JsonIgnore
     @OneToMany(mappedBy = "ontology", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("ordering asc, name asc, termId asc")
     @LazyCollection(LazyCollectionOption.EXTRA)
@@ -70,25 +89,23 @@ public class Ontology implements Comparable<Ontology> {
      * <p>
      * The only supported format for now is OBO.
      */
+    @JsonIgnore
     private URL ontologyUrl;
 
     /**
      * Indicate if the ontology is active.
      */
+    @JsonIgnore
     private boolean active;
 
     /**
      * Relative order of categories when sorted as per {@link #getComparator()}.
      */
+    @JsonIgnore
     private Integer ordering;
 
     @Override
     public int compareTo( Ontology ontology ) {
         return getComparator().compare( this, ontology );
-    }
-
-    @JsonValue
-    public String getName() {
-        return name;
     }
 }

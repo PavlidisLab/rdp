@@ -36,6 +36,7 @@ import java.net.URI;
 import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
@@ -394,28 +395,45 @@ public class ApiControllerTest {
 
     @Test
     public void createOntology_() {
-        assertThat( createOntology( "uberon", 1, 3 ).getTerms() )
+        assertThat( createOntology( "uberon", 1, 3, 1.0 ).getTerms() )
                 .hasSize( 3 );
-        assertThat( createOntology( "uberon", 3, 3 ).getTerms() )
+        assertThat( createOntology( "uberon", 3, 3, 1.0 ).getTerms() )
                 .hasSize( 3 + ( 3 * 3 ) + ( 3 * 3 * 3 ) );
+        assertThat( createOntology( "uberon", 5, 4, .8 ).getTerms() )
+                .hasSize( 379 );
     }
 
     @Test
     public void getOntologies() throws Exception {
-        when( ontologyService.findAllOntologies() ).thenReturn( Lists.newArrayList(
-                createOntology( "uberon", 5, 4 ),
-                createOntology( "mondo", 5, 4 ) ) );
-        mvc.perform( get( "/api/ontologies" ) )
+        List<Ontology> onts = Lists.newArrayList(
+                createOntology( "uberon", 5, 4, 1 ),
+                createOntology( "mondo", 5, 4, 1 ) );
+        when( ontologyService.findAllOntologies() ).thenReturn( onts );
+        long numberOfTerms = 5 + ( 5 * 5 ) + ( 5 * 5 * 5 ) + ( 5 * 5 * 5 * 5 );
+        when( ontologyService.countActiveTerms( onts.get( 0 ) ) ).thenReturn( numberOfTerms );
+        when( ontologyService.countActiveTerms( onts.get( 1 ) ) ).thenReturn( numberOfTerms );
+        when( messageSource.getMessage( "rdp.ontologies.mondo.definition", null, null, Locale.getDefault() ) )
+                .thenReturn( "a bunch of disease terms" );
+        mvc.perform( get( "/api/ontologies" )
+                        .locale( Locale.getDefault() ) )
                 .andExpect( status().isOk() )
                 .andExpect( jsonPath( "$" ).isArray() )
-                .andExpect( jsonPath( "$[0]" ).value( "uberon" ) )
-                .andExpect( jsonPath( "$[1]" ).value( "mondo" ) );
+                .andExpect( jsonPath( "$[0].id" ).doesNotExist() )
+                .andExpect( jsonPath( "$[0].name" ).value( "uberon" ) )
+                .andExpect( jsonPath( "$[0].definition" ).value( nullValue() ) )
+                .andExpect( jsonPath( "$[0].numberOfTerms" ).value( numberOfTerms ) )
+                .andExpect( jsonPath( "$[0].numberOfObsoleteTerms" ).value( numberOfTerms ) )
+                .andExpect( jsonPath( "$[1].name" ).value( "mondo" ) )
+                .andExpect( jsonPath( "$[1].definition" ).value( "a bunch of disease terms" ) )
+                .andExpect( jsonPath( "$[1].numberOfTerms" ).value( numberOfTerms ) )
+                .andExpect( jsonPath( "$[1].numberOfObsoleteTerms" ).value( numberOfTerms ) );
+
         verify( ontologyService ).findAllOntologies();
     }
 
     @Test
     public void getOntologyTerms() throws Exception {
-        Ontology ont = createOntology( "uberon", 3, 2 );
+        Ontology ont = createOntology( "uberon", 3, 2, 1 );
         when( ontologyService.findByName( "uberon" ) ).thenReturn( ont );
         when( ontologyService.findAllTermsByOntology( eq( ont ), any() ) )
                 .thenAnswer( a -> PageableExecutionUtils.getPage( new ArrayList<>( ont.getTerms() ),
@@ -428,21 +446,28 @@ public class ApiControllerTest {
 
     @Test
     public void getOntologyTerm() throws Exception {
-        Ontology ont = createOntology( "uberon", 3, 2 );
+        Ontology ont = createOntology( "uberon", 3, 2, 1 );
         when( ontologyService.findTermByTermIdAndOntologyName( any(), eq( "uberon" ) ) )
                 .thenAnswer( arg -> ont.getTerms().stream()
                         .filter( t -> t.getTermId().equals( arg.getArgumentAt( 0, String.class ) ) )
                         .findFirst()
                         .orElse( null ) );
-        mvc.perform( get( "/api/ontologies/{ontologyName}/terms/{termId}", "uberon", "UBERON:00001" ) )
+        when( messageSource.getMessage( "rdp.ontologies.uberon.terms.UBERON:00001.definition", null, null, Locale.getDefault() ) )
+                .thenReturn( "this is a nice definition" );
+        mvc.perform( get( "/api/ontologies/{ontologyName}/terms/{termId}", "uberon", "UBERON:00001" )
+                        .locale( Locale.getDefault() ) )
                 .andExpect( status().isOk() )
-                .andExpect( jsonPath( "$.id" ).doesNotExist() );
+                .andExpect( jsonPath( "$.id" ).doesNotExist() )
+                .andExpect( jsonPath( "$.termId" ).value( "UBERON:00001" ) )
+                .andExpect( jsonPath( "$.definition" ).value( "this is a nice definition" ) )
+                .andExpect( jsonPath( "$.subTerms" ).isArray() );
         verify( ontologyService ).findTermByTermIdAndOntologyName( "UBERON:00001", "uberon" );
+        verify( messageSource ).getMessage( "rdp.ontologies.uberon.terms.UBERON:00001.definition", null, null, Locale.getDefault() );
     }
 
     @Test
     public void getOntologyTerm_whenTermIsNotActive_thenReturn404() throws Exception {
-        Ontology ont = createOntology( "uberon", 3, 2 );
+        Ontology ont = createOntology( "uberon", 3, 2, 1 );
         OntologyTermInfo inactiveTerm = OntologyTermInfo.builder( ont, "UBERON:00001" ).build();
         when( ontologyService.findTermByTermIdAndOntologyName( "UBERON:00001", "uberon" ) ).thenReturn( inactiveTerm );
         mvc.perform( get( "/api/ontologies/{ontologyName}/terms/{termId}", "uberon", "UBERON:00001" ) )

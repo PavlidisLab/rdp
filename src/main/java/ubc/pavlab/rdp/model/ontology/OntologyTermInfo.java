@@ -1,6 +1,8 @@
 package ubc.pavlab.rdp.model.ontology;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
@@ -146,6 +148,16 @@ public class OntologyTermInfo extends OntologyTerm implements Serializable, Comp
     @OrderBy("ordering asc, name asc, termId asc")
     @JsonIgnore
     private SortedSet<OntologyTermInfo> subTerms = new TreeSet<>();
+
+    /**
+     * CollectiListon of term IDs of all active sub terms of this term.
+     * <p>
+     * Used for the public API.
+     */
+    @Transient
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @JsonProperty("subTerms")
+    private Set<String> subTermIds;
 
     @Override
     public int compareTo( OntologyTermInfo ontologyTermInfo ) {

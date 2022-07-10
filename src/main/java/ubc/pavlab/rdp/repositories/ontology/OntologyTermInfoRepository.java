@@ -110,6 +110,14 @@ public interface OntologyTermInfoRepository extends JpaRepository<OntologyTermIn
     long countByOntologyAndActiveTrue( Ontology ontology );
 
     /**
+     * Count the number of active obsolete terms in a given ontology.
+     * <p>
+     * Note: the result if this query is cached, so it should not be relied upon.
+     */
+    @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
+    long countByOntologyAndActiveTrueAndObsoleteTrue( Ontology ontology );
+
+    /**
      * Count the number of obsolete terms in a given ontology.
      */
     @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))

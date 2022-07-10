@@ -886,6 +886,12 @@ public class OntologyService implements InitializingBean {
         return ontologyTermInfoRepository.countByOntologyAndObsoleteTrue( ontology );
     }
 
+    @Transactional(readOnly = true)
+    public long countActiveAndObsoleteTerms( Ontology ontology ) {
+        return ontologyTermInfoRepository.countByOntologyAndActiveTrueAndObsoleteTrue( ontology );
+    }
+
+
     /**
      * Obtain the IDs of the descendent terms.
      */

@@ -151,8 +151,10 @@ public class ApiController {
     }
 
     @GetMapping(value = "/api/ontologies", produces = MediaType.APPLICATION_JSON_VALUE)
-    public List<Ontology> getOntologies() {
-        return ontologyService.findAllOntologies();
+    public List<Ontology> getOntologies( Locale locale ) {
+        return ontologyService.findAllOntologies().stream()
+                .map( o -> initOntology( o, locale ) )
+                .collect( Collectors.toList() );
     }
 
     @GetMapping(value = "/api/ontologies/{ontologyName}/terms", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -161,7 +163,8 @@ public class ApiController {
         if ( ontology == null || !ontology.isActive() ) {
             throw new ApiException( HttpStatus.NOT_FOUND, String.format( locale, "No ontology %s.", ontologyName ) );
         }
-        return ontologyService.findAllTermsByOntology( ontology, pageable );
+        return ontologyService.findAllTermsByOntology( ontology, pageable )
+                .map( t -> initTerm( t, locale ) );
     }
 
     @GetMapping(value = "/api/ontologies/{ontologyName}/terms/{termId}", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -170,7 +173,7 @@ public class ApiController {
         if ( ontologyTermInfo == null || !ontologyTermInfo.isActive() || !ontologyTermInfo.getOntology().isActive() ) {
             throw new ApiException( HttpStatus.NOT_FOUND, String.format( locale, "No ontology term %s in ontology %s.", termId, ontologyName ) );
         }
-        return ontologyTermInfo;
+        return initTerm( ontologyTermInfo, locale );
     }
 
     @GetMapping(value = "/api/users/search", params = { "nameLike" }, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -400,6 +403,24 @@ public class ApiController {
         user.setOrigin( messageSource.getMessage( "rdp.site.shortname", null, locale ) );
         user.setOriginUrl( siteSettings.getHostUri() );
         return user;
+    }
+
+    private Ontology initOntology( Ontology ontology, Locale locale ) {
+        ontology.setNumberOfTerms( ontologyService.countActiveTerms( ontology ) );
+        ontology.setNumberOfObsoleteTerms( ontologyService.countActiveAndObsoleteTerms( ontology ) );
+        ontology.setDefinition( messageSource.getMessage( "rdp.ontologies." + ontology.getName() + ".definition", null, ontology.getDefinition(), locale ) );
+        return ontology;
+    }
+
+    private OntologyTermInfo initTerm( OntologyTermInfo term, Locale locale ) {
+        term.setOntology( initOntology( term.getOntology(), locale ) );
+        term.setDefinition( messageSource.getMessage( "rdp.ontologies." + term.getOntology().getName() + ".terms." + term.getTermId() + ".definition", null, term.getDefinition(), locale ) );
+        // TODO: perform this in a single query
+        term.setSubTermIds( term.getSubTerms().stream()
+                .filter( OntologyTermInfo::isActive )
+                .map( OntologyTermInfo::getTermId )
+                .collect( Collectors.toSet() ) );
+        return term;
     }
 
     /**
