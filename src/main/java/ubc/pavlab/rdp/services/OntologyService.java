@@ -132,11 +132,14 @@ public class OntologyService implements InitializingBean {
     /**
      * Test for term equality in a loose sense.
      * <p>
+     * Two terms are considered equal if they have the same ontology and term ID.
+     * <p>
      * This is necessary because {@link UserOntologyTerm} and {@link OntologyTermInfo} do not have the same definition
      * of equality.
      */
     public boolean termEquals( OntologyTerm ontologyTerm, OntologyTerm other ) {
-        return ontologyTerm.getOntology().equals( other.getOntology() ) && ontologyTerm.getTermId().equals( other.getTermId() );
+        // always compare termId first to avoid needlessly eager loading the ontology
+        return ontologyTerm.getTermId().equals( other.getTermId() ) && ontologyTerm.getOntology().equals( other.getOntology() );
     }
 
     /**
