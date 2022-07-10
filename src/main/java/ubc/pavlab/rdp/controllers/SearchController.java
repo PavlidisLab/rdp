@@ -76,6 +76,7 @@ public class SearchController {
         modelAndView.addObject( "activeSearchTab", "gene" );
         modelAndView.addObject( "chars", userService.getLastNamesFirstChar() );
         modelAndView.addObject( "user", userService.findCurrentUser() );
+        modelAndView.addObject( "ontologyTerms", Collections.emptyList() );
         return modelAndView;
     }
 
@@ -101,6 +102,8 @@ public class SearchController {
         if ( ontologyTermIds != null ) {
             List<OntologyTermInfo> ontologyTerms = ontologyService.findAllTermsByIdInMaintainingOrder( ontologyTermIds );
             modelAndView.addObject( "ontologyTerms", ontologyTerms );
+        } else {
+            modelAndView.addObject( "ontologyTerms", Collections.emptyList() );
         }
         modelAndView.addObject( "chars", userService.getLastNamesFirstChar() );
         modelAndView.addObject( "user", userService.findCurrentUser() );
@@ -127,6 +130,8 @@ public class SearchController {
         if ( ontologyTermIds != null ) {
             List<OntologyTermInfo> ontologyTerms = ontologyService.findAllTermsByIdInMaintainingOrder( ontologyTermIds );
             modelAndView.addObject( "ontologyTerms", ontologyTerms );
+        } else {
+            modelAndView.addObject( "ontologyTerms", Collections.emptyList() );
         }
         modelAndView.addObject( "chars", userService.getLastNamesFirstChar() );
         modelAndView.addObject( "iSearch", iSearch );
@@ -173,6 +178,8 @@ public class SearchController {
         if ( ontologyTermIds != null ) {
             List<OntologyTermInfo> ontologyTerms = ontologyService.findAllTermsByIdInMaintainingOrder( ontologyTermIds );
             modelAndView.addObject( "ontologyTerms", ontologyTerms );
+        } else {
+            modelAndView.addObject( "ontologyTerms", Collections.emptyList() );
         }
         modelAndView.addObject( "iSearch", iSearch );
 

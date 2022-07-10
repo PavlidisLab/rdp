@@ -279,7 +279,7 @@
                             Choose <b th:text="${#messages.msgOrNull('rdp.ontologies.' + ontology.name + '.title') ?: #strings.toUpperCase(ontology.name)}"></b>
                             terms your research is most relevant to:
                         </p>
-                        <div th:replace="fragments/ontology::terms-selection(ontology = ${ontology}, selectedTerms=${user.getUserOntologyTermsByOntology(ontology)})">
+                        <div th:replace="fragments/ontology::terms-selection(ontology = ${ontology}, selectedTerms = ${user.getUserOntologyTermsByOntology(ontology)}, showTable = true)">
                             ...
                         </div>
                     </div>

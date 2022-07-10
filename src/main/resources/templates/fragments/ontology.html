@@ -4,7 +4,8 @@
 <span th:fragment="ontology-name(ontology)"
       th:text="${#messages.msgOrNull('rdp.ontologies.' + ontology.name + '.title') ?: #strings.toUpperCase(ontology.name)}">
 </span>
-<div th:fragment="terms-display-or-selection(ontology, selectedTerms, readOnly)">
+<div th:fragment="terms-display-or-selection(ontology, selectedTerms, readOnly, showTable)"
+     th:with="ontologyHasIcons=${@ontologyService.hasIcons(ontology)}">
     <div th:if="${ontology.terms.size()} lt 20" class="form-row">
         <th:block th:each="term, j : ${ontology.terms}" th:if="${term.superTerms.isEmpty()}">
 
@@ -40,8 +41,9 @@
             </div>
 
             <!-- non grouping terms -->
+
             <div th:unless="${term.group}"
-                 th:classappend="${@ontologyService.hasIcons(ontology)} ? 'col-3 col-md-2 col-lg-1' : 'col-12'">
+                 th:classappend="${ontologyHasIcons} ? 'col-3 col-md-2 col-lg-1' : 'col-12'">
                 <th:block th:if="${readOnly}">
                     <img th:if="${term.hasIcon}"
                          th:src="@{/images/ontologies/{ontologyName}/{termName}.svg(ontologyName=${ontology.name},termName=${term.name})}"
@@ -51,10 +53,9 @@
                          class="img-fluid d-block mb-3"
                          alt="The term definition that describes the icon."/>
                     <th:block th:unless="${term.hasIcon}">
-                        <!-- generate a simple textual icon -->
-                        <span th:if="${@ontologyService.hasIcons(ontology)}"
+                        <span th:if="${ontologyHasIcons}"
                               th:replace="fragments/ontology::textual-icon(term = ${term})"></span>
-                        <span th:unless="${@ontologyService.hasIcons(ontology)}"
+                        <span th:unless="${ontologyHasIcons}"
                               th:text="${#messages.msgOrNull('rdp.ontologies.' + ontology.name + '.terms.' + term.name + '.title') ?: term.name}"></span>
                     </th:block>
                 </th:block>
@@ -77,66 +78,74 @@
                              class="img-fluid d-block"
                              alt="The term definition that describes its icon."/>
                         <th:block th:unless="${term.hasIcon}">
-                            <!-- generate a simple textual icon -->
-                            <th:block th:if="${@ontologyService.hasIcons(ontology)}">
+                            <th:block th:if="${ontologyHasIcons}">
                                 <span th:replace="fragments/ontology::textual-icon(term = ${term})"></span>
                             </th:block>
-                            <span th:unless="${@ontologyService.hasIcons(ontology)}"
+                            <span th:unless="${ontologyHasIcons}"
                                   th:text="${#messages.msgOrNull('rdp.ontologies.' + ontology.name + '.terms.' + term.name + '.title') ?: term.name}"></span>
                         </th:block>
                     </label>
                 </div>
             </div>
+
+
         </th:block>
     </div>
-    <div th:unless="${ontology.terms.size()} lt 20">
-        <table th:id="${#ids.seq('ontologyTermTable')}" class="table ontology-term-table">
-            <thead>
-            <tr>
-                <th th:unless="${readOnly}">ID</th>
-                <th>Term ID</th>
-                <th>Term Name</th>
-                <th>Term Definition</th>
-                <th th:unless="${readOnly}"></th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:each="term : ${selectedTerms}">
-                <td th:unless="${readOnly}" th:text="${term.termInfo.id}"></td>
-                <td th:if="${readOnly}">
-                    <a th:href="#{'rdp.ontologies.' + ${term.ontology.name} + '.view-term-url-pattern'(${term.ontology.name}, ${term.termId})}"
-                       th:text="${term.termId}"
-                       target="_blank"
-                       rel="noopener"></a>
-                </td>
-                <td th:unless="${readOnly}" th:text="${term.termId}"></td>
-                <td th:text="${term.name}"></td>
-                <td th:text="${term.termInfo?.definition}"></td>
-                <td th:unless="${readOnly}"></td>
-            </tr>
-            </tbody>
-        </table>
-        <input th:unless="${readOnly}"
-               class="form-control term-autocomplete"
-               th:placeholder="'Terms in ' + ${ontology.name}"
-               th:attr="data-ontology-id=${ontology.id},data-for-table=${#ids.prev('ontologyTermTable')}"/>
+    <div th:if="${ontology.terms.size()} ge 20">
+        <th:block th:if="${showTable}">
+            <table th:id="${#ids.seq('ontologyTermTable')}" class="table ontology-term-table">
+                <thead>
+                <tr>
+                    <th th:unless="${readOnly}">ID</th>
+                    <th>Term ID</th>
+                    <th>Term Name</th>
+                    <th>Term Definition</th>
+                    <th th:unless="${readOnly}"></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="term : ${selectedTerms}"
+                    th:if="${term.ontology} == ${ontology}">
+                    <td th:unless="${readOnly}" th:text="${term.termInfo.id}"></td>
+                    <td th:if="${readOnly}">
+                        <a th:href="#{'rdp.ontologies.' + ${term.ontology.name} + '.view-term-url-pattern'(${term.ontology.name}, ${term.termId})}"
+                           th:text="${term.termId}"
+                           target="_blank"
+                           rel="noopener"></a>
+                    </td>
+                    <td th:unless="${readOnly}" th:text="${term.termId}"></td>
+                    <td th:text="${term.name}"></td>
+                    <td th:text="${term.termInfo?.definition}"></td>
+                    <td th:unless="${readOnly}"></td>
+                </tr>
+                </tbody>
+            </table>
+            <input th:unless="${readOnly}"
+                   class="form-control term-autocomplete"
+                   th:placeholder="'Terms in ' + ${ontology.name}"
+                   th:attr="data-ontology-id=${ontology.id},data-for-table=${#ids.prev('ontologyTermTable')}"/>
+        </th:block>
+        <div th:unless="${showTable}" class="form-group mb-0">
+            <span th:each="term : ${selectedTerms}"
+                  th:if="${term.ontology} == ${ontology}"
+                  th:object="${term}"
+                  class="badge badge-primary mb-1">
+                <span th:text="${term.name}" class="align-middle my-auto"></span>
+                <button class="close" type="button">&times;</button>
+                <input type="hidden" th:name="ontologyTermInfoIds" th:value="*{id}"/>
+            </span>
+            <input th:id="${#ids.seq('ontologyTermIds')}"
+                   th:attr="data-ontology-id=${ontology.id}"
+                   class="form-control term-autocomplete"
+                   th:placeholder="${#messages.msgOrNull('rdp.ontologies.' + ontology.name + '.title') ?: #strings.toUpperCase(ontology.name)} + ' Terms'"/>
+        </div>
     </div>
 </div>
 <div th:fragment="terms-display(ontology, selectedTerms)"
-     th:replace="fragments/ontology::terms-display-or-selection(${ontology}, ${selectedTerms}, true)">
+     th:replace="fragments/ontology::terms-display-or-selection(${ontology}, ${selectedTerms}, true, true)">
 </div>
-<div th:fragment="terms-selection(ontology, selectedTerms)"
-     th:replace="fragments/ontology::terms-display-or-selection(${ontology}, ${selectedTerms}, false)">
-</div>
-<div th:fragment="terms-autocomplete-selection(selectedTerms)">
-    <span th:each="term : ${selectedTerms}"
-          th:object="${term}"
-          class="badge badge-primary mb-1">
-        <span th:text="${term.name}" class="align-middle my-auto"></span>
-        <button class="close" type="button">&times;</button>
-        <input type="hidden" th:name="ontologyTermInfoIds" th:value="*{id}"/>
-    </span>
-    <input th:id="${#ids.seq('ontologyTermIds')}" class="form-control term-autocomplete" placeholder="Terms"/>
+<div th:fragment="terms-selection(ontology, selectedTerms, showTable)"
+     th:replace="fragments/ontology::terms-display-or-selection(${ontology}, ${selectedTerms}, false, ${showTable})">
 </div>
 <svg th:fragment="textual-icon(term)"
      width="100%"

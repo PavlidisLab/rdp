@@ -130,7 +130,8 @@
                 -->
                 <div th:if="${@applicationSettings.organs.enabled}" class="form-row">
                     <div class="col-md-12">
-                        <p>With relevance to the following human organ systems (or any if none are selected):</p>
+                        <p>With relevance to the following <strong>Human Organ Systems</strong> (or any if none are
+                            selected):</p>
                     </div>
                     <div class="col-md-12">
                         <div th:replace="fragments/organ::organs-selection(checkedOrganUberonIds = ${organUberonIds})">
@@ -142,11 +143,14 @@
                 <div th:if="${@ontologyService.countTerms()} > 0"
                      class="form-row">
                     <div class="col-md-12">
-                        <div class="form-group mb-0">
+                        <div th:each="ontology, i : ${@ontologyService.findAllOntologies()}"
+                             th:classappend="${i.last} ? '' : 'mb-3'">
                             <label th:for="${#ids.next('ontologyTermIds')}">
-                                With the following terms (or any if none are selected):
+                                With the following
+                                <strong th:text="${#messages.msgOrNull('rdp.ontologies.' + ontology.name + '.title') ?: #strings.toUpperCase(ontology.name)}"></strong>
+                                terms (or any if none are selected):
                             </label>
-                            <div th:replace="fragments/ontology::terms-autocomplete-selection(selectedTerms = ${ontologyTerms})"></div>
+                            <div th:replace="fragments/ontology::terms-selection(ontology = ${ontology}, selectedTerms = ${ontologyTerms}, showTable = false)"></div>
                         </div>
                     </div>
                 </div>
@@ -267,10 +271,14 @@
                  class="form-row">
                 <div class="col-md-12">
                     <div class="form-group mb-0">
-                        <label th:for="${#ids.next('ontologyTermIds')}">
-                            With the following terms (or any if none are selected):
-                        </label>
-                        <div th:replace="fragments/ontology::terms-autocomplete-selection(selectedTerms = ${ontologyTerms})"></div>
+                        <div th:each="ontology : ${@ontologyService.findAllOntologies()}">
+                            <label th:for="${#ids.next('ontologyTermIds')}">
+                                With the following
+                                <strong th:text="${#messages.msgOrNull('rdp.ontologies.' + ontology.name + '.title') ?: #strings.toUpperCase(ontology.name)}"></strong>
+                                terms (or any if none are selected):
+                            </label>
+                            <div th:replace="fragments/ontology::terms-selection(ontology = ${ontology}, selectedTerms = ${ontologyTerms}, showTable = false)"></div>
+                        </div>
                     </div>
                 </div>
             </div>

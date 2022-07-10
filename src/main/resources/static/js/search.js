@@ -189,7 +189,11 @@
         delay: 200,
         source: function (request, response) {
             var term = request.term.trim();
-            $.getJSON('/search/ontology-terms/autocomplete', {query: term}).done(function (data) {
+            var ontologyId = $(this.element).data('ontologyId');
+            $.getJSON('/search/ontology-terms/autocomplete', {
+                query: term,
+                ontologyId: ontologyId
+            }).done(function (data) {
                 if (!data.length) {
                     return response([{
                         noresults: true,
