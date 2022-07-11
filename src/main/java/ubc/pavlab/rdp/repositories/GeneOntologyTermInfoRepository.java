@@ -30,7 +30,7 @@ public class GeneOntologyTermInfoRepository implements CrudRepository<GeneOntolo
     }
 
     @Override
-        public <S extends GeneOntologyTermInfo> Iterable<S> saveAll( Iterable<S> iterable ) {
+    public <S extends GeneOntologyTermInfo> Iterable<S> saveAll( Iterable<S> iterable ) {
         List<S> savedTerms = new ArrayList<>();
         for ( S term : iterable ) {
             savedTerms.add( save( term ) );
@@ -72,9 +72,10 @@ public class GeneOntologyTermInfoRepository implements CrudRepository<GeneOntolo
     @Override
     public Collection<GeneOntologyTermInfo> findAllById( Iterable<String> iterable ) {
         Collection<GeneOntologyTermInfo> results = new HashSet<>();
-        for ( String goTerm : iterable ) {
-            if ( terms.containsKey( goTerm ) ) {
-                results.add( terms.get( goTerm ) );
+        for ( String id : iterable ) {
+            GeneOntologyTermInfo term = terms.get( id );
+            if ( term != null ) {
+                results.add( term );
             }
         }
         return results;
