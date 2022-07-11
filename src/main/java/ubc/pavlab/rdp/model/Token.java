@@ -1,8 +1,7 @@
 package ubc.pavlab.rdp.model;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
+import org.hibernate.annotations.NaturalId;
 
 import javax.persistence.Column;
 import javax.persistence.MappedSuperclass;
@@ -10,13 +9,15 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.temporal.TemporalAmount;
 
-@Data
+@Getter
+@Setter
 @EqualsAndHashCode(of = { "token" })
 @ToString(of = { "token", "expiryDate" })
 @MappedSuperclass
 public abstract class Token {
 
-    @Column(name = "token", nullable = false)
+    @NaturalId
+    @Column(name = "token", nullable = false, unique = true)
     private String token;
 
     @Column(name = "expiry_date", nullable = false)

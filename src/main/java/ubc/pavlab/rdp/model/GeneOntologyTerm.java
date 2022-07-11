@@ -2,6 +2,7 @@ package ubc.pavlab.rdp.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
+import org.hibernate.annotations.NaturalId;
 import ubc.pavlab.rdp.model.enums.Aspect;
 import ubc.pavlab.rdp.model.enums.RelationshipType;
 
@@ -19,12 +20,15 @@ import java.util.stream.Collectors;
 @ToString(of = { "goId", "name" })
 public abstract class GeneOntologyTerm {
 
+    @NaturalId
     @Column(name = "go_id", length = 10)
     private String goId;
 
+    @Lob
     @Column(name = "name", columnDefinition = "TEXT")
     private String name;
 
+    @Lob
     @Column(name = "definition", columnDefinition = "TEXT")
     private String definition;
 

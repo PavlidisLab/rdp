@@ -14,12 +14,10 @@ import java.util.Optional;
  * Created by mjacobson on 22/01/18.
  */
 @Entity
-@Table(name = "verification_token",
-        uniqueConstraints = { @UniqueConstraint(columnNames = { "token" }) })
+@Table(name = "verification_token")
 @Getter
 @Setter
 @NoArgsConstructor
-@EqualsAndHashCode(of = { "user" }, callSuper = true)
 @ToString(of = { "user" }, callSuper = true)
 public class VerificationToken extends Token implements UserContent {
 
@@ -28,9 +26,12 @@ public class VerificationToken extends Token implements UserContent {
     private Integer id;
 
     @ManyToOne(optional = false)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    /**
+     * Email address subject to verification.
+     */
     @Email
     @Column(name = "email")
     private String email;

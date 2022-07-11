@@ -47,7 +47,7 @@ public class MainControllerTest {
     @MockBean
     private ApplicationSettings.PrivacySettings privacySettings;
 
-    @MockBean
+    @MockBean(name = "siteSettings")
     private SiteSettings siteSettings;
 
     @MockBean
@@ -109,6 +109,20 @@ public class MainControllerTest {
         mvc.perform( get( "/" ) )
                 .andExpect( status().is3xxRedirection() )
                 .andExpect( redirectedUrl( "/user/home" ) );
+    }
+
+    @Test
+    public void termsOfService() throws Exception {
+        mvc.perform( get( "/terms-of-service" ) )
+                .andExpect( status().isOk() )
+                .andExpect( view().name( "terms-of-service" ) );
+    }
+
+    @Test
+    public void privacyPolicy() throws Exception {
+        mvc.perform( get( "/privacy-policy" ) )
+                .andExpect( status().isOk() )
+                .andExpect( view().name( "privacy-policy" ) );
     }
 
     @Test

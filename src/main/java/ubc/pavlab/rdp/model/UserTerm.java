@@ -3,6 +3,7 @@ package ubc.pavlab.rdp.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.annotations.NaturalId;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 
 import javax.persistence.*;
@@ -35,12 +36,14 @@ public class UserTerm extends GeneOntologyTerm implements UserContent {
     @JsonIgnore
     private Integer id;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id")
+    @NaturalId // alongside goId defined in the parent class
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "user_id", nullable = false)
     @JsonIgnore
     private User user;
 
-    @ManyToOne
+    @NaturalId
+    @ManyToOne(optional = false)
     @JoinColumn(name = "taxon_id")
     private Taxon taxon;
 
@@ -66,11 +69,13 @@ public class UserTerm extends GeneOntologyTerm implements UserContent {
     }
 
     @Override
+    @JsonIgnore
     public Optional<User> getOwner() {
         return Optional.of( user );
     }
 
     @Override
+    @JsonIgnore
     public PrivacyLevelType getEffectivePrivacyLevel() {
         return user.getEffectivePrivacyLevel();
     }

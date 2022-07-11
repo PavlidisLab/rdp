@@ -4,6 +4,7 @@ import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
 import ubc.pavlab.rdp.model.Gene;
 import ubc.pavlab.rdp.model.GeneOntologyTermInfo;
@@ -52,6 +53,9 @@ public class GOServiceImpl implements GOService {
     @Autowired
     private Gene2GoParser gene2GoParser;
 
+    @Autowired
+    private ResourceLoader resourceLoader;
+
     private static Relationship convertRelationship( OBOParser.Relationship parsedRelationship ) {
         return new Relationship( convertTermIgnoringRelationship( parsedRelationship.getNode() ),
                 RelationshipType.valueOf( parsedRelationship.getRelationshipType().toString() ) );
@@ -92,7 +96,7 @@ public class GOServiceImpl implements GOService {
 
         log.info( MessageFormat.format( "Loading GO terms from: {0}.", cacheSettings.getTermFile() ) );
 
-        if ( cacheSettings.getTermFile() == null ) {
+        if ( cacheSettings.getTermFile() == null || cacheSettings.getTermFile().isEmpty() ) {
             log.warn( "No term file is defined, skipping update of GO terms." );
             return;
         }
@@ -104,7 +108,7 @@ public class GOServiceImpl implements GOService {
 
         Map<String, GeneOntologyTermInfo> terms;
         try {
-            terms = convertTerms( oboParser.parseStream( cacheSettings.getTermFile().getInputStream() ) );
+            terms = convertTerms( oboParser.parseStream( resourceLoader.getResource( cacheSettings.getTermFile() ).getInputStream() ) );
         } catch ( IOException | ParseException e ) {
             log.error( "Failed to parse GO terms.", e );
             return;

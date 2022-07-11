@@ -41,8 +41,8 @@ file that contains at least the following entries:
 ```ini
 spring.profiles.active=prod
 
-spring.datasource.url=jdbc:mysql://<database host>:3306/<database name>
-spring.datasource-driver-class-name=com.mysql.cj.jdbc.Driver
+spring.datasource.url=jdbc:mysql://<database host>/<database name>
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
 spring.datasource.username=<database username>
 spring.datasource.password=<database password>
 
@@ -52,6 +52,18 @@ spring.mail.username=<mail username>
 spring.mail.password=<mail password>
 spring.mail.properties.mail.smtp.auth=true
 spring.mail.properties.mail.smtp.starttls.enable=true
+
+# Adjust this to your own network name
+rdp.site.fullname=Rare Disease Model & Mechanism Network
+rdp.site.shortname=RDMM
+
+# This is very important for generating URLs
+rdp.host=https://register.example.com
+rdp.context=
+rdp.mainsite=https://example.com/
+
+rdp.site.contact-email=registry-help@example.com
+rdp.site.admin-email=registry-admin@example.com
 ```
 
 This file contains the database and SMTP credentials and various runtime configurations. Make sure it's only readable by

@@ -23,7 +23,7 @@ public class AccessToken extends Token implements UserContent {
     private Integer id;
 
     @ManyToOne(optional = false)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     @Override

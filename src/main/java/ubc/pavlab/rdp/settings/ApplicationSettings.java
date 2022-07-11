@@ -39,9 +39,11 @@ public class ApplicationSettings {
         /**
          * Location of GO terms.
          */
-        private Resource termFile;
+        private String termFile;
         /**
          * Location of gene2go annotations.
+         * <p>
+         * FIXME: use a {@link Resource}, but resolving is not supported at the config-level (see <a href="https://github.com/PavlidisLab/rdp/pull/192">#192</a>)
          */
         private Resource annotationFile;
         /**
@@ -50,8 +52,10 @@ public class ApplicationSettings {
         private Resource orthologFile;
         /**
          * Location of organ system terms.
+         * <p>
+         * FIXME: use a {@link Resource}, but resolving is not supported at the config-level (see <a href="https://github.com/PavlidisLab/rdp/pull/192">#192</a>)
          */
-        private Resource organFile;
+        private String organFile;
 
     }
 

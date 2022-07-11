@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 import lombok.SneakyThrows;
 import org.assertj.core.util.Lists;
+import org.hamcrest.Matchers;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.Before;
@@ -17,6 +18,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -44,8 +46,7 @@ import static org.hamcrest.Matchers.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static ubc.pavlab.rdp.util.TestUtils.*;
 
@@ -205,9 +206,70 @@ public class UserControllerTest {
 
         mvc.perform( get( "/user/support" ) )
                 .andExpect( status().isOk() )
+                .andExpect( view().name( "user/support" ) )
+                .andExpect( model().attributeExists( "supportForm" ) )
+                .andExpect( model().attribute( "supportForm", Matchers.hasProperty( "name", Matchers.equalTo( "Doe, John" ) ) ) );
+
+        byte[] attachmentContent = new byte[1];
+        MockMultipartFile attachment = new MockMultipartFile( "attachment", "README.md", "text/plain", attachmentContent );
+
+        mvc.perform( fileUpload( "/user/support" )
+                        .file( attachment )
+                        .param( "name", "John Doe" )
+                        .param( "message", "Is everything okay?" )
+                        .locale( Locale.ENGLISH ) )
+                .andExpect( status().isOk() )
                 .andExpect( view().name( "user/support" ) );
 
-        mvc.perform( post( "/user/support" )
+        verify( emailService ).sendSupportMessage( eq( "Is everything okay?" ), eq( "John Doe" ), eq( user ), any(), eq( attachment ), eq( Locale.ENGLISH ) );
+    }
+
+    @Test
+    @WithMockUser
+    public void contactSupport_withUnsupportedMediaType_thenReturnBadRequest() throws Exception {
+        User user = createUser( 1 );
+        user.setEmail( "johndoe@example.com" );
+        user.getProfile().setName( "John" );
+        user.getProfile().setLastName( "Doe" );
+        when( userService.findCurrentUser() ).thenReturn( user );
+
+        mvc.perform( get( "/user/support" ) )
+                .andExpect( status().isOk() )
+                .andExpect( view().name( "user/support" ) );
+
+        byte[] attachmentContent = new byte[1];
+        MockMultipartFile attachment = new MockMultipartFile( "attachment", "blob.bin", "application/octet-stream", attachmentContent );
+
+        mvc.perform( fileUpload( "/user/support" )
+                        .file( attachment )
+                        .param( "name", "John Doe" )
+                        .param( "message", "Is everything okay?" )
+                        .locale( Locale.ENGLISH ) )
+                .andExpect( status().isBadRequest() )
+                .andExpect( view().name( "user/support" ) )
+                .andExpect( model().attributeHasFieldErrors( "supportForm", "attachment" ) );
+
+        verifyZeroInteractions( emailService );
+    }
+
+    @Test
+    @WithMockUser
+    public void contactSupport_withEmptyAttachment_thenIgnoreAttachment() throws Exception {
+        User user = createUser( 1 );
+        user.setEmail( "johndoe@example.com" );
+        user.getProfile().setName( "John" );
+        user.getProfile().setLastName( "Doe" );
+        when( userService.findCurrentUser() ).thenReturn( user );
+
+        mvc.perform( get( "/user/support" ) )
+                .andExpect( status().isOk() )
+                .andExpect( view().name( "user/support" ) );
+
+        byte[] attachmentContent = new byte[0];
+        MockMultipartFile attachment = new MockMultipartFile( "attachment", attachmentContent );
+
+        mvc.perform( fileUpload( "/user/support" )
+                        .file( attachment )
                         .param( "name", "John Doe" )
                         .param( "message", "Is everything okay?" )
                         .locale( Locale.ENGLISH ) )

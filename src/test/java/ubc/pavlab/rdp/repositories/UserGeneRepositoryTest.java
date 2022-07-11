@@ -653,21 +653,4 @@ public class UserGeneRepositoryTest {
         assertThat( userGene.getPrivacyLevel() ).isEqualTo( PrivacyLevelType.PUBLIC );
         assertThat( userGene.getEffectivePrivacyLevel() ).isEqualTo( PrivacyLevelType.SHARED );
     }
-
-    @Test
-    public void findByGeneIdAndTierInAndUserUserOrgansIn_whenUserFollowOrgan_ReturnUserGene() {
-        Gene gene = entityManager.persist( createGene( 10, taxon ) );
-        UserGene userGene = entityManager.persist( createUnpersistedUserGene( gene, user, TierType.TIER1, PrivacyLevelType.PRIVATE ) );
-        Organ organ = entityManager.persist( createOrgan( "UBERON_1010101", "Appendages", null ) );
-        UserOrgan userOrgan = entityManager.persist( createUserOrgan( user, organ ) );
-
-        entityManager.refresh( user );
-        assertThat( user.getUserOrgans() )
-                .containsKey( "UBERON_1010101" )
-                .containsValue( userOrgan );
-
-        assertThat( userGeneRepository.findByGeneIdAndTierInAndUserUserOrgansIn( userGene.getGeneId(), Sets.newSet( userGene.getTier() ), Sets.newSet( userOrgan ) ) )
-                .containsExactly( userGene );
-    }
-
 }

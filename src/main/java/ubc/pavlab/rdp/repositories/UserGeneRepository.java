@@ -10,7 +10,6 @@ import org.springframework.stereotype.Repository;
 import ubc.pavlab.rdp.model.GeneInfo;
 import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.model.UserGene;
-import ubc.pavlab.rdp.model.UserOrgan;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.TierType;
 
@@ -67,8 +66,6 @@ public interface UserGeneRepository extends JpaRepository<UserGene, Integer> {
     Collection<UserGene> findBySymbolContainingIgnoreCaseAndTaxonAndTierIn( String symbolContaining, Taxon taxon, Set<TierType> tiers );
 
     UserGene findBySymbolAndTaxon( String symbol, Taxon taxon );
-
-    Collection<UserGene> findByGeneIdAndTierInAndUserUserOrgansIn( int geneId, Set<TierType> tiers, Collection<UserOrgan> organs );
 
     /**
      * Find all user genes ortholog to a given gene.
