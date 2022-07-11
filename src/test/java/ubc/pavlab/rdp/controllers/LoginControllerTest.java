@@ -9,6 +9,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.format.support.FormattingConversionService;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -27,6 +28,7 @@ import ubc.pavlab.rdp.settings.SiteSettings;
 
 import java.util.Locale;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -73,6 +75,7 @@ public class LoginControllerTest {
     @Before
     public void setUp() {
         when( applicationSettings.getPrivacy() ).thenReturn( privacySettings );
+        when( siteSettings.getContactEmail() ).thenReturn( "support@example.com" );
         when( privacyService.getDefaultPrivacyLevel() ).thenReturn( PrivacyLevelType.PRIVATE );
     }
 
@@ -80,7 +83,9 @@ public class LoginControllerTest {
     public void login_thenReturnSuccess() throws Exception {
         mvc.perform( get( "/login" ) )
                 .andExpect( status().isOk() )
-                .andExpect( view().name( "login" ) );
+                .andExpect( view().name( "login" ) )
+                .andExpect( content().contentTypeCompatibleWith( MediaType.TEXT_HTML ) )
+                .andExpect( content().string( containsString( "support@example.com" ) ) );
     }
 
     @Test

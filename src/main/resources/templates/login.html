@@ -64,7 +64,7 @@
                             <a th:href="@{/search}">Public search</a>
                         </div>
                         <div class="col-4 text-center">
-                            <a th:href="'mailto:' + #{rdp.site.contact-email}">Contact Support</a>
+                            <a th:href="'mailto:' + ${@siteSettings.contactEmail}">Contact Support</a>
                         </div>
                     </div>
                 </div>
