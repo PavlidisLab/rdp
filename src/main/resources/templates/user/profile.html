@@ -126,7 +126,7 @@
                             <td><i class="editable" th:if="${viewOnly == null}"></i>
                                 <input th:id="${#ids.seq('profile.website')}"
                                        th:field="*{website}"
-                                       class="data-edit" type="text"
+                                       class="data-edit" type="url"
                                        disabled="disabled"/>
                             </td>
                         </tr>
@@ -183,7 +183,7 @@
                                         <input th:id="${#ids.seq('profile.contactEmail')}"
                                                th:field="*{contactEmail}"
                                                class="data-edit"
-                                               type="text"
+                                               type="email"
                                                disabled="disabled"
                                                style="width: 100%"/>
                                     </div>
@@ -219,7 +219,7 @@
                             <td><i class="editable" th:if="${viewOnly == null}"></i>
                                 <input th:id="${#ids.seq('profile.phone')}"
                                        th:field="*{phone}"
-                                       class="data-edit" type="text"
+                                       class="data-edit" type="tel"
                                        disabled="disabled"/>
                             </td>
                         </tr>

@@ -3,6 +3,7 @@ package ubc.pavlab.rdp.controllers;
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -108,10 +109,10 @@ public class ApiController {
      * Results that cannot be displayed are anonymized.
      */
     @GetMapping(value = "/api/users", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Object getUsers( @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorizationHeader,
-                            @Deprecated @RequestParam(required = false) String auth,
-                            Pageable pageable,
-                            Locale locale ) {
+    public Page<User> getUsers( @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorizationHeader,
+                                @Deprecated @RequestParam(required = false) String auth,
+                                Pageable pageable,
+                                Locale locale ) {
         checkAuth( authorizationHeader, auth );
         if ( applicationSettings.getPrivacy().isEnableAnonymizedSearchResults() ) {
             final Authentication auth2 = SecurityContextHolder.getContext().getAuthentication();
@@ -130,10 +131,10 @@ public class ApiController {
      * Results that cannot be displayed are anonymized.
      */
     @GetMapping(value = "/api/genes", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Object getGenes( @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorizationHeader,
-                            @Deprecated @RequestParam(required = false) String auth,
-                            Pageable pageable,
-                            Locale locale ) {
+    public Page<UserGene> getGenes( @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorizationHeader,
+                                    @Deprecated @RequestParam(required = false) String auth,
+                                    Pageable pageable,
+                                    Locale locale ) {
         checkAuth( authorizationHeader, auth );
         if ( applicationSettings.getPrivacy().isEnableAnonymizedSearchResults() ) {
             final Authentication auth2 = SecurityContextHolder.getContext().getAuthentication();
@@ -146,14 +147,14 @@ public class ApiController {
     }
 
     @GetMapping(value = "/api/users/search", params = { "nameLike" }, produces = MediaType.APPLICATION_JSON_VALUE)
-    public Object searchUsersByName( @RequestParam String nameLike,
-                                     @RequestParam Boolean prefix,
-                                     @RequestParam(required = false) Set<ResearcherPosition> researcherPositions,
-                                     @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
-                                     @RequestParam(required = false) Set<String> organUberonIds,
-                                     @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorizationHeader,
-                                     @Deprecated @RequestParam(required = false) String auth,
-                                     Locale locale ) {
+    public List<User> searchUsersByName( @RequestParam String nameLike,
+                                         @RequestParam Boolean prefix,
+                                         @RequestParam(required = false) Set<ResearcherPosition> researcherPositions,
+                                         @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
+                                         @RequestParam(required = false) Set<String> organUberonIds,
+                                         @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorizationHeader,
+                                         @Deprecated @RequestParam(required = false) String auth,
+                                         Locale locale ) {
         checkEnabled();
         checkAuth( authorizationHeader, auth );
         if ( prefix ) {
@@ -164,13 +165,13 @@ public class ApiController {
     }
 
     @GetMapping(value = "/api/users/search", params = { "descriptionLike" }, produces = MediaType.APPLICATION_JSON_VALUE)
-    public Object searchUsersByDescription( @RequestParam String descriptionLike,
-                                            @RequestParam(required = false) Set<ResearcherPosition> researcherPositions,
-                                            @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
-                                            @RequestParam(required = false) Set<String> organUberonIds,
-                                            @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorizationHeader,
-                                            @Deprecated @RequestParam(required = false) String auth,
-                                            Locale locale ) {
+    public List<User> searchUsersByDescription( @RequestParam String descriptionLike,
+                                                @RequestParam(required = false) Set<ResearcherPosition> researcherPositions,
+                                                @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
+                                                @RequestParam(required = false) Set<String> organUberonIds,
+                                                @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorizationHeader,
+                                                @Deprecated @RequestParam(required = false) String auth,
+                                                Locale locale ) {
         checkEnabled();
         checkAuth( authorizationHeader, auth );
         return initUsers( userService.findByDescription( descriptionLike, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ) ), locale );
@@ -180,16 +181,16 @@ public class ApiController {
      * Search for genes by symbol, taxon, tier, orthologs and organ systems.
      */
     @GetMapping(value = "/api/genes/search", params = { "symbol", "taxonId" }, produces = MediaType.APPLICATION_JSON_VALUE)
-    public Object searchUsersByGeneSymbol( @RequestParam String symbol,
-                                           @RequestParam Integer taxonId,
-                                           @RequestParam(required = false) Set<TierType> tiers,
-                                           @RequestParam(required = false) Integer orthologTaxonId,
-                                           @RequestParam(required = false) Set<ResearcherPosition> researcherPositions,
-                                           @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
-                                           @RequestParam(required = false) Set<String> organUberonIds,
-                                           @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorizationHeader,
-                                           @Deprecated @RequestParam(required = false) String auth,
-                                           Locale locale ) {
+    public List<UserGene> searchUsersByGeneSymbol( @RequestParam String symbol,
+                                                   @RequestParam Integer taxonId,
+                                                   @RequestParam(required = false) Set<TierType> tiers,
+                                                   @RequestParam(required = false) Integer orthologTaxonId,
+                                                   @RequestParam(required = false) Set<ResearcherPosition> researcherPositions,
+                                                   @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
+                                                   @RequestParam(required = false) Set<String> organUberonIds,
+                                                   @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorizationHeader,
+                                                   @Deprecated @RequestParam(required = false) String auth,
+                                                   Locale locale ) {
         checkEnabled();
         checkAuth( authorizationHeader, auth );
 
@@ -230,16 +231,16 @@ public class ApiController {
      */
     @Deprecated
     @GetMapping(value = "/api/genes/search", params = { "symbol", "taxonId", "tier" }, produces = MediaType.APPLICATION_JSON_VALUE)
-    public Object searchUsersByGeneSymbol( @RequestParam String symbol,
-                                           @RequestParam Integer taxonId,
-                                           @RequestParam String tier,
-                                           @RequestParam(required = false) Integer orthologTaxonId,
-                                           @RequestParam(required = false) Set<ResearcherPosition> researcherPositions,
-                                           @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
-                                           @RequestParam(required = false) Set<String> organUberonIds,
-                                           @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorizationHeader,
-                                           @Deprecated @RequestParam(required = false) String auth,
-                                           Locale locale ) {
+    public List<UserGene> searchUsersByGeneSymbol( @RequestParam String symbol,
+                                                   @RequestParam Integer taxonId,
+                                                   @RequestParam String tier,
+                                                   @RequestParam(required = false) Integer orthologTaxonId,
+                                                   @RequestParam(required = false) Set<ResearcherPosition> researcherPositions,
+                                                   @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
+                                                   @RequestParam(required = false) Set<String> organUberonIds,
+                                                   @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorizationHeader,
+                                                   @Deprecated @RequestParam(required = false) String auth,
+                                                   Locale locale ) {
         Set<TierType> tiers;
         if ( tier.equals( "ANY" ) ) {
             tiers = TierType.ANY;
@@ -249,7 +250,7 @@ public class ApiController {
             try {
                 tiers = EnumSet.of( TierType.valueOf( tier ) );
             } catch ( IllegalArgumentException e ) {
-                log.error( "Could not parse tier type.", e );
+                log.error( String.format( "Could not parse tier type: %s.", e.getMessage() ) );
                 throw new ApiException( HttpStatus.BAD_REQUEST, String.format( locale, "Unknown tier: %s.", tier ), e );
             }
         }
@@ -258,10 +259,10 @@ public class ApiController {
     }
 
     @GetMapping(value = "/api/users/{userId}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Object getUserById( @PathVariable Integer userId,
-                               @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorizationHeader,
-                               @RequestParam(name = "auth", required = false) String auth,
-                               Locale locale ) {
+    public User getUserById( @PathVariable Integer userId,
+                             @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorizationHeader,
+                             @RequestParam(name = "auth", required = false) String auth,
+                             Locale locale ) {
         checkEnabled();
         checkAuth( authorizationHeader, auth );
         User user = userService.findUserById( userId );
@@ -272,10 +273,10 @@ public class ApiController {
     }
 
     @GetMapping(value = "/api/users/by-anonymous-id/{anonymousId}")
-    public Object getUserByAnonymousId( @PathVariable UUID anonymousId,
-                                        @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorizationHeader,
-                                        @RequestParam(name = "auth", required = false) String auth,
-                                        Locale locale ) {
+    public User getUserByAnonymousId( @PathVariable UUID anonymousId,
+                                      @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorizationHeader,
+                                      @RequestParam(name = "auth", required = false) String auth,
+                                      Locale locale ) {
         checkEnabled();
         checkAnonymousResultsEnabled();
         checkAuth( authorizationHeader, auth );
@@ -338,7 +339,7 @@ public class ApiController {
                 new UsernamePasswordAuthenticationToken( principle, null, principle.getAuthorities() ) );
     }
 
-    private Collection<UserGene> initUserGenes( Collection<UserGene> genes, Locale locale ) {
+    private List<UserGene> initUserGenes( List<UserGene> genes, Locale locale ) {
         for ( UserGene gene : genes ) {
             initUserGene( gene, locale );
         }
@@ -353,7 +354,7 @@ public class ApiController {
         return gene;
     }
 
-    private Collection<User> initUsers( Collection<User> users, Locale locale ) {
+    private List<User> initUsers( List<User> users, Locale locale ) {
         for ( User user : users ) {
             this.initUser( user, locale );
         }

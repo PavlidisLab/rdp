@@ -12,6 +12,11 @@
 </head>
 <body>
 <div th:fragment="message">
+    <div th:if="${@environment.acceptsProfiles('staging')}"
+         class="alert alert-warning text-center">
+        This version of the <span th:text="#{rdp.site.shortname}"></span> registry is <b>staging</b>. Do not provide
+        sensitive data.
+    </div>
     <div th:if="${message}"
          class="row">
         <div class="col-10 offset-1">

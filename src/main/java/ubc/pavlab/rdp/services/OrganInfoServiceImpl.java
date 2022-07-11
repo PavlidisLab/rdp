@@ -3,6 +3,7 @@ package ubc.pavlab.rdp.services;
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ubc.pavlab.rdp.model.OrganInfo;
@@ -28,6 +29,9 @@ public class OrganInfoServiceImpl implements OrganInfoService {
     @Autowired
     private ApplicationSettings applicationSettings;
 
+    @Autowired
+    private ResourceLoader resourceLoader;
+
     @Override
     public Collection<OrganInfo> findAll() {
         return organInfoRepository.findAll();
@@ -47,7 +51,10 @@ public class OrganInfoServiceImpl implements OrganInfoService {
     @Transactional
     public void updateOrganInfos() {
         try {
-            Resource organFile = applicationSettings.getCache().getOrganFile();
+            Resource organFile = null;
+            if ( applicationSettings.getCache().getOrganFile() != null || applicationSettings.getCache().getOrganFile().isEmpty() ) {
+                organFile = resourceLoader.getResource( applicationSettings.getCache().getOrganFile() );
+            }
             if ( organFile == null ) {
                 log.warn( "No organ system ontology file found, skipping update." );
                 return;

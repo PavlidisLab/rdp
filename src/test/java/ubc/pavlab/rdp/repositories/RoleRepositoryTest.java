@@ -1,5 +1,6 @@
 package ubc.pavlab.rdp.repositories;
 
+import org.hibernate.Session;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +23,20 @@ public class RoleRepositoryTest {
 
     @Autowired
     private RoleRepository roleRepository;
+
+    /**
+     * This is not recommended usage, but we use the {@link org.hibernate.annotations.NaturalId} to mark columns in
+     * order to correctly select those for equals() and hashCode implementation.
+     */
+    @Test
+    public void findByNaturalId() {
+        Role userRole = entityManager.getEntityManager().unwrap( Session.class )
+                .bySimpleNaturalId( Role.class )
+                .load( "ROLE_USER" );
+        assertThat( userRole )
+                .isNotNull()
+                .hasFieldOrPropertyWithValue( "role", "ROLE_USER" );
+    }
 
     @Test
     public void findByRole_whenValidRole_thenReturnRole() {

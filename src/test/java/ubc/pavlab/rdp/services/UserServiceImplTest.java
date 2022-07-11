@@ -170,7 +170,6 @@ public class UserServiceImplTest {
         token.setUser( user );
         token.updateToken( "token1" );
         when( passwordResetTokenRepository.findByToken( token.getToken() ) ).thenReturn( token );
-        System.out.println( token.getExpiryDate() );
 
         token = new PasswordResetToken();
         token.setUser( user );
@@ -344,14 +343,18 @@ public class UserServiceImplTest {
     @Test
     public void findCurrentUser_returnCurrentUser() {
         User user = createUser( 1 );
+        when( userRepository.findOneWithRoles( 1 ) ).thenReturn( Optional.of( user ) );
         becomeUser( user );
         assertThat( userService.findCurrentUser() ).isEqualTo( user );
+        verify( userRepository ).findOneWithRoles( 1 );
     }
 
     @Test
     public void findUserById_whenValidId_thenReturnUser() {
         User user = createUser( 1 );
+        when( userRepository.findById( 1 ) ).thenReturn( Optional.of( user ) );
         assertThat( userService.findUserById( user.getId() ) ).isEqualTo( user );
+        verify( userRepository ).findById( 1 );
     }
 
     @Test
@@ -362,7 +365,9 @@ public class UserServiceImplTest {
     @Test
     public void findUserByIdNoAuth_whenValidId_thenReturnUser() {
         User user = createUser( 1 );
+        when( userRepository.findOneWithRoles( 1 ) ).thenReturn( Optional.of( user ) );
         assertThat( userService.findUserByIdNoAuth( user.getId() ) ).isEqualTo( user );
+        verify( userRepository ).findOneWithRoles( 1 );
     }
 
     @Test

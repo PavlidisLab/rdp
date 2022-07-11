@@ -21,7 +21,7 @@ import java.util.Comparator;
 @Getter
 @Setter
 @NoArgsConstructor
-@EqualsAndHashCode(of = { "id" })
+@EqualsAndHashCode(of = { "id" }) // it's okay to use id here because it is not generated
 @ToString(of = { "id", "scientificName" })
 public class Taxon implements Serializable {
 

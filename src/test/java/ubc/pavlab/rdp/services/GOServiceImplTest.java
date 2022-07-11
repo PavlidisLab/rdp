@@ -45,7 +45,7 @@ public class GOServiceImplTest {
             a.setGoTermSizeLimit( 50L );
             ApplicationSettings.CacheSettings cacheSettings = new ApplicationSettings.CacheSettings();
             cacheSettings.setEnabled( false );
-            cacheSettings.setTermFile( new ClassPathResource( "cache/go.obo" ) );
+            cacheSettings.setTermFile( "classpath:cache/go.obo" );
             cacheSettings.setAnnotationFile( new ClassPathResource( "cache/gene2go.gz" ) );
             a.setCache( cacheSettings );
             return a;

@@ -10,6 +10,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
+import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -175,10 +176,9 @@ public class UserGeneRepositoryTest {
         assertThat( count ).isEqualTo( 2 );
     }
 
-    @Test
+    @Test(expected = InvalidDataAccessResourceUsageException.class)
     public void countDistinctGeneByTierIn_whenTierNotMatch_thenDontCount() {
         int count = userGeneRepository.countDistinctGeneByTierIn( EnumSet.noneOf( TierType.class ) );
-        assertThat( count ).isEqualTo( 0 );
     }
 
     @Test
@@ -647,21 +647,4 @@ public class UserGeneRepositoryTest {
         assertThat( userGene.getPrivacyLevel() ).isEqualTo( PrivacyLevelType.PUBLIC );
         assertThat( userGene.getEffectivePrivacyLevel() ).isEqualTo( PrivacyLevelType.SHARED );
     }
-
-    @Test
-    public void findByGeneIdAndTierInAndUserUserOrgansIn_whenUserFollowOrgan_ReturnUserGene() {
-        Gene gene = entityManager.persist( createGene( 10, taxon ) );
-        UserGene userGene = entityManager.persist( createUnpersistedUserGene( gene, user, TierType.TIER1, PrivacyLevelType.PRIVATE ) );
-        Organ organ = entityManager.persist( createOrgan( "UBERON_1010101", "Appendages", null ) );
-        UserOrgan userOrgan = entityManager.persist( createUserOrgan( user, organ ) );
-
-        entityManager.refresh( user );
-        assertThat( user.getUserOrgans() )
-                .containsKey( "UBERON_1010101" )
-                .containsValue( userOrgan );
-
-        assertThat( userGeneRepository.findByGeneIdAndTierInAndUserUserOrgansIn( userGene.getGeneId(), Sets.newSet( userGene.getTier() ), Sets.newSet( userOrgan ) ) )
-                .containsExactly( userGene );
-    }
-
 }

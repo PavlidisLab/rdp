@@ -88,8 +88,10 @@ public class EmailServiceImpl implements EmailService {
         String content = "Name: " + name + "\r\n" +
                 "Email: " + user.getEmail() + "\r\n" +
                 "User-Agent: " + userAgent + "\r\n" +
-                "Message: " + message + "\r\n" +
-                "File Attached: " + ( attachment != null && !attachment.getOriginalFilename().equals( "" ) );
+                "Message: " + message + "\r\n";
+        if ( attachment != null ) {
+            content += "File Attached: " + attachment.getOriginalFilename() + "\r\n";
+        }
         if ( attachment == null ) {
             return sendSimpleMessage( subject, content, getAdminAddress(), replyTo, null );
         } else {

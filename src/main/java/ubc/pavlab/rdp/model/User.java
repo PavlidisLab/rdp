@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import lombok.*;
 import lombok.extern.apachecommons.CommonsLog;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.annotations.NaturalId;
 import org.hibernate.validator.constraints.Email;
 import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.NotEmpty;
@@ -27,7 +28,7 @@ import java.util.stream.Collectors;
 @Getter
 @Setter
 @Builder
-@EqualsAndHashCode(of = { "id" })
+@EqualsAndHashCode(of = { "email" })
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString(of = { "id", "anonymousId", "email", "enabled" })
@@ -59,6 +60,7 @@ public class User implements UserContent {
     @Transient
     private UUID anonymousId;
 
+    @NaturalId
     @Column(name = "email", unique = true, nullable = false)
     @Email(message = "Your email address is not valid.", groups = { ValidationUserAccount.class })
     @NotEmpty(message = "Please provide an email address.", groups = { ValidationUserAccount.class, ValidationServiceAccount.class })
@@ -80,18 +82,15 @@ public class User implements UserContent {
     @JsonIgnore
     private final Set<Role> roles = new HashSet<>();
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "user_id")
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private final Set<AccessToken> accessTokens = new HashSet<>();
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "user_id")
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private final Set<VerificationToken> verificationTokens = new HashSet<>();
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "user_id")
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private final Set<PasswordResetToken> passwordResetTokens = new HashSet<>();
 
@@ -117,6 +116,7 @@ public class User implements UserContent {
     /* Research related information */
 
     // @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+    @Lob
     @ElementCollection
     @CollectionTable(name = "descriptions", joinColumns = @JoinColumn(name = "user_id"))
     @MapKeyJoinColumn(name = "taxon_id")
@@ -124,8 +124,7 @@ public class User implements UserContent {
     @JsonIgnore
     private final Map<Taxon, String> taxonDescriptions = new HashMap<>();
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "user_id")
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private final Set<UserTerm> userTerms = new HashSet<>();
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "user")

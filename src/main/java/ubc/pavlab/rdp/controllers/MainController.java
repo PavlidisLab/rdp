@@ -46,6 +46,16 @@ public class MainController {
         return "Session timeout refreshed.";
     }
 
+    @GetMapping(value = "/terms-of-service")
+    public String termsOfService() {
+        return "terms-of-service";
+    }
+
+    @GetMapping(value = "/privacy-policy")
+    public String privacyPolicy() {
+        return "privacy-policy";
+    }
+
     private void addTimeoutCookies( HttpServletRequest servletRequest, HttpServletResponse servletResponse ) {
         // Only set timeout cookie if the user is authenticated.
         long currTime = System.currentTimeMillis();
