@@ -5,6 +5,7 @@ import org.hibernate.validator.constraints.Email;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAmount;
@@ -19,7 +20,7 @@ import java.util.Optional;
 @Setter
 @NoArgsConstructor
 @ToString(of = { "user" }, callSuper = true)
-public class VerificationToken extends Token implements UserContent {
+public class VerificationToken extends Token implements UserContent, Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

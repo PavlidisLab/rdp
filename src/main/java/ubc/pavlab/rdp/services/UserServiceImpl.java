@@ -536,7 +536,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void sendGeneAccessRequest( User requestingUser, UserGene userGene, String reason ) {
-        eventPublisher.publishEvent( new OnRequestAccessEvent( requestingUser, userGene, reason ) );
+        eventPublisher.publishEvent( new OnRequestAccessEvent<>( requestingUser, userGene, reason ) );
     }
 
     @Transactional

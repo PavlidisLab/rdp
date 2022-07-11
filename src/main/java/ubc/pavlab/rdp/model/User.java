@@ -16,6 +16,7 @@ import ubc.pavlab.rdp.model.enums.TierType;
 import javax.mail.internet.InternetAddress;
 import javax.persistence.*;
 import javax.validation.Valid;
+import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.text.MessageFormat;
@@ -34,7 +35,7 @@ import java.util.stream.Collectors;
 @ToString(of = { "id", "anonymousId", "email", "enabled" })
 @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @CommonsLog
-public class User implements UserContent {
+public class User implements UserContent, Serializable {
 
     /**
      * Constraints for regular user accounts.
