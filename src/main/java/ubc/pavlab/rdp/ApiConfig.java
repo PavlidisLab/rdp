@@ -31,6 +31,7 @@ public class ApiConfig {
 
     @Bean
     public OpenAPI openAPI( MessageSource messageSource, ServletContext servletContext ) {
+        // FIXME: retrieve that from the request context
         Locale locale = Locale.getDefault();
         String shortname = messageSource.getMessage( "rdp.site.shortname", null, locale );
         return new OpenAPI()
