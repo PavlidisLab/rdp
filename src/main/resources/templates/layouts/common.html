@@ -89,6 +89,12 @@
                                 <a th:href="@{/admin/create-service-account}" class="dropdown-item">Create Service
                                     Account</a>
                             </th:block>
+                            <a th:unless="${#strings.isEmpty(#messages.msg('rdp.terms-of-service'))}"
+                               th:href="@{/terms-of-service}"
+                               class="dropdown-item">Terms of Service</a>
+                            <a th:unless="${#strings.isEmpty(#messages.msg('rdp.privacy-policy'))}"
+                               th:href="@{/privacy-policy}"
+                               class="dropdown-item">Privacy Policy</a>
                             <a class="dropdown-item" th:href="@{/user/password}" href="/user/password">Change
                                 Password</a>
                             <a class="dropdown-item" th:href="@{/logout}" href="/logout">Logout</a>

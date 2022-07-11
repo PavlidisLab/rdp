@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      lang="en">
+<head th:replace="layouts/common::head(title='Privacy Policy')">
+    <meta charset="UTF-8"/>
+    <title>...</title>
+</head>
+<body>
+<div th:replace="layouts/common::header"></div>
+<div class="container py-4">
+    <div th:replace="layouts/common::title(title='Privacy Policy')"></div>
+    <div th:replace="layouts/login::message"></div>
+    <div th:utext="#{rdp.privacy-policy}"></div>
+    <div th:if="${#strings.isEmpty(#messages.msg('rdp.privacy-policy'))}"
+         class="alert alert-warning">
+        The administrator of this registry has not set up a privacy policy.
+    </div>
+</div>
+<div th:replace="layouts/common::footer"></div>
+<div th:replace="layouts/common::scripts"></div>
+</body>
+</html>

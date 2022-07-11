@@ -305,6 +305,15 @@ rdp.faq.answers.<q_key>=A plausible answer.
 The provided default file can be found
 in [faq.properties](https://github.com/PavlidisLab/rgr/tree/master/src/main/resources/faq.properties).
 
+## Terms of service and privacy policy
+
+The terms of service and privacy policy can be added to the `messages.properties` by editing the following entries:
+
+```ini
+rdp.terms-of-service=Your terms of service
+rdp.privacy-policy=Your privacy policy
+```
+
 ## Style and static resources
 
 Static resources can be selectively replaced by including a search directory for Spring static resources.

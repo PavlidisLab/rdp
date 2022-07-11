@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      lang="en">
+<head th:replace="layouts/common::head(title='Terms of Service')">
+    <meta charset="UTF-8"/>
+    <title>...</title>
+</head>
+<body>
+<div th:replace="layouts/common::header"></div>
+<div class="container py-4">
+    <div th:replace="layouts/common::title(title='Terms of Service')"></div>
+    <div th:replace="layouts/login::message"></div>
+    <div th:utext="#{rdp.terms-of-service}"></div>
+    <div th:if="${#strings.isEmpty(#messages.msg('rdp.terms-of-service'))}">
+        <div class="alert alert-warning">
+            The administrator of this registry has not set up terms of service.
+        </div>
+    </div>
+</div>
+<div th:replace="layouts/common::footer"></div>
+<div th:replace="layouts/common::scripts"></div>
+</body>
+</html>
