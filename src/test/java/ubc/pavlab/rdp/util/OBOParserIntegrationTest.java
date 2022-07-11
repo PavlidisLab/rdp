@@ -95,4 +95,12 @@ public class OBOParserIntegrationTest {
                 .hasFieldOrPropertyWithValue( "name", "obsolete 17-hydroxysteroid dehydrogenase deficiency" )
                 .hasFieldOrPropertyWithValue( "obsolete", true );
     }
+
+    @Test
+    public void parse_withNboTerms_ignoreExernallyDefinedTerms() throws IOException, ParseException {
+        OBOParser.ParsingResult parsingResult = oboParser.parse( new InputStreamReader( new ClassPathResource( "cache/nbo-base.obo" ).getInputStream() ) );
+        assertThat( parsingResult.getTermsByIdOrAltId() )
+                .containsKey( "NBO:0000013" )
+                .doesNotContainKey( "GO:0040011" ); // this term is externally defined, so it should not appear here
+    }
 }

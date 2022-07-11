@@ -11,6 +11,7 @@ import java.text.MessageFormat;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * OBO ontology parser
@@ -34,6 +35,19 @@ public class OBOParser {
 
     @Data
     public static class Stanza {
+
+        /**
+         * Indicate if the stanza is externally defined.
+         */
+        private boolean external;
+
+        boolean isExternal() {
+            return external;
+        }
+
+        void setExternal( boolean external ) {
+            this.external = external;
+        }
     }
 
     /**
@@ -69,7 +83,6 @@ public class OBOParser {
         /* we map both directions of a relationship */
         private transient Set<Relationship> relationships = new HashSet<>();
         private transient Set<Relationship> inverseRelationships = new HashSet<>();
-
     }
 
     /**
@@ -152,6 +165,7 @@ public class OBOParser {
                     } else if ( currentStanza instanceof Typedef ) {
                         Typedef currentTypedef = (Typedef) currentStanza;
                         typedefs.add( currentTypedef );
+                        typedefMap.put( currentTypedef.getId(), currentTypedef );
                         currentStanza = null;
                     }
                 } else if ( line.equals( "[Term]" ) ) {
@@ -169,11 +183,13 @@ public class OBOParser {
                 } else if ( currentStanza instanceof Typedef ) {
                     Typedef currentTypedef = (Typedef) currentStanza;
                     String[] tagValuePair = line.split( ": ", 2 );
+                    String typedefId = tagValuePair[1];
                     if ( tagValuePair[0].equals( "id" ) ) {
-                        if ( typedefMap.containsKey( tagValuePair[0] ) ) {
-                            currentStanza = typedefMap.get( tagValuePair[0] );
+                        if ( typedefMap.containsKey( typedefId ) ) {
+                            currentStanza = typedefMap.get( typedefId );
+                            currentStanza.setExternal( false );
                         } else {
-                            currentTypedef.setId( tagValuePair[1] );
+                            currentTypedef.setId( typedefId );
                         }
                     }
                 } else if ( currentStanza instanceof Term ) {
@@ -186,10 +202,11 @@ public class OBOParser {
                     }
                     switch ( tagValuePair[0] ) {
                         case "id":
-                            if ( !termMap.containsKey( tagValuePair[1] ) ) {
-                                currentNode.setId( tagValuePair[1] );
-                            } else {
+                            if ( termMap.containsKey( tagValuePair[1] ) ) {
                                 currentStanza = termMap.get( tagValuePair[1] );
+                                currentStanza.setExternal( false );
+                            } else {
+                                currentNode.setId( tagValuePair[1] );
                             }
                             break;
                         case "name":
@@ -215,6 +232,7 @@ public class OBOParser {
                                 // parent exists in map
                                 parentNode = new Term();
                                 parentNode.setId( values[0] );
+                                parentNode.setExternal( true );
                                 termMap.put( values[0], parentNode );
                             } else {
                                 parentNode = termMap.get( values[0] );
@@ -229,15 +247,20 @@ public class OBOParser {
                             }
                             String typedefId = values[0];
                             String termId = values[1];
+                            Typedef typedef;
                             if ( !typedefMap.containsKey( typedefId ) ) {
-                                typedefMap.put( typedefId, new Typedef( typedefId ) );
+                                typedef = new Typedef( typedefId );
+                                typedef.setExternal( true );
+                                typedefMap.put( typedefId, typedef );
+                            } else {
+                                typedef = typedefMap.get( typedefId );
                             }
-                            Typedef typedef = typedefMap.get( typedefId );
                             if ( configuration.getIncludeTypedefs().contains( typedef ) ) {
                                 if ( !termMap.containsKey( termId ) ) {
                                     // parent exists in map
                                     parentNode = new Term();
                                     parentNode.setId( termId );
+                                    parentNode.setExternal( true );
                                     termMap.put( termId, parentNode );
                                 } else {
                                     parentNode = termMap.get( values[1] );
@@ -299,6 +322,14 @@ public class OBOParser {
         if ( ontology.getName() == null ) {
             throw new ParseException( "The ontology name declaration is missing.", 0 );
         }
+
+        // remove external terms from termMap and typedefMap
+        termMap = termMap.entrySet().stream()
+                .filter( e -> !e.getValue().isExternal() )
+                .collect( Collectors.toMap( Map.Entry::getKey, Map.Entry::getValue ) );
+        typedefMap = typedefMap.entrySet().stream()
+                .filter( e -> !e.getValue().isExternal() )
+                .collect( Collectors.toMap( Map.Entry::getKey, Map.Entry::getValue ) );
 
         return new ParsingResult( ontology, terms, typedefs, termMap, typedefMap );
     }
