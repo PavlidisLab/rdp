@@ -8,6 +8,7 @@ import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.test.context.junit4.SpringRunner;
+import ubc.pavlab.rdp.ResourceLoaderConfig;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -16,7 +17,7 @@ import java.io.InputStreamReader;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assume.assumeNoException;
 
-@Import(PurlResolver.class)
+@Import(ResourceLoaderConfig.class)
 @RunWith(SpringRunner.class)
 public class PurlResolverTest {
 
