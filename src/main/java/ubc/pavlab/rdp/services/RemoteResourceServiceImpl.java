@@ -77,6 +77,9 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
                 .toUri();
         try {
             OpenAPI openAPI = asyncRestTemplate.getForEntity( uri, OpenAPI.class ).get().getBody();
+            if ( openAPI == null ) {
+                throw new RemoteException( String.format( "Invalid response for %s, the body is null.", uri ) );
+            }
             // The OpenAPI specification was introduced in 1.4, so we assume 1.0.0 for previous versions
             if ( openAPI.getInfo() == null ) {
                 return "1.0.0";
@@ -193,6 +196,9 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
         try {
             ResponseEntity<User> responseEntity = asyncRestTemplate.getForEntity( uri, User.class ).get();
             User user = responseEntity.getBody();
+            if ( user == null ) {
+                throw new RemoteException( String.format( "Invalid response for %s, the body is null.", uri ) );
+            }
             initUser( user );
             return user;
         } catch ( ExecutionException e ) {
@@ -242,6 +248,13 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
                 } )
                 .filter( Objects::nonNull )
                 .map( ResponseEntity::getBody )
+                .filter( body -> {
+                    if ( body == null ) {
+                        // FIXME: add the URI from which this originated
+                        log.error( "Invalid response, the body is null." );
+                    }
+                    return body != null;
+                } )
                 .flatMap( Arrays::stream )
                 .collect( Collectors.toList() );
     }
