@@ -96,7 +96,7 @@ public class GOServiceImpl implements GOService {
 
         log.info( MessageFormat.format( "Loading GO terms from: {0}.", cacheSettings.getTermFile() ) );
 
-        if ( cacheSettings.getTermFile() == null ) {
+        if ( cacheSettings.getTermFile() == null || cacheSettings.getTermFile().isEmpty() ) {
             log.warn( "No term file is defined, skipping update of GO terms." );
             return;
         }

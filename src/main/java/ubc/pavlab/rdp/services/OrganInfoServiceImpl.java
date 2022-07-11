@@ -52,7 +52,7 @@ public class OrganInfoServiceImpl implements OrganInfoService {
     public void updateOrganInfos() {
         try {
             Resource organFile = null;
-            if ( applicationSettings.getCache().getOrganFile() != null ) {
+            if ( applicationSettings.getCache().getOrganFile() != null || applicationSettings.getCache().getOrganFile().isEmpty() ) {
                 organFile = resourceLoader.getResource( applicationSettings.getCache().getOrganFile() );
             }
             if ( organFile == null ) {
