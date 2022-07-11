@@ -19,7 +19,7 @@
         </p>
         <p th:if="${#messages.msgOrNull('rdp.ontologies.' + ontology.name + '.definition')} != null"
            class="lead"
-           th:text="#{'rdp.ontologies.' + ontology.name + '.definition'}"></p>
+           th:text="#{'rdp.ontologies.' + ${ontology.name} + '.definition'}"></p>
         <div th:unless="${#messages.msgOrNull('rdp.ontologies.' + ontology.name + '.definition')} != null"
              class="alert alert-warning">
             This category lacks a definition. Consider adding an entry for <code>rdp.ontologies.<span
