@@ -190,20 +190,20 @@ public class UserController {
             if ( multipartFile == null || multipartFile.isEmpty() )
                 return;
             if ( StringUtils.isBlank( multipartFile.getOriginalFilename() ) ) {
-                errors.rejectValue( "attachment", "UserController.SupportFormValidator.attachment.missingFilename" );
+                errors.rejectValue( "attachment", "UserController.SupportForm.attachment.missingFilename" );
             }
             if ( multipartFile.getContentType() == null ) {
-                errors.rejectValue( "attachment", "UserController.SupportFormValidator.attachment.missingMediaType",
+                errors.rejectValue( "attachment", "UserController.SupportForm.attachment.missingMediaType",
                         new String[]{ ACCEPTED_MEDIA_TYPES_ERROR_MESSAGE }, null );
             }
             try {
                 MediaType contentType = MediaType.parseMediaType( multipartFile.getContentType() );
                 if ( Arrays.stream( ACCEPTED_MEDIA_TYPES ).noneMatch( mediaType -> mediaType.includes( contentType ) ) ) {
-                    errors.rejectValue( "attachment", "UserController.SupportFormValidator.attachment.unsupportedMediaType",
+                    errors.rejectValue( "attachment", "UserController.SupportForm.attachment.unsupportedMediaType",
                             new String[]{ multipartFile.getContentType(), ACCEPTED_MEDIA_TYPES_ERROR_MESSAGE }, null );
                 }
             } catch ( InvalidMediaTypeException e ) {
-                errors.rejectValue( "attachment", "UserController.SupportFormValidator.attachment.invalidMediaType",
+                errors.rejectValue( "attachment", "UserController.SupportForm.attachment.invalidMediaType",
                         new String[]{ multipartFile.getContentType(), ACCEPTED_MEDIA_TYPES_ERROR_MESSAGE }, null );
             }
         }
