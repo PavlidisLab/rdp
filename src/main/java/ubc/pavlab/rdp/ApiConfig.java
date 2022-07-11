@@ -23,14 +23,9 @@ import java.util.Locale;
 @Configuration
 public class ApiConfig {
 
-    @Autowired
-    private SiteSettings siteSettings;
-
-    @Autowired
-    private BuildProperties buildProperties;
-
     @Bean
-    public OpenAPI openAPI( MessageSource messageSource, ServletContext servletContext ) {
+    public OpenAPI openAPI( SiteSettings siteSettings, BuildProperties buildProperties,
+                            MessageSource messageSource, ServletContext servletContext ) {
         // FIXME: retrieve that from the request context
         Locale locale = Locale.getDefault();
         String shortname = messageSource.getMessage( "rdp.site.shortname", null, locale );
