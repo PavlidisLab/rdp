@@ -139,7 +139,8 @@
         &quot;<span th:text="#{rdp.site.fullname}"></span>&quot;
         All rights reserved.
     </span>
-    <a class="d-inline-block" th:href="@{/user/support}" href="/user/support">Contact Support</a>
+    <a sec:authorize="isAuthenticated()" class="d-inline-block" th:href="@{/user/support}">Contact Support</a>
+    <a sec:authorize="!isAuthenticated()" class="d-inline-block" th:href="${'mailto:' + @siteSettings.contactEmail}">Contact Support</a>
 </footer>
 <th:block th:fragment="scripts">
     <!-- Latest compiled and minified JavaScript -->
