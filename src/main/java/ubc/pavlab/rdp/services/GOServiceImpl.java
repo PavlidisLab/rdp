@@ -1,6 +1,8 @@
 package ubc.pavlab.rdp.services;
 
 import lombok.extern.apachecommons.CommonsLog;
+import org.springframework.beans.factory.BeanInitializationException;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
@@ -37,7 +39,7 @@ import static java.util.stream.Collectors.groupingBy;
  */
 @Service("goService")
 @CommonsLog
-public class GOServiceImpl implements GOService {
+public class GOServiceImpl implements GOService, InitializingBean {
 
     private static String
             ANCESTORS_CACHE_NAME = "ubc.pavlab.rdp.services.GOService.ancestors",
@@ -60,6 +62,21 @@ public class GOServiceImpl implements GOService {
 
     @Autowired
     private ResourceLoader resourceLoader;
+
+    private Cache ancestorsCache;
+    private Cache descendantsCache;
+
+    @Override
+    public void afterPropertiesSet() {
+        ancestorsCache = cacheManager.getCache( ANCESTORS_CACHE_NAME );
+        descendantsCache = cacheManager.getCache( DESCENDANTS_CACHE_NAME );
+        if ( ancestorsCache == null ) {
+            throw new BeanInitializationException( String.format( "Cache configuration %s is missing for terms ancestors.", ANCESTORS_CACHE_NAME ) );
+        }
+        if ( descendantsCache == null ) {
+            throw new BeanInitializationException( String.format( "Cache configuration %s is missing for terms descendants.", DESCENDANTS_CACHE_NAME ) );
+        }
+    }
 
     private static Relationship convertRelationship( OBOParser.Relationship parsedRelationship ) {
         return new Relationship( convertTermIgnoringRelationship( parsedRelationship.getNode() ),
@@ -284,7 +301,6 @@ public class GOServiceImpl implements GOService {
     }
 
     private Set<GeneOntologyTermInfo> getDescendantsInternal( GeneOntologyTermInfo entry ) {
-        Cache descendantsCache = cacheManager.getCache( DESCENDANTS_CACHE_NAME );
         //noinspection unchecked
         Set<GeneOntologyTermInfo> results = descendantsCache.get( entry, Set.class );
         if ( results != null ) {
@@ -385,7 +401,6 @@ public class GOServiceImpl implements GOService {
     }
 
     private Collection<GeneOntologyTermInfo> getAncestorsInternal( GeneOntologyTermInfo term ) {
-        Cache ancestorsCache = cacheManager.getCache( ANCESTORS_CACHE_NAME );
         //noinspection unchecked
         Set<GeneOntologyTermInfo> results = ancestorsCache.get( term, Set.class );
         if ( results != null )
@@ -404,9 +419,6 @@ public class GOServiceImpl implements GOService {
     }
 
     private void evict( Iterable<GeneOntologyTermInfo> terms ) {
-        Cache ancestorsCache = cacheManager.getCache( ANCESTORS_CACHE_NAME );
-        Cache descendantsCache = cacheManager.getCache( DESCENDANTS_CACHE_NAME );
-
         Set<GeneOntologyTermInfo> termsToEvict = new HashSet<>();
         for ( GeneOntologyTermInfo term : terms ) {
             termsToEvict.add( term );
@@ -443,7 +455,7 @@ public class GOServiceImpl implements GOService {
 
     private void evictAll() {
         log.info( "Evicting all the terms from ancestors and descendants caches." );
-        cacheManager.getCache( ANCESTORS_CACHE_NAME ).clear();
-        cacheManager.getCache( DESCENDANTS_CACHE_NAME ).clear();
+        ancestorsCache.clear();
+        descendantsCache.clear();
     }
 }
