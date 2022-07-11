@@ -1,11 +1,13 @@
 package ubc.pavlab.rdp.model;
 
-import lombok.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import org.hibernate.validator.constraints.Email;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 
 import javax.persistence.*;
-import java.io.Serializable;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAmount;
@@ -20,7 +22,7 @@ import java.util.Optional;
 @Setter
 @NoArgsConstructor
 @ToString(of = { "user" }, callSuper = true)
-public class VerificationToken extends Token implements UserContent, Serializable {
+public class VerificationToken extends Token implements UserContent {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

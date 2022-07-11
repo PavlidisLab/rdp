@@ -10,14 +10,10 @@ import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.TierType;
 
 import javax.persistence.*;
-import java.io.Serializable;
 import java.text.MessageFormat;
 import java.util.Comparator;
 import java.util.Optional;
 import java.util.UUID;
-
-import static java.util.Comparator.*;
-import static java.util.Comparator.naturalOrder;
 
 /**
  * Created by mjacobson on 17/01/18.
@@ -40,7 +36,7 @@ import static java.util.Comparator.naturalOrder;
 @CommonsLog
 @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @ToString(of = { "user", "tier", "privacyLevel" }, callSuper = true)
-public class UserGene extends Gene implements UserContent, Serializable {
+public class UserGene extends Gene implements UserContent {
 
     /**
      * Obtain a comparator for comparing {@link UserGene}.

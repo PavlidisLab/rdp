@@ -5,6 +5,7 @@ import org.hibernate.annotations.NaturalId;
 
 import javax.persistence.Column;
 import javax.persistence.MappedSuperclass;
+import java.io.Serializable;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.temporal.TemporalAmount;
@@ -14,7 +15,7 @@ import java.time.temporal.TemporalAmount;
 @EqualsAndHashCode(of = { "token" })
 @ToString(of = { "token", "expiryDate" })
 @MappedSuperclass
-public abstract class Token {
+public abstract class Token implements Serializable {
 
     @NaturalId
     @Column(name = "token", nullable = false, unique = true)
