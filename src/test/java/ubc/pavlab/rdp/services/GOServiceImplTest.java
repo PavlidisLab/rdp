@@ -73,7 +73,7 @@ public class GOServiceImplTest {
 
         @Bean
         public CacheManager cacheManager() {
-            return new ConcurrentMapCacheManager();
+            return new ConcurrentMapCacheManager( GOServiceImpl.ANCESTORS_CACHE_NAME, GOServiceImpl.DESCENDANTS_CACHE_NAME );
         }
     }
 

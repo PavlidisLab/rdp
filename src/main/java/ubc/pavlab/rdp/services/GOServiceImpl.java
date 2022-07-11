@@ -1,7 +1,6 @@
 package ubc.pavlab.rdp.services;
 
 import lombok.extern.apachecommons.CommonsLog;
-import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
@@ -17,10 +16,7 @@ import ubc.pavlab.rdp.model.enums.RelationshipType;
 import ubc.pavlab.rdp.model.enums.TermMatchType;
 import ubc.pavlab.rdp.repositories.GeneOntologyTermInfoRepository;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
-import ubc.pavlab.rdp.util.Gene2GoParser;
-import ubc.pavlab.rdp.util.OBOParser;
-import ubc.pavlab.rdp.util.ParseException;
-import ubc.pavlab.rdp.util.SearchResult;
+import ubc.pavlab.rdp.util.*;
 
 import java.io.IOException;
 import java.text.MessageFormat;
@@ -41,7 +37,7 @@ import static java.util.stream.Collectors.groupingBy;
 @CommonsLog
 public class GOServiceImpl implements GOService, InitializingBean {
 
-    private static String
+    static final String
             ANCESTORS_CACHE_NAME = "ubc.pavlab.rdp.services.GOService.ancestors",
             DESCENDANTS_CACHE_NAME = "ubc.pavlab.rdp.services.GOService.descendants";
 
@@ -68,14 +64,8 @@ public class GOServiceImpl implements GOService, InitializingBean {
 
     @Override
     public void afterPropertiesSet() {
-        ancestorsCache = cacheManager.getCache( ANCESTORS_CACHE_NAME );
-        descendantsCache = cacheManager.getCache( DESCENDANTS_CACHE_NAME );
-        if ( ancestorsCache == null ) {
-            throw new BeanInitializationException( String.format( "Cache configuration %s is missing for terms ancestors.", ANCESTORS_CACHE_NAME ) );
-        }
-        if ( descendantsCache == null ) {
-            throw new BeanInitializationException( String.format( "Cache configuration %s is missing for terms descendants.", DESCENDANTS_CACHE_NAME ) );
-        }
+        ancestorsCache = CacheUtils.getCache( cacheManager, ANCESTORS_CACHE_NAME );
+        descendantsCache = CacheUtils.getCache( cacheManager, DESCENDANTS_CACHE_NAME );
     }
 
     private static Relationship convertRelationship( OBOParser.Relationship parsedRelationship ) {

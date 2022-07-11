@@ -3,7 +3,9 @@ package ubc.pavlab.rdp.services;
 import lombok.NonNull;
 import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
@@ -32,6 +34,7 @@ import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.repositories.*;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
+import ubc.pavlab.rdp.util.CacheUtils;
 
 import javax.validation.ValidationException;
 import java.security.SecureRandom;
@@ -48,10 +51,11 @@ import static org.springframework.util.CollectionUtils.containsAny;
  */
 @Service("userService")
 @CommonsLog
-public class UserServiceImpl implements UserService {
+public class UserServiceImpl implements UserService, InitializingBean {
 
-    public static final String USERS_BY_ANONYMOUS_ID_CACHE_KEY = "ubc.pavlab.rdp.model.User.byAnonymousId";
-    public static final String USER_GENES_BY_ANONYMOUS_ID_CACHE_KEY = "ubc.pavlab.rdp.model.UserGene.byAnonymousId";
+    static final String
+            USERS_BY_ANONYMOUS_ID_CACHE_NAME = "ubc.pavlab.rdp.model.User.byAnonymousId",
+            USER_GENES_BY_ANONYMOUS_ID_CACHE_NAME = "ubc.pavlab.rdp.model.UserGene.byAnonymousId";
 
     @Autowired
     private ApplicationSettings applicationSettings;
@@ -83,6 +87,15 @@ public class UserServiceImpl implements UserService {
     private PrivacyService privacyService;
     @Autowired
     private SecureRandom secureRandom;
+
+    private Cache usersByAnonymousIdCache;
+    private Cache userGenesByAnonymousIdCache;
+
+    @Override
+    public void afterPropertiesSet() {
+        usersByAnonymousIdCache = CacheUtils.getCache( cacheManager, USERS_BY_ANONYMOUS_ID_CACHE_NAME );
+        userGenesByAnonymousIdCache = CacheUtils.getCache( cacheManager, USER_GENES_BY_ANONYMOUS_ID_CACHE_NAME );
+    }
 
     @Transactional
     @Override
@@ -217,7 +230,7 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public User findUserByAnonymousIdNoAuth( UUID anonymousId ) {
-        return cacheManager.getCache( USERS_BY_ANONYMOUS_ID_CACHE_KEY ).get( anonymousId, User.class );
+        return usersByAnonymousIdCache.get( anonymousId, User.class );
     }
 
     /**
@@ -233,7 +246,7 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public UserGene findUserGeneByAnonymousIdNoAuth( UUID anonymousId ) {
-        return cacheManager.getCache( USER_GENES_BY_ANONYMOUS_ID_CACHE_KEY ).get( anonymousId, UserGene.class );
+        return userGenesByAnonymousIdCache.get( anonymousId, UserGene.class );
     }
 
     @Override
@@ -278,7 +291,7 @@ public class UserServiceImpl implements UserService {
                 .build();
         // TODO: check if this is leaking too much personal information
         anonymizedUser.getUserOrgans().putAll( user.getUserOrgans() );
-        cacheManager.getCache( USERS_BY_ANONYMOUS_ID_CACHE_KEY ).put( anonymizedUser.getAnonymousId(), user );
+        usersByAnonymousIdCache.put( anonymizedUser.getAnonymousId(), user );
         return anonymizedUser;
     }
 
@@ -294,7 +307,7 @@ public class UserServiceImpl implements UserService {
                 .tier( userGene.getTier() )
                 .build();
         anonymizedUserGene.updateGene( userGene );
-        cacheManager.getCache( USER_GENES_BY_ANONYMOUS_ID_CACHE_KEY ).put( anonymizedUserGene.getAnonymousId(), userGene );
+        userGenesByAnonymousIdCache.put( anonymizedUserGene.getAnonymousId(), userGene );
         return anonymizedUserGene;
     }
 

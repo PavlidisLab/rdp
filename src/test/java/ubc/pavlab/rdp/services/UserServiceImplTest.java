@@ -82,8 +82,8 @@ public class UserServiceImplTest {
         @Bean
         public CacheManager cacheManager() {
             return new ConcurrentMapCacheManager(
-                    UserServiceImpl.USERS_BY_ANONYMOUS_ID_CACHE_KEY,
-                    UserServiceImpl.USER_GENES_BY_ANONYMOUS_ID_CACHE_KEY );
+                    UserServiceImpl.USERS_BY_ANONYMOUS_ID_CACHE_NAME,
+                    UserServiceImpl.USER_GENES_BY_ANONYMOUS_ID_CACHE_NAME );
         }
 
         @Bean
