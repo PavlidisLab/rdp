@@ -10,6 +10,14 @@
         $(this).find('.spinner').toggleClass('d-none', false);
     });
 
+    $('.update-ontology-btn').click(function () {
+        $(this).find('.spinner').toggleClass('d-none', false);
+    });
+
+    $('.delete-ontology-btn').click(function () {
+        $(this).find('.spinner').toggleClass('d-none', false);
+    });
+
     $('.ontology-term-autocomplete').autocomplete({
         minLength: 3,
         delay: 200,

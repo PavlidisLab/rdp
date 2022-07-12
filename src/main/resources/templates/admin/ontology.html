@@ -52,7 +52,8 @@
             <form th:if="${ontology.ontologyUrl} != null"
                   th:action="@{/admin/ontologies/{ontologyId}/update(ontologyId=${ontology.id})}" method="post"
                   class="d-inline-block">
-                <button class="btn btn-primary" type="submit">
+                <button class="btn btn-primary update-ontology-btn" type="submit">
+                    <span class="spinner d-none"></span>
                     <i class="oi oi-cloud-download"></i>
                     Update from
                     <span th:if="${ontology.ontologyUrl.authority} != null"
@@ -178,7 +179,8 @@
                                        th:errorclass="is-invalid"/>
                                 <div class="invalid-feedback" th:errors="*{ontologyNameConfirmation}"></div>
                             </div>
-                            <button type="submit" class="btn btn-danger">
+                            <button type="submit" class="btn btn-danger delete-ontology-btn">
+                                <span class="spinner d-none"></span>
                                 <i class="oi oi-trash"></i>
                                 Delete
                             </button>
