@@ -92,11 +92,11 @@ public class EmailServiceImplTest {
                 .contains( "I need help!" );
     }
 
-    public void sendResetTokenMessage_thenSucceed() throws MessagingException {
+    public void sendResetTokenMessage_thenSucceed() throws MessagingException, ExecutionException, InterruptedException {
         when( siteSettings.getHostUri() ).thenReturn( URI.create( "http://localhost" ) );
         User user = createUser( 1 );
         PasswordResetToken token = createPasswordResetToken( user, "1234" );
-        emailService.sendResetTokenMessage( user, token, Locale.getDefault() );
+        emailService.sendResetTokenMessage( user, token, Locale.getDefault() ).get();
         ArgumentCaptor<SimpleMailMessage> mailMessageCaptor = ArgumentCaptor.forClass( SimpleMailMessage.class );
         verify( emailSender ).send( mailMessageCaptor.capture() );
         assertThat( mailMessageCaptor.getValue() )
