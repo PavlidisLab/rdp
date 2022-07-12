@@ -184,7 +184,7 @@ public class ReactomeService {
                 URI queryIdsUri = UriComponentsBuilder.fromUri( applicationSettings.getOntology().getReactomeContentServiceUrl() )
                         .path( "/data/query/ids" ).build().toUri();
                 entity = asyncRestTemplate.postForEntity( queryIdsUri, new HttpEntity<>( String.join( ",", page.map( OntologyTermInfo::getTermId ).getContent() ) ), ReactomeEntity[].class ).get();
-                ProgressUtils.emitProgress( progressCallback, ( i * 20L ) + page.getSize(), page.getTotalElements(), timer.getTime( TimeUnit.MILLISECONDS ) );
+                ProgressUtils.emitProgress( progressCallback, ( i * 20L ) + page.getNumberOfElements(), page.getTotalElements(), timer.getTime( TimeUnit.MILLISECONDS ) );
             } catch ( InterruptedException e ) {
                 Thread.currentThread().interrupt();
                 throw new ReactomeException( "A thread was interrupted while retrieving the /data/query/ids endpoint", e );
