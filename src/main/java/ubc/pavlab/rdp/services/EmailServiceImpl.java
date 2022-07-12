@@ -75,7 +75,11 @@ public class EmailServiceImpl implements EmailService {
             helper.setReplyTo( replyTo );
         }
 
-        helper.addAttachment( attachment.getOriginalFilename(), attachment );
+        if ( attachment.getOriginalFilename() != null ) {
+            helper.addAttachment( attachment.getOriginalFilename(), attachment );
+        } else {
+            log.warn( String.format( "Attachment %s is lacking a filename, it will be discarded.", attachment ) );
+        }
 
         return CompletableFuture.runAsync( () -> emailSender.send( message ) );
     }
