@@ -40,11 +40,13 @@ import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.settings.SiteSettings;
 import ubc.pavlab.rdp.util.OntologyMessageSource;
 import ubc.pavlab.rdp.util.ParseException;
+import ubc.pavlab.rdp.util.ProgressCallback;
 import ubc.pavlab.rdp.util.TestUtils;
 
 import java.io.*;
 import java.net.URI;
 import java.net.URL;
+import java.time.Duration;
 import java.util.Collections;
 import java.util.TreeSet;
 import java.util.zip.GZIPOutputStream;
@@ -833,12 +835,37 @@ public class AdminControllerTest {
         Ontology ontology = Ontology.builder( "reactome" ).id( 1 ).build();
         when( ontologyService.findById( 1 ) ).thenReturn( ontology );
         when( reactomeService.findPathwaysOntology() ).thenReturn( ontology );
+
+        mvc.perform( post( "/admin/ontologies/{ontologyId}/update-reactome-pathway-summations", ontology.getId() ) )
+                .andExpect( status().is3xxRedirection() );
+
+        verify( ontologyService ).findById( 1 );
+        verify( reactomeService ).updatePathwaySummations( isNull( ProgressCallback.class ) );
+    }
+
+    @Test
+    @WithMockUser(roles = { "ADMIN" })
+    public void updateReactomePathwaySummations_whenOntologyDoesNotExist_thenReturn404() throws Exception {
+        mvc.perform( post( "/admin/ontologies/{ontologyId}/update-reactome-pathway-summations", 1 ) )
+                .andExpect( status().isNotFound() )
+                .andExpect( view().name( "error/404" ) )
+                .andExpect( model().attributeExists( "message" ) );
+        verify( ontologyService ).findById( 1 );
+        verifyZeroInteractions( reactomeService );
+    }
+
+    @Test
+    @WithMockUser(roles = { "ADMIN" })
+    public void updateReactomePathwaySummationsSse() throws Exception {
+        Ontology ontology = Ontology.builder( "reactome" ).id( 1 ).build();
+        when( ontologyService.findById( 1 ) ).thenReturn( ontology );
+        when( reactomeService.findPathwaysOntology() ).thenReturn( ontology );
         Mockito.doAnswer( ( args ) -> {
-            ReactomeService.UpdatePathwaySummationsProgressMonitor pm = args.getArgumentAt( 0, ReactomeService.UpdatePathwaySummationsProgressMonitor.class );
-            pm.emit( 1, 4 );
-            pm.emit( 2, 4 );
-            pm.emit( 3, 4 );
-            pm.emit( 4, 4 );
+            ProgressCallback pm = args.getArgumentAt( 0, ProgressCallback.class );
+            pm.onProgress( 1, 4, Duration.ofMillis( 1 ) );
+            pm.onProgress( 2, 4, Duration.ofMillis( 12 ) );
+            pm.onProgress( 3, 4, Duration.ofMillis( 14 ) );
+            pm.onProgress( 4, 4, Duration.ofMillis( 23 ) );
             return null;
         } ).when( reactomeService ).updatePathwaySummations( any() );
 

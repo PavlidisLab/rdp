@@ -5,7 +5,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.time.StopWatch;
 import org.hibernate.validator.constraints.NotBlank;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
@@ -52,9 +51,6 @@ import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -84,6 +80,12 @@ public class AdminController {
 
     @Autowired
     private ReloadableResourceBundleMessageSource messageSource;
+
+    /**
+     * Task executor used for background tasks.
+     * TODO: make this a configurable bean
+     */
+    private final Executor taskExecutor = Executors.newSingleThreadExecutor();
 
     /**
      * List all users
@@ -495,7 +497,9 @@ public class AdminController {
                     .addObject( "message", messageSource.getMessage( "AdminController.ontologyNotFoundById", null, locale ) );
         }
         if ( ontology.getOntologyUrl() == null ) {
-            return new ModelAndView( "admin/ontology", HttpStatus.BAD_REQUEST );
+            return new ModelAndView( "admin/ontology", HttpStatus.BAD_REQUEST )
+                    .addObject( "message", "The provided ontology cannot be updated because it lacks an external URL." )
+                    .addObject( "error", true );
         } else {
             Resource urlResource = ontologyService.resolveOntologyUrl( ontology.getOntologyUrl() );
             try ( Reader reader = new InputStreamReader( urlResource.getInputStream() ) ) {
@@ -578,14 +582,28 @@ public class AdminController {
     }
 
     /**
-     * Executor used for updating Reactome pathways summations.
-     * <p>
-     * Only one task is allowed to run at a time.
+     * Update Reactome Pathways summations.
      */
-    private final Executor updateReactomePathwaySummationsExecutor = Executors.newSingleThreadExecutor();
+    @PostMapping(value = "/admin/ontologies/{ontology}/update-reactome-pathway-summations")
+    public Object updateReactomePathwaySummations( @PathVariable Ontology ontology, Locale locale ) {
+        // null-check is not necessary, but can save a database call
+        if ( ontology == null || !reactomeService.findPathwaysOntology().equals( ontology ) ) {
+            return new ModelAndView( "error/404", HttpStatus.NOT_FOUND )
+                    .addObject( "message", messageSource.getMessage( "AdminController.ontologyNotFoundById", null, locale ) );
+        }
+        try {
+            reactomeService.updatePathwaySummations( null );
+        } catch ( ReactomeException e ) {
+            log.error( "Failed to update Reactome pathways summations.", e );
+        }
+        return "redirect:/admin/ontologies/" + ontology.getId();
+    }
 
     /**
-     * Unfortunately, this cannot be implemented using a POST method since it's not part of the SSE specification.
+     * Unfortunately, this cannot be implemented using a POST method since it's not part of the SSE specification, but
+     * we're at least using content negotiation.
+     *
+     * @see #updateReactomePathwaySummations(Ontology, Locale)
      */
     @GetMapping(value = "/admin/ontologies/{ontology}/update-reactome-pathway-summations", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Object updateReactomePathwaySummationsSse( @PathVariable Ontology ontology, Locale locale ) {
@@ -594,32 +612,22 @@ public class AdminController {
             return ResponseEntity.status( HttpStatus.NOT_FOUND )
                     .body( messageSource.getMessage( "AdminController.ontologyNotFoundById", null, locale ) );
         }
-        final AtomicInteger eventId = new AtomicInteger( 1 );
-        final AtomicBoolean completed = new AtomicBoolean( false );
         SseEmitter emitter = new SseEmitter( 600 * 1000L );
-        emitter.onCompletion( () -> completed.set( true ) );
         emitter.onTimeout( () -> log.warn( "Updating Reactome pathway summations took more time than expected. The SSE stream will be closed, but the update will proceed in the background." ) );
-        StopWatch timer = StopWatch.createStarted();
-        updateReactomePathwaySummationsExecutor.execute( new DelegatingSecurityContextRunnable( () -> {
+        taskExecutor.execute( new DelegatingSecurityContextRunnable( () -> {
             try {
-                reactomeService.updatePathwaySummations( ( progress, maxProgress ) -> {
-                    if ( !completed.get() ) {
-                        SseEmitter.SseEventBuilder event = SseEmitter.event()
-                                .id( String.valueOf( eventId.getAndIncrement() ) )
-                                .data( new ReactomePathwaySummationsUpdateProgress( progress,
-                                        maxProgress,
-                                        Duration.ofMillis( timer.getTime( TimeUnit.MILLISECONDS ) ) ), MediaType.APPLICATION_JSON );
-                        try {
-                            emitter.send( event );
-                        } catch ( IOException e ) {
-                            log.warn( "Failed to send progress update to client. The progress monitoring stream will be closed.", e );
-                            emitter.completeWithError( e );
-                        }
+                reactomeService.updatePathwaySummations( ( progress, maxProgress, elapsedTime ) -> {
+                    SseEmitter.SseEventBuilder event = SseEmitter.event()
+                            .data( new ReactomePathwaySummationsUpdateProgress( progress, maxProgress, elapsedTime ), MediaType.APPLICATION_JSON );
+                    try {
+                        emitter.send( event );
+                    } catch ( IOException e ) {
+                        log.warn( "Failed to send progress update to client via an SSE stream.", e );
                     }
                 } );
                 emitter.complete();
             } catch ( ReactomeException e ) {
-                log.error( "Failed to update Reactome pathways summations. The progress monitoring stream will be closed." );
+                log.error( "Failed to update Reactome pathways summations. The progress monitoring stream will be closed.", e );
                 emitter.completeWithError( e );
             }
         } ) );

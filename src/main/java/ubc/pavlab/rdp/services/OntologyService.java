@@ -220,6 +220,8 @@ public class OntologyService implements InitializingBean {
     }
 
     private Ontology saveFromObo( Ontology ontology, OBOParser.ParsingResult parsingResult ) {
+        StopWatch timer = StopWatch.createStarted();
+
         // TODO: maybe let Hibernate do the mapping via a SortedMap?
         Map<String, OntologyTermInfo> existingTermsById = ontology.getTerms().stream()
                 .collect( Collectors.toMap( OntologyTermInfo::getTermId, t -> t ) );

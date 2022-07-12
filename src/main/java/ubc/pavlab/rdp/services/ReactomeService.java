@@ -19,10 +19,13 @@ import ubc.pavlab.rdp.model.ontology.Ontology;
 import ubc.pavlab.rdp.model.ontology.OntologyTermInfo;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.util.CollectionUtils;
+import ubc.pavlab.rdp.util.ProgressCallback;
+import ubc.pavlab.rdp.util.ProgressUtils;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URI;
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -154,10 +157,6 @@ public class ReactomeService {
         return ontology;
     }
 
-    public interface UpdatePathwaySummationsProgressMonitor {
-        void emit( long progress, long maxProgress );
-    }
-
     /**
      * Update term definitions of all the terms defined in the Reactome pathway ontology.
      *
@@ -166,7 +165,7 @@ public class ReactomeService {
      *                           transaction will be rolled back.
      */
     @Transactional(rollbackFor = ReactomeException.class)
-    public void updatePathwaySummations( UpdatePathwaySummationsProgressMonitor progressMonitor ) throws ReactomeException {
+    public void updatePathwaySummations( ProgressCallback progressCallback ) throws ReactomeException {
         String ontologyName = applicationSettings.getOntology().getReactomePathwaysOntologyName();
         Ontology ontology = ontologyService.findByName( ontologyName );
         if ( ontology == null ) {
@@ -185,9 +184,7 @@ public class ReactomeService {
                 URI queryIdsUri = UriComponentsBuilder.fromUri( applicationSettings.getOntology().getReactomeContentServiceUrl() )
                         .path( "/data/query/ids" ).build().toUri();
                 entity = asyncRestTemplate.postForEntity( queryIdsUri, new HttpEntity<>( String.join( ",", page.map( OntologyTermInfo::getTermId ).getContent() ) ), ReactomeEntity[].class ).get();
-                if ( progressMonitor != null ) {
-                    progressMonitor.emit( ( i * 20L ) + page.getSize(), page.getTotalElements() );
-                }
+                ProgressUtils.emitProgress( progressCallback, ( i * 20L ) + page.getSize(), page.getTotalElements(), timer.getTime( TimeUnit.MILLISECONDS ) );
             } catch ( InterruptedException e ) {
                 Thread.currentThread().interrupt();
                 throw new ReactomeException( "A thread was interrupted while retrieving the /data/query/ids endpoint", e );
