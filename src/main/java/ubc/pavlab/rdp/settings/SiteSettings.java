@@ -26,13 +26,17 @@ public class SiteSettings {
 
     private String context;
 
-    public java.net.URI getHostUri() {
+    public URI getHostUri() {
         return UriComponentsBuilder.fromUri( host ).path( context ).build().toUri();
     }
 
+    /**
+     * URL of the main site.
+     */
+    private URI mainsite;
+
     @Pattern(regexp = "#[a-fA-F\\d]{6}")
     private String themeColor;
-
     @Email
     @NotEmpty
     private String contactEmail;

@@ -37,6 +37,7 @@ import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.repositories.*;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
+import ubc.pavlab.rdp.settings.SiteSettings;
 import ubc.pavlab.rdp.util.OntologyMessageSource;
 
 import javax.validation.ValidationException;
@@ -131,6 +132,8 @@ public class UserServiceImplTest {
     private ApplicationSettings.PrivacySettings privacySettings;
     @MockBean
     private ApplicationSettings.ProfileSettings profileSettings;
+    @MockBean
+    private SiteSettings siteSettings;
     @MockBean
     private OntologyService ontologyService;
     @MockBean
