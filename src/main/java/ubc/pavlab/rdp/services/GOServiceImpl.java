@@ -1,10 +1,12 @@
 package ubc.pavlab.rdp.services;
 
 import lombok.extern.apachecommons.CommonsLog;
+import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
+import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
 import ubc.pavlab.rdp.model.Gene;
@@ -19,8 +21,9 @@ import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.util.*;
 
 import java.io.IOException;
-import java.text.MessageFormat;
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -66,6 +69,8 @@ public class GOServiceImpl implements GOService, InitializingBean {
     public void afterPropertiesSet() {
         ancestorsCache = CacheUtils.getCache( cacheManager, ANCESTORS_CACHE_NAME );
         descendantsCache = CacheUtils.getCache( cacheManager, DESCENDANTS_CACHE_NAME );
+        // FIXME: because terms are not stored in the database, we need to initialize GO terms
+        Executors.newSingleThreadExecutor().submit( this::updateGoTerms );
     }
 
     private static Relationship convertRelationship( OBOParser.Relationship parsedRelationship ) {
@@ -99,14 +104,10 @@ public class GOServiceImpl implements GOService, InitializingBean {
         return goTerms;
     }
 
-    /**
-     * TODO: store the terms in the database to avoid this initialization
-     */
     @Override
-    public void updateGoTerms() {
+    public synchronized void updateGoTerms() {
+        StopWatch timer = StopWatch.createStarted();
         ApplicationSettings.CacheSettings cacheSettings = applicationSettings.getCache();
-
-        log.info( MessageFormat.format( "Loading GO terms from: {0}.", cacheSettings.getTermFile() ) );
 
         if ( cacheSettings.getTermFile() == null || cacheSettings.getTermFile().isEmpty() ) {
             log.warn( "No term file is defined, skipping update of GO terms." );
@@ -118,15 +119,18 @@ public class GOServiceImpl implements GOService, InitializingBean {
             return;
         }
 
+        Resource resource = resourceLoader.getResource( cacheSettings.getTermFile() );
+        log.info( String.format( "Loading GO terms from: %s.", resource ) );
+
         Map<String, GeneOntologyTermInfo> terms;
         try {
-            terms = convertTerms( oboParser.parseStream( resourceLoader.getResource( cacheSettings.getTermFile() ).getInputStream() ) );
+            terms = convertTerms( oboParser.parseStream( resource.getInputStream() ) );
         } catch ( IOException | ParseException e ) {
             log.error( "Failed to parse GO terms.", e );
             return;
         }
 
-        log.info( MessageFormat.format( "Loading gene2go annotations from: {0}.", cacheSettings.getAnnotationFile() ) );
+        log.info( String.format( "Loading gene2go annotations from: %s.", cacheSettings.getAnnotationFile() ) );
 
         Collection<Gene2GoParser.Record> records;
         try {
@@ -159,13 +163,13 @@ public class GOServiceImpl implements GOService, InitializingBean {
 
         // this tends to produce a lot of warnings, so we just warn for the first 5 or so
         for ( String goTerm : missingFromTermFile.stream().limit( 5 ).collect( Collectors.toSet() ) ) {
-            log.warn( MessageFormat.format( "{0} is missing from {1}, its direct genes will be ignored.", goTerm, cacheSettings.getTermFile() ) );
+            log.warn( String.format( "%s is missing from %s, its direct genes will be ignored.", goTerm, cacheSettings.getTermFile() ) );
         }
         if ( missingFromTermFile.size() > 5 ) {
-            log.warn( MessageFormat.format( "{0} more terms were missing from {1}, their direct genes will also be ignored.", missingFromTermFile.size() - 5, cacheSettings.getTermFile() ) );
+            log.warn( String.format( "%d more terms were missing from %s, their direct genes will also be ignored.", missingFromTermFile.size() - 5, cacheSettings.getTermFile() ) );
         }
 
-        log.info( MessageFormat.format( "Done updating GO terms, total of {0} items.", count() ) );
+        log.info( String.format( "Done updating GO terms, total of %d items got updated in %d ms.", count(), timer.getTime( TimeUnit.MILLISECONDS ) ) );
     }
 
     @Override
