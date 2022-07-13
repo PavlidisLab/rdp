@@ -31,4 +31,8 @@ public interface OntologyRepository extends JpaRepository<Ontology, Integer> {
     @Modifying
     @Query("update Ontology o set o.active = true where o = :ontology")
     void activate( @Param("ontology") Ontology ontology );
+
+    @Modifying
+    @Query("update Ontology o set o.active = false where o = :ontology")
+    void deactivate( @Param("ontology") Ontology ontology );
 }

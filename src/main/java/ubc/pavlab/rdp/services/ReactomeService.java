@@ -88,7 +88,15 @@ public class ReactomeService {
     public Ontology updatePathwaysOntology() throws ReactomeException {
         if ( ontologyService.existsByName( applicationSettings.getOntology().getReactomePathwaysOntologyName() ) ) {
             log.info( "Updating Reactome pathways..." );
-            return importOrUpdatePathwaysOntology();
+            Ontology ontology = importOrUpdatePathwaysOntology();
+            log.info( "Propagating subtree activation..." );
+            int numActivated = ontologyService.propagateSubtreeActivation( ontology );
+            if ( numActivated > 0 ) {
+                log.info( String.format( "%d terms got activated in %s.", numActivated, ontology ) );
+            } else {
+                log.info( "No subtree needed expansion." );
+            }
+            return ontology;
         } else {
             return null;
         }

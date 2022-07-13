@@ -2,6 +2,7 @@ package ubc.pavlab.rdp.controllers;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.io.FilenameUtils;
@@ -197,7 +198,9 @@ public class AdminController {
     @GetMapping("/admin/ontologies/{ontology}")
     public ModelAndView getOntology( @PathVariable Ontology ontology,
                                      @SuppressWarnings("unused") ActivateTermForm activateTermForm,
+                                     @SuppressWarnings("unused") DeactivateTermForm deactivateTermForm,
                                      @SuppressWarnings("unused") ActivateOntologyForm activateOntologyForm,
+                                     @SuppressWarnings("unused") DeactivateOntologyForm deactivateOntologyForm,
                                      @SuppressWarnings("unused") DeleteOntologyForm deleteOntologyForm,
                                      Locale locale ) {
         if ( ontology == null ) {
@@ -214,7 +217,9 @@ public class AdminController {
     @DeleteMapping("/admin/ontologies/{ontology}")
     public Object deleteOntology( @PathVariable Ontology ontology,
                                   @SuppressWarnings("unused") ActivateTermForm activateTermForm,
+                                  @SuppressWarnings("unused") DeactivateTermForm deactivateTermForm,
                                   @SuppressWarnings("unused") ActivateOntologyForm activateOntologyForm,
+                                  @SuppressWarnings("unused") DeactivateOntologyForm deactivateOntologyForm,
                                   @Valid DeleteOntologyForm deleteOntologyForm, BindingResult bindingResult,
                                   RedirectAttributes redirectAttributes,
                                   Locale locale ) {
@@ -276,7 +281,9 @@ public class AdminController {
     @PostMapping("/admin/ontologies/{ontology}/update-simple-ontology")
     public Object updateSimpleOntology( @PathVariable Ontology ontology,
                                         @SuppressWarnings("unused") ActivateTermForm activateTermForm,
+                                        @SuppressWarnings("unused") DeactivateTermForm deactivateTermForm,
                                         @SuppressWarnings("unused") ActivateOntologyForm activateOntologyForm,
+                                        @SuppressWarnings("unused") DeactivateOntologyForm deactivateOntologyForm,
                                         @SuppressWarnings("unused") DeleteOntologyForm deleteOntologyForm,
                                         @Valid SimpleOntologyForm simpleOntologyForm, BindingResult bindingResult,
                                         RedirectAttributes redirectAttributes,
@@ -392,7 +399,7 @@ public class AdminController {
             term.setGroup( simpleOntologyTermForm.isGrouping() );
             term.setOrdering( terms.size() + 1 ); // 1-based ordering
             term.setHasIcon( simpleOntologyTermForm.isHasIcon() );
-            // terms are always active, unless grouping is set so they won't appear in autocomplete
+            // terms are always active, unless grouping is set, so they won't appear in autocomplete
             term.setActive( !simpleOntologyTermForm.isGrouping() );
             // this is necessary to proactively evict the ancestors cache
             term.getSuperTerms().clear();
@@ -487,7 +494,9 @@ public class AdminController {
     @PostMapping("/admin/ontologies/{ontology}/update")
     public Object updateOntology( @PathVariable Ontology ontology,
                                   @SuppressWarnings("unused") ActivateTermForm activateTermForm,
+                                  @SuppressWarnings("unused") DeactivateTermForm deactivateTermForm,
                                   @SuppressWarnings("unused") ActivateOntologyForm activateOntologyForm,
+                                  @SuppressWarnings("unused") DeactivateOntologyForm deactivateOntologyForm,
                                   @SuppressWarnings("unused") DeleteOntologyForm deleteOntologyForm,
                                   @SuppressWarnings("unused") SimpleOntologyForm simpleOntologyForm,
                                   RedirectAttributes redirectAttributes,
@@ -504,7 +513,8 @@ public class AdminController {
             Resource urlResource = ontologyService.resolveOntologyUrl( ontology.getOntologyUrl() );
             try ( Reader reader = new InputStreamReader( urlResource.getInputStream() ) ) {
                 ontologyService.updateFromObo( ontology, reader );
-                redirectAttributes.addFlashAttribute( String.format( "Updated %s from %s.", ontology.getName(), ontology.getOntologyUrl() ) );
+                int numActivated = ontologyService.propagateSubtreeActivation( ontology );
+                redirectAttributes.addFlashAttribute( String.format( "Updated %s from %s. %d terms got activated via subtree propagation.", ontology.getName(), ontology.getOntologyUrl(), numActivated ) );
             } catch ( IOException | ParseException e ) {
                 log.error( String.format( "Failed to update ontology %s from administrative section.", ontology ), e );
                 return new ModelAndView( "admin/ontology", HttpStatus.BAD_REQUEST )
@@ -641,64 +651,113 @@ public class AdminController {
         private final Duration elapsedTime;
     }
 
+    @Data
+    private static class ActivateOrDeactivateOntologyForm {
+        private boolean includeTerms;
+    }
+
+    @Data
+    @EqualsAndHashCode(callSuper = true)
+    private static class ActivateOntologyForm extends ActivateOrDeactivateOntologyForm {
+    }
+
+    @Data
+    @EqualsAndHashCode(callSuper = true)
+    private static class DeactivateOntologyForm extends ActivateOrDeactivateOntologyForm {
+    }
+
     @PostMapping("/admin/ontologies/{ontology}/activate")
     public Object activateOntology( @PathVariable Ontology ontology, ActivateOntologyForm activateOntologyForm, RedirectAttributes redirectAttributes, Locale locale ) {
         if ( ontology == null ) {
             return new ModelAndView( "error/404", HttpStatus.NOT_FOUND )
                     .addObject( "message", messageSource.getMessage( "AdminController.ontologyNotFoundById", null, locale ) );
         }
-        int activatedTerms = ontologyService.activate( ontology, activateOntologyForm.includeTerms );
+        int activatedTerms = ontologyService.activate( ontology, activateOntologyForm.isIncludeTerms() );
         redirectAttributes.addFlashAttribute( "message", String.format( "%s ontology has been activated.", resolveOntologyName( ontology, locale ) )
                 + ( activatedTerms > 0 ? String.format( " In addition, %d terms have been activated.", activatedTerms ) : "" ) );
         return "redirect:/admin/ontologies/" + ontology.getId();
     }
 
-    @Data
-    private static class ActivateOntologyForm {
-        private boolean includeTerms;
-    }
-
     @PostMapping("/admin/ontologies/{ontology}/deactivate")
-    public Object deactivateOntology( @PathVariable Ontology ontology, RedirectAttributes redirectAttributes, Locale locale ) {
+    public Object deactivateOntology( @PathVariable Ontology ontology, DeactivateOntologyForm deactivateOntologyForm, RedirectAttributes redirectAttributes, Locale locale ) {
         if ( ontology == null ) {
             return new ModelAndView( "error/404", HttpStatus.NOT_FOUND )
                     .addObject( "message", messageSource.getMessage( "AdminController.ontologyNotFoundById", null, locale ) );
         }
-        ontologyService.deactivate( ontology );
-        redirectAttributes.addFlashAttribute( "message", String.format( "%s ontology has been deactivated.", resolveOntologyName( ontology, locale ) ) );
+        int numDeactivated = ontologyService.deactivate( ontology, deactivateOntologyForm.isIncludeTerms() );
+        redirectAttributes.addFlashAttribute( "message", String.format( "%s ontology has been deactivated.", resolveOntologyName( ontology, locale ) )
+                + ( numDeactivated > 0 ? String.format( " In addition, %d terms have been deactivated.", numDeactivated ) : "" ) );
         return "redirect:/admin/ontologies/" + ontology.getId();
     }
 
     @Data
-    private static class ActivateTermForm {
+    private static class ActivateOrDeactivateTermForm {
         @NotBlank
         private String ontologyTermInfoId;
+        /**
+         * Include the subtree spanned by the term.
+         */
         private boolean includeSubtree;
+    }
+
+    @Data
+    @EqualsAndHashCode(callSuper = true)
+    private static class ActivateTermForm extends ActivateOrDeactivateTermForm {
+        /**
+         * Include the ontology in the activation.
+         */
+        private boolean includeOntology;
+    }
+
+    @Data
+    @EqualsAndHashCode(callSuper = true)
+    private static class DeactivateTermForm extends ActivateOrDeactivateTermForm {
     }
 
     @PostMapping("/admin/ontologies/{ontology}/activate-term")
     public Object activateOntologyTermInfo( @PathVariable Ontology ontology,
                                             @SuppressWarnings("unused") ActivateOntologyForm activateOntologyForm,
                                             @SuppressWarnings("unused") DeleteOntologyForm deleteOntologyForm,
+                                            @SuppressWarnings("unused") DeactivateTermForm deactivateTermForm,
                                             @Valid ActivateTermForm activateTermForm, BindingResult bindingResult,
                                             RedirectAttributes redirectAttributes,
                                             Locale locale ) {
+        return activateOrDeactivateTerm( ontology, activateTermForm, bindingResult, redirectAttributes, locale );
+    }
+
+    @PostMapping("/admin/ontologies/{ontology}/deactivate-term")
+    public Object deactivateTerm( @PathVariable Ontology ontology,
+                                  @SuppressWarnings("unused") ActivateOntologyForm activateOntologyForm,
+                                  @SuppressWarnings("unused") DeleteOntologyForm deleteOntologyForm,
+                                  @SuppressWarnings("unused") ActivateTermForm activateTermForm,
+                                  @Valid DeactivateTermForm deactivateTermForm, BindingResult bindingResult,
+                                  RedirectAttributes redirectAttributes,
+                                  Locale locale ) {
+        return activateOrDeactivateTerm( ontology, deactivateTermForm, bindingResult, redirectAttributes, locale );
+    }
+
+    private Object activateOrDeactivateTerm( Ontology ontology,
+                                             ActivateOrDeactivateTermForm activateOrDeactivateTermForm, BindingResult bindingResult,
+                                             RedirectAttributes redirectAttributes,
+                                             Locale locale ) {
         if ( ontology == null ) {
             return new ModelAndView( "error/404", HttpStatus.NOT_FOUND )
                     .addObject( "message", messageSource.getMessage( "AdminController.ontologyNotFoundById", null, locale ) );
         }
-
         OntologyTermInfo ontologyTermInfo = null;
+
         if ( !bindingResult.hasFieldErrors( "ontologyTermInfoId" ) ) {
-            ontologyTermInfo = ontologyService.findTermByTermIdAndOntology( activateTermForm.ontologyTermInfoId, ontology );
+            ontologyTermInfo = ontologyService.findTermByTermIdAndOntology( activateOrDeactivateTermForm.ontologyTermInfoId, ontology );
             if ( ontologyTermInfo == null ) {
-                bindingResult.rejectValue( "ontologyTermInfoId", "AdminController.ActivateTermForm.unknownTermInOntology", new String[]{ activateTermForm.getOntologyTermInfoId(), ontology.getName() }, String.format( "Unknown term %s in ontology %s.", activateTermForm.getOntologyTermInfoId(), ontology.getName() ) );
+                bindingResult.rejectValue( "ontologyTermInfoId", "AdminController.ActivateOrDeactivateTermForm.unknownTermInOntology",
+                        new String[]{ activateOrDeactivateTermForm.getOntologyTermInfoId(), ontology.getName() }, null );
             }
         }
 
         // check if the term belongs to the ontology
         if ( ontologyTermInfo != null && !ontologyTermInfo.getOntology().equals( ontology ) ) {
-            bindingResult.rejectValue( "ontologyTermInfoId", "", new String[]{ ontologyTermInfo.getTermId(), ontology.getName() }, String.format( "Term %s is not part of ontology %s.", ontologyTermInfo.getTermId(), ontology.getName() ) );
+            bindingResult.rejectValue( "ontologyTermInfoId", "AdminController.ActivateOrDeactivateTermForm.ontologyTermInfoId.termNotPartOfOntology",
+                    new String[]{ ontologyTermInfo.getTermId(), ontology.getName() }, null );
         }
 
         if ( bindingResult.hasErrors() ) {
@@ -709,12 +768,27 @@ public class AdminController {
         // nullity check is ensured by bindingResult
         assert ontologyTermInfo != null;
 
-        if ( activateTermForm.isIncludeSubtree() ) {
-            int numActivated = ontologyService.activateTermSubtree( ontologyTermInfo );
-            redirectAttributes.addFlashAttribute( "message", String.format( "%d terms under %s subtree in %s has been activated.", numActivated, ontologyTermInfo.getTermId(), ontology.getName() ) );
+        if ( activateOrDeactivateTermForm instanceof ActivateTermForm ) {
+            ActivateTermForm activateTermForm = (ActivateTermForm) activateOrDeactivateTermForm;
+            if ( activateTermForm.isIncludeSubtree() ) {
+                int numActivated = ontologyService.activateTermSubtree( ontologyTermInfo );
+                redirectAttributes.addFlashAttribute( "message", String.format( "%d terms under %s subtree in %s has been activated.", numActivated, ontologyTermInfo.getTermId(), ontology.getName() ) );
+            } else {
+                ontologyService.activateTerm( ontologyTermInfo );
+                redirectAttributes.addFlashAttribute( "message", String.format( "%s in %s has been activated.", ontologyTermInfo.getTermId(), ontology.getName() ) );
+            }
+            // also include the ontology
+            if ( activateTermForm.isIncludeOntology() ) {
+                ontologyService.activate( ontology, false );
+            }
         } else {
-            ontologyService.activateTerm( ontologyTermInfo );
-            redirectAttributes.addFlashAttribute( "message", String.format( "%s in %s has been activated.", ontologyTermInfo.getTermId(), ontology.getName() ) );
+            if ( activateOrDeactivateTermForm.isIncludeSubtree() ) {
+                int numDeactivated = ontologyService.deactivateTermSubtree( ontologyTermInfo );
+                redirectAttributes.addFlashAttribute( "message", String.format( "%d terms under %s subtree in %s has been deactivated.", numDeactivated, ontologyTermInfo.getTermId(), ontology.getName() ) );
+            } else {
+                ontologyService.deactivateTerm( ontologyTermInfo );
+                redirectAttributes.addFlashAttribute( "message", String.format( "%s in %s has been deactivated.", ontologyTermInfo.getTermId(), ontology.getName() ) );
+            }
         }
 
         return "redirect:/admin/ontologies/" + ontology.getId();
@@ -851,6 +925,7 @@ public class AdminController {
                 }
             }
         }
+
     }
 
     @InitBinder("importOntologyForm")

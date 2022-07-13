@@ -164,7 +164,7 @@ public class OntologyServiceTest {
         entityManager.refresh( ontology );
         assertThat( ontology.isActive() ).isTrue();
         assertThat( ontology.getTerms() ).hasSize( 14938 );
-        Collection<SearchResult<OntologyTermInfo>> results = ontologyService.autocomplete( "bicep", 1000, Locale.getDefault() );
+        Collection<SearchResult<OntologyTermInfo>> results = ontologyService.autocompleteTerms( "bicep", 1000, Locale.getDefault() );
         assertThat( results ).extracting( "match" )
                 .extracting( "termId" )
                 // the topological order is not unique :(
@@ -173,7 +173,7 @@ public class OntologyServiceTest {
                         "UBERON:0001506", "UBERON:0001505", "UBERON:0011110", "UBERON:0009991", "UBERON:0001414", "UBERON:0001106",
                         "UBERON:0001398", "UBERON:4200183", "UBERON:0010760" );
 
-        assertThat( ontologyService.autocomplete( "UBERON:0001507", 10, Locale.getDefault() ) ).hasSize( 1 );
+        assertThat( ontologyService.autocompleteTerms( "UBERON:0001507", 10, Locale.getDefault() ) ).hasSize( 1 );
         verify( messageSource, VerificationModeFactory.atLeastOnce() ).getMessage( "rdp.ontologies.uberon.terms.biceps brachii.title", null, "biceps brachii", Locale.getDefault() );
     }
 
@@ -190,7 +190,7 @@ public class OntologyServiceTest {
             entityManager.clear();
 
             timer = StopWatch.createStarted();
-            results = ontologyService.autocomplete( query, 20, Locale.getDefault() );
+            results = ontologyService.autocompleteTerms( query, 20, Locale.getDefault() );
             timer.stop();
 
             assertThat( results ).isNotEmpty();
@@ -198,7 +198,7 @@ public class OntologyServiceTest {
 
             // cached results (subTerms, etc.)
             timer = StopWatch.createStarted();
-            Collection<SearchResult<OntologyTermInfo>> cachedResults = ontologyService.autocomplete( query, 20, Locale.getDefault() );
+            Collection<SearchResult<OntologyTermInfo>> cachedResults = ontologyService.autocompleteTerms( query, 20, Locale.getDefault() );
             timer.stop();
 
             assertThat( cachedResults ).containsExactlyElementsOf( results );
@@ -209,11 +209,11 @@ public class OntologyServiceTest {
     @Test
     public void autocomplete_whenMultipleTermsAreUsed_thenNarrowDownTheSearchAccordingly() throws OntologyNameAlreadyUsedException, IOException, ParseException {
         ontologySetupService.setupOntology( "uberon", true );
-        assertThat( ontologyService.autocomplete( "nerve", 1000, Locale.getDefault() ) )
+        assertThat( ontologyService.autocompleteTerms( "nerve", 1000, Locale.getDefault() ) )
                 .hasSize( 332 );
-        assertThat( ontologyService.autocomplete( "sciatic", 1000, Locale.getDefault() ) )
+        assertThat( ontologyService.autocompleteTerms( "sciatic", 1000, Locale.getDefault() ) )
                 .hasSize( 11 );
-        assertThat( ontologyService.autocomplete( "sciatic nerve", 1000, Locale.getDefault() ) )
+        assertThat( ontologyService.autocompleteTerms( "sciatic nerve", 1000, Locale.getDefault() ) )
                 .hasSize( 6 );
     }
 
@@ -222,13 +222,13 @@ public class OntologyServiceTest {
         Ontology ontology = ontologyService.createFromObo( new InputStreamReader( new ClassPathResource( "cache/uberon.obo" ).getInputStream() ) );
         ontologyService.activate( ontology, true );
         entityManager.refresh( ontology );
-        assertThat( ontologyService.autocomplete( "bicep", 100, Locale.getDefault() ) )
+        assertThat( ontologyService.autocompleteTerms( "bicep", 100, Locale.getDefault() ) )
                 .size()
                 .isLessThanOrEqualTo( 100 );
-        assertThat( ontologyService.autocomplete( "bicep", 10, Locale.getDefault() ) )
+        assertThat( ontologyService.autocompleteTerms( "bicep", 10, Locale.getDefault() ) )
                 .size()
                 .isLessThanOrEqualTo( 10 );
-        assertThat( ontologyService.autocomplete( "bicep", 1, Locale.getDefault() ) )
+        assertThat( ontologyService.autocompleteTerms( "bicep", 1, Locale.getDefault() ) )
                 .size()
                 .isLessThanOrEqualTo( 1 );
     }
@@ -240,7 +240,7 @@ public class OntologyServiceTest {
         entityManager.refresh( ontology );
         assertThat( ontology.isActive() ).isTrue();
         assertThat( ontology.getTerms() ).hasSize( 14938 );
-        Collection<SearchResult<OntologyTermInfo>> results = ontologyService.autocomplete( "asdlkjasiq", 1000, Locale.getDefault() );
+        Collection<SearchResult<OntologyTermInfo>> results = ontologyService.autocompleteTerms( "asdlkjasiq", 1000, Locale.getDefault() );
         assertThat( results ).hasSize( 0 );
     }
 

@@ -136,7 +136,7 @@ public interface OntologyTermInfoRepository extends JpaRepository<OntologyTermIn
     /**
      * Activate all the terms in a given ontology.
      * <p>
-     * Already active and obsolete terms are ignored.
+     * Already active or obsolete terms are ignored.
      *
      * @return the number of activated terms in the ontology
      */
@@ -144,9 +144,33 @@ public interface OntologyTermInfoRepository extends JpaRepository<OntologyTermIn
     @Query("update OntologyTermInfo t set t.active = true where t.ontology = :ontology and t.active = false and t.obsolete = false")
     int activateByOntologyAndActiveFalseAndObsoleteFalse( @Param("ontology") Ontology ontology );
 
+    /**
+     * Deactivate all the terms in a given ontology.
+     * <p>
+     * Already inactive terms are ignored. Unlike {@link #activateByOntologyAndActiveFalseAndObsoleteFalse(Ontology)},
+     * obsolete terms are not ignored.
+     *
+     * @return the number of deactivated terms in the ontology
+     */
     @Modifying
-    @Query("update OntologyTermInfo t set t.active = true where t.id in :termIds and active = false and t.obsolete= false")
+    @Query("update OntologyTermInfo t set t.active = false where t.ontology = :ontology and t.active = true")
+    int deactivateByOntologyAndActiveFalse( @Param("ontology") Ontology ontology );
+
+    /**
+     * Already active or obsolete terms are ignored.
+     */
+    @Modifying
+    @Query("update OntologyTermInfo t set t.active = true where t.id in :termIds and t.active = false and t.obsolete= false")
     int activateByTermIdsAndActiveFalseAndObsoleteFalse( @Param("termIds") Set<Integer> termIds );
+
+    /**
+     * Deactivate terms by IDs.
+     * <p>
+     * Unlike {@link #activateByTermIdsAndActiveFalseAndObsoleteFalse(Set)}, obsolete terms will be deactivated.
+     */
+    @Modifying
+    @Query("update OntologyTermInfo t set t.active = false where t.id in :termIds and t.active = true")
+    int deactivateByTermIdsAndActiveFalse( @Param("termIds") Set<Integer> termIds );
 
     /**
      * Quickly gather subterm IDs.
@@ -164,4 +188,15 @@ public interface OntologyTermInfoRepository extends JpaRepository<OntologyTermIn
     @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
     @Query("select t.definition from OntologyTermInfo t where t.name = :termName and t.ontology.name = :ontologyName")
     List<String> findAllDefinitionsByNameAndOntologyName( @Param("termName") String termName, @Param("ontologyName") String ontologyName );
+
+    /**
+     * Find all terms whose super terms are not active in a given ontology.
+     * <p>
+     * Under the assumption that all the descendents of an active terms are also active, this is equivalent to an active
+     * subtree.
+     * <p>
+     * This also includes terms that have no parents (i.e. root terms).
+     */
+    @Query("select t from OntologyTermInfo t left join t.superTerms st on st.active = true where t.ontology = :ontology and t.active = true group by t having count(st) = 0")
+    List<OntologyTermInfo> findAllByOntologyAndActiveAndSuperTermsEmpty( @Param("ontology") Ontology ontology );
 }

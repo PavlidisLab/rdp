@@ -522,6 +522,7 @@ public class AdminControllerTest {
         verify( ontologyService ).findById( 1 );
         // update is performed from the URL
         verify( ontologyService ).updateFromObo( eq( ontology ), any( InputStreamReader.class ) );
+        verify( ontologyService ).propagateSubtreeActivation( ontology );
     }
 
     @Test
@@ -738,7 +739,7 @@ public class AdminControllerTest {
                         .param( "ontologyTermInfoId", "test" ) )
                 .andExpect( status().isBadRequest() )
                 .andExpect( view().name( "admin/ontology" ) )
-                .andExpect( model().attributeHasFieldErrorCode( "activateTermForm", "ontologyTermInfoId", "AdminController.ActivateTermForm.unknownTermInOntology" ) );
+                .andExpect( model().attributeHasFieldErrorCode( "activateTermForm", "ontologyTermInfoId", "AdminController.ActivateOrDeactivateTermForm.unknownTermInOntology" ) );
         verify( ontologyService ).findById( 1 );
         verify( ontologyService ).findTermByTermIdAndOntology( "test", ontology );
         verify( ontologyService ).countActiveTerms( ontology );

@@ -331,9 +331,9 @@ public class SearchController {
                         .contentType( MediaType.TEXT_PLAIN )
                         .body( String.format( "No ontology with ID %d exists or is active.", ontologyId ) );
             }
-            return ontologyService.autocomplete( query, ontology, 20, locale );
+            return ontologyService.autocompleteTerms( query, ontology, 20, locale );
         } else {
-            return ontologyService.autocomplete( query, 20, locale );
+            return ontologyService.autocompleteTerms( query, 20, locale );
         }
     }
 

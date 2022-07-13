@@ -92,7 +92,7 @@ public class ReactomeServiceTest {
         assertThat( reactome.getTerms() ).hasSize( 2580 );
         // the TSV does not have a header, so we must ensure that the first record is kept
         assertThat( ontologyService.findTermByTermIdAndOntology( "R-HSA-164843", reactome ) ).isNotNull();
-        assertThat( ontologyService.autocomplete( "R-HSA-164843", 10, Locale.getDefault() ) ).hasSize( 1 );
+        assertThat( ontologyService.autocompleteTerms( "R-HSA-164843", 10, Locale.getDefault() ) ).hasSize( 1 );
     }
 
     @Test

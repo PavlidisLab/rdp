@@ -88,10 +88,6 @@ public class OntologyService implements InitializingBean {
         return ontologyRepository.findByName( name );
     }
 
-    public List<OntologyTermInfo> findTermByNameAndOntologyName( String name, String ontologyName ) {
-        return ontologyTermInfoRepository.findAllByActiveTrueAndNameAndOntologyName( name, ontologyName );
-    }
-
     @Transactional(readOnly = true)
     public List<OntologyTermInfo> findAllTermsByIdIn( Collection<Integer> ontologyTermIds ) {
         return ontologyTermInfoRepository.findAllByActiveTrueAndIdIn( ontologyTermIds );
@@ -207,6 +203,9 @@ public class OntologyService implements InitializingBean {
 
     /**
      * Update an ontology from an OBO formatted input.
+     * <p>
+     * You might want to run {@link #propagateSubtreeActivation(Ontology)} afterward since newly added terms will be
+     * inactive.
      *
      * @param ontology ontology to be updated
      * @param reader   OBO formatted input
@@ -220,8 +219,6 @@ public class OntologyService implements InitializingBean {
     }
 
     private Ontology saveFromObo( Ontology ontology, OBOParser.ParsingResult parsingResult ) {
-        StopWatch timer = StopWatch.createStarted();
-
         // TODO: maybe let Hibernate do the mapping via a SortedMap?
         Map<String, OntologyTermInfo> existingTermsById = ontology.getTerms().stream()
                 .collect( Collectors.toMap( OntologyTermInfo::getTermId, t -> t ) );
@@ -284,7 +281,7 @@ public class OntologyService implements InitializingBean {
      * Obsolete terms are ignored.
      *
      * @param includeTerms indicate if terms in the ontology should be activated as well
-     * @return the number of activated terms in the ontology
+     * @return the number of activated terms in the ontology, which is always zero if includeTerms is false
      */
     @Secured("ROLE_ADMIN")
     @Transactional
@@ -297,17 +294,37 @@ public class OntologyService implements InitializingBean {
         }
     }
 
+    /**
+     * Efficiently deactivate an ontology and all of its terms.
+     * <p>
+     * Unlike {@link #activate(Ontology, boolean)}, obsolete terms are included.
+     *
+     * @param ontology     the ontology to deactivate
+     * @param includeTerms indicate if terms in the ontology should be deactivated as well
+     * @return the number of deactivated terms, which is always zero if includeTerms is false
+     */
     @Secured("ROLE_ADMIN")
     @Transactional
-    public void deactivate( Ontology ontology ) {
-        ontology.setActive( false );
-        ontologyRepository.save( ontology );
+    public int deactivate( Ontology ontology, boolean includeTerms ) {
+        ontologyRepository.deactivate( ontology );
+        if ( includeTerms ) {
+            return ontologyTermInfoRepository.deactivateByOntologyAndActiveFalse( ontology );
+        } else {
+            return 0;
+        }
     }
 
     @Secured("ROLE_ADMIN")
     @Transactional
     public void activateTerm( OntologyTermInfo ontologyTermInfo ) {
         ontologyTermInfo.setActive( true );
+        ontologyTermInfoRepository.save( ontologyTermInfo );
+    }
+
+    @Secured("ROLE_ADMIN")
+    @Transactional
+    public void deactivateTerm( OntologyTermInfo ontologyTermInfo ) {
+        ontologyTermInfo.setActive( false );
         ontologyTermInfoRepository.save( ontologyTermInfo );
     }
 
@@ -319,13 +336,19 @@ public class OntologyService implements InitializingBean {
      * Note that obsolete terms are left out. If you need to activate obsolete terms, consider using
      * {@link #activateTerm(OntologyTermInfo)} explicitly instead.
      *
-     * @param ontologyTermInfo the root of the subtree to activate where children are visite by {@link OntologyTermInfo#getSubTerms()}.
+     * @param ontologyTermInfo the root of the subtree to activate where children are visited by {@link OntologyTermInfo#getSubTerms()}.
      * @return the number of activated terms
      */
     @Secured("ROLE_ADMIN")
     @Transactional
     public int activateTermSubtree( OntologyTermInfo ontologyTermInfo ) {
         return ontologyTermInfoRepository.activateByTermIdsAndActiveFalseAndObsoleteFalse( getDescendentIds( Collections.singleton( ontologyTermInfo ) ) );
+    }
+
+    @Secured("ROLE_ADMIN")
+    @Transactional
+    public int deactivateTermSubtree( OntologyTermInfo ontologyTermInfo ) {
+        return ontologyTermInfoRepository.deactivateByTermIdsAndActiveFalse( getDescendentIds( Collections.singleton( ontologyTermInfo ) ) );
     }
 
     @Secured("ROLE_ADMIN")
@@ -338,7 +361,7 @@ public class OntologyService implements InitializingBean {
         int i = ontologies.indexOf( ontology );
 
         if ( i == -1 ) {
-            throw new IllegalArgumentException( "Noooo!" );
+            throw new IllegalArgumentException( "The provided ontology is not active." );
         }
 
         // compute the target position
@@ -378,6 +401,10 @@ public class OntologyService implements InitializingBean {
                 try ( Reader reader = new InputStreamReader( resource.getInputStream() ) ) {
                     updateFromObo( ontology, reader );
                     log.info( "Updated " + ontology + " from " + resource + "." );
+                    int numActivated = propagateSubtreeActivation( ontology );
+                    if ( numActivated > 0 ) {
+                        log.info( String.format( "%d terms got activated via subtree propagation in %s.", numActivated, ontology ) );
+                    }
                 } catch ( FileNotFoundException e ) {
                     log.warn( String.format( "The update of %s will be skipped: %s does not exist.", ontology, resource ) );
                 } catch ( IOException | ParseException e ) {
@@ -443,7 +470,7 @@ public class OntologyService implements InitializingBean {
 
     @Transactional
     @Secured("ROLE_ADMIN")
-    public Ontology updateNameAndTerms( Ontology ontology, String name, Set<OntologyTermInfo> terms ) throws OntologyNameAlreadyUsedException {
+    public void updateNameAndTerms( Ontology ontology, String name, Set<OntologyTermInfo> terms ) throws OntologyNameAlreadyUsedException {
         if ( ontology.getId() == null ) {
             throw new IllegalArgumentException( String.format( "Ontology %s does not exist, it cannot be updated.", ontology.getName() ) );
         }
@@ -452,18 +479,12 @@ public class OntologyService implements InitializingBean {
         }
         ontology.setName( name );
         CollectionUtils.update( ontology.getTerms(), terms );
-        return ontologyRepository.save( ontology );
-    }
-
-    @Secured("ROLE_ADMIN")
-    @Transactional
-    public List<OntologyTermInfo> saveTerms( Iterable<OntologyTermInfo> terms ) {
-        return ontologyTermInfoRepository.save( terms );
+        ontologyRepository.save( ontology );
     }
 
     @Transactional
-    public List<OntologyTermInfo> saveTermsNoAuth( Iterable<OntologyTermInfo> terms ) {
-        return ontologyTermInfoRepository.save( terms );
+    public void saveTermsNoAuth( Iterable<OntologyTermInfo> terms ) {
+        ontologyTermInfoRepository.save( terms );
     }
 
     @Transactional(readOnly = true)
@@ -524,30 +545,30 @@ public class OntologyService implements InitializingBean {
      * Autocomplete terms from a given ontology.
      */
     @Transactional(readOnly = true)
-    public Collection<SearchResult<OntologyTermInfo>> autocomplete( String query, Ontology ontology, int maxResults, Locale locale ) {
-        return autocomplete( query, Collections.singleton( ontology ), true, maxResults, locale );
+    public List<SearchResult<OntologyTermInfo>> autocompleteTerms( String query, Ontology ontology, int maxResults, Locale locale ) {
+        return autocompleteTerms( query, Collections.singleton( ontology ), true, maxResults, locale );
     }
 
     /**
      * Autocomplete terms from all active ontologies.
      */
     @Transactional(readOnly = true)
-    public Collection<SearchResult<OntologyTermInfo>> autocomplete( String query, int maxResults, Locale locale ) {
-        return autocomplete( query, new HashSet<>( ontologyRepository.findAllByActiveTrue() ), true, maxResults, locale );
+    public List<SearchResult<OntologyTermInfo>> autocompleteTerms( String query, int maxResults, Locale locale ) {
+        return autocompleteTerms( query, new HashSet<>( ontologyRepository.findAllByActiveTrue() ), true, maxResults, locale );
     }
 
     /**
-     * Autocomplete inactive terms.
+     * Autocomplete inactive terms form a given ontology.
      * <p>
      * This is meant for the administrative section.
      */
     @Secured("ROLE_ADMIN")
     @Transactional(readOnly = true)
-    public Object autocompleteInactiveTerms( String query, Ontology ontology, int maxResults, Locale locale ) {
-        return autocomplete( query, Collections.singleton( ontology ), false, maxResults, locale );
+    public List<SearchResult<OntologyTermInfo>> autocompleteInactiveTerms( String query, Ontology ontology, int maxResults, Locale locale ) {
+        return autocompleteTerms( query, Collections.singleton( ontology ), false, maxResults, locale );
     }
 
-    private Collection<SearchResult<OntologyTermInfo>> autocomplete( String query, Set<Ontology> ontologies, boolean active, int maxResults, Locale locale ) {
+    private List<SearchResult<OntologyTermInfo>> autocompleteTerms( String query, Set<Ontology> ontologies, boolean active, int maxResults, Locale locale ) {
         List<SearchResult<OntologyTermInfo>> results = new ArrayList<>( maxResults );
 
         String normalizedQuery = TextUtils.normalize( query );
@@ -643,15 +664,15 @@ public class OntologyService implements InitializingBean {
 
         initialQueryTimer.stop();
 
-        StopWatch topoSortTimer = StopWatch.createStarted();
+        StopWatch topologicalSortTimer = StopWatch.createStarted();
         Collection<SearchResult<OntologyTermInfo>> sortedResults = results.stream()
                 .sorted( getSearchResultComparator( results, maxResults ) )
                 .limit( maxResults )
                 .collect( Collectors.toCollection( LinkedHashSet::new ) );
-        topoSortTimer.stop();
+        topologicalSortTimer.stop();
 
         String searchSummary = String.format( "Found %d suitable results for autocompletion of query '%s' (normalized as '%s', full-text as '%s') in %d ms (initial query: %d ms, topological sort and ranking: %d ms).",
-                results.size(), query, normalizedQuery, fullTextQuery, timer.getTime(), initialQueryTimer.getTime(), topoSortTimer.getTime() );
+                results.size(), query, normalizedQuery, fullTextQuery, timer.getTime(), initialQueryTimer.getTime(), topologicalSortTimer.getTime() );
 
         if ( timer.getTime() > ( isFullTextSupported ? 500 : 1000 ) ) {
             log.warn( searchSummary );
@@ -659,7 +680,7 @@ public class OntologyService implements InitializingBean {
             log.debug( searchSummary );
         }
 
-        return sortedResults;
+        return new ArrayList<>( sortedResults );
     }
 
     /**
@@ -684,6 +705,16 @@ public class OntologyService implements InitializingBean {
                         ontologyTermInfos.stream().map( OntologyTermInfo::toString ).collect( Collectors.joining( ", " ) ) ) );
             }
         }
+    }
+
+    /**
+     * Infer a set of terms numerical IDs meant by an ontology term.
+     * <p>
+     * It is more efficient to use {@link #inferTermIds(Collection)} if you need to run it for multiple terms.
+     */
+    @Transactional(readOnly = true)
+    public Set<Integer> inferTermIds( OntologyTermInfo ontologyTermInfo ) {
+        return getDescendentIds( Collections.singleton( ontologyTermInfo ) );
     }
 
     private SearchResult<OntologyTermInfo> toSearchResult( OntologyTermInfo t, OntologyTermMatchType matchType, String extras, double tfIdf, Locale locale ) {
@@ -800,7 +831,7 @@ public class OntologyService implements InitializingBean {
                 L.add( n );
 
                 if ( L.size() == maxResults || L.size() == terms.size() ) {
-                    // finish early since we already sorted all the input terms or we've reached max results
+                    // finish early since we already sorted all the input terms, or we've reached max results
 
                     // always a subset of the searched terms
                     assert terms.containsAll( L );
@@ -896,6 +927,16 @@ public class OntologyService implements InitializingBean {
         return ontologyTermInfoRepository.countByOntologyAndActiveTrueAndObsoleteTrue( ontology );
     }
 
+    /**
+     * Find all active subtrees.
+     * <p>
+     * Normally, we only allow subtrees to be activated.
+     * <p>
+     * Those are terms whose super terms are not active.
+     */
+    public List<OntologyTermInfo> findAllActiveSubtrees( Ontology ontology ) {
+        return ontologyTermInfoRepository.findAllByOntologyAndActiveAndSuperTermsEmpty( ontology );
+    }
 
     /**
      * Obtain the IDs of the descendent terms.
@@ -915,5 +956,20 @@ public class OntologyService implements InitializingBean {
             fringe.addAll( subTermIds );
         }
         return V;
+    }
+
+    /**
+     * Propagate subtree activation to ensure that subtrees are fully activated in a given ontology.
+     * <p>
+     * Inactive terms within an active subtree can occur if it was recently added or manually inactivated. We don't
+     * allow that level of granularity, so this routine will propagate the activation to the whole subtree.
+     * <p>
+     * Obsolete terms are ignored.
+     */
+    @Transactional
+    public int propagateSubtreeActivation( Ontology ontology ) {
+        List<OntologyTermInfo> subtrees = ontologyTermInfoRepository.findAllByOntologyAndActiveAndSuperTermsEmpty( ontology );
+        Set<Integer> descendants = getDescendentIds( subtrees );
+        return ontologyTermInfoRepository.activateByTermIdsAndActiveFalseAndObsoleteFalse( descendants );
     }
 }

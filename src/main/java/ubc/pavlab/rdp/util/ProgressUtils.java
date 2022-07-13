@@ -13,6 +13,11 @@ public class ProgressUtils {
      * Emit progress on a progress callback in a safe manner.
      * <p>
      * Runtime exceptions are caught and turned into errors.
+     *
+     * @param progressCallback  progress callback, ignored if null
+     * @param processedElements number of processed elements, which must be positive
+     * @param totalElements     total number of elements to be processed, which must be greater than one
+     * @param elapsedTime       elapsed time since the processing started
      */
     public static void emitProgress( ProgressCallback progressCallback, long processedElements, long totalElements, Duration elapsedTime ) {
         if ( processedElements < 0 ) {
@@ -31,8 +36,9 @@ public class ProgressUtils {
             } catch ( RuntimeException e ) {
                 log.error( "Progress failed", e );
             } finally {
-                if ( timer.getTime( TimeUnit.MILLISECONDS ) > 1 ) {
-                    log.warn( "Progress callback is too slow and might impede processing." );
+                timer.stop();
+                if ( timer.getTime( TimeUnit.MILLISECONDS ) > 2 ) {
+                    log.warn( String.format( "Progress callback is too slow and might impede processing (took %d ms).", timer.getTime( TimeUnit.MILLISECONDS ) ) );
                 }
             }
         }
