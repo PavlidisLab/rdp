@@ -8,6 +8,7 @@ import org.hibernate.exception.SQLGrammarException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.info.BuildProperties;
 import org.springframework.context.MessageSource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
@@ -26,6 +27,9 @@ import ubc.pavlab.rdp.util.*;
 
 import java.io.*;
 import java.net.URL;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -42,6 +46,8 @@ import static java.util.function.UnaryOperator.identity;
 @CommonsLog
 public class OntologyService implements InitializingBean {
 
+    private static final DateFormat OBO_DATE_FORMAT = new SimpleDateFormat( "dd:MM:yyyy HH:mm" );
+
     private final OntologyRepository ontologyRepository;
     private final OntologyTermInfoRepository ontologyTermInfoRepository;
 
@@ -51,6 +57,9 @@ public class OntologyService implements InitializingBean {
 
     @Autowired
     private ResourceLoader resourceLoader;
+
+    @Autowired
+    private BuildProperties buildProperties;
 
     private boolean isFullTextSupported = false;
 
@@ -432,6 +441,9 @@ public class OntologyService implements InitializingBean {
         try ( OboWriter bw = new OboWriter( writer ) ) {
             bw.writeLine( "format-version: 1.2" );
             bw.writeLine( "ontology: " + ontology.getName() );
+            bw.writeLine( "date: " + OBO_DATE_FORMAT.format( Date.from( Instant.now() ) ) );
+            bw.writeLine( String.format( "auto-generated-by: %s:%s %s", buildProperties.getGroup(),
+                    buildProperties.getArtifact(), buildProperties.getVersion() ) );
             boolean hasOrderedTerms = false, hasGroupingTerms = false;
             for ( OntologyTermInfo term : ontology.getTerms() ) {
                 bw.newLine();

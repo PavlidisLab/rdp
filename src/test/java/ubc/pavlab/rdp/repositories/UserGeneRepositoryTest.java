@@ -5,6 +5,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.internal.util.collections.Sets;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.info.BuildProperties;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -107,6 +108,9 @@ public class UserGeneRepositoryTest {
 
     @MockBean
     private OntologyMessageSource ontologyMessageSource;
+
+    @MockBean
+    private BuildProperties buildProperties;
 
     private User user;
     private Taxon taxon;

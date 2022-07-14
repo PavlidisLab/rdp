@@ -6,6 +6,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.info.BuildProperties;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -72,6 +73,9 @@ public class ReactomeServiceTest {
 
     @MockBean(name = "messageSourceWithoutOntology")
     private MessageSource messageSource;
+
+    @MockBean
+    private BuildProperties buildProperties;
 
     /* fixtures */
     private Ontology reactome;
