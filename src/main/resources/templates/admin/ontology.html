@@ -170,29 +170,40 @@
         <div th:if="${ontology.terms.size()} gt 20" class="mb-3">
             <h2>Active Subtrees</h2>
             <p>Active subtrees are distinct parts of the ontology that are active.</p>
-            <div class="row">
-                <div th:each="subtree : ${@ontologyService.findAllActiveSubtrees(ontology)}"
-                     class="col col-sm-4 col-md-3 col-lg-2">
-                    <dl class="mb-0">
-                        <dt>Root Term</dt>
-                        <dd>
-                            <span th:text="${subtree.termId}"></span><br/>
-                            <span th:text="${subtree.name}"></span>
-                        </dd>
-                    </dl>
-                    <form th:action="@{/admin/ontologies/{ontologyId}/deactivate-term(ontologyId=${ontology.id})}"
-                          method="post">
-                        <input type="hidden" name="ontologyTermInfoId" th:value="${subtree.termId}"/>
-                        <input type="hidden" name="includeSubtree" value="true"/>
-                        <div class="form-group">
+            <table class="table table-sm table-responsive">
+                <thead>
+                <tr>
+                    <th>Term ID</th>
+                    <th>Name</th>
+                    <th>Definition</th>
+                    <th>Number of terms</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="subtree : ${@ontologyService.findAllActiveSubtrees(ontology)}">
+                    <td th:text="${subtree.termId}" class="text-nowrap"></td>
+                    <td th:text="${subtree.name}" class="text-nowrap"></td>
+                    <td>
+                        <span th:text="${subtree.definition}" class="ontology-term-definition"></span>
+                    </td>
+                    <td class="text-nowrap">
+                        <span th:text="${@ontologyService.inferTermIds(subtree).size()}"></span>
+                        Terms
+                    </td>
+                    <td class="text-right">
+                        <form th:action="@{/admin/ontologies/{ontologyId}/deactivate-term(ontologyId=${ontology.id})}"
+                              method="post">
+                            <input type="hidden" name="ontologyTermInfoId" th:value="${subtree.termId}"/>
+                            <input type="hidden" name="includeSubtree" value="true"/>
                             <button type="submit" class="btn btn-warning btn-sm">
-                                Deactivate <span th:text="${@ontologyService.inferTermIds(subtree).size()}"></span>
-                                Terms
+                                Deactivate
                             </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
         </div>
         <div th:unless="${ontology.terms.size()} gt 20" class="card">
             <div class="card-header">
