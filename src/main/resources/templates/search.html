@@ -143,7 +143,7 @@
                 <div th:if="${@ontologyService.countTerms()} > 0"
                      class="form-row">
                     <div class="col-md-12">
-                        <div th:each="ontology, i : ${@ontologyService.findAllOntologies()}"
+                        <div th:each="ontology, i : ${@ontologyService.findAllOntologiesAvailableForGeneSearch()}"
                              th:classappend="${i.last} ? '' : 'mb-3'">
                             <label th:for="${#ids.next('ontologyTermIds')}">
                                 With the following

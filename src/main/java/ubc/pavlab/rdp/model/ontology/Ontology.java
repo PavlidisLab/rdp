@@ -100,6 +100,12 @@ public class Ontology implements Comparable<Ontology> {
     private boolean active;
 
     /**
+     * Indicate of the ontology is available for searching by gene.
+     */
+    @JsonIgnore
+    private boolean availableForGeneSearch;
+
+    /**
      * Relative order of categories when sorted as per {@link #getComparator()}.
      */
     @JsonIgnore

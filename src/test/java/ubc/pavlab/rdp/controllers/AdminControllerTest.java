@@ -509,6 +509,24 @@ public class AdminControllerTest {
 
     @Test
     @WithMockUser(roles = { "ADMIN" })
+    public void updateOntology_whenAvailableInGeneSearchIsSet() throws Exception {
+        Ontology ontology = Ontology.builder( "mondo" )
+                .id( 1 )
+                .ontologyUrl( new URL( "file:src/test/resources/cache/mondo.obo" ) )
+                .availableForGeneSearch( false )
+                .build();
+        when( ontologyService.findById( 1 ) ).thenReturn( ontology );
+        mvc.perform( post( "/admin/ontologies/{ontologyId}", ontology.getId() )
+                        .param( "availableForGeneSearch", "true" ) )
+                .andExpect( status().isOk() )
+                .andExpect( view().name( "admin/ontology" ) )
+                .andExpect( model().attribute( "message", "Successfully updated MONDO." ) );
+        verify( ontologyService ).save( ontology );
+        assertThat( ontology.isAvailableForGeneSearch() ).isTrue();
+    }
+
+    @Test
+    @WithMockUser(roles = { "ADMIN" })
     public void updateOntology() throws Exception {
         Ontology ontology = Ontology.builder( "mondo" )
                 .id( 1 )

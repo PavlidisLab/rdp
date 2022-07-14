@@ -34,7 +34,6 @@ import java.util.stream.Stream;
 import static java.util.function.UnaryOperator.identity;
 
 /**
- * /**
  * This service combines both {@link OntologyTermInfoRepository} and {@link OntologyRepository}.
  *
  * @author poirgui
@@ -107,6 +106,14 @@ public class OntologyService implements InitializingBean {
                 .collect( Collectors.toList() );
     }
 
+    @Transactional(readOnly = true)
+    public List<Ontology> findAllOntologiesAvailableForGeneSearch() {
+        return ontologyRepository.findAllByActiveTrueAndAvailableForGeneSearchTrue().stream()
+                .sorted( Ontology.getComparator() )
+                .collect( Collectors.toList() );
+    }
+
+    @Transactional(readOnly = true)
     public List<Ontology> findAllOntologiesIncludingInactive() {
         return ontologyRepository.findAll().stream()
                 .sorted( Ontology.getComparator() )

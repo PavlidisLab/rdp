@@ -17,6 +17,7 @@ public interface OntologyRepository extends JpaRepository<Ontology, Integer> {
 
     List<Ontology> findAllByActiveTrue();
 
+    List<Ontology> findAllByActiveTrueAndAvailableForGeneSearchTrue();
     List<Ontology> findAllByNameIn( List<String> asList );
 
     Ontology findByName( String name );

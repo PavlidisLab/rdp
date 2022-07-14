@@ -196,30 +196,81 @@ public class AdminController {
     }
 
     @GetMapping("/admin/ontologies/{ontology}")
-    public ModelAndView getOntology( @PathVariable Ontology ontology,
-                                     @SuppressWarnings("unused") ActivateTermForm activateTermForm,
-                                     @SuppressWarnings("unused") DeactivateTermForm deactivateTermForm,
-                                     @SuppressWarnings("unused") ActivateOntologyForm activateOntologyForm,
-                                     @SuppressWarnings("unused") DeactivateOntologyForm deactivateOntologyForm,
-                                     @SuppressWarnings("unused") DeleteOntologyForm deleteOntologyForm,
-                                     Locale locale ) {
+    public ModelAndView getOntology( @PathVariable Ontology ontology, Locale locale ) {
         if ( ontology == null ) {
             return new ModelAndView( "error/404", HttpStatus.NOT_FOUND )
                     .addObject( "message", messageSource.getMessage( "AdminController.ontologyNotFoundById", null, locale ) );
         }
-        ModelAndView modelAndView = new ModelAndView( "admin/ontology" );
+        ModelAndView modelAndView = new ModelAndView( "admin/ontology" )
+                .addAllObjects( defaultsForOntologyModelAndView( ontology ) );
         if ( ontology.getTerms().size() <= 20 ) {
             modelAndView.addObject( "simpleOntologyForm", SimpleOntologyForm.fromOntology( ontology ) );
         }
         return modelAndView;
     }
 
+    /**
+     * Obtain the defaults for the 'admin/ontology' view to be added via {@link ModelAndView#addAllObjects(Map)}.
+     */
+    private static Map<String, ?> defaultsForOntologyModelAndView( Ontology ontology ) {
+        return new HashMap<String, Object>() {{
+            put( "updateOntologyForm", UpdateOntologyForm.fromOntology( ontology ) );
+            if ( ontology.getTerms().size() <= 20 ) {
+                put( "simpleOntologyForm", SimpleOntologyForm.fromOntology( ontology ) );
+            }
+            if ( ontology.isActive() ) {
+                put( "deactivateOntologyForm", new DeactivateOntologyForm() );
+            } else {
+                put( "activateOntologyForm", new ActivateOntologyForm() );
+            }
+            put( "activateTermForm", new ActivateTermForm() );
+            put( "deactivateTermForm", new DeactivateTermForm() );
+            put( "deleteOntologyForm", new DeleteOntologyForm() );
+        }};
+    }
+
+    @Data
+    private static class UpdateOntologyForm {
+        public static UpdateOntologyForm fromOntology( Ontology ontology ) {
+            UpdateOntologyForm form = new UpdateOntologyForm();
+            form.setAvailableForGeneSearch( ontology.isAvailableForGeneSearch() );
+            return form;
+        }
+
+        private boolean availableForGeneSearch;
+    }
+
+    @PostMapping("/admin/ontologies/{ontology}")
+    public ModelAndView updateOntology( @PathVariable Ontology ontology,
+                                        @Valid UpdateOntologyForm updateOntologyForm, BindingResult bindingResult,
+                                        Locale locale ) {
+        if ( ontology == null ) {
+            return new ModelAndView( "error/404", HttpStatus.NOT_FOUND )
+                    .addObject( "message", messageSource.getMessage( "AdminController.ontologyNotFoundById", null, locale ) );
+        }
+
+        ModelAndView modelAndView = new ModelAndView( "admin/ontology" )
+                .addAllObjects( defaultsForOntologyModelAndView( ontology ) )
+                .addObject( "updateOntologyForm", updateOntologyForm );
+
+        if ( ontology.getTerms().size() <= 20 ) {
+            modelAndView.addObject( "simpleOntologyForm", SimpleOntologyForm.fromOntology( ontology ) );
+        }
+
+        if ( bindingResult.hasErrors() ) {
+            modelAndView.setStatus( HttpStatus.BAD_REQUEST );
+            return modelAndView;
+        }
+
+        ontology.setAvailableForGeneSearch( updateOntologyForm.isAvailableForGeneSearch() );
+        ontologyService.save( ontology );
+        modelAndView.addObject( "message", String.format( "Successfully updated %s.", resolveOntologyName( ontology, locale ) ) );
+
+        return modelAndView;
+    }
+
     @DeleteMapping("/admin/ontologies/{ontology}")
     public Object deleteOntology( @PathVariable Ontology ontology,
-                                  @SuppressWarnings("unused") ActivateTermForm activateTermForm,
-                                  @SuppressWarnings("unused") DeactivateTermForm deactivateTermForm,
-                                  @SuppressWarnings("unused") ActivateOntologyForm activateOntologyForm,
-                                  @SuppressWarnings("unused") DeactivateOntologyForm deactivateOntologyForm,
                                   @Valid DeleteOntologyForm deleteOntologyForm, BindingResult bindingResult,
                                   RedirectAttributes redirectAttributes,
                                   Locale locale ) {
@@ -228,11 +279,9 @@ public class AdminController {
                     .addObject( "message", messageSource.getMessage( "AdminController.ontologyNotFoundById", null, locale ) );
         }
 
-        ModelAndView modelAndView = new ModelAndView( "admin/ontology", HttpStatus.BAD_REQUEST );
-
-        if ( ontology.getTerms().size() <= 20 ) {
-            modelAndView.addObject( "simpleOntologyForm", SimpleOntologyForm.fromOntology( ontology ) );
-        }
+        ModelAndView modelAndView = new ModelAndView( "admin/ontology", HttpStatus.BAD_REQUEST )
+                .addAllObjects( defaultsForOntologyModelAndView( ontology ) )
+                .addObject( "deleteOntologyForm", deleteOntologyForm );
 
         if ( !deleteOntologyForm.ontologyNameConfirmation.equals( ontology.getName() ) ) {
             bindingResult.rejectValue( "ontologyNameConfirmation", "AdminController.DeleteOntologyForm.ontologyNameConfirmation.doesNotMatchOntologyName" );
@@ -280,20 +329,16 @@ public class AdminController {
 
     @PostMapping("/admin/ontologies/{ontology}/update-simple-ontology")
     public Object updateSimpleOntology( @PathVariable Ontology ontology,
-                                        @SuppressWarnings("unused") ActivateTermForm activateTermForm,
-                                        @SuppressWarnings("unused") DeactivateTermForm deactivateTermForm,
-                                        @SuppressWarnings("unused") ActivateOntologyForm activateOntologyForm,
-                                        @SuppressWarnings("unused") DeactivateOntologyForm deactivateOntologyForm,
-                                        @SuppressWarnings("unused") DeleteOntologyForm deleteOntologyForm,
                                         @Valid SimpleOntologyForm simpleOntologyForm, BindingResult bindingResult,
-                                        RedirectAttributes redirectAttributes,
-                                        Locale locale ) {
+                                        RedirectAttributes redirectAttributes, Locale locale ) {
         if ( ontology == null ) {
             return new ModelAndView( "error/404", HttpStatus.NOT_FOUND )
                     .addObject( "message", messageSource.getMessage( "AdminController.ontologyNotFoundById", null, locale ) );
         }
         if ( bindingResult.hasErrors() ) {
-            return new ModelAndView( "admin/ontology", HttpStatus.BAD_REQUEST );
+            return new ModelAndView( "admin/ontology", HttpStatus.BAD_REQUEST )
+                    .addAllObjects( defaultsForOntologyModelAndView( ontology ) )
+                    .addObject( "simpleOntologyForm", simpleOntologyForm );
         }
         try {
             ontologyService.updateNameAndTerms( ontology, simpleOntologyForm.ontologyName, parseTerms( ontology, simpleOntologyForm.getOntologyTerms() ) );
@@ -301,7 +346,9 @@ public class AdminController {
             return "redirect:/admin/ontologies/" + ontology.getId();
         } catch ( OntologyNameAlreadyUsedException e ) {
             bindingResult.rejectValue( "ontologyName", "AdminController.SimpleOntologyForm.ontologyName.alreadyUsed" );
-            return new ModelAndView( "admin/ontology", HttpStatus.BAD_REQUEST );
+            return new ModelAndView( "admin/ontology", HttpStatus.BAD_REQUEST )
+                    .addAllObjects( defaultsForOntologyModelAndView( ontology ) )
+                    .addObject( "simpleOntologyForm", simpleOntologyForm );
         }
     }
 
@@ -309,6 +356,9 @@ public class AdminController {
     private static class SimpleOntologyForm {
 
         public static SimpleOntologyForm fromOntology( Ontology ontology ) {
+            if ( ontology.getTerms().size() > 20 ) {
+                throw new IllegalArgumentException( "SimpleOntologyForm is not designed to hold ontologies with more than 20 terms!" );
+            }
             SimpleOntologyForm updateSimpleForm = new SimpleOntologyForm();
             updateSimpleForm.setOntologyName( ontology.getName() );
             for ( OntologyTermInfo term : ontology.getTerms() ) {
@@ -493,12 +543,6 @@ public class AdminController {
 
     @PostMapping("/admin/ontologies/{ontology}/update")
     public Object updateOntology( @PathVariable Ontology ontology,
-                                  @SuppressWarnings("unused") ActivateTermForm activateTermForm,
-                                  @SuppressWarnings("unused") DeactivateTermForm deactivateTermForm,
-                                  @SuppressWarnings("unused") ActivateOntologyForm activateOntologyForm,
-                                  @SuppressWarnings("unused") DeactivateOntologyForm deactivateOntologyForm,
-                                  @SuppressWarnings("unused") DeleteOntologyForm deleteOntologyForm,
-                                  @SuppressWarnings("unused") SimpleOntologyForm simpleOntologyForm,
                                   RedirectAttributes redirectAttributes,
                                   Locale locale ) {
         if ( ontology == null ) {
@@ -507,6 +551,7 @@ public class AdminController {
         }
         if ( ontology.getOntologyUrl() == null ) {
             return new ModelAndView( "admin/ontology", HttpStatus.BAD_REQUEST )
+                    .addAllObjects( defaultsForOntologyModelAndView( ontology ) )
                     .addObject( "message", "The provided ontology cannot be updated because it lacks an external URL." )
                     .addObject( "error", true );
         } else {
@@ -518,6 +563,7 @@ public class AdminController {
             } catch ( IOException | ParseException e ) {
                 log.error( String.format( "Failed to update ontology %s from administrative section.", ontology ), e );
                 return new ModelAndView( "admin/ontology", HttpStatus.BAD_REQUEST )
+                        .addAllObjects( defaultsForOntologyModelAndView( ontology ) )
                         .addObject( "message", String.format( "Failed to update %s: %s", ontology.getName(), e.getMessage() ) )
                         .addObject( "error", true );
             }
@@ -762,7 +808,8 @@ public class AdminController {
 
         if ( bindingResult.hasErrors() ) {
             return new ModelAndView( "admin/ontology", HttpStatus.BAD_REQUEST )
-                    .addObject( "simpleOntologyForm", SimpleOntologyForm.fromOntology( ontology ) );
+                    .addAllObjects( defaultsForOntologyModelAndView( ontology ) )
+                    .addObject( activateOrDeactivateTermForm instanceof ActivateTermForm ? "activateTermForm" : "deactivateTermForm", activateOrDeactivateTermForm );
         }
 
         // nullity check is ensured by bindingResult
