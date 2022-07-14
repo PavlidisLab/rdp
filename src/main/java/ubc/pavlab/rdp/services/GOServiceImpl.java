@@ -105,7 +105,7 @@ public class GOServiceImpl implements GOService, InitializingBean {
     }
 
     @Override
-    public synchronized void updateGoTerms() {
+    public void updateGoTerms() {
         StopWatch timer = StopWatch.createStarted();
         ApplicationSettings.CacheSettings cacheSettings = applicationSettings.getCache();
 

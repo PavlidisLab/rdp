@@ -7,6 +7,9 @@ import org.springframework.util.MultiValueMap;
 import ubc.pavlab.rdp.model.GeneOntologyTermInfo;
 
 import java.util.*;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * Repository of gene ontology terms and gene-to-term relationships.
@@ -24,6 +27,12 @@ public class GeneOntologyTermInfoRepository implements CrudRepository<GeneOntolo
 
     private final MultiValueMap<Integer, GeneOntologyTermInfo> geneIdsToTerms = new LinkedMultiValueMap<>();
 
+    /**
+     * Guarantees that only one thread can modify terms and geneIdsToTerms at a given time and that no reading occurs
+     * while a modification is undergoing.
+     */
+    private final ReadWriteLock rwLock = new ReentrantReadWriteLock();
+
     @Override
     public <S extends GeneOntologyTermInfo> S save( S term ) {
         return saveByAlias( term.getGoId(), term );
@@ -32,8 +41,14 @@ public class GeneOntologyTermInfoRepository implements CrudRepository<GeneOntolo
     @Override
     public <S extends GeneOntologyTermInfo> Iterable<S> saveAll( Iterable<S> iterable ) {
         List<S> savedTerms = new ArrayList<>();
-        for ( S term : iterable ) {
-            savedTerms.add( save( term ) );
+        Lock lock = rwLock.writeLock();
+        try {
+            lock.lock();
+            for ( S term : iterable ) {
+                savedTerms.add( save( term ) );
+            }
+        } finally {
+            lock.unlock();
         }
         return savedTerms;
     }
@@ -49,75 +64,151 @@ public class GeneOntologyTermInfoRepository implements CrudRepository<GeneOntolo
     }
 
     public <S extends GeneOntologyTermInfo> S saveByAlias( String alias, S term ) {
-        terms.put( alias, term );
-        for ( Integer geneId : term.getDirectGeneIds() ) {
-            geneIdsToTerms.add( geneId, term );
+        Lock lock = rwLock.writeLock();
+        try {
+            lock.lock();
+            terms.put( alias, term );
+            for ( Integer geneId : term.getDirectGeneIds() ) {
+                geneIdsToTerms.add( geneId, term );
+            }
+        } finally {
+            lock.unlock();
         }
         return term;
     }
 
     public <S extends GeneOntologyTermInfo> Iterable<S> saveAllByAlias( Map<String, S> terms ) {
         List<S> savedTerms = new ArrayList<>( terms.size() );
-        for ( Map.Entry<String, S> entry : terms.entrySet() ) {
-            savedTerms.add( saveByAlias( entry.getKey(), entry.getValue() ) );
+        Lock lock = rwLock.writeLock();
+        try {
+            lock.lock();
+            for ( Map.Entry<String, S> entry : terms.entrySet() ) {
+                savedTerms.add( saveByAlias( entry.getKey(), entry.getValue() ) );
+            }
+        } finally {
+            lock.unlock();
         }
         return savedTerms;
     }
 
     @Override
     public Collection<GeneOntologyTermInfo> findAll() {
-        return terms.values();
+        Lock lock = rwLock.readLock();
+        try {
+            lock.lock();
+            return unmodifiableCopy( terms.values() );
+        } finally {
+            lock.unlock();
+        }
     }
 
     @Override
     public Collection<GeneOntologyTermInfo> findAllById( Iterable<String> iterable ) {
         Collection<GeneOntologyTermInfo> results = new HashSet<>();
-        for ( String id : iterable ) {
-            GeneOntologyTermInfo term = terms.get( id );
-            if ( term != null ) {
-                results.add( term );
+        Lock lock = rwLock.readLock();
+        try {
+            lock.lock();
+            for ( String id : iterable ) {
+                GeneOntologyTermInfo term = terms.get( id );
+                if ( term != null ) {
+                    results.add( term );
+                }
             }
+        } finally {
+            lock.unlock();
         }
         return results;
     }
 
     public Collection<GeneOntologyTermInfo> findByDirectGeneIdsContaining( Integer geneId ) {
-        return geneIdsToTerms.getOrDefault( geneId, Collections.emptyList() );
+        Lock lock = rwLock.readLock();
+        try {
+            lock.lock();
+            List<GeneOntologyTermInfo> terms = geneIdsToTerms.get( geneId );
+            return terms != null ? unmodifiableCopy( terms ) : Collections.emptyList();
+        } finally {
+            lock.unlock();
+        }
     }
 
     @Override
     public long count() {
-        return terms.values().stream().distinct().count();
+        Lock lock = rwLock.readLock();
+        try {
+            lock.lock();
+            return terms.values().stream().distinct().count();
+        } finally {
+            lock.unlock();
+        }
     }
 
     @Override
     public void deleteById( String s ) {
-        terms.remove( s );
+        Lock lock = rwLock.writeLock();
+        try {
+            lock.lock();
+            GeneOntologyTermInfo term = terms.get( s );
+            if ( term != null ) {
+                delete( term );
+            }
+        } finally {
+            lock.unlock();
+        }
     }
 
     @Override
     public void delete( GeneOntologyTermInfo term ) {
-        terms.remove( term.getGoId() );
+        Lock lock = rwLock.writeLock();
+        try {
+            lock.lock();
+            terms.remove( term.getGoId() );
+            for ( Integer geneId : term.getDirectGeneIds() ) {
+                geneIdsToTerms.remove( geneId );
+            }
+        } finally {
+            lock.unlock();
+        }
     }
 
     @Override
     public void deleteAllById( Iterable<? extends String> iterable ) {
-        for ( String s : iterable ) {
-            deleteById( s );
+        Lock lock = rwLock.writeLock();
+        try {
+            lock.lock();
+            for ( String s : iterable ) {
+                deleteById( s );
+            }
+        } finally {
+            lock.unlock();
         }
     }
 
     @Override
     public void deleteAll( Iterable<? extends GeneOntologyTermInfo> iterable ) {
-        for ( GeneOntologyTermInfo term : iterable ) {
-            delete( term );
+        Lock lock = rwLock.writeLock();
+        try {
+            lock.lock();
+            for ( GeneOntologyTermInfo term : iterable ) {
+                delete( term );
+            }
+        } finally {
+            lock.unlock();
         }
-
     }
 
     @Override
     public void deleteAll() {
-        terms.clear();
-        geneIdsToTerms.clear();
+        Lock lock = rwLock.writeLock();
+        try {
+            lock.lock();
+            terms.clear();
+            geneIdsToTerms.clear();
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    private static <T> Collection<T> unmodifiableCopy( Collection<T> list ) {
+        return Collections.unmodifiableList( new ArrayList<>( list ) );
     }
 }

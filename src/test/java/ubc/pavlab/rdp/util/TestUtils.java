@@ -134,6 +134,10 @@ public final class TestUtils {
         return term;
     }
 
+    public static GeneOntologyTermInfo createTerm( int id ) {
+        return createTerm( String.format( "GO:%05d", id ) );
+    }
+
     public static GeneOntologyTermInfo createTermWithGenes( String goId, GeneInfo... genes ) {
         GeneOntologyTermInfo term = createTerm( goId );
         term.setDirectGeneIds( Arrays.asList( genes ).stream().map( GeneInfo::getGeneId ).collect( Collectors.toSet() ) );
