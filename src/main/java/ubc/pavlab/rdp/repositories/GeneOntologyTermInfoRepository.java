@@ -5,6 +5,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import ubc.pavlab.rdp.model.GeneOntologyTermInfo;
+import ubc.pavlab.rdp.util.CollectionUtils;
 
 import java.util.*;
 import java.util.concurrent.locks.Lock;
@@ -13,10 +14,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * Repository of gene ontology terms and gene-to-term relationships.
- * <p>
- * Note: this repository does not support {@link org.springframework.transaction.annotation.Transactional} operations,
- * nor should be considered thread-safe. We highly recommend initializing it once and updating it periodically from a
- * single thread.
  *
  * @author poirigui
  */
@@ -60,7 +57,12 @@ public class GeneOntologyTermInfoRepository implements CrudRepository<GeneOntolo
 
     @Override
     public boolean existsById( String s ) {
-        return terms.containsKey( s );
+        Lock lock = rwLock.readLock();
+        try {
+            return terms.containsKey( s );
+        } finally {
+            lock.unlock();
+        }
     }
 
     public <S extends GeneOntologyTermInfo> S saveByAlias( String alias, S term ) {
@@ -96,7 +98,7 @@ public class GeneOntologyTermInfoRepository implements CrudRepository<GeneOntolo
         Lock lock = rwLock.readLock();
         try {
             lock.lock();
-            return unmodifiableCopy( terms.values() );
+            return CollectionUtils.unmodifiableCopy( terms.values() );
         } finally {
             lock.unlock();
         }
@@ -125,7 +127,7 @@ public class GeneOntologyTermInfoRepository implements CrudRepository<GeneOntolo
         try {
             lock.lock();
             List<GeneOntologyTermInfo> terms = geneIdsToTerms.get( geneId );
-            return terms != null ? unmodifiableCopy( terms ) : Collections.emptyList();
+            return terms != null ? CollectionUtils.unmodifiableCopy( terms ) : Collections.emptyList();
         } finally {
             lock.unlock();
         }
@@ -206,9 +208,5 @@ public class GeneOntologyTermInfoRepository implements CrudRepository<GeneOntolo
         } finally {
             lock.unlock();
         }
-    }
-
-    private static <T> Collection<T> unmodifiableCopy( Collection<T> list ) {
-        return Collections.unmodifiableList( new ArrayList<>( list ) );
     }
 }
