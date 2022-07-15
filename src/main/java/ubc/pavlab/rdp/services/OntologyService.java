@@ -839,6 +839,7 @@ public class OntologyService implements InitializingBean {
                 }
                 searchBreakdown
                         .append( twd.getTerm() )
+                        .append( String.format( " [%d ms]", timer.getTime( TimeUnit.MILLISECONDS ) ) )
                         .append( '\n' );
             }
 
@@ -862,7 +863,8 @@ public class OntologyService implements InitializingBean {
                         searchBreakdown
                                 .append( '└' )
                                 .append( ' ' )
-                                .append( String.format( "There are %d remaining terms that weren't sorted since we reached maximum results (noted with *).", terms.size() - maxResults ) )
+                                .append( String.format( "There are %d remaining terms that weren't sorted since we reached maximum number of results (matches are noted with *).", terms.size() - maxResults ) )
+                                .append( String.format( " [%d ms]", timer.getTime( TimeUnit.MILLISECONDS ) ) )
                                 .append( '\n' );
                     }
 
@@ -902,7 +904,7 @@ public class OntologyService implements InitializingBean {
                 S.size(), A.size() );
 
         if ( timer.getTime( TimeUnit.MILLISECONDS ) > 200 ) {
-            log.warn( searchSummary );
+            log.warn( searchSummary + String.format( " Set %s logger to DEBUG to view the full search breakdown.", OntologyService.class.getName() ) );
         } else {
             log.debug( searchSummary );
         }
