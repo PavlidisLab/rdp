@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.LinkedHashSet;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -65,6 +66,9 @@ public class SearchControllerTest {
 
     @MockBean(name = "siteSettings")
     private SiteSettings siteSettings;
+
+    @MockBean
+    private ApplicationSettings.SearchSettings searchSettings;
 
     @MockBean
     private ApplicationSettings.OrganSettings organSettings;
@@ -115,6 +119,8 @@ public class SearchControllerTest {
         when( applicationSettings.getProfile() ).thenReturn( profileSettings );
         when( profileSettings.getEnabledResearcherCategories() ).thenReturn( EnumSet.allOf( ResearcherCategory.class ) );
         when( profileSettings.getEnabledResearcherPositions() ).thenReturn( EnumSet.of( ResearcherPosition.PRINCIPAL_INVESTIGATOR ) );
+        when( applicationSettings.getSearch() ).thenReturn( searchSettings );
+        when( searchSettings.getEnabledSearchModes() ).thenReturn( new LinkedHashSet<>( EnumSet.allOf( ApplicationSettings.SearchSettings.SearchMode.class ) ) );
         when( applicationSettings.getOrgans() ).thenReturn( organSettings );
         when( applicationSettings.getIsearch() ).thenReturn( iSearchSettings );
         when( permissionEvaluator.hasPermission( any(), isNull(), eq( "search" ) ) ).thenReturn( true );
