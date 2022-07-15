@@ -159,6 +159,7 @@ public class ApiController {
                                          @Deprecated @RequestParam(required = false) String auth,
                                          Locale locale ) {
         checkEnabled();
+        checkResearcherSearchEnabled();
         checkAuth( authorizationHeader, auth );
         if ( prefix ) {
             return initUsers( userService.findByStartsName( nameLike, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ) ), locale );
@@ -176,6 +177,7 @@ public class ApiController {
                                                 @Deprecated @RequestParam(required = false) String auth,
                                                 Locale locale ) {
         checkEnabled();
+        checkResearcherSearchEnabled();
         checkAuth( authorizationHeader, auth );
         return initUsers( userService.findByDescription( descriptionLike, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ) ), locale );
     }
@@ -195,6 +197,7 @@ public class ApiController {
                                                    @Deprecated @RequestParam(required = false) String auth,
                                                    Locale locale ) {
         checkEnabled();
+        checkGeneSearchEnabled();
         checkAuth( authorizationHeader, auth );
 
         Taxon taxon = taxonService.findById( taxonId );
@@ -297,6 +300,18 @@ public class ApiController {
     private void checkEnabled() {
         if ( !applicationSettings.getIsearch().isEnabled() ) {
             throw new ApiException( HttpStatus.SERVICE_UNAVAILABLE, "Public API is not available for this registry." );
+        }
+    }
+
+    private void checkGeneSearchEnabled() {
+        if ( !applicationSettings.getSearch().getEnabledSearchModes().contains( ApplicationSettings.SearchSettings.SearchMode.BY_RESEARCHER ) ) {
+            throw new ApiException( HttpStatus.SERVICE_UNAVAILABLE, "Search by gene is not available for this registry." );
+        }
+    }
+
+    private void checkResearcherSearchEnabled() {
+        if ( !applicationSettings.getSearch().getEnabledSearchModes().contains( ApplicationSettings.SearchSettings.SearchMode.BY_RESEARCHER ) ) {
+            throw new ApiException( HttpStatus.SERVICE_UNAVAILABLE, "Search by researcher is not available for this registry." );
         }
     }
 

@@ -27,10 +27,7 @@ import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.settings.SiteSettings;
 
 import java.net.URI;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
@@ -63,6 +60,9 @@ public class ApiControllerTest {
     OrganInfoService organInfoService;
     @MockBean
     private ApplicationSettings applicationSettings;
+
+    @MockBean
+    private ApplicationSettings.SearchSettings searchSettings;
     @MockBean
     private ApplicationSettings.InternationalSearchSettings iSearchSettings;
     @MockBean
@@ -76,8 +76,10 @@ public class ApiControllerTest {
 
     @Before
     public void setUp() {
+        when( applicationSettings.getSearch() ).thenReturn( searchSettings );
         when( applicationSettings.getIsearch() ).thenReturn( iSearchSettings );
         when( applicationSettings.getPrivacy() ).thenReturn( privacySettings );
+        when( searchSettings.getEnabledSearchModes() ).thenReturn( new LinkedHashSet<>( EnumSet.allOf( ApplicationSettings.SearchSettings.SearchMode.class ) ) );
         when( iSearchSettings.isEnabled() ).thenReturn( true );
         when( siteSettings.getHostUri() ).thenReturn( URI.create( "http://localhost/" ) );
         when( messageSource.getMessage( eq( "rdp.site.shortname" ), any(), any() ) ).thenReturn( "RDMM" );

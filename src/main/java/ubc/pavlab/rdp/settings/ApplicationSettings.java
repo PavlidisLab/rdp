@@ -1,6 +1,7 @@
 package ubc.pavlab.rdp.settings;
 
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
 import org.hibernate.validator.constraints.Range;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
@@ -15,7 +16,9 @@ import ubc.pavlab.rdp.services.GeneInfoService;
 import javax.validation.constraints.Min;
 import java.net.URI;
 import java.util.EnumSet;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.SortedSet;
 
 /**
  * Created by mjacobson on 22/01/18.
@@ -153,6 +156,23 @@ public class ApplicationSettings {
         private boolean enableAnonymizedSearchResults;
     }
 
+    @Data
+    public static class SearchSettings {
+
+        public enum SearchMode {
+            BY_GENE,
+            BY_RESEARCHER;
+        }
+
+        /**
+         * Enabled search modes in the search user interface and API.
+         * <p>
+         * The order of elements indicates the order of display in the search interface.
+         */
+        @Min(1)
+        private LinkedHashSet<SearchMode> enabledSearchModes;
+    }
+
     @SuppressWarnings("WeakerAccess") //Used in frontend
     @Data
     public static class InternationalSearchSettings {
@@ -188,6 +208,7 @@ public class ApplicationSettings {
     }
 
     private ProfileSettings profile;
+    private SearchSettings search;
     private InternationalSearchSettings isearch;
     private PrivacySettings privacy;
     private CacheSettings cache;

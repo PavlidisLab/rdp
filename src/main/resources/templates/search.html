@@ -20,16 +20,26 @@
     <p class="lead mb-3" th:text="#{rdp.site.welcome-public(#{rdp.site.shortname})}">...</p>
 
     <ul class="nav nav-tabs mt-3">
-        <li class="nav-item"><a class="nav-link active" id="gene-tab" data-toggle="tab"
-                                href="#gene-search">Genes</a></li>
-        <li class="nav-item"><a class="nav-link" id="res-tab" data-toggle="tab"
-                                href="#user-search">Researchers</a></li>
+        <li th:each="searchMode, i : ${@applicationSettings.search.enabledSearchModes}"
+            th:with="searchModeId=${searchMode.toString().replace('_', '-').toLowerCase()}"
+            class="nav-item">
+            <a class="nav-link" data-toggle="tab"
+               th:id="${searchModeId} + '-tab'"
+               th:href="@{#{searchModeId}-search(searchModeId=${searchModeId})}"
+               th:classappend="${i.first} ? 'active'"
+               th:text="#{'SearchMode.' + ${searchMode}}">
+            </a>
+        </li>
     </ul>
 
     <div class="tab-content border-left border-right border-bottom p-3 mb-3">
         <!--Genes-->
-        <div id="gene-search" role="tabpanel" aria-labelledby="gene-tab"
-             class="tab-pane fade show active">
+        <div th:if="${@applicationSettings.search.enabledSearchModes.contains(T(ubc.pavlab.rdp.settings.ApplicationSettings$SearchSettings$SearchMode).BY_GENE)}"
+             th:with="searchMode=${T(ubc.pavlab.rdp.settings.ApplicationSettings$SearchSettings$SearchMode).BY_GENE},searchModeId=${searchMode.toString().replace('_', '-').toLowerCase()}"
+             th:id="${searchModeId} + '-search'"
+             th:attr="aria-labelledby=${searchModeId} + '-tab'"
+             th:classappend="${@applicationSettings.search.enabledSearchModes.stream().findFirst().get()} == ${searchMode} ? 'active'"
+             role="tabpanel" class="tab-pane fade show">
             <form class="search">
                 <div class="form-row">
                     <div class="col-md-9">
@@ -139,9 +149,14 @@
 
         </div>
 
-        <div id="user-search" role="tabpanel" aria-labelledby="res-tab" class="tab-pane fade">
+        <div th:if="${@applicationSettings.search.enabledSearchModes.contains(T(ubc.pavlab.rdp.settings.ApplicationSettings$SearchSettings$SearchMode).BY_RESEARCHER)}"
+             th:with="searchMode=${T(ubc.pavlab.rdp.settings.ApplicationSettings$SearchSettings$SearchMode).BY_RESEARCHER},searchModeId=${searchMode.toString().replace('_', '-').toLowerCase()}"
+             th:id="${searchModeId} + '-search'"
+             th:attr="aria-labelledby=${searchModeId} + '-tab'"
+             th:classappend="${@applicationSettings.search.enabledSearchModes.stream().findFirst().get()} == ${searchMode} ? 'active'"
+             role="tabpanel" class="tab-pane fade show">
             <!--Researchers alphabetically-->
-            <div th:unless="${chars.isEmpty()}" class="form-row d-none d-lg-block">
+            <div th:unless=" ${chars.isEmpty()}" class="form-row d-none d-lg-block">
                 <div class="col-md-12">
                     <label>Browse alphabetically:</label>
                     <div class="btn-toolbar">
