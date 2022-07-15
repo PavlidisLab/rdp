@@ -19,6 +19,7 @@ import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.services.UserService;
 import ubc.pavlab.rdp.settings.SiteSettings;
 
+import javax.validation.Valid;
 import java.text.MessageFormat;
 import java.util.Collection;
 import java.util.Comparator;
@@ -113,7 +114,7 @@ public class AdminController {
      */
     @DeleteMapping(value = "/admin/users/{user}")
     public Object deleteUser( @PathVariable User user,
-                              @Validated ConfirmEmailForm confirmEmailForm,
+                              @Valid ConfirmEmailForm confirmEmailForm,
                               BindingResult bindingResult ) {
         if ( user == null ) {
             return ResponseEntity.notFound().build();

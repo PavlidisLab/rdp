@@ -7,8 +7,6 @@ import lombok.extern.apachecommons.CommonsLog;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.NaturalId;
 import org.hibernate.validator.constraints.Email;
-import org.hibernate.validator.constraints.Length;
-import org.hibernate.validator.constraints.NotEmpty;
 import org.springframework.util.StringUtils;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.TierType;
@@ -17,6 +15,8 @@ import javax.mail.internet.InternetAddress;
 import javax.persistence.*;
 import javax.validation.Valid;
 import java.io.Serializable;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.text.MessageFormat;
@@ -64,12 +64,13 @@ public class User implements UserContent, Serializable {
     @NaturalId
     @Column(name = "email", unique = true, nullable = false)
     @Email(message = "Your email address is not valid.", groups = { ValidationUserAccount.class })
-    @NotEmpty(message = "Please provide an email address.", groups = { ValidationUserAccount.class, ValidationServiceAccount.class })
+    @NotNull(message = "Please provide an email address.", groups = { ValidationUserAccount.class, ValidationServiceAccount.class })
+    @Size(min = 1, message = "Please provide an email address.", groups = { ValidationUserAccount.class, ValidationServiceAccount.class })
     private String email;
 
     @Column(name = "password")
-    @Length(min = 6, message = "Your password must have at least 6 characters.", groups = { ValidationUserAccount.class })
-    @NotEmpty(message = "Please provide your password.", groups = { ValidationUserAccount.class })
+    @Size(min = 6, message = "Your password must have at least 6 characters.", groups = { ValidationUserAccount.class })
+    @NotNull(message = "Please provide your password.", groups = { ValidationUserAccount.class })
     @JsonIgnore
     @org.springframework.data.annotation.Transient
     private String password;

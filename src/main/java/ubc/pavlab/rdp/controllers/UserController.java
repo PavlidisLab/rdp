@@ -4,7 +4,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.validator.constraints.NotEmpty;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
@@ -158,10 +157,10 @@ public class UserController {
 
     @Data
     private static class SupportForm {
-        @NotNull
+        @NotNull(message = "Your must provide your name.")
         @Size(min = 1, message = "Your must provide your name.")
         private String name;
-        @NotNull
+        @NotNull(message = "The message must be provided.")
         @Size(min = 1, message = "The message must not be empty.")
         private String message;
         private MultipartFile attachment;
@@ -252,7 +251,8 @@ public class UserController {
     @EqualsAndHashCode(callSuper = true)
     public static class PasswordChange extends PasswordReset {
 
-        @NotEmpty(message = "Current password cannot be empty.")
+        @NotNull(message = "Current password cannot be empty.")
+        @Size(min = 1, message = "Current password cannot be empty.")
         private String oldPassword;
     }
 

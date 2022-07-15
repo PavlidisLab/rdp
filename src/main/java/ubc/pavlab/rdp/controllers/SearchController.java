@@ -2,12 +2,10 @@ package ubc.pavlab.rdp.controllers;
 
 import lombok.Data;
 import lombok.extern.apachecommons.CommonsLog;
-import org.hibernate.validator.constraints.NotBlank;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.PermissionEvaluator;
-import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -30,6 +28,8 @@ import ubc.pavlab.rdp.services.*;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import java.net.URI;
 import java.text.MessageFormat;
 import java.util.*;
@@ -237,7 +237,8 @@ public class SearchController {
 
     @Data
     private static class RequestAccessForm {
-        @NotBlank(message = "Reason cannot be blank.")
+        @NotNull(message = "Reason cannot be blank.")
+        @Size(min = 1, message = "Reason cannot be blank.")
         private String reason;
     }
 

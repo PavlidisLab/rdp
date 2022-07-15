@@ -1,8 +1,6 @@
 package ubc.pavlab.rdp.settings;
 
 import lombok.Data;
-import lombok.RequiredArgsConstructor;
-import org.hibernate.validator.constraints.Range;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
@@ -13,12 +11,13 @@ import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.services.GeneInfoService;
 
+import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
+import javax.validation.constraints.Size;
 import java.net.URI;
 import java.util.EnumSet;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.SortedSet;
 
 /**
  * Created by mjacobson on 22/01/18.
@@ -97,7 +96,8 @@ public class ApplicationSettings {
          * <p>
          * Must be one of {@link #enabledLevels}.
          */
-        @Range(min = 0, max = 2)
+        @Min(0)
+        @Max(2)
         private int defaultLevel;
         /**
          * Minimum level of privacy for user profiles.
@@ -105,14 +105,15 @@ public class ApplicationSettings {
          * @deprecated The setting is still honored, but you should use {@link #enabledLevels} instead.
          */
         @Deprecated
-        @Range(min = 0, max = 2)
+        @Min(0)
+        @Max(2)
         private int minLevel;
         /**
          * List of enabled privacy levels for user profiles.
          * <p>
          * At least one level must be enabled and one of the must be used for {@link #defaultLevel}.
          */
-        @Min(1)
+        @Size(min = 1)
         private EnumSet<PrivacyLevelType> enabledLevels;
         /**
          * List of enabled privacy levels for user-associated genes.
@@ -169,7 +170,7 @@ public class ApplicationSettings {
          * <p>
          * The order of elements indicates the order of display in the search interface.
          */
-        @Min(1)
+        @Size(min = 1)
         private LinkedHashSet<SearchMode> enabledSearchModes;
     }
 

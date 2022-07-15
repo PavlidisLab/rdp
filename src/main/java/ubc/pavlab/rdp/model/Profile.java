@@ -1,15 +1,18 @@
 package ubc.pavlab.rdp.model;
 
-import lombok.*;
-import org.hibernate.annotations.CacheConcurrencyStrategy;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.hibernate.validator.constraints.Email;
-import org.hibernate.validator.constraints.NotEmpty;
 import org.hibernate.validator.constraints.URL;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.ResearcherCategory;
 import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import java.text.MessageFormat;
 import java.util.HashSet;
 import java.util.Set;
@@ -24,11 +27,13 @@ import java.util.Set;
 @Embeddable
 public class Profile {
     @Column(name = "name")
-    @NotEmpty(message = "Please provide your name.", groups = { User.ValidationUserAccount.class, User.ValidationServiceAccount.class })
+    @NotNull(message = "Please provide your name.", groups = { User.ValidationUserAccount.class, User.ValidationServiceAccount.class })
+    @Size(min = 1, message = "Please provide your name.", groups = { User.ValidationUserAccount.class, User.ValidationServiceAccount.class })
     private String name;
 
     @Column(name = "last_name")
-    @NotEmpty(message = "Please provide your last name.", groups = { User.ValidationUserAccount.class })
+    @NotNull(message = "Please provide your last name.", groups = { User.ValidationUserAccount.class })
+    @Size(min = 1, message = "Please provide your last name.", groups = { User.ValidationUserAccount.class })
     private String lastName;
 
     @Transient
