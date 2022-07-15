@@ -517,6 +517,7 @@ public class AdminControllerTest {
                 .build();
         when( ontologyService.findById( 1 ) ).thenReturn( ontology );
         mvc.perform( post( "/admin/ontologies/{ontologyId}", ontology.getId() )
+                        .param( "name", ontology.getName() )
                         .param( "availableForGeneSearch", "true" ) )
                 .andExpect( status().isOk() )
                 .andExpect( view().name( "admin/ontology" ) )
@@ -936,7 +937,7 @@ public class AdminControllerTest {
         mvc.perform( delete( "/admin/ontologies/{ontologyId}", ontology.getId() )
                         .param( "ontologyNameConfirmation", "mondo" ) )
                 .andExpect( status().isBadRequest() )
-                .andExpect( model().attribute( "message", "The MONDO category could not be deleted: null." ) )
+                .andExpect( model().attribute( "message", "The MONDO category could not be deleted because it is being used. Instead, you should deactivate it." ) )
                 .andExpect( model().attribute( "error", true ) );
         verify( ontologyService ).findById( 1 );
         verify( ontologyService ).delete( ontology );

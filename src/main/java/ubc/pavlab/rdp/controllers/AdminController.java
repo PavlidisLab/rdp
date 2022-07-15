@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.io.FilenameUtils;
 import org.hibernate.validator.constraints.NotBlank;
+import org.hibernate.validator.constraints.NotEmpty;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.core.io.Resource;
@@ -233,9 +234,17 @@ public class AdminController {
     private static class UpdateOntologyForm {
         public static UpdateOntologyForm fromOntology( Ontology ontology ) {
             UpdateOntologyForm form = new UpdateOntologyForm();
+            form.setName( ontology.getName() );
+            form.setOntologyUrl( ontology.getOntologyUrl() );
             form.setAvailableForGeneSearch( ontology.isAvailableForGeneSearch() );
             return form;
         }
+
+        @NotNull
+        @NotEmpty
+        private String name;
+
+        private URL ontologyUrl;
 
         private boolean availableForGeneSearch;
     }
@@ -296,7 +305,7 @@ public class AdminController {
                 log.error( String.format( "An administrator attempted to delete %s, but it failed.", ontology ), e );
                 modelAndView.setStatus( HttpStatus.BAD_REQUEST );
                 modelAndView.addObject( "error", true );
-                modelAndView.addObject( "message", String.format( "The %s category could not be deleted: %s.", resolveOntologyName( ontology, locale ), e.getMessage() ) );
+                modelAndView.addObject( "message", String.format( "The %s category could not be deleted because it is being used. Instead, you should deactivate it.", resolveOntologyName( ontology, locale ) ) );
             }
         }
 

@@ -422,11 +422,11 @@ public class ApiControllerTest {
                 .andExpect( jsonPath( "$[0].name" ).value( "uberon" ) )
                 .andExpect( jsonPath( "$[0].definition" ).value( nullValue() ) )
                 .andExpect( jsonPath( "$[0].numberOfTerms" ).value( numberOfTerms ) )
-                .andExpect( jsonPath( "$[0].numberOfObsoleteTerms" ).value( numberOfTerms ) )
+                .andExpect( jsonPath( "$[0].numberOfObsoleteTerms" ).value( 0 ) )
                 .andExpect( jsonPath( "$[1].name" ).value( "mondo" ) )
                 .andExpect( jsonPath( "$[1].definition" ).value( "a bunch of disease terms" ) )
                 .andExpect( jsonPath( "$[1].numberOfTerms" ).value( numberOfTerms ) )
-                .andExpect( jsonPath( "$[1].numberOfObsoleteTerms" ).value( numberOfTerms ) );
+                .andExpect( jsonPath( "$[1].numberOfObsoleteTerms" ).value( 0 ) );
 
         verify( ontologyService ).findAllOntologies();
     }

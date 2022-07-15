@@ -13,6 +13,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.info.BuildProperties;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.MessageSource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
@@ -725,13 +726,16 @@ public class OntologyService implements InitializingBean {
     }
 
     /**
-     * Infer a set of terms numerical IDs meant by an ontology term.
+     * Calculate the size of the subtree rooted in the given term.
      * <p>
-     * It is more efficient to use {@link #inferTermIds(Collection)} if you need to run it for multiple terms.
+     * Note: the result of this function is cached for performance reason, if you need to get an accurate subtree size,
+     * consider using the size of {@link #inferTermIds(Collection)} instead.
+     *
+     * @return the subtree size, which is at least one
      */
-    @Transactional(readOnly = true)
-    public Set<Integer> inferTermIds( OntologyTermInfo ontologyTermInfo ) {
-        return getDescendentIds( Collections.singleton( ontologyTermInfo ) );
+    @Cacheable(value = "ubc.pavlab.rdp.services.OntologyService.subtreeSizeByTerm")
+    public long subtreeSize( OntologyTermInfo term ) {
+        return inferTermIds( Collections.singleton( term ) ).size();
     }
 
     private SearchResult<OntologyTermInfo> toSearchResult( OntologyTermInfo t, OntologyTermMatchType matchType, String extras, double tfIdf, Locale locale ) {
@@ -947,14 +951,15 @@ public class OntologyService implements InitializingBean {
     }
 
     /**
-     * Find all active subtrees.
+     * Find all active, non-trivial subtrees.
      * <p>
-     * Normally, we only allow subtrees to be activated.
+     * Those are active terms whose super terms are not active and have at least one sub term. Note that active terms
+     * without parents are deemed to form active subtrees.
      * <p>
-     * Those are terms whose super terms are not active.
+     * Also note that it is not guaranteed that all the descendents of the returned terms are active.
      */
-    public List<OntologyTermInfo> findAllActiveSubtrees( Ontology ontology ) {
-        return ontologyTermInfoRepository.findAllByOntologyAndActiveAndSuperTermsEmpty( ontology );
+    public List<OntologyTermInfo> findAllActiveNonTrivialSubtrees( Ontology ontology ) {
+        return ontologyTermInfoRepository.findAllByOntologyAndActiveAndSuperTermsEmptyAndSubTermsNotEmpty( ontology );
     }
 
     /**

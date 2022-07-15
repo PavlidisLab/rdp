@@ -72,4 +72,8 @@
     <cache name="ubc.pavlab.rdp.services.UserService.remoteSearchUser"
            maxElementsInMemory="1"
            eternal="true"/>
+
+    <cache name="ubc.pavlab.rdp.services.OntologyService.subtreeSizeByTerm"
+           maxElementsInMemory="1000"
+           timeToLiveSeconds="600"/>
 </ehcache>

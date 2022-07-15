@@ -65,6 +65,11 @@
             formData = formData + '&' + organsForm;
         }
 
+        var ontologyTermInfoForm = $(this).closest('.tab-pane').find('.ontology-terms-form').serialize();
+        if (ontologyTermInfoForm) {
+            formData = formData + '&' + ontologyTermInfoForm;
+        }
+
         // Show search results
         var tableContainer = $("#userTable");
         tableContainer.html($('<i class="mx-2 spinner"></i>'));

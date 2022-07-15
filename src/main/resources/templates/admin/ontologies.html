@@ -137,6 +137,7 @@
                         <span th:if="${ontology.active}" class="badge badge-success">active</span>
                         <span th:unless="${ontology.active}" class="badge badge-secondary">inactive</span>
                         <span class="badge badge-info"><span th:text="${ontology.terms.size()}"></span> terms</span>
+                        <span th:if="${ontology.availableForGeneSearch}" class="badge badge-info">available for gene search</span>
                     </div>
                 </div>
                 <div class="card-body">
@@ -144,7 +145,7 @@
                     <a th:href="@{/admin/ontologies/{ontologyId}(ontologyId=${ontology.id})}"
                        class="btn btn-primary">
                         <i class="oi oi-pencil"></i>
-                        Manage Category
+                        Manage
                     </a>
                 </div>
             </div>

@@ -27,16 +27,19 @@
             in your <code>messages.properties</code> file to let users know what this category is about.
         </div>
         <dl class="dl-inline">
-            <th:block if="${ontology.ontologyUrl} != null">
+            <th:block th:if="${ontology.ontologyUrl} != null">
                 <dt>Source URL</dt>
-                <dd>
-                    <a th:href="${ontology.ontologyUrl}"
+                <dd th:with="isSafeOrPurl=${ontology.ontologyUrl.protocol} == 'https' or ${ontology.ontologyUrl.authority} == 'purl.obolibrary.org'">
+                    <a th:if="${isSafeOrPurl}"
+                       th:href="${ontology.ontologyUrl}"
                        th:text="${ontology.ontologyUrl}"></a>
+                    <!-- unsecure or local file -->
+                    <span th:unless="${isSafeOrPurl}"
+                          th:text="${ontology.ontologyUrl}"></span>
                     <th:block
                             th:if="${ontology.ontologyUrl} != null and not ${@ontologyService.resolveOntologyUrl(ontology.ontologyUrl).exists()}">
                         <br/>
-                        <small
-                                class="text-danger">
+                        <small class="text-danger">
                             Yikes! It looks like the resource used to update this category is not available.
                         </small>
                     </th:block>
@@ -92,13 +95,29 @@
         </div>
         <div class="row">
             <div class="col-lg-4 col-md-6">
-                <div class="card">
+                <div class="card mb-3">
                     <div class="card-header">
                         <h3 class="mb-0">Edit</h3>
                     </div>
                     <div class="card-body">
                         <form th:action="@{/admin/ontologies/{ontologyId}(ontologyId=${ontology.id})}"
                               method="post" th:object="${updateOntologyForm}">
+                            <div class="form-group">
+                                <label>Name</label>
+                                <input type="url" th:field="*{name}"
+                                       class="form-control"
+                                       th:errorclass="is-invalid"
+                                       readonly="readonly"/>
+                                <div class="invalid-feedback" th:errors="*{name}"></div>
+                            </div>
+                            <div class="form-group">
+                                <label>Source URL</label>
+                                <input type="url" th:field="*{ontologyUrl}"
+                                       class="form-control"
+                                       th:errorclass="is-invalid"
+                                       readonly="readonly"/>
+                                <div class="invalid-feedback" th:errors="*{ontologyUrl}"></div>
+                            </div>
                             <div class="form-group">
                                 <div class="form-check">
                                     <input th:field="*{availableForGeneSearch}" type="checkbox"
@@ -146,7 +165,8 @@
                         </h3>
                     </div>
                     <div class="card-body">
-                        <form th:href="@{/admin/ontologies/{ontologyId}}" th:method="delete"
+                        <form th:action="@{/admin/ontologies/{ontologyId}(ontologyId=${ontology.id})}"
+                              th:method="delete"
                               th:object="${deleteOntologyForm}"
                               class="d-inline-block pull-right">
                             <div class="form-group">
@@ -167,7 +187,8 @@
                 </div>
             </div>
         </div>
-        <div th:if="${ontology.terms.size()} gt 20" class="mb-3">
+        <div th:if="${ontology.terms.size()} gt 20" class="mb-3"
+             th:with="subtrees=${@ontologyService.findAllActiveNonTrivialSubtrees(ontology)}">
             <h2>Active Subtrees</h2>
             <p>Active subtrees are distinct parts of the ontology that are active.</p>
             <table class="table table-sm table-responsive">
@@ -181,15 +202,14 @@
                 </tr>
                 </thead>
                 <tbody>
-                <tr th:each="subtree : ${@ontologyService.findAllActiveSubtrees(ontology)}">
+                <tr th:each="subtree : ${subtrees}">
                     <td th:text="${subtree.termId}" class="text-nowrap"></td>
                     <td th:text="${subtree.name}" class="text-nowrap"></td>
                     <td>
                         <span th:text="${subtree.definition}" class="ontology-term-definition"></span>
                     </td>
                     <td class="text-nowrap">
-                        <span th:text="${@ontologyService.inferTermIds(subtree).size()}"></span>
-                        Terms
+                        <span th:text="${@ontologyService.subtreeSize(subtree)}"></span> Terms
                     </td>
                     <td class="text-right">
                         <form th:action="@{/admin/ontologies/{ontologyId}/deactivate-term(ontologyId=${ontology.id})}"
