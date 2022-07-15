@@ -61,10 +61,12 @@ require('../css/common.css');
         }
     });
 
-    /* we use a hide behaviour on alert instead of bootstrap defaults to remove the element from DOM */
-    $('.alert .close').on('click', function () {
-        $(this).parent().hide();
-    });
+    $(document).ready(function () {
+        $('[data-toggle="tooltip"]').tooltip();
 
-    $('[data-toggle="tooltip"]').tooltip();
+        /* we use a hide behaviour on alert instead of bootstrap defaults to remove the element from DOM */
+        $('.alert .close').on('click', function () {
+            $(this).parent().hide();
+        });
+    });
 })();
