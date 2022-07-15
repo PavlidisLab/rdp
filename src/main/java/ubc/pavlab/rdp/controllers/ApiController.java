@@ -91,6 +91,7 @@ public class ApiController {
      */
     @GetMapping(value = "/api/stats", produces = MediaType.APPLICATION_JSON_VALUE)
     public Object getStats() {
+        checkEnabled();
         return Stats.builder()
                 .users( userService.countResearchers() )
                 .publicUsers( userService.countPublicResearchers() )
@@ -113,6 +114,7 @@ public class ApiController {
                                 @Deprecated @RequestParam(required = false) String auth,
                                 Pageable pageable,
                                 Locale locale ) {
+        checkEnabled();
         checkAuth( authorizationHeader, auth );
         if ( applicationSettings.getPrivacy().isEnableAnonymizedSearchResults() ) {
             final Authentication auth2 = SecurityContextHolder.getContext().getAuthentication();
@@ -135,6 +137,7 @@ public class ApiController {
                                     @Deprecated @RequestParam(required = false) String auth,
                                     Pageable pageable,
                                     Locale locale ) {
+        checkEnabled();
         checkAuth( authorizationHeader, auth );
         if ( applicationSettings.getPrivacy().isEnableAnonymizedSearchResults() ) {
             final Authentication auth2 = SecurityContextHolder.getContext().getAuthentication();
