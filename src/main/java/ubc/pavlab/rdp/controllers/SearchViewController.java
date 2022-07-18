@@ -49,7 +49,7 @@ public class SearchViewController {
 
     @ExceptionHandler({ AccessDeniedException.class })
     public ModelAndView handleAccessDeniedForViewTemplates( HttpServletRequest req, AccessDeniedException exception ) {
-        log.warn( "Unauthorized access to the search view via " + req.getRequestURI() + ".", exception );
+        log.warn( "Unauthorized access to the search view.", exception );
         ModelAndView modelAndView = new ModelAndView();
         modelAndView.setStatus( HttpStatus.UNAUTHORIZED );
         modelAndView.setViewName( "fragments/error::message" );
@@ -327,7 +327,7 @@ public class SearchViewController {
             try {
                 user = remoteResourceService.getAnonymizedUser( anonymousId, remoteHostUri );
             } catch ( RemoteException e ) {
-                log.error( MessageFormat.format( "Failed to retrieve anonymized user {} from {}.", anonymousId, remoteHostUri.getAuthority() ), e );
+                log.error( MessageFormat.format( "Failed to retrieve anonymized user {} from {}.", anonymousId, remoteHostUri.getRawAuthority() ), e );
                 modelAndView.setStatus( HttpStatus.INTERNAL_SERVER_ERROR );
                 modelAndView.setViewName( "fragments/error::message" );
                 modelAndView.addObject( "errorMessage", "Error querying remote anonymous user." );

@@ -215,7 +215,7 @@ public class SearchController {
             try {
                 viewUser = remoteResourceService.getRemoteUser( userId, remoteHostUri );
             } catch ( RemoteException e ) {
-                log.error( MessageFormat.format( "Could not fetch the remote user id {0} from {1}.", userId, remoteHostUri.getAuthority() ), e );
+                log.error( MessageFormat.format( "Could not fetch the remote user id {0} from {1}.", userId, remoteHostUri.getRawAuthority() ), e );
                 modelAndView.setStatus( HttpStatus.SERVICE_UNAVAILABLE );
                 modelAndView.setViewName( "error/503" );
                 return modelAndView;
