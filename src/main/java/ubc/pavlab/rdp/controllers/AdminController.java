@@ -50,8 +50,9 @@ public class AdminController {
     }
 
     @GetMapping(value = "/admin/create-service-account")
-    public Object viewCreateServiceAccount( User user ) {
-        return "admin/create-service-account";
+    public ModelAndView viewCreateServiceAccount() {
+        return new ModelAndView( "admin/create-service-account" )
+                .addObject( "user", new User() )
     }
 
     @PostMapping(value = "/admin/create-service-account")

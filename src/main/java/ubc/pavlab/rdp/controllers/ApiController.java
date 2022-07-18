@@ -58,8 +58,9 @@ public class ApiController {
     private PermissionEvaluator permissionEvaluator;
 
     @ExceptionHandler({ AccessDeniedException.class })
-    public ResponseEntity<?> handleAccessDeniedException( HttpServletRequest req, Exception e ) {
-        log.warn( "Unauthorized access to the API via " + req.getRequestURI() + ".", e );
+    public ResponseEntity<?> handleAccessDeniedException( Exception e ) {
+        // the stacktrace will contain enough information to trace the error, so no need to log the request URI
+        log.warn( "Unauthorized access to the API.", e );
         return ResponseEntity.status( HttpStatus.UNAUTHORIZED )
                 .contentType( MediaType.TEXT_PLAIN )
                 .body( e.getMessage() );
@@ -76,7 +77,7 @@ public class ApiController {
     /**
      * Handle all unmapped API requests with a 404 error.
      */
-    @RequestMapping(value = "/api/*")
+    @GetMapping(value = "/api/*")
     public void handleMissingRoute() {
         throw new ApiException( HttpStatus.NOT_FOUND, "No endpoint found for your request URL." );
     }

@@ -61,7 +61,7 @@ public class SearchViewController {
      * Usually, we would have this handled by a 404 error page, but in the case of this endpoint, it will break the
      * client expecting a partial HTML fragment.
      */
-    @RequestMapping("/search/view/*")
+    @GetMapping("/search/view/*")
     public ModelAndView handleMissingRoute() {
         ModelAndView modelAndView = new ModelAndView();
         modelAndView.setStatus( HttpStatus.NOT_FOUND );
