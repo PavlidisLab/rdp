@@ -115,7 +115,7 @@ public class GOServiceImpl implements GOService {
         Map<String, GeneOntologyTermInfo> terms;
         try ( Reader reader = new InputStreamReader( cacheSettings.getTermFile().getInputStream() ) ) {
             terms = convertTerms( oboParser.parse( reader, OBOParser.Configuration.builder()
-                    .includeTypedef( OBOParser.Typedef.PART_OF )
+                    .includedRelationshipTypedef( OBOParser.Typedef.PART_OF )
                     .build() ).getTermsByIdOrAltId() );
         } catch ( IOException | ParseException e ) {
             log.error( "Failed to parse GO terms.", e );

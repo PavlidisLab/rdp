@@ -34,7 +34,7 @@ public class OBOParserIntegrationTest {
     public void parse_withGoTerms_thenSucceed() throws IOException, ParseException {
         Map<String, OBOParser.Term> parsedTerms = oboParser.parse( new InputStreamReader( new ClassPathResource( "cache/go.obo" ).getInputStream() ),
                 OBOParser.Configuration.builder()
-                        .includeTypedef( OBOParser.Typedef.PART_OF )
+                        .includedRelationshipTypedef( OBOParser.Typedef.PART_OF )
                         .build() ).getTermsByIdOrAltId();
         assertThat( parsedTerms ).containsKey( "GO:0000001" );
         OBOParser.Term term = parsedTerms.get( "GO:0000001" );
