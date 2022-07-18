@@ -97,7 +97,7 @@ public class OBOParserIntegrationTest {
     }
 
     @Test
-    public void parse_withNboTerms_ignoreExernallyDefinedTerms() throws IOException, ParseException {
+    public void parse_withNboTerms_ignoreExternallyDefinedTerms() throws IOException, ParseException {
         OBOParser.ParsingResult parsingResult = oboParser.parse( new InputStreamReader( new ClassPathResource( "cache/nbo-base.obo" ).getInputStream() ) );
         assertThat( parsingResult.getTermsByIdOrAltId() )
                 .containsKey( "NBO:0000013" )
