@@ -22,12 +22,9 @@ public class TokenBasedAuthenticationManager implements AuthenticationManager, A
 
     private final ApplicationSettings applicationSettings;
 
-    private final MessageSource messageSource;
-
-    public TokenBasedAuthenticationManager( UserService userService, ApplicationSettings applicationSettings, MessageSource messageSource ) {
+    public TokenBasedAuthenticationManager( UserService userService, ApplicationSettings applicationSettings ) {
         this.userService = userService;
         this.applicationSettings = applicationSettings;
-        this.messageSource = messageSource;
     }
 
     @Override

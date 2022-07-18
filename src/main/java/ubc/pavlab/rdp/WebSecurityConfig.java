@@ -44,9 +44,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     private UserDetailsService userDetailsService;
 
     @Autowired
-    private MessageSource messageSource;
-
-    @Autowired
     private PermissionEvaluator permissionEvaluator;
 
     @Autowired
@@ -72,7 +69,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         http
                 // allow _method in HTML form
                 .addFilterAfter( new HiddenHttpMethodFilter(), BasicAuthenticationFilter.class )
-                .addFilterBefore( new TokenBasedAuthenticationFilter( new AntPathRequestMatcher( "/api/**" ), new TokenBasedAuthenticationManager( userService, applicationSettings, messageSource ) ), UsernamePasswordAuthenticationFilter.class )
+                .addFilterBefore( new TokenBasedAuthenticationFilter( new AntPathRequestMatcher( "/api/**" ), new TokenBasedAuthenticationManager( userService, applicationSettings ) ), UsernamePasswordAuthenticationFilter.class )
                 .authorizeRequests()
                     // public endpoints
                     .antMatchers( "/", "/login", "/registration", "/registrationConfirm", "/stats", "/stats.html",
