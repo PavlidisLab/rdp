@@ -4,7 +4,11 @@ import lombok.Data;
 import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.StopWatch;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.dialect.MySQLDialect;
 import org.hibernate.exception.SQLGrammarException;
+import org.hibernate.internal.SessionFactoryImpl;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -25,6 +29,7 @@ import ubc.pavlab.rdp.repositories.ontology.OntologyRepository;
 import ubc.pavlab.rdp.repositories.ontology.OntologyTermInfoRepository;
 import ubc.pavlab.rdp.util.*;
 
+import javax.persistence.EntityManager;
 import java.io.*;
 import java.net.URL;
 import java.text.DateFormat;
@@ -61,7 +66,8 @@ public class OntologyService implements InitializingBean {
     @Autowired
     private BuildProperties buildProperties;
 
-    private boolean isFullTextSupported = false;
+    @Autowired
+    private EntityManager entityManager;
 
     @Autowired
     public OntologyService( OntologyRepository ontologyRepository, OntologyTermInfoRepository ontologyTermInfoRepository ) {
@@ -69,23 +75,17 @@ public class OntologyService implements InitializingBean {
         this.ontologyTermInfoRepository = ontologyTermInfoRepository;
     }
 
-    /**
-     * I'd guess this is the most robust way to determine of the match() ... against() syntax works.
-     */
     @Override
     public void afterPropertiesSet() {
-        try {
-            ontologyTermInfoRepository.findAllByOntologyInAndNameMatchAndActive( Collections.singleton( 1 ), "test", true );
-            this.isFullTextSupported = true;
+        if ( isFullTextSupported() ) {
             log.info( "Full-text is supported by the database engine, it will be used for querying ontology terms efficiently." );
-        } catch ( InvalidDataAccessResourceUsageException e ) {
-            if ( e.getCause() instanceof SQLGrammarException ) {
-                this.isFullTextSupported = false;
-                log.warn( "Full-text is not supported, ontology term matching will use the SQL LIKE syntax." );
-            } else {
-                throw e;
-            }
+        } else {
+            log.warn( "Full-text is not supported, ontology term matching will use the SQL LIKE syntax." );
         }
+    }
+
+    private boolean isFullTextSupported() {
+        return HibernateUtils.getDialect( entityManager ) instanceof MySQLDialect;
     }
 
     public Ontology findById( Integer id ) {
@@ -592,8 +592,6 @@ public class OntologyService implements InitializingBean {
 
         String normalizedQuery = TextUtils.normalize( query );
 
-        Set<Integer> ontologyIds = ontologies.stream().map( Ontology::getId ).collect( Collectors.toSet() );
-
         if ( ontologies.isEmpty() || normalizedQuery.length() < 3 ) {
             return results;
         }
@@ -627,9 +625,9 @@ public class OntologyService implements InitializingBean {
 
             // then some occurrences in the term name
             // by full text (if supported)
-            if ( isFullTextSupported ) {
-                results = ontologyTermInfoRepository.findAllByOntologyInAndNameMatchAndActive( ontologyIds, fullTextQuery, active ).stream()
-                        .map( row -> Pair.of( ontologyTermInfoRepository.findOne( (Integer) row[0] ), (Double) row[1] ) )
+            if ( isFullTextSupported() ) {
+                results = ontologyTermInfoRepository.findAllByOntologyInAndNameMatchAndActive( ontologies, fullTextQuery, active ).stream()
+                        .map( row -> Pair.of( (OntologyTermInfo) row[0], (Double) row[1] ) )
                         .map( t1 -> toSearchResult( t1.getFirst(), OntologyTermMatchType.TERM_NAME_MATCH, null, t1.getSecond() / TextUtils.tokenize( t1.getFirst().getName() ).size(), locale ) )
                         .collect( CollectionUtils.into( results ) );
             } else {
@@ -648,9 +646,9 @@ public class OntologyService implements InitializingBean {
         // then by synonyms
         if ( results.size() < maxResults ) {
             // full text (if available)
-            if ( isFullTextSupported ) {
-                results = ontologyTermInfoRepository.findAllByOntologyInAndSynonymsMatchAndActive( ontologyIds, fullTextQuery, active ).stream()
-                        .map( row -> Pair.of( ontologyTermInfoRepository.findOne( (Integer) row[0] ), (Double) row[1] ) )
+            if ( isFullTextSupported() ) {
+                results = ontologyTermInfoRepository.findAllByOntologyInAndSynonymsMatchAndActive( ontologies, fullTextQuery, active ).stream()
+                        .map( row -> Pair.of( (OntologyTermInfo) row[0], (Double) row[1] ) )
                         .map( t1 -> toSearchResult( t1.getFirst(), OntologyTermMatchType.SYNONYM_MATCH, String.join( ", ", t1.getFirst().getSynonyms() ), t1.getSecond(), locale ) )
                         .collect( CollectionUtils.into( results ) );
             } else {
@@ -668,9 +666,9 @@ public class OntologyService implements InitializingBean {
 
         // then some definitions
         if ( results.size() < maxResults ) {
-            if ( isFullTextSupported ) {
-                results = ontologyTermInfoRepository.findAllByOntologyInAndDefinitionMatchAndActive( ontologyIds, fullTextQuery, active ).stream()
-                        .map( row -> Pair.of( ontologyTermInfoRepository.findOne( (Integer) row[0] ), (Double) row[1] ) )
+            if ( isFullTextSupported() ) {
+                results = ontologyTermInfoRepository.findAllByOntologyInAndDefinitionMatchAndActive( ontologies, fullTextQuery, active ).stream()
+                        .map( row -> Pair.of( (OntologyTermInfo) row[0], (Double) row[1] ) )
                         .map( t -> toSearchResult( t.getFirst(), OntologyTermMatchType.DEFINITION_MATCH, t.getFirst().getDefinition(), t.getSecond(), locale ) )
                         .collect( CollectionUtils.into( results ) );
 
@@ -693,7 +691,7 @@ public class OntologyService implements InitializingBean {
         String searchSummary = String.format( "Found %d suitable results for autocompletion of query '%s' (normalized as '%s', full-text as '%s') in %d ms (initial query: %d ms, topological sort and ranking: %d ms).",
                 results.size(), query, normalizedQuery, fullTextQuery, timer.getTime(), initialQueryTimer.getTime(), topologicalSortTimer.getTime() );
 
-        if ( timer.getTime() > ( isFullTextSupported ? 500 : 1000 ) ) {
+        if ( timer.getTime() > ( isFullTextSupported() ? 500 : 1000 ) ) {
             log.warn( searchSummary );
         } else {
             log.debug( searchSummary );
