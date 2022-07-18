@@ -17,17 +17,4 @@ public class CollectionUtils {
                 },
                 identity() );
     }
-
-    /**
-     * Create an unmodifiable copy of the given collection.
-     * <p>
-     * Note that this copy is a shallow copy.
-     *
-     * @param collection the collection to copy
-     * @param <T>        the type of elements in the collection
-     * @return an unmodifiable copy of the collection
-     */
-    public static <T> Collection<T> unmodifiableCopy( Collection<? extends T> collection ) {
-        return Collections.unmodifiableCollection( new ArrayList<>( collection ) );
-    }
 }

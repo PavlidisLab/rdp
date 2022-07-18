@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static ubc.pavlab.rdp.util.TestUtils.createTerm;
 
 @RunWith(SpringRunner.class)
 public class GeneOntologyTermInfoRepositoryTest {
@@ -53,11 +54,31 @@ public class GeneOntologyTermInfoRepositoryTest {
     }
 
     @Test
+    public void findById() {
+        GeneOntologyTermInfo term = new GeneOntologyTermInfo();
+        term.setGoId( "GO:000001" );
+        term.setDirectGeneIds( Collections.singleton( 1 ) );
+        geneOntologyTermInfoRepository.saveByAlias( "GO:109202", term );
+        assertThat( geneOntologyTermInfoRepository.findById( "GO:109202" ) ).get().isEqualTo( term );
+    }
+
+    @Test
+    public void existsById_whenTermIsSavedByAlias_thenBothIdAndAliasCanBeUsed() {
+        GeneOntologyTermInfo term = new GeneOntologyTermInfo();
+        term.setGoId( "GO:000001" );
+        term.setDirectGeneIds( Collections.singleton( 1 ) );
+        geneOntologyTermInfoRepository.saveByAlias( "GO:109203", term );
+        assertThat( geneOntologyTermInfoRepository.existsById( "GO:000001" ) ).isTrue();
+        assertThat( geneOntologyTermInfoRepository.existsById( "GO:109203" ) ).isTrue();
+    }
+
+    @Test
     public void delete() {
         GeneOntologyTermInfo term = new GeneOntologyTermInfo();
         term.setGoId( "GO:000001" );
         term.setDirectGeneIds( Collections.singleton( 1 ) );
         geneOntologyTermInfoRepository.save( term );
+        assertThat( geneOntologyTermInfoRepository.count() ).isEqualTo( 1 );
         assertThat( geneOntologyTermInfoRepository.findById( "GO:000001" ) )
                 .isEqualTo( Optional.of( term ) );
         assertThat( geneOntologyTermInfoRepository.findByDirectGeneIdsContaining( 1 ) )
@@ -65,7 +86,34 @@ public class GeneOntologyTermInfoRepositoryTest {
         geneOntologyTermInfoRepository.delete( term );
         assertThat( geneOntologyTermInfoRepository.findByDirectGeneIdsContaining( 1 ) )
                 .isEmpty();
+        assertThat( geneOntologyTermInfoRepository.count() ).isEqualTo( 0 );
     }
+
+    @Test
+    public void delete_whenTermDoesNotExist() {
+        GeneOntologyTermInfo term = createTerm( "GO:000001" );
+        geneOntologyTermInfoRepository.delete( term );
+    }
+
+    @Test
+    public void delete_whenTermWasSavedByAlias_thenAliasAreAlsoDeleted() {
+        GeneOntologyTermInfo term = new GeneOntologyTermInfo();
+        term.setGoId( "GO:000001" );
+        term.setDirectGeneIds( Collections.singleton( 1 ) );
+        geneOntologyTermInfoRepository.saveByAlias( "GO:109203", term );
+        assertThat( geneOntologyTermInfoRepository.count() ).isEqualTo( 1 );
+        assertThat( geneOntologyTermInfoRepository.findById( "GO:000001" ) )
+                .isPresent();
+        assertThat( geneOntologyTermInfoRepository.findById( "GO:109203" ) )
+                .isPresent();
+        geneOntologyTermInfoRepository.delete( term );
+        assertThat( geneOntologyTermInfoRepository.findById( "GO:000001" ) )
+                .isNotPresent();
+        assertThat( geneOntologyTermInfoRepository.findById( "GO:109203" ) )
+                .isNotPresent();
+        assertThat( geneOntologyTermInfoRepository.count() ).isEqualTo( 0 );
+    }
+
 
     @Test
     public void deleteById() {
@@ -76,6 +124,7 @@ public class GeneOntologyTermInfoRepositoryTest {
         geneOntologyTermInfoRepository.deleteById( term.getGoId() );
         assertThat( geneOntologyTermInfoRepository.findByDirectGeneIdsContaining( 1 ) )
                 .isEmpty();
+        assertThat( geneOntologyTermInfoRepository.count() ).isEqualTo( 0 );
     }
 
     @Test
@@ -102,6 +151,9 @@ public class GeneOntologyTermInfoRepositoryTest {
 
     @Test
     public void deleteAll() {
+        for ( int i = 0; i < 10000; i++ ) {
+            geneOntologyTermInfoRepository.save( createTerm( i ) );
+        }
         geneOntologyTermInfoRepository.deleteAll();
         assertThat( geneOntologyTermInfoRepository.findAll() ).isEmpty();
         assertThat( geneOntologyTermInfoRepository.count() ).isEqualTo( 0 );
