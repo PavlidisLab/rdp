@@ -1,24 +1,23 @@
 package ubc.pavlab.rdp.controllers;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
-import ubc.pavlab.rdp.WebSecurityConfig;
 import ubc.pavlab.rdp.model.GeneInfo;
 import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.model.enums.GeneMatchType;
 import ubc.pavlab.rdp.services.GOService;
 import ubc.pavlab.rdp.services.GeneInfoService;
 import ubc.pavlab.rdp.services.TaxonService;
+import ubc.pavlab.rdp.services.UserService;
+import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.util.SearchResult;
 
 import java.util.Collections;
@@ -32,14 +31,10 @@ import static ubc.pavlab.rdp.util.TestUtils.createTaxon;
 
 @RunWith(SpringRunner.class)
 @WebMvcTest(GeneController.class)
-@Import(WebSecurityConfig.class)
 public class GeneControllerTest {
 
     @Autowired
     private MockMvc mvc;
-
-    @Autowired
-    private ObjectMapper objectMapper;
 
     @MockBean
     private GeneInfoService geneService;
@@ -49,6 +44,12 @@ public class GeneControllerTest {
 
     @MockBean
     private TaxonService taxonService;
+
+    @MockBean
+    private UserService userService;
+
+    @MockBean
+    private ApplicationSettings applicationSettings;
 
     @MockBean
     private UserDetailsService userDetailsService;

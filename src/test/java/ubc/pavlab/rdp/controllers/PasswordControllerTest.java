@@ -20,6 +20,7 @@ import ubc.pavlab.rdp.repositories.UserRepository;
 import ubc.pavlab.rdp.services.EmailService;
 import ubc.pavlab.rdp.services.UserDetailsServiceImpl;
 import ubc.pavlab.rdp.services.UserService;
+import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.settings.SiteSettings;
 
 import java.util.Locale;
@@ -66,6 +67,9 @@ public class PasswordControllerTest {
 
     @MockBean
     private UserRepository userRepository;
+
+    @MockBean
+    private ApplicationSettings applicationSettings;
 
     @MockBean
     private PermissionEvaluator permissionEvaluator;

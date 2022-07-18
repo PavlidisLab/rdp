@@ -7,6 +7,7 @@ import org.springframework.security.core.AuthenticationException;
 import ubc.pavlab.rdp.exception.TokenException;
 import ubc.pavlab.rdp.model.User;
 import ubc.pavlab.rdp.model.UserPrinciple;
+import ubc.pavlab.rdp.services.ExpiredTokenException;
 import ubc.pavlab.rdp.services.UserService;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 
@@ -35,14 +36,18 @@ public class TokenBasedAuthenticationManager implements AuthenticationManager, A
         User u;
         if ( applicationSettings.getIsearch().getAuthTokens().contains( authToken ) ) {
             // remote admin authentication
-            u = userService.getRemoteSearchUser()
-                    .orElseThrow( () -> new AuthenticationServiceException( messageSource.getMessage( "ApiController.misconfiguredRemoteAdmin", null, Locale.getDefault() ) ) );
+            u = userService.getRemoteSearchUser().orElse( null );
+            if ( u == null ) {
+                throw new InternalAuthenticationServiceException( "The remote search user is not configured correctly." );
+            }
         } else {
             // authentication via access token
             try {
                 u = userService.findUserByAccessTokenNoAuth( authToken );
+            } catch ( ExpiredTokenException e ) {
+                throw new CredentialsExpiredException( "API token is expired.", e );
             } catch ( TokenException e ) {
-                throw new BadCredentialsException( "Invalid API token.", e );
+                throw new BadCredentialsException( "API token is invalid.", e );
             }
         }
 
@@ -50,7 +55,7 @@ public class TokenBasedAuthenticationManager implements AuthenticationManager, A
             throw new BadCredentialsException( "No user associated to the provided API token." );
         }
 
-        return new UsernamePasswordAuthenticationToken( new UserPrinciple( u ), null, new UserPrinciple( u ).getAuthorities() );
+        return new UsernamePasswordAuthenticationToken( new UserPrinciple( u ), authToken, new UserPrinciple( u ).getAuthorities() );
     }
 
     @Override

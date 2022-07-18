@@ -16,6 +16,8 @@ import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.model.enums.TermMatchType;
 import ubc.pavlab.rdp.services.GOService;
 import ubc.pavlab.rdp.services.TaxonService;
+import ubc.pavlab.rdp.services.UserService;
+import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.util.SearchResult;
 
 import java.util.Collections;
@@ -28,7 +30,6 @@ import static ubc.pavlab.rdp.util.TestUtils.createTerm;
 
 @RunWith(SpringRunner.class)
 @WebMvcTest(TermController.class)
-@Import(WebSecurityConfig.class)
 public class TermControllerTest {
 
     @Autowired
@@ -39,6 +40,12 @@ public class TermControllerTest {
 
     @MockBean
     private GOService goService;
+
+    @MockBean
+    private ApplicationSettings applicationSettings;
+
+    @MockBean
+    private UserService userService;
 
     @MockBean
     private UserDetailsService userDetailsService;

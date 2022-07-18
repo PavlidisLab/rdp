@@ -268,7 +268,7 @@ public class UserServiceImpl implements UserService, InitializingBean {
         }
         if ( Instant.now().isAfter( token.getExpiryDate().toInstant() ) ) {
             // token is expired
-            throw new TokenException( "Token is expired." );
+            throw new ExpiredTokenException( "Token is expired." );
         }
         return token.getUser();
     }
