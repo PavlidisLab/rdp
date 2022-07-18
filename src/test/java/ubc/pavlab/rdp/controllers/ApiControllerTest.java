@@ -105,6 +105,10 @@ public class ApiControllerTest {
 
     @Test
     public void searchGenes_withSearchDisabled_thenReturnServiceUnavailable() throws Exception {
+        // configure remote authentication
+        when( iSearchSettings.getAuthTokens() ).thenReturn( Collections.singletonList( "1234" ) );
+        when( userService.getRemoteSearchUser() ).thenReturn( Optional.of( createUser( 1 ) ) );
+
         when( iSearchSettings.isEnabled() ).thenReturn( false );
         mvc.perform( get( "/api/genes/search" )
                         .header( "Authorization", "Bearer 1234" )
@@ -172,30 +176,35 @@ public class ApiControllerTest {
                         .header( "Authorization", "Bearer unknownToken" )
                         .param( "symbol", "CDH1" )
                         .param( "taxonId", "9606" )
-                        .param( "tier", "TIER1" ) )
-                .andExpect( status().isUnauthorized() );
+                        .param( "tier", "TIER1" )
+                        .accept( MediaType.APPLICATION_JSON ) )
+                .andExpect( status().isUnauthorized() )
+                .andExpect( header().stringValues( "WWW-Authenticate", "Bearer" ) )
+                .andExpect( content().contentType( MediaType.TEXT_PLAIN ) )
+                .andExpect( content().string( "No user associated to the provided API token." ) );
     }
 
     @Test
-    public void searchGenes_withInvalidAuthToken_thenReturnBadRequest() throws Exception {
+    public void searchGenes_withInvalidAuthTokenScheme_thenIgnore() throws Exception {
         mvc.perform( get( "/api/genes/search" )
                         .header( "Authorization", "Basic unknownToken" )
                         .param( "symbol", "CDH1" )
                         .param( "taxonId", "9606" )
                         .param( "tier", "TIER1" ) )
-                .andExpect( status().isBadRequest() )
-                .andExpect( content().contentTypeCompatibleWith( MediaType.TEXT_PLAIN ) );
+                .andExpect( status().isNotFound() )
+                .andExpect( content().contentType( MediaType.TEXT_PLAIN ) );
     }
 
     @Test
-    public void searchGenes_whenMisconfiguredRemoteAdmin_thenReturnServiceUnavailable() throws Exception {
+    public void searchGenes_whenMisconfiguredRemoteAdmin_thenReturnUnauthorized() throws Exception {
         when( iSearchSettings.getAuthTokens() ).thenReturn( Collections.singletonList( "1234" ) );
         mvc.perform( get( "/api/genes/search" )
                         .header( "Authorization", "Bearer 1234" )
                         .param( "symbol", "CDH1" )
                         .param( "taxonId", "9606" )
                         .param( "tier", "TIER1" ) )
-                .andExpect( status().isServiceUnavailable() );
+                .andExpect( status().isUnauthorized() )
+                .andExpect( content().contentType( MediaType.TEXT_PLAIN ) );
     }
 
     @Test

@@ -3,7 +3,6 @@ package ubc.pavlab.rdp;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;
 import org.springframework.context.MessageSource;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -15,13 +14,16 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.filter.HiddenHttpMethodFilter;
 import ubc.pavlab.rdp.security.PermissionEvaluatorImpl;
+import ubc.pavlab.rdp.security.authentication.TokenBasedAuthenticationFilter;
+import ubc.pavlab.rdp.security.authentication.TokenBasedAuthenticationManager;
+import ubc.pavlab.rdp.services.UserService;
+import ubc.pavlab.rdp.settings.ApplicationSettings;
 
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 
@@ -47,6 +49,12 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     private PermissionEvaluator permissionEvaluator;
 
+    @Autowired
+    private ApplicationSettings applicationSettings;
+
+    @Autowired
+    private UserService userService;
+
     @Override
     protected void configure( AuthenticationManagerBuilder auth ) throws Exception {
         auth.userDetailsService( userDetailsService ).passwordEncoder( bCryptPasswordEncoder );
@@ -64,6 +72,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         http
                 // allow _method in HTML form
                 .addFilterAfter( new HiddenHttpMethodFilter(), BasicAuthenticationFilter.class )
+                .addFilterBefore( new TokenBasedAuthenticationFilter( new AntPathRequestMatcher( "/api/**" ), new TokenBasedAuthenticationManager( userService, applicationSettings, messageSource ) ), UsernamePasswordAuthenticationFilter.class )
                 .authorizeRequests()
                     // public endpoints
                     .antMatchers( "/", "/login", "/registration", "/registrationConfirm", "/stats", "/stats.html",
@@ -106,6 +115,5 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .exceptionHandling()
                     .accessDeniedPage( "/access-denied" )
                     .and();
-
     }
 }

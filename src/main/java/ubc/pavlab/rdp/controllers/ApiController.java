@@ -5,20 +5,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.PermissionEvaluator;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import ubc.pavlab.rdp.exception.ApiException;
-import ubc.pavlab.rdp.exception.TokenException;
 import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.ResearcherCategory;
@@ -62,8 +57,8 @@ public class ApiController {
     @Autowired
     private PermissionEvaluator permissionEvaluator;
 
-    @ExceptionHandler({ AuthenticationException.class, AccessDeniedException.class })
-    public ResponseEntity<?> handleAuthenticationExceptionAndAccessDeniedException( HttpServletRequest req, Exception e ) {
+    @ExceptionHandler({ AccessDeniedException.class })
+    public ResponseEntity<?> handleAccessDeniedException( HttpServletRequest req, Exception e ) {
         log.warn( "Unauthorized access to the API via " + req.getRequestURI() + ".", e );
         return ResponseEntity.status( HttpStatus.UNAUTHORIZED )
                 .contentType( MediaType.TEXT_PLAIN )
@@ -110,12 +105,9 @@ public class ApiController {
      * Results that cannot be displayed are anonymized.
      */
     @GetMapping(value = "/api/users", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Page<User> getUsers( @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorizationHeader,
-                                @Deprecated @RequestParam(required = false) String auth,
-                                Pageable pageable,
+    public Page<User> getUsers( Pageable pageable,
                                 Locale locale ) {
         checkEnabled();
-        checkAuth( authorizationHeader, auth );
         if ( applicationSettings.getPrivacy().isEnableAnonymizedSearchResults() ) {
             final Authentication auth2 = SecurityContextHolder.getContext().getAuthentication();
             return userService.findByEnabledTrueNoAuth( pageable )
@@ -133,12 +125,9 @@ public class ApiController {
      * Results that cannot be displayed are anonymized.
      */
     @GetMapping(value = "/api/genes", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Page<UserGene> getGenes( @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorizationHeader,
-                                    @Deprecated @RequestParam(required = false) String auth,
-                                    Pageable pageable,
+    public Page<UserGene> getGenes( Pageable pageable,
                                     Locale locale ) {
         checkEnabled();
-        checkAuth( authorizationHeader, auth );
         if ( applicationSettings.getPrivacy().isEnableAnonymizedSearchResults() ) {
             final Authentication auth2 = SecurityContextHolder.getContext().getAuthentication();
             return userGeneService.findByUserEnabledTrueNoAuth( pageable )
@@ -155,12 +144,9 @@ public class ApiController {
                                          @RequestParam(required = false) Set<ResearcherPosition> researcherPositions,
                                          @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
                                          @RequestParam(required = false) Set<String> organUberonIds,
-                                         @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorizationHeader,
-                                         @Deprecated @RequestParam(required = false) String auth,
                                          Locale locale ) {
         checkEnabled();
         checkResearcherSearchEnabled();
-        checkAuth( authorizationHeader, auth );
         if ( prefix ) {
             return initUsers( userService.findByStartsName( nameLike, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ) ), locale );
         } else {
@@ -173,12 +159,9 @@ public class ApiController {
                                                 @RequestParam(required = false) Set<ResearcherPosition> researcherPositions,
                                                 @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
                                                 @RequestParam(required = false) Set<String> organUberonIds,
-                                                @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorizationHeader,
-                                                @Deprecated @RequestParam(required = false) String auth,
                                                 Locale locale ) {
         checkEnabled();
         checkResearcherSearchEnabled();
-        checkAuth( authorizationHeader, auth );
         return initUsers( userService.findByDescription( descriptionLike, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ) ), locale );
     }
 
@@ -193,12 +176,9 @@ public class ApiController {
                                                    @RequestParam(required = false) Set<ResearcherPosition> researcherPositions,
                                                    @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
                                                    @RequestParam(required = false) Set<String> organUberonIds,
-                                                   @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorizationHeader,
-                                                   @Deprecated @RequestParam(required = false) String auth,
                                                    Locale locale ) {
         checkEnabled();
         checkGeneSearchEnabled();
-        checkAuth( authorizationHeader, auth );
 
         Taxon taxon = taxonService.findById( taxonId );
 
@@ -244,8 +224,6 @@ public class ApiController {
                                                    @RequestParam(required = false) Set<ResearcherPosition> researcherPositions,
                                                    @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
                                                    @RequestParam(required = false) Set<String> organUberonIds,
-                                                   @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorizationHeader,
-                                                   @Deprecated @RequestParam(required = false) String auth,
                                                    Locale locale ) {
         Set<TierType> tiers;
         if ( tier.equals( "ANY" ) ) {
@@ -261,16 +239,13 @@ public class ApiController {
             }
         }
 
-        return searchUsersByGeneSymbol( symbol, taxonId, tiers, orthologTaxonId, researcherPositions, researcherCategories, organUberonIds, authorizationHeader, auth, locale );
+        return searchUsersByGeneSymbol( symbol, taxonId, tiers, orthologTaxonId, researcherPositions, researcherCategories, organUberonIds, locale );
     }
 
     @GetMapping(value = "/api/users/{userId}", produces = MediaType.APPLICATION_JSON_VALUE)
     public User getUserById( @PathVariable Integer userId,
-                             @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorizationHeader,
-                             @RequestParam(name = "auth", required = false) String auth,
                              Locale locale ) {
         checkEnabled();
-        checkAuth( authorizationHeader, auth );
         User user = userService.findUserById( userId );
         if ( user == null ) {
             throw new ApiException( HttpStatus.NOT_FOUND, String.format( locale, "Unknown user with ID: %d.", userId ) );
@@ -280,12 +255,9 @@ public class ApiController {
 
     @GetMapping(value = "/api/users/by-anonymous-id/{anonymousId}")
     public User getUserByAnonymousId( @PathVariable UUID anonymousId,
-                                      @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorizationHeader,
-                                      @RequestParam(name = "auth", required = false) String auth,
                                       Locale locale ) {
         checkEnabled();
         checkAnonymousResultsEnabled();
-        checkAuth( authorizationHeader, auth );
         User user = userService.findUserByAnonymousIdNoAuth( anonymousId );
         if ( user == null ) {
             throw new ApiException( HttpStatus.NOT_FOUND, String.format( "Unknown user with anonymous ID: %s.", anonymousId ) );
@@ -319,42 +291,6 @@ public class ApiController {
         if ( !applicationSettings.getPrivacy().isEnableAnonymizedSearchResults() ) {
             throw new ApiException( HttpStatus.SERVICE_UNAVAILABLE, "Anonymized search results is not available for this registry." );
         }
-    }
-
-    private void checkAuth( String authorizationHeader, String authToken ) throws AuthenticationException {
-        if ( authToken == null && authorizationHeader != null ) {
-            String[] pieces = authorizationHeader.split( " ", 2 );
-            if ( pieces.length == 2 && pieces[0].equalsIgnoreCase( "Bearer" ) ) {
-                authToken = pieces[1];
-            } else {
-                throw new ApiException( HttpStatus.BAD_REQUEST, "Cannot parse Authorization header, should be 'Bearer <api_key>'." );
-            }
-        }
-
-        User u;
-        if ( authToken == null ) {
-            // anonymous user which is the default for spring security
-            return;
-        } else if ( applicationSettings.getIsearch().getAuthTokens().contains( authToken ) ) {
-            // remote admin authentication
-            u = userService.getRemoteSearchUser()
-                    .orElseThrow( () -> new ApiException( HttpStatus.SERVICE_UNAVAILABLE, messageSource.getMessage( "ApiController.misconfiguredRemoteAdmin", null, Locale.getDefault() ) ) );
-        } else {
-            // authentication via access token
-            try {
-                u = userService.findUserByAccessTokenNoAuth( authToken );
-            } catch ( TokenException e ) {
-                throw new BadCredentialsException( "Invalid API token.", e );
-            }
-        }
-
-        if ( u == null ) {
-            throw new BadCredentialsException( "No user associated to the provided API token." );
-        }
-
-        UserPrinciple principle = new UserPrinciple( u );
-        SecurityContextHolder.getContext().setAuthentication(
-                new UsernamePasswordAuthenticationToken( principle, null, principle.getAuthorities() ) );
     }
 
     private List<UserGene> initUserGenes( List<UserGene> genes, Locale locale ) {
