@@ -81,6 +81,36 @@ public class SearchController {
     }
 
     @PreAuthorize("hasPermission(null, #iSearch ? 'international-search' : 'search')")
+    @GetMapping(value = "/search", params = { "nameLike", "descriptionLike" })
+    public ModelAndView searchUsers( @RequestParam String nameLike,
+                                     @RequestParam(required = false) boolean prefix,
+                                     @RequestParam String descriptionLike,
+                                     @RequestParam boolean iSearch,
+                                     @RequestParam(required = false) Set<ResearcherPosition> researcherPositions,
+                                     @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
+                                     @RequestParam(required = false) Set<String> organUberonIds,
+                                     @RequestParam(required = false) List<Integer> ontologyTermIds ) {
+        List<OntologyTermInfo> ontologyTerms;
+        if ( ontologyTermIds != null ) {
+            ontologyTerms = ontologyService.findAllTermsByIdInMaintainingOrder( ontologyTermIds );
+        } else {
+            ontologyTerms = Collections.emptyList();
+        }
+        ModelAndView modelAndView = new ModelAndView( "search" )
+                .addObject( "activeSearchTab", "user" )
+                .addObject( "chars", userService.getLastNamesFirstChar() )
+                .addObject( "nameLike", nameLike )
+                .addObject( "descriptionLike", descriptionLike )
+                .addObject( "ontologyTerms", ontologyTerms )
+                .addObject( "users", userService.findByNameAndDescription( nameLike, prefix, descriptionLike, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ), ontologyTermsFromIds( ontologyTermIds ) ) )
+                .addObject( "iSearch", iSearch );
+        if ( iSearch ) {
+            modelAndView.addObject( "itlUsers", remoteResourceService.findUsersByLikeNameAndDescription( nameLike, prefix, descriptionLike, researcherPositions, researcherCategories, organUberonIds, ontologyTermsFromIds( ontologyTermIds ) ) );
+        }
+        return modelAndView;
+    }
+
+    @PreAuthorize("hasPermission(null, #iSearch ? 'international-search' : 'search')")
     @GetMapping(value = "/search", params = { "nameLike" })
     public ModelAndView searchUsersByName( @RequestParam String nameLike,
                                            @RequestParam Boolean prefix,

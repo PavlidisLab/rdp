@@ -59,17 +59,6 @@
 
         var formData = $(this).serialize();
 
-        /* retrieve nearby organ systems */
-        var organsForm = $(this).closest('.tab-pane').find('.organs-form').serialize();
-        if (organsForm) {
-            formData = formData + '&' + organsForm;
-        }
-
-        var ontologyTermInfoForm = $(this).closest('.tab-pane').find('.ontology-terms-form').serialize();
-        if (ontologyTermInfoForm) {
-            formData = formData + '&' + ontologyTermInfoForm;
-        }
-
         // Show search results
         var tableContainer = $("#userTable");
         tableContainer.html($('<i class="mx-2 spinner"></i>'));

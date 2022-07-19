@@ -6,6 +6,7 @@ import lombok.experimental.SuperBuilder;
 import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -31,6 +32,7 @@ import java.net.URI;
 import java.text.MessageFormat;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
@@ -73,21 +75,14 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
                 .path( API_URI )
                 .build()
                 .toUri();
-        try {
-            OpenAPI openAPI = asyncRestTemplate.getForEntity( uri, OpenAPI.class ).get().getBody();
-            // The OpenAPI specification was introduced in 1.4, so we assume 1.0.0 for previous versions
-            if ( openAPI.getInfo() == null ) {
-                return "1.0.0";
-            } else if ( openAPI.getInfo().getVersion().equals( "v0" ) ) {
-                return "1.4.0"; // the version number was missing in early 1.4
-            } else {
-                return openAPI.getInfo().getVersion();
-            }
-        } catch ( ExecutionException e ) {
-            throw new RemoteException( MessageFormat.format( "Unsuccessful response received for {0}.", uri ), e.getCause() );
-        } catch ( InterruptedException e ) {
-            Thread.currentThread().interrupt();
-            throw new RemoteException( MessageFormat.format( "A thread was interrupted while waiting for {0} response.", uri ), e );
+        OpenAPI openAPI = getFromRequestFuture( remoteHost, asyncRestTemplate.getForEntity( uri, OpenAPI.class ) ).getBody();
+        // The OpenAPI specification was introduced in 1.4, so we assume 1.0.0 for previous versions
+        if ( openAPI.getInfo() == null ) {
+            return "1.0.0";
+        } else if ( openAPI.getInfo().getVersion().equals( "v0" ) ) {
+            return "1.4.0"; // the version number was missing in early 1.4
+        } else {
+            return openAPI.getInfo().getVersion();
         }
     }
 
@@ -102,7 +97,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
                 .organUberonIds( organUberonIds )
                 .ontologyTermInfos( ontologyTermInfos )
                 .build().toMultiValueMap() );
-        return getRemoteEntities( User[].class, API_USERS_SEARCH_URI, params ).stream()
+        return getRemoteEntities( User[].class, API_USERS_SEARCH_URI, params, "1.0.0" ).stream()
                 .sorted( User.getComparator() )
                 .collect( Collectors.toList() );
     }
@@ -117,7 +112,24 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
                 .organUberonIds( organUberonIds )
                 .ontologyTermInfos( ontologyTermInfos )
                 .build().toMultiValueMap() );
-        return getRemoteEntities( User[].class, API_USERS_SEARCH_URI, params ).stream()
+        return getRemoteEntities( User[].class, API_USERS_SEARCH_URI, params, "1.0.0" ).stream()
+                .sorted( User.getComparator() )
+                .collect( Collectors.toList() );
+    }
+
+    @Override
+    public List<User> findUsersByLikeNameAndDescription( String nameLike, boolean prefix, String descriptionLike, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherCategories, Set<String> organUberonIds, Collection<OntologyTermInfo> ontologyTermInfos ) {
+        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+        params.add( "nameLike", nameLike );
+        params.add( "prefix", String.valueOf( prefix ) );
+        params.add( "descriptionLike", descriptionLike );
+        params.putAll( UserSearchParams.builder()
+                .researcherPositions( researcherPositions )
+                .researcherCategories( researcherCategories )
+                .organUberonIds( organUberonIds )
+                .ontologyTermInfos( ontologyTermInfos )
+                .build().toMultiValueMap() );
+        return getRemoteEntities( User[].class, API_USERS_SEARCH_URI, params, "1.5.0" ).stream()
                 .sorted( User.getComparator() )
                 .collect( Collectors.toList() );
     }
@@ -137,7 +149,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
                     .organUberonIds( organUberonIds )
                     .ontologyTermInfos( ontologyTermInfos )
                     .build().toMultiValueMap() );
-            intlUsergenes.addAll( getRemoteEntities( UserGene[].class, API_GENES_SEARCH_URI, params ) );
+            intlUsergenes.addAll( getRemoteEntities( UserGene[].class, API_GENES_SEARCH_URI, params, "1.0.0" ) );
         }
         Map<Integer, Integer> taxonOrderingById = taxonService.findByActiveTrue().stream()
                 .collect( Collectors.toMap( Taxon::getId, Taxon::getOrdering ) );
@@ -191,23 +203,33 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
     }
 
     private User getUserByUri( URI uri ) throws RemoteException {
-        try {
-            ResponseEntity<User> responseEntity = asyncRestTemplate.getForEntity( uri, User.class ).get();
-            User user = responseEntity.getBody();
-            initUser( user );
-            return user;
-        } catch ( ExecutionException e ) {
-            throw new RemoteException( MessageFormat.format( "Unsuccessful response received for {0}.", uri ), e.getCause() );
-        } catch ( InterruptedException e ) {
-            Thread.currentThread().interrupt();
-            throw new RemoteException( MessageFormat.format( "A thread was interrupted while waiting for {0} response.", uri ), e );
-        }
+        ResponseEntity<User> responseEntity = getFromRequestFuture( uri, asyncRestTemplate.getForEntity( uri, User.class ) );
+        User user = responseEntity.getBody();
+        initUser( user );
+        return user;
     }
 
-    private <T> Collection<T> getRemoteEntities( Class<T[]> arrCls, String path, MultiValueMap<String, String> params ) {
-        Integer requestTimeout = applicationSettings.getIsearch().getRequestTimeout();
+    /**
+     * Retrieve entities from all registered partner APIs.
+     *
+     * @param arrCls         the type of entities to retrieve as a {@link Class}
+     * @param path           the API endpoint to query
+     * @param params         the parameters for the endpoint
+     * @param minimumVersion minimum version requirement as per {@link VersionUtils#satisfiesVersion(String, String)}
+     * @param <T>            the type of entities to retrieve
+     * @return the entities from all registered partner APIs
+     */
+    private <T> Collection<T> getRemoteEntities( Class<T[]> arrCls, String path, MultiValueMap<String, String> params, String minimumVersion ) {
         return Arrays.stream( applicationSettings.getIsearch().getApis() )
                 .map( URI::create )
+                .filter( remoteHost -> {
+                    try {
+                        return VersionUtils.satisfiesVersion( getApiVersion( remoteHost ), minimumVersion );
+                    } catch ( RemoteException e ) {
+                        log.warn( String.format( "Failed to retrieve API version from %s.", remoteHost ), e );
+                        return false;
+                    }
+                } )
                 .map( api -> {
                     // work on a copy because we'll be selectively adding auth information
                     LinkedMultiValueMap<String, String> apiParams = new LinkedMultiValueMap<>( params );
@@ -222,23 +244,8 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
                 .collect( Collectors.toList() ).stream()
                 .map( uriAndFuture -> {
                     try {
-                        if ( requestTimeout != null ) {
-                            return uriAndFuture.getRight().get( requestTimeout.longValue(), TimeUnit.SECONDS );
-                        } else {
-                            return uriAndFuture.getRight().get();
-                        }
-                    } catch ( ExecutionException e ) {
-                        log.error( MessageFormat.format( "Unsuccessful response received for {0}.", uriAndFuture.getLeft() ), e.getCause() );
-                        return null;
-                    } catch ( TimeoutException e ) {
-                        // no need for the stacktrace in case of timeout
-                        log.warn( MessageFormat.format( "Partner registry {0} has timed out after {1}s.",
-                                uriAndFuture.getLeft(),
-                                requestTimeout ) );
-                        return null;
-                    } catch ( InterruptedException e ) {
-                        Thread.currentThread().interrupt();
-                        log.error( MessageFormat.format( "A thread was interrupted while waiting for {0} response.", uriAndFuture.getLeft() ), e );
+                        return getFromRequestFuture( uriAndFuture.getLeft(), uriAndFuture.getRight() );
+                    } catch ( RemoteException e ) {
                         return null;
                     }
                 } )
@@ -246,6 +253,25 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
                 .map( ResponseEntity::getBody )
                 .flatMap( Arrays::stream )
                 .collect( Collectors.toList() );
+    }
+
+    private <T> T getFromRequestFuture( URI uri, Future<T> future ) throws RemoteException {
+        Integer requestTimeout = applicationSettings.getIsearch().getRequestTimeout();
+        try {
+            if ( requestTimeout != null ) {
+                return future.get( requestTimeout.longValue(), TimeUnit.SECONDS );
+            } else {
+                return future.get();
+            }
+        } catch ( ExecutionException e ) {
+            throw new RemoteException( String.format( "Unsuccessful response received for %s.", uri ), e.getCause() );
+        } catch ( InterruptedException e ) {
+            Thread.currentThread().interrupt();
+            throw new RemoteException( String.format( "A thread was interrupted while waiting for %s response.", uri ), e );
+        } catch ( TimeoutException e ) {
+            // no need for the stacktrace in case of timeout
+            throw new RemoteException( String.format( "Partner registry %s has timed out after %d s.", uri.getRawAuthority(), requestTimeout ), e );
+        }
     }
 
     private URI getApiUri( URI remoteHost ) throws RemoteException {
@@ -265,16 +291,17 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
         user.getUserOrgans().values().forEach( ug -> ug.setUser( user ) );
     }
 
-    private Set<TierType> restrictTiers( Set<TierType> tiers ) {
+    private SortedSet<TierType> restrictTiers( Set<TierType> tiers ) {
         return tiers.stream()
                 .filter( t -> t != TierType.TIER3 )
-                .collect( Collectors.toSet() );
+                .collect( Collectors.toCollection( TreeSet::new ) );
     }
 
     private void addAuthParamIfAdmin( URI apiUri, MultiValueMap<String, String> query ) {
         User user = userService.findCurrentUser();
         if ( user != null && user.getRoles().contains( roleRepository.findByRole( "ROLE_ADMIN" ) ) ) {
             UriComponents apiUriComponents = UriComponentsBuilder.fromUri( apiUri ).build();
+            //noinspection StatementWithEmptyBody
             if ( apiUriComponents.getQueryParams().containsKey( "noauth" ) ) {
                 // do nothing, we don't have admin access for this partner
             } else if ( apiUriComponents.getQueryParams().containsKey( "auth" ) ) {

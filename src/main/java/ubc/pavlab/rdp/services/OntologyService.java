@@ -52,6 +52,14 @@ import static java.util.function.UnaryOperator.identity;
 @CommonsLog
 public class OntologyService implements InitializingBean {
 
+    /**
+     * Maximum size of a "simple" ontology.
+     * <p>
+     * If you need to test if an ontology is deemed simple, consider using {@link #isSimple(Ontology)} instead.
+     *
+     * @see #isSimple(Ontology)
+     */
+    public static final int SIMPLE_ONTOLOGY_MAX_SIZE = 20;
     private static final DateFormat OBO_DATE_FORMAT = new SimpleDateFormat( "dd:MM:yyyy HH:mm" );
 
     private final OntologyRepository ontologyRepository;
@@ -290,6 +298,22 @@ public class OntologyService implements InitializingBean {
         CollectionUtils.update( ontology.getTerms(), convertedTerms );
 
         return ontologyRepository.save( ontology );
+    }
+
+    /**
+     * Test if a given ontology is deemed simple.
+     * <p>
+     * This is measured with a size threshold - 20 at the moment - on the number of terms the ontology has regardless of
+     * their active states.
+     * <p>
+     * The result of this method is cached, making it suitable for rendering without needlessly hitting the database to
+     * get the number of terms.
+     *
+     * @see #SIMPLE_ONTOLOGY_MAX_SIZE
+     */
+    @Cacheable(value = "ubc.pavlab.rdp.services.OntologyService.simpleOntologies")
+    public boolean isSimple( Ontology ontology ) {
+        return ontology.getTerms().size() <= SIMPLE_ONTOLOGY_MAX_SIZE;
     }
 
     /**

@@ -59,7 +59,7 @@
                 <input type="hidden" name="includeTerms" value="true"/>
                 <button class="btn btn-warning" type="submit">
                     Deactivate
-                    <span th:if="${ontology.terms.size()} gt 20">All Terms</span>
+                    <span th:unless="${@ontologyService.isSimple(ontology)}">All Terms</span>
                 </button>
             </form>
             <form th:unless="${ontology.active}"
@@ -132,7 +132,7 @@
                     </div>
                 </div>
             </div>
-            <div th:if="${ontology.terms.size()} gt 20" class="col-lg-4 col-md-6">
+            <div th:unless="${@ontologyService.isSimple(ontology)}" class="col-lg-4 col-md-6">
                 <div class="card mb-3">
                     <div class="card-header">
                         <h3 class="mb-0">
@@ -187,7 +187,7 @@
                 </div>
             </div>
         </div>
-        <div th:if="${ontology.terms.size()} gt 20" class="mb-3"
+        <div th:unless="${@ontologyService.isSimple(ontology)}" class="mb-3"
              th:with="subtrees=${@ontologyService.findAllActiveNonTrivialSubtrees(ontology)}">
             <h2>Active Subtrees</h2>
             <p>Active subtrees are distinct parts of the ontology that are active.</p>
@@ -225,7 +225,7 @@
                 </tbody>
             </table>
         </div>
-        <div th:unless="${ontology.terms.size()} gt 20" class="card">
+        <div th:if="${@ontologyService.isSimple(ontology)}" class="card">
             <div class="card-header">
                 <h3 class="mb-0">
                     Edit Terms

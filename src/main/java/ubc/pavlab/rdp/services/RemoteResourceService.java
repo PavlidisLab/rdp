@@ -44,6 +44,8 @@ public interface RemoteResourceService {
      */
     List<User> findUsersByDescription( String descriptionLike, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherTypes, Collection<String> organUberonIds, Collection<OntologyTermInfo> ontologyTermInfos );
 
+    List<User> findUsersByLikeNameAndDescription( String nameLike, boolean prefix, String descriptionLike, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherCategories, Set<String> organUberonIds, Collection<OntologyTermInfo> ontologyTermInfos );
+
     /**
      * Find genes by symbol among all partner registries.
      *

@@ -75,6 +75,20 @@ public class SearchViewController {
     }
 
     @PreAuthorize("hasPermission(null, 'international-search')")
+    @GetMapping(value = "/search/view/international", params = { "nameLike", "descriptionLike" })
+    public ModelAndView searchItlUsers( @RequestParam String nameLike,
+                                        @RequestParam(required = false) boolean prefix,
+                                        @RequestParam String descriptionLike,
+                                        @RequestParam(required = false) Set<ResearcherPosition> researcherPositions,
+                                        @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
+                                        @RequestParam(required = false) Set<String> organUberonIds,
+                                        @RequestParam(required = false) Set<Integer> ontologyTermIds ) {
+        return new ModelAndView( "fragments/user-table::user-table" )
+                .addObject( "users", remoteResourceService.findUsersByLikeNameAndDescription( nameLike, prefix, descriptionLike, researcherPositions, researcherCategories, organUberonIds, ontologyTermsFromIds( ontologyTermIds ) ) )
+                .addObject( "remote", Boolean.TRUE );
+    }
+
+    @PreAuthorize("hasPermission(null, 'international-search')")
     @GetMapping(value = "/search/view/international", params = { "nameLike" })
     public ModelAndView searchItlUsersByNameView( @RequestParam String nameLike,
                                                   @RequestParam Boolean prefix,
@@ -86,6 +100,33 @@ public class SearchViewController {
         modelAndView.addObject( "users", remoteResourceService.findUsersByLikeName( nameLike, prefix, researcherPositions, researcherCategories, organUberonIds, ontologyTermsFromIds( ontologyTermIds ) ) );
         modelAndView.addObject( "remote", Boolean.TRUE );
         return modelAndView;
+    }
+
+    @PreAuthorize("hasPermission(null, 'international-search')")
+    @GetMapping(value = "/search/view/international", params = { "descriptionLike" })
+    public ModelAndView searchItlUsersByDescriptionView( @RequestParam String descriptionLike,
+                                                         @RequestParam(required = false) Set<ResearcherPosition> researcherPositions,
+                                                         @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
+                                                         @RequestParam(required = false) Set<String> organUberonIds,
+                                                         @RequestParam(required = false) Set<Integer> ontologyTermIds ) {
+        ModelAndView modelAndView = new ModelAndView( "fragments/user-table::user-table" );
+        modelAndView.addObject( "users", remoteResourceService.findUsersByDescription( descriptionLike, researcherPositions, researcherCategories, organUberonIds, ontologyTermsFromIds( ontologyTermIds ) ) );
+        modelAndView.addObject( "remote", Boolean.TRUE );
+        return modelAndView;
+    }
+
+    @PreAuthorize("hasPermission(null, 'search')")
+    @GetMapping(value = "/search/view", params = { "nameLike", "descriptionLike" })
+    public ModelAndView searchUsersView( @RequestParam String nameLike,
+                                         @RequestParam(required = false) boolean prefix,
+                                         @RequestParam String descriptionLike,
+                                         @RequestParam(required = false) Set<ResearcherPosition> researcherPositions,
+                                         @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
+                                         @RequestParam(required = false) Set<String> organUberonIds,
+                                         @RequestParam(required = false) Set<Integer> ontologyTermIds ) {
+        return new ModelAndView( "fragments/user-table::user-table" )
+                .addObject( "users", userService.findByNameAndDescription( nameLike, prefix, descriptionLike,
+                        researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ), ontologyTermsFromIds( ontologyTermIds ) ) );
     }
 
     @PreAuthorize("hasPermission(null, 'search')")
@@ -118,6 +159,7 @@ public class SearchViewController {
         modelAndView.addObject( "users", userService.findByDescription( descriptionLike, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ), ontologyTermsFromIds( ontologyTermIds ) ) );
         return modelAndView;
     }
+
 
     @PreAuthorize("hasPermission(null, 'search')")
     @GetMapping(value = "/search/view")
@@ -244,19 +286,6 @@ public class SearchViewController {
 
         modelAndView.addObject( "orthologs", orthologMap );
 
-        return modelAndView;
-    }
-
-    @PreAuthorize("hasPermission(null, 'international-search')")
-    @GetMapping(value = "/search/view/international", params = { "descriptionLike" })
-    public ModelAndView searchItlUsersByDescriptionView( @RequestParam String descriptionLike,
-                                                         @RequestParam(required = false) Set<ResearcherPosition> researcherPositions,
-                                                         @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
-                                                         @RequestParam(required = false) Set<String> organUberonIds,
-                                                         @RequestParam(required = false) Set<Integer> ontologyTermIds ) {
-        ModelAndView modelAndView = new ModelAndView( "fragments/user-table::user-table" );
-        modelAndView.addObject( "users", remoteResourceService.findUsersByDescription( descriptionLike, researcherPositions, researcherCategories, organUberonIds, ontologyTermsFromIds( ontologyTermIds ) ) );
-        modelAndView.addObject( "remote", Boolean.TRUE );
         return modelAndView;
     }
 

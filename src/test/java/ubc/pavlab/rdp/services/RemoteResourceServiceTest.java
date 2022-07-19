@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +14,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.web.client.ExpectedCount;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.AsyncRestTemplate;
 import ubc.pavlab.rdp.exception.RemoteException;
@@ -32,10 +32,11 @@ import java.util.EnumSet;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
-import static ubc.pavlab.rdp.util.TestUtils.*;
+import static ubc.pavlab.rdp.util.TestUtils.createRemoteUser;
+import static ubc.pavlab.rdp.util.TestUtils.createTaxon;
 
 @RunWith(SpringRunner.class)
 public class RemoteResourceServiceTest {
@@ -140,6 +141,10 @@ public class RemoteResourceServiceTest {
     @Test
     public void findUserByLikeName_thenReturnSuccess() throws JsonProcessingException {
         MockRestServiceServer mockServer = MockRestServiceServer.createServer( asyncRestTemplate );
+        mockServer.expect( requestTo( "http://example.com/api" ) )
+                .andRespond( withStatus( HttpStatus.OK )
+                        .contentType( MediaType.APPLICATION_JSON )
+                        .body( objectMapper.writeValueAsString( new OpenAPI().info( new Info().version( "1.0.0" ) ) ) ) );
         mockServer.expect( requestTo( "http://example.com/api/users/search?nameLike=ok&prefix=true" ) )
                 .andRespond( withStatus( HttpStatus.OK )
                         .contentType( MediaType.APPLICATION_JSON )
@@ -151,6 +156,10 @@ public class RemoteResourceServiceTest {
     @Test
     public void findUserByLikeName_whenAdmin_thenReturnSuccess() throws JsonProcessingException {
         MockRestServiceServer mockServer = MockRestServiceServer.createServer( asyncRestTemplate );
+        mockServer.expect( requestTo( "http://example.com/api" ) )
+                .andRespond( withStatus( HttpStatus.OK )
+                        .contentType( MediaType.APPLICATION_JSON )
+                        .body( objectMapper.writeValueAsString( new OpenAPI().info( new Info().version( "1.0.0" ) ) ) ) );
         mockServer.expect( requestTo( "http://example.com/api/users/search?nameLike=ok&prefix=true&auth=1234" ) )
                 .andRespond( withStatus( HttpStatus.OK )
                         .contentType( MediaType.APPLICATION_JSON )
@@ -162,13 +171,54 @@ public class RemoteResourceServiceTest {
     }
 
     @Test
-    @Ignore("There an issue with with multiple requests performed against Spring MockServer.")
+    public void findUsersByLikeNameAndDescription() throws JsonProcessingException {
+        MockRestServiceServer mockServer = MockRestServiceServer.createServer( asyncRestTemplate );
+        mockServer.expect( requestTo( "http://example.com/api" ) )
+                .andRespond( withStatus( HttpStatus.OK )
+                        .contentType( MediaType.APPLICATION_JSON )
+                        .body( objectMapper.writeValueAsString( new OpenAPI().info( new Info().version( "1.5.0" ) ) ) ) );
+        mockServer.expect( requestTo( "http://example.com/api/users/search?nameLike=ok&prefix=true&descriptionLike=ok2" ) )
+                .andRespond( withStatus( HttpStatus.OK )
+                        .contentType( MediaType.APPLICATION_JSON )
+                        .body( objectMapper.writeValueAsString( new User[]{ createRemoteUser( 1, URI.create( "http://example.com" ) ) } ) ) );
+        assertThat( remoteResourceService.findUsersByLikeNameAndDescription( "ok", true, "ok2", null, null, null, null ) )
+                .hasSize( 1 )
+                .extracting( "id" )
+                .containsExactly( 1 );
+        mockServer.verify();
+    }
+
+    @Test
+    public void findUsersByLikeNameAndDescription_whenVersionIsPre15_thenReturnNothing() throws JsonProcessingException {
+        MockRestServiceServer mockServer = MockRestServiceServer.createServer( asyncRestTemplate );
+        mockServer.expect( requestTo( "http://example.com/api" ) )
+                .andRespond( withStatus( HttpStatus.OK )
+                        .contentType( MediaType.APPLICATION_JSON )
+                        .body( objectMapper.writeValueAsString( new OpenAPI().info( new Info().version( "1.4.0" ) ) ) ) );
+        mockServer.expect( ExpectedCount.never(), requestTo( "http://example.com/api/users/search?nameLike=ok&prefix=true&descriptionLike=ok2" ) )
+                .andRespond( withStatus( HttpStatus.OK )
+                        .contentType( MediaType.APPLICATION_JSON )
+                        .body( objectMapper.writeValueAsString( new User[]{} ) ) );
+        assertThat( remoteResourceService.findUsersByLikeNameAndDescription( "ok", true, "ok2", null, null, null, null ) )
+                .isEmpty();
+        mockServer.verify();
+    }
+
+    @Test
     public void findGenesBySymbol_whenTier3_isRestricted() throws JsonProcessingException {
         MockRestServiceServer mockServer = MockRestServiceServer.createServer( asyncRestTemplate );
+        mockServer.expect( requestTo( "http://example.com/api" ) )
+                .andRespond( withStatus( HttpStatus.OK )
+                        .contentType( MediaType.APPLICATION_JSON )
+                        .body( objectMapper.writeValueAsString( new OpenAPI().info( new Info().version( "1.0.0" ) ) ) ) );
         mockServer.expect( requestTo( "http://example.com/api/genes/search?symbol=ok&taxonId=9606&tier=TIER1" ) )
                 .andRespond( withStatus( HttpStatus.OK )
                         .contentType( MediaType.APPLICATION_JSON )
                         .body( objectMapper.writeValueAsString( new UserGene[]{} ) ) );
+        mockServer.expect( requestTo( "http://example.com/api" ) )
+                .andRespond( withStatus( HttpStatus.OK )
+                        .contentType( MediaType.APPLICATION_JSON )
+                        .body( objectMapper.writeValueAsString( new OpenAPI().info( new Info().version( "1.0.0" ) ) ) ) );
         mockServer.expect( requestTo( "http://example.com/api/genes/search?symbol=ok&taxonId=9606&tier=TIER2" ) )
                 .andRespond( withStatus( HttpStatus.OK )
                         .contentType( MediaType.APPLICATION_JSON )
@@ -182,6 +232,10 @@ public class RemoteResourceServiceTest {
     public void findGenesBySymbol_whenRequestTimeoutIsSet_thenSucceed() throws JsonProcessingException {
         when( iSearchSettings.getRequestTimeout() ).thenReturn( 3 );
         MockRestServiceServer mockServer = MockRestServiceServer.createServer( asyncRestTemplate );
+        mockServer.expect( requestTo( "http://example.com/api" ) )
+                .andRespond( withStatus( HttpStatus.OK )
+                        .contentType( MediaType.APPLICATION_JSON )
+                        .body( objectMapper.writeValueAsString( new OpenAPI().info( new Info().version( "1.0.0" ) ) ) ) );
         mockServer.expect( requestTo( "http://example.com/api/genes/search?symbol=ok&taxonId=9606&tier=TIER1" ) )
                 .andRespond( withStatus( HttpStatus.OK )
                         .contentType( MediaType.APPLICATION_JSON )

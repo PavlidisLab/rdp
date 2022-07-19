@@ -118,6 +118,8 @@ public interface UserService {
      */
     List<User> findByDescription( String descriptionLike, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherTypes, Collection<OrganInfo> userOrgans, Collection<OntologyTermInfo> ontologyTermInfos );
 
+    List<User> findByNameAndDescription( String nameLike, boolean prefix, String descriptionLike, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherCategories, Collection<OrganInfo> userOrgans, Collection<OntologyTermInfo> ontologyTermInfos );
+
     long countResearchers();
 
     long countPublicResearchers();

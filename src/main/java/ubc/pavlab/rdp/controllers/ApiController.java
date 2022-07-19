@@ -211,6 +211,23 @@ public class ApiController {
         return initUsers( userService.findByDescription( descriptionLike, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ), ontologyTermsFromOntologyWithTermIds( ontologyNames, ontologyTermIds ) ), locale );
     }
 
+    @GetMapping(value = "/api/users/search", params = { "nameLike", "descriptionLike" }, produces = MediaType.APPLICATION_JSON_VALUE)
+    public Object searchUsersByNameAndDescription( @RequestParam String nameLike,
+                                                   @RequestParam(required = false) boolean prefix,
+                                                   @RequestParam String descriptionLike,
+                                                   @RequestParam(required = false) Set<ResearcherPosition> researcherPositions,
+                                                   @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
+                                                   @RequestParam(required = false) Set<String> organUberonIds,
+                                                   @RequestParam(required = false) List<String> ontologyNames,
+                                                   @RequestParam(required = false) List<String> ontologyTermIds,
+                                                   @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorizationHeader,
+                                                   @Deprecated @RequestParam(required = false) String auth,
+                                                   Locale locale ) {
+        checkEnabled();
+        checkAuth( authorizationHeader, auth );
+        return initUsers( userService.findByNameAndDescription( nameLike, prefix, descriptionLike, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ), ontologyTermsFromOntologyWithTermIds( ontologyNames, ontologyTermIds ) ), locale );
+    }
+
     /**
      * Search for genes by symbol, taxon, tier, orthologs and organ systems.
      */

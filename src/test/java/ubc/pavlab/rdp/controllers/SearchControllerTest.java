@@ -35,8 +35,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -138,6 +137,9 @@ public class SearchControllerTest {
         mvc.perform( get( "/search" ) )
                 .andExpect( status().isOk() )
                 .andExpect( view().name( "search" ) );
+        verify( userService ).getLastNamesFirstChar();
+        verify( userService ).findCurrentUser();
+        verifyNoMoreInteractions( userService );
     }
 
     @Test
@@ -146,6 +148,7 @@ public class SearchControllerTest {
         mvc.perform( get( "/search" ) )
                 .andExpect( status().is3xxRedirection() )
                 .andExpect( redirectedUrl( "http://localhost/login" ) );
+        verifyZeroInteractions( userService );
     }
 
     @Test
@@ -157,6 +160,7 @@ public class SearchControllerTest {
                 .andExpect( status().isOk() )
                 .andExpect( view().name( "search" ) )
                 .andExpect( model().attributeExists( "users" ) );
+        verify( userService ).findByStartsName( "K", null, null, null, null );
     }
 
     @Test
@@ -167,6 +171,19 @@ public class SearchControllerTest {
                 .andExpect( status().isOk() )
                 .andExpect( view().name( "search" ) )
                 .andExpect( model().attributeExists( "users" ) );
+        verify( userService ).findByDescription( "pancake", null, null, null, null );
+    }
+
+    @Test
+    public void searchByNameAndDescription_thenReturn200() throws Exception {
+        mvc.perform( get( "/search" )
+                        .param( "nameLike", "maple" )
+                        .param( "descriptionLike", "pancake" )
+                        .param( "iSearch", "false" ) )
+                .andExpect( status().isOk() )
+                .andExpect( view().name( "search" ) )
+                .andExpect( model().attributeExists( "users" ) );
+        verify( userService ).findByNameAndDescription( "maple", false, "pancake", null, null, null, null );
     }
 
     @Test
@@ -262,14 +279,12 @@ public class SearchControllerTest {
 
     @Test
     public void searchUsersByNameView_thenReturnSuccess() throws Exception {
-        User user = createRemoteUser( 1, URI.create( "https://example.com/" ) );
-        when( remoteResourceService.findUsersByLikeName( "Mark", true, null, null, null, null ) )
-                .thenReturn( Collections.singletonList( remotify( user, User.class ) ) );
         mvc.perform( get( "/search/view" )
                         .param( "nameLike", "Mark" )
                         .param( "prefix", "true" ) )
                 .andExpect( status().isOk() )
                 .andExpect( view().name( "fragments/user-table::user-table" ) );
+        verify( userService ).findByStartsName( "Mark", null, null, null, null );
     }
 
     @Test
@@ -277,14 +292,12 @@ public class SearchControllerTest {
         // The frontend cannot handle 3xx redirection to the login page as that would return a full-fledged HTML
         // document, so instead it must produce a 401 Not Authorized exception
         when( permissionEvaluator.hasPermission( any(), isNull(), eq( "search" ) ) ).thenReturn( false );
-        User user = createRemoteUser( 1, URI.create( "https://example.com/" ) );
-        when( remoteResourceService.findUsersByLikeName( "Mark", true, null, null, null, null ) )
-                .thenReturn( Collections.singletonList( remotify( user, User.class ) ) );
         mvc.perform( get( "/search/view" )
                         .param( "nameLike", "Mark" )
                         .param( "prefix", "true" ) )
                 .andExpect( status().isUnauthorized() )
                 .andExpect( view().name( "fragments/error::message" ) );
+        verifyZeroInteractions( userService );
     }
 
     @Test
@@ -297,6 +310,7 @@ public class SearchControllerTest {
                         .param( "prefix", "true" ) )
                 .andExpect( status().isOk() )
                 .andExpect( view().name( "fragments/user-table::user-table" ) );
+        verify( remoteResourceService ).findUsersByLikeName( "Mark", true, null, null, null, null );
     }
 
     @Test
@@ -319,6 +333,7 @@ public class SearchControllerTest {
                 .andExpect( status().isOk() )
                 .andExpect( view().name( "fragments/profile::user-preview" ) )
                 .andExpect( model().attribute( "user", user ) );
+        verify( userService ).findUserById( 1 );
     }
 
     @Test
@@ -327,6 +342,7 @@ public class SearchControllerTest {
         when( userService.findUserById( 1 ) ).thenReturn( user );
         mvc.perform( get( "/search/view/user-preview/{userId}", user.getId() ) )
                 .andExpect( status().isNoContent() );
+        verify( userService ).findUserById( 1 );
     }
 
     @Test
@@ -386,11 +402,14 @@ public class SearchControllerTest {
     public void previewAnonymousUser_whenUserIsRemoteAndApiVersionIsPre14_thenReturnNotFound() throws Exception {
         User anonymousUser = createAnonymousUser();
         anonymousUser.getProfile().getResearcherCategories().add( ResearcherCategory.IN_SILICO );
-        when( remoteResourceService.getApiVersion( URI.create( "http://localhost/" ) ) ).thenReturn( "1.0.0" );
+        when( remoteResourceService.getAnonymizedUser( anonymousUser.getAnonymousId(), URI.create( "http://localhost/" ) ) )
+                .thenReturn( null ); // pre-1.4 returns null when the API version is not satisfied
         mvc.perform( get( "/search/view/user-preview/by-anonymous-id/{anonymousId}", anonymousUser.getAnonymousId() )
                         .param( "remoteHost", "http://localhost/" ) )
                 .andExpect( status().isNotFound() )
                 .andExpect( view().name( "fragments/error::message" ) );
+        verify( remoteResourceService ).getAnonymizedUser( anonymousUser.getAnonymousId(), URI.create( "http://localhost/" ) );
+        verifyNoMoreInteractions( remoteResourceService );
     }
 
     @Test

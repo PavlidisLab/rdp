@@ -39,8 +39,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static ubc.pavlab.rdp.util.TestUtils.*;
@@ -110,6 +109,20 @@ public class ApiControllerTest {
                 .andExpect( status().isUnauthorized() )
                 .andExpect( content().contentType( MediaType.TEXT_PLAIN ) );
         verify( userService ).countResearchers();
+    }
+
+    @Test
+    public void searchUsers() throws Exception {
+        when( userService.findByNameAndDescription( "robert", false, "pancake", null, null, null, null ) )
+                .thenReturn( Collections.singletonList( createUser( 1 ) ) );
+        mvc.perform( get( "/api/users/search" )
+                        .param( "nameLike", "robert" )
+                        .param( "descriptionLike", "pancake" ) )
+                .andExpect( status().isOk() )
+                .andExpect( jsonPath( "$[0].id" ).value( 1 ) )
+                .andExpect( jsonPath( "$[0].origin" ).value( "RDMM" ) )
+                .andExpect( jsonPath( "$[0].originUrl" ).value( "http://localhost" ) );
+        verify( userService ).findByNameAndDescription( "robert", false, "pancake", null, null, null, null );
     }
 
     @Test

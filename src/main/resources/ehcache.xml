@@ -73,6 +73,10 @@
            maxElementsInMemory="1"
            eternal="true"/>
 
+    <cache name="ubc.pavlab.rdp.services.OntologyService.simpleOntologies"
+           maxElementsInMemory="10"
+           timeToLiveSeconds="600"/>
+
     <cache name="ubc.pavlab.rdp.services.OntologyService.subtreeSizeByTerm"
            maxElementsInMemory="1000"
            timeToLiveSeconds="600"/>

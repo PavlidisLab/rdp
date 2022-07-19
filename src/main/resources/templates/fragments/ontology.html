@@ -6,7 +6,7 @@
 </span>
 <div th:fragment="terms-display-or-selection(ontology, selectedTerms, readOnly, showTable)"
      th:with="ontologyHasIcons=${@ontologyService.hasIcons(ontology)}">
-    <div th:if="${ontology.terms.size()} lt 20" class="form-row">
+    <div th:if="${@ontologyService.isSimple(ontology)}" class="form-row">
         <th:block th:each="term, j : ${ontology.terms}" th:if="${term.superTerms.isEmpty()}">
 
             <!-- grouping terms (occupies a full row) -->

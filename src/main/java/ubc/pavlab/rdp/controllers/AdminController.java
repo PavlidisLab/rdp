@@ -204,7 +204,7 @@ public class AdminController {
         }
         ModelAndView modelAndView = new ModelAndView( "admin/ontology" )
                 .addAllObjects( defaultsForOntologyModelAndView( ontology ) );
-        if ( ontology.getTerms().size() <= 20 ) {
+        if ( ontologyService.isSimple( ontology ) ) {
             modelAndView.addObject( "simpleOntologyForm", SimpleOntologyForm.fromOntology( ontology ) );
         }
         return modelAndView;
@@ -216,7 +216,7 @@ public class AdminController {
     private static Map<String, ?> defaultsForOntologyModelAndView( Ontology ontology ) {
         return new HashMap<String, Object>() {{
             put( "updateOntologyForm", UpdateOntologyForm.fromOntology( ontology ) );
-            if ( ontology.getTerms().size() <= 20 ) {
+            if ( ontology.getTerms().size() <= OntologyService.SIMPLE_ONTOLOGY_MAX_SIZE ) {
                 put( "simpleOntologyForm", SimpleOntologyForm.fromOntology( ontology ) );
             }
             if ( ontology.isActive() ) {
@@ -262,7 +262,7 @@ public class AdminController {
                 .addAllObjects( defaultsForOntologyModelAndView( ontology ) )
                 .addObject( "updateOntologyForm", updateOntologyForm );
 
-        if ( ontology.getTerms().size() <= 20 ) {
+        if ( ontologyService.isSimple( ontology ) ) {
             modelAndView.addObject( "simpleOntologyForm", SimpleOntologyForm.fromOntology( ontology ) );
         }
 
@@ -365,7 +365,7 @@ public class AdminController {
     private static class SimpleOntologyForm {
 
         public static SimpleOntologyForm fromOntology( Ontology ontology ) {
-            if ( ontology.getTerms().size() > 20 ) {
+            if ( ontology.getTerms().size() > OntologyService.SIMPLE_ONTOLOGY_MAX_SIZE ) {
                 throw new IllegalArgumentException( "SimpleOntologyForm is not designed to hold ontologies with more than 20 terms!" );
             }
             SimpleOntologyForm updateSimpleForm = new SimpleOntologyForm();
@@ -390,7 +390,7 @@ public class AdminController {
         private String ontologyName;
 
         @Valid
-        @Size(max = 20)
+        @Size(max = OntologyService.SIMPLE_ONTOLOGY_MAX_SIZE)
         private List<SimpleOntologyTermForm> ontologyTerms = new ArrayList<>();
     }
 

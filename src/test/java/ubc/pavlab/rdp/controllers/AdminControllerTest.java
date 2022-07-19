@@ -153,6 +153,7 @@ public class AdminControllerTest {
     public void setUp() {
         when( applicationSettings.getPrivacy() ).thenReturn( privacySettings );
         when( ontologyService.resolveOntologyUrl( any( URL.class ) ) ).thenAnswer( a -> resourceLoader.getResource( a.getArgumentAt( 0, URL.class ).toString() ) );
+        when( ontologyService.isSimple( any() ) ).thenAnswer( a -> a.getArgumentAt( 0, Ontology.class ).getTerms().size() <= 20 );
         conversionService.addConverter( new UserIdToUserConverter() );
         conversionService.addConverter( new AccessTokenIdToAccessTokenConverter() );
         conversionService.addConverter( new RoleIdToRoleConverter() );
@@ -504,6 +505,7 @@ public class AdminControllerTest {
         verify( ontologyService ).findById( 1 );
         verify( ontologyService ).countActiveTerms( ontology );
         verify( ontologyService ).countObsoleteTerms( ontology );
+        verify( ontologyService, VerificationModeFactory.atLeastOnce() ).isSimple( ontology );
         verifyNoMoreInteractions( ontologyService );
     }
 
@@ -555,6 +557,7 @@ public class AdminControllerTest {
         verify( ontologyService ).findById( 1 );
         verify( ontologyService ).countActiveTerms( ontology );
         verify( ontologyService ).countObsoleteTerms( ontology );
+        verify( ontologyService, VerificationModeFactory.atLeastOnce() ).isSimple( ontology );
         verifyNoMoreInteractions( ontologyService );
     }
 
@@ -574,6 +577,7 @@ public class AdminControllerTest {
         verify( ontologyService ).countActiveTerms( ontology );
         verify( ontologyService ).countObsoleteTerms( ontology );
         verify( ontologyService, VerificationModeFactory.atLeastOnce() ).resolveOntologyUrl( ontology.getOntologyUrl() );
+        verify( ontologyService, VerificationModeFactory.atLeastOnce() ).isSimple( ontology );
         verifyNoMoreInteractions( ontologyService );
     }
 
@@ -745,6 +749,7 @@ public class AdminControllerTest {
         verify( ontologyService ).findById( 1 );
         verify( ontologyService ).countActiveTerms( ontology );
         verify( ontologyService ).countObsoleteTerms( ontology );
+        verify( ontologyService, VerificationModeFactory.atLeastOnce() ).isSimple( ontology );
         verifyNoMoreInteractions( ontologyService );
     }
 
@@ -763,6 +768,7 @@ public class AdminControllerTest {
         verify( ontologyService ).findTermByTermIdAndOntology( "test", ontology );
         verify( ontologyService ).countActiveTerms( ontology );
         verify( ontologyService ).countObsoleteTerms( ontology );
+        verify( ontologyService, VerificationModeFactory.atLeastOnce() ).isSimple( ontology );
         verifyNoMoreInteractions( ontologyService );
     }
 

@@ -145,7 +145,7 @@
                     <div class="col-md-12">
                         <div th:each="ontology, i : ${@ontologyService.findAllOntologiesAvailableForGeneSearch()}"
                              th:classappend="${i.last} ? '' : 'mb-3'">
-                            <label th:for="${#ids.next('ontologyTermIds')}">
+                            <label th:for="${@ontologyService.isSimple(ontology)} ? null : ${#ids.next('ontologyTermIds')}">
                                 With the following
                                 <strong th:text="${#messages.msgOrNull('rdp.ontologies.' + ontology.name + '.title') ?: #strings.toUpperCase(ontology.name)}"></strong>
                                 terms (or any if none are selected):
@@ -160,100 +160,83 @@
 
         </div>
 
-        <div id="user-search" role="tabpanel" aria-labelledby="res-tab" class="tab-pane  fade show"
+        <div id="user-search" role="tabpanel" aria-labelledby="res-tab" class="tab-pane fade show"
              th:classappend="${activeSearchTab} == 'user' ? 'active'">
-            <!--Researchers alphabetically-->
-            <div th:unless="${chars.isEmpty()}" class="form-row d-none d-lg-block">
-                <div class="col-md-12">
+
+            <!--Researchers alphabetically -->
+            <form th:unless="${chars.isEmpty()}" class="d-none d-lg-block">
+                <div class="form-group">
                     <label>Browse alphabetically:</label>
                     <div class="btn-toolbar">
                         <div class="btn-group" id="alpha-grp" role="group"
                              title="Look for users whose name or last name starts with this letter.">
-                            <ul class="pagination">
+                            <ul class="pagination mb-0">
                                 <li th:each="char : ${chars}"
                                     class="page-item">
-                                    <form class="search">
-                                        <input type="hidden" name="iSearch" th:value="${iSearch}"/>
-                                        <input type="hidden" name="prefix" value="true"/>
-                                        <input type="hidden" name="nameLike" th:value="${char}"/>
-                                        <button class="page-link" type="submit"
-                                                name="nameLikeBtn"
-                                                th:text="${char}"></button>
-                                    </form>
+                                    <input type="hidden" name="nameLike" th:value="${char}"/>
+                                    <button class="page-link" type="submit"
+                                            name="nameLikeBtn"
+                                            th:text="${char}"></button>
+                                    <input type="hidden" name="prefix" th:value="true"/>
+                                    <input type="hidden" name="iSearch" th:value="${iSearch}"/>
                                 </li>
                             </ul>
                         </div>
                     </div>
                 </div>
-            </div>
-
-            <!--Researchers by name-->
-            <form class="search">
-                <div class="form-row">
-                    <div class="form-group col-md-12">
-                        <label for="nameLike">Search by name:</label>
-                        <div class="input-group">
-                            <div class="input-group-prepend">
-                                <button class="btn btn-primary" type="submit"
-                                        title="Look for researchers whose name or last name contains this string.">
-                                    <i class="oi oi-magnifying-glass"></i>
-                                    Search
-                                </button>
-                            </div>
-                            <input type="text" class="form-control" name="nameLike" id="nameLike"
-                                   placeholder="Part of researcher name" th:value="${nameLike}"/>
-                            <input type="hidden" name="iSearch" th:value="${iSearch}"/>
-                            <input type="hidden" name="prefix" value="false"/>
-                        </div>
-                    </div>
-                </div>
             </form>
 
-            <!--Researchers by description-->
-            <form class="search">
+            <hr/>
+
+            <form th:action="@{/search}" class="search">
+                <label for="nameLike">Browse by name and research interests:</label>
+
                 <div class="form-row">
-                    <div class="form-group col-md-12">
-                        <label for="descriptionLike">Search by research interests:</label>
-                        <div class="input-group">
-                            <div class="input-group-prepend">
-                                <button class="btn btn-primary" type="submit"
-                                        title="Look for researches whose description contains these keywords.">
-                                    <i class="oi oi-magnifying-glass"></i>
-                                    Search
-                                </button>
+                    <!--Researchers by name-->
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <button class="btn btn-primary" type="submit">
+                                        <i class="oi oi-magnifying-glass"></i>
+                                        Search
+                                    </button>
+                                </div>
+                                <input type="text" class="form-control" name="nameLike" id="nameLike"
+                                       placeholder="Part of researcher name" th:value="${nameLike}"/>
                             </div>
-                            <input id="descriptionLike"
-                                   type="text" class="form-control"
+                        </div>
+                    </div>
+                    <!--Researchers by description-->
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <input type="text" class="form-control"
                                    name="descriptionLike"
                                    th:value="${descriptionLike}"
                                    placeholder="Keyword in research description"/>
-                            <input type="hidden" name="iSearch" th:value="${iSearch}"/>
-                            <input type="hidden" name="prefix" value="false"/>
                         </div>
                     </div>
                 </div>
-            </form>
 
-            <!--
-            <div th:unless="${@applicationSettings.profile.enabledResearcherCategories.isEmpty()}">
-                <div class="form-row">
-                    <div class="col-md-5">
-                        <div class="form-group text-right">
-                            <label th:for="${#ids.next('profile.researcherCategories')}" class="col-form-label">Within the following researcher categories:</label>
+                <!--
+                <div th:unless="${@applicationSettings.profile.enabledResearcherCategories.isEmpty()}">
+                    <div class="form-row">
+                        <div class="col-md-5">
+                            <div class="form-group text-right">
+                                <label th:for="${#ids.next('profile.researcherCategories')}" class="col-form-label">Within the following researcher categories:</label>
+                            </div>
                         </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="form-group">
-                            <div th:include="fragments/profile::researcher-categories-selection"></div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <div th:include="fragments/profile::researcher-categories-selection"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            -->
+                -->
 
-            <!-- Researchers by focused organs -->
-            <form th:if="${@applicationSettings.organs.enabled}" class="organs-form">
-                <div class="form-row">
+                <!-- Researchers by focused organs -->
+                <div th:if="${@applicationSettings.organs.enabled}" class="organs-form form-row">
                     <div class="col-md-12">
                         <div class="form-group">
                             <label>With focus on the following organ systems (or any of none are selected):</label>
@@ -265,11 +248,9 @@
                         </div>
                     </div>
                 </div>
-            </form>
 
-            <!-- Researchers by associated terms -->
-            <form th:if="${@applicationSettings.ontology.enabled}" class="ontology-terms-form">
-                <div class="form-row">
+                <!-- Researchers by associated terms -->
+                <div th:if="${@applicationSettings.ontology.enabled}" class="ontology-terms-form form-row">
                     <div class="col-md-12">
                         <div class="form-group mb-0">
                             <div th:each="ontology : ${@ontologyService.findAllOntologies()}">
@@ -283,6 +264,8 @@
                         </div>
                     </div>
                 </div>
+
+                <input type="hidden" name="iSearch" th:value="${iSearch}"/>
             </form>
         </div>
     </div>
