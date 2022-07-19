@@ -66,6 +66,8 @@ public class ApiController {
     private PermissionEvaluator permissionEvaluator;
     @Autowired
     private OntologyService ontologyService;
+    @Autowired
+    private PrivacyService privacyService;
 
     @ExceptionHandler({ AuthenticationException.class, AccessDeniedException.class })
     public ResponseEntity<?> handleAuthenticationExceptionAndAccessDeniedException( HttpServletRequest req, Exception e ) {
@@ -420,6 +422,9 @@ public class ApiController {
     private User initUser( User user, Locale locale ) {
         user.setOrigin( messageSource.getMessage( "rdp.site.shortname", null, locale ) );
         user.setOriginUrl( siteSettings.getHostUri() );
+        if ( !privacyService.checkCurrentUserCanSeeGeneList( user ) ) {
+            user.getUserGenes().clear();
+        }
         user.getUserOntologyTerms().forEach( term -> initTerm( term, locale ) );
         return user;
     }

@@ -83,6 +83,8 @@ public class ApiControllerTest {
     private PermissionEvaluator permissionEvaluator;
     @MockBean
     private OntologyService ontologyService;
+    @MockBean
+    private PrivacyService privacyService;
 
     @Before
     public void setUp() {
@@ -113,8 +115,9 @@ public class ApiControllerTest {
 
     @Test
     public void searchUsers() throws Exception {
+        User user = createUser( 1 );
         when( userService.findByNameAndDescription( "robert", false, "pancake", null, null, null, null ) )
-                .thenReturn( Collections.singletonList( createUser( 1 ) ) );
+                .thenReturn( Collections.singletonList( user ) );
         mvc.perform( get( "/api/users/search" )
                         .param( "nameLike", "robert" )
                         .param( "descriptionLike", "pancake" ) )
@@ -123,6 +126,7 @@ public class ApiControllerTest {
                 .andExpect( jsonPath( "$[0].origin" ).value( "RDMM" ) )
                 .andExpect( jsonPath( "$[0].originUrl" ).value( "http://localhost" ) );
         verify( userService ).findByNameAndDescription( "robert", false, "pancake", null, null, null, null );
+        verify( privacyService ).checkCurrentUserCanSeeGeneList( user );
     }
 
     @Test

@@ -36,6 +36,15 @@ public class PrivacyServiceImpl implements PrivacyService {
     }
 
     @Override
+    public boolean checkCurrentUserCanSeeGeneList( User otherUser ) {
+        User currentUser = userService.findCurrentUser();
+        return checkUserCanSee( currentUser, otherUser )
+                && ( !otherUser.getProfile().isHideGenelist()
+                || ( currentUser != null && currentUser.equals( otherUser ) )
+                || ( currentUser != null && currentUser.getRoles().contains( getAdminRole() ) ) );
+    }
+
+    @Override
     @SuppressWarnings("deprecation")
     public boolean isPrivacyLevelEnabled( PrivacyLevelType privacyLevel ) {
         return applicationSettings.getPrivacy().getEnabledLevels().contains( privacyLevel.toString() ) &&

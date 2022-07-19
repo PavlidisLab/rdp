@@ -25,6 +25,11 @@ public interface PrivacyService {
      */
     boolean checkUserCanSee( User user, UserContent content );
 
+    /**
+     * Check if a given user can see another user's gene list.
+     */
+    boolean checkCurrentUserCanSeeGeneList( User otherUser );
+
 
     /**
      * Check if a given user can search.

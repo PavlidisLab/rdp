@@ -223,7 +223,7 @@
                         <p th:unless="${#strings.isEmpty(viewUser.taxonDescriptions.get(taxon))}"
                            th:text="${viewUser.taxonDescriptions.get(taxon)}">...</p>
 
-                        <ul th:if="not ${viewUser.profile.hideGenelist} or (${user} == ${viewUser}) or ${user?.roles?.contains(@roleRepository.findByRole('ROLE_ADMIN'))}"
+                        <ul th:if="${@privacyService.checkCurrentUserCanSeeGeneList(viewUser)}"
                             class="nav nav-tabs card-header-tabs" role="tablist">
                             <li class="nav-item">
                                 <a class="nav-link active genes-tab" data-toggle="tab"
@@ -239,7 +239,7 @@
                         </ul>
                     </div>
 
-                    <div th:if="not ${viewUser.profile.hideGenelist} or (${user} == ${viewUser}) or ${user?.roles?.contains(@roleRepository.findByRole('ROLE_ADMIN'))}"
+                    <div th:if="${@privacyService.checkCurrentUserCanSeeGeneList(viewUser)}"
                          class="card-body">
                         <div class="tab-content">
                             <div class="tab-pane fade show active" th:id="${'genes-' + taxon.id}"

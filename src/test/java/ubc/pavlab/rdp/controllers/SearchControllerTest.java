@@ -94,7 +94,7 @@ public class SearchControllerTest {
     @MockBean
     private RemoteResourceService remoteResourceService;
 
-    @MockBean
+    @MockBean(name = "privacyService")
     private PrivacyService privacyService;
 
     @MockBean
