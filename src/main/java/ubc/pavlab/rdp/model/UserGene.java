@@ -76,6 +76,7 @@ public class UserGene extends Gene implements UserContent {
     @JsonIgnore
     private User user;
 
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     @Transient
     private User remoteUser;
 
