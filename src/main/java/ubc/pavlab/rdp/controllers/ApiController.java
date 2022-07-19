@@ -25,6 +25,7 @@ import ubc.pavlab.rdp.model.enums.ResearcherCategory;
 import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.model.ontology.Ontology;
+import ubc.pavlab.rdp.model.ontology.OntologyTerm;
 import ubc.pavlab.rdp.model.ontology.OntologyTermInfo;
 import ubc.pavlab.rdp.services.*;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
@@ -419,6 +420,7 @@ public class ApiController {
     private User initUser( User user, Locale locale ) {
         user.setOrigin( messageSource.getMessage( "rdp.site.shortname", null, locale ) );
         user.setOriginUrl( siteSettings.getHostUri() );
+        user.getUserOntologyTerms().forEach( term -> initTerm( term, locale ) );
         return user;
     }
 
@@ -429,14 +431,17 @@ public class ApiController {
         return ontology;
     }
 
-    private OntologyTermInfo initTerm( OntologyTermInfo term, Locale locale ) {
+    private <T extends OntologyTerm> T initTerm( T term, Locale locale ) {
         term.setOntology( initOntology( term.getOntology(), locale ) );
-        term.setDefinition( messageSource.getMessage( "rdp.ontologies." + term.getOntology().getName() + ".terms." + term.getTermId() + ".definition", null, term.getDefinition(), locale ) );
-        // TODO: perform this in a single query
-        term.setSubTermIds( term.getSubTerms().stream()
-                .filter( OntologyTermInfo::isActive )
-                .map( OntologyTermInfo::getTermId )
-                .collect( Collectors.toSet() ) );
+        if ( term instanceof OntologyTermInfo ) {
+            OntologyTermInfo termInfo = (OntologyTermInfo) term;
+            termInfo.setDefinition( messageSource.getMessage( "rdp.ontologies." + term.getOntology().getName() + ".terms." + term.getTermId() + ".definition", null, termInfo.getDefinition(), locale ) );
+            // TODO: perform this in a single query
+            termInfo.setSubTermIds( termInfo.getSubTerms().stream()
+                    .filter( OntologyTermInfo::isActive )
+                    .map( OntologyTermInfo::getTermId )
+                    .collect( Collectors.toSet() ) );
+        }
         return term;
     }
 
