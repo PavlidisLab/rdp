@@ -418,7 +418,7 @@ public class GOServiceImpl implements GOService, InitializingBean {
             termsToEvict.add( term );
         }
 
-        log.info( String.format( "Evicting %d terms from the GO ancestors and descendants caches.", termsToEvict.size() ) );
+        log.debug( String.format( "Evicting %d terms from the GO ancestors and descendants caches.", termsToEvict.size() ) );
 
         // first, let's retrieve what we already have in the cache
         Collection<GeneOntologyTermInfo> ancestors = termsToEvict.stream()
@@ -448,7 +448,7 @@ public class GOServiceImpl implements GOService, InitializingBean {
     }
 
     private void evictAll() {
-        log.info( "Evicting all the terms from ancestors and descendants caches." );
+        log.debug( "Evicting all the terms from ancestors and descendants caches." );
         ancestorsCache.clear();
         descendantsCache.clear();
     }
