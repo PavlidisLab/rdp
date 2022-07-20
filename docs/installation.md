@@ -58,9 +58,9 @@ rdp.site.fullname=Rare Disease Model & Mechanism Network
 rdp.site.shortname=RDMM
 
 # This is very important for generating URLs
-rdp.host=https://register.example.com
-rdp.context=
-rdp.mainsite=https://example.com/
+rdp.site.host=https://register.example.com
+rdp.site.context=
+rdp.site.mainsite=https://example.com/
 
 rdp.site.contact-email=registry-help@example.com
 rdp.site.admin-email=registry-admin@example.com
