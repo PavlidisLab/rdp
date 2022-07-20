@@ -8,7 +8,7 @@
  * The extra line between the end of the @file docblock
  * and the file-closure is important.
  */
-
+/* globals contextPath */
 (function () {
     "use strict";
 
@@ -102,7 +102,7 @@
          */
         $.ajax({
             type: "GET",
-            url: "/gettimeout",
+            url: contextPath + "/gettimeout",
             data: null,
             contentType: "application/json",
             success: function () {
@@ -114,7 +114,7 @@
                 // Logout because response failed.
                 $(document).off("mousemove", monitorMovements); // Unbind monitor on mouse movements.
                 deleteCookies();
-                window.location.href = "/logout";
+                window.location.href = contextPath + "/logout";
             }
         });
     }
@@ -145,7 +145,7 @@
                     // Logout requested
                     $(document).off("mousemove", monitorMovements); // Unbind monitor on mouse movements.
                     deleteCookies();
-                    window.location.href = "/logout";
+                    window.location.href = contextPath + "/logout";
                 }
             } else {
                 checkForTimeout(); // Continue to monitor.

@@ -1,3 +1,4 @@
+/* globals contextPath */
 (function () {
     "use strict";
 
@@ -7,7 +8,7 @@
         var userId = element.data('user-id');
         var anonymousUserId = element.data('anonymous-user-id');
         var remoteHost = element.data('remote-host');
-        var popoverUrl = '/search/view/user-preview/';
+        var popoverUrl = contextPath + '/search/view/user-preview/';
         if (anonymousUserId) {
             popoverUrl += 'by-anonymous-id/' + encodeURIComponent(anonymousUserId);
         } else {
@@ -70,7 +71,7 @@
         tableContainer.html($('<i class="mx-2 spinner"></i>'));
 
         // noinspection JSUnusedLocalSymbols
-        tableContainer.load("/search/view", formData, function (responseText, textStatus) {
+        tableContainer.load(contextPath + "/search/view", formData, function (responseText, textStatus) {
             if (textStatus === "error") {
                 tableContainer.html(responseText);
             }
@@ -98,7 +99,7 @@
             var itlTableContainer = $("#itlUserTable");
             itlTableContainer.html($('<i class="mx-2 spinner"></i>'));
             // noinspection JSUnusedLocalSymbols
-            itlTableContainer.load("/search/view/international", formData, function (responseText, textStatus, req) {
+            itlTableContainer.load(contextPath + "/search/view/international", formData, function (responseText, textStatus, req) {
                 if (textStatus === "error") {
                     itlTableContainer.html(responseText);
                 }
@@ -154,7 +155,7 @@
                 }
 
                 // noinspection JSUnusedLocalSymbols
-                $.getJSON("/taxon/" + encodeURIComponent(taxonId) + "/gene/search", {query: term, max: 10})
+                $.getJSON(contextPath + "/taxon/" + encodeURIComponent(taxonId) + "/gene/search", {query: term, max: 10})
                     .done(function (data, status, xhr) {
                         if (!data.length) {
                             data = [

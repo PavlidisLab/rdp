@@ -1,4 +1,4 @@
-/* globals currentTaxonId, customizableGeneLevel, enabledGenePrivacyLevels, privacyLevels, userPrivacyLevel */
+/* globals contextPath, currentTaxonId, customizableGeneLevel, enabledGenePrivacyLevels, privacyLevels, userPrivacyLevel */
 (function () {
     "use strict";
 
@@ -233,7 +233,7 @@
                     return;
                 }
 
-                $.getJSON("/taxon/" + encodeURIComponent(currentTaxonId) + "/gene/search", {query: term, max: 10})
+                $.getJSON(contextPath + "/taxon/" + encodeURIComponent(currentTaxonId) + "/gene/search", {query: term, max: 10})
                     .done(function (data) {
                         if (!data.length) {
                             data = [
@@ -314,7 +314,7 @@
 
         $.ajax({
             type: 'GET',
-            url: '/taxon/' + encodeURIComponent(currentTaxonId) + '/gene/search',
+            url: contextPath + '/taxon/' + encodeURIComponent(currentTaxonId) + '/gene/search',
             data: encodedSymbols
         })
             .done(addGeneRow)
@@ -342,7 +342,7 @@
                 if (term.indexOf(",") !== -1) {
                     return;
                 }
-                $.getJSON("/taxon/" + encodeURIComponent(currentTaxonId) + "/term/search", {query: term, max: 10})
+                $.getJSON(contextPath + "/taxon/" + encodeURIComponent(currentTaxonId) + "/term/search", {query: term, max: 10})
                     .done(function (data) {
                         if (!data.length) {
                             data = [
@@ -425,7 +425,7 @@
 
         $.ajax({
             type: 'GET',
-            url: '/user/taxon/' + encodeURIComponent(currentTaxonId) + '/term/search',
+            url: contextPath + '/user/taxon/' + encodeURIComponent(currentTaxonId) + '/term/search',
             data: encodedGoIds
         })
             .done(addTermRow)
@@ -440,7 +440,7 @@
         var recommendMessage = $('#terms').find('.recommend-message');
         spinner.toggleClass("d-none", false);
         recommendMessage.toggleClass('d-none', true);
-        $.getJSON("/user/taxon/" + encodeURIComponent(currentTaxonId) + "/term/recommend")
+        $.getJSON(contextPath + "/user/taxon/" + encodeURIComponent(currentTaxonId) + "/term/recommend")
             .done(function (data) {
                 var addedTerms = addTermRow(data);
                 if (addedTerms > 0) {

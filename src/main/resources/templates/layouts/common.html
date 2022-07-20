@@ -8,6 +8,9 @@
     <title th:text="${title} ? ${title} + ' - ' + #{rdp.site.fullname} : #{rdp.site.fullname}"></title>
     <link rel="icon" type="image/png" sizes="16x16" th:href="@{/images/favicon-16x16.png}"/>
     <link rel="icon" type="image/png" sizes="32x32" th:href="@{/images/favicon-32x32.png}"/>
+    <script th:inline="javascript">
+        var contextPath = [[${#httpServletRequest.contextPath}]];
+    </script>
     <script th:src="@{/dist/common.bundle.js}"></script>
 </head>
 <body>
@@ -34,7 +37,7 @@
                     </li>
                     <li class="nav-item dropdown">
                         <!--suppress HtmlUnknownTarget -->
-                        <a class="nav-link dropdown-toggle" href="/user/model" id="navbarDropdownModel" role="button"
+                        <a class="nav-link dropdown-toggle" th:href="@{/user/model}" id="navbarDropdownModel" role="button"
                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Model Organisms</a>
                         <div th:replace="fragments/taxon::taxon-dropdown-menu"
                              aria-labelledby="navbarDropdownModel"></div>
