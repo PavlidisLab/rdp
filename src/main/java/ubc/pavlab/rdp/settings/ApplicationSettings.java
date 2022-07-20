@@ -2,6 +2,7 @@ package ubc.pavlab.rdp.settings;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.convert.DurationUnit;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
 import ubc.pavlab.rdp.model.GeneInfo;
@@ -15,6 +16,8 @@ import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.Size;
 import java.net.URI;
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.EnumSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -204,8 +207,12 @@ public class ApplicationSettings {
         private String searchToken;
         /**
          * Request timeout when querying partner registries, or null to disable.
+         * <p>
+         * When formatted as a number, it is interpreted as a number of seconds. You may also use a unit suffix (i.e. '100ms')
+         * to specify a precise amount of time.
          */
-        private Integer requestTimeout;
+        @DurationUnit(value = ChronoUnit.SECONDS)
+        private Duration requestTimeout;
     }
 
     private ProfileSettings profile;

@@ -28,6 +28,8 @@ import ubc.pavlab.rdp.util.VersionUtils;
 
 import java.net.URI;
 import java.text.MessageFormat;
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -210,7 +212,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
     }
 
     private <T> Collection<T> getRemoteEntities( Class<T[]> arrCls, String path, MultiValueMap<String, String> params ) {
-        Integer requestTimeout = applicationSettings.getIsearch().getRequestTimeout();
+        Duration requestTimeout = applicationSettings.getIsearch().getRequestTimeout();
         return Arrays.stream( applicationSettings.getIsearch().getApis() )
                 .map( api -> {
                     // work on a copy because we'll be selectively adding auth information
@@ -227,7 +229,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
                 .map( uriAndFuture -> {
                     try {
                         if ( requestTimeout != null ) {
-                            return uriAndFuture.getRight().get( requestTimeout.longValue(), TimeUnit.SECONDS );
+                            return uriAndFuture.getRight().get( requestTimeout.get( ChronoUnit.MILLIS ), TimeUnit.MILLISECONDS );
                         } else {
                             return uriAndFuture.getRight().get();
                         }
