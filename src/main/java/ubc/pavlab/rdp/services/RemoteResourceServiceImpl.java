@@ -29,7 +29,6 @@ import ubc.pavlab.rdp.util.VersionUtils;
 import java.net.URI;
 import java.text.MessageFormat;
 import java.time.Duration;
-import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -229,7 +228,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
                 .map( uriAndFuture -> {
                     try {
                         if ( requestTimeout != null ) {
-                            return uriAndFuture.getRight().get( requestTimeout.get( ChronoUnit.MILLIS ), TimeUnit.MILLISECONDS );
+                            return uriAndFuture.getRight().get( requestTimeout.toMillis(), TimeUnit.MILLISECONDS );
                         } else {
                             return uriAndFuture.getRight().get();
                         }

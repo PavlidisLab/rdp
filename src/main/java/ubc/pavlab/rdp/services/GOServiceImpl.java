@@ -324,6 +324,9 @@ public class GOServiceImpl implements GOService, InitializingBean {
 
     @Override
     public Collection<Integer> getGenesInTaxon( String id, Taxon taxon ) {
+        if ( id == null ) {
+            return Collections.emptySet();
+        }
         return goRepository.findById( id )
                 .map( term -> getGenesInTaxon( term, taxon ) )
                 .orElse( Collections.emptySet() );
@@ -358,6 +361,9 @@ public class GOServiceImpl implements GOService, InitializingBean {
 
     @Override
     public GeneOntologyTermInfo getTerm( String goId ) {
+        if ( goId == null ) {
+            return null;
+        }
         return goRepository.findById( goId ).orElse( null );
     }
 
