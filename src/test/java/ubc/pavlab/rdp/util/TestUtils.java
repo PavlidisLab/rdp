@@ -57,9 +57,18 @@ public final class TestUtils {
     }
 
     public static User createUnpersistedUser() {
-        Profile profile = Profile.builder().name( NAME ).lastName( LAST_NAME ).privacyLevel( PrivacyLevelType.PUBLIC ).shared( false ).hideGenelist( false ).contactEmailVerified( false ).build();
-        return User.builder().email( String.format( EMAIL_FORMAT, emailCount++ ) ).password( ENCODED_PASSWORD ) // imbatman
-                .enabled( false ).profile( profile ).build();
+        Profile profile = Profile.builder()
+                .name( NAME )
+                .lastName( LAST_NAME )
+                .privacyLevel( PrivacyLevelType.PUBLIC )
+                .shared( false )
+                .hideGenelist( false )
+                .contactEmailVerified( false ).build();
+        return User.builder()
+                .email( String.format( EMAIL_FORMAT, emailCount++ ) )
+                .password( ENCODED_PASSWORD ) // imbatman
+                .enabled( false )
+                .profile( profile ).build();
     }
 
     public static User createUser( int id ) {
@@ -77,7 +86,9 @@ public final class TestUtils {
 
     public static User createUserWithGenes( int id, Gene... genes ) {
         User user = createUser( id );
-        Map<Integer, UserGene> userGenes = Arrays.stream( genes ).map( g -> createUnpersistedUserGene( g, user, TierType.TIER1, PrivacyLevelType.PRIVATE ) ).collect( Collectors.toMap( UserGene::getGeneId, identity() ) );
+        Map<Integer, UserGene> userGenes = Arrays.stream( genes )
+                .map( g -> createUnpersistedUserGene( g, user, TierType.TIER1, PrivacyLevelType.PRIVATE ) )
+                .collect( Collectors.toMap( UserGene::getGeneId, Function.identity() ) );
         user.getUserGenes().putAll( userGenes );
         return user;
     }
@@ -89,7 +100,10 @@ public final class TestUtils {
     }
 
     public static User createAnonymousUser() {
-        return User.builder().anonymousId( UUID.randomUUID() ).profile( new Profile() ).build();
+        return User.builder()
+                .anonymousId( UUID.randomUUID() )
+                .profile( new Profile() )
+                .build();
     }
 
     public static User createAnonymousRemoteUser( URI originUrl ) {

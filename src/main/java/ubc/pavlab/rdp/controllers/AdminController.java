@@ -94,13 +94,16 @@ public class AdminController {
      */
     @GetMapping(value = "/admin/users")
     public Object getAllUsers() {
-        Collection<User> users = userService.findAll().stream().sorted( Comparator.comparing( u -> u.getProfile().getFullName() ) ).collect( Collectors.toList() );
-        return new ModelAndView( "admin/users" )
-                .addObject( "users", users );
+        Collection<User> users = userService.findAll().stream()
+                .sorted( Comparator.comparing( u -> u.getProfile().getFullName() ) )
+                .collect( Collectors.toList() );
+        ModelAndView view = new ModelAndView( "admin/users" );
+        view.addObject( "users", users );
+        return view;
     }
 
     @GetMapping(value = "/admin/create-service-account")
-    public Object viewCreateServiceAccount( @SuppressWarnings("unused") User user ) {
+    public Object viewCreateServiceAccount( User user ) {
         return "admin/create-service-account";
     }
 
@@ -166,6 +169,11 @@ public class AdminController {
         userService.revokeAccessToken( accessToken );
         redirectAttributes.addFlashAttribute( "message", MessageFormat.format( "Revoked access token {0}.", accessToken.getToken() ) );
         return "redirect:/admin/users/" + user.getId();
+    }
+
+    @Data
+    private static class ConfirmEmailForm {
+        private String email;
     }
 
     /**
@@ -906,11 +914,6 @@ public class AdminController {
         }
         ontologyService.move( ontology, d );
         return "redirect:/admin/ontologies";
-    }
-
-    @Data
-    private static class ConfirmEmailForm {
-        private String email;
     }
 
     @Data
