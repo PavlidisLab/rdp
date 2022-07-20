@@ -19,9 +19,8 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder;
+import ubc.pavlab.rdp.SecureTokenConfig;
 import ubc.pavlab.rdp.WebMvcConfig;
-import ubc.pavlab.rdp.controllers.UserController;
 import ubc.pavlab.rdp.events.OnContactEmailUpdateEvent;
 import ubc.pavlab.rdp.events.OnRegistrationCompleteEvent;
 import ubc.pavlab.rdp.events.OnRequestAccessEvent;
@@ -36,10 +35,7 @@ import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.repositories.*;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 
-import javax.mail.MessagingException;
 import javax.validation.ValidationException;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -58,7 +54,7 @@ import static ubc.pavlab.rdp.util.TestUtils.*;
  * Created by mjacobson on 13/02/18.
  */
 @RunWith(SpringRunner.class)
-@Import(WebMvcConfig.class)
+@Import({ WebMvcConfig.class, SecureTokenConfig.class })
 public class UserServiceImplTest {
 
     @TestConfiguration
@@ -84,11 +80,6 @@ public class UserServiceImplTest {
             return new ConcurrentMapCacheManager(
                     UserServiceImpl.USERS_BY_ANONYMOUS_ID_CACHE_NAME,
                     UserServiceImpl.USER_GENES_BY_ANONYMOUS_ID_CACHE_NAME );
-        }
-
-        @Bean
-        public SecureRandom secureRandom() throws NoSuchAlgorithmException {
-            return SecureRandom.getInstanceStrong();
         }
     }
 
@@ -140,6 +131,8 @@ public class UserServiceImplTest {
         when( passwordResetTokenRepository.save( any( PasswordResetToken.class ) ) ).then( i -> i.getArgument( 0, PasswordResetToken.class ) );
         when( tokenRepository.save( any( VerificationToken.class ) ) ).then( i -> i.getArgument( 0, VerificationToken.class ) );
 
+        when( applicationSettings.getSignatureAlgorithm() ).thenReturn( "HmacSHA256" );
+        when( applicationSettings.getSignatureKey() ).thenReturn( "twado!" );
         when( applicationSettings.getGoTermSizeLimit() ).thenReturn( 100L );
         when( applicationSettings.getOrgans() ).thenReturn( organSettings );
         when( organSettings.isEnabled() ).thenReturn( true );
@@ -163,44 +156,54 @@ public class UserServiceImplTest {
         when( roleRepository.findByRole( "ROLE_USER" ) ).thenReturn( createRole( 2, "ROLE_USER" ) );
     }
 
+    private String tokenBad;
+
+    private PasswordResetToken passwordToken1, passwordToken1Expired, passwordToken2;
+
     private void setUpPasswordResetTokenMocks() {
         User user = createUser( 1 );
         User otherUser = createUser( 2 );
-        PasswordResetToken token = new PasswordResetToken();
-        token.setUser( user );
-        token.updateToken( "token1" );
-        when( passwordResetTokenRepository.findByToken( token.getToken() ) ).thenReturn( token );
+        passwordToken1 = new PasswordResetToken();
+        passwordToken1.setUser( user );
+        passwordToken1.updateToken( userService.createSecureRandomToken() );
+        when( passwordResetTokenRepository.findByToken( passwordToken1.getToken() ) ).thenReturn( passwordToken1 );
 
-        token = new PasswordResetToken();
-        token.setUser( user );
-        token.setToken( "token1Expired" );
-        token.setExpiryDate( Timestamp.from( Instant.now().minusSeconds( 1 ) ) );
-        when( passwordResetTokenRepository.findByToken( token.getToken() ) ).thenReturn( token );
+        passwordToken1Expired = new PasswordResetToken();
+        passwordToken1Expired.setUser( user );
+        passwordToken1Expired.setToken( userService.createSecureRandomToken() );
+        passwordToken1Expired.setExpiryDate( Timestamp.from( Instant.now().minusSeconds( 1 ) ) );
+        when( passwordResetTokenRepository.findByToken( passwordToken1Expired.getToken() ) ).thenReturn( passwordToken1Expired );
 
-        token = new PasswordResetToken();
-        token.setUser( otherUser );
-        token.updateToken( "token2" );
-        when( passwordResetTokenRepository.findByToken( token.getToken() ) ).thenReturn( token );
+        passwordToken2 = new PasswordResetToken();
+        passwordToken2.setUser( otherUser );
+        passwordToken2.updateToken( userService.createSecureRandomToken() );
+        when( passwordResetTokenRepository.findByToken( passwordToken2.getToken() ) ).thenReturn( passwordToken2 );
 
         when( passwordResetTokenRepository.findByToken( "tokenBad" ) ).thenReturn( null );
+
+        tokenBad = userService.createSecureRandomToken();
+        when( tokenRepository.findByToken( tokenBad ) ).thenReturn( null );
     }
+
+    private VerificationToken token1, token1Expired;
 
     private void setUpVerificationTokenMocks() {
         User user = createUser( 1 );
-        VerificationToken token = new VerificationToken();
-        token.setUser( user );
-        token.setEmail( user.getEmail() );
-        token.updateToken( "token1" );
-        when( tokenRepository.findByToken( token.getToken() ) ).thenReturn( token );
+        token1 = new VerificationToken();
+        token1.setUser( user );
+        token1.setEmail( user.getEmail() );
+        token1.updateToken( userService.createSecureRandomToken() );
+        when( tokenRepository.findByToken( token1.getToken() ) ).thenReturn( token1 );
 
-        token = new VerificationToken();
-        token.setUser( user );
-        token.setEmail( user.getEmail() );
-        token.setToken( "token1Expired" );
-        token.setExpiryDate( Timestamp.from( Instant.now().minus( 1, ChronoUnit.SECONDS ) ) );
-        when( tokenRepository.findByToken( token.getToken() ) ).thenReturn( token );
+        token1Expired = new VerificationToken();
+        token1Expired.setUser( user );
+        token1Expired.setEmail( user.getEmail() );
+        token1Expired.setToken( userService.createSecureRandomToken() );
+        token1Expired.setExpiryDate( Timestamp.from( Instant.now().minus( 1, ChronoUnit.SECONDS ) ) );
+        when( tokenRepository.findByToken( token1Expired.getToken() ) ).thenReturn( token1Expired );
 
-        when( tokenRepository.findByToken( "tokenBad" ) ).thenReturn( null );
+        tokenBad = userService.createSecureRandomToken();
+        when( tokenRepository.findByToken( tokenBad ) ).thenReturn( null );
     }
 
     private void setUpRecommendTermsMocks() {
@@ -306,7 +309,7 @@ public class UserServiceImplTest {
         setUpPasswordResetTokenMocks();
         User user = createUser( 1 );
 
-        User updatedUser = userService.changePasswordByResetToken( user.getId(), "token1", new PasswordReset( "newPassword", "newPassword" ) );
+        User updatedUser = userService.changePasswordByResetToken( user.getId(), passwordToken1.getToken(), new PasswordReset( "newPassword", "newPassword" ) );
         assertThat( updatedUser ).isNotNull();
         assertThat( bCryptPasswordEncoder.matches( "newPassword", updatedUser.getPassword() ) ).isTrue();
         verify( passwordResetTokenRepository ).delete( any( PasswordResetToken.class ) );
@@ -316,21 +319,21 @@ public class UserServiceImplTest {
     public void changePasswordByResetToken_whenInvalidToken_thenThrowTokenException() throws TokenException {
         setUpPasswordResetTokenMocks();
         User user = createUser( 1 );
-        userService.changePasswordByResetToken( user.getId(), "tokenBad", new PasswordReset( "newPassword", "newPassword" ) );
+        userService.changePasswordByResetToken( user.getId(), tokenBad, new PasswordReset( "newPassword", "newPassword" ) );
     }
 
     @Test(expected = TokenException.class)
     public void changePasswordByResetToken_whenInvalidUserId_thenThrowTokenException() throws TokenException {
         setUpPasswordResetTokenMocks();
         User user = createUser( 1 );
-        userService.changePasswordByResetToken( user.getId(), "token2", new PasswordReset( "newPassword", "newPassword" ) );
+        userService.changePasswordByResetToken( user.getId(), passwordToken2.getToken(), new PasswordReset( "newPassword", "newPassword" ) );
     }
 
     @Test(expected = TokenException.class)
     public void changePasswordByResetToken_whenExpiredToken_thenThrowTokenException() throws TokenException {
         setUpPasswordResetTokenMocks();
         User user = createUser( 1 );
-        userService.changePasswordByResetToken( user.getId(), "token1Expired", new PasswordReset( "newPassword", "newPassword" ) );
+        userService.changePasswordByResetToken( user.getId(), passwordToken1Expired.getToken(), new PasswordReset( "newPassword", "newPassword" ) );
     }
 
     @Test
@@ -706,28 +709,28 @@ public class UserServiceImplTest {
         setUpPasswordResetTokenMocks();
         User user = createUser( 1 );
 
-        userService.verifyPasswordResetToken( user.getId(), "token1" );
+        userService.verifyPasswordResetToken( user.getId(), passwordToken1.getToken() );
     }
 
     @Test(expected = TokenException.class)
     public void verifyPasswordResetToken_whenInvalidToken_thenThrowTokenException() throws TokenException {
         setUpPasswordResetTokenMocks();
         User user = createUser( 1 );
-        userService.verifyPasswordResetToken( user.getId(), "tokenBad" );
+        userService.verifyPasswordResetToken( user.getId(), tokenBad );
     }
 
     @Test(expected = TokenException.class)
     public void verifyPasswordResetToken_whenInvalidUserId_thenThrowTokenException() throws TokenException {
         setUpPasswordResetTokenMocks();
         User user = createUser( 1 );
-        userService.verifyPasswordResetToken( user.getId(), "token2" );
+        userService.verifyPasswordResetToken( user.getId(), passwordToken2.getToken() );
     }
 
     @Test(expected = TokenException.class)
     public void verifyPasswordResetToken_whenExpiredToken_thenThrowTokenException() throws TokenException {
         setUpPasswordResetTokenMocks();
         User user = createUser( 1 );
-        userService.verifyPasswordResetToken( user.getId(), "token1Expired" );
+        userService.verifyPasswordResetToken( user.getId(), passwordToken1Expired.getToken() );
     }
 
     @Test
@@ -747,7 +750,7 @@ public class UserServiceImplTest {
     public void confirmVerificationToken_whenValidToken_thenSucceed() throws TokenException {
         setUpVerificationTokenMocks();
 
-        User user = userService.confirmVerificationToken( "token1" );
+        User user = userService.confirmVerificationToken( token1.getToken() );
         assertThat( user.isEnabled() ).isTrue();
         verify( tokenRepository ).delete( any( VerificationToken.class ) );
 
@@ -756,13 +759,13 @@ public class UserServiceImplTest {
     @Test(expected = TokenException.class)
     public void confirmVerificationToken_whenInvalidToken_thenThrowTokenException() throws TokenException {
         setUpVerificationTokenMocks();
-        userService.confirmVerificationToken( "tokenBad" );
+        userService.confirmVerificationToken( tokenBad );
     }
 
     @Test(expected = TokenException.class)
     public void confirmVerificationToken_whenExpiredToken_thenThrowTokenException() throws TokenException {
         setUpVerificationTokenMocks();
-        userService.confirmVerificationToken( "token1Expired" );
+        userService.confirmVerificationToken( token1Expired.getToken() );
     }
 
     @Test(expected = TokenException.class)
@@ -771,9 +774,9 @@ public class UserServiceImplTest {
         VerificationToken token = new VerificationToken();
         token.setUser( user );
         token.setEmail( "foo@example.com" );
-        token.updateToken( "token1" );
+        token.updateToken( userService.createSecureRandomToken() );
         when( tokenRepository.findByToken( token.getToken() ) ).thenReturn( token );
-        userService.confirmVerificationToken( "token1" );
+        userService.confirmVerificationToken( token.getToken() );
     }
 
     @Test

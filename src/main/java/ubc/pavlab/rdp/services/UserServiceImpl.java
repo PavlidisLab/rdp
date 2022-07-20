@@ -26,6 +26,7 @@ import ubc.pavlab.rdp.events.OnContactEmailUpdateEvent;
 import ubc.pavlab.rdp.events.OnRegistrationCompleteEvent;
 import ubc.pavlab.rdp.events.OnRequestAccessEvent;
 import ubc.pavlab.rdp.events.OnUserPasswordResetEvent;
+import ubc.pavlab.rdp.exception.InvalidTokenSignatureException;
 import ubc.pavlab.rdp.exception.TokenException;
 import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
@@ -35,7 +36,10 @@ import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.repositories.*;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.util.CacheUtils;
+import ubc.pavlab.rdp.util.MacFactory;
 
+import javax.crypto.Mac;
+import javax.crypto.ShortBufferException;
 import javax.validation.ValidationException;
 import java.security.SecureRandom;
 import java.text.MessageFormat;
@@ -56,6 +60,11 @@ public class UserServiceImpl implements UserService, InitializingBean {
     static final String
             USERS_BY_ANONYMOUS_ID_CACHE_NAME = "ubc.pavlab.rdp.model.User.byAnonymousId",
             USER_GENES_BY_ANONYMOUS_ID_CACHE_NAME = "ubc.pavlab.rdp.model.UserGene.byAnonymousId";
+
+    /**
+     * Size, in bytes, of generated secure random tokens.
+     */
+    private static final int SECURE_RANDOM_TOKEN_SIZE = 24;
 
     @Autowired
     private ApplicationSettings applicationSettings;
@@ -87,6 +96,8 @@ public class UserServiceImpl implements UserService, InitializingBean {
     private PrivacyService privacyService;
     @Autowired
     private SecureRandom secureRandom;
+    @Autowired
+    private MacFactory macFactory;
 
     private Cache usersByAnonymousIdCache;
     private Cache userGenesByAnonymousIdCache;
@@ -262,6 +273,7 @@ public class UserServiceImpl implements UserService, InitializingBean {
 
     @Override
     public User findUserByAccessTokenNoAuth( String accessToken ) throws TokenException {
+        verifySecureRandomToken( accessToken );
         AccessToken token = accessTokenRepository.findByToken( accessToken );
         if ( token == null ) {
             return null;
@@ -650,6 +662,7 @@ public class UserServiceImpl implements UserService, InitializingBean {
 
     @Override
     public PasswordResetToken verifyPasswordResetToken( int userId, String token ) throws TokenException {
+        verifySecureRandomToken( token );
         PasswordResetToken passToken = passwordResetTokenRepository.findByToken( token );
 
         if ( passToken == null ) {
@@ -710,6 +723,7 @@ public class UserServiceImpl implements UserService, InitializingBean {
     @Override
     @Transactional(rollbackFor = { TokenException.class })
     public User confirmVerificationToken( String token ) throws TokenException {
+        verifySecureRandomToken( token );
         VerificationToken verificationToken = tokenRepository.findByToken( token );
         if ( verificationToken == null ) {
             throw new TokenException( "Verification token is invalid." );
@@ -770,9 +784,50 @@ public class UserServiceImpl implements UserService, InitializingBean {
         log.info( "Done updating user terms." );
     }
 
-    private String createSecureRandomToken() {
-        byte tokenBytes[] = new byte[24];
+    /**
+     * Create a secure random token and sign it with a MAC signature
+     *
+     * @return a Base64 encoded secure random token
+     * @see #macFactory
+     */
+    @Override
+    public String createSecureRandomToken() {
+        Mac mac = macFactory.createMac();
+        int tokenSize = SECURE_RANDOM_TOKEN_SIZE;
+        byte[] tokenBytes = new byte[tokenSize + mac.getMacLength()];
         secureRandom.nextBytes( tokenBytes );
+        mac.update( tokenBytes, 0, tokenSize );
+        try {
+            mac.doFinal( tokenBytes, tokenSize );
+        } catch ( ShortBufferException e ) {
+            throw new RuntimeException( e );
+        }
         return Base64.getEncoder().encodeToString( tokenBytes );
+    }
+
+    /**
+     * Verify the MAC signature on a token.
+     *
+     * @param encodedToken the Base64 encoded token
+     * @throws InvalidTokenSignatureException if the token signature is invalid
+     */
+    @Override
+    public void verifySecureRandomToken( String encodedToken ) throws InvalidTokenSignatureException {
+        Mac mac = macFactory.createMac();
+        int tokenSize = SECURE_RANDOM_TOKEN_SIZE;
+        int signatureSize = mac.getMacLength();
+        byte[] tokenBytes = Base64.getDecoder().decode( encodedToken );
+        if ( tokenBytes.length != tokenSize + signatureSize ) {
+            throw new InvalidTokenSignatureException( String.format( "Invalid token size %d.", tokenBytes.length ) );
+        }
+        mac.update( tokenBytes, 0, tokenSize );
+        byte[] expectedSignature = mac.doFinal();
+        boolean identical = true;
+        for ( int i = 0; i < mac.getMacLength(); i++ ) {
+            identical &= tokenBytes[tokenSize + i] == expectedSignature[i];
+        }
+        if ( !identical ) {
+            throw new InvalidTokenSignatureException( "Token signature is invalid." );
+        }
     }
 }

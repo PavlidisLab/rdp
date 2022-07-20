@@ -53,6 +53,9 @@ spring.mail.password=<mail password>
 spring.mail.properties.mail.smtp.auth=true
 spring.mail.properties.mail.smtp.starttls.enable=true
 
+# generate a secret key and assign it here
+rdp.settings.signature-key=<secret key>
+
 # Adjust this to your own network name
 rdp.site.fullname=Rare Disease Model & Mechanism Network
 rdp.site.shortname=RDMM

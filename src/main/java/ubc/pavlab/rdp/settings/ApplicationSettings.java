@@ -12,9 +12,7 @@ import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.services.GeneInfoService;
 
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
-import javax.validation.constraints.Size;
+import javax.validation.constraints.*;
 import java.net.URI;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
@@ -221,6 +219,18 @@ public class ApplicationSettings {
     private PrivacySettings privacy;
     private CacheSettings cache;
     private OrganSettings organs;
+
+    /**
+     * Algorithm used for token signatures.
+     */
+    @NotEmpty
+    private String signatureAlgorithm;
+
+    /**
+     * Secret key used for token signatures.
+     */
+    @NotEmpty
+    private String signatureKey;
 
     private Resource faqFile;
     private boolean sendEmailOnRegistration;

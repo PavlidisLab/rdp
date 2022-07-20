@@ -3,6 +3,7 @@ package ubc.pavlab.rdp.services;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.authentication.BadCredentialsException;
+import ubc.pavlab.rdp.exception.InvalidTokenSignatureException;
 import ubc.pavlab.rdp.exception.TokenException;
 import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
@@ -158,4 +159,8 @@ public interface UserService {
     long computeTermFrequencyInTaxon( User user, GeneOntologyTerm term, Taxon taxon );
 
     void sendGeneAccessRequest( User requestingUser, UserGene userGene, String reason );
+
+    String createSecureRandomToken();
+
+    void verifySecureRandomToken(String token) throws InvalidTokenSignatureException;
 }

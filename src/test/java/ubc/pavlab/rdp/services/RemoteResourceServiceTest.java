@@ -28,6 +28,7 @@ import ubc.pavlab.rdp.settings.ApplicationSettings;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.time.Duration;
 import java.util.EnumSet;
 import java.util.UUID;
 
@@ -180,7 +181,7 @@ public class RemoteResourceServiceTest {
 
     @Test
     public void findGenesBySymbol_whenRequestTimeoutIsSet_thenSucceed() throws JsonProcessingException {
-        when( iSearchSettings.getRequestTimeout() ).thenReturn( 3 );
+        when( iSearchSettings.getRequestTimeout() ).thenReturn( Duration.ofSeconds( 3 ) );
         MockRestServiceServer mockServer = MockRestServiceServer.createServer( asyncRestTemplate );
         mockServer.expect( requestTo( "http://example.com/api/genes/search?symbol=ok&taxonId=9606&tier=TIER1" ) )
                 .andRespond( withStatus( HttpStatus.OK )
