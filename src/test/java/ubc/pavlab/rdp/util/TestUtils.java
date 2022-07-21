@@ -15,10 +15,10 @@ import ubc.pavlab.rdp.model.ontology.OntologyTermInfo;
 import java.net.URI;
 import java.net.URL;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static java.util.function.Function.identity;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
