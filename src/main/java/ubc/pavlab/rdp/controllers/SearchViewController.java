@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 
 @Controller
 @CommonsLog
-public class SearchViewController {
+public class SearchViewController extends AbstractSearchController {
 
     @Autowired
     private MessageSource messageSource;
@@ -76,35 +76,46 @@ public class SearchViewController {
 
     @PreAuthorize("hasPermission(null, 'international-search')")
     @GetMapping(value = "/search/view/international", params = { "nameLike", "descriptionLike" })
-    public ModelAndView searchItlUsers( @RequestParam String nameLike,
-                                        @RequestParam(required = false) boolean prefix,
-                                        @RequestParam String descriptionLike,
-                                        @RequestParam(required = false) Set<ResearcherPosition> researcherPositions,
-                                        @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
-                                        @RequestParam(required = false) Set<String> organUberonIds,
-                                        @RequestParam(required = false) Set<Integer> ontologyTermIds ) {
-        if ( nameLike.isEmpty() ) {
-            return searchItlUsersByDescriptionView( descriptionLike, researcherPositions, researcherCategories, organUberonIds, ontologyTermIds );
-        } else if ( descriptionLike.isEmpty() ) {
-            return searchItlUsersByNameView( nameLike, prefix, researcherPositions, researcherCategories, organUberonIds, ontologyTermIds );
+    public Object searchItlUsers( @RequestParam String nameLike,
+                                  @RequestParam(required = false) boolean prefix,
+                                  @RequestParam String descriptionLike,
+                                  @RequestParam(required = false) Set<ResearcherPosition> researcherPositions,
+                                  @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
+                                  @RequestParam(required = false) Set<String> organUberonIds,
+                                  @RequestParam(required = false) Set<Integer> ontologyTermIds ) {
+        if ( nameLike.isEmpty() ^ descriptionLike.isEmpty() ) {
+            return redirectToSpecificSearch( nameLike, descriptionLike );
         }
-        return new ModelAndView( "fragments/user-table::user-table" )
-                .addObject( "users", remoteResourceService.findUsersByLikeNameAndDescription( nameLike, prefix, descriptionLike, researcherPositions, researcherCategories, organUberonIds, ontologyTermsFromIds( ontologyTermIds ) ) )
-                .addObject( "remote", Boolean.TRUE );
+        ModelAndView modelAndView = new ModelAndView( "fragments/user-table::user-table" );
+        if ( nameLike.isEmpty() ) {
+            modelAndView.setStatus( HttpStatus.BAD_REQUEST );
+            modelAndView.addObject( "message", "Researcher name and interests cannot be empty." );
+            modelAndView.addObject( "error", true );
+            modelAndView.addObject( "users", Collections.emptyList() );
+        } else {
+            modelAndView.addObject( "users", remoteResourceService.findUsersByLikeNameAndDescription( nameLike, prefix, descriptionLike, researcherPositions, researcherCategories, organUberonIds, ontologyTermsFromIds( ontologyTermIds ) ) )
+                    .addObject( "remote", Boolean.TRUE );
+        }
+        return modelAndView;
     }
+
 
     @PreAuthorize("hasPermission(null, 'international-search')")
     @GetMapping(value = "/search/view/international", params = { "nameLike" })
     public ModelAndView searchItlUsersByNameView( @RequestParam String nameLike,
-                                                  @RequestParam Boolean prefix,
+                                                  @RequestParam(required = false) boolean prefix,
                                                   @RequestParam(required = false) Set<ResearcherPosition> researcherPositions,
                                                   @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
                                                   @RequestParam(required = false) Set<String> organUberonIds,
                                                   @RequestParam(required = false) Set<Integer> ontologyTermIds ) {
-        ModelAndView modelAndView = new ModelAndView( "fragments/user-table::user-table" );
-        modelAndView.addObject( "users", remoteResourceService.findUsersByLikeName( nameLike, prefix, researcherPositions, researcherCategories, organUberonIds, ontologyTermsFromIds( ontologyTermIds ) ) );
-        modelAndView.addObject( "remote", Boolean.TRUE );
-        return modelAndView;
+        if ( nameLike.isEmpty() ) {
+            return new ModelAndView( "fragments/error::message", HttpStatus.BAD_REQUEST )
+                    .addObject( "errorMessage", "Researcher name cannot be empty." );
+        } else {
+            return new ModelAndView( "fragments/user-table::user-table" )
+                    .addObject( "remote", Boolean.TRUE )
+                    .addObject( "users", remoteResourceService.findUsersByLikeName( nameLike, prefix, researcherPositions, researcherCategories, organUberonIds, ontologyTermsFromIds( ontologyTermIds ) ) );
+        }
     }
 
     @PreAuthorize("hasPermission(null, 'international-search')")
@@ -114,48 +125,61 @@ public class SearchViewController {
                                                          @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
                                                          @RequestParam(required = false) Set<String> organUberonIds,
                                                          @RequestParam(required = false) Set<Integer> ontologyTermIds ) {
-        ModelAndView modelAndView = new ModelAndView( "fragments/user-table::user-table" );
-        modelAndView.addObject( "users", remoteResourceService.findUsersByDescription( descriptionLike, researcherPositions, researcherCategories, organUberonIds, ontologyTermsFromIds( ontologyTermIds ) ) );
-        modelAndView.addObject( "remote", Boolean.TRUE );
-        return modelAndView;
+        if ( descriptionLike.isEmpty() ) {
+            return new ModelAndView( "fragments/error::message", HttpStatus.BAD_REQUEST )
+                    .addObject( "errorMessage", "Research interests cannot be empty." );
+        } else {
+            return new ModelAndView( "fragments/user-table::user-table" )
+                    .addObject( "remote", Boolean.TRUE )
+                    .addObject( "users", remoteResourceService.findUsersByDescription( descriptionLike, researcherPositions, researcherCategories, organUberonIds, ontologyTermsFromIds( ontologyTermIds ) ) );
+        }
     }
 
     @PreAuthorize("hasPermission(null, 'search')")
     @GetMapping(value = "/search/view", params = { "nameLike", "descriptionLike" })
-    public ModelAndView searchUsersView( @RequestParam String nameLike,
-                                         @RequestParam(required = false) boolean prefix,
-                                         @RequestParam String descriptionLike,
-                                         @RequestParam(required = false) Set<ResearcherPosition> researcherPositions,
-                                         @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
-                                         @RequestParam(required = false) Set<String> organUberonIds,
-                                         @RequestParam(required = false) Set<Integer> ontologyTermIds ) {
-        if ( nameLike.isEmpty() ) {
-            return searchUsersByDescriptionView( descriptionLike, researcherPositions, researcherCategories, organUberonIds, ontologyTermIds );
-        } else if ( descriptionLike.isEmpty() ) {
-            return searchUsersByNameView( nameLike, prefix, researcherPositions, researcherCategories, organUberonIds, ontologyTermIds );
+    public Object searchUsersView( @RequestParam String nameLike,
+                                   @RequestParam(required = false) boolean prefix,
+                                   @RequestParam String descriptionLike,
+                                   @RequestParam(required = false) Set<ResearcherPosition> researcherPositions,
+                                   @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
+                                   @RequestParam(required = false) Set<String> organUberonIds,
+                                   @RequestParam(required = false) Set<Integer> ontologyTermIds ) {
+        if ( nameLike.isEmpty() ^ descriptionLike.isEmpty() ) {
+            return redirectToSpecificSearch( nameLike, descriptionLike );
         }
-        return new ModelAndView( "fragments/user-table::user-table" )
-                .addObject( "users", userService.findByNameAndDescription( nameLike, prefix, descriptionLike,
-                        researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ), ontologyTermsFromIds( ontologyTermIds ) ) );
+        ModelAndView modelAndView = new ModelAndView( "fragments/user-table::user-table" );
+        if ( nameLike.isEmpty() ) {
+            modelAndView.setStatus( HttpStatus.BAD_REQUEST );
+            modelAndView.addObject( "message", "Researcher name and interests cannot be empty." );
+            modelAndView.addObject( "error", true );
+            modelAndView.addObject( "users", Collections.emptyList() );
+        } else {
+            modelAndView.addObject( "users", userService.findByNameAndDescription( nameLike, prefix, descriptionLike,
+                    researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ), ontologyTermsFromIds( ontologyTermIds ) ) );
+        }
+        return modelAndView;
     }
 
     @PreAuthorize("hasPermission(null, 'search')")
     @GetMapping(value = "/search/view", params = { "nameLike" })
     public ModelAndView searchUsersByNameView( @RequestParam String nameLike,
-                                               @RequestParam Boolean prefix,
+                                               @RequestParam(required = false) boolean prefix,
                                                @RequestParam(required = false) Set<ResearcherPosition> researcherPositions,
                                                @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
                                                @RequestParam(required = false) Set<String> organUberonIds,
                                                @RequestParam(required = false) Set<Integer> ontologyTermIds ) {
-        Collection<User> users;
-        if ( prefix ) {
-            users = userService.findByStartsName( nameLike, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ), ontologyTermsFromIds( ontologyTermIds ) );
+        if ( nameLike.isEmpty() ) {
+            return new ModelAndView( "fragments/error::message", HttpStatus.BAD_REQUEST )
+                    .addObject( "errorMessage", "Researcher name cannot be empty." );
         } else {
-            users = userService.findByLikeName( nameLike, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ), ontologyTermsFromIds( ontologyTermIds ) );
+            ModelAndView modelAndView = new ModelAndView( "fragments/user-table::user-table" );
+            if ( prefix ) {
+                modelAndView.addObject( "users", userService.findByStartsName( nameLike, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ), ontologyTermsFromIds( ontologyTermIds ) ) );
+            } else {
+                modelAndView.addObject( "users", userService.findByLikeName( nameLike, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ), ontologyTermsFromIds( ontologyTermIds ) ) );
+            }
+            return modelAndView;
         }
-        ModelAndView modelAndView = new ModelAndView( "fragments/user-table::user-table" );
-        modelAndView.addObject( "users", users );
-        return modelAndView;
     }
 
     @PreAuthorize("hasPermission(null, 'search')")
@@ -165,9 +189,13 @@ public class SearchViewController {
                                                       @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
                                                       @RequestParam(required = false) Set<String> organUberonIds,
                                                       @RequestParam(required = false) Set<Integer> ontologyTermIds ) {
-        ModelAndView modelAndView = new ModelAndView( "fragments/user-table::user-table" );
-        modelAndView.addObject( "users", userService.findByDescription( descriptionLike, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ), ontologyTermsFromIds( ontologyTermIds ) ) );
-        return modelAndView;
+        if ( descriptionLike.isEmpty() ) {
+            return new ModelAndView( "fragments/error::message", HttpStatus.BAD_REQUEST )
+                    .addObject( "errorMessage", "Research interests cannot be empty." );
+        } else {
+            return new ModelAndView( "fragments/user-table::user-table" )
+                    .addObject( "users", userService.findByDescription( descriptionLike, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ), ontologyTermsFromIds( ontologyTermIds ) ) );
+        }
     }
 
 

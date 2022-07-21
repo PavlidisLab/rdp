@@ -41,9 +41,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     private UserDetailsService userDetailsService;
 
     @Autowired
-    private MessageSource messageSource;
-
-    @Autowired
     private PermissionEvaluator permissionEvaluator;
 
     @Override

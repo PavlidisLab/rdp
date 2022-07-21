@@ -187,6 +187,26 @@ public class SearchControllerTest {
     }
 
     @Test
+    public void searchByNameAndDescription_whenNameIsEmpty_thenRedirectToSearchByDescription() throws Exception {
+        mvc.perform( get( "/search" )
+                        .param( "nameLike", "" )
+                        .param( "descriptionLike", "pancake" )
+                        .param( "iSearch", "false" ) )
+                .andExpect( status().is3xxRedirection() )
+                .andExpect( redirectedUrl( "/search" ) );
+    }
+
+    @Test
+    public void searchByNameAndDescription_whenDescriptionIsEmpty_thenRedirectToSearchByName() throws Exception {
+        mvc.perform( get( "/search" )
+                        .param( "nameLike", "maple" )
+                        .param( "descriptionLike", "" )
+                        .param( "iSearch", "false" ) )
+                .andExpect( status().is3xxRedirection() )
+                .andExpect( redirectedUrl( "/search" ) );
+    }
+
+    @Test
     public void getSearch_ByGeneSymbol_return200() throws Exception {
         Taxon humanTaxon = createTaxon( 9606 );
         GeneInfo gene = createGene( 1, humanTaxon );
@@ -275,6 +295,24 @@ public class SearchControllerTest {
                         .param( "remoteHost", "example.com" ) )
                 .andExpect( status().isServiceUnavailable() );
         verify( remoteResourceService ).getRemoteUser( 1, URI.create( "example.com" ) );
+    }
+
+    @Test
+    public void searchItlUsers_whenNameLikeIsEmpty_thenRedirectToDescriptionLikeSearch() throws Exception {
+        mvc.perform( get( "/search/view/international" )
+                        .param( "nameLike", "" )
+                        .param( "descriptionLike", "pancake" ) )
+                .andExpect( status().is3xxRedirection() )
+                .andExpect( redirectedUrl( "/search/view/international" ) );
+    }
+
+    @Test
+    public void searchUsersView_whenNameLikeIsEmpty_thenRedirectToDescriptionLikeSearch() throws Exception {
+        mvc.perform( get( "/search/view" )
+                        .param( "nameLike", "maple" )
+                        .param( "descriptionLike", "" ) )
+                .andExpect( status().is3xxRedirection() )
+                .andExpect( redirectedUrl( "/search/view" ) );
     }
 
     @Test
