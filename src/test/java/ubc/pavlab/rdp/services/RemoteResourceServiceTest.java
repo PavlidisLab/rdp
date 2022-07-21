@@ -8,9 +8,11 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -189,18 +191,24 @@ public class RemoteResourceServiceTest {
     }
 
     @Test
-    public void findUsersByLikeNameAndDescription_whenVersionIsPre15_thenReturnNothing() throws JsonProcessingException {
+    public void findUsersByLikeNameAndDescription_whenVersionIsPre15_thenPerformTwoQueriesAndIntersectTheirResults() throws JsonProcessingException {
         MockRestServiceServer mockServer = MockRestServiceServer.createServer( asyncRestTemplate );
         mockServer.expect( requestTo( "http://example.com/api" ) )
                 .andRespond( withStatus( HttpStatus.OK )
                         .contentType( MediaType.APPLICATION_JSON )
                         .body( objectMapper.writeValueAsString( new OpenAPI().info( new Info().version( "1.4.0" ) ) ) ) );
-        mockServer.expect( ExpectedCount.never(), requestTo( "http://example.com/api/users/search?nameLike=ok&prefix=true&descriptionLike=ok2" ) )
+        mockServer.expect( requestTo( "http://example.com/api/users/search?nameLike=ok&prefix=true" ) )
                 .andRespond( withStatus( HttpStatus.OK )
                         .contentType( MediaType.APPLICATION_JSON )
-                        .body( objectMapper.writeValueAsString( new User[]{} ) ) );
+                        .body( objectMapper.writeValueAsString( new User[]{ createRemoteUser( 1, URI.create( "http://example.com" ) ), createRemoteUser( 2, URI.create( "http://example.com" ) ) } ) ) );
+        mockServer.expect( requestTo( "http://example.com/api/users/search?descriptionLike=ok2" ) )
+                .andRespond( withStatus( HttpStatus.OK )
+                        .contentType( MediaType.APPLICATION_JSON )
+                        .body( objectMapper.writeValueAsString( new User[]{ createRemoteUser( 1, URI.create( "http://example.com" ) ), createRemoteUser( 2, URI.create( "http://example.com" ) ) } ) ) );
+        mockServer.expect( ExpectedCount.never(), requestTo( "http://example.com/api/users/search?nameLike=ok&prefix=true&descriptionLike=ok2" ) );
         assertThat( remoteResourceService.findUsersByLikeNameAndDescription( "ok", true, "ok2", null, null, null, null ) )
-                .isEmpty();
+                .extracting( "id" )
+                .containsExactly( 2 );
         mockServer.verify();
     }
 
