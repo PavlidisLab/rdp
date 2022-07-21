@@ -83,6 +83,11 @@ public class SearchViewController {
                                         @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
                                         @RequestParam(required = false) Set<String> organUberonIds,
                                         @RequestParam(required = false) Set<Integer> ontologyTermIds ) {
+        if ( nameLike.isEmpty() ) {
+            return searchItlUsersByDescriptionView( descriptionLike, researcherPositions, researcherCategories, organUberonIds, ontologyTermIds );
+        } else if ( descriptionLike.isEmpty() ) {
+            return searchItlUsersByNameView( nameLike, prefix, researcherPositions, researcherCategories, organUberonIds, ontologyTermIds );
+        }
         return new ModelAndView( "fragments/user-table::user-table" )
                 .addObject( "users", remoteResourceService.findUsersByLikeNameAndDescription( nameLike, prefix, descriptionLike, researcherPositions, researcherCategories, organUberonIds, ontologyTermsFromIds( ontologyTermIds ) ) )
                 .addObject( "remote", Boolean.TRUE );
@@ -124,6 +129,11 @@ public class SearchViewController {
                                          @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
                                          @RequestParam(required = false) Set<String> organUberonIds,
                                          @RequestParam(required = false) Set<Integer> ontologyTermIds ) {
+        if ( nameLike.isEmpty() ) {
+            return searchUsersByDescriptionView( descriptionLike, researcherPositions, researcherCategories, organUberonIds, ontologyTermIds );
+        } else if ( descriptionLike.isEmpty() ) {
+            return searchUsersByNameView( nameLike, prefix, researcherPositions, researcherCategories, organUberonIds, ontologyTermIds );
+        }
         return new ModelAndView( "fragments/user-table::user-table" )
                 .addObject( "users", userService.findByNameAndDescription( nameLike, prefix, descriptionLike,
                         researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ), ontologyTermsFromIds( ontologyTermIds ) ) );

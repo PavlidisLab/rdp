@@ -90,6 +90,11 @@ public class SearchController {
                                      @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
                                      @RequestParam(required = false) Set<String> organUberonIds,
                                      @RequestParam(required = false) List<Integer> ontologyTermIds ) {
+        if ( nameLike.isEmpty() ) {
+            return searchUsersByDescription( descriptionLike, iSearch, researcherPositions, researcherCategories, organUberonIds, ontologyTermIds );
+        } else if ( descriptionLike.isEmpty() ) {
+            return searchUsersByName( nameLike, prefix, iSearch, researcherPositions, researcherCategories, organUberonIds, ontologyTermIds );
+        }
         List<OntologyTermInfo> ontologyTerms;
         if ( ontologyTermIds != null ) {
             ontologyTerms = ontologyService.findAllTermsByIdInMaintainingOrder( ontologyTermIds );
