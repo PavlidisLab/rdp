@@ -204,7 +204,7 @@ public class RemoteResourceServiceTest {
         mockServer.expect( requestTo( "http://example.com/api/users/search?descriptionLike=ok2" ) )
                 .andRespond( withStatus( HttpStatus.OK )
                         .contentType( MediaType.APPLICATION_JSON )
-                        .body( objectMapper.writeValueAsString( new User[]{ createRemoteUser( 1, URI.create( "http://example.com" ) ), createRemoteUser( 2, URI.create( "http://example.com" ) ) } ) ) );
+                        .body( objectMapper.writeValueAsString( new User[]{ createRemoteUser( 2, URI.create( "http://example.com" ) ), createRemoteUser( 3, URI.create( "http://example.com" ) ) } ) ) );
         mockServer.expect( ExpectedCount.never(), requestTo( "http://example.com/api/users/search?nameLike=ok&prefix=true&descriptionLike=ok2" ) );
         assertThat( remoteResourceService.findUsersByLikeNameAndDescription( "ok", true, "ok2", null, null, null, null ) )
                 .extracting( "id" )
