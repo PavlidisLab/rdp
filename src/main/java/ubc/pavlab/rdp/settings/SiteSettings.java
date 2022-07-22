@@ -3,21 +3,25 @@ package ubc.pavlab.rdp.settings;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
 import java.net.URI;
 
 /**
  * Created by mjacobson on 22/01/18.
  */
+@Validated
 @Configuration
 @ConfigurationProperties(prefix = "rdp.site")
 @Data
 public class SiteSettings {
 
-    @NotEmpty
+    @NotNull
     private URI host;
 
     private String context;

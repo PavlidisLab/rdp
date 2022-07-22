@@ -5,6 +5,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.convert.DurationUnit;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
+import org.springframework.validation.annotation.Validated;
 import ubc.pavlab.rdp.model.GeneInfo;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.ResearcherCategory;
@@ -25,6 +26,7 @@ import java.util.List;
 /**
  * Created by mjacobson on 22/01/18.
  */
+@Validated
 @Configuration
 @ConfigurationProperties(prefix = "rdp.settings")
 @Data
@@ -165,7 +167,7 @@ public class ApplicationSettings {
 
         public enum SearchMode {
             BY_GENE,
-            BY_RESEARCHER;
+            BY_RESEARCHER
         }
 
         /**
