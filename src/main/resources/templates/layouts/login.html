@@ -5,6 +5,7 @@
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
     <meta name="description" th:content="${description} ?: #{rdp.site.welcome-public(#{rdp.site.shortname})}"/>
+    <meta name="theme-color" th:content="${@siteSettings.themeColor}"/>
     <title th:text="${title} ? ${title} + ' - ' + #{rdp.site.fullname} : #{rdp.site.fullname}"></title>
     <link rel="icon" type="image/png" sizes="16x16" th:href="@{/images/favicon-16x16.png}"/>
     <link rel="icon" type="image/png" sizes="32x32" th:href="@{/images/favicon-32x32.png}"/>

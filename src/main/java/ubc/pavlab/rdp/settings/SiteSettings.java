@@ -26,6 +26,9 @@ public class SiteSettings {
         return UriComponentsBuilder.fromUri( host ).path( context ).build().toUri();
     }
 
+    @Pattern(regexp = "#[a-fA-F\\d]{6}")
+    private String themeColor;
+
     @Email
     @NotEmpty
     private String contactEmail;
