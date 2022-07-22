@@ -390,7 +390,13 @@ public class UserServiceImpl implements UserService {
         final Set<String> organUberonIds = organUberonIdsFromOrgans( organs );
         String namePattern = prefix ? nameLike + "%" : "%" + nameLike + "%";
         String descriptionPattern = "%" + descriptionLike + "%";
-        return userRepository.findDistinctByProfileNameLikeIgnoreCaseAndProfileAndTaxonDescriptionsLikeIgnoreCaseOrTaxonDescriptionsLikeIgnoreCase( namePattern, descriptionPattern ).stream()
+        List<User> users;
+        if ( prefix ) {
+            users = userRepository.findDistinctByProfileLastNameLikeIgnoreCaseAndProfileDescriptionLikeIgnoreCaseOrTaxonDescriptionsLikeIgnoreCase( namePattern, descriptionPattern );
+        } else {
+            users = userRepository.findDistinctByProfileFullNameLikeIgnoreCaseAndProfileDescriptionLikeIgnoreCaseAndTaxonDescriptionsLikeIgnoreCaseOrTaxonDescriptionsLikeIgnoreCase( namePattern, descriptionPattern );
+        }
+        return users.stream()
                 .filter( u -> researcherPositions == null || researcherPositions.contains( u.getProfile().getResearcherPosition() ) )
                 .filter( u -> researcherCategories == null || containsAny( researcherCategories, u.getProfile().getResearcherCategories() ) )
                 .filter( u -> organUberonIds == null || containsAny( organUberonIds, u.getUserOrgans().values().stream().map( UserOrgan::getUberonId ).collect( Collectors.toSet() ) ) )

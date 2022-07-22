@@ -12,6 +12,7 @@ import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 
 import javax.persistence.QueryHint;
 import java.util.Collection;
+import java.util.List;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Integer> {
@@ -53,13 +54,21 @@ public interface UserRepository extends JpaRepository<User, Integer> {
             String descriptionLike, String taxonDescriptionLike );
 
     /**
-     * Obtain users whose name and description (or taxon description) matches the given patterns.
+     * Obtain users whose last name and description (or taxon description) matches the given pattern.
+     */
+    @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
+    @Query("select u from User u left join u.taxonDescriptions t where upper(u.profile.lastName) like upper(:lastNameLike) and (upper(u.profile.description) like upper(:descriptionLike) or upper(t) like upper(:descriptionLike))")
+    List<User> findDistinctByProfileLastNameLikeIgnoreCaseAndProfileDescriptionLikeIgnoreCaseOrTaxonDescriptionsLikeIgnoreCase(
+            @Param("lastNameLike") String lastNameLike, @Param("descriptionLike") String descriptionLike );
+
+    /**
+     * Obtain users whose full name and description (or taxon description) matches the given patterns.
      * <p>
      * Note: this query had to be written manually so that the OR takes precedence on the AND. Otherwise, a much longer
      * and convoluted name would be necessary.
      */
     @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
-    @Query("select distinct u from User u left join u.taxonDescriptions t where upper(u.profile.name) like upper(:nameLike) and (upper(u.profile.description) like upper(:descriptionLike) or upper(t) like upper(:descriptionLike))")
-    Collection<User> findDistinctByProfileNameLikeIgnoreCaseAndProfileAndTaxonDescriptionsLikeIgnoreCaseOrTaxonDescriptionsLikeIgnoreCase(
+    @Query("select distinct u from User u left join u.taxonDescriptions t where (upper(u.profile.lastName) like upper(:nameLike) or upper(u.profile.name) like upper(:nameLike)) and (upper(u.profile.description) like upper(:descriptionLike) or upper(t) like upper(:descriptionLike))")
+    List<User> findDistinctByProfileFullNameLikeIgnoreCaseAndProfileDescriptionLikeIgnoreCaseAndTaxonDescriptionsLikeIgnoreCaseOrTaxonDescriptionsLikeIgnoreCase(
             @Param("nameLike") String nameLike, @Param("descriptionLike") String descriptionLike );
 }
