@@ -157,8 +157,8 @@ public class UserController {
 
     @Data
     private static class SupportForm {
-        @NotNull(message = "Your must provide your name.")
-        @Size(min = 1, message = "Your must provide your name.")
+        @NotNull(message = "You must provide your name.")
+        @Size(min = 1, message = "You must provide your name.")
         private String name;
         @NotNull(message = "The message must be provided.")
         @Size(min = 1, message = "The message must not be empty.")
