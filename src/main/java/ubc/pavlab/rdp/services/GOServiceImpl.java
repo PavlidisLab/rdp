@@ -24,6 +24,9 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -61,6 +64,14 @@ public class GOServiceImpl implements GOService, InitializingBean {
 
     @Autowired
     private ResourceLoader resourceLoader;
+
+    /**
+     * Lock used to make atomic operations on {@link #ancestorsCache} and {@link #descendantsCache} caches alongside the
+     * internal state of the {@link #goRepository}.
+     * <p>
+     * The repository itself is thread-safe, so no explicit locking is necessary unless you use the cache.
+     */
+    private final ReadWriteLock rwLock = new ReentrantReadWriteLock();
 
     private Cache ancestorsCache;
     private Cache descendantsCache;
@@ -193,17 +204,17 @@ public class GOServiceImpl implements GOService, InitializingBean {
             return new SearchResult<>( TermMatchType.DEFINITION_CONTAINS, term );
         }
 
-        List<String> splitPatternlist = Arrays.stream( queryString.split( " " ) )
+        List<String> splitPatterns = Arrays.stream( queryString.split( " " ) )
                 .filter( s -> !s.equals( "" ) )
                 .map( s -> "(?i:.*" + Pattern.quote( s ) + ".*)" ).collect( Collectors.toList() );
 
-        for ( String splitPattern : splitPatternlist ) {
+        for ( String splitPattern : splitPatterns ) {
             if ( term.getName().matches( splitPattern ) ) {
                 return new SearchResult<>( TermMatchType.NAME_CONTAINS_PART, term );
             }
         }
 
-        for ( String splitPattern : splitPatternlist ) {
+        for ( String splitPattern : splitPatterns ) {
             if ( term.getDefinition().matches( splitPattern ) ) {
                 return new SearchResult<>( TermMatchType.DEFINITION_CONTAINS_PART, term );
             }
@@ -241,46 +252,61 @@ public class GOServiceImpl implements GOService, InitializingBean {
 
     @Override
     public GeneOntologyTermInfo save( GeneOntologyTermInfo term ) {
+        Lock lock = rwLock.writeLock();
         try {
+            lock.lock();
             return goRepository.save( term );
         } finally {
             evict( term );
+            lock.unlock();
         }
     }
 
     @Override
     public Iterable<GeneOntologyTermInfo> save( Iterable<GeneOntologyTermInfo> terms ) {
+        Lock lock = rwLock.writeLock();
         try {
+            lock.lock();
             return goRepository.saveAll( terms );
         } finally {
             evict( terms );
+            lock.unlock();
         }
     }
 
     @Override
     public GeneOntologyTermInfo saveAlias( String goId, GeneOntologyTermInfo term ) {
+        Lock lock = rwLock.writeLock();
         try {
+            lock.lock();
             return goRepository.saveByAlias( goId, term );
         } finally {
             evict( term );
+            lock.unlock();
         }
     }
 
     @Override
     public Iterable<GeneOntologyTermInfo> saveAlias( Map<String, GeneOntologyTermInfo> terms ) {
+        Lock lock = rwLock.writeLock();
         try {
+            lock.lock();
             return goRepository.saveAllByAlias( terms );
         } finally {
             evict( terms.values() );
+            lock.unlock();
         }
     }
 
     @Override
     public void deleteAll() {
+        Lock lock = rwLock.writeLock();
         try {
+            lock.lock();
             goRepository.deleteAll();
         } finally {
             evictAll();
+            lock.unlock();
         }
     }
 
@@ -291,7 +317,13 @@ public class GOServiceImpl implements GOService, InitializingBean {
 
     @Override
     public Collection<GeneOntologyTermInfo> getDescendants( GeneOntologyTermInfo entry ) {
-        return getDescendantsInternal( entry );
+        Lock lock = rwLock.readLock();
+        try {
+            lock.lock();
+            return getDescendantsInternal( entry );
+        } finally {
+            lock.unlock();
+        }
     }
 
     private Set<GeneOntologyTermInfo> getDescendantsInternal( GeneOntologyTermInfo entry ) {
@@ -312,8 +344,6 @@ public class GOServiceImpl implements GOService, InitializingBean {
     /**
      * Obtain genes directly associated to this GO term.
      *
-     * @param term
-     * @return
      * @deprecated use {@link GeneOntologyTermInfo#getDirectGeneIds()} to obtain direct genes
      */
     @Override
@@ -345,7 +375,7 @@ public class GOServiceImpl implements GOService, InitializingBean {
 
     @Override
     public Collection<Integer> getGenes( GeneOntologyTermInfo t ) {
-        Collection<GeneOntologyTermInfo> descendants = new HashSet<GeneOntologyTermInfo>( getDescendants( t ) );
+        Collection<GeneOntologyTermInfo> descendants = new HashSet<>( getDescendants( t ) );
 
         descendants.add( t );
 
@@ -397,7 +427,13 @@ public class GOServiceImpl implements GOService, InitializingBean {
 
     @Override
     public Collection<GeneOntologyTermInfo> getAncestors( GeneOntologyTermInfo term ) {
-        return getAncestorsInternal( term );
+        Lock lock = rwLock.readLock();
+        try {
+            lock.lock();
+            return getAncestorsInternal( term );
+        } finally {
+            lock.unlock();
+        }
     }
 
     private Collection<GeneOntologyTermInfo> getAncestorsInternal( GeneOntologyTermInfo term ) {
