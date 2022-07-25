@@ -165,6 +165,7 @@
              th:classappend="${activeSearchTab} == 'user' ? 'active'">
 
             <!--Researchers alphabetically -->
+            <!--
             <form th:unless="${chars.isEmpty()}" class="d-none d-lg-block">
                 <div class="form-group">
                     <label>Browse alphabetically:</label>
@@ -186,8 +187,8 @@
                     </div>
                 </div>
             </form>
-
             <hr/>
+            -->
 
             <form th:action="@{/search}" class="search">
                 <label for="nameLike">Browse by name and research interests:</label>
