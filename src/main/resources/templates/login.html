@@ -52,24 +52,8 @@
                     <a th:href="@{/forgotPassword}">Forgot Password?</a>
                 </div>
             </div>
-
-            <div class="form-group row">
-                <div class="col-md-10 offset-md-1">
-                    <div class="row">
-                        <div class="col-4 text-center">
-                            <a th:href="@{/registration}">Create Account</a>
-                        </div>
-                        <div sec:authorize="hasPermission(null, 'search')"
-                             class="col-4 text-center">
-                            <a th:href="@{/search}">Public search</a>
-                        </div>
-                        <div class="col-4 text-center">
-                            <a th:href="'mailto:' + ${@siteSettings.contactEmail}">Contact Support</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </form>
+        <div th:replace="layouts/login::actions(showCreateAccount = true, showPublicSearch = true, showLogin = false, showForgotPassword = false)"></div>
     </div>
 
 </div>

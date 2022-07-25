@@ -17,7 +17,8 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import ubc.pavlab.rdp.WebSecurityConfig;
-import ubc.pavlab.rdp.exception.TokenException;
+import ubc.pavlab.rdp.exception.ExpiredTokenException;
+import ubc.pavlab.rdp.exception.TokenNotFoundException;
 import ubc.pavlab.rdp.model.Profile;
 import ubc.pavlab.rdp.model.User;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
@@ -179,11 +180,22 @@ public class LoginControllerTest {
     }
 
     @Test
+    public void registrationConfirm_whenTokenIsExpired_thenRedirectToResendConfirmation() throws Exception {
+        when( userService.confirmVerificationToken( "1234" ) ).thenThrow( ExpiredTokenException.class );
+        mvc.perform( get( "/registrationConfirm" )
+                        .param( "token", "1234" ) )
+                .andExpect( status().is3xxRedirection() )
+                .andExpect( redirectedUrl( "/resendConfirmation" ) )
+                .andExpect( flash().attributeExists( "message" ) );
+    }
+
+    @Test
     public void registrationConfirm_whenTokenDoesNotExist_thenReturnError() throws Exception {
-        when( userService.confirmVerificationToken( "1234" ) ).thenThrow( TokenException.class );
+        when( userService.confirmVerificationToken( "1234" ) ).thenThrow( TokenNotFoundException.class );
         mvc.perform( get( "/registrationConfirm" )
                         .param( "token", "1234" ) )
                 .andExpect( status().isNotFound() )
-                .andExpect( view().name( "error/404" ) );
+                .andExpect( view().name( "registrationConfirm" ) )
+                .andExpect( model().attributeExists( "message" ) );
     }
 }

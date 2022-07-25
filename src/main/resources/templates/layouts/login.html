@@ -16,7 +16,13 @@
     <link rel="stylesheet" type="text/css" th:href="@{/css/login.css}"/>
 </head>
 <body>
-<div th:fragment="message">
+<div th:fragment="header" class="row">
+    <div class="col-md-10 offset-1">
+        <h4 class="form-signin-heading"><a th:href="@{/login}" th:text="#{rdp.site.fullname}"></a></h4>
+        <h6 class="form-signin-subheading">Researcher Registry</h6>
+    </div>
+</div>
+<th:block th:fragment="message">
     <div th:if="${@environment.acceptsProfiles('staging')}"
          class="alert alert-warning text-center">
         This version of the <span th:text="#{rdp.site.shortname}"></span> registry is <b>staging</b>. Do not provide
@@ -24,30 +30,48 @@
     </div>
     <div th:if="${message}"
          class="row">
-        <div class="col-10 offset-1">
-            <div th:text="${message}"
-                 class="alert"
+        <div class="col-md-10 offset-md-1">
+            <div th:text="${message}" class="alert mb-3"
                  th:classappend="${error} ? 'alert-danger' : 'alert-info'">
                 ...
             </div>
         </div>
     </div>
-</div>
-<div th:fragment="actions">
-    <div class="form-group row">
-        <div class="col-md-10 offset-md-1">
-            <div class="row">
-                <div sec:authorize="isAuthenticated()"
-                     class="col-6 text-center">
-                    <a th:href="@{/login}">Return to my user profile</a>
-                </div>
-                <div sec:authorize="!isAuthenticated()"
-                     class="col-6 text-center">
-                    <a th:href="@{/login}">Return to login</a>
-                </div>
-                <div class="col-6 text-center">
-                    <a th:href="${'mailto:' + @siteSettings.contactEmail}">Contact Support</a>
-                </div>
+</th:block>
+
+<div th:fragment="actions(showLogin, showCreateAccount, showPublicSearch, showForgotPassword)"
+     class="row">
+    <div class="col-md-10 offset-md-1">
+        <div class="row">
+            <div sec:authorize="isAuthenticated()"
+                 class="col-4 text-center">
+                <a th:href="@{/login}">Return to my user profile</a>
+            </div>
+            <div th:if="${showLogin}"
+                 sec:authorize="!isAuthenticated()"
+                 class="col-4 text-center">
+                <a th:href="@{/login}">Return to login</a>
+            </div>
+            <div th:if="${showCreateAccount}"
+                 class="col-4 text-center">
+                <a th:href="@{/registration}">Create Account</a>
+            </div>
+            <div th:if="${showPublicSearch}"
+                 sec:authorize="hasPermission(null, 'search')"
+                 class="col-4 text-center">
+                <a th:href="@{/search}">Public search</a>
+            </div>
+            <div th:if="${showForgotPassword}"
+                 class="col-4 text-center">
+                <a th:href="@{/forgotPassword}">Forgot password?</a>
+            </div>
+            <div sec:authorize="isAuthenticated()"
+                 class="col-4 text-center">
+                <a th:href="@{/user/support}">Contact Support</a>
+            </div>
+            <div sec:authorize="!isAuthenticated()"
+                 class="col-4 text-center">
+                <a th:href="${'mailto:' + @siteSettings.contactEmail}">Contact Support</a>
             </div>
         </div>
     </div>

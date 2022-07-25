@@ -10,8 +10,7 @@
 <body>
 <div class="wrapper d-flex justify-content-center align-items-center">
     <div class="container py-4">
-        <h4 class="form-signin-heading"><a th:href="@{/login}" th:text="#{rdp.site.fullname}"></a></h4>
-        <h6 class="form-signin-subheading">Researcher Registry</h6>
+        <div th:replace="layouts/login::header"></div>
         <div th:replace="layouts/login::message"></div>
         <form th:action="@{/registration}" th:object="${user}" method="POST">
             <div class="form-row">
@@ -59,7 +58,7 @@
                 </div>
             </div>
 
-            <div th:replace="layouts/login::actions"></div>
+            <div th:replace="layouts/login::actions(showLogin = true, showCreateAccount = false, showPublicSearch = true, showForgotPassword = false)"></div>
 
         </form>
     </div>

@@ -25,7 +25,10 @@ import ubc.pavlab.rdp.events.OnContactEmailUpdateEvent;
 import ubc.pavlab.rdp.events.OnRegistrationCompleteEvent;
 import ubc.pavlab.rdp.events.OnRequestAccessEvent;
 import ubc.pavlab.rdp.events.OnUserPasswordResetEvent;
+import ubc.pavlab.rdp.exception.InvalidTokenException;
 import ubc.pavlab.rdp.exception.TokenException;
+import ubc.pavlab.rdp.exception.ExpiredTokenException;
+import ubc.pavlab.rdp.exception.TokenNotFoundException;
 import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.ResearcherCategory;
@@ -258,7 +261,7 @@ public class UserServiceImpl implements UserService {
         }
         if ( Instant.now().isAfter( token.getExpiryDate().toInstant() ) ) {
             // token is expired
-            throw new TokenException( "Token is expired." );
+            throw new ExpiredTokenException( "Token is expired." );
         }
         return token.getUser();
     }
@@ -649,15 +652,15 @@ public class UserServiceImpl implements UserService {
         PasswordResetToken passToken = passwordResetTokenRepository.findByToken( token );
 
         if ( passToken == null ) {
-            throw new TokenException( "Password reset token is invalid." );
+            throw new TokenNotFoundException( "Password reset token is invalid." );
         }
 
         if ( !passToken.getUser().getId().equals( userId ) ) {
-            throw new TokenException( "Password reset token is invalid." );
+            throw new InvalidTokenException( "Password reset token is invalid." );
         }
 
         if ( Instant.now().isAfter( passToken.getExpiryDate().toInstant() ) ) {
-            throw new TokenException( "Password reset token is expired." );
+            throw new ExpiredTokenException( "Password reset token is expired." );
         }
 
         return passToken;
@@ -708,11 +711,11 @@ public class UserServiceImpl implements UserService {
     public User confirmVerificationToken( String token ) throws TokenException {
         VerificationToken verificationToken = tokenRepository.findByToken( token );
         if ( verificationToken == null ) {
-            throw new TokenException( "Verification token is invalid." );
+            throw new TokenNotFoundException( "Verification token is invalid." );
         }
 
         if ( Instant.now().isAfter( verificationToken.getExpiryDate().toInstant() ) ) {
-            throw new TokenException( "Verification token is expired." );
+            throw new ExpiredTokenException( "Verification token is expired." );
         }
 
         User user = verificationToken.getUser();
@@ -733,7 +736,7 @@ public class UserServiceImpl implements UserService {
             tokenRepository.delete( verificationToken );
             return userRepository.save( user );
         } else {
-            throw new TokenException( "Verification token email does not match neither the user email nor contact email." );
+            throw new InvalidTokenException( "Verification token email does not match neither the user email nor contact email." );
         }
     }
 

@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import ubc.pavlab.rdp.exception.TokenException;
+import ubc.pavlab.rdp.exception.ExpiredTokenException;
+import ubc.pavlab.rdp.exception.TokenNotFoundException;
 import ubc.pavlab.rdp.model.Profile;
 import ubc.pavlab.rdp.model.User;
 import ubc.pavlab.rdp.services.PrivacyService;
@@ -131,19 +133,21 @@ public class LoginController {
     @GetMapping(value = "/registrationConfirm")
     public ModelAndView confirmRegistration( @RequestParam("token") String token,
                                              RedirectAttributes redirectAttributes ) {
-        ModelAndView modelAndView = new ModelAndView();
-
         try {
             userService.confirmVerificationToken( token );
             redirectAttributes.addFlashAttribute( "message", "Your account has been enabled successfully, and you can now proceed to login." );
-            modelAndView.setViewName( "redirect:/login" );
+            return new ModelAndView( "redirect:/login" );
+        } catch ( ExpiredTokenException e ) {
+            redirectAttributes.addFlashAttribute( "message", "The registration token is expired." );
+            return new ModelAndView( "redirect:/resendConfirmation" );
+        } catch ( TokenNotFoundException e ) {
+            // presumably, the token is already used and the user may proceed to login, or request a reset password token
+            return new ModelAndView( "registrationConfirm", HttpStatus.NOT_FOUND )
+                    .addObject( "message", "The registration token has already been used. You may try to login or reset your password to gain access to your account." );
         } catch ( TokenException e ) {
             log.error( String.format( "Could not confirm registration token: %s.", e.getMessage() ) );
-            modelAndView.setStatus( HttpStatus.NOT_FOUND );
-            modelAndView.setViewName( "error/404" );
+            return new ModelAndView( "error/404", HttpStatus.NOT_FOUND );
         }
-
-        return modelAndView;
     }
 
 }

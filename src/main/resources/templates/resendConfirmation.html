@@ -32,7 +32,7 @@
                 </div>
             </div>
 
-            <div th:replace="layouts/login::actions"></div>
+            <div th:replace="layouts/login::actions(showLogin = true, showCreateAccount = false, showPublicSearch = true, showForgotPassword = false)"></div>
         </form>
     </div>
 
