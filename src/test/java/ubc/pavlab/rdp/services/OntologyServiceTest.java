@@ -2,7 +2,6 @@ package ubc.pavlab.rdp.services;
 
 import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.lang3.time.StopWatch;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.internal.verification.VerificationModeFactory;
@@ -100,19 +99,6 @@ public class OntologyServiceTest {
                 return ontology;
             }
         }
-
-        @Transactional
-        public void setupOntologies() {
-            String[] ontologies = { "mondo", "uberon", "go" };
-            for ( String ont : ontologies ) {
-                log.info( "Setting up " + ont + " ontology..." );
-                try {
-                    setupOntology( ont, true );
-                } catch ( IOException | ParseException | OntologyNameAlreadyUsedException e ) {
-                    log.error( String.format( "Failed to setup %s ontology.", ont ), e );
-                }
-            }
-        }
     }
 
     @Test
@@ -154,12 +140,11 @@ public class OntologyServiceTest {
     }
 
     @Test
-    @Ignore("There's something wrong with the fixtures for this test.")
     public void updateFromObo() throws IOException, ParseException {
         Ontology ontology = ontologyService.save( Ontology.builder( "uberon" ).build() );
         entityManager.refresh( ontology );
         ontologyService.updateFromObo( ontology, new InputStreamReader( new ClassPathResource( "cache/uberon.obo" ).getInputStream() ) );
-        assertThat( ontology.getTerms() ).hasSize( 13000 );
+        assertThat( ontology.getTerms() ).hasSize( 14938 );
     }
 
     @Test
@@ -223,8 +208,7 @@ public class OntologyServiceTest {
 
     @Test
     public void autocomplete_whenMaxResultIsLow_thenRespectTheLimit() throws IOException, ParseException, OntologyNameAlreadyUsedException {
-        Ontology ontology = ontologyService.createFromObo( new InputStreamReader( new ClassPathResource( "cache/uberon.obo" ).getInputStream() ) );
-        ontologyService.activate( ontology, true );
+        Ontology ontology = ontologySetupService.setupOntology( "uberon", true );
         entityManager.refresh( ontology );
         assertThat( ontologyService.autocompleteTerms( "bicep", 100, Locale.getDefault() ) )
                 .size()
@@ -239,8 +223,7 @@ public class OntologyServiceTest {
 
     @Test
     public void autocomplete_whenNoMatch_thenReturnEmpty() throws IOException, ParseException, OntologyNameAlreadyUsedException {
-        Ontology ontology = ontologyService.createFromObo( new InputStreamReader( new ClassPathResource( "cache/uberon.obo" ).getInputStream() ) );
-        ontologyService.activate( ontology, true );
+        Ontology ontology = ontologySetupService.setupOntology( "uberon", true );
         entityManager.refresh( ontology );
         assertThat( ontology.isActive() ).isTrue();
         assertThat( ontology.getTerms() ).hasSize( 14938 );
@@ -249,17 +232,16 @@ public class OntologyServiceTest {
     }
 
     @Test
-    public void updateOntologies() {
-        ontologySetupService.setupOntologies();
+    public void updateOntologies() throws OntologyNameAlreadyUsedException, IOException, ParseException {
+        ontologySetupService.setupOntology( "uberon", false );
         entityManager.flush();
         entityManager.clear();
         ontologyService.updateOntologies();
     }
 
     @Test
-    public void writeObo_whenFedBackToOboParser_thenProduceExactlyTheSameStructure() throws IOException, ParseException {
-        ontologySetupService.setupOntologies();
-        Ontology ontology = ontologyService.findByName( "mondo" );
+    public void writeObo_whenFedBackToOboParser_thenProduceExactlyTheSameStructure() throws IOException, ParseException, OntologyNameAlreadyUsedException {
+        Ontology ontology = ontologySetupService.setupOntology( "mondo", false );
         assertThat( ontology ).isNotNull();
         // the ontology relationships might not have been fully initialized (i.e. term super terms when sub terms are set)
         entityManager.refresh( ontology );
