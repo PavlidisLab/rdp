@@ -144,7 +144,8 @@
                      class="form-row">
                     <div class="col-md-12">
                         <div th:each="ontology, i : ${@ontologyService.findAllOntologiesAvailableForGeneSearch()}"
-                             th:classappend="${i.last} ? '' : 'mb-3'">
+                             class="form-group"
+                             th:classappend="${i.last} ? 'mb-0' : ''">
                             <label th:for="${@ontologyService.isSimple(ontology)} ? null : ${#ids.next('ontologyTermIds')}">
                                 With the following
                                 <strong th:text="${#messages.msgOrNull('rdp.ontologies.' + ontology.name + '.title') ?: #strings.toUpperCase(ontology.name)}"></strong>
@@ -240,11 +241,9 @@
                     <div class="col-md-12">
                         <div class="form-group">
                             <label>With focus on the following organ systems (or any of none are selected):</label>
-                        </div>
-                    </div>
-                    <div class="col-md-12">
-                        <div th:replace="fragments/organ::organs-selection(checkedOrganUberonIds = ${organUberonIds})">
-                            ...
+                            <div th:replace="fragments/organ::organs-selection(checkedOrganUberonIds = ${organUberonIds})">
+                                ...
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -252,15 +251,15 @@
                 <!-- Researchers by associated terms -->
                 <div th:if="${@applicationSettings.ontology.enabled}" class="ontology-terms-form form-row">
                     <div class="col-md-12">
-                        <div class="form-group mb-0">
-                            <div th:each="ontology : ${@ontologyService.findAllOntologies()}">
-                                <label th:for="${#ids.next('ontologyTermIds')}">
-                                    With the following
-                                    <strong th:text="${#messages.msgOrNull('rdp.ontologies.' + ontology.name + '.title') ?: #strings.toUpperCase(ontology.name)}"></strong>
-                                    terms (or any if none are selected):
-                                </label>
-                                <div th:replace="fragments/ontology::terms-selection(ontology = ${ontology}, selectedTerms = ${ontologyTerms}, showTable = false)"></div>
-                            </div>
+                        <div th:each="ontology, i : ${@ontologyService.findAllOntologies()}"
+                             th:class="form-group"
+                             th:classappend="${i.last} ? 'mb-0'">
+                            <label th:for="${#ids.next('ontologyTermIds')}">
+                                With the following
+                                <strong th:text="${#messages.msgOrNull('rdp.ontologies.' + ontology.name + '.title') ?: #strings.toUpperCase(ontology.name)}"></strong>
+                                terms (or any if none are selected):
+                            </label>
+                            <div th:replace="fragments/ontology::terms-selection(ontology = ${ontology}, selectedTerms = ${ontologyTerms}, showTable = false)"></div>
                         </div>
                     </div>
                 </div>

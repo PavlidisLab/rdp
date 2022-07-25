@@ -20,7 +20,7 @@
                             th:if="${i.last}">.</span><span th:unless="${i.last}">,</span>
                     </th:block>
                 </p>
-                <div th:unless="${readOnly}" class="row mb-3">
+                <div th:unless="${readOnly}" class="row mb-1">
                     <div th:each="subTerm: ${term.subTerms}"
                          th:if="${subTerm.active}"
                          class="col-6 col-sm-3 col-lg-2">
@@ -125,7 +125,7 @@
                    th:placeholder="'Terms in ' + ${ontology.name}"
                    th:attr="data-ontology-id=${ontology.id},data-for-table=${#ids.prev('ontologyTermTable')}"/>
         </th:block>
-        <div th:unless="${showTable}" class="form-group">
+        <div th:unless="${showTable}">
             <span th:each="term : ${selectedTerms}"
                   th:if="${term.ontology} == ${ontology}"
                   th:object="${term}"
