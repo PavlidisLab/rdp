@@ -344,20 +344,18 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
                 .collect( Collectors.toList() ).stream()
                 .map( uriAndFuture -> {
                     try {
-                        return getFromRequestFuture( uriAndFuture.getLeft(), uriAndFuture.getRight() );
+                        T[] entity = getFromRequestFuture( uriAndFuture.getLeft(), uriAndFuture.getRight() ).getBody();
+                        if ( entity != null ) {
+                            return entity;
+                        } else {
+                            log.error( String.format( "Invalid response for %s: the body is null.", uriAndFuture.getLeft() ) );
+                            return null;
+                        }
                     } catch ( RemoteException e ) {
                         return null;
                     }
                 } )
                 .filter( Objects::nonNull )
-                .map( ResponseEntity::getBody )
-                .filter( body -> {
-                    if ( body == null ) {
-                        // FIXME: add the URI from which this originated
-                        log.error( "Invalid response, the body is null." );
-                    }
-                    return body != null;
-                } )
                 .flatMap( Arrays::stream )
                 .collect( Collectors.toList() );
     }
