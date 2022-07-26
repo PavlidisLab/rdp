@@ -15,6 +15,10 @@ import ubc.pavlab.rdp.util.ParseException;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.Collection;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import static java.util.function.Function.identity;
 
 @CommonsLog
 @Service("organInfoService")
@@ -60,8 +64,10 @@ public class OrganInfoServiceImpl implements OrganInfoService {
                 return;
             }
             log.info( MessageFormat.format( "Loading organ ontology from {0}...", organFile ) );
+            Map<String, OrganInfo> organInfosByUberonId = organInfoRepository.findAll().stream()
+                    .collect( Collectors.toMap( OrganInfo::getUberonId, identity() ) );
             for ( OBOParser.Term term : oboParser.parseStream( organFile.getInputStream() ).values() ) {
-                OrganInfo organInfo = organInfoRepository.findByUberonId( term.getId() );
+                OrganInfo organInfo = organInfosByUberonId.get( term.getId() );
                 if ( organInfo == null ) {
                     organInfo = new OrganInfo();
                     organInfo.setUberonId( term.getId() );
