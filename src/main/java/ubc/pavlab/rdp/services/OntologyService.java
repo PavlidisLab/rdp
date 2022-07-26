@@ -673,8 +673,7 @@ public class OntologyService implements InitializingBean {
             // full text (if available)
             if ( isFullTextSupported() ) {
                 results = ontologyTermInfoRepository.findAllByOntologyInAndSynonymsMatchAndActive( ontologies, fullTextQuery, active ).stream()
-                        .map( row -> Pair.of( (OntologyTermInfo) row[0], (Double) row[1] ) )
-                        .map( t1 -> toSearchResult( t1.getFirst(), OntologyTermMatchType.SYNONYM_MATCH, String.join( ", ", t1.getFirst().getSynonyms() ), t1.getSecond(), locale ) )
+                        .map( row -> toSearchResult( (OntologyTermInfo) row[0], OntologyTermMatchType.SYNONYM_MATCH, (String) row[1], (Double) row[2], locale ) )
                         .collect( CollectionUtils.into( results ) );
             } else {
                 results = ontologyTermInfoRepository.findAllByOntologyInAndSynonymsContainingIgnoreCaseAndActive( ontologies, normalizedQuery, active ).stream()
