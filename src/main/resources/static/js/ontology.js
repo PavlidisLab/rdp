@@ -1,4 +1,3 @@
-/* globals ontologyId */
 /**
  * Ontology-related scripts.
  * @author poirigui
@@ -23,7 +22,7 @@
         delay: 200,
         source: function (request, response) {
             var term = request.term;
-            $.getJSON(contextPath + '/admin/ontologies/' + ontologyId + '/autocomplete-terms', {
+            $.getJSON(window.contextPath + '/admin/ontologies/' + window.ontologyId + '/autocomplete-terms', {
                 query: term
             }).done(function (data) {
                 if (!data.length) {

@@ -93,7 +93,7 @@
 
         var currTime = (new Date()).getTime();
 
-        return parseInt(expireTime) + offset - currTime - timeoutWindow;
+        return expireTime + offset - currTime - timeoutWindow;
     }
 
     function updateTimeout() {
@@ -102,7 +102,7 @@
          */
         $.ajax({
             type: "GET",
-            url: contextPath + "/gettimeout",
+            url: window.contextPath + "/gettimeout",
             data: null,
             contentType: "application/json",
             success: function () {
@@ -114,7 +114,7 @@
                 // Logout because response failed.
                 $(document).off("mousemove", monitorMovements); // Unbind monitor on mouse movements.
                 deleteCookies();
-                window.location.href = contextPath + "/logout";
+                window.location.href = window.contextPath + "/logout";
             }
         });
     }
@@ -145,7 +145,7 @@
                     // Logout requested
                     $(document).off("mousemove", monitorMovements); // Unbind monitor on mouse movements.
                     deleteCookies();
-                    window.location.href = contextPath + "/logout";
+                    window.location.href = window.contextPath + "/logout";
                 }
             } else {
                 checkForTimeout(); // Continue to monitor.

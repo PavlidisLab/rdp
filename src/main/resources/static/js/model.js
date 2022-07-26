@@ -1,4 +1,3 @@
-/* globals contextPath, currentTaxonId, customizableGeneLevel, enabledGenePrivacyLevels, privacyLevels, userPrivacyLevel */
 (function () {
     "use strict";
 
@@ -21,7 +20,7 @@
             if (!isNaN(geneId)) {
                 geneTierMap[geneId] = $(this.node()).find('input[type=checkbox]').prop('checked') ? "TIER1" : "TIER2";
             }
-            if (customizableGeneLevel) {
+            if (window.customizableGeneLevel) {
                 var selectedPrivacyLevelOption = $(this.node()).find('select option:selected')[0];
                 genePrivacyLevelMap[geneId] = selectedPrivacyLevelOption.value ? parseInt(selectedPrivacyLevelOption.value) : null;
             }
@@ -46,6 +45,9 @@
         var rows = [];
         for (var symbol in data) {
             if (data.hasOwnProperty(symbol)) {
+                /**
+                 * @type {{geneId: Number, name: String}|null}
+                 */
                 var gene = data[symbol];
                 var row = [];
                 if (gene === null) {
@@ -54,7 +56,7 @@
                     row.push('<span class="align-middle text-danger">' + symbol + '</span>');
                     row.push('<span class="align-middle text-danger">Could not find gene for provided gene identifier.</span>');
                     row.push('');
-                    if (customizableGeneLevel) {
+                    if (window.customizableGeneLevel) {
                         row.push('');
                     }
                 } else {
@@ -67,12 +69,12 @@
                     row.push(symbol);
                     row.push(gene.name);
                     row.push('<input name="primary" class="align-middle" type="checkbox"/>');
-                    if (customizableGeneLevel) {
-                        var privacyOptions = enabledGenePrivacyLevels.map(function (k) {
-                            var privacyLevel = privacyLevels[k];
-                            if (privacyLevel.ordinal <= userPrivacyLevel.ordinal) {
+                    if (window.customizableGeneLevel) {
+                        var privacyOptions = window.enabledGenePrivacyLevels.map(function (k) {
+                            var privacyLevel = window.privacyLevels[k];
+                            if (privacyLevel.ordinal <= window.userPrivacyLevel.ordinal) {
                                 return '<option value="' + privacyLevel.ordinal + '"' +
-                                    (privacyLevel.ordinal === userPrivacyLevel.ordinal ? ' selected' : '') + '>' +
+                                    (privacyLevel.ordinal === window.userPrivacyLevel.ordinal ? ' selected' : '') + '>' +
                                     privacyLevel.label + '</option>';
                             } else {
                                 return '';
@@ -100,6 +102,9 @@
         var rows = [];
         for (var goId in data) {
             if (data.hasOwnProperty(goId)) {
+                /**
+                 * @type {{goId: String, name: String, aspect: String, definition: String, size: Number, frequency: Number}|null}
+                 */
                 var term = data[goId];
                 var row = [];
                 if (term === null) {
@@ -142,6 +147,9 @@
         });
     };
 
+    /**
+     * @type ColumnDefsSettings[]
+     */
     var geneTableColumnDefs = [
         {name: "Id", "targets": 0, "visible": false},
         {
@@ -149,26 +157,25 @@
             targets: 1,
             render: function (data, type, row) {
                 var geneId = row[0];
-                var symbol = data;
                 return $('<a/>')
                     .attr('href', 'https://www.ncbi.nlm.nih.gov/gene/' + encodeURIComponent(geneId))
                     .attr('target', '_blank')
                     .attr('rel', 'noopener')
-                    .text(symbol)[0].outerHTML;
+                    .text(data)[0].outerHTML;
             }
         },
         {name: "Name", "targets": 2},
         {name: "Primary", "targets": 3, "className": "text-center", "orderDataType": "dom-checkbox"},
         {
-            targets: customizableGeneLevel ? 5 : 4,
-            sortable: false,
+            targets: window.customizableGeneLevel ? 5 : 4,
+            orderable: false,
             render: function () {
                 return $('<button type="button" class="data-table-delete-row close text-danger"/>').text('×')[0].outerHTML;
             }
         }
     ];
 
-    if (customizableGeneLevel) {
+    if (window.customizableGeneLevel) {
         geneTableColumnDefs.push({
             "name": "PrivacyLevel",
             "targets": 4,
@@ -197,7 +204,7 @@
         columnDefs: [
             {
                 targets: 5,
-                sortable: false,
+                orderable: false,
                 render: function () {
                     return $('<button type="button" class="data-table-delete-row close text-danger"/>').text('×')[0].outerHTML;
                 }
@@ -264,7 +271,7 @@
                     return;
                 }
 
-                $.getJSON(contextPath + "/taxon/" + encodeURIComponent(currentTaxonId) + "/gene/search", {query: term, max: 10})
+                $.getJSON(window.contextPath + "/taxon/" + encodeURIComponent(window.currentTaxonId) + "/gene/search", {query: term, max: 10})
                     .done(function (data) {
                         if (!data.length) {
                             data = [
@@ -313,7 +320,7 @@
 
         $.ajax({
             type: 'GET',
-            url: contextPath + '/taxon/' + encodeURIComponent(currentTaxonId) + '/gene/search',
+            url: window.contextPath + '/taxon/' + encodeURIComponent(window.currentTaxonId) + '/gene/search',
             data: encodedSymbols
         })
             .done(addGeneRow)
@@ -340,7 +347,7 @@
                 if (term.indexOf(",") !== -1) {
                     return;
                 }
-                $.getJSON(contextPath + "/taxon/" + encodeURIComponent(currentTaxonId) + "/term/search", {query: term, max: 10})
+                $.getJSON(window.contextPath + "/taxon/" + encodeURIComponent(window.currentTaxonId) + "/term/search", {query: term, max: 10})
                     .done(function (data) {
                         if (!data.length) {
                             data = [
@@ -391,7 +398,7 @@
 
         $.ajax({
             type: 'GET',
-            url: contextPath + '/user/taxon/' + encodeURIComponent(currentTaxonId) + '/term/search',
+            url: window.contextPath + '/user/taxon/' + encodeURIComponent(window.currentTaxonId) + '/term/search',
             data: encodedGoIds
         })
             .done(addTermRow)
@@ -406,7 +413,7 @@
         var recommendMessage = $('#terms').find('.recommend-message');
         spinner.toggleClass("d-none", false);
         recommendMessage.toggleClass('d-none', true);
-        $.getJSON(contextPath + "/user/taxon/" + encodeURIComponent(currentTaxonId) + "/term/recommend")
+        $.getJSON(window.contextPath + "/user/taxon/" + encodeURIComponent(window.currentTaxonId) + "/term/recommend")
             .done(function (data) {
                 var addedTerms = addTermRow(data);
                 if (addedTerms > 0) {
@@ -436,7 +443,7 @@
 
     $('#overlapModal').on('show.bs.modal', function (e) {
         var goId = $(e.relatedTarget).data('go-id');
-        $("#overlapModal").find(".modal-body").load(contextPath + "/user/taxon/" + encodeURIComponent(currentTaxonId) + "/term/" + encodeURIComponent(goId) + "/gene/view");
+        $("#overlapModal").find(".modal-body").load(window.contextPath + "/user/taxon/" + encodeURIComponent(window.currentTaxonId) + "/term/" + encodeURIComponent(goId) + "/gene/view");
     });
 
     $('#terms-tab').on('shown.bs.tab', function () {

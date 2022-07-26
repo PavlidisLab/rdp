@@ -24,12 +24,11 @@
                 targets: 1,
                 render: function (data, type, row) {
                     var geneId = row[0];
-                    var symbol = data;
                     return $('<a/>')
                         .attr('href', 'https://www.ncbi.nlm.nih.gov/gene/' + encodeURIComponent(geneId))
                         .attr('target', '_blank')
                         .attr('rel', 'noopener')
-                        .text(symbol)[0].outerHTML;
+                        .text(data)[0].outerHTML;
                 }
             },
             {name: "Name", "targets": 2},
@@ -49,11 +48,11 @@
                 return acc;
             }, {});
             $(api.column(1).footer()).html(
-                '<span class="mx-1"><b>' + (counts.TIER1 ? counts.TIER1 : "0") + '</b> TIER1' + '</span>' +
+                '<span class="mx-1"><b>' + ('TIER1' in counts ? counts.TIER1 : "0") + '</b> TIER1' + '</span>' +
                 '<span class="mx-1" style="border-right: 3px solid #f2f7f9;"></span>' +
-                '<span class="mx-1"><b>' + (counts.TIER2 ? counts.TIER2 : "0") + '</b> TIER2' + '</span>' +
+                '<span class="mx-1"><b>' + ('TIER2' in counts ? counts.TIER2 : "0") + '</b> TIER2' + '</span>' +
                 '<span class="mx-1" style="border-right: 3px solid #F2F7F9;"></span>' +
-                '<span class="mx-1"><b>' + (counts.TIER3 ? counts.TIER3 : "0") + '</b> TIER3' + '</span>'
+                '<span class="mx-1"><b>' + ('TIER3' in counts ? counts.TIER3 : "0") + '</b> TIER3' + '</span>'
             );
 
         }

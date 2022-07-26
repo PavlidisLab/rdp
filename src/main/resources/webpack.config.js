@@ -35,8 +35,8 @@ module.exports = {
             {
                 test: /\.js$/,
                 enforce: 'pre',
-                use: ['source-map-loader'],
-            },
+                use: ['source-map-loader']
+            }
         ]
     }
 };

@@ -1,4 +1,3 @@
-/* globals contextPath */
 (function () {
     "use strict";
 
@@ -8,7 +7,7 @@
         var userId = element.data('user-id');
         var anonymousUserId = element.data('anonymous-user-id');
         var remoteHost = element.data('remote-host');
-        var popoverUrl = contextPath + '/search/view/user-preview/';
+        var popoverUrl = window.contextPath + '/search/view/user-preview/';
         if (anonymousUserId) {
             popoverUrl += 'by-anonymous-id/' + encodeURIComponent(anonymousUserId);
         } else {
@@ -65,7 +64,7 @@
         tableContainer.html($('<i class="mx-2 spinner"></i>'));
 
         // noinspection JSUnusedLocalSymbols
-        tableContainer.load(contextPath + "/search/view", formData, function (responseText, textStatus) {
+        tableContainer.load(window.contextPath + "/search/view", formData, function (responseText, textStatus) {
             if (textStatus === "error") {
                 tableContainer.html(responseText);
             }
@@ -93,7 +92,7 @@
             var itlTableContainer = $("#itlUserTable");
             itlTableContainer.html($('<i class="mx-2 spinner"></i>'));
             // noinspection JSUnusedLocalSymbols
-            itlTableContainer.load(contextPath + "/search/view/international", formData, function (responseText, textStatus, req) {
+            itlTableContainer.load(window.contextPath + "/search/view/international", formData, function (responseText, textStatus, req) {
                 if (textStatus === "error") {
                     itlTableContainer.html(responseText);
                 }
@@ -149,7 +148,10 @@
                 }
 
                 // noinspection JSUnusedLocalSymbols
-                $.getJSON(contextPath + "/taxon/" + encodeURIComponent(taxonId) + "/gene/search", {query: term, max: 10})
+                $.getJSON(window.contextPath + "/taxon/" + encodeURIComponent(taxonId) + "/gene/search", {
+                    query: term,
+                    max: 10
+                })
                     .done(function (data, status, xhr) {
                         if (!data.length) {
                             data = [
@@ -185,7 +187,7 @@
         source: function (request, response) {
             var term = request.term.trim();
             var ontologyId = $(this.element).data('ontologyId');
-            $.getJSON(contextPath + '/search/ontology-terms/autocomplete', {
+            $.getJSON(window.contextPath + '/search/ontology-terms/autocomplete', {
                 query: term,
                 ontologyId: ontologyId
             }).done(function (data) {
@@ -206,7 +208,7 @@
         /**
          *
          * @param event
-         * @param ui {SearchResult}
+         * @param ui {{item: SearchResult}}
          * @returns {boolean}
          */
         select: function (event, ui) {

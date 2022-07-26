@@ -77,26 +77,11 @@ require('../css/common.css');
     });
 
     /**
-     *
-     * @param {Number} id
-     * @param {String} label
-     * @param {String} description
-     * @param {String?} extras
-     * @param {String} matchType
-     * @param {*} match
-     * @constructor
+     * @typedef {{id: Number, label: String, description: String, extras: String, match: Object, matchType: String}} SearchResult
      */
-    function SearchResult(id, label, description, extras, matchType, match) {
-        this.noresults = false;
-        this.id = id;
-        this.label = label;
-        this.description = description;
-        this.extras = extras;
-        this.matchType = matchType;
-        this.match = match;
-    }
 
     /* autocomplete look & feel based on SearchResult */
+    // noinspection JSUnusedGlobalSymbols
     $.widget('ui.autocomplete', $.ui.autocomplete, {
         _create: function () {
             this._super();
