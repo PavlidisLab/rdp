@@ -105,7 +105,7 @@ public class SearchController extends AbstractSearchController {
             ontologyTerms = Collections.emptyList();
         }
         ModelAndView modelAndView = new ModelAndView( "search" )
-                .addObject( "activeSearchTab", "user" )
+                .addObject( "activeSearchMode", ApplicationSettings.SearchSettings.SearchMode.BY_RESEARCHER )
                 .addObject( "chars", userService.getLastNamesFirstChar() )
                 .addObject( "nameLike", nameLike )
                 .addObject( "descriptionLike", descriptionLike )

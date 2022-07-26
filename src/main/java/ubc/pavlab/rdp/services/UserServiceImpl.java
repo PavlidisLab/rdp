@@ -12,7 +12,8 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.access.PermissionEvaluator;import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.access.PermissionEvaluator;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -91,8 +92,6 @@ public class UserServiceImpl implements UserService, InitializingBean {
     private PrivacyService privacyService;
     @Autowired
     private SecureRandom secureRandom;
-    @Autowired
-    private PermissionEvaluator permissionEvaluator;
     @Autowired
     private OntologyService ontologyService;
 

@@ -377,7 +377,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
             throw new RemoteException( String.format( "A thread was interrupted while waiting for %s response.", uri ), e );
         } catch ( TimeoutException e ) {
             // no need for the stacktrace in case of timeout
-            throw new RemoteException( String.format( "Partner registry %s has timed out after %d s.", uri.getRawAuthority(), requestTimeout ), e );
+            throw new RemoteException( String.format( "Partner registry %s has timed out after %s.", uri.getRawAuthority(), requestTimeout ), e );
         }
     }
 
