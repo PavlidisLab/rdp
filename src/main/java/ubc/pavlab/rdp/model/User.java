@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
 @Getter
 @Setter
 @Builder
-@EqualsAndHashCode(of = { "email" })
+@EqualsAndHashCode(of = { "email", "originUrl" })
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString(of = { "id", "anonymousId", "email", "enabled" })
