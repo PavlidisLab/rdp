@@ -578,7 +578,7 @@ public class AdminController {
             try ( Reader reader = new InputStreamReader( urlResource.getInputStream() ) ) {
                 ontologyService.updateFromObo( ontology, reader );
                 int numActivated = ontologyService.propagateSubtreeActivation( ontology );
-                redirectAttributes.addFlashAttribute( String.format( "Updated %s from %s. %d terms got activated via subtree propagation.", ontology.getName(), ontology.getOntologyUrl(), numActivated ) );
+                redirectAttributes.addFlashAttribute( "message", String.format( "Updated %s from %s. %d terms got activated via subtree propagation.", ontology.getName(), ontology.getOntologyUrl(), numActivated ) );
             } catch ( IOException | ParseException e ) {
                 log.error( String.format( "Failed to update ontology %s from administrative section.", ontology ), e );
                 return new ModelAndView( "admin/ontology", HttpStatus.BAD_REQUEST )
