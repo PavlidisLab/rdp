@@ -13,7 +13,7 @@ import ubc.pavlab.rdp.util.PurlResolver;
 
 @CommonsLog
 @Configuration
-public class ResourceLoaderConfig implements ResourceLoaderAware, ApplicationContextAware {
+public class ResourceLoaderConfig implements ResourceLoaderAware {
 
     @Override
     public void setResourceLoader( ResourceLoader resourceLoader ) {
@@ -22,15 +22,6 @@ public class ResourceLoaderConfig implements ResourceLoaderAware, ApplicationCon
             log.info( String.format( "Registered %s to the resource loader %s.", PurlResolver.class, resourceLoader ) );
         } else {
             log.warn( String.format( "Could not register %s to the resource loader %s. PURL URLs might not be resolved correctly.", PurlResolver.class, resourceLoader ) );
-        }
-    }
-
-    @Override
-    public void setApplicationContext( ApplicationContext applicationContext ) throws BeansException {
-        // FIXME: This is necessary because protocol resolvers are not honored if a resource loader is set on the application context (see https://github.com/spring-projects/spring-framework/issues/28703)
-        if ( applicationContext instanceof GenericApplicationContext ) {
-            GenericApplicationContext genericApplicationContext = (GenericApplicationContext) applicationContext;
-            genericApplicationContext.setResourceLoader( null );
         }
     }
 }
