@@ -35,15 +35,18 @@ import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.ResearcherCategory;
 import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import ubc.pavlab.rdp.model.enums.TierType;
+import ubc.pavlab.rdp.model.ontology.OntologyTermInfo;
+import ubc.pavlab.rdp.model.ontology.UserOntologyTerm;
 import ubc.pavlab.rdp.repositories.TaxonRepository;
 import ubc.pavlab.rdp.repositories.UserGeneRepository;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 
 import java.text.MessageFormat;
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-import static java.util.Comparator.*;
 import static org.springframework.util.CollectionUtils.containsAny;
 
 /**
@@ -123,28 +126,28 @@ public class UserGeneServiceImpl implements UserGeneService {
         return humanGenes.size();
     }
 
+    @Autowired
+    private OntologyService ontologyService;
+
     @Override
     @PostFilter("hasPermission(filterObject, 'read')")
-    public List<UserGene> handleGeneSearch( Gene gene, Set<TierType> tiers, Taxon orthologTaxon, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherCategories, Collection<OrganInfo> organs ) {
-        Set<UserGene> results;
+    public List<UserGene> handleGeneSearch( Gene gene, Set<TierType> tiers, Taxon orthologTaxon, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherCategories, Collection<OrganInfo> organs, Collection<OntologyTermInfo> ontologyTermInfos ) {
+        Stream<UserGene> results = handleGeneSearchInternal( gene, tiers, orthologTaxon, researcherPositions, researcherCategories, organs, ontologyTermInfos ).stream();
         if ( applicationSettings.getPrivacy().isEnableAnonymizedSearchResults() ) {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-            results = handleGeneSearchInternal( gene, tiers, orthologTaxon, researcherPositions, researcherCategories, organs ).stream()
+            results = results
                     // These must be excluded because anonymizeUserGene cannot receive a non-verified user.
                     // FIXME: Ideally, we would not fetch them altogether, but it's really cumbersome adjust all those
                     //        methods in the repository layer to exclude non-verified account.
                     .filter( ug -> ug.getUser().isEnabled() )
-                    .map( ug -> permissionEvaluator.hasPermission( auth, ug, "read" ) ? ug : userService.anonymizeUserGene( ug ) )
-                    .collect( Collectors.toSet() );
-        } else {
-            results = handleGeneSearchInternal( gene, tiers, orthologTaxon, researcherPositions, researcherCategories, organs );
+                    .map( ug -> permissionEvaluator.hasPermission( auth, ug, "read" ) ? ug : userService.anonymizeUserGene( ug ) );
         }
-        return results.stream()
+        return results
                 .sorted( UserGene.getComparator() )
                 .collect( Collectors.toList() ); // we need to preserve the search order
     }
 
-    private Set<UserGene> handleGeneSearchInternal( Gene gene, Set<TierType> tiers, Taxon orthologTaxon, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherCategories, Collection<OrganInfo> organs ) {
+    private Set<UserGene> handleGeneSearchInternal( Gene gene, Set<TierType> tiers, Taxon orthologTaxon, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherCategories, Collection<OrganInfo> organs, Collection<OntologyTermInfo> ontologyTermInfos ) {
         Set<UserGene> uGenes = new LinkedHashSet<>();
 
         // do this once to save time in the inner loop
@@ -155,6 +158,13 @@ public class UserGeneServiceImpl implements UserGeneService {
             organUberonIds = null;
         }
 
+        final Set<Integer> ontologyTermInfoIds;
+        if ( ontologyTermInfos != null ) {
+            ontologyTermInfoIds = ontologyService.inferTermIds( ontologyTermInfos );
+        } else {
+            ontologyTermInfoIds = null;
+        }
+
         // ortholog relationship is not reflexive (i.e. a gene is not its own ortholog), but we still want to display
         // that gene first when ortholog search is performed in the same MO
         if ( orthologTaxon == null || gene.getTaxon().equals( orthologTaxon ) ) {
@@ -162,21 +172,33 @@ public class UserGeneServiceImpl implements UserGeneService {
                     .filter( ug -> researcherPositions == null || researcherPositions.contains( ug.getUser().getProfile().getResearcherPosition() ) )
                     .filter( ug -> researcherCategories == null || containsAny( researcherCategories, ug.getUser().getProfile().getResearcherCategories() ) )
                     .filter( ortholog -> organUberonIds == null || containsAny( organUberonIds, ortholog.getUser().getUserOrgans().values().stream().map( UserOrgan::getUberonId ).collect( Collectors.toSet() ) ) )
+                    .filter( hasOntologyTermIn( ontologyTermInfoIds ) )
                     .collect( Collectors.toSet() ) );
         }
 
-        uGenes.addAll( handleOrthologSearchInternal( gene, tiers, orthologTaxon, researcherPositions, researcherCategories, organUberonIds ) );
+        uGenes.addAll( handleOrthologSearchInternal( gene, tiers, orthologTaxon, researcherPositions, researcherCategories, organUberonIds, ontologyTermInfoIds ) );
 
         return uGenes;
     }
 
-    private Set<UserGene> handleOrthologSearchInternal( Gene gene, Set<TierType> tiers, Taxon orthologTaxon, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherCategories, Collection<String> organUberonIds ) {
+    private Set<UserGene> handleOrthologSearchInternal( Gene gene, Set<TierType> tiers, Taxon orthologTaxon, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherCategories, Collection<String> organUberonIds, Collection<Integer> ontologyTermInfoIds ) {
         return ( orthologTaxon == null ? userGeneRepository.findOrthologsByGeneId( gene.getGeneId() ) : userGeneRepository.findOrthologsByGeneIdAndTaxon( gene.getGeneId(), orthologTaxon ) ).stream()
                 .filter( ortholog -> tiers.contains( ortholog.getTier() ) )
                 .filter( ug -> researcherPositions == null || researcherPositions.contains( ug.getUser().getProfile().getResearcherPosition() ) )
                 .filter( ug -> researcherCategories == null || containsAny( researcherCategories, ug.getUser().getProfile().getResearcherCategories() ) )
                 .filter( ortholog -> organUberonIds == null || containsAny( organUberonIds, ortholog.getUser().getUserOrgans().values().stream().map( UserOrgan::getUberonId ).collect( Collectors.toSet() ) ) )
+                .filter( hasOntologyTermIn( ontologyTermInfoIds ) )
                 .collect( Collectors.toSet() );
+    }
+
+    private Predicate<UserGene> hasOntologyTermIn( Collection<Integer> ontologyTermInfoIds ) {
+        return u -> ontologyTermInfoIds == null || containsAny( ontologyTermInfoIds,
+                u.getUser().getUserOntologyTerms().stream()
+                        .map( UserOntologyTerm::getTermInfo )
+                        .filter( OntologyTermInfo::isActive ) // check this first, otherwise we might initialize the ontology for nothing
+                        .filter( t -> t.getOntology().isActive() )
+                        .map( OntologyTermInfo::getId )
+                        .collect( Collectors.toSet() ) );
     }
 
 

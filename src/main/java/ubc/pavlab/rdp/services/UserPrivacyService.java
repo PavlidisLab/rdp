@@ -80,6 +80,17 @@ public class UserPrivacyService {
                 || ( profile.isShared() && currentUser != null && currentUser.getRoles().contains( getAdminRole() ) && isRemoteSearchUser( currentUser ) ); // data is designated as remotely shared and there is an admin logged in who is the remote search user
     }
 
+    /**
+     * Check if a given user can see another user's gene list.
+     */
+    public boolean checkCurrentUserCanSeeGeneList( User otherUser ) {
+        User currentUser = userService.findCurrentUser();
+        return checkUserCanSee( currentUser, otherUser )
+                && ( !otherUser.getProfile().isHideGenelist()
+                || ( currentUser != null && currentUser.equals( otherUser ) )
+                || ( currentUser != null && currentUser.getRoles().contains( getAdminRole() ) ) );
+    }
+
     @Cacheable(value = "ubc.pavlab.rdp.model.Role.byRole", key = "'ROLE_ADMIN'")
     public Role getAdminRole() {
         return roleRepository.findByRole( "ROLE_ADMIN" );

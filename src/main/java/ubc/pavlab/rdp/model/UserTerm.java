@@ -42,7 +42,6 @@ public class UserTerm extends GeneOntologyTerm implements UserContent {
     @JsonIgnore
     private User user;
 
-    @NaturalId
     @ManyToOne(optional = false)
     @JoinColumn(name = "taxon_id")
     private Taxon taxon;

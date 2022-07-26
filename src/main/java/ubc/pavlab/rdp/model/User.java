@@ -1,6 +1,7 @@
 package ubc.pavlab.rdp.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import lombok.*;
 import lombok.extern.apachecommons.CommonsLog;
@@ -10,6 +11,9 @@ import org.hibernate.validator.constraints.Email;
 import org.springframework.util.StringUtils;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.TierType;
+import ubc.pavlab.rdp.model.ontology.Ontology;
+import ubc.pavlab.rdp.model.ontology.OntologyTerm;
+import ubc.pavlab.rdp.model.ontology.UserOntologyTerm;
 
 import javax.mail.internet.InternetAddress;
 import javax.persistence.*;
@@ -59,6 +63,7 @@ public class User implements UserContent, Serializable {
     private Integer id;
 
     @Transient
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private UUID anonymousId;
 
     @NaturalId
@@ -136,6 +141,18 @@ public class User implements UserContent, Serializable {
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "user")
     @MapKey(name = "uberonId")
     private final Map<String, UserOrgan> userOrgans = new HashMap<>();
+
+    /**
+     * Associated terms to the user profile.
+     */
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private final Set<UserOntologyTerm> userOntologyTerms = new HashSet<>();
+
+    @Transient
+    @JsonIgnore
+    public Set<UserOntologyTerm> getUserOntologyTermsByOntology( Ontology ontology ) {
+        return userOntologyTerms.stream().filter( uo -> uo.getOntology().equals( ontology ) ).collect( Collectors.toSet() );
+    }
 
     @JsonIgnore
     @Transient

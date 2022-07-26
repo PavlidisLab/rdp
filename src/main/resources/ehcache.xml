@@ -51,6 +51,16 @@
            timeToLiveSeconds="3600"
            memoryStoreEvictionPolicy="FIFO"/>
 
+    <cache name="ubc.pavlab.rdp.model.ontology.OntologyTermInfo"
+           maxElementsInMemory="10000"
+           timeToLiveSeconds="600"/>
+    <cache name="ubc.pavlab.rdp.model.ontology.OntologyTermInfo.superTerms"
+           maxElementsInMemory="10000"
+           timeToLiveSeconds="600"/>
+    <cache name="ubc.pavlab.rdp.model.ontology.OntologyTermInfo.subTerms"
+           maxElementsInMemory="100000"
+           timeToLiveSeconds="600"/>
+
     <cache name="ubc.pavlab.rdp.stats"
            maxElementsInMemory="10"
            timeToLiveSeconds="30"/>
@@ -70,4 +80,12 @@
     <cache name="ubc.pavlab.rdp.services.GOService.descendants"
            maxElementsInMemory="10000"
            eternal="true"/>
+
+    <cache name="ubc.pavlab.rdp.services.OntologyService.simpleOntologies"
+           maxElementsInMemory="10"
+           timeToLiveSeconds="600"/>
+
+    <cache name="ubc.pavlab.rdp.services.OntologyService.subtreeSizeByTerm"
+           maxElementsInMemory="1000"
+           timeToLiveSeconds="600"/>
 </ehcache>

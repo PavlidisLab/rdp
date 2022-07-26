@@ -8,7 +8,6 @@ import org.springframework.stereotype.Component;
 import ubc.pavlab.rdp.model.User;
 import ubc.pavlab.rdp.model.UserContent;
 import ubc.pavlab.rdp.model.UserPrinciple;
-import ubc.pavlab.rdp.services.PrivacyService;
 import ubc.pavlab.rdp.services.UserPrivacyService;
 import ubc.pavlab.rdp.services.UserService;
 

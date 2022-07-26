@@ -10,6 +10,8 @@ import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
+import ubc.pavlab.rdp.WebMvcConfig;
+import ubc.pavlab.rdp.WebSecurityConfig;
 import ubc.pavlab.rdp.model.GeneInfo;
 import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.model.enums.GeneMatchType;
@@ -18,6 +20,7 @@ import ubc.pavlab.rdp.services.GeneInfoService;
 import ubc.pavlab.rdp.services.TaxonService;
 import ubc.pavlab.rdp.services.UserService;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
+import ubc.pavlab.rdp.util.OntologyMessageSource;
 import ubc.pavlab.rdp.util.SearchResult;
 
 import java.util.Collections;
@@ -57,6 +60,9 @@ public class GeneControllerTest {
     @MockBean
     private PermissionEvaluator permissionEvaluator;
 
+    @MockBean
+    private OntologyMessageSource ontologyMessageSource;
+
     @Test
     public void searchGenesByTaxonAndSymbols_thenReturnMatchingGenes() throws Exception {
         Taxon taxon = createTaxon( 1 );
@@ -75,14 +81,17 @@ public class GeneControllerTest {
         Taxon taxon = createTaxon( 1 );
         GeneInfo gene = createGene( 1, taxon );
         when( taxonService.findById( 1 ) ).thenReturn( taxon );
-        when( geneService.autocomplete( "BRCA1", taxon, 10 ) ).thenReturn( Collections.singleton( new SearchResult( GeneMatchType.EXACT_SYMBOL, gene ) ) );
+        when( geneService.autocomplete( "BRCA1", taxon, 10 ) ).thenReturn( Collections.singleton( new SearchResult<>( GeneMatchType.EXACT_SYMBOL, gene.getGeneId(), gene.getSymbol(), gene.getName(), gene.getAliases(), gene ) ) );
         mvc.perform( get( "/taxon/{taxonId}/gene/search", 1 )
                         .param( "query", "BRCA1" )
                         .param( "max", "10" ) )
                 .andExpect( status().isOk() )
                 .andExpect( content().contentTypeCompatibleWith( MediaType.APPLICATION_JSON ) )
                 .andExpect( jsonPath( "$[0].matchType" ).value( "Exact Symbol" ) )
-                .andExpect( jsonPath( "$[0].match" ).value( gene ) );
+                .andExpect( jsonPath( "$[0].id" ).value( gene.getGeneId() ) )
+                .andExpect( jsonPath( "$[0].label" ).value( gene.getSymbol() ) )
+                .andExpect( jsonPath( "$[0].description" ).value( gene.getName() ) )
+                .andExpect( jsonPath( "$[0].extras" ).value( (String) null ) );
         verify( geneService ).autocomplete( "BRCA1", taxon, 10 );
     }
 }

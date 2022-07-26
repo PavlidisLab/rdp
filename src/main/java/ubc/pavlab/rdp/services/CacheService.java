@@ -39,6 +39,12 @@ public class CacheService {
     @Autowired
     private UserOrganService userOrganService;
 
+    @Autowired
+    private OntologyService ontologyService;
+
+    @Autowired
+    private ReactomeService reactomeService;
+
     /**
      * Cached data are updated on startup and then monthly.
      * <p>
@@ -58,6 +64,15 @@ public class CacheService {
             userService.updateUserTerms();
             organInfoService.updateOrganInfos();
             userOrganService.updateUserOrgans();
+            ontologyService.updateOntologies();
+            try {
+                reactomeService.updatePathwaysOntology();
+                reactomeService.updatePathwaySummations( ( progress, maxProgress, elapsedTime ) -> {
+                    log.debug( String.format( "Updated %d out of %d Reactome pathway summations.", progress, maxProgress ) );
+                } );
+            } catch ( ReactomeException e ) {
+                log.error( "There was an issue with the update of Reactome Pathways.", e );
+            }
             CronExpression cronExpression = CronExpression.parse( UPDATE_CACHE_CRON );
             log.info( MessageFormat.format( "Done updating cached data. Next update is scheduled on {0}.",
                     cronExpression.next( LocalDateTime.now() ) ) );

@@ -19,7 +19,8 @@
                 <h3 class="d-inline-block pr-3 mr-3 mb-0" th:text="${user.profile.contactEmail ?: user.email}"></h3>
             </div>
             <div class="col-4 my-auto text-right" th:if="${viewOnly == null}">
-                <a class="btn btn-lg d-none d-lg-inline" th:href="@{/userView/{userId}(userId=${user.id})}">View your public profile</a>
+                <a class="btn btn-lg d-none d-lg-inline" th:href="@{/userView/{userId}(userId=${user.id})}">View your
+                    public profile</a>
                 <button type="button" class="btn btn-primary btn-lg save-profile">
                     <i class="mx-2 d-none spinner"></i>
                     Save
@@ -266,6 +267,26 @@
             </div>
         </div>
 
+        <div class="row mb-3" th:each="ontology : ${@ontologyService.findAllOntologies()}">
+            <div class="col">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 th:text="${#messages.msgOrNull('rdp.ontologies.' + ontology.name +  '.title') ?: #strings.toUpperCase(ontology.name)}"
+                            class="mb-0"></h3>
+                    </div>
+                    <div class="card-body">
+                        <p>
+                            Choose <b th:text="${#messages.msgOrNull('rdp.ontologies.' + ontology.name + '.title') ?: #strings.toUpperCase(ontology.name)}"></b>
+                            terms your research is most relevant to:
+                        </p>
+                        <div th:replace="fragments/ontology::terms-selection(ontology = ${ontology}, selectedTerms = ${user.getUserOntologyTermsByOntology(ontology)}, showTable = true)">
+                            ...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="row mb-3">
             <div class="col">
                 <div class="card">
@@ -288,26 +309,31 @@
                         <h3 class="mb-0">Publications</h3>
                     </div>
                     <div class="card-body">
+                        <div class="alert alert-info">
+                            Please indicate publications directly linked to your identified expertise.
+                        </div>
                         <div class="mb-3">
                             <table id="publication-table" class="table">
                                 <thead class=".thead-light">
                                 <tr>
                                     <th scope="col">PubMed</th>
                                     <th scope="col">Title</th>
+                                    <th></th>
                                 </tr>
                                 </thead>
                                 <tbody>
                                 <tr th:each="pub : ${user.profile.publications}">
                                     <!-- don't format the following line, the frontend makes assumption -->
-                                    <td><i class="delete-row" th:if="${viewOnly == null}"></i> <span
-                                            th:text="${pub.pmid}"
-                                            th:remove="tag"></span>
+                                    <td>
+                                        <span th:text="${pub.pmid}"
+                                              th:remove="tag"></span>
                                     </td>
                                     <td><a th:href="${'https://www.ncbi.nlm.nih.gov/pubmed/' + pub.pmid}"
                                            target="_blank"
                                            th:text="${pub.title != ''} ? ${pub.title} : 'Unknown Title'"
                                            rel="noopener"></a>
                                     </td>
+                                    <td></td>
                                 </tr>
                                 </tbody>
                             </table>

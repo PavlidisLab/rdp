@@ -81,38 +81,12 @@ textarea.data-edit {
     content: '\e033';
 }
 
-.delete-row {
-    pointer-events: none;
-    font-size: 0.8em;
-}
-
-.delete-row:before {
-    position: relative;
-    margin-right: 10px;
-    cursor: pointer;
-    display: inline-block;
-    speak: none;
-    font-family: Icons, sans-serif;
-    font-style: normal;
-    font-weight: 400;
-    line-height: 1;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    color: red;
-    content: '\e0db';
-    pointer-events: all;
-}
-
 .add-row {
     cursor: pointer;
 }
 
 .research-info .data-edit {
     overflow-y: auto;
-}
-
-tr.new-row {
-    background-color: #d7ffc4;
 }
 
 @keyframes anim-rotate {
@@ -336,4 +310,11 @@ hr {
 .term-error:before {
     content: "Could Not Find Term.";
     color: red;
+}
+
+.ontology-term-definition {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
 }

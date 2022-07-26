@@ -217,12 +217,26 @@ public class ApplicationSettings {
         private Duration requestTimeout;
     }
 
+    @Data
+    public static class OntologySettings {
+        /**
+         * Enable ontologies.
+         */
+        private boolean enabled;
+        private String reactomePathwaysOntologyName;
+        private Resource reactomePathwaysFile;
+        private Resource reactomePathwaysHierarchyFile;
+        private Resource reactomeStableIdentifiersFile;
+        private URI reactomeContentServiceUrl;
+    }
+
     private ProfileSettings profile;
     private SearchSettings search;
     private InternationalSearchSettings isearch;
     private PrivacySettings privacy;
     private CacheSettings cache;
     private OrganSettings organs;
+    private OntologySettings ontology;
 
     private Resource faqFile;
     private boolean sendEmailOnRegistration;

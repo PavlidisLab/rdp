@@ -71,6 +71,7 @@
                         <div class="dropdown-menu" aria-labelledby="navbarDropdownUser">
                             <th:block sec:authorize="hasRole('ROLE_ADMIN')">
                                 <a th:href="@{/admin/users}" class="dropdown-item">View Users</a>
+                                <a th:href="@{/admin/ontologies}" class="dropdown-item">Manage Profile Categories</a>
                                 <a th:href="@{/admin/create-service-account}" class="dropdown-item">Create Service
                                     Account</a>
                             </th:block>

@@ -22,6 +22,7 @@ import ubc.pavlab.rdp.services.UserDetailsServiceImpl;
 import ubc.pavlab.rdp.services.UserService;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.settings.SiteSettings;
+import ubc.pavlab.rdp.util.OntologyMessageSource;
 
 import java.util.Locale;
 
@@ -73,6 +74,9 @@ public class PasswordControllerTest {
 
     @MockBean
     private PermissionEvaluator permissionEvaluator;
+
+    @MockBean
+    private OntologyMessageSource ontologyMessageSource;
 
     @Test
     public void forgotPassword_thenReturnSuccess() throws Exception {

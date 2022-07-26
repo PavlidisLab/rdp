@@ -1,6 +1,7 @@
 package ubc.pavlab.rdp.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
 import lombok.extern.apachecommons.CommonsLog;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
@@ -14,6 +15,7 @@ import java.text.MessageFormat;
 import java.util.Comparator;
 import java.util.Optional;
 import java.util.UUID;
+import java.io.Serializable;
 
 /**
  * Created by mjacobson on 17/01/18.
@@ -36,7 +38,7 @@ import java.util.UUID;
 @CommonsLog
 @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @ToString(of = { "user", "tier", "privacyLevel" }, callSuper = true)
-public class UserGene extends Gene implements UserContent {
+public class UserGene extends Gene implements UserContent, Serializable {
 
     /**
      * Obtain a comparator for comparing {@link UserGene}.
@@ -61,6 +63,7 @@ public class UserGene extends Gene implements UserContent {
     private Integer id;
 
     @Transient
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private UUID anonymousId;
 
     @Enumerated(EnumType.STRING)
@@ -73,6 +76,7 @@ public class UserGene extends Gene implements UserContent {
     @JsonIgnore
     private User user;
 
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     @Transient
     private User remoteUser;
 

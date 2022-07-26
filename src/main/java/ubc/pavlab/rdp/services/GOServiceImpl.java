@@ -21,6 +21,9 @@ import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.util.*;
 
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.text.MessageFormat;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -84,9 +87,19 @@ public class GOServiceImpl implements GOService, InitializingBean {
         Executors.newSingleThreadExecutor().submit( this::updateGoTerms );
     }
 
-    private static Relationship convertRelationship( OBOParser.Relationship parsedRelationship ) {
+    private static Relationship convertRelationship( OBOParser.Term.Relationship parsedRelationship ) {
         return new Relationship( convertTermIgnoringRelationship( parsedRelationship.getNode() ),
-                RelationshipType.valueOf( parsedRelationship.getRelationshipType().toString() ) );
+                convertTypedef( parsedRelationship.getTypedef() ) );
+    }
+
+    private static RelationshipType convertTypedef( OBOParser.Typedef typedef ) {
+        if ( typedef.equals( OBOParser.Typedef.IS_A ) ) {
+            return RelationshipType.IS_A;
+        } else if ( typedef.equals( OBOParser.Typedef.PART_OF ) ) {
+            return RelationshipType.PART_OF;
+        } else {
+            throw new IllegalArgumentException( String.format( "Unknown relationship type: %s.", typedef ) );
+        }
     }
 
     private static GeneOntologyTermInfo convertTermIgnoringRelationship( OBOParser.Term parsedTerm ) {
@@ -100,8 +113,8 @@ public class GOServiceImpl implements GOService, InitializingBean {
 
     private static GeneOntologyTermInfo convertTerm( OBOParser.Term parsedTerm ) {
         GeneOntologyTermInfo geneOntologyTerm = convertTermIgnoringRelationship( parsedTerm );
-        geneOntologyTerm.setParents( parsedTerm.getParents().stream().map( GOServiceImpl::convertRelationship ).collect( Collectors.toSet() ) );
-        geneOntologyTerm.setChildren( parsedTerm.getChildren().stream().map( GOServiceImpl::convertRelationship ).collect( Collectors.toSet() ) );
+        geneOntologyTerm.setParents( parsedTerm.getRelationships().stream().map( GOServiceImpl::convertRelationship ).collect( Collectors.toSet() ) );
+        geneOntologyTerm.setChildren( parsedTerm.getInverseRelationships().stream().map( GOServiceImpl::convertRelationship ).collect( Collectors.toSet() ) );
         return geneOntologyTerm;
     }
 
@@ -134,8 +147,10 @@ public class GOServiceImpl implements GOService, InitializingBean {
         log.info( String.format( "Loading GO terms from: %s.", resource ) );
 
         Map<String, GeneOntologyTermInfo> terms;
-        try {
-            terms = convertTerms( oboParser.parseStream( resource.getInputStream() ) );
+        try ( Reader reader = new InputStreamReader( resource.getInputStream() ) ) {
+            terms = convertTerms( oboParser.parse( reader, OBOParser.Configuration.builder()
+                    .includedRelationshipTypedef( OBOParser.Typedef.PART_OF )
+                    .build() ).getTermsByIdOrAltId() );
         } catch ( IOException | ParseException e ) {
             log.error( "Failed to parse GO terms.", e );
             return;
@@ -192,16 +207,16 @@ public class GOServiceImpl implements GOService, InitializingBean {
 
     private SearchResult<GeneOntologyTermInfo> queryTerm( String queryString, GeneOntologyTermInfo term ) {
         if ( term.getGoId().equalsIgnoreCase( queryString ) || term.getGoId().equalsIgnoreCase( "GO:" + queryString ) ) {
-            return new SearchResult<>( TermMatchType.EXACT_ID, term );
+            return new SearchResult<>( TermMatchType.EXACT_ID, 0, term.getGoId(), term.getName(), null, term );
         }
 
         String pattern = "(?i:.*" + Pattern.quote( queryString ) + ".*)";
         if ( term.getName().matches( pattern ) ) {
-            return new SearchResult<>( TermMatchType.NAME_CONTAINS, term );
+            return new SearchResult<>( TermMatchType.NAME_CONTAINS, 0, term.getGoId(), term.getName(), null, term );
         }
 
         if ( term.getDefinition().matches( pattern ) ) {
-            return new SearchResult<>( TermMatchType.DEFINITION_CONTAINS, term );
+            return new SearchResult<>( TermMatchType.DEFINITION_CONTAINS, 0, term.getGoId(), term.getName(), null, term );
         }
 
         List<String> splitPatterns = Arrays.stream( queryString.split( " " ) )
@@ -210,13 +225,13 @@ public class GOServiceImpl implements GOService, InitializingBean {
 
         for ( String splitPattern : splitPatterns ) {
             if ( term.getName().matches( splitPattern ) ) {
-                return new SearchResult<>( TermMatchType.NAME_CONTAINS_PART, term );
+                return new SearchResult<>( TermMatchType.NAME_CONTAINS_PART, 0, term.getGoId(), term.getName(), null, term );
             }
         }
 
         for ( String splitPattern : splitPatterns ) {
             if ( term.getDefinition().matches( splitPattern ) ) {
-                return new SearchResult<>( TermMatchType.DEFINITION_CONTAINS_PART, term );
+                return new SearchResult<>( TermMatchType.DEFINITION_CONTAINS_PART, 0, term.getGoId(), term.getName(), null, term );
             }
         }
         return null;

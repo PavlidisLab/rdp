@@ -5,16 +5,15 @@ import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -24,8 +23,11 @@ import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.ResearcherCategory;
 import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import ubc.pavlab.rdp.model.enums.TierType;
+import ubc.pavlab.rdp.model.ontology.Ontology;
+import ubc.pavlab.rdp.model.ontology.OntologyTermInfo;
 import ubc.pavlab.rdp.services.*;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
+import ubc.pavlab.rdp.util.SearchResult;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -40,7 +42,7 @@ import java.util.stream.Collectors;
  */
 @Controller
 @CommonsLog
-public class SearchController {
+public class SearchController extends AbstractSearchController {
 
     @Autowired
     private MessageSource messageSource;
@@ -69,6 +71,9 @@ public class SearchController {
     @Autowired
     private ApplicationSettings applicationSettings;
 
+    @Autowired
+    private OntologyService ontologyService;
+
     @PreAuthorize("hasPermission(null, 'search')")
     @GetMapping(value = "/search")
     public ModelAndView search() {
@@ -76,57 +81,133 @@ public class SearchController {
         modelAndView.addObject( "activeSearchMode", applicationSettings.getSearch().getEnabledSearchModes().stream().findFirst().orElse( null ) );
         modelAndView.addObject( "chars", userService.getLastNamesFirstChar() );
         modelAndView.addObject( "user", userService.findCurrentUser() );
+        modelAndView.addObject( "ontologyTerms", Collections.emptyList() );
+        return modelAndView;
+    }
+
+    @PreAuthorize("hasPermission(null, #iSearch ? 'international-search' : 'search')")
+    @GetMapping(value = "/search", params = { "nameLike", "descriptionLike" })
+    public Object searchUsers( @RequestParam String nameLike,
+                               @RequestParam(required = false) boolean prefix,
+                               @RequestParam String descriptionLike,
+                               @RequestParam boolean iSearch,
+                               @RequestParam(required = false) Set<ResearcherPosition> researcherPositions,
+                               @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
+                               @RequestParam(required = false) Set<String> organUberonIds,
+                               @RequestParam(required = false) List<Integer> ontologyTermIds ) {
+        if ( nameLike.isEmpty() ^ descriptionLike.isEmpty() ) {
+            return redirectToSpecificSearch( nameLike, descriptionLike );
+        }
+        List<OntologyTermInfo> ontologyTerms;
+        if ( ontologyTermIds != null ) {
+            ontologyTerms = ontologyService.findAllTermsByIdInMaintainingOrder( ontologyTermIds );
+        } else {
+            ontologyTerms = Collections.emptyList();
+        }
+        ModelAndView modelAndView = new ModelAndView( "search" )
+                .addObject( "activeSearchTab", "user" )
+                .addObject( "chars", userService.getLastNamesFirstChar() )
+                .addObject( "nameLike", nameLike )
+                .addObject( "descriptionLike", descriptionLike )
+                .addObject( "ontologyTerms", ontologyTerms )
+                .addObject( "iSearch", iSearch );
+        if ( nameLike.isEmpty() ) {
+            modelAndView.setStatus( HttpStatus.BAD_REQUEST );
+            modelAndView.addObject( "message", "Researcher name and interests cannot be empty." );
+            modelAndView.addObject( "error", true );
+            modelAndView.addObject( "users", Collections.emptyList() );
+            if ( iSearch ) {
+                modelAndView.addObject( "itlUsers", Collections.emptyList() );
+            }
+        } else {
+            modelAndView.addObject( "users", userService.findByNameAndDescription( nameLike, prefix, descriptionLike, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ), ontologyTermsFromIds( ontologyTermIds ) ) );
+            if ( iSearch ) {
+                modelAndView.addObject( "itlUsers", remoteResourceService.findUsersByLikeNameAndDescription( nameLike, prefix, descriptionLike, researcherPositions, researcherCategories, organUberonIds, ontologyTermsFromIds( ontologyTermIds ) ) );
+            }
+        }
         return modelAndView;
     }
 
     @PreAuthorize("hasPermission(null, #iSearch ? 'international-search' : 'search')")
     @GetMapping(value = "/search", params = { "nameLike" })
     public ModelAndView searchUsersByName( @RequestParam String nameLike,
-                                           @RequestParam Boolean prefix,
-                                           @RequestParam Boolean iSearch,
+                                           @RequestParam(required = false) boolean prefix,
+                                           @RequestParam boolean iSearch,
                                            @RequestParam(required = false) Set<ResearcherPosition> researcherPositions,
                                            @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
-                                           @RequestParam(required = false) Set<String> organUberonIds ) {
+                                           @RequestParam(required = false) Set<String> organUberonIds,
+                                           @RequestParam(required = false) List<Integer> ontologyTermIds ) {
         ModelAndView modelAndView = new ModelAndView( "search" );
         Collection<User> users;
         if ( prefix ) {
-            users = userService.findByStartsName( nameLike, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ) );
+            users = userService.findByStartsName( nameLike, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ), ontologyTermsFromIds( ontologyTermIds ) );
         } else {
-            users = userService.findByLikeName( nameLike, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ) );
+            users = userService.findByLikeName( nameLike, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ), ontologyTermsFromIds( ontologyTermIds ) );
         }
         modelAndView.addObject( "activeSearchMode", ApplicationSettings.SearchSettings.SearchMode.BY_RESEARCHER );
         modelAndView.addObject( "nameLike", nameLike );
         modelAndView.addObject( "organUberonIds", organUberonIds );
+        if ( ontologyTermIds != null ) {
+            List<OntologyTermInfo> ontologyTerms = ontologyService.findAllTermsByIdInMaintainingOrder( ontologyTermIds );
+            modelAndView.addObject( "ontologyTerms", ontologyTerms );
+        } else {
+            modelAndView.addObject( "ontologyTerms", Collections.emptyList() );
+        }
         modelAndView.addObject( "chars", userService.getLastNamesFirstChar() );
         modelAndView.addObject( "user", userService.findCurrentUser() );
-        modelAndView.addObject( "users", users );
         modelAndView.addObject( "iSearch", iSearch );
-        if ( iSearch ) {
-            modelAndView.addObject( "itlUsers", remoteResourceService.findUsersByLikeName( nameLike, prefix, researcherPositions, researcherCategories, organUberonIds ) );
+        if ( nameLike.isEmpty() ) {
+            modelAndView.setStatus( HttpStatus.BAD_REQUEST );
+            modelAndView.addObject( "message", "Researcher name cannot be empty." );
+            modelAndView.addObject( "error", true );
+            modelAndView.addObject( "users", Collections.emptyList() );
+            modelAndView.addObject( "itlUsers", Collections.emptyList() );
+        } else {
+            modelAndView.addObject( "users", users );
+            if ( iSearch ) {
+                modelAndView.addObject( "itlUsers", remoteResourceService.findUsersByLikeName( nameLike, prefix, researcherPositions, researcherCategories, organUberonIds, null ) );
+            }
         }
+
         return modelAndView;
     }
 
     @PreAuthorize("hasPermission(null, #iSearch ? 'international-search' : 'search')")
     @GetMapping(value = "/search", params = { "descriptionLike" })
     public ModelAndView searchUsersByDescription( @RequestParam String descriptionLike,
-                                                  @RequestParam Boolean iSearch,
+                                                  @RequestParam boolean iSearch,
                                                   @RequestParam(required = false) Set<ResearcherPosition> researcherPositions,
                                                   @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
-                                                  @RequestParam(required = false) Set<String> organUberonIds ) {
+                                                  @RequestParam(required = false) Set<String> organUberonIds,
+                                                  @RequestParam(required = false) List<Integer> ontologyTermIds ) {
         ModelAndView modelAndView = new ModelAndView( "search" );
         modelAndView.addObject( "activeSearchMode", ApplicationSettings.SearchSettings.SearchMode.BY_RESEARCHER );
         modelAndView.addObject( "descriptionLike", descriptionLike );
         modelAndView.addObject( "organUberonIds", organUberonIds );
+        if ( ontologyTermIds != null ) {
+            List<OntologyTermInfo> ontologyTerms = ontologyService.findAllTermsByIdInMaintainingOrder( ontologyTermIds );
+            modelAndView.addObject( "ontologyTerms", ontologyTerms );
+        } else {
+            modelAndView.addObject( "ontologyTerms", Collections.emptyList() );
+        }
         modelAndView.addObject( "chars", userService.getLastNamesFirstChar() );
         modelAndView.addObject( "iSearch", iSearch );
 
         modelAndView.addObject( "user", userService.findCurrentUser() );
 
-        modelAndView.addObject( "users", userService.findByDescription( descriptionLike, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ) ) );
-        if ( iSearch ) {
-            modelAndView.addObject( "itlUsers", remoteResourceService.findUsersByDescription( descriptionLike, researcherPositions, researcherCategories, organUberonIds ) );
+        if ( descriptionLike.isEmpty() ) {
+            modelAndView.setStatus( HttpStatus.BAD_REQUEST );
+            modelAndView.addObject( "message", "Research interests cannot be empty." );
+            modelAndView.addObject( "error", true );
+            modelAndView.addObject( "users", Collections.emptyList() );
+            modelAndView.addObject( "itlUsers", Collections.emptyList() );
+        } else {
+            modelAndView.addObject( "users", userService.findByDescription( descriptionLike, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ), ontologyTermsFromIds( ontologyTermIds ) ) );
+            if ( iSearch ) {
+                modelAndView.addObject( "itlUsers", remoteResourceService.findUsersByDescription( descriptionLike, researcherPositions, researcherCategories, organUberonIds, ontologyTermsFromIds( ontologyTermIds ) ) );
+            }
         }
+
         return modelAndView;
     }
 
@@ -134,12 +215,13 @@ public class SearchController {
     @GetMapping(value = "/search", params = { "symbol", "taxonId" })
     public ModelAndView searchUsersByGene( @RequestParam String symbol,
                                            @RequestParam Integer taxonId,
-                                           @RequestParam Boolean iSearch,
+                                           @RequestParam boolean iSearch,
                                            @RequestParam(required = false) Set<TierType> tiers,
                                            @RequestParam(required = false) Integer orthologTaxonId,
                                            @RequestParam(required = false) Set<ResearcherPosition> researcherPositions,
                                            @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
                                            @RequestParam(required = false) Set<String> organUberonIds,
+                                           @RequestParam(required = false) List<Integer> ontologyTermIds,
                                            Locale locale ) {
         // Only look for orthologs when taxon is human
         if ( taxonId != 9606 ) {
@@ -159,6 +241,12 @@ public class SearchController {
         modelAndView.addObject( "orthologTaxonId", orthologTaxonId );
         modelAndView.addObject( "tiers", tiers );
         modelAndView.addObject( "organUberonIds", organUberonIds );
+        if ( ontologyTermIds != null ) {
+            List<OntologyTermInfo> ontologyTerms = ontologyService.findAllTermsByIdInMaintainingOrder( ontologyTermIds );
+            modelAndView.addObject( "ontologyTerms", ontologyTerms );
+        } else {
+            modelAndView.addObject( "ontologyTerms", Collections.emptyList() );
+        }
         modelAndView.addObject( "iSearch", iSearch );
 
         Taxon taxon = taxonService.findById( taxonId );
@@ -195,9 +283,9 @@ public class SearchController {
             return modelAndView;
         }
 
-        modelAndView.addObject( "usergenes", userGeneService.handleGeneSearch( gene, tiers, orthologTaxon, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ) ) );
+        modelAndView.addObject( "usergenes", userGeneService.handleGeneSearch( gene, tiers, orthologTaxon, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ), ontologyTermsFromIds( ontologyTermIds ) ) );
         if ( iSearch ) {
-            modelAndView.addObject( "itlUsergenes", remoteResourceService.findGenesBySymbol( symbol, taxon, tiers, orthologTaxonId, researcherPositions, researcherCategories, organUberonIds ) );
+            modelAndView.addObject( "itlUsergenes", remoteResourceService.findGenesBySymbol( symbol, taxon, tiers, orthologTaxonId, researcherPositions, researcherCategories, organUberonIds, ontologyTermsFromIds( ontologyTermIds ) ) );
         }
 
         return modelAndView;
@@ -293,7 +381,34 @@ public class SearchController {
         return modelAndView;
     }
 
+    /**
+     * This endpoint autocomplete ontology terms.
+     * <p>
+     * Results are unique and ordered as per {@link SearchResult#compareTo(SearchResult)} which first groups results by
+     * match type and then by match.
+     */
+    @ResponseBody
+    @GetMapping("/search/ontology-terms/autocomplete")
+    public Object autocompleteTerms( @RequestParam String query, @RequestParam(required = false) Integer ontologyId, Locale locale ) {
+        if ( ontologyId != null ) {
+            Ontology ontology = ontologyService.findById( ontologyId );
+            if ( ontology == null || !ontology.isActive() ) {
+                return ResponseEntity
+                        .status( HttpStatus.NOT_FOUND )
+                        .contentType( MediaType.TEXT_PLAIN )
+                        .body( String.format( "No ontology with ID %d exists or is active.", ontologyId ) );
+            }
+            return ontologyService.autocompleteTerms( query, ontology, 20, locale );
+        } else {
+            return ontologyService.autocompleteTerms( query, 20, locale );
+        }
+    }
+
     private Collection<OrganInfo> organsFromUberonIds( Set<String> organUberonIds ) {
         return organUberonIds == null ? null : organInfoService.findByUberonIdIn( organUberonIds );
+    }
+
+    private Collection<OntologyTermInfo> ontologyTermsFromIds( Collection<Integer> ontologyTermIds ) {
+        return ontologyTermIds == null ? null : ontologyService.findAllTermsByIdIn( ontologyTermIds );
     }
 }

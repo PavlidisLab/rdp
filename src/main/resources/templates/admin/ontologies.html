@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      lang="en">
+<head th:replace="layouts/common::head(title='Admin')">
+    <meta charset="UTF-8"/>
+    <title>Title</title>
+</head>
+<body>
+<div th:replace="layouts/common::header"></div>
+<div class="container py-3">
+    <div th:replace="layouts/common::title(title='Manage Profile Categories', subtitle='')"></div>
+    <div th:replace="layouts/common::message"></div>
+    <div class="card mb-3">
+        <div class="card-body border-bottom">
+            <div class="row mb-3">
+                <div class="col-8 border-right">
+                    <h2>Import Category from OBO Ontology Format</h2>
+                    <p>
+                        Import a category from an URL or a file represented in the OBO format. If imported via an URL,
+                        periodic update of the terms will also be activated.
+                    </p>
+                    <form th:object="${importOntologyForm}"
+                          th:action="@{/admin/ontologies/import}"
+                          method="post" enctype="multipart/form-data">
+                        <div class="form-row">
+                            <div class="col-6">
+                                <div class="form-group mb-0">
+                                    <label>Import from URL</label>
+                                    <input th:field="*{ontologyUrl}"
+                                           class="form-control" type="url" placeholder="http://purl.obo.org/"
+                                           th:errorclass="is-invalid"/>
+                                    <div class="invalid-feedback" th:errors="*{ontologyUrl}"></div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="form-group mb-0">
+                                    <label>Import from file</label>
+                                    <input th:field="*{ontologyFile}" type="file" class="form-control-file"
+                                           th:errorclass="is-invalid"/>
+                                    <!-- The version of Bootstrap 4 that we are using has a bug, so we need to set d-block: https://github.com/twbs/bootstrap/issues/24831 -->
+                                    <div class="invalid-feedback d-block" th:errors="*{ontologyFile}"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="col">
+                                <small th:errors="${importOntologyForm}" class="text-danger"></small>
+                            </div>
+                        </div>
+                        <div class="form-row my-3">
+                            <div class="col">
+                                <button class="btn btn-primary import-ontology-btn" type="submit">
+                                    <span class="spinner d-none"></span>
+                                    <i class="oi oi-cloud-download"></i>
+                                    Import from OBO
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                    <p>
+                        If you have custom messages for your ontologies in <code>messages.properties</code>, you can
+                        reload them without restarting RDP.
+                    </p>
+                    <form th:action="@{/admin/refresh-messages}" method="post">
+                        <button class="btn btn-primary">
+                            <i class="oi oi-reload"></i>
+                            Refresh Messages
+                        </button>
+                    </form>
+                </div>
+                <div class="col-4">
+                    <div th:with="reactome=${@reactomeService.findPathwaysOntology()}">
+                        <h2>Reactome Pathways</h2>
+                        <p>RDP provides capability of importing Reactome pathways.</p>
+                        <p th:if="${reactome} != null" class="text-success">
+                            Reactome is already setup.
+                            <a th:href="@{/admin/ontologies/{ontologyId}(ontologyId=${reactome.id})}">View Reactome</a>
+                        </p>
+                        <form th:action="${reactome} != null ? @{/admin/ontologies/{ontologyId}/update-reactome-pathways(ontologyId=${reactome.id})} : @{/admin/ontologies/import-reactome-pathways}"
+                              method="post">
+                            <div class="form-group">
+                                <button class="btn btn-primary" type="submit">
+                                    <i class="oi oi-cloud-download"></i>
+                                    <span th:if="${reactome} != null">Update</span>
+                                    <span th:if="${reactome} == null">Import</span>
+                                    Reactome Pathways
+                                </button>
+                            </div>
+                        </form>
+                        <div th:if="${reactome} != null">
+                            <div class="form-group">
+                                <a th:href="@{/admin/ontologies/{ontologyId}/update-reactome-pathway-summations(ontologyId=${reactome.id})}"
+                                   th:attr="data-reactome-ontology-id=${reactome.id}"
+                                   class="btn btn-primary update-reactome-pathway-summations-btn">
+                                    <i class="oi oi-cloud-download"></i>
+                                    Update Reactome Pathways Summations
+                                </a>
+                                <div>
+                                    <small class="progress-feedback"></small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <h2 class="mb-0">Create Simple Category</h2>
+            <p>As an alternative to the OBO format import, you may also manage small categories by hand.</p>
+            <div th:replace="fragments/ontology::simple-ontology-form(ontology = null, simpleOntologyForm = ${simpleOntologyForm})"></div>
+        </div>
+    </div>
+    <div class="row">
+        <div th:each="ontology, i : ${@ontologyService.findAllOntologiesIncludingInactive()}"
+             class="col-sm-6 col-xl-4">
+            <div class="card mb-3">
+                <div class="card-header">
+                    <form th:action="@{/admin/ontologies/{ontologyId}/move(ontologyId=${ontology.id})}"
+                          method="post" class="float-right">
+                        <div class="btn-group btn-group-sm">
+                            <button th:unless="${i.first}" class="btn btn-light" type="submit" name="direction"
+                                    value="up"
+                                    title="Move up">
+                                <i class="oi oi-caret-top"></i>
+                            </button>
+                            <button th:unless="${i.last}" class="btn btn-light" type="submit" name="direction"
+                                    value="down"
+                                    title="Move down">
+                                <i class="oi oi-caret-bottom"></i>
+                            </button>
+                        </div>
+                    </form>
+                    <h3>
+                        <span th:replace="fragments/ontology::ontology-name(${ontology})"></span>
+                    </h3>
+                    <div>
+                        <span th:if="${ontology.active}" class="badge badge-success">active</span>
+                        <span th:unless="${ontology.active}" class="badge badge-secondary">inactive</span>
+                        <span class="badge badge-info"><span th:text="${ontology.terms.size()}"></span> terms</span>
+                        <span th:if="${ontology.availableForGeneSearch}" class="badge badge-info">available for gene search</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p th:text="${#messages.msgOrNull('rdp.ontologies.' + ontology.name + '.definition')} ?: 'There is no definition for this category.'"></p>
+                    <a th:href="@{/admin/ontologies/{ontologyId}(ontologyId=${ontology.id})}"
+                       class="btn btn-primary">
+                        <i class="oi oi-pencil"></i>
+                        Manage
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div th:replace="layouts/common::footer"></div>
+<div th:replace="layouts/common::scripts"></div>
+<script th:src="@{/js/ontology.js}"></script>
+</body>
+</html>

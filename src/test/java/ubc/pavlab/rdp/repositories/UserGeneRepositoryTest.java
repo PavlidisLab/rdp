@@ -5,20 +5,29 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.internal.util.collections.Sets;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.info.BuildProperties;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
+import org.springframework.context.annotation.Import;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.context.junit4.SpringRunner;
-import ubc.pavlab.rdp.model.*;
+import ubc.pavlab.rdp.WebMvcConfig;
+import ubc.pavlab.rdp.model.Gene;
+import ubc.pavlab.rdp.model.Taxon;
+import ubc.pavlab.rdp.model.User;
+import ubc.pavlab.rdp.model.UserGene;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.TierType;
+import ubc.pavlab.rdp.repositories.ontology.OntologyRepository;
+import ubc.pavlab.rdp.repositories.ontology.OntologyTermInfoRepository;
 import ubc.pavlab.rdp.services.*;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
+import ubc.pavlab.rdp.util.OntologyMessageSource;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -33,6 +42,7 @@ import static ubc.pavlab.rdp.util.TestUtils.*;
  * Created by mjacobson on 26/02/18.
  */
 @RunWith(SpringRunner.class)
+@Import(WebMvcConfig.class)
 @DataJpaTest
 public class UserGeneRepositoryTest {
 
@@ -63,6 +73,11 @@ public class UserGeneRepositoryTest {
         public SecureRandom secureRandom() throws NoSuchAlgorithmException {
             return SecureRandom.getInstance( "SHA1PRNG" );
         }
+
+        @Bean
+        public OntologyService ontologyService( OntologyRepository ontologyRepository, OntologyTermInfoRepository ontologyTermInfoRepository ) {
+            return new OntologyService( ontologyRepository, ontologyTermInfoRepository );
+        }
     }
 
     @Autowired
@@ -89,6 +104,12 @@ public class UserGeneRepositoryTest {
 
     @MockBean
     private GeneInfoService geneinfoService;
+
+    @MockBean
+    private OntologyMessageSource ontologyMessageSource;
+
+    @MockBean
+    private BuildProperties buildProperties;
 
     private User user;
     private Taxon taxon;

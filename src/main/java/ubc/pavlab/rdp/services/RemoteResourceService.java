@@ -8,6 +8,7 @@ import ubc.pavlab.rdp.model.UserGene;
 import ubc.pavlab.rdp.model.enums.ResearcherCategory;
 import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import ubc.pavlab.rdp.model.enums.TierType;
+import ubc.pavlab.rdp.model.ontology.OntologyTermInfo;
 
 import java.net.URI;
 import java.util.*;
@@ -33,7 +34,7 @@ public interface RemoteResourceService {
      * @return matching users sorted according to {@link UserService#getUserComparator()}.
      * @see ApiController#searchUsersByName(String, Boolean, Set, Set, Set, String, String, Locale)
      */
-    List<User> findUsersByLikeName( String nameLike, Boolean prefix, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherTypes, Collection<String> organUberonIds );
+    List<User> findUsersByLikeName( String nameLike, Boolean prefix, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherTypes, Collection<String> organUberonIds, Collection<OntologyTermInfo> ontologyTermInfos );
 
     /**
      * Find users by description among all partner registries.
@@ -41,7 +42,9 @@ public interface RemoteResourceService {
      * @return matching users sorted according to {@link UserService#getUserComparator()}.
      * @see ApiController#searchUsersByDescription(String, Set, Set, Set, String, String, Locale)
      */
-    List<User> findUsersByDescription( String descriptionLike, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherTypes, Collection<String> organUberonIds );
+    List<User> findUsersByDescription( String descriptionLike, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherTypes, Collection<String> organUberonIds, Collection<OntologyTermInfo> ontologyTermInfos );
+
+    List<User> findUsersByLikeNameAndDescription( String nameLike, boolean prefix, String descriptionLike, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherCategories, Set<String> organUberonIds, Collection<OntologyTermInfo> ontologyTermInfos );
 
     /**
      * Find genes by symbol among all partner registries.
@@ -49,7 +52,7 @@ public interface RemoteResourceService {
      * @return matching genes sorted according to {@link UserGeneService#getUserGeneComparator()}.
      * @see ApiController#searchUsersByGeneSymbol(String, Integer, Set, Integer, Set, Set, Set, String, String, Locale)
      */
-    List<UserGene> findGenesBySymbol( String symbol, Taxon taxon, Set<TierType> tier, Integer orthologTaxonId, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherTypes, Set<String> organUberonIds );
+    List<UserGene> findGenesBySymbol( String symbol, Taxon taxon, Set<TierType> tier, Integer orthologTaxonId, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherTypes, Set<String> organUberonIds, Collection<OntologyTermInfo> ontologyTermInfos );
 
     /**
      * Retrieve a user from a specific registry.

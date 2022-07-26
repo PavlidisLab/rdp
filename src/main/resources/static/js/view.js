@@ -16,11 +16,25 @@
         "paging": false,
         "searching": false,
         "info": false,
-        "order": [[2, "asc"], [0, "asc"]],
+        "order": [[3, "asc"], [1, "asc"]],
         "columnDefs": [
-            {"name": "Symbol", "targets": 0},
-            {"name": "Name", "targets": 1},
-            {"name": "Tier", "targets": 2, "className": "text-center", "orderDataType": "dom-checkbox"}
+            {name: "Gene ID", targets: 0, visible: false},
+            {
+                name: "Symbol",
+                targets: 1,
+                render: function (data, type, row) {
+                    var geneId = row[0];
+                    var symbol = data;
+                    return $('<a/>')
+                        .attr('href', 'https://www.ncbi.nlm.nih.gov/gene/' + encodeURIComponent(geneId))
+                        .attr('target', '_blank')
+                        .attr('rel', 'noopener')
+                        .text(symbol)[0].outerHTML;
+                }
+            },
+            {name: "Name", "targets": 2},
+            {name: "Tier", "targets": 3, "className": "text-center", "orderDataType": "dom-checkbox"},
+            {targets: 4, visible: false}
         ],
         "footerCallback": function () {
             var api = this.api();
@@ -52,6 +66,21 @@
         "searching": false,
         "info": false,
         "order": [[0, "asc"]]
+    });
+
+    $('.ontology-term-table').DataTable({
+        paging: false,
+        searching: false,
+        info: false,
+        order: [[0, "asc"]],
+        columnDefs: [
+            {
+                targets: [2],
+                render: function (data) {
+                    return $('<span class="ontology-term-definition">').text(data)[0].outerHTML;
+                }
+            }
+        ]
     });
 
     $('#overlapModal').on('show.bs.modal', function (e) {

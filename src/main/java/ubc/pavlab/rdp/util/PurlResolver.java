@@ -5,6 +5,13 @@ import org.springframework.core.io.ProtocolResolver;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.io.UrlResource;
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.ResourceLoaderAware;
+import org.springframework.context.support.GenericApplicationContext;
+import org.springframework.core.io.*;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -19,29 +26,33 @@ import java.net.URL;
 @CommonsLog
 public class PurlResolver implements ProtocolResolver {
 
-    /**
-     * Check if the provided URL refers to a PURL resource.
-     */
-    private static boolean isPurl( URL url ) {
-        return url.getProtocol().equals( "http" ) && url.getHost().equals( "purl.obolibrary.org" );
-    }
+    private static final String PURL_PREFIX = "http://purl.obolibrary.org";
 
     @Override
     public Resource resolve( String location, ResourceLoader resourceLoader ) {
+        if ( !location.startsWith( PURL_PREFIX ) ) {
+            return null;
+        }
+
+        URL url;
+        try {
+            url = new URL( location );
+        } catch ( MalformedURLException e ) {
+            log.error( String.format( "Invalid PURL %s.", e ) );
+            return null;
+        }
+
         HttpURLConnection con = null;
         try {
-            URL url = new URL( location );
-            if ( isPurl( url ) ) {
-                con = (HttpURLConnection) url.openConnection();
-                con.setInstanceFollowRedirects( false );
-                if ( con.getHeaderField( "Location" ) != null ) {
-                    return new UrlResource( con.getHeaderField( "Location" ) );
-                }
+            con = (HttpURLConnection) url.openConnection();
+            con.setInstanceFollowRedirects( false );
+            if ( con.getHeaderField( "Location" ) != null ) {
+                return new UrlResource( con.getHeaderField( "Location" ) );
             }
         } catch ( MalformedURLException e ) {
-            return null;
+            log.warn( String.format( "Invalid 'Location' header for PURL %s.", url ) );
         } catch ( IOException e ) {
-            log.error( "Failed to resolve %s.", e );
+            log.error( String.format( "Failed to resolve PURL %s.", url ), e );
             if ( con != null ) {
                 con.disconnect();
             }

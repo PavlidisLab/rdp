@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.junit4.SpringRunner;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 
+import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.verify;
 
 @RunWith(SpringRunner.class)
@@ -54,8 +55,14 @@ public class CacheServiceTest {
     @MockBean
     private UserService userService;
 
+    @MockBean
+    private OntologyService ontologyService;
+
+    @MockBean
+    private ReactomeService reactomeService;
+
     @Test
-    public void updateCache_thenSucceed() {
+    public void updateCache_thenSucceed() throws ReactomeException {
         cacheService.updateCache();
         verify( geneService ).updateGenes();
         verify( geneService ).updateGeneOrthologs();
@@ -64,6 +71,8 @@ public class CacheServiceTest {
         verify( userService ).updateUserTerms();
         verify( organInfoService ).updateOrganInfos();
         verify( userOrganService ).updateUserOrgans();
+        verify( reactomeService ).updatePathwaysOntology();
+        verify( reactomeService ).updatePathwaySummations( any() );
     }
 
 }

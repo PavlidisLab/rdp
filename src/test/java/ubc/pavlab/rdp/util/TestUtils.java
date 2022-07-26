@@ -9,16 +9,16 @@ import org.springframework.util.MultiValueMap;
 import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.TierType;
+import ubc.pavlab.rdp.model.ontology.Ontology;
+import ubc.pavlab.rdp.model.ontology.OntologyTermInfo;
 
 import java.net.URI;
 import java.net.URL;
-import java.util.Arrays;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
-import static java.util.stream.Collectors.groupingBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -238,5 +238,72 @@ public final class TestUtils {
         accessToken.setUser( user );
         accessToken.updateToken( token );
         return accessToken;
+    }
+
+
+    /**
+     * Create an ontology with random terms, subTerms, depth, etc.
+     *
+     * @param name                 ontology name
+     * @param maxChildren          maximum number of children
+     * @param maxDepth             maximum depth
+     * @param branchingProbability probability of creating a children term
+     * @return
+     */
+    public static Ontology createOntology( String name, int maxChildren, int maxDepth, double branchingProbability ) {
+        int maxSize = 0;
+        for ( int i = 1; i <= maxDepth; i++ ) {
+            maxSize += Math.pow( maxChildren, i );
+        }
+        if ( maxSize > 2000 ) {
+            throw new IllegalArgumentException( String.format( "The provided parameters can generate up to %d nodes! Try reducing the depth of the ontology.", maxSize ) );
+        }
+        Ontology ontology = Ontology.builder( name )
+                .active( true )
+                .build();
+        addSubTerms( ontology, maxChildren, maxDepth, branchingProbability, new SequenceGenerator(), new Random( 1234 ) );
+        return ontology;
+    }
+
+    /**
+     * Add sub-terms to a given ontology.
+     *
+     * @param ontology the ontology to which sub-terms will be appended (to {@link Ontology#getTerms()} and returned
+     * @param k        the number of children per node
+     * @param d        the depth of the tree
+     * @param b        branching probability
+     * @param seq      a sequence generator for generating sequential term IDs
+     * @param random   a seeded random number generator for reproducible trees
+     * @return the generated sub-terms, which were also appended to the ontology terms
+     */
+    private static Collection<OntologyTermInfo> addSubTerms( Ontology ontology, int k, int d, double b, SequenceGenerator seq, Random random ) {
+        if ( d == 0 ) {
+            return Collections.emptyList();
+        }
+        Collection<OntologyTermInfo> terms = IntStream.range( 0, k )
+                .filter( i -> random.nextFloat() <= b )
+                .mapToObj( i -> {
+                    String termId = String.format( "%s:%05d", ontology.getName().toUpperCase(), seq.nextInt( 100000 ) );
+                    return OntologyTermInfo.builder( ontology, termId )
+                            .name( termId )
+                            .subTerms( addSubTerms( ontology, k, d - 1, b, seq, random ) )
+                            .ordering( i )
+                            .active( true )
+                            .build();
+                } )
+                .collect( Collectors.toSet() );
+        ontology.getTerms().addAll( terms );
+        return terms;
+    }
+
+    private static class SequenceGenerator {
+        private int state = 1;
+
+        public int nextInt( int bound ) {
+            if ( state >= bound - 1 ) {
+                throw new IllegalStateException( "The internal state of this sequence has exceeded the supplied bound." );
+            }
+            return state++;
+        }
     }
 }

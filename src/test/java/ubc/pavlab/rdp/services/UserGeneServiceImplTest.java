@@ -58,6 +58,9 @@ public class UserGeneServiceImplTest {
     @MockBean
     private ApplicationSettings applicationSettings;
 
+    @MockBean
+    private OntologyService ontologyService;
+
     @Test
     public void updateUserGenes_withExistingUser_thenUserGeneAreUpdated() {
         Taxon humanTaxon = createTaxon( 9606 );

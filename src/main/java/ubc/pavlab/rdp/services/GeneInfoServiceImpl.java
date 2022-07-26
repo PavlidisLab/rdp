@@ -219,18 +219,17 @@ public class GeneInfoServiceImpl implements GeneInfoService {
                     .map( orthologByGeneId::get )
                     .filter( Objects::nonNull )
                     .collect( Collectors.toSet() );
-            gene.getOrthologs().removeIf( o -> !orthologs.contains( o ) );
-            gene.getOrthologs().addAll( orthologs );
+            CollectionUtils.update( gene.getOrthologs(), orthologs );
             geneInfoRepository.save( gene );
         }
         log.info( "Done updating gene orthologs." );
     }
 
-    private <T> boolean addAll( Collection<SearchResult<T>> container, Collection<T> newValues, GeneMatchType match, int maxSize ) {
+    private <T extends GeneInfo> boolean addAll( Collection<SearchResult<T>> container, Collection<T> newValues, GeneMatchType match, int maxSize ) {
 
         for ( T newValue : newValues ) {
             if ( maxSize == -1 || container.size() < maxSize ) {
-                container.add( new SearchResult<>( match, newValue ) );
+                container.add( new SearchResult<>( match, newValue.getId(), newValue.getSymbol(), newValue.getName(), newValue.getAliases(), newValue ) );
             } else {
                 return true;
             }

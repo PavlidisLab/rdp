@@ -1,7 +1,6 @@
 package ubc.pavlab.rdp.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.assertj.core.util.Lists;
 import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
@@ -27,6 +26,7 @@ import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.services.*;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.settings.SiteSettings;
+import ubc.pavlab.rdp.util.OntologyMessageSource;
 
 import java.io.IOException;
 import java.net.URI;
@@ -37,8 +37,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -76,6 +75,9 @@ public class SearchControllerTest {
     @MockBean
     private ApplicationSettings.InternationalSearchSettings iSearchSettings;
 
+    @MockBean
+    private ApplicationSettings.OntologySettings ontologySettings;
+
     @MockBean(name = "userService")
     private UserService userService;
 
@@ -94,7 +96,7 @@ public class SearchControllerTest {
     @MockBean
     private RemoteResourceService remoteResourceService;
 
-    @MockBean
+    @MockBean(name = "userPrivacyService")
     private UserPrivacyService privacyService;
 
     @MockBean
@@ -112,6 +114,12 @@ public class SearchControllerTest {
     @MockBean
     private UserListener userListener;
 
+    @MockBean(name = "ontologyService")
+    private OntologyService ontologyService;
+
+    @MockBean
+    private OntologyMessageSource ontologyMessageSource;
+
     @Before
     public void setUp() {
         when( applicationSettings.getEnabledTiers() ).thenReturn( EnumSet.allOf( TierType.class ) );
@@ -123,6 +131,7 @@ public class SearchControllerTest {
         when( searchSettings.getEnabledSearchModes() ).thenReturn( new LinkedHashSet<>( EnumSet.allOf( ApplicationSettings.SearchSettings.SearchMode.class ) ) );
         when( applicationSettings.getOrgans() ).thenReturn( organSettings );
         when( applicationSettings.getIsearch() ).thenReturn( iSearchSettings );
+        when( applicationSettings.getOntology() ).thenReturn( ontologySettings );
         when( permissionEvaluator.hasPermission( any(), isNull(), eq( "search" ) ) ).thenReturn( true );
         when( permissionEvaluator.hasPermission( any(), isNull(), eq( "international-search" ) ) ).thenReturn( true );
     }
@@ -132,6 +141,9 @@ public class SearchControllerTest {
         mvc.perform( get( "/search" ) )
                 .andExpect( status().isOk() )
                 .andExpect( view().name( "search" ) );
+        verify( userService ).getLastNamesFirstChar();
+        verify( userService ).findCurrentUser();
+        verifyNoMoreInteractions( userService );
     }
 
     @Test
@@ -140,6 +152,7 @@ public class SearchControllerTest {
         mvc.perform( get( "/search" ) )
                 .andExpect( status().is3xxRedirection() )
                 .andExpect( redirectedUrl( "http://localhost/login" ) );
+        verifyNoInteractions( userService );
     }
 
     @Test
@@ -151,6 +164,7 @@ public class SearchControllerTest {
                 .andExpect( status().isOk() )
                 .andExpect( view().name( "search" ) )
                 .andExpect( model().attributeExists( "users" ) );
+        verify( userService ).findByStartsName( "K", null, null, null, null );
     }
 
     @Test
@@ -161,6 +175,39 @@ public class SearchControllerTest {
                 .andExpect( status().isOk() )
                 .andExpect( view().name( "search" ) )
                 .andExpect( model().attributeExists( "users" ) );
+        verify( userService ).findByDescription( "pancake", null, null, null, null );
+    }
+
+    @Test
+    public void searchByNameAndDescription_thenReturn200() throws Exception {
+        mvc.perform( get( "/search" )
+                        .param( "nameLike", "maple" )
+                        .param( "descriptionLike", "pancake" )
+                        .param( "iSearch", "false" ) )
+                .andExpect( status().isOk() )
+                .andExpect( view().name( "search" ) )
+                .andExpect( model().attributeExists( "users" ) );
+        verify( userService ).findByNameAndDescription( "maple", false, "pancake", null, null, null, null );
+    }
+
+    @Test
+    public void searchByNameAndDescription_whenNameIsEmpty_thenRedirectToSearchByDescription() throws Exception {
+        mvc.perform( get( "/search" )
+                        .param( "nameLike", "" )
+                        .param( "descriptionLike", "pancake" )
+                        .param( "iSearch", "false" ) )
+                .andExpect( status().is3xxRedirection() )
+                .andExpect( redirectedUrl( "/search" ) );
+    }
+
+    @Test
+    public void searchByNameAndDescription_whenDescriptionIsEmpty_thenRedirectToSearchByName() throws Exception {
+        mvc.perform( get( "/search" )
+                        .param( "nameLike", "maple" )
+                        .param( "descriptionLike", "" )
+                        .param( "iSearch", "false" ) )
+                .andExpect( status().is3xxRedirection() )
+                .andExpect( redirectedUrl( "/search" ) );
     }
 
     @Test
@@ -176,7 +223,7 @@ public class SearchControllerTest {
                 .andExpect( status().isOk() )
                 .andExpect( view().name( "search" ) )
                 .andExpect( model().attributeExists( "usergenes" ) );
-        verify( userGeneService ).handleGeneSearch( gene, TierType.ANY, null, null, null, null );
+        verify( userGeneService ).handleGeneSearch( gene, TierType.ANY, null, null, null, null, null );
     }
 
     @Test
@@ -255,15 +302,31 @@ public class SearchControllerTest {
     }
 
     @Test
+    public void searchItlUsers_whenNameLikeIsEmpty_thenRedirectToDescriptionLikeSearch() throws Exception {
+        mvc.perform( get( "/search/view/international" )
+                        .param( "nameLike", "" )
+                        .param( "descriptionLike", "pancake" ) )
+                .andExpect( status().is3xxRedirection() )
+                .andExpect( redirectedUrl( "/search/view/international" ) );
+    }
+
+    @Test
+    public void searchUsersView_whenNameLikeIsEmpty_thenRedirectToDescriptionLikeSearch() throws Exception {
+        mvc.perform( get( "/search/view" )
+                        .param( "nameLike", "maple" )
+                        .param( "descriptionLike", "" ) )
+                .andExpect( status().is3xxRedirection() )
+                .andExpect( redirectedUrl( "/search/view" ) );
+    }
+
+    @Test
     public void searchUsersByNameView_thenReturnSuccess() throws Exception {
-        User user = createRemoteUser( 1, URI.create( "https://example.com/" ) );
-        when( remoteResourceService.findUsersByLikeName( "Mark", true, null, null, null ) )
-                .thenReturn( Collections.singletonList( remotify( user, User.class ) ) );
         mvc.perform( get( "/search/view" )
                         .param( "nameLike", "Mark" )
                         .param( "prefix", "true" ) )
                 .andExpect( status().isOk() )
                 .andExpect( view().name( "fragments/user-table::user-table" ) );
+        verify( userService ).findByStartsName( "Mark", null, null, null, null );
     }
 
     @Test
@@ -271,26 +334,25 @@ public class SearchControllerTest {
         // The frontend cannot handle 3xx redirection to the login page as that would return a full-fledged HTML
         // document, so instead it must produce a 401 Not Authorized exception
         when( permissionEvaluator.hasPermission( any(), isNull(), eq( "search" ) ) ).thenReturn( false );
-        User user = createRemoteUser( 1, URI.create( "https://example.com/" ) );
-        when( remoteResourceService.findUsersByLikeName( "Mark", true, null, null, null ) )
-                .thenReturn( Collections.singletonList( remotify( user, User.class ) ) );
         mvc.perform( get( "/search/view" )
                         .param( "nameLike", "Mark" )
                         .param( "prefix", "true" ) )
                 .andExpect( status().isUnauthorized() )
                 .andExpect( view().name( "fragments/error::message" ) );
+        verifyNoInteractions( userService );
     }
 
     @Test
     public void searchItlUsersByNameView_thenReturnSuccess() throws Exception {
         User user = createRemoteUser( 1, URI.create( "http://example.com/" ) );
-        when( remoteResourceService.findUsersByLikeName( "Mark", true, null, null, null ) )
+        when( remoteResourceService.findUsersByLikeName( "Mark", true, null, null, null, null ) )
                 .thenReturn( Collections.singletonList( remotify( user, User.class ) ) );
         mvc.perform( get( "/search/view/international" )
                         .param( "nameLike", "Mark" )
                         .param( "prefix", "true" ) )
                 .andExpect( status().isOk() )
                 .andExpect( view().name( "fragments/user-table::user-table" ) );
+        verify( remoteResourceService ).findUsersByLikeName( "Mark", true, null, null, null, null );
     }
 
     @Test
@@ -313,6 +375,7 @@ public class SearchControllerTest {
                 .andExpect( status().isOk() )
                 .andExpect( view().name( "fragments/profile::user-preview" ) )
                 .andExpect( model().attribute( "user", user ) );
+        verify( userService ).findUserById( 1 );
     }
 
     @Test
@@ -321,6 +384,7 @@ public class SearchControllerTest {
         when( userService.findUserById( 1 ) ).thenReturn( user );
         mvc.perform( get( "/search/view/user-preview/{userId}", user.getId() ) )
                 .andExpect( status().isNoContent() );
+        verify( userService ).findUserById( 1 );
     }
 
     @Test
@@ -380,11 +444,14 @@ public class SearchControllerTest {
     public void previewAnonymousUser_whenUserIsRemoteAndApiVersionIsPre14_thenReturnNotFound() throws Exception {
         User anonymousUser = createAnonymousUser();
         anonymousUser.getProfile().getResearcherCategories().add( ResearcherCategory.IN_SILICO );
-        when( remoteResourceService.getApiVersion( URI.create( "http://localhost/" ) ) ).thenReturn( "1.0.0" );
+        when( remoteResourceService.getAnonymizedUser( anonymousUser.getAnonymousId(), URI.create( "http://localhost/" ) ) )
+                .thenReturn( null ); // pre-1.4 returns null when the API version is not satisfied
         mvc.perform( get( "/search/view/user-preview/by-anonymous-id/{anonymousId}", anonymousUser.getAnonymousId() )
                         .param( "remoteHost", "http://localhost/" ) )
                 .andExpect( status().isNotFound() )
                 .andExpect( view().name( "fragments/error::message" ) );
+        verify( remoteResourceService ).getAnonymizedUser( anonymousUser.getAnonymousId(), URI.create( "http://localhost/" ) );
+        verifyNoMoreInteractions( remoteResourceService );
     }
 
     @Test

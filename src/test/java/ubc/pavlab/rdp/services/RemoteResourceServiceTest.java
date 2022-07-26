@@ -5,16 +5,18 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.web.client.ExpectedCount;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.AsyncRestTemplate;
 import ubc.pavlab.rdp.exception.RemoteException;
@@ -33,10 +35,11 @@ import java.util.EnumSet;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
-import static ubc.pavlab.rdp.util.TestUtils.*;
+import static ubc.pavlab.rdp.util.TestUtils.createRemoteUser;
+import static ubc.pavlab.rdp.util.TestUtils.createTaxon;
 
 @RunWith(SpringRunner.class)
 public class RemoteResourceServiceTest {
@@ -141,41 +144,99 @@ public class RemoteResourceServiceTest {
     @Test
     public void findUserByLikeName_thenReturnSuccess() throws JsonProcessingException {
         MockRestServiceServer mockServer = MockRestServiceServer.createServer( asyncRestTemplate );
+        mockServer.expect( requestTo( "http://example.com/api" ) )
+                .andRespond( withStatus( HttpStatus.OK )
+                        .contentType( MediaType.APPLICATION_JSON )
+                        .body( objectMapper.writeValueAsString( new OpenAPI().info( new Info().version( "1.0.0" ) ) ) ) );
         mockServer.expect( requestTo( "http://example.com/api/users/search?nameLike=ok&prefix=true" ) )
                 .andRespond( withStatus( HttpStatus.OK )
                         .contentType( MediaType.APPLICATION_JSON )
                         .body( objectMapper.writeValueAsString( new User[]{} ) ) );
-        remoteResourceService.findUsersByLikeName( "ok", true, null, null, null );
+        remoteResourceService.findUsersByLikeName( "ok", true, null, null, null, null );
         mockServer.verify();
     }
 
     @Test
     public void findUserByLikeName_whenAdmin_thenReturnSuccess() throws JsonProcessingException {
         MockRestServiceServer mockServer = MockRestServiceServer.createServer( asyncRestTemplate );
+        mockServer.expect( requestTo( "http://example.com/api" ) )
+                .andRespond( withStatus( HttpStatus.OK )
+                        .contentType( MediaType.APPLICATION_JSON )
+                        .body( objectMapper.writeValueAsString( new OpenAPI().info( new Info().version( "1.0.0" ) ) ) ) );
         mockServer.expect( requestTo( "http://example.com/api/users/search?nameLike=ok&prefix=true&auth=1234" ) )
                 .andRespond( withStatus( HttpStatus.OK )
                         .contentType( MediaType.APPLICATION_JSON )
                         .body( objectMapper.writeValueAsString( new User[]{} ) ) );
         when( iSearchSettings.getSearchToken() ).thenReturn( "1234" );
         when( userService.findCurrentUser() ).thenReturn( adminUser );
-        remoteResourceService.findUsersByLikeName( "ok", true, null, null, null );
+        remoteResourceService.findUsersByLikeName( "ok", true, null, null, null, null );
         mockServer.verify();
     }
 
     @Test
-    @Ignore("There an issue with with multiple requests performed against Spring MockServer.")
+    public void findUsersByLikeNameAndDescription() throws JsonProcessingException {
+        MockRestServiceServer mockServer = MockRestServiceServer.createServer( asyncRestTemplate );
+        mockServer.expect( requestTo( "http://example.com/api" ) )
+                .andRespond( withStatus( HttpStatus.OK )
+                        .contentType( MediaType.APPLICATION_JSON )
+                        .body( objectMapper.writeValueAsString( new OpenAPI().info( new Info().version( "1.5.0" ) ) ) ) );
+        mockServer.expect( requestTo( "http://example.com/api/users/search?nameLike=ok&prefix=true&descriptionLike=ok2" ) )
+                .andRespond( withStatus( HttpStatus.OK )
+                        .contentType( MediaType.APPLICATION_JSON )
+                        .body( objectMapper.writeValueAsString( new User[]{ createRemoteUser( 1, URI.create( "http://example.com" ) ) } ) ) );
+        assertThat( remoteResourceService.findUsersByLikeNameAndDescription( "ok", true, "ok2", null, null, null, null ) )
+                .hasSize( 1 )
+                .extracting( "id" )
+                .containsExactly( 1 );
+        mockServer.verify();
+    }
+
+    @Test
+    public void findUsersByLikeNameAndDescription_whenVersionIsPre15_thenPerformTwoQueriesAndIntersectTheirResults() throws JsonProcessingException {
+        User user1 = createRemoteUser( 1, URI.create( "http://example.com" ) ),
+                user2 = createRemoteUser( 2, URI.create( "http://example.com" ) ),
+                user3 = createRemoteUser( 3, URI.create( "http://example.com" ) );
+        MockRestServiceServer mockServer = MockRestServiceServer.createServer( asyncRestTemplate );
+        mockServer.expect( requestTo( "http://example.com/api" ) )
+                .andRespond( withStatus( HttpStatus.OK )
+                        .contentType( MediaType.APPLICATION_JSON )
+                        .body( objectMapper.writeValueAsString( new OpenAPI().info( new Info().version( "1.4.0" ) ) ) ) );
+        mockServer.expect( requestTo( "http://example.com/api/users/search?nameLike=ok&prefix=true" ) )
+                .andRespond( withStatus( HttpStatus.OK )
+                        .contentType( MediaType.APPLICATION_JSON )
+                        .body( objectMapper.writeValueAsString( new User[]{ user1, user2 } ) ) );
+        mockServer.expect( requestTo( "http://example.com/api/users/search?descriptionLike=ok2" ) )
+                .andRespond( withStatus( HttpStatus.OK )
+                        .contentType( MediaType.APPLICATION_JSON )
+                        .body( objectMapper.writeValueAsString( new User[]{ user2, user3 } ) ) );
+        mockServer.expect( ExpectedCount.never(), requestTo( "http://example.com/api/users/search?nameLike=ok&prefix=true&descriptionLike=ok2" ) );
+        assertThat( remoteResourceService.findUsersByLikeNameAndDescription( "ok", true, "ok2", null, null, null, null ) )
+                .extracting( "id" )
+                .containsExactly( 2 );
+        mockServer.verify();
+    }
+
+    @Test
     public void findGenesBySymbol_whenTier3_isRestricted() throws JsonProcessingException {
         MockRestServiceServer mockServer = MockRestServiceServer.createServer( asyncRestTemplate );
+        mockServer.expect( requestTo( "http://example.com/api" ) )
+                .andRespond( withStatus( HttpStatus.OK )
+                        .contentType( MediaType.APPLICATION_JSON )
+                        .body( objectMapper.writeValueAsString( new OpenAPI().info( new Info().version( "1.0.0" ) ) ) ) );
         mockServer.expect( requestTo( "http://example.com/api/genes/search?symbol=ok&taxonId=9606&tier=TIER1" ) )
                 .andRespond( withStatus( HttpStatus.OK )
                         .contentType( MediaType.APPLICATION_JSON )
                         .body( objectMapper.writeValueAsString( new UserGene[]{} ) ) );
+        mockServer.expect( requestTo( "http://example.com/api" ) )
+                .andRespond( withStatus( HttpStatus.OK )
+                        .contentType( MediaType.APPLICATION_JSON )
+                        .body( objectMapper.writeValueAsString( new OpenAPI().info( new Info().version( "1.0.0" ) ) ) ) );
         mockServer.expect( requestTo( "http://example.com/api/genes/search?symbol=ok&taxonId=9606&tier=TIER2" ) )
                 .andRespond( withStatus( HttpStatus.OK )
                         .contentType( MediaType.APPLICATION_JSON )
                         .body( objectMapper.writeValueAsString( new UserGene[]{} ) ) );
         Taxon taxon = createTaxon( 9606 );
-        remoteResourceService.findGenesBySymbol( "ok", taxon, EnumSet.of( TierType.TIER1, TierType.TIER2, TierType.TIER3 ), null, null, null, null );
+        remoteResourceService.findGenesBySymbol( "ok", taxon, EnumSet.of( TierType.TIER1, TierType.TIER2, TierType.TIER3 ), null, null, null, null, null );
         mockServer.verify();
     }
 
@@ -183,12 +244,16 @@ public class RemoteResourceServiceTest {
     public void findGenesBySymbol_whenRequestTimeoutIsSet_thenSucceed() throws JsonProcessingException {
         when( iSearchSettings.getRequestTimeout() ).thenReturn( Duration.ofSeconds( 3 ) );
         MockRestServiceServer mockServer = MockRestServiceServer.createServer( asyncRestTemplate );
+        mockServer.expect( requestTo( "http://example.com/api" ) )
+                .andRespond( withStatus( HttpStatus.OK )
+                        .contentType( MediaType.APPLICATION_JSON )
+                        .body( objectMapper.writeValueAsString( new OpenAPI().info( new Info().version( "1.0.0" ) ) ) ) );
         mockServer.expect( requestTo( "http://example.com/api/genes/search?symbol=ok&taxonId=9606&tier=TIER1" ) )
                 .andRespond( withStatus( HttpStatus.OK )
                         .contentType( MediaType.APPLICATION_JSON )
                         .body( objectMapper.writeValueAsString( new UserGene[]{} ) ) );
         Taxon taxon = createTaxon( 9606 );
-        remoteResourceService.findGenesBySymbol( "ok", taxon, EnumSet.of( TierType.TIER1 ), null, null, null, null );
+        remoteResourceService.findGenesBySymbol( "ok", taxon, EnumSet.of( TierType.TIER1 ), null, null, null, null, null );
         mockServer.verify();
         // TODO: this test case does not actually check if Future.get() is invoked with a timeout, but I haven't found a
         // good way to do that insofar

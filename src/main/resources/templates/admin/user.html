@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       lang="en">
 <head th:replace="layouts/common::head(title='Admin')">
@@ -89,7 +90,7 @@
                            th:field="*{email}"
                            th:placeholder="${user.email}"
                            class="form-control" type="email"
-                           th:classappend="${#fields.hasErrors('email')} ? 'is-invalid'"/>
+                           th:errorclass="is-invalid"/>
                     <div class="invalid-feedback" th:errors="*{email}"></div>
                 </div>
                 <button class="btn btn-danger">Delete this user</button>

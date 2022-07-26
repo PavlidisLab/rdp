@@ -12,7 +12,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.access.PermissionEvaluator;import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -32,15 +32,19 @@ import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.ResearcherCategory;
 import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import ubc.pavlab.rdp.model.enums.TierType;
+import ubc.pavlab.rdp.model.ontology.OntologyTermInfo;
+import ubc.pavlab.rdp.model.ontology.UserOntologyTerm;
 import ubc.pavlab.rdp.repositories.*;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.util.CacheUtils;
+import ubc.pavlab.rdp.util.CollectionUtils;
 
 import javax.validation.ValidationException;
 import java.security.SecureRandom;
 import java.text.MessageFormat;
 import java.time.Instant;
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static java.util.function.Function.identity;
@@ -87,6 +91,10 @@ public class UserServiceImpl implements UserService, InitializingBean {
     private PrivacyService privacyService;
     @Autowired
     private SecureRandom secureRandom;
+    @Autowired
+    private PermissionEvaluator permissionEvaluator;
+    @Autowired
+    private OntologyService ontologyService;
 
     private Cache usersByAnonymousIdCache;
     private Cache userGenesByAnonymousIdCache;
@@ -349,36 +357,59 @@ public class UserServiceImpl implements UserService, InitializingBean {
 
     @Override
     @PostFilter("hasPermission(filterObject, 'read')")
-    public List<User> findByLikeName( String nameLike, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherTypes, Collection<OrganInfo> organs ) {
+    public List<User> findByLikeName( String nameLike, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherTypes, Collection<OrganInfo> organs, Collection<OntologyTermInfo> ontologyTermInfos ) {
         final Set<String> organUberonIds = organUberonIdsFromOrgans( organs );
         return userRepository.findByProfileNameContainingIgnoreCaseOrProfileLastNameContainingIgnoreCase( nameLike, nameLike ).stream()
                 .filter( u -> researcherPositions == null || researcherPositions.contains( u.getProfile().getResearcherPosition() ) )
                 .filter( u -> researcherTypes == null || containsAny( researcherTypes, u.getProfile().getResearcherCategories() ) )
                 .filter( u -> organUberonIds == null || containsAny( organUberonIds, u.getUserOrgans().values().stream().map( UserOrgan::getUberonId ).collect( Collectors.toSet() ) ) )
+                .filter( hasOntologyTermIn( ontologyTermInfos ) )
                 .sorted( User.getComparator() )
                 .collect( Collectors.toList() );
     }
 
     @Override
     @PostFilter("hasPermission(filterObject, 'read')")
-    public List<User> findByStartsName( String startsName, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherTypes, Collection<OrganInfo> organs ) {
+    public List<User> findByStartsName( String startsName, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherTypes, Collection<OrganInfo> organs, Collection<OntologyTermInfo> ontologyTermInfos ) {
         final Set<String> organUberonIds = organUberonIdsFromOrgans( organs );
         return userRepository.findByProfileLastNameStartsWithIgnoreCase( startsName ).stream()
                 .filter( u -> researcherPositions == null || researcherPositions.contains( u.getProfile().getResearcherPosition() ) )
                 .filter( u -> researcherTypes == null || containsAny( researcherTypes, u.getProfile().getResearcherCategories() ) )
                 .filter( u -> organUberonIds == null || containsAny( organUberonIds, u.getUserOrgans().values().stream().map( UserOrgan::getUberonId ).collect( Collectors.toSet() ) ) )
+                .filter( hasOntologyTermIn( ontologyTermInfos ) )
                 .sorted( User.getComparator() )
                 .collect( Collectors.toList() );
     }
 
     @Override
     @PostFilter("hasPermission(filterObject, 'read')")
-    public List<User> findByDescription( String descriptionLike, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherTypes, Collection<OrganInfo> organs ) {
+    public List<User> findByDescription( String descriptionLike, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherTypes, Collection<OrganInfo> organs, Collection<OntologyTermInfo> ontologyTermInfos ) {
         final Set<String> organUberonIds = organUberonIdsFromOrgans( organs );
         return userRepository.findDistinctByProfileDescriptionContainingIgnoreCaseOrTaxonDescriptionsContainingIgnoreCase( descriptionLike, descriptionLike ).stream()
                 .filter( u -> researcherPositions == null || researcherPositions.contains( u.getProfile().getResearcherPosition() ) )
                 .filter( u -> researcherTypes == null || containsAny( researcherTypes, u.getProfile().getResearcherCategories() ) )
                 .filter( u -> organUberonIds == null || containsAny( organUberonIds, u.getUserOrgans().values().stream().map( UserOrgan::getUberonId ).collect( Collectors.toSet() ) ) )
+                .filter( hasOntologyTermIn( ontologyTermInfos ) )
+                .sorted( User.getComparator() )
+                .collect( Collectors.toList() );
+    }
+
+    @Override
+    public List<User> findByNameAndDescription( String nameLike, boolean prefix, String descriptionLike, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherCategories, Collection<OrganInfo> organs, Collection<OntologyTermInfo> ontologyTermInfos ) {
+        final Set<String> organUberonIds = organUberonIdsFromOrgans( organs );
+        String namePattern = prefix ? nameLike + "%" : "%" + nameLike + "%";
+        String descriptionPattern = "%" + descriptionLike + "%";
+        List<User> users;
+        if ( prefix ) {
+            users = userRepository.findDistinctByProfileLastNameLikeIgnoreCaseAndProfileDescriptionLikeIgnoreCaseOrTaxonDescriptionsLikeIgnoreCase( namePattern, descriptionPattern );
+        } else {
+            users = userRepository.findDistinctByProfileFullNameLikeIgnoreCaseAndProfileDescriptionLikeIgnoreCaseAndTaxonDescriptionsLikeIgnoreCaseOrTaxonDescriptionsLikeIgnoreCase( namePattern, descriptionPattern );
+        }
+        return users.stream()
+                .filter( u -> researcherPositions == null || researcherPositions.contains( u.getProfile().getResearcherPosition() ) )
+                .filter( u -> researcherCategories == null || containsAny( researcherCategories, u.getProfile().getResearcherCategories() ) )
+                .filter( u -> organUberonIds == null || containsAny( organUberonIds, u.getUserOrgans().values().stream().map( UserOrgan::getUberonId ).collect( Collectors.toSet() ) ) )
+                .filter( hasOntologyTermIn( ontologyTermInfos ) )
                 .sorted( User.getComparator() )
                 .collect( Collectors.toList() );
     }
@@ -389,6 +420,16 @@ public class UserServiceImpl implements UserService, InitializingBean {
         } else {
             return null;
         }
+    }
+
+    private Predicate<User> hasOntologyTermIn( Collection<OntologyTermInfo> ontologyTermInfos ) {
+        return u -> ontologyTermInfos == null || containsAny( ontologyService.inferTermIds( ontologyTermInfos ),
+                u.getUserOntologyTerms().stream()
+                        .map( UserOntologyTerm::getTermInfo )
+                        .filter( OntologyTermInfo::isActive ) // check this first, otherwise we might initialize the ontology for nothing
+                        .filter( t -> t.getOntology().isActive() )
+                        .map( OntologyTermInfo::getId )
+                        .collect( Collectors.toSet() ) );
     }
 
     @Override
@@ -508,8 +549,7 @@ public class UserServiceImpl implements UserService, InitializingBean {
         // update terms
         // go terms with the same identifier will be replaced
         Collection<UserTerm> userTerms = convertTerms( user, taxon, goTerms );
-        user.getUserTerms().removeIf( e -> e.getTaxon().equals( taxon ) && !userTerms.contains( e ) );
-        user.getUserTerms().addAll( userTerms );
+        CollectionUtils.updateIf( user.getUserTerms(), userTerms, e -> e.getTaxon().equals( taxon ) );
 
         // update frequency and size as those have likely changed with new genes
         for ( UserTerm userTerm : user.getUserTerms() ) {
@@ -555,7 +595,7 @@ public class UserServiceImpl implements UserService, InitializingBean {
     @Transactional
     @Override
     @PreAuthorize("hasPermission(#user, 'update')")
-    public User updateUserProfileAndPublicationsAndOrgans( User user, Profile profile, Set<Publication> publications, Set<String> organUberonIds, Locale locale ) {
+    public User updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( User user, Profile profile, Set<Publication> publications, Set<String> organUberonIds, Set<Integer> termIdsByOntologyId, Locale locale ) {
         user.getProfile().setDepartment( profile.getDepartment() );
         user.getProfile().setDescription( profile.getDescription() );
         user.getProfile().setLastName( profile.getLastName() );
@@ -632,6 +672,19 @@ public class UserServiceImpl implements UserService, InitializingBean {
                     .collect( Collectors.toMap( Organ::getUberonId, identity() ) );
             user.getUserOrgans().clear();
             user.getUserOrgans().putAll( userOrgans );
+        }
+
+        if ( termIdsByOntologyId != null ) {
+            Set<UserOntologyTerm> userOntologyTerms = new HashSet<>();
+            for ( Integer ontologyTermId : termIdsByOntologyId ) {
+                OntologyTermInfo termInfo = ontologyService.findTermById( ontologyTermId );
+                if ( termInfo == null ) {
+                    log.warn( String.format( "Unknown term with ID %d.", ontologyTermId ) );
+                    continue;
+                }
+                userOntologyTerms.add( UserOntologyTerm.fromOntologyTermInfo( user, termInfo ) );
+            }
+            CollectionUtils.update( user.getUserOntologyTerms(), userOntologyTerms );
         }
 
         return update( user );
