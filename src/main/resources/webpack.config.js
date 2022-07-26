@@ -9,7 +9,8 @@ module.exports = {
         model: './static/js/model.js',
         search: './static/js/search.js',
         profile: './static/js/profile.js',
-        view: './static/js/view.js'
+        view: './static/js/view.js',
+        ontology: './static/js/ontology.js'
     },
     output: {
         filename: '[name].bundle.js',
