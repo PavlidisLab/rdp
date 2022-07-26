@@ -185,7 +185,7 @@
         source: function (request, response) {
             var term = request.term.trim();
             var ontologyId = $(this.element).data('ontologyId');
-            $.getJSON('/search/ontology-terms/autocomplete', {
+            $.getJSON(contextPath + '/search/ontology-terms/autocomplete', {
                 query: term,
                 ontologyId: ontologyId
             }).done(function (data) {

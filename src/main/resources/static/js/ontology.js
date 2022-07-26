@@ -23,7 +23,7 @@
         delay: 200,
         source: function (request, response) {
             var term = request.term;
-            $.getJSON('/admin/ontologies/' + ontologyId + '/autocomplete-terms', {
+            $.getJSON(contextPath + '/admin/ontologies/' + ontologyId + '/autocomplete-terms', {
                 query: term
             }).done(function (data) {
                 if (!data.length) {
