@@ -13,6 +13,7 @@ import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.*;
 import org.springframework.format.support.FormattingConversionService;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
@@ -47,6 +48,7 @@ import java.net.URI;
 import java.net.URL;
 import java.time.Duration;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.TreeSet;
 import java.util.zip.GZIPOutputStream;
@@ -155,6 +157,21 @@ public class AdminControllerTest {
         conversionService.addConverter( new AccessTokenIdToAccessTokenConverter() );
         conversionService.addConverter( new RoleIdToRoleConverter() );
         conversionService.addConverter( new OntologyIdToOntologyConverter() );
+    }
+
+    @Test
+    @WithMockUser(roles = { "ADMIN" })
+    public void getUsers() throws Exception {
+        List<User> users = Collections.singletonList( createUser( 1 ) );
+        when( userService.findAllNoAuth( any( Pageable.class ) ) )
+                .thenAnswer( a -> new PageImpl<>( users, a.getArgument( 0, Pageable.class ), 1 ) );
+        mvc.perform( get( "/admin/users" ) )
+                .andExpect( status().isOk() )
+                .andExpect( view().name( "admin/users" ) )
+                .andExpect( model().attributeExists( "users" ) );
+        verify( userService ).findAllNoAuth( PageRequest.of( 0, 10,
+                Sort.by( Sort.Direction.ASC, "profile.lastName" )
+                        .and( Sort.by( Sort.Direction.ASC, "profile.name" ) ) ) );
     }
 
     @Test
