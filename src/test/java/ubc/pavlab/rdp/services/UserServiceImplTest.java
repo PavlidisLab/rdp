@@ -15,8 +15,9 @@ import org.springframework.cache.CacheManager;
 import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
-import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -403,8 +404,8 @@ public class UserServiceImplTest {
     @Test
     public void findAllNoAuth_thenReturnAllUsers() {
         User user = createUser( 1 );
-        when( userRepository.findAll() ).thenReturn( Collections.singletonList( user ) );
-
+        when( userRepository.findAll( any( Pageable.class ) ) )
+                .thenAnswer( a -> new PageImpl<>( Collections.singletonList( user ), a.getArgument( 0, Pageable.class ), 1 ) );
         assertThat( userService.findAllNoAuth( PageRequest.ofSize( 20 ) ) ).containsExactly( user );
     }
 
@@ -1274,11 +1275,6 @@ public class UserServiceImplTest {
         userService.recommendTerms( user, null, -1, -1, -1 );
     }
 
-    @Test
-    public void findAll_whenPrivacyLevelIsLow_ReturnNothing() {
-        Page<User> userGene = userService.findAllNoAuth( PageRequest.ofSize( 20 ) );
-        assertThat( userGene ).isEmpty();
-    }
 
     @Test
     public void updateUserTerms_thenSucceed() {
