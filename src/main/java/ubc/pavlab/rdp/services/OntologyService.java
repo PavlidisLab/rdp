@@ -274,7 +274,7 @@ public class OntologyService implements InitializingBean {
                             s, term, s.getSynonym().length() ) );
                     continue;
                 }
-                t.getSynonyms().add( s.getSynonym() );
+                t.getSynonyms().add( s.getSynonym().toLowerCase() );
             }
 
             t.setObsolete( term.getObsolete() != null && term.getObsolete() );

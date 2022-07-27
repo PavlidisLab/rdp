@@ -10,8 +10,10 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import ubc.pavlab.rdp.model.ontology.Ontology;
 import ubc.pavlab.rdp.model.ontology.OntologyTermInfo;
+import ubc.pavlab.rdp.util.OBOParser;
 
 import javax.persistence.QueryHint;
+import java.io.Reader;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -75,7 +77,7 @@ public interface OntologyTermInfoRepository extends JpaRepository<OntologyTermIn
      * @return a list two elements arrays where the first is the {@link OntologyTermInfo} ID and second its full text
      * score against the query
      */
-    @Query(value = "select t, match(t.name, :query) as score from OntologyTermInfo t where t.active = :active and t.ontology in :ontologies group by t having match(t.name, :query) > 0")
+    @Query(value = "select t, match(t.name, :query) as score from OntologyTermInfo t where t.active = :active and t.ontology in :ontologies and match(t.name, :query) > 0")
     List<Object[]> findAllByOntologyInAndNameMatchAndActive( @Param("ontologies") Set<Ontology> ontologies, @Param("query") String query, @Param("active") boolean active );
 
     @Query("select t from OntologyTermInfo t join t.synonyms s where t.active = :active and t.ontology in :ontologies and upper(s) = upper(:query)")
@@ -85,9 +87,13 @@ public interface OntologyTermInfoRepository extends JpaRepository<OntologyTermIn
     List<OntologyTermInfo> findAllByOntologyInAndSynonymsLikeIgnoreCaseAndActive( @Param("ontologies") Set<Ontology> ontologies, @Param("query") String query, @Param("active") boolean active );
 
     /**
+     * Note: the query is lower-cased in SQL to match synonyms' collation. See relevant
+     *
      * @return triplets of {@link OntologyTermInfo}, matched synonym as {@link String} and full-text score as {@link Double}
+     * @see ubc.pavlab.rdp.services.OntologyService#createFromObo(Reader)
+     * @see ubc.pavlab.rdp.services.OntologyService#updateFromObo(Ontology, Reader)
      */
-    @Query(value = "select t, synonym, match(synonym, :query) as score from OntologyTermInfo t join t.synonyms as synonym where t.active = :active and t.ontology in :ontologies group by t, synonym having match(synonym, :query) > 0")
+    @Query(value = "select t, synonym, match(synonym, lower(:query)) as score from OntologyTermInfo t join t.synonyms as synonym where t.active = :active and t.ontology in :ontologies and match(synonym, lower(:query)) > 0")
     List<Object[]> findAllByOntologyInAndSynonymsMatchAndActive( @Param("ontologies") Set<Ontology> ontologies, @Param("query") String query, @Param("active") boolean active );
 
     /**
@@ -95,7 +101,7 @@ public interface OntologyTermInfoRepository extends JpaRepository<OntologyTermIn
      */
     List<OntologyTermInfo> findAllByOntologyInAndDefinitionLikeIgnoreCaseAndActive( Set<Ontology> ontologies, String pattern, boolean active );
 
-    @Query(value = "select t, match(t.definition, :query) as score from OntologyTermInfo t where t.active = :active and t.ontology in :ontologies group by t having match(t.definition, :query) > 0")
+    @Query(value = "select t, match(t.definition, :query) as score from OntologyTermInfo t where t.active = :active and t.ontology in :ontologies and match(t.definition, :query) > 0")
     List<Object[]> findAllByOntologyInAndDefinitionMatchAndActive( @Param("ontologies") Set<Ontology> ontologyIds, @Param("query") String query, @Param("active") boolean active );
 
     /**

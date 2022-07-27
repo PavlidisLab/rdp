@@ -141,6 +141,10 @@ public class OntologyServiceTest {
         assertThat( term ).isNotNull();
         assertThat( term.getAltTermIds() )
                 .containsExactly( "UBERON:0026602" );
+        OntologyTermInfo termWithMixedCaseSynonym = ontologyService.findTermByTermIdAndOntology( "UBERON:8000005", ontology );
+        assertThat( termWithMixedCaseSynonym ).isNotNull();
+        assertThat( termWithMixedCaseSynonym.getSynonyms() )
+                .contains( "nerve fiber layer of Henle".toLowerCase() );
     }
 
     @Test

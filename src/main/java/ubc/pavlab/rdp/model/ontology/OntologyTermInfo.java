@@ -71,9 +71,15 @@ public class OntologyTermInfo extends OntologyTerm implements Serializable, Comp
     @Column(columnDefinition = "TEXT")
     private String definition;
 
+    /**
+     * Synonyms of the term.
+     * <p>
+     * Note: the collation of the synonym has to be binary since it is part of the primary key. Otherwise, two strings
+     * differing by their case (i.e. 'foo' and 'Foo') would conflict.
+     */
     @ElementCollection
     @CollectionTable(name = "ontology_term_info_synonyms", joinColumns = { @JoinColumn(name = "ontology_term_info_id") })
-    @Column(name = "synonym", nullable = false)
+    @Column(name = "synonym", nullable = false, columnDefinition = "varchar(255) binary not null")
     private final Set<String> synonyms = new HashSet<>();
 
     /**
