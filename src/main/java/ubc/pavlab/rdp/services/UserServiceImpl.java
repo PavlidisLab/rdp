@@ -12,7 +12,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PostFilter;
@@ -338,10 +337,15 @@ public class UserServiceImpl implements UserService, InitializingBean {
                 .flatMap( userRepository::findOneWithRoles );
     }
 
+    /**
+     * Results are ored
+     *
+     * @param pageable
+     * @return
+     */
     @Override
-    @PostFilter("hasPermission(filterObject, 'read')")
-    public Collection<User> findAll() {
-        return userRepository.findAll();
+    public Page<User> findAllNoAuth( Pageable pageable ) {
+        return userRepository.findAll( pageable );
     }
 
     @Override

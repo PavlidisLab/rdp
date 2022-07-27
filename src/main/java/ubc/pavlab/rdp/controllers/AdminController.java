@@ -10,6 +10,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.core.io.Resource;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -92,13 +95,9 @@ public class AdminController {
      * List all users
      */
     @GetMapping(value = "/admin/users")
-    public Object getAllUsers() {
-        Collection<User> users = userService.findAll().stream()
-                .sorted( Comparator.comparing( u -> u.getProfile().getFullName() ) )
-                .collect( Collectors.toList() );
-        ModelAndView view = new ModelAndView( "admin/users" );
-        view.addObject( "users", users );
-        return view;
+    public Object getAllUsers( @PageableDefault(sort = { "profile.lastName", "profile.name" }) Pageable pageable ) {
+        return new ModelAndView( "admin/users" )
+                .addObject( "users", userService.findAllNoAuth( pageable ) );
     }
 
     @GetMapping(value = "/admin/create-service-account")

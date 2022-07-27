@@ -15,14 +15,14 @@ import org.springframework.cache.CacheManager;
 import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder;
 import ubc.pavlab.rdp.WebMvcConfig;
-import ubc.pavlab.rdp.controllers.UserController;
 import ubc.pavlab.rdp.events.OnContactEmailUpdateEvent;
 import ubc.pavlab.rdp.events.OnRegistrationCompleteEvent;
 import ubc.pavlab.rdp.events.OnRequestAccessEvent;
@@ -401,11 +401,11 @@ public class UserServiceImplTest {
     }
 
     @Test
-    public void findAll_thenReturnAllUsers() {
+    public void findAllNoAuth_thenReturnAllUsers() {
         User user = createUser( 1 );
         when( userRepository.findAll() ).thenReturn( Collections.singletonList( user ) );
 
-        assertThat( userService.findAll() ).containsExactly( user );
+        assertThat( userService.findAllNoAuth( PageRequest.ofSize( 20 ) ) ).containsExactly( user );
     }
 
     @Test
@@ -1276,7 +1276,7 @@ public class UserServiceImplTest {
 
     @Test
     public void findAll_whenPrivacyLevelIsLow_ReturnNothing() {
-        Collection<User> userGene = userService.findAll();
+        Page<User> userGene = userService.findAllNoAuth( PageRequest.ofSize( 20 ) );
         assertThat( userGene ).isEmpty();
     }
 

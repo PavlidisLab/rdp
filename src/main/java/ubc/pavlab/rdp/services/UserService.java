@@ -91,7 +91,7 @@ public interface UserService {
 
     Optional<User> getRemoteSearchUser();
 
-    Collection<User> findAll();
+    Page<User> findAllNoAuth( Pageable pageable );
 
     Page<User> findByEnabledTrueNoAuth( Pageable pageable );
 
