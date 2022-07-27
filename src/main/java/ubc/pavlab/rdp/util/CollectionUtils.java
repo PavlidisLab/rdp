@@ -6,7 +6,6 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collector;
-import java.util.stream.Collectors;
 
 import static java.util.function.Function.identity;
 
@@ -20,10 +19,6 @@ public class CollectionUtils {
                     return m1;
                 },
                 identity() );
-    }
-
-    public static <T, C extends Collection<T>> Collector<T, ?, C> into( C destination ) {
-        return Collectors.toCollection( () -> destination );
     }
 
     /**

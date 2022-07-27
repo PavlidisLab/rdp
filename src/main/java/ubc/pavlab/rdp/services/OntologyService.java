@@ -636,14 +636,14 @@ public class OntologyService implements InitializingBean {
         StopWatch initialQueryTimer = StopWatch.createStarted();
 
         // ID
-        results = ontologyTermInfoRepository.findAllByOntologyInAndTermIdIgnoreCaseAndActive( ontologies, normalizedQuery, active ).stream()
+        ontologyTermInfoRepository.findAllByOntologyInAndTermIdIgnoreCaseAndActive( ontologies, normalizedQuery, active ).stream()
                 .map( t1 -> toSearchResult( t1, OntologyTermMatchType.TERM_ID_EXACT, null, 1.0, locale ) )
-                .collect( CollectionUtils.into( results ) );
+                .forEachOrdered( results::add );
 
         // alt IDs
-        results = ontologyTermInfoRepository.findAllByOntologyInAndAltTermIdsContainingIgnoreCaseAndActive( ontologies, normalizedQuery, active ).stream()
+        ontologyTermInfoRepository.findAllByOntologyInAndAltTermIdsContainingIgnoreCaseAndActive( ontologies, normalizedQuery, active ).stream()
                 .map( t1 -> toSearchResult( t1, OntologyTermMatchType.ALT_ID_EXACT, String.join( ", ", t1.getAltTermIds() ), 1.0, locale ) )
-                .collect( CollectionUtils.into( results ) );
+                .forEachOrdered( results::add );
 
         // term name
         if ( results.size() < maxResults ) {
@@ -651,20 +651,20 @@ public class OntologyService implements InitializingBean {
             // then some occurrences in the term name
             // by full text (if supported)
             if ( isFullTextSupported() ) {
-                results = ontologyTermInfoRepository.findAllByOntologyInAndNameMatchAndActive( ontologies, fullTextQuery, active ).stream()
+                ontologyTermInfoRepository.findAllByOntologyInAndNameMatchAndActive( ontologies, fullTextQuery, active ).stream()
                         .map( row -> Pair.of( (OntologyTermInfo) row[0], (Double) row[1] ) )
                         .map( t1 -> toSearchResult( t1.getFirst(), OntologyTermMatchType.TERM_NAME_MATCH, null, t1.getSecond() / TextUtils.tokenize( t1.getFirst().getName() ).size(), locale ) )
-                        .collect( CollectionUtils.into( results ) );
+                        .forEachOrdered( results::add );
             } else {
-                results = ontologyTermInfoRepository.findAllByOntologyInAndNameIgnoreCaseAndActive( ontologies, normalizedQuery, active ).stream()
+                ontologyTermInfoRepository.findAllByOntologyInAndNameIgnoreCaseAndActive( ontologies, normalizedQuery, active ).stream()
                         .map( t1 -> toSearchResult( t1, OntologyTermMatchType.TERM_NAME_EXACT, null, 0.0, locale ) )
-                        .collect( CollectionUtils.into( results ) );
-                results = ontologyTermInfoRepository.findAllByOntologyInAndNameLikeIgnoreCaseAndActive( ontologies, normalizedQuery + "%", active ).stream()
+                        .forEachOrdered( results::add );
+                ontologyTermInfoRepository.findAllByOntologyInAndNameLikeIgnoreCaseAndActive( ontologies, normalizedQuery + "%", active ).stream()
                         .map( t1 -> toSearchResult( t1, OntologyTermMatchType.TERM_NAME_STARTS_WITH, null, 0.0, locale ) )
-                        .collect( CollectionUtils.into( results ) );
-                results = ontologyTermInfoRepository.findAllByOntologyInAndNameLikeIgnoreCaseAndActive( ontologies, "%" + normalizedQuery + "%", active ).stream()
+                        .forEachOrdered( results::add );
+                ontologyTermInfoRepository.findAllByOntologyInAndNameLikeIgnoreCaseAndActive( ontologies, "%" + normalizedQuery + "%", active ).stream()
                         .map( t1 -> toSearchResult( t1, OntologyTermMatchType.TERM_NAME_CONTAINS, null, 0.0, locale ) )
-                        .collect( CollectionUtils.into( results ) );
+                        .forEachOrdered( results::add );
             }
         }
 
@@ -672,34 +672,34 @@ public class OntologyService implements InitializingBean {
         if ( results.size() < maxResults ) {
             // full text (if available)
             if ( isFullTextSupported() ) {
-                results = ontologyTermInfoRepository.findAllByOntologyInAndSynonymsMatchAndActive( ontologies, fullTextQuery, active ).stream()
+                ontologyTermInfoRepository.findAllByOntologyInAndSynonymsMatchAndActive( ontologies, fullTextQuery, active ).stream()
                         .map( row -> toSearchResult( (OntologyTermInfo) row[0], OntologyTermMatchType.SYNONYM_MATCH, (String) row[1], (Double) row[2], locale ) )
-                        .collect( CollectionUtils.into( results ) );
+                        .forEachOrdered( results::add );
             } else {
-                results = ontologyTermInfoRepository.findAllByOntologyInAndSynonymsContainingIgnoreCaseAndActive( ontologies, normalizedQuery, active ).stream()
+                ontologyTermInfoRepository.findAllByOntologyInAndSynonymsContainingIgnoreCaseAndActive( ontologies, normalizedQuery, active ).stream()
                         .map( t1 -> toSearchResult( t1, OntologyTermMatchType.SYNONYM_EXACT, String.join( ", ", t1.getSynonyms() ), 0.0, locale ) )
-                        .collect( CollectionUtils.into( results ) );
-                results = ontologyTermInfoRepository.findAllByOntologyInAndSynonymsLikeIgnoreCaseAndActive( ontologies, normalizedQuery + "%", active ).stream()
+                        .forEachOrdered( results::add );
+                ontologyTermInfoRepository.findAllByOntologyInAndSynonymsLikeIgnoreCaseAndActive( ontologies, normalizedQuery + "%", active ).stream()
                         .map( t1 -> toSearchResult( t1, OntologyTermMatchType.SYNONYM_STARTS_WITH, String.join( ", ", t1.getSynonyms() ), 0.0, locale ) )
-                        .collect( CollectionUtils.into( results ) );
-                results = ontologyTermInfoRepository.findAllByOntologyInAndSynonymsLikeIgnoreCaseAndActive( ontologies, "%" + normalizedQuery + "%", active ).stream()
+                        .forEachOrdered( results::add );
+                ontologyTermInfoRepository.findAllByOntologyInAndSynonymsLikeIgnoreCaseAndActive( ontologies, "%" + normalizedQuery + "%", active ).stream()
                         .map( t1 -> toSearchResult( t1, OntologyTermMatchType.SYNONYM_CONTAINS, String.join( ", ", t1.getSynonyms() ), 0.0, locale ) )
-                        .collect( CollectionUtils.into( results ) );
+                        .forEachOrdered( results::add );
             }
         }
 
         // then some definitions
         if ( results.size() < maxResults ) {
             if ( isFullTextSupported() ) {
-                results = ontologyTermInfoRepository.findAllByOntologyInAndDefinitionMatchAndActive( ontologies, fullTextQuery, active ).stream()
+                ontologyTermInfoRepository.findAllByOntologyInAndDefinitionMatchAndActive( ontologies, fullTextQuery, active ).stream()
                         .map( row -> Pair.of( (OntologyTermInfo) row[0], (Double) row[1] ) )
                         .map( t -> toSearchResult( t.getFirst(), OntologyTermMatchType.DEFINITION_MATCH, t.getFirst().getDefinition(), t.getSecond(), locale ) )
-                        .collect( CollectionUtils.into( results ) );
+                        .forEachOrdered( results::add );
 
             } else {
-                results = ontologyTermInfoRepository.findAllByOntologyInAndDefinitionLikeIgnoreCaseAndActive( ontologies, "%" + normalizedQuery + "%", active ).stream()
+                ontologyTermInfoRepository.findAllByOntologyInAndDefinitionLikeIgnoreCaseAndActive( ontologies, "%" + normalizedQuery + "%", active ).stream()
                         .map( t -> toSearchResult( t, OntologyTermMatchType.DEFINITION_CONTAINS, t.getDefinition(), 0.0, locale ) )
-                        .collect( CollectionUtils.into( results ) );
+                        .forEachOrdered( results::add );
             }
         }
 
