@@ -19,6 +19,8 @@
                 <dd th:text="${user.id}"></dd>
                 <dt>Name</dt>
                 <dd th:text="${user.profile.name}"></dd>
+                <dt>Last name</dt>
+                <dd th:text="${user.profile.lastName}"></dd>
                 <dt>Email</dt>
                 <dd th:text="${user.email}"></dd>
                 <dt>Enabled?</dt>
@@ -28,9 +30,10 @@
                     <dd th:text="${user.verifiedContactEmail.get().address}"></dd>
                 </th:block>
             </dl>
-            <div class="form-group">
+            <div th:if="${user.enabled}" class="form-group">
                 <a class="btn btn-primary btn-sm" th:href="@{/userView/{userId}(userId=${user.id})}">
-                    View user profile
+                    <i class="oi oi-person"></i>
+                    View User Profile
                 </a>
             </div>
             <h3>Roles</h3>
@@ -40,9 +43,19 @@
                 </li>
             </ul>
         </div>
-        <div class="col-4">
+        <div class="col-9">
+            <h3>Access Tokens</h3>
+            <p>
+                Access tokens provide access to the public API using the
+                <a href="https://datatracker.ietf.org/doc/html/rfc6750" target="_blank" rel="noopener">
+                    bearer authentication
+                </a>
+                or the <code>auth</code> query parameter.
+            </p>
+            <p th:if="${user.accessTokens.isEmpty()}">
+                No access token exist for this user.
+            </p>
             <th:block th:unless="${user.accessTokens.isEmpty()}">
-                <h3>Access Tokens</h3>
                 <ul class="list-group mb-3">
                     <li th:each="accessToken : ${user.accessTokens}"
                         class="list-group-item">
@@ -51,13 +64,26 @@
                               class="mb-0">
                             <span th:text="${accessToken.token}"></span><br/>
                             Expires on <span th:text="${accessToken.expiryDate}"></span>.<br/>
-                            <button class="btn btn-sm btn-danger">Revoke</button>
+                            <button class="btn btn-sm btn-danger">
+                                <i class="oi oi-trash"></i>
+                                Revoke
+                            </button>
                         </form>
                     </li>
                 </ul>
             </th:block>
+            <form th:action="@{/admin/users/{userId}/create-access-token(userId=${user.id})}"
+                  method="post">
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="oi oi-key"></i>
+                        Create New Access Token
+                    </button>
+                </div>
+            </form>
             <th:block th:unless="${user.verificationTokens.isEmpty()}">
                 <h3>Verification Tokens</h3>
+                <p>Verification tokens are used to verify user and contact emails.</p>
                 <ul>
                     <li th:each="verificationToken : ${user.verificationTokens}">
                         <span th:text="${verificationToken.token} ?: 'No value'"></span><br/>
@@ -75,10 +101,6 @@
                     </li>
                 </ul>
             </th:block>
-            <form th:action="@{/admin/users/{userId}/create-access-token(userId=${user.id})}"
-                  method="post">
-                <button type="submit" class="btn btn-primary">Create new access token</button>
-            </form>
             <h3>Delete <span th:text="${user.profile.fullName}"></span></h3>
             <form th:action="@{/admin/users/{userId}(userId=${user.id})}"
                   th:method="delete"
@@ -93,7 +115,10 @@
                            th:errorclass="is-invalid"/>
                     <div class="invalid-feedback" th:errors="*{email}"></div>
                 </div>
-                <button class="btn btn-danger">Delete this user</button>
+                <button class="btn btn-danger">
+                    <i class="oi oi-trash"></i>
+                    Delete
+                </button>
             </form>
         </div>
     </div>

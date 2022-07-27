@@ -30,6 +30,9 @@
                     No verified contact email.
                 </span>
             </td>
+            <td>
+                <span th:unless="${user.enabled}" class="badge badge-warning">not verified</span>
+            </td>
         </tr>
         </tbody>
         <tfoot>
