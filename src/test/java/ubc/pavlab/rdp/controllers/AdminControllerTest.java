@@ -797,10 +797,10 @@ public class AdminControllerTest {
         } ).when( ontologyService ).writeObo( eq( ontology ), any( Writer.class ) );
 
         mvc.perform( get( "/admin/ontologies/{ontologyId}/download", ontology.getId() ) )
+                .andDo( MvcResult::getAsyncResult )
                 .andExpect( status().isOk() )
                 .andExpect( content().contentType( MediaType.TEXT_PLAIN ) )
                 .andExpect( header().string( "Content-Disposition", "attachment; filename=mondo.obo" ) )
-                .andDo( MvcResult::getAsyncResult )
                 .andExpect( content().string( "test" ) );
 
         verify( ontologyService ).writeObo( eq( ontology ), any( OutputStreamWriter.class ) );
@@ -910,9 +910,9 @@ public class AdminControllerTest {
         } ).when( reactomeService ).updatePathwaySummations( any( ProgressCallback.class ) );
 
         mvc.perform( get( "/admin/ontologies/{ontologyId}/update-reactome-pathway-summations", ontology.getId() ) )
+                .andDo( MvcResult::getAsyncResult )
                 .andExpect( status().isOk() )
                 .andExpect( content().contentTypeCompatibleWith( MediaType.TEXT_EVENT_STREAM ) )
-                .andDo( MvcResult::getAsyncResult )
                 .andExpect( content().string( containsString( "processedElements" ) ) );
 
         verify( ontologyService ).findById( 1 );
