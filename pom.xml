@@ -193,6 +193,7 @@
 
     <properties>
         <java.version>1.8</java.version>
+        <flyway.version>7.15.0</flyway.version>
         <skipWebpack>false</skipWebpack>
     </properties>
 
