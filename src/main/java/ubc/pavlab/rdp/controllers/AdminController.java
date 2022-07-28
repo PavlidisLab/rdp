@@ -10,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.core.io.Resource;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpHeaders;
@@ -695,8 +694,8 @@ public class AdminController {
                             .data( new ReactomePathwaySummationsUpdateProgress( progress, maxProgress, elapsedTime ), MediaType.APPLICATION_JSON );
                     try {
                         emitter.send( event );
-                    } catch ( IOException e ) {
-                        log.warn( "Failed to send progress update to client via an SSE stream.", e );
+                    } catch ( IOException | IllegalStateException e ) {
+                        log.warn( String.format( "Failed to send progress update to client via an SSE stream: %s", e.getMessage() ) );
                     }
                 } );
                 emitter.complete();
