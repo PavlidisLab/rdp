@@ -53,6 +53,9 @@ public class WebMvcConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings( CorsRegistry registry ) {
         if ( siteSettings.getMainsite() != null ) {
+            registry.addMapping( "/api/**" )
+                    .allowedOrigins( siteSettings.getMainsite().getScheme() + "://" + siteSettings.getMainsite().getAuthority() )
+                    .allowedMethods( "GET" );
             registry.addMapping( "/stats" )
                     .allowedOrigins( siteSettings.getMainsite().getScheme() + "://" + siteSettings.getMainsite().getAuthority() )
                     .allowedMethods( "GET" );

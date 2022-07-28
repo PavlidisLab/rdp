@@ -13,10 +13,12 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.data.web.config.EnableSpringDataWebSupport;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import ubc.pavlab.rdp.WebSecurityConfig;
@@ -32,7 +34,6 @@ import ubc.pavlab.rdp.services.*;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.settings.SiteSettings;
 
-import java.net.URI;
 import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -45,9 +46,14 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static ubc.pavlab.rdp.util.TestUtils.*;
 
+@TestPropertySource(properties = {
+        "rdp.site.contact-email=contact@localhost",
+        "rdp.site.admin-email=admin@localhost",
+        "rdp.site.host=http://localhost",
+        "rdp.site.mainsite=https://example.com" })
 @WebMvcTest(ApiController.class)
 @RunWith(SpringRunner.class)
-@Import(WebSecurityConfig.class)
+@Import({ WebSecurityConfig.class, SiteSettings.class })
 @EnableSpringDataWebSupport
 public class ApiControllerTest {
 
@@ -77,8 +83,6 @@ public class ApiControllerTest {
     @MockBean
     private ApplicationSettings.PrivacySettings privacySettings;
     @MockBean
-    private SiteSettings siteSettings;
-    @MockBean
     private UserDetailsService userDetailsService;
     @MockBean
     private PermissionEvaluator permissionEvaluator;
@@ -94,7 +98,6 @@ public class ApiControllerTest {
         when( applicationSettings.getPrivacy() ).thenReturn( privacySettings );
         when( searchSettings.getEnabledSearchModes() ).thenReturn( new LinkedHashSet<>( EnumSet.allOf( ApplicationSettings.SearchSettings.SearchMode.class ) ) );
         when( iSearchSettings.isEnabled() ).thenReturn( true );
-        when( siteSettings.getHostUri() ).thenReturn( URI.create( "http://localhost/" ) );
         when( messageSource.getMessage( eq( "rdp.site.shortname" ), any(), any() ) ).thenReturn( "RDMM" );
         when( userService.getRemoteSearchUser() ).thenReturn( Optional.empty() );
     }
@@ -114,6 +117,14 @@ public class ApiControllerTest {
                 .andExpect( status().isUnauthorized() )
                 .andExpect( content().contentType( MediaType.TEXT_PLAIN ) );
         verify( userService ).countResearchers();
+    }
+
+    @Test
+    public void getStats_withOrigin_thenIncludeAccessControlHeadersInResponse() throws Exception {
+        mvc.perform( get( "/api/stats" )
+                        .header( HttpHeaders.ORIGIN, "https://example.com" ) )
+                .andExpect( status().isOk() )
+                .andExpect( header().string( HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "https://example.com" ) );
     }
 
     @Test
