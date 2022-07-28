@@ -75,21 +75,21 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .addFilterBefore( new TokenBasedAuthenticationFilter( new AntPathRequestMatcher( "/api/**" ), new TokenBasedAuthenticationManager( userService, applicationSettings ) ), UsernamePasswordAuthenticationFilter.class )
                 .authorizeRequests()
                     // public endpoints
-                    .antMatchers( "/", "/login", "/registration", "/registrationConfirm", "/stats", "/stats.html",
+                    .mvcMatchers( "/", "/login", "/registration", "/registrationConfirm", "/stats", "/stats.html",
                             "/forgotPassword", "/resetPassword", "/updatePassword", "/resendConfirmation", "/search/**",
                             "/userView/**", "/taxon/**", "/access-denied" )
                         .permitAll()
                     // static assets
-                    .antMatchers( "/resources/**", "/static/**", "/css/**", "/js/**", "/images/**" )
+                    .mvcMatchers( "/resources/**", "/static/**", "/css/**", "/js/**", "/images/**" )
                         .permitAll()
                     // API for international search
-                    .antMatchers("/api/**")
+                    .mvcMatchers("/api/**")
                         .permitAll()
                     // administrative endpoints
-                    .antMatchers( "/admin/**" )
+                    .mvcMatchers( "/admin/**" )
                         .hasRole( "ADMIN" )
                     // user endpoints
-                    .antMatchers( "/user/**" )
+                    .mvcMatchers( "/user/**" )
                         .hasAnyRole("USER", "ADMIN")
                     // ensure that actuator endpoints are secured regardless of the basepath they are mounted on
                     .requestMatchers( EndpointRequest.toAnyEndpoint() )
