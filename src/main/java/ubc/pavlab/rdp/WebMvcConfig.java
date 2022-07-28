@@ -1,12 +1,15 @@
 package ubc.pavlab.rdp;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.HierarchicalMessageSource;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import ubc.pavlab.rdp.settings.SiteSettings;
 import ubc.pavlab.rdp.util.OntologyMessageSource;
 
 /**
@@ -14,6 +17,9 @@ import ubc.pavlab.rdp.util.OntologyMessageSource;
  */
 @Configuration
 public class WebMvcConfig implements WebMvcConfigurer {
+
+    @Autowired
+    private SiteSettings siteSettings;
 
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
@@ -41,4 +47,15 @@ public class WebMvcConfig implements WebMvcConfigurer {
         return messageSource;
     }
 
+    /**
+     * CORS configuration for the /stats endpoint so that statistics can be queried from the main website.
+     */
+    @Override
+    public void addCorsMappings( CorsRegistry registry ) {
+        if ( siteSettings.getMainsite() != null ) {
+            registry.addMapping( "/stats" )
+                    .allowedOrigins( siteSettings.getMainsite().getScheme() + "://" + siteSettings.getMainsite().getAuthority() )
+                    .allowedMethods( "GET" );
+        }
+    }
 }

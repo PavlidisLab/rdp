@@ -2,7 +2,6 @@ package ubc.pavlab.rdp;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;
-import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -23,6 +22,7 @@ import ubc.pavlab.rdp.security.authentication.TokenBasedAuthenticationFilter;
 import ubc.pavlab.rdp.security.authentication.TokenBasedAuthenticationManager;
 import ubc.pavlab.rdp.services.UserService;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
+import ubc.pavlab.rdp.settings.SiteSettings;
 
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
@@ -51,6 +51,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private SiteSettings siteSettings;
 
     @Override
     protected void configure( AuthenticationManagerBuilder auth ) throws Exception {

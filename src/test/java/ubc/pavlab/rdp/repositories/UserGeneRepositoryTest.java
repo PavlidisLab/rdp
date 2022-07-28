@@ -27,6 +27,7 @@ import ubc.pavlab.rdp.repositories.ontology.OntologyRepository;
 import ubc.pavlab.rdp.repositories.ontology.OntologyTermInfoRepository;
 import ubc.pavlab.rdp.services.*;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
+import ubc.pavlab.rdp.settings.SiteSettings;
 import ubc.pavlab.rdp.util.OntologyMessageSource;
 
 import java.security.NoSuchAlgorithmException;
@@ -85,6 +86,9 @@ public class UserGeneRepositoryTest {
 
     @Autowired
     private UserGeneRepository userGeneRepository;
+
+    @MockBean
+    private SiteSettings siteSettings;
 
     @MockBean
     private PermissionEvaluator permissionEvaluator;

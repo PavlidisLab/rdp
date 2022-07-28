@@ -20,6 +20,7 @@ import ubc.pavlab.rdp.services.GeneInfoService;
 import ubc.pavlab.rdp.services.TaxonService;
 import ubc.pavlab.rdp.services.UserService;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
+import ubc.pavlab.rdp.settings.SiteSettings;
 import ubc.pavlab.rdp.util.OntologyMessageSource;
 import ubc.pavlab.rdp.util.SearchResult;
 
@@ -53,6 +54,9 @@ public class GeneControllerTest {
 
     @MockBean
     private ApplicationSettings applicationSettings;
+
+    @MockBean
+    private SiteSettings siteSettings;
 
     @MockBean
     private UserDetailsService userDetailsService;

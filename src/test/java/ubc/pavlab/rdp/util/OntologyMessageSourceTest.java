@@ -13,6 +13,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.junit4.SpringRunner;
 import ubc.pavlab.rdp.WebMvcConfig;
 import ubc.pavlab.rdp.services.OntologyService;
+import ubc.pavlab.rdp.settings.SiteSettings;
 
 import java.util.Locale;
 
@@ -35,6 +36,9 @@ public class OntologyMessageSourceTest {
 
     @Autowired
     private MessageSource messageSource;
+
+    @MockBean
+    private SiteSettings siteSettings;
 
     @MockBean
     private OntologyService ontologyService;

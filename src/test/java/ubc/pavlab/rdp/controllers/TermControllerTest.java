@@ -19,6 +19,7 @@ import ubc.pavlab.rdp.services.GOService;
 import ubc.pavlab.rdp.services.TaxonService;
 import ubc.pavlab.rdp.services.UserService;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
+import ubc.pavlab.rdp.settings.SiteSettings;
 import ubc.pavlab.rdp.util.OntologyMessageSource;
 import ubc.pavlab.rdp.util.SearchResult;
 
@@ -45,6 +46,9 @@ public class TermControllerTest {
 
     @MockBean
     private ApplicationSettings applicationSettings;
+
+    @MockBean
+    private SiteSettings siteSettings;
 
     @MockBean
     private UserService userService;
