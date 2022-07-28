@@ -168,7 +168,7 @@ public class ReactomeService {
     /**
      * Update term definitions of all the terms defined in the Reactome pathway ontology.
      *
-     * @param progressMonitor emits processed summations, or null to ignore
+     * @param progressCallback emits processed summations, or null to ignore
      * @throws ReactomeException if any operation with the ReactomeContent Service fails, in which case the whole
      *                           transaction will be rolled back.
      */
@@ -199,7 +199,7 @@ public class ReactomeService {
             } catch ( ExecutionException e ) {
                 throw new ReactomeException( "Failed to retrieve from the /data/query/ids endpoint.", e.getCause() );
             }
-            if ( entity.getStatusCode().is2xxSuccessful() ) {
+            if ( entity.getStatusCode().is2xxSuccessful() && entity.getBody() != null ) {
                 Map<String, String> results = Arrays.stream( entity.getBody() )
                         .filter( e -> e.getSummation() != null && e.getSummation().size() > 0 )
                         .collect( Collectors.toMap( ReactomeEntity::getStId, e -> e.getSummation().get( 0 ).getText() ) );
