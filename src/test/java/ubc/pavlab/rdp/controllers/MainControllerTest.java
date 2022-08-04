@@ -1,5 +1,7 @@
 package ubc.pavlab.rdp.controllers;
 
+import org.hamcrest.FeatureMatcher;
+import org.hamcrest.Matcher;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -27,10 +29,10 @@ import ubc.pavlab.rdp.util.OntologyMessageSource;
 
 import java.util.EnumSet;
 
+import static org.hamcrest.Matchers.closeTo;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static ubc.pavlab.rdp.util.TestUtils.createUser;
 
@@ -141,12 +143,28 @@ public class MainControllerTest {
     public void getTimeout_withUser_return200() throws Exception {
         User user = createUser( 1 );
         when( userService.findCurrentUser() ).thenReturn( user );
+        long timeoutInSeconds = 0L;
         mvc.perform( get( "/gettimeout" ) )
                 .andExpect( status().isOk() )
                 .andExpect( content().contentTypeCompatibleWith( MediaType.TEXT_PLAIN ) )
                 .andExpect( content().string( "Session timeout refreshed." ) )
-                .andExpect( cookie().exists( "serverTime" ) )
-                .andExpect( cookie().exists( "sessionExpiry" ) );
+                .andExpect( cookie().value( "serverTime", asDouble( closeTo( System.currentTimeMillis(), 100 ) ) ) )
+                .andExpect( cookie().path( "serverTime", "/" ) )
+                .andExpect( cookie().secure( "serverTime", false ) )
+                .andExpect( cookie().httpOnly( "serverTime", false ) )
+                .andExpect( cookie().value( "sessionExpiry", asDouble( closeTo( System.currentTimeMillis() + 1000L * ( timeoutInSeconds - 60L ), 100 ) ) ) )
+                .andExpect( cookie().path( "sessionExpiry", "/" ) )
+                .andExpect( cookie().secure( "sessionExpiry", false ) )
+                .andExpect( cookie().httpOnly( "sessionExpiry", false ) );
+    }
+
+    private static FeatureMatcher<String, Double> asDouble( Matcher<Double> matcher ) {
+        return new FeatureMatcher<String, Double>( matcher, "", "" ) {
+            @Override
+            protected Double featureValueOf( String s ) {
+                return (double) Long.parseLong( s );
+            }
+        };
     }
 
     @Test
