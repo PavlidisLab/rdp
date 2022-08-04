@@ -1,6 +1,5 @@
 package ubc.pavlab.rdp.services;
 
-import io.swagger.v3.oas.models.OpenAPI;
 import lombok.Data;
 import lombok.experimental.SuperBuilder;
 import lombok.extern.apachecommons.CommonsLog;
@@ -93,6 +92,17 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
         } else {
             return openAPI.getInfo().getVersion();
         }
+    }
+
+    @Data
+    public static class OpenAPI {
+
+        @Data
+        public static class Info {
+            private String version;
+        }
+
+        private Info info;
     }
 
     @Override
