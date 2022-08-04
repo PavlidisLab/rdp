@@ -54,6 +54,7 @@ import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -686,15 +687,20 @@ public class AdminController {
                     .body( messageSource.getMessage( "AdminController.ontologyNotFoundById", null, locale ) );
         }
         SseEmitter emitter = new SseEmitter( 600 * 1000L );
+        final AtomicBoolean completed = new AtomicBoolean( false );
+        emitter.onCompletion( () -> completed.set( true ) );
         emitter.onTimeout( () -> log.warn( "Updating Reactome pathway summations took more time than expected. The SSE stream will be closed, but the update will proceed in the background." ) );
         taskExecutor.execute( new DelegatingSecurityContextRunnable( () -> {
             try {
                 reactomeService.updatePathwaySummations( ( progress, maxProgress, elapsedTime ) -> {
+                    if ( completed.get() ) {
+                        return;
+                    }
                     SseEmitter.SseEventBuilder event = SseEmitter.event()
                             .data( new ReactomePathwaySummationsUpdateProgress( progress, maxProgress, elapsedTime ), MediaType.APPLICATION_JSON );
                     try {
                         emitter.send( event );
-                    } catch ( IOException | IllegalStateException e ) {
+                    } catch ( IOException e ) {
                         log.warn( String.format( "Failed to send progress update to client via an SSE stream: %s", e.getMessage() ) );
                     }
                 } );
