@@ -227,6 +227,20 @@ public class SearchControllerTest {
     }
 
     @Test
+    public void getSearch_whenGeneSymbolIsEmpty_returnBadRequest() throws Exception {
+        Taxon humanTaxon = createTaxon( 9606 );
+        GeneInfo gene = createGene( 1, humanTaxon );
+        when( taxonService.findById( 9606 ) ).thenReturn( humanTaxon );
+        when( geneService.findBySymbolAndTaxon( "BRCA1", humanTaxon ) ).thenReturn( gene );
+        mvc.perform( get( "/search" )
+                        .param( "symbol", "" )
+                        .param( "taxonId", "9606" )
+                        .param( "iSearch", "false" ) )
+                .andExpect( status().isBadRequest() )
+                .andExpect( view().name( "search" ) );
+    }
+
+    @Test
     public void viewUser_thenReturnSuccess() throws Exception {
         User user = createUser( 1 );
         when( userService.findUserById( user.getId() ) ).thenReturn( user );
@@ -343,6 +357,18 @@ public class SearchControllerTest {
     }
 
     @Test
+    public void searchUsersByGeneSymbolView_whenSymbolIsEmpty_thenReturnBadRequest() throws Exception {
+        when( taxonService.findById( 9606 ) ).thenReturn( createTaxon( 9606 ) );
+        mvc.perform( get( "/search/view" )
+                        .param( "symbol", "" )
+                        .param( "taxonId", "9606" ) )
+                .andExpect( status().isBadRequest() )
+                .andExpect( view().name( "fragments/error::message" ) )
+                .andExpect( model().attribute( "errorMessage", "Gene symbol cannot be empty." ) );
+        verifyNoInteractions( userGeneService );
+    }
+
+    @Test
     public void searchItlUsersByNameView_thenReturnSuccess() throws Exception {
         User user = createRemoteUser( 1, URI.create( "http://example.com/" ) );
         when( remoteResourceService.findUsersByLikeName( "Mark", true, null, null, null, null ) )
@@ -353,6 +379,18 @@ public class SearchControllerTest {
                 .andExpect( status().isOk() )
                 .andExpect( view().name( "fragments/user-table::user-table" ) );
         verify( remoteResourceService ).findUsersByLikeName( "Mark", true, null, null, null, null );
+    }
+
+    @Test
+    public void searchItlUsersByGeneSymbol_whenGeneSymbolIsEmpty_thenReturnBadRequest() throws Exception {
+        when( taxonService.findById( 9606 ) ).thenReturn( createTaxon( 9606 ) );
+        mvc.perform( get( "/search/view/international" )
+                        .param( "symbol", "" )
+                        .param( "taxonId", "9606" ) )
+                .andExpect( status().isBadRequest() )
+                .andExpect( view().name( "fragments/error::message" ) )
+                .andExpect( model().attribute( "errorMessage", "Gene symbol cannot be empty." ) );
+        verifyNoInteractions( remoteResourceService );
     }
 
     @Test

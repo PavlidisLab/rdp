@@ -259,6 +259,13 @@ public class SearchController extends AbstractSearchController {
             return modelAndView;
         }
 
+        if ( symbol.isEmpty() ) {
+            modelAndView.setStatus( HttpStatus.BAD_REQUEST );
+            modelAndView.addObject( "message", "Gene symbol cannot be empty." );
+            modelAndView.addObject( "error", true );
+            return modelAndView;
+        }
+
         GeneInfo gene = geneInfoService.findBySymbolAndTaxon( symbol, taxon );
 
         if ( gene == null ) {

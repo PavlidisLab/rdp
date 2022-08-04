@@ -244,6 +244,10 @@ public class ApiController {
             throw new ApiException( HttpStatus.NOT_FOUND, String.format( locale, "Unknown taxon ID: %s.", taxonId ) );
         }
 
+        if ( symbol.isEmpty() ) {
+            throw new ApiException( HttpStatus.BAD_REQUEST, "Gene symbol cannot be empty." );
+        }
+
         GeneInfo gene = geneService.findBySymbolAndTaxon( symbol, taxon );
 
         if ( gene == null ) {

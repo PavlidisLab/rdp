@@ -231,6 +231,11 @@ public class SearchViewController extends AbstractSearchController {
             return modelAndView;
         }
 
+        if ( symbol.isEmpty() ) {
+            return new ModelAndView( "fragments/error::message", HttpStatus.BAD_REQUEST )
+                    .addObject( "errorMessage", "Gene symbol cannot be empty." );
+        }
+
         GeneInfo gene = geneInfoService.findBySymbolAndTaxon( symbol, taxon );
 
         if ( gene == null ) {
@@ -294,6 +299,11 @@ public class SearchViewController extends AbstractSearchController {
             return modelAndView;
         }
 
+        if ( symbol.isEmpty() ) {
+            return new ModelAndView( "fragments/error::message", HttpStatus.BAD_REQUEST )
+                    .addObject( "errorMessage", "Gene symbol cannot be empty." );
+        }
+
         GeneInfo gene = geneInfoService.findBySymbolAndTaxon( symbol, taxon );
 
         if ( gene == null ) {
@@ -345,6 +355,11 @@ public class SearchViewController extends AbstractSearchController {
 
         if ( tiers == null ) {
             tiers = TierType.ANY;
+        }
+
+        if ( symbol.isEmpty() ) {
+            return new ModelAndView( "fragments/error::message", HttpStatus.BAD_REQUEST )
+                    .addObject( "errorMessage", "Gene symbol cannot be empty." );
         }
 
         Taxon taxon = taxonService.findById( taxonId );
