@@ -132,13 +132,6 @@ public class MainControllerTest {
     }
 
     @Test
-    public void getHtmlStats_redirect3xx() throws Exception {
-        mvc.perform( get( "/stats.html" ) )
-                .andExpect( status().is3xxRedirection() )
-                .andExpect( redirectedUrl( "/stats" ) );
-    }
-
-    @Test
     @WithMockUser
     public void getTimeout_withUser_return200() throws Exception {
         User user = createUser( 1 );
