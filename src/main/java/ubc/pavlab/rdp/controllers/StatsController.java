@@ -2,6 +2,7 @@ package ubc.pavlab.rdp.controllers;
 
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.info.BuildProperties;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -23,14 +24,18 @@ public class StatsController {
     @Autowired
     private UserGeneService userGeneService;
 
+    @Autowired
+    private BuildProperties buildProperties;
+
     /**
      * @deprecated use /api/stats instead
      */
     @Deprecated
     @ResponseBody
     @GetMapping(value = "/stats")
-    public Map<String, Object> getAggregateStats() {
+    public Map<String, Object> getStats() {
         return new LinkedHashMap<String, Object>() {{
+            put( "version", buildProperties.getVersion() );
             put( "success", Boolean.TRUE );
             put( "message", "Statistics successfully loaded" );
             put( "researchers_registered", userService.countResearchers() );
@@ -43,5 +48,8 @@ public class StatsController {
         }};
     }
 
-
+    @GetMapping(value = "/stats.html")
+    public String getStatsHtml() {
+        return "redirect:/stats";
+    }
 }

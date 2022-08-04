@@ -2,6 +2,7 @@ package ubc.pavlab.rdp.controllers;
 
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.info.BuildProperties;
 import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -62,6 +63,8 @@ public class ApiController {
     private OntologyService ontologyService;
     @Autowired
     private UserPrivacyService userPrivacyService;
+    @Autowired
+    private BuildProperties buildProperties;
 
     @ExceptionHandler({ AccessDeniedException.class })
     public ResponseEntity<?> handleAccessDeniedException( Exception e ) {
@@ -95,6 +98,7 @@ public class ApiController {
     public Object getStats() {
         checkEnabled();
         return Stats.builder()
+                .version( buildProperties.getVersion() )
                 .users( userService.countResearchers() )
                 .publicUsers( userService.countPublicResearchers() )
                 .usersWithGenes( userGeneService.countUsersWithGenes() )

@@ -5,6 +5,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.info.BuildProperties;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.MessageSource;
@@ -90,6 +91,8 @@ public class ApiControllerTest {
     private OntologyService ontologyService;
     @MockBean
     private UserPrivacyService userPrivacyService;
+    @MockBean
+    private BuildProperties buildProperties;
 
     @Before
     public void setUp() {
@@ -100,6 +103,7 @@ public class ApiControllerTest {
         when( iSearchSettings.isEnabled() ).thenReturn( true );
         when( messageSource.getMessage( eq( "rdp.site.shortname" ), any(), any() ) ).thenReturn( "RDMM" );
         when( userService.getRemoteSearchUser() ).thenReturn( Optional.empty() );
+        when( buildProperties.getVersion() ).thenReturn( "1.5.0" );
     }
 
     @Test
@@ -117,6 +121,13 @@ public class ApiControllerTest {
                 .andExpect( status().isUnauthorized() )
                 .andExpect( content().contentType( MediaType.TEXT_PLAIN ) );
         verify( userService ).countResearchers();
+    }
+
+    @Test
+    public void getStats() throws Exception {
+        mvc.perform( get( "/api/stats" ) )
+                .andExpect( status().isOk() )
+                .andExpect( jsonPath( "$.version" ).value( "1.5.0" ) );
     }
 
     @Test

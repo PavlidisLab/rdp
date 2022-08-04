@@ -2,7 +2,9 @@ package ubc.pavlab.rdp.controllers;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.info.BuildProperties;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
@@ -17,10 +19,10 @@ import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.settings.SiteSettings;
 import ubc.pavlab.rdp.util.OntologyMessageSource;
 
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @TestPropertySource(properties = {
         "rdp.site.host=localhost",
@@ -50,6 +52,16 @@ public class StatsControllerTest {
     @MockBean
     private OntologyMessageSource ontologyMessageSource;
 
+    @MockBean
+    private BuildProperties buildProperties;
+
+    @Test
+    public void getStats() throws Exception {
+        when( buildProperties.getVersion() ).thenReturn( "1.5.0" );
+        mvc.perform( get( "/stats" ) )
+                .andExpect( jsonPath( "$.version" ).value( "1.5.0" ) );
+    }
+
     @Test
     public void getStats_thenOnlyReturnAllowedOrigin() throws Exception {
         mvc.perform( get( "/stats" )
@@ -78,5 +90,12 @@ public class StatsControllerTest {
     public void getStats_whenNoOriginIsProvided_thenReturnResult() throws Exception {
         mvc.perform( get( "/stats" ) )
                 .andExpect( status().isOk() );
+    }
+
+    @Test
+    public void getStatsHtml() throws Exception {
+        mvc.perform( get( "/stats.html" ) )
+                .andExpect( status().is3xxRedirection() )
+                .andExpect( redirectedUrl( "/stats" ) );
     }
 }

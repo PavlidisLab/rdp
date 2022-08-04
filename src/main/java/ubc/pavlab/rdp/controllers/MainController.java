@@ -28,11 +28,6 @@ public class MainController {
         return userService.findCurrentUser() == null ? "redirect:/search" : "redirect:/user/home";
     }
 
-    @GetMapping(value = "/stats.html")
-    public void handleStatsHTMLEndpoint( HttpServletResponse response ) throws IOException {
-        response.sendRedirect( "/stats" );
-    }
-
     @GetMapping(value = { "/maintenance" })
     public ModelAndView maintenance() {
         return new ModelAndView( "error/maintenance" );

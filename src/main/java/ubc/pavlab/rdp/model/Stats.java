@@ -8,6 +8,7 @@ import java.util.Map;
 @Data
 @Builder
 public class Stats {
+    private String version;
     private Long users;
     private Long publicUsers;
     private Integer usersWithGenes;
