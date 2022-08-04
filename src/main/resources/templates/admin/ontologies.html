@@ -68,39 +68,24 @@
                         </button>
                     </form>
                 </div>
-                <div class="col-4">
-                    <div th:with="reactome=${@reactomeService.findPathwaysOntology()}">
-                        <h2>Reactome Pathways</h2>
-                        <p>RDP provides capability of importing Reactome pathways.</p>
-                        <p th:if="${reactome} != null" class="text-success">
-                            Reactome is already setup.
-                            <a th:href="@{/admin/ontologies/{ontologyId}(ontologyId=${reactome.id})}">View Reactome</a>
-                        </p>
-                        <form th:action="${reactome} != null ? @{/admin/ontologies/{ontologyId}/update-reactome-pathways(ontologyId=${reactome.id})} : @{/admin/ontologies/import-reactome-pathways}"
-                              method="post">
-                            <div class="form-group">
-                                <button class="btn btn-primary" type="submit">
-                                    <i class="oi oi-cloud-download"></i>
-                                    <span th:if="${reactome} != null">Update</span>
-                                    <span th:if="${reactome} == null">Import</span>
-                                    Reactome Pathways
-                                </button>
-                            </div>
-                        </form>
-                        <div th:if="${reactome} != null">
-                            <div class="form-group">
-                                <a th:href="@{/admin/ontologies/{ontologyId}/update-reactome-pathway-summations(ontologyId=${reactome.id})}"
-                                   th:attr="data-reactome-ontology-id=${reactome.id}"
-                                   class="btn btn-primary update-reactome-pathway-summations-btn">
-                                    <i class="oi oi-cloud-download"></i>
-                                    Update Reactome Pathways Summations
-                                </a>
-                                <div>
-                                    <small class="progress-feedback"></small>
-                                </div>
-                            </div>
+                <div th:with="reactome=${@reactomeService.findPathwaysOntology()}"
+                     class="col-4">
+                    <h2>Reactome Pathways</h2>
+                    <p>RDP provides capability of importing Reactome pathways.</p>
+                    <p th:if="${reactome} != null" class="text-success">
+                        Reactome is already setup.
+                        <a th:href="@{/admin/ontologies/{ontologyId}(ontologyId=${reactome.id})}">View Reactome</a>
+                    </p>
+                    <form th:if="${reactome} == null"
+                          th:action="@{/admin/ontologies/import-reactome-pathways}"
+                          method="post">
+                        <div class="form-group">
+                            <button class="btn btn-primary" type="submit">
+                                <i class="oi oi-cloud-download"></i>
+                                Import Reactome Pathways
+                            </button>
                         </div>
-                    </div>
+                    </form>
                 </div>
             </div>
         </div>

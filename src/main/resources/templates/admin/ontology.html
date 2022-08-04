@@ -55,7 +55,7 @@
         <div class="mb-3">
             <form th:if="${ontology.active}"
                   th:action="@{/admin/ontologies/{ontologyId}/deactivate(ontologyId=${ontology.id})}"
-                  method="post" class="d-inline-block">
+                  method="post" class="d-inline-block align-top">
                 <input type="hidden" name="includeTerms" value="true"/>
                 <button class="btn btn-warning" type="submit">
                     Deactivate
@@ -66,7 +66,7 @@
                   th:action="@{/admin/ontologies/{ontologyId}/activate(ontologyId=${ontology.id})}"
                   th:object="${activateOntologyForm}"
                   method="post"
-                  class="d-inline-block">
+                  class="d-inline-block align-top">
                 <input type="hidden" th:name="includeTerms" value="true"/>
                 <button class="btn btn-success" type="submit">
                     Activate all Terms
@@ -74,7 +74,7 @@
             </form>
             <form th:if="${ontology.ontologyUrl} != null"
                   th:action="@{/admin/ontologies/{ontologyId}/update(ontologyId=${ontology.id})}" method="post"
-                  class="d-inline-block">
+                  class="d-inline-block align-top">
                 <button class="btn btn-primary update-ontology-btn" type="submit">
                     <span class="spinner d-none"></span>
                     <i class="oi oi-cloud-download"></i>
@@ -87,7 +87,28 @@
                     </span>
                 </button>
             </form>
-            <a class="btn btn-primary"
+            <th:block th:if="${@reactomeService.findPathwaysOntology()} == ${ontology}">
+                <form th:action="@{/admin/ontologies/{ontologyId}/update-reactome-pathways(ontologyId=${ontology.id})}"
+                      method="post"
+                      class="d-inline-block align-top">
+                    <button class="btn btn-primary" type="submit">
+                        <i class="oi oi-cloud-download"></i>
+                        Update from reactome.org
+                    </button>
+                </form>
+                <div class="form-group mb-0 d-inline-block align-top">
+                    <a th:href="@{/admin/ontologies/{ontologyId}/update-reactome-pathway-summations(ontologyId=${ontology.id})}"
+                       th:attr="data-reactome-ontology-id=${ontology.id}"
+                       class="btn btn-primary update-reactome-pathway-summations-btn">
+                        <i class="oi oi-cloud-download"></i>
+                        Update Pathways Summations from reactome.org
+                    </a>
+                    <div>
+                        <small class="progress-feedback"></small>
+                    </div>
+                </div>
+            </th:block>
+            <a class="btn btn-primary align-top"
                th:href="@{/admin/ontologies/{ontologyId}/download(ontologyId=${ontology.id})}">
                 <i class="oi oi-data-transfer-download"></i>
                 Download as OBO
