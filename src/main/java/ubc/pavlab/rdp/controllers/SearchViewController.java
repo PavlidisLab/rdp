@@ -329,7 +329,7 @@ public class SearchViewController extends AbstractSearchController {
 
 
     @PreAuthorize("hasPermission(null, 'international-search')")
-    @GetMapping(value = "/search/view/international", params = { "symbol", "taxonId", "orthologTaxonId" })
+    @GetMapping(value = "/search/view/international", params = { "symbol", "taxonId" })
     public ModelAndView searchItlUsersByGeneView( @RequestParam String symbol,
                                                   @RequestParam Integer taxonId,
                                                   @RequestParam(required = false) Set<TierType> tiers,
