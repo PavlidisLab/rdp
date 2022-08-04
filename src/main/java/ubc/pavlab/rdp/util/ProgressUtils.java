@@ -37,7 +37,7 @@ public class ProgressUtils {
                 log.error( "Progress failed", e );
             } finally {
                 timer.stop();
-                if ( timer.getTime( TimeUnit.MILLISECONDS ) > 2 ) {
+                if ( timer.getTime( TimeUnit.MILLISECONDS ) > 10 ) {
                     log.warn( String.format( "Progress callback is too slow and might impede processing (took %d ms).", timer.getTime( TimeUnit.MILLISECONDS ) ) );
                 }
             }
