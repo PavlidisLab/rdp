@@ -9,6 +9,7 @@ import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.ResearcherCategory;
 import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import ubc.pavlab.rdp.model.enums.TierType;
+import ubc.pavlab.rdp.model.ontology.Ontology;
 import ubc.pavlab.rdp.model.ontology.OntologyTermInfo;
 
 import javax.validation.ValidationException;
@@ -119,6 +120,8 @@ public interface UserService {
     List<User> findByDescription( String descriptionLike, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherTypes, Collection<OrganInfo> userOrgans, Collection<OntologyTermInfo> ontologyTermInfos );
 
     List<User> findByNameAndDescription( String nameLike, boolean prefix, String descriptionLike, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherCategories, Collection<OrganInfo> userOrgans, Collection<OntologyTermInfo> ontologyTermInfos );
+
+    Set<Integer> getUserTermInfoIds( User user );
 
     long countResearchers();
 

@@ -35,8 +35,9 @@ import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.ResearcherCategory;
 import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import ubc.pavlab.rdp.model.enums.TierType;
+import ubc.pavlab.rdp.model.ontology.Ontology;
+import ubc.pavlab.rdp.model.ontology.OntologyTerm;
 import ubc.pavlab.rdp.model.ontology.OntologyTermInfo;
-import ubc.pavlab.rdp.model.ontology.UserOntologyTerm;
 import ubc.pavlab.rdp.repositories.TaxonRepository;
 import ubc.pavlab.rdp.repositories.UserGeneRepository;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
@@ -158,9 +159,10 @@ public class UserGeneServiceImpl implements UserGeneService {
             organUberonIds = null;
         }
 
-        final Set<Integer> ontologyTermInfoIds;
+        // inferred terms, grouped by ontology
+        final Map<Ontology, Set<Integer>> ontologyTermInfoIds;
         if ( ontologyTermInfos != null ) {
-            ontologyTermInfoIds = ontologyService.inferTermIds( ontologyTermInfos );
+            ontologyTermInfoIds = ontologyService.inferTermIdsByOntology( ontologyTermInfos );
         } else {
             ontologyTermInfoIds = null;
         }
@@ -181,7 +183,7 @@ public class UserGeneServiceImpl implements UserGeneService {
         return uGenes;
     }
 
-    private Set<UserGene> handleOrthologSearchInternal( Gene gene, Set<TierType> tiers, Taxon orthologTaxon, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherCategories, Collection<String> organUberonIds, Collection<Integer> ontologyTermInfoIds ) {
+    private Set<UserGene> handleOrthologSearchInternal( Gene gene, Set<TierType> tiers, Taxon orthologTaxon, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherCategories, Collection<String> organUberonIds, Map<Ontology, Set<Integer>> ontologyTermInfoIds ) {
         return ( orthologTaxon == null ? userGeneRepository.findOrthologsByGeneId( gene.getGeneId() ) : userGeneRepository.findOrthologsByGeneIdAndTaxon( gene.getGeneId(), orthologTaxon ) ).stream()
                 .filter( ortholog -> tiers.contains( ortholog.getTier() ) )
                 .filter( ug -> researcherPositions == null || researcherPositions.contains( ug.getUser().getProfile().getResearcherPosition() ) )
@@ -191,14 +193,9 @@ public class UserGeneServiceImpl implements UserGeneService {
                 .collect( Collectors.toSet() );
     }
 
-    private Predicate<UserGene> hasOntologyTermIn( Collection<Integer> ontologyTermInfoIds ) {
-        return u -> ontologyTermInfoIds == null || containsAny( ontologyTermInfoIds,
-                u.getUser().getUserOntologyTerms().stream()
-                        .map( UserOntologyTerm::getTermInfo )
-                        .filter( OntologyTermInfo::isActive ) // check this first, otherwise we might initialize the ontology for nothing
-                        .filter( t -> t.getOntology().isActive() )
-                        .map( OntologyTermInfo::getId )
-                        .collect( Collectors.toSet() ) );
+    private Predicate<UserGene> hasOntologyTermIn( Map<Ontology, Set<Integer>> ontologyTermInfoIds ) {
+        return u -> ontologyTermInfoIds == null || ontologyTermInfoIds.values().stream()
+                .allMatch( entry -> containsAny( entry, userService.getUserTermInfoIds( u.getUser() ) ) );
     }
 
 

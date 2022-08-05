@@ -749,6 +749,16 @@ public class OntologyService implements InitializingBean {
     }
 
     /**
+     * Perform the same inference as per {@link #inferTermIds(Collection)} with results grouped by ontology.
+     */
+    @Transactional(readOnly = true)
+    public Map<Ontology, Set<Integer>> inferTermIdsByOntology( Collection<OntologyTermInfo> ontologyTermInfos ) {
+        return ontologyTermInfos.stream()
+                .collect( Collectors.groupingBy( OntologyTerm::getOntology,
+                        Collectors.collectingAndThen( Collectors.toSet(), this::inferTermIds ) ) );
+    }
+
+    /**
      * Calculate the size of the subtree rooted in the given term.
      * <p>
      * Note: the result of this function is cached for performance reason, if you need to get an accurate subtree size,
