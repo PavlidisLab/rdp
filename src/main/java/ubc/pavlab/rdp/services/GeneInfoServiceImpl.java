@@ -225,9 +225,9 @@ public class GeneInfoServiceImpl implements GeneInfoService {
         log.info( "Done updating gene orthologs." );
     }
 
-    private <T extends GeneInfo> boolean addAll( Collection<SearchResult<T>> container, Collection<T> newValues, GeneMatchType match, int maxSize ) {
+    private boolean addAll( Collection<SearchResult<GeneInfo>> container, Collection<GeneInfo> newValues, GeneMatchType match, int maxSize ) {
 
-        for ( T newValue : newValues ) {
+        for ( GeneInfo newValue : newValues ) {
             if ( maxSize == -1 || container.size() < maxSize ) {
                 container.add( new SearchResult<>( match, newValue.getId(), newValue.getSymbol(), newValue.getName(), newValue.getAliases(), newValue ) );
             } else {

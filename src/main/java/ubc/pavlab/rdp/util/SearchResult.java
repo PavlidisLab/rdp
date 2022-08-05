@@ -3,6 +3,8 @@ package ubc.pavlab.rdp.util;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.util.Comparator;
+
 /**
  * Represents a search result.
  * <p>
@@ -14,7 +16,8 @@ import lombok.EqualsAndHashCode;
  */
 @Data
 @EqualsAndHashCode(of = { "match" })
-public class SearchResult<T extends Comparable<?>> {
+public class SearchResult<T extends Comparable<T>> {
+
     private final MatchType matchType;
     private final Integer id;
     private final String label;
