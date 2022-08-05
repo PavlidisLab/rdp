@@ -189,7 +189,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
                     } ) ) );
                 }
             } catch ( RemoteException e ) {
-                log.warn( String.format( "Failed to retrieve API version from %s.", remoteHost ), e );
+                log.warn( String.format( "Failed to retrieve API version from %s: %s.", remoteHost, e.getMessage() ) );
                 return Optional.empty();
             }
         } );
