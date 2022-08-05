@@ -259,7 +259,14 @@ public class OntologyService implements InitializingBean {
                 t = OntologyTermInfo.builder( ontology, term.getId() ).build();
             }
 
-            t.setName( term.getName() );
+            if ( term.getName().length() > OntologyTermInfo.MAX_NAME_LENGTH ) {
+                log.warn( String.format( "Name %s for term %s is too wide (%d characters) to fit in the database, it will be truncated to %d characters.",
+                        term.getName(), term, term.getName().length(), OntologyTermInfo.MAX_NAME_LENGTH ) );
+                t.setName( term.getName().substring( 0, OntologyTermInfo.MAX_NAME_LENGTH ) );
+            } else {
+                t.setName( term.getName() );
+            }
+
             t.setOrdering( convertedTerms.size() + 1 );
 
             t.setDefinition( term.getDefinition() );
