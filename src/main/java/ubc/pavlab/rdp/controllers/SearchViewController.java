@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 import ubc.pavlab.rdp.exception.RemoteException;
@@ -14,10 +15,9 @@ import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.ResearcherCategory;
 import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import ubc.pavlab.rdp.model.enums.TierType;
-import ubc.pavlab.rdp.model.ontology.OntologyTermInfo;
 import ubc.pavlab.rdp.services.*;
 
-import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 import java.net.URI;
 import java.text.MessageFormat;
 import java.util.*;
@@ -40,25 +40,16 @@ public class SearchViewController extends AbstractSearchController {
     private UserGeneService userGeneService;
 
     @Autowired
-    private OrganInfoService organInfoService;
-
-    @Autowired
-    private OntologyService ontologyService;
-
-    @Autowired
     private RemoteResourceService remoteResourceService;
 
     @Autowired
     private GeneInfoService geneInfoService;
 
     @ExceptionHandler({ AccessDeniedException.class })
-    public ModelAndView handleAccessDeniedForViewTemplates( HttpServletRequest req, AccessDeniedException exception ) {
+    public ModelAndView handleAccessDeniedForViewTemplates( AccessDeniedException exception ) {
         log.warn( "Unauthorized access to the search view.", exception );
-        ModelAndView modelAndView = new ModelAndView();
-        modelAndView.setStatus( HttpStatus.UNAUTHORIZED );
-        modelAndView.setViewName( "fragments/error::message" );
-        modelAndView.addObject( "errorMessage", exception.getMessage() );
-        return modelAndView;
+        return new ModelAndView( "fragments/error::message", HttpStatus.UNAUTHORIZED )
+                .addObject( "errorMessage", exception.getMessage() );
     }
 
     /**
@@ -67,31 +58,22 @@ public class SearchViewController extends AbstractSearchController {
      */
     @GetMapping("/search/view/*")
     public ModelAndView handleMissingRoute() {
-        ModelAndView modelAndView = new ModelAndView();
-        modelAndView.setStatus( HttpStatus.NOT_FOUND );
-        modelAndView.setViewName( "fragments/error::message" );
-        modelAndView.addObject( "errorMessage", "No endpoint found for your request URL." );
-        return modelAndView;
+        return new ModelAndView( "fragments/error::message", HttpStatus.NOT_FOUND )
+                .addObject( "errorMessage", "No endpoint found for your request URL." );
     }
 
     @PreAuthorize("hasPermission(null, 'international-search')")
     @GetMapping(value = "/search/view/international", params = { "nameLike", "descriptionLike" })
-    public Object searchItlUsers( @RequestParam String nameLike,
-                                  @RequestParam(required = false) boolean prefix,
-                                  @RequestParam String descriptionLike,
-                                  @RequestParam(required = false) Set<ResearcherPosition> researcherPositions,
-                                  @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
-                                  @RequestParam(required = false) Set<String> organUberonIds,
-                                  @RequestParam(required = false) Set<Integer> ontologyTermIds ) {
-        if ( nameLike.isEmpty() ^ descriptionLike.isEmpty() ) {
-            return redirectToSpecificSearch( nameLike, descriptionLike );
+    public Object searchItlUsers( @Valid UserSearchParams userSearchParams, BindingResult bindingResult ) {
+        if ( userSearchParams.getNameLike().isEmpty() ^ userSearchParams.getDescriptionLike().isEmpty() ) {
+            return redirectToSpecificSearch( userSearchParams.getNameLike(), userSearchParams.getDescriptionLike() );
         }
-        if ( nameLike.isEmpty() ) {
+        if ( bindingResult.hasErrors() ) {
             return new ModelAndView( "fragments/error::message", HttpStatus.BAD_REQUEST )
-                    .addObject( "errorMessage", "Researcher name and interests cannot be empty." );
+                    .addObject( "errorMessage", "Invalid user search parameters." );
         } else {
             return new ModelAndView( "fragments/user-table::user-table" )
-                    .addObject( "users", remoteResourceService.findUsersByLikeNameAndDescription( nameLike, prefix, descriptionLike, researcherPositions, researcherCategories, organUberonIds, ontologyTermsFromIds( ontologyTermIds ) ) )
+                    .addObject( "users", remoteResourceService.findUsersByLikeNameAndDescription( userSearchParams.getNameLike(), userSearchParams.isPrefix(), userSearchParams.getDescriptionLike(), userSearchParams.getResearcherPositions(), userSearchParams.getResearcherCategories(), userSearchParams.getOrganUberonIds(), ontologyTermsFromIds( userSearchParams.getOntologyTermIds() ) ) )
                     .addObject( "remote", Boolean.TRUE );
         }
     }
@@ -134,22 +116,16 @@ public class SearchViewController extends AbstractSearchController {
 
     @PreAuthorize("hasPermission(null, 'search')")
     @GetMapping(value = "/search/view", params = { "nameLike", "descriptionLike" })
-    public Object searchUsersView( @RequestParam String nameLike,
-                                   @RequestParam(required = false) boolean prefix,
-                                   @RequestParam String descriptionLike,
-                                   @RequestParam(required = false) Set<ResearcherPosition> researcherPositions,
-                                   @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
-                                   @RequestParam(required = false) Set<String> organUberonIds,
-                                   @RequestParam(required = false) Set<Integer> ontologyTermIds ) {
-        if ( nameLike.isEmpty() ^ descriptionLike.isEmpty() ) {
-            return redirectToSpecificSearch( nameLike, descriptionLike );
+    public Object searchUsersView( @Valid UserSearchParams userSearchParams, BindingResult bindingResult ) {
+        if ( userSearchParams.getNameLike().isEmpty() ^ userSearchParams.getDescriptionLike().isEmpty() ) {
+            return redirectToSpecificSearch( userSearchParams.getNameLike(), userSearchParams.getDescriptionLike() );
         }
-        if ( nameLike.isEmpty() ) {
+        if ( bindingResult.hasErrors() ) {
             return new ModelAndView( "fragments/error::message", HttpStatus.BAD_REQUEST )
-                    .addObject( "errorMessage", "Researcher name and interests cannot be empty." );
+                    .addObject( "errorMessage", "Invalid user search parameters." );
         } else {
             return new ModelAndView( "fragments/user-table::user-table" )
-                    .addObject( "users", userService.findByNameAndDescription( nameLike, prefix, descriptionLike, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ), ontologyTermsFromIds( ontologyTermIds ) ) );
+                    .addObject( "users", userService.findByNameAndDescription( userSearchParams.getNameLike(), userSearchParams.isPrefix(), userSearchParams.getDescriptionLike(), userSearchParams.getResearcherPositions(), userSearchParams.getResearcherCategories(), organsFromUberonIds( userSearchParams.getOrganUberonIds() ), ontologyTermsFromIds( userSearchParams.getOntologyTermIds() ) ) );
         }
     }
 
@@ -355,16 +331,7 @@ public class SearchViewController extends AbstractSearchController {
         } else {
             user = userService.findUserById( userId );
         }
-        if ( user == null ) {
-            return new ModelAndView( "fragments/error::message", HttpStatus.NOT_FOUND )
-                    .addObject( "errorMessage", "Could not find user by given identifier." );
-        } else if ( userPreviewIsEmpty( user ) ) {
-            return new ModelAndView( "fragments/profile::user-preview", HttpStatus.NO_CONTENT )
-                    .addObject( "user", user );
-        } else {
-            return new ModelAndView( "fragments/profile::user-preview" )
-                    .addObject( "user", user );
-        }
+        return previewUserModelAndView( user );
     }
 
     @PreAuthorize("hasPermission(null, #remoteHost == null ? 'search' : 'international-search')")
@@ -384,6 +351,10 @@ public class SearchViewController extends AbstractSearchController {
         } else {
             user = userService.anonymizeUser( userService.findUserByAnonymousIdNoAuth( anonymousId ) );
         }
+        return previewUserModelAndView( user );
+    }
+
+    private static ModelAndView previewUserModelAndView( User user ) {
         if ( user == null ) {
             return new ModelAndView( "fragments/error::message", HttpStatus.NOT_FOUND )
                     .addObject( "errorMessage", "Could not find user by given identifier." );
@@ -396,17 +367,9 @@ public class SearchViewController extends AbstractSearchController {
         }
     }
 
-    private boolean userPreviewIsEmpty( User user ) {
+    private static boolean userPreviewIsEmpty( User user ) {
         return ( user.getProfile().getDescription() == null || user.getProfile().getDescription().isEmpty() ) &&
                 user.getProfile().getResearcherCategories().isEmpty() &&
                 user.getUserOrgans().isEmpty();
-    }
-
-    private Collection<OrganInfo> organsFromUberonIds( Set<String> organUberonIds ) {
-        return organUberonIds == null ? null : organInfoService.findByUberonIdIn( organUberonIds );
-    }
-
-    private Collection<OntologyTermInfo> ontologyTermsFromIds( Collection<Integer> ontologyTermIds ) {
-        return ontologyTermIds == null ? null : ontologyService.findAllTermsByIdIn( ontologyTermIds );
     }
 }

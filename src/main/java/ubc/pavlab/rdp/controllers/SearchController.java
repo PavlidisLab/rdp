@@ -19,7 +19,10 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import org.springframework.web.servlet.view.RedirectView;
 import ubc.pavlab.rdp.exception.RemoteException;
-import ubc.pavlab.rdp.model.*;
+import ubc.pavlab.rdp.model.GeneInfo;
+import ubc.pavlab.rdp.model.Taxon;
+import ubc.pavlab.rdp.model.User;
+import ubc.pavlab.rdp.model.UserGene;
 import ubc.pavlab.rdp.model.enums.ResearcherCategory;
 import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import ubc.pavlab.rdp.model.enums.TierType;
@@ -57,9 +60,6 @@ public class SearchController extends AbstractSearchController {
     private UserGeneService userGeneService;
 
     @Autowired
-    private OrganInfoService organInfoService;
-
-    @Autowired
     private RemoteResourceService remoteResourceService;
 
     @Autowired
@@ -77,52 +77,46 @@ public class SearchController extends AbstractSearchController {
     @PreAuthorize("hasPermission(null, 'search')")
     @GetMapping(value = "/search")
     public ModelAndView search() {
-        ModelAndView modelAndView = new ModelAndView( "search" );
-        modelAndView.addObject( "activeSearchMode", applicationSettings.getSearch().getEnabledSearchModes().stream().findFirst().orElse( null ) );
-        modelAndView.addObject( "chars", userService.getLastNamesFirstChar() );
-        modelAndView.addObject( "user", userService.findCurrentUser() );
-        modelAndView.addObject( "ontologyTerms", Collections.emptyList() );
-        return modelAndView;
+        return new ModelAndView( "search" )
+                .addObject( "activeSearchMode", applicationSettings.getSearch().getEnabledSearchModes().stream().findFirst().orElse( null ) )
+                .addObject( "chars", userService.getLastNamesFirstChar() )
+                .addObject( "user", userService.findCurrentUser() )
+                .addObject( "ontologyTerms", Collections.emptyList() );
     }
 
-    @PreAuthorize("hasPermission(null, #iSearch ? 'international-search' : 'search')")
+    @PreAuthorize("hasPermission(null, #userSearchParams.isISearch() ? 'international-search' : 'search')")
     @GetMapping(value = "/search", params = { "nameLike", "descriptionLike" })
-    public Object searchUsers( @RequestParam String nameLike,
-                               @RequestParam(required = false) boolean prefix,
-                               @RequestParam String descriptionLike,
-                               @RequestParam boolean iSearch,
-                               @RequestParam(required = false) Set<ResearcherPosition> researcherPositions,
-                               @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
-                               @RequestParam(required = false) Set<String> organUberonIds,
-                               @RequestParam(required = false) List<Integer> ontologyTermIds ) {
-        if ( nameLike.isEmpty() ^ descriptionLike.isEmpty() ) {
-            return redirectToSpecificSearch( nameLike, descriptionLike );
+    public Object searchUsers( @Valid UserSearchParams userSearchParams,
+                               BindingResult bindingResult ) {
+        if ( userSearchParams.getNameLike().isEmpty() ^ userSearchParams.getDescriptionLike().isEmpty() ) {
+            return redirectToSpecificSearch( userSearchParams.getNameLike(), userSearchParams.getDescriptionLike() );
         }
         List<OntologyTermInfo> ontologyTerms;
-        if ( ontologyTermIds != null ) {
-            ontologyTerms = ontologyService.findAllTermsByIdInMaintainingOrder( ontologyTermIds );
+        if ( userSearchParams.getOntologyTermIds() != null ) {
+            ontologyTerms = ontologyService.findAllTermsByIdInMaintainingOrder( userSearchParams.getOntologyTermIds() );
         } else {
             ontologyTerms = Collections.emptyList();
         }
         ModelAndView modelAndView = new ModelAndView( "search" )
                 .addObject( "activeSearchMode", ApplicationSettings.SearchSettings.SearchMode.BY_RESEARCHER )
                 .addObject( "chars", userService.getLastNamesFirstChar() )
-                .addObject( "nameLike", nameLike )
-                .addObject( "descriptionLike", descriptionLike )
+                .addObject( "nameLike", userSearchParams.getNameLike() )
+                .addObject( "descriptionLike", userSearchParams.getDescriptionLike() )
+                .addObject( "organUberonIds", userSearchParams.getOrganUberonIds() )
                 .addObject( "ontologyTerms", ontologyTerms )
-                .addObject( "iSearch", iSearch );
-        if ( nameLike.isEmpty() ) {
+                .addObject( "iSearch", userSearchParams.isISearch() );
+        if ( bindingResult.hasErrors() ) {
             modelAndView.setStatus( HttpStatus.BAD_REQUEST );
-            modelAndView.addObject( "message", "Researcher name and interests cannot be empty." );
+            modelAndView.addObject( "message", "Invalid user search parameters." );
             modelAndView.addObject( "error", true );
             modelAndView.addObject( "users", Collections.emptyList() );
-            if ( iSearch ) {
+            if ( userSearchParams.isISearch() ) {
                 modelAndView.addObject( "itlUsers", Collections.emptyList() );
             }
         } else {
-            modelAndView.addObject( "users", userService.findByNameAndDescription( nameLike, prefix, descriptionLike, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ), ontologyTermsFromIds( ontologyTermIds ) ) );
-            if ( iSearch ) {
-                modelAndView.addObject( "itlUsers", remoteResourceService.findUsersByLikeNameAndDescription( nameLike, prefix, descriptionLike, researcherPositions, researcherCategories, organUberonIds, ontologyTermsFromIds( ontologyTermIds ) ) );
+            modelAndView.addObject( "users", userService.findByNameAndDescription( userSearchParams.getNameLike(), userSearchParams.isPrefix(), userSearchParams.getDescriptionLike(), userSearchParams.getResearcherPositions(), userSearchParams.getResearcherCategories(), organsFromUberonIds( userSearchParams.getOrganUberonIds() ), ontologyTermsFromIds( userSearchParams.getOntologyTermIds() ) ) );
+            if ( userSearchParams.isISearch() ) {
+                modelAndView.addObject( "itlUsers", remoteResourceService.findUsersByLikeNameAndDescription( userSearchParams.getNameLike(), userSearchParams.isPrefix(), userSearchParams.getDescriptionLike(), userSearchParams.getResearcherPositions(), userSearchParams.getResearcherCategories(), userSearchParams.getOrganUberonIds(), ontologyTermsFromIds( userSearchParams.getOntologyTermIds() ) ) );
             }
         }
         return modelAndView;
@@ -137,25 +131,25 @@ public class SearchController extends AbstractSearchController {
                                            @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
                                            @RequestParam(required = false) Set<String> organUberonIds,
                                            @RequestParam(required = false) List<Integer> ontologyTermIds ) {
-        ModelAndView modelAndView = new ModelAndView( "search" );
         Collection<User> users;
         if ( prefix ) {
             users = userService.findByStartsName( nameLike, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ), ontologyTermsFromIds( ontologyTermIds ) );
         } else {
             users = userService.findByLikeName( nameLike, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ), ontologyTermsFromIds( ontologyTermIds ) );
         }
-        modelAndView.addObject( "activeSearchMode", ApplicationSettings.SearchSettings.SearchMode.BY_RESEARCHER );
-        modelAndView.addObject( "nameLike", nameLike );
-        modelAndView.addObject( "organUberonIds", organUberonIds );
+        ModelAndView modelAndView = new ModelAndView( "search" )
+                .addObject( "activeSearchMode", ApplicationSettings.SearchSettings.SearchMode.BY_RESEARCHER )
+                .addObject( "nameLike", nameLike )
+                .addObject( "organUberonIds", organUberonIds )
+                .addObject( "chars", userService.getLastNamesFirstChar() )
+                .addObject( "user", userService.findCurrentUser() )
+                .addObject( "iSearch", iSearch );
         if ( ontologyTermIds != null ) {
             List<OntologyTermInfo> ontologyTerms = ontologyService.findAllTermsByIdInMaintainingOrder( ontologyTermIds );
             modelAndView.addObject( "ontologyTerms", ontologyTerms );
         } else {
             modelAndView.addObject( "ontologyTerms", Collections.emptyList() );
         }
-        modelAndView.addObject( "chars", userService.getLastNamesFirstChar() );
-        modelAndView.addObject( "user", userService.findCurrentUser() );
-        modelAndView.addObject( "iSearch", iSearch );
         if ( nameLike.isEmpty() ) {
             modelAndView.setStatus( HttpStatus.BAD_REQUEST );
             modelAndView.addObject( "message", "Researcher name cannot be empty." );
@@ -180,21 +174,19 @@ public class SearchController extends AbstractSearchController {
                                                   @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
                                                   @RequestParam(required = false) Set<String> organUberonIds,
                                                   @RequestParam(required = false) List<Integer> ontologyTermIds ) {
-        ModelAndView modelAndView = new ModelAndView( "search" );
-        modelAndView.addObject( "activeSearchMode", ApplicationSettings.SearchSettings.SearchMode.BY_RESEARCHER );
-        modelAndView.addObject( "descriptionLike", descriptionLike );
-        modelAndView.addObject( "organUberonIds", organUberonIds );
+        ModelAndView modelAndView = new ModelAndView( "search" )
+                .addObject( "activeSearchMode", ApplicationSettings.SearchSettings.SearchMode.BY_RESEARCHER )
+                .addObject( "descriptionLike", descriptionLike )
+                .addObject( "organUberonIds", organUberonIds )
+                .addObject( "chars", userService.getLastNamesFirstChar() )
+                .addObject( "iSearch", iSearch )
+                .addObject( "user", userService.findCurrentUser() );
         if ( ontologyTermIds != null ) {
             List<OntologyTermInfo> ontologyTerms = ontologyService.findAllTermsByIdInMaintainingOrder( ontologyTermIds );
             modelAndView.addObject( "ontologyTerms", ontologyTerms );
         } else {
             modelAndView.addObject( "ontologyTerms", Collections.emptyList() );
         }
-        modelAndView.addObject( "chars", userService.getLastNamesFirstChar() );
-        modelAndView.addObject( "iSearch", iSearch );
-
-        modelAndView.addObject( "user", userService.findCurrentUser() );
-
         if ( descriptionLike.isEmpty() ) {
             modelAndView.setStatus( HttpStatus.BAD_REQUEST );
             modelAndView.addObject( "message", "Research interests cannot be empty." );
@@ -232,22 +224,22 @@ public class SearchController extends AbstractSearchController {
             tiers = TierType.ANY;
         }
 
-        ModelAndView modelAndView = new ModelAndView( "search" );
+        ModelAndView modelAndView = new ModelAndView( "search" )
+                .addObject( "activeSearchMode", ApplicationSettings.SearchSettings.SearchMode.BY_GENE )
+                .addObject( "chars", userService.getLastNamesFirstChar() )
+                .addObject( "symbol", symbol )
+                .addObject( "taxonId", taxonId )
+                .addObject( "orthologTaxonId", orthologTaxonId )
+                .addObject( "tiers", tiers )
+                .addObject( "organUberonIds", organUberonIds )
+                .addObject( "iSearch", iSearch );
 
-        modelAndView.addObject( "activeSearchMode", ApplicationSettings.SearchSettings.SearchMode.BY_GENE );
-        modelAndView.addObject( "chars", userService.getLastNamesFirstChar() );
-        modelAndView.addObject( "symbol", symbol );
-        modelAndView.addObject( "taxonId", taxonId );
-        modelAndView.addObject( "orthologTaxonId", orthologTaxonId );
-        modelAndView.addObject( "tiers", tiers );
-        modelAndView.addObject( "organUberonIds", organUberonIds );
         if ( ontologyTermIds != null ) {
             List<OntologyTermInfo> ontologyTerms = ontologyService.findAllTermsByIdInMaintainingOrder( ontologyTermIds );
             modelAndView.addObject( "ontologyTerms", ontologyTerms );
         } else {
             modelAndView.addObject( "ontologyTerms", Collections.emptyList() );
         }
-        modelAndView.addObject( "iSearch", iSearch );
 
         Taxon taxon = taxonService.findById( taxonId );
 
@@ -302,7 +294,6 @@ public class SearchController extends AbstractSearchController {
     @GetMapping(value = "/userView/{userId}")
     public ModelAndView viewUser( @PathVariable Integer userId,
                                   @RequestParam(required = false) String remoteHost ) {
-        ModelAndView modelAndView = new ModelAndView( "userView" );
         User user = userService.findCurrentUser();
         User viewUser;
         if ( remoteHost != null && !remoteHost.isEmpty() ) {
@@ -311,23 +302,20 @@ public class SearchController extends AbstractSearchController {
                 viewUser = remoteResourceService.getRemoteUser( userId, remoteHostUri );
             } catch ( RemoteException e ) {
                 log.error( MessageFormat.format( "Could not fetch the remote user id {0} from {1}.", userId, remoteHostUri.getRawAuthority() ), e );
-                modelAndView.setStatus( HttpStatus.SERVICE_UNAVAILABLE );
-                modelAndView.setViewName( "error/503" );
-                return modelAndView;
+                return new ModelAndView( "error/503", HttpStatus.SERVICE_UNAVAILABLE );
             }
         } else {
             viewUser = userService.findUserById( userId );
         }
 
         if ( viewUser == null ) {
-            modelAndView.setStatus( HttpStatus.NOT_FOUND );
-            modelAndView.setViewName( "error/404" );
+            return new ModelAndView( "error/404", HttpStatus.NOT_FOUND );
         } else {
-            modelAndView.addObject( "user", user );
-            modelAndView.addObject( "viewUser", viewUser );
-            modelAndView.addObject( "viewOnly", Boolean.TRUE );
+            return new ModelAndView( "userView" )
+                    .addObject( "user", user )
+                    .addObject( "viewUser", viewUser )
+                    .addObject( "viewOnly", Boolean.TRUE );
         }
-        return modelAndView;
     }
 
     @Data
@@ -341,12 +329,9 @@ public class SearchController extends AbstractSearchController {
     @GetMapping("/search/gene/by-anonymous-id/{anonymousId}/request-access")
     public Object requestGeneAccessView( @PathVariable UUID anonymousId,
                                          RedirectAttributes redirectAttributes ) {
-        ModelAndView modelAndView = new ModelAndView( "search/request-access" );
         UserGene userGene = userService.findUserGeneByAnonymousIdNoAuth( anonymousId );
         if ( userGene == null ) {
-            modelAndView.setStatus( HttpStatus.NOT_FOUND );
-            modelAndView.setViewName( "error/404" );
-            return modelAndView;
+            return new ModelAndView( "error/404", HttpStatus.NOT_FOUND );
         }
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if ( permissionEvaluator.hasPermission( auth, userGene, "read" ) ) {
@@ -357,9 +342,9 @@ public class SearchController extends AbstractSearchController {
             redirectAttributes.addFlashAttribute( "message", "There is no need to request access as you have sufficient permission to see this gene." );
             return new RedirectView( redirectUri );
         }
-        modelAndView.addObject( "requestAccessForm", new RequestAccessForm() );
-        modelAndView.addObject( "userGene", userService.anonymizeUserGene( userGene ) );
-        return modelAndView;
+        return new ModelAndView( "search/request-access" )
+                .addObject( "requestAccessForm", new RequestAccessForm() )
+                .addObject( "userGene", userService.anonymizeUserGene( userGene ) );
     }
 
     @PreAuthorize("hasPermission(null, 'search') and hasAnyRole('USER', 'ADMIN')")
@@ -368,24 +353,19 @@ public class SearchController extends AbstractSearchController {
                                            @Valid RequestAccessForm requestAccessForm,
                                            BindingResult bindingResult,
                                            RedirectAttributes redirectAttributes ) {
-        ModelAndView modelAndView = new ModelAndView( "search/request-access" );
         UserGene userGene = userService.findUserGeneByAnonymousIdNoAuth( anonymousId );
         if ( userGene == null ) {
-            modelAndView.setStatus( HttpStatus.NOT_FOUND );
-            modelAndView.setViewName( "error/404" );
-            return modelAndView;
+            return new ModelAndView( "error/404", HttpStatus.NOT_FOUND );
         }
 
-        modelAndView.addObject( "userGene", userService.anonymizeUserGene( userGene ) );
-
         if ( bindingResult.hasErrors() ) {
-            modelAndView.setStatus( HttpStatus.BAD_REQUEST );
+            return new ModelAndView( "search/request-access", HttpStatus.BAD_REQUEST )
+                    .addObject( "userGene", userService.anonymizeUserGene( userGene ) );
         } else {
             userService.sendGeneAccessRequest( userService.findCurrentUser(), userGene, requestAccessForm.getReason() );
             redirectAttributes.addFlashAttribute( "message", "An access request has been sent and will be reviewed." );
             return new ModelAndView( "redirect:/search" );
         }
-        return modelAndView;
     }
 
     /**
@@ -409,13 +389,5 @@ public class SearchController extends AbstractSearchController {
         } else {
             return ontologyService.autocompleteTerms( query, 20, locale );
         }
-    }
-
-    private Collection<OrganInfo> organsFromUberonIds( Set<String> organUberonIds ) {
-        return organUberonIds == null ? null : organInfoService.findByUberonIdIn( organUberonIds );
-    }
-
-    private Collection<OntologyTermInfo> ontologyTermsFromIds( Collection<Integer> ontologyTermIds ) {
-        return ontologyTermIds == null ? null : ontologyService.findAllTermsByIdIn( ontologyTermIds );
     }
 }
