@@ -34,11 +34,19 @@ import java.util.*;
 public class OntologyTermInfo extends OntologyTerm implements Serializable, Comparable<OntologyTermInfo> {
 
     /**
-     * Maximum size of name and synonym.
+     * Maximum size of term ID and name.
      * <p>
      * TODO: gather this information from the metamodel.
      */
-    public static final int MAX_TERM_ID_LENGTH = 255, MAX_NAME_LENGTH = 255, MAX_SYNONYM_LENGTH = 255;
+    public static final int MAX_TERM_ID_LENGTH = 255, MAX_NAME_LENGTH = 255;
+
+    /**
+     * Maximum size of a term synonym.
+     * <p>
+     * Unlike the limits defined above {@link #MAX_TERM_ID_LENGTH} and {@link #MAX_NAME_LENGTH}, this one is part of the
+     * column definition.
+     */
+    public static final int MAX_SYNONYM_LENGTH = 255;
 
     public static OntologyTermInfoBuilder<?, ?> builder( @NonNull Ontology ontology, @NonNull String termId ) {
         return new OntologyTermInfo.OntologyTermInfoBuilderImpl()
