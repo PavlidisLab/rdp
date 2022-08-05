@@ -71,11 +71,14 @@
                 <div th:with="reactome=${@reactomeService.findPathwaysOntology()}"
                      class="col-4">
                     <h2>Reactome Pathways</h2>
-                    <p>RDP provides capability of importing Reactome pathways.</p>
-                    <p th:if="${reactome} != null" class="text-success">
-                        Reactome is already setup.
-                        <a th:href="@{/admin/ontologies/{ontologyId}(ontologyId=${reactome.id})}">View Reactome</a>
+                    <p>
+                        RDP provides capability of importing human <a href="https://reactome.org/PathwayBrowser/"
+                                                                      target="_blank"
+                                                                      rel="noopener">Reactome pathways</a>.
                     </p>
+                    <div th:if="${reactome} != null">
+                        <p class="text-success">Reactome is already setup.</p>
+                    </div>
                     <form th:if="${reactome} == null"
                           th:action="@{/admin/ontologies/import-reactome-pathways}"
                           method="post">
