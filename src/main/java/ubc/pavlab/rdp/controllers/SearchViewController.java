@@ -86,17 +86,14 @@ public class SearchViewController extends AbstractSearchController {
         if ( nameLike.isEmpty() ^ descriptionLike.isEmpty() ) {
             return redirectToSpecificSearch( nameLike, descriptionLike );
         }
-        ModelAndView modelAndView = new ModelAndView( "fragments/user-table::user-table" );
         if ( nameLike.isEmpty() ) {
-            modelAndView.setStatus( HttpStatus.BAD_REQUEST );
-            modelAndView.addObject( "message", "Researcher name and interests cannot be empty." );
-            modelAndView.addObject( "error", true );
-            modelAndView.addObject( "users", Collections.emptyList() );
+            return new ModelAndView( "fragments/error::message", HttpStatus.BAD_REQUEST )
+                    .addObject( "errorMessage", "Researcher name and interests cannot be empty." );
         } else {
-            modelAndView.addObject( "users", remoteResourceService.findUsersByLikeNameAndDescription( nameLike, prefix, descriptionLike, researcherPositions, researcherCategories, organUberonIds, ontologyTermsFromIds( ontologyTermIds ) ) )
+            return new ModelAndView( "fragments/user-table::user-table" )
+                    .addObject( "users", remoteResourceService.findUsersByLikeNameAndDescription( nameLike, prefix, descriptionLike, researcherPositions, researcherCategories, organUberonIds, ontologyTermsFromIds( ontologyTermIds ) ) )
                     .addObject( "remote", Boolean.TRUE );
         }
-        return modelAndView;
     }
 
 
@@ -147,17 +144,13 @@ public class SearchViewController extends AbstractSearchController {
         if ( nameLike.isEmpty() ^ descriptionLike.isEmpty() ) {
             return redirectToSpecificSearch( nameLike, descriptionLike );
         }
-        ModelAndView modelAndView = new ModelAndView( "fragments/user-table::user-table" );
         if ( nameLike.isEmpty() ) {
-            modelAndView.setStatus( HttpStatus.BAD_REQUEST );
-            modelAndView.addObject( "message", "Researcher name and interests cannot be empty." );
-            modelAndView.addObject( "error", true );
-            modelAndView.addObject( "users", Collections.emptyList() );
+            return new ModelAndView( "fragments/error::message", HttpStatus.BAD_REQUEST )
+                    .addObject( "errorMessage", "Researcher name and interests cannot be empty." );
         } else {
-            modelAndView.addObject( "users", userService.findByNameAndDescription( nameLike, prefix, descriptionLike,
-                    researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ), ontologyTermsFromIds( ontologyTermIds ) ) );
+            return new ModelAndView( "fragments/user-table::user-table" )
+                    .addObject( "users", userService.findByNameAndDescription( nameLike, prefix, descriptionLike, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ), ontologyTermsFromIds( ontologyTermIds ) ) );
         }
-        return modelAndView;
     }
 
     @PreAuthorize("hasPermission(null, 'search')")
@@ -210,8 +203,6 @@ public class SearchViewController extends AbstractSearchController {
                                                @RequestParam(required = false) Set<String> organUberonIds,
                                                @RequestParam(required = false) Set<Integer> ontologyTermIds,
                                                Locale locale ) {
-        ModelAndView modelAndView = new ModelAndView( "fragments/user-table::usergenes-table" );
-
         if ( tiers == null ) {
             tiers = TierType.ANY;
         }
@@ -224,11 +215,8 @@ public class SearchViewController extends AbstractSearchController {
         Taxon taxon = taxonService.findById( taxonId );
 
         if ( taxon == null ) {
-            modelAndView.setStatus( HttpStatus.NOT_FOUND );
-            modelAndView.setViewName( "fragments/error::message" );
-            modelAndView.addObject( "errorMessage",
-                    messageSource.getMessage( "SearchController.errorNoTaxon", new String[]{ taxonId.toString() }, locale ) );
-            return modelAndView;
+            return new ModelAndView( "fragments/error::message", HttpStatus.NOT_FOUND )
+                    .addObject( "errorMessage", messageSource.getMessage( "SearchController.errorNoTaxon", new String[]{ taxonId.toString() }, locale ) );
         }
 
         if ( symbol.isEmpty() ) {
@@ -239,19 +227,15 @@ public class SearchViewController extends AbstractSearchController {
         GeneInfo gene = geneInfoService.findBySymbolAndTaxon( symbol, taxon );
 
         if ( gene == null ) {
-            modelAndView.setStatus( HttpStatus.NOT_FOUND );
-            modelAndView.setViewName( "fragments/error::message" );
-            modelAndView.addObject( "errorMessage",
-                    messageSource.getMessage( "SearchController.errorNoGene", new String[]{ symbol, taxon.getScientificName() }, locale ) );
-            return modelAndView;
+            return new ModelAndView( "fragments/error::message", HttpStatus.NOT_FOUND )
+                    .addObject( "errorMessage",
+                            messageSource.getMessage( "SearchController.errorNoGene", new String[]{ symbol, taxon.getScientificName() }, locale ) );
         }
 
         Taxon orthologTaxon = orthologTaxonId == null ? null : taxonService.findById( orthologTaxonId );
         if ( orthologTaxonId != null && orthologTaxon == null ) {
-            modelAndView.setStatus( HttpStatus.NOT_FOUND );
-            modelAndView.setViewName( "fragments/error::message" );
-            modelAndView.addObject( "errorMessage", messageSource.getMessage( "SearchController.errorNoOrthologTaxonId", new String[]{ orthologTaxonId.toString() }, locale ) );
-            return modelAndView;
+            return new ModelAndView( "fragments/error::message", HttpStatus.NOT_FOUND )
+                    .addObject( "errorMessage", messageSource.getMessage( "SearchController.errorNoOrthologTaxonId", new String[]{ orthologTaxonId.toString() }, locale ) );
         }
 
         Collection<GeneInfo> orthologs = gene.getOrthologs().stream()
@@ -260,16 +244,12 @@ public class SearchViewController extends AbstractSearchController {
 
         // Check if there is an ortholog request for a different taxon than the original gene
         if ( orthologTaxon != null && !orthologTaxon.equals( gene.getTaxon() ) && orthologs.isEmpty() ) {
-            modelAndView.setStatus( HttpStatus.NOT_FOUND );
-            modelAndView.setViewName( "fragments/error::message" );
-            modelAndView.addObject( "errorMessage",
-                    messageSource.getMessage( "SearchController.errorNoOrthologs", new String[]{ symbol, orthologTaxon.getScientificName() }, locale ) );
-            return modelAndView;
+            return new ModelAndView( "fragments/error::message", HttpStatus.NOT_FOUND )
+                    .addObject( "errorMessage", messageSource.getMessage( "SearchController.errorNoOrthologs", new String[]{ symbol, orthologTaxon.getScientificName() }, locale ) );
         }
 
-        modelAndView.addObject( "usergenes", userGeneService.handleGeneSearch( gene, tiers, orthologTaxon, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ), ontologyTermsFromIds( ontologyTermIds ) ) );
-
-        return modelAndView;
+        return new ModelAndView( "fragments/user-table::usergenes-table" )
+                .addObject( "usergenes", userGeneService.handleGeneSearch( gene, tiers, orthologTaxon, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ), ontologyTermsFromIds( ontologyTermIds ) ) );
     }
 
     @PreAuthorize("hasPermission(null, 'search')")
@@ -279,8 +259,6 @@ public class SearchViewController extends AbstractSearchController {
                                                 @RequestParam(required = false) Set<TierType> tiers,
                                                 @RequestParam(required = false) Integer orthologTaxonId,
                                                 Locale locale ) {
-        ModelAndView modelAndView = new ModelAndView( "fragments/ortholog-table::ortholog-table" );
-
         // Only look for orthologs when taxon is human
         if ( taxonId != 9606 ) {
             orthologTaxonId = null;
@@ -292,11 +270,8 @@ public class SearchViewController extends AbstractSearchController {
 
         Taxon taxon = taxonService.findById( taxonId );
         if ( taxon == null ) {
-            modelAndView.setStatus( HttpStatus.BAD_REQUEST );
-            modelAndView.setViewName( "fragments/error::message" );
-            modelAndView.addObject( "errorMessage",
-                    messageSource.getMessage( "SearchController.errorNoTaxon", new String[]{ taxonId.toString() }, locale ) );
-            return modelAndView;
+            return new ModelAndView( "fragments/error::message", HttpStatus.BAD_REQUEST )
+                    .addObject( "errorMessage", messageSource.getMessage( "SearchController.errorNoTaxon", new String[]{ taxonId.toString() }, locale ) );
         }
 
         if ( symbol.isEmpty() ) {
@@ -307,11 +282,8 @@ public class SearchViewController extends AbstractSearchController {
         GeneInfo gene = geneInfoService.findBySymbolAndTaxon( symbol, taxon );
 
         if ( gene == null ) {
-            modelAndView.setStatus( HttpStatus.NOT_FOUND );
-            modelAndView.setViewName( "fragments/error::message" );
-            modelAndView.addObject( "errorMessage",
-                    messageSource.getMessage( "SearchController.errorNoGene", new String[]{ symbol, taxon.getScientificName() }, locale ) );
-            return modelAndView;
+            return new ModelAndView( "fragments/error::message", HttpStatus.NOT_FOUND )
+                    .addObject( "errorMessage", messageSource.getMessage( "SearchController.errorNoGene", new String[]{ symbol, taxon.getScientificName() }, locale ) );
         }
 
         Taxon orthologTaxon = orthologTaxonId == null ? null : taxonService.findById( orthologTaxonId );
@@ -321,20 +293,17 @@ public class SearchViewController extends AbstractSearchController {
 
         // Check if there is an ortholog request for a different taxon than the original gene
         if ( orthologTaxon != null && !orthologTaxon.equals( gene.getTaxon() ) && orthologs.isEmpty() ) {
-            modelAndView.setStatus( HttpStatus.BAD_REQUEST );
-            modelAndView.setViewName( "fragments/error::message" );
-            modelAndView.addObject( "errorMessage",
-                    messageSource.getMessage( "SearchController.errorNoOrthologs", new String[]{ symbol, orthologTaxon.getScientificName() }, locale ) );
-            return modelAndView;
+            return new ModelAndView( "fragments/error::message", HttpStatus.BAD_REQUEST )
+                    .addObject( "errorMessage",
+                            messageSource.getMessage( "SearchController.errorNoOrthologs", new String[]{ symbol, orthologTaxon.getScientificName() }, locale ) );
         }
 
         Map<Taxon, Set<GeneInfo>> orthologMap = orthologs.stream()
                 .sorted( Comparator.comparing( GeneInfo::getTaxon, Taxon.getComparator() ) )
                 .collect( Collectors.groupingBy( GeneInfo::getTaxon, LinkedHashMap::new, Collectors.toSet() ) );
 
-        modelAndView.addObject( "orthologs", orthologMap );
-
-        return modelAndView;
+        return new ModelAndView( "fragments/ortholog-table::ortholog-table" )
+                .addObject( "orthologs", orthologMap );
     }
 
 
@@ -365,51 +334,43 @@ public class SearchViewController extends AbstractSearchController {
         Taxon taxon = taxonService.findById( taxonId );
         Collection<UserGene> userGenes = remoteResourceService.findGenesBySymbol( symbol, taxon, tiers, orthologTaxonId, researcherPositions, researcherCategories, organUberonIds, ontologyTermsFromIds( ontologyTermIds ) );
 
-        ModelAndView modelAndView = new ModelAndView( "fragments/user-table::usergenes-table" );
-        modelAndView.addObject( "usergenes", userGenes );
-        modelAndView.addObject( "remote", Boolean.TRUE );
-
-        return modelAndView;
+        return new ModelAndView( "fragments/user-table::usergenes-table" )
+                .addObject( "usergenes", userGenes )
+                .addObject( "remote", Boolean.TRUE );
     }
 
     @PreAuthorize("hasPermission(null, #remoteHost == null ? 'search' : 'international-search')")
     @GetMapping(value = "/search/view/user-preview/{userId}")
     public ModelAndView previewUser( @PathVariable Integer userId,
                                      @RequestParam(required = false) String remoteHost ) {
-        ModelAndView modelAndView = new ModelAndView( "fragments/profile::user-preview" );
-
         User user;
         if ( remoteHost != null ) {
             try {
                 user = remoteResourceService.getRemoteUser( userId, URI.create( remoteHost ) );
             } catch ( RemoteException e ) {
                 log.error( "Could not retrieve user {0} from {1}.", e );
-                modelAndView.setStatus( HttpStatus.INTERNAL_SERVER_ERROR );
-                modelAndView.setViewName( "fragments/error::message" );
-                modelAndView.addObject( "errorMessage", "Error querying remote user." );
-                return modelAndView;
+                return new ModelAndView( "fragments/error::message", HttpStatus.INTERNAL_SERVER_ERROR )
+                        .addObject( "errorMessage", "Error querying remote user." );
             }
         } else {
             user = userService.findUserById( userId );
         }
         if ( user == null ) {
-            modelAndView.setStatus( HttpStatus.NOT_FOUND );
-            modelAndView.setViewName( "fragments/error::message" );
-            modelAndView.addObject( "errorMessage", "Could not find user by given identifier." );
+            return new ModelAndView( "fragments/error::message", HttpStatus.NOT_FOUND )
+                    .addObject( "errorMessage", "Could not find user by given identifier." );
         } else if ( userPreviewIsEmpty( user ) ) {
-            modelAndView.setStatus( HttpStatus.NO_CONTENT );
-            modelAndView.addObject( "user", user );
+            return new ModelAndView( "fragments/profile::user-preview", HttpStatus.NO_CONTENT )
+                    .addObject( "user", user );
         } else {
-            modelAndView.addObject( "user", user );
+            return new ModelAndView( "fragments/profile::user-preview" )
+                    .addObject( "user", user );
         }
-        return modelAndView;
     }
 
     @PreAuthorize("hasPermission(null, #remoteHost == null ? 'search' : 'international-search')")
     @GetMapping(value = "/search/view/user-preview/by-anonymous-id/{anonymousId}")
     public ModelAndView previewAnonymousUser( @PathVariable UUID anonymousId,
                                               @RequestParam(required = false) String remoteHost ) {
-        ModelAndView modelAndView = new ModelAndView( "fragments/profile::user-preview" );
         User user;
         if ( remoteHost != null ) {
             URI remoteHostUri = URI.create( remoteHost );
@@ -417,25 +378,22 @@ public class SearchViewController extends AbstractSearchController {
                 user = remoteResourceService.getAnonymizedUser( anonymousId, remoteHostUri );
             } catch ( RemoteException e ) {
                 log.error( MessageFormat.format( "Failed to retrieve anonymized user {} from {}.", anonymousId, remoteHostUri.getRawAuthority() ), e );
-                modelAndView.setStatus( HttpStatus.INTERNAL_SERVER_ERROR );
-                modelAndView.setViewName( "fragments/error::message" );
-                modelAndView.addObject( "errorMessage", "Error querying remote anonymous user." );
-                return modelAndView;
+                return new ModelAndView( "fragments/error::message", HttpStatus.INTERNAL_SERVER_ERROR )
+                        .addObject( "errorMessage", "Error querying remote anonymous user." );
             }
         } else {
             user = userService.anonymizeUser( userService.findUserByAnonymousIdNoAuth( anonymousId ) );
         }
         if ( user == null ) {
-            modelAndView.setStatus( HttpStatus.NOT_FOUND );
-            modelAndView.setViewName( "fragments/error::message" );
-            modelAndView.addObject( "errorMessage", "Could not find user by given identifier." );
+            return new ModelAndView( "fragments/error::message", HttpStatus.NOT_FOUND )
+                    .addObject( "errorMessage", "Could not find user by given identifier." );
         } else if ( userPreviewIsEmpty( user ) ) {
-            modelAndView.setStatus( HttpStatus.NO_CONTENT );
-            modelAndView.addObject( "user", user );
+            return new ModelAndView( "fragments/profile::user-preview", HttpStatus.NO_CONTENT )
+                    .addObject( "user", user );
         } else {
-            modelAndView.addObject( "user", user );
+            return new ModelAndView( "fragments/profile::user-preview" )
+                    .addObject( "user", user );
         }
-        return modelAndView;
     }
 
     private boolean userPreviewIsEmpty( User user ) {
