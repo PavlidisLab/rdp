@@ -1,6 +1,7 @@
 package ubc.pavlab.rdp.services;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.SuperBuilder;
 import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.lang3.tuple.Pair;
@@ -177,6 +178,10 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
                     CompletableFuture<ResponseEntity<User[]>> descriptionLikeFuture = FutureUtils.toCompletableFuture( asyncRestTemplate.getForEntity( uri2, User[].class ) );
 
                     return Optional.of( Pair.of( uri1, nameLikeFuture.thenCombine( descriptionLikeFuture, ( a, b ) -> {
+                        if ( a.getBody() == null || b.getBody() == null ) {
+                            log.error( String.format( "One or both of these responses had a null body: %s, %s. Nothing will be returned for the intersection.", a, b ) );
+                            return new ResponseEntity<>( new User[0], a.getHeaders(), a.getStatusCode() );
+                        }
                         Set<User> nameLikeUsers = new HashSet<>( Arrays.asList( a.getBody() ) );
                         Set<User> descriptionLikeUsers = new HashSet<>( Arrays.asList( b.getBody() ) );
                         nameLikeUsers.retainAll( descriptionLikeUsers );
@@ -267,7 +272,9 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
     private User getUserByUri( URI uri ) throws RemoteException {
         ResponseEntity<User> responseEntity = getFromRequestFuture( uri, asyncRestTemplate.getForEntity( uri, User.class ) );
         User user = responseEntity.getBody();
-        initUser( user );
+        if ( user != null ) {
+            initUser( user );
+        }
         return user;
     }
 
@@ -465,6 +472,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
     }
 
     @Data
+    @EqualsAndHashCode(callSuper = true)
     @SuperBuilder
     static class UserGeneSearchParams extends UserSearchParams {
 
