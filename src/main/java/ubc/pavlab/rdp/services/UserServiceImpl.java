@@ -398,6 +398,7 @@ public class UserServiceImpl implements UserService, InitializingBean {
     }
 
     @Override
+    @PostFilter("hasPermission(filterObject, 'read')")
     public List<User> findByNameAndDescription( String nameLike, boolean prefix, String descriptionLike, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherCategories, Collection<OrganInfo> organs, Collection<OntologyTermInfo> ontologyTermInfos ) {
         final Set<String> organUberonIds = organUberonIdsFromOrgans( organs );
         String namePattern = prefix ? nameLike + "%" : "%" + nameLike + "%";
