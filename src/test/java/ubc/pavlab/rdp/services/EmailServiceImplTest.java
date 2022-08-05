@@ -180,6 +180,6 @@ public class EmailServiceImplTest {
         assertThat( mailMessage.getText() )
                 .contains( userGene.getSymbol() )
                 .contains( user.getProfile().getFullName() )
-                .contains( "http://localhost/userView/1" );
+                .contains( "http://localhost/search/user/1" );
     }
 }

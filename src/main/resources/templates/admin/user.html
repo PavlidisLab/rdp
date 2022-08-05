@@ -31,7 +31,7 @@
                 </th:block>
             </dl>
             <div th:if="${user.enabled}" class="form-group">
-                <a class="btn btn-primary btn-sm" th:href="@{/userView/{userId}(userId=${user.id})}">
+                <a class="btn btn-primary btn-sm" th:href="@{/search/user/{userId}(userId=${user.id})}">
                     <i class="oi oi-person"></i>
                     View User Profile
                 </a>

@@ -16,8 +16,6 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-import org.springframework.web.servlet.view.RedirectView;
 import ubc.pavlab.rdp.exception.RemoteException;
 import ubc.pavlab.rdp.model.GeneInfo;
 import ubc.pavlab.rdp.model.Taxon;
@@ -291,9 +289,9 @@ public class SearchController extends AbstractSearchController {
     }
 
     @PreAuthorize("hasPermission(null, #remoteHost == null ? 'search' : 'international-search')")
-    @GetMapping(value = "/userView/{userId}")
-    public ModelAndView viewUser( @PathVariable Integer userId,
-                                  @RequestParam(required = false) String remoteHost ) {
+    @GetMapping(value = "/search/user/{userId}")
+    public ModelAndView getUser( @PathVariable Integer userId,
+                                 @RequestParam(required = false) String remoteHost ) {
         User user = userService.findCurrentUser();
         User viewUser;
         if ( remoteHost != null && !remoteHost.isEmpty() ) {
@@ -311,11 +309,21 @@ public class SearchController extends AbstractSearchController {
         if ( viewUser == null ) {
             return new ModelAndView( "error/404", HttpStatus.NOT_FOUND );
         } else {
-            return new ModelAndView( "userView" )
+            return new ModelAndView( "search/user" )
                     .addObject( "user", user )
                     .addObject( "viewUser", viewUser )
                     .addObject( "viewOnly", Boolean.TRUE );
         }
+    }
+
+    @Deprecated
+    @PreAuthorize("hasPermission(null, #remoteHost == null ? 'search' : 'international-search')")
+    @GetMapping("/userView/{userId}")
+    public String viewUser( @PathVariable Integer userId,
+                            @RequestParam(required = false) String remoteHost,
+                            RedirectAttributes redirectAttributes ) {
+        redirectAttributes.addAttribute( "remoteHost", remoteHost );
+        return "redirect:/search/user/" + userId;
     }
 
     @Data
@@ -335,12 +343,8 @@ public class SearchController extends AbstractSearchController {
         }
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if ( permissionEvaluator.hasPermission( auth, userGene, "read" ) ) {
-            String redirectUri = ServletUriComponentsBuilder.fromCurrentContextPath()
-                    .path( "userView/{userId}" )
-                    .buildAndExpand( Collections.singletonMap( "userId", userGene.getUser().getId() ) )
-                    .toUriString();
             redirectAttributes.addFlashAttribute( "message", "There is no need to request access as you have sufficient permission to see this gene." );
-            return new RedirectView( redirectUri );
+            return "redirect:/search/user/" + userGene.getUser().getId();
         }
         return new ModelAndView( "search/request-access" )
                 .addObject( "requestAccessForm", new RequestAccessForm() )

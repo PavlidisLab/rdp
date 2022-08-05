@@ -175,7 +175,7 @@ public class EmailServiceImpl implements EmailService {
     @Override
     public Future<Void> sendUserGeneAccessRequest( UserGene userGene, User replyTo, String reason ) throws MessagingException {
         URI viewUserUrl = UriComponentsBuilder.fromUri( siteSettings.getHostUri() )
-                .path( "userView/{userId}" )
+                .path( "search/user/{userId}" )
                 .build( Collections.singletonMap( "userId", replyTo.getId() ) );
         InternetAddress to = userGene.getUser().getVerifiedContactEmail().orElseThrow( () -> new MessagingException( "Could not find a verified email address for user." ) );
         InternetAddress replyToAddress = replyTo.getVerifiedContactEmail().orElseThrow( () -> new MessagingException( "Could not find a verified email address for user." ) );

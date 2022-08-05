@@ -241,38 +241,38 @@ public class SearchControllerTest {
     }
 
     @Test
-    public void viewUser_thenReturnSuccess() throws Exception {
+    public void getUser_thenReturnSuccess() throws Exception {
         User user = createUser( 1 );
         when( userService.findUserById( user.getId() ) ).thenReturn( user );
-        mvc.perform( get( "/userView/{userId}", user.getId() ) )
+        mvc.perform( get( "/search/user/{userId}", user.getId() ) )
                 .andExpect( status().isOk() )
-                .andExpect( view().name( "userView" ) );
+                .andExpect( view().name( "search/user" ) );
         verify( userService ).findUserById( user.getId() );
     }
 
     @Test
-    public void viewUser_whenUserIsNotFound_thenReturnSuccess() throws Exception {
+    public void getUser_whenUserIsNotFound_thenReturnSuccess() throws Exception {
         User user = createUser( 1 );
         when( userService.findUserById( user.getId() ) ).thenReturn( null );
-        mvc.perform( get( "/userView/{userId}", user.getId() ) )
+        mvc.perform( get( "/search/user/{userId}", user.getId() ) )
                 .andExpect( status().isNotFound() );
         verify( userService ).findUserById( user.getId() );
     }
 
     @Test
-    public void viewUser_whenUserIsRemote_thenReturnSuccess() throws Exception {
+    public void getUser_whenUserIsRemote_thenReturnSuccess() throws Exception {
         User user = createRemoteUser( 1, URI.create( "https://example.com/" ) );
         when( remoteResourceService.getRemoteUser( user.getId(), URI.create( "example.com" ) ) ).thenReturn( remotify( user, User.class ) );
         when( privacyService.checkCurrentUserCanSearch( true ) ).thenReturn( true );
-        mvc.perform( get( "/userView/{userId}", user.getId() )
+        mvc.perform( get( "/search/user/{userId}", user.getId() )
                         .param( "remoteHost", "example.com" ) )
                 .andExpect( status().isOk() )
-                .andExpect( view().name( "userView" ) );
+                .andExpect( view().name( "search/user" ) );
         verify( remoteResourceService ).getRemoteUser( user.getId(), URI.create( "example.com" ) );
     }
 
     @Test
-    public void viewUser_whenUserIsRemoteAndHasTaxonWithoutOrdering_thenReturnSuccess() throws Exception {
+    public void getUser_whenUserIsRemoteAndHasTaxonWithoutOrdering_thenReturnSuccess() throws Exception {
         Taxon humanTaxon = createTaxon( 9606 );
         Taxon mouseTaxon = createTaxon( 12145 );
         humanTaxon.setOrdering( 1 );
@@ -286,30 +286,30 @@ public class SearchControllerTest {
         assertThat( remoteUser.getTaxons() ).hasSize( 2 ).extracting( "ordering" ).containsOnly( (Integer) null );
         when( remoteResourceService.getRemoteUser( user.getId(), URI.create( "example.com" ) ) ).thenReturn( remoteUser );
         when( privacyService.checkCurrentUserCanSearch( true ) ).thenReturn( true );
-        mvc.perform( get( "/userView/{userId}", user.getId() )
+        mvc.perform( get( "/search/user/{userId}", user.getId() )
                         .param( "remoteHost", "example.com" ) )
                 .andExpect( status().isOk() )
-                .andExpect( view().name( "userView" ) )
+                .andExpect( view().name( "search/user" ) )
                 .andExpect( model().attribute( "viewUser", Matchers.hasProperty( "taxons",
                         Matchers.everyItem( Matchers.hasProperty( "ordering", Matchers.nullValue() ) ) ) ) );
         verify( remoteResourceService ).getRemoteUser( user.getId(), URI.create( "example.com" ) );
     }
 
     @Test
-    public void viewUser_whenRemoteUserIsNotFound_thenReturnNotFound() throws Exception {
+    public void getUser_whenRemoteUserIsNotFound_thenReturnNotFound() throws Exception {
         when( remoteResourceService.getRemoteUser( 1, URI.create( "example.com" ) ) ).thenReturn( null );
         when( privacyService.checkCurrentUserCanSearch( true ) ).thenReturn( true );
-        mvc.perform( get( "/userView/{userId}", 1 )
+        mvc.perform( get( "/search/user/{userId}", 1 )
                         .param( "remoteHost", "example.com" ) )
                 .andExpect( status().isNotFound() );
         verify( remoteResourceService ).getRemoteUser( 1, URI.create( "example.com" ) );
     }
 
     @Test
-    public void viewUser_whenRemoteIsUnavailable_thenReturnNotFound() throws Exception {
+    public void getUser_whenRemoteIsUnavailable_thenReturnNotFound() throws Exception {
         when( remoteResourceService.getRemoteUser( 1, URI.create( "example.com" ) ) ).thenThrow( RemoteException.class );
         when( privacyService.checkCurrentUserCanSearch( true ) ).thenReturn( true );
-        mvc.perform( get( "/userView/{userId}", 1 )
+        mvc.perform( get( "/search/user/{userId}", 1 )
                         .param( "remoteHost", "example.com" ) )
                 .andExpect( status().isServiceUnavailable() );
         verify( remoteResourceService ).getRemoteUser( 1, URI.create( "example.com" ) );
@@ -394,14 +394,23 @@ public class SearchControllerTest {
     }
 
     @Test
-    public void viewUser_whenRemoteUserCannotBeRetrieved_thenReturnNotFound() throws Exception {
+    public void getUser_whenRemoteUserCannotBeRetrieved_thenReturnNotFound() throws Exception {
         User user = createRemoteUser( 1, URI.create( "https://example.com/" ) );
         when( remoteResourceService.getRemoteUser( user.getId(), URI.create( "example.com" ) ) ).thenThrow( RemoteException.class );
         when( privacyService.checkCurrentUserCanSearch( true ) ).thenReturn( true );
-        mvc.perform( get( "/userView/{userId}", user.getId() )
+        mvc.perform( get( "/search/user/{userId}", user.getId() )
                         .param( "remoteHost", "example.com" ) )
                 .andExpect( status().isServiceUnavailable() );
         verify( remoteResourceService ).getRemoteUser( user.getId(), URI.create( "example.com" ) );
+    }
+
+    @Test
+    public void getUser_whenOldEndpointIsUsed_thenRedirectToNewEndpoint() throws Exception {
+        User user = createUser( 1 );
+        when( privacyService.checkCurrentUserCanSearch( true ) ).thenReturn( true );
+        mvc.perform( get( "/userView/{userId}", user.getId() )
+                        .param( "remoteHost", "example.com" ) )
+                .andExpect( redirectedUrl( "/search/user/1?remoteHost=example.com" ) );
     }
 
     @Test
@@ -539,7 +548,7 @@ public class SearchControllerTest {
 
         mvc.perform( get( "/search/gene/by-anonymous-id/{anonymousId}/request-access", anonymizedUserGene.getAnonymousId() ) )
                 .andExpect( status().is3xxRedirection() )
-                .andExpect( redirectedUrl( "http://localhost/userView/2" ) )
+                .andExpect( redirectedUrl( "/search/user/2" ) )
                 .andExpect( flash().attributeExists( "message" ) );
     }
 

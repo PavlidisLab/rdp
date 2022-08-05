@@ -19,7 +19,7 @@
                 <h3 class="d-inline-block pr-3 mr-3 mb-0" th:text="${user.profile.contactEmail ?: user.email}"></h3>
             </div>
             <div class="col-4 my-auto text-right" th:if="${viewOnly == null}">
-                <a class="btn btn-lg d-none d-lg-inline" th:href="@{/userView/{userId}(userId=${user.id})}">View your
+                <a class="btn btn-lg d-none d-lg-inline" th:href="@{/search/user/{userId}(userId=${user.id})}">View your
                     public profile</a>
                 <button type="button" class="btn btn-primary btn-lg save-profile">
                     <i class="mx-2 d-none spinner"></i>
