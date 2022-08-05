@@ -11,6 +11,7 @@ import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.ResearcherCategory;
 import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import ubc.pavlab.rdp.model.enums.TierType;
+import ubc.pavlab.rdp.model.ontology.Ontology;
 import ubc.pavlab.rdp.services.GeneInfoService;
 
 import javax.validation.constraints.Max;
@@ -223,6 +224,7 @@ public class ApplicationSettings {
          * Enable ontologies.
          */
         private boolean enabled;
+        @Size(min = 1, max = Ontology.MAX_NAME_LENGTH)
         private String reactomePathwaysOntologyName;
         private Resource reactomePathwaysFile;
         private Resource reactomePathwaysHierarchyFile;

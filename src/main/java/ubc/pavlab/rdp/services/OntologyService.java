@@ -219,6 +219,9 @@ public class OntologyService implements InitializingBean {
         if ( ontologyName == null ) {
             throw new IllegalArgumentException( "Ontology has no defined name." );
         }
+        if ( ontologyName.isEmpty() || ontologyName.length() > Ontology.MAX_NAME_LENGTH ) {
+            throw new IllegalArgumentException( String.format( "Ontology name '%s' size must be between 1 and %d.", ontologyName, Ontology.MAX_NAME_LENGTH ) );
+        }
         if ( ontologyRepository.existsByName( ontologyName ) ) {
             throw new OntologyNameAlreadyUsedException( ontologyName );
         }

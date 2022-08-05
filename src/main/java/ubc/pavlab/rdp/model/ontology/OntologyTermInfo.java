@@ -38,7 +38,7 @@ public class OntologyTermInfo extends OntologyTerm implements Serializable, Comp
      * <p>
      * TODO: gather this information from the metamodel.
      */
-    public static final int MAX_NAME_LENGTH = 255, MAX_SYNONYM_LENGTH = 255;
+    public static final int MAX_TERM_ID_LENGTH = 255, MAX_NAME_LENGTH = 255, MAX_SYNONYM_LENGTH = 255;
 
     public static OntologyTermInfoBuilder<?, ?> builder( @NonNull Ontology ontology, @NonNull String termId ) {
         return new OntologyTermInfo.OntologyTermInfoBuilderImpl()
@@ -80,7 +80,7 @@ public class OntologyTermInfo extends OntologyTerm implements Serializable, Comp
      */
     @ElementCollection
     @CollectionTable(name = "ontology_term_info_synonyms", joinColumns = { @JoinColumn(name = "ontology_term_info_id") })
-    @Column(name = "synonym", nullable = false, columnDefinition = "varchar(255) binary not null")
+    @Column(name = "synonym", nullable = false, columnDefinition = "varchar(" + OntologyTermInfo.MAX_SYNONYM_LENGTH + ") binary not null")
     private final Set<String> synonyms = new HashSet<>();
 
     /**

@@ -28,6 +28,12 @@ import java.util.TreeSet;
 @ToString(of = { "id", "name" })
 public class Ontology implements Comparable<Ontology> {
 
+    /**
+     * Maximum length for an ontology name.
+     * TODO: retrieve this from the metamodel
+     */
+    public static final int MAX_NAME_LENGTH = 255;
+
     public static OntologyBuilder builder( @NonNull String name ) {
         return new OntologyBuilder().name( name );
     }

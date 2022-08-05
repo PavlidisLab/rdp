@@ -250,7 +250,7 @@ public class AdminController {
         }
 
         @NotNull
-        @NotEmpty
+        @Size(min = 1, max = Ontology.MAX_NAME_LENGTH)
         private String name;
 
         private URL ontologyUrl;
@@ -395,7 +395,7 @@ public class AdminController {
         }
 
         @NotNull
-        @Size(min = 1, max = 255)
+        @Size(min = 1, max = Ontology.MAX_NAME_LENGTH)
         private String ontologyName;
 
         @Valid
@@ -426,10 +426,10 @@ public class AdminController {
         /**
          * Auto-generated if null or empty, which is why we allow zero as a size.
          */
-        @Size(max = 255, groups = RowNotEmpty.class)
+        @Size(max = OntologyTermInfo.MAX_TERM_ID_LENGTH, groups = RowNotEmpty.class)
         private String termId;
         @NotNull(groups = RowNotEmpty.class)
-        @Size(min = 1, max = 255, groups = RowNotEmpty.class)
+        @Size(min = 1, max = OntologyTermInfo.MAX_NAME_LENGTH, groups = RowNotEmpty.class)
         private String name;
         private boolean grouping;
         private boolean hasIcon;
