@@ -135,7 +135,13 @@ public class ReactomeService {
                     if ( oti == null ) {
                         oti = OntologyTermInfo.builder( ontology, pathwayId ).build();
                     }
-                    oti.setName( pathwayName );
+                    if ( pathwayName.length() > OntologyTermInfo.MAX_NAME_LENGTH ) {
+                        log.warn( String.format( "Name %s for Reactome Pathway %s is too long (%d characters), it will be truncated to %d characters.",
+                                pathwayName, pathwayId, pathwayName.length(), OntologyTermInfo.MAX_NAME_LENGTH ) );
+                        oti.setName( pathwayName.substring( 0, OntologyTermInfo.MAX_NAME_LENGTH ) );
+                    } else {
+                        oti.setName( pathwayName );
+                    }
                     oti.getAltTermIds().clear();
                     oti.getAltTermIds().addAll( pathwayIdToExternalIds.getOrDefault( pathwayId, Collections.emptyList() ) );
                     oti.setSubTerms( new TreeSet<>() );
