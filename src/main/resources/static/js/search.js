@@ -79,8 +79,7 @@
             orthologContainer.html($('<i class="mx-2 spinner"></i>'));
             orthologContainer.load("/search/view/orthologs", formData, function (responseText, textStatus) {
                 if (textStatus === "error") {
-                    /* display nothing if there's issue with orthologs */
-                    orthologContainer.html('');
+                    orthologContainer.html(responseText);
                 }
                 orthologContainer.find('[data-toggle="tooltip"]').tooltip();
                 orthologContainer.find('.user-preview-popover').each(initializeUserPreviewPopover);
