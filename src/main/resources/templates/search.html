@@ -200,22 +200,25 @@
             -->
 
             <form th:action="@{/search}" class="search">
-                <label for="nameLike">Browse by name and research interests:</label>
 
-                <div class="form-row">
+                <div class="form-row align-items-end">
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <button class="btn btn-primary" type="submit">
+                                <i class="oi oi-magnifying-glass"></i>
+                                Search Researchers
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-row align-items-end">
                     <!--Researchers by name-->
                     <div class="col-md-6">
+                        <label for="nameLike">With name and research interests:</label>
                         <div class="form-group">
-                            <div class="input-group">
-                                <div class="input-group-prepend">
-                                    <button class="btn btn-primary" type="submit">
-                                        <i class="oi oi-magnifying-glass"></i>
-                                        Search
-                                    </button>
-                                </div>
-                                <input type="text" class="form-control" name="nameLike" id="nameLike"
-                                       placeholder="Part of researcher name" th:value="${nameLike}"/>
-                            </div>
+                            <input type="text" class="form-control" name="nameLike" id="nameLike"
+                                   placeholder="Part of researcher name" th:value="${nameLike}"/>
                         </div>
                     </div>
                     <!--Researchers by description-->
