@@ -440,8 +440,9 @@ public class UserServiceImpl implements UserService, InitializingBean {
         }
     }
 
-    private Predicate<User> hasOntologyTermIn( Map<Ontology, Set<Integer>> ontologyTermInfoIds ) {
-        return u -> ontologyTermInfoIds == null || ontologyTermInfoIds.values().stream()
+    @Override
+    public Predicate<User> hasOntologyTermIn( Map<Ontology, Set<Integer>> ontologyTermInfoIdsByOntology ) {
+        return u -> ontologyTermInfoIdsByOntology == null || ontologyTermInfoIdsByOntology.values().stream()
                 .allMatch( entry -> containsAny( entry, getUserTermInfoIds( u ) ) );
     }
 

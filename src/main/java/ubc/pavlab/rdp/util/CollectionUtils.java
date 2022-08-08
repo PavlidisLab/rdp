@@ -64,4 +64,11 @@ public class CollectionUtils {
         destination.removeIf( p -> !to.containsKey( keySupplier.apply( p ) ) );
         destination.addAll( to.values() );
     }
+
+    /**
+     * Extract a value before applying a predicate.
+     */
+    public static <T, U> Predicate<? super T> by( Function<? super T, ? extends U> supplier, Predicate<U> predicate ) {
+        return u -> predicate.test( supplier.apply( u ) );
+    }
 }

@@ -49,6 +49,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.springframework.util.CollectionUtils.containsAny;
+import static ubc.pavlab.rdp.util.CollectionUtils.by;
 
 /**
  * Created by mjacobson on 17/01/18.
@@ -174,7 +175,7 @@ public class UserGeneServiceImpl implements UserGeneService {
                     .filter( ug -> researcherPositions == null || researcherPositions.contains( ug.getUser().getProfile().getResearcherPosition() ) )
                     .filter( ug -> researcherCategories == null || containsAny( researcherCategories, ug.getUser().getProfile().getResearcherCategories() ) )
                     .filter( ortholog -> organUberonIds == null || containsAny( organUberonIds, ortholog.getUser().getUserOrgans().values().stream().map( UserOrgan::getUberonId ).collect( Collectors.toSet() ) ) )
-                    .filter( hasOntologyTermIn( ontologyTermInfoIds ) )
+                    .filter( by( UserGene::getUser, userService.hasOntologyTermIn( ontologyTermInfoIds ) ) )
                     .collect( Collectors.toSet() ) );
         }
 
@@ -189,15 +190,9 @@ public class UserGeneServiceImpl implements UserGeneService {
                 .filter( ug -> researcherPositions == null || researcherPositions.contains( ug.getUser().getProfile().getResearcherPosition() ) )
                 .filter( ug -> researcherCategories == null || containsAny( researcherCategories, ug.getUser().getProfile().getResearcherCategories() ) )
                 .filter( ortholog -> organUberonIds == null || containsAny( organUberonIds, ortholog.getUser().getUserOrgans().values().stream().map( UserOrgan::getUberonId ).collect( Collectors.toSet() ) ) )
-                .filter( hasOntologyTermIn( ontologyTermInfoIds ) )
+                .filter( by( UserGene::getUser, userService.hasOntologyTermIn( ontologyTermInfoIds ) ) )
                 .collect( Collectors.toSet() );
     }
-
-    private Predicate<UserGene> hasOntologyTermIn( Map<Ontology, Set<Integer>> ontologyTermInfoIds ) {
-        return u -> ontologyTermInfoIds == null || ontologyTermInfoIds.values().stream()
-                .allMatch( entry -> containsAny( entry, userService.getUserTermInfoIds( u.getUser() ) ) );
-    }
-
 
     @Override
     @Transactional

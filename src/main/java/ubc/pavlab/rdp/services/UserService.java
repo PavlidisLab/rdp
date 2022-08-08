@@ -14,6 +14,7 @@ import ubc.pavlab.rdp.model.ontology.OntologyTermInfo;
 
 import javax.validation.ValidationException;
 import java.util.*;
+import java.util.function.Predicate;
 
 /**
  * Created by mjacobson on 16/01/18.
@@ -169,4 +170,16 @@ public interface UserService {
     long computeTermFrequencyInTaxon( User user, GeneOntologyTerm term, Taxon taxon );
 
     void sendGeneAccessRequest( User requestingUser, UserGene userGene, String reason );
+
+    /**
+     * Create a {@link Predicate} to test if a user possesses at least one term in each of the provided
+     * {@link ubc.pavlab.rdp.model.ontology.Ontology}.
+     * <p>
+     * Note: the mapping is using term IDs because it can become quite expensive to load terms when dealing with
+     * inference from {@link OntologyService#inferTermIds(Collection)}.
+     *
+     * @param ontologyTermInfoIdsByOntology the term IDs grouped by ontology
+     * @return true if all the ontologies possess at least one match - or zero if empty, false otherwise
+     */
+    Predicate<User> hasOntologyTermIn( Map<Ontology, Set<Integer>> ontologyTermInfoIdsByOntology );
 }
