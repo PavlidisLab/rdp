@@ -22,7 +22,13 @@
                 <dt>Last name</dt>
                 <dd th:text="${user.profile.lastName}"></dd>
                 <dt>Email</dt>
-                <dd th:text="${user.email}"></dd>
+                <dd>
+                    <a th:if="${user.enabled}" th:text="${user.email}" th:href="'mailto:' + ${user.email}"></a>
+                    <th:block th:unless="${user.enabled}">
+                        <span th:text="${user.email}"></span>
+                        <span class="badge badge-warning">not verified</span>
+                    </th:block>
+                </dd>
                 <dt>Enabled?</dt>
                 <dd th:text="${user.enabled} ? 'Yes' : 'No'"></dd>
                 <th:block th:if="${user.verifiedContactEmail.isPresent()}">
