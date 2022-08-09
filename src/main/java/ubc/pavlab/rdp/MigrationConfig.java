@@ -7,6 +7,9 @@ import org.springframework.boot.autoconfigure.flyway.FlywayMigrationStrategy;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.sql.Connection;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
 import java.util.Arrays;
 
 /**
@@ -46,6 +49,23 @@ public class MigrationConfig {
     @Bean
     public FlywayMigrationStrategy flywayMigrationStrategy() {
         return flyway -> {
+            try {
+                // drop version_rank column
+                Connection connection = flyway.getConfiguration().getDataSource().getConnection();
+                boolean hasVersionRankColumn = false;
+                ResultSetMetaData metadata = connection.createStatement().executeQuery( "select * from schema_version" ).getMetaData();
+                for ( int i = 0; i < metadata.getColumnCount(); i++ ) {
+                    if ( metadata.getColumnName( i + 1 ).equals( "version_rank" ) ) {
+                        hasVersionRankColumn = true;
+                    }
+                }
+                if ( hasVersionRankColumn ) {
+                    log.info( "The 'schema_version' table is still using the 'version_rank' column from Flyway 3.2.1; will proceed to remove it." );
+                    connection.createStatement().execute( "alter table schema_version drop column version_rank" );
+                }
+            } catch ( SQLException e ) {
+                throw new RuntimeException( e );
+            }
             MigrationInfo[] appliedMigrations = flyway.info().applied();
             boolean repairNeeded = false;
             for ( MigrationInfo appliedMigration : appliedMigrations ) {
