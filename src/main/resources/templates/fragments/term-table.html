@@ -26,7 +26,7 @@
     <tbody>
     <tr th:each="ut : ${userTerms}">
         <td class="align-middle">
-            <a th:href="@{http://www.ebi.ac.uk/QuickGO/GTerm(id=${ut.goId})}"
+            <a th:href="@{https://www.ebi.ac.uk/QuickGO/GTerm(id=${ut.goId})}"
                th:text="${ut.goId}"
                target="_blank"
                rel="noopener"
