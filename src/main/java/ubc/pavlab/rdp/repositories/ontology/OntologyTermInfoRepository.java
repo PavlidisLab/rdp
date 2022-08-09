@@ -190,6 +190,13 @@ public interface OntologyTermInfoRepository extends JpaRepository<OntologyTermIn
     OntologyTermInfo findByTermIdAndOntologyName( String termId, String ontologyName );
 
     /**
+     * Retrieve the definition of an ontology.
+     */
+    @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
+    @Query("select o.definition from Ontology o where o.name = :ontologyName")
+    String findDefinitionByOntologyName( @Param("ontologyName") String ontologyName );
+
+    /**
      * Retrieve all the definitions matching an term name and its corresponding ontology name.
      * <p>
      * TODO: make it so that the results are ranked by desirableness

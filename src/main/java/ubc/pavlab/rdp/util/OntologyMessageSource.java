@@ -26,9 +26,10 @@ import java.util.regex.Pattern;
 @Component
 public class OntologyMessageSource extends AbstractMessageSource {
 
-    private final static Pattern ONTOLOGY_VIEW_TERM_URL = Pattern.compile( "^rdp\\.ontologies\\..*?\\.view-term-url-pattern$" );
+    private final static Pattern ONTOLOGY_DEFINITION = Pattern.compile( "^rdp\\.ontologies\\.([^.]*?)\\.definition$" );
+    private final static Pattern ONTOLOGY_VIEW_TERM_URL = Pattern.compile( "^rdp\\.ontologies\\.[^.]*?\\.view-term-url-pattern$" );
 
-    private final static Pattern ONTOLOGY_TERM_INFO_DEFINITION = Pattern.compile( "^rdp\\.ontologies\\.(.*?)\\.terms\\.(.*?).definition$" );
+    private final static Pattern ONTOLOGY_TERM_INFO_DEFINITION = Pattern.compile( "^rdp\\.ontologies\\.([^.]*?)\\.terms\\.([^.]*?)\\.definition$" );
     private final static String DEFAULT_URL_ENCODED_IRI_PREFIX;
 
     static {
@@ -62,12 +63,16 @@ public class OntologyMessageSource extends AbstractMessageSource {
 
     @Override
     protected String resolveCodeWithoutArguments( String code, Locale locale ) {
-        Matcher matcher = ONTOLOGY_TERM_INFO_DEFINITION.matcher( code );
-        if ( matcher.matches() ) {
+        Matcher matcher;
+        if ( ( matcher = ONTOLOGY_TERM_INFO_DEFINITION.matcher( code ) ).matches() ) {
             String ontologyName = matcher.group( 1 );
             String termName = matcher.group( 2 );
             return ontologyService.findDefinitionByTermNameAndOntologyName( termName, ontologyName );
+        } else if ( ( matcher = ONTOLOGY_DEFINITION.matcher( code ) ).matches() ) {
+            String ontologyName = matcher.group( 1 );
+            return ontologyService.findDefinitionByOntologyName( ontologyName );
+        } else {
+            return super.resolveCodeWithoutArguments( code, locale );
         }
-        return super.resolveCodeWithoutArguments( code, locale );
     }
 }

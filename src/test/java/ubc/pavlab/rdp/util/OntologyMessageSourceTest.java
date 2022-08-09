@@ -72,4 +72,12 @@ public class OntologyMessageSourceTest {
         assertThat( messageSource.getMessage( "rdp.ontologies.reactome.view-term-url-pattern", new Object[]{ "reactome", "R-123" }, Locale.getDefault() ) )
                 .isEqualTo( "https://reactome.org/content/detail/R-123" );
     }
+
+    @Test
+    public void resolveCode_whenCodeIsAnOntologyDefinition() {
+        when( ontologyService.findDefinitionByOntologyName( "mondo" ) ).thenReturn( "A diseases ontology." );
+        assertThat( messageSource.getMessage( "rdp.ontologies.mondo.definition", null, Locale.getDefault() ) )
+                .isEqualTo( "A diseases ontology." );
+        verify( ontologyService ).findDefinitionByOntologyName( "mondo" );
+    }
 }

@@ -57,10 +57,8 @@ public class Ontology implements Comparable<Ontology> {
     @Column(unique = true, nullable = false)
     private String name;
 
-    /**
-     * For the public API.
-     */
-    @Transient
+    @Lob
+    @Column(columnDefinition = "TEXT")
     private String definition;
 
     /**

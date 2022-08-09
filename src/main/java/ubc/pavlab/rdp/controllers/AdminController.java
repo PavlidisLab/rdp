@@ -246,6 +246,7 @@ public class AdminController {
         public static UpdateOntologyForm fromOntology( Ontology ontology ) {
             UpdateOntologyForm form = new UpdateOntologyForm();
             form.setName( ontology.getName() );
+            form.setDefinition( ontology.getDefinition() );
             form.setOntologyUrl( ontology.getOntologyUrl() );
             form.setAvailableForGeneSearch( ontology.isAvailableForGeneSearch() );
             return form;
@@ -254,6 +255,8 @@ public class AdminController {
         @NotNull
         @Size(min = 1, max = Ontology.MAX_NAME_LENGTH)
         private String name;
+
+        private String definition;
 
         private URL ontologyUrl;
 
@@ -283,7 +286,10 @@ public class AdminController {
         }
 
         ontology.setAvailableForGeneSearch( updateOntologyForm.isAvailableForGeneSearch() );
+        ontology.setDefinition( updateOntologyForm.getDefinition() );
+
         ontologyService.save( ontology );
+
         modelAndView.addObject( "message", String.format( "Successfully updated %s.", resolveOntologyName( ontology, locale ) ) );
 
         return modelAndView;

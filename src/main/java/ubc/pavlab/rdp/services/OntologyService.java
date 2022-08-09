@@ -560,6 +560,11 @@ public class OntologyService implements InitializingBean {
     }
 
     @Transactional(readOnly = true)
+    public String findDefinitionByOntologyName( String ontologyName ) {
+        return ontologyTermInfoRepository.findDefinitionByOntologyName( ontologyName );
+    }
+
+    @Transactional(readOnly = true)
     public String findDefinitionByTermNameAndOntologyName( String termName, String ontologyName ) {
         return ontologyTermInfoRepository.findAllDefinitionsByNameAndOntologyName( termName, ontologyName ).stream()
                 .findFirst()
