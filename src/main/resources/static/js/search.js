@@ -55,48 +55,55 @@
         }
     }
 
+    var tableContainer = $("#userTable");
+    var searchSummary = $('#searchSummary');
+    var orthologContainer = $("#orthologsResults");
+    var itlTableContainer = $("#itlUserTable");
+
     $("form.search").submit(function (event) {
 
         var formData = $(this).serialize();
 
         // Show search results
-        var tableContainer = $("#userTable");
         tableContainer.html($('<i class="mx-2 spinner"></i>'));
-
-        // noinspection JSUnusedLocalSymbols
         tableContainer.load(window.contextPath + "/search/view", formData, function (responseText, textStatus) {
             if (textStatus === "error") {
                 tableContainer.html(responseText);
+            } else {
+                tableContainer.find('[data-toggle="tooltip"]').tooltip();
+                tableContainer.find('.user-preview-popover').each(initializeUserPreviewPopover);
             }
-            tableContainer.find('[data-toggle="tooltip"]').tooltip();
-            tableContainer.find('.user-preview-popover').each(initializeUserPreviewPopover);
+        });
+
+        // show search summary
+        searchSummary.html($('<i class="mx-2 spinner"></i>'));
+        searchSummary.load(window.contextPath + '/search/view', formData + '&summarize=true', function (responseText, textStatus) {
+            if (textStatus === "error") {
+                searchSummary.html(''); // the error will be displayed in the main search view
+            }
         });
 
         // Show orthologs
-        $(".ortholog-search-text").html(""); // Clear existing results.
         if ($("#symbolInput").val() !== "" && $("#ortholog-box").is(":visible")) {
-            var orthologContainer = $("#orthologsResults");
             orthologContainer.html($('<i class="mx-2 spinner"></i>'));
-            orthologContainer.load("/search/view/orthologs", formData, function (responseText, textStatus) {
+            orthologContainer.load(window.contextPath + "/search/view/orthologs", formData, function (responseText, textStatus) {
                 if (textStatus === "error") {
                     orthologContainer.html(responseText);
                 }
-                orthologContainer.find('[data-toggle="tooltip"]').tooltip();
-                orthologContainer.find('.user-preview-popover').each(initializeUserPreviewPopover);
             });
         }
 
         // Show international search results
         if ($("#isearch-checkbox").is(":checked")) {
-            var itlTableContainer = $("#itlUserTable");
             itlTableContainer.html($('<i class="mx-2 spinner"></i>'));
             // noinspection JSUnusedLocalSymbols
             itlTableContainer.load(window.contextPath + "/search/view/international", formData, function (responseText, textStatus, req) {
                 if (textStatus === "error") {
                     itlTableContainer.html(responseText);
+                } else {
+                    itlTableContainer.find('[data-toggle="tooltip"]').tooltip();
+                    itlTableContainer.find('.user-preview-popover').each(initializeUserPreviewPopover);
                 }
-                itlTableContainer.find('[data-toggle="tooltip"]').tooltip();
-                itlTableContainer.find('.user-preview-popover').each(initializeUserPreviewPopover);
             });
         }
 

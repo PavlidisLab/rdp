@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -331,6 +332,16 @@ public class SearchControllerTest {
                         .param( "descriptionLike", "" ) )
                 .andExpect( status().is3xxRedirection() )
                 .andExpect( redirectedUrl( "/search/view" ) );
+    }
+
+    @Test
+    public void searchUsersView_whenSummarizing_thenReturnSummary() throws Exception {
+        mvc.perform( get( "/search/view" )
+                        .param( "nameLike", "albert" )
+                        .param( "descriptionLike", "cheesecake" )
+                        .param( "summarize", "true" ) )
+                .andExpect( status().isOk() )
+                .andExpect( content().contentTypeCompatibleWith( MediaType.TEXT_HTML ) );
     }
 
     @Test

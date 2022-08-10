@@ -84,8 +84,8 @@ public class SearchController extends AbstractSearchController {
 
     @PreAuthorize("hasPermission(null, #userSearchParams.isISearch() ? 'international-search' : 'search')")
     @GetMapping(value = "/search", params = { "nameLike", "descriptionLike" })
-    public Object searchUsers( @Valid UserSearchParams userSearchParams,
-                               BindingResult bindingResult ) {
+    public Object searchUsers( @Valid UserSearchParams userSearchParams, BindingResult bindingResult,
+                               Locale locale ) {
         if ( userSearchParams.getNameLike().isEmpty() ^ userSearchParams.getDescriptionLike().isEmpty() ) {
             return redirectToSpecificSearch( userSearchParams.getNameLike(), userSearchParams.getDescriptionLike() );
         }
@@ -112,6 +112,7 @@ public class SearchController extends AbstractSearchController {
                 modelAndView.addObject( "itlUsers", Collections.emptyList() );
             }
         } else {
+            modelAndView.addObject( "searchSummary", summarizeUserSearchParams( userSearchParams, locale ) );
             modelAndView.addObject( "users", userService.findByNameAndDescription( userSearchParams.getNameLike(), userSearchParams.isPrefix(), userSearchParams.getDescriptionLike(), userSearchParams.getResearcherPositions(), userSearchParams.getResearcherCategories(), organsFromUberonIds( userSearchParams.getOrganUberonIds() ), ontologyTermsFromIds( userSearchParams.getOntologyTermIds() ) ) );
             if ( userSearchParams.isISearch() ) {
                 modelAndView.addObject( "itlUsers", remoteResourceService.findUsersByLikeNameAndDescription( userSearchParams.getNameLike(), userSearchParams.isPrefix(), userSearchParams.getDescriptionLike(), userSearchParams.getResearcherPositions(), userSearchParams.getResearcherCategories(), userSearchParams.getOrganUberonIds(), ontologyTermsFromIds( userSearchParams.getOntologyTermIds() ) ) );
@@ -128,7 +129,8 @@ public class SearchController extends AbstractSearchController {
                                            @RequestParam(required = false) Set<ResearcherPosition> researcherPositions,
                                            @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
                                            @RequestParam(required = false) Set<String> organUberonIds,
-                                           @RequestParam(required = false) List<Integer> ontologyTermIds ) {
+                                           @RequestParam(required = false) List<Integer> ontologyTermIds,
+                                           Locale locale ) {
         Collection<User> users;
         if ( prefix ) {
             users = userService.findByStartsName( nameLike, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ), ontologyTermsFromIds( ontologyTermIds ) );
@@ -155,6 +157,7 @@ public class SearchController extends AbstractSearchController {
             modelAndView.addObject( "users", Collections.emptyList() );
             modelAndView.addObject( "itlUsers", Collections.emptyList() );
         } else {
+            modelAndView.addObject( "searchSummary", summarizeUserSearchParams( new UserSearchParams( nameLike, prefix, "", iSearch, researcherPositions, researcherCategories, organUberonIds, ontologyTermIds ), locale ) );
             modelAndView.addObject( "users", users );
             if ( iSearch ) {
                 modelAndView.addObject( "itlUsers", remoteResourceService.findUsersByLikeName( nameLike, prefix, researcherPositions, researcherCategories, organUberonIds, null ) );
@@ -171,7 +174,8 @@ public class SearchController extends AbstractSearchController {
                                                   @RequestParam(required = false) Set<ResearcherPosition> researcherPositions,
                                                   @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
                                                   @RequestParam(required = false) Set<String> organUberonIds,
-                                                  @RequestParam(required = false) List<Integer> ontologyTermIds ) {
+                                                  @RequestParam(required = false) List<Integer> ontologyTermIds,
+                                                  Locale locale ) {
         ModelAndView modelAndView = new ModelAndView( "search" )
                 .addObject( "activeSearchMode", ApplicationSettings.SearchSettings.SearchMode.BY_RESEARCHER )
                 .addObject( "descriptionLike", descriptionLike )
@@ -192,6 +196,7 @@ public class SearchController extends AbstractSearchController {
             modelAndView.addObject( "users", Collections.emptyList() );
             modelAndView.addObject( "itlUsers", Collections.emptyList() );
         } else {
+            modelAndView.addObject( "searchSummary", summarizeUserSearchParams( new UserSearchParams( "", false, descriptionLike, iSearch, researcherPositions, researcherCategories, organUberonIds, ontologyTermIds ), locale ) );
             modelAndView.addObject( "users", userService.findByDescription( descriptionLike, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ), ontologyTermsFromIds( ontologyTermIds ) ) );
             if ( iSearch ) {
                 modelAndView.addObject( "itlUsers", remoteResourceService.findUsersByDescription( descriptionLike, researcherPositions, researcherCategories, organUberonIds, ontologyTermsFromIds( ontologyTermIds ) ) );
@@ -280,7 +285,9 @@ public class SearchController extends AbstractSearchController {
             return modelAndView;
         }
 
-        modelAndView.addObject( "usergenes", userGeneService.handleGeneSearch( gene, tiers, orthologTaxon, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ), ontologyTermsFromIds( ontologyTermIds ) ) );
+        modelAndView
+                .addObject( "searchSummary", summarizeGeneSearchParams( new GeneSearchParams( gene, tiers, orthologTaxon, iSearch, researcherPositions, researcherCategories, organUberonIds, ontologyTermIds ), locale ) )
+                .addObject( "usergenes", userGeneService.handleGeneSearch( gene, tiers, orthologTaxon, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ), ontologyTermsFromIds( ontologyTermIds ) ) );
         if ( iSearch ) {
             modelAndView.addObject( "itlUsergenes", remoteResourceService.findGenesBySymbol( symbol, taxon, tiers, orthologTaxonId, researcherPositions, researcherCategories, organUberonIds, ontologyTermsFromIds( ontologyTermIds ) ) );
         }

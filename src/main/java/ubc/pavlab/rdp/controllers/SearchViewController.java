@@ -8,10 +8,16 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 import ubc.pavlab.rdp.exception.RemoteException;
-import ubc.pavlab.rdp.model.*;
+import ubc.pavlab.rdp.model.GeneInfo;
+import ubc.pavlab.rdp.model.Taxon;
+import ubc.pavlab.rdp.model.User;
+import ubc.pavlab.rdp.model.UserGene;
 import ubc.pavlab.rdp.model.enums.ResearcherCategory;
 import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import ubc.pavlab.rdp.model.enums.TierType;
@@ -78,7 +84,6 @@ public class SearchViewController extends AbstractSearchController {
         }
     }
 
-
     @PreAuthorize("hasPermission(null, 'international-search')")
     @GetMapping(value = "/search/view/international", params = { "nameLike" })
     public ModelAndView searchItlUsersByNameView( @RequestParam String nameLike,
@@ -86,7 +91,7 @@ public class SearchViewController extends AbstractSearchController {
                                                   @RequestParam(required = false) Set<ResearcherPosition> researcherPositions,
                                                   @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
                                                   @RequestParam(required = false) Set<String> organUberonIds,
-                                                  @RequestParam(required = false) Set<Integer> ontologyTermIds ) {
+                                                  @RequestParam(required = false) List<Integer> ontologyTermIds ) {
         if ( nameLike.isEmpty() ) {
             return new ModelAndView( "fragments/error::message", HttpStatus.BAD_REQUEST )
                     .addObject( "errorMessage", "Researcher name cannot be empty." );
@@ -103,7 +108,7 @@ public class SearchViewController extends AbstractSearchController {
                                                          @RequestParam(required = false) Set<ResearcherPosition> researcherPositions,
                                                          @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
                                                          @RequestParam(required = false) Set<String> organUberonIds,
-                                                         @RequestParam(required = false) Set<Integer> ontologyTermIds ) {
+                                                         @RequestParam(required = false) List<Integer> ontologyTermIds ) {
         if ( descriptionLike.isEmpty() ) {
             return new ModelAndView( "fragments/error::message", HttpStatus.BAD_REQUEST )
                     .addObject( "errorMessage", "Research interests cannot be empty." );
@@ -116,13 +121,18 @@ public class SearchViewController extends AbstractSearchController {
 
     @PreAuthorize("hasPermission(null, 'search')")
     @GetMapping(value = "/search/view", params = { "nameLike", "descriptionLike" })
-    public Object searchUsersView( @Valid UserSearchParams userSearchParams, BindingResult bindingResult ) {
+    public Object searchUsersView( @Valid UserSearchParams userSearchParams, BindingResult bindingResult,
+                                   @RequestParam(required = false) boolean summarize,
+                                   Locale locale ) {
         if ( userSearchParams.getNameLike().isEmpty() ^ userSearchParams.getDescriptionLike().isEmpty() ) {
             return redirectToSpecificSearch( userSearchParams.getNameLike(), userSearchParams.getDescriptionLike() );
         }
         if ( bindingResult.hasErrors() ) {
             return new ModelAndView( "fragments/error::message", HttpStatus.BAD_REQUEST )
                     .addObject( "errorMessage", "Invalid user search parameters." );
+        } else if ( summarize ) {
+            return new ModelAndView( "fragments/search::summary" )
+                    .addObject( "searchSummary", summarizeUserSearchParams( userSearchParams, locale ) );
         } else {
             return new ModelAndView( "fragments/user-table::user-table" )
                     .addObject( "users", userService.findByNameAndDescription( userSearchParams.getNameLike(), userSearchParams.isPrefix(), userSearchParams.getDescriptionLike(), userSearchParams.getResearcherPositions(), userSearchParams.getResearcherCategories(), organsFromUberonIds( userSearchParams.getOrganUberonIds() ), ontologyTermsFromIds( userSearchParams.getOntologyTermIds() ) ) );
@@ -131,18 +141,23 @@ public class SearchViewController extends AbstractSearchController {
 
     @PreAuthorize("hasPermission(null, 'search')")
     @GetMapping(value = "/search/view", params = { "nameLike" })
-    public ModelAndView searchUsersByNameView( @RequestParam String nameLike,
-                                               @RequestParam(required = false) boolean prefix,
-                                               @RequestParam(required = false) Set<ResearcherPosition> researcherPositions,
-                                               @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
-                                               @RequestParam(required = false) Set<String> organUberonIds,
-                                               @RequestParam(required = false) Set<Integer> ontologyTermIds ) {
+    public Object searchUsersByNameView( @RequestParam String nameLike,
+                                         @RequestParam(required = false) boolean prefix,
+                                         @RequestParam(required = false) Set<ResearcherPosition> researcherPositions,
+                                         @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
+                                         @RequestParam(required = false) Set<String> organUberonIds,
+                                         @RequestParam(required = false) List<Integer> ontologyTermIds,
+                                         @RequestParam(required = false) boolean summarize,
+                                         Locale locale ) {
         if ( nameLike.isEmpty() ) {
             return new ModelAndView( "fragments/error::message", HttpStatus.BAD_REQUEST )
                     .addObject( "errorMessage", "Researcher name cannot be empty." );
         } else {
             ModelAndView modelAndView = new ModelAndView( "fragments/user-table::user-table" );
-            if ( prefix ) {
+            if ( summarize ) {
+                return new ModelAndView( "fragments/search::summary" )
+                        .addObject( "searchSummary", summarizeUserSearchParams( new UserSearchParams( nameLike, prefix, "", false, researcherPositions, researcherCategories, organUberonIds, ontologyTermIds ), locale ) );
+            } else if ( prefix ) {
                 modelAndView.addObject( "users", userService.findByStartsName( nameLike, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ), ontologyTermsFromIds( ontologyTermIds ) ) );
             } else {
                 modelAndView.addObject( "users", userService.findByLikeName( nameLike, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ), ontologyTermsFromIds( ontologyTermIds ) ) );
@@ -153,14 +168,19 @@ public class SearchViewController extends AbstractSearchController {
 
     @PreAuthorize("hasPermission(null, 'search')")
     @GetMapping(value = "/search/view", params = { "descriptionLike" })
-    public ModelAndView searchUsersByDescriptionView( @RequestParam String descriptionLike,
-                                                      @RequestParam(required = false) Set<ResearcherPosition> researcherPositions,
-                                                      @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
-                                                      @RequestParam(required = false) Set<String> organUberonIds,
-                                                      @RequestParam(required = false) Set<Integer> ontologyTermIds ) {
+    public Object searchUsersByDescriptionView( @RequestParam String descriptionLike,
+                                                @RequestParam(required = false) Set<ResearcherPosition> researcherPositions,
+                                                @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
+                                                @RequestParam(required = false) Set<String> organUberonIds,
+                                                @RequestParam(required = false) List<Integer> ontologyTermIds,
+                                                @RequestParam(required = false) boolean summarize,
+                                                Locale locale ) {
         if ( descriptionLike.isEmpty() ) {
             return new ModelAndView( "fragments/error::message", HttpStatus.BAD_REQUEST )
                     .addObject( "errorMessage", "Research interests cannot be empty." );
+        } else if ( summarize ) {
+            return new ModelAndView( "fragments/search::summary" )
+                    .addObject( "searchSummary", summarizeUserSearchParams( new UserSearchParams( "", false, descriptionLike, false, researcherPositions, researcherCategories, organUberonIds, ontologyTermIds ), locale ) );
         } else {
             return new ModelAndView( "fragments/user-table::user-table" )
                     .addObject( "users", userService.findByDescription( descriptionLike, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ), ontologyTermsFromIds( ontologyTermIds ) ) );
@@ -177,7 +197,8 @@ public class SearchViewController extends AbstractSearchController {
                                                @RequestParam(required = false) Set<ResearcherPosition> researcherPositions,
                                                @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
                                                @RequestParam(required = false) Set<String> organUberonIds,
-                                               @RequestParam(required = false) Set<Integer> ontologyTermIds,
+                                               @RequestParam(required = false) List<Integer> ontologyTermIds,
+                                               @RequestParam(required = false) boolean summarize,
                                                Locale locale ) {
         if ( tiers == null ) {
             tiers = TierType.ANY;
@@ -224,8 +245,13 @@ public class SearchViewController extends AbstractSearchController {
                     .addObject( "errorMessage", messageSource.getMessage( "SearchController.errorNoOrthologs", new String[]{ symbol, orthologTaxon.getScientificName() }, locale ) );
         }
 
-        return new ModelAndView( "fragments/user-table::usergenes-table" )
-                .addObject( "usergenes", userGeneService.handleGeneSearch( gene, tiers, orthologTaxon, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ), ontologyTermsFromIds( ontologyTermIds ) ) );
+        if ( summarize ) {
+            return new ModelAndView( "fragments/search::summary" )
+                    .addObject( "searchSummary", summarizeGeneSearchParams( new GeneSearchParams( gene, tiers, orthologTaxon, false, researcherPositions, researcherCategories, organUberonIds, ontologyTermIds ), locale ) );
+        } else {
+            return new ModelAndView( "fragments/user-table::usergenes-table" )
+                    .addObject( "usergenes", userGeneService.handleGeneSearch( gene, tiers, orthologTaxon, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ), ontologyTermsFromIds( ontologyTermIds ) ) );
+        }
     }
 
     @PreAuthorize("hasPermission(null, 'search')")
@@ -292,7 +318,7 @@ public class SearchViewController extends AbstractSearchController {
                                                   @RequestParam(required = false) Set<ResearcherPosition> researcherPositions,
                                                   @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
                                                   @RequestParam(required = false) Set<String> organUberonIds,
-                                                  @RequestParam(required = false) Set<Integer> ontologyTermIds ) {
+                                                  @RequestParam(required = false) List<Integer> ontologyTermIds ) {
         // Only look for orthologs when taxon is human
         if ( taxonId != 9606 ) {
             orthologTaxonId = null;

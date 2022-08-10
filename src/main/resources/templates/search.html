@@ -319,6 +319,11 @@
         </div>
     </div>
 
+    <div id="searchSummary" class="mb-3">
+        <pre th:if="${searchSummary != null}"
+             th:replace="fragments/search::summary(searchSummary=${searchSummary})"></pre>
+    </div>
+
     <!--Results-->
     <div class="mb-3">
         <h4 th:text="'Researchers registered in ' + #{rdp.site.shortname}"></h4>
