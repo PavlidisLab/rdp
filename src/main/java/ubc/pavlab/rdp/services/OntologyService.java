@@ -973,6 +973,7 @@ public class OntologyService implements InitializingBean {
         return Comparator.comparingInt( t -> Ls.getOrDefault( t, maxResults ) );
     }
 
+    @Transactional(readOnly = true)
     public OntologyTermInfo findTermByTermIdAndOntology( String ontologyTermInfoId, Ontology ontology ) {
         return ontologyTermInfoRepository.findByTermIdAndOntology( ontologyTermInfoId, ontology );
     }
