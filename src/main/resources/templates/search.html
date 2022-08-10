@@ -40,57 +40,59 @@
              th:attr="aria-labelledby=${searchModeId} + '-tab'"
              th:classappend="${activeSearchMode} == ${searchMode} ? 'active'"
              role="tabpanel" class="tab-pane fade show">
-            <form class="search">
-                <div class="form-row">
-                    <div class="col-md-9">
-                        <label for="symbolInput">Search for researchers that study the following organism-specific
-                            gene:</label>
-                    </div>
-                    <div class="col-md-3" th:if="${@applicationSettings.enabledTiers.size()} > 1">
-                        <label for="tiers">Within the following tiers:</label>
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group col-md-5">
-                        <div class="input-group">
-                            <div class="input-group-prepend">
-                                <button class="btn btn-primary" type="submit"
-                                        id="gene-search-btn"
-                                        title="Look for researchers that focus on the specified gene.">
-                                    <i class="oi oi-magnifying-glass"></i>
-                                    Search
-                                </button>
-                            </div>
-                            <input type="text" class="form-control gene-autocomplete" id="symbolInput"
-                                   name="symbol"
-                                   th:value="${symbol}"
-                                   placeholder="Symbol" title="Gene official symbol to look for"/>
+            <form class="search" style="margin-top: -1rem;">
+                <div class="sticky-top  sticky-top pt-3" style="background: white;">
+                    <div class="form-row">
+                        <div class="col-md-9">
+                            <label for="symbolInput">Search for researchers that study the following organism-specific
+                                gene:</label>
+                        </div>
+                        <div class="col-md-3" th:if="${@applicationSettings.enabledTiers.size()} > 1">
+                            <label for="tiers">Within the following tiers:</label>
                         </div>
                     </div>
-                    <div class="form-group col-md-4">
-                        <select id="taxonId" name="taxonId" class="custom-select"
-                                title="Taxon to run primary search on">
-                            <th:block th:each="taxon : ${@taxonService.findByActiveTrue()}">
-                                <option th:value="${taxon.id}"
+                    <div class="form-row">
+                        <div class="form-group col-md-5">
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <button class="btn btn-primary" type="submit"
+                                            id="gene-search-btn"
+                                            title="Look for researchers that focus on the specified gene.">
+                                        <i class="oi oi-magnifying-glass"></i>
+                                        Search
+                                    </button>
+                                </div>
+                                <input type="text" class="form-control gene-autocomplete" id="symbolInput"
+                                       name="symbol"
+                                       th:value="${symbol}"
+                                       placeholder="Symbol" title="Gene official symbol to look for"/>
+                            </div>
+                        </div>
+                        <div class="form-group col-md-4">
+                            <select id="taxonId" name="taxonId" class="custom-select"
+                                    title="Taxon to run primary search on">
+                                <option th:each="taxon : ${@taxonService.findByActiveTrue()}"
+                                        th:value="${taxon.id}"
                                         th:text="${#strings.capitalizeWords(taxon.commonName)}"
-                                        th:selected="${taxon.id} == ${taxonId ?: 9606}"></option>
-                            </th:block>
-                        </select>
-                    </div>
-                    <div class="form-group col-md-3"
-                         th:style="${@applicationSettings.enabledTiers.size()} > 1 ? '' : 'display: none;'">
-                        <select id="tiers"
-                                class="form-control selectpicker"
-                                name="tiers"
-                                title="Show any tier, or specific tiers"
-                                multiple="multiple">
-                            <!--suppress ThymeleafVariablesResolveInspection -->
-                            <option th:each="tier : ${T(ubc.pavlab.rdp.model.enums.TierType).values()}"
-                                    th:if="${@applicationSettings.enabledTiers.contains(tier)}"
-                                    th:value="${tier}"
-                                    th:text="#{'TierType.' + ${tier.name()}}"
-                                    th:selected="${tiers != null and tiers.contains(tier)}"></option>
-                        </select>
+                                        th:selected="${taxon.id} == ${taxonId ?: 9606}">
+                                </option>
+                            </select>
+                        </div>
+                        <div class="form-group col-md-3"
+                             th:style="${@applicationSettings.enabledTiers.size()} > 1 ? '' : 'display: none;'">
+                            <select id="tiers"
+                                    class="form-control selectpicker"
+                                    name="tiers"
+                                    title="Show any tier, or specific tiers"
+                                    multiple="multiple">
+                                <!--suppress ThymeleafVariablesResolveInspection -->
+                                <option th:each="tier : ${T(ubc.pavlab.rdp.model.enums.TierType).values()}"
+                                        th:if="${@applicationSettings.enabledTiers.contains(tier)}"
+                                        th:value="${tier}"
+                                        th:text="#{'TierType.' + ${tier.name()}}"
+                                        th:selected="${tiers != null and tiers.contains(tier)}"></option>
+                            </select>
+                        </div>
                     </div>
                 </div>
                 <div id="ortholog-box" class="form-row">
@@ -199,12 +201,17 @@
             <hr/>
             -->
 
-            <form th:action="@{/search}" class="search">
+            <form th:action="@{/search}" class="search" style="margin-top: -1rem;">
 
-                <div class="form-row align-items-end">
-                    <div class="col-md-2">
-                        <div class="form-group">
-                            <button class="btn btn-primary" type="submit">
+                <!-- sticky button for mobile -->
+                <div class="sticky-top pt-3" style="background: white;">
+                    <div class="form-row">
+                        <div class="form-group col">
+                            <button class="btn btn-primary btn-block d-sm-block d-md-none" type="submit">
+                                <i class="oi oi-magnifying-glass"></i>
+                                Search Researchers
+                            </button>
+                            <button class="btn btn-primary d-none d-md-block" type="submit">
                                 <i class="oi oi-magnifying-glass"></i>
                                 Search Researchers
                             </button>
