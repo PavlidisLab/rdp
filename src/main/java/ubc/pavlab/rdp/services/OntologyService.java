@@ -435,6 +435,14 @@ public class OntologyService implements InitializingBean {
         UP, DOWN
     }
 
+    public String resolveOntologyName( Ontology o, Locale locale ) {
+        return messageSource.getMessage( "rdp.ontologies." + o.getName() + ".title", null, o.getName(), locale );
+    }
+
+    public String resolveOntologyTermInfoName( OntologyTermInfo t, Locale locale ) {
+        return messageSource.getMessage( "rdp.ontologies." + t.getOntology().getName() + ".terms." + t.getName() + ".title", null, t.getName(), locale );
+    }
+
     /**
      * Resolve an ontology URL into a {@link Resource}.
      */
@@ -786,7 +794,7 @@ public class OntologyService implements InitializingBean {
                 matchType,
                 t.getId(),
                 t.getTermId(),
-                messageSource.getMessage( "rdp.ontologies." + t.getOntology().getName() + ".terms." + t.getName() + ".title", null, t.getName(), locale ),
+                resolveOntologyTermInfoName( t, locale ),
                 extras,
                 t );
         result.setScore( tfIdf );
@@ -962,6 +970,11 @@ public class OntologyService implements InitializingBean {
 
     public OntologyTermInfo findTermByTermIdAndOntology( String ontologyTermInfoId, Ontology ontology ) {
         return ontologyTermInfoRepository.findByTermIdAndOntology( ontologyTermInfoId, ontology );
+    }
+
+    @Transactional(readOnly = true)
+    public boolean existsByTermIdAndOntologyAndActiveTrue( String termId, Ontology ontology ) {
+        return ontologyTermInfoRepository.existsByTermIdAndOntologyAndActiveTrue( termId, ontology );
     }
 
     /**

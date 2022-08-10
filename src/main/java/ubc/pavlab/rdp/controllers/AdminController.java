@@ -41,7 +41,9 @@ import ubc.pavlab.rdp.model.ontology.OntologyTerm;
 import ubc.pavlab.rdp.model.ontology.OntologyTermInfo;
 import ubc.pavlab.rdp.services.*;
 import ubc.pavlab.rdp.settings.SiteSettings;
+import ubc.pavlab.rdp.util.EmptySearchResult;
 import ubc.pavlab.rdp.util.ParseException;
+import ubc.pavlab.rdp.util.TextUtils;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
@@ -888,6 +890,11 @@ public class AdminController {
         if ( ontology == null ) {
             return ResponseEntity.status( HttpStatus.NOT_FOUND )
                     .body( messageSource.getMessage( "AdminController.ontologyNotFoundById", null, locale ) );
+        }
+        // hint the user that a term is already active
+        String termId = TextUtils.normalize( query );
+        if ( ontologyService.existsByTermIdAndOntologyAndActiveTrue( termId, ontology ) ) {
+            return EmptySearchResult.create( String.format( "%s is already active in %s.", termId, ontologyService.resolveOntologyName( ontology, locale ) ), query );
         }
         return ontologyService.autocompleteInactiveTerms( query, ontology, 20, locale );
     }

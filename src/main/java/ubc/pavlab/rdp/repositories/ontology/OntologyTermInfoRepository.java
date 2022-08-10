@@ -216,4 +216,6 @@ public interface OntologyTermInfoRepository extends JpaRepository<OntologyTermIn
      */
     @Query("select t from OntologyTermInfo t left join t.superTerms st on st.active = true where t.ontology = :ontology and t.active = true and size(t.subTerms) > 0 group by t having count(st) = 0")
     List<OntologyTermInfo> findAllByOntologyAndActiveAndSuperTermsEmptyAndSubTermsNotEmpty( @Param("ontology") Ontology ontology );
+
+    boolean existsByTermIdAndOntologyAndActiveTrue( String termId, Ontology ontology );
 }

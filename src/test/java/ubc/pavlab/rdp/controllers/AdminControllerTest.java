@@ -47,14 +47,12 @@ import java.io.*;
 import java.net.URI;
 import java.net.URL;
 import java.time.Duration;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.zip.GZIPOutputStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -1005,5 +1003,26 @@ public class AdminControllerTest {
         mvc.perform( post( "/admin/ontologies/{ontologyId}/move", ontology.getId() )
                         .param( "direction", "bleh" ) )
                 .andExpect( status().isBadRequest() );
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    public void autocomplete_whenTermIsAlreadyActive_thenReturnBadRequest() throws Exception {
+        Ontology ontology = Ontology.builder( "mondo" ).id( 1 ).build();
+        OntologyTermInfo term = OntologyTermInfo.builder( ontology, "MONDO:000001" ).name( "disease" ).active( true ).build();
+        when( ontologyService.findById( 1 ) ).thenReturn( ontology );
+        when( ontologyService.existsByTermIdAndOntologyAndActiveTrue( "MONDO:000001", ontology ) ).thenReturn( true );
+        when( ontologyService.resolveOntologyName( eq( ontology ), any( Locale.class ) ) ).thenReturn( "MONDO" );
+        //noinspection SpellCheckingInspection
+        mvc.perform( get( "/admin/ontologies/{ontologyId}/autocomplete-terms", ontology.getId() )
+                        .param( "query", "MONDO:000001" )
+                        .locale( Locale.getDefault() ) )
+                .andExpect( status().isOk() )
+                .andExpect( content().contentTypeCompatibleWith( MediaType.APPLICATION_JSON ) )
+                .andExpect( jsonPath( "$[0].noresults" ).value( true ) )
+                .andExpect( jsonPath( "$[0].label" ).value( "MONDO:000001 is already active in MONDO." ) )
+                .andExpect( jsonPath( "$[0].value" ).value( "MONDO:000001" ) );
+        verify( ontologyService ).existsByTermIdAndOntologyAndActiveTrue( "MONDO:000001", ontology );
+        verify( ontologyService ).resolveOntologyName( ontology, Locale.getDefault() );
     }
 }
