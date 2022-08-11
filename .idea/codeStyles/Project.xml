@@ -16,5 +16,10 @@
       <option name="SPACE_WITHIN_SYNCHRONIZED_PARENTHESES" value="true" />
       <option name="SPACE_WITHIN_ARRAY_INITIALIZER_BRACES" value="true" />
     </codeStyleSettings>
+    <codeStyleSettings language="SCSS">
+      <indentOptions>
+        <option name="INDENT_SIZE" value="4" />
+      </indentOptions>
+    </codeStyleSettings>
   </code_scheme>
 </component>
