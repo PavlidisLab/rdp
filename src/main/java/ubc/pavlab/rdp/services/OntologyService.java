@@ -431,6 +431,28 @@ public class OntologyService implements InitializingBean {
         ontologyRepository.saveAll( ontologies );
     }
 
+    /**
+     * Find terms by term IDs and ontology names.
+     * <p>
+     * Terms that are duplicates or do not exist are ignored.
+     *
+     * @return the corresponding ontology terms excluding non-existing ones and duplicates
+     */
+    @Transactional(readOnly = true)
+    public List<OntologyTermInfo> findTermByTermIdsAndOntologyNames( List<String> termIds, List<String> ontologyNames ) {
+        if ( termIds.size() != ontologyNames.size() ) {
+            throw new IllegalArgumentException( "Term IDs and ontology names list must have the same size." );
+        }
+        LinkedHashSet<OntologyTermInfo> results = new LinkedHashSet<>( termIds.size() );
+        for ( int i = 0; i < ontologyNames.size(); i++ ) {
+            OntologyTermInfo term = ontologyTermInfoRepository.findByTermIdAndOntologyName( termIds.get( i ), ontologyNames.get( i ) );
+            if ( term != null ) {
+                results.add( term );
+            }
+        }
+        return new ArrayList<>( results );
+    }
+
     public enum Direction {
         UP, DOWN
     }

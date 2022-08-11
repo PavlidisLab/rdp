@@ -434,14 +434,7 @@ public class ApiController {
         if ( ontologyNames.size() != termIds.size() ) {
             throw new ApiException( HttpStatus.BAD_REQUEST, "The 'ontologyNames' and 'ontologyTermIds' lists must have the same size." );
         }
-        // TODO: perform this in a single query
-        List<OntologyTermInfo> results = new ArrayList<>( ontologyNames.size() );
-        for ( int i = 0; i < ontologyNames.size(); i++ ) {
-            OntologyTermInfo oti = ontologyService.findTermByTermIdAndOntologyName( termIds.get( i ), ontologyNames.get( i ) );
-            if ( oti != null ) {
-                results.add( oti );
-            }
-        }
+        List<OntologyTermInfo> results = ontologyService.findTermByTermIdsAndOntologyNames( termIds, ontologyNames );
         if ( results.isEmpty() ) {
             throw new ApiException( HttpStatus.NOT_FOUND, "None of the supplied terms could be found." );
         }
