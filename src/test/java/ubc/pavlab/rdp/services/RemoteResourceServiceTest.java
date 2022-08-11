@@ -25,12 +25,15 @@ import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.model.User;
 import ubc.pavlab.rdp.model.UserGene;
 import ubc.pavlab.rdp.model.enums.TierType;
+import ubc.pavlab.rdp.model.ontology.Ontology;
+import ubc.pavlab.rdp.model.ontology.OntologyTermInfo;
 import ubc.pavlab.rdp.repositories.RoleRepository;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.Duration;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.UUID;
 
@@ -213,6 +216,20 @@ public class RemoteResourceServiceTest {
         assertThat( remoteResourceService.findUsersByLikeNameAndDescription( "ok", true, "ok2", null, null, null, null ) )
                 .extracting( "id" )
                 .containsExactly( 2 );
+        mockServer.verify();
+    }
+
+    @Test
+    public void findUsersByLikeName_whenTermAreNotSupported_thenReturnNothing() throws JsonProcessingException {
+        MockRestServiceServer mockServer = MockRestServiceServer.createServer( asyncRestTemplate );
+        mockServer.expect( requestTo( "http://example.com/api" ) )
+                .andRespond( withStatus( HttpStatus.OK )
+                        .contentType( MediaType.APPLICATION_JSON )
+                        .body( objectMapper.writeValueAsString( new OpenAPI().info( new Info().version( "1.4.0" ) ) ) ) );
+        Ontology ontology = Ontology.builder( "mondo" ).build();
+        OntologyTermInfo term = OntologyTermInfo.builder( ontology, "TERM:0000001" ).build();
+        assertThat( remoteResourceService.findUsersByLikeName( "bob", false, null, null, null, Collections.singleton( term ) ) )
+                .isEmpty();
         mockServer.verify();
     }
 

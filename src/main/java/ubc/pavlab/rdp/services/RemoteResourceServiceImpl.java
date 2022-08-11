@@ -117,7 +117,13 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
                 .organUberonIds( organUberonIds )
                 .ontologyTermInfos( ontologyTermInfos )
                 .build().toMultiValueMap() );
-        return getRemoteEntities( User[].class, API_USERS_SEARCH_URI, params, Collections.singletonList( satisfiesVersion( "1.0.0" ) ) ).stream()
+        List<RequestFilter<User[]>> filters;
+        if ( ontologyTermInfos != null ) {
+            filters = Collections.singletonList( satisfiesVersion( "1.5.0" ) );
+        } else {
+            filters = Collections.singletonList( satisfiesVersion( "1.0.0" ) );
+        }
+        return getRemoteEntities( User[].class, API_USERS_SEARCH_URI, params, filters ).stream()
                 .sorted( User.getComparator() )
                 .collect( Collectors.toList() );
     }
@@ -132,7 +138,13 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
                 .organUberonIds( organUberonIds )
                 .ontologyTermInfos( ontologyTermInfos )
                 .build().toMultiValueMap() );
-        return getRemoteEntities( User[].class, API_USERS_SEARCH_URI, params, Collections.singletonList( satisfiesVersion( "1.0.0" ) ) ).stream()
+        List<RequestFilter<User[]>> filters;
+        if ( ontologyTermInfos != null ) {
+            filters = Collections.singletonList( satisfiesVersion( "1.5.0" ) );
+        } else {
+            filters = Collections.singletonList( satisfiesVersion( "1.0.0" ) );
+        }
+        return getRemoteEntities( User[].class, API_USERS_SEARCH_URI, params, filters ).stream()
                 .sorted( User.getComparator() )
                 .collect( Collectors.toList() );
     }
@@ -150,11 +162,15 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
                 .ontologyTermInfos( ontologyTermInfos )
                 .build().toMultiValueMap() );
         List<RequestFilter<User[]>> requestFilters = new ArrayList<>();
+        if ( ontologyTermInfos != null ) {
+            requestFilters.add( satisfiesVersion( "1.5.0" ) );
+        }
         requestFilters.add( ( remoteHost, path, apiParams, chain ) -> {
             try {
-                if ( VersionUtils.satisfiesVersion( remoteResourceService.getApiVersion( remoteHost ), "1.5.0" ) ) {
+                String apiVersion = remoteResourceService.getApiVersion( remoteHost );
+                if ( VersionUtils.satisfiesVersion( apiVersion, "1.5.0" ) ) {
                     return chain.next().filter( remoteHost, path, apiParams, chain );
-                } else {
+                } else if ( VersionUtils.satisfiesVersion( apiVersion, "1.0.0" ) ) {
                     // this is a pre-1.5 workaround that reproduces the result of the query by intersecting the output
                     // of two endpoints
 
@@ -187,6 +203,8 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
                         nameLikeUsers.retainAll( descriptionLikeUsers );
                         return new ResponseEntity<>( nameLikeUsers.toArray( new User[0] ), a.getHeaders(), a.getStatusCode() );
                     } ) ) );
+                } else {
+                    return Optional.empty();
                 }
             } catch ( RemoteException e ) {
                 log.warn( String.format( "Failed to retrieve API version from %s: %s.", remoteHost, e.getMessage() ) );
@@ -214,8 +232,13 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
                     .organUberonIds( organUberonIds )
                     .ontologyTermInfos( ontologyTermInfos )
                     .build().toMultiValueMap() );
-            intlUsergenes.addAll( getRemoteEntities( UserGene[].class, API_GENES_SEARCH_URI, params,
-                    Collections.singletonList( satisfiesVersion( "1.0.0" ) ) ) );
+            List<RequestFilter<UserGene[]>> filters;
+            if ( ontologyTermInfos != null ) {
+                filters = Collections.singletonList( satisfiesVersion( "1.5.0" ) );
+            } else {
+                filters = Collections.singletonList( satisfiesVersion( "1.0.0" ) );
+            }
+            intlUsergenes.addAll( getRemoteEntities( UserGene[].class, API_GENES_SEARCH_URI, params, filters ) );
         }
         Map<Integer, Integer> taxonOrderingById = taxonService.findByActiveTrue().stream()
                 .collect( Collectors.toMap( Taxon::getId, Taxon::getOrdering ) );
@@ -350,31 +373,34 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
         pp.add( createFinalUri() );
         pp.add( performApiQuery( arrCls ) );
         return Arrays.stream( applicationSettings.getIsearch().getApis() )
-                .map( uri -> {
-                    Iterator<RequestFilter<T[]>> chain = pp.iterator();
-                    return chain.next().filter( uri, path, params, chain );
-                } )
-                .filter( Optional::isPresent )
-                .map( Optional::get )
+                .map( uri -> invokeChain( pp, uri, path, params ) )
+                .filter( Optional::isPresent ).map( Optional::get )
                 // it's important to collect, otherwise the future will be created and joined one-by-one, defeating the
                 // purpose of using them in the first place
                 .collect( Collectors.toList() ).stream()
-                .map( uriAndFuture -> {
-                    try {
-                        T[] entity = getFromRequestFuture( uriAndFuture.getLeft(), uriAndFuture.getRight() ).getBody();
-                        if ( entity != null ) {
-                            return entity;
-                        } else {
-                            log.error( String.format( "Invalid response for %s: the body is null.", uriAndFuture.getLeft() ) );
-                            return null;
-                        }
-                    } catch ( RemoteException e ) {
-                        return null;
-                    }
-                } )
+                .map( this::processUriAndResponseEntityFuture )
                 .filter( Objects::nonNull )
                 .flatMap( Arrays::stream )
                 .collect( Collectors.toList() );
+    }
+
+    private <T> Optional<Pair<URI, Future<ResponseEntity<T>>>> invokeChain( List<RequestFilter<T>> chain, URI uri, String path, MultiValueMap<String, String> params ) {
+        Iterator<RequestFilter<T>> c = chain.iterator();
+        return c.next().filter( uri, path, params, c );
+    }
+
+    private <T> T processUriAndResponseEntityFuture( Pair<URI, Future<ResponseEntity<T>>> uriAndFuture ) {
+        try {
+            T entity = getFromRequestFuture( uriAndFuture.getLeft(), uriAndFuture.getRight() ).getBody();
+            if ( entity != null ) {
+                return entity;
+            } else {
+                log.error( String.format( "Invalid response for %s: the body is null.", uriAndFuture.getLeft() ) );
+                return null;
+            }
+        } catch ( RemoteException e ) {
+            return null;
+        }
     }
 
     private <T> T getFromRequestFuture( URI uri, Future<T> future ) throws RemoteException {
