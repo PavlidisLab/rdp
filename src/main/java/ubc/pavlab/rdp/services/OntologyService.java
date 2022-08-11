@@ -457,10 +457,21 @@ public class OntologyService implements InitializingBean {
         UP, DOWN
     }
 
+    /**
+     * Resolve the ontology name.
+     * <p>
+     * In templates, prefer instead {@link MessageSource} with the <code>rdp.ontologies.{ontologyName}.title</code> code.
+     */
     public String resolveOntologyName( Ontology o, Locale locale ) {
-        return messageSource.getMessage( "rdp.ontologies." + o.getName() + ".title", null, o.getName(), locale );
+        return messageSource.getMessage( "rdp.ontologies." + o.getName() + ".title", null, o.getName().toUpperCase(), locale );
     }
 
+    /**
+     * Resolve the ontology definition.
+     * <p>
+     * In templates, prefer instead {@link MessageSource} with the <code>rdp.ontologies.{ontologyName}.definition</code>
+     * code.
+     */
     public String resolveOntologyTermInfoName( OntologyTermInfo t, Locale locale ) {
         return messageSource.getMessage( "rdp.ontologies." + t.getOntology().getName() + ".terms." + t.getName() + ".title", null, t.getName(), locale );
     }
