@@ -130,8 +130,8 @@
             <span th:each="term : ${selectedTerms}"
                   th:if="${term.ontology} == ${ontology}"
                   th:object="${term}"
-                  class="badge badge-primary mb-1">
-                <span th:text="${term.name}" class="align-middle my-auto"></span>
+                  class="badge badge-primary d-inline-flex align-items-center mr-1 mb-1">
+                <span th:text="${term.name}"></span>
                 <button class="close" type="button">&times;</button>
                 <input type="hidden" th:name="ontologyTermInfoIds" th:value="*{id}"/>
             </span>

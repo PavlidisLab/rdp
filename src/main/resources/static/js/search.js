@@ -214,9 +214,9 @@
          */
         select: function (event, ui) {
             // add the term ID to the selection
-            $('<span class="badge badge-primary mb-1">')
-                .append($('<span class="align-middle">').text(ui.item.description))
-                .append($('<button class="align-middle close" type="button">').text('×'))
+            $('<span class="badge badge-primary d-inline-flex align-items-center mr-1 mb-1">')
+                .append($('<span>').text(ui.item.description))
+                .append($('<button class="close" type="button">').text('×'))
                 .append($('<input name="ontologyTermIds" type="hidden">').val(ui.item.id))
                 .insertBefore($(this));
             $(this).val('');
