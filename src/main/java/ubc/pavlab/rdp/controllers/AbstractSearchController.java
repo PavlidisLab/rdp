@@ -3,6 +3,10 @@ package ubc.pavlab.rdp.controllers;
 import lombok.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
+import org.springframework.validation.Errors;
+import org.springframework.validation.Validator;
+import org.springframework.web.bind.WebDataBinder;
+import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import ubc.pavlab.rdp.model.GeneInfo;
 import ubc.pavlab.rdp.model.OrganInfo;
@@ -49,6 +53,13 @@ public abstract class AbstractSearchController {
          * Order matters here because we want to preserve the UI rendering.
          */
         private List<Integer> ontologyTermIds;
+
+        /**
+         * Indicate of the search parameters are empty.
+         */
+        public boolean isEmpty() {
+            return researcherPositions == null && researcherCategories == null && organUberonIds == null && ontologyTermIds == null;
+        }
     }
 
     @Data
@@ -67,6 +78,32 @@ public abstract class AbstractSearchController {
             this.prefix = prefix;
             this.descriptionLike = descriptionLike;
         }
+
+        @Override
+        public boolean isEmpty() {
+            return nameLike.isEmpty() && descriptionLike.isEmpty() && super.isEmpty();
+        }
+    }
+
+    protected static class UserSearchParamsValidator implements Validator {
+
+        @Override
+        public boolean supports( Class<?> clazz ) {
+            return UserSearchParams.class.isAssignableFrom( clazz );
+        }
+
+        @Override
+        public void validate( Object target, Errors errors ) {
+            UserSearchParams userSearchParams = (UserSearchParams) target;
+            if ( userSearchParams.isEmpty() ) {
+                errors.reject( "AbstractSearchController.UserSearchParams.emptyQueryNotAllowed" );
+            }
+        }
+    }
+
+    @InitBinder("userSearchParams")
+    public void initBinder( WebDataBinder webDataBinder ) {
+        webDataBinder.addValidators( new UserSearchParamsValidator() );
     }
 
     @Data
@@ -83,6 +120,11 @@ public abstract class AbstractSearchController {
             this.gene = gene;
             this.tiers = tiers;
             this.orthologTaxon = orthologTaxon;
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return tiers.isEmpty() && super.isEmpty();
         }
     }
 

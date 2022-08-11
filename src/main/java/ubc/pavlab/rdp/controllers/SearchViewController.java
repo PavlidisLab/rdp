@@ -70,13 +70,13 @@ public class SearchViewController extends AbstractSearchController {
 
     @PreAuthorize("hasPermission(null, 'international-search')")
     @GetMapping(value = "/search/view/international", params = { "nameLike", "descriptionLike" })
-    public Object searchItlUsers( @Valid UserSearchParams userSearchParams, BindingResult bindingResult ) {
+    public Object searchItlUsers( @Valid UserSearchParams userSearchParams, BindingResult bindingResult, Locale locale ) {
         if ( userSearchParams.getNameLike().isEmpty() ^ userSearchParams.getDescriptionLike().isEmpty() ) {
             return redirectToSpecificSearch( userSearchParams.getNameLike(), userSearchParams.getDescriptionLike() );
         }
         if ( bindingResult.hasErrors() ) {
             return new ModelAndView( "fragments/error::message", HttpStatus.BAD_REQUEST )
-                    .addObject( "errorMessage", "Invalid user search parameters." );
+                    .addObject( "errorMessage", bindingResult.getGlobalError() != null ? messageSource.getMessage( bindingResult.getGlobalError(), locale ) : "Invalid user search parameters." );
         } else {
             return new ModelAndView( "fragments/user-table::user-table" )
                     .addObject( "users", remoteResourceService.findUsersByLikeNameAndDescription( userSearchParams.getNameLike(), userSearchParams.isPrefix(), userSearchParams.getDescriptionLike(), userSearchParams.getResearcherPositions(), userSearchParams.getResearcherCategories(), userSearchParams.getOrganUberonIds(), ontologyTermsFromIds( userSearchParams.getOntologyTermIds() ) ) )
@@ -129,7 +129,7 @@ public class SearchViewController extends AbstractSearchController {
         }
         if ( bindingResult.hasErrors() ) {
             return new ModelAndView( "fragments/error::message", HttpStatus.BAD_REQUEST )
-                    .addObject( "errorMessage", "Invalid user search parameters." );
+                    .addObject( "errorMessage", bindingResult.getGlobalError() != null ? messageSource.getMessage( bindingResult.getGlobalError(), locale ) : "Invalid user search parameters." );
         } else if ( summarize ) {
             return new ModelAndView( "fragments/search::summary" )
                     .addObject( "searchSummary", summarizeUserSearchParams( userSearchParams, locale ) );

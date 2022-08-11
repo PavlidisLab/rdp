@@ -106,7 +106,11 @@ public class SearchController extends AbstractSearchController {
                 .addObject( "iSearch", userSearchParams.isISearch() );
         if ( bindingResult.hasErrors() ) {
             modelAndView.setStatus( HttpStatus.BAD_REQUEST );
-            modelAndView.addObject( "message", "Invalid user search parameters." );
+            if ( bindingResult.getGlobalError() != null ) {
+                modelAndView.addObject( "message", messageSource.getMessage( bindingResult.getGlobalError(), locale ) );
+            } else {
+                modelAndView.addObject( "Invalid user search parameters." );
+            }
             modelAndView.addObject( "error", true );
             modelAndView.addObject( "users", Collections.emptyList() );
             if ( userSearchParams.isISearch() ) {
