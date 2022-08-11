@@ -5,4 +5,4 @@ require('bootstrap');
 
 /* style */
 require('bootstrap/dist/css/bootstrap.css');
-require('../css/login.css');
+require('../css/login.scss');

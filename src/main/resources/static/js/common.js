@@ -17,12 +17,10 @@ require('jquery-ui/themes/base/autocomplete.css');
 require('jquery-ui/themes/base/theme.css');
 require('datatables.net-bs4/css/dataTables.bootstrap4.css');
 
-require('../css/common.css');
+require('../css/common.scss');
 
 (function () {
     "use strict";
-
-    var $ = require('jquery');
 
     $(document).on("click", '.editable', function () {
         var inputs = $(this).closest(".edit-container").find(".data-edit");
