@@ -79,6 +79,7 @@ public class SearchController extends AbstractSearchController {
                 .addObject( "activeSearchMode", applicationSettings.getSearch().getEnabledSearchModes().stream().findFirst().orElse( null ) )
                 .addObject( "chars", userService.getLastNamesFirstChar() )
                 .addObject( "user", userService.findCurrentUser() )
+                .addObject( "iSearch", applicationSettings.getIsearch().isDefaultOn() )
                 .addObject( "ontologyTerms", Collections.emptyList() );
     }
 

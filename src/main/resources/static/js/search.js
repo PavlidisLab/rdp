@@ -36,16 +36,6 @@
             });
     }
 
-    function checkItl(itlChbox) {
-        if (itlChbox.prop("checked")) {
-            $("#itlResults").show();
-            $("[name=iSearch]").val(true);
-        } else {
-            $("#itlResults").hide();
-            $('[name="iSearch"]').val(false);
-        }
-    }
-
     function checkTaxon(taxonSelect) {
         // noinspection EqualityComparisonWithCoercionJS // multi-browser support // Taxon also checked in SearchController.java
         if (taxonSelect.val() === "9606") {
@@ -59,10 +49,19 @@
     var searchSummary = $('#searchSummary');
     var orthologContainer = $("#orthologsResults");
     var itlTableContainer = $("#itlUserTable");
+    var itlResults = $("#itlResults");
 
     $("form.search").submit(function (event) {
 
         var formData = $(this).serialize();
+
+        // ensure that iSearch is always part of the request parameters
+        // this could also be done using a hidden input with the '_' prefix, but we don't want to contaminate the search
+        // query syntax
+        var iSearch = $(this).find('input[name="iSearch"]').is(':checked');
+        if (!iSearch) {
+            formData += '&iSearch=false';
+        }
 
         // Show search results
         tableContainer.html($('<i class="mx-2 spinner"></i>'));
@@ -94,7 +93,8 @@
         }
 
         // Show international search results
-        if ($("#isearch-checkbox").is(":checked")) {
+        if (iSearch) {
+            itlResults.toggleClass('d-none', false);
             itlTableContainer.html($('<i class="mx-2 spinner"></i>'));
             // noinspection JSUnusedLocalSymbols
             itlTableContainer.load(window.contextPath + "/search/view/international", formData, function (responseText, textStatus, req) {
@@ -105,19 +105,14 @@
                     itlTableContainer.find('.user-preview-popover').each(initializeUserPreviewPopover);
                 }
             });
+        } else {
+            itlResults.toggleClass('d-none', true);
         }
 
         // update history stack
         window.history.pushState({}, '', '?' + formData);
 
         event.preventDefault();
-    });
-
-    // International search property setting
-    var itlChbox = $("#isearch-checkbox");
-    checkItl(itlChbox);
-    itlChbox.click(function () {
-        checkItl(itlChbox);
     });
 
     // Ortholog selection show&hide

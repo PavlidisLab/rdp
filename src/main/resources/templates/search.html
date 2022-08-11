@@ -124,6 +124,28 @@
                             </label>
                         </div>
                     </div>
+
+                    <div th:if="${@applicationSettings.getIsearch().isEnabled()}"
+                         class="form-row">
+                        <div class="col-md-12">
+                            <div class="form-check mb-3">
+                                <input th:id="${#ids.seq('iSearch')}"
+                                       name="iSearch"
+                                       type="checkbox" class="form-check-input"
+                                       th:checked="${iSearch}"
+                                       th:value="true"/>
+                                <label th:for="${#ids.prev('iSearch')}"
+                                       class="form-check-label">
+                                    Include results from partner registries
+                                    <i class="tip oi oi-question-mark"
+                                       data-toggle="tooltip"
+                                       title="If enabled, the search will include matches found in our partner registries">
+                                    </i>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
 
                 <!--
@@ -167,8 +189,6 @@
                         </div>
                     </div>
                 </th:block>
-
-                <input type="hidden" name="iSearch" th:value="${iSearch}"/>
             </form>
         </div>
 
@@ -209,15 +229,35 @@
                 <!-- sticky button for mobile -->
                 <div class="search-section sticky-top p-3 border-bottom">
                     <div class="form-row">
-                        <div class="form-group mb-0 col">
-                            <button class="btn btn-primary btn-block d-sm-block d-md-none" type="submit">
+                        <div class="form-group col-sm-12 d-sm-block d-md-none">
+                            <button class="btn btn-primary btn-block" type="submit">
                                 <i class="oi oi-magnifying-glass"></i>
                                 Search Researchers
                             </button>
-                            <button class="btn btn-primary d-none d-md-block" type="submit">
+                        </div>
+                        <div class="form-group col-md d-none d-md-block mb-0">
+                            <button class="btn btn-primary " type="submit">
                                 <i class="oi oi-magnifying-glass"></i>
                                 Search Researchers
                             </button>
+                        </div>
+                        <div th:if="${@applicationSettings.isearch.enabled}"
+                             class="align-self-center">
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input"
+                                       th:id="${#ids.seq('iSearch')}"
+                                       name="iSearch"
+                                       th:checked="${iSearch}"
+                                       th:value="true"/>
+                                <label th:for="${#ids.prev('iSearch')}"
+                                       class="form-check-label">
+                                    Include results from partner registries
+                                    <i class="tip oi oi-question-mark"
+                                       data-toggle="tooltip"
+                                       title="If enabled, the search will include matches found in our partner registries">
+                                    </i>
+                                </label>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -283,30 +323,11 @@
                         </div>
                     </div>
                 </th:block>
-                <input type="hidden" name="iSearch" th:value="${iSearch}"/>
             </form>
         </div>
     </div>
 
-    <form th:if="${@applicationSettings.getIsearch().isEnabled()}"
-          class="mb-3">
-        <div class="form-row">
-            <div class="col-md-12">
-                <div class="form-check">
-                    <input id="isearch-checkbox" type="checkbox" class="form-check-input"
-                           th:checked="${iSearch} ?: ${@applicationSettings.getIsearch().isDefaultOn()}"/>
-                    <label for="isearch-checkbox"
-                           class="form-check-label">
-                        Include results from partner registries
-                        <i class="tip oi oi-question-mark"
-                           data-toggle="tooltip"
-                           title="If enabled, the search will include matches found in our partner registries">
-                        </i>
-                    </label>
-                </div>
-            </div>
-        </div>
-    </form>
+    <hr/>
 
     <!--Orthologs -->
     <div id="orthologsResults" class="mb-3">
@@ -342,7 +363,8 @@
     <!--International results-->
     <div th:if="${@applicationSettings.getIsearch().isEnabled()}"
          id="itlResults"
-         class="mb-3">
+         class="mb-3"
+         th:classappend="${iSearch} ? '' : 'd-none'">
         <hr/>
         <h4>Partner registry results</h4>
         <div id="itlUserTable">
