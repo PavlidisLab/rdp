@@ -32,22 +32,22 @@
         </li>
     </ul>
 
-    <div class="tab-content border-left border-right border-bottom p-3 mb-3">
+    <div class="tab-content mb-3">
         <!--Genes-->
         <div th:if="${@applicationSettings.search.enabledSearchModes.contains(T(ubc.pavlab.rdp.settings.ApplicationSettings$SearchSettings$SearchMode).BY_GENE)}"
              th:with="searchMode=${T(ubc.pavlab.rdp.settings.ApplicationSettings$SearchSettings$SearchMode).BY_GENE},searchModeId=${searchMode.toString().replace('_', '-').toLowerCase()}"
              th:id="${searchModeId} + '-search'"
              th:attr="aria-labelledby=${searchModeId} + '-tab'"
              th:classappend="${activeSearchMode} == ${searchMode} ? 'active'"
-             role="tabpanel" class="tab-pane fade show">
+             role="tabpanel" class="tab-pane fade show border-left border-right border-bottom mb-3">
             <form class="search" style="margin-top: -1rem;">
-                <div class="sticky-top  sticky-top pt-3" style="background: white;">
+                <div class="sticky-top pt-3 px-3 search-section border-bottom">
                     <div class="form-row">
                         <div class="col-md-9">
                             <label for="symbolInput">Search for researchers that study the following organism-specific
                                 gene:</label>
                         </div>
-                        <div class="col-md-3" th:if="${@applicationSettings.enabledTiers.size()} > 1">
+                        <div class="col-md-3 d-none d-md-block" th:if="${@applicationSettings.enabledTiers.size()} > 1">
                             <label for="tiers">Within the following tiers:</label>
                         </div>
                     </div>
@@ -94,34 +94,36 @@
                             </select>
                         </div>
                     </div>
+
+                    <div id="ortholog-box" class="form-row">
+                        <div class="form-group col-md-5 text-right">
+                            <label class="col-form-label d-none d-md-block" for="ortholog-select">
+                                In this model organism (based on ortholog mapping):
+                            </label>
+                        </div>
+                        <div class="form-group col-md-4">
+                            <select name="orthologTaxonId"
+                                    class="form-control custom-select ortholog-select"
+                                    id="ortholog-select"
+                                    title="Taxon to run primary search on">
+                                <option th:value="null" th:selected="${orthologTaxonId} == null">All</option>
+                                <option th:each="taxon : ${@taxonService.findByActiveTrue()}"
+                                        th:value="${taxon.id}"
+                                        th:text="${#strings.capitalizeWords(taxon.commonName)}"
+                                        th:selected="${taxon.id} == ${orthologTaxonId }"></option>
+                            </select>
+                        </div>
+                        <div class="form-group col-md-3 d-none d-md-block">
+                            <label class="col-form-label" for="ortholog-select">
+                                <i class="tip oi oi-question-mark"
+                                   data-toggle="tooltip"
+                                   title="When a human gene is entered, you can search for researchers studying that gene's ortholog(s) in one or all of the supported model organisms">
+                                </i>
+                            </label>
+                        </div>
+                    </div>
                 </div>
-                <div id="ortholog-box" class="form-row">
-                    <div class="form-group col-md-5 text-right">
-                        <label class="col-form-label" for="ortholog-select">
-                            In this model organism (based on ortholog mapping):
-                        </label>
-                    </div>
-                    <div class="form-group col-md-4">
-                        <select name="orthologTaxonId"
-                                class="form-control custom-select ortholog-select"
-                                id="ortholog-select"
-                                title="Taxon to run primary search on">
-                            <option th:value="null" th:selected="${orthologTaxonId} == null">All</option>
-                            <option th:each="taxon : ${@taxonService.findByActiveTrue()}"
-                                    th:value="${taxon.id}"
-                                    th:text="${#strings.capitalizeWords(taxon.commonName)}"
-                                    th:selected="${taxon.id} == ${orthologTaxonId }"></option>
-                        </select>
-                    </div>
-                    <div class="form-group col-md-3">
-                        <label class="col-form-label" for="ortholog-select">
-                            <i class="tip oi oi-question-mark"
-                               data-toggle="tooltip"
-                               title="When a human gene is entered, you can search for researchers studying that gene's ortholog(s) in one or all of the supported model organisms">
-                            </i>
-                        </label>
-                    </div>
-                </div>
+
                 <!--
                 <div th:unless="${@applicationSettings.profile.enabledResearcherCategories.isEmpty()}" class="form-row">
                     <div class="col-md-5">
@@ -136,24 +138,24 @@
                     </div>
                 </div>
                 -->
-                <div th:if="${@applicationSettings.organs.enabled}" class="form-row">
-                    <div class="col-md-12">
-                        <p>With relevance to the following <strong>Human Organ Systems</strong> (or any if none are
-                            selected):</p>
-                    </div>
-                    <div class="col-md-12">
-                        <div th:replace="fragments/organ::organs-selection(checkedOrganUberonIds = ${organUberonIds})">
-                            ...
+                <div th:if="${@applicationSettings.organs.enabled}" class="p-3 search-section">
+                    <div class="form-row">
+                        <div class="col-md-12">
+                            <p>With relevance to the following <strong>Human Organ Systems</strong> (or any if none are
+                                selected):</p>
+                        </div>
+                        <div class="col-md-12">
+                            <div th:replace="fragments/organ::organs-selection(checkedOrganUberonIds = ${organUberonIds})">
+                                ...
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div th:if="${@applicationSettings.ontology.enabled}"
-                     class="form-row">
-                    <div class="col-md-12">
-                        <div th:each="ontology, i : ${@ontologyService.findAllOntologiesAvailableForGeneSearch()}"
-                             class="form-group"
-                             th:classappend="${i.last} ? 'mb-0' : ''">
+                <th:block th:if="${@applicationSettings.ontology.enabled}">
+                    <div th:each="ontology, i : ${@ontologyService.findAllOntologiesAvailableForGeneSearch()}"
+                         class="search-section border-top p-3">
+                        <div class="form-group mb-0">
                             <label th:for="${@ontologyService.isSimple(ontology)} ? null : ${#ids.next('ontologyTermIds')}">
                                 With the following
                                 <strong th:text="${#messages.msgOrNull('rdp.ontologies.' + ontology.name + '.title') ?: #strings.toUpperCase(ontology.name)}"></strong>
@@ -162,11 +164,10 @@
                             <div th:replace="fragments/ontology::terms-selection(ontology = ${ontology}, selectedTerms = ${ontologyTerms}, showTable = false)"></div>
                         </div>
                     </div>
-                </div>
+                </th:block>
 
                 <input type="hidden" name="iSearch" th:value="${iSearch}"/>
             </form>
-
         </div>
 
         <div th:if="${@applicationSettings.search.enabledSearchModes.contains(T(ubc.pavlab.rdp.settings.ApplicationSettings$SearchSettings$SearchMode).BY_RESEARCHER)}"
@@ -174,7 +175,7 @@
              th:id="${searchModeId} + '-search'"
              th:attr="aria-labelledby=${searchModeId} + '-tab'"
              th:classappend="${activeSearchMode} == ${searchMode} ? 'active'"
-             role="tabpanel" class="tab-pane fade show">
+             role="tabpanel" class="tab-pane fade show border-left border-right border-bottom mb-3">
             <!--Researchers alphabetically -->
             <!--
             <form th:unless="${chars.isEmpty()}" class="d-none d-lg-block">
@@ -204,9 +205,9 @@
             <form th:action="@{/search}" class="search" style="margin-top: -1rem;">
 
                 <!-- sticky button for mobile -->
-                <div class="sticky-top pt-3" style="background: white;">
+                <div class="search-section sticky-top p-3 border-bottom">
                     <div class="form-row">
-                        <div class="form-group col">
+                        <div class="form-group mb-0 col">
                             <button class="btn btn-primary btn-block d-sm-block d-md-none" type="submit">
                                 <i class="oi oi-magnifying-glass"></i>
                                 Search Researchers
@@ -219,23 +220,22 @@
                     </div>
                 </div>
 
-                <div class="form-row align-items-end">
-                    <!--Researchers by name-->
-                    <div class="col-md-6">
-                        <label for="nameLike">With name and research interests:</label>
-                        <div class="form-group">
-                            <input type="text" class="form-control" name="nameLike" id="nameLike"
-                                   placeholder="Part of researcher name" th:value="${nameLike}"/>
-                        </div>
+                <div class="search-section p-3">
+                    <div class="form-group mb-0">
+                        <label for="nameLike">With name</label>
+                        <input type="text" class="form-control" name="nameLike" id="nameLike"
+                               placeholder="Part of researcher name" th:value="${nameLike}"/>
                     </div>
+                </div>
+
+                <div class="search-section border-top p-3">
                     <!--Researchers by description-->
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <input type="text" class="form-control"
-                                   name="descriptionLike"
-                                   th:value="${descriptionLike}"
-                                   placeholder="Keyword in research description"/>
-                        </div>
+                    <div class="form-group mb-0">
+                        <label for="descriptionLike">With research interests</label>
+                        <input type="text" class="form-control"
+                               name="descriptionLike"
+                               th:value="${descriptionLike}"
+                               placeholder="Keyword in research description"/>
                     </div>
                 </div>
 
@@ -257,23 +257,21 @@
                 -->
 
                 <!-- Researchers by focused organs -->
-                <div th:if="${@applicationSettings.organs.enabled}" class="organs-form form-row">
-                    <div class="col-md-12">
-                        <div class="form-group">
-                            <label>With focus on the following organ systems (or any of none are selected):</label>
-                            <div th:replace="fragments/organ::organs-selection(checkedOrganUberonIds = ${organUberonIds})">
-                                ...
-                            </div>
+                <div th:if="${@applicationSettings.organs.enabled}"
+                     class="search-section organs-form p-3 border-top">
+                    <div class="form-group mb-0">
+                        <label>With focus on the following <strong>Human Organ Systems</strong> (or any of none are selected):</label>
+                        <div th:replace="fragments/organ::organs-selection(checkedOrganUberonIds = ${organUberonIds})">
+                            ...
                         </div>
                     </div>
                 </div>
 
                 <!-- Researchers by associated terms -->
-                <div th:if="${@applicationSettings.ontology.enabled}" class="ontology-terms-form form-row">
-                    <div class="col-md-12">
-                        <div th:each="ontology, i : ${@ontologyService.findAllOntologies()}"
-                             th:class="form-group"
-                             th:classappend="${i.last} ? 'mb-0'">
+                <th:block th:if="${@applicationSettings.ontology.enabled}">
+                    <div th:each="ontology, i : ${@ontologyService.findAllOntologies()}"
+                         class="search-section p-3 border-top">
+                        <div class="form-group mb-0">
                             <label th:for="${#ids.next('ontologyTermIds')}">
                                 With the following
                                 <strong th:text="${#messages.msgOrNull('rdp.ontologies.' + ontology.name + '.title') ?: #strings.toUpperCase(ontology.name)}"></strong>
@@ -282,8 +280,7 @@
                             <div th:replace="fragments/ontology::terms-selection(ontology = ${ontology}, selectedTerms = ${ontologyTerms}, showTable = false)"></div>
                         </div>
                     </div>
-                </div>
-
+                </th:block>
                 <input type="hidden" name="iSearch" th:value="${iSearch}"/>
             </form>
         </div>
@@ -308,8 +305,6 @@
             </div>
         </div>
     </form>
-
-    <hr/>
 
     <!--Orthologs -->
     <div id="orthologsResults" class="mb-3">

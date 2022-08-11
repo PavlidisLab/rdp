@@ -1,3 +1,7 @@
+@import '../../node_modules/bootstrap/scss/functions';
+@import '../../node_modules/bootstrap/scss/variables';
+@import '../../node_modules/bootstrap/scss/mixins';
+
 html {
     position: relative;
     min-height: 100%;
@@ -317,4 +321,12 @@ hr {
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
     overflow: hidden;
+}
+
+.search > .search-section:nth-child(even) {
+    background: $light;
+}
+
+.search > .search-section:nth-child(odd) {
+    background: $white;
 }
