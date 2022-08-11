@@ -13,13 +13,15 @@
 <div th:replace="layouts/common::header">...</div>
 
 <div class="container py-4">
-    <div th:replace="layouts/common::title(title='Search', subtitle='Researchers, Organs Systems &amp; Genes')">
-        ...
+    <div class="mb-3">
+        <div th:replace="layouts/common::title(title='Search', subtitle='Researchers, Organs Systems &amp; Genes')">
+            ...
+        </div>
     </div>
 
     <p class="lead mb-3" th:text="#{rdp.site.welcome-public(#{rdp.site.shortname})}">...</p>
 
-    <ul class="nav nav-tabs mt-3">
+    <ul class="nav nav-tabs my-3">
         <li th:each="searchMode, i : ${@applicationSettings.search.enabledSearchModes}"
             th:with="searchModeId=${searchMode.toString().replace('_', '-').toLowerCase()}"
             class="nav-item">

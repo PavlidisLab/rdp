@@ -9,7 +9,9 @@
 <div th:replace="layouts/common::header"></div>
 
 <div class="container py-3">
-    <div th:replace="layouts/common::title(title='Administrate User', subtitle=${user.profile.fullName})"></div>
+    <div class="mb-3">
+        <div th:replace="layouts/common::title(title='Administrate User', subtitle=${user.profile.fullName})"></div>
+    </div>
     <div th:replace="layouts/common::message"></div>
     <div class="row">
         <div class="col-3">
