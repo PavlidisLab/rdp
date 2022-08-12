@@ -547,6 +547,7 @@ public class AdminController {
                 errors.rejectValue( "ontologyTerms", "AdminController.SimpleOntologyForm.ontologyTerms.nonUniqueTermIds", "termId must be unique" );
             }
 
+            // validate non-empty rows
             int i = 0;
             for ( SimpleOntologyTermForm term : simpleOntologyForm.getOntologyTerms() ) {
                 // even if converted to false, we are still expecting the non-null error code
@@ -554,6 +555,19 @@ public class AdminController {
                     errors.pushNestedPath( "ontologyTerms[" + ( i++ ) + "]" );
                     if ( !term.isEmpty() ) {
                         smartValidator.validate( term, errors, SimpleOntologyTermForm.RowNotEmpty.class );
+                        // this is a special case: grouping terms must be non-empty
+                        if ( term.isGrouping() ) {
+                            SimpleOntologyTermForm nextTerm;
+                            try {
+                                // careful here, i has already been incremented in pushNestedPath()
+                                nextTerm = simpleOntologyForm.getOntologyTerms().get( i );
+                            } catch ( IndexOutOfBoundsException e ) {
+                                nextTerm = null;
+                            }
+                            if ( nextTerm == null || nextTerm.isEmpty() || nextTerm.isGrouping() ) {
+                                errors.rejectValue( "grouping", "AdminController.SimpleOntologyForm.ontologyTerms.emptyGroupNotAllowed" );
+                            }
+                        }
                     }
                 } finally {
                     errors.popNestedPath();
