@@ -226,4 +226,17 @@
 
     /* initialize user preview popovers */
     $('.user-preview-popover').each(initializeUserPreviewPopover);
+
+    /* adjust all sticky elements to appear after the staging banner */
+    // unfortunately this cannot be done via CSS because the staging banner size can change
+    var stagingBanner = document.querySelector('#staging-banner');
+    if (stagingBanner !== null) {
+        new window.ResizeObserver(function () {
+            document.querySelectorAll('.sticky-top').forEach(function (element) {
+                if (element !== stagingBanner) {
+                    element.style.top = stagingBanner.offsetHeight + 'px';
+                }
+            });
+        }).observe(stagingBanner);
+    }
 })();

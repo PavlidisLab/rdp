@@ -95,7 +95,7 @@
         </div>
     </nav>
     <!-- TODO: show this in development mode -->
-    <div th:if="${@environment.acceptsProfiles('staging')}"
+    <div th:if="${@environment.acceptsProfiles('staging')}" id="staging-banner"
          class="alert alert-warning sticky-top text-center" style="z-index: 100">
         This version of the <span th:text="#{rdp.site.shortname}"></span> registry is <b>staging</b>. Do not provide
         sensitive data.
