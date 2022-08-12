@@ -44,7 +44,8 @@ public class MigrationConfig {
     };
 
     /**
-     * Perform flyway.repair() to fix existing checksums.
+     * Remove the 'version_rank' column and perform a {@link org.flywaydb.core.Flyway#repair()} to fix migration
+     * checksums.
      */
     @Bean
     public FlywayMigrationStrategy flywayMigrationStrategy() {
@@ -77,13 +78,13 @@ public class MigrationConfig {
                         appliedMigration.getChecksum() != null &&
                         appliedMigration.getChecksum().equals( expectedMigration.pre15Checksum ) &&
                         !appliedMigration.getChecksum().equals( expectedMigration.post15Checksum ) ) {
-                    log.warn( String.format( "Flyway migration %s is still pre-1.5, checksum will be bumped from %s to %s after repair.",
+                    log.warn( String.format( "Flyway migration %s has been performed with Flyway 3.2.1, checksum will be bumped from %s to %s after repair.",
                             appliedMigration.getVersion(), appliedMigration.getChecksum(), expectedMigration.post15Checksum ) );
                     repairNeeded = true;
                 }
             }
             if ( repairNeeded ) {
-                log.warn( "Pre-1.5 migrations detected, Flyway repair will be performed." );
+                log.warn( "Flyway 3.2.1 migrations detected, Flyway repair will be performed." );
                 flyway.repair();
             }
             flyway.migrate();
