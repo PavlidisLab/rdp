@@ -906,10 +906,9 @@ public class AdminController {
     }
 
     @PostMapping("/admin/refresh-messages")
-    public String refreshMessages( RedirectAttributes redirectAttributes ) {
+    public ResponseEntity<String> refreshMessages() {
         messageSource.clearCacheIncludingAncestors();
-        redirectAttributes.addFlashAttribute( "message", "Messages cache have been updated." );
-        return "redirect:/admin/ontologies";
+        return ResponseEntity.ok( "Messages cache have been updated." );
     }
 
     @PostMapping("/admin/ontologies/{ontology}/move")

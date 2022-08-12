@@ -978,9 +978,9 @@ public class AdminControllerTest {
     @WithMockUser(roles = "ADMIN")
     public void refreshMessages() throws Exception {
         mvc.perform( post( "/admin/refresh-messages" ) )
-                .andExpect( status().is3xxRedirection() )
-                .andExpect( redirectedUrl( "/admin/ontologies" ) )
-                .andExpect( flash().attribute( "message", "Messages cache have been updated." ) );
+                .andExpect( status().isOk() )
+                .andExpect( content().contentTypeCompatibleWith( MediaType.TEXT_PLAIN ) )
+                .andExpect( content().string( "Messages cache have been updated." ) );
     }
 
     @Test

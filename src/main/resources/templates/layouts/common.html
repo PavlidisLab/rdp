@@ -10,6 +10,7 @@
     <link rel="icon" type="image/png" sizes="16x16" th:href="@{/images/favicon-16x16.png}"/>
     <link rel="icon" type="image/png" sizes="32x32" th:href="@{/images/favicon-32x32.png}"/>
     <script th:inline="javascript">
+        // noinspection JSUnusedGlobalSymbols
         var contextPath = [[${#httpServletRequest.contextPath}]];
     </script>
     <script th:src="@{/dist/common.bundle.js}"></script>
@@ -20,7 +21,7 @@
          class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container">
             <a class="navbar-brand" th:href="@{/user/home}" href="/">
-                <div th:utext="#{rdp.site.logohtml}" th:remove="tag"/>
+                <div th:utext="#{rdp.site.logohtml}" th:remove="tag"></div>
             </a>
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
                     aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -38,7 +39,8 @@
                     </li>
                     <li class="nav-item dropdown">
                         <!--suppress HtmlUnknownTarget -->
-                        <a class="nav-link dropdown-toggle" th:href="@{/user/model}" id="navbarDropdownModel" role="button"
+                        <a class="nav-link dropdown-toggle" th:href="@{/user/model}" id="navbarDropdownModel"
+                           role="button"
                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Model Organisms</a>
                         <div th:replace="fragments/taxon::taxon-dropdown-menu"
                              aria-labelledby="navbarDropdownModel"></div>
@@ -108,16 +110,18 @@
        th:text="${subtitle}"
        class="col-auto my-auto">...</p>
 </div>
+<!-- display a single message -->
 <div th:fragment="message"
      th:if="${message}"
-     class="row mb-3">
-    <div class="col-12">
-        <div th:utext="${message}"
-             class="alert mb-0"
-             th:classappend="${error} ? 'alert-danger' : 'alert-info'">
-            ...
-        </div>
-    </div>
+     th:utext="${message}"
+     id="default-message"
+     class="alert"
+     th:classappend="${error} ? 'alert-danger' : 'alert-info'">
+    ...
+</div>
+<!-- display multiple messages, including the default message from ::message -->
+<div th:fragment="messages" id="messages">
+    <div th:replace="::message"></div>
 </div>
 <footer th:fragment="footer" class="footer text-center py-3">
     <span class="text-muted d-inline-block">

@@ -13,91 +13,79 @@
     </div>
     <div th:replace="layouts/common::message"></div>
     <div class="card mb-3">
-        <div class="card-body border-bottom">
-            <div class="row mb-3">
-                <div class="col-8 border-right">
-                    <h2>Import Category from OBO Ontology Format</h2>
-                    <p>
-                        Import a category from an URL or a file represented in the OBO format. If imported via an URL,
-                        periodic update of the terms will also be activated.
-                    </p>
-                    <form th:object="${importOntologyForm}"
-                          th:action="@{/admin/ontologies/import}"
-                          method="post" enctype="multipart/form-data">
-                        <div class="form-row">
-                            <div class="col-6">
-                                <div class="form-group mb-0">
-                                    <label>Import from URL</label>
-                                    <input th:field="*{ontologyUrl}"
-                                           class="form-control" type="url" placeholder="http://purl.obo.org/"
-                                           th:errorclass="is-invalid"/>
-                                    <div class="invalid-feedback" th:errors="*{ontologyUrl}"></div>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="form-group mb-0">
-                                    <label>Import from file</label>
-                                    <input th:field="*{ontologyFile}" type="file" class="form-control-file"
-                                           th:errorclass="is-invalid"/>
-                                    <!-- The version of Bootstrap 4 that we are using has a bug, so we need to set d-block: https://github.com/twbs/bootstrap/issues/24831 -->
-                                    <div class="invalid-feedback d-block" th:errors="*{ontologyFile}"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="col">
-                                <small th:errors="${importOntologyForm}" class="text-danger"></small>
-                            </div>
-                        </div>
-                        <div class="form-row my-3">
-                            <div class="col">
-                                <button class="btn btn-primary import-ontology-btn" type="submit">
-                                    <span class="spinner d-none"></span>
-                                    <i class="oi oi-cloud-download"></i>
-                                    Import from OBO
-                                </button>
-                            </div>
-                        </div>
-                    </form>
-                    <p>
-                        If you have custom messages for your ontologies in <code>messages.properties</code>, you can
-                        reload them without restarting RDP.
-                    </p>
-                    <form th:action="@{/admin/refresh-messages}" method="post">
-                        <button class="btn btn-primary">
-                            <i class="oi oi-reload"></i>
-                            Refresh Messages
-                        </button>
-                    </form>
-                </div>
-                <div th:with="reactome=${@reactomeService.findPathwaysOntology()}"
-                     class="col-4">
-                    <h2>Reactome Pathways</h2>
-                    <p>
-                        RDP provides capability of importing human <a href="https://reactome.org/PathwayBrowser/"
-                                                                      target="_blank"
-                                                                      rel="noopener">Reactome pathways</a>.
-                    </p>
-                    <div th:if="${reactome} != null">
-                        <p class="text-success">Reactome is already setup.</p>
-                    </div>
-                    <form th:if="${reactome} == null"
-                          th:action="@{/admin/ontologies/import-reactome-pathways}"
-                          method="post">
-                        <div class="form-group">
-                            <button class="btn btn-primary" type="submit">
-                                <i class="oi oi-cloud-download"></i>
-                                Import Reactome Pathways
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
         <div class="card-body">
             <h2 class="mb-0">Create Simple Category</h2>
             <p>As an alternative to the OBO format import, you may also manage small categories by hand.</p>
             <div th:replace="fragments/ontology::simple-ontology-form(ontology = null, simpleOntologyForm = ${simpleOntologyForm})"></div>
+        </div>
+        <div class="card-body border-top">
+            <h2>Import Category from OBO Ontology Format</h2>
+            <p>
+                Import a category from an URL or a file represented in the OBO format. If imported via an URL,
+                periodic update of the terms will also be activated.
+            </p>
+            <form th:object="${importOntologyForm}"
+                  th:action="@{/admin/ontologies/import}"
+                  method="post" enctype="multipart/form-data">
+                <div class="form-row">
+                    <div class="col-6">
+                        <div class="form-group mb-0">
+                            <label>Import from URL</label>
+                            <input th:field="*{ontologyUrl}"
+                                   class="form-control" type="url" placeholder="http://purl.obo.org/"
+                                   th:errorclass="is-invalid"/>
+                            <div class="invalid-feedback" th:errors="*{ontologyUrl}"></div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="form-group mb-0">
+                            <label>Import from file</label>
+                            <input th:field="*{ontologyFile}" type="file" class="form-control-file"
+                                   th:errorclass="is-invalid"/>
+                            <!-- The version of Bootstrap 4 that we are using has a bug, so we need to set d-block: https://github.com/twbs/bootstrap/issues/24831 -->
+                            <div class="invalid-feedback d-block" th:errors="*{ontologyFile}"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="col">
+                        <div class="mb-3">
+                            <small th:errors="${importOntologyForm}" class="text-danger"></small>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="col">
+                        <button class="btn btn-primary import-ontology-btn" type="submit">
+                            <span class="spinner d-none"></span>
+                            <i class="oi oi-cloud-download"></i>
+                            Import from OBO
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div th:with="reactome=${@reactomeService.findPathwaysOntology()}"
+             class="card-body border-top">
+            <h2>Reactome Pathways</h2>
+            <p>
+                RDP provides capability of importing human <a href="https://reactome.org/PathwayBrowser/"
+                                                              target="_blank"
+                                                              rel="noopener">Reactome pathways</a>.
+            </p>
+            <div th:if="${reactome} != null">
+                <p class="text-success mb-0">Reactome is already setup.</p>
+            </div>
+            <form th:if="${reactome} == null"
+                  th:action="@{/admin/ontologies/import-reactome-pathways}"
+                  method="post">
+                <div class="form-group mb-0">
+                    <button class="btn btn-primary" type="submit">
+                        <i class="oi oi-cloud-download"></i>
+                        Import Reactome Pathways
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
     <div class="row">

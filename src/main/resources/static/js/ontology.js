@@ -1,3 +1,5 @@
+var messages = require('./util/messages');
+
 /**
  * Ontology-related scripts.
  * @author poirigui
@@ -145,5 +147,14 @@
                 $(progressFeedback).text('Processed ' + progressPayload.processedElements + ' out of ' + progressPayload.totalElements + ' pathways.');
             }
         };
+    });
+
+    $('#refresh-messages-form').submit(function (event) {
+        $.ajax(window.contextPath + '/admin/refresh-messages', {
+            method: 'POST'
+        }).done(function (reply) {
+            messages.publishMessage(reply, 'refresh-messages-message');
+        });
+        event.preventDefault();
     });
 })();
