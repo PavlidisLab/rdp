@@ -65,13 +65,13 @@
                      data-toggle="tooltip"
                      th:title="${term.hasIcon} ? #{'rdp.ontologies.' + ${ontology.name} + '.terms.' + ${term.name} + '.title'}">
                     <input type="checkbox"
-                           th:id="${ontology.id} + '-' + ${term.id}"
+                           th:id="${#ids.seq('ontologyTermIds')}"
                            name="ontologyTermIds"
                            th:attr="data-ontology-id=${ontology.id}"
                            th:value="${term.id}"
                            th:checked="${@ontologyService.termIsIn(term, selectedTerms)}"
                            class="form-check-input"/>
-                    <label th:for="${ontology.id} + '-' + ${term.id}"
+                    <label th:for="${#ids.prev('ontologyTermIds')}"
                            class="form-check-label">
                         <img th:if="${term.hasIcon}"
                              th:src="@{/images/ontologies/{ontologyName}/{termName}.svg(ontologyName=${ontology.name},termName=${term.name})}"
