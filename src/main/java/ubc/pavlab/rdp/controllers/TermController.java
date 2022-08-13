@@ -41,18 +41,7 @@ public class TermController {
         if ( taxon == null ) {
             return ResponseEntity.notFound().build();
         }
-
-        Collection<SearchResult<GeneOntologyTermInfo>> foundTerms = goService.search( query, taxon, max );
-
-        // FIXME: this is silly
-        for ( SearchResult<GeneOntologyTermInfo> term : foundTerms ) {
-            term.getMatch().setSize( goService.getSizeInTaxon( term.getMatch(), taxon ) );
-        }
-
-        // sort by size in taxon
-        return foundTerms.stream()
-                .sorted( Comparator.comparing( result -> result.getMatch().getSize(), Comparator.reverseOrder() ) )
-                .collect( Collectors.toList() );
+        return goService.search( query, taxon, max );
     }
 
     @ResponseBody

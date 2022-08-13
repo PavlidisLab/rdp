@@ -61,13 +61,14 @@ public class TermControllerTest {
 
     @MockBean
     private OntologyMessageSource ontologyMessageSource;
+
     @Test
     public void searchTermsByQueryAndTaxon_thenReturnMatchingTerms() throws Exception {
         Taxon taxon = createTaxon( 1 );
         when( taxonService.findById( 1 ) ).thenReturn( taxon );
         GeneOntologyTermInfo term = createTerm( "GO:0000001" );
         when( goService.search( "GO:0000001", taxon, 10 ) )
-                .thenReturn( Collections.singletonList( new SearchResult<>( TermMatchType.EXACT_ID, 0, term.getGoId(), term.getName(), null, term ) ) );
+                .thenReturn( Collections.singletonList( new SearchResult<>( TermMatchType.EXACT_ID, 0, term.getGoId(), term.getName(), term ) ) );
         mvc.perform( get( "/taxon/1/term/search" )
                         .param( "query", "GO:0000001" )
                         .param( "max", "10" ) )

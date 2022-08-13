@@ -23,7 +23,6 @@ import ubc.pavlab.rdp.util.*;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.text.MessageFormat;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -207,16 +206,16 @@ public class GOServiceImpl implements GOService, InitializingBean {
 
     private SearchResult<GeneOntologyTermInfo> queryTerm( String queryString, GeneOntologyTermInfo term ) {
         if ( term.getGoId().equalsIgnoreCase( queryString ) || term.getGoId().equalsIgnoreCase( "GO:" + queryString ) ) {
-            return new SearchResult<>( TermMatchType.EXACT_ID, 0, term.getGoId(), term.getName(), null, term );
+            return new SearchResult<>( TermMatchType.EXACT_ID, 0, term.getGoId(), term.getName(), term );
         }
 
         String pattern = "(?i:.*" + Pattern.quote( queryString ) + ".*)";
         if ( term.getName().matches( pattern ) ) {
-            return new SearchResult<>( TermMatchType.NAME_CONTAINS, 0, term.getGoId(), term.getName(), null, term );
+            return new SearchResult<>( TermMatchType.NAME_CONTAINS, 0, term.getGoId(), term.getName(), term );
         }
 
         if ( term.getDefinition().matches( pattern ) ) {
-            return new SearchResult<>( TermMatchType.DEFINITION_CONTAINS, 0, term.getGoId(), term.getName(), null, term );
+            return new SearchResult<>( TermMatchType.DEFINITION_CONTAINS, 0, term.getGoId(), term.getName(), term );
         }
 
         List<String> splitPatterns = Arrays.stream( queryString.split( " " ) )
@@ -225,36 +224,63 @@ public class GOServiceImpl implements GOService, InitializingBean {
 
         for ( String splitPattern : splitPatterns ) {
             if ( term.getName().matches( splitPattern ) ) {
-                return new SearchResult<>( TermMatchType.NAME_CONTAINS_PART, 0, term.getGoId(), term.getName(), null, term );
+                return new SearchResult<>( TermMatchType.NAME_CONTAINS_PART, 0, term.getGoId(), term.getName(), term );
             }
         }
 
         for ( String splitPattern : splitPatterns ) {
             if ( term.getDefinition().matches( splitPattern ) ) {
-                return new SearchResult<>( TermMatchType.DEFINITION_CONTAINS_PART, 0, term.getGoId(), term.getName(), null, term );
+                return new SearchResult<>( TermMatchType.DEFINITION_CONTAINS_PART, 0, term.getGoId(), term.getName(), term );
             }
         }
         return null;
     }
 
+    /**
+     * Search for GO terms matching a query.
+     * <p>
+     * Results are sorted by match type, size in taxon (i.e. number of genes referring to the term) and then match.
+     */
     @Override
     public List<SearchResult<GeneOntologyTermInfo>> search( String queryString, Taxon taxon, int max ) {
-        Stream<SearchResult<GeneOntologyTermInfo>> stream = goRepository.findAll().stream()
-                .filter( t -> getSizeInTaxon( t, taxon ) <= applicationSettings.getGoTermSizeLimit() )
+        StopWatch timer = StopWatch.createStarted();
+        Stream<SearchResult<GeneOntologyTermInfo>> stream = goRepository.findAllAsStream()
                 .map( t -> queryTerm( queryString, t ) )
                 .filter( Objects::nonNull )
-                .sorted( Comparator.comparingInt( sr -> sr.getMatchType().getOrder() ) );
+                .filter( t -> {
+                    long sizeInTaxon = getSizeInTaxon( t.getMatch(), taxon );
+                    if ( sizeInTaxon <= applicationSettings.getGoTermSizeLimit() ) {
+                        t.getMatch().setSize( sizeInTaxon );
+                        return true;
+                    } else {
+                        return false;
+                    }
+                } )
+                .peek( t -> t.setExtras( String.format( "%s genes", t.getMatch().getSize() ) ) )
+                .sorted();
 
         if ( max > -1 ) {
             stream = stream.limit( max );
         }
 
-        return stream.collect( Collectors.toList() );
+        try {
+            return stream.collect( Collectors.toList() );
+        } finally {
+            stream.close();
+            if ( timer.getTime( TimeUnit.MILLISECONDS ) > 1000 ) {
+                log.warn( String.format( "Searching for GO terms for query %s took %s ms.", queryString, timer.getTime( TimeUnit.MILLISECONDS ) ) );
+            }
+        }
     }
 
     @Override
     public long getSizeInTaxon( GeneOntologyTermInfo t, Taxon taxon ) {
-        return getGenesInTaxon( t, taxon ).size();
+        Collection<GeneOntologyTermInfo> descendants = getDescendants( t );
+        descendants.add( t );
+        return descendants.stream()
+                .distinct()
+                .mapToLong( term -> term.getDirectGeneIdsByTaxonId().getOrDefault( taxon.getId(), Collections.emptyList() ).size() )
+                .sum();
     }
 
     @Override
@@ -332,12 +358,16 @@ public class GOServiceImpl implements GOService, InitializingBean {
 
     @Override
     public Collection<GeneOntologyTermInfo> getDescendants( GeneOntologyTermInfo entry ) {
+        StopWatch timer = StopWatch.createStarted();
         Lock lock = rwLock.readLock();
         try {
             lock.lock();
             return getDescendantsInternal( entry );
         } finally {
             lock.unlock();
+            if ( timer.getTime( TimeUnit.MILLISECONDS ) > 1000 ) {
+                log.warn( String.format( "Retrieving descendants for %s took %d ms.", entry, timer.getTime( TimeUnit.MILLISECONDS ) ) );
+            }
         }
     }
 

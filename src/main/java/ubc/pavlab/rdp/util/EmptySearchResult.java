@@ -33,7 +33,7 @@ public class EmptySearchResult<T extends Comparable<T>> extends SearchResult<T> 
     private final String value;
 
     private EmptySearchResult( String label, String value ) {
-        super( null, null, label, null, null, null );
+        super( null, null, label, null, null );
         this.value = value;
     }
 }

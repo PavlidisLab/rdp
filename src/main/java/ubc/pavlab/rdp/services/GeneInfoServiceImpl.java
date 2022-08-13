@@ -7,6 +7,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ubc.pavlab.rdp.model.Gene;
 import ubc.pavlab.rdp.model.GeneInfo;
 import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.model.enums.GeneMatchType;
@@ -229,7 +230,9 @@ public class GeneInfoServiceImpl implements GeneInfoService {
 
         for ( GeneInfo newValue : newValues ) {
             if ( maxSize == -1 || container.size() < maxSize ) {
-                container.add( new SearchResult<>( match, newValue.getId(), newValue.getSymbol(), newValue.getName(), newValue.getAliases(), newValue ) );
+                SearchResult<GeneInfo> sr = new SearchResult<>( match, newValue.getId(), newValue.getSymbol(), newValue.getName(), newValue );
+                sr.setExtras( newValue.getAliases() );
+                container.add( sr );
             } else {
                 return true;
             }

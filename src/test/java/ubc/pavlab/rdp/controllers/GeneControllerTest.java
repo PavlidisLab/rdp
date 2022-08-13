@@ -85,7 +85,7 @@ public class GeneControllerTest {
         Taxon taxon = createTaxon( 1 );
         GeneInfo gene = createGene( 1, taxon );
         when( taxonService.findById( 1 ) ).thenReturn( taxon );
-        when( geneService.autocomplete( "BRCA1", taxon, 10 ) ).thenReturn( Collections.singleton( new SearchResult<>( GeneMatchType.EXACT_SYMBOL, gene.getGeneId(), gene.getSymbol(), gene.getName(), gene.getAliases(), gene ) ) );
+        when( geneService.autocomplete( "BRCA1", taxon, 10 ) ).thenReturn( Collections.singletonList( new SearchResult<>( GeneMatchType.EXACT_SYMBOL, gene.getGeneId(), gene.getSymbol(), gene.getName(), gene ) ) );
         mvc.perform( get( "/taxon/{taxonId}/gene/search", 1 )
                         .param( "query", "BRCA1" )
                         .param( "max", "10" ) )

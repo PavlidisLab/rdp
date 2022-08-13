@@ -13,7 +13,7 @@ public interface MatchType {
      * Get a comparator for this match type which compares results by {@link #getOrder()}.
      */
     static Comparator<MatchType> getComparator() {
-        return Comparator.comparing( MatchType::getOrder );
+        return Comparator.comparingInt( MatchType::getOrder );
     }
 
     /**

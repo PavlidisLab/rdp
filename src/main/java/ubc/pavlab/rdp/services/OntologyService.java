@@ -833,8 +833,8 @@ public class OntologyService implements InitializingBean {
                 t.getId(),
                 t.getTermId(),
                 resolveOntologyTermInfoName( t, locale ),
-                extras,
                 t );
+        result.setExtras( extras );
         result.setScore( tfIdf );
         return result;
     }

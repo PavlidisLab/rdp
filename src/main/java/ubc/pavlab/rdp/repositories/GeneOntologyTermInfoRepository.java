@@ -11,6 +11,7 @@ import java.util.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.stream.Stream;
 
 /**
  * Repository of gene ontology terms and gene-to-term relationships.
@@ -148,6 +149,22 @@ public class GeneOntologyTermInfoRepository implements CrudRepository<GeneOntolo
             lock.unlock();
         }
         return Collections.unmodifiableCollection( results );
+    }
+
+    /**
+     * Find all terms in this repository as a {@link Stream}.
+     * <p>
+     * This is more efficient than {@link #findAll()} as no read-only copy is created.
+     * <p>
+     * Note: be extremely careful while using this as the returned stream holds a read-only lock on the internal data
+     * structure. You should call {@link Stream#close()} as early as possible.
+     */
+    public Stream<GeneOntologyTermInfo> findAllAsStream() {
+        Lock lock = rwLock.readLock();
+        lock.lock();
+        return termsByIdOrAlias.values().stream()
+                .onClose( lock::unlock )
+                .distinct();
     }
 
     /**
