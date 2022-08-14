@@ -330,3 +330,8 @@ hr {
 .search > .search-section:nth-child(odd) {
     background: $white;
 }
+
+/* jQuery UI autocomplete widget should appear above the sticky top bar */
+.ui-autocomplete {
+    z-index: $zindex-sticky + 1;
+}
