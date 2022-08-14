@@ -15,9 +15,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static ubc.pavlab.rdp.util.TestUtils.createTerm;
@@ -51,6 +53,26 @@ public class GeneOntologyTermInfoRepositoryTest {
                 .hasSize( 9999 );
         assertThat( geneOntologyTermInfoRepository.findAll() )
                 .containsExactlyInAnyOrderElementsOf( terms );
+    }
+
+    @Test
+    public void findAllAsStream() {
+        List<GeneOntologyTermInfo> terms = IntStream.range( 1, 10000 )
+                .mapToObj( TestUtils::createTerm )
+                .collect( Collectors.toList() );
+        assertThat( geneOntologyTermInfoRepository.saveAll( terms ) )
+                .hasSize( 9999 );
+        Stream<GeneOntologyTermInfo> stream = geneOntologyTermInfoRepository.findAllAsStream();
+        // ensure that the repository is available for read-only operations while the stream is open
+        assertThat( geneOntologyTermInfoRepository.findAll() ).hasSize( 9999 );
+        Future<?> future = Executors.newSingleThreadExecutor().submit( () -> {
+            geneOntologyTermInfoRepository.save( createTerm( 100001 ) );
+        } );
+        // thread will block for write access
+        assertThat( future ).failsWithin( 10, TimeUnit.MILLISECONDS );
+        // until the stream is closed
+        stream.close();
+        assertThat( future ).succeedsWithin( 10, TimeUnit.MILLISECONDS );
     }
 
     @Test

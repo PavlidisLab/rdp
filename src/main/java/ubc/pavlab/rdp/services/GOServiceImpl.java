@@ -244,29 +244,28 @@ public class GOServiceImpl implements GOService, InitializingBean {
     @Override
     public List<SearchResult<GeneOntologyTermInfo>> search( String queryString, Taxon taxon, int max ) {
         StopWatch timer = StopWatch.createStarted();
-        Stream<SearchResult<GeneOntologyTermInfo>> stream = goRepository.findAllAsStream()
-                .map( t -> queryTerm( queryString, t ) )
-                .filter( Objects::nonNull )
-                .filter( t -> {
-                    long sizeInTaxon = getSizeInTaxon( t.getMatch(), taxon );
-                    if ( sizeInTaxon <= applicationSettings.getGoTermSizeLimit() ) {
-                        t.getMatch().setSize( sizeInTaxon );
-                        return true;
-                    } else {
-                        return false;
-                    }
-                } )
-                .peek( t -> t.setExtras( String.format( "%s genes", t.getMatch().getSize() ) ) )
-                .sorted();
+        try ( Stream<GeneOntologyTermInfo> stream2 = goRepository.findAllAsStream() ) {
+            Stream<SearchResult<GeneOntologyTermInfo>> stream = stream2
+                    .map( t -> queryTerm( queryString, t ) )
+                    .filter( Objects::nonNull )
+                    .filter( t -> {
+                        long sizeInTaxon = getSizeInTaxon( t.getMatch(), taxon );
+                        if ( sizeInTaxon <= applicationSettings.getGoTermSizeLimit() ) {
+                            t.getMatch().setSize( sizeInTaxon );
+                            return true;
+                        } else {
+                            return false;
+                        }
+                    } )
+                    .peek( t -> t.setExtras( String.format( "%s genes", t.getMatch().getSize() ) ) )
+                    .sorted();
 
-        if ( max > -1 ) {
-            stream = stream.limit( max );
-        }
+            if ( max > -1 ) {
+                stream = stream.limit( max );
+            }
 
-        try {
             return stream.collect( Collectors.toList() );
         } finally {
-            stream.close();
             if ( timer.getTime( TimeUnit.MILLISECONDS ) > 1000 ) {
                 log.warn( String.format( "Searching for GO terms for query %s took %s ms.", queryString, timer.getTime( TimeUnit.MILLISECONDS ) ) );
             }
