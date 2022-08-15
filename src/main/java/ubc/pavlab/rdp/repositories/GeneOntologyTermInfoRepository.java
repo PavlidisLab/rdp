@@ -42,7 +42,7 @@ public class GeneOntologyTermInfoRepository implements CrudRepository<GeneOntolo
     @Override
     public <S extends GeneOntologyTermInfo> Iterable<S> saveAll( Iterable<S> iterable ) {
         Assert.notNull( iterable, "Iterable cannot be null." );
-        Collection<S> savedTerms = new HashSet<>();
+        Collection<S> savedTerms = new LinkedHashSet<>();
         Lock lock = rwLock.writeLock();
         try {
             lock.lock();
@@ -107,7 +107,7 @@ public class GeneOntologyTermInfoRepository implements CrudRepository<GeneOntolo
      */
     public <S extends GeneOntologyTermInfo> Iterable<S> saveAllByAlias( Map<String, S> terms ) {
         Assert.notNull( terms, "Terms mapping cannot be null." );
-        Collection<S> savedTerms = new HashSet<>( terms.size() );
+        Collection<S> savedTerms = new LinkedHashSet<>( terms.size() );
         Lock lock = rwLock.writeLock();
         try {
             lock.lock();
@@ -134,7 +134,7 @@ public class GeneOntologyTermInfoRepository implements CrudRepository<GeneOntolo
     @Override
     public Collection<GeneOntologyTermInfo> findAllById( Iterable<String> iterable ) {
         Assert.notNull( iterable, "Iterable cannot be null." );
-        Collection<GeneOntologyTermInfo> results = new HashSet<>();
+        Collection<GeneOntologyTermInfo> results = new LinkedHashSet<>();
         Lock lock = rwLock.readLock();
         try {
             lock.lock();
@@ -176,7 +176,7 @@ public class GeneOntologyTermInfoRepository implements CrudRepository<GeneOntolo
         try {
             lock.lock();
             List<GeneOntologyTermInfo> terms = geneIdsToTerms.get( geneId );
-            return terms != null ? Collections.unmodifiableCollection( new HashSet<>( terms ) ) : Collections.emptyList();
+            return terms != null ? Collections.unmodifiableCollection( new LinkedHashSet<>( terms ) ) : Collections.emptyList();
         } finally {
             lock.unlock();
         }
