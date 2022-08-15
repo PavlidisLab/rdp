@@ -138,10 +138,6 @@ public class OntologyService implements InitializingBean {
                 .collect( Collectors.toList() );
     }
 
-    public Stream<OntologyTermInfo> findAllTerms() {
-        return ontologyTermInfoRepository.findAllByActiveTrueAndOntologyActiveTrue();
-    }
-
     public Page<OntologyTermInfo> findAllTermsByOntology( Ontology ontology, Pageable pageable ) {
         return ontologyTermInfoRepository.findAllByActiveTrueAndOntology( ontology, pageable );
     }

@@ -45,20 +45,6 @@ public class OntologyRepositoryTest {
     private EntityManager entityManager;
 
     @Test
-    public void findAllByActiveTrueAndOntologyActiveTrue() {
-        final Ontology ontology = ontologyRepository.save( Ontology.builder( "ABC" ).active( true ).build() );
-        SortedSet<OntologyTermInfo> terms = IntStream.range( 0, 100 )
-                .mapToObj( i -> OntologyTermInfo.builder( ontology, "ABC:" + i ).active( true ).build() )
-                .collect( Collectors.toCollection( TreeSet::new ) );
-        ontology.getTerms().addAll( terms );
-        ontologyRepository.saveAndFlush( ontology );
-
-        List<OntologyTermInfo> termsFromRepo = ontologyTermInfoRepository.findAllByActiveTrueAndOntologyActiveTrue()
-                .collect( Collectors.toList() );
-        assertThat( termsFromRepo ).hasSize( 100 );
-    }
-
-    @Test
     public void findAllByActiveTrueAndOntology() {
         final Ontology ontology = ontologyRepository.save( Ontology.builder( "ABC" ).build() );
         SortedSet<OntologyTermInfo> terms = IntStream.range( 0, 100 )

@@ -29,11 +29,6 @@ public interface OntologyTermInfoRepository extends JpaRepository<OntologyTermIn
 
     OntologyTermInfo findByTermIdAndOntology( String ontologyTermInfoId, Ontology ontology );
 
-    /**
-     * Retrieve all active terms in all ontologies in a consumable stream.
-     */
-    Stream<OntologyTermInfo> findAllByActiveTrueAndOntologyActiveTrue();
-
     List<OntologyTermInfo> findAllByActiveTrueAndIdIn( Collection<Integer> ids );
 
     /**
@@ -48,8 +43,6 @@ public interface OntologyTermInfoRepository extends JpaRepository<OntologyTermIn
      * Retrieve all terms in a paginated format.
      */
     Page<OntologyTermInfo> findAllByOntology( Ontology ontology, Pageable pageable );
-
-    List<OntologyTermInfo> findAllByActiveTrueAndNameAndOntologyName( String name, String ontologyName );
 
     /**
      * Retrieve all active terms from active ontologies with the given term ID.

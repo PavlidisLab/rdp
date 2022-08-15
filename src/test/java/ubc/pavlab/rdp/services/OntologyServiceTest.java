@@ -114,16 +114,6 @@ public class OntologyServiceTest {
     }
 
     @Test
-    public void findAllTerms() {
-        ontologyStubService.createStubs();
-        List<OntologyTermInfo> terms = ontologyService.findAllTerms().collect( Collectors.toList() );
-        assertThat( terms ).hasSize( 33 );
-        for ( OntologyTermInfo term : terms ) {
-            assertThat( term.getOntology() ).isNotNull();
-        }
-    }
-
-    @Test
     public void createFromObo() throws IOException, ParseException, OntologyNameAlreadyUsedException {
         Ontology ontology = ontologyService.createFromObo( new InputStreamReader( new ClassPathResource( "cache/uberon.obo" ).getInputStream() ) );
         assertThat( ontology.getName() ).isEqualTo( "uberon" );
