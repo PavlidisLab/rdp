@@ -33,7 +33,6 @@ import ubc.pavlab.rdp.model.enums.ResearcherCategory;
 import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.model.ontology.Ontology;
-import ubc.pavlab.rdp.model.ontology.OntologyTerm;
 import ubc.pavlab.rdp.model.ontology.OntologyTermInfo;
 import ubc.pavlab.rdp.model.ontology.UserOntologyTerm;
 import ubc.pavlab.rdp.repositories.*;
@@ -43,6 +42,7 @@ import ubc.pavlab.rdp.util.CollectionUtils;
 
 import javax.validation.ValidationException;
 import java.security.SecureRandom;
+import java.sql.Timestamp;
 import java.text.MessageFormat;
 import java.time.Instant;
 import java.util.*;
@@ -604,7 +604,7 @@ public class UserServiceImpl implements UserService, InitializingBean {
      */
     @Override
     public long computeTermFrequencyInTaxon( User user, GeneOntologyTerm term, Taxon taxon ) {
-        Set<Integer> geneIds = goService.getGenes( goService.getTerm( term.getGoId() ) ).stream().collect( Collectors.toSet() );
+        Set<Integer> geneIds = new HashSet<>( goService.getGenes( goService.getTerm( term.getGoId() ) ) );
         return user.getGenesByTaxonAndTier( taxon, TierType.MANUAL ).stream()
                 .map( UserGene::getGeneId )
                 .filter( geneIds::contains )
@@ -651,13 +651,16 @@ public class UserServiceImpl implements UserService, InitializingBean {
                 if ( user.getProfile().getContactEmail().equals( user.getEmail() ) ) {
                     // if the contact email is set to the user email, it's de facto verified
                     user.getProfile().setContactEmailVerified( true );
+                    user.getProfile().setContactEmailVerifiedAt( user.getEnabledAt() );
                 } else {
                     user.getProfile().setContactEmailVerified( false );
+                    user.getProfile().setContactEmailVerifiedAt( null );
                     VerificationToken token = createContactEmailVerificationTokenForUser( user, locale );
                 }
             } else {
                 // contact email is unset, so we don't need to send a confirmation
                 user.getProfile().setContactEmailVerified( false );
+                user.getProfile().setContactEmailVerifiedAt( null );
             }
         }
 
@@ -803,11 +806,13 @@ public class UserServiceImpl implements UserService, InitializingBean {
 
         if ( verificationToken.getEmail().equals( user.getEmail() ) ) {
             user.setEnabled( true );
+            user.setEnabledAt( Timestamp.from( Instant.now() ) );
             tokenUsed = true;
         }
 
         if ( user.getProfile().getContactEmail() != null && verificationToken.getEmail().equals( user.getProfile().getContactEmail() ) ) {
             user.getProfile().setContactEmailVerified( true );
+            user.getProfile().setContactEmailVerifiedAt( Timestamp.from( Instant.now() ) );
             tokenUsed = true;
         }
 
@@ -849,7 +854,7 @@ public class UserServiceImpl implements UserService, InitializingBean {
     }
 
     private String createSecureRandomToken() {
-        byte tokenBytes[] = new byte[24];
+        byte[] tokenBytes = new byte[24];
         secureRandom.nextBytes( tokenBytes );
         return Base64.getEncoder().encodeToString( tokenBytes );
     }

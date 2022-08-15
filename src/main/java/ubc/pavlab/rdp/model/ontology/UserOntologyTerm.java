@@ -4,11 +4,14 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.NaturalId;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import ubc.pavlab.rdp.model.User;
 import ubc.pavlab.rdp.model.UserContent;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 
 import javax.persistence.*;
+import java.sql.Timestamp;
 import java.util.Optional;
 
 /**
@@ -17,6 +20,7 @@ import java.util.Optional;
  * @author poirigui
  */
 @Entity
+@EntityListeners(AuditingEntityListener.class)
 @Table(name = "user_ontology_term",
         uniqueConstraints = {
                 @UniqueConstraint(columnNames = { "ontology_id", "term_id", "user_id" }) })
@@ -72,6 +76,10 @@ public class UserOntologyTerm extends OntologyTerm implements UserContent {
     @JoinColumn(name = "user_id", nullable = false)
     @JsonIgnore
     private User user;
+
+    @CreatedDate
+    @JsonIgnore
+    private Timestamp createdAt;
 
     @Override
     @JsonIgnore

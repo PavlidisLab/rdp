@@ -5,9 +5,12 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.NaturalId;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 
 import javax.persistence.*;
+import java.sql.Timestamp;
 import java.util.Optional;
 
 /**
@@ -17,6 +20,7 @@ import java.util.Optional;
  * between organs from different users.
  */
 @Entity
+@EntityListeners(AuditingEntityListener.class)
 @Getter
 @Setter
 @EqualsAndHashCode(of = { "user" }, callSuper = true)
@@ -35,6 +39,10 @@ public class UserOrgan extends Organ implements UserContent {
     @JoinColumn(name = "user_id", nullable = false)
     @JsonIgnore
     private User user;
+
+    @CreatedDate
+    @JsonIgnore
+    private Timestamp createdAt;
 
     public static UserOrgan createFromOrganInfo( User user, OrganInfo organInfo ) {
         UserOrgan userOrgan = new UserOrgan();

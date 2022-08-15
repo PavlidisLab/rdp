@@ -1,11 +1,12 @@
 package ubc.pavlab.rdp.repositories.ontology;
 
-import lombok.extern.apachecommons.CommonsLog;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.junit4.SpringRunner;
+import ubc.pavlab.rdp.JpaAuditingConfig;
 import ubc.pavlab.rdp.model.User;
 import ubc.pavlab.rdp.model.ontology.Ontology;
 import ubc.pavlab.rdp.model.ontology.OntologyTermInfo;
@@ -13,21 +14,18 @@ import ubc.pavlab.rdp.model.ontology.UserOntologyTerm;
 import ubc.pavlab.rdp.repositories.UserRepository;
 
 import javax.persistence.EntityManager;
-
-import java.util.TreeSet;
+import java.time.Instant;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static ubc.pavlab.rdp.util.TestUtils.createUnpersistedUser;
 
 @RunWith(SpringRunner.class)
 @DataJpaTest
-@CommonsLog
+@Import(JpaAuditingConfig.class)
 public class UserOntologyRepositoryTest {
 
     @Autowired
     private OntologyRepository ontologyRepository;
-    @Autowired
-    private OntologyTermInfoRepository ontologyTermInfoRepository;
     @Autowired
     private UserRepository userRepository;
     @Autowired
@@ -53,7 +51,10 @@ public class UserOntologyRepositoryTest {
         User user = createUnpersistedUser();
         UserOntologyTerm uo = UserOntologyTerm.fromOntologyTermInfo( user, term );
         user.getUserOntologyTerms().add( uo );
-        userRepository.saveAndFlush( user );
+        user = userRepository.saveAndFlush( user );
+        assertThat( user.getUserOntologyTerms() ).allSatisfy( userTerm -> {
+            assertThat( userTerm.getCreatedAt() ).isCloseTo( Instant.now(), 500 );
+        } );
 
         ontology.getTerms().remove( term );
         ontologyRepository.saveAndFlush( ontology );

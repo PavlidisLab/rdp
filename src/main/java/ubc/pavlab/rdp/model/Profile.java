@@ -1,5 +1,6 @@
 package ubc.pavlab.rdp.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,6 +14,7 @@ import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.sql.Timestamp;
 import java.text.MessageFormat;
 import java.util.HashSet;
 import java.util.Set;
@@ -66,6 +68,10 @@ public class Profile {
 
     @Column(name = "contact_email_verified", nullable = false)
     private boolean contactEmailVerified;
+
+    @Column(name = "contact_email_verified_at")
+    @JsonIgnore
+    private Timestamp contactEmailVerifiedAt;
 
     @Column(name = "website")
     @URL

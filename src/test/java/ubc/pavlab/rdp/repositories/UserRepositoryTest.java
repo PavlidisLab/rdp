@@ -5,13 +5,16 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.junit4.SpringRunner;
+import ubc.pavlab.rdp.JpaAuditingConfig;
 import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.ResearcherCategory;
 import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import ubc.pavlab.rdp.model.enums.TierType;
 
+import java.time.Instant;
 import java.util.Collection;
 import java.util.EnumSet;
 
@@ -23,6 +26,7 @@ import static ubc.pavlab.rdp.util.TestUtils.*;
  */
 @RunWith(SpringRunner.class)
 @DataJpaTest
+@Import(JpaAuditingConfig.class)
 public class UserRepositoryTest {
 
     @Autowired
@@ -491,6 +495,7 @@ public class UserRepositoryTest {
         user.getProfile().setResearcherPosition( ResearcherPosition.PRINCIPAL_INVESTIGATOR );
         user.getProfile().getResearcherCategories().add( ResearcherCategory.IN_SILICO );
         User persistedUser = entityManager.persistAndFlush( user );
+        assertThat( persistedUser.getCreatedAt() ).isCloseTo( Instant.now(), 500 );
         assertThat( persistedUser.getProfile() )
                 .hasFieldOrPropertyWithValue( "researcherPosition", ResearcherPosition.PRINCIPAL_INVESTIGATOR )
                 .hasFieldOrPropertyWithValue( "researcherCategories", EnumSet.of( ResearcherCategory.IN_SILICO ) );

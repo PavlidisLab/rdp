@@ -24,6 +24,8 @@ import ubc.pavlab.rdp.util.OntologyMessageSource;
 
 import javax.mail.MessagingException;
 import java.net.URI;
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.Locale;
 import java.util.concurrent.ExecutionException;
 
@@ -81,6 +83,7 @@ public class EmailServiceImplTest {
     public void sendSupportMessage_thenSucceed() throws MessagingException, ExecutionException, InterruptedException {
         User user = createUser( 1 );
         user.setEnabled( true );
+        user.setEnabledAt( Timestamp.from( Instant.now() ) );
         emailService.sendSupportMessage( "I need help!", "John Doe", user, "Google Chrome", null, Locale.getDefault() ).get();
         ArgumentCaptor<SimpleMailMessage> mailMessageCaptor = ArgumentCaptor.forClass( SimpleMailMessage.class );
         verify( emailSender ).send( mailMessageCaptor.capture() );
@@ -163,9 +166,11 @@ public class EmailServiceImplTest {
         User user = createUser( 1 );
         user.getProfile().setContactEmail( "foo@example.com" );
         user.getProfile().setContactEmailVerified( true );
+        user.getProfile().setContactEmailVerifiedAt( Timestamp.from( Instant.now() ) );
         User user2 = createUser( 2 );
         user2.getProfile().setContactEmail( "bar@example.com" );
         user2.getProfile().setContactEmailVerified( true );
+        user2.getProfile().setContactEmailVerifiedAt( Timestamp.from( Instant.now() ) );
         UserGene userGene = createUserGene( 1, createGene( 1, createTaxon( 1 ) ), user2, TierType.TIER1, PrivacyLevelType.PRIVATE );
         emailService.sendUserGeneAccessRequest( userGene, user, "Because." ).get();
         ArgumentCaptor<SimpleMailMessage> mailMessageCaptor = ArgumentCaptor.forClass( SimpleMailMessage.class );

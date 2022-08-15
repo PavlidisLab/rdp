@@ -7,10 +7,13 @@ import lombok.extern.apachecommons.CommonsLog;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.NaturalId;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.TierType;
 
 import javax.persistence.*;
+import java.sql.Timestamp;
 import java.text.MessageFormat;
 import java.util.Comparator;
 import java.util.Optional;
@@ -21,6 +24,7 @@ import java.io.Serializable;
  * Created by mjacobson on 17/01/18.
  */
 @Entity
+@EntityListeners(AuditingEntityListener.class)
 @Table(name = "gene",
         uniqueConstraints = {
                 @UniqueConstraint(columnNames = { "user_id", "gene_id" }) },
@@ -85,6 +89,13 @@ public class UserGene extends Gene implements UserContent, Serializable {
     @Enumerated(EnumType.ORDINAL)
     @JsonIgnore
     private PrivacyLevelType privacyLevel;
+
+    /**
+     * Exact moment of creation of this user-gene association, or null if unknown.
+     */
+    @CreatedDate
+    @JsonIgnore
+    private Timestamp createdAt;
 
     @ManyToOne
     @JoinColumn(name = "gene_id", referencedColumnName = "gene_id", insertable = false, updatable = false, foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT))

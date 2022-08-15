@@ -5,33 +5,21 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.internal.util.collections.Sets;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.info.BuildProperties;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Bean;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.context.annotation.Import;
-import org.springframework.security.access.PermissionEvaluator;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.context.junit4.SpringRunner;
-import ubc.pavlab.rdp.WebMvcConfig;
+import ubc.pavlab.rdp.JpaAuditingConfig;
 import ubc.pavlab.rdp.model.Gene;
 import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.model.User;
 import ubc.pavlab.rdp.model.UserGene;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.TierType;
-import ubc.pavlab.rdp.repositories.ontology.OntologyRepository;
-import ubc.pavlab.rdp.repositories.ontology.OntologyTermInfoRepository;
-import ubc.pavlab.rdp.services.*;
-import ubc.pavlab.rdp.settings.ApplicationSettings;
-import ubc.pavlab.rdp.settings.SiteSettings;
-import ubc.pavlab.rdp.util.OntologyMessageSource;
 
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -45,6 +33,7 @@ import static ubc.pavlab.rdp.util.TestUtils.*;
 @RunWith(SpringRunner.class)
 @Import(WebMvcConfig.class)
 @DataJpaTest
+@Import(JpaAuditingConfig.class)
 public class UserGeneRepositoryTest {
 
     @TestConfiguration
@@ -122,6 +111,11 @@ public class UserGeneRepositoryTest {
     public void setUp() {
         taxon = entityManager.persistAndFlush( createTaxon( 1 ) );
         user = entityManager.persistAndFlush( createUserWithGenes( taxon ) );
+        assertThat( user.getUserGenes() )
+                .isNotEmpty()
+                .allSatisfy( ( geneId, userGene ) -> {
+                    assertThat( userGene.getCreatedAt() ).isCloseTo( Instant.now(), 500 );
+                } );
     }
 
     private User createUserWithGenes( Taxon taxon ) {
@@ -306,6 +300,7 @@ public class UserGeneRepositoryTest {
     public void findByUserEnabledTrue() {
         Gene gene = entityManager.persist( createGene( 1, taxon ) );
         user.setEnabled( true );
+        user.setEnabledAt( Timestamp.from( Instant.now() ) );
         user.getProfile().setPrivacyLevel( PrivacyLevelType.PUBLIC );
         user.getUserGenes().clear();
         user = entityManager.persistAndFlush( user );
@@ -332,6 +327,7 @@ public class UserGeneRepositoryTest {
         Gene gene2 = entityManager.persist( createGene( 2, taxon ) );
         Gene gene3 = entityManager.persist( createGene( 3, taxon ) );
         user.setEnabled( true );
+        user.setEnabledAt( Timestamp.from( Instant.now() ) );
         user.getProfile().setPrivacyLevel( PrivacyLevelType.PUBLIC );
         user.getUserGenes().clear();
         user = entityManager.persistAndFlush( user );
@@ -352,6 +348,7 @@ public class UserGeneRepositoryTest {
         Gene gene2 = entityManager.persist( createGene( 2, taxon ) );
         Gene gene3 = entityManager.persist( createGene( 3, taxon ) );
         user.setEnabled( true );
+        user.setEnabledAt( Timestamp.from( Instant.now() ) );
         user.getProfile().setPrivacyLevel( PrivacyLevelType.PRIVATE );
         user.getUserGenes().clear();
         user = entityManager.persistAndFlush( user );
@@ -368,6 +365,7 @@ public class UserGeneRepositoryTest {
     public void findAllByPrivacyLevelAndUserProfilePrivacyLevel_whenGenePrivacyLevelIsNull_thenFallbackOnProfile() {
         Gene gene = entityManager.persist( createGene( 1, taxon ) );
         user.setEnabled( true );
+        user.setEnabledAt( Timestamp.from( Instant.now() ) );
         user.getProfile().setPrivacyLevel( PrivacyLevelType.PUBLIC );
         user.getUserGenes().clear();
         user = entityManager.persistAndFlush( user );

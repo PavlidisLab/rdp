@@ -651,12 +651,14 @@ public class UserServiceImplTest {
         User user = createUser( 1 );
         user.getProfile().setContactEmail( "foo@example.com" );
         user.getProfile().setContactEmailVerified( true );
+        user.getProfile().setContactEmailVerifiedAt( Timestamp.from( Instant.now() ) );
         Profile profile = new Profile();
         profile.setPrivacyLevel( PrivacyLevelType.PUBLIC );
         profile.setContactEmail( null );
         userService.updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( user, profile, null, null, null, Locale.getDefault() );
         assertThat( user.getProfile().getContactEmail() ).isNull();
         assertThat( user.getProfile().isContactEmailVerified() ).isFalse();
+        assertThat( user.getProfile().getContactEmailVerifiedAt() ).isNull();
         verifyNoInteractions( userListener );
     }
 
@@ -665,12 +667,14 @@ public class UserServiceImplTest {
         User user = createUser( 1 );
         user.getProfile().setContactEmail( "foo@example.com" );
         user.getProfile().setContactEmailVerified( true );
+        user.getProfile().setContactEmailVerifiedAt( Timestamp.from( Instant.now() ) );
         Profile profile = new Profile();
         profile.setPrivacyLevel( PrivacyLevelType.PUBLIC );
         profile.setContactEmail( "" );
         userService.updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( user, profile, null, null, null, Locale.getDefault() );
         assertThat( user.getProfile().getContactEmail() ).isEmpty();
         assertThat( user.getProfile().isContactEmailVerified() ).isFalse();
+        assertThat( user.getProfile().getContactEmailVerifiedAt() ).isNull();
         verifyNoInteractions( userListener );
     }
 
@@ -1291,10 +1295,12 @@ public class UserServiceImplTest {
         when( privacySettings.isEnableAnonymizedSearchResults() ).thenReturn( true );
         User user = createUser( 1 );
         user.setEnabled( true );
+        user.setEnabledAt( Timestamp.from( Instant.now() ) );
         user.getProfile().setPrivacyLevel( PrivacyLevelType.PRIVATE );
         User anonymizedUser = userService.anonymizeUser( user );
         assertThat( anonymizedUser )
                 .hasFieldOrPropertyWithValue( "enabled", true )
+                .hasFieldOrPropertyWithValue( "enabledAt", null )
                 .hasFieldOrPropertyWithValue( "email", null )
                 .hasFieldOrPropertyWithValue( "profile.privacyLevel", PrivacyLevelType.PUBLIC );
         assertThat( anonymizedUser.getUserGenes() ).isEmpty();

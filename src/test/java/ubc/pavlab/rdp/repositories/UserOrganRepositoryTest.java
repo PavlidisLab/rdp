@@ -6,10 +6,13 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.junit4.SpringRunner;
+import ubc.pavlab.rdp.JpaAuditingConfig;
 import ubc.pavlab.rdp.model.User;
 import ubc.pavlab.rdp.model.UserOrgan;
 
+import java.time.Instant;
 import java.util.Collection;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -17,6 +20,7 @@ import static ubc.pavlab.rdp.util.TestUtils.createUnpersistedUser;
 
 @RunWith(SpringRunner.class)
 @DataJpaTest
+@Import(JpaAuditingConfig.class)
 public class UserOrganRepositoryTest {
 
     @Autowired
@@ -40,6 +44,7 @@ public class UserOrganRepositoryTest {
     public void setUp() {
         User user = entityManager.persistAndFlush( createUnpersistedUser() );
         userOrgan = entityManager.persistAndFlush( createUserOrgan( user, "UBERON_....", "Limb/Appendage", "Limb or appendage" ) );
+        assertThat( userOrgan.getCreatedAt() ).isCloseTo( Instant.now(), 500 );
     }
 
     @Test

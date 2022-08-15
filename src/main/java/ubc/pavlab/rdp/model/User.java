@@ -8,6 +8,9 @@ import lombok.extern.apachecommons.CommonsLog;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.NaturalId;
 import org.hibernate.validator.constraints.Email;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.util.StringUtils;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.TierType;
@@ -23,11 +26,14 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.sql.Timestamp;
 import java.text.MessageFormat;
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Entity
+@EntityListeners(AuditingEntityListener.class)
 @Table(name = "user")
 @Cacheable
 @Getter
@@ -80,9 +86,30 @@ public class User implements UserContent, Serializable {
     @org.springframework.data.annotation.Transient
     private String password;
 
+    /**
+     * Exact moment when this user was created, or null if unknown.
+     */
+    @CreatedDate
+    @JsonIgnore
+    private Timestamp createdAt;
+
+    /**
+     * Last moment when this user profile was updated, or null if unknown.
+     */
+    @LastModifiedDate
+    @JsonIgnore
+    private Timestamp modifiedAt;
+
     @Column(name = "enabled", nullable = false)
     @JsonIgnore
     private boolean enabled;
+
+    /**
+     * Exact moment when the user account was enabled.
+     */
+    @Column(name = "enabled_at")
+    @JsonIgnore
+    private Timestamp enabledAt;
 
     @ManyToMany
     @JoinTable(name = "user_role", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
