@@ -204,7 +204,7 @@ public class AdminController {
     @GetMapping("/admin/ontologies")
     public ModelAndView getOntologies( @SuppressWarnings("unused") ImportOntologyForm importOntologyForm ) {
         return new ModelAndView( "admin/ontologies" )
-                .addObject( "simpleOntologyForm", SimpleOntologyForm.withInitialRows( 5 ) );
+                .addObject( "simpleOntologyForm", SimpleOntologyForm.withInitialRows() );
     }
 
     @GetMapping("/admin/ontologies/{ontology}")
@@ -381,22 +381,30 @@ public class AdminController {
     @Data
     private static class SimpleOntologyForm {
 
+        public static final int DEFAULT_INITIAL_EMPTY_ROWS = 5;
+
         public static SimpleOntologyForm fromOntology( Ontology ontology ) {
             if ( ontology.getTerms().size() > OntologyService.SIMPLE_ONTOLOGY_MAX_SIZE ) {
                 throw new IllegalArgumentException( "SimpleOntologyForm is not designed to hold ontologies with more than 20 terms!" );
             }
             SimpleOntologyForm updateSimpleForm = new SimpleOntologyForm();
             updateSimpleForm.setOntologyName( ontology.getName() );
-            for ( OntologyTermInfo term : ontology.getTerms() ) {
-                updateSimpleForm.ontologyTerms.add( new SimpleOntologyTermForm( term.getTermId(), term.getName(), term.isGroup(), term.isHasIcon(), term.isActive() ) );
+            if ( ontology.getTerms().isEmpty() ) {
+                for ( int i = 0; i < DEFAULT_INITIAL_EMPTY_ROWS; i++ ) {
+                    updateSimpleForm.ontologyTerms.add( SimpleOntologyTermForm.emptyRow() );
+                }
+            } else {
+                for ( OntologyTermInfo term : ontology.getTerms() ) {
+                    updateSimpleForm.ontologyTerms.add( new SimpleOntologyTermForm( term.getTermId(), term.getName(), term.isGroup(), term.isHasIcon(), term.isActive() ) );
+                }
             }
             return updateSimpleForm;
         }
 
-        public static SimpleOntologyForm withInitialRows( int initialRows ) {
+        public static SimpleOntologyForm withInitialRows() {
             SimpleOntologyForm updateSimpleForm = new SimpleOntologyForm();
             updateSimpleForm.ontologyName = null;
-            for ( int i = 0; i < initialRows; i++ ) {
+            for ( int i = 0; i < DEFAULT_INITIAL_EMPTY_ROWS; i++ ) {
                 updateSimpleForm.ontologyTerms.add( SimpleOntologyTermForm.emptyRow() );
             }
             return updateSimpleForm;
@@ -615,7 +623,7 @@ public class AdminController {
     public Object importOntology( @Valid ImportOntologyForm importOntologyForm, BindingResult bindingResult ) {
         if ( bindingResult.hasErrors() ) {
             return new ModelAndView( "admin/ontologies", HttpStatus.BAD_REQUEST )
-                    .addObject( "simpleOntologyForm", SimpleOntologyForm.withInitialRows( 5 ) );
+                    .addObject( "simpleOntologyForm", SimpleOntologyForm.withInitialRows() );
         }
         try ( Reader reader = getReaderForImportOntologyForm( importOntologyForm ) ) {
             Ontology ontology = ontologyService.createFromObo( reader );
@@ -626,13 +634,13 @@ public class AdminController {
             bindingResult.reject( "AdminController.ImportOntologyForm.ontologyWithSameNameAlreadyUsed", new String[]{ e.getOntologyName() },
                     String.format( "An ontology with the same name '%s' is already used.", e.getOntologyName() ) );
             return new ModelAndView( "admin/ontologies", HttpStatus.BAD_REQUEST )
-                    .addObject( "simpleOntologyForm", SimpleOntologyForm.withInitialRows( 5 ) );
+                    .addObject( "simpleOntologyForm", SimpleOntologyForm.withInitialRows() );
         } catch ( IOException | ParseException e ) {
             log.error( String.format( "Failed to import ontology from submitted form: %s.", importOntologyForm ), e );
             bindingResult.reject( "AdminController.ImportOntologyForm.failedToParseOboFormat", new String[]{ importOntologyForm.getFilename(), e.getMessage() },
                     String.format( "Failed to parse the ontology OBO format from %s: %s", importOntologyForm.getFilename(), e.getMessage() ) );
             return new ModelAndView( "admin/ontologies", HttpStatus.INTERNAL_SERVER_ERROR )
-                    .addObject( "simpleOntologyForm", SimpleOntologyForm.withInitialRows( 5 ) );
+                    .addObject( "simpleOntologyForm", SimpleOntologyForm.withInitialRows() );
         }
     }
 
@@ -942,7 +950,7 @@ public class AdminController {
             return new ModelAndView( "admin/ontologies", HttpStatus.BAD_REQUEST )
                     .addObject( "error", true )
                     .addObject( "message", String.format( "Invalid direction %s.", direction ) )
-                    .addObject( "simpleOntologyForm", SimpleOntologyForm.withInitialRows( 5 ) );
+                    .addObject( "simpleOntologyForm", SimpleOntologyForm.withInitialRows() );
         }
         ontologyService.move( ontology, d );
         return "redirect:/admin/ontologies";
