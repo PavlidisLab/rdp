@@ -20,6 +20,8 @@
     <nav th:style="'background-image:url(\'' + @{/images/header.jpg} + '\'); background-size: cover;'"
          class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container">
+            <a class="navbar-brand sr-only sr-only-focusable mr-3" href="#main-content">Skip to main content</a>
+
             <a class="navbar-brand" th:href="@{/user/home}" href="/">
                 <div th:utext="#{rdp.site.logohtml}" th:remove="tag"></div>
             </a>

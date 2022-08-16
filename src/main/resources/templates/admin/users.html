@@ -8,10 +8,8 @@
 <body>
 <div th:replace="layouts/common::header(title='Users')"></div>
 <div class="container py-3">
-    <div class="mb-3">
-        <div th:replace="layouts/common::title(title='Users', subtitle = 'List of all registered users')"></div>
-    </div>
-    <table class="table table-compact">
+    <div th:replace="layouts/common::title(title='Users', subtitle = 'List of all registered users')"></div>
+    <table id="main-content" class="table table-compact" role="main">
         <thead>
         <tr>
             <th>Email</th>

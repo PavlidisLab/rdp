@@ -10,10 +10,12 @@
 <div class="container py-4">
     <div th:replace="layouts/common::title(title='Privacy Policy')"></div>
     <div th:replace="layouts/login::message"></div>
-    <div th:utext="#{rdp.privacy-policy}"></div>
-    <div th:if="${#strings.isEmpty(#messages.msg('rdp.privacy-policy'))}"
-         class="alert alert-warning">
-        The administrator of this registry has not set up a privacy policy.
+    <div id="main-content" role="main">
+        <div th:utext="#{rdp.privacy-policy}"></div>
+        <div th:if="${#strings.isEmpty(#messages.msg('rdp.privacy-policy'))}"
+             class="alert alert-warning">
+            The administrator of this registry has not set up a privacy policy.
+        </div>
     </div>
 </div>
 <div th:replace="layouts/common::footer"></div>

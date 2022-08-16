@@ -13,7 +13,7 @@
 
     <div th:replace="layouts/common::title(title='Welcome', subtitle='Overview')">...</div>
 
-    <div class="main-content my-3">
+    <div id="main-content" role="main">
 
         <div th:utext="#{rdp.site.welcome(#{rdp.site.shortname}, @{/user/profile}, @{/user/faq}, @{/user/documentation}, @{/user/support})}"
              th:remove="tag"></div>
