@@ -331,6 +331,11 @@ hr {
     background: $white;
 }
 
+/* dropdown menus should appear above sticky elements, I have frankly no idea why Bootstrap do that */
+.dropdown-menu {
+    z-index: $zindex-sticky + 1;
+}
+
 /* jQuery UI autocomplete widget should appear above the sticky top bar */
 .ui-autocomplete {
     z-index: $zindex-sticky + 1;
