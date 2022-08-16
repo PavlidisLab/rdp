@@ -414,11 +414,11 @@ public class AdminController {
         }
 
         @NotNull
-        @Size(min = 1, max = Ontology.MAX_NAME_LENGTH)
+        @Size(min = 1, max = Ontology.MAX_NAME_LENGTH, message = "The category name cannot be empty nor exceed " + Ontology.MAX_NAME_LENGTH + " characters.")
         private String ontologyName;
 
         @Valid
-        @Size(max = OntologyService.SIMPLE_ONTOLOGY_MAX_SIZE)
+        @Size(max = OntologyService.SIMPLE_ONTOLOGY_MAX_SIZE, message = "The number of terms must be between 0 and " + OntologyService.SIMPLE_ONTOLOGY_MAX_SIZE + ".")
         private List<SimpleOntologyTermForm> ontologyTerms = new ArrayList<>();
     }
 
@@ -448,7 +448,7 @@ public class AdminController {
         @Size(max = OntologyTermInfo.MAX_TERM_ID_LENGTH, groups = RowNotEmpty.class)
         private String termId;
         @NotNull(groups = RowNotEmpty.class)
-        @Size(min = 1, max = OntologyTermInfo.MAX_NAME_LENGTH, groups = RowNotEmpty.class)
+        @Size(min = 1, max = OntologyTermInfo.MAX_NAME_LENGTH, groups = RowNotEmpty.class, message = "The term name cannot be empty nor exceed " + OntologyTermInfo.MAX_NAME_LENGTH + " characters.")
         private String name;
         private boolean grouping;
         private boolean hasIcon;
