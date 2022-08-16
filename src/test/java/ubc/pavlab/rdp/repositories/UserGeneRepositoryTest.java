@@ -31,78 +31,15 @@ import static ubc.pavlab.rdp.util.TestUtils.*;
  * Created by mjacobson on 26/02/18.
  */
 @RunWith(SpringRunner.class)
-@Import(WebMvcConfig.class)
 @DataJpaTest
 @Import(JpaAuditingConfig.class)
 public class UserGeneRepositoryTest {
-
-    @TestConfiguration
-    static class UserGeneRepositoryTestContextConfiguration {
-
-        @Bean
-        public ApplicationSettings applicationSettings() {
-            return new ApplicationSettings();
-        }
-
-        @Bean
-        public PrivacyService privacyService() {
-            return new PrivacyServiceImpl();
-        }
-
-        @Bean
-        public UserService userService() {
-            return new UserServiceImpl();
-        }
-
-        @Bean
-        public UserGeneService userGeneService() {
-            return new UserGeneServiceImpl();
-        }
-
-        @Bean
-        public SecureRandom secureRandom() throws NoSuchAlgorithmException {
-            return SecureRandom.getInstance( "SHA1PRNG" );
-        }
-
-        @Bean
-        public OntologyService ontologyService( OntologyRepository ontologyRepository, OntologyTermInfoRepository ontologyTermInfoRepository ) {
-            return new OntologyService( ontologyRepository, ontologyTermInfoRepository );
-        }
-    }
 
     @Autowired
     private TestEntityManager entityManager;
 
     @Autowired
     private UserGeneRepository userGeneRepository;
-
-    @MockBean
-    private SiteSettings siteSettings;
-
-    @MockBean
-    private PermissionEvaluator permissionEvaluator;
-
-    @MockBean
-    private BCryptPasswordEncoder bCryptPasswordEncoder;
-
-
-    @MockBean
-    private GOService goService;
-
-    @MockBean
-    private OrganInfoService organInfoService;
-
-    @MockBean
-    private EmailService emailService;
-
-    @MockBean
-    private GeneInfoService geneinfoService;
-
-    @MockBean
-    private OntologyMessageSource ontologyMessageSource;
-
-    @MockBean
-    private BuildProperties buildProperties;
 
     private User user;
     private Taxon taxon;
