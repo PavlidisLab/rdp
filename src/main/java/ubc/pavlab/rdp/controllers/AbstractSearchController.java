@@ -148,19 +148,19 @@ public abstract class AbstractSearchController {
     private void addSearchParams( StringBuilder builder, SearchParams userSearchParams, Locale locale ) {
         if ( userSearchParams.researcherPositions != null ) {
             addClause( builder, userSearchParams.researcherPositions.stream()
-                    .map( p -> String.format( locale, "researcher position equals '%s'",
+                    .map( p -> String.format( locale, "researcher position = '%s'",
                             messageSource.getMessage( "ResearcherPosition." + p.name(), null, locale ) ) )
                     .collect( Collectors.toList() ) );
         }
         if ( userSearchParams.researcherCategories != null ) {
             addClause( builder, userSearchParams.researcherCategories.stream()
-                    .map( p -> String.format( locale, "researcher category equals '%s'",
+                    .map( p -> String.format( locale, "researcher category = '%s'",
                             messageSource.getMessage( "ResearcherCategory." + p.name(), null, locale ) ) )
                     .collect( Collectors.toList() ) );
         }
         if ( userSearchParams.organUberonIds != null ) {
             addClause( builder, organInfoService.findByUberonIdIn( userSearchParams.organUberonIds ).stream()
-                    .map( p -> String.format( locale, "has term '%s' from UBERON", p.getName() ) ).collect( Collectors.toList() ) );
+                    .map( p -> String.format( locale, "UBERON = '%s'", p.getName() ) ).collect( Collectors.toList() ) );
         }
         if ( userSearchParams.ontologyTermIds != null ) {
             List<OntologyTermInfo> infos = ontologyService.findAllTermsByIdIn( userSearchParams.ontologyTermIds );
@@ -168,9 +168,9 @@ public abstract class AbstractSearchController {
                     .collect( Collectors.groupingBy( OntologyTermInfo::getOntology, Collectors.toList() ) );
             for ( Map.Entry<Ontology, List<OntologyTermInfo>> entry : termByOntology.entrySet() ) {
                 addClause( builder, entry.getValue().stream()
-                        .map( p -> String.format( locale, "has term '%s' from '%s'",
-                                ontologyService.resolveOntologyTermInfoName( p, locale ),
-                                ontologyService.resolveOntologyName( entry.getKey(), locale ) ) )
+                        .map( p -> String.format( locale, "'%s' = '%s'",
+                                ontologyService.resolveOntologyName( entry.getKey(), locale ),
+                                ontologyService.resolveOntologyTermInfoName( p, locale ) ) )
                         .collect( Collectors.toList() ) );
             }
         }
@@ -185,24 +185,20 @@ public abstract class AbstractSearchController {
             addClause( builder, String.format( "research description contains '%s'", userSearchParams.descriptionLike ) );
         }
         addSearchParams( builder, userSearchParams, locale );
-        return "Search query: " + ( builder.length() == 0 ? "everything" : builder ) + ".";
+        return builder.toString();
     }
 
     protected String summarizeGeneSearchParams( GeneSearchParams geneSearchParams, Locale locale ) {
         StringBuilder builder = new StringBuilder();
-        addClause( builder, String.format( "gene symbol equals '%s'", geneSearchParams.gene.getSymbol() ) );
+        addClause( builder, String.format( "gene symbol = '%s'", geneSearchParams.gene.getSymbol() ) );
         if ( geneSearchParams.getTiers() != null ) {
-            addClause( builder, geneSearchParams.tiers.stream().map( t -> String.format( "gene with tier '%s'", t.getLabel() ) ).collect( Collectors.toList() ) );
-        } else {
-            addClause( builder, "gene in all tiers" );
+            addClause( builder, geneSearchParams.tiers.stream().map( t -> String.format( "gene tier = '%s'", t.getLabel() ) ).collect( Collectors.toList() ) );
         }
         if ( geneSearchParams.orthologTaxon != null ) {
-            addClause( builder, String.format( "gene ortholog from '%s'", geneSearchParams.orthologTaxon.getCommonName() ) );
-        } else {
-            addClause( builder, "gene from all orthologs" );
+            addClause( builder, String.format( "gene taxon = '%s'", geneSearchParams.orthologTaxon.getCommonName() ) );
         }
         addSearchParams( builder, geneSearchParams, locale );
-        return "Search query: " + ( builder.length() == 0 ? "everything" : builder ) + ".";
+        return builder.toString();
     }
 
     /**

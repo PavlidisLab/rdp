@@ -229,16 +229,19 @@
                 <!-- sticky button for mobile -->
                 <div class="search-section sticky-top p-3 border-bottom">
                     <div class="form-row">
+                        <label>Search for researchers using at least one of the following criteria:</label>
+                    </div>
+                    <div class="form-row">
                         <div class="form-group col-sm-12 d-sm-block d-md-none">
                             <button class="btn btn-primary btn-block" type="submit">
                                 <i class="oi oi-magnifying-glass"></i>
-                                Search Researchers
+                                Search
                             </button>
                         </div>
                         <div class="form-group col-md d-none d-md-block mb-0">
                             <button class="btn btn-primary " type="submit">
                                 <i class="oi oi-magnifying-glass"></i>
-                                Search Researchers
+                                Search
                             </button>
                         </div>
                         <div th:if="${@applicationSettings.isearch.enabled}"
@@ -264,7 +267,7 @@
 
                 <div class="search-section p-3">
                     <div class="form-group mb-0">
-                        <label for="nameLike">With name</label>
+                        <label for="nameLike">Name</label>
                         <input type="text" class="form-control" name="nameLike" id="nameLike"
                                placeholder="Part of researcher name" th:value="${nameLike}"/>
                     </div>
@@ -273,7 +276,7 @@
                 <div class="search-section border-top p-3">
                     <!--Researchers by description-->
                     <div class="form-group mb-0">
-                        <label for="descriptionLike">With research interests</label>
+                        <label for="descriptionLike">Research interests</label>
                         <input type="text" class="form-control"
                                name="descriptionLike"
                                th:value="${descriptionLike}"
@@ -315,7 +318,7 @@
                          class="search-section p-3 border-top">
                         <div class="form-group mb-0">
                             <label th:for="${#ids.next('ontologyTermIds')}">
-                                With the following
+                                With at least one of the following
                                 <strong th:text="${#messages.msgOrNull('rdp.ontologies.' + ontology.name + '.title') ?: #strings.toUpperCase(ontology.name)}"></strong>
                                 terms (or any if none are selected):
                             </label>
@@ -326,8 +329,6 @@
             </form>
         </div>
     </div>
-
-    <hr/>
 
     <!--Orthologs -->
     <div id="orthologsResults" class="mb-3">
@@ -365,7 +366,6 @@
          id="itlResults"
          class="mb-3"
          th:classappend="${iSearch} ? '' : 'd-none'">
-        <hr/>
         <h4>Partner registry results</h4>
         <div id="itlUserTable">
             <th:block th:if="${itlUsers}">
