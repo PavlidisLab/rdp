@@ -109,10 +109,14 @@
                     th:if="${term.ontology} == ${ontology}">
                     <td th:unless="${readOnly}" th:text="${term.termInfo.id}"></td>
                     <td th:if="${readOnly}">
-                        <a th:href="#{'rdp.ontologies.' + ${term.ontology.name} + '.view-term-url-pattern'(${term.ontology.name}, ${term.termId})}"
+                        <a th:if="${@ontologyResolver.accepts(ontology)}"
+                           th:href="${@ontologyResolver.resolveViewTermUri(term)}"
                            th:text="${term.termId}"
                            target="_blank"
                            rel="noopener"></a>
+                        <span th:unless="${@ontologyResolver.accepts(ontology)}"
+                              th:text="${term.termId}">
+                        </span>
                     </td>
                     <td th:unless="${readOnly}" th:text="${term.termId}"></td>
                     <td th:text="${term.name}"></td>

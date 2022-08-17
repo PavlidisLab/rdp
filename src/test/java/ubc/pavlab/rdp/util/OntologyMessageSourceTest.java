@@ -52,12 +52,6 @@ public class OntologyMessageSourceTest {
         verify( ontologyService ).findDefinitionByTermNameAndOntologyName( "UBERON:000001", "uberon" );
     }
 
-    @Test
-    public void resolveCode_whenCodeContainsAViewTermUrlRequest_thenResolveAccordingly() {
-        assertThat( messageSource.getMessage( "rdp.ontologies.uberon.view-term-url-pattern", new Object[]{ "chebi", "CHEBI_24431" }, Locale.getDefault() ) )
-                .isEqualTo( "https://www.ebi.ac.uk/ols/ontologies/chebi/terms?iri=http%3A%2F%2Fpurl.obolibrary.org%2Fobo%2FCHEBI_24431" );
-    }
-
     @Test(expected = NoSuchMessageException.class)
     public void resolveCode_whenCodeIsMissingForDefinition_thenRaiseException() {
         messageSource.getMessage( "rdp.ontologies.uberon.terms.UBERON:000001.definition", null, Locale.getDefault() );
@@ -69,8 +63,6 @@ public class OntologyMessageSourceTest {
                 .isEqualTo( "Reactome Pathways" );
         assertThat( messageSource.getMessage( "rdp.ontologies.reactome.definition", null, Locale.getDefault() ) )
                 .isEqualTo( "Reactome is an open-source, open access, manually curated and peer-reviewed pathway database." );
-        assertThat( messageSource.getMessage( "rdp.ontologies.reactome.view-term-url-pattern", new Object[]{ "reactome", "R-123" }, Locale.getDefault() ) )
-                .isEqualTo( "https://reactome.org/content/detail/R-123" );
     }
 
     @Test

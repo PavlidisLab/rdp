@@ -6,6 +6,7 @@ import org.springframework.boot.convert.DurationUnit;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
 import org.springframework.validation.annotation.Validated;
+import ubc.pavlab.rdp.ontology.resolvers.OntologyResolver;
 import ubc.pavlab.rdp.model.GeneInfo;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.ResearcherCategory;
@@ -224,6 +225,10 @@ public class ApplicationSettings {
          * Enable ontologies.
          */
         private boolean enabled;
+        /**
+         * Default resolver used for resolving ontologies.
+         */
+        private Class<? extends OntologyResolver> defaultResolver;
         @Size(min = 1, max = Ontology.MAX_NAME_LENGTH)
         private String reactomePathwaysOntologyName;
         private Resource reactomePathwaysFile;
