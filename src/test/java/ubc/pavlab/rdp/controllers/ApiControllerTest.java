@@ -10,6 +10,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.support.PageableExecutionUtils;
@@ -463,7 +464,7 @@ public class ApiControllerTest {
         long numberOfTerms = 5 + ( 5 * 5 ) + ( 5 * 5 * 5 ) + ( 5 * 5 * 5 * 5 );
         when( ontologyService.countActiveTerms( onts.get( 0 ) ) ).thenReturn( numberOfTerms );
         when( ontologyService.countActiveTerms( onts.get( 1 ) ) ).thenReturn( numberOfTerms );
-        when( messageSource.getMessage( "rdp.ontologies.mondo.definition", null, null, Locale.getDefault() ) )
+        when( messageSource.getMessage( onts.get( 1 ).getResolvableDefinition(), Locale.getDefault() ) )
                 .thenReturn( "a bunch of disease terms" );
         mvc.perform( get( "/api/ontologies" )
                         .locale( Locale.getDefault() ) )
@@ -498,22 +499,38 @@ public class ApiControllerTest {
     @Test
     public void getOntologyTerm() throws Exception {
         Ontology ont = createOntology( "uberon", 3, 2, 1 );
-        when( ontologyService.findTermByTermIdAndOntologyName( any(), eq( "uberon" ) ) )
-                .thenAnswer( arg -> ont.getTerms().stream()
-                        .filter( t -> t.getTermId().equals( arg.getArgument( 0, String.class ) ) )
-                        .findFirst()
-                        .orElse( null ) );
-        when( messageSource.getMessage( "rdp.ontologies.uberon.terms.UBERON:00001.definition", null, null, Locale.getDefault() ) )
+        OntologyTermInfo term = ont.getTerms().stream()
+                .filter( t -> t.getTermId().equals( "UBERON:00001" ) )
+                .findFirst()
+                .orElse( null );
+        assertThat( term ).isNotNull();
+        DefaultMessageSourceResolvable resolvableOntologyDefinition = term.getOntology().getResolvableDefinition();
+        DefaultMessageSourceResolvable resolvableTitle = term.getResolvableTitle();
+        DefaultMessageSourceResolvable resolvableDefinition = term.getResolvableDefinition();
+        assertThat( resolvableTitle.getCode() ).isEqualTo( "rdp.ontologies.uberon.terms.UBERON:00001.title" );
+        assertThat( resolvableDefinition.getCode() ).isEqualTo( "rdp.ontologies.uberon.terms.UBERON:00001.definition" );
+        assertThat( resolvableOntologyDefinition.getCode() ).isEqualTo( "rdp.ontologies.uberon.definition" );
+        when( ontologyService.findTermByTermIdAndOntologyName( eq( "UBERON:00001" ), eq( "uberon" ) ) )
+                .thenReturn( term );
+        when( messageSource.getMessage( resolvableTitle, Locale.getDefault() ) )
+                .thenReturn( "this is a nice title" );
+        when( messageSource.getMessage( resolvableDefinition, Locale.getDefault() ) )
                 .thenReturn( "this is a nice definition" );
+        when( messageSource.getMessage( resolvableOntologyDefinition, Locale.getDefault() ) )
+                .thenReturn( "organs organs organs" );
         mvc.perform( get( "/api/ontologies/{ontologyName}/terms/{termId}", "uberon", "UBERON:00001" )
                         .locale( Locale.getDefault() ) )
                 .andExpect( status().isOk() )
                 .andExpect( jsonPath( "$.id" ).doesNotExist() )
                 .andExpect( jsonPath( "$.termId" ).value( "UBERON:00001" ) )
+                .andExpect( jsonPath( "$.name" ).value( "this is a nice title" ) )
                 .andExpect( jsonPath( "$.definition" ).value( "this is a nice definition" ) )
+                .andExpect( jsonPath( "$.ontology.definition" ).value( "organs organs organs" ) )
                 .andExpect( jsonPath( "$.subTerms" ).isArray() );
         verify( ontologyService ).findTermByTermIdAndOntologyName( "UBERON:00001", "uberon" );
-        verify( messageSource ).getMessage( "rdp.ontologies.uberon.terms.UBERON:00001.definition", null, null, Locale.getDefault() );
+        verify( messageSource ).getMessage( resolvableOntologyDefinition, Locale.getDefault() );
+        verify( messageSource ).getMessage( resolvableTitle, Locale.getDefault() );
+        verify( messageSource ).getMessage( resolvableDefinition, Locale.getDefault() );
     }
 
     @Test

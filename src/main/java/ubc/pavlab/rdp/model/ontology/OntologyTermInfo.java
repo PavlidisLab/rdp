@@ -6,6 +6,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.springframework.context.MessageSourceResolvable;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -178,5 +180,11 @@ public class OntologyTermInfo extends OntologyTerm implements Serializable, Comp
     @Override
     public int compareTo( OntologyTermInfo ontologyTermInfo ) {
         return getComparator().compare( this, ontologyTermInfo );
+    }
+
+    @Override
+    @JsonIgnore
+    public DefaultMessageSourceResolvable getResolvableDefinition() {
+        return new DefaultMessageSourceResolvable( new String[]{ "rdp.ontologies." + getOntology().getName() + ".terms." + getName() + ".definition" }, definition );
     }
 }

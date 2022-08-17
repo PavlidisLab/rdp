@@ -4,6 +4,8 @@ import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.info.BuildProperties;
 import org.springframework.context.MessageSource;
+import org.springframework.context.MessageSourceResolvable;
+import org.springframework.context.NoSuchMessageException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -392,7 +394,11 @@ public class ApiController {
     private Ontology initOntology( Ontology ontology, Locale locale ) {
         ontology.setNumberOfTerms( ontologyService.countActiveTerms( ontology ) );
         ontology.setNumberOfObsoleteTerms( ontologyService.countActiveAndObsoleteTerms( ontology ) );
-        ontology.setDefinition( messageSource.getMessage( "rdp.ontologies." + ontology.getName() + ".definition", null, ontology.getDefinition(), locale ) );
+        try {
+            ontology.setDefinition( messageSource.getMessage( ontology.getResolvableDefinition(), locale ) );
+        } catch ( NoSuchMessageException e ) {
+            ontology.setDefinition( null );
+        }
         return ontology;
     }
 
@@ -400,7 +406,16 @@ public class ApiController {
         term.setOntology( initOntology( term.getOntology(), locale ) );
         if ( term instanceof OntologyTermInfo ) {
             OntologyTermInfo termInfo = (OntologyTermInfo) term;
-            termInfo.setDefinition( messageSource.getMessage( "rdp.ontologies." + term.getOntology().getName() + ".terms." + term.getTermId() + ".definition", null, termInfo.getDefinition(), locale ) );
+            // FIXME: the message code for the definition depends on the name, so we need to get it before the name is
+            //        replaced
+            MessageSourceResolvable title = term.getResolvableTitle();
+            MessageSourceResolvable definition = term.getResolvableDefinition();
+            term.setName( messageSource.getMessage( title, locale ) );
+            try {
+                termInfo.setDefinition( messageSource.getMessage( definition, locale ) );
+            } catch ( NoSuchMessageException e ) {
+                termInfo.setDefinition( null );
+            }
             // TODO: perform this in a single query
             termInfo.setSubTermIds( termInfo.getSubTerms().stream()
                     .filter( OntologyTermInfo::isActive )

@@ -8,12 +8,16 @@ import org.mockito.internal.verification.VerificationModeFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.format.support.FormattingConversionService;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
@@ -52,7 +56,6 @@ import java.util.zip.GZIPOutputStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -106,8 +109,11 @@ public class AdminControllerTest {
     @MockBean(name = "ontologyService")
     private OntologyService ontologyService;
 
-    @MockBean
-    private OntologyMessageSource ontologyMessageSource;
+    @MockBean(name = "messageSource")
+    private MessageSource messageSource;
+
+    @MockBean(name = "messageSourceWithoutOntology")
+    private MessageSource ontologyMessageSource;
 
     @Autowired
     private FormattingConversionService conversionService;
@@ -1012,7 +1018,7 @@ public class AdminControllerTest {
         OntologyTermInfo term = OntologyTermInfo.builder( ontology, "MONDO:000001" ).name( "disease" ).active( true ).build();
         when( ontologyService.findById( 1 ) ).thenReturn( ontology );
         when( ontologyService.existsByTermIdAndOntologyAndActiveTrue( "MONDO:000001", ontology ) ).thenReturn( true );
-        when( ontologyService.resolveOntologyName( eq( ontology ), any( Locale.class ) ) ).thenReturn( "MONDO" );
+        when( messageSource.getMessage( ontology.getResolvableTitle(), Locale.getDefault() ) ).thenReturn( "MONDO" );
         //noinspection SpellCheckingInspection
         mvc.perform( get( "/admin/ontologies/{ontologyId}/autocomplete-terms", ontology.getId() )
                         .param( "query", "MONDO:000001" )
@@ -1023,6 +1029,6 @@ public class AdminControllerTest {
                 .andExpect( jsonPath( "$[0].label" ).value( "MONDO:000001 is already active in MONDO." ) )
                 .andExpect( jsonPath( "$[0].value" ).value( "MONDO:000001" ) );
         verify( ontologyService ).existsByTermIdAndOntologyAndActiveTrue( "MONDO:000001", ontology );
-        verify( ontologyService ).resolveOntologyName( ontology, Locale.getDefault() );
+        verify( messageSource ).getMessage( ontology.getResolvableTitle(), Locale.getDefault() );
     }
 }

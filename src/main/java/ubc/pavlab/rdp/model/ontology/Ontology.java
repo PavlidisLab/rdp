@@ -4,10 +4,11 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import org.hibernate.annotations.LazyCollection;
 import org.hibernate.annotations.LazyCollectionOption;
+import org.springframework.context.MessageSourceResolvable;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 
 import javax.persistence.*;
 import java.net.URL;
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -119,5 +120,15 @@ public class Ontology implements Comparable<Ontology> {
     @Override
     public int compareTo( Ontology ontology ) {
         return getComparator().compare( this, ontology );
+    }
+
+    @JsonIgnore
+    public DefaultMessageSourceResolvable getResolvableTitle() {
+        return new DefaultMessageSourceResolvable( new String[]{ "rdp.ontologies." + Ontology.this.getName() + ".title" }, name.toUpperCase() );
+    }
+
+    @JsonIgnore
+    public DefaultMessageSourceResolvable getResolvableDefinition() {
+        return new DefaultMessageSourceResolvable( new String[]{ "rdp.ontologies." + Ontology.this.getName() + ".definition" }, definition );
     }
 }
