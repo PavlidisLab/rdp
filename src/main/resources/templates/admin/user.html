@@ -35,7 +35,14 @@
                 <dd th:text="${user.enabled} ? 'Yes' : 'No'"></dd>
                 <th:block th:if="${user.verifiedContactEmail.isPresent()}">
                     <dt>Contact Email</dt>
-                    <dd th:text="${user.verifiedContactEmail.get().address}"></dd>
+                    <dd>
+                        <span th:text="${user.verifiedContactEmail.get().address}"></span>
+                        <th:block th:if="${user.verifiedAtContactEmail.isPresent()}">
+                            <br/>
+                            Verified on
+                            <span th:replace="fragments/temporal::date-and-time(${user.verifiedAtContactEmail.get().toInstant()})"></span>.
+                        </th:block>
+                    </dd>
                 </th:block>
             </dl>
             <div th:if="${user.enabled}" class="form-group">

@@ -235,6 +235,18 @@ public class User implements UserContent, Serializable {
         }
     }
 
+    @JsonIgnore
+    @Transient
+    public Optional<Timestamp> getVerifiedAtContactEmail() {
+        if ( profile.isContactEmailVerified() ) {
+            return Optional.ofNullable( profile.getContactEmailVerifiedAt() );
+        } else if ( enabled ) {
+            return Optional.ofNullable( enabledAt );
+        } else {
+            return Optional.empty();
+        }
+    }
+
     @Override
     @JsonIgnore
     public Optional<User> getOwner() {
