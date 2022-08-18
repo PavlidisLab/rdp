@@ -9,11 +9,13 @@
               th:text="#{'ResearcherCategory.' + ${researcherCategory.name()}}"></span>
     </p>
     <p th:text="${#strings.abbreviate(user.profile.description, 200)}"></p>
-    <img th:each="element : ${user.userOrgans}"
-         th:src="@{/images/organs/{uberonId}.svg(uberonId=${element.value.uberonId})}"
-         th:alt="${#strings.capitalize(element.value.name)}"
-         width="32"
-         class="mb-3"/>
+    <div th:if="${@applicationSettings.organs.enabled}">
+        <img th:each="element : ${user.userOrgans}"
+             th:src="@{/images/organs/{uberonId}.svg(uberonId=${element.value.uberonId})}"
+             th:alt="${#strings.capitalize(element.value.name)}"
+             width="32"
+             class="mb-3"/>
+    </div>
 </div>
 <div th:fragment="researcher-position-selection(selectedResearcherPosition)">
     <div th:each="researcherPosition : ${T(ubc.pavlab.rdp.model.enums.ResearcherPosition).values()}"
