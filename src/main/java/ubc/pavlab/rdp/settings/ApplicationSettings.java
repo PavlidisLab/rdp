@@ -120,7 +120,7 @@ public class ApplicationSettings {
          * <p>
          * At least one level must be enabled and one of the must be used for {@link #defaultLevel}.
          */
-        @Size(min = 1)
+        @Size(min = 1, message = "There must be at least one enabled privacy level.")
         private EnumSet<PrivacyLevelType> enabledLevels;
         /**
          * List of enabled privacy levels for user-associated genes.
@@ -177,7 +177,7 @@ public class ApplicationSettings {
          * <p>
          * The order of elements indicates the order of display in the search interface.
          */
-        @Size(min = 1)
+        @Size(min = 1, message = "There must be at least one enabled search mode.")
         private LinkedHashSet<SearchMode> enabledSearchModes;
     }
 

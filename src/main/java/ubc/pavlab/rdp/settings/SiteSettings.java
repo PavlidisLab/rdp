@@ -21,9 +21,10 @@ import java.net.URI;
 @Data
 public class SiteSettings {
 
-    @NotNull
+    @NotNull(message = "The host URL must be specified.")
     private URI host;
 
+    @NotNull(message = "The context (i.e. the path relative to the host URL) cannot be null.")
     private String context;
 
     public URI getHostUri() {
@@ -32,17 +33,21 @@ public class SiteSettings {
 
     /**
      * URL of the main site.
+     * <p>
+     * If configured, CORS policies will be setup so that scripts running on the main site can freely access the
+     * '/stats' and '/api/**' endpoints.
      */
     private URI mainsite;
 
-    @Pattern(regexp = "#[a-fA-F\\d]{6}")
+    @Pattern(regexp = "#[a-fA-F\\d]{6}", message = "The theme color must be a valid hex color (i.e. '#FFFFFF').")
     private String themeColor;
-    @Email
-    @NotEmpty
+
+    @Email(message = "The contact email must be valid.")
+    @NotEmpty(message = "The contact email must be specified.")
     private String contactEmail;
 
-    @Email
-    @NotEmpty
+    @Email(message = "The admin email must be valid.")
+    @NotEmpty(message = "The admin email must be specified.")
     private String adminEmail;
 
     private String gaTracker;
