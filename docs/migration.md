@@ -15,10 +15,26 @@ As of 1.3.2, database migrations are automated with Flyway which will run at sta
 can be disabled with the following parameter in `application.properties`:
 
 ```
-flyway.enabled=false
+spring.flyway.enabled=false
+flyway.enabled=false # for <1.5 releases
 ```
 
 Take a look at the sections below for version-specific migration procedures.
+
+## Migrate from 1.4 to 1.5
+
+This release introduce strict validation for the `application.properties` configuration file. If you had invalid values,
+adjust them as indicated.
+
+Note that we switched to Spring Boot 2, so you should migrate all the custom properties set in `application.properties`
+accordingly. Notably, the Flyway options `flyway.*` must be migrated to `spring.flyway.*`.
+
+There are incompatibilities with the previous Flyway 3.2.1 release that is handled on startup. If you encounter issues
+related to Flyway, please make sure to [report them on GitHub](https://github.com/PavlidisLab/rdp/issues).
+
+Static assets are now packaged with [Webpack](https://webpack.js.org/), meaning that any attempt to override CSS or JS
+assets will not work anymore. Refer to the [editing assets](customization.md#editing-assets) section to customize
+assets.
 
 ## Migrate from 1.3 to 1.4
 
@@ -55,8 +71,7 @@ a `faq.properties` previously setup, add the following line in your configuratio
 rdp.settings.faq-file=file:faq.properties
 ```
 
-Consider also taking a look at the
-packaged [faq.properties](https://github.com/PavlidisLab/rgr/blob/main/src/main/resources/faq.properties)
+Consider also taking a look at the packaged [faq.properties](https://github.com/PavlidisLab/rdp/blob/{{ config.extra.git_ref }}/src/main/resources/faq.properties)
 file and update your custom FAQ accordingly.
 
 ## Migrate from 1.3.x to 1.3.2
@@ -73,7 +88,10 @@ The new security settings will have to be back-filled for the users that have re
 be done by directly editing the database entries like so:
 
 ```sql
-update user set hide_genelist = 0, privacy_level = 0, shared = 1;
+update user
+set hide_genelist = 0,
+    privacy_level = 0,
+    shared        = 1;
 ```
 
 The values of these settings should correspond with the defaults you have set in your `application-prod.properties`
@@ -96,7 +114,9 @@ by running the following command on your database (provided you have the origina
 application, where ROLE_USER has id 2, and ROLE_MANAGER has id 3):
 
 ```sql
-update user_role set role_id = 2 where role_id = 3;
+update user_role
+set role_id = 2
+where role_id = 3;
 ```
 
 ### International search
@@ -112,11 +132,15 @@ Note that in order for this command to be guaranteed to work, the RDMM applicati
 shut down.
 
 ```mysql
-INSERT INTO user ( email, enabled, password, privacy_level, description, last_name, name, shared, hide_genelist, contact_email_verified)
-VALUES(CONCAT(RAND(),'@rdmm.com'), 0, MD5(RAND()), 0, 'Remote admin profile', '', '', false, false, false);
-INSERT INTO user_role (user_id,role_id) VALUES ((select max(user_id) from user), 1);
-INSERT INTO user_role (user_id,role_id) VALUES ((select max(user_id) from user), 2);
-SELECT max(user_id) from user;
+INSERT INTO user (email, enabled, password, privacy_level, description, last_name, name, shared, hide_genelist,
+                  contact_email_verified)
+VALUES (CONCAT(RAND(), '@rdmm.com'), 0, MD5(RAND()), 0, 'Remote admin profile', '', '', false, false, false);
+INSERT INTO user_role (user_id, role_id)
+VALUES ((select max(user_id) from user), 1);
+INSERT INTO user_role (user_id, role_id)
+VALUES ((select max(user_id) from user), 2);
+SELECT max(user_id)
+from user;
 ```
 
 The last command will output an information that you will need in the next step. It will look like this:
@@ -169,14 +193,30 @@ represent what position you would like the taxon to be on. You can skip taxa tha
 active):
 
 ```mysql
-update taxon set ordering = 1 where common_name = 'human';
-update taxon set ordering = 2 where common_name = 'mouse';
-update taxon set ordering = 3 where common_name = 'rat';
-update taxon set ordering = 4 where common_name = 'zebrafish';
-update taxon set ordering = 5 where common_name = 'fruit fly';
-update taxon set ordering = 6 where common_name = 'roundworm';
-update taxon set ordering = 7 where common_name = 'yeast';
-update taxon set ordering = 8 where common_name = 'e. coli';
+update taxon
+set ordering = 1
+where common_name = 'human';
+update taxon
+set ordering = 2
+where common_name = 'mouse';
+update taxon
+set ordering = 3
+where common_name = 'rat';
+update taxon
+set ordering = 4
+where common_name = 'zebrafish';
+update taxon
+set ordering = 5
+where common_name = 'fruit fly';
+update taxon
+set ordering = 6
+where common_name = 'roundworm';
+update taxon
+set ordering = 7
+where common_name = 'yeast';
+update taxon
+set ordering = 8
+where common_name = 'e. coli';
 ```
 
 ### New FAQs

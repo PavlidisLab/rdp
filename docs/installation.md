@@ -10,13 +10,13 @@ This section describes the essential steps to deploy an RDP registry.
 
 ## Obtain a distribution of RDP
 
-Download the [latest jar distribution](https://github.com/PavlidisLab/rgr/releases/latest) from GitHub.
+Download the [latest JAR distribution](https://github.com/PavlidisLab/rdp/releases/latest) from GitHub.
 
 ```bash
-wget https://github.com/PavlidisLab/rgr/releases/download/v{{ config.extra.rdp_version }}/rdp-{{ config.extra.rdp_version }}.jar
+wget https://github.com/PavlidisLab/rdp/releases/download/v{{ config.extra.rdp_version }}/rdp-{{ config.extra.rdp_version }}.jar
 ```
 
-The jar contains the core application, including an embedded webserver (Tomcat 8.5.x), a task scheduler, an in-memory
+The JAR contains the core application, including an embedded webserver (Tomcat 9), a task scheduler, an in-memory
 cache, and much more!
 
 ## Set up the MySQL database
@@ -53,10 +53,6 @@ spring.mail.password=<mail password>
 spring.mail.properties.mail.smtp.auth=true
 spring.mail.properties.mail.smtp.starttls.enable=true
 
-# Adjust this to your own network name
-rdp.site.fullname=Rare Disease Model & Mechanism Network
-rdp.site.shortname=RDMM
-
 # This is very important for generating URLs
 rdp.site.host=https://register.example.com
 rdp.site.context=
@@ -70,8 +66,18 @@ This file contains the database and SMTP credentials and various runtime configu
 the user that will run the instance.
 
 Documentation for options with their default values are available
-in [application.properties](https://github.com/PavlidisLab/rgr/blob/development/src/main/resources/application.properties)
-.
+in [application.properties](https://github.com/PavlidisLab/rdp/blob/{{ config.extra.git_ref }}/src/main/resources/application.properties).
+
+And a `messages.properties` with the following entries:
+
+```ìni
+# Adjust this to your own network name
+rdp.site.fullname=Rare Disease Model & Mechanism Network
+rdp.site.shortname=RDMM
+```
+
+**Note:** For backward compatibility reasons, the content of `application-prod.properties` and `login.properties` files
+is included in the application's messages. Please ensure that any residual messages are migrated to `messages.properties`.
 
 That should be enough to get the Web service started. Now you can launch it by issuing the following command:
 
