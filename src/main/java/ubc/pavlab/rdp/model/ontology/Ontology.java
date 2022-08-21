@@ -45,6 +45,7 @@ public class Ontology implements Comparable<Ontology> {
      */
     public static Comparator<Ontology> getComparator() {
         return Comparator.comparing( Ontology::getOrdering, Comparator.nullsLast( Comparator.naturalOrder() ) )
+                .thenComparing( Ontology::isActive, Comparator.reverseOrder() )
                 .thenComparing( Ontology::getName );
     }
 

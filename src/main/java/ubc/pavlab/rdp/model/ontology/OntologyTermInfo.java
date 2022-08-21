@@ -60,6 +60,7 @@ public class OntologyTermInfo extends OntologyTerm implements Serializable, Comp
     public static Comparator<OntologyTermInfo> getComparator() {
         return Comparator.comparing( OntologyTermInfo::getOntology, Comparator.nullsLast( Ontology.getComparator() ) )
                 .thenComparing( OntologyTermInfo::getOrdering, Comparator.nullsLast( Comparator.naturalOrder() ) )
+                .thenComparing( OntologyTermInfo::isActive, Comparator.reverseOrder() )
                 .thenComparing( OntologyTermInfo::getName, Comparator.nullsLast( Comparator.naturalOrder() ) )
                 // this should never be null, but sometimes is due to Hibernate merge (see https://github.com/PavlidisLab/rdp/issues/186)
                 .thenComparing( OntologyTermInfo::getTermId, Comparator.nullsLast( Comparator.naturalOrder() ) );
