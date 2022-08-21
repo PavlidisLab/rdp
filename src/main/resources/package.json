@@ -6,6 +6,7 @@
     "watch": "webpack watch --config webpack.config.js"
   },
   "dependencies": {
+    "activity-detector": "^3.0.0",
     "bootstrap": "4.6.1",
     "bootstrap-select": "1.13.14",
     "datatables.net": "1.12.1",
