@@ -488,14 +488,25 @@ public class UserServiceImpl implements UserService, InitializingBean {
     @Override
     @PostFilter("hasPermission(filterObject, 'read')")
     public Collection<UserTerm> recommendTerms( @NonNull User user, @NonNull Taxon taxon ) {
-        return recommendTerms( user, taxon, 10, applicationSettings.getGoTermSizeLimit(), 2 );
+        return recommendTerms( user, user.getGenesByTaxonAndTier( taxon, TierType.MANUAL ), taxon, 10, applicationSettings.getGoTermSizeLimit(), 2 );
     }
 
     @Override
     @PostFilter("hasPermission(filterObject, 'read')")
-    public Collection<UserTerm> recommendTerms( @NonNull User user, @NonNull Taxon taxon, long minSize, long maxSize, long minFrequency ) {
-        Set<UserGene> genes = new HashSet<>( user.getGenesByTaxonAndTier( taxon, TierType.MANUAL ) );
+    public Collection<UserTerm> recommendTerms( User user, Set<? extends Gene> genes, Taxon taxon ) {
+        return recommendTerms( user, genes, taxon, 10, applicationSettings.getGoTermSizeLimit(), 2 );
+    }
 
+
+    /**
+     * This is only meant for testing purposes; refrain from using in actual code.
+     */
+    @PostFilter("hasPermission(filterObject, 'read')")
+    Collection<UserTerm> recommendTerms( @NonNull User user, @NonNull Taxon taxon, long minSize, long maxSize, long minFrequency ) {
+        return recommendTerms( user, user.getGenesByTaxonAndTier( taxon, TierType.MANUAL ), taxon, minSize, maxSize, minFrequency );
+    }
+
+    private Collection<UserTerm> recommendTerms( @NonNull User user, Set<? extends Gene> genes, @NonNull Taxon taxon, long minSize, long maxSize, long minFrequency ) {
         // terms already associated to user within the taxon
         Set<String> userTermGoIds = user.getUserTerms().stream()
                 .filter( ut -> ut.getTaxon().equals( taxon ) )

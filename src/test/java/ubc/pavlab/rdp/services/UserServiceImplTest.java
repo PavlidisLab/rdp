@@ -73,7 +73,7 @@ public class UserServiceImplTest {
         }
 
         @Bean
-        public UserService userService() {
+        public UserServiceImpl userService() {
             return new UserServiceImpl();
         }
 
@@ -97,7 +97,7 @@ public class UserServiceImplTest {
 
     @SuppressWarnings("SpringJavaAutowiredMembersInspection")
     @Autowired
-    private UserService userService;
+    private UserServiceImpl userService;
     @SuppressWarnings("SpringJavaAutowiredMembersInspection")
     @Autowired
     private BCryptPasswordEncoder bCryptPasswordEncoder;

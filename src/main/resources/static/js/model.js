@@ -408,37 +408,37 @@
         $(this).closest('.input-group').find('input').val("");
     });
 
+    var recommendMessage = document.getElementById('terms-recommend-message');
     $('.recommend-terms').click(function () {
         var spinner = $(this).find('.spinner');
-        var recommendMessage = $('#terms').find('.recommend-message');
         spinner.toggleClass("d-none", false);
-        recommendMessage.toggleClass('d-none', true);
-        $.getJSON(window.contextPath + "/user/taxon/" + encodeURIComponent(window.currentTaxonId) + "/term/recommend")
-            .done(function (data) {
-                var addedTerms = addTermRow(data);
-                if (addedTerms > 0) {
-                    recommendMessage
-                        .text('Recommended ' + addedTerms + ' terms.')
-                        .toggleClass('alert-success', true)
-                        .toggleClass('alert-danger', false);
-                } else {
-                    recommendMessage
-                        .text('Could not recommend new terms. Try adding more genes and make sure you click the save button.')
-                        .toggleClass('alert-success', false)
-                        .toggleClass('alert-danger', true);
-                }
-            })
-            .fail(function () {
-                recommendMessage
-                    .text('There was an error in attempting to retrieve recommended terms.')
-                    .toggleClass('alert-success', false)
-                    .toggleClass('alert-danger', true);
-            })
-            .always(function () {
-                spinner.toggleClass("d-none", true);
-                recommendMessage.toggleClass('d-none', false);
-                $('#terms-tab').tab('show');
-            });
+        recommendMessage.classList.toggle('d-none', true);
+        var geneIds = geneTable.DataTable().column(0).data().toArray();
+        $.getJSON(window.contextPath + "/user/taxon/" + encodeURIComponent(window.currentTaxonId) + "/term/recommend", {
+            geneIds: geneIds
+        }).done(function (data) {
+            var addedTerms = addTermRow(data);
+            if (addedTerms > 0) {
+                recommendMessage.textContent = 'Recommended ' + addedTerms + ' terms.';
+                recommendMessage.classList.toggle('alert-success', true);
+                recommendMessage.classList.toggle('alert-danger', false);
+                recommendMessage.removeAttribute('role');
+            } else {
+                recommendMessage.textContent = 'Could not recommend new terms. Try adding more genes first.';
+                recommendMessage.classList.toggle('alert-success', false);
+                recommendMessage.classList.toggle('alert-danger', true);
+                recommendMessage.setAttribute('role', 'alert');
+            }
+        }).fail(function (jqXHR) {
+            recommendMessage.textContent = 'There was an error in attempting to retrieve recommended terms: ' + jqXHR.responseJSON.error + ".";
+            recommendMessage.classList.toggle('alert-success', false);
+            recommendMessage.classList.toggle('alert-danger', true);
+            window.console.error('Error while attempting to retrieve recommended terms: ', jqXHR.responseJSON);
+        }).always(function () {
+            spinner.toggleClass("d-none", true);
+            recommendMessage.classList.toggle('d-none', false);
+            $('#terms-tab').tab('show');
+        });
     });
 
     $('#overlapModal').on('show.bs.modal', function (e) {

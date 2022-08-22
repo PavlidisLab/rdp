@@ -155,7 +155,7 @@
                         <div th:if="${@applicationSettings.enabledTiers.contains(T(ubc.pavlab.rdp.model.enums.TierType).TIER3)}"
                              class="tab-pane fade" id="terms" role="tabpanel" aria-labelledby="terms-tab">
 
-                            <div class="alert recommend-message d-none" role="alert"></div>
+                            <div id="terms-recommend-message" class="alert d-none"></div>
 
                             <div class="row mb-3">
                                 <div class="col">

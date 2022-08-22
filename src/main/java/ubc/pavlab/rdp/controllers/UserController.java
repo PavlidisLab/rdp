@@ -496,11 +496,17 @@ public class UserController {
 
     @ResponseBody
     @GetMapping(value = "/user/taxon/{taxonId}/term/recommend", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Object getRecommendedTermsForTaxon( @PathVariable Integer taxonId ) {
+    public Object getRecommendedTermsForTaxon( @PathVariable Integer taxonId,
+                                               @RequestParam(required = false) List<Integer> geneIds ) {
         Taxon taxon = taxonService.findById( taxonId );
         if ( taxon == null ) {
             return ResponseEntity.notFound().build();
         }
-        return userService.recommendTerms( userService.findCurrentUser(), taxon );
+        if ( geneIds == null ) {
+            return Collections.emptyList();
+        } else {
+            Set<GeneInfo> genes = new HashSet<>( geneService.load( geneIds ) );
+            return userService.recommendTerms( userService.findCurrentUser(), genes, taxon );
+        }
     }
 }

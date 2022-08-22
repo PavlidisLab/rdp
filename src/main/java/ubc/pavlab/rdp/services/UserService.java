@@ -2,6 +2,7 @@ package ubc.pavlab.rdp.services;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.security.authentication.BadCredentialsException;
 import ubc.pavlab.rdp.exception.TokenException;
 import ubc.pavlab.rdp.model.*;
@@ -132,9 +133,17 @@ public interface UserService {
 
     Collection<UserTerm> convertTerms( User user, Taxon taxon, Collection<GeneOntologyTermInfo> terms );
 
+    /**
+     * Recommend terms for a user.
+     * <p>
+     * The recommendation are based on the user's {@link TierType#MANUAL}  gene set.
+     */
     Collection<UserTerm> recommendTerms( User user, Taxon taxon );
 
-    Collection<UserTerm> recommendTerms( User user, Taxon taxon, long minSize, long maxSize, long minFrequency );
+    /**
+     * Recommend terms for a user using a supplied gene set which might differ from the user's.
+     */
+    Collection<UserTerm> recommendTerms( User user, Set<? extends Gene> genes, Taxon taxon );
 
     User updateTermsAndGenesInTaxon( User user,
                                      Taxon taxon,
