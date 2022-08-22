@@ -22,7 +22,7 @@
             }
             if (window.customizableGeneLevel) {
                 var selectedPrivacyLevelOption = $(this.node()).find('select option:selected')[0];
-                genePrivacyLevelMap[geneId] = selectedPrivacyLevelOption.value ? parseInt(selectedPrivacyLevelOption.value) : null;
+                genePrivacyLevelMap[geneId] = selectedPrivacyLevelOption.value || null;
             }
         });
         model.geneTierMap = geneTierMap;
@@ -53,7 +53,7 @@
                 if (gene === null) {
                     window.console.log("Issue obtaining metadata for: " + symbol);
                     row.push('');
-                    row.push('<span class="align-middle text-danger">' + symbol + '</span>');
+                    row.push(symbol);
                     row.push('<span class="align-middle text-danger">Could not find gene for provided gene identifier.</span>');
                     row.push('');
                     if (window.customizableGeneLevel) {
@@ -72,9 +72,9 @@
                     if (window.customizableGeneLevel) {
                         var privacyOptions = window.enabledGenePrivacyLevels.map(function (k) {
                             var privacyLevel = window.privacyLevels[k];
-                            if (privacyLevel.ordinal <= window.userPrivacyLevel.ordinal) {
-                                return '<option value="' + privacyLevel.ordinal + '"' +
-                                    (privacyLevel.ordinal === window.userPrivacyLevel.ordinal ? ' selected' : '') + '>' +
+                            if (privacyLevel.ordinal <= window.privacyLevels[window.userPrivacyLevel].ordinal) {
+                                return '<option value="' + k + '"' +
+                                    (privacyLevel.ordinal === window.privacyLevels[window.userPrivacyLevel].ordinal ? ' selected' : '') + '>' +
                                     privacyLevel.label + '</option>';
                             } else {
                                 return '';

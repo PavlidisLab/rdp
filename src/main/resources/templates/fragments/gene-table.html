@@ -48,7 +48,7 @@
             <select name="privacyLevel" class="form-control">
                 <option th:each="privacyLevel : ${T(ubc.pavlab.rdp.model.enums.PrivacyLevelType).values()}"
                         th:if="${@privacyService.isGenePrivacyLevelEnabled(privacyLevel) and (privacyLevel.ordinal() le defaultPrivacyLevel.ordinal())}"
-                        th:value="${privacyLevel.ordinal()}"
+                        th:value="${privacyLevel}"
                         th:selected="${gene.effectivePrivacyLevel == privacyLevel}"
                         th:text="#{'PrivacyLevelType.' + ${privacyLevel.name()}}"></option>
             </select>

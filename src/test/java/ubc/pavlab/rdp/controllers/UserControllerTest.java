@@ -654,7 +654,7 @@ public class UserControllerTest {
 
         JSONObject profileJson = new JSONObject( user.getProfile() );
         // FIXME: use jackson serializer to perform enum conversion from model
-        profileJson.put( "privacyLevel", PrivacyLevelType.SHARED.ordinal() );
+        profileJson.put( "privacyLevel", PrivacyLevelType.SHARED.name() );
 
         JSONObject payload = new JSONObject();
         payload.put( "profile", profileJson );
@@ -684,7 +684,7 @@ public class UserControllerTest {
 
         JSONObject profileJson = new JSONObject( user.getProfile() );
         // FIXME
-        profileJson.put( "privacyLevel", user.getProfile().getPrivacyLevel().ordinal() );
+        profileJson.put( "privacyLevel", user.getProfile().getPrivacyLevel().name() );
 
         JSONObject payload = new JSONObject();
         payload.put( "profile", profileJson );

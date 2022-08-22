@@ -136,11 +136,18 @@ public class UserGene extends Gene implements UserContent, Serializable {
     @JsonProperty("privacyLevel")
     public PrivacyLevelType getEffectivePrivacyLevel() {
         PrivacyLevelType privacyLevel = getPrivacyLevel() != null ? getPrivacyLevel() : getUser().getProfile().getPrivacyLevel();
-        if ( privacyLevel.ordinal() > getUser().getEffectivePrivacyLevel().ordinal() ) {
+        // the user can be null if it was deserialized by Jackson (see @JsonIgnore on user above)
+        if ( getUser() != null && privacyLevel.ordinal() > getUser().getEffectivePrivacyLevel().ordinal() ) {
             log.warn( MessageFormat.format( "Gene privacy level {0} of {1} is looser than that of the user profile {2}, and will be capped to {3}.",
                     privacyLevel, this, getUser(), getUser().getEffectivePrivacyLevel() ) );
             return getUser().getEffectivePrivacyLevel();
         }
         return privacyLevel;
     }
+
+    @JsonProperty("privacyLevel")
+    public void setPrivacyLevel( PrivacyLevelType privacyLevel ) {
+        this.privacyLevel = privacyLevel;
+    }
+
 }

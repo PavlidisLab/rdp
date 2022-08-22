@@ -378,7 +378,7 @@
                                         <input class="form-check-input" type="radio" name="privacyLevel"
                                                th:id="${#ids.seq('privacyLevel')}"
                                                th:checked="${user.profile.privacyLevel == privacyLevel}"
-                                               th:value="${privacyLevel.ordinal()}"
+                                               th:value="${privacyLevel}"
                                                th:attr="data-toggle=${@applicationSettings.privacy.customizableGeneLevel and privacyLevel != user.profile.privacyLevel} ? 'modal',
                                                         data-target=${@applicationSettings.privacy.customizableGeneLevel and privacyLevel != user.profile.privacyLevel} ? '#' + ${#ids.next('confirm-gene-privacy-level-reset')}"/>
                                         <label class="form-check-label"

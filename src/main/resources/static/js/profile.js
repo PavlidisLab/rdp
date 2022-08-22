@@ -56,7 +56,7 @@
         // Research Information
         profile.description = $.trim($('[name="profile.description"]').val());
 
-        profile.privacyLevel = parseInt($('input[name=privacyLevel]:checked').val());
+        profile.privacyLevel = $('input[name=privacyLevel]:checked').val();
         profile.shared = $('[name="profile.shared"]').prop('checked');
         profile.hideGenelist = $('[name="profile.hideGenelist"]').prop('checked');
 
