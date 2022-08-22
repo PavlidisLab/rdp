@@ -13,10 +13,8 @@
 <div th:replace="layouts/common::header">...</div>
 
 <div class="container py-4">
-    <div class="mb-3">
-        <div th:replace="layouts/common::title(title='Search', subtitle='Researchers, Organs Systems &amp; Genes')">
-            ...
-        </div>
+    <div th:replace="layouts/common::title(title=#{rdp.site.search-title}, subtitle=#{rdp.site.search-subtitle})">
+        ...
     </div>
 
     <p class="lead mb-3" th:text="#{rdp.site.welcome-public(#{rdp.site.shortname})}">...</p>
