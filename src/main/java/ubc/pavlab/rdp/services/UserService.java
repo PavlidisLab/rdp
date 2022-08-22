@@ -72,6 +72,11 @@ public interface UserService {
     User anonymizeUser( User user );
 
     /**
+     * @see #anonymizeUser(User)
+     */
+    User anonymizeUser( User user, UUID anonymousId );
+
+    /**
      * Anonymize the given gene.
      * <p>
      * The {@link UserGene#getUser()} is anonymized in the process as per {@link #anonymizeUser(User)}. the {@link UserGene#getId()}
@@ -88,6 +93,13 @@ public interface UserService {
      *                                                                   enabled
      */
     UserGene anonymizeUserGene( UserGene userGene );
+
+    /**
+     * Similar to {@link #anonymizeUserGene(UserGene)}, but also reuse the provided anonymous ID.
+     *
+     * @see #anonymizeUserGene(UserGene)
+     */
+    UserGene anonymizeUserGene( UserGene userGene, UUID anonymousIdToReuse );
 
     void revokeAccessToken( AccessToken accessToken );
 

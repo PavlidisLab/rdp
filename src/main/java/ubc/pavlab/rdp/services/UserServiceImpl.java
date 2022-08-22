@@ -285,6 +285,12 @@ public class UserServiceImpl implements UserService, InitializingBean {
     @Override
     @PostAuthorize("hasPermission(returnObject, 'read')")
     public User anonymizeUser( User user ) {
+        return anonymizeUser( user, UUID.randomUUID() );
+    }
+
+    @Override
+    @PostAuthorize("hasPermission(returnObject, 'read')")
+    public User anonymizeUser( User user, UUID anonymousId ) {
         String shortName = messageSource.getMessage( "rdp.site.shortname", null, Locale.getDefault() );
         Profile profile = Profile.builder()
                 .name( messageSource.getMessage( "rdp.site.anonymized-user-name", new String[]{ shortName }, Locale.getDefault() ) )
@@ -301,13 +307,19 @@ public class UserServiceImpl implements UserService, InitializingBean {
                 .build();
         // TODO: check if this is leaking too much personal information
         anonymizedUser.getUserOrgans().putAll( user.getUserOrgans() );
-        usersByAnonymousIdCache.put( anonymizedUser.getAnonymousId(), user );
+        usersByAnonymousIdCache.putIfAbsent( anonymizedUser.getAnonymousId(), user );
         return anonymizedUser;
     }
 
     @Override
     @PostAuthorize("hasPermission(returnObject, 'read')")
     public UserGene anonymizeUserGene( UserGene userGene ) {
+        return anonymizeUserGene( userGene, UUID.randomUUID() );
+    }
+
+    @Override
+    @PostAuthorize("hasPermission(returnObject, 'read')")
+    public UserGene anonymizeUserGene( UserGene userGene, UUID anonymousIdToReuse ) {
         UserGene anonymizedUserGene = UserGene.builder()
                 .id( null )
                 .anonymousId( UUID.randomUUID() )
@@ -317,7 +329,7 @@ public class UserServiceImpl implements UserService, InitializingBean {
                 .tier( userGene.getTier() )
                 .build();
         anonymizedUserGene.updateGene( userGene );
-        userGenesByAnonymousIdCache.put( anonymizedUserGene.getAnonymousId(), userGene );
+        userGenesByAnonymousIdCache.putIfAbsent( anonymizedUserGene.getAnonymousId(), userGene );
         return anonymizedUserGene;
     }
 

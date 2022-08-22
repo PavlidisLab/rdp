@@ -334,7 +334,7 @@ public class ApiController {
         if ( permissionEvaluator.hasPermission( SecurityContextHolder.getContext().getAuthentication(), user, Permissions.READ ) ) {
             return initUser( user, locale );
         } else {
-            return initUser( userService.anonymizeUser( user ), locale );
+            return initUser( userService.anonymizeUser( user, anonymousId ), locale );
         }
     }
 
@@ -350,7 +350,7 @@ public class ApiController {
         if ( permissionEvaluator.hasPermission( SecurityContextHolder.getContext().getAuthentication(), userGene, Permissions.READ ) ) {
             return initUserGene( userGene, locale );
         } else {
-            return initUserGene( userService.anonymizeUserGene( userGene ), locale );
+            return initUserGene( userService.anonymizeUserGene( userGene, anonymousId ), locale );
         }
     }
 

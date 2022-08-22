@@ -421,10 +421,11 @@ public class ApiControllerTest {
         when( userService.anonymizeUser( user ) ).thenReturn( User.builder().anonymousId( anonymousId ).build() );
         mvc.perform( get( "/api/users/by-anonymous-id/{anonymousId}", anonymousId ) )
                 .andExpect( status().is2xxSuccessful() )
+                .andExpect( jsonPath( "$.id" ).doesNotExist() )
                 .andExpect( jsonPath( "$.anonymousId" ).value( anonymousId.toString() ) )
                 .andExpect( jsonPath( "$.origin" ).value( "RDMM" ) )
                 .andExpect( jsonPath( "$.originUrl" ).value( "http://localhost" ) );
-
+        verify( userService ).anonymizeUser( user, anonymousId );
     }
 
     @Test
@@ -448,9 +449,11 @@ public class ApiControllerTest {
         when( permissionEvaluator.hasPermission( any(), eq( userGene ), eq( Permissions.READ ) ) ).thenReturn( false );
         when( applicationSettings.getPrivacy().isEnableAnonymizedSearchResults() ).thenReturn( true );
         mvc.perform( get( "/api/genes/by-anonymous-id/{anonymousId}", anonymousId ) )
-                .andExpect( status().isOk() );
+                .andExpect( status().isOk() )
+                .andExpect( jsonPath( "$.id" ).doesNotExist() )
+                .andExpect( jsonPath( "$.anonymousId" ).value( anonymousId.toString() ) );
         verify( userService ).findUserGeneByAnonymousIdNoAuth( anonymousId );
-        verify( userService ).anonymizeUserGene( userGene );
+        verify( userService ).anonymizeUserGene( userGene, anonymousId );
     }
 
     @Test
