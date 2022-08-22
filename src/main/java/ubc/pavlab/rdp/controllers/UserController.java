@@ -502,11 +502,14 @@ public class UserController {
         if ( taxon == null ) {
             return ResponseEntity.notFound().build();
         }
-        if ( geneIds == null ) {
-            return Collections.emptyList();
+
+        Set<GeneInfo> genes;
+        if ( geneIds != null ) {
+            genes = new HashSet<>( geneService.load( geneIds ) );
         } else {
-            Set<GeneInfo> genes = new HashSet<>( geneService.load( geneIds ) );
-            return userService.recommendTerms( userService.findCurrentUser(), genes, taxon );
+            genes = Collections.emptySet();
         }
+
+        return userService.recommendTerms( userService.findCurrentUser(), genes, taxon );
     }
 }

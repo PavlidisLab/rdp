@@ -3,7 +3,6 @@ package ubc.pavlab.rdp.controllers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 import lombok.SneakyThrows;
-import org.assertj.core.util.Lists;
 import org.hamcrest.Matchers;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -25,7 +24,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.web.multipart.MultipartFile;
 import ubc.pavlab.rdp.WebSecurityConfig;
 import ubc.pavlab.rdp.exception.TokenException;
 import ubc.pavlab.rdp.model.*;
@@ -38,13 +36,12 @@ import ubc.pavlab.rdp.util.OntologyMessageSource;
 
 import java.util.EnumSet;
 import java.util.Locale;
-import java.net.URL;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -167,7 +164,7 @@ public class UserControllerTest {
     public void getTermsGenesForTaxon_thenReturnSuccess() throws Exception {
         User user = createUser( 1 );
         when( userService.findCurrentUser() ).thenReturn( user );
-        when( goService.getTerm( any( String.class ) ) ).then( i -> createTerm( i.getArgument( 0, String.class ) ) );
+        when( goService.getTerm( any() ) ).then( i -> createTerm( i.getArgument( 0, String.class ) ) );
         mvc.perform( get( "/user/taxon/{taxonId}/term/{goId}/gene/view", 9606, "GO:0000001" ) )
                 .andExpect( status().isOk() )
                 .andExpect( view().name( "fragments/gene-table::gene-table" ) );
@@ -548,8 +545,8 @@ public class UserControllerTest {
 
 
         when( userService.findCurrentUser() ).thenReturn( user );
-        when( userService.recommendTerms( any(), eq( taxon ) ) ).thenReturn( Sets.newSet( t1, t2 ) );
-        when( userService.recommendTerms( any(), eq( taxon2 ) ) ).thenReturn( Sets.newSet( t3, t4 ) );
+        when( userService.recommendTerms( any(), any(), eq( taxon ) ) ).thenReturn( Sets.newSet( t1, t2 ) );
+        when( userService.recommendTerms( any(), any(), eq( taxon2 ) ) ).thenReturn( Sets.newSet( t3, t4 ) );
 
         mvc.perform( get( "/user/taxon/1/term/recommend" )
                         .contentType( MediaType.APPLICATION_JSON ) )
@@ -557,6 +554,7 @@ public class UserControllerTest {
                 .andExpect( jsonPath( "$", hasSize( 2 ) ) )
                 .andExpect( jsonPath( "$[*].goId" ).value( containsInAnyOrder( t1.getGoId(), t2.getGoId() ) ) )
                 .andExpect( jsonPath( "$[*].taxon.id" ).value( contains( taxon.getId(), taxon.getId() ) ) );
+        verify( userService ).recommendTerms( eq( user ), any(), eq( taxon ) );
 
         mvc.perform( get( "/user/taxon/2/term/recommend" )
                         .contentType( MediaType.APPLICATION_JSON ) )
@@ -564,6 +562,7 @@ public class UserControllerTest {
                 .andExpect( jsonPath( "$" ).value( hasSize( 2 ) ) )
                 .andExpect( jsonPath( "$[*].goId" ).value( containsInAnyOrder( t3.getGoId(), t4.getGoId() ) ) )
                 .andExpect( jsonPath( "$[*].taxon.id" ).value( contains( taxon2.getId(), taxon2.getId() ) ) );
+        verify( userService ).recommendTerms( eq( user ), any(), eq( taxon2 ) );
     }
 
     // POST
