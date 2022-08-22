@@ -49,7 +49,6 @@ public class UserGene extends Gene implements UserContent, Serializable {
      * Obtain a comparator for comparing {@link UserGene}.
      *
      * <ul>
-     *     <li>by anonymity, anonymous users are displayed after</li>
      *     <li>by taxon, see {@link Taxon#getComparator()}</li>
      *     <li>by tier</li>
      *     <li>by user, see {@link User#getComparator()}</li>
