@@ -93,9 +93,9 @@ public final class TestUtils {
         return user;
     }
 
-    public static User createRemoteUser( int id, URI originUri ) {
+    public static User createRemoteUser( int id, URI originUrl ) {
         User user = createUser( id );
-        user.setOriginUrl( originUri );
+        user.setOriginUrl( originUrl );
         return user;
     }
 

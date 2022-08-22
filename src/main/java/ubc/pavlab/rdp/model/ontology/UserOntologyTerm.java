@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.NaturalId;
+import org.springframework.context.MessageSourceResolvable;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import ubc.pavlab.rdp.model.User;
@@ -91,5 +93,21 @@ public class UserOntologyTerm extends OntologyTerm implements UserContent {
     @JsonIgnore
     public @NonNull PrivacyLevelType getEffectivePrivacyLevel() {
         return user.getEffectivePrivacyLevel();
+    }
+
+    /**
+     * {@inheritDoc
+     * <p>
+     * The definition is picked from {@link #termInfo} if available, meaning that the warning about nullable definitions
+     * applies here.
+     */
+    @Override
+    @JsonIgnore
+    public DefaultMessageSourceResolvable getResolvableDefinition() {
+        if ( termInfo != null ) {
+            return termInfo.getResolvableDefinition();
+        } else {
+            return super.getResolvableDefinition();
+        }
     }
 }

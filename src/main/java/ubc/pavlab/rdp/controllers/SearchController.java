@@ -26,6 +26,7 @@ import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.model.ontology.Ontology;
 import ubc.pavlab.rdp.model.ontology.OntologyTermInfo;
+import ubc.pavlab.rdp.security.Permissions;
 import ubc.pavlab.rdp.services.*;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.util.SearchResult;
@@ -354,7 +355,7 @@ public class SearchController extends AbstractSearchController {
             return new ModelAndView( "error/404", HttpStatus.NOT_FOUND );
         }
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if ( permissionEvaluator.hasPermission( auth, userGene, "read" ) ) {
+        if ( permissionEvaluator.hasPermission( auth, userGene, Permissions.READ ) ) {
             redirectAttributes.addFlashAttribute( "message", "There is no need to request access as you have sufficient permission to see this gene." );
             return "redirect:/search/user/" + userGene.getUser().getId();
         }

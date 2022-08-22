@@ -19,6 +19,9 @@ require('datatables.net-bs4/css/dataTables.bootstrap4.css');
 
 require('../css/common.scss');
 
+var ResizeObserver = window.ResizeObserver;
+var URLSearchParams = window.URLSearchParams;
+
 (function () {
     "use strict";
 
@@ -92,9 +95,10 @@ require('../css/common.scss');
          */
         _renderItem: function (ul, item) {
             var div = $('<div class="pl-3">')
-                .append($("<b>").text(item.label))
-                .append(": ")
-                .append(item.description);
+                .append($("<b>").text(item.label));
+            if (item.description) {
+                div.append(": ").append(item.description);
+            }
             if (item.extras) {
                 div.append(" (").append($("<i>").text(item.extras)).append(")");
             }
@@ -109,15 +113,15 @@ require('../css/common.scss');
         _renderMenu: function (ul, items) {
             var that = this;
             if (items.length === 1 && items[0].noresults) {
-                ul.append($("<li aria-label='noresults' class='ui-autocomplete-category my-1 p-2 font-weight-bold alert-danger'>")
+                ul.append($("<li aria-label='noresults' class='ui-autocomplete-category p-2 font-weight-bold alert-danger'>")
                     .text(items[0].label));
                 return;
             }
             var currentCategory = null;
             items.forEach(function (item) {
                 var label = item.matchType + " : " + item.label;
-                if (item.matchType !== currentCategory) {
-                    ul.append($("<li class='ui-autocomplete-category my-1 p-2 font-weight-bold alert-info'>")
+                if (item.matchType && item.matchType !== currentCategory) {
+                    ul.append($("<li class='ui-autocomplete-category p-2 font-weight-bold alert-info'>")
                         .attr("aria-label", label)
                         .text(item.matchType));
                     currentCategory = item.matchType;
@@ -128,5 +132,55 @@ require('../css/common.scss');
                 }
             });
         }
+    });
+
+    /* adjust all sticky elements to appear after the staging banner */
+    // unfortunately this cannot be done via CSS because the staging banner size can change
+    $(document).ready(function () {
+        var stagingBanner = document.getElementById('staging-banner');
+        if (stagingBanner !== null) {
+            new ResizeObserver(function () {
+                document.querySelectorAll('.sticky-top').forEach(function (element) {
+                    if (element !== stagingBanner) {
+                        element.style.top = stagingBanner.offsetHeight + 'px';
+                    }
+                });
+            }).observe(stagingBanner);
+        }
+    });
+
+    /* if the page has a main save button, intercept ctrl-s to trigger its action */
+    $(document).ready(function () {
+        var saveButton = document.getElementById('main-save-button');
+        if (saveButton !== null) {
+            document.addEventListener('keydown', function (event) {
+                if (event.ctrlKey && event.key === 's') {
+                    event.preventDefault();
+                    saveButton.click();
+                }
+            });
+        }
+    });
+
+    var serialize = function (form) {
+        return new URLSearchParams(new FormData(form)).toString();
+    };
+
+    /* check if any important form changed in the UI */
+    $(document).ready(function () {
+        var importantForms = document.querySelectorAll('form.important');
+        var initialData = {};
+        importantForms.forEach(function (form) {
+            initialData[form] = serialize(form);
+        });
+        window.addEventListener('beforeunload', function (event) {
+            var unsavedChanges = Array.from(importantForms).some(function (form) {
+                return serialize(form) !== initialData[form];
+            });
+            if (unsavedChanges) {
+                event.preventDefault();
+                event.returnValue = "There are unsaved changes in this page. Are you sure you want to leave?";
+            }
+        });
     });
 })();

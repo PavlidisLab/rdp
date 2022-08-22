@@ -56,6 +56,7 @@ import static org.springframework.util.CollectionUtils.containsAny;
  * Created by mjacobson on 16/01/18.
  */
 @Service("userService")
+@Transactional(readOnly = true)
 @CommonsLog
 public class UserServiceImpl implements UserService, InitializingBean {
 
@@ -284,8 +285,9 @@ public class UserServiceImpl implements UserService, InitializingBean {
     @Override
     @PostAuthorize("hasPermission(returnObject, 'read')")
     public User anonymizeUser( User user ) {
+        String shortName = messageSource.getMessage( "rdp.site.shortname", null, Locale.getDefault() );
         Profile profile = Profile.builder()
-                .name( messageSource.getMessage( "rdp.site.anonymized-user-name", new String[]{}, Locale.getDefault() ) )
+                .name( messageSource.getMessage( "rdp.site.anonymized-user-name", new String[]{ shortName }, Locale.getDefault() ) )
                 .privacyLevel( applicationSettings.getPrivacy().isEnableAnonymizedSearchResults() ? PrivacyLevelType.PUBLIC : PrivacyLevelType.PRIVATE )
                 .shared( true )
                 .build();
@@ -444,6 +446,11 @@ public class UserServiceImpl implements UserService, InitializingBean {
     public Predicate<User> hasOntologyTermIn( Map<Ontology, Set<Integer>> ontologyTermInfoIdsByOntology ) {
         return u -> ontologyTermInfoIdsByOntology == null || ontologyTermInfoIdsByOntology.values().stream()
                 .allMatch( entry -> containsAny( entry, getUserTermInfoIds( u ) ) );
+    }
+
+    @Override
+    public boolean existsByOntology( Ontology ontology ) {
+        return userRepository.existsByUserOntologyTermsOntology( ontology );
     }
 
     @Override

@@ -24,6 +24,7 @@ import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.ResearcherCategory;
 import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import ubc.pavlab.rdp.model.enums.TierType;
+import ubc.pavlab.rdp.security.Permissions;
 import ubc.pavlab.rdp.services.*;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.settings.SiteSettings;
@@ -133,8 +134,8 @@ public class SearchControllerTest {
         when( applicationSettings.getOrgans() ).thenReturn( organSettings );
         when( applicationSettings.getIsearch() ).thenReturn( iSearchSettings );
         when( applicationSettings.getOntology() ).thenReturn( ontologySettings );
-        when( permissionEvaluator.hasPermission( any(), isNull(), eq( "search" ) ) ).thenReturn( true );
-        when( permissionEvaluator.hasPermission( any(), isNull(), eq( "international-search" ) ) ).thenReturn( true );
+        when( permissionEvaluator.hasPermission( any(), isNull(), eq( Permissions.SEARCH ) ) ).thenReturn( true );
+        when( permissionEvaluator.hasPermission( any(), isNull(), eq( Permissions.INTERNATIONAL_SEARCH ) ) ).thenReturn( true );
     }
 
     @Test
@@ -149,7 +150,7 @@ public class SearchControllerTest {
 
     @Test
     public void getSearch_withoutPublicSearch_redirect3xx() throws Exception {
-        when( permissionEvaluator.hasPermission( any(), isNull(), eq( "search" ) ) ).thenReturn( false );
+        when( permissionEvaluator.hasPermission( any(), isNull(), eq( Permissions.SEARCH ) ) ).thenReturn( false );
         mvc.perform( get( "/search" ) )
                 .andExpect( status().is3xxRedirection() )
                 .andExpect( redirectedUrl( "http://localhost/login" ) );
@@ -358,7 +359,7 @@ public class SearchControllerTest {
     public void searchUsersByNameView_whenSearchIsUnavailable_thenReturnUnauthorized() throws Exception {
         // The frontend cannot handle 3xx redirection to the login page as that would return a full-fledged HTML
         // document, so instead it must produce a 401 Not Authorized exception
-        when( permissionEvaluator.hasPermission( any(), isNull(), eq( "search" ) ) ).thenReturn( false );
+        when( permissionEvaluator.hasPermission( any(), isNull(), eq( Permissions.SEARCH ) ) ).thenReturn( false );
         mvc.perform( get( "/search/view" )
                         .param( "nameLike", "Mark" )
                         .param( "prefix", "true" ) )
@@ -555,7 +556,7 @@ public class SearchControllerTest {
         when( userService.anonymizeUserGene( userGene ) ).thenReturn( anonymizedUserGene );
         when( userService.findUserGeneByAnonymousIdNoAuth( anonymizedUserGene.getAnonymousId() ) ).thenReturn( userGene );
 
-        when( permissionEvaluator.hasPermission( any(), eq( userGene ), eq( "read" ) ) ).thenReturn( true );
+        when( permissionEvaluator.hasPermission( any(), eq( userGene ), eq( Permissions.READ ) ) ).thenReturn( true );
 
         mvc.perform( get( "/search/gene/by-anonymous-id/{anonymousId}/request-access", anonymizedUserGene.getAnonymousId() ) )
                 .andExpect( status().is3xxRedirection() )

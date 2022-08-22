@@ -164,13 +164,15 @@ public abstract class AbstractSearchController {
         }
         if ( userSearchParams.ontologyTermIds != null ) {
             List<OntologyTermInfo> infos = ontologyService.findAllTermsByIdIn( userSearchParams.ontologyTermIds );
-            Map<Ontology, List<OntologyTermInfo>> termByOntology = infos.stream()
-                    .collect( Collectors.groupingBy( OntologyTermInfo::getOntology, Collectors.toList() ) );
-            for ( Map.Entry<Ontology, List<OntologyTermInfo>> entry : termByOntology.entrySet() ) {
-                addClause( builder, entry.getValue().stream()
+            TreeMap<Ontology, List<OntologyTermInfo>> termByOntology = infos.stream()
+                    .sorted()
+                    .collect( Collectors.groupingBy( OntologyTermInfo::getOntology, TreeMap::new, Collectors.toList() ) );
+            for ( Ontology ontology : termByOntology.navigableKeySet() ) {
+                List<OntologyTermInfo> terms = termByOntology.get( ontology );
+                addClause( builder, terms.stream()
                         .map( p -> String.format( locale, "'%s' = '%s'",
-                                ontologyService.resolveOntologyName( entry.getKey(), locale ),
-                                ontologyService.resolveOntologyTermInfoName( p, locale ) ) )
+                                messageSource.getMessage( ontology.getResolvableTitle(), locale ),
+                                messageSource.getMessage( p.getResolvableTitle(), locale ) ) )
                         .collect( Collectors.toList() ) );
             }
         }

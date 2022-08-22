@@ -24,14 +24,12 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import ubc.pavlab.rdp.WebSecurityConfig;
-import ubc.pavlab.rdp.model.GeneInfo;
-import ubc.pavlab.rdp.model.Taxon;
-import ubc.pavlab.rdp.model.User;
-import ubc.pavlab.rdp.model.UserGene;
+import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.model.ontology.Ontology;
 import ubc.pavlab.rdp.model.ontology.OntologyTermInfo;
+import ubc.pavlab.rdp.security.Permissions;
 import ubc.pavlab.rdp.services.*;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.settings.SiteSettings;
@@ -42,18 +40,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static ubc.pavlab.rdp.util.TestUtils.*;
 
-@TestPropertySource(properties = {
-        "rdp.site.contact-email=contact@localhost",
-        "rdp.site.admin-email=admin@localhost",
-        "rdp.site.host=http://localhost",
-        "rdp.site.mainsite=https://example.com" })
-@WebMvcTest(ApiController.class)
+@WebMvcTest(value = ApiController.class,
+        properties = { "rdp.site.mainsite=https://example.com" })
 @RunWith(SpringRunner.class)
 @Import({ WebSecurityConfig.class, SiteSettings.class })
 @EnableSpringDataWebSupport
@@ -443,6 +436,36 @@ public class ApiControllerTest {
         when( userService.anonymizeUser( user ) ).thenReturn( User.builder().anonymousId( anonymousId ).build() );
         mvc.perform( get( "/api/users/by-anonymous-id/{anonymousId}", anonymousId ) )
                 .andExpect( status().isServiceUnavailable() );
+    }
+
+    @Test
+    public void getUserGene_withAnonymousId() throws Exception {
+        Gene gene = createGene( 1, createTaxon( 9606 ) );
+        UserGene userGene = createUserGene( 1, gene, createUser( 1 ), TierType.TIER1, PrivacyLevelType.PRIVATE );
+        UUID anonymousId = UUID.randomUUID();
+        when( userService.findUserGeneByAnonymousIdNoAuth( anonymousId ) ).thenReturn( userGene );
+        when( userService.anonymizeUserGene( userGene ) ).thenReturn( UserGene.builder().anonymousId( anonymousId ).user( User.builder().build() ).build() );
+        when( permissionEvaluator.hasPermission( any(), eq( userGene ), eq( Permissions.READ ) ) ).thenReturn( false );
+        when( applicationSettings.getPrivacy().isEnableAnonymizedSearchResults() ).thenReturn( true );
+        mvc.perform( get( "/api/genes/by-anonymous-id/{anonymousId}", anonymousId ) )
+                .andExpect( status().isOk() );
+        verify( userService ).findUserGeneByAnonymousIdNoAuth( anonymousId );
+        verify( userService ).anonymizeUserGene( userGene );
+    }
+
+    @Test
+    public void getUserGeneByAnonymousId_whenUserCanSeeTheGene_thenReturnUnanonymizedUserGene() throws Exception {
+        Gene gene = createGene( 1, createTaxon( 9606 ) );
+        UserGene userGene = createUserGene( 1, gene, createUser( 1 ), TierType.TIER1, PrivacyLevelType.PRIVATE );
+        UUID anonymousId = UUID.randomUUID();
+        when( userService.findUserGeneByAnonymousIdNoAuth( anonymousId ) ).thenReturn( userGene );
+        when( userService.anonymizeUserGene( userGene ) ).thenReturn( UserGene.builder().anonymousId( anonymousId ).build() );
+        when( permissionEvaluator.hasPermission( any(), eq( userGene ), eq( Permissions.READ ) ) ).thenReturn( true );
+        when( applicationSettings.getPrivacy().isEnableAnonymizedSearchResults() ).thenReturn( true );
+        mvc.perform( get( "/api/genes/by-anonymous-id/{anonymousId}", anonymousId ) )
+                .andExpect( status().isOk() );
+        verify( userService ).findUserGeneByAnonymousIdNoAuth( anonymousId );
+        verifyNoMoreInteractions( userService );
     }
 
     @Test

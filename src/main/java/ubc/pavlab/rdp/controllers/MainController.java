@@ -37,7 +37,7 @@ public class MainController {
     @PreAuthorize("isAuthenticated()")
     @GetMapping(value = "/gettimeout", produces = MediaType.TEXT_PLAIN_VALUE)
     @ResponseBody
-    public ResponseEntity<String> getTimeout( HttpSession httpSession ) {
+    public ResponseEntity<?> getTimeout( HttpSession httpSession ) {
         // Only set timeout cookie if the user is authenticated.
         Instant currTime = Instant.now();
         Duration timeoutInSeconds = Duration.ofSeconds( httpSession.getMaxInactiveInterval() ).minusSeconds( 60 ); // Subtracting by 60s to give an extra minute client-side.
@@ -53,11 +53,10 @@ public class MainController {
                 .path( "/" )
                 .build();
 
-        return ResponseEntity.ok()
+        return ResponseEntity.noContent()
                 .header( HttpHeaders.SET_COOKIE, serverTimeCookie.toString() )
                 .header( HttpHeaders.SET_COOKIE, sessionExpiryCookie.toString() )
-                .contentType( MediaType.TEXT_PLAIN )
-                .body( "Session timeout refreshed." );
+                .build();
     }
 
     @GetMapping(value = "/terms-of-service")

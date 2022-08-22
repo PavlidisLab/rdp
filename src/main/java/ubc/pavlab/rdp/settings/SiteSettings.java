@@ -27,7 +27,7 @@ public class SiteSettings {
     @NotNull(message = "The context (i.e. the path relative to the host URL) cannot be null.")
     private String context;
 
-    public URI getHostUri() {
+    public URI getHostUrl() {
         return UriComponentsBuilder.fromUri( host ).path( context ).build().toUri();
     }
 

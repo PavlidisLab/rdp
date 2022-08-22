@@ -182,6 +182,12 @@ public class OntologyTermInfo extends OntologyTerm implements Serializable, Comp
         return getComparator().compare( this, ontologyTermInfo );
     }
 
+    /**
+     * {@inheritDoc
+     * <p>
+     * Since the {@link #definition} is nullable, you should always check for a {@link org.springframework.context.NoSuchMessageException}
+     * when calling {@link org.springframework.context.MessageSource#getMessage(MessageSourceResolvable, Locale)}.
+     */
     @Override
     @JsonIgnore
     public DefaultMessageSourceResolvable getResolvableDefinition() {

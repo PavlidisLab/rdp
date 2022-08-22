@@ -1,5 +1,6 @@
 package ubc.pavlab.rdp.services;
 
+import lombok.NonNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PostFilter;
@@ -191,4 +192,12 @@ public interface UserService {
      * @return true if all the ontologies possess at least one match - or zero if empty, false otherwise
      */
     Predicate<User> hasOntologyTermIn( Map<Ontology, Set<Integer>> ontologyTermInfoIdsByOntology );
+
+    /**
+     * Indicate if there are users with terms in the given ontology.
+     *
+     * @param ontology
+     * @return
+     */
+    boolean existsByOntology( Ontology ontology );
 }

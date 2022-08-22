@@ -21,6 +21,7 @@ import ubc.pavlab.rdp.model.User;
 import ubc.pavlab.rdp.model.enums.ResearcherCategory;
 import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import ubc.pavlab.rdp.model.enums.TierType;
+import ubc.pavlab.rdp.security.Permissions;
 import ubc.pavlab.rdp.services.TaxonService;
 import ubc.pavlab.rdp.services.UserService;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
@@ -93,7 +94,7 @@ public class MainControllerTest {
 
     @Test
     public void getIndex_redirect3xx() throws Exception {
-        when( permissionEvaluator.hasPermission( any(), isNull(), eq( "search" ) ) ).thenReturn( true );
+        when( permissionEvaluator.hasPermission( any(), isNull(), eq( Permissions.SEARCH ) ) ).thenReturn( true );
         mvc.perform( get( "/" ) )
                 .andExpect( status().is3xxRedirection() )
                 .andExpect( redirectedUrl( "/search" ) );
@@ -111,7 +112,7 @@ public class MainControllerTest {
     public void getIndex_withUser_redirect3xx() throws Exception {
         User user = createUser( 1 );
         when( userService.findCurrentUser() ).thenReturn( user );
-        when( permissionEvaluator.hasPermission( any(), isNull(), eq( "search" ) ) ).thenReturn( true );
+        when( permissionEvaluator.hasPermission( any(), isNull(), eq( Permissions.SEARCH ) ) ).thenReturn( true );
         mvc.perform( get( "/" ) )
                 .andExpect( status().is3xxRedirection() )
                 .andExpect( redirectedUrl( "/user/home" ) );
@@ -133,14 +134,12 @@ public class MainControllerTest {
 
     @Test
     @WithMockUser
-    public void getTimeout_withUser_return200() throws Exception {
+    public void getTimeout_withUser_returnNoContent() throws Exception {
         User user = createUser( 1 );
         when( userService.findCurrentUser() ).thenReturn( user );
         long timeoutInSeconds = 0L;
         mvc.perform( get( "/gettimeout" ) )
-                .andExpect( status().isOk() )
-                .andExpect( content().contentTypeCompatibleWith( MediaType.TEXT_PLAIN ) )
-                .andExpect( content().string( "Session timeout refreshed." ) )
+                .andExpect( status().isNoContent() )
                 .andExpect( cookie().value( "serverTime", asDouble( closeTo( System.currentTimeMillis(), 100 ) ) ) )
                 .andExpect( cookie().path( "serverTime", "/" ) )
                 .andExpect( cookie().secure( "serverTime", false ) )

@@ -19,6 +19,9 @@
 
     <p class="lead mb-3" th:text="#{rdp.site.welcome-public(#{rdp.site.shortname})}">...</p>
 
+    <div th:replace="layouts/common::messages"></div>
+
+    <main id="main-content">
     <ul class="nav nav-tabs my-3">
         <li th:each="searchMode, i : ${@applicationSettings.search.enabledSearchModes}"
             th:with="searchModeId=${searchMode.toString().replace('_', '-').toLowerCase()}"
@@ -39,15 +42,17 @@
              th:id="${searchModeId} + '-search'"
              th:attr="aria-labelledby=${searchModeId} + '-tab'"
              th:classappend="${activeSearchMode} == ${searchMode} ? 'active'"
-             role="tabpanel" class="tab-pane fade show border-left border-right border-bottom mb-3">
-            <form class="search" style="margin-top: -1rem;">
+             role="tabpanel" class="tab-pane fade show border-left border-right mb-3">
+            <form class="search" style="margin-top: -1rem;" role="search">
                 <div class="sticky-top pt-3 px-3 search-section border-bottom">
                     <div class="form-row">
                         <div class="col-md-9">
-                            <label for="symbolInput">Search for researchers that study the following organism-specific
+                            <label for="symbolInput">Search for researchers that study the following
+                                organism-specific
                                 gene:</label>
                         </div>
-                        <div class="col-md-3 d-none d-md-block" th:if="${@applicationSettings.enabledTiers.size()} > 1">
+                        <div class="col-md-3 d-none d-md-block"
+                             th:if="${@applicationSettings.enabledTiers.size()} > 1">
                             <label for="tiers">Within the following tiers:</label>
                         </div>
                     </div>
@@ -62,10 +67,11 @@
                                         Search
                                     </button>
                                 </div>
-                                <input type="text" class="form-control gene-autocomplete" id="symbolInput"
+                                <input type="search" class="form-control gene-autocomplete" id="symbolInput"
                                        name="symbol"
                                        th:value="${symbol}"
-                                       placeholder="Symbol" title="Gene official symbol to look for"/>
+                                       placeholder="Symbol" title="Gene official symbol to look for"
+                                       aria-autocomplete="list"/>
                             </div>
                         </div>
                         <div class="form-group col-md-4">
@@ -160,10 +166,11 @@
                     </div>
                 </div>
                 -->
-                <div th:if="${@applicationSettings.organs.enabled}" class="p-3 search-section">
+                <div th:if="${@applicationSettings.organs.enabled}" class="p-3 search-section border-bottom">
                     <div class="form-row">
                         <div class="col-md-12">
-                            <p>With relevance to the following <strong>Human Organ Systems</strong> (or any if none are
+                            <p>With relevance to the following <strong>Human Organ Systems</strong> (or any if none
+                                are
                                 selected):</p>
                         </div>
                         <div class="col-md-12">
@@ -176,11 +183,11 @@
 
                 <th:block th:if="${@applicationSettings.ontology.enabled}">
                     <div th:each="ontology, i : ${@ontologyService.findAllOntologiesAvailableForGeneSearch()}"
-                         class="search-section border-top p-3">
+                         class="search-section border-bottom p-3">
                         <div class="form-group mb-0">
                             <label th:for="${@ontologyService.isSimple(ontology)} ? null : ${#ids.next('ontologyTermIds')}">
                                 With the following
-                                <strong th:text="${#messages.msgOrNull('rdp.ontologies.' + ontology.name + '.title') ?: #strings.toUpperCase(ontology.name)}"></strong>
+                                <strong th:text="${@messageSource.getMessage(ontology.resolvableTitle, #locale)}"></strong>
                                 terms (or any if none are selected):
                             </label>
                             <div th:replace="fragments/ontology::terms-selection(ontology = ${ontology}, selectedTerms = ${ontologyTerms}, showTable = false)"></div>
@@ -195,7 +202,7 @@
              th:id="${searchModeId} + '-search'"
              th:attr="aria-labelledby=${searchModeId} + '-tab'"
              th:classappend="${activeSearchMode} == ${searchMode} ? 'active'"
-             role="tabpanel" class="tab-pane fade show border-left border-right border-bottom mb-3">
+             role="tabpanel" class="tab-pane fade show border-left border-right mb-3">
             <!--Researchers alphabetically -->
             <!--
             <form th:unless="${chars.isEmpty()}" class="d-none d-lg-block">
@@ -222,13 +229,10 @@
             <hr/>
             -->
 
-            <form th:action="@{/search}" class="search" style="margin-top: -1rem;">
+            <form th:action="@{/search}" class="search" style="margin-top: -1rem;" role="search">
 
                 <!-- sticky button for mobile -->
                 <div class="search-section sticky-top p-3 border-bottom">
-                    <div class="form-row">
-                        <label>Search for researchers using at least one of the following criteria:</label>
-                    </div>
                     <div class="form-row">
                         <div class="form-group col-sm-12 d-sm-block d-md-none">
                             <button class="btn btn-primary btn-block" type="submit">
@@ -236,34 +240,36 @@
                                 Search
                             </button>
                         </div>
-                        <div class="form-group col-md d-none d-md-block mb-0">
+                        <div class="form-group col-md d-none d-md-block">
                             <button class="btn btn-primary " type="submit">
                                 <i class="oi oi-magnifying-glass"></i>
                                 Search
                             </button>
                         </div>
                         <div th:if="${@applicationSettings.isearch.enabled}"
-                             class="align-self-center">
-                            <div class="form-check">
-                                <input type="checkbox" class="form-check-input"
-                                       th:id="${#ids.seq('iSearch')}"
-                                       name="iSearch"
-                                       th:checked="${iSearch}"
-                                       th:value="true"/>
-                                <label th:for="${#ids.prev('iSearch')}"
-                                       class="form-check-label">
-                                    Include results from partner registries
-                                    <i class="tip oi oi-question-mark"
-                                       data-toggle="tooltip"
-                                       title="If enabled, the search will include matches found in our partner registries">
-                                    </i>
-                                </label>
-                            </div>
+                             class="form-check align-self-center mb-3">
+                            <input type="checkbox" class="form-check-input"
+                                   th:id="${#ids.seq('iSearch')}"
+                                   name="iSearch"
+                                   th:checked="${iSearch}"
+                                   th:value="true"/>
+                            <label th:for="${#ids.prev('iSearch')}"
+                                   class="form-check-label">
+                                Include results from partner registries
+                                <i class="tip oi oi-question-mark"
+                                   data-toggle="tooltip"
+                                   title="If enabled, the search will include matches found in our partner registries">
+                                </i>
+                            </label>
                         </div>
+                    </div>
+                    <div class="form-row">
+                        <label class="mb-0">Search for researchers using at least one of the following
+                            criteria:</label>
                     </div>
                 </div>
 
-                <div class="search-section p-3">
+                <div class="search-section border-bottom p-3">
                     <div class="form-group mb-0">
                         <label for="nameLike">Name</label>
                         <input type="text" class="form-control" name="nameLike" id="nameLike"
@@ -271,7 +277,7 @@
                     </div>
                 </div>
 
-                <div class="search-section border-top p-3">
+                <div class="search-section border-bottom p-3">
                     <!--Researchers by description-->
                     <div class="form-group mb-0">
                         <label for="descriptionLike">Research interests</label>
@@ -301,9 +307,13 @@
 
                 <!-- Researchers by focused organs -->
                 <div th:if="${@applicationSettings.organs.enabled}"
-                     class="search-section organs-form p-3 border-top">
+                     class="search-section organs-form p-3 border-bottom">
                     <div class="form-group mb-0">
-                        <label>With focus on the following <strong>Human Organ Systems</strong> (or any of none are selected):</label>
+                        <label>
+                            With focus on at least one of the following
+                            <strong>Human Organ Systems</strong>
+                            (or any of none are selected):
+                        </label>
                         <div th:replace="fragments/organ::organs-selection(checkedOrganUberonIds = ${organUberonIds})">
                             ...
                         </div>
@@ -313,11 +323,11 @@
                 <!-- Researchers by associated terms -->
                 <th:block th:if="${@applicationSettings.ontology.enabled}">
                     <div th:each="ontology, i : ${@ontologyService.findAllOntologies()}"
-                         class="search-section p-3 border-top">
+                         class="search-section p-3 border-bottom">
                         <div class="form-group mb-0">
                             <label th:for="${#ids.next('ontologyTermIds')}">
                                 With at least one of the following
-                                <strong th:text="${#messages.msgOrNull('rdp.ontologies.' + ontology.name + '.title') ?: #strings.toUpperCase(ontology.name)}"></strong>
+                                <strong><span th:replace="fragments/ontology::ontology-name-with-definition-tooltip(${ontology})"></span></strong>
                                 terms (or any if none are selected):
                             </label>
                             <div th:replace="fragments/ontology::terms-selection(ontology = ${ontology}, selectedTerms = ${ontologyTerms}, showTable = false)"></div>
@@ -337,15 +347,14 @@
     </div>
 
     <div id="searchSummary" class="mb-3">
-        <pre th:if="${searchSummary != null}"
-             th:replace="fragments/search::summary(searchSummary=${searchSummary})"></pre>
+    <pre th:if="${searchSummary != null}"
+         th:replace="fragments/search::summary(searchSummary=${searchSummary})"></pre>
     </div>
 
     <!--Results-->
     <div class="mb-3">
         <h4 th:text="'Researchers registered in ' + #{rdp.site.shortname}"></h4>
         <div id="userTable">
-            <div th:replace="layouts/common::message"></div>
             <th:block th:if="${users}">
                 <div th:replace="fragments/user-table::user-table(users=${users}, remote=false)">
                     ...
@@ -378,6 +387,7 @@
             </th:block>
         </div>
     </div>
+    </main>
 </div>
 
 <div th:replace="layouts/common::footer">...</div>

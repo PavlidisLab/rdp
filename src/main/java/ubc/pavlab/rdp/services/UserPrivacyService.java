@@ -48,7 +48,7 @@ public class UserPrivacyService {
 
     public boolean checkUserCanUpdate( User user, UserContent userContent ) {
         // only admins or rightful owner can update user content
-        return user.getRoles().contains( getAdminRole() ) || userContent.getOwner().filter( user::equals ).isPresent();
+        return user != null && ( user.getRoles().contains( getAdminRole() ) || userContent.getOwner().filter( user::equals ).isPresent() );
     }
 
     private boolean checkUserCanSeeOtherUserContentWithPrivacyLevel( User currentUser, User otherUser, PrivacyLevelType privacyLevel ) {

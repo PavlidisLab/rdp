@@ -4,7 +4,7 @@
 <body>
 <!-- User table -->
 <table th:fragment="user-table (users, remote)"
-       class="user-table table table-sm">
+       class="user-table table table-sm table-responsive-sm">
     <thead class="thead-light">
     <tr>
         <th scope="col"></th>
@@ -48,7 +48,8 @@
     </tbody>
 </table>
 
-<table class="user-table table table-sm" th:fragment="usergenes-table (usergenes, remote)">
+<table th:fragment="usergenes-table (usergenes, remote)"
+       class="user-table table table-sm table-responsive-sm">
     <tr th:each="map : ${mapsList}">
         <td colspan="100" th:each="mapEntry : ${map}">
             <span th:text="${mapEntry.key}"></span>

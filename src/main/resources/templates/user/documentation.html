@@ -11,7 +11,7 @@
 <div th:replace="layouts/common::header">...</div>
 <div class="container py-4">
 
-    <div th:replace="layouts/common::title(title='Support', subtitle='Documentation')">...</div>
+    <div th:replace="layouts/common::title(title='Documentation')">...</div>
 
     <div id="main-content" role="main">
         <div class="card">
@@ -73,27 +73,31 @@
                                             <li th:unless="${@applicationSettings.profile.enabledResearcherCategories.isEmpty()}">
                                                 Research categories that apply to you
                                             </li>
-                                            <li>Contact email address that can be updated. The email address that was used to create the account is set as 
-                                                  your user ID and cannot be modified. </li>
+                                            <li>Contact email address that can be updated. The email address that was
+                                                used to create the account is set as
+                                                your user ID and cannot be modified.
+                                            </li>
                                             <li>A phone number</li>
                                             <li>A summary of your research interests (we recommend 100-500 words)
                                             </li>
                                             <li>A list of PubMed IDs for your publications</li>
-                                            
+
                                         </ul>
 
                                         <div th:if="${@applicationSettings.organs.enabled}" class="nav-item">
                                             <h5>Organ Systems</h5>
                                             <p>
-                                                You may select a set of human organ systems that your research is most relevant to. This information can be used when 
-                                                database searches are performed to select researches with expertise in certain organ systems. Selecting no organ systems 
-                                                is equvalent to selecting all of them.  
+                                                You may select a set of human organ systems that your research is most
+                                                relevant to. This information can be used when
+                                                database searches are performed to select researches with expertise in
+                                                certain organ systems. Selecting no organ systems
+                                                is equvalent to selecting all of them.
                                             </p>
                                         </div>
 
                                         <div th:if="${@applicationSettings.privacy.customizableLevel}">
                                             <h5>Privacy Settings</h5>
-                                            
+
 
                                             <p>Data Privacy Settings section lets you choose your global data sharing
                                                 preferences.
@@ -103,19 +107,22 @@
                                             <ul>
                                                 <li th:if="${@privacyService.isPrivacyLevelEnabled(T(ubc.pavlab.rdp.model.enums.PrivacyLevelType).PRIVATE)}">
                                                     <b>private</b> - your information will only be accessible by
-                                                    the network administrator for matching you to a new rare disease gene
+                                                    the network administrator for matching you to a new rare disease
+                                                    gene
                                                     and considering you for funding opportunities.
                                                 </li>
                                                 <li th:if="${@privacyService.isPrivacyLevelEnabled(T(ubc.pavlab.rdp.model.enums.PrivacyLevelType).SHARED)}">
                                                     <b>shared</b> - your information will be accessible by other
                                                     researchers who are registered. Registered users will be able to
-                                                    access your information through the  provided search interface.
+                                                    access your information through the provided search interface.
                                                 </li>
                                                 <li th:if="${@privacyService.isPrivacyLevelEnabled(T(ubc.pavlab.rdp.model.enums.PrivacyLevelType).PUBLIC)}">
-                                                    <b>public</b> - your information will be publicly accessible. If "shared" option is available, your
+                                                    <b>public</b> - your information will be publicly accessible. If
+                                                    "shared" option is available, your
                                                     information will be shared with registered users and
-                                                    will also be accessible to non-registered users through the registry’s
-                                                    public search webpage (<i th:text=" ${@siteSettings.hostUri}"></i>).
+                                                    will also be accessible to non-registered users through the
+                                                    registry’s
+                                                    public search webpage (<i th:text=" ${@siteSettings.hostUrl}"></i>).
                                                 </li>
                                             </ul>
                                         </div>
@@ -249,7 +256,6 @@
                                             </li>
                                         </ul>
 
-                                        
 
                                         <p>For more information, see the relevant <a
                                                 th:href="@{/user/faq#genes}">FAQ</a></p>
@@ -260,11 +266,12 @@
                                         <p>The added genes will appear at the bottom of the table. You can remove genes
                                             by clicking the red X on the desired row. You can also change the Primary
                                             status of genes using the checkbox.</p>
-                                          
-                                          <div th:if="${@applicationSettings.privacy.customizableGeneLevel}">
+
+                                        <div th:if="${@applicationSettings.privacy.customizableGeneLevel}">
                                             <p>
                                                 You may also choose a privacy levels for your genes that differ from
-                                                the global privacy settings in your Profile. The new levels can only be more restrictive than your global privacy level.  Options are:
+                                                the global privacy settings in your Profile. The new levels can only be
+                                                more restrictive than your global privacy level. Options are:
                                             </p>
                                             <ul>
                                                 <li th:if="${@privacyService.isGenePrivacyLevelEnabled(T(ubc.pavlab.rdp.model.enums.PrivacyLevelType).PRIVATE)}">
@@ -276,10 +283,11 @@
                                                     <b>shared</b> - this gene will be accessible by other researchers
                                                     who are registered. Registered users will be able to access your
                                                     information through the provided search interface.
-                                                  </li>
+                                                </li>
                                             </ul>
                                             <p>
-                                                Note that if you change the global privacy setting in your Profile, the genes will be
+                                                Note that if you change the global privacy setting in your Profile, the
+                                                genes will be
                                                 updated to use the new value.
                                             </p>
                                         </div>
@@ -300,7 +308,8 @@
                                     </div>
                                 </div>
                             </div>
-                            <div th:if="${@applicationSettings.enabledTiers.contains(T(ubc.pavlab.rdp.model.enums.TierType).TIER3)}" class="card my-3">
+                            <div th:if="${@applicationSettings.enabledTiers.contains(T(ubc.pavlab.rdp.model.enums.TierType).TIER3)}"
+                                 class="card my-3">
                                 <div class="card-header" id="modelterms-heading">
                                     <h5 class="mb-0">
                                         <button class="btn btn-link" data-toggle="collapse" data-target="#modelterms"
@@ -318,11 +327,13 @@
                                             provide some Gene Ontology (GO) terms related to your
                                             work. Genes associated with the GO terms you select will
                                             be considered as your Tier 3 genes.
-                                            For more details about GO, please see <a href="http://geneontology.org/" target="_blank" rel="noopener">geneontology.org</a>.
+                                            For more details about GO, please see <a href="http://geneontology.org/"
+                                                                                     target="_blank" rel="noopener">geneontology.org</a>.
                                         </p>
 
                                         <p>To enter GO terms for an organism, click on the "Terms" tab on the Model
-                                            Organism Manager page. From here you can let us suggest some terms based on the genes 
+                                            Organism Manager page. From here you can let us suggest some terms based on
+                                            the genes
                                             you already entered by clicking on the "Recommend Terms" button or
                                             input terms manually using the input box below the table.</p>
 
@@ -367,7 +378,8 @@
                                     </div>
                                 </div>
                             </div>
-                            <div th:if="${@applicationSettings.enabledTiers.contains(T(ubc.pavlab.rdp.model.enums.TierType).TIER3)}"  class="card my-3">
+                            <div th:if="${@applicationSettings.enabledTiers.contains(T(ubc.pavlab.rdp.model.enums.TierType).TIER3)}"
+                                 class="card my-3">
                                 <div class="card-header" id="modeltermsuggest-heading">
                                     <h5 class="mb-0">
                                         <button class="btn btn-link" data-toggle="collapse"
@@ -401,7 +413,8 @@
                             </div>
                         </div>
                     </div>
-                    <div th:if="${@applicationSettings.privacy.registeredSearch}" class="tab-pane fade" id="search" role="tabpanel" aria-labelledby="model-tab">
+                    <div th:if="${@applicationSettings.privacy.registeredSearch}" class="tab-pane fade" id="search"
+                         role="tabpanel" aria-labelledby="model-tab">
                         <div class="card my-3">
                             <div class="card-header" id="searchmanager-heading">
                                 <h5 class="mb-0">
@@ -419,7 +432,8 @@
                                         The Search page allows you to browse or search for other registered users
                                         who chose to share their data by selecting "shared" or "public" data privacy
                                         setting. If "Include results from partner registries" option is selected,
-                                        the registry will connect to remote registries of the <span th:text="#{rdp.site.shortname}"></span>
+                                        the registry will connect to remote registries of the <span
+                                            th:text="#{rdp.site.shortname}"></span>
                                         partners and display/search their "public" users.
                                     </p>
                                     <p>
@@ -453,7 +467,8 @@
                                         orthologs in other model organisms, you would use the secondary dropdown menu to
                                         indicate the preferred organism. The ortholog mapping is based on <a
                                             href="https://www.flyrnai.org/diopt"
-                                            target="_blank" rel="noopener">DIOPT</a> results, filtered for DIOPT score >5 and Rank =
+                                            target="_blank" rel="noopener">DIOPT</a> results, filtered for DIOPT score
+                                        >5 and Rank =
                                         "high" or "moderate".
                                     </p>
                                     <div th:if="${@applicationSettings.organs.enabled}">
@@ -467,11 +482,16 @@
                                     <div th:if="${@applicationSettings.privacy.enableAnonymizedSearchResults}">
                                         <h5>Anonymous Results</h5>
                                         <p>
-                                            If you lack permissions to see the matched researcher information (either their 
-                                            global privacy level or gene privacy level are set to "private"), their name and 
-                                            organization will not be displayed in the result table and the button on the left 
-                                            will say "Request Access" instead of "View User Profile". Clicking this button will 
-                                            take you to the a web form allowing to contact that user. The contacted researcher may choose to
+                                            If you lack permissions to see the matched researcher information (either
+                                            their
+                                            global privacy level or gene privacy level are set to "private"), their name
+                                            and
+                                            organization will not be displayed in the result table and the button on the
+                                            left
+                                            will say "Request Access" instead of "View User Profile". Clicking this
+                                            button will
+                                            take you to the a web form allowing to contact that user. The contacted
+                                            researcher may choose to
                                             reply, in which case he/she will contact you via your contact email.
                                         </p>
                                     </div>

@@ -10,6 +10,7 @@ import org.springframework.context.support.DefaultMessageSourceResolvable;
 import javax.persistence.*;
 import java.net.URL;
 import java.util.Comparator;
+import java.util.Locale;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -122,11 +123,22 @@ public class Ontology implements Comparable<Ontology> {
         return getComparator().compare( this, ontology );
     }
 
+    /**
+     * Obtain a resolvable for the title of this ontology.
+     * <p>
+     * The default value is the upper case {@link #name}.
+     */
     @JsonIgnore
     public DefaultMessageSourceResolvable getResolvableTitle() {
         return new DefaultMessageSourceResolvable( new String[]{ "rdp.ontologies." + Ontology.this.getName() + ".title" }, name.toUpperCase() );
     }
 
+    /**
+     * Obtain a resolvable for the definition of this ontology.
+     * <p>
+     * Since the {@link #definition} is nullable, you should always check for a {@link org.springframework.context.NoSuchMessageException}
+     * when calling {@link org.springframework.context.MessageSource#getMessage(MessageSourceResolvable, Locale)}.
+     */
     @JsonIgnore
     public DefaultMessageSourceResolvable getResolvableDefinition() {
         return new DefaultMessageSourceResolvable( new String[]{ "rdp.ontologies." + Ontology.this.getName() + ".definition" }, definition );

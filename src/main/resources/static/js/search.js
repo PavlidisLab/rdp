@@ -152,23 +152,21 @@
                 $.getJSON(window.contextPath + "/taxon/" + encodeURIComponent(taxonId) + "/gene/search", {
                     query: term,
                     max: 10
-                })
-                    .done(function (data, status, xhr) {
-                        if (!data.length) {
-                            data = [
-                                {
-                                    noresults: true,
-                                    label: 'No matches found for "' + term + '".',
-                                    value: term
-                                }
-                            ];
-                        }
-                        taxonCache[term] = data;
-                        response(data);
-                    })
-                    .fail(function () {
-                        response([{noresults: true, label: 'Error querying search endpoint.', value: term}]);
-                    });
+                }).done(function (data, status, xhr) {
+                    if (!data.length) {
+                        data = [
+                            {
+                                noresults: true,
+                                label: 'No matches found for "' + term + '".',
+                                value: term
+                            }
+                        ];
+                    }
+                    taxonCache[term] = data;
+                    response(data);
+                }).fail(function () {
+                    response([{noresults: true, label: 'Error querying search endpoint.', value: term}]);
+                });
             },
             select: function (event, ui) {
                 $(this).val(ui.item.label);
@@ -182,12 +180,13 @@
         $(this).toggleClass('active', true);
     });
 
-    $('.term-autocomplete').autocomplete({
+    $('.ontology-term-autocomplete').autocomplete({
         minLength: 2,
         delay: 200,
         source: function (request, response) {
             var term = request.term.trim();
             var ontologyId = $(this.element).data('ontologyId');
+            response([{label: 'Loading results for "' + term + '"...'}]);
             $.getJSON(window.contextPath + '/search/ontology-terms/autocomplete', {
                 query: term,
                 ontologyId: ontologyId
@@ -226,17 +225,4 @@
 
     /* initialize user preview popovers */
     $('.user-preview-popover').each(initializeUserPreviewPopover);
-
-    /* adjust all sticky elements to appear after the staging banner */
-    // unfortunately this cannot be done via CSS because the staging banner size can change
-    var stagingBanner = document.querySelector('#staging-banner');
-    if (stagingBanner !== null) {
-        new window.ResizeObserver(function () {
-            document.querySelectorAll('.sticky-top').forEach(function (element) {
-                if (element !== stagingBanner) {
-                    element.style.top = stagingBanner.offsetHeight + 'px';
-                }
-            });
-        }).observe(stagingBanner);
-    }
 })();

@@ -27,12 +27,12 @@ public class ReactomeResolver implements OntologyResolver {
     }
 
     @Override
-    public URI resolveViewOntologyUri( Ontology ontology ) {
+    public URI resolveViewOntologyUrl( Ontology ontology ) {
         return URI.create( "https://reactome.org/PathwayBrowser/" );
     }
 
     @Override
-    public URI resolveViewTermUri( OntologyTerm term ) {
+    public URI resolveViewTermUrl( OntologyTerm term ) {
         return UriComponentsBuilder.fromHttpUrl( "https://reactome.org/PathwayBrowser/#/{0}" )
                 .build( term.getTermId() );
     }

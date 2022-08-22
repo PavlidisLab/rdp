@@ -87,7 +87,7 @@ public class EmailServiceImpl implements EmailService {
     @Override
     public Future<Void> sendSupportMessage( String message, String name, User user, String userAgent, MultipartFile attachment, Locale locale ) throws MessagingException {
         InternetAddress replyTo = user.getVerifiedContactEmail().orElseThrow( () -> new MessagingException( "Could not find a verified email address for user." ) );
-        String shortName = messageSource.getMessage( "rdp.site.shortname", new String[]{ siteSettings.getHostUri().toString() }, Locale.getDefault() );
+        String shortName = messageSource.getMessage( "rdp.site.shortname", new String[]{ siteSettings.getHostUrl().toString() }, Locale.getDefault() );
         String subject = messageSource.getMessage( "EmailService.sendSupportMessage.subject", new String[]{ shortName }, locale );
         String content = "Name: " + name + "\r\n" +
                 "Email: " + user.getEmail() + "\r\n" +
@@ -105,7 +105,7 @@ public class EmailServiceImpl implements EmailService {
 
     @Override
     public Future<Void> sendResetTokenMessage( User user, PasswordResetToken token, Locale locale ) throws MessagingException {
-        URI url = UriComponentsBuilder.fromUri( siteSettings.getHostUri() )
+        URI url = UriComponentsBuilder.fromUri( siteSettings.getHostUrl() )
                 .path( "updatePassword" )
                 .queryParam( "id", "{id}" )
                 .queryParam( "token", "{token}" )
@@ -123,7 +123,7 @@ public class EmailServiceImpl implements EmailService {
 
         // password reset always go through the primary email
         InternetAddress to = new InternetAddress( user.getEmail() );
-        String shortName = messageSource.getMessage( "rdp.site.shortname", new String[]{ siteSettings.getHostUri().toString() }, locale );
+        String shortName = messageSource.getMessage( "rdp.site.shortname", new String[]{ siteSettings.getHostUrl().toString() }, locale );
         String subject = messageSource.getMessage( "EmailService.sendResetTokenMessage.subject", new String[]{ shortName }, locale );
         String content = messageSource.getMessage( "EmailService.sendResetTokenMessage", new String[]{
                 user.getProfile().getName(), url.toString(), dateTimeFormatter.format( token.getExpiryDate().toInstant() ) }, locale );
@@ -133,13 +133,13 @@ public class EmailServiceImpl implements EmailService {
 
     @Override
     public Future<Void> sendRegistrationMessage( User user, VerificationToken token, Locale locale ) throws MessagingException {
-        String shortName = messageSource.getMessage( "rdp.site.shortname", new String[]{ siteSettings.getHostUri().toString() }, locale );
-        String registrationWelcome = messageSource.getMessage( "rdp.site.email.registration-welcome", new String[]{ siteSettings.getHostUri().toString(), shortName }, locale );
+        String shortName = messageSource.getMessage( "rdp.site.shortname", new String[]{ siteSettings.getHostUrl().toString() }, locale );
+        String registrationWelcome = messageSource.getMessage( "rdp.site.email.registration-welcome", new String[]{ siteSettings.getHostUrl().toString(), shortName }, locale );
         String registrationEnding = messageSource.getMessage( "rdp.site.email.registration-ending", new String[]{ siteSettings.getContactEmail() }, locale );
         // registration always go through the primary email
         InternetAddress recipientAddress = new InternetAddress( user.getEmail() );
         String subject = messageSource.getMessage( "EmailService.sendRegistrationMessage.subject", new String[]{ shortName }, locale );
-        URI confirmationUrl = UriComponentsBuilder.fromUri( siteSettings.getHostUri() )
+        URI confirmationUrl = UriComponentsBuilder.fromUri( siteSettings.getHostUrl() )
                 .path( "registrationConfirm" )
                 .queryParam( "token", "{token}" )
                 .build( Collections.singletonMap( "token", token.getToken() ) );
@@ -152,9 +152,9 @@ public class EmailServiceImpl implements EmailService {
     @Override
     public Future<Void> sendContactEmailVerificationMessage( User user, VerificationToken token, Locale locale ) throws MessagingException {
         InternetAddress recipientAddress = new InternetAddress( user.getProfile().getContactEmail() );
-        String shortName = messageSource.getMessage( "rdp.site.shortname", new String[]{ siteSettings.getHostUri().toString() }, locale );
+        String shortName = messageSource.getMessage( "rdp.site.shortname", new String[]{ siteSettings.getHostUrl().toString() }, locale );
         String subject = messageSource.getMessage( "EmailService.sendContactEmailVerificationMessage.subject", new String[]{ shortName }, locale );
-        URI confirmationUrl = UriComponentsBuilder.fromUri( siteSettings.getHostUri() )
+        URI confirmationUrl = UriComponentsBuilder.fromUri( siteSettings.getHostUrl() )
                 .path( "user/verify-contact-email" )
                 .queryParam( "token", "{token}" )
                 .build( Collections.singletonMap( "token", token.getToken() ) );
@@ -174,7 +174,7 @@ public class EmailServiceImpl implements EmailService {
 
     @Override
     public Future<Void> sendUserGeneAccessRequest( UserGene userGene, User replyTo, String reason ) throws MessagingException {
-        URI viewUserUrl = UriComponentsBuilder.fromUri( siteSettings.getHostUri() )
+        URI viewUserUrl = UriComponentsBuilder.fromUri( siteSettings.getHostUrl() )
                 .path( "search/user/{userId}" )
                 .build( Collections.singletonMap( "userId", replyTo.getId() ) );
         InternetAddress to = userGene.getUser().getVerifiedContactEmail().orElseThrow( () -> new MessagingException( "Could not find a verified email address for user." ) );

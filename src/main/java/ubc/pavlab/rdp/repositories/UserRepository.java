@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import ubc.pavlab.rdp.model.User;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
+import ubc.pavlab.rdp.model.ontology.Ontology;
 
 import javax.persistence.QueryHint;
 import java.util.Collection;
@@ -23,6 +24,8 @@ public interface UserRepository extends JpaRepository<User, Integer> {
 
     @Query("select user from User user left join fetch user.userTerms")
     Collection<User> findAllWithUserTerms();
+
+    boolean existsByUserOntologyTermsOntology( Ontology ontology );
 
     @Override
     long count();

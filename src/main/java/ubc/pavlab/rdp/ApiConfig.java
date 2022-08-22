@@ -5,7 +5,6 @@ import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.servers.Server;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.info.BuildProperties;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
@@ -37,7 +36,7 @@ public class ApiConfig {
                         .termsOfService( StringUtils.isEmpty( messageSource.getMessage( "rdp.privacy-policy", null, locale ) ) ?
                                 null : UriComponentsBuilder.fromPath( servletContext.getContextPath() ).path( "/terms-of-service" ).toUriString() )
                         .version( buildProperties.getVersion() ) )
-                .servers( Collections.singletonList( new Server().url( siteSettings.getHostUri().toString() ) ) );
+                .servers( Collections.singletonList( new Server().url( siteSettings.getHostUrl().toString() ) ) );
 
     }
 }

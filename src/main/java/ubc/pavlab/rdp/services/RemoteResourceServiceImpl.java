@@ -334,7 +334,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
                     // end processing here
                 }
             } catch ( RemoteException e ) {
-                log.warn( String.format( "Failed to retrieve API version from %s.", remoteHost ), e );
+                log.warn( String.format( "Failed to retrieve API version from %s: %s", remoteHost, e.getMessage() ) );
                 return Optional.empty();
             }
         };
@@ -399,6 +399,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
                 return null;
             }
         } catch ( RemoteException e ) {
+            log.warn( String.format( "Failed to retrieve API version from %s for %s: %s", uriAndFuture.getLeft(), uriAndFuture.getRight(), e.getMessage() ) );
             return null;
         }
     }
@@ -417,8 +418,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
             Thread.currentThread().interrupt();
             throw new RemoteException( String.format( "A thread was interrupted while waiting for %s response.", uri ), e );
         } catch ( TimeoutException e ) {
-            // no need for the stacktrace in case of timeout
-            throw new RemoteException( String.format( "Partner registry %s has timed out after %s.", uri.getRawAuthority(), requestTimeout ), e );
+            throw new RemoteException( String.format( "Partner registry %s has timed out after %d ms.", uri.getRawAuthority(), requestTimeout.toMillis() ), e );
         }
     }
 

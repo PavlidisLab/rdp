@@ -10,14 +10,12 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import ubc.pavlab.rdp.model.ontology.Ontology;
 import ubc.pavlab.rdp.model.ontology.OntologyTermInfo;
-import ubc.pavlab.rdp.util.OBOParser;
 
 import javax.persistence.QueryHint;
 import java.io.Reader;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Stream;
 
 /**
  * We generally try to be careful here because a lot of terms can be retrieved.

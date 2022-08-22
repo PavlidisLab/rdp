@@ -11,52 +11,33 @@
 <body>
 <div th:replace="layouts/common::header">...</div>
 <div class="container py-4">
-    <div class="main-content">
-        <div class="row">
-            <div class="col">
-                <div th:replace="layouts/common::title(title='User Profile', subtitle=${viewUser.profile.fullName})">
-                    ...
-                </div>
-            </div>
-            <div th:if="${viewUser} eq ${@userService.findCurrentUser()}" class="col my-auto text-right">
-                <a class="btn btn-primary btn-lg float-right"
-                   th:href="@{/user/profile}">
-                    <i class="oi oi-pencil"></i>
-                    Edit
-                </a>
+    <div class="row align-items-middle">
+        <div class="col">
+            <div th:replace="layouts/common::title(title='Profile', subtitle=${viewUser.profile.fullName})">
+                ...
             </div>
         </div>
+        <div th:if="${viewUser} eq ${@userService.findCurrentUser()}" class="col text-right">
+            <a class="btn btn-primary btn-lg"
+               th:href="@{/user/profile}">
+                <i class="oi oi-pencil"></i>
+                Edit
+            </a>
+        </div>
+    </div>
 
+    <div id="messages">
         <div th:replace="layouts/common::message"></div>
-        <div class="row justify-content-center success-row mb-3">
-            <div class="col">
-                <div th:if="${viewUser.origin} != null" class="alert alert-info mb-0" role="alert">
-                    This is a remote user registered at
-                    <a th:href="@{{remoteHost}/userView/{userId}(remoteHost=${viewUser.originUrl},userId=${viewUser.id})}"
-                       th:text="${viewUser.origin}"
-                       target="_blank"
-                       rel="noopener"></a>.
-                </div>
-            </div>
+        <div th:if="${viewUser.origin} != null" class="alert alert-info">
+            This is a remote user registered at
+            <a th:href="@{{remoteHost}/userView/{userId}(remoteHost=${viewUser.originUrl},userId=${viewUser.id})}"
+               th:text="${viewUser.origin}"
+               target="_blank"
+               rel="noopener"></a>.
         </div>
-        <div class="row justify-content-center success-row mb-3" style="display: none;">
-            <div class="col">
-                <div class="alert alert-success alert-dismissible fade show" role="alert">Profile Saved!
-                    <button type="button" class="close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-            </div>
-        </div>
-        <div class="row justify-content-center error-row mb-3" style="display: none;">
-            <div class="col">
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">Error Saving Profile!
-                    <button type="button" class="close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-            </div>
-        </div>
+    </div>
+
+    <div id="main-content" role="main">
 
         <div class="row mb-3">
             <!--
@@ -202,13 +183,21 @@
             <div class="col">
                 <div th:id="'category-' + ${ontology.id}" class="card">
                     <div class="card-header">
-                        <h3 class="mb-0"
-                            th:text="${#messages.msgOrNull('rdp.ontologies.' + ontology.name +  '.title') ?: #strings.toUpperCase(ontology.name)}"></h3>
+                        <h3 class="mb-0">
+                            <span th:replace="fragments/ontology::ontology-name-with-definition-tooltip(${ontology})"></span>
+                        </h3>
                     </div>
                     <div class="card-body">
                         <div th:replace="fragments/ontology::terms-display(ontology = ${ontology}, selectedTerms=${viewUser.getUserOntologyTermsByOntology(ontology)})">
                             ...
                         </div>
+                        <small th:if="${@ontologyResolver.accepts(ontology)}">
+                            Read more about
+                            <a th:href="${@ontologyResolver.resolveViewOntologyUrl(ontology)}"
+                               target="_blank"
+                               rel="noopener"
+                               th:text="${@messageSource.getMessage(ontology.resolvableTitle, #locale)}"></a>.
+                        </small>
                     </div>
                 </div>
             </div>
@@ -313,6 +302,15 @@
                         </dl>
                     </div>
                 </div>
+            </div>
+        </div>
+        <div th:if="${viewUser.modifiedAt} != null"
+             class="row">
+            <div class="col">
+                <p>
+                    Last modified on
+                    <span th:replace="fragments/temporal::date(${viewUser.modifiedAt.toInstant()})"></span>.
+                </p>
             </div>
         </div>
     </div>

@@ -12,7 +12,6 @@ import ubc.pavlab.rdp.model.UserGene;
 import ubc.pavlab.rdp.model.VerificationToken;
 import ubc.pavlab.rdp.settings.SiteSettings;
 
-import javax.servlet.http.HttpServletRequest;
 import java.net.URI;
 import java.text.MessageFormat;
 import java.util.Collections;
@@ -40,7 +39,7 @@ public class LoggingEmailServiceImpl implements EmailService {
 
     @Override
     public Future<Void> sendResetTokenMessage( User user, PasswordResetToken token, Locale locale ) {
-        URI url = UriComponentsBuilder.fromUri( siteSettings.getHostUri() )
+        URI url = UriComponentsBuilder.fromUri( siteSettings.getHostUrl() )
                 .path( "updatePassword" )
                 .queryParam( "id", "{id}" )
                 .queryParam( "token", "{token}" )
@@ -56,7 +55,7 @@ public class LoggingEmailServiceImpl implements EmailService {
 
     @Override
     public Future<Void> sendRegistrationMessage( User user, VerificationToken token, Locale locale ) {
-        URI confirmationUrl = UriComponentsBuilder.fromUri( siteSettings.getHostUri() )
+        URI confirmationUrl = UriComponentsBuilder.fromUri( siteSettings.getHostUrl() )
                 .path( "registrationConfirm" )
                 .queryParam( "token", "{token}" )
                 .build( Collections.singletonMap( "token", token.getToken() ) );
@@ -66,7 +65,7 @@ public class LoggingEmailServiceImpl implements EmailService {
 
     @Override
     public Future<Void> sendContactEmailVerificationMessage( User user, VerificationToken token, Locale locale ) {
-        URI confirmationUrl = UriComponentsBuilder.fromUri( siteSettings.getHostUri() )
+        URI confirmationUrl = UriComponentsBuilder.fromUri( siteSettings.getHostUrl() )
                 .path( "user/verify-contact-email" )
                 .queryParam( "token", "{token}" )
                 .build( Collections.singletonMap( "token", token.getToken() ) );

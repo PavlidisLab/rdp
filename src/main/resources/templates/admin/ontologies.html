@@ -7,10 +7,10 @@
 </head>
 <body>
 <div th:replace="layouts/common::header"></div>
-<div class="container py-3">
-    <div th:replace="layouts/common::title(title='Manage Profile Categories', subtitle='')"></div>
-    <div th:replace="layouts/common::message"></div>
-    <div id="main-content" role="main">
+<div class="container py-4">
+    <div th:replace="layouts/common::title(title='Manage Profile Categories')"></div>
+    <div th:replace="layouts/common::messages"></div>
+    <main id="main-content">
     <div class="card mb-3">
         <div class="card-body">
             <h2 class="mb-0">Create Simple Category</h2>
@@ -70,11 +70,9 @@
             <p>
                 RDP provides capability of importing human <a href="https://reactome.org/PathwayBrowser/"
                                                               target="_blank"
-                                                              rel="noopener">Reactome pathways</a>.
+                                                              rel="noopener">Reactome Pathways</a>.
             </p>
-            <div th:if="${reactome} != null">
-                <p class="text-success mb-0">Reactome is already setup.</p>
-            </div>
+            <p th:if="${reactome} != null" class="text-success mb-0">The <strong>Reactome Pathways</strong> category is already setup.</p>
             <form th:if="${reactome} == null"
                   th:action="@{/admin/ontologies/import-reactome-pathways}"
                   method="post">
@@ -116,8 +114,7 @@
                     </div>
                 </form>
             </td>
-            <td class="text-nowrap">
-                <span th:replace="fragments/ontology::ontology-name(${ontology})"></span>
+            <td class="text-nowrap" th:text="${@messageSource.getMessage(ontology.resolvableTitle, #locale)}">
             </td>
             <td class="d-none d-sm-table-cell">
                 <span th:if="${ontology.active}" class="badge badge-success">active</span>
@@ -127,7 +124,7 @@
                       class="badge badge-info">available for gene search</span>
             </td>
             <td class="d-none d-md-table-cell"
-                th:text="${#messages.msgOrNull('rdp.ontologies.' + ontology.name + '.definition')} ?: 'There is no definition for this category.'"></td>
+                th:text="${#messages.msgOrNull(ontology.resolvableDefinition.code)}"></td>
             <td class="text-nowrap">
                 <a th:href="@{/admin/ontologies/{ontologyId}(ontologyId=${ontology.id})}"
                    class="btn btn-primary">
@@ -138,7 +135,7 @@
         </tr>
         </tbody>
     </table>
-</div>
+    </main>
 </div>
 <div th:replace="layouts/common::footer"></div>
 <div th:replace="layouts/common::scripts"></div>

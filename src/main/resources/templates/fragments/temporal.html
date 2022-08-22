@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<!-- display a date -->
+<span th:fragment="date(t)"
+      th:text="${#temporals.format(t, 'MMMM d, YYYY')}">
+</span>
+<!-- display date & time -->
+<!-- careful here, this fragment has to be a single line to prevent unexpected text elements in the DOM -->
+<span th:fragment="date-and-time(t)"><span th:replace="::date(${t})"></span> at <span
+        th:text="${#temporals.format(t, 'HH:mm:ss')}"></span></span>
+</body>
+</html>

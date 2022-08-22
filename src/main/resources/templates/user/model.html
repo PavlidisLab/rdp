@@ -9,45 +9,47 @@
 
 <body>
 <div th:replace="layouts/common::header">...</div>
-<div class="container py-4">
+<div class="container pt-1 pb-4">
 
-    <div class="row">
-        <div class="col-7">
-            <div th:replace="layouts/common::title(title='Model Organisms', subtitle=${#strings.capitalizeWords(taxon.commonName + (taxon.id == 9606 ? ' / other' : ''))})">
+    <div class="row sticky-top bg-white py-3">
+        <div class="col-sm-10">
+            <div th:replace="layouts/common::title(title='Model Organisms', subtitle=${#strings.capitalizeWords(taxon.commonName + (taxon.id == 9606 ? ' / other' : ''))}, nomargin=true)">
                 ...
             </div>
         </div>
-        <div class="col-5 my-auto text-right">
-            <button type="button" class="btn btn-primary btn-lg save-model" th:if="${viewOnly == null}">
+        <div class="col-sm-2 text-right">
+            <button id="main-save-button" type="button" class="btn btn-primary btn-lg save-model"
+                    th:if="${viewOnly == null}">
                 <i class="mx-2 d-none spinner"></i>
                 Save
             </button>
         </div>
     </div>
 
-    <div class="d-flex align-items-center justify-content-center" th:if="${viewOnly != null}">
-        <h3 class="d-inline-block pr-3 mr-3 mb-0" th:text="${user.email}"></h3>
+    <div id="messages">
+        <div class="alert alert-success alert-dismissible fade show success-row mb-3"
+             style="display: none;">
+            The <strong th:text="${taxon.commonName}"></strong> model organism section of your profile has been saved.
+            <button type="button" class="close" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="alert alert-danger alert-dismissible fade show error-row mb-3" role="alert" style="display: none;">
+            The <strong th:text="${taxon.commonName}"></strong> model organism section of your profile could not be
+            saved!
+            <button type="button" class="close" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
     </div>
 
-    <div class="main-content">
+    <div id="main-content" role="main">
 
-        <div class="alert alert-success alert-dismissible fade show success-row my-3"
-             role="alert"
-             style="display: none;">
-            Model Saved!
-            <button type="button" class="close" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-            </button>
+        <div class="d-flex align-items-center justify-content-center" th:if="${viewOnly != null}">
+            <h3 class="d-inline-block pr-3 mr-3 mb-0" th:text="${user.email}"></h3>
         </div>
 
-        <div class="alert alert-danger alert-dismissible fade show error-row my-3" role="alert" style="display: none;">
-            Error Saving Model!
-            <button type="button" class="close" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-            </button>
-        </div>
-
-        <div class="row my-3">
+        <div class="row mb-3">
             <div class="col">
                 <div class="card research-info edit-container">
                     <div class="card-header d-flex align-items-center">
@@ -69,7 +71,7 @@
         </div>
 
         <div th:if="${@applicationSettings.privacy.customizableLevel} or ${@applicationSettings.privacy.customizableSharing} or ${@applicationSettings.privacy.allowHideGenelist}"
-             class="my-3">
+             class="mb-3">
             <div class="card">
                 <div class="card-header">
                     <h3 class="card-title">Data Privacy</h3>
@@ -103,7 +105,7 @@
             </div>
         </div>
 
-        <div class="my-3">
+        <div class="mb-3">
             <div class="card">
                 <div class="card-header">
                     <ul class="nav nav-tabs card-header-tabs" role="tablist">
@@ -147,8 +149,9 @@
                                         +
                                     </button>
                                 </div>
-                                <input type="text" class="form-control autocomplete"
-                                       placeholder="ex. GRIN1, BRCA1, FOXP2"/>
+                                <input type="search" class="form-control autocomplete"
+                                       placeholder="Symbol (e.g. GRIN1, BRCA1, FOXP2)"
+                                       aria-autocomplete="list"/>
                             </div>
                         </div>
 
@@ -175,8 +178,9 @@
                                                 +
                                             </button>
                                         </div>
-                                        <input type="text" class="form-control autocomplete"
-                                               placeholder="Search Terms"/>
+                                        <input type="search" class="form-control autocomplete"
+                                               placeholder="GO Terms"
+                                               aria-autocomplete="list"/>
                                     </div>
                                 </div>
                             </div>

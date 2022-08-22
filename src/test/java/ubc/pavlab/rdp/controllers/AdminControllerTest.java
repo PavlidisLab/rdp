@@ -8,7 +8,6 @@ import org.mockito.internal.verification.VerificationModeFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.io.ClassPathResource;
@@ -109,11 +108,8 @@ public class AdminControllerTest {
     @MockBean(name = "ontologyService")
     private OntologyService ontologyService;
 
-    @MockBean(name = "messageSource")
-    private MessageSource messageSource;
-
-    @MockBean(name = "messageSourceWithoutOntology")
-    private MessageSource ontologyMessageSource;
+    @MockBean
+    private OntologyMessageSource ontologyMessageSource;
 
     @Autowired
     private FormattingConversionService conversionService;
@@ -181,7 +177,7 @@ public class AdminControllerTest {
     @Test
     @WithMockUser(roles = { "ADMIN" })
     public void givenLoggedIn_whenCreateServiceAccount_thenRedirect3xx() throws Exception {
-        when( siteSettings.getHostUri() ).thenReturn( URI.create( "http://localhost/" ) );
+        when( siteSettings.getHostUrl() ).thenReturn( URI.create( "http://localhost/" ) );
         when( roleRepository.findById( 1 ) ).thenReturn( Optional.of( createRole( 1, "ROLE_USER" ) ) );
         when( roleRepository.findById( 2 ) ).thenReturn( Optional.of( createRole( 2, "ROLE_ADMIN" ) ) );
         when( userService.createServiceAccount( any() ) ).thenAnswer( answer -> {
@@ -525,6 +521,7 @@ public class AdminControllerTest {
         verify( ontologyService ).countObsoleteTerms( ontology );
         verify( ontologyService, VerificationModeFactory.atLeastOnce() ).isSimple( ontology );
         verifyNoMoreInteractions( ontologyService );
+        verify( userService, VerificationModeFactory.atLeastOnce() ).existsByOntology( ontology );
     }
 
     @Test
@@ -577,6 +574,7 @@ public class AdminControllerTest {
         verify( ontologyService ).countObsoleteTerms( ontology );
         verify( ontologyService, VerificationModeFactory.atLeastOnce() ).isSimple( ontology );
         verifyNoMoreInteractions( ontologyService );
+        verify( userService, VerificationModeFactory.atLeastOnce() ).existsByOntology( ontology );
     }
 
     @Test
@@ -597,6 +595,7 @@ public class AdminControllerTest {
         verify( ontologyService, VerificationModeFactory.atLeastOnce() ).resolveOntologyUrl( ontology.getOntologyUrl() );
         verify( ontologyService, VerificationModeFactory.atLeastOnce() ).isSimple( ontology );
         verifyNoMoreInteractions( ontologyService );
+        verify( userService, VerificationModeFactory.atLeastOnce() ).existsByOntology( ontology );
     }
 
     @Test
@@ -769,6 +768,7 @@ public class AdminControllerTest {
         verify( ontologyService ).countObsoleteTerms( ontology );
         verify( ontologyService, VerificationModeFactory.atLeastOnce() ).isSimple( ontology );
         verifyNoMoreInteractions( ontologyService );
+        verify( userService, VerificationModeFactory.atLeastOnce() ).existsByOntology( ontology );
     }
 
     @Test
@@ -788,6 +788,7 @@ public class AdminControllerTest {
         verify( ontologyService ).countObsoleteTerms( ontology );
         verify( ontologyService, VerificationModeFactory.atLeastOnce() ).isSimple( ontology );
         verifyNoMoreInteractions( ontologyService );
+        verify( userService, VerificationModeFactory.atLeastOnce() ).existsByOntology( ontology );
     }
 
     @Test
@@ -819,6 +820,9 @@ public class AdminControllerTest {
                 .andExpect( redirectedUrl( "/admin/ontologies/1" ) );
         verify( reactomeService ).findPathwaysOntology();
         verify( reactomeService ).importPathwaysOntology();
+        // FIXME: this executes in a background thread, so it might necessary to wait a little amount of time
+        verify( reactomeService ).updatePathwaySummations( null );
+        verifyNoMoreInteractions( reactomeService );
     }
 
     @Test
@@ -986,7 +990,7 @@ public class AdminControllerTest {
         mvc.perform( post( "/admin/refresh-messages" ) )
                 .andExpect( status().isOk() )
                 .andExpect( content().contentTypeCompatibleWith( MediaType.TEXT_PLAIN ) )
-                .andExpect( content().string( "Messages cache have been updated." ) );
+                .andExpect( content().string( "Messages have been refreshed." ) );
     }
 
     @Test
@@ -1018,7 +1022,6 @@ public class AdminControllerTest {
         OntologyTermInfo term = OntologyTermInfo.builder( ontology, "MONDO:000001" ).name( "disease" ).active( true ).build();
         when( ontologyService.findById( 1 ) ).thenReturn( ontology );
         when( ontologyService.existsByTermIdAndOntologyAndActiveTrue( "MONDO:000001", ontology ) ).thenReturn( true );
-        when( messageSource.getMessage( ontology.getResolvableTitle(), Locale.getDefault() ) ).thenReturn( "MONDO" );
         //noinspection SpellCheckingInspection
         mvc.perform( get( "/admin/ontologies/{ontologyId}/autocomplete-terms", ontology.getId() )
                         .param( "query", "MONDO:000001" )
@@ -1029,6 +1032,5 @@ public class AdminControllerTest {
                 .andExpect( jsonPath( "$[0].label" ).value( "MONDO:000001 is already active in MONDO." ) )
                 .andExpect( jsonPath( "$[0].value" ).value( "MONDO:000001" ) );
         verify( ontologyService ).existsByTermIdAndOntologyAndActiveTrue( "MONDO:000001", ontology );
-        verify( messageSource ).getMessage( ontology.getResolvableTitle(), Locale.getDefault() );
     }
 }

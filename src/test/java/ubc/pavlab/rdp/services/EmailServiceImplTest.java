@@ -62,7 +62,7 @@ public class EmailServiceImplTest {
     @Before
     public void setUp() {
         when( siteSettings.getAdminEmail() ).thenReturn( "admin@example.com" );
-        when( siteSettings.getHostUri() ).thenReturn( URI.create( "http://localhost" ) );
+        when( siteSettings.getHostUrl() ).thenReturn( URI.create( "http://localhost" ) );
     }
 
     @Test
@@ -100,7 +100,7 @@ public class EmailServiceImplTest {
     }
 
     public void sendResetTokenMessage_thenSucceed() throws MessagingException, ExecutionException, InterruptedException {
-        when( siteSettings.getHostUri() ).thenReturn( URI.create( "http://localhost" ) );
+        when( siteSettings.getHostUrl() ).thenReturn( URI.create( "http://localhost" ) );
         User user = createUser( 1 );
         PasswordResetToken token = createPasswordResetToken( user, "1234" );
         emailService.sendResetTokenMessage( user, token, Locale.getDefault() ).get();

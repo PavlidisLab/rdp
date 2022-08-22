@@ -4,21 +4,17 @@ import lombok.Data;
 import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.StopWatch;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.hibernate.dialect.MySQLDialect;
-import org.hibernate.exception.SQLGrammarException;
-import org.hibernate.internal.SessionFactoryImpl;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.info.BuildProperties;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.MessageSource;
+import org.springframework.context.NoSuchMessageException;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.util.Pair;
@@ -39,7 +35,6 @@ import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static java.util.function.UnaryOperator.identity;
 
@@ -454,25 +449,6 @@ public class OntologyService implements InitializingBean {
     }
 
     /**
-     * Resolve the ontology name.
-     * <p>
-     * In templates, prefer instead {@link MessageSource} with the <code>rdp.ontologies.{ontologyName}.title</code> code.
-     */
-    public String resolveOntologyName( Ontology o, Locale locale ) {
-        return messageSource.getMessage( "rdp.ontologies." + o.getName() + ".title", null, o.getName().toUpperCase(), locale );
-    }
-
-    /**
-     * Resolve the ontology definition.
-     * <p>
-     * In templates, prefer instead {@link MessageSource} with the <code>rdp.ontologies.{ontologyName}.definition</code>
-     * code.
-     */
-    public String resolveOntologyTermInfoName( OntologyTermInfo t, Locale locale ) {
-        return messageSource.getMessage( "rdp.ontologies." + t.getOntology().getName() + ".terms." + t.getName() + ".title", null, t.getName(), locale );
-    }
-
-    /**
      * Resolve an ontology URL into a {@link Resource}.
      */
     public Resource resolveOntologyUrl( URL ontologyUrl ) {
@@ -482,17 +458,21 @@ public class OntologyService implements InitializingBean {
     @Transactional
     public void updateOntologies() {
         log.info( "Updating all active ontologies..." );
+        StopWatch timer = StopWatch.createStarted();
         for ( Ontology ontology : findAllOntologies() ) {
             if ( ontology.getOntologyUrl() != null ) {
                 Resource resource = resolveOntologyUrl( ontology.getOntologyUrl() );
                 log.info( "Updating " + ontology + " from " + resource + "..." );
                 try ( Reader reader = new InputStreamReader( resource.getInputStream() ) ) {
                     updateFromObo( ontology, reader );
-                    log.info( "Updated " + ontology + " from " + resource + "." );
                     int numActivated = propagateSubtreeActivation( ontology );
+                    log.info( String.format( "Propagating subtree activation in %s...", ontology ) );
                     if ( numActivated > 0 ) {
                         log.info( String.format( "%d terms got activated via subtree propagation in %s.", numActivated, ontology ) );
+                    } else {
+                        log.info( "No subtree needed activation propagation." );
                     }
+                    log.info( "Updated " + ontology + "." );
                 } catch ( FileNotFoundException e ) {
                     log.warn( String.format( "The update of %s will be skipped: %s does not exist.", ontology, resource ) );
                 } catch ( IOException | ParseException e ) {
@@ -500,7 +480,7 @@ public class OntologyService implements InitializingBean {
                 }
             }
         }
-        log.info( "Ontologies have been successfully updated." );
+        log.info( String.format( "Ontologies have been successfully updated in %d ms.", timer.getTime( TimeUnit.MILLISECONDS ) ) );
     }
 
     /**
@@ -522,8 +502,10 @@ public class OntologyService implements InitializingBean {
                 bw.writeLine( "[Term]" );
                 bw.writeLine( "id: " + term.getTermId() );
                 bw.writeLine( "name: " + term.getName() );
-                if ( term.getDefinition() != null ) {
-                    bw.writeLine( "def: " + '"' + term.getDefinition() + '"' + " []" );
+                try {
+                    bw.writeLine( "def: " + '"' + messageSource.getMessage( term.getResolvableDefinition(), Locale.getDefault() ) + '"' + " []" );
+                } catch ( NoSuchMessageException e ) {
+                    // no definition
                 }
                 for ( OntologyTermInfo superTerm : term.getSuperTerms() ) {
                     bw.writeLine( "is_a: " + superTerm.getTermId() + " ! " + superTerm.getName() );
@@ -551,7 +533,7 @@ public class OntologyService implements InitializingBean {
     @Secured("ROLE_ADMIN")
     public Ontology create( Ontology ontology ) throws OntologyNameAlreadyUsedException {
         if ( ontology.getId() != null ) {
-            throw new IllegalArgumentException( String.format( "Ontology %s already exists, it cannot be created.", ontology.getName() ) );
+            throw new IllegalArgumentException( String.format( "%s already exists, it cannot be created.", ontology ) );
         }
         if ( ontologyRepository.existsByName( ontology.getName() ) ) {
             throw new OntologyNameAlreadyUsedException( ontology.getName() );
@@ -563,7 +545,7 @@ public class OntologyService implements InitializingBean {
     @Secured("ROLE_ADMIN")
     public void updateNameAndTerms( Ontology ontology, String name, Set<OntologyTermInfo> terms ) throws OntologyNameAlreadyUsedException {
         if ( ontology.getId() == null ) {
-            throw new IllegalArgumentException( String.format( "Ontology %s does not exist, it cannot be updated.", ontology.getName() ) );
+            throw new IllegalArgumentException( String.format( "%s does not exist, it cannot be updated.", ontology ) );
         }
         if ( !ontology.getName().equals( name ) && ontologyRepository.existsByName( name ) ) {
             throw new OntologyNameAlreadyUsedException( "Ontology already exists." );
@@ -594,10 +576,10 @@ public class OntologyService implements InitializingBean {
     }
 
     @Transactional(readOnly = true)
-    public String findDefinitionByTermNameAndOntologyName( String termName, String ontologyName ) {
+    public Optional<String> findDefinitionByTermNameAndOntologyName( String termName, String ontologyName ) {
         return ontologyTermInfoRepository.findAllDefinitionsByNameAndOntologyName( termName, ontologyName ).stream()
-                .findFirst()
-                .orElse( null );
+                .filter( Objects::nonNull )
+                .findFirst();
     }
 
     private static class OboWriter extends BufferedWriter {
@@ -742,15 +724,21 @@ public class OntologyService implements InitializingBean {
 
         // then some definitions
         if ( results.size() < maxResults ) {
+            String definition;
+            try {
+
+            } catch ( NoSuchMessageException e ) {
+                definition = null;
+            }
             if ( isFullTextSupported() ) {
                 ontologyTermInfoRepository.findAllByOntologyInAndDefinitionMatchAndActive( ontologies, fullTextQuery, active ).stream()
                         .map( row -> Pair.of( (OntologyTermInfo) row[0], (Double) row[1] ) )
-                        .map( t -> toSearchResult( t.getFirst(), OntologyTermMatchType.DEFINITION_MATCH, t.getFirst().getDefinition(), t.getSecond(), locale ) )
+                        .map( t -> toSearchResult( t.getFirst(), OntologyTermMatchType.DEFINITION_MATCH, getTermDefinition( t.getFirst(), locale ), t.getSecond(), locale ) )
                         .forEachOrdered( results::add );
 
             } else {
                 ontologyTermInfoRepository.findAllByOntologyInAndDefinitionLikeIgnoreCaseAndActive( ontologies, "%" + normalizedQuery + "%", active ).stream()
-                        .map( t -> toSearchResult( t, OntologyTermMatchType.DEFINITION_CONTAINS, t.getDefinition(), 0.0, locale ) )
+                        .map( t -> toSearchResult( t, OntologyTermMatchType.DEFINITION_CONTAINS, getTermDefinition( t, locale ), 0.0, locale ) )
                         .forEachOrdered( results::add );
             }
         }
@@ -774,6 +762,14 @@ public class OntologyService implements InitializingBean {
         }
 
         return new ArrayList<>( sortedResults );
+    }
+
+    private String getTermDefinition( OntologyTermInfo term, Locale locale ) {
+        try {
+            return messageSource.getMessage( term.getResolvableDefinition(), locale );
+        } catch ( NoSuchMessageException e ) {
+            return null;
+        }
     }
 
     /**
@@ -828,7 +824,7 @@ public class OntologyService implements InitializingBean {
                 matchType,
                 t.getId(),
                 t.getTermId(),
-                resolveOntologyTermInfoName( t, locale ),
+                messageSource.getMessage( t.getResolvableTitle(), locale ),
                 t );
         result.setExtras( extras );
         result.setScore( tfIdf );
@@ -972,8 +968,8 @@ public class OntologyService implements InitializingBean {
         // report cycles
         Map<Ontology, List<OntologyTermInfo>> r = C.stream().collect( Collectors.groupingBy( OntologyTermInfo::getOntology, Collectors.toList() ) );
         for ( Map.Entry<Ontology, List<OntologyTermInfo>> e : r.entrySet() ) {
-            log.warn( String.format( "There are one or more cycles in the ontology %s as %s were already visited. The topological order will not be valid.",
-                    e.getKey().getName(),
+            log.warn( String.format( "There are one or more cycles in %s as %s were already visited. The topological order will not be valid.",
+                    e.getKey(),
                     e.getValue().stream().sorted().distinct().map( OntologyTermInfo::getTermId ).collect( Collectors.joining( ", " ) ) ) );
         }
 
@@ -1039,6 +1035,11 @@ public class OntologyService implements InitializingBean {
     @Transactional(readOnly = true)
     public long countActiveAndObsoleteTerms( Ontology ontology ) {
         return ontologyTermInfoRepository.countByOntologyAndActiveTrueAndObsoleteTrue( ontology );
+    }
+
+    @Transactional(readOnly = true)
+    public long countDistinctUserTerms( Ontology ontology ) {
+        return ontologyRepository.countDistinctUserTermsByOntology( ontology );
     }
 
     /**

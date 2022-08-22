@@ -1,11 +1,11 @@
-var messages = require('./util/messages');
-
 /**
  * Ontology-related scripts.
  * @author poirigui
  */
 (function () {
     'use strict';
+
+    var EventSource = window.EventSource;
 
     $('.import-ontology-btn').click(function () {
         $(this).find('.spinner').toggleClass('d-none', false);
@@ -24,7 +24,7 @@ var messages = require('./util/messages');
         delay: 200,
         source: function (request, response) {
             var term = request.term;
-            $.getJSON(window.contextPath + '/admin/ontologies/' + window.ontologyId + '/autocomplete-terms', {
+            $.getJSON(window.contextPath + '/admin/ontologies/' + ontologyId + '/autocomplete-terms', {
                 query: term
             }).done(function (data) {
                 if (!data.length) {
@@ -132,13 +132,13 @@ var messages = require('./util/messages');
         var reactomeOntologyId = $(this).data('reactome-ontology-id');
         var formGroup = $(this).closest('.form-group');
         var progressFeedback = formGroup.find('.progress-feedback');
-        var evtSource = new window.EventSource('/admin/ontologies/' + reactomeOntologyId + '/update-reactome-pathway-summations');
+        var evtSource = new EventSource('/admin/ontologies/' + reactomeOntologyId + '/update-reactome-pathway-summations');
         $(progressFeedback).toggleClass('text-success', false);
         evtSource.onmessage = function (e) {
             /**
              * @type {ProgressPayload}
              */
-            var progressPayload = window.JSON.parse(e.data);
+            var progressPayload = JSON.parse(e.data);
             if (progressPayload.processedElements === progressPayload.totalElements) {
                 $(progressFeedback)
                     .toggleClass('text-success', true)
@@ -147,14 +147,5 @@ var messages = require('./util/messages');
                 $(progressFeedback).text('Processed ' + progressPayload.processedElements + ' out of ' + progressPayload.totalElements + ' pathways.');
             }
         };
-    });
-
-    $('#refresh-messages-form').submit(function (event) {
-        $.ajax(window.contextPath + '/admin/refresh-messages', {
-            method: 'POST'
-        }).done(function (reply) {
-            messages.publishMessage(reply, 'refresh-messages-message');
-        });
-        event.preventDefault();
     });
 })();

@@ -1,22 +1,28 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
-<span th:fragment="ontology-name(ontology)"
-      th:text="${#messages.msgOrNull('rdp.ontologies.' + ontology.name + '.title') ?: #strings.toUpperCase(ontology.name)}">
+<span th:fragment="ontology-name-with-definition-tooltip(ontology)">
+    <span th:text="${@messageSource.getMessage(ontology.resolvableTitle, #locale)}"></span>
+    <i th:if="${#messages.msgOrNull(ontology.resolvableDefinition.code)} != null"
+       th:title="${@messageSource.getMessage(ontology.resolvableDefinition, #locale)}"
+       class="tip oi oi-question-mark"
+       data-toggle="tooltip"></i>
 </span>
 <div th:fragment="terms-display-or-selection(ontology, selectedTerms, readOnly, showTable)"
      th:with="ontologyHasIcons=${@ontologyService.hasIcons(ontology)}">
-    <div th:if="${@ontologyService.isSimple(ontology)}" class="form-row" th:classappend="${readOnly} ? 'align-items-center' : ''">
+    <div th:if="${@ontologyService.isSimple(ontology)}" class="form-row"
+         th:classappend="${readOnly} ? 'align-items-center' : ''">
         <th:block th:each="term, j : ${ontology.terms}" th:if="${term.superTerms.isEmpty()}">
 
             <!-- grouping terms (occupies a full row) -->
             <div th:if="${term.group}" class="col-12">
-                <h5 th:text="${#messages.msgOrNull('rdp.ontologies.' + ontology.name + '.terms.' + term.name + '.title') ?: term.name}"></h5>
+                <h5 th:text="${@messageSource.getMessage(term.resolvableTitle, #locale)}"></h5>
                 <!-- we only display a single layer of sub-terms -->
                 <p th:if="${readOnly}"
-                   th:with="selectedSubTerms=${@ontologyService.onlyTermsIn(term.subTerms, selectedTerms)}">
+                   th:with="selectedSubTerms=${@ontologyService.onlyTermsIn(term.subTerms, selectedTerms)}"
+                   th:classappend="${j.last} ? 'mb-0' : 'notlast'">
                     <th:block th:each="subTerm, i : ${selectedSubTerms}">
-                        <span th:text="${#messages.msgOrNull('rdp.ontologies.' + ontology.name + '.terms.' + subTerm.name + '.title') ?: subTerm.name}"></span><span
+                        <span th:text="${@messageSource.getMessage(subTerm.resolvableTitle, #locale)}"></span><span
                             th:if="${i.last}">.</span><span th:unless="${i.last}">,</span>
                     </th:block>
                 </p>
@@ -33,7 +39,7 @@
                                    th:checked="${@ontologyService.termIsIn(subTerm, selectedTerms)}"
                                    class="form-check-input"/>
                             <label class="form-check-label"
-                                   th:text="${#messages.msgOrNull('rdp.ontologies.' + ontology.name + '.terms.' + subTerm.name + '.title') ?: subTerm.name}"
+                                   th:text="${@messageSource.getMessage(subTerm.resolvableTitle, #locale)}"
                                    th:for="${#ids.prev('ontologyTermIds')}"></label>
                         </div>
                     </div>
@@ -47,9 +53,9 @@
                 <th:block th:if="${readOnly}">
                     <img th:if="${term.hasIcon}"
                          th:src="@{/images/ontologies/{ontologyName}/{termName}.svg(ontologyName=${ontology.name},termName=${term.name})}"
-                         th:alt="${term.name}"
+                         th:alt="${@messageSource.getMessage(term.resolvableTitle, #locale)}"
                          data-toggle="tooltip"
-                         th:title="${term.hasIcon} ? #{'rdp.ontologies.' + ${ontology.name} + '.terms.' + ${term.name} + '.title'}"
+                         th:title="${term.hasIcon} ? ${@messageSource.getMessage(term.resolvableTitle, #locale)}"
                          class="img-fluid d-block mx-auto"
                          alt="The term definition that describes the icon."/>
                     <th:block th:unless="${term.hasIcon}">
@@ -57,13 +63,13 @@
                             <span th:replace="fragments/ontology::textual-icon(term = ${term})"></span>
                         </th:block>
                         <span th:unless="${ontologyHasIcons}"
-                              th:text="${#messages.msgOrNull('rdp.ontologies.' + ontology.name + '.terms.' + term.name + '.title') ?: term.name}"></span>
+                              th:text="${@messageSource.getMessage(term.resolvableTitle, #locale)}"></span>
                     </th:block>
                 </th:block>
                 <div th:if="${term.active} and not ${readOnly}"
                      class="form-check mb-1"
                      data-toggle="tooltip"
-                     th:title="${term.hasIcon} ? #{'rdp.ontologies.' + ${ontology.name} + '.terms.' + ${term.name} + '.title'}">
+                     th:title="${term.hasIcon} ? ${@messageSource.getMessage(term.resolvableTitle, #locale)}">
                     <input type="checkbox"
                            th:id="${#ids.seq('ontologyTermIds')}"
                            name="ontologyTermIds"
@@ -75,7 +81,7 @@
                            class="form-check-label">
                         <img th:if="${term.hasIcon}"
                              th:src="@{/images/ontologies/{ontologyName}/{termName}.svg(ontologyName=${ontology.name},termName=${term.name})}"
-                             th:alt="${term.name}"
+                             th:alt="${@messageSource.getMessage(term.resolvableTitle, #locale)}"
                              class="img-fluid d-block"
                              alt="The term definition that describes its icon."/>
                         <th:block th:unless="${term.hasIcon}">
@@ -83,7 +89,7 @@
                                 <span th:replace="fragments/ontology::textual-icon(term = ${term})"></span>
                             </th:block>
                             <span th:unless="${ontologyHasIcons}"
-                                  th:text="${#messages.msgOrNull('rdp.ontologies.' + ontology.name + '.terms.' + term.name + '.title') ?: term.name}"></span>
+                                  th:text="${@messageSource.getMessage(term.resolvableTitle, #locale)}"></span>
                         </th:block>
                     </label>
                 </div>
@@ -110,7 +116,7 @@
                     <td th:unless="${readOnly}" th:text="${term.termInfo.id}"></td>
                     <td th:if="${readOnly}">
                         <a th:if="${@ontologyResolver.accepts(ontology)}"
-                           th:href="${@ontologyResolver.resolveViewTermUri(term)}"
+                           th:href="${@ontologyResolver.resolveViewTermUrl(term)}"
                            th:text="${term.termId}"
                            target="_blank"
                            rel="noopener"></a>
@@ -119,31 +125,38 @@
                         </span>
                     </td>
                     <td th:unless="${readOnly}" th:text="${term.termId}"></td>
-                    <td th:text="${term.name}"></td>
-                    <td th:text="${term.termInfo?.definition}"></td>
+                    <td th:text="${@messageSource.getMessage(term.resolvableTitle, #locale)}"></td>
+                    <td>
+                        <th:block th:if="${#messages.msgOrNull(term.resolvableDefinition.code) != null}"
+                                  th:text="${@messageSource.getMessage(term.resolvableDefinition, #locale)}">
+                        </th:block>
+                    </td>
                     <td th:unless="${readOnly}"></td>
                 </tr>
                 </tbody>
             </table>
-            <input th:unless="${readOnly}"
-                   class="form-control term-autocomplete"
-                   th:placeholder="'Terms in ' + ${ontology.name}"
-                   th:attr="data-ontology-id=${ontology.id},data-for-table=${#ids.prev('ontologyTermTable')}"/>
+            <input th:unless="${readOnly}" type="search"
+                   th:id="${#ids.seq('ontologyTermIds')}"
+                   class="form-control ontology-term-autocomplete"
+                   th:placeholder="'Terms in ' + ${@messageSource.getMessage(ontology.resolvableTitle, #locale)}"
+                   th:attr="data-ontology-id=${ontology.id},data-for-table=${#ids.prev('ontologyTermTable')}"
+                   aria-autocomplete="list"/>
         </th:block>
         <div th:unless="${showTable}">
             <span th:each="term : ${selectedTerms}"
                   th:if="${term.ontology} == ${ontology}"
                   th:object="${term}"
                   class="badge badge-primary d-inline-flex align-items-center mr-1 mb-1">
-                <span th:text="${term.name}"></span>
+                <span th:text="${@messageSource.getMessage(term.resolvableTitle, #locale)}"></span>
                 <button class="close" type="button">&times;</button>
                 <input type="hidden" th:name="ontologyTermInfoIds" th:value="*{id}"/>
             </span>
-            <input th:unless="${readOnly}"
+            <input th:unless="${readOnly}" type="search"
                    th:id="${#ids.seq('ontologyTermIds')}"
                    th:attr="data-ontology-id=${ontology.id}"
-                   class="form-control term-autocomplete"
-                   th:placeholder="${#messages.msgOrNull('rdp.ontologies.' + ontology.name + '.title') ?: #strings.toUpperCase(ontology.name)} + ' Terms'"/>
+                   class="form-control ontology-term-autocomplete"
+                   th:placeholder="${@messageSource.getMessage(ontology.resolvableTitle, #locale)} + ' Terms'"
+                   aria-autocomplete="list"/>
         </div>
     </div>
 </div>
@@ -158,7 +171,7 @@
      viewbox="0 0 100 100">
     <rect x="0" y="0" width="100" height="100" fill="none" stroke="black"
           stroke-width="2"></rect>
-    <text th:text="${#messages.msgOrNull('rdp.ontologies.' + term.ontology.name + '.terms.' + term.name + '.title') ?: term.name}"
+    <text th:text="${@messageSource.getMessage(term.resolvableTitle, #locale)}"
           x="50%"
           y="50%" text-anchor="middle" dominant-baseline="middle"/>
 </svg>
@@ -197,9 +210,9 @@
             <h4 th:text="*{ontologyTerms[__${i.index}__].termId} ?: 'Term ' + (${i.index} + 1)"
                 class="d-lg-none ontology-term-id"></h4>
             <span class="d-none d-lg-inline-block ontology-term-id">
-                <span th:if="*{ontologyTerms[__${i.index}__].termId} != null"
+                <span th:if="*{ontologyTerms[__${i.index}__].termId} != null and *{ontologyTerms[__${i.index}__].termId} != ''"
                       th:text="*{ontologyTerms[__${i.index}__].termId}"></span>
-                <em th:unless="*{ontologyTerms[__${i.index}__].termId} != null">
+                <em th:unless="*{ontologyTerms[__${i.index}__].termId} != null and *{ontologyTerms[__${i.index}__].termId} != ''">
                     Term ID will be generated
                 </em>
             </span>

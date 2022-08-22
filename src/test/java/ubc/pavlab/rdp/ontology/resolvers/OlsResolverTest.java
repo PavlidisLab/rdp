@@ -37,9 +37,9 @@ public class OlsResolverTest {
                 .build();
         OntologyTermInfo term = OntologyTermInfo.builder( ontology, "MONDO:0021166" ).build();
         assertThat( resolver.accepts( ontology ) ).isTrue();
-        assertThat( resolver.resolveViewOntologyUri( ontology ) )
+        assertThat( resolver.resolveViewOntologyUrl( ontology ) )
                 .isEqualTo( URI.create( "https://www.ebi.ac.uk/ols/ontologies/mondo" ) );
-        assertThat( resolver.resolveViewTermUri( term ) )
+        assertThat( resolver.resolveViewTermUrl( term ) )
                 .isEqualTo( URI.create( "https://www.ebi.ac.uk/ols/ontologies/mondo/terms?iri=http%3A%2F%2Fpurl.obolibrary.org%2Fobo%2FMONDO_0021166" ) );
     }
 

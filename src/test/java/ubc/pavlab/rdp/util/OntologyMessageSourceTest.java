@@ -2,7 +2,6 @@ package ubc.pavlab.rdp.util;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.internal.verification.VerificationModeFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -18,9 +17,11 @@ import ubc.pavlab.rdp.services.OntologyService;
 import ubc.pavlab.rdp.settings.SiteSettings;
 
 import java.util.Locale;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @RunWith(SpringRunner.class)
 @Import(WebMvcConfig.class)
@@ -47,7 +48,7 @@ public class OntologyMessageSourceTest {
     @Test
     public void resolveCode() {
         when( ontologyService.findDefinitionByTermNameAndOntologyName( "UBERON:000001", "uberon" ) )
-                .thenReturn( "Lots of parts." );
+                .thenReturn( Optional.of( "Lots of parts." ) );
         assertThat( messageSource.getMessage( "rdp.ontologies.uberon.terms.UBERON:000001.definition", null, Locale.getDefault() ) )
                 .isEqualTo( "Lots of parts." );
         verify( ontologyService ).findDefinitionByTermNameAndOntologyName( "UBERON:000001", "uberon" );
@@ -90,7 +91,7 @@ public class OntologyMessageSourceTest {
                 .name( "term-1" )
                 .build();
         when( ontologyService.findDefinitionByTermNameAndOntologyName( "term-1", "mondo" ) )
-                .thenReturn( "A terrible disease." );
+                .thenReturn( Optional.of( "A terrible disease." ) );
         assertThat( messageSource.getMessage( term.getResolvableDefinition(), Locale.getDefault() ) )
                 .isEqualTo( "A terrible disease." );
         verify( ontologyService ).findDefinitionByTermNameAndOntologyName( "term-1", "mondo" );

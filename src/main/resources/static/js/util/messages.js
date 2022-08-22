@@ -1,3 +1,5 @@
+var console = window.console;
+
 /**
  * Publish a message visible for the user.
  *
@@ -5,23 +7,35 @@
  *
  * @param content the content of the message
  * @param id the ID of the message
- * @param {{error: Boolean}} configuration
+ * @param {{[containerId]: String, [error]: Boolean}} [configuration] optional extra configuration for the published message
  */
 function publishMessage(content, id, configuration) {
     "use strict";
+    var defaultConfiguration = {containerId: 'messages', error: false};
     if (configuration === undefined) {
-        configuration = {error: false};
+        configuration = defaultConfiguration;
+    } else {
+        configuration = Object.assign(defaultConfiguration, configuration);
     }
-    var messagesContainer = $('#messages');
-    var existingMessage = document.getElementById('#' + id);
+    var messagesContainer = document.getElementById(configuration.containerId);
+    var existingMessage = document.getElementById(id);
     if (existingMessage) {
         existingMessage.textContent = content;
-    } else {
-        var newMsg = $('<div class="alert">')
-            .attr('id', '#' + id)
-            .addClass('alert-' + (configuration.error === true ? 'error' : 'success'))
-            .text(content);
+    } else if (messagesContainer) {
+        var newMsg = document.createElement('div');
+        newMsg.id = id;
+        newMsg.classList.add('alert');
+        if (configuration.error === true) {
+            newMsg.classList.add('alert-danger');
+            newMsg.setAttribute('role', 'alert');
+        } else {
+            newMsg.classList.add('alert-success');
+        }
+        newMsg.textContent = content;
         messagesContainer.append(newMsg);
+    } else {
+        console.warn("No with container with ID '" + configuration.containerId + "', will have to resort to using window.alert().");
+        window.alert(content);
     }
 }
 

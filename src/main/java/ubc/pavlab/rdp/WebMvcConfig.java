@@ -39,6 +39,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
     }
 
     @Bean
+
     public MessageSource messageSource( OntologyMessageSource ontologyMessageSource ) {
         HierarchicalMessageSource messageSource = messageSourceWithoutOntology();
         // if it cannot be resolved in messages.properties, then lookup some of our built-in resolution for

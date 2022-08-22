@@ -9,9 +9,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.junit4.SpringRunner;
 import ubc.pavlab.rdp.model.ontology.Ontology;
 import ubc.pavlab.rdp.model.ontology.OntologyTermInfo;
-import ubc.pavlab.rdp.ontology.resolvers.OntologyResolver;
-import ubc.pavlab.rdp.ontology.resolvers.OntologyResolverImpl;
-import ubc.pavlab.rdp.ontology.resolvers.ReactomeResolver;
 import ubc.pavlab.rdp.services.ReactomeService;
 
 import java.net.URI;
@@ -44,8 +41,8 @@ public class ReactomeResolverTest {
         OntologyTermInfo term = OntologyTermInfo.builder( reactome, "R-123" ).build();
         when( reactomeService.findPathwaysOntology() ).thenReturn( reactome );
         assertThat( resolver.accepts( reactome ) ).isTrue();
-        assertThat( resolver.resolveViewOntologyUri( reactome ) ).isEqualTo( URI.create( "https://reactome.org/PathwayBrowser/" ) );
-        assertThat( resolver.resolveViewTermUri( term ) ).isEqualTo( URI.create( "https://reactome.org/PathwayBrowser/#/R-123" ) );
+        assertThat( resolver.resolveViewOntologyUrl( reactome ) ).isEqualTo( URI.create( "https://reactome.org/PathwayBrowser/" ) );
+        assertThat( resolver.resolveViewTermUrl( term ) ).isEqualTo( URI.create( "https://reactome.org/PathwayBrowser/#/R-123" ) );
         verify( reactomeService ).findPathwaysOntology();
     }
 }

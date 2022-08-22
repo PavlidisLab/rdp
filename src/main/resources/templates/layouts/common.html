@@ -4,9 +4,9 @@
 <head th:fragment="head">
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
-    <meta name="description" th:content="${description} ?: #{rdp.site.welcome-public(#{rdp.site.shortname})}"/>
+    <meta name="description" th:content="#{rdp.site.welcome-public(#{'rdp.site.shortname'})}"/>
     <meta name="theme-color" th:content="${@siteSettings.themeColor}"/>
-    <title th:text="${title} ? ${title} + ' - ' + #{rdp.site.fullname} : #{rdp.site.fullname}"></title>
+    <title th:text="#{rdp.site.fullname}"></title>
     <link rel="icon" type="image/png" sizes="16x16" th:href="@{/images/favicon-16x16.png}"/>
     <link rel="icon" type="image/png" sizes="32x32" th:href="@{/images/favicon-32x32.png}"/>
     <script th:inline="javascript">
@@ -20,6 +20,7 @@
     <nav th:style="'background-image:url(\'' + @{/images/header.jpg} + '\'); background-size: cover;'"
          class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container">
+            <!--suppress HtmlUnknownAnchorTarget -->
             <a class="navbar-brand sr-only sr-only-focusable mr-3" href="#main-content">Skip to main content</a>
 
             <a class="navbar-brand" th:href="@{/user/home}" href="/">
@@ -41,7 +42,7 @@
                     </li>
                     <li class="nav-item dropdown">
                         <!--suppress HtmlUnknownTarget -->
-                        <a class="nav-link dropdown-toggle" th:href="@{/user/model}" id="navbarDropdownModel"
+                        <a class="nav-link dropdown-toggle" id="navbarDropdownModel"
                            role="button"
                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Model Organisms</a>
                         <div th:replace="fragments/taxon::taxon-dropdown-menu"
@@ -67,7 +68,7 @@
                 <ul class="navbar-nav">
                     <li sec:authorize="isAuthenticated()"
                         class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownUser" role="button"
+                        <a class="nav-link dropdown-toggle" id="navbarDropdownUser" role="button"
                            data-toggle="dropdown"
                            aria-haspopup="true" aria-expanded="false">
                             <span th:text="${@userService.currentUserName}"/>
@@ -78,6 +79,10 @@
                                 <a th:href="@{/admin/ontologies}" class="dropdown-item">Manage Profile Categories</a>
                                 <a th:href="@{/admin/create-service-account}" class="dropdown-item">Create Service
                                     Account</a>
+                                <a id="refresh-messages" href="#"
+                                   class="dropdown-item">
+                                    Refresh Messages
+                                </a>
                             </th:block>
                             <a th:unless="${#strings.isEmpty(#messages.msg('rdp.terms-of-service'))}"
                                th:href="@{/terms-of-service}"
@@ -99,18 +104,21 @@
         </div>
     </nav>
     <!-- TODO: show this in development mode -->
-    <div th:if="${@environment.acceptsProfiles('staging')}" id="staging-banner"
-         class="alert alert-warning sticky-top text-center" style="z-index: 100">
-        This version of the <span th:text="#{rdp.site.shortname}"></span> registry is <b>staging</b>. Do not provide
+    <div th:if="${@environment.acceptsProfiles('staging', 'dev')}" id="staging-banner"
+         class="alert alert-warning sticky-top text-center mb-0">
+        This version of the <span th:text="#{'rdp.site.shortname'}"></span> registry is <b>staging</b>. Do not provide
         sensitive data.
     </div>
 </th:block>
-<div th:fragment="title(title,subtitle)"
-     class="row">
-    <h1 class="border-right col-auto my-auto" th:text="${title}">...</h1>
+<div th:fragment="title(title,subtitle,nomargin)"
+     class="d-flex align-items-center"
+     th:classappend="${nomargin} ? 'mb-0' : 'mb-3'">
+    <h1 class="mb-0"
+        th:classappend="${subtitle} != null ? 'mr-3 pr-3 border-right' : ''"
+        th:text="${title}">...</h1>
     <p th:if="${subtitle}"
        th:text="${subtitle}"
-       class="col-auto my-auto">...</p>
+       class="mb-0">...</p>
 </div>
 <!-- display a single message -->
 <div th:fragment="message"
@@ -118,7 +126,8 @@
      th:utext="${message}"
      id="default-message"
      class="alert"
-     th:classappend="${error} ? 'alert-danger' : 'alert-info'">
+     th:classappend="${error} ? 'alert-danger' : 'alert-info'"
+     th:attrappend="role=${error} ? 'alert' : null">
     ...
 </div>
 <!-- display multiple messages, including the default message from ::message -->
@@ -128,11 +137,12 @@
 <footer th:fragment="footer" class="footer text-center py-3">
     <span class="text-muted d-inline-block">
         &copy; Copyright 2018.
-        &quot;<span th:text="#{rdp.site.fullname}"></span>&quot;
+        &quot;<span th:text="#{'rdp.site.fullname'}"></span>&quot;
         All rights reserved.
     </span>
     <a sec:authorize="isAuthenticated()" class="d-inline-block" th:href="@{/user/support}">Contact Support</a>
-    <a sec:authorize="!isAuthenticated()" class="d-inline-block" th:href="${'mailto:' + @siteSettings.contactEmail}">Contact Support</a>
+    <a sec:authorize="!isAuthenticated()" class="d-inline-block" th:href="${'mailto:' + @siteSettings.contactEmail}">Contact
+        Support</a>
 </footer>
 <th:block th:fragment="scripts">
     <script sec:authorize="isAuthenticated()" th:src="@{/dist/activity-monitor.bundle.js}"></script>

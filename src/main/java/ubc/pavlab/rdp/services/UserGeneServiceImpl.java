@@ -40,6 +40,7 @@ import ubc.pavlab.rdp.model.ontology.OntologyTerm;
 import ubc.pavlab.rdp.model.ontology.OntologyTermInfo;
 import ubc.pavlab.rdp.repositories.TaxonRepository;
 import ubc.pavlab.rdp.repositories.UserGeneRepository;
+import ubc.pavlab.rdp.security.Permissions;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 
 import java.text.MessageFormat;
@@ -142,7 +143,7 @@ public class UserGeneServiceImpl implements UserGeneService {
                     // FIXME: Ideally, we would not fetch them altogether, but it's really cumbersome adjust all those
                     //        methods in the repository layer to exclude non-verified account.
                     .filter( ug -> ug.getUser().isEnabled() )
-                    .map( ug -> permissionEvaluator.hasPermission( auth, ug, "read" ) ? ug : userService.anonymizeUserGene( ug ) );
+                    .map( ug -> permissionEvaluator.hasPermission( auth, ug, Permissions.READ ) ? ug : userService.anonymizeUserGene( ug ) );
         }
         return results
                 .sorted( UserGene.getComparator() )

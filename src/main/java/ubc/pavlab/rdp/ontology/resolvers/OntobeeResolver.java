@@ -25,13 +25,13 @@ public class OntobeeResolver implements OntologyResolver {
     }
 
     @Override
-    public URI resolveViewOntologyUri( Ontology ontology ) {
+    public URI resolveViewOntologyUrl( Ontology ontology ) {
         return UriComponentsBuilder.fromHttpUrl( "https://ontobee.org/ontology/{0}" )
                 .build( ontology.getName().toUpperCase() );
     }
 
     @Override
-    public URI resolveViewTermUri( OntologyTerm term ) {
+    public URI resolveViewTermUrl( OntologyTerm term ) {
         return UriComponentsBuilder.fromHttpUrl( "https://ontobee.org/ontology/{0}" )
                 .queryParam( "iri", "{1}" )
                 .build( term.getOntology().getName().toUpperCase(), DEFAULT_IRI_PREFIX + term.getTermId().replace( ":", "_" ) );

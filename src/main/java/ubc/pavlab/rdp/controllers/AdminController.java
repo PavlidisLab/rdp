@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.core.io.Resource;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -87,7 +88,7 @@ public class AdminController {
     private SmartValidator smartValidator;
 
     @Autowired
-    private ReloadableResourceBundleMessageSource messageSource;
+    private MessageSource messageSource;
 
     /**
      * Task executor used for background tasks.
@@ -112,7 +113,7 @@ public class AdminController {
 
     @PostMapping(value = "/admin/create-service-account")
     public Object createServiceAccount( @Validated(User.ValidationServiceAccount.class) User user, BindingResult bindingResult ) {
-        String serviceEmail = user.getEmail() + '@' + siteSettings.getHostUri().getHost();
+        String serviceEmail = user.getEmail() + '@' + siteSettings.getHostUrl().getHost();
 
         if ( userService.findUserByEmailNoAuth( serviceEmail ) != null ) {
             bindingResult.rejectValue( "email", "error.user", "There is already a user registered this email." );
@@ -289,11 +290,15 @@ public class AdminController {
         }
 
         ontology.setAvailableForGeneSearch( updateOntologyForm.isAvailableForGeneSearch() );
-        ontology.setDefinition( updateOntologyForm.getDefinition() );
+        if ( StringUtils.hasText( updateOntologyForm.getDefinition() ) ) {
+            ontology.setDefinition( updateOntologyForm.getDefinition() );
+        } else {
+            ontology.setDefinition( null );
+        }
 
         ontologyService.save( ontology );
 
-        modelAndView.addObject( "message", String.format( "Successfully updated %s.", resolveOntologyName( ontology, locale ) ) );
+        modelAndView.addObject( "message", String.format( "Successfully updated %s.", messageSource.getMessage( ontology.getResolvableTitle(), locale ) ) );
 
         return modelAndView;
     }
@@ -319,13 +324,13 @@ public class AdminController {
         if ( !bindingResult.hasErrors() ) {
             try {
                 ontologyService.delete( ontology );
-                redirectAttributes.addFlashAttribute( "message", String.format( "The %s category has been deleted.", resolveOntologyName( ontology, locale ) ) );
+                redirectAttributes.addFlashAttribute( "message", String.format( "The %s category has been deleted.", messageSource.getMessage( ontology.getResolvableTitle(), locale ) ) );
                 return "redirect:/admin/ontologies";
             } catch ( DataIntegrityViolationException e ) {
                 log.error( String.format( "An administrator attempted to delete %s, but it failed.", ontology ), e );
                 modelAndView.setStatus( HttpStatus.BAD_REQUEST );
                 modelAndView.addObject( "error", true );
-                modelAndView.addObject( "message", String.format( "The %s category could not be deleted because it is being used. Instead, you should deactivate it.", resolveOntologyName( ontology, locale ) ) );
+                modelAndView.addObject( "message", String.format( "The %s category could not be deleted because it is being used. Instead, you should deactivate it.", messageSource.getMessage( ontology.getResolvableTitle(), locale ) ) );
             }
         }
 
@@ -371,7 +376,7 @@ public class AdminController {
         }
         try {
             ontologyService.updateNameAndTerms( ontology, simpleOntologyForm.ontologyName, parseTerms( ontology, simpleOntologyForm.getOntologyTerms() ) );
-            redirectAttributes.addFlashAttribute( "message", String.format( "Ontology %s has been successfully updated.", ontology.getName() ) );
+            redirectAttributes.addFlashAttribute( "message", String.format( "Ontology %s has been successfully updated.", messageSource.getMessage( ontology.getResolvableTitle(), locale ) ) );
             return "redirect:/admin/ontologies/" + ontology.getId();
         } catch ( OntologyNameAlreadyUsedException e ) {
             bindingResult.rejectValue( "ontologyName", "AdminController.SimpleOntologyForm.ontologyName.alreadyUsed" );
@@ -610,12 +615,12 @@ public class AdminController {
             try ( Reader reader = new InputStreamReader( urlResource.getInputStream() ) ) {
                 ontologyService.updateFromObo( ontology, reader );
                 int numActivated = ontologyService.propagateSubtreeActivation( ontology );
-                redirectAttributes.addFlashAttribute( "message", String.format( "Updated %s from %s. %d terms got activated via subtree propagation.", ontology.getName(), ontology.getOntologyUrl(), numActivated ) );
+                redirectAttributes.addFlashAttribute( "message", String.format( "Updated %s from %s. %d terms got activated via subtree propagation.", messageSource.getMessage( ontology.getResolvableTitle(), locale ), ontology.getOntologyUrl(), numActivated ) );
             } catch ( IOException | ParseException e ) {
                 log.error( String.format( "Failed to update ontology %s from administrative section.", ontology ), e );
                 return new ModelAndView( "admin/ontology", HttpStatus.BAD_REQUEST )
                         .addAllObjects( defaultsForOntologyModelAndView( ontology ) )
-                        .addObject( "message", String.format( "Failed to update %s: %s", ontology.getName(), e.getMessage() ) )
+                        .addObject( "message", String.format( "Failed to update %s: %s", messageSource.getMessage( ontology.getResolvableTitle(), locale ), e.getMessage() ) )
                         .addObject( "error", true );
             }
         }
@@ -659,6 +664,14 @@ public class AdminController {
         }
         try {
             reactomeOntology = reactomeService.importPathwaysOntology();
+            // trigger the summation update in the background
+            taskExecutor.execute( new DelegatingSecurityContextRunnable( () -> {
+                try {
+                    reactomeService.updatePathwaySummations( null );
+                } catch ( ReactomeException e ) {
+                    log.error( "Failed to update Reactome Pathways Summations after initial import.", e );
+                }
+            } ) );
             redirectAttributes.addFlashAttribute( "message", "Successfully imported Reactome pathways ontology." );
             return "redirect:/admin/ontologies/" + reactomeOntology.getId();
         } catch ( ReactomeException e ) {
@@ -775,7 +788,7 @@ public class AdminController {
                     .addObject( "message", messageSource.getMessage( "AdminController.ontologyNotFoundById", null, locale ) );
         }
         int activatedTerms = ontologyService.activate( ontology, activateOntologyForm.isIncludeTerms() );
-        redirectAttributes.addFlashAttribute( "message", String.format( "%s ontology has been activated.", resolveOntologyName( ontology, locale ) )
+        redirectAttributes.addFlashAttribute( "message", String.format( "%s ontology has been activated.", messageSource.getMessage( ontology.getResolvableTitle(), locale ) )
                 + ( activatedTerms > 0 ? String.format( " In addition, %d terms have been activated.", activatedTerms ) : "" ) );
         return "redirect:/admin/ontologies/" + ontology.getId();
     }
@@ -787,7 +800,7 @@ public class AdminController {
                     .addObject( "message", messageSource.getMessage( "AdminController.ontologyNotFoundById", null, locale ) );
         }
         int numDeactivated = ontologyService.deactivate( ontology, deactivateOntologyForm.isIncludeTerms() );
-        redirectAttributes.addFlashAttribute( "message", String.format( "%s ontology has been deactivated.", resolveOntologyName( ontology, locale ) )
+        redirectAttributes.addFlashAttribute( "message", String.format( "%s ontology has been deactivated.", messageSource.getMessage( ontology.getResolvableTitle(), locale ) )
                 + ( numDeactivated > 0 ? String.format( " In addition, %d terms have been deactivated.", numDeactivated ) : "" ) );
         return "redirect:/admin/ontologies/" + ontology.getId();
     }
@@ -852,14 +865,14 @@ public class AdminController {
             ontologyTermInfo = ontologyService.findTermByTermIdAndOntology( activateOrDeactivateTermForm.ontologyTermInfoId, ontology );
             if ( ontologyTermInfo == null ) {
                 bindingResult.rejectValue( "ontologyTermInfoId", "AdminController.ActivateOrDeactivateTermForm.unknownTermInOntology",
-                        new String[]{ activateOrDeactivateTermForm.getOntologyTermInfoId(), ontology.getName() }, null );
+                        new String[]{ activateOrDeactivateTermForm.getOntologyTermInfoId(), messageSource.getMessage( ontology.getResolvableTitle(), locale ) }, null );
             }
         }
 
         // check if the term belongs to the ontology
         if ( ontologyTermInfo != null && !ontologyTermInfo.getOntology().equals( ontology ) ) {
             bindingResult.rejectValue( "ontologyTermInfoId", "AdminController.ActivateOrDeactivateTermForm.ontologyTermInfoId.termNotPartOfOntology",
-                    new String[]{ ontologyTermInfo.getTermId(), ontology.getName() }, null );
+                    new String[]{ ontologyTermInfo.getTermId(), messageSource.getMessage( ontology.getResolvableTitle(), locale ) }, null );
         }
 
         if ( bindingResult.hasErrors() ) {
@@ -875,7 +888,7 @@ public class AdminController {
             ActivateTermForm activateTermForm = (ActivateTermForm) activateOrDeactivateTermForm;
             if ( activateTermForm.isIncludeSubtree() ) {
                 int numActivated = ontologyService.activateTermSubtree( ontologyTermInfo );
-                redirectAttributes.addFlashAttribute( "message", String.format( "%d terms under %s subtree in %s has been activated.", numActivated, ontologyTermInfo.getTermId(), ontology.getName() ) );
+                redirectAttributes.addFlashAttribute( "message", String.format( "%d terms under %s subtree in %s has been activated.", numActivated, ontologyTermInfo.getTermId(), messageSource.getMessage( ontology.getResolvableTitle(), locale ) ) );
             } else {
                 ontologyService.activateTerm( ontologyTermInfo );
                 redirectAttributes.addFlashAttribute( "message", String.format( "%s in %s has been activated.", ontologyTermInfo.getTermId(), ontology.getName() ) );
@@ -887,10 +900,10 @@ public class AdminController {
         } else {
             if ( activateOrDeactivateTermForm.isIncludeSubtree() ) {
                 int numDeactivated = ontologyService.deactivateTermSubtree( ontologyTermInfo );
-                redirectAttributes.addFlashAttribute( "message", String.format( "%d terms under %s subtree in %s has been deactivated.", numDeactivated, ontologyTermInfo.getTermId(), ontology.getName() ) );
+                redirectAttributes.addFlashAttribute( "message", String.format( "%d terms under %s subtree in %s has been deactivated.", numDeactivated, ontologyTermInfo.getTermId(), messageSource.getMessage( ontology.getResolvableTitle(), locale ) ) );
             } else {
                 ontologyService.deactivateTerm( ontologyTermInfo );
-                redirectAttributes.addFlashAttribute( "message", String.format( "%s in %s has been deactivated.", ontologyTermInfo.getTermId(), ontology.getName() ) );
+                redirectAttributes.addFlashAttribute( "message", String.format( "%s in %s has been deactivated.", ontologyTermInfo.getTermId(), messageSource.getMessage( ontology.getResolvableTitle(), locale ) ) );
             }
         }
 
@@ -925,15 +938,19 @@ public class AdminController {
         // hint the user that a term is already active
         String termId = TextUtils.normalize( query );
         if ( ontologyService.existsByTermIdAndOntologyAndActiveTrue( termId, ontology ) ) {
-            return EmptySearchResult.create( String.format( "%s is already active in %s.", termId, ontologyService.resolveOntologyName( ontology, locale ) ), query );
+            return EmptySearchResult.create( String.format( "%s is already active in %s.", termId, messageSource.getMessage( ontology.getResolvableTitle(), locale ) ), query );
         }
         return ontologyService.autocompleteInactiveTerms( query, ontology, 20, locale );
     }
 
     @PostMapping("/admin/refresh-messages")
     public ResponseEntity<String> refreshMessages() {
-        messageSource.clearCacheIncludingAncestors();
-        return ResponseEntity.ok( "Messages cache have been updated." );
+        if ( messageSource instanceof ReloadableResourceBundleMessageSource ) {
+            ( (ReloadableResourceBundleMessageSource) messageSource ).clearCacheIncludingAncestors();
+            return ResponseEntity.ok( "Messages have been refreshed." );
+        } else {
+            return ResponseEntity.internalServerError().body( "The configured message source is not reloadable, you must restart the application for changes to take effect." );
+        }
     }
 
     @PostMapping("/admin/ontologies/{ontology}/move")
@@ -1033,9 +1050,5 @@ public class AdminController {
     @InitBinder("importOntologyForm")
     public void initBinder( WebDataBinder webDataBinder ) {
         webDataBinder.addValidators( new ImportOntologyFormValidator() );
-    }
-
-    private String resolveOntologyName( Ontology ontology, Locale locale ) {
-        return messageSource.getMessage( "rdp.ontologies." + ontology.getName() + ".title", null, ontology.getName().toUpperCase(), locale );
     }
 }

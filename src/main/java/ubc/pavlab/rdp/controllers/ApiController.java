@@ -1,5 +1,6 @@
 package ubc.pavlab.rdp.controllers;
 
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.info.BuildProperties;
@@ -25,6 +26,7 @@ import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.model.ontology.Ontology;
 import ubc.pavlab.rdp.model.ontology.OntologyTerm;
 import ubc.pavlab.rdp.model.ontology.OntologyTermInfo;
+import ubc.pavlab.rdp.security.Permissions;
 import ubc.pavlab.rdp.services.*;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.settings.SiteSettings;
@@ -88,6 +90,7 @@ public class ApiController {
     /**
      * Handle all unmapped API requests with a 404 error.
      */
+    @Operation(hidden = true)
     @GetMapping(value = "/api/*")
     public void handleMissingRoute() {
         throw new ApiException( HttpStatus.NOT_FOUND, "No endpoint found for your request URL." );
@@ -124,7 +127,7 @@ public class ApiController {
         if ( applicationSettings.getPrivacy().isEnableAnonymizedSearchResults() ) {
             final Authentication auth2 = SecurityContextHolder.getContext().getAuthentication();
             return userService.findByEnabledTrueNoAuth( pageable )
-                    .map( user -> permissionEvaluator.hasPermission( auth2, user, "read" ) ? user : userService.anonymizeUser( user ) )
+                    .map( user -> permissionEvaluator.hasPermission( auth2, user, Permissions.READ ) ? user : userService.anonymizeUser( user ) )
                     .map( user -> initUser( user, locale ) );
 
         } else {
@@ -144,7 +147,7 @@ public class ApiController {
         if ( applicationSettings.getPrivacy().isEnableAnonymizedSearchResults() ) {
             final Authentication auth2 = SecurityContextHolder.getContext().getAuthentication();
             return userGeneService.findByUserEnabledTrueNoAuth( pageable )
-                    .map( userGene -> permissionEvaluator.hasPermission( auth2, userGene, "read" ) ? userGene : userService.anonymizeUserGene( userGene ) )
+                    .map( userGene -> permissionEvaluator.hasPermission( auth2, userGene, Permissions.READ ) ? userGene : userService.anonymizeUserGene( userGene ) )
                     .map( userGene -> initUserGene( userGene, locale ) );
         } else {
             return userGeneService.findByUserEnabledTrueAndPrivacyLevelNoAuth( PrivacyLevelType.PUBLIC, pageable ).map( userGene -> initUserGene( userGene, locale ) );
@@ -328,10 +331,26 @@ public class ApiController {
         if ( user == null ) {
             throw new ApiException( HttpStatus.NOT_FOUND, String.format( "Unknown user with anonymous ID: %s.", anonymousId ) );
         }
-        if ( permissionEvaluator.hasPermission( SecurityContextHolder.getContext().getAuthentication(), user, "read" ) ) {
+        if ( permissionEvaluator.hasPermission( SecurityContextHolder.getContext().getAuthentication(), user, Permissions.READ ) ) {
             return initUser( user, locale );
         } else {
             return initUser( userService.anonymizeUser( user ), locale );
+        }
+    }
+
+    @GetMapping(value = "/api/genes/by-anonymous-id/{anonymousId}")
+    public UserGene getUserGeneByAnonymousId( @PathVariable UUID anonymousId,
+                                              Locale locale ) {
+        checkEnabled();
+        checkAnonymousResultsEnabled();
+        UserGene userGene = userService.findUserGeneByAnonymousIdNoAuth( anonymousId );
+        if ( userGene == null ) {
+            throw new ApiException( HttpStatus.NOT_FOUND, String.format( "Unknown gene with anonymous ID: %s.", anonymousId ) );
+        }
+        if ( permissionEvaluator.hasPermission( SecurityContextHolder.getContext().getAuthentication(), userGene, Permissions.READ ) ) {
+            return initUserGene( userGene, locale );
+        } else {
+            return initUserGene( userService.anonymizeUserGene( userGene ), locale );
         }
     }
 
@@ -355,7 +374,7 @@ public class ApiController {
 
     private void checkAnonymousResultsEnabled() {
         if ( !applicationSettings.getPrivacy().isEnableAnonymizedSearchResults() ) {
-            throw new ApiException( HttpStatus.SERVICE_UNAVAILABLE, "Anonymized search results is not available for this registry." );
+            throw new ApiException( HttpStatus.SERVICE_UNAVAILABLE, "Anonymized search results are not available for this registry." );
         }
     }
 
@@ -383,7 +402,7 @@ public class ApiController {
 
     private User initUser( User user, Locale locale ) {
         user.setOrigin( messageSource.getMessage( "rdp.site.shortname", null, locale ) );
-        user.setOriginUrl( siteSettings.getHostUri() );
+        user.setOriginUrl( siteSettings.getHostUrl() );
         if ( !userPrivacyService.checkCurrentUserCanSeeGeneList( user ) ) {
             user.getUserGenes().clear();
         }

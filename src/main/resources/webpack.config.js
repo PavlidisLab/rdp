@@ -1,7 +1,7 @@
 var path = require('path');
 
 module.exports = {
-    mode: 'production',
+    mode: 'development',
     entry: {
         'activity-monitor': './static/js/activity-monitor.js',
         common: './static/js/common.js',
@@ -10,7 +10,8 @@ module.exports = {
         search: './static/js/search.js',
         profile: './static/js/profile.js',
         view: './static/js/view.js',
-        ontology: './static/js/ontology.js'
+        ontology: './static/js/ontology.js',
+        admin: './static/js/admin.js'
     },
     output: {
         filename: '[name].bundle.js',
@@ -36,12 +37,8 @@ module.exports = {
                         presets: ['@babel/preset-env']
                     }
                 }
-            },
-            {
-                test: /\.js$/,
-                enforce: 'pre',
-                use: ['source-map-loader']
             }
         ]
-    }
+    },
+    devtool: 'source-map'
 };

@@ -19,7 +19,7 @@ import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.settings.SiteSettings;
 import ubc.pavlab.rdp.util.OntologyMessageSource;
 
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -60,6 +60,8 @@ public class StatsControllerTest {
         when( buildProperties.getVersion() ).thenReturn( "1.5.0" );
         mvc.perform( get( "/stats" ) )
                 .andExpect( jsonPath( "$.version" ).value( "1.5.0" ) );
+        verify( buildProperties ).getVersion();
+        verify( userService ).countResearchers();
     }
 
     @Test
@@ -84,6 +86,9 @@ public class StatsControllerTest {
         mvc.perform( get( "/stats" )
                         .header( HttpHeaders.ORIGIN, "https://example2.com" ) )
                 .andExpect( status().isForbidden() );
+        verifyNoInteractions( buildProperties );
+        verifyNoInteractions( userService );
+        verifyNoInteractions( userGeneService );
     }
 
     @Test

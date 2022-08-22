@@ -8,9 +8,9 @@
 <body>
 <div th:replace="layouts/common::header"></div>
 
-<div class="container py-3">
+<div class="container py-4">
     <div th:replace="layouts/common::title(title='Administrate User', subtitle=${user.profile.fullName})"></div>
-    <div th:replace="layouts/common::message"></div>
+    <div th:replace="layouts/common::messages"></div>
     <div id="main-content" role="main">
     <div class="row">
         <div class="col-3">
@@ -31,7 +31,13 @@
                     </th:block>
                 </dd>
                 <dt>Enabled?</dt>
-                <dd th:text="${user.enabled} ? 'Yes' : 'No'"></dd>
+                <dd>
+            <span th:if="${user.enabled}">
+                Yes<span th:if="${user.enabledAt} !=null">, on <span
+                    th:replace="fragments/temporal::date-and-time(${user.enabledAt.toInstant()})"></span>.</span>
+            </span>
+                    <span th:unless="${user.enabled}">No</span>
+                </dd>
                 <th:block th:if="${user.verifiedContactEmail.isPresent()}">
                     <dt>Contact Email</dt>
                     <dd>

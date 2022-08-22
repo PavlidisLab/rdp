@@ -13,7 +13,10 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
 import org.springframework.context.MessageSource;
+import org.springframework.context.MessageSourceResolvable;
+import org.springframework.context.NoSuchMessageException;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
@@ -36,7 +39,9 @@ import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @RunWith(SpringRunner.class)
 @DataJpaTest
@@ -169,7 +174,9 @@ public class OntologyServiceTest {
                         "UBERON:0001398", "UBERON:4200183", "UBERON:0010760" );
 
         assertThat( ontologyService.autocompleteTerms( "UBERON:0001507", 10, Locale.getDefault() ) ).hasSize( 1 );
-        verify( messageSource, VerificationModeFactory.atLeastOnce() ).getMessage( "rdp.ontologies.uberon.terms.biceps brachii.title", null, "biceps brachii", Locale.getDefault() );
+        verify( messageSource, VerificationModeFactory.atLeastOnce() ).getMessage(
+                argThat( am -> "rdp.ontologies.uberon.terms.biceps brachii.title".equals( ( (DefaultMessageSourceResolvable) am ).getCode() ) ),
+                eq( Locale.getDefault() ) );
     }
 
     @Test
@@ -247,6 +254,14 @@ public class OntologyServiceTest {
 
     @Test
     public void writeObo_whenFedBackToOboParser_thenProduceExactlyTheSameStructure() throws IOException, ParseException, OntologyNameAlreadyUsedException {
+        when( messageSource.getMessage( any(), any() ) ).thenAnswer( a -> {
+            MessageSourceResolvable resolvable = a.getArgument( 0, MessageSourceResolvable.class );
+            if ( resolvable.getDefaultMessage() != null ) {
+                return resolvable.getDefaultMessage();
+            } else {
+                throw new NoSuchMessageException( "" );
+            }
+        } );
         Ontology ontology = ontologySetupService.setupOntology( "mondo", false );
         assertThat( ontology ).isNotNull();
         // the ontology relationships might not have been fully initialized (i.e. term super terms when sub terms are set)

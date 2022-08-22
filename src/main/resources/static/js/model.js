@@ -120,7 +120,7 @@
                     }
                     row.push('<span class="align-middle">' +
                         '<a href="https://www.ebi.ac.uk/QuickGO/GTerm?id=' + encodeURIComponent(term.goId) + '" ' +
-                        'target="_blank" data-toggle="tooltip" class="align-middle" title="' + term.definition + '">' + term.goId + '</a></span>');
+                        'target="_blank" rel="noopener" data-toggle="tooltip" class="align-middle" title="' + term.definition + '">' + term.goId + '</a></span>');
                     row.push('<span class="align-middle">' + term.name + '</span>');
                     row.push('<span class="align-middle">' + term.aspect + '</span>');
                     row.push('<a href="#" class="align-middle overlap-show-modal" data-toggle="modal" data-target="#overlapModal" data-go-id="' + term.goId + '">' + term.frequency + '</a>');
@@ -271,7 +271,10 @@
                     return;
                 }
 
-                $.getJSON(window.contextPath + "/taxon/" + encodeURIComponent(window.currentTaxonId) + "/gene/search", {query: term, max: 10})
+                $.getJSON(window.contextPath + "/taxon/" + encodeURIComponent(window.currentTaxonId) + "/gene/search", {
+                    query: term,
+                    max: 10
+                })
                     .done(function (data) {
                         if (!data.length) {
                             data = [
@@ -347,7 +350,10 @@
                 if (term.indexOf(",") !== -1) {
                     return;
                 }
-                $.getJSON(window.contextPath + "/taxon/" + encodeURIComponent(window.currentTaxonId) + "/term/search", {query: term, max: 10})
+                $.getJSON(window.contextPath + "/taxon/" + encodeURIComponent(window.currentTaxonId) + "/term/search", {
+                    query: term,
+                    max: 10
+                })
                     .done(function (data) {
                         if (!data.length) {
                             data = [

@@ -28,20 +28,20 @@ public class OntologyResolverImpl implements OntologyResolver {
     }
 
     @Override
-    public URI resolveViewOntologyUri( Ontology ontology ) {
+    public URI resolveViewOntologyUrl( Ontology ontology ) {
         for ( OntologyResolver resolver : resolvers ) {
             if ( resolver.accepts( ontology ) ) {
-                return resolver.resolveViewOntologyUri( ontology );
+                return resolver.resolveViewOntologyUrl( ontology );
             }
         }
         return null;
     }
 
     @Override
-    public URI resolveViewTermUri( OntologyTerm term ) {
+    public URI resolveViewTermUrl( OntologyTerm term ) {
         for ( OntologyResolver resolver : resolvers ) {
             if ( resolver.accepts( term.getOntology() ) ) {
-                return resolver.resolveViewTermUri( term );
+                return resolver.resolveViewTermUrl( term );
             }
         }
         return null;

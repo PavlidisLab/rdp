@@ -18,10 +18,10 @@ public interface OntologyResolver {
     /**
      * Retrieve a URI for an ontology.
      */
-    URI resolveViewOntologyUri( Ontology ontology );
+    URI resolveViewOntologyUrl( Ontology ontology );
 
     /**
      * Retrieve a URI for a term.
      */
-    URI resolveViewTermUri( OntologyTerm term );
+    URI resolveViewTermUrl( OntologyTerm term );
 }

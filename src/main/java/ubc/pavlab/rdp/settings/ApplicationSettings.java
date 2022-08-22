@@ -17,6 +17,7 @@ import ubc.pavlab.rdp.services.GeneInfoService;
 
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Size;
 import java.net.URI;
 import java.time.Duration;

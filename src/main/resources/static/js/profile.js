@@ -274,7 +274,7 @@
         });
     });
 
-    $('.term-autocomplete').autocomplete({
+    $('.ontology-term-autocomplete').autocomplete({
         minLength: 3,
         delay: 200,
         source: function (request, response) {

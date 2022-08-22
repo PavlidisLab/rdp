@@ -87,14 +87,14 @@ public class ReactomeService {
     @Transactional(rollbackFor = ReactomeException.class)
     public Ontology updatePathwaysOntology() throws ReactomeException {
         if ( ontologyService.existsByName( applicationSettings.getOntology().getReactomePathwaysOntologyName() ) ) {
-            log.info( "Updating Reactome pathways..." );
+            log.info( "Updating Reactome Pathways..." );
             Ontology ontology = importOrUpdatePathwaysOntology();
             log.info( "Propagating subtree activation..." );
             int numActivated = ontologyService.propagateSubtreeActivation( ontology );
             if ( numActivated > 0 ) {
                 log.info( String.format( "%d terms got activated in %s.", numActivated, ontology ) );
             } else {
-                log.info( "No subtree needed expansion." );
+                log.info( "No subtree needed activation propagation." );
             }
             return ontology;
         } else {
@@ -189,7 +189,7 @@ public class ReactomeService {
         StopWatch timer = StopWatch.createStarted();
 
         int maxPage = (int) Math.ceil( ontology.getTerms().size() / 20.0 );
-        log.info( String.format( "Updating Reactome pathway summations, %d pages or 20 terms will be processed...", maxPage ) );
+        log.info( String.format( "Updating Reactome Pathways Summations, %d pages or 20 terms will be processed...", maxPage ) );
 
         for ( int i = 0; i < maxPage; i++ ) {
             Page<OntologyTermInfo> page = ontologyService.findAllTermsByOntologyIncludingInactive( ontology, PageRequest.of( i, 20 ) );
@@ -222,7 +222,7 @@ public class ReactomeService {
 
         timer.stop();
 
-        log.info( String.format( "Done updating Reactome pathway summations in %d ms.", timer.getTime( TimeUnit.MILLISECONDS ) ) );
+        log.info( String.format( "Done updating Reactome Pathway Summations in %d ms.", timer.getTime( TimeUnit.MILLISECONDS ) ) );
     }
 
     @Data

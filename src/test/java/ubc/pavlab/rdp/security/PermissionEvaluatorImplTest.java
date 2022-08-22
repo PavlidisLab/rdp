@@ -57,16 +57,16 @@ public class PermissionEvaluatorImplTest {
     public void hasPermission_whenUserIsAnonymous_thenCallAppropriatePrivacyServiceMethod() {
         when( auth.getPrincipal() ).thenReturn( "anonymousUser" );
 
-        permissionEvaluator.hasPermission( auth, null, "international-search" );
+        permissionEvaluator.hasPermission( auth, null, Permissions.INTERNATIONAL_SEARCH );
         verify( privacyService ).checkUserCanSearch( null, true );
 
-        permissionEvaluator.hasPermission( auth, null, "search" );
+        permissionEvaluator.hasPermission( auth, null, Permissions.SEARCH );
         verify( privacyService ).checkUserCanSearch( null, false );
 
-        permissionEvaluator.hasPermission( auth, userContent, "read" );
+        permissionEvaluator.hasPermission( auth, userContent, Permissions.READ );
         verify( privacyService ).checkUserCanSee( null, userContent );
 
-        permissionEvaluator.hasPermission( auth, userContent, "update" );
+        permissionEvaluator.hasPermission( auth, userContent, Permissions.UPDATE );
         verify( privacyService ).checkUserCanUpdate( null, userContent );
     }
 
@@ -78,21 +78,21 @@ public class PermissionEvaluatorImplTest {
         when( auth.getPrincipal() ).thenReturn( userPrinciple );
         when( userService.findUserByIdNoAuth( 5 ) ).thenReturn( user );
 
-        permissionEvaluator.hasPermission( auth, null, "search" );
+        permissionEvaluator.hasPermission( auth, null, Permissions.SEARCH );
         verify( userService ).findUserByIdNoAuth( 5 );
         verify( privacyService ).checkUserCanSearch( user, false );
 
-        permissionEvaluator.hasPermission( auth, userContent, "read" );
+        permissionEvaluator.hasPermission( auth, userContent, Permissions.READ );
         verify( privacyService ).checkUserCanSee( user, userContent );
 
-        permissionEvaluator.hasPermission( auth, userContent, "update" );
+        permissionEvaluator.hasPermission( auth, userContent, Permissions.UPDATE );
         verify( privacyService ).checkUserCanUpdate( user, userContent );
     }
 
     @Test
     public void hasPermission_whenUserContentIsNull_thenReturnTrue() {
         when( auth.getPrincipal() ).thenReturn( "anonymousUser" );
-        assertThat( permissionEvaluator.hasPermission( auth, null, "read" ) ).isTrue();
+        assertThat( permissionEvaluator.hasPermission( auth, null, Permissions.READ ) ).isTrue();
     }
 
     @Test(expected = UnsupportedOperationException.class)
