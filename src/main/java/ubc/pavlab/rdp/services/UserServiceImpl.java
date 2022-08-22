@@ -291,7 +291,7 @@ public class UserServiceImpl implements UserService, InitializingBean {
                 .build();
         profile.getResearcherCategories().addAll( user.getProfile().getResearcherCategories() );
         User anonymizedUser = User.builder()
-                .id( 0 )
+                .id( null )
                 .anonymousId( UUID.randomUUID() )
                 .profile( profile )
                 // FIXME: a disabled user will still cause an AccessDeniedException
@@ -307,7 +307,7 @@ public class UserServiceImpl implements UserService, InitializingBean {
     @PostAuthorize("hasPermission(returnObject, 'read')")
     public UserGene anonymizeUserGene( UserGene userGene ) {
         UserGene anonymizedUserGene = UserGene.builder()
-                .id( 0 )
+                .id( null )
                 .anonymousId( UUID.randomUUID() )
                 .user( anonymizeUser( userGene.getUser() ) )
                 .geneInfo( userGene.getGeneInfo() )

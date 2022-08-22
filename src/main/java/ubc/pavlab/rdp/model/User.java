@@ -67,6 +67,7 @@ public class User implements UserContent, Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "user_id")
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private Integer id;
 
     @Transient
