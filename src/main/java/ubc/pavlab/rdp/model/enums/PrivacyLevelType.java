@@ -1,6 +1,5 @@
 package ubc.pavlab.rdp.model.enums;
 
-import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -12,9 +11,4 @@ public enum PrivacyLevelType {
     PUBLIC( "Public" );
 
     private final String label;
-
-    @JsonValue
-    public int toJsonValue() {
-        return this.ordinal();
-    }
 }

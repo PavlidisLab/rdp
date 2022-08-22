@@ -2,6 +2,7 @@ package ubc.pavlab.rdp.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 import lombok.extern.apachecommons.CommonsLog;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
@@ -132,7 +133,7 @@ public class UserGene extends Gene implements UserContent, Serializable {
      * This value cascades down to the user profile or the application default in case it is not set.
      */
     @Override
-    @JsonIgnore
+    @JsonProperty("privacyLevel")
     public PrivacyLevelType getEffectivePrivacyLevel() {
         PrivacyLevelType privacyLevel = getPrivacyLevel() != null ? getPrivacyLevel() : getUser().getProfile().getPrivacyLevel();
         if ( privacyLevel.ordinal() > getUser().getEffectivePrivacyLevel().ordinal() ) {

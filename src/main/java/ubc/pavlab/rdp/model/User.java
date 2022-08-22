@@ -2,6 +2,7 @@ package ubc.pavlab.rdp.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import lombok.*;
 import lombok.extern.apachecommons.CommonsLog;
@@ -254,7 +255,7 @@ public class User implements UserContent, Serializable {
     }
 
     @Override
-    @JsonIgnore
+    @JsonProperty("privacyLevel")
     public PrivacyLevelType getEffectivePrivacyLevel() {
         // this is a fallback
         if ( getProfile() == null || getProfile().getPrivacyLevel() == null ) {
