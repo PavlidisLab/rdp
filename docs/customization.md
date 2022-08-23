@@ -104,14 +104,13 @@ To disable organ systems altogether, set the following in your configuration:
 rdp.settings.organs.enabled=false
 ```
 
-## Ontology
+## Creating additional profile categories
 
-Support for ontologies based on the OBO format was introduced in the 1.5 series as a way to allow users to attach terms
-to their profiles and be discovered via inference.
+Support for additional profile categories, including ontologies based on the OBO format, was introduced in the 1.5 series as a way to make the software more flexible and customizable. 
 
-Most of the administration of ontologies can be done under the `/admin/ontologies` endpoint.
+Most of the administration of profile categories can be done under the `/admin/ontologies` endpoint.
 
-To disable ontologies altogether, set the following in your `application.properties`:
+To disable this feature altogether, set the following in your `application.properties`:
 
 ```ini
 rdp.settings.ontologies.enabled=false
@@ -124,7 +123,7 @@ Each term should have a unique name.
 
 ![Interface for creating a simple category.](images/create-simple-category.png)
 
-Simple categories support only one grouping level. Terms are grouped in the closest preceding grouping term. Grouping
+The terms can be grouped using grouping terms to Simple categories support only one grouping level. Terms are grouped in the closest preceding grouping term. Grouping
 terms cannot be picked by the user for searching. Groups must not be empty.
 
 ![Example of a simple category with grouping terms.](images/simple-category-with-grouping-terms.png)
