@@ -520,7 +520,6 @@ public class AdminControllerTest {
         verify( ontologyService ).countActiveTerms( ontology );
         verify( ontologyService ).countObsoleteTerms( ontology );
         verify( ontologyService, VerificationModeFactory.atLeastOnce() ).isSimple( ontology );
-        verifyNoMoreInteractions( ontologyService );
         verify( userService, VerificationModeFactory.atLeastOnce() ).existsByOntology( ontology );
     }
 
@@ -573,7 +572,6 @@ public class AdminControllerTest {
         verify( ontologyService ).countActiveTerms( ontology );
         verify( ontologyService ).countObsoleteTerms( ontology );
         verify( ontologyService, VerificationModeFactory.atLeastOnce() ).isSimple( ontology );
-        verifyNoMoreInteractions( ontologyService );
         verify( userService, VerificationModeFactory.atLeastOnce() ).existsByOntology( ontology );
     }
 
@@ -594,7 +592,6 @@ public class AdminControllerTest {
         verify( ontologyService ).countObsoleteTerms( ontology );
         verify( ontologyService, VerificationModeFactory.atLeastOnce() ).resolveOntologyUrl( ontology.getOntologyUrl() );
         verify( ontologyService, VerificationModeFactory.atLeastOnce() ).isSimple( ontology );
-        verifyNoMoreInteractions( ontologyService );
         verify( userService, VerificationModeFactory.atLeastOnce() ).existsByOntology( ontology );
     }
 
@@ -767,7 +764,6 @@ public class AdminControllerTest {
         verify( ontologyService ).countActiveTerms( ontology );
         verify( ontologyService ).countObsoleteTerms( ontology );
         verify( ontologyService, VerificationModeFactory.atLeastOnce() ).isSimple( ontology );
-        verifyNoMoreInteractions( ontologyService );
         verify( userService, VerificationModeFactory.atLeastOnce() ).existsByOntology( ontology );
     }
 
@@ -787,7 +783,6 @@ public class AdminControllerTest {
         verify( ontologyService ).countActiveTerms( ontology );
         verify( ontologyService ).countObsoleteTerms( ontology );
         verify( ontologyService, VerificationModeFactory.atLeastOnce() ).isSimple( ontology );
-        verifyNoMoreInteractions( ontologyService );
         verify( userService, VerificationModeFactory.atLeastOnce() ).existsByOntology( ontology );
     }
 
