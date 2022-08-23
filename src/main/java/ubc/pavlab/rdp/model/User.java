@@ -150,7 +150,11 @@ public class User implements UserContent, Serializable {
      */
     @SneakyThrows
     public void setOriginUrl( URI originUrl ) {
-        this.originUrl = new URI( originUrl.getScheme(), originUrl.getAuthority(), StringUtils.trimTrailingCharacter( originUrl.getPath(), '/' ), null, null );
+        if ( originUrl != null ) {
+            this.originUrl = new URI( originUrl.getScheme(), originUrl.getAuthority(), StringUtils.trimTrailingCharacter( originUrl.getPath(), '/' ), null, null );
+        } else {
+            this.originUrl = null;
+        }
     }
 
     /* Research related information */
