@@ -151,7 +151,7 @@ public class GOServiceImpl implements GOService, InitializingBean {
                     .includedRelationshipTypedef( OBOParser.Typedef.PART_OF )
                     .build() ).getTermsByIdOrAltId() );
         } catch ( IOException | ParseException e ) {
-            log.error( "Failed to parse GO terms.", e );
+            log.error( String.format( "Failed to parse GO terms from %s.", cacheSettings.getTermFile() ), e );
             return;
         }
 
@@ -161,10 +161,10 @@ public class GOServiceImpl implements GOService, InitializingBean {
         try {
             records = gene2GoParser.parse( new GZIPInputStream( cacheSettings.getAnnotationFile().getInputStream() ) );
         } catch ( IOException e ) {
-            log.error( "Failed to retrieve gene2go annotations.", e );
+            log.error( String.format( "Failed to retrieve gene2go annotations from %s.", cacheSettings.getAnnotationFile() ), e );
             return;
         } catch ( ParseException e ) {
-            log.error( "Failed to parse gene2go annotations.", e );
+            log.error( String.format( "Failed to parse gene2go annotations from %s.", cacheSettings.getAnnotationFile() ), e );
             return;
         }
 
