@@ -222,7 +222,8 @@ the [Reactome Content Service API](https://reactome.org/ContentService/#/).
 
 ### Custom titles and definitions
 
-In your `messages.properties`, you may configure ontology and term titles and definitions.
+The content of `messages.properties` has precedence over the values stored in the database for titles and definitions of
+categories and terms. This allows you to override values that are imported from an OBO source as you see fit.
 
 ```ìni
 rdp.ontologies.{ontologyName}.title
@@ -230,6 +231,11 @@ rdp.ontologies.{ontologyName}.definition
 rdp.ontologies.{ontologyName}.terms.{termName}.title
 rdp.ontologies.{ontologyName}.terms.{termName}.definition
 ```
+
+Note that we provide defaults for Reactome in the JAR package, so you must use custom messages for overriding those
+values. A warning will be displayed in the admin section what this is the case.
+
+![Example of a category whose definition cannot be edited from the admin section.](images/category-with-overwritten-definition.png)
 
 Read more about configuring messages in [Customizing the application messages](#customizing-the-applications-messages)
 section of this page.
