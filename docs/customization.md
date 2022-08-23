@@ -151,7 +151,7 @@ The order of categories, as the are displayed on the Profile and Search pages, c
 
 ### Managing a specific profile category
 
-Created profile categories can be managed on their Manage Profile Category page.
+A specific profile category can be managed on its Manage Profile Category page, which is accessed by clicking on the "Manage" button in the categories' table.
 
 In the Edit window on the Manage Profile Category page, you can add a defintion/description of the category, which is used in a tooltip on the Profile Page. You can also specify if this category will be used as a filter on the Gene Search page.  
 
@@ -174,6 +174,16 @@ Once activated, the term will then appear in the list of active subtrees:
 You may deactivate subtree from the table of active subtrees by clicking on "Deactivate".
 
 The active subtrees get a special treatment when the ontology is updated to ensure that newly added sub-terms are always active.
+
+#### Deleting a category
+
+Deleting a category is irreversible and is only possible if it is not being used (there are no users that are associated with any of the category terms). If your ontology is being used, consider deactivating it instead.
+
+![Interface for deleting an ontology.](images/delete-an-ontology.png)
+
+If an ontology has at least one user, the following message will be displayed instead:
+
+![](images/delete-an-ontology-with-users.png)
 
 ### Reactome Pathways
 
@@ -236,15 +246,7 @@ rdp.settings.ontology.default-resolver=ubc.pavlab.rdp.ontology.resolvers.Ontobee
 If you want to use a different source, you can provide a custom implementation of the `OntologyResolver` interface or
 ask us by [opening an issue on the RDP GitHub repository](https://github.com/PavlidisLab/rdp/issues).
 
-### Deleting a category
 
-Deleting a category is irreversible and is only possible if it is not being used (there are no users that are associated with any of the category terms). If your ontology is being used, consider deactivating it instead.
-
-![Interface for deleting an ontology.](images/delete-an-ontology.png)
-
-If an ontology has at least one user, the following message will be displayed instead:
-
-![](images/delete-an-ontology-with-users.png)
 
 ## Loading data from disk
 
