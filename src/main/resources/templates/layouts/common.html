@@ -136,7 +136,7 @@
 </div>
 <footer th:fragment="footer" class="footer text-center py-3">
     <span class="text-muted d-inline-block">
-        &copy; Copyright 2018.
+        &copy; Copyright 2018-<span th:text="${#temporals.year(#temporals.createNow())}"></span>.
         &quot;<span th:text="#{'rdp.site.fullname'}"></span>&quot;
         All rights reserved.
     </span>
