@@ -123,10 +123,9 @@ public class LoginControllerTest {
     @Test
     @Ignore("I have absolutely no idea why this converter does not work anymore. See https://github.com/PavlidisLab/rdp/issues/171 for details.")
     public void register_whenEmailIsUsedButNotEnabled_thenResendConfirmation() throws Exception {
-        User user = User.builder()
+        User user = User.builder( new Profile() )
                 .email( "foo@example.com" )
                 .enabled( false )
-                .profile( new Profile() )
                 .build();
         when( userService.findUserByEmailNoAuth( "foo@example.com" ) ).thenReturn( user );
 
@@ -134,8 +133,7 @@ public class LoginControllerTest {
         formattingConversionService.addConverter( new Converter<Object, User>() {
             @Override
             public User convert( Object o ) {
-                return User.builder()
-                        .profile( Profile.builder().name( "Foo" ).build() )
+                return User.builder( Profile.builder().name( "Foo" ).build() )
                         .email( "foo@example.com" )
                         .build();
             }

@@ -63,12 +63,13 @@ public final class TestUtils {
                 .privacyLevel( PrivacyLevelType.PUBLIC )
                 .shared( false )
                 .hideGenelist( false )
-                .contactEmailVerified( false ).build();
-        return User.builder()
+                .contactEmailVerified( false )
+                .build();
+        return User.builder( profile )
                 .email( String.format( EMAIL_FORMAT, emailCount++ ) )
                 .password( ENCODED_PASSWORD ) // imbatman
                 .enabled( false )
-                .profile( profile ).build();
+                .build();
     }
 
     public static User createUser( int id ) {
@@ -100,9 +101,8 @@ public final class TestUtils {
     }
 
     public static User createAnonymousUser() {
-        return User.builder()
+        return User.builder( new Profile() )
                 .anonymousId( UUID.randomUUID() )
-                .profile( new Profile() )
                 .build();
     }
 

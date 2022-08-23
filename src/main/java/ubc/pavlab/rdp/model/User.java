@@ -60,6 +60,10 @@ public class User implements UserContent, Serializable {
     public interface ValidationServiceAccount {
     }
 
+    public static UserBuilder builder( Profile profile ) {
+        return new UserBuilder().profile( profile );
+    }
+
     public static Comparator<User> getComparator() {
         return Comparator.comparing( u -> u.getProfile().getFullName() );
     }

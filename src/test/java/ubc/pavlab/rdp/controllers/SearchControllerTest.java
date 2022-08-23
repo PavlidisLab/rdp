@@ -521,9 +521,8 @@ public class SearchControllerTest {
         Taxon taxon = createTaxon( 1 );
         GeneInfo gene = createGene( 1, taxon );
         UserGene userGene = createUserGene( 1, gene, createUser( 2 ), TierType.TIER1, PrivacyLevelType.PRIVATE );
-        UserGene anonymizedUserGene = UserGene.builder()
+        UserGene anonymizedUserGene = UserGene.builder( User.builder( new Profile() ).build() )
                 .anonymousId( UUID.randomUUID() )
-                .user( User.builder().profile( new Profile() ).build() )
                 .build();
         when( userService.anonymizeUserGene( userGene ) ).thenReturn( anonymizedUserGene );
         when( userService.findUserGeneByAnonymousIdNoAuth( anonymizedUserGene.getAnonymousId() ) ).thenReturn( userGene );
@@ -549,9 +548,8 @@ public class SearchControllerTest {
         Taxon taxon = createTaxon( 1 );
         GeneInfo gene = createGene( 1, taxon );
         UserGene userGene = createUserGene( 1, gene, createUser( 2 ), TierType.TIER1, PrivacyLevelType.PRIVATE );
-        UserGene anonymizedUserGene = UserGene.builder()
+        UserGene anonymizedUserGene = UserGene.builder( User.builder( new Profile() ).build() )
                 .anonymousId( UUID.randomUUID() )
-                .user( User.builder().profile( new Profile() ).build() )
                 .build();
         when( userService.anonymizeUserGene( userGene ) ).thenReturn( anonymizedUserGene );
         when( userService.findUserGeneByAnonymousIdNoAuth( anonymizedUserGene.getAnonymousId() ) ).thenReturn( userGene );

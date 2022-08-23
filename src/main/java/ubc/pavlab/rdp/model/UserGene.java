@@ -45,6 +45,10 @@ import java.io.Serializable;
 @ToString(of = { "user", "tier", "privacyLevel" }, callSuper = true)
 public class UserGene extends Gene implements UserContent, Serializable {
 
+    public static UserGeneBuilder builder( User user ) {
+        return new UserGeneBuilder().user( user );
+    }
+
     /**
      * Obtain a comparator for comparing {@link UserGene}.
      *

@@ -418,7 +418,7 @@ public class ApiControllerTest {
         UUID anonymousId = UUID.randomUUID();
         when( applicationSettings.getPrivacy().isEnableAnonymizedSearchResults() ).thenReturn( true );
         when( userService.findUserByAnonymousIdNoAuth( anonymousId ) ).thenReturn( user );
-        when( userService.anonymizeUser( user ) ).thenReturn( User.builder().anonymousId( anonymousId ).build() );
+        when( userService.anonymizeUser( user, anonymousId ) ).thenReturn( User.builder( new Profile() ).anonymousId( anonymousId ).build() );
         mvc.perform( get( "/api/users/by-anonymous-id/{anonymousId}", anonymousId ) )
                 .andExpect( status().is2xxSuccessful() )
                 .andExpect( jsonPath( "$.id" ).doesNotExist() )
@@ -434,7 +434,7 @@ public class ApiControllerTest {
         UUID anonymousId = UUID.randomUUID();
         when( applicationSettings.getPrivacy().isEnableAnonymizedSearchResults() ).thenReturn( false );
         when( userService.findUserByAnonymousIdNoAuth( anonymousId ) ).thenReturn( user );
-        when( userService.anonymizeUser( user ) ).thenReturn( User.builder().anonymousId( anonymousId ).build() );
+        when( userService.anonymizeUser( user, anonymousId ) ).thenReturn( User.builder( new Profile() ).anonymousId( anonymousId ).build() );
         mvc.perform( get( "/api/users/by-anonymous-id/{anonymousId}", anonymousId ) )
                 .andExpect( status().isServiceUnavailable() );
     }
@@ -445,7 +445,10 @@ public class ApiControllerTest {
         UserGene userGene = createUserGene( 1, gene, createUser( 1 ), TierType.TIER1, PrivacyLevelType.PRIVATE );
         UUID anonymousId = UUID.randomUUID();
         when( userService.findUserGeneByAnonymousIdNoAuth( anonymousId ) ).thenReturn( userGene );
-        when( userService.anonymizeUserGene( userGene ) ).thenReturn( UserGene.builder().anonymousId( anonymousId ).user( User.builder().build() ).build() );
+        when( userService.anonymizeUserGene( userGene, anonymousId ) ).thenReturn( UserGene.builder( User.builder( new Profile() ).build() )
+                .anonymousId( anonymousId )
+                .privacyLevel( PrivacyLevelType.PUBLIC )
+                .build() );
         when( permissionEvaluator.hasPermission( any(), eq( userGene ), eq( Permissions.READ ) ) ).thenReturn( false );
         when( applicationSettings.getPrivacy().isEnableAnonymizedSearchResults() ).thenReturn( true );
         mvc.perform( get( "/api/genes/by-anonymous-id/{anonymousId}", anonymousId ) )
@@ -462,7 +465,7 @@ public class ApiControllerTest {
         UserGene userGene = createUserGene( 1, gene, createUser( 1 ), TierType.TIER1, PrivacyLevelType.PRIVATE );
         UUID anonymousId = UUID.randomUUID();
         when( userService.findUserGeneByAnonymousIdNoAuth( anonymousId ) ).thenReturn( userGene );
-        when( userService.anonymizeUserGene( userGene ) ).thenReturn( UserGene.builder().anonymousId( anonymousId ).build() );
+        when( userService.anonymizeUserGene( userGene ) ).thenReturn( UserGene.builder( User.builder( new Profile() ).build() ).anonymousId( anonymousId ).build() );
         when( permissionEvaluator.hasPermission( any(), eq( userGene ), eq( Permissions.READ ) ) ).thenReturn( true );
         when( applicationSettings.getPrivacy().isEnableAnonymizedSearchResults() ).thenReturn( true );
         mvc.perform( get( "/api/genes/by-anonymous-id/{anonymousId}", anonymousId ) )

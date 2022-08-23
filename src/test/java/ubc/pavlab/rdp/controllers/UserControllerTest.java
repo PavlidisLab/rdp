@@ -1,5 +1,6 @@
 package ubc.pavlab.rdp.controllers;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 import lombok.SneakyThrows;
@@ -821,5 +822,24 @@ public class UserControllerTest {
                 .andExpect( status().isBadRequest() )
                 .andExpect( jsonPath( "$.fieldErrors[0].field" ).value( "profile.website" ) )
                 .andExpect( jsonPath( "$.fieldErrors[0].rejectedValue" ).value( "bad-url" ) );
+    }
+
+    @Test
+    public void userSerialization() throws JsonProcessingException {
+        User user = createUser( 1 );
+        user.getProfile().setPrivacyLevel( PrivacyLevelType.PRIVATE );
+        User deserializedUser = objectMapper.readValue( objectMapper.writeValueAsString( user ), User.class );
+        assertThat( deserializedUser.getProfile().getPrivacyLevel() ).isEqualTo( PrivacyLevelType.PRIVATE );
+        assertThat( deserializedUser.getEffectivePrivacyLevel() ).isEqualTo( PrivacyLevelType.PRIVATE );
+    }
+
+    @Test
+    public void userGeneSerialization() throws JsonProcessingException {
+        User user = createUser( 1 );
+        user.getProfile().setPrivacyLevel( PrivacyLevelType.PRIVATE );
+        UserGene gene = UserGene.builder( user ).privacyLevel( PrivacyLevelType.PUBLIC ).build();
+        UserGene deserializedGene = objectMapper.readValue( objectMapper.writeValueAsString( gene ), UserGene.class );
+        assertThat( deserializedGene.getPrivacyLevel() ).isEqualTo( PrivacyLevelType.PRIVATE );
+        assertThat( deserializedGene.getEffectivePrivacyLevel() ).isEqualTo( PrivacyLevelType.PRIVATE );
     }
 }
