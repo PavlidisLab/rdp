@@ -13,3 +13,4 @@ plugins:
   - macros
 extra:
   rdp_version: 1.5.0-SNAPSHOT
+  git_ref: development
