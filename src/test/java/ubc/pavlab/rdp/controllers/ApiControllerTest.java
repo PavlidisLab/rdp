@@ -437,12 +437,14 @@ public class ApiControllerTest {
         when( userService.anonymizeUser( user, anonymousId ) ).thenReturn( User.builder( new Profile() ).anonymousId( anonymousId ).build() );
         mvc.perform( get( "/api/users/by-anonymous-id/{anonymousId}", anonymousId ) )
                 .andExpect( status().isServiceUnavailable() );
+        verifyNoInteractions( userService );
     }
 
     @Test
     public void getUserGene_withAnonymousId() throws Exception {
         Gene gene = createGene( 1, createTaxon( 9606 ) );
         UserGene userGene = createUserGene( 1, gene, createUser( 1 ), TierType.TIER1, PrivacyLevelType.PRIVATE );
+        assertThat( userGene.getEffectivePrivacyLevel() ).isEqualTo( PrivacyLevelType.PRIVATE );
         UUID anonymousId = UUID.randomUUID();
         when( userService.findUserGeneByAnonymousIdNoAuth( anonymousId ) ).thenReturn( userGene );
         when( userService.anonymizeUserGene( userGene, anonymousId ) ).thenReturn( UserGene.builder( User.builder( new Profile() ).build() )
