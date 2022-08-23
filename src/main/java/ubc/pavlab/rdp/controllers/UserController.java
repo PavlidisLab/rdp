@@ -316,7 +316,7 @@ public class UserController {
             userService.confirmVerificationToken( token );
             redirectAttributes.addFlashAttribute( "message", "Your contact email has been successfully verified." );
         } catch ( TokenException e ) {
-            log.error( String.format( "%s attempt to confirm verification token failed: %s.", userService.findCurrentUser(), e.getMessage() ) );
+            log.warn( String.format( "%s attempt to confirm verification token failed: %s.", userService.findCurrentUser(), e.getMessage() ) );
             redirectAttributes.addFlashAttribute( "message", e.getMessage() );
             redirectAttributes.addFlashAttribute( "error", Boolean.TRUE );
         }
