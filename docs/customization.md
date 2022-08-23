@@ -108,7 +108,7 @@ rdp.settings.organs.enabled=false
 
 Support for additional profile categories, including ontologies based on the OBO format, was introduced in the 1.5 series as a way to make the software more flexible and customizable. 
 
-Most of the administration of profile categories can be done under the `/admin/ontologies` endpoint.
+Most of the administration of profile categories can be done under the `/admin/ontologies` endpoint, i.e. Manage Profile Categories page.
 
 To disable this feature altogether, set the following in your `application.properties`:
 
@@ -118,8 +118,7 @@ rdp.settings.ontologies.enabled=false
 
 ### Create a simple category
 
-From the `/admin/ontologies` endpoint, you may create a simple category. You must provide a name and at most 20 terms.
-Each term should have a unique name.
+On the Manage Profile Categories page, you may create a simple category. You must provide a name and at most 20 terms. Each term should have a unique name.
 
 ![Interface for creating a simple category.](images/create-simple-category.png)
 
@@ -143,8 +142,16 @@ More complex categories are created using ontologies. The ontologies need to be 
 
 Once imported, you can either activate all ontology terms or a subset of terms by [activating a subtree](#activating-a-subtree). Note that obsolete terms are never activated automatically.
 
+### Managing created profile categories
 
-#### Managing a profile category
+Once created, a new profile category will be listed in the table at the bottom of the Manage Profile Categories page. The table uses badges to display if the category is active or not, the number of active terms and if the category is used as a filter for Gene Search.
+
+The order of categories, as the are displayed on the Profile and Search pages, can be modified using the arrows next to the category name.
+
+
+### Managing a specific profile category
+
+Created profile categories can be managed on their Manage Profile Category page.
 
 In the Edit window on the Manage Profile Category page, you can add a defintion/description of the category, which is used in a tooltip on the Profile Page. You can also specify if this category will be used as a filter on the Gene Search page.  
 
@@ -172,8 +179,7 @@ The active subtrees get a special treatment when the ontology is updated to ensu
 
 Reactome Pathways are treated in a slightly different way when it comes to loading and updating terms.
 
-Under `/admin/ontologies`, you can import the Reactome Pathways category with a single click. The initial import will
-download pathways and update term definitions.
+Under `/admin/ontologies`, you can import the Reactome Pathways category with a single click. The initial import will download pathways and update term definitions.
 
 The Reactome Pathways category has two additional actions for updating its terms and definitions.
 
@@ -191,7 +197,7 @@ rdp.settings.ontology.reactome-pathways-hierarchy-file=file:ReactomePathwaysRela
 rdp.settings.ontology.reactome-stable-identifiers-file=file:reactome_stable_ids.txt
 ```
 
-Reactome Pathways are updated at the same frequency as ontology terms. The update is performed in two stage: first the
+Reactome Pathways are updated at the same frequency as ontology terms. The update is performed in two stages: first the
 pathways are updated and then definitions are retrieved from
 the [Reactome Content Service API](https://reactome.org/ContentService/#/).
 
@@ -230,10 +236,9 @@ rdp.settings.ontology.default-resolver=ubc.pavlab.rdp.ontology.resolvers.Ontobee
 If you want to use a different source, you can provide a custom implementation of the `OntologyResolver` interface or
 ask us by [opening an issue on the RDP GitHub repository](https://github.com/PavlidisLab/rdp/issues).
 
-### Deleting an ontology
+### Deleting a category
 
-Deleting an ontology is irreversible and is only possible if it is not being used. If your ontology is being used,
-consider deactivating it instead.
+Deleting a category is irreversible and is only possible if it is not being used (there are no users that are associated with any of the category terms). If your ontology is being used, consider deactivating it instead.
 
 ![Interface for deleting an ontology.](images/delete-an-ontology.png)
 
