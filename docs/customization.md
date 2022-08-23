@@ -146,12 +146,20 @@ Once imported, you can either activate all ontology terms or a subset of terms b
 
 Once created, a new profile category will be listed in the table at the bottom of the Manage Profile Categories page. The table uses badges to display if the category is active or not, the number of active terms and if the category is used as a filter for Gene Search.
 
-The order of categories, as the are displayed on the Profile and Search pages, can be modified using the arrows next to the category name.
+The order of categories, as they are displayed on the Profile and Search pages, can be modified using the arrows next to the category name.
 
 
 ### Managing a specific profile category
 
-A specific profile category can be managed on its Manage Profile Category page, which is accessed by clicking on the "Manage" button in the categories' table.
+A specific profile category can be managed on its Manage Profile Category page, which is accessed by clicking on the "Manage" button in the categories' table. 
+
+The page lists some basic stats at the very top and provides few action buttons:
+
+- Deactivate (or Deactivate All Terms in the case of an ontology category) - this will remove the category from the Profile and Serach page. This action is reversable, as the category can be easily re-activated. This action is recommended in cases where a category cannot be deleted because it's being used.
+
+- Download as OBO - Download the category as an OBO file
+
+- Update from *** - Update the ontology category using the original URL
 
 In the Edit window on the Manage Profile Category page, you can add a defintion/description of the category, which is used in a tooltip on the Profile Page. You can also specify if this category will be used as a filter on the Gene Search page.  
 
