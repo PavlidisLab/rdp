@@ -9,13 +9,13 @@ html {
 }
 
 div.brand > p {
-    color: lightgrey;
+    color: $light;
     margin-bottom: 0;
     font-size: 0.7rem;
 }
 
 div.brand > h1 {
-    color: white;
+    color: $white;
     font-family: 'Open Sans', sans-serif;
     letter-spacing: 0.1rem;
     font-size: 1rem;
@@ -28,7 +28,7 @@ div.brand > h1 {
 .footer {
     /* height: 60px; */
     /* line-height: 60px; */
-    background-color: #f5f5f5;
+    background-color: $light;
 }
 
 @media (min-width: 576px) {
@@ -49,7 +49,7 @@ div.brand > h1 {
 }
 
 [contenteditable="true"] {
-    outline: rgb(241, 132, 88) auto 5px;
+    outline: $orange auto 5px;
 }
 
 .editable:before {
@@ -65,7 +65,7 @@ div.brand > h1 {
     line-height: 1;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    color: orange;
+    color: $orange;
     content: '\e0a3';
 }
 
@@ -81,7 +81,7 @@ textarea.data-edit {
 }
 
 .saveable:before {
-    color: limegreen;
+    color: $green;
     content: '\e033';
 }
 
@@ -138,7 +138,7 @@ textarea.data-edit {
     line-height: 1;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    color: limegreen;
+    color: $green;
     content: '\e094';
 }
 
@@ -195,7 +195,7 @@ table.table-fixed tbody {
 
 .pubmed-error:before {
     content: "Issue obtaining metadata.";
-    color: red;
+    color: $danger;
 }
 
 input.data-edit {
@@ -308,12 +308,12 @@ hr {
 
 .gene-error:before {
     content: "Could Not Find Gene.";
-    color: red;
+    color: $danger;
 }
 
 .term-error:before {
     content: "Could Not Find Term.";
-    color: red;
+    color: $danger;
 }
 
 .ontology-term-definition {
