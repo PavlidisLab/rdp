@@ -116,15 +116,14 @@ To disable this feature altogether, set the following in your `application.prope
 rdp.settings.ontologies.enabled=false
 ```
 
-### Create and manage simple categories
+### Create a simple category
 
 From the `/admin/ontologies` endpoint, you may create a simple category. You must provide a name and at most 20 terms.
 Each term should have a unique name.
 
 ![Interface for creating a simple category.](images/create-simple-category.png)
 
-The terms can be grouped using grouping terms to Simple categories support only one grouping level. Terms are grouped in the closest preceding grouping term. Grouping
-terms cannot be picked by the user for searching. Groups must not be empty.
+The terms can be organized in groups using grouping terms ("is grouping?"). Simple categories support only one grouping level. Terms are grouped under the closest preceding grouping term. Groups must not be empty.Grouping terms will not be used for searching the registry. 
 
 ![Example of a simple category with grouping terms.](images/simple-category-with-grouping-terms.png)
 
@@ -132,37 +131,32 @@ If no grouping is used, terms are displayed in a linear fashion.
 
 ![Example of a simple category displayed in a linear fashion.](images/simple-category-displayed-in-linear-fashion.png)
 
-Terms can also be marked to possess an icon. If a category has a mixture of terms with and without icons, those without
-will use a SVG textual icon fallback.
+A term can also be associated with an icon. If a category has a mixture of terms with and without icons, those without will use a SVG textual icon fallback.
 
 ![Example of a category with a mixture of terms with and without icons.](images/simple-category-with-mixture-of-terms-with-and-without-icons.png)
 
-### Import ontologies from the OBO format
+### Create an ontology category
 
-There are two ways of importing an ontology: using an URL or a file. Once imported, you have the opportunity to edit and
-pick parts of it to activate by [activating a subtree](#activating-a-subtree) or by activating all of its terms.
+More complex categories are created using ontologies. The ontologies need to be in an OBO format. There are two ways of importing an ontology: using an URL or a file. 
 
 ![Interfae for importing an ontology in OBO format.](images/import-an-ontology-in-obo-format.png)
 
-#### Editing an ontology
+Once imported, you can either activate all ontology terms or a subset of terms by [activating a subtree](#activating-a-subtree). Note that obsolete terms are never activated automatically.
 
-There's a handful of things that you can edit about an ontology. You may set a definition and make it available in the
-gene search tab. Be mindful that making too many ontologies available to the user will clutter the search interface.
+
+#### Managing a profile category
+
+In the Edit window on the Manage Profile Category page, you can add a defintion/description of the category, which is used in a tooltip on the Profile Page. You can also specify if this category will be used as a filter on the Gene Search page.  
 
 ![Interface for editing the properties of an ontology.](images/edit-an-ontology.png)
 
-The name and source URL are not modifiable from the admin section, but can be edited directly in the database if
-necessary.
+The name and source URL are not modifiable from the admin section, but can be edited directly in the database if needed.
 
 #### Activating a subtree
 
-Ontologies often contain a large number of terms that might not be relevant to the users of your registry. To allow you
-to easily pick parts of it, RDP allows you to activate specific subtrees.
+Ontologies often contain a large number of terms and some of these terms might not be relevant to the users of your registry. You can chose which parts of an ontology will be used in the registry by activating specific subtrees. Subtrees can be activated once the ontology is imported, but can also be activated or deactivated later using the Manage Profile Category pages.
 
-Those terms get a special treatment when the ontology is updated to ensure that newly added sub-terms are always active.
-Note that obsolete terms are never activated automatically.
-
-Use the autocomplete feature to find the root term that you want to activate and activate its whole subtree.
+To activate a subtree, enter its root term (or use autocomplete) in the Activate Subtree window.
 
 ![Example of use of the term autocomplete feature to find a subtree to activate.](images/autocomplete-inactive-subtrees.png)
 
@@ -171,6 +165,8 @@ Once activated, the term will then appear in the list of active subtrees:
 ![Interface for displaying active subtrees.](images/list-of-active-subtrees)
 
 You may deactivate subtree from the table of active subtrees by clicking on "Deactivate".
+
+The active subtrees get a special treatment when the ontology is updated to ensure that newly added sub-terms are always active.
 
 ### Reactome Pathways
 
