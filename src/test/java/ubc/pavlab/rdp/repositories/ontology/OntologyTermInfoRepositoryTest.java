@@ -37,7 +37,7 @@ public class OntologyTermInfoRepositoryTest {
         assertThat( ontologyTermInfoRepository.findAll() ).hasSize( 5 );
         assertThat( ontologyTermInfoRepository.findAllByOntologyAndActiveAndSuperTermsEmpty( ont ) )
                 .extracting( "termId" )
-                .containsExactly( "TERM:000003", "TERM:000005" );
+                .containsExactlyInAnyOrder( "TERM:000003", "TERM:000005" );
     }
 
 }
