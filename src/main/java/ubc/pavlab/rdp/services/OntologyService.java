@@ -196,6 +196,18 @@ public class OntologyService implements InitializingBean {
     }
 
     /**
+     * Check if there are inactive and non-obsolete terms in an ontology.
+     * <p>
+     * This can be used to determine if some terms could be found via autocompletion of inactive terms.
+     *
+     * @see #autocompleteInactiveTerms(String, Ontology, int, Locale)
+     */
+    @Transactional(readOnly = true)
+    public boolean existsByActiveFalseAndObsoleteFalse( Ontology ontology ) {
+        return ontologyTermInfoRepository.existsByOntologyAndActiveFalseAndObsoleteFalse( ontology );
+    }
+
+    /**
      * Create an ontology from an OBO formatted input.
      *
      * @param reader an OBO formatted input

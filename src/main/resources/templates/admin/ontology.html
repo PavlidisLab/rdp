@@ -186,7 +186,11 @@
                             Activate Subtree
                         </h3>
                     </div>
-                    <div class="card-body">
+                    <div th:unless="${@ontologyService.existsByActiveFalseAndObsoleteFalse(ontology)}"
+                         class="card-body alert-warning">
+                        All possible subtrees are already active.
+                    </div>
+                    <div th:if="${@ontologyService.existsByActiveFalseAndObsoleteFalse(ontology)}" class="card-body">
                         <form th:action="@{/admin/ontologies/{ontologyId}/activate-term(ontologyId=${ontology.id})}"
                               th:object="${activateTermForm}"
                               method="post">
