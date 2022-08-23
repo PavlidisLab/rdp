@@ -454,7 +454,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
             } else if ( apiUriComponents.getQueryParams().containsKey( "auth" ) ) {
                 // use a specific search token
                 query.add( "auth", apiUriComponents.getQueryParams().getFirst( "auth" ) );
-            } else {
+            } else if ( applicationSettings.getIsearch().getSearchToken() != null ) {
                 // use the default search token
                 query.add( "auth", applicationSettings.getIsearch().getSearchToken() );
             }
