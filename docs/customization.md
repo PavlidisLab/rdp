@@ -122,6 +122,7 @@ On the Manage Profile Categories page, you may create a simple category. You mus
 
 ![Interface for creating a simple category.](images/create-simple-category.png)
 
+
 The terms can be organized in groups using grouping terms ("is grouping?"). Simple categories support only one grouping level. Terms are grouped under the closest preceding grouping term. Groups must not be empty.Grouping terms will not be used for searching the registry. 
 
 ![Example of a simple category with grouping terms.](images/simple-category-with-grouping-terms.png)
@@ -161,7 +162,7 @@ The page lists some basic stats at the very top and provides few action buttons:
 
 - Update from *** - Update the ontology category using the original URL
 
-In the Edit window on the Manage Profile Category page, you can add a defintion/description of the category, which is used in a tooltip on the Profile Page. You can also specify if this category will be used as a filter on the Gene Search page.  
+In the **Edit** window on the Manage Profile Category page, you can add a defintion/description of the category, which is used in a tooltip on the Profile Page. You can also specify if this category will be used as a filter on the Gene Search page.  
 
 ![Interface for editing the properties of an ontology.](images/edit-an-ontology.png)
 
