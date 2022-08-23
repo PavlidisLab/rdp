@@ -74,13 +74,13 @@ GET /api/genes HTTP/1.1
 If `rdp.settings.privacy.enable-anonymized-search-results` is set to `true`, anonymized results are included in the
 output.
 
-## List all ontologies (new in 1.5.0)
+## List all categories/ontologies (new in 1.5.0)
 
 ```http
 GET /api/ontologies HTTP/1.1
 ```
 
-## List all terms in an ontology (new in 1.5.0)
+## List all terms in a category/ontology (new in 1.5.0)
 
 ```http
 GET /api/ontologies/{ontologyName}/terms HTTP/1.1
@@ -88,7 +88,7 @@ GET /api/ontologies/{ontologyName}/terms HTTP/1.1
 
 - `page` the page to query starting from zero to `totalPages`
 
-## Retrieve a single ontology term (new in 1.5.0)
+## Retrieve a single category/ontology term (new in 1.5.0)
 
 ```http
 GET /api/ontologies/{ontologyName}/terms/{termId}
