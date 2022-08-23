@@ -156,13 +156,13 @@ A specific profile category can be managed on its Manage Profile Category page, 
 
 The page lists some basic stats at the very top and provides few action buttons:
 
-- Deactivate (or Deactivate All Terms in the case of an ontology category) - this will remove the category from the Profile and Serach page. This action is reversable, as the category can be easily re-activated. This action is recommended in cases where a category cannot be deleted because it's being used.
+- Deactivate (or Deactivate All Terms in the case of an ontology category) - this will remove the category from the Profile and Search page. This action is reversible, as the category can be easily re-activated. This action is recommended in cases where a category cannot be deleted because it's being used.
 
 - Download as OBO - Download the category as an OBO file
 
 - Update from *** - Update the ontology category using the original URL
 
-In the **Edit** window on the Manage Profile Category page, you can add a defintion/description of the category, which is used in a tooltip on the Profile Page. You can also specify if this category will be used as a filter on the Gene Search page.  
+In the **Edit** window on the Manage Profile Category page, you can add a definition/description of the category, which is used in a tooltip on the Profile Page. You can also specify if this category will be used as a filter on the Gene Search page.  
 
 ![Interface for editing the properties of an ontology.](images/edit-an-ontology.png)
 
