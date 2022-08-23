@@ -20,7 +20,7 @@ require('datatables.net-bs4/css/dataTables.bootstrap4.css');
 require('../css/common.scss');
 
 var ResizeObserver = window.ResizeObserver;
-var URLSearchParams = window.URLSearchParams;
+var formUtil = require('./util/form');
 
 (function () {
     "use strict";
@@ -162,20 +162,16 @@ var URLSearchParams = window.URLSearchParams;
         }
     });
 
-    var serialize = function (form) {
-        return new URLSearchParams(new FormData(form)).toString();
-    };
-
     /* check if any important form changed in the UI */
     $(document).ready(function () {
         var importantForms = document.querySelectorAll('form.important');
         var initialData = {};
         importantForms.forEach(function (form) {
-            initialData[form] = serialize(form);
+            initialData[form] = formUtil.serialize(form);
         });
         window.addEventListener('beforeunload', function (event) {
             var unsavedChanges = Array.from(importantForms).some(function (form) {
-                return serialize(form) !== initialData[form];
+                return formUtil.serialize(form) !== initialData[form];
             });
             if (unsavedChanges) {
                 event.preventDefault();

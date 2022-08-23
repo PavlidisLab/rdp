@@ -1,3 +1,5 @@
+var formUtil = require('./util/form');
+
 (function () {
     "use strict";
 
@@ -53,7 +55,7 @@
 
     $("form.search").submit(function (event) {
 
-        var formData = $(this).serialize();
+        var formData = formUtil.serialize(this);
 
         // ensure that iSearch is always part of the request parameters
         // this could also be done using a hidden input with the '_' prefix, but we don't want to contaminate the search
