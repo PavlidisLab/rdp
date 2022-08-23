@@ -13,7 +13,7 @@
 
     <div th:replace="layouts/common::title(title='Home')">...</div>
 
-    <div id="main-content" role="main">
+    <main id="main-content">
 
         <div th:utext="#{rdp.site.welcome(#{rdp.site.shortname}, @{/user/profile}, @{/user/faq}, @{/user/documentation}, @{/user/support})}"
              th:remove="tag"></div>
@@ -23,7 +23,7 @@
         <p>
             <em>The Registry software was developed by the <a href="https://pavlab.msl.ubc.ca/" target="_blank" rel="noopener">Pavlidis Lab</a> at UBC.</em>
         </p>
-    </div>
+    </main>
 
 </div>
 <div th:replace="layouts/common::footer">...</div>

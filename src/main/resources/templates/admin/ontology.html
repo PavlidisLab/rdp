@@ -9,7 +9,7 @@
 <div th:replace="layouts/common::header"></div>
 <div class="container py-4">
     <div th:replace="layouts/common::title(title='Manage Profile Category', subtitle=${@messageSource.getMessage(ontology.resolvableTitle, #locale)})"></div>
-    <div id="main-content" role="main">
+    <main id="main-content">
         <div class="row">
             <div class="col">
                 <p>
@@ -311,7 +311,7 @@
                 <div th:replace="fragments/ontology::simple-ontology-form(ontology = ${ontology}, simpleOntologyForm = ${simpleOntologyForm})"></div>
             </div>
         </div>
-    </div>
+    </main>
 </div>
 <div th:replace="layouts/common::footer"></div>
 <div th:replace="layouts/common::scripts"></div>

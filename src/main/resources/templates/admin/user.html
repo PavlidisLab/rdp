@@ -11,7 +11,7 @@
 <div class="container py-4">
     <div th:replace="layouts/common::title(title='Administrate User', subtitle=${user.profile.fullName})"></div>
     <div th:replace="layouts/common::messages"></div>
-    <div id="main-content" role="main">
+    <main id="main-content">
     <div class="row">
         <div class="col-3">
             <h3>User details</h3>
@@ -142,7 +142,7 @@
             </form>
         </div>
         </div>
-    </div>
+    </main>
 </div>
 <div th:replace="layouts/common::footer"></div>
 <div th:replace="layouts/common::scripts"></div>
