@@ -36,6 +36,16 @@ Static assets are now packaged with [Webpack](https://webpack.js.org/), meaning 
 assets will not work anymore. Refer to the [editing assets](customization.md#editing-assets) section to customize
 assets.
 
+### API breaking changes
+
+If you use our API, there's been a few minor cleanups that resulted in breaking changes.
+
+The `id` and `anonymousId` fields are now mutually exclusives. This means that you have to lookup the existence of the
+attribute before retrieving its value.
+
+The `privacyLevel` field does not use a numerical encoding anymore but instead explicit strings: `PRIVATE`, `SHARED`
+and `PUBLIC`.
+
 ## Migrate from 1.3 to 1.4
 
 This release includes the initial schema of the 1.3.1 release as baseline. This means that you don't have to go through
