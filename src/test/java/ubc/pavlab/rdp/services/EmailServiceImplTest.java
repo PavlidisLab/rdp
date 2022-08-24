@@ -72,9 +72,9 @@ public class EmailServiceImplTest {
         ArgumentCaptor<SimpleMailMessage> mailMessageCaptor = ArgumentCaptor.forClass( SimpleMailMessage.class );
         verify( emailSender ).send( mailMessageCaptor.capture() );
         assertThat( mailMessageCaptor.getValue() )
-                .hasFieldOrPropertyWithValue( "from", "RDMM <admin@example.com>" )
-                .hasFieldOrPropertyWithValue( "to", new String[]{ "RDMM <admin@example.com>" } );
-        assertThat( mailMessageCaptor.getValue().getSubject() ).contains( "RDMM" );
+                .hasFieldOrPropertyWithValue( "from", "RDP <admin@example.com>" )
+                .hasFieldOrPropertyWithValue( "to", new String[]{ "RDP <admin@example.com>" } );
+        assertThat( mailMessageCaptor.getValue().getSubject() ).contains( "RDP" );
         assertThat( mailMessageCaptor.getValue().getText() )
                 .contains( user.getEmail() );
     }
@@ -88,10 +88,10 @@ public class EmailServiceImplTest {
         ArgumentCaptor<SimpleMailMessage> mailMessageCaptor = ArgumentCaptor.forClass( SimpleMailMessage.class );
         verify( emailSender ).send( mailMessageCaptor.capture() );
         assertThat( mailMessageCaptor.getValue() )
-                .hasFieldOrPropertyWithValue( "from", "RDMM <admin@example.com>" )
-                .hasFieldOrPropertyWithValue( "to", new String[]{ "RDMM <admin@example.com>" } )
+                .hasFieldOrPropertyWithValue( "from", "RDP <admin@example.com>" )
+                .hasFieldOrPropertyWithValue( "to", new String[]{ "RDP <admin@example.com>" } )
                 .hasFieldOrPropertyWithValue( "replyTo", String.format( "\"Wayne, Bruce\" <%s>", user.getEmail() ) );
-        assertThat( mailMessageCaptor.getValue().getSubject() ).contains( "RDMM" );
+        assertThat( mailMessageCaptor.getValue().getSubject() ).contains( "RDP" );
         assertThat( mailMessageCaptor.getValue().getText() )
                 .contains( "John Doe" )
                 .contains( user.getEmail() )
@@ -107,9 +107,9 @@ public class EmailServiceImplTest {
         ArgumentCaptor<SimpleMailMessage> mailMessageCaptor = ArgumentCaptor.forClass( SimpleMailMessage.class );
         verify( emailSender ).send( mailMessageCaptor.capture() );
         assertThat( mailMessageCaptor.getValue() )
-                .hasFieldOrPropertyWithValue( "from", "RDMM <admin@example.com>" )
+                .hasFieldOrPropertyWithValue( "from", "RDP <admin@example.com>" )
                 .hasFieldOrPropertyWithValue( "to", new String[]{ user.getEmail() } );
-        assertThat( mailMessageCaptor.getValue().getSubject() ).contains( "RDMM" );
+        assertThat( mailMessageCaptor.getValue().getSubject() ).contains( "RDP" );
         assertThat( mailMessageCaptor.getValue().getText() )
                 .contains( "http://localhost/updatePassword?id=1&token=1234" );
     }
@@ -122,9 +122,9 @@ public class EmailServiceImplTest {
         ArgumentCaptor<SimpleMailMessage> mailMessageCaptor = ArgumentCaptor.forClass( SimpleMailMessage.class );
         verify( emailSender ).send( mailMessageCaptor.capture() );
         assertThat( mailMessageCaptor.getValue() )
-                .hasFieldOrPropertyWithValue( "from", "RDMM <admin@example.com>" )
+                .hasFieldOrPropertyWithValue( "from", "RDP <admin@example.com>" )
                 .hasFieldOrPropertyWithValue( "to", new String[]{ user.getEmail() } );
-        assertThat( mailMessageCaptor.getValue().getSubject() ).contains( "RDMM" );
+        assertThat( mailMessageCaptor.getValue().getSubject() ).contains( "RDP" );
         assertThat( mailMessageCaptor.getValue().getText() ).
                 contains( "http://localhost/registrationConfirm?token=1234" );
     }
@@ -138,9 +138,9 @@ public class EmailServiceImplTest {
         ArgumentCaptor<SimpleMailMessage> mailMessageCaptor = ArgumentCaptor.forClass( SimpleMailMessage.class );
         verify( emailSender ).send( mailMessageCaptor.capture() );
         assertThat( mailMessageCaptor.getValue() )
-                .hasFieldOrPropertyWithValue( "from", "RDMM <admin@example.com>" )
+                .hasFieldOrPropertyWithValue( "from", "RDP <admin@example.com>" )
                 .hasFieldOrPropertyWithValue( "to", new String[]{ "foo@example.com" } );
-        assertThat( mailMessageCaptor.getValue().getSubject() ).contains( "RDMM" );
+        assertThat( mailMessageCaptor.getValue().getSubject() ).contains( "RDP" );
         assertThat( mailMessageCaptor.getValue().getText() ).
                 contains( "http://localhost/user/verify-contact-email?token=1234" );
     }
@@ -154,9 +154,9 @@ public class EmailServiceImplTest {
         ArgumentCaptor<SimpleMailMessage> mailMessageCaptor = ArgumentCaptor.forClass( SimpleMailMessage.class );
         verify( emailSender ).send( mailMessageCaptor.capture() );
         assertThat( mailMessageCaptor.getValue() )
-                .hasFieldOrPropertyWithValue( "from", "RDMM <admin@example.com>" )
+                .hasFieldOrPropertyWithValue( "from", "RDP <admin@example.com>" )
                 .hasFieldOrPropertyWithValue( "to", new String[]{ "foo@example.com" } );
-        assertThat( mailMessageCaptor.getValue().getSubject() ).contains( "RDMM" );
+        assertThat( mailMessageCaptor.getValue().getSubject() ).contains( "RDP" );
         assertThat( mailMessageCaptor.getValue().getText() ).
                 contains( "http://localhost/user/verify-contact-email?token=1234%2B" );
     }
@@ -177,11 +177,11 @@ public class EmailServiceImplTest {
         verify( emailSender ).send( mailMessageCaptor.capture() );
         SimpleMailMessage mailMessage = mailMessageCaptor.getValue();
         assertThat( mailMessage )
-                .hasFieldOrPropertyWithValue( "from", "RDMM <admin@example.com>" )
+                .hasFieldOrPropertyWithValue( "from", "RDP <admin@example.com>" )
                 .hasFieldOrPropertyWithValue( "to", new String[]{ "\"Wayne, Bruce\" <bar@example.com>" } )
                 .hasFieldOrPropertyWithValue( "replyTo", "\"Wayne, Bruce\" <foo@example.com>" )
-                .hasFieldOrPropertyWithValue( "cc", new String[]{ "RDMM <admin@example.com>" } );
-        assertThat( mailMessageCaptor.getValue().getSubject() ).contains( "RDMM" );
+                .hasFieldOrPropertyWithValue( "cc", new String[]{ "RDP <admin@example.com>" } );
+        assertThat( mailMessageCaptor.getValue().getSubject() ).contains( "RDP" );
         assertThat( mailMessage.getText() )
                 .contains( userGene.getSymbol() )
                 .contains( user.getProfile().getFullName() )
