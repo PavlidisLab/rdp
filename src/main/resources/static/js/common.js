@@ -142,7 +142,8 @@ var formUtil = require('./util/form');
             new ResizeObserver(function () {
                 document.querySelectorAll('.sticky-top').forEach(function (element) {
                     if (element !== stagingBanner) {
-                        element.style.top = stagingBanner.offsetHeight + 'px';
+                        // there's an extra pixel line that shows up above the sticky
+                        element.style.top = (stagingBanner.offsetHeight - 1) + 'px';
                     }
                 });
             }).observe(stagingBanner);
