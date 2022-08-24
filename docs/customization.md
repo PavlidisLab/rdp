@@ -76,9 +76,49 @@ rdp.settings.cache.orthologs-file=ftp://ftp.ncbi.nlm.nih.gov/gene/DATA/gene_orth
 
 As with other remotely downloaded files, this would be updated monthly.
 
-## Organ systems
+## Profile categories
 
-Organ systems ontology is based
+### Researcher position
+
+Researcher positions can be enabled or disabled by setting the
+`rdp.settings.profile.enabled-researcher-positions` to a list of desired values.
+
+For the moment, only one value is defined `PRINCIPAL_INVESTIGATOR`.
+
+```ini
+rdp.settings.profile.enabled-researcher-positions=PRINCIPAL_INVESTIGATOR
+```
+
+To disable this feature, just leave the setting blank.
+
+### Researcher categories
+
+Researcher categories can be enabled or disabled by setting the
+`rdp.settings.profile.enabled-researcher-categories` to a list of desired values.
+
+```ini
+rdp.settings.profile.enabled-researcher-categories=IN_SILICO,IN_VIVO
+```
+
+The available values are:
+
+- `IN_VIVO`
+- `IN_VITRO_BIOCHEMICAL`
+- `IN_VITRO_CELLS`
+- `IN_VITRO_STRUCTURAL`
+- `IN_SILICO`
+- `OTHER`
+
+To disable this feature, just leave the setting blank.
+
+### Human organ systems
+
+!!! note
+
+    As of 1.5.0, we recommend that you use an [additional profile category](#additional-profile-categories)
+    to offer Uberon terms to your users.
+
+The Human organ systems ontology is based
 on [Uberon multi-species anatomy ontology](http://www.obofoundry.org/ontology/uberon.html)
 and updated monthly.
 
@@ -104,11 +144,13 @@ To disable organ systems altogether, set the following in your configuration:
 rdp.settings.organs.enabled=false
 ```
 
-## Creating additional profile categories
+## Additional profile categories
 
-Support for additional profile categories, including ontologies based on the OBO format, was introduced in the 1.5 series as a way to make the software more flexible and customizable. 
+Support for additional profile categories, including ontologies based on the OBO format, was introduced in the 1.5
+series as a way to make the software more flexible and customizable.
 
-Most of the administration of profile categories can be done under the `/admin/ontologies` endpoint, i.e. Manage Profile Categories page.
+Most of the administration of profile categories can be done under the `/admin/ontologies` endpoint, i.e. Manage Profile
+Categories page.
 
 To disable this feature altogether, set the following in your `application.properties`:
 
@@ -118,12 +160,14 @@ rdp.settings.ontologies.enabled=false
 
 ### Create a simple category
 
-On the Manage Profile Categories page, you may create a simple category. You must provide a name and at most 20 terms. Each term should have a unique name.
+On the Manage Profile Categories page, you may create a simple category. You must provide a name and at most 20 terms.
+Each term should have a unique name.
 
 ![Interface for creating a simple category.](images/create-simple-category.png)
 
-
-The terms can be organized in groups using grouping terms ("is grouping?"). Simple categories support only one grouping level. Terms are grouped under the closest preceding grouping term. Groups must not be empty.Grouping terms will not be used for searching the registry. 
+The terms can be organized in groups using grouping terms ("is grouping?"). Simple categories support only one grouping
+level. Terms are grouped under the closest preceding grouping term. Groups must not be empty.Grouping terms will not be
+used for searching the registry.
 
 ![Example of a simple category with grouping terms.](images/simple-category-with-grouping-terms.png)
 
@@ -131,38 +175,54 @@ If no grouping is used, terms are displayed in a linear fashion.
 
 ![Example of a simple category displayed in a linear fashion.](images/simple-category-displayed-in-linear-fashion.png)
 
-A term can also be associated with an icon. If a category has a mixture of terms with and without icons, those without will use a SVG textual icon fallback.
+A term can also be associated with an icon. If a category has a mixture of terms with and without icons, those without
+will use a SVG textual icon fallback.
 
 ![Example of a category with a mixture of terms with and without icons.](images/simple-category-with-mixture-of-terms-with-and-without-icons.png)
 
 ### Create an ontology category
 
-More complex categories are created using ontologies. The ontologies need to be in an OBO format. There are two ways of importing an ontology: using an URL or a file. 
+More complex categories are created using ontologies. The ontologies need to be in an OBO format. There are two ways of
+importing an ontology: using an URL or a file.
 
 ![Interfae for importing an ontology in OBO format.](images/import-an-ontology-in-obo-format.png)
 
-Once imported, you can either activate all ontology terms or a subset of terms by [activating a subtree](#activating-a-subtree). Note that obsolete terms are never activated automatically.
+Once imported, you can either activate all ontology terms or a subset of terms
+by [activating a subtree](#activating-a-subtree). Note that obsolete terms are never activated automatically.
 
-### Managing created profile categories
+### Managing profile categories
 
-Once created, a new profile category will be listed in the table at the bottom of the Manage Profile Categories page. The table uses badges to display if the category is active or not, the number of active terms and if the category is used as a filter for Gene Search.
+Once created, a new profile category will be listed in the table at the bottom of the Manage Profile Categories page.
+The table uses badges to display if the category is active or not, the number of active terms and if the category is
+used as a filter for Gene Search.
 
-The order of categories, as they are displayed on the Profile and Search pages, can be modified using the arrows next to the category name.
+The order of categories, as they are displayed on the Profile and Search pages, can be modified using the arrows next to
+the category name.
 
+![Table of available profile categories.](images/table-of-profile-categories.png)
 
 ### Managing a specific profile category
 
-A specific profile category can be managed on its Manage Profile Category page, which is accessed by clicking on the "Manage" button in the categories' table. 
+A specific profile category can be managed on its "Manage Profile Category" page, which is accessed by clicking on the
+"Manage" button in the categories table.
 
 The page lists some basic stats at the very top and provides few action buttons:
 
-- Deactivate (or Deactivate All Terms in the case of an ontology category) - this will remove the category from the Profile and Search page. This action is reversible, as the category can be easily re-activated. This action is recommended in cases where a category cannot be deleted because it's being used.
+![Actions available for simple categories.](images/simple-category-actions.png)
 
-- Download as OBO - Download the category as an OBO file
+- "Deactivate" (or "Deactivate All Terms" in the case of an ontology category): this will remove the category from the
+  Profile and Search page. This action is reversible, as the category can be easily re-activated. This action is
+  recommended in cases where a category cannot be deleted because it's being used.
 
-- Update from *** - Update the ontology category using the original URL
+- Download as OBO: Download the category as an OBO file
 
-In the **Edit** window on the Manage Profile Category page, you can add a definition/description of the category, which is used in a tooltip on the Profile Page. You can also specify if this category will be used as a filter on the Gene Search page.  
+- Update from "source": Update the ontology category using the original URL (if available)
+
+The number of used terms indicate how many terms in the ontology are referred by users.
+
+In the **Edit** window on the Manage Profile Category page, you can add a definition/description of the category, which
+is used in a tooltip on the Profile Page. You can also specify if this category will be used as a filter on the Gene
+Search page.
 
 ![Interface for editing the properties of an ontology.](images/edit-an-ontology.png)
 
@@ -170,55 +230,38 @@ The name and source URL are not modifiable from the admin section, but can be ed
 
 #### Activating a subtree
 
-Ontologies often contain a large number of terms and some of these terms might not be relevant to the users of your registry. You can chose which parts of an ontology will be used in the registry by activating specific subtrees. Subtrees can be activated once the ontology is imported, but can also be activated or deactivated later using the Manage Profile Category pages.
+Ontologies often contain a large number of terms and some of these terms might not be relevant to the users of your
+registry. You can chose which parts of an ontology will be used in the registry by activating specific subtrees.
+Subtrees can be activated once the ontology is imported, but can also be activated or deactivated later using the Manage
+Profile Category pages.
 
 To activate a subtree, enter its root term (or use autocomplete) in the Activate Subtree window.
 
 ![Example of use of the term autocomplete feature to find a subtree to activate.](images/autocomplete-inactive-subtrees.png)
 
+If all possible subtrees are already active, a warning will be displayed instead.
+
+![Warning displayed when all subtrees are already active.](images/all-subtree-already-active.png)
+
 Once activated, the term will then appear in the list of active subtrees:
 
-![Interface for displaying active subtrees.](images/list-of-active-subtrees)
+![Interface for displaying active subtrees.](images/list-of-active-subtrees.png)
 
 You may deactivate subtree from the table of active subtrees by clicking on "Deactivate".
 
-The active subtrees get a special treatment when the ontology is updated to ensure that newly added sub-terms are always active.
+The active subtrees get a special treatment when the ontology is updated to ensure that newly added sub-terms are always
+active.
 
 #### Deleting a category
 
-Deleting a category is irreversible and is only possible if it is not being used (there are no users that are associated with any of the category terms). If your ontology is being used, consider deactivating it instead.
+Deleting a category is irreversible and is only possible if it is not being used (there are no users that are associated
+with any of the category terms). If your ontology is being used, consider deactivating it instead.
 
 ![Interface for deleting an ontology.](images/delete-an-ontology.png)
 
 If an ontology has at least one user, the following message will be displayed instead:
 
 ![](images/delete-an-ontology-with-users.png)
-
-### Reactome Pathways
-
-Reactome Pathways are treated in a slightly different way when it comes to loading and updating terms.
-
-Under `/admin/ontologies`, you can import the Reactome Pathways category with a single click. The initial import will download pathways and update term definitions.
-
-The Reactome Pathways category has two additional actions for updating its terms and definitions.
-
-![Actions exclusive to the Reactome Pathways category.](images/reactome-actions.png)
-
-By default, Reactome Pathways use `reactome` as ontology name. This can be adjusted by
-setting `rdp.settings.ontologies.reactome-ontology-name` in your configuration.
-
-The various Reactome-related configuration should be left largely untouched. You can use static files by downloading
-them and changing the URL scheme to `file:`.
-
-```ìni
-rdp.settings.ontology.reactome-pathways-file=file:ReactomePathways.txt
-rdp.settings.ontology.reactome-pathways-hierarchy-file=file:ReactomePathwaysRelation.txt
-rdp.settings.ontology.reactome-stable-identifiers-file=file:reactome_stable_ids.txt
-```
-
-Reactome Pathways are updated at the same frequency as ontology terms. The update is performed in two stages: first the
-pathways are updated and then definitions are retrieved from
-the [Reactome Content Service API](https://reactome.org/ContentService/#/).
 
 ### Custom titles and definitions
 
@@ -261,7 +304,33 @@ rdp.settings.ontology.default-resolver=ubc.pavlab.rdp.ontology.resolvers.Ontobee
 If you want to use a different source, you can provide a custom implementation of the `OntologyResolver` interface or
 ask us by [opening an issue on the RDP GitHub repository](https://github.com/PavlidisLab/rdp/issues).
 
+## Reactome Pathways
 
+[Reactome Pathways](https://reactome.org/PathwayBrowser/) are treated in a slightly different way when it comes to
+loading and updating terms.
+
+Under `/admin/ontologies`, you can import the Reactome Pathways category with a single click. The initial import will
+download pathways and update term definitions.
+
+The Reactome Pathways category has two additional actions for updating its terms and definitions.
+
+![Actions exclusive to the Reactome Pathways category.](images/reactome-actions.png)
+
+By default, Reactome Pathways use `reactome` as ontology name. This can be adjusted by
+setting `rdp.settings.ontologies.reactome-ontology-name` in your configuration.
+
+The various Reactome-related configuration should be left largely untouched. You can use static files by downloading
+them and changing the URL scheme to `file:`.
+
+```ìni
+rdp.settings.ontology.reactome-pathways-file=file:ReactomePathways.txt
+rdp.settings.ontology.reactome-pathways-hierarchy-file=file:ReactomePathwaysRelation.txt
+rdp.settings.ontology.reactome-stable-identifiers-file=file:reactome_stable_ids.txt
+```
+
+Reactome Pathways are updated at the same frequency as ontology terms. The update is performed in two stages: first the
+pathways are updated and then definitions are retrieved from
+the [Reactome Content Service API](https://reactome.org/ContentService/#/).
 
 ## Loading data from disk
 
@@ -373,39 +442,6 @@ To enable only TIER1 and TIER2, and thus disabling GO terms-related features, ad
 rdp.settings.enabled-tiers=TIER1,TIER2
 ```
 
-## Researcher position
-
-Researcher positions can be enabled or disabled by setting the
-`rdp.settings.profile.enabled-researcher-positions` to a list of desired values.
-
-For the moment, only one value is defined `PRINCIPAL_INVESTIGATOR`.
-
-```ini
-rdp.settings.profile.enabled-researcher-positions=PRINCIPAL_INVESTIGATOR
-```
-
-To disable this feature, just leave the setting blank.
-
-## Researcher categories
-
-Researcher categories can be enabled or disabled by setting the
-`rdp.settings.profile.enabled-researcher-categories` to a list of desired values.
-
-```ini
-rdp.settings.profile.enabled-researcher-categories=IN_SILICO,IN_VIVO
-```
-
-The available values are:
-
-- `IN_VIVO`
-- `IN_VITRO_BIOCHEMICAL`
-- `IN_VITRO_CELLS`
-- `IN_VITRO_STRUCTURAL`
-- `IN_SILICO`
-- `OTHER`
-
-To disable this feature, just leave the setting blank.
-
 ## Privacy levels
 
 Privacy levels can be selectively enabled for user profiles and genes.
@@ -443,7 +479,8 @@ rdp.settings.privacy.enable-anonymized-search-results=false
 
 Some text displayed in RDP can be customized and/or internationalized. To do so, copy a provided `messages.properties`
 file in the working directory of the Web application and edit it. The file is found in
-[messages.properties](https://github.com/PavlidisLab/rdp/blob/{{ config.extra.git_ref }}/src/main/resources/messages.properties)
+[messages.properties](https://github.com/PavlidisLab/rdp/blob/{{ config.extra.git_ref
+}}/src/main/resources/messages.properties)
 
 You can use suffixed like `messages_en_CA.properties` for region-specific customization.
 
@@ -472,7 +509,8 @@ rdp.faq.answers.<q_key>=A plausible answer.
 ```
 
 The provided default file can be found
-in [faq.properties](https://github.com/PavlidisLab/rdp/tree/{{ config.extra.git_ref }}/src/main/resources/faq.properties).
+in [faq.properties](https://github.com/PavlidisLab/rdp/tree/{{ config.extra.git_ref
+}}/src/main/resources/faq.properties).
 
 ## Terms of service and privacy policy
 
