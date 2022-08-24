@@ -40,6 +40,18 @@ GO terms, on the other hand, are obtained from Ontobee:
 rdp.settings.cache.term-file=http://purl.obolibrary.org/obo/go.obo
 ```
 
+## Gene Tiers
+
+Users' genes are categorized in tiers based on their familiarity and experience with the gene. This is explained in
+detail in the users' documentation and FAQs. Users add TIER1 and TIER2 genes directly, while TIER3 genes are inferred
+from GO term associations.
+
+To enable only TIER1 and TIER2, and thus disabling GO terms-related features, add the following to your configuration:
+
+```ini
+rdp.settings.enabled-tiers=TIER1,TIER2
+```
+
 ## Taxon
 
 The taxon table is pre-populated during the very first installation of the software, at which time only Human taxon is
@@ -75,6 +87,27 @@ rdp.settings.cache.orthologs-file=ftp://ftp.ncbi.nlm.nih.gov/gene/DATA/gene_orth
 ```
 
 As with other remotely downloaded files, this would be updated monthly.
+
+## Privacy levels
+
+Privacy levels can be selectively enabled for user profiles and genes.
+
+```ini
+rdp.settings.privacy.enabled-levels=PUBLIC,SHARED,PRIVATE
+rdp.settings.privacy.enabled-gene-levels=PUBLIC,SHARED,PRIVATE
+```
+
+Note that any value enabled for genes that is not also enabled for profiles will be ignored.
+
+To allow user to modify the privacy level of their profile and individual genes, set the following properties:
+
+```ini
+rdp.settings.privacy.customizable-level=true
+rdp.settings.privacy.customizable-gene-level=true
+```
+
+To disable gene-level privacy, set `rdp.settings.privacy.customizable-gene-level`
+to `false` and leave the `rdp.settings.privacy.enabled-gene-levels` blank.
 
 ## Profile categories
 
@@ -230,7 +263,7 @@ The number of used terms indicate how many terms in the ontology have been assoc
 
 In the Edit window on the Manage Profile Category page, you can add a definition/description of the category, which
 is used in a tooltip on the Profile Page. You can also specify if this category will be used as a filter on the Gene
-Search page. While all active categories will be available for the Researcher Search page, only categories that have "Available for gene search" checked will be displayed on the Gene Search page.
+Search page. While all active categories will be available on the Researcher Search page, only categories that have "Available for gene search?" checked will be displayed on the Gene Search page.
 
 ![Interface for editing the properties of an ontology.](images/edit-an-ontology.png)
 
@@ -284,7 +317,7 @@ rdp.ontologies.{ontologyName}.terms.{termName}.definition
 ```
 
 Note that we provide defaults for Reactome in the JAR package, so you must use custom messages for overriding those
-values. A warning will be displayed in the admin section what this is the case.
+values. A warning will be displayed in the admin section if this is the case.
 
 ![Example of a category whose definition cannot be edited from the admin section.](images/category-with-overwritten-definition.png)
 
@@ -306,7 +339,7 @@ rdp.settings.ontology.default-resolver=ubc.pavlab.rdp.ontology.resolvers.Ontobee
 If you want to use a different source, you can provide a custom implementation of the `OntologyResolver` interface or
 ask us by [opening an issue on the RDP GitHub repository](https://github.com/PavlidisLab/rdp/issues).
 
-## Reactome Pathways
+### Reactome Pathways
 
 [Reactome Pathways](https://reactome.org/PathwayBrowser/) are treated in a slightly different way when it comes to
 loading and updating terms.
@@ -431,39 +464,6 @@ If a partner uses a different search token, you may use the `auth` query paramet
 ```ini
 rdp.settings.isearch.apis=https://register.rare-diseases-catalyst-network.ca?auth=jLb22QZzsaT6/w3xwDHBObmZPypJgXfb
 ```
-
-## Gene Tiers
-
-Users' genes are categorized in tiers based on their familiarity and experience with the gene. This is explained in
-detail in the users' documentation and FAQs. Users add TIER1 and TIER2 genes directly, while TIER3 genes are inferred
-from GO term associations.
-
-To enable only TIER1 and TIER2, and thus disabling GO terms-related features, add the following to your configuration:
-
-```ini
-rdp.settings.enabled-tiers=TIER1,TIER2
-```
-
-## Privacy levels
-
-Privacy levels can be selectively enabled for user profiles and genes.
-
-```ini
-rdp.settings.privacy.enabled-levels=PUBLIC,SHARED,PRIVATE
-rdp.settings.privacy.enabled-gene-levels=PUBLIC,SHARED,PRIVATE
-```
-
-Note that any value enabled for genes that is not also enabled for profiles will be ignored.
-
-To allow user to modify the privacy level of their profile and individual genes, set the following properties:
-
-```ini
-rdp.settings.privacy.customizable-level=true
-rdp.settings.privacy.customizable-gene-level=true
-```
-
-To disable gene-level privacy, set `rdp.settings.privacy.customizable-gene-level`
-to `false` and leave the `rdp.settings.privacy.enabled-gene-levels` blank.
 
 ## Anonymized search results
 
