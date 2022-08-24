@@ -88,7 +88,7 @@ public class Ontology implements Comparable<Ontology> {
      */
     @JsonIgnore
     @OneToMany(mappedBy = "ontology", cascade = CascadeType.ALL, orphanRemoval = true)
-    @OrderBy("ordering asc, name asc, termId asc")
+    @OrderBy("ordering asc, active desc, name asc, termId asc")
     @LazyCollection(LazyCollectionOption.EXTRA)
     private final SortedSet<OntologyTermInfo> terms = new TreeSet<>();
 
