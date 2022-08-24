@@ -834,6 +834,15 @@ public class UserControllerTest {
     }
 
     @Test
+    public void userSerialization_withNullProfile_thenDefaultToPrivate() throws JsonProcessingException {
+        User user = createUser( 1 );
+        user.setProfile( null );
+        User deserializedUser = objectMapper.readValue( objectMapper.writeValueAsString( user ), User.class );
+        assertThat( deserializedUser.getProfile().getPrivacyLevel() ).isEqualTo( PrivacyLevelType.PRIVATE );
+        assertThat( deserializedUser.getEffectivePrivacyLevel() ).isEqualTo( PrivacyLevelType.PRIVATE );
+    }
+
+    @Test
     public void userGeneSerialization() throws JsonProcessingException {
         User user = createUser( 1 );
         user.getProfile().setPrivacyLevel( PrivacyLevelType.PRIVATE );

@@ -77,7 +77,6 @@ public class Profile {
     @URL
     private String website;
 
-    @JsonIgnore
     @Enumerated(EnumType.ORDINAL)
     @Column(name = "privacy_level")
     private PrivacyLevelType privacyLevel;
