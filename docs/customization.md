@@ -347,6 +347,8 @@ loading and updating terms.
 Under `/admin/ontologies`, you can import the Reactome Pathways category with a single click. The initial import will
 download pathways and update term definitions.
 
+![Interface for importing Reactome Pathways.](images/import-reactome.png)
+
 The Reactome Pathways category has two additional actions for updating its terms and definitions.
 
 ![Actions exclusive to the Reactome Pathways category.](images/reactome-actions.png)
