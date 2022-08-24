@@ -1,6 +1,6 @@
 package ubc.pavlab.rdp.services;
 
-import lombok.Data;
+import lombok.Value;
 import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.StopWatch;
@@ -300,7 +300,6 @@ public class OntologyService implements InitializingBean {
         // second pass for setting relationships
         for ( OBOParser.Term term : parsingResult.getTerms() ) {
             SortedSet<OntologyTermInfo> subTerms = term.getInverseRelationships().stream()
-                    .filter( rel -> rel.getTypedef().equals( OBOParser.Typedef.IS_A ) )
                     .map( OBOParser.Term.Relationship::getNode )
                     .map( OBOParser.Term::getId )
                     .map( convertedTermsById::get )
@@ -736,12 +735,6 @@ public class OntologyService implements InitializingBean {
 
         // then some definitions
         if ( results.size() < maxResults ) {
-            String definition;
-            try {
-
-            } catch ( NoSuchMessageException e ) {
-                definition = null;
-            }
             if ( isFullTextSupported() ) {
                 ontologyTermInfoRepository.findAllByOntologyInAndDefinitionMatchAndActive( ontologies, fullTextQuery, active ).stream()
                         .map( row -> Pair.of( (OntologyTermInfo) row[0], (Double) row[1] ) )
@@ -866,10 +859,10 @@ public class OntologyService implements InitializingBean {
         return ontologyTermInfoRepository.findById( ontologyTermId ).orElse( null );
     }
 
-    @Data
+    @Value
     private static class OntologyTermInfoWithDepth {
-        private final OntologyTermInfo term;
-        private final int depth;
+        OntologyTermInfo term;
+        int depth;
     }
 
     /**
