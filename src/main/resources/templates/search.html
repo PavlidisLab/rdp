@@ -340,15 +340,15 @@
 
     <!--Orthologs -->
     <div id="orthologsResults" class="mb-3">
-        <div th:if="${orthologs != null} "
-             th:replace="fragments/ortholog-table::ortholog-table(users=${users}, orthologs=${orthologs}, remote=false)">
-            ...
-        </div>
+        <th:block th:if="${orthologs != null} ">
+            <div th:replace="fragments/ortholog-table::ortholog-table(users=${users}, orthologs=${orthologs}, remote=false)"></div>
+        </th:block>
     </div>
 
     <div id="searchSummary" class="mb-3">
-    <pre th:if="${searchSummary != null}"
-         th:replace="fragments/search::summary(searchSummary=${searchSummary})"></pre>
+        <th:block th:if="${searchSummary != null}">
+            <pre th:replace="fragments/search::summary(searchSummary=${searchSummary})"></pre>
+        </th:block>
     </div>
 
     <!--Results-->
