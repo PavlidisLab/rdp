@@ -116,7 +116,7 @@ To disable this feature, just leave the setting blank.
 !!! note
 
     As of 1.5.0, we recommend that you use an [additional profile category](#additional-profile-categories)
-    to offer Uberon terms to your users.
+    to add Human organ systems to the user profile.
 
 The Human organ systems ontology is based
 on [Uberon multi-species anatomy ontology](http://www.obofoundry.org/ontology/uberon.html)
@@ -166,7 +166,7 @@ Each term should have a unique name.
 ![Interface for creating a simple category.](images/create-simple-category.png)
 
 The terms can be organized in groups using grouping terms ("is grouping?"). Simple categories support only one grouping
-level. Terms are grouped under the closest preceding grouping term. Groups must not be empty.Grouping terms will not be
+level. Terms are grouped under the closest preceding grouping term. Groups must not be empty. Grouping terms will not be
 used for searching the registry.
 
 ![Example of a simple category with grouping terms.](images/simple-category-with-grouping-terms.png)
@@ -179,6 +179,14 @@ A term can also be associated with an icon. If a category has a mixture of terms
 will use a SVG textual icon fallback.
 
 ![Example of a category with a mixture of terms with and without icons.](images/simple-category-with-mixture-of-terms-with-and-without-icons.png)
+
+#### Custom icons
+
+To use custom icons, you must first enable custom [style and static resources](#style-and-static-resources) by expanding
+the search path for static assets. Then, icons can be deposited
+under `static/images/ontologies/{ontologyName}/{termName}.svg`.
+
+Only SVG is supported at this time.
 
 ### Create an ontology category
 
@@ -203,26 +211,26 @@ the category name.
 
 ### Managing a specific profile category
 
-A specific profile category can be managed on its "Manage Profile Category" page, which is accessed by clicking on the
-"Manage" button in the categories table.
+A specific profile category can be managed on its Manage Profile Category page, which is accessed by clicking on the
+"Manage" button in the table shown above.
 
 The page lists some basic stats at the very top and provides few action buttons:
 
 ![Actions available for simple categories.](images/simple-category-actions.png)
 
-- "Deactivate" (or "Deactivate All Terms" in the case of an ontology category): this will remove the category from the
-  Profile and Search page. This action is reversible, as the category can be easily re-activated. This action is
-  recommended in cases where a category cannot be deleted because it's being used.
-
-- Download as OBO: Download the category as an OBO file
+- "Deactivate" (or "Deactivate All Terms" in the case of an ontology category): this will remove the category from the Profile and Search pages. This action is reversible, as the category can be easily re-activated. This action is recommended in cases where a category cannot be deleted because it has already been used by some users.
 
 - Update from "source": Update the ontology category using the original URL (if available)
 
-The number of used terms indicate how many terms in the ontology are referred by users.
+- Download as OBO: Download the category as an OBO file
 
-In the **Edit** window on the Manage Profile Category page, you can add a definition/description of the category, which
+
+
+The number of used terms indicate how many terms in the ontology have been associated with associated with users.
+
+In the Edit window on the Manage Profile Category page, you can add a definition/description of the category, which
 is used in a tooltip on the Profile Page. You can also specify if this category will be used as a filter on the Gene
-Search page.
+Search page. While all active categories will be available for the Researcher Search page, only categories that have "Available for gene search" checked will be displayed on the Gene Search page.
 
 ![Interface for editing the properties of an ontology.](images/edit-an-ontology.png)
 
@@ -283,13 +291,7 @@ values. A warning will be displayed in the admin section what this is the case.
 Read more about configuring messages in [Customizing the application messages](#customizing-the-applications-messages)
 section of this page.
 
-### Custom icons
 
-To use custom icons, you must first enable custom [style and static resources](#style-and-static-resources) by expanding
-the search path for static assets. Then, icons can be deposited
-under `static/images/ontologies/{ontologyName}/{termName}.svg`.
-
-Only SVG is supported at this time.
 
 ### Resolving external URLs
 
