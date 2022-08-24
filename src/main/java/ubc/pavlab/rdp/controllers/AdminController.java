@@ -58,6 +58,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
@@ -94,7 +95,15 @@ public class AdminController {
      * Task executor used for background tasks.
      * TODO: make this a configurable bean
      */
-    private final Executor taskExecutor = Executors.newSingleThreadExecutor();
+    private final ExecutorService taskExecutor = Executors.newSingleThreadExecutor();
+
+    /**
+     * This is only meant for testing, please don't use.
+     */
+    @Secured(value = {})
+    ExecutorService getTaskExecutor() {
+        return taskExecutor;
+    }
 
     /**
      * List all users

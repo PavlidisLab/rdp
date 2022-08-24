@@ -51,6 +51,8 @@ import java.net.URI;
 import java.net.URL;
 import java.time.Duration;
 import java.util.*;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.zip.GZIPOutputStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -71,6 +73,9 @@ public class AdminControllerTest {
 
     @Autowired
     private MockMvc mvc;
+
+    @Autowired
+    private AdminController adminController;
 
     @MockBean
     private UserDetailsService userDetailsService;
@@ -815,7 +820,11 @@ public class AdminControllerTest {
                 .andExpect( redirectedUrl( "/admin/ontologies/1" ) );
         verify( reactomeService ).findPathwaysOntology();
         verify( reactomeService ).importPathwaysOntology();
-        // FIXME: this executes in a background thread, so it might necessary to wait a little amount of time
+        // the admin controller uses a single-threaded task executor, so if we queue and wait for a task to finish, it
+        // will guarantee that the pathways summations update has been invoked
+        Future<?> dummyTask = adminController.getTaskExecutor().submit( () -> {
+        } );
+        assertThat( dummyTask ).succeedsWithin( 1, TimeUnit.SECONDS );
         verify( reactomeService ).updatePathwaySummations( null );
         verifyNoMoreInteractions( reactomeService );
     }
