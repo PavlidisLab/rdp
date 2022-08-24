@@ -7,7 +7,8 @@
 </head>
 <body>
 <div th:replace="layouts/common::header"></div>
-<div class="container py-4">
+<div class="container py-4"
+     th:with="ontologies=${@ontologyService.findAllOntologiesIncludingInactive()}">
     <div th:replace="layouts/common::title(title='Manage Profile Categories')"></div>
     <div th:replace="layouts/common::messages"></div>
     <main id="main-content">
@@ -85,7 +86,8 @@
             </form>
         </div>
     </div>
-    <table class="table border-left border-right border-bottom">
+    <table th:unless="${ontologies.isEmpty()}"
+           class="table border-left border-right border-bottom">
         <thead>
         <tr>
             <th></th>
@@ -96,7 +98,7 @@
         </tr>
         </thead>
         <tbody>
-        <tr th:each="ontology, i : ${@ontologyService.findAllOntologiesIncludingInactive()}">
+        <tr th:each="ontology, i : ${ontologies}">
             <td>
                 <form th:action="@{/admin/ontologies/{ontologyId}/move(ontologyId=${ontology.id})}"
                       method="post">
