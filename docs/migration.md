@@ -14,7 +14,7 @@ any part of the process, please contact us.
 As of 1.3.2, database migrations are automated with Flyway which will run at startup of the application. This behaviour
 can be disabled with the following parameter in `application.properties`:
 
-```
+```properties
 spring.flyway.enabled=false
 flyway.enabled=false # for <1.5 releases
 ```

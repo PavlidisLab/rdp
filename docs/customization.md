@@ -5,7 +5,7 @@ Most of the data used by the application is retrieved remotely at startup and su
 To prevent data from being loaded on startup and/or recurrently, set the following parameter in
 the `application.properties` file:
 
-```ìni
+```properties
 rdp.settings.cache.enabled=false
 ```
 
@@ -30,13 +30,13 @@ contain `ftp://ftp.ncbi.nlm.nih.gov/gene/DATA/GENE_INFO/Mammalia/Homo_sapiens.ge
 
 Genes' GO term annotations are also obtained from NCBI:
 
-```ini
+```properties
 rdp.settings.cache.annotation-file=ftp://ftp.ncbi.nlm.nih.gov/gene/DATA/gene2go.gz
 ```
 
 GO terms, on the other hand, are obtained from Ontobee:
 
-```ini
+```properties
 rdp.settings.cache.term-file=http://purl.obolibrary.org/obo/go.obo
 ```
 
@@ -48,7 +48,7 @@ from GO term associations.
 
 To enable only TIER1 and TIER2, and thus disabling GO terms-related features, add the following to your configuration:
 
-```ini
+```properties
 rdp.settings.enabled-tiers=TIER1,TIER2
 ```
 
@@ -75,14 +75,14 @@ on [DIOPT](https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-210
 
 The default value points to a classpath resource included within RDP archive:
 
-```ìni
+```properties
 rdp.settings.cache.ortholog-file=classpath:cache/DIOPT_filtered_data_May2021.gz
 ```
 
 It would also be possible to use another ortholog resource, as long as it has the same format. For example, to use the
 NCBI gene orthologs:
 
-```ini
+```properties
 rdp.settings.cache.orthologs-file=ftp://ftp.ncbi.nlm.nih.gov/gene/DATA/gene_orthologs.gz
 ```
 
@@ -92,7 +92,7 @@ As with other remotely downloaded files, this would be updated monthly.
 
 Privacy levels can be selectively enabled for user profiles and genes.
 
-```ini
+```properties
 rdp.settings.privacy.enabled-levels=PUBLIC,SHARED,PRIVATE
 rdp.settings.privacy.enabled-gene-levels=PUBLIC,SHARED,PRIVATE
 ```
@@ -101,7 +101,7 @@ Note that any value enabled for genes that is not also enabled for profiles will
 
 To allow user to modify the privacy level of their profile and individual genes, set the following properties:
 
-```ini
+```properties
 rdp.settings.privacy.customizable-level=true
 rdp.settings.privacy.customizable-gene-level=true
 ```
@@ -118,7 +118,7 @@ Researcher positions can be enabled or disabled by setting the
 
 For the moment, only one value is defined `PRINCIPAL_INVESTIGATOR`.
 
-```ini
+```properties
 rdp.settings.profile.enabled-researcher-positions=PRINCIPAL_INVESTIGATOR
 ```
 
@@ -129,7 +129,7 @@ To disable this feature, just leave the setting blank.
 Researcher categories can be enabled or disabled by setting the
 `rdp.settings.profile.enabled-researcher-categories` to a list of desired values.
 
-```ini
+```properties
 rdp.settings.profile.enabled-researcher-categories=IN_SILICO,IN_VIVO
 ```
 
@@ -155,7 +155,7 @@ The Human organ systems ontology is based
 on [Uberon multi-species anatomy ontology](http://www.obofoundry.org/ontology/uberon.html)
 and updated monthly.
 
-```ini
+```properties
 rdp.settings.cache.organ-file=http://purl.obolibrary.org/obo/uberon.obo
 ```
 
@@ -187,7 +187,7 @@ Categories page.
 
 To disable this feature altogether, set the following in your `application.properties`:
 
-```ini
+```properties
 rdp.settings.ontologies.enabled=false
 ```
 
@@ -309,7 +309,7 @@ If an ontology has at least one user, the following message will be displayed in
 The content of `messages.properties` has precedence over the values stored in the database for titles and definitions of
 categories and terms. This allows you to override values that are imported from an OBO source as you see fit.
 
-```ìni
+```properties
 rdp.ontologies.{ontologyName}.title
 rdp.ontologies.{ontologyName}.definition
 rdp.ontologies.{ontologyName}.terms.{termName}.title
@@ -332,7 +332,7 @@ By default, ontologies and terms are resolved from [OLS](https://www.ebi.ac.uk/o
 special treatment with the `ReactomeResolver`. You may override this for a different resolver such
 as [Ontobee](https://ontobee.org/).
 
-```ìni
+```properties
 rdp.settings.ontology.default-resolver=ubc.pavlab.rdp.ontology.resolvers.OntobeeResolver
 ```
 
@@ -359,7 +359,7 @@ setting `rdp.settings.ontologies.reactome-ontology-name` in your configuration.
 The various Reactome-related configuration should be left largely untouched. You can use static files by downloading
 them and changing the URL scheme to `file:`.
 
-```ìni
+```properties
 rdp.settings.ontology.reactome-pathways-file=file:ReactomePathways.txt
 rdp.settings.ontology.reactome-pathways-hierarchy-file=file:ReactomePathwaysRelation.txt
 rdp.settings.ontology.reactome-stable-identifiers-file=file:reactome_stable_ids.txt
@@ -374,7 +374,7 @@ the [Reactome Content Service API](https://reactome.org/ContentService/#/).
 It's also possible to store all the above mentioned info locally, instead of fetching it remotely. The following
 settings will retrieve all the necessary files relative to the working directory of the Web application:
 
-```ini
+```properties
 #this setting relates only to gene info files. Files for all taxons will be stord under gene/
 rdp.settings.cache.load-from-disk=true
 rdp.settings.cache.gene-files-location=file:genes/
@@ -405,7 +405,7 @@ Registries can access each other public data by enabling `rdp.settings.isearch.e
 the `rdp.settings.isearch.apis` in the `application.properties` file to contain a comma-delimited list of partner
 registry URLs.
 
-```ini
+```properties
 rdp.settings.isearch.enabled=true
 rdp.settings.isearch.apis=https://register.rare-diseases-catalyst-network.ca/
 ```
@@ -419,7 +419,7 @@ partner registries.
 
 The token is added to the `application.properties` file in the following way:
 
-```ini
+```properties
 rdp.settings.isearch.search-token=hrol3Y4z2OE0ayK227i8oHTLDjPtRfb4
 ```
 
@@ -442,7 +442,7 @@ from user;
 Let's assume that the created user's ID was 522. The partner would then add the token to
 its `rdp.settings.isearch.auth-tokens` setting along any existing tokens.
 
-```ini
+```properties
 rdp.settings.isearch.user-id=522
 rdp.settings.isearch.auth-tokens=jLb22QZzsaT6/w3xwDHBObmZPypJgXfb,hrol3Y4z2OE0ayK227i8oHTLDjPtRfb4
 ```
@@ -457,13 +457,13 @@ use either the `auth` or `noauth` query parameter in the `rdp.settings.isearch.a
 To deal with non-admin partners, specify the `noauth` query parameter, which will prevent leakage of the remote search
 token from administrative accounts.
 
-```ini
+```properties
 rdp.settings.isearch.apis=https://register.rare-diseases-catalyst-network.ca?noauth
 ```
 
 If a partner uses a different search token, you may use the `auth` query parameter to specify that token.
 
-```ini
+```properties
 rdp.settings.isearch.apis=https://register.rare-diseases-catalyst-network.ca?auth=jLb22QZzsaT6/w3xwDHBObmZPypJgXfb
 ```
 
@@ -475,7 +475,7 @@ users or genes from different search.
 
 This feature can be disabled by setting the following configuration key to `false`:
 
-```
+```properties
 rdp.settings.privacy.enable-anonymized-search-results=false
 ```
 
@@ -500,14 +500,14 @@ With an administrator account, you can refresh messages from the main menu witho
 The FAQs can also be customized in a similar way by editing the provided `faq.properties` file and setting up
 the `rdp.settings.faq-file` parameter:
 
-```ini
+```properties
 rdp.settings.faq-file=file:faq.properties
 ```
 
 In the file, each entry requires two parts: `rdp.faq.questions.<q_key>` and `rdp.faq.answers.<q_key>` which hold the
 question and the corresponding answer, respectively.
 
-```ini
+```properties
 rdp.faq.questions.<q_key>=A relevant question.
 rdp.faq.answers.<q_key>=A plausible answer.
 ```
@@ -520,7 +520,7 @@ in [faq.properties](https://github.com/PavlidisLab/rdp/tree/{{ config.extra.git_
 
 The terms of service and privacy policy can be added to the `messages.properties` by editing the following entries:
 
-```ini
+```properties
 rdp.terms-of-service=Your terms of service
 rdp.privacy-policy=Your privacy policy
 ```
@@ -529,7 +529,7 @@ rdp.privacy-policy=Your privacy policy
 
 Static resources can be selectively replaced by including a search directory for Spring static resources.
 
-```ini
+```properties
 spring.resources.static-locations=file:static/,classpath:/static/
 ```
 

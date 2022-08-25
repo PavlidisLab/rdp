@@ -38,7 +38,7 @@ columns containing 255 characters (4 * 255 = 1020 > 767, but 3 * 255 = 765).
 In the working directory of the Web application, create an `application.properties`
 file that contains at least the following entries:
 
-```ini
+```properties
 spring.profiles.active=prod
 
 spring.datasource.url=jdbc:mysql://<database host>/<database name>
@@ -70,7 +70,7 @@ in [application.properties](https://github.com/PavlidisLab/rdp/blob/{{ config.ex
 
 And a `messages.properties` with the following entries:
 
-```ìni
+```properties
 # Adjust this to your own network name
 rdp.site.fullname=Rare Disease Model & Mechanism Network
 rdp.site.shortname=RDMM

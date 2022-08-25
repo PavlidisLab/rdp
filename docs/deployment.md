@@ -42,7 +42,7 @@ your RDP instance.
 
 Create a file under `/etc/systemd/system/rdp.service` with the following content:
 
-```Ini
+```ini
 [Unit]
 Description=rdp
 After=syslog.target

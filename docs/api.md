@@ -18,7 +18,7 @@ scripts served from the main website to freely access the API endpoints.
 
 In your `application.properties`, set `rdp.site.mainsite` to your main website URL:
 
-```ini
+```properties
 rdp.site.mainsite=https://example.com
 ```
 
