@@ -9,7 +9,7 @@
 <div th:replace="layouts/common::header"></div>
 <div class="container py-4">
     <div th:replace="layouts/common::title(title='Terms of Service')"></div>
-    <div th:replace="layouts/login::message"></div>
+    <div th:replace="layouts/common::messages"></div>
     <main id="main-content">
         <div th:utext="#{rdp.terms-of-service}"></div>
         <div th:if="${#strings.isEmpty(#messages.msg('rdp.terms-of-service'))}">
