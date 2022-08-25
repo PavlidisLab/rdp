@@ -40,6 +40,7 @@ import ubc.pavlab.rdp.repositories.*;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.settings.SiteSettings;
 
+import javax.annotation.PostConstruct;
 import javax.validation.ValidationException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -66,6 +67,18 @@ public class UserServiceImplTest {
 
     @TestConfiguration
     static class UserServiceImplTestContextConfiguration {
+
+        @MockBean
+        private ApplicationSettings applicationSettings;
+        @MockBean
+        private ApplicationSettings.InternationalSearchSettings internationalSearchSettings;
+
+        @PostConstruct
+        public void init() {
+            // this needs to be set early because it is used in UserServiceImpl.afterPropertiesSet()
+            when( internationalSearchSettings.getUserId() ).thenReturn( null );
+            when( applicationSettings.getIsearch() ).thenReturn( internationalSearchSettings );
+        }
 
         @Bean
         public PrivacyService privacyService() {
@@ -124,7 +137,7 @@ public class UserServiceImplTest {
     private OrganInfoService organInfoService;
     @MockBean
     private UserListener userListener;
-    @MockBean
+    @Autowired
     private ApplicationSettings applicationSettings;
     @MockBean
     private ApplicationSettings.OrganSettings organSettings;

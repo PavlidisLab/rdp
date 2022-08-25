@@ -195,6 +195,8 @@ public class ApplicationSettings {
         private boolean defaultOn;
         /**
          * User ID for the remote search user, or null to disable.
+         * <p>
+         * If set, the user must exist at startup and there must be at least one {@link #authTokens} specified.
          */
         private Integer userId;
         /**

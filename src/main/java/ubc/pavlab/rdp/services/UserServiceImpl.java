@@ -22,6 +22,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
 import ubc.pavlab.rdp.events.OnContactEmailUpdateEvent;
 import ubc.pavlab.rdp.events.OnRegistrationCompleteEvent;
 import ubc.pavlab.rdp.events.OnRequestAccessEvent;
@@ -104,6 +105,13 @@ public class UserServiceImpl implements UserService, InitializingBean {
     public void afterPropertiesSet() {
         usersByAnonymousIdCache = CacheUtils.getCache( cacheManager, USERS_BY_ANONYMOUS_ID_CACHE_NAME );
         userGenesByAnonymousIdCache = CacheUtils.getCache( cacheManager, USER_GENES_BY_ANONYMOUS_ID_CACHE_NAME );
+        Integer userId = applicationSettings.getIsearch().getUserId();
+        if ( userId != null ) {
+            User user = userRepository.findById( userId ).orElse( null );
+            Assert.notNull( user, String.format( "The remote search user with ID %d does not exist.", userId ) );
+            Assert.notEmpty( applicationSettings.getIsearch().getAuthTokens(), "There must be at least one authentication token configured in 'rdp.settings.isearch.auth-tokens'." );
+            log.info( String.format( "Using %s for performing remote admin search.", user ) );
+        }
     }
 
     @Transactional
