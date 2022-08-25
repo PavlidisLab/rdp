@@ -138,6 +138,11 @@ public class UserServiceImpl implements UserService, InitializingBean {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public List<Role> findAllRoles() {
+        return roleRepository.findAll();
+    }
+    @Override
     @Secured("ROLE_ADMIN")
     @Transactional(rollbackFor = RoleException.class)
     public void updateRoles( User user, Set<Role> roles ) throws RoleException {

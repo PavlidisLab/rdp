@@ -27,6 +27,8 @@ public interface UserService {
 
     User createServiceAccount( User user );
 
+    List<Role> findAllRoles();
+
     /**
      * Update a user's roles.
      * <p>
