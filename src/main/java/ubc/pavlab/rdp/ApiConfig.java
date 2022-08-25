@@ -1,5 +1,6 @@
 package ubc.pavlab.rdp;
 
+import io.swagger.v3.oas.models.ExternalDocumentation;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
@@ -35,6 +36,9 @@ public class ApiConfig {
                         .termsOfService( messageSource.getMessage( "rdp.terms-of-service", null, null, locale ) != null ?
                                 UriComponentsBuilder.fromPath( servletContext.getContextPath() ).path( "/terms-of-service" ).toUriString() : null )
                         .version( buildProperties.getVersion() ) )
+                .externalDocs( new ExternalDocumentation()
+                        .description( "Rare Disease Project API Documentation" )
+                        .url( "https://rgr.readthedocs.io/en/stable/api/" ) )
                 .servers( Collections.singletonList( new Server().url( siteSettings.getHostUrl().toString() ) ) );
 
     }
