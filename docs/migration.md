@@ -26,6 +26,13 @@ Take a look at the sections below for version-specific migration procedures.
 This release introduce strict validation for the `application.properties` configuration file. If you had invalid values,
 adjust them as indicated.
 
+This release does not enable [human organ systems](customization.md#human-organ-systems) by default. If you still want
+to use this feature, enable it with:
+
+```properties
+rdp.settings.organs.enabled=true
+```
+
 Note that we switched to Spring Boot 2, so you should migrate all the custom properties set in `application.properties`
 accordingly. Notably, the Flyway options `flyway.*` must be migrated to `spring.flyway.*`.
 
@@ -40,7 +47,7 @@ assets.
 
 If you use our API, there's been a few minor cleanups that resulted in breaking changes.
 
-The `id` and `anonymousId` fields are now mutually exclusives. This means that you have to lookup the existence of the
+The `id` and `anonymousId` fields are now mutually exclusives. This means that you have to test for the existence of the
 attribute before retrieving its value.
 
 The `privacyLevel` field does not use a numerical encoding anymore but instead explicit strings: `PRIVATE`, `SHARED`

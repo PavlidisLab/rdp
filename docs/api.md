@@ -28,7 +28,8 @@ Clients can authenticate on any API endpoint using a secret access token attache
 perform the action with their level of access.
 
 For partner registry administrators, the access can instead be authenticated with the remote admin using one of the
-token listed in `rdp.settings.isearch.auth-tokens` as described in the [International data](customization.md#international-data) 
+token listed in `rdp.settings.isearch.auth-tokens` as described in
+the [International data](customization.md#international-data)
 customization section.
 
 For external services, authentication should instead be performed with using a [service account](service-accounts.md)
@@ -136,6 +137,7 @@ GET /api/genes/search HTTP/1.1
 - `symbol` a gene symbol
 - `taxonId` a taxon identifier in which the search is performed
 - `orthologTaxonId` an ortholog taxon identifier, omitting it searches all taxa
+- `tier` a single tier to filter by (deprecated as of 1.4.0 in favour of `tiers`)
 - `tiers` a set of tiers including `TIER1`, `TIER2` and `TIER3`
 
 Then any of the following as described in "Search users":
@@ -144,8 +146,6 @@ Then any of the following as described in "Search users":
 - `researcherCategories`
 - `organUberonIds`
 - `ontologyNames` and `ontologyTermIds` two lists of corresponding ontology names and term IDs (new in 1.5.0)
-
-The `tier` query parameter is deprecated as of 1.4.0.
 
 ## Find a user by its identifier
 
@@ -178,5 +178,39 @@ Obtain a few statistics for the number of registered users, genes, etc.
 
 ```http
 GET /api/stats HTTP/1.1
+```
+
+The `version` field was added in 1.5.0. Previously, you had to parse the `/api` endpoint and extract the version
+from `info.version`.
+
+Example output:
+
+```json
+{
+  version: "1.5.0",
+  users: 2,
+  publicUsers: 0,
+  usersWithGenes: 1,
+  userGenes: 2,
+  uniqueUserGenes: 2,
+  uniqueUserGenesTAll: 2,
+  uniqueUserGenesHumanTAll: 2,
+  researchersByTaxa: {
+    mouse: 1,
+    budding
+    yeast: 0,
+    roundworm: 0,
+    frog: 0,
+    rat: 0,
+    e.
+    coli: 0,
+    fruit
+    fly: 0,
+    fission
+    yeast: 0,
+    zebrafish: 0,
+    human: 0
+  }
+}
 ```
 

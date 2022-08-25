@@ -171,10 +171,10 @@ where uberon_id = '<uberon_id>';
 If you activate a non-default organ system, consider adding an icon for it by following the instructions in
 the [Style and static resources](#style-and-static-resources) section below.
 
-To disable organ systems altogether, set the following in your configuration:
+To enable human organ systems, set the following in your configuration:
 
-```
-rdp.settings.organs.enabled=false
+```properties
+rdp.settings.organs.enabled=true
 ```
 
 ## Additional profile categories
@@ -524,6 +524,17 @@ The terms of service and privacy policy can be added to the `messages.properties
 rdp.terms-of-service=Your terms of service
 rdp.privacy-policy=Your privacy policy
 ```
+
+## Theme color
+
+To use a custom [theme color](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta/name/theme-color), set the
+following property in your configuration:
+
+```properties
+rdp.site.theme-color=#ffffff
+```
+
+The theme color is used to recolor certain browsers and provide a more unified user experience.
 
 ## Style and static resources
 
