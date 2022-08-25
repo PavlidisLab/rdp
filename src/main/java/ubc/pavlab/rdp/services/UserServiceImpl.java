@@ -138,6 +138,20 @@ public class UserServiceImpl implements UserService, InitializingBean {
     }
 
     @Override
+    @Secured("ROLE_ADMIN")
+    @Transactional(rollbackFor = RoleException.class)
+    public void updateRoles( User user, Set<Role> roles ) throws RoleException {
+        Role adminRole = roleRepository.findByRole( "ROLE_ADMIN" );
+        if ( isCurrentUser( user ) && !roles.containsAll( user.getRoles() ) ) {
+            throw new CannotRevokeOwnRolesException( "You cannot revoke your own roles." );
+        } else if ( user.getRoles().contains( adminRole ) && !roles.containsAll( user.getRoles() ) ) {
+            throw new CannotRevokeRolesFromOtherAdministratorException( "You cannot revoke the roles of another administrator." );
+        }
+        CollectionUtils.update( user.getRoles(), roles );
+        userRepository.save( user );
+    }
+
+    @Override
     @PreAuthorize("hasPermission(#user, 'update')")
     public User update( User user ) {
         if ( applicationSettings.getPrivacy() == null ) {
@@ -217,6 +231,21 @@ public class UserServiceImpl implements UserService, InitializingBean {
         }
 
         return findUserByIdNoAuth( ( (UserPrinciple) auth.getPrincipal() ).getId() );
+    }
+
+    /**
+     * Test if the provided user is the current authenticated user.
+     * <p>
+     * Prefer this over {@link #findCurrentUser()} if you don't need to retrieve the current user and avoid a database
+     * roundtrip.
+     */
+    @Override
+    public boolean isCurrentUser( User user ) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if ( auth == null || auth.getPrincipal().equals( "anonymousUser" ) ) {
+            return false;
+        }
+        return ( (UserPrinciple) auth.getPrincipal() ).getId().equals( user.getId() );
     }
 
     @Override

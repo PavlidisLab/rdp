@@ -35,6 +35,7 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import ubc.pavlab.rdp.model.AccessToken;
 import ubc.pavlab.rdp.model.Profile;
+import ubc.pavlab.rdp.model.Role;
 import ubc.pavlab.rdp.model.User;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.ontology.Ontology;
@@ -57,7 +58,6 @@ import java.text.MessageFormat;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -146,6 +146,31 @@ public class AdminController {
         user = userService.createServiceAccount( user );
 
         return "redirect:/admin/users/" + user.getId();
+    }
+
+    @PostMapping(value = "/admin/users/{user}/roles")
+    public Object updateRoles( @PathVariable User user, @RequestParam(required = false) Set<Role> roles, RedirectAttributes redirectAttributes, Locale locale ) {
+        if ( roles == null ) {
+            roles = Collections.emptySet();
+        }
+        try {
+            userService.updateRoles( user, roles );
+            if ( roles.isEmpty() ) {
+                redirectAttributes.addFlashAttribute( "message", String.format(
+                        "All roles of %s have been revoked.",
+                        user.getProfile().getFullName() ) );
+            } else {
+                redirectAttributes.addFlashAttribute( "message", String.format(
+                        "The following roles have been assigned to %s: %s.",
+                        user.getProfile().getFullName(),
+                        roles.stream().map( role -> messageSource.getMessage( role.getResolvableTitle(), locale ) ).collect( Collectors.joining( ", " ) ) ) );
+            }
+        } catch ( RoleException e ) {
+            redirectAttributes.addFlashAttribute( "message", e.getMessage() );
+            redirectAttributes.addFlashAttribute( "error", true );
+        }
+        return "redirect:/admin/users/" + user.getId();
+
     }
 
     /**

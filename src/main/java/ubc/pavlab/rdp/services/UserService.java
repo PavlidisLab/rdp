@@ -1,9 +1,7 @@
 package ubc.pavlab.rdp.services;
 
-import lombok.NonNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.security.authentication.BadCredentialsException;
 import ubc.pavlab.rdp.exception.TokenException;
 import ubc.pavlab.rdp.model.*;
@@ -29,6 +27,13 @@ public interface UserService {
 
     User createServiceAccount( User user );
 
+    /**
+     * Update a user's roles.
+     * <p>
+     * Note that the current user cannot revoke its own roles as a safeguard.
+     */
+    void updateRoles( User user, Set<Role> roles ) throws RoleException;
+
     User update( User user );
 
     void delete( User user );
@@ -40,6 +45,8 @@ public interface UserService {
     String getCurrentEmail();
 
     User findCurrentUser();
+
+    boolean isCurrentUser( User user );
 
     User findUserById( int id );
 
