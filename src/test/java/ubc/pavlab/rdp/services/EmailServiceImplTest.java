@@ -7,6 +7,7 @@ import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.mail.SimpleMailMessage;
@@ -20,7 +21,6 @@ import ubc.pavlab.rdp.model.VerificationToken;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.settings.SiteSettings;
-import ubc.pavlab.rdp.util.OntologyMessageSource;
 
 import javax.mail.MessagingException;
 import java.net.URI;
@@ -56,8 +56,8 @@ public class EmailServiceImplTest {
     @MockBean
     private JavaMailSender emailSender;
 
-    @MockBean
-    private OntologyMessageSource ontologyMessageSource;
+    @MockBean(name = "ontologyMessageSource")
+    private MessageSource ontologyMessageSource;
 
     @Before
     public void setUp() {

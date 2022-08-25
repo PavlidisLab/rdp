@@ -8,8 +8,9 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.MessageSource;
+import org.springframework.context.NoSuchMessageException;
 import org.springframework.context.annotation.Import;
-import org.springframework.http.MediaType;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -26,12 +27,14 @@ import ubc.pavlab.rdp.services.TaxonService;
 import ubc.pavlab.rdp.services.UserService;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.settings.SiteSettings;
-import ubc.pavlab.rdp.util.OntologyMessageSource;
+import ubc.pavlab.rdp.util.Messages;
 
 import java.util.EnumSet;
 
 import static org.hamcrest.Matchers.closeTo;
+import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -78,8 +81,8 @@ public class MainControllerTest {
     @MockBean
     private PermissionEvaluator permissionEvaluator;
 
-    @MockBean
-    private OntologyMessageSource ontologyMessageSource;
+    @MockBean(name = "ontologyMessageSource")
+    private MessageSource ontologyMessageSource;
 
     @Before
     public void setUp() {
@@ -120,16 +123,32 @@ public class MainControllerTest {
 
     @Test
     public void termsOfService() throws Exception {
+        when( ontologyMessageSource.getMessage( eq( "rdp.terms-of-service" ), any(), isNull(), any() ) ).thenReturn( "Do what you please." );
         mvc.perform( get( "/terms-of-service" ) )
                 .andExpect( status().isOk() )
-                .andExpect( view().name( "terms-of-service" ) );
+                .andExpect( view().name( "terms-of-service" ) )
+                .andExpect( content().string( containsString( "Do what you please." ) ) );
+        verify( ontologyMessageSource ).getMessage( eq( "rdp.terms-of-service" ), eq( new String[]{ "RDP", "Rare Disease Project" } ), isNull(), any() );
     }
 
     @Test
-    public void privacyPolicy() throws Exception {
+    public void termsOfService_whenMessageIsMissing() throws Exception {
+        when( ontologyMessageSource.getMessage( any(), any(), isNull(), any() ) ).thenThrow( NoSuchMessageException.class );
+        mvc.perform( get( "/terms-of-service" ) )
+                .andExpect( status().isNotFound() )
+                .andExpect( view().name( "error/404" ) )
+                .andExpect( model().attribute( "message", "No terms of service document is setup for this registry." ) );
+        verify( ontologyMessageSource ).getMessage( eq( "rdp.terms-of-service" ), eq( new String[]{ "RDP", "Rare Disease Project" } ), isNull(), any() );
+    }
+
+    @Test
+    public void privacyPolicy_whenMessageIsMissing() throws Exception {
+        when( ontologyMessageSource.getMessage( any(), any(), isNull(), any() ) ).thenThrow( NoSuchMessageException.class );
         mvc.perform( get( "/privacy-policy" ) )
-                .andExpect( status().isOk() )
-                .andExpect( view().name( "privacy-policy" ) );
+                .andExpect( status().isNotFound() )
+                .andExpect( view().name( "error/404" ) )
+                .andExpect( model().attribute( "message", "No privacy policy is setup for this registry." ) );
+        verify( ontologyMessageSource ).getMessage( eq( "rdp.privacy-policy" ), eq( new String[]{ "RDP", "Rare Disease Project" } ), isNull(), any() );
     }
 
     @Test

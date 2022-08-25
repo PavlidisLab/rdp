@@ -1,6 +1,7 @@
 package ubc.pavlab.rdp;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.HierarchicalMessageSource;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
@@ -40,7 +41,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
     @Bean
 
-    public MessageSource messageSource( OntologyMessageSource ontologyMessageSource ) {
+    public MessageSource messageSource( @Qualifier("ontologyMessageSource") MessageSource ontologyMessageSource ) {
         HierarchicalMessageSource messageSource = messageSourceWithoutOntology();
         // if it cannot be resolved in messages.properties, then lookup some of our built-in resolution for
         // ontology-related patterns
