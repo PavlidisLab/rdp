@@ -291,7 +291,12 @@ public class SearchController extends AbstractSearchController {
             return modelAndView;
         }
 
+        Map<Taxon, Set<GeneInfo>> orthologMap = orthologs.stream()
+                .sorted( Comparator.comparing( GeneInfo::getTaxon, Taxon.getComparator() ) )
+                .collect( Collectors.groupingBy( GeneInfo::getTaxon, LinkedHashMap::new, Collectors.toSet() ) );
+
         modelAndView
+                .addObject( "orthologs", orthologMap )
                 .addObject( "searchSummary", summarizeGeneSearchParams( new GeneSearchParams( gene, tiers, orthologTaxon, iSearch, researcherPositions, researcherCategories, organUberonIds, ontologyTermIds ), locale ) )
                 .addObject( "usergenes", userGeneService.handleGeneSearch( gene, tiers, orthologTaxon, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ), ontologyTermsFromIds( ontologyTermIds ) ) );
         if ( iSearch ) {

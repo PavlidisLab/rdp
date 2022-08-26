@@ -92,6 +92,8 @@ var formUtil = require('./util/form');
                     orthologContainer.html(responseText);
                 }
             });
+        } else {
+            orthologContainer.empty();
         }
 
         // Show international search results
