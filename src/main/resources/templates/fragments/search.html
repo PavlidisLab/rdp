@@ -2,8 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
 <div th:fragment="summary(searchSummary)">
-    <p th:unless="${#strings.isEmpty(searchSummary)}">Showing results for the following search query:</p>
-    <pre th:text="${searchSummary}" class="mb-0" style="white-space: pre-wrap;"></pre>
+    <pre class="mark p-3" style="white-space: pre-wrap;">Filters applied: <th:block th:text="${searchSummary}"></th:block>.</pre>
 </div>
 </body>
 </html>
