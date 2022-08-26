@@ -4,11 +4,16 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.context.junit4.SpringRunner;
 import ubc.pavlab.rdp.model.ontology.Ontology;
 import ubc.pavlab.rdp.model.ontology.OntologyTermInfo;
 
+import java.util.Set;
+import java.util.TreeSet;
+
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @RunWith(SpringRunner.class)
 @DataJpaTest
@@ -38,6 +43,26 @@ public class OntologyTermInfoRepositoryTest {
         assertThat( ontologyTermInfoRepository.findAllByOntologyAndActiveAndSuperTermsEmpty( ont ) )
                 .extracting( "termId" )
                 .containsExactlyInAnyOrder( "TERM:000003", "TERM:000005" );
+    }
+
+    @Test
+    public void save_whenTermSynonymsWithDifferentCase() {
+        Ontology ont = Ontology.builder( "mondo" ).build();
+        OntologyTermInfo ontologyTermInfo = OntologyTermInfo.builder( ont, "TERM:000001" ).build();
+        ontologyTermInfo.getSynonyms().add( "UPPER" );
+        ontologyTermInfo.getSynonyms().add( "upper" );
+        Set<String> originalSynonymsCollection = ontologyTermInfo.getSynonyms();
+        ont.getTerms().add( ontologyTermInfo );
+        ontologyRepository.saveAndFlush( ont );
+        OntologyTermInfo reloadedTerm = ontologyTermInfoRepository.findById( ontologyTermInfo.getId() ).orElse( null );
+        assertThat( reloadedTerm ).isNotNull();
+        assertThat( reloadedTerm.getSynonyms() )
+                .isNotSameAs( originalSynonymsCollection )
+                .isNotInstanceOf( TreeSet.class );
+        // unfortunately, at this stage the collection is managed by Hibernate and does not honor the collator
+        reloadedTerm.getSynonyms().add( "lower" );
+        reloadedTerm.getSynonyms().add( "LOWER" );
+        ontologyTermInfoRepository.saveAndFlush( reloadedTerm );
     }
 
 }

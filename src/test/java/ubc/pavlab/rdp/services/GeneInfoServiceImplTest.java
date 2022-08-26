@@ -152,9 +152,9 @@ public class GeneInfoServiceImplTest {
     }
 
     @Test
-    public void findBySymbolAndTaxon_whenInvalidSymbolCaseInsensitive_thenReturnNull() {
+    public void findBySymbolAndTaxon_whenValidSymbolWithDifferentCase_thenReturnGene() {
         GeneInfo found = geneService.findBySymbolAndTaxon( "GeNe1SyMboL", taxon );
-        assertThat( found ).isNull();
+        assertThat( found ).isNotNull();
     }
 
     @Test
@@ -182,9 +182,9 @@ public class GeneInfoServiceImplTest {
     }
 
     @Test
-    public void findBySymbolInAndTaxon_whenInvalidSymbolCaseInsensitive_thenReturnEmpty() {
+    public void findBySymbolInAndTaxon_whenValidSymbol_thenReturnSingleton() {
         Collection<GeneInfo> found = geneService.findBySymbolInAndTaxon( Collections.singleton( "GeNe1SYmbol" ), taxon );
-        assertThat( found ).isEmpty();
+        assertThat( found ).hasSize( 1 );
     }
 
     @Test

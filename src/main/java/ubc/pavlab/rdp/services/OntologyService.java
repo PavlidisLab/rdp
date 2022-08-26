@@ -29,6 +29,7 @@ import ubc.pavlab.rdp.util.*;
 import javax.persistence.EntityManager;
 import java.io.*;
 import java.net.URL;
+import java.text.Collator;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
@@ -287,7 +288,7 @@ public class OntologyService implements InitializingBean {
                             s, term, s.getSynonym().length() ) );
                     continue;
                 }
-                t.getSynonyms().add( s.getSynonym().toLowerCase() );
+                t.getSynonyms().add( s.getSynonym() );
             }
 
             t.setObsolete( term.getObsolete() != null && term.getObsolete() );
