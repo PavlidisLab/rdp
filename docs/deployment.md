@@ -9,13 +9,18 @@ There a few options you will likely want to specify when deploying your RDP inst
 
 ### Server port
 
-Set `-Dserver.port=<port>` to adjust the port the embedded webserver is listening on.
+Set `server.port` in `application.propeties` to adjust the port the embedded webserver is listening on.
+
+```properties
+server.port=8080
+```
 
 ### Fast random number generation
 
-Specify `-Djava.security.egd=file:/dev/urandom` this if you receive logs such as: _"Creation of SecureRandom instance
-for session ID generation using [SHA1PRNG] took [235,853] milliseconds."_ The secure random calls may be blocking as
-there is not enough entropy to feed them in `/dev/random`.
+Specify `-Djava.security.egd=file:/dev/urandom` this if you receive logs such as:
+
+> Creation of SecureRandom instance for session ID generation using [SHA1PRNG] took [235,853] milliseconds. The secure
+> random calls may be blocking as there is not enough entropy to feed them in `/dev/random`.
 
 ### Proxy configuration
 
@@ -33,7 +38,7 @@ Likewise, you can set up a proxy for FTP connections with `-Dftp.proxyHost` and 
    `messages.properties` if you want to [customize messages](customization.md#customizing-the-applications-messages).
 5. Test your setup: `java -jar rdp-{{ config.extra.rdp_version }}.jar`
 6. Log into the database and activate other organisms and organ systems (optional)
-7. Deploy using Systemd (see below) or a Docker container
+7. Deploy using [systemd](#integration-with-systemd) or a Docker container
 
 ## Integration with systemd
 
@@ -42,7 +47,7 @@ your RDP instance.
 
 Create a file under `/etc/systemd/system/rdp.service` with the following content:
 
-```Ini
+```ini
 [Unit]
 Description=rdp
 After=syslog.target
@@ -51,7 +56,7 @@ After=syslog.target
 User=tomcat
 Group=tomcat
 WorkingDirectory=/project/directory
-ExecStart=/bin/java -Xms256m -Xmx3g -Dserver.port=<port> -Djava.security.egd=file:/dev/urandom -jar rdp-{{ config.extra.rdp_version }}.jar
+ExecStart=/bin/java -Xms256m -Xmx3g -jar rdp-{{ config.extra.rdp_version }}.jar
 SuccessExitStatus=143
 
 [Install]
@@ -70,12 +75,4 @@ ProxyPass / http://localhost:<port>/
 ProxyPassReverse / http://localhost:<port>/
 ```
 
-## More information
-
-For custom cloud deployments
-see [Spring Boot: Deploying to the Cloud](https://docs.spring.io/spring-boot/docs/current/reference/html/cloud-deployment.html)
-.
-
-To install as a system service
-see [Spring Boot: Installing Spring Boot Applications](https://docs.spring.io/spring-boot/docs/current/reference/html/deployment-install.html)
-.
+For more information on Spring application deployment, read [Deploying Spring Boot Applications](https://docs.spring.io/spring-boot/docs/current/reference/html/deployment.html) from their official docs.
