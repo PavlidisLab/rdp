@@ -101,7 +101,6 @@ public class ApiController {
      */
     @GetMapping(value = "/api/stats", produces = MediaType.APPLICATION_JSON_VALUE)
     public Object getStats() {
-        checkEnabled();
         return Stats.builder()
                 .version( buildProperties.getVersion() )
                 .users( userService.countResearchers() )
@@ -123,7 +122,6 @@ public class ApiController {
     @GetMapping(value = "/api/users", produces = MediaType.APPLICATION_JSON_VALUE)
     public Page<User> getUsers( Pageable pageable,
                                 Locale locale ) {
-        checkEnabled();
         if ( applicationSettings.getPrivacy().isEnableAnonymizedSearchResults() ) {
             final Authentication auth2 = SecurityContextHolder.getContext().getAuthentication();
             return userService.findByEnabledTrueNoAuth( pageable )
@@ -143,7 +141,6 @@ public class ApiController {
     @GetMapping(value = "/api/genes", produces = MediaType.APPLICATION_JSON_VALUE)
     public Page<UserGene> getGenes( Pageable pageable,
                                     Locale locale ) {
-        checkEnabled();
         if ( applicationSettings.getPrivacy().isEnableAnonymizedSearchResults() ) {
             final Authentication auth2 = SecurityContextHolder.getContext().getAuthentication();
             return userGeneService.findByUserEnabledTrueNoAuth( pageable )
@@ -189,8 +186,6 @@ public class ApiController {
                                          @RequestParam(required = false) List<String> ontologyNames,
                                          @RequestParam(required = false) List<String> ontologyTermIds,
                                          Locale locale ) {
-        checkEnabled();
-        checkResearcherSearchEnabled();
         if ( prefix ) {
             return initUsers( userService.findByStartsName( nameLike, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ), ontologyTermsFromOntologyWithTermIds( ontologyNames, ontologyTermIds ) ), locale );
         } else {
@@ -206,8 +201,6 @@ public class ApiController {
                                                 @RequestParam(required = false) List<String> ontologyNames,
                                                 @RequestParam(required = false) List<String> ontologyTermIds,
                                                 Locale locale ) {
-        checkEnabled();
-        checkResearcherSearchEnabled();
         return initUsers( userService.findByDescription( descriptionLike, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ), ontologyTermsFromOntologyWithTermIds( ontologyNames, ontologyTermIds ) ), locale );
     }
 
@@ -221,8 +214,6 @@ public class ApiController {
                                                        @RequestParam(required = false) List<String> ontologyNames,
                                                        @RequestParam(required = false) List<String> ontologyTermIds,
                                                        Locale locale ) {
-        checkEnabled();
-        checkResearcherSearchEnabled();
         return initUsers( userService.findByNameAndDescription( nameLike, prefix, descriptionLike, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ), ontologyTermsFromOntologyWithTermIds( ontologyNames, ontologyTermIds ) ), locale );
     }
 
@@ -240,8 +231,6 @@ public class ApiController {
                                                    @RequestParam(required = false) List<String> ontologyNames,
                                                    @RequestParam(required = false) List<String> ontologyTermIds,
                                                    Locale locale ) {
-        checkEnabled();
-        checkGeneSearchEnabled();
 
         Taxon taxon = taxonService.findById( taxonId );
 
@@ -314,7 +303,6 @@ public class ApiController {
     @GetMapping(value = "/api/users/{userId}", produces = MediaType.APPLICATION_JSON_VALUE)
     public User getUserById( @PathVariable Integer userId,
                              Locale locale ) {
-        checkEnabled();
         User user = userService.findUserById( userId );
         if ( user == null ) {
             throw new ApiException( HttpStatus.NOT_FOUND, String.format( locale, "Unknown user with ID: %d.", userId ) );
@@ -325,8 +313,6 @@ public class ApiController {
     @GetMapping(value = "/api/users/by-anonymous-id/{anonymousId}")
     public User getUserByAnonymousId( @PathVariable UUID anonymousId,
                                       Locale locale ) {
-        checkEnabled();
-        checkAnonymousResultsEnabled();
         User user = userService.findUserByAnonymousIdNoAuth( anonymousId );
         if ( user == null ) {
             throw new ApiException( HttpStatus.NOT_FOUND, String.format( "Unknown user with anonymous ID: %s.", anonymousId ) );
@@ -341,8 +327,6 @@ public class ApiController {
     @GetMapping(value = "/api/genes/by-anonymous-id/{anonymousId}")
     public UserGene getUserGeneByAnonymousId( @PathVariable UUID anonymousId,
                                               Locale locale ) {
-        checkEnabled();
-        checkAnonymousResultsEnabled();
         UserGene userGene = userService.findUserGeneByAnonymousIdNoAuth( anonymousId );
         if ( userGene == null ) {
             throw new ApiException( HttpStatus.NOT_FOUND, String.format( "Unknown gene with anonymous ID: %s.", anonymousId ) );
@@ -351,30 +335,6 @@ public class ApiController {
             return initUserGene( userGene, locale );
         } else {
             return initUserGene( userService.anonymizeUserGene( userGene, anonymousId ), locale );
-        }
-    }
-
-    private void checkEnabled() {
-        if ( !applicationSettings.getIsearch().isEnabled() ) {
-            throw new ApiException( HttpStatus.SERVICE_UNAVAILABLE, "Public API is not available for this registry." );
-        }
-    }
-
-    private void checkGeneSearchEnabled() {
-        if ( !applicationSettings.getSearch().getEnabledSearchModes().contains( ApplicationSettings.SearchSettings.SearchMode.BY_RESEARCHER ) ) {
-            throw new ApiException( HttpStatus.SERVICE_UNAVAILABLE, "Search by gene is not available for this registry." );
-        }
-    }
-
-    private void checkResearcherSearchEnabled() {
-        if ( !applicationSettings.getSearch().getEnabledSearchModes().contains( ApplicationSettings.SearchSettings.SearchMode.BY_RESEARCHER ) ) {
-            throw new ApiException( HttpStatus.SERVICE_UNAVAILABLE, "Search by researcher is not available for this registry." );
-        }
-    }
-
-    private void checkAnonymousResultsEnabled() {
-        if ( !applicationSettings.getPrivacy().isEnableAnonymizedSearchResults() ) {
-            throw new ApiException( HttpStatus.SERVICE_UNAVAILABLE, "Anonymized search results are not available for this registry." );
         }
     }
 
