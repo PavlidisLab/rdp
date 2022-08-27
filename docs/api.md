@@ -187,29 +187,25 @@ Example output:
 
 ```json
 {
-  version: "1.5.0",
-  users: 2,
-  publicUsers: 0,
-  usersWithGenes: 1,
-  userGenes: 2,
-  uniqueUserGenes: 2,
-  uniqueUserGenesTAll: 2,
-  uniqueUserGenesHumanTAll: 2,
-  researchersByTaxa: {
-    mouse: 1,
-    budding
-    yeast: 0,
-    roundworm: 0,
-    frog: 0,
-    rat: 0,
-    e.
-    coli: 0,
-    fruit
-    fly: 0,
-    fission
-    yeast: 0,
-    zebrafish: 0,
-    human: 0
+  "version": "1.5.0",
+  "users": 2,
+  "publicUsers": 0,
+  "usersWithGenes": 1,
+  "userGenes": 2,
+  "uniqueUserGenes": 2,
+  "uniqueUserGenesTAll": 2,
+  "uniqueUserGenesHumanTAll": 2,
+  "researchersByTaxa": {
+    "mouse": 1,
+    "budding yeast": 0,
+    "roundworm": 0,
+    "frog": 0,
+    "rat": 0,
+    "e. coli": 0,
+    "fruit fly": 0,
+    "fission yeast": 0,
+    "zebrafish": 0,
+    "human": 0
   }
 }
 ```
