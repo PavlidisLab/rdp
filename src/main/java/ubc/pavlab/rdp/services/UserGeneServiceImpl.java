@@ -36,7 +36,6 @@ import ubc.pavlab.rdp.model.enums.ResearcherCategory;
 import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.model.ontology.Ontology;
-import ubc.pavlab.rdp.model.ontology.OntologyTerm;
 import ubc.pavlab.rdp.model.ontology.OntologyTermInfo;
 import ubc.pavlab.rdp.repositories.TaxonRepository;
 import ubc.pavlab.rdp.repositories.UserGeneRepository;
@@ -45,7 +44,6 @@ import ubc.pavlab.rdp.settings.ApplicationSettings;
 
 import java.text.MessageFormat;
 import java.util.*;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -86,33 +84,40 @@ public class UserGeneServiceImpl implements UserGeneService {
 
     @Cacheable(cacheNames = "ubc.pavlab.rdp.stats", key = "#root.methodName")
     @Override
-    public Integer countUniqueAssociations() {
-        return userGeneRepository.countDistinctGeneByTierIn( TierType.MANUAL );
+    public long countUniqueAssociations() {
+        return userGeneRepository.countDistinctGeneByUserEnabledTrueAndTierIn( TierType.MANUAL );
     }
 
     @Cacheable(cacheNames = "ubc.pavlab.rdp.stats", key = "#root.methodName")
     @Override
-    public Integer countAssociations() {
-        return userGeneRepository.countByTierIn( TierType.MANUAL );
+    public long countAssociations() {
+        return userGeneRepository.countByUserEnabledTrueAndTierIn( TierType.MANUAL );
     }
 
     @Cacheable(cacheNames = "ubc.pavlab.rdp.stats", key = "#root.methodName")
     @Override
-    public Map<String, Integer> researcherCountByTaxon() {
+    public Map<String, Long> researcherCountByTaxon() {
+        return taxonRepository.findByActiveTrue().stream()
+                .collect( Collectors.toMap( Taxon::getCommonName, userGeneRepository::countDistinctUserByUserEnabledTrueAndTaxon ) );
+    }
+
+    @Cacheable(cacheNames = "ubc.pavlab.rdp.stats", key = "#root.methodName")
+    @Override
+    public Map<Integer, Long> researcherCountByTaxonId() {
         return taxonRepository.findByActiveTrueOrderByOrdering().stream()
-                .collect( Collectors.toMap( Taxon::getCommonName, userGeneRepository::countDistinctUserByTaxon ) );
+                .collect( Collectors.toMap( Taxon::getId, userGeneRepository::countDistinctUserByUserEnabledTrueAndTaxon ) );
     }
 
     @Cacheable(cacheNames = "ubc.pavlab.rdp.stats", key = "#root.methodName")
     @Override
-    public Integer countUsersWithGenes() {
-        return userGeneRepository.countDistinctUser();
+    public long countUsersWithGenes() {
+        return userGeneRepository.countDistinctUserByUserEnabledTrue();
     }
 
     @Cacheable(cacheNames = "ubc.pavlab.rdp.stats", key = "#root.methodName")
     @Override
-    public Integer countUniqueAssociationsAllTiers() {
-        return userGeneRepository.countDistinctGeneByTierIn( applicationSettings.getEnabledTiers() );
+    public long countUniqueAssociationsAllTiers() {
+        return userGeneRepository.countDistinctGeneByUserEnabledTrueAndTierIn( applicationSettings.getEnabledTiers() );
     }
 
     /**
@@ -123,10 +128,15 @@ public class UserGeneServiceImpl implements UserGeneService {
      */
     @Cacheable(cacheNames = "ubc.pavlab.rdp.stats", key = "#root.methodName")
     @Override
-    public Integer countUniqueAssociationsToHumanAllTiers() {
-        Collection<Integer> humanGenes = new HashSet<>( userGeneRepository.findAllHumanGenes() );
-        humanGenes.addAll( userGeneRepository.findOrthologGeneIdsByOrthologToTaxon( 9606 ) );
-        return humanGenes.size();
+    public long countUniqueAssociationsToHumanAllTiers() {
+        Optional<Taxon> humanTaxon = taxonRepository.findById( 9606 );
+        if ( humanTaxon.isPresent() ) {
+            Collection<Integer> humanGenes = new HashSet<>( userGeneRepository.findAllDistinctGeneIdByTaxon( humanTaxon.get() ) );
+            humanGenes.addAll( userGeneRepository.findDistinctOrthologGeneIdsByOrthologToTaxon( 9606 ) );
+            return humanGenes.size();
+        } else {
+            return 0L;
+        }
     }
 
     @Autowired

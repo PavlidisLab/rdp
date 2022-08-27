@@ -100,7 +100,7 @@ public class ApiController {
      * Provide general statistics about this registry.
      */
     @GetMapping(value = "/api/stats", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Object getStats() {
+    public Stats getStats() {
         return Stats.builder()
                 .version( buildProperties.getVersion() )
                 .users( userService.countResearchers() )
@@ -108,10 +108,19 @@ public class ApiController {
                 .usersWithGenes( userGeneService.countUsersWithGenes() )
                 .userGenes( userGeneService.countAssociations() )
                 .uniqueUserGenes( userGeneService.countUniqueAssociations() )
-                .uniqueUserGenesTAll( userGeneService.countUniqueAssociationsAllTiers() )
-                .uniqueUserGenesHumanTAll( userGeneService.countUniqueAssociationsToHumanAllTiers() )
-                .researchersByTaxa( userGeneService.researcherCountByTaxon() )
+                .uniqueUserGenesInAllTiers( userGeneService.countUniqueAssociationsAllTiers() )
+                .uniqueHumanUserGenesInAllTiers( userGeneService.countUniqueAssociationsToHumanAllTiers() )
+                .researchersByTaxonId( userGeneService.researcherCountByTaxonId() )
                 .build();
+    }
+
+    @GetMapping("/api/taxa/{taxonId}")
+    public Taxon getTaxon( @PathVariable Integer taxonId ) {
+        Taxon taxon = taxonService.findById( taxonId );
+        if ( taxon == null ) {
+            throw new ApiException( HttpStatus.NOT_FOUND, String.format( "No taxon with ID %d.", taxonId ) );
+        }
+        return taxon;
     }
 
     /**

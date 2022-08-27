@@ -27,10 +27,9 @@ public interface UserRepository extends JpaRepository<User, Integer> {
 
     boolean existsByUserOntologyTermsOntology( Ontology ontology );
 
-    @Override
-    long count();
+    long countByEnabledTrue();
 
-    long countByProfilePrivacyLevel( PrivacyLevelType aPublic );
+    long countByEnabledTrueAndProfilePrivacyLevel( PrivacyLevelType aPublic );
 
     /**
      * Find all enabled users.

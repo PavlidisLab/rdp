@@ -519,12 +519,12 @@ public class UserServiceImpl implements UserService, InitializingBean {
     @Override
     @Cacheable(cacheNames = "ubc.pavlab.rdp.stats", key = "#root.methodName")
     public long countResearchers() {
-        return userRepository.count();
+        return userRepository.countByEnabledTrue();
     }
 
     @Override
     public long countPublicResearchers() {
-        return userRepository.countByProfilePrivacyLevel( PrivacyLevelType.PUBLIC );
+        return userRepository.countByEnabledTrueAndProfilePrivacyLevel( PrivacyLevelType.PUBLIC );
     }
 
     @Override

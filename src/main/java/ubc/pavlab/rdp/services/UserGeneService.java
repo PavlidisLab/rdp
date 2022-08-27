@@ -39,17 +39,19 @@ public interface UserGeneService {
 
     Page<UserGene> findByUserEnabledTrueAndPrivacyLevelNoAuth( PrivacyLevelType privacyLevelType, Pageable pageable );
 
-    Integer countUniqueAssociations();
+    long countUniqueAssociations();
 
-    Integer countAssociations();
+    long countAssociations();
 
-    Map<String, Integer> researcherCountByTaxon();
+    Map<String, Long> researcherCountByTaxon();
 
-    Integer countUsersWithGenes();
+    Map<Integer, Long> researcherCountByTaxonId();
 
-    Integer countUniqueAssociationsAllTiers();
+    long countUsersWithGenes();
 
-    Integer countUniqueAssociationsToHumanAllTiers();
+    long countUniqueAssociationsAllTiers();
+
+    long countUniqueAssociationsToHumanAllTiers();
 
     /**
      * Perform a search and retrieve all the user genes that match the provided gene description and optional
