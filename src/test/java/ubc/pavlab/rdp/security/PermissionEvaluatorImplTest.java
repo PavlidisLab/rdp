@@ -8,13 +8,12 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.access.PermissionEvaluator;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.test.context.junit4.SpringRunner;
 import ubc.pavlab.rdp.model.User;
 import ubc.pavlab.rdp.model.UserContent;
 import ubc.pavlab.rdp.model.UserPrinciple;
-import ubc.pavlab.rdp.repositories.RoleRepository;
-import ubc.pavlab.rdp.services.PrivacyService;
 import ubc.pavlab.rdp.services.UserPrivacyService;
 import ubc.pavlab.rdp.services.UserService;
 
@@ -35,27 +34,25 @@ public class PermissionEvaluatorImplTest {
     }
 
     @Autowired
-    PermissionEvaluator permissionEvaluator;
+    private PermissionEvaluator permissionEvaluator;
 
     @MockBean
-    UserService userService;
+    private UserService userService;
 
     @MockBean
-    UserPrivacyService privacyService;
+    private UserPrivacyService privacyService;
 
-    /* fixtures */
-    private Authentication auth;
+    /* fixture */
     private UserContent userContent;
 
     @Before
     public void setUp() {
-        auth = mock( Authentication.class );
         userContent = mock( UserContent.class );
     }
 
     @Test
     public void hasPermission_whenUserIsAnonymous_thenCallAppropriatePrivacyServiceMethod() {
-        when( auth.getPrincipal() ).thenReturn( "anonymousUser" );
+        AnonymousAuthenticationToken auth = mock( AnonymousAuthenticationToken.class );
 
         permissionEvaluator.hasPermission( auth, null, Permissions.INTERNATIONAL_SEARCH );
         verify( privacyService ).checkUserCanSearch( null, true );
@@ -72,6 +69,7 @@ public class PermissionEvaluatorImplTest {
 
     @Test
     public void hasPermission_whenUserIsLoggedIn_thenCallAppropriatePrivacyServiceMethod() {
+        Authentication auth = mock( Authentication.class );
         User user = createUser( 5 );
         UserPrinciple userPrinciple = mock( UserPrinciple.class );
         when( userPrinciple.getId() ).thenReturn( 5 );
@@ -91,13 +89,13 @@ public class PermissionEvaluatorImplTest {
 
     @Test
     public void hasPermission_whenUserContentIsNull_thenReturnTrue() {
-        when( auth.getPrincipal() ).thenReturn( "anonymousUser" );
+        AnonymousAuthenticationToken auth = mock( AnonymousAuthenticationToken.class );
         assertThat( permissionEvaluator.hasPermission( auth, null, Permissions.READ ) ).isTrue();
     }
 
     @Test(expected = UnsupportedOperationException.class)
     public void hasPermission_whenPermissionIsUnknown_thenRaiseException() {
-        when( auth.getPrincipal() ).thenReturn( "anonymousUser" );
+        AnonymousAuthenticationToken auth = mock( AnonymousAuthenticationToken.class );
         permissionEvaluator.hasPermission( auth, null, "what?" );
     }
 }
