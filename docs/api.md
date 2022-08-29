@@ -49,6 +49,56 @@ GET /api/users?auth={accessToken} HTTP/1.1
 Keep in mind that the token you use is tied to a user that has permissions. What you can see through the API will be
 restricted to what the corresponding user is authorized to read.
 
+## Anonymized results
+
+If `rdp.settings.privacy.enable-anonymized-search-results` is set to `true`, certain results may be anonymized depending
+on your permissions.
+
+These results will have an `anonymousId` attribute that can subsequently be used to retrieve the
+result with elevated privileges via either the [user by anonymous ID](#find-a-user-by-its-identifier)
+or [gene by anonymous ID](#find-a-user-gene-by-its-anonymous-identifier) endpoint.
+
+The way we envision this is that the user will forward the anonymized ID to a registry administrator which can then
+mediate the interaction between the two users.
+
+For example, an initial unauthenticated request might return a few anonymized results:
+
+```http
+GET /api/users HTTP/1.1
+```
+
+```json
+{
+  "content": [
+    {
+      "anonymousId": "7d0aaaa3-e119-4ff1-a280-b0a94d510ab0",
+      "email": null,
+      "name": "RDP User",
+      "...": "..."
+    },
+    {
+      "...": "..."
+    }
+  ]
+}
+```
+
+The get more information about that user, you may perform a request with elevated privileges using a token-based
+authentication:
+
+```http
+GET /api/users/by-anonymous-id/7d0aaaa3-e119-4ff1-a280-b0a94d510ab0 HTTP/1.1
+Authorization: Bearer k1j2okjd98e3u1
+```
+
+```json
+{
+  "id": 113,
+  "email": "foo@example.com",
+  "...": "..."
+}
+```
+
 ## List all users
 
 List all users in a paginated format.
@@ -75,13 +125,34 @@ GET /api/genes HTTP/1.1
 If `rdp.settings.privacy.enable-anonymized-search-results` is set to `true`, anonymized results are included in the
 output.
 
-## List all categories/ontologies (new in 1.5.0)
+## Retrieve a single taxon
+
+!!! note
+
+    New in 1.5.0.
+
+```http 
+GET /api/taxa/{taxonId} HTTP/1.1
+```
+
+This can be used in conjunction to the [statistics](#statistics) endpoint to get more details about taxa retrieved in
+the researcher count mapping.
+
+## List all categories/ontologies
+
+!!! note
+
+    New in 1.5.0.
 
 ```http
 GET /api/ontologies HTTP/1.1
 ```
 
-## List all terms in a category/ontology (new in 1.5.0)
+## List all terms in a category/ontology
+
+!!! note
+
+    New in 1.5.0.
 
 ```http
 GET /api/ontologies/{ontologyName}/terms HTTP/1.1
@@ -89,7 +160,11 @@ GET /api/ontologies/{ontologyName}/terms HTTP/1.1
 
 - `page` the page to query starting from zero to `totalPages`
 
-## Retrieve a single category/ontology term (new in 1.5.0)
+## Retrieve a single category/ontology term
+
+!!! note
+
+    New in 1.5.0.
 
 ```http
 GET /api/ontologies/{ontologyName}/terms/{termId}
@@ -164,7 +239,11 @@ GET /api/users/by-anonymous-id/{anonymousId} HTTP/1.1
 The anonymous identifier can be obtained by performing a users or genes search and retrieving the `anonymousId` from its
 result.
 
-## Find a user gene by its anonymous identifier (new in 1.5.0)
+## Find a user gene by its anonymous identifier
+
+!!! note
+
+    New in 1.5.0.
 
 Retrieves an anonymized result from a previous [user gene search](#search-genes).
 
@@ -180,33 +259,41 @@ Obtain a few statistics for the number of registered users, genes, etc.
 GET /api/stats HTTP/1.1
 ```
 
-The `version` field was added in 1.5.0. Previously, you had to parse the `/api` endpoint and extract the version
-from `info.version`.
+!!! note
+
+    The `version` field was added in 1.5.0. Previously, you had to parse the `/api` endpoint and extract the version
+    from `info.version`.
+
+!!! warning
+
+    This endpoint was stabilized in the 1.5.0 release and some of its attributes have been renamed as a result. This 
+    is noted in the [1.5 migration](migration.md#migrate-from-14-to-15) notes.
 
 Example output:
 
 ```json
 {
   "version": "1.5.0",
-  "users": 2,
+  "users": 22,
   "publicUsers": 0,
-  "usersWithGenes": 1,
-  "userGenes": 2,
-  "uniqueUserGenes": 2,
-  "uniqueUserGenesTAll": 2,
-  "uniqueUserGenesHumanTAll": 2,
-  "researchersByTaxa": {
-    "mouse": 1,
-    "budding yeast": 0,
-    "roundworm": 0,
-    "frog": 0,
-    "rat": 0,
-    "e. coli": 0,
-    "fruit fly": 0,
-    "fission yeast": 0,
-    "zebrafish": 0,
-    "human": 0
+  "usersWithGenes": 4,
+  "userGenes": 18,
+  "uniqueUserGenes": 18,
+  "uniqueUserGenesInAllTiers": 18,
+  "uniqueHumanUserGenesInAllTiers": 30,
+  "researchersByTaxonId": {
+    "4896": 0,
+    "7955": 0,
+    "559292": 0,
+    "10116": 1,
+    "9606": 1,
+    "10090": 2,
+    "7227": 0,
+    "8364": 0,
+    "6239": 1
   }
 }
 ```
 
+To obtain more details about the taxon, you may use the [taxon endpoint](#retrieve-a-single-taxon). Note that JSON does
+not allow integer has keys in a mapping, but those can be safely treated as such.

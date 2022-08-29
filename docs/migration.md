@@ -50,8 +50,17 @@ If you use our API, there's been a few minor cleanups that resulted in breaking 
 The `id` and `anonymousId` fields are now mutually exclusives. This means that you have to test for the existence of the
 attribute before retrieving its value.
 
-The `privacyLevel` field does not use a numerical encoding anymore but instead explicit strings: `PRIVATE`, `SHARED`
-and `PUBLIC`.
+The user model has been substantially simplified to provide only necessary information.
+
+- `name` and `lastName` are now summarized in `fullName`
+- `contactEmail` has been removed, `email` will display the public-facing email if available
+- `hideGenelist` and `shared` have been removed
+- `privacyLevel` field does not use a numerical encoding anymore but instead explicit strings: `PRIVATE`, `SHARED`
+  and `PUBLIC`
+
+The gene model no longer exposes `modificationDate`, which is irrelevant for user-associated gene anyway.
+
+The `/api/stats` endpoint has been stabilized and some of its attributes were renamed for more consistency.
 
 ## Migrate from 1.3 to 1.4
 
