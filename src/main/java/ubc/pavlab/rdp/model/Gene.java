@@ -1,5 +1,6 @@
 package ubc.pavlab.rdp.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -39,6 +40,7 @@ public abstract class Gene {
     @Column(name = "synonyms", columnDefinition = "TEXT")
     private String aliases;
 
+    @JsonIgnore
     @Temporal(TemporalType.DATE)
     @Column(name = "modification_date")
     private Date modificationDate;

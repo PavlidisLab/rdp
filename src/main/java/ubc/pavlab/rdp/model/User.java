@@ -16,20 +16,18 @@ import org.springframework.util.StringUtils;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.model.ontology.Ontology;
-import ubc.pavlab.rdp.model.ontology.OntologyTerm;
 import ubc.pavlab.rdp.model.ontology.UserOntologyTerm;
 
 import javax.mail.internet.InternetAddress;
 import javax.persistence.*;
 import javax.validation.Valid;
-import java.io.Serializable;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.sql.Timestamp;
 import java.text.MessageFormat;
-import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -79,6 +77,7 @@ public class User implements UserContent, Serializable {
     private UUID anonymousId;
 
     @NaturalId
+    @JsonIgnore
     @Column(name = "email", unique = true, nullable = false)
     @Email(message = "Your email address is not valid.", groups = { ValidationUserAccount.class })
     @NotNull(message = "Please provide an email address.", groups = { ValidationUserAccount.class, ValidationServiceAccount.class })
@@ -245,6 +244,21 @@ public class User implements UserContent, Serializable {
         }
     }
 
+    /**
+     * This is meant for JSON serialization of the user's public-facing email.
+     */
+    @JsonProperty("email")
+    public String getVerifiedContactEmail2() {
+        if ( profile.isContactEmailVerified() ) {
+            return profile.getContactEmail();
+        } else if ( enabled ) {
+            return email;
+        } else {
+            return null;
+        }
+    }
+
+    @SuppressWarnings("unused")
     @JsonIgnore
     @Transient
     public Optional<Timestamp> getVerifiedAtContactEmail() {

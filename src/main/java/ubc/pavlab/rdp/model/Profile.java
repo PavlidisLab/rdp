@@ -29,11 +29,13 @@ import java.util.Set;
 @AllArgsConstructor
 @Embeddable
 public class Profile {
+    @JsonIgnore
     @Column(name = "name")
     @NotNull(message = "Please provide your name.", groups = { User.ValidationUserAccount.class, User.ValidationServiceAccount.class })
     @Size(min = 1, message = "Please provide your name.", groups = { User.ValidationUserAccount.class, User.ValidationServiceAccount.class })
     private String name;
 
+    @JsonIgnore
     @Column(name = "last_name")
     @NotNull(message = "Please provide your last name.", groups = { User.ValidationUserAccount.class })
     @Size(min = 1, message = "Please provide your last name.", groups = { User.ValidationUserAccount.class })
@@ -63,15 +65,17 @@ public class Profile {
     @Column(name = "phone")
     private String phone;
 
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @Email(message = "Your email address is not valid.")
     @Column(name = "contact_email")
     private String contactEmail;
 
+    @JsonIgnore
     @Column(name = "contact_email_verified", nullable = false)
     private boolean contactEmailVerified;
 
-    @Column(name = "contact_email_verified_at")
     @JsonIgnore
+    @Column(name = "contact_email_verified_at")
     private Timestamp contactEmailVerifiedAt;
 
     @Column(name = "website")
@@ -83,9 +87,11 @@ public class Profile {
     @Column(name = "privacy_level")
     private PrivacyLevelType privacyLevel;
 
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @Column(name = "shared", nullable = false)
     private boolean shared;
 
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @Column(name = "hide_genelist", nullable = false)
     private boolean hideGenelist;
 
