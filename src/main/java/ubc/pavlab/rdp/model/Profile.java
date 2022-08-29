@@ -1,6 +1,7 @@
 package ubc.pavlab.rdp.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -77,6 +78,7 @@ public class Profile {
     @URL
     private String website;
 
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @Enumerated(EnumType.ORDINAL)
     @Column(name = "privacy_level")
     private PrivacyLevelType privacyLevel;

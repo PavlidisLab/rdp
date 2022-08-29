@@ -264,7 +264,7 @@ public class User implements UserContent, Serializable {
     }
 
     @Override
-    @JsonProperty("privacyLevel")
+    @JsonProperty(value = "privacyLevel", access = JsonProperty.Access.READ_ONLY)
     public PrivacyLevelType getEffectivePrivacyLevel() {
         // this is a fallback
         if ( getProfile() == null || getProfile().getPrivacyLevel() == null ) {
