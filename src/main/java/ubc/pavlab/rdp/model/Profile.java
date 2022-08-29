@@ -29,13 +29,14 @@ import java.util.Set;
 @AllArgsConstructor
 @Embeddable
 public class Profile {
-    @JsonIgnore
+
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @Column(name = "name")
     @NotNull(message = "Please provide your name.", groups = { User.ValidationUserAccount.class, User.ValidationServiceAccount.class })
     @Size(min = 1, message = "Please provide your name.", groups = { User.ValidationUserAccount.class, User.ValidationServiceAccount.class })
     private String name;
 
-    @JsonIgnore
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @Column(name = "last_name")
     @NotNull(message = "Please provide your last name.", groups = { User.ValidationUserAccount.class })
     @Size(min = 1, message = "Please provide your last name.", groups = { User.ValidationUserAccount.class })

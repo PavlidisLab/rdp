@@ -76,8 +76,11 @@ public class User implements UserContent, Serializable {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private UUID anonymousId;
 
+    /**
+     * For the JSON serialization, the representation is given by {@link #getVerifiedContactEmailJsonValue()}.
+     */
     @NaturalId
-    @JsonIgnore
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @Column(name = "email", unique = true, nullable = false)
     @Email(message = "Your email address is not valid.", groups = { ValidationUserAccount.class })
     @NotNull(message = "Please provide an email address.", groups = { ValidationUserAccount.class, ValidationServiceAccount.class })
@@ -248,7 +251,7 @@ public class User implements UserContent, Serializable {
      * This is meant for JSON serialization of the user's public-facing email.
      */
     @JsonProperty("email")
-    public String getVerifiedContactEmail2() {
+    public String getVerifiedContactEmailJsonValue() {
         if ( profile != null && profile.isContactEmailVerified() ) {
             return profile.getContactEmail();
         } else if ( enabled ) {
@@ -278,7 +281,7 @@ public class User implements UserContent, Serializable {
     }
 
     @Override
-    @JsonProperty(value = "privacyLevel", access = JsonProperty.Access.READ_ONLY)
+    @JsonProperty(value = "privacyLevel")
     public PrivacyLevelType getEffectivePrivacyLevel() {
         // this is a fallback
         if ( getProfile() == null || getProfile().getPrivacyLevel() == null ) {

@@ -36,6 +36,7 @@ import ubc.pavlab.rdp.settings.FaqSettings;
 import ubc.pavlab.rdp.settings.SiteSettings;
 import ubc.pavlab.rdp.util.OntologyMessageSource;
 
+import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.Locale;
 import java.util.Set;
@@ -85,6 +86,9 @@ public class UserControllerTest {
     @MockBean
     private ApplicationSettings.InternationalSearchSettings iSearchSettings;
 
+    @MockBean
+    private ApplicationSettings.OntologySettings ontologySettings;
+
     @MockBean(name = "userService")
     private UserService userService;
 
@@ -126,6 +130,8 @@ public class UserControllerTest {
         when( applicationSettings.getEnabledTiers() ).thenReturn( EnumSet.allOf( TierType.class ) );
         when( applicationSettings.getPrivacy() ).thenReturn( privacySettings );
         when( applicationSettings.getProfile() ).thenReturn( profileSettings );
+        when( applicationSettings.getOntology() ).thenReturn( ontologySettings );
+        when( ontologySettings.isEnabled() ).thenReturn( true );
         when( profileSettings.getEnabledResearcherCategories() ).thenReturn( EnumSet.allOf( ResearcherCategory.class ) );
         when( profileSettings.getEnabledResearcherPositions() ).thenReturn( EnumSet.of( ResearcherPosition.PRINCIPAL_INVESTIGATOR ) );
         when( applicationSettings.getOrgans() ).thenReturn( organSettings );
