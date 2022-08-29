@@ -33,6 +33,12 @@ to use this feature, enable it with:
 rdp.settings.organs.enabled=true
 ```
 
+The anonymized search results are also disabled by default. To enable them set the following:
+
+```properties
+rdp.settings.privacy.enable-anonymized-search-results=true
+```
+
 Note that we switched to Spring Boot 2, so you should migrate all the custom properties set in `application.properties`
 accordingly. Notably, the Flyway options `flyway.*` must be migrated to `spring.flyway.*`.
 
