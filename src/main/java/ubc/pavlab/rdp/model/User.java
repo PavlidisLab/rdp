@@ -249,7 +249,7 @@ public class User implements UserContent, Serializable {
      */
     @JsonProperty("email")
     public String getVerifiedContactEmail2() {
-        if ( profile.isContactEmailVerified() ) {
+        if ( profile != null && profile.isContactEmailVerified() ) {
             return profile.getContactEmail();
         } else if ( enabled ) {
             return email;

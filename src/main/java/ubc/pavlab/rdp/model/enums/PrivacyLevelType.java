@@ -1,5 +1,6 @@
 package ubc.pavlab.rdp.model.enums;
 
+import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.context.MessageSourceResolvable;
@@ -16,5 +17,10 @@ public enum PrivacyLevelType {
 
     public MessageSourceResolvable getResolvableTitle() {
         return new DefaultMessageSourceResolvable( "PrivacyLevelType." + name() );
+    }
+
+    @JsonValue
+    public int toJsonValue() {
+        return ordinal();
     }
 }

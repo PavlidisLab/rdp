@@ -55,8 +55,6 @@ The user model has been substantially simplified to provide only necessary infor
 - `name` and `lastName` are now summarized in `fullName`
 - `contactEmail` has been removed, `email` will display the public-facing email if available
 - `hideGenelist` and `shared` have been removed
-- `privacyLevel` field does not use a numerical encoding anymore but instead explicit strings: `PRIVATE`, `SHARED`
-  and `PUBLIC`
 
 The gene model no longer exposes `modificationDate`, which is irrelevant for user-associated gene anyway.
 

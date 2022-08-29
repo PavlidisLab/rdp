@@ -602,26 +602,36 @@ public class UserControllerTest {
         User user = createUser( 1 );
         when( userService.findCurrentUser() ).thenReturn( user );
 
-        Profile updatedProfile = new Profile();
-        updatedProfile.setDepartment( "Department" );
-        updatedProfile.setDescription( "Description" );
-        updatedProfile.setLastName( "LastName" );
-        updatedProfile.setName( "Name" );
-        updatedProfile.setOrganization( "Organization" );
-        updatedProfile.setPhone( "555-555-5555" );
-        updatedProfile.setWebsite( "http://test.com" );
-        updatedProfile.setPrivacyLevel( PrivacyLevelType.PRIVATE );
-
-        ProfileWithoutOrganUberonIds payload = new ProfileWithoutOrganUberonIds();
-        payload.setProfile( updatedProfile );
+        JSONObject payload = new JSONObject();
+        payload.put( "department", "Department" );
+        payload.put( "description", "Description" );
+        payload.put( "lastName", "LastName" );
+        payload.put( "name", "Name" );
+        payload.put( "organization", "Organization" );
+        payload.put( "phone", "555-555-5555" );
+        payload.put( "website", "http://test.com" );
+        payload.put( "privacyLevel", PrivacyLevelType.PRIVATE.ordinal() );
+        payload.put( "publications", new ArrayList<>() );
+        JSONObject payload2 = new JSONObject();
+        payload2.put( "profile", payload );
 
         mvc.perform( post( "/user/profile" )
                         .contentType( MediaType.APPLICATION_JSON )
-                        .content( objectMapper.writeValueAsString( payload ) )
+                        .content( payload2.toString() )
                         .locale( Locale.ENGLISH ) )
                 .andExpect( status().isOk() );
 
-        verify( userService ).updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( user, updatedProfile, updatedProfile.getPublications(), null, null, Locale.ENGLISH );
+        Profile expectedProfile = new Profile();
+        expectedProfile.setDepartment( "Department" );
+        expectedProfile.setDescription( "Description" );
+        expectedProfile.setLastName( "LastName" );
+        expectedProfile.setName( "Name" );
+        expectedProfile.setOrganization( "Organization" );
+        expectedProfile.setPhone( "555-555-5555" );
+        expectedProfile.setWebsite( "http://test.com" );
+        expectedProfile.setPrivacyLevel( PrivacyLevelType.PRIVATE );
+
+        verify( userService ).updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( user, expectedProfile, expectedProfile.getPublications(), null, null, Locale.ENGLISH );
     }
 
     @Test
@@ -656,7 +666,7 @@ public class UserControllerTest {
 
         JSONObject profileJson = new JSONObject( user.getProfile() );
         // FIXME: use jackson serializer to perform enum conversion from model
-        profileJson.put( "privacyLevel", PrivacyLevelType.SHARED.name() );
+        profileJson.put( "privacyLevel", PrivacyLevelType.SHARED.ordinal() );
 
         JSONObject payload = new JSONObject();
         payload.put( "profile", profileJson );
@@ -686,7 +696,7 @@ public class UserControllerTest {
 
         JSONObject profileJson = new JSONObject( user.getProfile() );
         // FIXME
-        profileJson.put( "privacyLevel", user.getProfile().getPrivacyLevel().name() );
+        profileJson.put( "privacyLevel", user.getProfile().getPrivacyLevel().ordinal() );
 
         JSONObject payload = new JSONObject();
         payload.put( "profile", profileJson );
