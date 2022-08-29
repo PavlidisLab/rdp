@@ -62,8 +62,9 @@
                                             <li>Department</li>
                                         </ul>
 
-                                        <p>Complete and accurate information is important to
-                                            ensure we can contact you.</p>
+                                        <p>
+                                            Complete and accurate information is important to ensure we can contact you.
+                                        </p>
 
                                         <h5>Additional Profile Information</h5>
 
@@ -73,56 +74,96 @@
                                             <li th:unless="${@applicationSettings.profile.enabledResearcherCategories.isEmpty()}">
                                                 Research categories that apply to you
                                             </li>
-                                            <li>Contact email address that can be updated. The email address that was
-                                                used to create the account is set as
-                                                your user ID and cannot be modified.
+                                            <li>
+                                                Contact email address that can be updated. The email address that was
+                                                used to create the account is set as your user ID and cannot be
+                                                modified.
                                             </li>
                                             <li>A phone number</li>
-                                            <li>A summary of your research interests (we recommend 100-500 words)
-                                            </li>
+                                            <li>A summary of your research interests (we recommend 100-500 words)</li>
                                             <li>A list of PubMed IDs for your publications</li>
-
                                         </ul>
 
                                         <div th:if="${@applicationSettings.organs.enabled}" class="nav-item">
                                             <h5>Organ Systems</h5>
                                             <p>
                                                 You may select a set of human organ systems that your research is most
-                                                relevant to. This information can be used when
-                                                database searches are performed to select researches with expertise in
-                                                certain organ systems. Selecting no organ systems
-                                                is equvalent to selecting all of them.
+                                                relevant to. This information can be used when database searches are
+                                                performed to select researches with expertise in certain organ systems.
+                                                Selecting no organ systems is equivalent to selecting all of them.
                                             </p>
+                                        </div>
+
+                                        <div th:if="${@applicationSettings.ontology.enabled}">
+                                            <h5>Additional Profile Categories</h5>
+                                            <p>
+                                                For each additional profile category, you can select one or more terms
+                                                that your research is most relevant to. For simple categories, select
+                                                terms by checking the appropriate boxes. For ontology categories, use
+                                                the text box to search for terms of interest and add them to your
+                                                profile by clicking on them. Selecting no terms within a category is
+                                                equivalent to selecting all of them.
+                                            </p>
+                                            <p>Here's the list of simple categories:</p>
+                                            <ul>
+                                                <li th:each="ontology :${@ontologyService.findAllOntologies()}"
+                                                    th:if="${@ontologyService.isSimple(ontology)}">
+                                                    <span th:text="${@messageSource.getMessage(ontology.resolvableTitle, #locale)}"></span>
+                                                    <th:block
+                                                            th:if="${#messages.msgOrNull(ontology.resolvableDefinition.code)} != null">
+                                                        <br/>
+                                                        <small th:text="${@messageSource.getMessage(ontology.resolvableDefinition, #locale)}"></small>
+                                                    </th:block>
+                                                </li>
+                                            </ul>
+                                            <p>Here's the list of ontology-based categories:</p>
+                                            <ul>
+                                                <li th:each="ontology :${@ontologyService.findAllOntologies()}"
+                                                    th:unless="${@ontologyService.isSimple(ontology)}">
+                                                    <a th:if="${@ontologyResolver.accepts(ontology)}"
+                                                       th:text="${@messageSource.getMessage(ontology.resolvableTitle, #locale)}"
+                                                       th:href="${@ontologyResolver.resolveViewOntologyUrl(ontology)}"
+                                                       target="_blank" rel="noopener"></a>
+                                                    <span th:unless="${@ontologyResolver.accepts(ontology)}"
+                                                          th:text="${@messageSource.getMessage(ontology.resolvableTitle, #locale)}"></span>
+                                                    <th:block
+                                                            th:if="${#messages.msgOrNull(ontology.resolvableDefinition.code)} != null">
+                                                        <br/>
+                                                        <small th:text="${@messageSource.getMessage(ontology.resolvableDefinition, #locale)}"></small>
+                                                    </th:block>
+                                                </li>
+                                            </ul>
                                         </div>
 
                                         <div th:if="${@applicationSettings.privacy.customizableLevel}">
                                             <h5>Privacy Settings</h5>
 
 
-                                            <p>Data Privacy Settings section lets you choose your global data sharing
-                                                preferences.
-                                                The default setting is pre-selected, but can be changed.
+                                            <p>
+                                                Data Privacy Settings section lets you choose your global data sharing
+                                                preferences. The default setting is pre-selected, but can be changed.
                                                 The options are:
                                             </p>
                                             <ul>
                                                 <li th:if="${@privacyService.isPrivacyLevelEnabled(T(ubc.pavlab.rdp.model.enums.PrivacyLevelType).PRIVATE)}">
-                                                    <b>private</b> - your information will only be accessible by
-                                                    the network administrator for matching you to a new rare disease
-                                                    gene
-                                                    and considering you for funding opportunities.
+                                                    <b th:text="${@messageSource.getMessage(T(ubc.pavlab.rdp.model.enums.PrivacyLevelType).PRIVATE.resolvableTitle, #locale)}"></b>
+                                                    - your information will only be accessible by the network
+                                                    administrator for matching you to a new rare disease gene and
+                                                    considering you for funding opportunities.
                                                 </li>
                                                 <li th:if="${@privacyService.isPrivacyLevelEnabled(T(ubc.pavlab.rdp.model.enums.PrivacyLevelType).SHARED)}">
-                                                    <b>shared</b> - your information will be accessible by other
-                                                    researchers who are registered. Registered users will be able to
-                                                    access your information through the provided search interface.
+                                                    <b th:text="${@messageSource.getMessage(T(ubc.pavlab.rdp.model.enums.PrivacyLevelType).SHARED.resolvableTitle, #locale)}"></b>
+                                                    - your information will be accessible by other researchers who are
+                                                    registered. Registered users will be able to access your information
+                                                    through the provided search interface.
                                                 </li>
                                                 <li th:if="${@privacyService.isPrivacyLevelEnabled(T(ubc.pavlab.rdp.model.enums.PrivacyLevelType).PUBLIC)}">
-                                                    <b>public</b> - your information will be publicly accessible. If
-                                                    "shared" option is available, your
-                                                    information will be shared with registered users and
-                                                    will also be accessible to non-registered users through the
-                                                    registry’s
-                                                    public search webpage (<i th:text=" ${@siteSettings.hostUrl}"></i>).
+                                                    <b th:text="${@messageSource.getMessage(T(ubc.pavlab.rdp.model.enums.PrivacyLevelType).PUBLIC.resolvableTitle, #locale)}"></b>
+                                                    - your information will be publicly accessible. If "shared" option
+                                                    is available, your information will be shared with registered users
+                                                    and will also be accessible to non-registered users through the
+                                                    registry’s public search webpage (<i
+                                                        th:text=" ${@siteSettings.hostUrl}"></i>).
                                                 </li>
                                             </ul>
                                         </div>
@@ -152,27 +193,24 @@
                                      data-parent="#profile-accordion">
                                     <div class="card-body">
                                         <p>
-                                            To rapidly get a list of your PubMed IDs, in a new browser
-                                            window use PubMed search (<a
-                                                href="http://www.ncbi.nlm.nih.gov/pubmed/"
-                                                target="_blank" rel="noopener">http://www.ncbi.nlm.nih.gov/pubmed/</a>)
-                                            to find your publications. The citations are returned 20
-                                            per page by default, but you can change this by clicking
-                                            on "Display settings" and choosing a different setting for
-                                            "Items per page". You can select the publications you wish
-                                            to use by clicking on the checkboxes; to save all your
-                                            citations do not click any check boxes. After making a
-                                            selection click on "Display settings"; select "PMID List"
-                                            and click "Apply". Copy and paste the resulting list of
-                                            numeric IDs into the field in the Profile.
+                                            To rapidly get a list of your PubMed IDs, in a new browser window use PubMed
+                                            search (<a href="http://www.ncbi.nlm.nih.gov/pubmed/" target="_blank"
+                                                       rel="noopener">http://www.ncbi.nlm.nih.gov/pubmed/</a>)
+                                            to find your publications. The citations are returned 20 per page by
+                                            default, but you can change this by clicking on "Display settings" and
+                                            choosing a different setting for "Items per page". You can select the
+                                            publications you wish to use by clicking on the checkboxes; to save all your
+                                            citations do not click any check boxes. After making a selection click on
+                                            "Display settings"; select "PMID List" and click "Apply". Copy and paste the
+                                            resulting list of numeric IDs into the field in the Profile.
                                         </p>
-                                        <p>If your search returns a long list of publications
-                                            and you would like to exclude only few of them click on
-                                            "Send to", select Clipboard and click on "Add to
-                                            Clipboard". In the top-right corner there will be a link
-                                            to items in the Clipboard. Within the Clipboard you can
-                                            remove any items you want and then export the PubMed IDs
-                                            as described above.</p>
+                                        <p>
+                                            If your search returns a long list of publications and you would like to
+                                            exclude only few of them click on "Send to", select Clipboard and click on
+                                            "Add to Clipboard". In the top-right corner there will be a link to items in
+                                            the Clipboard. Within the Clipboard you can remove any items you want and
+                                            then export the PubMed IDs as described above.
+                                        </p>
                                         <p>
                                             <b>Note</b>: Currently the PubMed IDs are for future use
                                             and are optional.
@@ -199,15 +237,16 @@
                                     <div class="card-body">
                                         <p>
                                             After selecting a model organism in the drop-down menu, you can optionally
-                                            enter
-                                            a description of your research on this organism (Organism Research Focus),
-                                            if you
-                                            feel it is different from the description you may have provided in your
+                                            enter a description of your research on this organism (Organism Research
+                                            Focus), if you feel it is different from the description you may have
+                                            provided in your
                                             <b><a th:href="@{/user/profile}">Profile</a></b> (About My Research).
                                         </p>
 
-                                        <p>The most important functionality of this section is
-                                            the addition of genes, and then of Gene Ontology terms.</p>
+                                        <p>
+                                            The most important functionality of this section is the addition of genes,
+                                            and then of Gene Ontology terms.
+                                        </p>
                                     </div>
                                 </div>
                             </div>
@@ -224,35 +263,31 @@
                                 <div id="modeladdgene" class="collapse" aria-labelledby="modeladdgene-heading"
                                      data-parent="#model-accordion">
                                     <div class="card-body">
-                                        <p>The main goal of the registry is to collect an accurate
-                                            and comprehensive list of the genes that you study or are
-                                            able to study.
+                                        <p>
+                                            The main goal of the registry is to collect an accurate and comprehensive
+                                            list of the genes that you study or are able to study.
                                         </p>
 
                                         <p th:if="${@applicationSettings.enabledTiers.size()} > 1">
-                                            Genes that you are entering directly into
-                                            the system can be either Primary or Secondary
-                                            (non-Primary).
+                                            Genes that you are entering directly into the system can be either Primary
+                                            or Secondary (non-Primary).
                                         </p>
 
                                         <ul th:if="${@applicationSettings.enabledTiers.size()} > 1">
                                             <li th:if="${@applicationSettings.enabledTiers.contains(T(ubc.pavlab.rdp.model.enums.TierType).TIER1)}">
-                                                <b>Primary genes</b> (Tier 1) are those you currently
-                                                work on in a model organism. You must be able to
-                                                immediately, specifically and rapidly study them in your
-                                                laboratory. Genes you have recently published on are
+                                                <b>Primary genes</b> (Tier 1) are those you currently work on in a model
+                                                organism. You must be able to immediately, specifically and rapidly
+                                                study them in your laboratory. Genes you have recently published on are
                                                 especially good Primary genes. We expect this to
                                                 typically be between 1-10 genes.
                                             </li>
                                             <li th:if="${@applicationSettings.enabledTiers.contains(T(ubc.pavlab.rdp.model.enums.TierType).TIER2)}">
-                                                <b>Secondary genes</b> (Tier 2) are those you do not
-                                                mark as Primary. Carefully choose genes which you are
-                                                not necessarily actively investigating, but would be able
-                                                to work on rapidly and specifically with minimal set-up
-                                                time. These might be paralogs of Tier 1 genes, or
-                                                members of the same complexes or pathway. For most
-                                                registrants we expect there might be between 1-100
-                                                non-Primary genes entered.
+                                                <b>Secondary genes</b> (Tier 2) are those you do not mark as Primary.
+                                                Carefully choose genes which you are not necessarily actively
+                                                investigating, but would be able to work on rapidly and specifically
+                                                with minimal set-up time. These might be paralogs of Tier 1 genes, or
+                                                members of the same complexes or pathway. For most registrants we expect
+                                                there might be between 1-100 non-Primary genes entered.
                                             </li>
                                         </ul>
 
@@ -260,12 +295,16 @@
                                         <p>For more information, see the relevant <a
                                                 th:href="@{/user/faq#genes}">FAQ</a></p>
 
-                                        <p>In the input box below the table you may search genes one by one or type
+                                        <p>
+                                            In the input box below the table you may search genes one by one or type
                                             in a comma separated list of gene symbols. Add them by pressing the enter
-                                            key or the "+" symbol.</p>
-                                        <p>The added genes will appear at the bottom of the table. You can remove genes
+                                            key or the "+" symbol.
+                                        </p>
+                                        <p>
+                                            The added genes will appear at the bottom of the table. You can remove genes
                                             by clicking the red X on the desired row. You can also change the Primary
-                                            status of genes using the checkbox.</p>
+                                            status of genes using the checkbox.
+                                        </p>
 
                                         <div th:if="${@applicationSettings.privacy.customizableGeneLevel}">
                                             <p>
@@ -327,8 +366,8 @@
                                             provide some Gene Ontology (GO) terms related to your
                                             work. Genes associated with the GO terms you select will
                                             be considered as your Tier 3 genes.
-                                            For more details about GO, please see <a href="http://geneontology.org/"
-                                                                                     target="_blank" rel="noopener">geneontology.org</a>.
+                                            For more details about GO, please see
+                                            <a href="http://geneontology.org/" target="_blank" rel="noopener">geneontology.org</a>.
                                         </p>
 
                                         <p>To enter GO terms for an organism, click on the "Terms" tab on the Model
@@ -371,9 +410,7 @@
                                             than 100 associated genes will not be
                                             available for addition to your Profile.</p>
 
-                                        <p>
-                                            Once again, don't forget to <b>Save</b>.
-                                        </p>
+                                        <p>Once again, don't forget to <b>Save</b>.</p>
 
                                     </div>
                                 </div>
@@ -394,19 +431,16 @@
                                      data-parent="#model-accordion">
                                     <div class="card-body">
                                         <p>
-                                            If you have already entered at least two genes, the
-                                            system can suggest related GO terms for you. The system
-                                            uses a very simple algorithm to do this. We look at GO
-                                            terms shared by the genes you have entered. If a term has
-                                            enough genes overlapping with your genes, it is
-                                            considered a candidate. We then prune terms that are too
-                                            big, too small or highly redundant with another candidate
-                                            term. A selection of the top candidates is then provided.
-                                            The full process is a little more involved than this,
-                                            as it makes use of the structure of the GO hierarchy and
-                                            several heuristics to provide useful results. Please <a
-                                                th:href="@{/user/support}">Contact
-                                            Us</a> if you would like more details.
+                                            If you have already entered at least two genes, the system can suggest
+                                            related GO terms for you. The system uses a very simple algorithm to do
+                                            this. We look at GO terms shared by the genes you have entered. If a term
+                                            has enough genes overlapping with your genes, it is considered a candidate.
+                                            We then prune terms that are too big, too small or highly redundant with
+                                            another candidate term. A selection of the top candidates is then provided.
+                                            The full process is a little more involved than this, as it makes use of the
+                                            structure of the GO hierarchy and several heuristics to provide useful
+                                            results. Please <a th:href="@{/user/support}">Contact Us</a> if you would
+                                            like more details.
                                         </p>
                                     </div>
                                 </div>
@@ -432,8 +466,8 @@
                                         The Search page allows you to browse or search for other registered users
                                         who chose to share their data by selecting "shared" or "public" data privacy
                                         setting. If "Include results from partner registries" option is selected,
-                                        the registry will connect to remote registries of the <span
-                                            th:text="#{rdp.site.shortname}"></span>
+                                        the registry will connect to remote registries of the
+                                        <span th:text="#{rdp.site.shortname}"></span>
                                         partners and display/search their "public" users.
                                     </p>
                                     <p>
@@ -442,11 +476,11 @@
                                         you can search in the following ways:
                                     </p>
                                     <ul>
-                                        <li>Click on letters of the alphabet to retrieve all users whose last name
+                                        <li>
+                                            Click on letters of the alphabet to retrieve all users whose last name
                                             begins with that letter
                                         </li>
-                                        <li>Enter one or more letters of the user's name in "Search by name" box
-                                        </li>
+                                        <li>Enter one or more letters of the user's name in "Search by name" box</li>
                                         <li>Search for keywords in the user's research description</li>
                                     </ul>
                                     <h5>Search Researchers</h5>
@@ -465,34 +499,29 @@
                                         of known gene symbols for the selected organism (selection made in a dropdown
                                         menu). If you want to search for a match using a human gene, but consider
                                         orthologs in other model organisms, you would use the secondary dropdown menu to
-                                        indicate the preferred organism. The ortholog mapping is based on <a
-                                            href="https://www.flyrnai.org/diopt"
-                                            target="_blank" rel="noopener">DIOPT</a> results, filtered for DIOPT score
-                                        >5 and Rank =
-                                        "high" or "moderate".
+                                        indicate the preferred organism. The ortholog mapping is based on
+                                        <a href="https://www.flyrnai.org/diopt"
+                                           target="_blank" rel="noopener">DIOPT</a>
+                                        results, filtered for<code>DIOPT score >5 and Rank = "high" or "moderate"</code>.
                                     </p>
                                     <div th:if="${@applicationSettings.organs.enabled}">
                                         <h5>Filter by Organ Systems</h5>
                                         <p>
                                             You can also filter the results of your search by organ systems to restrict
-                                            them to the users for whom these systems are relevant. If nothing
-                                            is selected no filtering is performed.
+                                            them to the users for whom these systems are relevant. If nothing is
+                                            selected no filtering is performed.
                                         </p>
                                     </div>
                                     <div th:if="${@applicationSettings.privacy.enableAnonymizedSearchResults}">
                                         <h5>Anonymous Results</h5>
                                         <p>
                                             If you lack permissions to see the matched researcher information (either
-                                            their
-                                            global privacy level or gene privacy level are set to "private"), their name
-                                            and
-                                            organization will not be displayed in the result table and the button on the
-                                            left
-                                            will say "Request Access" instead of "View User Profile". Clicking this
-                                            button will
-                                            take you to the a web form allowing to contact that user. The contacted
-                                            researcher may choose to
-                                            reply, in which case he/she will contact you via your contact email.
+                                            their global privacy level or gene privacy level are set to "private"),
+                                            their name and organization will not be displayed in the result table and
+                                            the button on the left will say "Request Access" instead of "View User
+                                            Profile". Clicking this button will take you to the a web form allowing to
+                                            contact that user. The contacted researcher may choose to reply, in which
+                                            case he/she will contact you via your contact email.
                                         </p>
                                     </div>
                                 </div>
