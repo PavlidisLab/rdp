@@ -187,14 +187,14 @@ public abstract class AbstractSearchController {
             addClause( builder, String.format( "'Research Description' contains '%s'", userSearchParams.descriptionLike ) );
         }
         addSearchParams( builder, userSearchParams, locale );
-        return builder.toString();
+        return "Search query: " + builder + ".";
     }
 
     protected String summarizeGeneSearchParams( GeneSearchParams geneSearchParams, Locale locale ) {
         StringBuilder builder = new StringBuilder();
         addClause( builder, String.format( "'Gene Symbol' = '%s'", geneSearchParams.gene.getSymbol() ) );
         addSearchParams( builder, geneSearchParams, locale );
-        return builder.toString();
+        return "Filters applied: " + builder + ".";
     }
 
     /**
