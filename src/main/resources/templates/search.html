@@ -352,7 +352,8 @@
     </div>
 
     <!--Results-->
-    <div class="mb-3">
+    <section id="results" class="mb-3"
+         th:classappend="${searchSummary} != null ? '' : 'd-none'">
         <h4 th:text="'Researchers registered in ' + #{rdp.site.shortname}"></h4>
         <div id="userTable">
             <th:block th:if="${users}">
@@ -366,13 +367,13 @@
                 </div>
             </th:block>
         </div>
-    </div>
+    </section>
 
     <!--International results-->
-    <div th:if="${@applicationSettings.getIsearch().isEnabled()}"
+    <section th:if="${@applicationSettings.getIsearch().isEnabled()}"
          id="itlResults"
          class="mb-3"
-         th:classappend="${iSearch} ? '' : 'd-none'">
+         th:classappend="${searchSummary} != null and ${iSearch} ? '' : 'd-none'">
         <h4>Partner registry results</h4>
         <div id="itlUserTable">
             <th:block th:if="${itlUsers}">
@@ -386,7 +387,7 @@
                 </div>
             </th:block>
         </div>
-    </div>
+    </section>
     </main>
 </div>
 

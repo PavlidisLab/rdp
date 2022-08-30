@@ -51,7 +51,8 @@ var formUtil = require('./util/form');
     var searchSummary = $('#searchSummary');
     var orthologContainer = $("#orthologsResults");
     var itlTableContainer = $("#itlUserTable");
-    var itlResults = $("#itlResults");
+    var results = document.getElementById('results');
+    var itlResults = document.getElementById("itlResults");
 
     $("form.search").submit(function (event) {
 
@@ -96,9 +97,12 @@ var formUtil = require('./util/form');
             orthologContainer.empty();
         }
 
+        // show search results
+        results.classList.toggle('d-none', false);
+
         // Show international search results
         if (iSearch) {
-            itlResults.toggleClass('d-none', false);
+            itlResults.classList.toggle('d-none', false);
             itlTableContainer.html($('<i class="mx-2 spinner"></i>'));
             // noinspection JSUnusedLocalSymbols
             itlTableContainer.load(window.contextPath + "/search/view/international", formData, function (responseText, textStatus, req) {
@@ -110,7 +114,7 @@ var formUtil = require('./util/form');
                 }
             });
         } else {
-            itlResults.toggleClass('d-none', true);
+            itlResults.classList.toggle('d-none', true);
         }
 
         // update history stack
