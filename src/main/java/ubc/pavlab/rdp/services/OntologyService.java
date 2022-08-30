@@ -29,7 +29,6 @@ import ubc.pavlab.rdp.util.*;
 import javax.persistence.EntityManager;
 import java.io.*;
 import java.net.URL;
-import java.text.Collator;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
@@ -182,6 +181,16 @@ public class OntologyService implements InitializingBean {
      */
     public long count() {
         return ontologyRepository.countByActiveTrue();
+    }
+
+    @Transactional(readOnly = true)
+    public long countSimpleOntologies() {
+        return ontologyRepository.countByActiveAndTermsSizeLessThanEqual( SIMPLE_ONTOLOGY_MAX_SIZE );
+    }
+
+    @Transactional(readOnly = true)
+    public long countLargeOntologies() {
+        return ontologyRepository.countByActiveAndTermsSizeGreaterThan( SIMPLE_ONTOLOGY_MAX_SIZE );
     }
 
     /**
