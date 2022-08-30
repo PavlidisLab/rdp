@@ -26,7 +26,6 @@ import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.model.ontology.OntologyTermInfo;
 import ubc.pavlab.rdp.repositories.RoleRepository;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
-import ubc.pavlab.rdp.util.FutureUtils;
 import ubc.pavlab.rdp.util.VersionUtils;
 
 import java.net.URI;
@@ -181,7 +180,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
                             .path( path )
                             .replaceQueryParams( apiParams1 )
                             .build().toUri();
-                    CompletableFuture<ResponseEntity<User[]>> nameLikeFuture = FutureUtils.toCompletableFuture( asyncRestTemplate.getForEntity( uri1, User[].class ) );
+                    CompletableFuture<ResponseEntity<User[]>> nameLikeFuture = asyncRestTemplate.getForEntity( uri1, User[].class ).completable();
 
                     // request 2 (descriptionLike)
                     MultiValueMap<String, String> apiParams2 = new LinkedMultiValueMap<>( apiParams );
@@ -191,7 +190,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
                             .path( path )
                             .replaceQueryParams( apiParams2 )
                             .build().toUri();
-                    CompletableFuture<ResponseEntity<User[]>> descriptionLikeFuture = FutureUtils.toCompletableFuture( asyncRestTemplate.getForEntity( uri2, User[].class ) );
+                    CompletableFuture<ResponseEntity<User[]>> descriptionLikeFuture = asyncRestTemplate.getForEntity( uri2, User[].class ).completable();
 
                     return Optional.of( Pair.of( uri1, nameLikeFuture.thenCombine( descriptionLikeFuture, ( a, b ) -> {
                         if ( a.getBody() == null || b.getBody() == null ) {
