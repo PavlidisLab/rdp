@@ -26,7 +26,7 @@
         <li th:each="searchMode, i : ${@applicationSettings.search.enabledSearchModes}"
             th:with="searchModeId=${searchMode.toString().replace('_', '-').toLowerCase()}"
             class="nav-item">
-            <a class="nav-link" data-toggle="tab"
+            <a class="nav-link search-mode-link" data-toggle="tab"
                th:id="${searchModeId} + '-tab'"
                th:href="@{#{searchModeId}-search(searchModeId=${searchModeId})}"
                th:classappend="${activeSearchMode} == ${searchMode} ? 'active'"

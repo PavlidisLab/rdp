@@ -54,6 +54,14 @@ var formUtil = require('./util/form');
     var results = document.getElementById('results');
     var itlResults = document.getElementById("itlResults");
 
+    // hide results with switching tab
+    $('.search-mode-link[data-toggle=tab]').on('hide.bs.tab', function () {
+        searchSummary.empty();
+        orthologContainer.empty();
+        results.classList.toggle('d-none', true);
+        itlResults.classList.toggle('d-none', true);
+    });
+
     $("form.search").submit(function (event) {
 
         var formData = formUtil.serialize(this);
