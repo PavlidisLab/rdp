@@ -51,17 +51,20 @@ public class OntologyTermInfoRepositoryTest {
         OntologyTermInfo ontologyTermInfo = OntologyTermInfo.builder( ont, "TERM:000001" ).build();
         ontologyTermInfo.getSynonyms().add( "UPPER" );
         ontologyTermInfo.getSynonyms().add( "upper" );
+        assertThat( ontologyTermInfo.getSynonyms() ).containsExactly( "UPPER" );
         Set<String> originalSynonymsCollection = ontologyTermInfo.getSynonyms();
         ont.getTerms().add( ontologyTermInfo );
         ontologyRepository.saveAndFlush( ont );
+
         OntologyTermInfo reloadedTerm = ontologyTermInfoRepository.findById( ontologyTermInfo.getId() ).orElse( null );
         assertThat( reloadedTerm ).isNotNull();
+        assertThat( reloadedTerm.getSynonyms() ).containsExactly( "UPPER" );
         assertThat( reloadedTerm.getSynonyms() )
                 .isNotSameAs( originalSynonymsCollection )
                 .isNotInstanceOf( TreeSet.class );
-        // unfortunately, at this stage the collection is managed by Hibernate and does not honor the collator
         reloadedTerm.getSynonyms().add( "lower" );
         reloadedTerm.getSynonyms().add( "LOWER" );
+        assertThat( reloadedTerm.getSynonyms() ).containsExactly( "lower", "UPPER" );
         ontologyTermInfoRepository.saveAndFlush( reloadedTerm );
     }
 

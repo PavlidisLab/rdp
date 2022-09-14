@@ -116,7 +116,7 @@ public class OntologyTermInfo extends OntologyTerm implements Serializable, Comp
     @ElementCollection
     @CollectionTable(name = "ontology_term_info_synonyms", joinColumns = { @JoinColumn(name = "ontology_term_info_id") })
     @Column(name = "synonym", nullable = false)
-    private final Set<String> synonyms = new TreeSet<>( new SynonymComparator() );
+    private final SortedSet<String> synonyms = new TreeSet<>( new SynonymComparator() );
 
     /**
      * Indicate if the term is obsolete.
