@@ -1,5 +1,6 @@
 package ubc.pavlab.rdp.util;
 
+import org.junit.Assume;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,9 +72,15 @@ public class OBOParserIntegrationTest {
     }
 
     @Test
-    public void parse_withUberonTermsOnline_thenSucceed() throws IOException, ParseException {
-        OBOParser.ParsingResult parsingResult = oboParser.parse( new InputStreamReader( new UrlResource( "https://github.com/obophenotype/uberon/releases/latest/download/uberon.obo" ).getInputStream() ),
-                OBOParser.Configuration.builder().build() );
+    public void parse_withUberonTermsOnline_thenSucceed() throws ParseException {
+        OBOParser.ParsingResult parsingResult;
+        try {
+            parsingResult = oboParser.parse( new InputStreamReader( new UrlResource( "https://github.com/obophenotype/uberon/releases/latest/download/uberon.obo" ).getInputStream() ),
+                    OBOParser.Configuration.builder().build() );
+        } catch ( IOException ioe ) {
+            Assume.assumeNoException( "I/O exception occurred while processing Uberon OBO remotely.", ioe );
+            return;
+        }
         assertThat( parsingResult.getOntology().getName() ).isEqualTo( "uberon" );
         Map<String, OBOParser.Term> parsedTerms = parsingResult.getTermsByIdOrAltId();
         assertThat( parsedTerms ).containsKey( "UBERON:0000000" );
