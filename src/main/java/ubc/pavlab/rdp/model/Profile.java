@@ -30,19 +30,18 @@ import java.util.Set;
 @Embeddable
 public class Profile {
 
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @Column(name = "name")
     @NotNull(message = "Please provide your name.", groups = { User.ValidationUserAccount.class, User.ValidationServiceAccount.class })
     @Size(min = 1, message = "Please provide your name.", groups = { User.ValidationUserAccount.class, User.ValidationServiceAccount.class })
     private String name;
 
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @Column(name = "last_name")
     @NotNull(message = "Please provide your last name.", groups = { User.ValidationUserAccount.class })
     @Size(min = 1, message = "Please provide your last name.", groups = { User.ValidationUserAccount.class })
     private String lastName;
 
     @Transient
+    @JsonIgnore
     public String getFullName() {
         if ( lastName == null || lastName.isEmpty() ) {
             return name == null ? "" : name;

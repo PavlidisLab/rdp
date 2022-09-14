@@ -844,10 +844,15 @@ public class UserControllerTest {
     @Test
     public void userSerialization() throws JsonProcessingException {
         User user = createUser( 1 );
+        user.getProfile().setName( "John" );
+        user.getProfile().setLastName( "Doe" );
         user.getProfile().setPrivacyLevel( PrivacyLevelType.PRIVATE );
         User deserializedUser = objectMapper.readValue( objectMapper.writeValueAsString( user ), User.class );
         assertThat( deserializedUser.getProfile().getPrivacyLevel() ).isEqualTo( PrivacyLevelType.PRIVATE );
         assertThat( deserializedUser.getEffectivePrivacyLevel() ).isEqualTo( PrivacyLevelType.PRIVATE );
+        assertThat( deserializedUser.getProfile().getFullName() ).isEqualTo( "Doe, John" );
+        assertThat( deserializedUser.getProfile().getName() ).isEqualTo( "John" );
+        assertThat( deserializedUser.getProfile().getLastName() ).isEqualTo( "Doe" );
     }
 
     @Test

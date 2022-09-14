@@ -58,7 +58,7 @@ attribute before retrieving its value.
 
 The user model has been substantially simplified to provide only necessary information.
 
-- `name` and `lastName` are now summarized in `fullName`
+- `fullName` is not exposed anymore, you can construct an adequate representation instead from `name` and `lastName`
 - `contactEmail` has been removed, `email` will display the public-facing email if available
 - `hideGenelist` and `shared` have been removed
 
