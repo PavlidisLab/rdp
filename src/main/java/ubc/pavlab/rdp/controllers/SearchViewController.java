@@ -347,10 +347,11 @@ public class SearchViewController extends AbstractSearchController {
                                      @RequestParam(required = false) String remoteHost ) {
         User user;
         if ( remoteHost != null ) {
+            URI remoteHostUri = URI.create( remoteHost );
             try {
-                user = remoteResourceService.getRemoteUser( userId, URI.create( remoteHost ) );
+                user = remoteResourceService.getRemoteUser( userId, remoteHostUri );
             } catch ( RemoteException e ) {
-                log.error( "Could not retrieve user {0} from {1}.", e );
+                log.warn( String.format( "Failed to retrieve user with ID %d from %s: %s", userId, remoteHostUri.getRawAuthority(), e.getMessage() ) );
                 return new ModelAndView( "fragments/error::message", HttpStatus.INTERNAL_SERVER_ERROR )
                         .addObject( "errorMessage", "Error querying remote user." );
             }
@@ -370,7 +371,7 @@ public class SearchViewController extends AbstractSearchController {
             try {
                 user = remoteResourceService.getAnonymizedUser( anonymousId, remoteHostUri );
             } catch ( RemoteException e ) {
-                log.error( MessageFormat.format( "Failed to retrieve anonymized user {} from {}.", anonymousId, remoteHostUri.getRawAuthority() ), e );
+                log.warn( String.format( "Failed to retrieve user with anonymized user ID %d from %s: %s", anonymousId, remoteHostUri.getRawAuthority(), e.getMessage() ) );
                 return new ModelAndView( "fragments/error::message", HttpStatus.INTERNAL_SERVER_ERROR )
                         .addObject( "errorMessage", "Error querying remote anonymous user." );
             }

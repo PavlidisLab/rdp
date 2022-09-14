@@ -31,16 +31,16 @@ public interface RemoteResourceService {
     /**
      * Find users by name among all partner registries.
      *
-     * @return matching users sorted according to {@link UserService#getUserComparator()}.
-     * @see ApiController#searchUsersByName(String, Boolean, Set, Set, Set, String, String, Locale)
+     * @return matching users sorted according to {@link User#getComparator()}.
+     * @see ApiController#searchUsersByName(String, Boolean, Set, Set, Set, List, List, Locale)
      */
     List<User> findUsersByLikeName( String nameLike, Boolean prefix, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherTypes, Collection<String> organUberonIds, Collection<OntologyTermInfo> ontologyTermInfos );
 
     /**
      * Find users by description among all partner registries.
      *
-     * @return matching users sorted according to {@link UserService#getUserComparator()}.
-     * @see ApiController#searchUsersByDescription(String, Set, Set, Set, String, String, Locale)
+     * @return matching users sorted according to {@link User#getComparator()}.
+     * @see ApiController#searchUsersByDescription(String, Set, Set, Set, List, List, Locale)
      */
     List<User> findUsersByDescription( String descriptionLike, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherTypes, Collection<String> organUberonIds, Collection<OntologyTermInfo> ontologyTermInfos );
 
@@ -49,22 +49,22 @@ public interface RemoteResourceService {
     /**
      * Find genes by symbol among all partner registries.
      *
-     * @return matching genes sorted according to {@link UserGeneService#getUserGeneComparator()}.
-     * @see ApiController#searchUsersByGeneSymbol(String, Integer, Set, Integer, Set, Set, Set, String, String, Locale)
+     * @return matching genes sorted according to {@link UserGene#getComparator()}.
+     * @see ApiController#searchUsersByGeneSymbol(String, Integer, Set, Integer, Set, Set, Set, List, List, Locale)
      */
     List<UserGene> findGenesBySymbol( String symbol, Taxon taxon, Set<TierType> tier, Integer orthologTaxonId, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherTypes, Set<String> organUberonIds, Collection<OntologyTermInfo> ontologyTermInfos );
 
     /**
      * Retrieve a user from a specific registry.
      *
-     * @see ApiController#getUserById(Integer, String, String, Locale)
+     * @see ApiController#getUserById(Integer, Locale)
      */
     User getRemoteUser( Integer userId, URI remoteHost ) throws RemoteException;
 
     /**
      * Retrieve an anonymized user from a specific registry.
      *
-     * @see ApiController#getUserByAnonymousId(UUID, String, String, Locale)
+     * @see ApiController#getUserByAnonymousId(UUID, Locale)
      */
     User getAnonymizedUser( UUID anonymousId, URI remoteHost ) throws RemoteException;
 }

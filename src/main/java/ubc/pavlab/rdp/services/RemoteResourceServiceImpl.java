@@ -42,7 +42,7 @@ import static java.util.function.Function.identity;
 @PreAuthorize("hasPermission(null, 'international-search')")
 public class RemoteResourceServiceImpl implements RemoteResourceService {
 
-    private static final String API_URI = "/api";
+    private static final String API_ROOT_URI = "/api";
     private static final String API_USERS_SEARCH_URI = "/api/users/search";
     private static final String API_USER_GET_URI = "/api/users/{userId}";
     private static final String API_USER_GET_BY_ANONYMOUS_ID_URI = "/api/users/by-anonymous-id/{anonymousId}";
@@ -75,9 +75,9 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
     public String getApiVersion( URI remoteHost ) throws RemoteException {
         // Ensure that the remoteHost is one of our known APIs by comparing the URI authority component and always use
         // the URI defined in the configuration
-        URI authority = getApiUri( remoteHost );
-        URI uri = UriComponentsBuilder.fromUri( authority )
-                .path( API_URI )
+        URI apiUri = getApiUri( remoteHost );
+        URI uri = UriComponentsBuilder.fromUri( apiUri )
+                .path( API_ROOT_URI )
                 .build()
                 .toUri();
         OpenAPI openAPI = getFromRequestFuture( remoteHost, asyncRestTemplate.getForEntity( uri, OpenAPI.class ) ).getBody();
@@ -257,11 +257,11 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
     public User getRemoteUser( Integer userId, URI remoteHost ) throws RemoteException {
         // Ensure that the remoteHost is one of our known APIs by comparing the URI authority component and always use
         // the URI defined in the configuration
-        URI authority = getApiUri( remoteHost );
+        URI apiUri = getApiUri( remoteHost );
 
         MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
-        addAuthParamIfAdmin( authority, queryParams );
-        URI uri = UriComponentsBuilder.fromUri( authority )
+        addAuthParamIfAdmin( apiUri, queryParams );
+        URI uri = UriComponentsBuilder.fromUri( apiUri )
                 .path( API_USER_GET_URI )
                 .replaceQueryParams( queryParams )
                 .buildAndExpand( Collections.singletonMap( "userId", userId ) )
@@ -272,7 +272,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
 
     @Override
     public User getAnonymizedUser( UUID anonymousId, URI remoteHost ) throws RemoteException {
-        URI authority = getApiUri( remoteHost );
+        URI apiUri = getApiUri( remoteHost );
 
         // the currentProxy() is necessary to have the result cached
         if ( !VersionUtils.satisfiesVersion( remoteResourceService.getApiVersion( remoteHost ), "1.4.0" ) ) {
@@ -281,8 +281,8 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
         }
 
         MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
-        addAuthParamIfAdmin( authority, queryParams );
-        URI uri = UriComponentsBuilder.fromUri( authority )
+        addAuthParamIfAdmin( apiUri, queryParams );
+        URI uri = UriComponentsBuilder.fromUri( apiUri )
                 .path( API_USER_GET_BY_ANONYMOUS_ID_URI )
                 .replaceQueryParams( queryParams )
                 .buildAndExpand( Collections.singletonMap( "anonymousId", anonymousId ) )
