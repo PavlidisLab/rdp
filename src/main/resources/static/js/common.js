@@ -169,6 +169,10 @@ var formUtil = require('./util/form');
         var initialData = {};
         importantForms.forEach(function (form) {
             initialData[form] = formUtil.serialize(form);
+            /* update the initial data if the form is submitted */
+            form.addEventListener('submit', function () {
+                initialData[form] = formUtil.serialize(this);
+            });
         });
         window.addEventListener('beforeunload', function (event) {
             var unsavedChanges = Array.from(importantForms).some(function (form) {
