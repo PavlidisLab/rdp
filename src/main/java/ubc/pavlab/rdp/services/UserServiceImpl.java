@@ -150,6 +150,7 @@ public class UserServiceImpl implements UserService, InitializingBean {
     public List<Role> findAllRoles() {
         return roleRepository.findAll();
     }
+
     @Override
     @Secured("ROLE_ADMIN")
     @Transactional(rollbackFor = RoleException.class)
@@ -447,7 +448,7 @@ public class UserServiceImpl implements UserService, InitializingBean {
     public List<User> findByDescription( String descriptionLike, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherTypes, Collection<OrganInfo> organs, Collection<OntologyTermInfo> ontologyTermInfos ) {
         final Set<String> organUberonIds = organUberonIdsFromOrgans( organs );
         Map<Ontology, Set<Integer>> ontologyTermInfoIds = ontologyTermInfoIdsFromOntologyTermInfo( ontologyTermInfos );
-        return userRepository.findDistinctByProfileDescriptionContainingIgnoreCaseOrTaxonDescriptionsContainingIgnoreCase( descriptionLike, descriptionLike ).stream()
+        return userRepository.findDistinctByProfileDescriptionLikeIgnoreCaseOrTaxonDescriptionsLikeIgnoreCaseOrUserOntologyTermsNameLikeIgnoreCase( "%" + descriptionLike + "%" ).stream()
                 .filter( u -> researcherPositions == null || researcherPositions.contains( u.getProfile().getResearcherPosition() ) )
                 .filter( u -> researcherTypes == null || containsAny( researcherTypes, u.getProfile().getResearcherCategories() ) )
                 .filter( u -> organUberonIds == null || containsAny( organUberonIds, u.getUserOrgans().values().stream().map( UserOrgan::getUberonId ).collect( Collectors.toSet() ) ) )

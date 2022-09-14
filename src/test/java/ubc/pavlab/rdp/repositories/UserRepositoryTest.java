@@ -289,7 +289,7 @@ public class UserRepositoryTest {
 
         // when
         String search = "xyz";
-        Collection<User> found = userRepository.findDistinctByProfileDescriptionContainingIgnoreCaseOrTaxonDescriptionsContainingIgnoreCase( search, search );
+        Collection<User> found = userRepository.findDistinctByProfileDescriptionLikeIgnoreCaseOrTaxonDescriptionsLikeIgnoreCaseOrUserOntologyTermsNameLikeIgnoreCase( "%" + search + "%" );
 
         // then
         assertThat( found ).isEmpty();
@@ -308,7 +308,7 @@ public class UserRepositoryTest {
 
         // when
         String search = "Description";
-        Collection<User> found = userRepository.findDistinctByProfileDescriptionContainingIgnoreCaseOrTaxonDescriptionsContainingIgnoreCase( search, search );
+        Collection<User> found = userRepository.findDistinctByProfileDescriptionLikeIgnoreCaseOrTaxonDescriptionsLikeIgnoreCaseOrUserOntologyTermsNameLikeIgnoreCase( "%" + search + "%" );
 
         // then
         assertThat( found ).hasSize( 1 );
@@ -326,7 +326,7 @@ public class UserRepositoryTest {
 
         // when
         String search = user.getProfile().getDescription().toUpperCase();
-        Collection<User> found = userRepository.findDistinctByProfileDescriptionContainingIgnoreCaseOrTaxonDescriptionsContainingIgnoreCase( search, search );
+        Collection<User> found = userRepository.findDistinctByProfileDescriptionLikeIgnoreCaseOrTaxonDescriptionsLikeIgnoreCaseOrUserOntologyTermsNameLikeIgnoreCase( "%" + search + "%" );
 
         // then
         assertThat( found ).hasSize( 1 );
@@ -344,7 +344,7 @@ public class UserRepositoryTest {
 
         // when
         String search = user.getProfile().getDescription().substring( 0, 3 );
-        Collection<User> found = userRepository.findDistinctByProfileDescriptionContainingIgnoreCaseOrTaxonDescriptionsContainingIgnoreCase( search, search );
+        Collection<User> found = userRepository.findDistinctByProfileDescriptionLikeIgnoreCaseOrTaxonDescriptionsLikeIgnoreCaseOrUserOntologyTermsNameLikeIgnoreCase( "%" + search + "%" );
 
         // then
         assertThat( found ).hasSize( 1 );
@@ -362,7 +362,7 @@ public class UserRepositoryTest {
 
         // when
         String search = user.getProfile().getDescription().substring( 3 );
-        Collection<User> found = userRepository.findDistinctByProfileDescriptionContainingIgnoreCaseOrTaxonDescriptionsContainingIgnoreCase( search, search );
+        Collection<User> found = userRepository.findDistinctByProfileDescriptionLikeIgnoreCaseOrTaxonDescriptionsLikeIgnoreCaseOrUserOntologyTermsNameLikeIgnoreCase( "%" + search + "%" );
 
         // then
         assertThat( found ).hasSize( 1 );
@@ -380,7 +380,7 @@ public class UserRepositoryTest {
 
         // when
         String search = user.getProfile().getDescription().substring( 1, 3 );
-        Collection<User> found = userRepository.findDistinctByProfileDescriptionContainingIgnoreCaseOrTaxonDescriptionsContainingIgnoreCase( search, search );
+        Collection<User> found = userRepository.findDistinctByProfileDescriptionLikeIgnoreCaseOrTaxonDescriptionsLikeIgnoreCaseOrUserOntologyTermsNameLikeIgnoreCase( "%" + search + "%" );
 
         // then
         assertThat( found ).hasSize( 1 );
@@ -399,7 +399,7 @@ public class UserRepositoryTest {
 
         // when
         String search = user.getTaxonDescriptions().get( taxon ).substring( 0, 3 );
-        Collection<User> found = userRepository.findDistinctByProfileDescriptionContainingIgnoreCaseOrTaxonDescriptionsContainingIgnoreCase( search, search );
+        Collection<User> found = userRepository.findDistinctByProfileDescriptionLikeIgnoreCaseOrTaxonDescriptionsLikeIgnoreCaseOrUserOntologyTermsNameLikeIgnoreCase( "%" + search + "%" );
 
         // then
         assertThat( found ).hasSize( 1 );
@@ -418,7 +418,7 @@ public class UserRepositoryTest {
 
         // when
         String search = user.getTaxonDescriptions().get( taxon ).substring( 3 );
-        Collection<User> found = userRepository.findDistinctByProfileDescriptionContainingIgnoreCaseOrTaxonDescriptionsContainingIgnoreCase( search, search );
+        Collection<User> found = userRepository.findDistinctByProfileDescriptionLikeIgnoreCaseOrTaxonDescriptionsLikeIgnoreCaseOrUserOntologyTermsNameLikeIgnoreCase( "%" + search + "%" );
 
         // then
         assertThat( found ).hasSize( 1 );
@@ -437,7 +437,7 @@ public class UserRepositoryTest {
 
         // when
         String search = user.getTaxonDescriptions().get( taxon ).substring( 1, 3 );
-        Collection<User> found = userRepository.findDistinctByProfileDescriptionContainingIgnoreCaseOrTaxonDescriptionsContainingIgnoreCase( search, search );
+        Collection<User> found = userRepository.findDistinctByProfileDescriptionLikeIgnoreCaseOrTaxonDescriptionsLikeIgnoreCaseOrUserOntologyTermsNameLikeIgnoreCase( "%" + search + "%" );
 
         // then
         assertThat( found ).hasSize( 1 );
@@ -458,7 +458,7 @@ public class UserRepositoryTest {
 
         // when
         String search = user.getProfile().getDescription();
-        Collection<User> found = userRepository.findDistinctByProfileDescriptionContainingIgnoreCaseOrTaxonDescriptionsContainingIgnoreCase( search, search );
+        Collection<User> found = userRepository.findDistinctByProfileDescriptionLikeIgnoreCaseOrTaxonDescriptionsLikeIgnoreCaseOrUserOntologyTermsNameLikeIgnoreCase( "%" + search + "%" );
 
         // then
         assertThat( found ).hasSize( 2 );
@@ -482,7 +482,7 @@ public class UserRepositoryTest {
 
         // when
         String search = "Description";
-        Collection<User> found = userRepository.findDistinctByProfileDescriptionContainingIgnoreCaseOrTaxonDescriptionsContainingIgnoreCase( search, search );
+        Collection<User> found = userRepository.findDistinctByProfileDescriptionLikeIgnoreCaseOrTaxonDescriptionsLikeIgnoreCaseOrUserOntologyTermsNameLikeIgnoreCase( "%" + search + "%" );
 
         // then
         assertThat( found ).hasSize( 1 );
