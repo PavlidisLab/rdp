@@ -6,6 +6,7 @@ import lombok.experimental.SuperBuilder;
 import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.ResponseEntity;
@@ -30,7 +31,6 @@ import ubc.pavlab.rdp.util.VersionUtils;
 
 import java.net.URI;
 import java.text.MessageFormat;
-import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
@@ -58,6 +58,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
     private RoleRepository roleRepository;
 
     @Autowired
+    @Qualifier("remoteResourceRestTemplate")
     private AsyncRestTemplate asyncRestTemplate;
 
     @Autowired
@@ -404,20 +405,13 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
     }
 
     private <T> T getFromRequestFuture( URI uri, Future<T> future ) throws RemoteException {
-        Duration requestTimeout = applicationSettings.getIsearch().getRequestTimeout();
         try {
-            if ( requestTimeout != null ) {
-                return future.get( requestTimeout.toMillis(), TimeUnit.MILLISECONDS );
-            } else {
-                return future.get();
-            }
+            return future.get();
         } catch ( ExecutionException e ) {
             throw new RemoteException( String.format( "Unsuccessful response received for %s.", uri ), e.getCause() );
         } catch ( InterruptedException e ) {
             Thread.currentThread().interrupt();
             throw new RemoteException( String.format( "A thread was interrupted while waiting for %s response.", uri ), e );
-        } catch ( TimeoutException e ) {
-            throw new RemoteException( String.format( "Partner registry %s has timed out after %d ms.", uri.getRawAuthority(), requestTimeout.toMillis() ), e );
         }
     }
 

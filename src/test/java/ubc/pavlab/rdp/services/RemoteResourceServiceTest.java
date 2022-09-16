@@ -8,11 +8,10 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -32,7 +31,6 @@ import ubc.pavlab.rdp.settings.ApplicationSettings;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.time.Duration;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.UUID;
@@ -56,7 +54,7 @@ public class RemoteResourceServiceTest {
         }
 
         @Bean
-        public AsyncRestTemplate asyncRestTemplate() {
+        public AsyncRestTemplate remoteResourceRestTemplate() {
             return new AsyncRestTemplate();
         }
 
@@ -91,6 +89,7 @@ public class RemoteResourceServiceTest {
     private ObjectMapper objectMapper;
 
     @Autowired
+    @Qualifier("remoteResourceRestTemplate")
     private AsyncRestTemplate asyncRestTemplate;
 
     /* fixtures */
@@ -255,25 +254,6 @@ public class RemoteResourceServiceTest {
         Taxon taxon = createTaxon( 9606 );
         remoteResourceService.findGenesBySymbol( "ok", taxon, EnumSet.of( TierType.TIER1, TierType.TIER2, TierType.TIER3 ), null, null, null, null, null );
         mockServer.verify();
-    }
-
-    @Test
-    public void findGenesBySymbol_whenRequestTimeoutIsSet_thenSucceed() throws JsonProcessingException {
-        when( iSearchSettings.getRequestTimeout() ).thenReturn( Duration.ofSeconds( 3 ) );
-        MockRestServiceServer mockServer = MockRestServiceServer.createServer( asyncRestTemplate );
-        mockServer.expect( requestTo( "http://example.com/api" ) )
-                .andRespond( withStatus( HttpStatus.OK )
-                        .contentType( MediaType.APPLICATION_JSON )
-                        .body( objectMapper.writeValueAsString( new OpenAPI().info( new Info().version( "1.0.0" ) ) ) ) );
-        mockServer.expect( requestTo( "http://example.com/api/genes/search?symbol=ok&taxonId=9606&tier=TIER1" ) )
-                .andRespond( withStatus( HttpStatus.OK )
-                        .contentType( MediaType.APPLICATION_JSON )
-                        .body( objectMapper.writeValueAsString( new UserGene[]{} ) ) );
-        Taxon taxon = createTaxon( 9606 );
-        remoteResourceService.findGenesBySymbol( "ok", taxon, EnumSet.of( TierType.TIER1 ), null, null, null, null, null );
-        mockServer.verify();
-        // TODO: this test case does not actually check if Future.get() is invoked with a timeout, but I haven't found a
-        // good way to do that insofar
     }
 
     @Test

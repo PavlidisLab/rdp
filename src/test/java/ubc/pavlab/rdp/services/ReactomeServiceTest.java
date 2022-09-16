@@ -6,6 +6,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.info.BuildProperties;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -20,12 +21,12 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.client.ExpectedCount;
 import org.springframework.test.web.client.MockRestServiceServer;
-import org.springframework.web.client.AsyncRestTemplate;
-import ubc.pavlab.rdp.RemoteResourceConfig;
+import org.springframework.web.client.RestTemplate;
 import ubc.pavlab.rdp.model.ontology.Ontology;
 import ubc.pavlab.rdp.repositories.ontology.OntologyRepository;
 import ubc.pavlab.rdp.repositories.ontology.OntologyTermInfoRepository;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
+import ubc.pavlab.rdp.util.ReactomeConfig;
 
 import java.io.IOException;
 import java.net.URI;
@@ -38,7 +39,7 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
 
 @RunWith(SpringRunner.class)
-@Import(RemoteResourceConfig.class)
+@Import(ReactomeConfig.class)
 @DataJpaTest
 public class ReactomeServiceTest {
 
@@ -51,8 +52,8 @@ public class ReactomeServiceTest {
         }
 
         @Bean
-        public ReactomeService reactomeService( OntologyService ontologyService, ApplicationSettings applicationSettings, AsyncRestTemplate asyncRestTemplate ) {
-            return new ReactomeService( ontologyService, applicationSettings, asyncRestTemplate );
+        public ReactomeService reactomeService( OntologyService ontologyService, ApplicationSettings applicationSettings, RestTemplate restTemplate ) {
+            return new ReactomeService( ontologyService, applicationSettings, restTemplate );
         }
     }
 
@@ -69,7 +70,8 @@ public class ReactomeServiceTest {
     private ApplicationSettings.OntologySettings ontologySettings;
 
     @Autowired
-    private AsyncRestTemplate asyncRestTemplate;
+    @Qualifier("reactomeRestTemplate")
+    private RestTemplate restTemplate;
 
     @MockBean(name = "messageSourceWithoutOntology")
     private MessageSource messageSource;
@@ -116,7 +118,7 @@ public class ReactomeServiceTest {
                                         .put( "text", "the new summation" ) ) ) );
 
         // fake Reactome server
-        MockRestServiceServer mockServer = MockRestServiceServer.createServer( asyncRestTemplate );
+        MockRestServiceServer mockServer = MockRestServiceServer.createServer( restTemplate );
         mockServer.expect( ExpectedCount.manyTimes(), requestTo( "https://reactome.org/ContentService/data/query/ids" ) )
                 .andExpect( method( HttpMethod.POST ) )
                 .andRespond( withStatus( HttpStatus.OK )

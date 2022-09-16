@@ -7,13 +7,14 @@ import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.AsyncRestTemplate;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import ubc.pavlab.rdp.model.ontology.Ontology;
 import ubc.pavlab.rdp.model.ontology.OntologyTermInfo;
@@ -25,9 +26,7 @@ import ubc.pavlab.rdp.util.ProgressUtils;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URI;
-import java.time.Duration;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -43,13 +42,13 @@ public class ReactomeService {
 
     private final ApplicationSettings applicationSettings;
 
-    private final AsyncRestTemplate asyncRestTemplate;
+    private final RestTemplate restTemplate;
 
     @Autowired
-    public ReactomeService( OntologyService ontologyService, ApplicationSettings applicationSettings, AsyncRestTemplate asyncRestTemplate ) {
+    public ReactomeService( OntologyService ontologyService, ApplicationSettings applicationSettings, @Qualifier("reactomeRestTemplate") RestTemplate restTemplate ) {
         this.ontologyService = ontologyService;
         this.applicationSettings = applicationSettings;
-        this.asyncRestTemplate = asyncRestTemplate;
+        this.restTemplate = restTemplate;
     }
 
     /**
@@ -193,18 +192,10 @@ public class ReactomeService {
 
         for ( int i = 0; i < maxPage; i++ ) {
             Page<OntologyTermInfo> page = ontologyService.findAllTermsByOntologyIncludingInactive( ontology, PageRequest.of( i, 20 ) );
-            ResponseEntity<ReactomeEntity[]> entity;
-            try {
-                URI queryIdsUri = UriComponentsBuilder.fromUri( applicationSettings.getOntology().getReactomeContentServiceUrl() )
-                        .path( "/data/query/ids" ).build().toUri();
-                entity = asyncRestTemplate.postForEntity( queryIdsUri, new HttpEntity<>( String.join( ",", page.map( OntologyTermInfo::getTermId ).getContent() ) ), ReactomeEntity[].class ).get();
-                ProgressUtils.emitProgress( progressCallback, ( i * 20L ) + page.getNumberOfElements(), page.getTotalElements(), timer.getTime( TimeUnit.MILLISECONDS ) );
-            } catch ( InterruptedException e ) {
-                Thread.currentThread().interrupt();
-                throw new ReactomeException( "A thread was interrupted while retrieving the /data/query/ids endpoint", e );
-            } catch ( ExecutionException e ) {
-                throw new ReactomeException( "Failed to retrieve from the /data/query/ids endpoint.", e.getCause() );
-            }
+            URI queryIdsUri = UriComponentsBuilder.fromUri( applicationSettings.getOntology().getReactomeContentServiceUrl() )
+                    .path( "/data/query/ids" ).build().toUri();
+            ResponseEntity<ReactomeEntity[]> entity = restTemplate.postForEntity( queryIdsUri, new HttpEntity<>( String.join( ",", page.map( OntologyTermInfo::getTermId ).getContent() ) ), ReactomeEntity[].class );
+            ProgressUtils.emitProgress( progressCallback, ( i * 20L ) + page.getNumberOfElements(), page.getTotalElements(), timer.getTime( TimeUnit.MILLISECONDS ) );
             if ( entity.getStatusCode().is2xxSuccessful() && entity.getBody() != null ) {
                 Map<String, String> results = Arrays.stream( entity.getBody() )
                         .filter( e -> e.getSummation() != null && e.getSummation().size() > 0 )
