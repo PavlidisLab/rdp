@@ -39,6 +39,20 @@ The anonymized search results are also disabled by default. To enable them set t
 rdp.settings.privacy.enable-anonymized-search-results=true
 ```
 
+The redundant `rdp.site.context` property has been removed. In the unlikely case you were using it, you can instead
+append the context to `rdp.site.host`.
+
+```properties
+# before
+rdp.site.host=http://example.com
+rdp.site.context=/test
+```
+
+```properties
+# after
+rdp.site.host=http://example.com/test
+```
+
 Note that we switched to Spring Boot 2, so you should migrate all the custom properties set in `application.properties`
 accordingly. Notably, the Flyway options `flyway.*` must be migrated to `spring.flyway.*`.
 
