@@ -70,7 +70,7 @@ WantedBy=multi-user.target
 
 Create a standard virtual host section with the following proxies:
 
-```
+```apache
 ProxyPass / http://localhost:<port>/
 ProxyPassReverse / http://localhost:<port>/
 ```

@@ -1,5 +1,8 @@
 # Release Notes
 
+Release notes are now available from [GitHub](https://github.com/PavlidisLab/rdp/releases). Those here are kept for
+historical reasons.
+
 ## 1.4.6
 
 This release has a few fixes that provide better user feedback during registration and while updating the user profile.
