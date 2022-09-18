@@ -160,6 +160,20 @@ GET /api/ontologies/{ontologyName}/terms HTTP/1.1
 
 - `page` the page to query starting from zero to `totalPages`
 
+
+## List specific terms in a category/ontology
+
+!!! note
+
+    New in 1.5.0.
+
+```http
+GET /api/ontologies/{ontologyName}/terms?ontologyTermIds HTTP/1.1
+```
+
+To retrieve specific terms, you may use `ontologyTermIds` query parameter and pass it as many time as you want. The output is
+not paginated and the `page` parameter from [List all terms in a category/ontology](#list-all-terms-in-a-categoryontology) is ignored.
+
 ## Retrieve a single category/ontology term
 
 !!! note

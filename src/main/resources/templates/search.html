@@ -375,6 +375,11 @@
          class="mb-3"
          th:classappend="${searchSummary} != null and ${iSearch} ? '' : 'd-none'">
         <h4>Partner registry results</h4>
+        <div id="itlOntologyAvailability" class="mb-3">
+            <th:block th:if="${termsAvailabilityByApiUri} != null">
+                <div th:replace="fragments/search::available-terms-by-partner(ontologyAvailabilityByApiUri = ${termsAvailabilityByApiUri})"></div>
+            </th:block>
+        </div>
         <div id="itlUserTable">
             <th:block th:if="${itlUsers}">
                 <div th:replace="fragments/user-table::user-table(users=${itlUsers}, remote=true)">

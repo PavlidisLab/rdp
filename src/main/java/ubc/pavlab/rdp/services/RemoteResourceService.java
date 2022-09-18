@@ -8,16 +8,26 @@ import ubc.pavlab.rdp.model.UserGene;
 import ubc.pavlab.rdp.model.enums.ResearcherCategory;
 import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import ubc.pavlab.rdp.model.enums.TierType;
+import ubc.pavlab.rdp.model.ontology.Ontology;
 import ubc.pavlab.rdp.model.ontology.OntologyTermInfo;
+import ubc.pavlab.rdp.model.ontology.RemoteOntologyTermInfo;
 
 import java.net.URI;
 import java.util.*;
+import java.util.concurrent.Future;
 
 /**
  * Interface for remote resource methods. These mirror methods from UserService and UserGeneService, but the implementation
  * fetches the results from remote origins.
  */
 public interface RemoteResourceService {
+
+    /**
+     * Obtain the list of URIs this registry is configured to communicate with.
+     * <p>
+     * Any authentication infomrmation is stripped.
+     */
+    List<URI> getApiUris();
 
     /**
      * Get the version of the remote API by reading its OpenAPI specification.
@@ -67,4 +77,16 @@ public interface RemoteResourceService {
      * @see ApiController#getUserByAnonymousId(UUID, Locale)
      */
     User getAnonymizedUser( UUID anonymousId, URI remoteHost ) throws RemoteException;
+
+    /**
+     * Find terms by ontology name and term IDs in a specific registry.
+     *
+     * @param ontology   ontology in which the search is performed
+     * @param terms      terms, which must be part of the ontology
+     * @param remoteHost partner API
+     * @return a future containing the available terms, or containing null if the ontology is not present in the partner
+     * registry
+     * @see ApiController#getOntologyTermsByOntologyNameAndTermIds(String, List, Locale)
+     */
+    Future<List<RemoteOntologyTermInfo>> getTermsByOntologyNameAndTerms( Ontology ontology, Collection<OntologyTermInfo> terms, URI remoteHost ) throws RemoteException;
 }

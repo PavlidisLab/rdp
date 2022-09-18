@@ -49,6 +49,7 @@ var formUtil = require('./util/form');
 
     var tableContainer = $("#userTable");
     var searchSummary = $('#searchSummary');
+    var ontologyAvailability = $('#itlOntologyAvailability');
     var orthologContainer = $("#orthologsResults");
     var itlTableContainer = $("#itlUserTable");
     var results = document.getElementById('results');
@@ -57,6 +58,7 @@ var formUtil = require('./util/form');
     // hide results with switching tab
     $('.search-mode-link[data-toggle=tab]').on('hide.bs.tab', function () {
         searchSummary.empty();
+        ontologyAvailability.empty();
         orthologContainer.empty();
         results.classList.toggle('d-none', true);
         itlResults.classList.toggle('d-none', true);
@@ -90,6 +92,14 @@ var formUtil = require('./util/form');
         searchSummary.load(window.contextPath + '/search/view', formData + '&summarize=true', function (responseText, textStatus) {
             if (textStatus === "error") {
                 searchSummary.html(''); // the error will be displayed in the main search view
+            }
+        });
+
+        // Show available terms in partner registries
+        ontologyAvailability.empty(); // this is right next to the results, so no need for a spinner
+        ontologyAvailability.load(window.contextPath + '/search/view/international/available-terms-by-partner', formData, function (responseText, textStatus) {
+            if (textStatus === "error") {
+                ontologyAvailability.empty();
             }
         });
 

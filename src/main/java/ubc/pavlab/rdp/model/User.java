@@ -44,7 +44,7 @@ import java.util.stream.Collectors;
 @ToString(of = { "id", "anonymousId", "email", "enabled" })
 @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @CommonsLog
-public class User implements UserContent, Serializable {
+public class User implements RemoteResource, UserContent, Serializable {
 
     /**
      * Constraints for regular user accounts.
@@ -146,18 +146,6 @@ public class User implements UserContent, Serializable {
 
     @Transient
     private URI originUrl;
-
-    /**
-     * Ensure that the path of the URL is effectively stripped from any trailing slashes.
-     */
-    @SneakyThrows
-    public void setOriginUrl( URI originUrl ) {
-        if ( originUrl != null ) {
-            this.originUrl = new URI( originUrl.getScheme(), originUrl.getAuthority(), StringUtils.trimTrailingCharacter( originUrl.getPath(), '/' ), null, null );
-        } else {
-            this.originUrl = null;
-        }
-    }
 
     /* Research related information */
 

@@ -11,6 +11,8 @@ import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.model.ontology.Ontology;
 import ubc.pavlab.rdp.model.ontology.OntologyTermInfo;
+import ubc.pavlab.rdp.model.ontology.RemoteOntology;
+import ubc.pavlab.rdp.model.ontology.RemoteOntologyTermInfo;
 
 import java.net.URI;
 import java.net.URL;
@@ -308,5 +310,11 @@ public final class TestUtils {
             }
             return state++;
         }
+    }
+
+    public static List<RemoteOntologyTermInfo> createRemoteOntologyTerms( RemoteOntology ontology, String... termIds ) {
+        return Arrays.stream( termIds )
+                .map( termId -> RemoteOntologyTermInfo.builder( ontology, termId ).build() )
+                .collect( Collectors.toList() );
     }
 }

@@ -465,6 +465,11 @@ public class OntologyService implements InitializingBean {
         return new ArrayList<>( results );
     }
 
+    @Transactional(readOnly = true)
+    public List<OntologyTermInfo> findAllTermsByOntologyAndTermIdIn( Ontology ontology, List<String> termIds ) {
+        return ontologyTermInfoRepository.findAllByOntologyAndActiveTrueAndTermIdIn( ontology, termIds );
+    }
+
     public enum Direction {
         UP, DOWN
     }

@@ -1,6 +1,7 @@
 package ubc.pavlab.rdp.controllers;
 
 import io.swagger.v3.oas.annotations.Operation;
+import lombok.SneakyThrows;
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.info.BuildProperties;
@@ -16,6 +17,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import ubc.pavlab.rdp.exception.ApiException;
 import ubc.pavlab.rdp.model.*;
@@ -23,14 +25,13 @@ import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.ResearcherCategory;
 import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import ubc.pavlab.rdp.model.enums.TierType;
-import ubc.pavlab.rdp.model.ontology.Ontology;
-import ubc.pavlab.rdp.model.ontology.OntologyTerm;
-import ubc.pavlab.rdp.model.ontology.OntologyTermInfo;
+import ubc.pavlab.rdp.model.ontology.*;
 import ubc.pavlab.rdp.security.Permissions;
 import ubc.pavlab.rdp.services.*;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.settings.SiteSettings;
 
+import java.net.URI;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -161,20 +162,34 @@ public class ApiController {
     }
 
     @GetMapping(value = "/api/ontologies", produces = MediaType.APPLICATION_JSON_VALUE)
-    public List<Ontology> getOntologies( Locale locale ) {
+    public List<RemoteOntology> getOntologies( Locale locale ) {
         return ontologyService.findAllOntologies().stream()
                 .map( o -> initOntology( o, locale ) )
                 .collect( Collectors.toList() );
     }
 
     @GetMapping(value = "/api/ontologies/{ontologyName}/terms", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Page<OntologyTermInfo> getOntologyTerms( @PathVariable String ontologyName, Pageable pageable, Locale locale ) {
+    public Page<RemoteOntologyTermInfo> getOntologyTerms( @PathVariable String ontologyName, Pageable pageable, Locale locale ) {
         Ontology ontology = ontologyService.findByName( ontologyName );
         if ( ontology == null || !ontology.isActive() ) {
             throw new ApiException( HttpStatus.NOT_FOUND, String.format( locale, "No ontology %s.", ontologyName ) );
         }
         return ontologyService.findAllTermsByOntology( ontology, pageable )
-                .map( t -> initTerm( t, locale ) );
+                .map( t -> initTermInfo( t, locale ) );
+    }
+
+    @GetMapping(value = "/api/ontologies/{ontologyName}/terms", params = { "ontologyTermIds" }, produces = MediaType.APPLICATION_JSON_VALUE)
+    public List<RemoteOntologyTermInfo> getOntologyTermsByOntologyNameAndTermIds( @PathVariable String ontologyName, @RequestParam List<String> ontologyTermIds, Locale locale ) {
+        Ontology ontology = ontologyService.findByName( ontologyName );
+        if ( ontology == null || !ontology.isActive() ) {
+            throw new ApiException( HttpStatus.NOT_FOUND, String.format( locale, "No ontology %s.", ontologyName ) );
+        }
+        if ( ontologyTermIds == null || ontologyTermIds.isEmpty() ) {
+            return Collections.emptyList(); // technically impossible since that would match getOntologyTerms()
+        }
+        return ontologyService.findAllTermsByOntologyAndTermIdIn( ontology, ontologyTermIds ).stream()
+                .map( t -> initTermInfo( t, locale ) )
+                .collect( Collectors.toList() );
     }
 
     @GetMapping(value = "/api/ontologies/{ontologyName}/terms/{termId}", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -183,7 +198,7 @@ public class ApiController {
         if ( ontologyTermInfo == null || !ontologyTermInfo.isActive() || !ontologyTermInfo.getOntology().isActive() ) {
             throw new ApiException( HttpStatus.NOT_FOUND, String.format( locale, "No ontology term %s in ontology %s.", termId, ontologyName ) );
         }
-        return initTerm( ontologyTermInfo, locale );
+        return initTermInfo( ontologyTermInfo, locale );
     }
 
     @GetMapping(value = "/api/users/search", params = { "nameLike" }, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -370,47 +385,52 @@ public class ApiController {
     }
 
     private User initUser( User user, Locale locale ) {
-        user.setOrigin( messageSource.getMessage( "rdp.site.shortname", null, locale ) );
-        user.setOriginUrl( siteSettings.getHostUrl() );
         if ( !userPrivacyService.checkCurrentUserCanSeeGeneList( user ) ) {
             user.getUserGenes().clear();
         }
-        user.getUserOntologyTerms().forEach( term -> initTerm( term, locale ) );
-        return user;
+        user.getUserOntologyTerms().forEach( term -> initUserTerm( term, locale ) );
+        return initRemoteResource( user, locale );
     }
 
-    private Ontology initOntology( Ontology ontology, Locale locale ) {
-        ontology.setNumberOfTerms( ontologyService.countActiveTerms( ontology ) );
-        ontology.setNumberOfObsoleteTerms( ontologyService.countActiveAndObsoleteTerms( ontology ) );
+    private RemoteOntology initOntology( Ontology ontology, Locale locale ) {
+        RemoteOntology remoteOntology = RemoteOntology.builder( ontology.getName() ).build();
+        remoteOntology.setNumberOfTerms( ontologyService.countActiveTerms( ontology ) );
+        remoteOntology.setNumberOfObsoleteTerms( ontologyService.countActiveAndObsoleteTerms( ontology ) );
         try {
-            ontology.setDefinition( messageSource.getMessage( ontology.getResolvableDefinition(), locale ) );
+            remoteOntology.setDefinition( messageSource.getMessage( ontology.getResolvableDefinition(), locale ) );
         } catch ( NoSuchMessageException e ) {
-            ontology.setDefinition( null );
+            remoteOntology.setDefinition( null );
         }
-        return ontology;
+        return initRemoteResource( remoteOntology, locale );
     }
 
-    private <T extends OntologyTerm> T initTerm( T term, Locale locale ) {
-        term.setOntology( initOntology( term.getOntology(), locale ) );
-        if ( term instanceof OntologyTermInfo ) {
-            OntologyTermInfo termInfo = (OntologyTermInfo) term;
-            // FIXME: the message code for the definition depends on the name, so we need to get it before the name is
-            //        replaced
-            MessageSourceResolvable title = term.getResolvableTitle();
-            MessageSourceResolvable definition = term.getResolvableDefinition();
-            term.setName( messageSource.getMessage( title, locale ) );
-            try {
-                termInfo.setDefinition( messageSource.getMessage( definition, locale ) );
-            } catch ( NoSuchMessageException e ) {
-                termInfo.setDefinition( null );
-            }
-            // TODO: perform this in a single query
-            termInfo.setSubTermIds( termInfo.getSubTerms().stream()
-                    .filter( OntologyTermInfo::isActive )
-                    .map( OntologyTermInfo::getTermId )
-                    .collect( Collectors.toSet() ) );
+    private RemoteOntologyTermInfo initTermInfo( OntologyTermInfo termInfo, Locale locale ) {
+        RemoteOntologyTermInfo remoteOntologyTermInfo = RemoteOntologyTermInfo.builder( initOntology( termInfo.getOntology(), locale ), termInfo.getTermId() ).build();
+        remoteOntologyTermInfo.setName( messageSource.getMessage( termInfo.getResolvableTitle(), locale ) );
+        try {
+            remoteOntologyTermInfo.setDefinition( messageSource.getMessage( termInfo.getResolvableDefinition(), locale ) );
+        } catch ( NoSuchMessageException e ) {
+            remoteOntologyTermInfo.setDefinition( null );
         }
-        return term;
+        // TODO: perform this in a single query
+        remoteOntologyTermInfo.setSubTermIds( termInfo.getSubTerms().stream()
+                .filter( OntologyTermInfo::isActive )
+                .map( OntologyTermInfo::getTermId )
+                .collect( Collectors.toSet() ) );
+        return initRemoteResource( remoteOntologyTermInfo, locale );
+    }
+
+    private void initUserTerm( UserOntologyTerm term, Locale locale ) {
+        term.setOntology( initOntology( term.getOntology(), locale ) );
+        term.setName( messageSource.getMessage( term.getResolvableTitle(), locale ) );
+    }
+
+    @SneakyThrows
+    private <T extends RemoteResource> T initRemoteResource( T remoteResource, Locale locale ) {
+        remoteResource.setOrigin( messageSource.getMessage( "rdp.site.shortname", null, locale ) );
+        //  Ensure that the path of the URL is effectively stripped from any trailing slashes.
+        remoteResource.setOriginUrl( new URI( siteSettings.getHostUrl().getScheme(), siteSettings.getHostUrl().getAuthority(), StringUtils.trimTrailingCharacter( siteSettings.getHostUrl().getPath(), '/' ), null, null ) );
+        return remoteResource;
     }
 
     /**

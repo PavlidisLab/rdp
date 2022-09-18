@@ -116,12 +116,14 @@ public class SearchController extends AbstractSearchController {
             modelAndView.addObject( "users", Collections.emptyList() );
             if ( userSearchParams.isISearch() ) {
                 modelAndView.addObject( "itlUsers", Collections.emptyList() );
+                modelAndView.addObject( "termsAvailabilityByApiUri", Collections.emptyMap() );
             }
         } else {
             modelAndView.addObject( "searchSummary", summarizeUserSearchParams( userSearchParams, locale ) );
             modelAndView.addObject( "users", userService.findByNameAndDescription( userSearchParams.getNameLike(), userSearchParams.isPrefix(), userSearchParams.getDescriptionLike(), userSearchParams.getResearcherPositions(), userSearchParams.getResearcherCategories(), organsFromUberonIds( userSearchParams.getOrganUberonIds() ), ontologyTermsFromIds( userSearchParams.getOntologyTermIds() ) ) );
             if ( userSearchParams.isISearch() ) {
                 modelAndView.addObject( "itlUsers", remoteResourceService.findUsersByLikeNameAndDescription( userSearchParams.getNameLike(), userSearchParams.isPrefix(), userSearchParams.getDescriptionLike(), userSearchParams.getResearcherPositions(), userSearchParams.getResearcherCategories(), userSearchParams.getOrganUberonIds(), ontologyTermsFromIds( userSearchParams.getOntologyTermIds() ) ) );
+                modelAndView.addObject( "termsAvailabilityByApiUri", getOntologyAvailabilityByApiUri( userSearchParams.getOntologyTermIds() ) );
             }
         }
         return modelAndView;
@@ -162,11 +164,15 @@ public class SearchController extends AbstractSearchController {
             modelAndView.addObject( "error", true );
             modelAndView.addObject( "users", Collections.emptyList() );
             modelAndView.addObject( "itlUsers", Collections.emptyList() );
+            modelAndView.addObject( "termsAvailabilityByApiUri", Collections.emptyMap() );
         } else {
             modelAndView.addObject( "searchSummary", summarizeUserSearchParams( new UserSearchParams( nameLike, prefix, "", iSearch, researcherPositions, researcherCategories, organUberonIds, ontologyTermIds ), locale ) );
             modelAndView.addObject( "users", users );
             if ( iSearch ) {
                 modelAndView.addObject( "itlUsers", remoteResourceService.findUsersByLikeName( nameLike, prefix, researcherPositions, researcherCategories, organUberonIds, null ) );
+                if ( ontologyTermIds != null ) {
+                    modelAndView.addObject( "termsAvailabilityByApiUri", getOntologyAvailabilityByApiUri( ontologyTermIds ) );
+                }
             }
         }
 
@@ -201,11 +207,15 @@ public class SearchController extends AbstractSearchController {
             modelAndView.addObject( "error", true );
             modelAndView.addObject( "users", Collections.emptyList() );
             modelAndView.addObject( "itlUsers", Collections.emptyList() );
+            modelAndView.addObject( "termsAvailabilityByApiUri", Collections.emptyMap() );
         } else {
             modelAndView.addObject( "searchSummary", summarizeUserSearchParams( new UserSearchParams( "", false, descriptionLike, iSearch, researcherPositions, researcherCategories, organUberonIds, ontologyTermIds ), locale ) );
             modelAndView.addObject( "users", userService.findByDescription( descriptionLike, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ), ontologyTermsFromIds( ontologyTermIds ) ) );
             if ( iSearch ) {
                 modelAndView.addObject( "itlUsers", remoteResourceService.findUsersByDescription( descriptionLike, researcherPositions, researcherCategories, organUberonIds, ontologyTermsFromIds( ontologyTermIds ) ) );
+                if ( ontologyTermIds != null ) {
+                    modelAndView.addObject( "termsAvailabilityByApiUri", getOntologyAvailabilityByApiUri( ontologyTermIds ) );
+                }
             }
         }
 
@@ -301,6 +311,9 @@ public class SearchController extends AbstractSearchController {
                 .addObject( "usergenes", userGeneService.handleGeneSearch( gene, tiers, orthologTaxon, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ), ontologyTermsFromIds( ontologyTermIds ) ) );
         if ( iSearch ) {
             modelAndView.addObject( "itlUsergenes", remoteResourceService.findGenesBySymbol( symbol, taxon, tiers, orthologTaxonId, researcherPositions, researcherCategories, organUberonIds, ontologyTermsFromIds( ontologyTermIds ) ) );
+            if ( ontologyTermIds != null ) {
+                modelAndView.addObject( "termsAvailabilityByApiUri", getOntologyAvailabilityByApiUri( ontologyTermIds ) );
+            }
         }
 
         return modelAndView;

@@ -31,12 +31,15 @@ import ubc.pavlab.rdp.settings.ApplicationSettings;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
 import static ubc.pavlab.rdp.util.TestUtils.createRemoteUser;
@@ -438,6 +441,76 @@ public class RemoteResourceServiceTest {
                         .body( objectMapper.writeValueAsString( user ) ) );
         User remoteUser = remoteResourceService.getRemoteUser( 1, URI.create( "http://example.com/" ) );
         assertThat( remoteUser ).isEqualTo( user );
+        mockServer.verify();
+    }
+
+    @Test
+    public void getOntologyTerms() throws RemoteException, JsonProcessingException {
+        Ontology mondo = Ontology.builder( "mondo" ).build();
+        OntologyTermInfo term1 = OntologyTermInfo.builder( mondo, "MONDO:00001" ).build();
+        OntologyTermInfo term2 = OntologyTermInfo.builder( mondo, "MONDO:00002" ).build();
+        MockRestServiceServer mockServer = MockRestServiceServer.createServer( asyncRestTemplate );
+        mockServer.expect( requestTo( "http://example.com/api" ) )
+                .andRespond( withStatus( HttpStatus.OK )
+                        .contentType( MediaType.APPLICATION_JSON )
+                        .body( objectMapper.writeValueAsString( new OpenAPI().info( new Info().version( "1.5.0" ) ) ) ) );
+        mockServer.expect( requestTo( "http://example.com/api/ontologies/mondo/terms?ontologyTermIds=MONDO:00001&ontologyTermIds=MONDO:00002" ) )
+                .andRespond( withStatus( HttpStatus.OK )
+                        .contentType( MediaType.APPLICATION_JSON )
+                        .body( "[]" ) );
+        assertThat( remoteResourceService.getTermsByOntologyNameAndTerms( mondo, Arrays.asList( term1, term2 ), URI.create( "http://example.com" ) ) )
+                .succeedsWithin( 1, TimeUnit.SECONDS )
+                .asList()
+                .isEmpty();
+        mockServer.verify();
+    }
+
+    @Test
+    public void getOntologyTerms_whenOntologyDoesNotExist_thenReturnNull() throws JsonProcessingException, RemoteException {
+        Ontology mondo = Ontology.builder( "mondo" ).build();
+        OntologyTermInfo term1 = OntologyTermInfo.builder( mondo, "MONDO:00001" ).build();
+        OntologyTermInfo term2 = OntologyTermInfo.builder( mondo, "MONDO:00002" ).build();
+        MockRestServiceServer mockServer = MockRestServiceServer.createServer( asyncRestTemplate );
+        mockServer.expect( requestTo( "http://example.com/api" ) )
+                .andRespond( withStatus( HttpStatus.OK )
+                        .contentType( MediaType.APPLICATION_JSON )
+                        .body( objectMapper.writeValueAsString( new OpenAPI().info( new Info().version( "1.5.0" ) ) ) ) );
+        mockServer.expect( requestTo( "http://example.com/api/ontologies/mondo/terms?ontologyTermIds=MONDO:00001&ontologyTermIds=MONDO:00002" ) )
+                .andRespond( withStatus( HttpStatus.NOT_FOUND )
+                        .contentType( MediaType.TEXT_PLAIN )
+                        .body( "The MONDO ontology does not exist." ) );
+        assertThat( remoteResourceService.getTermsByOntologyNameAndTerms( mondo, Arrays.asList( term1, term2 ), URI.create( "http://example.com" ) ) )
+                .succeedsWithin( 1, TimeUnit.SECONDS )
+                .isNull();
+        mockServer.verify();
+    }
+
+    @Test
+    public void getOntologyTerms_whenTermIsNotInOntology_thenRaiseIllegalArgumentException() {
+        Ontology mondo = Ontology.builder( "mondo" ).build();
+        Ontology uberon = Ontology.builder( "uberon" ).build();
+        OntologyTermInfo term1 = OntologyTermInfo.builder( mondo, "MONDO:00001" ).build();
+        OntologyTermInfo term2 = OntologyTermInfo.builder( uberon, "UBERON:00001" ).build();
+        MockRestServiceServer mockServer = MockRestServiceServer.createServer( asyncRestTemplate );
+        assertThatThrownBy( () -> {
+            remoteResourceService.getTermsByOntologyNameAndTerms( mondo, Arrays.asList( term1, term2 ), URI.create( "http://example.com" ) );
+        } ).isInstanceOf( IllegalArgumentException.class );
+        mockServer.verify(); /* no interaction */
+    }
+
+    @Test
+    public void getOntologyTerms_whenRegistryIsPre15_thenReturnNull() throws JsonProcessingException, RemoteException {
+        Ontology mondo = Ontology.builder( "mondo" ).build();
+        OntologyTermInfo term1 = OntologyTermInfo.builder( mondo, "MONDO:00001" ).build();
+        OntologyTermInfo term2 = OntologyTermInfo.builder( mondo, "MONDO:00002" ).build();
+        MockRestServiceServer mockServer = MockRestServiceServer.createServer( asyncRestTemplate );
+        mockServer.expect( requestTo( "http://example.com/api" ) )
+                .andRespond( withStatus( HttpStatus.OK )
+                        .contentType( MediaType.APPLICATION_JSON )
+                        .body( objectMapper.writeValueAsString( new OpenAPI().info( new Info().version( "1.4.0" ) ) ) ) );
+        assertThat( remoteResourceService.getTermsByOntologyNameAndTerms( mondo, Arrays.asList( term1, term2 ), URI.create( "http://example.com" ) ) )
+                .succeedsWithin( 1, TimeUnit.SECONDS )
+                .isNull();
         mockServer.verify();
     }
 }

@@ -21,11 +21,12 @@ import ubc.pavlab.rdp.model.UserGene;
 import ubc.pavlab.rdp.model.enums.ResearcherCategory;
 import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import ubc.pavlab.rdp.model.enums.TierType;
+import ubc.pavlab.rdp.model.ontology.Ontology;
+import ubc.pavlab.rdp.model.ontology.OntologyTermInfo;
 import ubc.pavlab.rdp.services.*;
 
 import javax.validation.Valid;
 import java.net.URI;
-import java.text.MessageFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -308,6 +309,20 @@ public class SearchViewController extends AbstractSearchController {
                 .addObject( "orthologs", orthologMap );
     }
 
+    /**
+     * Summarize the available terms by partner API given a list of locally available terms used for searching.
+     * <p>
+     * The terms from this registry are matched in partner registries using the ontology name and the term ID as per
+     * {@link Ontology#getName()} and {@link OntologyTermInfo#getTermId()}.
+     *
+     * @param ontologyTermIds terms from this registry referred by their IDs
+     */
+    @PreAuthorize("hasPermission(null, 'international-search')")
+    @GetMapping("/search/view/international/available-terms-by-partner")
+    public ModelAndView getAvailableTermsByPartner( @RequestParam List<Integer> ontologyTermIds ) {
+        return new ModelAndView( "fragments/search::available-terms-by-partner" )
+                .addObject( "ontologyAvailabilityByApiUri", getOntologyAvailabilityByApiUri( ontologyTermIds ) );
+    }
 
     @PreAuthorize("hasPermission(null, 'international-search')")
     @GetMapping(value = "/search/view/international", params = { "symbol", "taxonId" })
@@ -371,7 +386,7 @@ public class SearchViewController extends AbstractSearchController {
             try {
                 user = remoteResourceService.getAnonymizedUser( anonymousId, remoteHostUri );
             } catch ( RemoteException e ) {
-                log.warn( String.format( "Failed to retrieve user with anonymized user ID %d from %s: %s", anonymousId, remoteHostUri.getRawAuthority(), e.getMessage() ) );
+                log.warn( String.format( "Failed to retrieve user with anonymized user ID %s from %s: %s", anonymousId, remoteHostUri.getRawAuthority(), e.getMessage() ) );
                 return new ModelAndView( "fragments/error::message", HttpStatus.INTERNAL_SERVER_ERROR )
                         .addObject( "errorMessage", "Error querying remote anonymous user." );
             }

@@ -218,4 +218,6 @@ public interface OntologyTermInfoRepository extends JpaRepository<OntologyTermIn
     boolean existsByTermIdAndOntologyAndActiveTrue( String termId, Ontology ontology );
 
     boolean existsByOntologyAndActiveFalseAndObsoleteFalse( Ontology ontology );
+
+    List<OntologyTermInfo> findAllByOntologyAndActiveTrueAndTermIdIn( Ontology ontology, List<String> termIds );
 }

@@ -9,12 +9,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.AsyncRestTemplate;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 import ubc.pavlab.rdp.exception.RemoteException;
@@ -24,15 +26,20 @@ import ubc.pavlab.rdp.model.UserGene;
 import ubc.pavlab.rdp.model.enums.ResearcherCategory;
 import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import ubc.pavlab.rdp.model.enums.TierType;
+import ubc.pavlab.rdp.model.ontology.Ontology;
 import ubc.pavlab.rdp.model.ontology.OntologyTermInfo;
+import ubc.pavlab.rdp.model.ontology.RemoteOntologyTermInfo;
 import ubc.pavlab.rdp.repositories.RoleRepository;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.util.VersionUtils;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.text.MessageFormat;
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 import static java.util.function.Function.identity;
@@ -42,11 +49,13 @@ import static java.util.function.Function.identity;
 @PreAuthorize("hasPermission(null, 'international-search')")
 public class RemoteResourceServiceImpl implements RemoteResourceService {
 
-    private static final String API_ROOT_URI = "/api";
-    private static final String API_USERS_SEARCH_URI = "/api/users/search";
-    private static final String API_USER_GET_URI = "/api/users/{userId}";
-    private static final String API_USER_GET_BY_ANONYMOUS_ID_URI = "/api/users/by-anonymous-id/{anonymousId}";
-    private static final String API_GENES_SEARCH_URI = "/api/genes/search";
+    private static final String API_ROOT_PATH = "/api";
+    private static final String GET_OPENAPI_PATH = API_ROOT_PATH;
+    private static final String SEARCH_USERS_PATH = API_ROOT_PATH + "/users/search";
+    private static final String GET_USER_PATH = API_ROOT_PATH + "/users/{userId}";
+    private static final String GET_USER_BY_ANONYMOUS_ID_PATH = API_ROOT_PATH + "/users/by-anonymous-id/{anonymousId}";
+    private static final String SEARCH_GENES_PATH = API_ROOT_PATH + "/genes/search";
+    private static final String GET_ONTOLOGY_TERMS_PATH = API_ROOT_PATH + "/ontologies/{ontologyName}/terms";
 
     @Autowired
     private ApplicationSettings applicationSettings;
@@ -78,13 +87,10 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
         // the URI defined in the configuration
         URI apiUri = getApiUri( remoteHost );
         URI uri = UriComponentsBuilder.fromUri( apiUri )
-                .path( API_ROOT_URI )
+                .path( GET_OPENAPI_PATH )
                 .build()
                 .toUri();
-        OpenAPI openAPI = getFromRequestFuture( remoteHost, asyncRestTemplate.getForEntity( uri, OpenAPI.class ) ).getBody();
-        if ( openAPI == null ) {
-            throw new RemoteException( String.format( "Invalid response for %s, the body is null.", uri ) );
-        }
+        OpenAPI openAPI = getFromRequestFuture( uri, asyncRestTemplate.getForEntity( uri, OpenAPI.class ) );
         // The OpenAPI specification was introduced in 1.4, so we assume 1.0.0 for previous versions
         if ( openAPI.getInfo() == null ) {
             return "1.0.0";
@@ -123,7 +129,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
         } else {
             filters = Collections.singletonList( satisfiesVersion( "1.0.0" ) );
         }
-        return getRemoteEntities( User[].class, API_USERS_SEARCH_URI, params, filters ).stream()
+        return getRemoteEntities( User[].class, SEARCH_USERS_PATH, params, filters ).stream()
                 .sorted( User.getComparator() )
                 .collect( Collectors.toList() );
     }
@@ -144,7 +150,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
         } else {
             filters = Collections.singletonList( satisfiesVersion( "1.0.0" ) );
         }
-        return getRemoteEntities( User[].class, API_USERS_SEARCH_URI, params, filters ).stream()
+        return getRemoteEntities( User[].class, SEARCH_USERS_PATH, params, filters ).stream()
                 .sorted( User.getComparator() )
                 .collect( Collectors.toList() );
     }
@@ -195,7 +201,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
 
                     return Optional.of( Pair.of( uri1, nameLikeFuture.thenCombine( descriptionLikeFuture, ( a, b ) -> {
                         if ( a.getBody() == null || b.getBody() == null ) {
-                            log.error( String.format( "One or both of these responses had a null body: %s, %s. Nothing will be returned for the intersection.", a, b ) );
+                            log.warn( String.format( "One or both of these responses had a null body: %s, %s. Nothing will be returned for the intersection.", a, b ) );
                             return new ResponseEntity<>( new User[0], a.getHeaders(), a.getStatusCode() );
                         }
                         Set<User> nameLikeUsers = new HashSet<>( Arrays.asList( a.getBody() ) );
@@ -207,11 +213,11 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
                     return Optional.empty();
                 }
             } catch ( RemoteException e ) {
-                log.warn( String.format( "Failed to retrieve API version from %s: %s.", remoteHost, e.getMessage() ) );
+                log.warn( String.format( "Failed to retrieve API version from %s: %s.", remoteHost, e.getMessage() ), e );
                 return Optional.empty();
             }
         } );
-        return getRemoteEntities( User[].class, API_USERS_SEARCH_URI, params, requestFilters ).stream()
+        return getRemoteEntities( User[].class, SEARCH_USERS_PATH, params, requestFilters ).stream()
                 .sorted( User.getComparator() )
                 .collect( Collectors.toList() );
     }
@@ -238,7 +244,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
             } else {
                 filters = Collections.singletonList( satisfiesVersion( "1.0.0" ) );
             }
-            intlUsergenes.addAll( getRemoteEntities( UserGene[].class, API_GENES_SEARCH_URI, params, filters ) );
+            intlUsergenes.addAll( getRemoteEntities( UserGene[].class, SEARCH_GENES_PATH, params, filters ) );
         }
         Map<Integer, Integer> taxonOrderingById = taxonService.findByActiveTrue().stream()
                 .collect( Collectors.toMap( Taxon::getId, Taxon::getOrdering ) );
@@ -263,10 +269,9 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
         MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
         addAuthParamIfAdmin( apiUri, queryParams );
         URI uri = UriComponentsBuilder.fromUri( apiUri )
-                .path( API_USER_GET_URI )
+                .path( GET_USER_PATH )
                 .replaceQueryParams( queryParams )
-                .buildAndExpand( Collections.singletonMap( "userId", userId ) )
-                .toUri();
+                .build( Collections.singletonMap( "userId", userId ) );
 
         return getUserByUri( uri );
     }
@@ -284,7 +289,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
         MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
         addAuthParamIfAdmin( apiUri, queryParams );
         URI uri = UriComponentsBuilder.fromUri( apiUri )
-                .path( API_USER_GET_BY_ANONYMOUS_ID_URI )
+                .path( GET_USER_BY_ANONYMOUS_ID_PATH )
                 .replaceQueryParams( queryParams )
                 .buildAndExpand( Collections.singletonMap( "anonymousId", anonymousId ) )
                 .toUri();
@@ -292,12 +297,60 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
         return getUserByUri( uri );
     }
 
-    private User getUserByUri( URI uri ) throws RemoteException {
-        ResponseEntity<User> responseEntity = getFromRequestFuture( uri, asyncRestTemplate.getForEntity( uri, User.class ) );
-        User user = responseEntity.getBody();
-        if ( user != null ) {
-            initUser( user );
+    @Override
+    public Future<List<RemoteOntologyTermInfo>> getTermsByOntologyNameAndTerms( Ontology ontology, Collection<OntologyTermInfo> terms, URI remoteHost ) throws RemoteException {
+        List<String> badTerms = terms.stream()
+                .filter( t -> !t.getOntology().equals( ontology ) )
+                .map( OntologyTermInfo::toString )
+                .collect( Collectors.toList() );
+        if ( !badTerms.isEmpty() ) {
+            throw new IllegalArgumentException( String.format( "The following terms are not part of %s: %s.", String.join( ", ", badTerms ), ontology ) );
         }
+        if ( !VersionUtils.satisfiesVersion( remoteResourceService.getApiVersion( remoteHost ), "1.5.0" ) ) {
+            return CompletableFuture.completedFuture( null );
+        }
+        List<String> termIds = terms.stream()
+                .map( OntologyTermInfo::getTermId )
+                .collect( Collectors.toList() );
+        URI uri = UriComponentsBuilder.fromUri( getApiUri( remoteHost ) )
+                .path( GET_ONTOLOGY_TERMS_PATH )
+                .queryParam( "ontologyTermIds", termIds )
+                .build( ontology.getName() );
+        return asyncRestTemplate.getForEntity( uri, RemoteOntologyTermInfo[].class ).completable()
+                .handle( ( re, ex ) -> {
+                    if ( ex != null ) {
+                        if ( ex instanceof HttpClientErrorException && ( (HttpClientErrorException) ex ).getStatusCode().equals( HttpStatus.NOT_FOUND ) ) {
+                            return null;
+                        } else {
+                            log.warn( String.format( "Failed to retrieve ontology terms from %s.", uri ), ex );
+                            throw new RuntimeException( ex );
+                        }
+                    } else if ( re.getBody() == null ) {
+                        log.warn( String.format( "Invalid response for %s: the body is null.", uri ) );
+                        return null;
+                    } else {
+                        return Arrays.asList( re.getBody() );
+                    }
+                } );
+    }
+
+    @Override
+    public List<URI> getApiUris() {
+        return Arrays.stream( applicationSettings.getIsearch().getApis() )
+                .map( u -> {
+                    try {
+                        // some URIs have the 'auth' and 'noauth' query parameter, we don't want to make that visible
+                        return new URI( u.getScheme(), u.getAuthority(), u.getPath(), null, null );
+                    } catch ( URISyntaxException e ) {
+                        throw new RuntimeException( e );
+                    }
+                } )
+                .collect( Collectors.toList() );
+    }
+
+    private User getUserByUri( URI uri ) throws RemoteException {
+        User user = getFromRequestFuture( uri, asyncRestTemplate.getForEntity( uri, User.class ) );
+        initUser( user );
         return user;
     }
 
@@ -334,7 +387,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
                     // end processing here
                 }
             } catch ( RemoteException e ) {
-                log.warn( String.format( "Failed to retrieve API version from %s: %s", remoteHost, e.getMessage() ) );
+                log.warn( String.format( "Failed to retrieve API version from %s: %s", remoteHost, e.getMessage() ), e );
                 return Optional.empty();
             }
         };
@@ -391,22 +444,20 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
 
     private <T> T processUriAndResponseEntityFuture( Pair<URI, Future<ResponseEntity<T>>> uriAndFuture ) {
         try {
-            T entity = getFromRequestFuture( uriAndFuture.getLeft(), uriAndFuture.getRight() ).getBody();
-            if ( entity != null ) {
-                return entity;
-            } else {
-                log.error( String.format( "Invalid response for %s: the body is null.", uriAndFuture.getLeft() ) );
-                return null;
-            }
+            return getFromRequestFuture( uriAndFuture.getLeft(), uriAndFuture.getRight() );
         } catch ( RemoteException e ) {
-            log.warn( String.format( "Failed to retrieve API version from %s for %s: %s", uriAndFuture.getLeft(), uriAndFuture.getRight(), e.getMessage() ) );
+            log.warn( String.format( "Failed to retrieve entity from %s for %s: %s", uriAndFuture.getLeft(), uriAndFuture.getRight(), e.getMessage() ), e );
             return null;
         }
     }
 
-    private <T> T getFromRequestFuture( URI uri, Future<T> future ) throws RemoteException {
+    private <T> T getFromRequestFuture( URI uri, Future<ResponseEntity<T>> future ) throws RemoteException {
         try {
-            return future.get();
+            T entity = future.get().getBody();
+            if ( entity == null ) {
+                throw new RemoteException( String.format( "Invalid response for %s: the body is null.", uri ) );
+            }
+            return entity;
         } catch ( ExecutionException e ) {
             throw new RemoteException( String.format( "Unsuccessful response received for %s.", uri ), e.getCause() );
         } catch ( InterruptedException e ) {
