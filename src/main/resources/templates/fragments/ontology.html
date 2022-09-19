@@ -149,7 +149,7 @@
                   class="badge badge-primary d-inline-flex align-items-center mr-1 mb-1">
                 <span th:text="${@messageSource.getMessage(term.resolvableTitle, #locale)}"></span>
                 <button class="close" type="button">&times;</button>
-                <input type="hidden" th:name="ontologyTermInfoIds" th:value="*{id}"/>
+                <input type="hidden" th:name="ontologyTermIds" th:value="*{id}"/>
             </span>
             <input th:unless="${readOnly}" type="search"
                    th:id="${#ids.seq('ontologyTermIds')}"
