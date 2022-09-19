@@ -20,10 +20,8 @@ import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
-import ubc.pavlab.rdp.WebSecurityConfig;
 import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.TierType;
@@ -48,7 +46,7 @@ import static ubc.pavlab.rdp.util.TestUtils.*;
 @WebMvcTest(value = ApiController.class,
         properties = { "rdp.site.mainsite=https://example.com" })
 @RunWith(SpringRunner.class)
-@Import({ WebSecurityConfig.class, SiteSettings.class })
+@Import({ SiteSettings.class })
 @EnableSpringDataWebSupport
 public class ApiControllerTest {
 

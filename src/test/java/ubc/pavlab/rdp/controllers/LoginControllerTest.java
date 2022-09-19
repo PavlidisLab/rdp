@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.MessageSource;
-import org.springframework.context.annotation.Import;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.format.support.FormattingConversionService;
 import org.springframework.http.MediaType;
@@ -18,7 +17,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
-import ubc.pavlab.rdp.WebSecurityConfig;
 import ubc.pavlab.rdp.exception.TokenException;
 import ubc.pavlab.rdp.model.Profile;
 import ubc.pavlab.rdp.model.User;
@@ -41,7 +39,6 @@ import static ubc.pavlab.rdp.util.TestUtils.createUser;
 
 @RunWith(SpringRunner.class)
 @WebMvcTest(LoginController.class)
-@Import(WebSecurityConfig.class)
 public class LoginControllerTest {
 
     @Autowired

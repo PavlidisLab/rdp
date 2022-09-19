@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.MessageSource;
-import org.springframework.context.annotation.Import;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.ResourceLoader;
@@ -31,7 +30,6 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StreamUtils;
-import ubc.pavlab.rdp.WebSecurityConfig;
 import ubc.pavlab.rdp.model.AccessToken;
 import ubc.pavlab.rdp.model.Role;
 import ubc.pavlab.rdp.model.User;
@@ -68,7 +66,6 @@ import static ubc.pavlab.rdp.util.TestUtils.createUser;
  */
 @RunWith(SpringRunner.class)
 @WebMvcTest(AdminController.class)
-@Import(WebSecurityConfig.class)
 public class AdminControllerTest {
 
     @Autowired

@@ -10,14 +10,12 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.MessageSource;
 import org.springframework.context.NoSuchMessageException;
-import org.springframework.context.annotation.Import;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
-import ubc.pavlab.rdp.WebSecurityConfig;
 import ubc.pavlab.rdp.model.User;
 import ubc.pavlab.rdp.model.enums.ResearcherCategory;
 import ubc.pavlab.rdp.model.enums.ResearcherPosition;
@@ -27,7 +25,6 @@ import ubc.pavlab.rdp.services.TaxonService;
 import ubc.pavlab.rdp.services.UserService;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.settings.SiteSettings;
-import ubc.pavlab.rdp.util.Messages;
 
 import java.util.EnumSet;
 
@@ -42,7 +39,6 @@ import static ubc.pavlab.rdp.util.TestUtils.createUser;
 
 @RunWith(SpringRunner.class)
 @WebMvcTest(MainController.class)
-@Import(WebSecurityConfig.class)
 public class MainControllerTest {
 
     @Autowired

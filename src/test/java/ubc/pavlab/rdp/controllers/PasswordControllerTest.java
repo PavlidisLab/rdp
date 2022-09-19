@@ -8,13 +8,11 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Import;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
-import ubc.pavlab.rdp.WebSecurityConfig;
 import ubc.pavlab.rdp.model.PasswordReset;
 import ubc.pavlab.rdp.model.User;
 import ubc.pavlab.rdp.repositories.UserRepository;
@@ -23,14 +21,10 @@ import ubc.pavlab.rdp.services.UserDetailsServiceImpl;
 import ubc.pavlab.rdp.services.UserService;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.settings.SiteSettings;
-import ubc.pavlab.rdp.util.OntologyMessageSource;
 
 import java.util.Locale;
 
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -38,7 +32,6 @@ import static ubc.pavlab.rdp.util.TestUtils.createUser;
 
 @RunWith(SpringRunner.class)
 @WebMvcTest(PasswordController.class)
-@Import(WebSecurityConfig.class)
 public class PasswordControllerTest {
 
     @TestConfiguration

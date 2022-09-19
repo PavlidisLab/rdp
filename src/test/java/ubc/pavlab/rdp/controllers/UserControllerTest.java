@@ -16,7 +16,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.MessageSource;
-import org.springframework.context.annotation.Import;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
@@ -26,7 +25,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
-import ubc.pavlab.rdp.WebSecurityConfig;
 import ubc.pavlab.rdp.exception.TokenException;
 import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.*;
@@ -34,7 +32,6 @@ import ubc.pavlab.rdp.services.*;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.settings.FaqSettings;
 import ubc.pavlab.rdp.settings.SiteSettings;
-import ubc.pavlab.rdp.util.OntologyMessageSource;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
@@ -56,7 +53,6 @@ import static ubc.pavlab.rdp.util.TestUtils.*;
  */
 @RunWith(SpringRunner.class)
 @WebMvcTest(UserController.class)
-@Import(WebSecurityConfig.class)
 public class UserControllerTest {
 
     @Autowired
