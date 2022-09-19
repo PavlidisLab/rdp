@@ -86,7 +86,7 @@ var formUtil = require('./util/form');
         });
 
         // show search summary
-        searchSummary.html($('<i class="mx-2 spinner"></i>'));
+        // this is quick to obtain, so no need for a spinner nor clear the output
         searchSummary.load(window.contextPath + '/search/view', formData + '&summarize=true', function (responseText, textStatus) {
             if (textStatus === "error") {
                 searchSummary.html(''); // the error will be displayed in the main search view
