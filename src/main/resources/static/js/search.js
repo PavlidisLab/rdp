@@ -64,6 +64,14 @@ var formUtil = require('./util/form');
         itlResults.classList.toggle('d-none', true);
     });
 
+    // check if there is a fragment for toggling a search tab
+    var match = window.location.hash.match(/^#(by-.+-search)$/);
+    if (match !== null) {
+        var searchModeId = match[1];
+        var searchTab = document.querySelector('[href="#' + searchModeId + '"]');
+        $(searchTab).tab('show');
+    }
+
     $("form.search").submit(function (event) {
 
         var formData = formUtil.serialize(this);

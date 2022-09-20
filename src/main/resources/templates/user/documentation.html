@@ -113,6 +113,10 @@
                                                             <br/>
                                                             <small th:text="${@messageSource.getMessage(ontology.resolvableDefinition, #locale)}"></small>
                                                         </th:block>
+                                                        <span th:if="${ontology.availableForGeneSearch}"
+                                                              class="badge badge-info">
+                                                            available for gene search
+                                                        </span>
                                                     </li>
                                                 </ul>
                                             </th:block>
@@ -127,6 +131,10 @@
                                                            target="_blank" rel="noopener"></a>
                                                         <span th:unless="${@ontologyResolver.accepts(ontology)}"
                                                               th:text="${@messageSource.getMessage(ontology.resolvableTitle, #locale)}"></span>
+                                                        <span th:if="${ontology.availableForGeneSearch}"
+                                                              class="badge badge-info">
+                                                            available for gene search
+                                                        </span>
                                                         <th:block
                                                                 th:if="${#messages.msgOrNull(ontology.resolvableDefinition.code)} != null">
                                                             <br/>
@@ -476,99 +484,99 @@
                                     </button>
                                 </h5>
                             </div>
-                            <div id="searchcrd" class="collapse show" aria-labelledby="searchcrd-heading"
-                                 data-parent="#search-accordion">
-                                <div class="card-body">
-                                    <p>
-                                        The Search page allows you to search other registered users who chose to share
-                                        their data publicly and/or with other users of the Registry. If "Include results
-                                        from partner registries" option is selected, the registry will also connect to
-                                        remote registries of the <span th:text="#{rdp.site.shortname}"></span> partners
-                                        and search their "public" users. These results will be displayed in a separate
-                                        section with the indication from which registry the matches are coming from
-                                        ("Origin").
-                                    </p>
-                                    <p>
-                                        There are two ways to search for users: using the "Researcher" or "Gene" tab.
-                                    </p>
-                                    <ul>
-                                        <li>
-                                            Click on letters of the alphabet to retrieve all users whose last name
-                                            begins with that letter
-                                        </li>
-                                        <li>Enter one or more letters of the user's name in "Search by name" box</li>
-                                        <li>Search for keywords in the user's research description</li>
-                                    </ul>
-                                    <section
-                                            th:if="${@applicationSettings.search.enabledSearchModes.contains(T(ubc.pavlab.rdp.settings.ApplicationSettings$SearchSettings$SearchMode).BY_RESEARCHER)}">
-                                        <h5>Searches on the "Researcher" tab</h5>
+                            <div id="search-accordion">
+                                <div id="searchcrd" class="collapse show" aria-labelledby="searchcrd-heading"
+                                     data-parent="#search-accordion">
+                                    <div class="card-body">
                                         <p>
-                                            The search function on the Researcher tab uses various profile categories to
-                                            search for registered users. You can search by name, key words in the user's
-                                            research description or any other category that exists on the Profile page.
-                                            The search will be preformed using a conjunctive normal form of the
-                                            specified terms, meaning that all selected categories will need to be
-                                            satisfied and at least one of the selected terms within each category. The
-                                            applied search query will be shown at the bottom of the page once the search
-                                            is performed.
+                                            The <a th:href="@{/search}">Search</a> page allows you to search other
+                                            registered users who chose to share their data publicly and/or with other
+                                            users of the Registry. If "Include results from partner registries" option
+                                            is selected, the registry will also connect to remote registries of the
+                                            <span th:text="#{rdp.site.shortname}"></span>partners and search their
+                                            "public" users. These results will be displayed in a separate section with
+                                            the indication from which registry the matches are coming from ("Origin").
                                         </p>
                                         <p>
-                                            After clicking on the Search button the list of results will be displayed at
-                                            the bottom of the page. Clicking on the "View User Profile" button will open
-                                            a new tab with the user's Profile and gene information.
+                                            There are two ways to search for users: using the "Researcher" or "Gene"
+                                            tab.
                                         </p>
-                                    </section>
-                                    <section>
-                                        <h5>Searches on the "Gene" tab</h5>
-                                        <p>
-                                            The "Gene" tab allows you to search for registered users based on genes they
-                                            study. Gene symbols are organism-specific and will be matched against the
-                                            list of known gene symbols for the selected organism (selection made in a
-                                            dropdown menu). If you want to search for a match using a human gene, but
-                                            consider orthologs in other model organisms, you would use the secondary
-                                            dropdown menu to indicate the preferred organism. The ortholog mapping is
-                                            based on
-                                            <a href="https://www.flyrnai.org/diopt" target="_blank"
-                                               rel="noopener">DIOPT</a>
-                                            results, filtered for
-                                            <code>DIOPT score > 5 and (Rank = "high" or "moderate")</code>.
-                                        </p>
-                                        <p>
-                                            You can filter the results of your search using any of the categories
-                                            displayed on the "Gene" tab page.
-                                        </p>
-                                        <p>
-                                            The "Gene" tab allows you to search for registered users based on genes they
-                                            study. Gene symbols are organism-specific and will be matched against the
-                                            list
-                                            of known gene symbols for the selected organism (selection made in a
-                                            dropdown
-                                            menu). If you want to search for a match using a human gene, but consider
-                                            orthologs in other model organisms, you would use the secondary dropdown
-                                            menu to
-                                            indicate the preferred organism.
-                                        </p>
-                                    </section>
-                                    <section th:if="${@applicationSettings.organs.enabled}">
-                                        <h5>Filter by Human Organ Systems</h5>
-                                        <p>
-                                            You can also filter the results of your search by organ systems to restrict
-                                            them to the users for whom these systems are relevant. If nothing is
-                                            selected no filtering is performed.
-                                        </p>
-                                    </section>
-                                    <section th:if="${@applicationSettings.privacy.enableAnonymizedSearchResults}">
-                                        <h5>Anonymous Results</h5>
-                                        <p>
-                                            If you lack permissions to see the matched researcher information (either
-                                            their global privacy level or gene privacy level are set to "private"),
-                                            their name and organization will not be displayed in the result table and
-                                            the button on the left will say "Request Access" instead of "View User
-                                            Profile". Clicking this button will take you to the a web form allowing to
-                                            contact that user. The contacted researcher may choose to reply, in which
-                                            case he/she will contact you via your contact email.
-                                        </p>
-                                    </section>
+                                        <section
+                                                th:if="${@applicationSettings.search.enabledSearchModes.contains(T(ubc.pavlab.rdp.settings.ApplicationSettings$SearchSettings$SearchMode).BY_RESEARCHER)}">
+                                            <h5>Searches on the "Researcher" tab</h5>
+                                            <p>
+                                                The search function on the <a th:href="@{/search#by-researcher-search}">Researcher
+                                                tab</a>
+                                                uses various profile categories to search for registered users. You can
+                                                search by name, key words in the user's research description or any
+                                                other category that exists on the Profile page. The search will be
+                                                preformed using a conjunctive normal form of the specified terms,
+                                                meaning that all selected categories will need to be satisfied and at
+                                                least one of the selected terms within each category. The applied search
+                                                query will be shown at the bottom of the page once the search is
+                                                performed.
+                                            </p>
+                                            <p>
+                                                After clicking on the Search button the list of results will be
+                                                displayed at the bottom of the page. Clicking on the "View User Profile"
+                                                button will open a new tab with the user's Profile and gene information.
+                                            </p>
+                                        </section>
+                                        <section
+                                                th:if="${@applicationSettings.search.enabledSearchModes.contains(T(ubc.pavlab.rdp.settings.ApplicationSettings$SearchSettings$SearchMode).BY_GENE)}">
+                                            <h5>Searches on the "Gene" tab</h5>
+                                            <p>
+                                                The <a th:href="@{/search#by-gene-search}">Gene tab</a> allows you to
+                                                search for registered users based on genes they study. Gene symbols are
+                                                organism-specific and will be matched against the list of known gene
+                                                symbols for the selected organism (selection made in a dropdown menu).
+                                                If you want to search for a match using a human gene, but consider
+                                                orthologs in other model organisms, you would use the secondary
+                                                dropdown menu to indicate the preferred organism. The ortholog mapping
+                                                is based on
+                                                <a href="https://www.flyrnai.org/diopt" target="_blank"
+                                                   rel="noopener">DIOPT</a>
+
+                                                results, filtered for score strictly greater than 5, either best forward
+                                                or reverse match and rank "high" or "moderate".
+                                            </p>
+                                            <p>
+                                                The "Gene" tab allows you to search for registered users based on genes
+                                                they study. Gene symbols are organism-specific and will be matched
+                                                against the list of known gene symbols for the selected organism
+                                                (selection made in a dropdown menu). If you want to search for a match
+                                                using a human gene, but consider orthologs in other model organisms, you
+                                                would use the secondary dropdown menu to indicate the preferred
+                                                organism.
+                                            </p>
+                                            <p>
+                                                You can filter the results of your search using any of the categories
+                                                displayed on the "Gene" tab page.
+                                            </p>
+                                        </section>
+                                        <section th:if="${@applicationSettings.organs.enabled}">
+                                            <h5>Filter by Human Organ Systems</h5>
+                                            <p>
+                                                You can also filter the results of your search by organ systems to
+                                                restrict
+                                                them to the users for whom these systems are relevant. If nothing is
+                                                selected no filtering is performed.
+                                            </p>
+                                        </section>
+                                        <section th:if="${@applicationSettings.privacy.enableAnonymizedSearchResults}">
+                                            <h5>Anonymous Results</h5>
+                                            <p>
+                                                If you lack permissions to see the matched researcher information
+                                                (either their global privacy level or gene privacy level are set to
+                                                "private"), their name and organization will not be displayed in the
+                                                result table and the button on the left will say "Request Access"
+                                                instead of "View User Profile". Clicking this button will take you to
+                                                the a web form allowing to contact that user. The contacted researcher
+                                                may choose to reply, in which case he/she will contact you via your
+                                                contact email.
+                                            </p>
+                                        </section>
+                                    </div>
                                 </div>
                             </div>
                         </div>
