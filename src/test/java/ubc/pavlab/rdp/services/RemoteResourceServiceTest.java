@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.servers.Server;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -143,6 +144,34 @@ public class RemoteResourceServiceTest {
                         .contentType( MediaType.APPLICATION_JSON )
                         .body( objectMapper.writeValueAsString( new OpenAPI().info( new Info().version( "v0" ) ) ) ) );
         assertThat( remoteResourceService.getApiVersion( URI.create( "http://example.com/" ) ) ).isEqualTo( "1.4.0" );
+        mockServer.verify();
+    }
+
+
+    @Test
+    public void getRepresentativeRemoteResource() throws RemoteException, JsonProcessingException {
+        MockRestServiceServer mockServer = MockRestServiceServer.createServer( asyncRestTemplate );
+        mockServer.expect( requestTo( "http://example.com/api" ) )
+                .andRespond( withStatus( HttpStatus.OK )
+                        .contentType( MediaType.APPLICATION_JSON )
+                        .body( objectMapper.writeValueAsString( new OpenAPI().info( new Info().title( "RDP RESTful API" ) )
+                                .servers( Collections.singletonList( new Server().url( "http://example.com/2" ) ) ) ) ) );
+        assertThat( remoteResourceService.getRepresentativeRemoteResource( URI.create( "http://example.com/" ) ) )
+                .hasFieldOrPropertyWithValue( "origin", "RDP" )
+                .hasFieldOrPropertyWithValue( "originUrl", URI.create( "http://example.com/2" ) );
+        mockServer.verify();
+    }
+
+    @Test
+    public void getRepresentativeRemoteResource_whenEndpointReturnPre14Response() throws RemoteException {
+        MockRestServiceServer mockServer = MockRestServiceServer.createServer( asyncRestTemplate );
+        mockServer.expect( requestTo( "http://example.com/api" ) )
+                .andRespond( withStatus( HttpStatus.OK )
+                        .contentType( MediaType.APPLICATION_JSON )
+                        .body( "{\"message\":\"This is this applications API. Please see documentation.\",\"version\":\"1.0.0\"}" ) );
+        assertThat( remoteResourceService.getRepresentativeRemoteResource( URI.create( "http://example.com/" ) ) )
+                .hasFieldOrPropertyWithValue( "origin", "example.com" )
+                .hasFieldOrPropertyWithValue( "originUrl", URI.create( "http://example.com/" ) );
         mockServer.verify();
     }
 

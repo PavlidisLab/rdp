@@ -293,9 +293,16 @@ public abstract class AbstractSearchController {
                     .filter( entry -> entry.getKey().getLeft().equals( remoteHost ) )
                     .filter( entry -> entry.getValue() != null )
                     .flatMap( entry -> entry.getValue().stream() )
-                    .findAny()
-                    .map( r -> (RemoteResource) r )
-                    .orElse( new SimpleRemoteResource( remoteHost.getAuthority(), remoteHost ) );
+                    .findAny().orElse( null );
+            // this is a last resort attempt by guessing the RemoteResource from the OpenAPI spec
+            if ( rr == null ) {
+                try {
+                    rr = remoteResourceService.getRepresentativeRemoteResource( remoteHost );
+                } catch ( RemoteException e ) {
+                    log.warn( String.format( "Failed to retrieve a representative RemoteResource for %s", remoteHost ), e );
+                    continue;
+                }
+            }
             String origin = rr.getOrigin();
             URI originUrl = rr.getOriginUrl();
             for ( Map.Entry<Ontology, List<OntologyTermInfo>> entry : termsByOntology.entrySet() ) {
@@ -331,13 +338,6 @@ public abstract class AbstractSearchController {
         }
 
         return availability;
-    }
-
-    @Data
-    @AllArgsConstructor
-    private static class SimpleRemoteResource implements RemoteResource {
-        private String origin;
-        private URI originUrl;
     }
 
     /**

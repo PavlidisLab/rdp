@@ -1,5 +1,6 @@
 package ubc.pavlab.rdp.services;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.SuperBuilder;
@@ -20,6 +21,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 import ubc.pavlab.rdp.exception.RemoteException;
+import ubc.pavlab.rdp.model.RemoteResource;
 import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.model.User;
 import ubc.pavlab.rdp.model.UserGene;
@@ -40,6 +42,8 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static java.util.function.Function.identity;
@@ -101,15 +105,50 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
         }
     }
 
+    @Override
+    public RemoteResource getRepresentativeRemoteResource( URI remoteHost ) throws RemoteException {
+        URI uri = UriComponentsBuilder.fromUri( getApiUri( remoteHost ) )
+                .path( API_ROOT_PATH )
+                .build().toUri();
+        OpenAPI openAPI = getFromRequestFuture( uri, asyncRestTemplate.getForEntity( uri, OpenAPI.class ) );
+        Pattern titlePattern = Pattern.compile( "^(.+) RESTful API$" );
+        String origin = remoteHost.getAuthority();
+        URI originUrl = remoteHost;
+        if ( openAPI.info != null && openAPI.info.title != null ) {
+            Matcher matcher = titlePattern.matcher( openAPI.info.title );
+            if ( matcher.matches() ) {
+                origin = matcher.group( 1 );
+            }
+        }
+        if ( openAPI.servers != null && openAPI.servers.size() == 1 ) {
+            originUrl = openAPI.servers.get( 0 ).url;
+        }
+        return new SimpleRemoteResource( origin, originUrl );
+    }
+
+    @Data
+    @AllArgsConstructor
+    private static class SimpleRemoteResource implements RemoteResource {
+        private String origin;
+        private URI originUrl;
+    }
+
     @Data
     public static class OpenAPI {
 
         @Data
         public static class Info {
+            private String title;
             private String version;
         }
 
+        @Data
+        public static class Server {
+            private URI url;
+        }
+
         private Info info;
+        private List<Server> servers;
     }
 
     @Override

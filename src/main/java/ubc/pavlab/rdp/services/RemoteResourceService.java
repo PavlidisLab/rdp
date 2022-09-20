@@ -2,6 +2,7 @@ package ubc.pavlab.rdp.services;
 
 import ubc.pavlab.rdp.controllers.ApiController;
 import ubc.pavlab.rdp.exception.RemoteException;
+import ubc.pavlab.rdp.model.RemoteResource;
 import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.model.User;
 import ubc.pavlab.rdp.model.UserGene;
@@ -37,6 +38,12 @@ public interface RemoteResourceService {
      * @throws RemoteException if any error occured while retrieving the API version
      */
     String getApiVersion( URI remoteHost ) throws RemoteException;
+
+    /**
+     * Obtain a representative {@link RemoteResource} for a partner registry that can be used to extract the 'origin'
+     * and 'originUrl' attributes.
+     */
+    RemoteResource getRepresentativeRemoteResource( URI remoteHost ) throws RemoteException;
 
     /**
      * Find users by name among all partner registries.
