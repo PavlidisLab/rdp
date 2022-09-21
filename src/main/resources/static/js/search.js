@@ -105,11 +105,9 @@ var formUtil = require('./util/form');
 
         // Show available terms in partner registries
         ontologyAvailability.empty(); // this is right next to the results, so no need for a spinner
-        ontologyAvailability.load(window.contextPath + '/search/view/international/available-terms-by-partner', formData, function (responseText, textStatus) {
-            if (textStatus === "error") {
-                ontologyAvailability.empty();
-            }
-        });
+        if (formData.indexOf('ontologyTermIds') !== -1) {
+            ontologyAvailability.load(window.contextPath + '/search/view/international/available-terms-by-partner', formData);
+        }
 
         // Show orthologs
         if ($("#symbolInput").val() !== "" && $("#ortholog-box").is(":visible")) {
