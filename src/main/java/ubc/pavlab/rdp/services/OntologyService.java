@@ -100,6 +100,10 @@ public class OntologyService implements InitializingBean {
         return ontologyRepository.findByName( name );
     }
 
+    public Ontology findByNameAndActiveTrue( String name ) {
+        return ontologyRepository.findByNameAndActiveTrue( name );
+    }
+
     @Transactional(readOnly = true)
     public List<OntologyTermInfo> findAllTermsByIdIn( Collection<Integer> ontologyTermIds ) {
         return ontologyTermInfoRepository.findAllByActiveTrueAndIdIn( ontologyTermIds );
@@ -814,16 +818,6 @@ public class OntologyService implements InitializingBean {
                         ontologyTermInfos.stream().map( OntologyTermInfo::toString ).collect( Collectors.joining( ", " ) ) ) );
             }
         }
-    }
-
-    /**
-     * Perform the same inference as per {@link #inferTermIds(Collection)} with results grouped by ontology.
-     */
-    @Transactional(readOnly = true)
-    public Map<Ontology, Set<Integer>> inferTermIdsByOntology( Collection<OntologyTermInfo> ontologyTermInfos ) {
-        return ontologyTermInfos.stream()
-                .collect( Collectors.groupingBy( OntologyTerm::getOntology,
-                        Collectors.collectingAndThen( Collectors.toSet(), this::inferTermIds ) ) );
     }
 
     /**

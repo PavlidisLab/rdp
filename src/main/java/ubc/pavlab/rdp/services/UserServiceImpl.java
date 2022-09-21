@@ -51,7 +51,8 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static java.util.function.Function.identity;
-import static org.springframework.util.CollectionUtils.containsAny;
+import static ubc.pavlab.rdp.util.CollectionUtils.containsAtLeastOne;
+import static ubc.pavlab.rdp.util.CollectionUtils.nullOrContainsAtLeastOne;
 
 /**
  * Created by mjacobson on 16/01/18.
@@ -417,13 +418,13 @@ public class UserServiceImpl implements UserService, InitializingBean {
 
     @Override
     @PostFilter("hasPermission(filterObject, 'read')")
-    public List<User> findByLikeName( String nameLike, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherTypes, Collection<OrganInfo> organs, Collection<OntologyTermInfo> ontologyTermInfos ) {
+    public List<User> findByLikeName( String nameLike, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherTypes, Collection<OrganInfo> organs, Map<Ontology, Set<OntologyTermInfo>> ontologyTermInfos ) {
         final Set<String> organUberonIds = organUberonIdsFromOrgans( organs );
         Map<Ontology, Set<Integer>> ontologyTermInfoIds = ontologyTermInfoIdsFromOntologyTermInfo( ontologyTermInfos );
         return userRepository.findByProfileNameContainingIgnoreCaseOrProfileLastNameContainingIgnoreCase( nameLike, nameLike ).stream()
                 .filter( u -> researcherPositions == null || researcherPositions.contains( u.getProfile().getResearcherPosition() ) )
-                .filter( u -> researcherTypes == null || containsAny( researcherTypes, u.getProfile().getResearcherCategories() ) )
-                .filter( u -> organUberonIds == null || containsAny( organUberonIds, u.getUserOrgans().values().stream().map( UserOrgan::getUberonId ).collect( Collectors.toSet() ) ) )
+                .filter( u -> nullOrContainsAtLeastOne( researcherTypes, () -> u.getProfile().getResearcherCategories() ) )
+                .filter( u -> nullOrContainsAtLeastOne( organUberonIds, () -> u.getUserOrgans().values().stream().map( UserOrgan::getUberonId ).collect( Collectors.toSet() ) ) )
                 .filter( hasOntologyTermIn( ontologyTermInfoIds ) )
                 .sorted( User.getComparator() )
                 .collect( Collectors.toList() );
@@ -431,13 +432,13 @@ public class UserServiceImpl implements UserService, InitializingBean {
 
     @Override
     @PostFilter("hasPermission(filterObject, 'read')")
-    public List<User> findByStartsName( String startsName, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherTypes, Collection<OrganInfo> organs, Collection<OntologyTermInfo> ontologyTermInfos ) {
+    public List<User> findByStartsName( String startsName, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherTypes, Collection<OrganInfo> organs, Map<Ontology, Set<OntologyTermInfo>> ontologyTermInfos ) {
         final Set<String> organUberonIds = organUberonIdsFromOrgans( organs );
         Map<Ontology, Set<Integer>> ontologyTermInfoIds = ontologyTermInfoIdsFromOntologyTermInfo( ontologyTermInfos );
         return userRepository.findByProfileLastNameStartsWithIgnoreCase( startsName ).stream()
                 .filter( u -> researcherPositions == null || researcherPositions.contains( u.getProfile().getResearcherPosition() ) )
-                .filter( u -> researcherTypes == null || containsAny( researcherTypes, u.getProfile().getResearcherCategories() ) )
-                .filter( u -> organUberonIds == null || containsAny( organUberonIds, u.getUserOrgans().values().stream().map( UserOrgan::getUberonId ).collect( Collectors.toSet() ) ) )
+                .filter( u -> nullOrContainsAtLeastOne( researcherTypes, () -> u.getProfile().getResearcherCategories() ) )
+                .filter( u -> nullOrContainsAtLeastOne( organUberonIds, () -> u.getUserOrgans().values().stream().map( UserOrgan::getUberonId ).collect( Collectors.toSet() ) ) )
                 .filter( hasOntologyTermIn( ontologyTermInfoIds ) )
                 .sorted( User.getComparator() )
                 .collect( Collectors.toList() );
@@ -445,13 +446,13 @@ public class UserServiceImpl implements UserService, InitializingBean {
 
     @Override
     @PostFilter("hasPermission(filterObject, 'read')")
-    public List<User> findByDescription( String descriptionLike, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherTypes, Collection<OrganInfo> organs, Collection<OntologyTermInfo> ontologyTermInfos ) {
+    public List<User> findByDescription( String descriptionLike, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherTypes, Collection<OrganInfo> organs, Map<Ontology, Set<OntologyTermInfo>> ontologyTermInfos ) {
         final Set<String> organUberonIds = organUberonIdsFromOrgans( organs );
         Map<Ontology, Set<Integer>> ontologyTermInfoIds = ontologyTermInfoIdsFromOntologyTermInfo( ontologyTermInfos );
         return userRepository.findDistinctByProfileDescriptionLikeIgnoreCaseOrTaxonDescriptionsLikeIgnoreCaseOrUserOntologyTermsNameLikeIgnoreCase( "%" + descriptionLike + "%" ).stream()
                 .filter( u -> researcherPositions == null || researcherPositions.contains( u.getProfile().getResearcherPosition() ) )
-                .filter( u -> researcherTypes == null || containsAny( researcherTypes, u.getProfile().getResearcherCategories() ) )
-                .filter( u -> organUberonIds == null || containsAny( organUberonIds, u.getUserOrgans().values().stream().map( UserOrgan::getUberonId ).collect( Collectors.toSet() ) ) )
+                .filter( u -> nullOrContainsAtLeastOne( researcherTypes, () -> u.getProfile().getResearcherCategories() ) )
+                .filter( u -> nullOrContainsAtLeastOne( organUberonIds, () -> u.getUserOrgans().values().stream().map( UserOrgan::getUberonId ).collect( Collectors.toSet() ) ) )
                 .filter( hasOntologyTermIn( ontologyTermInfoIds ) )
                 .sorted( User.getComparator() )
                 .collect( Collectors.toList() );
@@ -459,7 +460,7 @@ public class UserServiceImpl implements UserService, InitializingBean {
 
     @Override
     @PostFilter("hasPermission(filterObject, 'read')")
-    public List<User> findByNameAndDescription( String nameLike, boolean prefix, String descriptionLike, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherCategories, Collection<OrganInfo> organs, Collection<OntologyTermInfo> ontologyTermInfos ) {
+    public List<User> findByNameAndDescription( String nameLike, boolean prefix, String descriptionLike, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherCategories, Collection<OrganInfo> organs, Map<Ontology, Set<OntologyTermInfo>> ontologyTermInfos ) {
         final Set<String> organUberonIds = organUberonIdsFromOrgans( organs );
         String namePattern = prefix ? nameLike + "%" : "%" + nameLike + "%";
         String descriptionPattern = "%" + descriptionLike + "%";
@@ -472,8 +473,8 @@ public class UserServiceImpl implements UserService, InitializingBean {
         Map<Ontology, Set<Integer>> ontologyTermInfoIds = ontologyTermInfoIdsFromOntologyTermInfo( ontologyTermInfos );
         return users.stream()
                 .filter( u -> researcherPositions == null || researcherPositions.contains( u.getProfile().getResearcherPosition() ) )
-                .filter( u -> researcherCategories == null || containsAny( researcherCategories, u.getProfile().getResearcherCategories() ) )
-                .filter( u -> organUberonIds == null || containsAny( organUberonIds, u.getUserOrgans().values().stream().map( UserOrgan::getUberonId ).collect( Collectors.toSet() ) ) )
+                .filter( u -> nullOrContainsAtLeastOne( researcherCategories, () -> u.getProfile().getResearcherCategories() ) )
+                .filter( u -> nullOrContainsAtLeastOne( organUberonIds, () -> u.getUserOrgans().values().stream().map( UserOrgan::getUberonId ).collect( Collectors.toSet() ) ) )
                 .filter( hasOntologyTermIn( ontologyTermInfoIds ) )
                 .sorted( User.getComparator() )
                 .collect( Collectors.toList() );
@@ -487,9 +488,10 @@ public class UserServiceImpl implements UserService, InitializingBean {
         }
     }
 
-    private Map<Ontology, Set<Integer>> ontologyTermInfoIdsFromOntologyTermInfo( Collection<OntologyTermInfo> ontologyTermInfos ) {
+    private Map<Ontology, Set<Integer>> ontologyTermInfoIdsFromOntologyTermInfo( Map<Ontology, Set<OntologyTermInfo>> ontologyTermInfos ) {
         if ( ontologyTermInfos != null ) {
-            return ontologyService.inferTermIdsByOntology( ontologyTermInfos );
+            return ontologyTermInfos.entrySet().stream()
+                    .collect( Collectors.toMap( Map.Entry::getKey, e -> ontologyService.inferTermIds( e.getValue() ) ) );
         } else {
             return null;
         }
@@ -498,7 +500,7 @@ public class UserServiceImpl implements UserService, InitializingBean {
     @Override
     public Predicate<User> hasOntologyTermIn( Map<Ontology, Set<Integer>> ontologyTermInfoIdsByOntology ) {
         return u -> ontologyTermInfoIdsByOntology == null || ontologyTermInfoIdsByOntology.values().stream()
-                .allMatch( entry -> containsAny( entry, getUserTermInfoIds( u ) ) );
+                .allMatch( entry -> containsAtLeastOne( entry, () -> getUserTermInfoIds( u ) ) );
     }
 
     @Override

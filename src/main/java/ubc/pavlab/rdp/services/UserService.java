@@ -127,23 +127,23 @@ public interface UserService {
      * <p>
      * Note: results are sorted according to {@link User#getComparator()}.
      */
-    List<User> findByLikeName( String nameLike, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherTypes, Collection<OrganInfo> userOrgans, Collection<OntologyTermInfo> ontologyTermInfos );
+    List<User> findByLikeName( String nameLike, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherTypes, Collection<OrganInfo> userOrgans, Map<Ontology, Set<OntologyTermInfo>> ontologyTermInfos );
 
     /**
      * Find users by their name using a prefix match.
      * <p>
      * Note: results are sorted according to {@link User#getComparator()}.
      */
-    List<User> findByStartsName( String startsName, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherTypes, Collection<OrganInfo> userOrgans, Collection<OntologyTermInfo> ontologyTermInfos );
+    List<User> findByStartsName( String startsName, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherTypes, Collection<OrganInfo> userOrgans, Map<Ontology, Set<OntologyTermInfo>> ontologyTermInfos );
 
     /**
      * Find users by their description and sorted according to {@link User#getComparator()}.
      * <p>
      * Note: results are sorted according to {@link User#getComparator()}.
      */
-    List<User> findByDescription( String descriptionLike, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherTypes, Collection<OrganInfo> userOrgans, Collection<OntologyTermInfo> ontologyTermInfos );
+    List<User> findByDescription( String descriptionLike, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherTypes, Collection<OrganInfo> userOrgans, Map<Ontology, Set<OntologyTermInfo>> ontologyTermInfos );
 
-    List<User> findByNameAndDescription( String nameLike, boolean prefix, String descriptionLike, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherCategories, Collection<OrganInfo> userOrgans, Collection<OntologyTermInfo> ontologyTermInfos );
+    List<User> findByNameAndDescription( String nameLike, boolean prefix, String descriptionLike, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherCategories, Collection<OrganInfo> userOrgans, Map<Ontology, Set<OntologyTermInfo>> ontologyTermInfos );
 
     Set<Integer> getUserTermInfoIds( User user );
 

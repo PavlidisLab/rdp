@@ -6,7 +6,6 @@ import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.info.BuildProperties;
 import org.springframework.context.MessageSource;
-import org.springframework.context.MessageSourceResolvable;
 import org.springframework.context.NoSuchMessageException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -452,13 +451,38 @@ public class ApiController {
         return organUberonIds == null ? null : organInfoService.findByUberonIdIn( organUberonIds );
     }
 
-    private Collection<OntologyTermInfo> ontologyTermsFromOntologyWithTermIds( List<String> ontologyNames, List<String> termIds ) {
+    private Map<Ontology, Set<OntologyTermInfo>> ontologyTermsFromOntologyWithTermIds( List<String> ontologyNames, List<String> termIds ) {
         if ( ontologyNames == null || termIds == null ) {
             return null;
         }
         if ( ontologyNames.size() != termIds.size() ) {
             throw new ApiException( HttpStatus.BAD_REQUEST, "The 'ontologyNames' and 'ontologyTermIds' lists must have the same size." );
         }
-        return ontologyService.findTermByTermIdsAndOntologyNames( termIds, ontologyNames );
+        Map<Ontology, Set<OntologyTermInfo>> results = ontologyService.findTermByTermIdsAndOntologyNames( termIds, ontologyNames ).stream()
+                .collect( Collectors.groupingBy( OntologyTerm::getOntology, Collectors.toSet() ) );
+        Set<String> foundOntologyNames = results.keySet().stream().map( Ontology::getName ).collect( Collectors.toSet() );
+
+        // sorted alphabetically
+        SortedSet<String> missingOntologyNames = new TreeSet<>( ontologyNames );
+        missingOntologyNames.removeAll( foundOntologyNames );
+
+        // attempt to retrieve any missing ontologies (and associate it to an empty collection)
+        for ( String missingOntologyName : missingOntologyNames ) {
+            Ontology missingOntology = ontologyService.findByNameAndActiveTrue( missingOntologyName );
+            if ( missingOntology != null ) {
+                results.put( missingOntology, Collections.emptySet() );
+                foundOntologyNames.add( missingOntologyName );
+            }
+        }
+
+        // remove found ontologies without matching terms
+        missingOntologyNames.removeAll( foundOntologyNames );
+
+        // all ontologies must be represented
+        if ( !missingOntologyNames.isEmpty() ) {
+            throw new ApiException( HttpStatus.BAD_REQUEST, String.format( "The following ontologies do not exist in this registry: %s.", String.join( ", ", missingOntologyNames ) ) );
+        }
+
+        return results;
     }
 }

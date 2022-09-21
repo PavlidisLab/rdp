@@ -152,7 +152,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
     }
 
     @Override
-    public List<User> findUsersByLikeName( String nameLike, Boolean prefix, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherCategories, Collection<String> organUberonIds, Collection<OntologyTermInfo> ontologyTermInfos ) {
+    public List<User> findUsersByLikeName( String nameLike, Boolean prefix, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherCategories, Collection<String> organUberonIds, Map<Ontology, Set<OntologyTermInfo>> ontologyTermInfos ) {
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add( "nameLike", nameLike );
         params.add( "prefix", prefix.toString() );
@@ -174,7 +174,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
     }
 
     @Override
-    public List<User> findUsersByDescription( String descriptionLike, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherCategories, Collection<String> organUberonIds, Collection<OntologyTermInfo> ontologyTermInfos ) {
+    public List<User> findUsersByDescription( String descriptionLike, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherCategories, Collection<String> organUberonIds, Map<Ontology, Set<OntologyTermInfo>> ontologyTermInfos ) {
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add( "descriptionLike", descriptionLike );
         params.putAll( UserSearchParams.builder()
@@ -195,7 +195,8 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
     }
 
     @Override
-    public List<User> findUsersByLikeNameAndDescription( String nameLike, boolean prefix, String descriptionLike, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherCategories, Set<String> organUberonIds, Collection<OntologyTermInfo> ontologyTermInfos ) {
+    public List<User> findUsersByLikeNameAndDescription( String nameLike, boolean prefix, String
+            descriptionLike, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherCategories, Set<String> organUberonIds, Map<Ontology, Set<OntologyTermInfo>> ontologyTermInfos ) {
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add( "nameLike", nameLike );
         params.add( "prefix", String.valueOf( prefix ) );
@@ -263,7 +264,8 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
 
 
     @Override
-    public List<UserGene> findGenesBySymbol( String symbol, Taxon taxon, Set<TierType> tiers, Integer orthologTaxonId, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherCategories, Set<String> organUberonIds, Collection<OntologyTermInfo> ontologyTermInfos ) {
+    public List<UserGene> findGenesBySymbol( String symbol, Taxon taxon, Set<TierType> tiers, Integer
+            orthologTaxonId, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherCategories, Set<String> organUberonIds, Map<Ontology, Set<OntologyTermInfo>> ontologyTermInfos ) {
         List<UserGene> intlUsergenes = new LinkedList<>();
         for ( TierType tier : restrictTiers( tiers ) ) {
             MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
@@ -464,30 +466,42 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
         pp.addAll( requestFilters );
         pp.add( createFinalUri() );
         pp.add( performApiQuery( arrCls ) );
-        return Arrays.stream( applicationSettings.getIsearch().getApis() )
+
+        // it's important to collect, otherwise the future will be created and joined one-by-one, defeating the purpose of using them in the first place
+        List<Pair<URI, Future<ResponseEntity<T[]>>>> uriAndFutures = Arrays.stream( applicationSettings.getIsearch().getApis() )
                 .map( uri -> invokeChain( pp, uri, path, params ) )
                 .filter( Optional::isPresent ).map( Optional::get )
-                // it's important to collect, otherwise the future will be created and joined one-by-one, defeating the
-                // purpose of using them in the first place
-                .collect( Collectors.toList() ).stream()
-                .map( this::processUriAndResponseEntityFuture )
-                .filter( Objects::nonNull )
-                .flatMap( Arrays::stream )
                 .collect( Collectors.toList() );
+
+        List<T> entities = new ArrayList<>();
+        for ( Pair<URI, Future<ResponseEntity<T[]>>> f : uriAndFutures ) {
+            try {
+                entities.addAll( Arrays.asList( getFromRequestFuture( f.getLeft(), f.getRight() ) ) );
+            } catch ( RemoteException remoteException ) {
+                if ( isMissingOntologyException( remoteException ) ) {
+                    // this is producing a 400 Bad Request, but we can safely ignore it and treat it as producing no
+                    // results
+                    log.debug( String.format( "Partner API %s is missing some of the requested ontologies: %s", f.getLeft(), remoteException.getMessage() ) );
+                } else {
+                    log.warn( String.format( "Failed to retrieve entity from %s : %s", f.getLeft(), remoteException.getMessage() ) );
+                }
+            }
+        }
+
+        return entities;
+    }
+
+    private static boolean isMissingOntologyException( RemoteException remoteException ) {
+        if ( remoteException.getCause() instanceof HttpClientErrorException ) {
+            HttpClientErrorException httpException = (HttpClientErrorException) remoteException.getCause();
+            return httpException.getStatusCode() == HttpStatus.BAD_REQUEST && httpException.getResponseBodyAsString().startsWith( "The following ontologies do not exist in this registry:" );
+        }
+        return false;
     }
 
     private <T> Optional<Pair<URI, Future<ResponseEntity<T>>>> invokeChain( List<RequestFilter<T>> chain, URI uri, String path, MultiValueMap<String, String> params ) {
         Iterator<RequestFilter<T>> c = chain.iterator();
         return c.next().filter( uri, path, params, c );
-    }
-
-    private <T> T processUriAndResponseEntityFuture( Pair<URI, Future<ResponseEntity<T>>> uriAndFuture ) {
-        try {
-            return getFromRequestFuture( uriAndFuture.getLeft(), uriAndFuture.getRight() );
-        } catch ( RemoteException e ) {
-            log.warn( String.format( "Failed to retrieve entity from %s for %s: %s", uriAndFuture.getLeft(), uriAndFuture.getRight(), e.getMessage() ), e );
-            return null;
-        }
     }
 
     private <T> T getFromRequestFuture( URI uri, Future<ResponseEntity<T>> future ) throws RemoteException {
@@ -551,7 +565,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
         private Collection<ResearcherPosition> researcherPositions;
         private Collection<ResearcherCategory> researcherCategories;
         private Collection<String> organUberonIds;
-        private Collection<OntologyTermInfo> ontologyTermInfos;
+        private Map<Ontology, Set<OntologyTermInfo>> ontologyTermInfos;
 
         public MultiValueMap<String, String> toMultiValueMap() {
             MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
@@ -571,9 +585,11 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
                 }
             }
             if ( ontologyTermInfos != null ) {
-                for ( OntologyTermInfo ontologyTermInfo : ontologyTermInfos ) {
-                    params.add( "ontologyNames", ontologyTermInfo.getOntology().getName() );
-                    params.add( "ontologyTermIds", ontologyTermInfo.getTermId() );
+                for ( Map.Entry<Ontology, Set<OntologyTermInfo>> entry : ontologyTermInfos.entrySet() ) {
+                    for ( OntologyTermInfo termInfo : entry.getValue() ) {
+                        params.add( "ontologyNames", entry.getKey().getName() );
+                        params.add( "ontologyTermIds", termInfo.getTermId() );
+                    }
                 }
             }
             return params;

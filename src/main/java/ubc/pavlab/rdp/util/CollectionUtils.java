@@ -1,13 +1,17 @@
 package ubc.pavlab.rdp.util;
 
+import lombok.NonNull;
+
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Collector;
 
 import static java.util.function.Function.identity;
+import static org.springframework.util.CollectionUtils.containsAny;
 
 public class CollectionUtils {
 
@@ -70,5 +74,25 @@ public class CollectionUtils {
      */
     public static <T, U> Predicate<? super T> by( Function<? super T, ? extends U> supplier, Predicate<U> predicate ) {
         return u -> predicate.test( supplier.apply( u ) );
+    }
+
+    /**
+     * Check if a source collection is null or contains at least one of the candidate elements.
+     * <p>
+     * This function uses a {@link Supplier} so that expensive candidates are only retrieved if the null-check and the
+     * empty-check on the source collection are satisfied.
+     *
+     * @param source     a source collection where the candidates are expected to be found
+     * @param candidates a supplier for the candidates
+     * @return true if the source is null or contains at least one of the candidate elements; an empty source collection
+     * will return false regardless of the supplied candidates
+     * @see org.springframework.util.CollectionUtils#containsAny(Collection, Collection)
+     */
+    public static boolean nullOrContainsAtLeastOne( Collection<?> source, Supplier<Collection<?>> candidates ) {
+        return source == null || containsAtLeastOne( source, candidates );
+    }
+
+    public static boolean containsAtLeastOne( @NonNull Collection<?> source, Supplier<Collection<?>> candidates ) {
+        return ( !source.isEmpty() && containsAny( source, candidates.get() ) );
     }
 }

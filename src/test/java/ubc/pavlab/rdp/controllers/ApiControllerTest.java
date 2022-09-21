@@ -147,6 +147,41 @@ public class ApiControllerTest {
     }
 
     @Test
+    public void searchUsers_whenTermDoesNotExist() throws Exception {
+        when( ontologyService.findTermByTermIdsAndOntologyNames( any(), any() ) ).thenReturn( Collections.emptyList() );
+        when( ontologyService.findByNameAndActiveTrue( "MONDO" ) ).thenReturn( null );
+        mvc.perform( get( "/api/users/search" )
+                        .param( "nameLike", "" )
+                        .param( "descriptionLike", "" )
+                        .param( "ontologyNames", "MONDO" )
+                        .param( "ontologyTermIds", "MONDO:0000001" ) )
+                .andExpect( status().isBadRequest() )
+                .andExpect( content().contentTypeCompatibleWith( MediaType.TEXT_PLAIN ) )
+                .andExpect( content().string( "The following ontologies do not exist in this registry: MONDO." ) );
+        verify( ontologyService ).findTermByTermIdsAndOntologyNames( Collections.singletonList( "MONDO:0000001" ), Collections.singletonList( "MONDO" ) );
+        verify( ontologyService ).findByNameAndActiveTrue( "MONDO" );
+        verifyNoInteractions( userService );
+    }
+
+    @Test
+    public void searchUsers_whenTermDoesNotExistByOntologyDoes_thenReturnEmptyList() throws Exception {
+        Ontology ontology = Ontology.builder( "MONDO" ).build();
+        when( ontologyService.findTermByTermIdsAndOntologyNames( any(), any() ) ).thenReturn( Collections.emptyList() );
+        when( ontologyService.findByNameAndActiveTrue( "MONDO" ) ).thenReturn( ontology );
+        mvc.perform( get( "/api/users/search" )
+                        .param( "nameLike", "" )
+                        .param( "descriptionLike", "" )
+                        .param( "ontologyNames", "MONDO" )
+                        .param( "ontologyTermIds", "MONDO:0000001" ) )
+                .andExpect( status().isOk() )
+                .andExpect( content().contentTypeCompatibleWith( MediaType.APPLICATION_JSON ) )
+                .andExpect( content().string( "[]" ) );
+        verify( ontologyService ).findTermByTermIdsAndOntologyNames( Collections.singletonList( "MONDO:0000001" ), Collections.singletonList( "MONDO" ) );
+        verify( ontologyService ).findByNameAndActiveTrue( "MONDO" );
+        verify( userService ).findByNameAndDescription( "", false, "", null, null, null, Collections.singletonMap( ontology, Collections.emptySet() ) );
+    }
+
+    @Test
     public void searchGenes_withSearchDisabled_thenReturnServiceUnavailable() throws Exception {
         // configure remote authentication
         when( iSearchSettings.getAuthTokens() ).thenReturn( Collections.singletonList( "1234" ) );

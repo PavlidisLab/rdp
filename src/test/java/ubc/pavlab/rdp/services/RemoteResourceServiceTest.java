@@ -251,6 +251,24 @@ public class RemoteResourceServiceTest {
     }
 
     @Test
+    public void findUsersByLikeName_whenOntologyIsMissing_thenReturnNothing() throws JsonProcessingException {
+        MockRestServiceServer mockServer = MockRestServiceServer.createServer( asyncRestTemplate );
+        mockServer.expect( requestTo( "http://example.com/api" ) )
+                .andRespond( withStatus( HttpStatus.OK )
+                        .contentType( MediaType.APPLICATION_JSON )
+                        .body( objectMapper.writeValueAsString( new OpenAPI().info( new Info().version( "1.5.0" ) ) ) ) );
+        mockServer.expect( requestTo( "http://example.com/api/users/search?nameLike=bob&prefix=false&ontologyNames=mondo&ontologyTermIds=TERM:0000001" ) )
+                .andRespond( withStatus( HttpStatus.BAD_REQUEST )
+                        .contentType( MediaType.TEXT_PLAIN )
+                        .body( "The following ontologies do not exist in this registry: mondo." ) );
+        Ontology ontology = Ontology.builder( "mondo" ).build();
+        OntologyTermInfo term = OntologyTermInfo.builder( ontology, "TERM:0000001" ).build();
+        assertThat( remoteResourceService.findUsersByLikeName( "bob", false, null, null, null, Collections.singletonMap( term.getOntology(), Collections.singleton( term ) ) ) )
+                .isEmpty();
+        mockServer.verify();
+    }
+
+    @Test
     public void findUsersByLikeName_whenTermAreNotSupported_thenReturnNothing() throws JsonProcessingException {
         MockRestServiceServer mockServer = MockRestServiceServer.createServer( asyncRestTemplate );
         mockServer.expect( requestTo( "http://example.com/api" ) )
@@ -259,7 +277,7 @@ public class RemoteResourceServiceTest {
                         .body( objectMapper.writeValueAsString( new OpenAPI().info( new Info().version( "1.4.0" ) ) ) ) );
         Ontology ontology = Ontology.builder( "mondo" ).build();
         OntologyTermInfo term = OntologyTermInfo.builder( ontology, "TERM:0000001" ).build();
-        assertThat( remoteResourceService.findUsersByLikeName( "bob", false, null, null, null, Collections.singleton( term ) ) )
+        assertThat( remoteResourceService.findUsersByLikeName( "bob", false, null, null, null, Collections.singletonMap( term.getOntology(), Collections.singleton( term ) ) ) )
                 .isEmpty();
         mockServer.verify();
     }

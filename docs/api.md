@@ -215,6 +215,14 @@ In any case, you can narrow down the result with the following query parameters:
 - `organUberonIds` a set of Uberon identifiers that the user has added to its profile as organ systems
 - `ontologyNames` and `ontologyTermIds` two lists of corresponding ontology names and term IDs (new in 1.5.0)
 
+!!! warning
+
+    If an ontology cannot be retrieved by `ontologyNames`, a `400 Bad Request` status will be emitted in the response.
+    You should use the [list all categories/ontologies](#list-all-terms-in-a-categoryontology) endpoint prior to
+    supplying terms.
+
+    No error will be produced if some of the terms do not exist, however no results will be returned.
+
 ## Search genes
 
 Search user genes by symbols.
@@ -235,6 +243,14 @@ Then any of the following as described in "Search users":
 - `researcherCategories`
 - `organUberonIds`
 - `ontologyNames` and `ontologyTermIds` two lists of corresponding ontology names and term IDs (new in 1.5.0)
+
+!!! warning
+
+    If an ontology cannot be retrieved by `ontologyNames`, a `400 Bad Request` status will be emitted in the response.
+    You should use the [list all categories/ontologies](#list-all-terms-in-a-categoryontology) endpoint prior to
+    supplying terms.
+
+    No error will be produced if some of the terms do not exist, however no results will be returned.
 
 ## Find a user by its identifier
 

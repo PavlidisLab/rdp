@@ -368,7 +368,13 @@ public abstract class AbstractSearchController {
         return organUberonIds == null ? null : organInfoService.findByUberonIdIn( organUberonIds );
     }
 
-    protected List<OntologyTermInfo> ontologyTermsFromIds( List<Integer> ontologyTermIds ) {
-        return ontologyTermIds == null ? null : ontologyService.findAllTermsByIdIn( ontologyTermIds );
+    /**
+     * No need to perform the same
+     * @param ontologyTermIds
+     * @return
+     */
+    protected Map<Ontology, Set<OntologyTermInfo>> ontologyTermsFromIds( List<Integer> ontologyTermIds ) {
+        return ontologyTermIds == null ? null : ontologyService.findAllTermsByIdIn( ontologyTermIds ).stream()
+                .collect( Collectors.groupingBy( OntologyTermInfo::getOntology, Collectors.toSet() ) );
     }
 }

@@ -26,6 +26,7 @@ import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.ResearcherCategory;
 import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import ubc.pavlab.rdp.model.enums.TierType;
+import ubc.pavlab.rdp.model.ontology.Ontology;
 import ubc.pavlab.rdp.model.ontology.OntologyTermInfo;
 
 import java.util.*;
@@ -69,7 +70,7 @@ public interface UserGeneService {
      * @param organs              only retain results where the corresponding {@link User} tracks any of the given {@link OrganInfo}
      * @param ontologyTermInfos
      */
-    List<UserGene> handleGeneSearch( Gene gene, Set<TierType> tiers, Taxon orthologTaxon, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherTypes, Collection<OrganInfo> organs, Collection<OntologyTermInfo> ontologyTermInfos );
+    List<UserGene> handleGeneSearch( Gene gene, Set<TierType> tiers, Taxon orthologTaxon, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherTypes, Collection<OrganInfo> organs, Map<Ontology, Set<OntologyTermInfo>> ontologyTermInfos );
 
     void updateUserGenes();
 }

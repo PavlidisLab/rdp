@@ -23,6 +23,8 @@ public interface OntologyRepository extends JpaRepository<Ontology, Integer> {
 
     Ontology findByName( String name );
 
+    Ontology findByNameAndActiveTrue( String name );
+
     boolean existsByName( String name );
 
     /**
