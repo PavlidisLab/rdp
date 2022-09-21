@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.servers.Server;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -66,15 +67,29 @@ public class RemoteResourceServiceTest {
         public ObjectMapper objectMapper() {
             return new ObjectMapper();
         }
+
+        /**
+         * This bean needs to be setup minimally for {@link RemoteResourceServiceImpl#afterPropertiesSet()}.
+         */
+        @Bean
+        public ApplicationSettings applicationSettings( ApplicationSettings.InternationalSearchSettings iSearchSettings ) {
+            ApplicationSettings applicationSettings = mock( ApplicationSettings.class );
+            when( applicationSettings.getIsearch() ).thenReturn( iSearchSettings );
+            return applicationSettings;
+        }
+
+        @Bean
+        public ApplicationSettings.InternationalSearchSettings iSearchSettings() {
+            ApplicationSettings.InternationalSearchSettings iSearchSettings = mock( ApplicationSettings.InternationalSearchSettings.class );
+            when( iSearchSettings.getApis() ).thenReturn( new URI[]{} );
+            return iSearchSettings;
+        }
     }
 
     @Autowired
     private RemoteResourceService remoteResourceService;
 
-    @MockBean
-    private ApplicationSettings applicationSettings;
-
-    @MockBean
+    @Autowired
     private ApplicationSettings.InternationalSearchSettings iSearchSettings;
 
     @MockBean
@@ -102,7 +117,6 @@ public class RemoteResourceServiceTest {
 
     @Before
     public void setUp() {
-        when( applicationSettings.getIsearch() ).thenReturn( iSearchSettings );
         when( iSearchSettings.getApis() ).thenReturn( new URI[]{ URI.create( "http://example.com" ) } );
         // admin user used for remote admin search
         adminUser = new User();
@@ -112,6 +126,11 @@ public class RemoteResourceServiceTest {
         adminRole.setRole( "ADMIN" );
         adminUser.getRoles().add( adminRole );
         when( roleRepository.findByRole( "ROLE_ADMIN" ) ).thenReturn( adminRole );
+    }
+
+    @After
+    public void tearDown() {
+        reset( iSearchSettings );
     }
 
     @Test
