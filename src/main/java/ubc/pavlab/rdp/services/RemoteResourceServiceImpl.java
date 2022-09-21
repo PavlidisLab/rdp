@@ -524,7 +524,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
         Map<String, URI> apiUriByAuthority = Arrays.stream( applicationSettings.getIsearch().getApis() )
                 .collect( Collectors.toMap( URI::getAuthority, identity() ) );
         if ( !apiUriByAuthority.containsKey( remoteHost.getAuthority() ) ) {
-            throw new RemoteException( MessageFormat.format( "Unknown remote API {0}.", remoteHost.getAuthority() ) );
+            throw new RemoteException( MessageFormat.format( "Unknown remote API {0}.", remoteHost.getRawAuthority() ) );
         }
         return apiUriByAuthority.get( remoteHostAuthority );
     }
