@@ -540,7 +540,7 @@ public class AdminControllerTest {
                 .andExpect( status().isOk() )
                 .andExpect( view().name( "admin/ontology" ) )
                 .andExpect( model().attribute( "message", "Successfully updated MONDO." ) );
-        verify( ontologyService ).save( ontology );
+        verify( ontologyService ).update( ontology );
         assertThat( ontology.isAvailableForGeneSearch() ).isTrue();
     }
 

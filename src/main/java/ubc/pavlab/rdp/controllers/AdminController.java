@@ -330,7 +330,7 @@ public class AdminController {
             ontology.setDefinition( null );
         }
 
-        ontologyService.save( ontology );
+        ontologyService.update( ontology );
 
         modelAndView.addObject( "message", String.format( "Successfully updated %s.", messageSource.getMessage( ontology.getResolvableTitle(), locale ) ) );
 
@@ -670,7 +670,7 @@ public class AdminController {
         try ( Reader reader = getReaderForImportOntologyForm( importOntologyForm ) ) {
             Ontology ontology = ontologyService.createFromObo( reader );
             ontology.setOntologyUrl( importOntologyForm.ontologyUrl );
-            ontologyService.save( ontology );
+            ontologyService.update( ontology );
             return "redirect:/admin/ontologies/" + ontology.getId();
         } catch ( OntologyNameAlreadyUsedException e ) {
             bindingResult.reject( "AdminController.ImportOntologyForm.ontologyWithSameNameAlreadyUsed", new String[]{ e.getOntologyName() },

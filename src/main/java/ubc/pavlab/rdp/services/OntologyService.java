@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.info.BuildProperties;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.MessageSource;
 import org.springframework.context.NoSuchMessageException;
 import org.springframework.core.io.Resource;
@@ -21,6 +22,7 @@ import org.springframework.data.util.Pair;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ubc.pavlab.rdp.events.OnOntologyUpdateEvent;
 import ubc.pavlab.rdp.model.ontology.*;
 import ubc.pavlab.rdp.repositories.ontology.OntologyRepository;
 import ubc.pavlab.rdp.repositories.ontology.OntologyTermInfoRepository;
@@ -57,6 +59,9 @@ public class OntologyService implements InitializingBean {
     public static final int SIMPLE_ONTOLOGY_MAX_SIZE = 20;
     private static final DateFormat OBO_DATE_FORMAT = new SimpleDateFormat( "dd:MM:yyyy HH:mm" );
 
+    public static final String SUBTREE_SIZE_BY_TERM_CACHE_NAME = "ubc.pavlab.rdp.services.OntologyService.subtreeSizeByTerm";
+    public static final String SIMPLE_ONTOLOGIES_CACHE_NAME = "ubc.pavlab.rdp.services.OntologyService.simpleOntologies";
+
     private final OntologyRepository ontologyRepository;
     private final OntologyTermInfoRepository ontologyTermInfoRepository;
 
@@ -72,6 +77,9 @@ public class OntologyService implements InitializingBean {
 
     @Autowired
     private EntityManager entityManager;
+
+    @Autowired
+    private ApplicationEventPublisher eventPublisher;
 
     @Autowired
     public OntologyService( OntologyRepository ontologyRepository, OntologyTermInfoRepository ontologyTermInfoRepository ) {
@@ -260,6 +268,7 @@ public class OntologyService implements InitializingBean {
     @Transactional
     public Ontology updateFromObo( Ontology ontology, Reader reader ) throws IOException, ParseException {
         OBOParser.ParsingResult parsingResult = new OBOParser().parse( reader );
+        eventPublisher.publishEvent( new OnOntologyUpdateEvent( ontology ) );
         return saveFromObo( ontology, parsingResult );
     }
 
@@ -337,7 +346,7 @@ public class OntologyService implements InitializingBean {
      *
      * @see #SIMPLE_ONTOLOGY_MAX_SIZE
      */
-    @Cacheable(value = "ubc.pavlab.rdp.services.OntologyService.simpleOntologies")
+    @Cacheable(value = SIMPLE_ONTOLOGIES_CACHE_NAME)
     public boolean isSimple( Ontology ontology ) {
         return ontology.getTerms().size() <= SIMPLE_ONTOLOGY_MAX_SIZE;
     }
@@ -573,6 +582,16 @@ public class OntologyService implements InitializingBean {
 
     @Transactional
     @Secured("ROLE_ADMIN")
+    public Ontology update( Ontology ontology ) {
+        if ( ontology.getId() == null ) {
+            throw new IllegalArgumentException( String.format( "%s does not exist, it cannot be updated.", ontology ) );
+        }
+        eventPublisher.publishEvent( new OnOntologyUpdateEvent( ontology ) );
+        return ontologyRepository.save( ontology );
+    }
+
+    @Transactional
+    @Secured("ROLE_ADMIN")
     public void updateNameAndTerms( Ontology ontology, String name, Set<OntologyTermInfo> terms ) throws OntologyNameAlreadyUsedException {
         if ( ontology.getId() == null ) {
             throw new IllegalArgumentException( String.format( "%s does not exist, it cannot be updated.", ontology ) );
@@ -582,6 +601,7 @@ public class OntologyService implements InitializingBean {
         }
         ontology.setName( name );
         CollectionUtils.update( ontology.getTerms(), terms );
+        eventPublisher.publishEvent( new OnOntologyUpdateEvent( ontology ) );
         ontologyRepository.save( ontology );
     }
 
@@ -596,7 +616,19 @@ public class OntologyService implements InitializingBean {
     }
 
     @Transactional
-    public Ontology saveNoAuth( Ontology ontology ) {
+    public Ontology createNoAuth( Ontology ontology ) {
+        if ( ontology.getId() != null ) {
+            throw new IllegalArgumentException( String.format( "%s already exists, it cannot be created.", ontology ) );
+        }
+        return ontologyRepository.save( ontology );
+    }
+
+    @Transactional
+    public Ontology updateNoAuth( Ontology ontology ) {
+        if ( ontology.getId() == null ) {
+            throw new IllegalArgumentException( String.format( "%s is not persistent, it cannot be updated.", ontology ) );
+        }
+        eventPublisher.publishEvent( new OnOntologyUpdateEvent( ontology ) );
         return ontologyRepository.save( ontology );
     }
 
@@ -828,7 +860,7 @@ public class OntologyService implements InitializingBean {
      *
      * @return the subtree size, which is at least one
      */
-    @Cacheable(value = "ubc.pavlab.rdp.services.OntologyService.subtreeSizeByTerm")
+    @Cacheable(value = SUBTREE_SIZE_BY_TERM_CACHE_NAME)
     public long subtreeSize( OntologyTermInfo term ) {
         return inferTermIds( Collections.singleton( term ) ).size();
     }
@@ -843,11 +875,6 @@ public class OntologyService implements InitializingBean {
         result.setExtras( extras );
         result.setScore( tfIdf );
         return result;
-    }
-
-    @Secured("ROLE_ADMIN")
-    public Ontology save( Ontology ontology ) {
-        return ontologyRepository.save( ontology );
     }
 
     private Comparator<SearchResult<OntologyTermInfo>> getSearchResultComparator( List<SearchResult<OntologyTermInfo>> results, int maxResults ) {

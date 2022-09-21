@@ -151,8 +151,8 @@ public class OntologyServiceTest {
     }
 
     @Test
-    public void updateFromObo() throws IOException, ParseException {
-        Ontology ontology = ontologyService.save( Ontology.builder( "uberon" ).build() );
+    public void updateFromObo() throws IOException, ParseException, OntologyNameAlreadyUsedException {
+        Ontology ontology = ontologyService.create( Ontology.builder( "uberon" ).build() );
         entityManager.refresh( ontology );
         ontologyService.updateFromObo( ontology, new InputStreamReader( new ClassPathResource( "cache/uberon.obo" ).getInputStream() ) );
         assertThat( ontology.getTerms() ).hasSize( 14938 );

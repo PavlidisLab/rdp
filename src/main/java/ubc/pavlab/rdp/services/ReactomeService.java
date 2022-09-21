@@ -72,7 +72,7 @@ public class ReactomeService {
         if ( ontology != null ) {
             throw new IllegalArgumentException( "The Reactome pathways ontology has already been imported." );
         } else {
-            return importOrUpdatePathwaysOntology();
+            return ontologyService.createNoAuth( importOrUpdatePathwaysOntology() );
         }
     }
 
@@ -87,7 +87,7 @@ public class ReactomeService {
     public Ontology updatePathwaysOntology() throws ReactomeException {
         if ( ontologyService.existsByName( applicationSettings.getOntology().getReactomePathwaysOntologyName() ) ) {
             log.info( "Updating Reactome Pathways..." );
-            Ontology ontology = importOrUpdatePathwaysOntology();
+            Ontology ontology = ontologyService.updateNoAuth( importOrUpdatePathwaysOntology() );
             log.info( "Propagating subtree activation..." );
             int numActivated = ontologyService.propagateSubtreeActivation( ontology );
             if ( numActivated > 0 ) {
@@ -164,8 +164,6 @@ public class ReactomeService {
         }
 
         CollectionUtils.updateWithMap( ontology.getTerms(), OntologyTermInfo::getTermId, pathwayById );
-
-        ontology = ontologyService.saveNoAuth( ontology );
 
         return ontology;
     }
