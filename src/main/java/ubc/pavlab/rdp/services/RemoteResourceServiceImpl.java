@@ -3,9 +3,11 @@ package ubc.pavlab.rdp.services;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.SneakyThrows;
 import lombok.experimental.SuperBuilder;
 import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.lang3.tuple.Pair;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.annotation.Cacheable;
@@ -16,6 +18,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.AsyncRestTemplate;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.util.UriComponents;
@@ -51,7 +54,7 @@ import static java.util.function.Function.identity;
 @Service("RemoteResourceService")
 @CommonsLog
 @PreAuthorize("hasPermission(null, 'international-search')")
-public class RemoteResourceServiceImpl implements RemoteResourceService {
+public class RemoteResourceServiceImpl implements RemoteResourceService, InitializingBean {
 
     private static final String API_ROOT_PATH = "/api";
     private static final String GET_OPENAPI_PATH = API_ROOT_PATH;
@@ -85,6 +88,29 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
     private RemoteResourceService remoteResourceService;
 
     @Override
+    @SneakyThrows(URISyntaxException.class)
+    public void afterPropertiesSet() {
+        for ( URI apiUri : applicationSettings.getIsearch().getApis() ) {
+            URI uri = UriComponentsBuilder.fromUri( apiUri )
+                    .path( API_ROOT_PATH )
+                    .build().toUri();
+            URI expectedOriginUrl = new URI( apiUri.getScheme(), apiUri.getAuthority(), StringUtils.trimTrailingCharacter( apiUri.getPath(), '/' ), null, null );
+            asyncRestTemplate.getForEntity( uri, OpenAPI.class ).completable()
+                    .thenApply( re -> extractRemoteResource( Objects.requireNonNull( re.getBody(), String.format( "Unexpected null response body for %s.", uri ) ), apiUri ) )
+                    .handle( ( rr, ex ) -> {
+                        if ( ex == null ) {
+                            if ( !rr.getOriginUrl().equals( expectedOriginUrl ) ) {
+                                log.warn( String.format( "Partner registry %s's origin URL %s differs from API URL in the configuration: %s.", rr.getOrigin(), rr.getOriginUrl(), apiUri ) );
+                            }
+                        } else {
+                            log.warn( String.format( "Failed to reach partner registry %s.", expectedOriginUrl ), ex );
+                        }
+                        return null;
+                    } );
+        }
+    }
+
+    @Override
     @Cacheable(value = "ubc.pavlab.rdp.services.RemoteResourceService.apiVersionByRemoteHostAuthority", key = "#remoteHost.authority")
     public String getApiVersion( URI remoteHost ) throws RemoteException {
         // Ensure that the remoteHost is one of our known APIs by comparing the URI authority component and always use
@@ -110,7 +136,10 @@ public class RemoteResourceServiceImpl implements RemoteResourceService {
         URI uri = UriComponentsBuilder.fromUri( getApiUri( remoteHost ) )
                 .path( API_ROOT_PATH )
                 .build().toUri();
-        OpenAPI openAPI = getFromRequestFuture( uri, asyncRestTemplate.getForEntity( uri, OpenAPI.class ) );
+        return extractRemoteResource( getFromRequestFuture( uri, asyncRestTemplate.getForEntity( uri, OpenAPI.class ) ), remoteHost );
+    }
+
+    private static RemoteResource extractRemoteResource( OpenAPI openAPI, URI remoteHost ) {
         Pattern titlePattern = Pattern.compile( "^(.+) RESTful API$" );
         String origin = remoteHost.getAuthority();
         URI originUrl = remoteHost;
