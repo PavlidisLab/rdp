@@ -7,7 +7,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-import ubc.pavlab.rdp.model.GeneInfo;
 import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.model.UserGene;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
@@ -20,16 +19,26 @@ import java.util.Set;
 @Repository
 public interface UserGeneRepository extends JpaRepository<UserGene, Integer> {
 
-    Integer countByTierIn( Collection<TierType> tiers );
+    long countByUserEnabledTrueAndTierIn( Collection<TierType> tiers );
 
-    @Query("select count(distinct geneId) FROM UserGene WHERE tier IN (:tiers)")
-    Integer countDistinctGeneByTierIn( @Param("tiers") Collection<TierType> tiers );
+    /**
+     * Count distinct genes among enabled users satisfying the given tiers.
+     * <p>
+     * Note: distinct in Spring JPA does not perform a distinct on the property, but rather the entity which is
+     * unsuitable for this query and some of the queries below. Also, as a result, the IN (...) clauses must not be
+     * passed empty collections.
+     *
+     * @param tiers a collection of tiers which must not be empty otherwise a {@link org.springframework.dao.InvalidDataAccessResourceUsageException}
+     *              will be raised
+     */
+    @Query("select count(distinct ug.geneId) from UserGene ug where ug.user.enabled = true and ug.tier IN (:tiers)")
+    long countDistinctGeneByUserEnabledTrueAndTierIn( @Param("tiers") Collection<TierType> tiers );
 
-    @Query("select count(distinct user) FROM UserGene WHERE taxon = :taxon")
-    Integer countDistinctUserByTaxon( @Param("taxon") Taxon taxon );
+    @Query("select count(distinct ug.user) from UserGene ug where ug.user.enabled = true and ug.taxon = :taxon")
+    long countDistinctUserByUserEnabledTrueAndTaxon( @Param("taxon") Taxon taxon );
 
-    @Query("select count(distinct user) FROM UserGene")
-    Integer countDistinctUser();
+    @Query("select count(distinct ug.user) from UserGene ug where ug.user.enabled = true")
+    long countDistinctUserByUserEnabledTrue();
 
     /**
      * Find all genes from enabled users.
@@ -80,18 +89,27 @@ public interface UserGeneRepository extends JpaRepository<UserGene, Integer> {
     Collection<UserGene> findOrthologsByGeneIdAndTaxon( @Param("geneId") Integer geneId, @Param("taxon") Taxon taxon );
 
     /**
-     * @param taxonId a taxon identifier in which to perform orthology search from
-     * @return a collection of tuple whose first element is a {@link UserGene} and second element is the corresponding
-     * {@link GeneInfo} ortholog in the supplied taxon.
+     * Find all gene IDs in a given taxon that have orthologs among user genes.
+     * <p>
+     * Only genes from enabled users are included.
+     * <p>
+     * FIXME: this query is not cacheable and this is likely related to <a href="https://hibernate.atlassian.net/browse/HHH-9111">HHH-9111</a>.
      */
-    @Query(value = "select gi.gene_id from gene_info as gi join ortholog on gi.id = ortholog.source_gene  join gene_info as gi2 on gi2.id = ortholog.target_gene join gene ug on ug.gene_id = gi2.gene_id where gi.taxon_id = :taxonId", nativeQuery = true)
-    Collection<Integer> findOrthologGeneIdsByOrthologToTaxon( @Param("taxonId") Integer taxonId );
+    @Query(value = "select gi.gene_id from gene_info as gi join ortholog on gi.id = ortholog.source_gene join gene_info as gi2 on gi2.id = ortholog.target_gene join gene ug on ug.gene_id = gi2.gene_id join user u on u.user_id = ug.user_id where u.enabled and gi.taxon_id = :taxonId", nativeQuery = true)
+    Collection<Integer> findDistinctOrthologGeneIdsByOrthologToTaxon( @Param("taxonId") Integer taxonId );
 
-    // Return all human genes.
+    /**
+     * Find all gene IDs in a given taxon.
+     * <p>
+     * Only genes from enabled users are included.
+     */
     @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
-    @Query("select geneId FROM UserGene where taxon = '9606'")
-    Collection<Integer> findAllHumanGenes();
+    @Query(value = "select distinct ug.geneId from UserGene ug where ug.user.enabled = true")
+    Collection<Integer> findAllDistinctGeneIdByTaxon( Taxon taxon );
 
+    /**
+     * Find all user genes with their corresponding {@link UserGene#getGeneInfo()} pre-fetched.
+     */
     @Query("select gene from UserGene gene left join fetch gene.geneInfo")
     Collection<UserGene> findAllWithGeneInfo();
 }

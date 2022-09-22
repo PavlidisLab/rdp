@@ -57,11 +57,16 @@
                 </a>
             </div>
             <h3>Roles</h3>
-            <ul>
-                <li th:each="role : ${user.roles}"
-                    th:text="#{'Role.' + ${role.role}}">...
-                </li>
-            </ul>
+            <form th:action="@{/admin/users/{userId}/roles(userId=${user.id})}" method="post">
+                <input type="hidden" name="action"/>
+                <select type="hidden" name="roles" multiple class="form-control">
+                    <option th:each="role : ${@userService.findAllRoles()}"
+                            th:value="${role.id}"
+                            th:text="${@messageSource.getMessage(role.resolvableTitle, #locale)}"
+                            th:selected="${user.roles.contains(role)}"></option>
+                </select>
+                <button class="btn btn-primary" type="submit">Update Roles</button>
+            </form>
         </div>
         <div class="col-9">
             <h3>Access Tokens</h3>

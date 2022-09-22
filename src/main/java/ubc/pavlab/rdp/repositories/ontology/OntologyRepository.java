@@ -6,7 +6,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import ubc.pavlab.rdp.model.ontology.Ontology;
-import ubc.pavlab.rdp.model.ontology.UserOntologyTerm;
 
 import java.util.List;
 
@@ -24,12 +23,20 @@ public interface OntologyRepository extends JpaRepository<Ontology, Integer> {
 
     Ontology findByName( String name );
 
+    Ontology findByNameAndActiveTrue( String name );
+
     boolean existsByName( String name );
 
     /**
      * Count active ontologies.
      */
     long countByActiveTrue();
+
+    @Query("select count(distinct o) from Ontology o where o.active is true and size(o.terms) <= :maxSize")
+    long countByActiveAndTermsSizeLessThanEqual( int maxSize );
+
+    @Query("select count(distinct o) from Ontology o where o.active is true and size(o.terms) > :minSizeExclusive")
+    long countByActiveAndTermsSizeGreaterThan( int minSizeExclusive );
 
     /**
      * Count the number of used terms in an ontology.

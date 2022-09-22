@@ -26,7 +26,7 @@
         <li th:each="searchMode, i : ${@applicationSettings.search.enabledSearchModes}"
             th:with="searchModeId=${searchMode.toString().replace('_', '-').toLowerCase()}"
             class="nav-item">
-            <a class="nav-link" data-toggle="tab"
+            <a class="nav-link search-mode-link" data-toggle="tab"
                th:id="${searchModeId} + '-tab'"
                th:href="@{#{searchModeId}-search(searchModeId=${searchModeId})}"
                th:classappend="${activeSearchMode} == ${searchMode} ? 'active'"
@@ -340,19 +340,20 @@
 
     <!--Orthologs -->
     <div id="orthologsResults" class="mb-3">
-        <div th:if="${orthologs != null} "
-             th:replace="fragments/ortholog-table::ortholog-table(users=${users}, orthologs=${orthologs}, remote=false)">
-            ...
-        </div>
+        <th:block th:if="${orthologs != null} ">
+            <div th:replace="fragments/ortholog-table::ortholog-table(users=${users}, orthologs=${orthologs}, remote=false)"></div>
+        </th:block>
     </div>
 
     <div id="searchSummary" class="mb-3">
-    <pre th:if="${searchSummary != null}"
-         th:replace="fragments/search::summary(searchSummary=${searchSummary})"></pre>
+        <th:block th:if="${searchSummary != null}">
+            <pre th:replace="fragments/search::summary(searchSummary=${searchSummary})"></pre>
+        </th:block>
     </div>
 
     <!--Results-->
-    <div class="mb-3">
+    <section id="results" class="mb-3"
+         th:classappend="${searchSummary} != null ? '' : 'd-none'">
         <h4 th:text="'Researchers registered in ' + #{rdp.site.shortname}"></h4>
         <div id="userTable">
             <th:block th:if="${users}">
@@ -366,14 +367,19 @@
                 </div>
             </th:block>
         </div>
-    </div>
+    </section>
 
     <!--International results-->
-    <div th:if="${@applicationSettings.getIsearch().isEnabled()}"
+    <section th:if="${@applicationSettings.getIsearch().isEnabled()}"
          id="itlResults"
          class="mb-3"
-         th:classappend="${iSearch} ? '' : 'd-none'">
+         th:classappend="${searchSummary} != null and ${iSearch} ? '' : 'd-none'">
         <h4>Partner registry results</h4>
+        <div id="itlOntologyAvailability" class="mb-3">
+            <th:block th:if="${termsAvailabilityByApiUri} != null">
+                <div th:replace="fragments/search::available-terms-by-partner(ontologyAvailabilityByApiUri = ${termsAvailabilityByApiUri})"></div>
+            </th:block>
+        </div>
         <div id="itlUserTable">
             <th:block th:if="${itlUsers}">
                 <div th:replace="fragments/user-table::user-table(users=${itlUsers}, remote=true)">
@@ -386,7 +392,7 @@
                 </div>
             </th:block>
         </div>
-    </div>
+    </section>
     </main>
 </div>
 

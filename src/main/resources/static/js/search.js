@@ -49,9 +49,28 @@ var formUtil = require('./util/form');
 
     var tableContainer = $("#userTable");
     var searchSummary = $('#searchSummary');
+    var ontologyAvailability = $('#itlOntologyAvailability');
     var orthologContainer = $("#orthologsResults");
     var itlTableContainer = $("#itlUserTable");
-    var itlResults = $("#itlResults");
+    var results = document.getElementById('results');
+    var itlResults = document.getElementById("itlResults");
+
+    // hide results with switching tab
+    $('.search-mode-link[data-toggle=tab]').on('hide.bs.tab', function () {
+        searchSummary.empty();
+        ontologyAvailability.empty();
+        orthologContainer.empty();
+        results.classList.toggle('d-none', true);
+        itlResults.classList.toggle('d-none', true);
+    });
+
+    // check if there is a fragment for toggling a search tab
+    var match = window.location.hash.match(/^#(by-.+-search)$/);
+    if (match !== null) {
+        var searchModeId = match[1];
+        var searchTab = document.querySelector('[href="#' + searchModeId + '"]');
+        $(searchTab).tab('show');
+    }
 
     $("form.search").submit(function (event) {
 
@@ -77,12 +96,18 @@ var formUtil = require('./util/form');
         });
 
         // show search summary
-        searchSummary.html($('<i class="mx-2 spinner"></i>'));
+        // this is quick to obtain, so no need for a spinner nor clear the output
         searchSummary.load(window.contextPath + '/search/view', formData + '&summarize=true', function (responseText, textStatus) {
             if (textStatus === "error") {
                 searchSummary.html(''); // the error will be displayed in the main search view
             }
         });
+
+        // Show available terms in partner registries
+        ontologyAvailability.empty(); // this is right next to the results, so no need for a spinner
+        if (formData.indexOf('ontologyTermIds') !== -1) {
+            ontologyAvailability.load(window.contextPath + '/search/view/international/available-terms-by-partner', formData);
+        }
 
         // Show orthologs
         if ($("#symbolInput").val() !== "" && $("#ortholog-box").is(":visible")) {
@@ -92,11 +117,16 @@ var formUtil = require('./util/form');
                     orthologContainer.html(responseText);
                 }
             });
+        } else {
+            orthologContainer.empty();
         }
+
+        // show search results
+        results.classList.toggle('d-none', false);
 
         // Show international search results
         if (iSearch) {
-            itlResults.toggleClass('d-none', false);
+            itlResults.classList.toggle('d-none', false);
             itlTableContainer.html($('<i class="mx-2 spinner"></i>'));
             // noinspection JSUnusedLocalSymbols
             itlTableContainer.load(window.contextPath + "/search/view/international", formData, function (responseText, textStatus, req) {
@@ -108,7 +138,7 @@ var formUtil = require('./util/form');
                 }
             });
         } else {
-            itlResults.toggleClass('d-none', true);
+            itlResults.classList.toggle('d-none', true);
         }
 
         // update history stack

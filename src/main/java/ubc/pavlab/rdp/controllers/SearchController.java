@@ -2,6 +2,7 @@ package ubc.pavlab.rdp.controllers;
 
 import lombok.Data;
 import lombok.extern.apachecommons.CommonsLog;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import ubc.pavlab.rdp.exception.RemoteException;
+import ubc.pavlab.rdp.exception.UnknownRemoteApiException;
 import ubc.pavlab.rdp.model.GeneInfo;
 import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.model.User;
@@ -116,12 +118,14 @@ public class SearchController extends AbstractSearchController {
             modelAndView.addObject( "users", Collections.emptyList() );
             if ( userSearchParams.isISearch() ) {
                 modelAndView.addObject( "itlUsers", Collections.emptyList() );
+                modelAndView.addObject( "termsAvailabilityByApiUri", Collections.emptyMap() );
             }
         } else {
             modelAndView.addObject( "searchSummary", summarizeUserSearchParams( userSearchParams, locale ) );
             modelAndView.addObject( "users", userService.findByNameAndDescription( userSearchParams.getNameLike(), userSearchParams.isPrefix(), userSearchParams.getDescriptionLike(), userSearchParams.getResearcherPositions(), userSearchParams.getResearcherCategories(), organsFromUberonIds( userSearchParams.getOrganUberonIds() ), ontologyTermsFromIds( userSearchParams.getOntologyTermIds() ) ) );
             if ( userSearchParams.isISearch() ) {
                 modelAndView.addObject( "itlUsers", remoteResourceService.findUsersByLikeNameAndDescription( userSearchParams.getNameLike(), userSearchParams.isPrefix(), userSearchParams.getDescriptionLike(), userSearchParams.getResearcherPositions(), userSearchParams.getResearcherCategories(), userSearchParams.getOrganUberonIds(), ontologyTermsFromIds( userSearchParams.getOntologyTermIds() ) ) );
+                modelAndView.addObject( "termsAvailabilityByApiUri", getOntologyAvailabilityByApiUri( userSearchParams.getOntologyTermIds() ) );
             }
         }
         return modelAndView;
@@ -162,11 +166,15 @@ public class SearchController extends AbstractSearchController {
             modelAndView.addObject( "error", true );
             modelAndView.addObject( "users", Collections.emptyList() );
             modelAndView.addObject( "itlUsers", Collections.emptyList() );
+            modelAndView.addObject( "termsAvailabilityByApiUri", Collections.emptyMap() );
         } else {
             modelAndView.addObject( "searchSummary", summarizeUserSearchParams( new UserSearchParams( nameLike, prefix, "", iSearch, researcherPositions, researcherCategories, organUberonIds, ontologyTermIds ), locale ) );
             modelAndView.addObject( "users", users );
             if ( iSearch ) {
                 modelAndView.addObject( "itlUsers", remoteResourceService.findUsersByLikeName( nameLike, prefix, researcherPositions, researcherCategories, organUberonIds, null ) );
+                if ( ontologyTermIds != null ) {
+                    modelAndView.addObject( "termsAvailabilityByApiUri", getOntologyAvailabilityByApiUri( ontologyTermIds ) );
+                }
             }
         }
 
@@ -201,11 +209,15 @@ public class SearchController extends AbstractSearchController {
             modelAndView.addObject( "error", true );
             modelAndView.addObject( "users", Collections.emptyList() );
             modelAndView.addObject( "itlUsers", Collections.emptyList() );
+            modelAndView.addObject( "termsAvailabilityByApiUri", Collections.emptyMap() );
         } else {
             modelAndView.addObject( "searchSummary", summarizeUserSearchParams( new UserSearchParams( "", false, descriptionLike, iSearch, researcherPositions, researcherCategories, organUberonIds, ontologyTermIds ), locale ) );
             modelAndView.addObject( "users", userService.findByDescription( descriptionLike, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ), ontologyTermsFromIds( ontologyTermIds ) ) );
             if ( iSearch ) {
                 modelAndView.addObject( "itlUsers", remoteResourceService.findUsersByDescription( descriptionLike, researcherPositions, researcherCategories, organUberonIds, ontologyTermsFromIds( ontologyTermIds ) ) );
+                if ( ontologyTermIds != null ) {
+                    modelAndView.addObject( "termsAvailabilityByApiUri", getOntologyAvailabilityByApiUri( ontologyTermIds ) );
+                }
             }
         }
 
@@ -291,11 +303,19 @@ public class SearchController extends AbstractSearchController {
             return modelAndView;
         }
 
+        Map<Taxon, Set<GeneInfo>> orthologMap = orthologs.stream()
+                .sorted( Comparator.comparing( GeneInfo::getTaxon, Taxon.getComparator() ) )
+                .collect( Collectors.groupingBy( GeneInfo::getTaxon, LinkedHashMap::new, Collectors.toSet() ) );
+
         modelAndView
+                .addObject( "orthologs", orthologMap )
                 .addObject( "searchSummary", summarizeGeneSearchParams( new GeneSearchParams( gene, tiers, orthologTaxon, iSearch, researcherPositions, researcherCategories, organUberonIds, ontologyTermIds ), locale ) )
                 .addObject( "usergenes", userGeneService.handleGeneSearch( gene, tiers, orthologTaxon, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ), ontologyTermsFromIds( ontologyTermIds ) ) );
         if ( iSearch ) {
             modelAndView.addObject( "itlUsergenes", remoteResourceService.findGenesBySymbol( symbol, taxon, tiers, orthologTaxonId, researcherPositions, researcherCategories, organUberonIds, ontologyTermsFromIds( ontologyTermIds ) ) );
+            if ( ontologyTermIds != null ) {
+                modelAndView.addObject( "termsAvailabilityByApiUri", getOntologyAvailabilityByApiUri( ontologyTermIds ) );
+            }
         }
 
         return modelAndView;
@@ -311,8 +331,11 @@ public class SearchController extends AbstractSearchController {
             URI remoteHostUri = URI.create( remoteHost );
             try {
                 viewUser = remoteResourceService.getRemoteUser( userId, remoteHostUri );
+            } catch ( UnknownRemoteApiException e ) {
+                return new ModelAndView( "fragments/error::message", HttpStatus.BAD_REQUEST )
+                        .addObject( "errorMessage", String.format( "Unknown remote API %s.", remoteHostUri.getRawAuthority() ) );
             } catch ( RemoteException e ) {
-                log.error( MessageFormat.format( "Could not fetch the remote user id {0} from {1}.", userId, remoteHostUri.getRawAuthority() ), e );
+                log.warn( String.format( "Could not fetch the remote user id %s from %s: %s.", userId, remoteHostUri.getRawAuthority(), ExceptionUtils.getRootCauseMessage( e ) ) );
                 return new ModelAndView( "error/503", HttpStatus.SERVICE_UNAVAILABLE );
             }
         } else {

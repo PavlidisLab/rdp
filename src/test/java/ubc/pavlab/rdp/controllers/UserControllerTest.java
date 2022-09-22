@@ -15,7 +15,7 @@ import org.mockito.internal.util.collections.Sets;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Import;
+import org.springframework.context.MessageSource;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
@@ -25,7 +25,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
-import ubc.pavlab.rdp.WebSecurityConfig;
 import ubc.pavlab.rdp.exception.TokenException;
 import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.*;
@@ -33,8 +32,8 @@ import ubc.pavlab.rdp.services.*;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.settings.FaqSettings;
 import ubc.pavlab.rdp.settings.SiteSettings;
-import ubc.pavlab.rdp.util.OntologyMessageSource;
 
+import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.Locale;
 import java.util.Set;
@@ -54,7 +53,6 @@ import static ubc.pavlab.rdp.util.TestUtils.*;
  */
 @RunWith(SpringRunner.class)
 @WebMvcTest(UserController.class)
-@Import(WebSecurityConfig.class)
 public class UserControllerTest {
 
     @Autowired
@@ -83,6 +81,9 @@ public class UserControllerTest {
 
     @MockBean
     private ApplicationSettings.InternationalSearchSettings iSearchSettings;
+
+    @MockBean
+    private ApplicationSettings.OntologySettings ontologySettings;
 
     @MockBean(name = "userService")
     private UserService userService;
@@ -117,14 +118,16 @@ public class UserControllerTest {
     @MockBean(name = "ontologyService")
     private OntologyService ontologyService;
 
-    @MockBean
-    private OntologyMessageSource ontologyMessageSource;
+    @MockBean(name = "ontologyMessageSource")
+    private MessageSource ontologyMessageSource;
 
     @Before
     public void setUp() {
         when( applicationSettings.getEnabledTiers() ).thenReturn( EnumSet.allOf( TierType.class ) );
         when( applicationSettings.getPrivacy() ).thenReturn( privacySettings );
         when( applicationSettings.getProfile() ).thenReturn( profileSettings );
+        when( applicationSettings.getOntology() ).thenReturn( ontologySettings );
+        when( ontologySettings.isEnabled() ).thenReturn( true );
         when( profileSettings.getEnabledResearcherCategories() ).thenReturn( EnumSet.allOf( ResearcherCategory.class ) );
         when( profileSettings.getEnabledResearcherPositions() ).thenReturn( EnumSet.of( ResearcherPosition.PRINCIPAL_INVESTIGATOR ) );
         when( applicationSettings.getOrgans() ).thenReturn( organSettings );
@@ -601,26 +604,36 @@ public class UserControllerTest {
         User user = createUser( 1 );
         when( userService.findCurrentUser() ).thenReturn( user );
 
-        Profile updatedProfile = new Profile();
-        updatedProfile.setDepartment( "Department" );
-        updatedProfile.setDescription( "Description" );
-        updatedProfile.setLastName( "LastName" );
-        updatedProfile.setName( "Name" );
-        updatedProfile.setOrganization( "Organization" );
-        updatedProfile.setPhone( "555-555-5555" );
-        updatedProfile.setWebsite( "http://test.com" );
-        updatedProfile.setPrivacyLevel( PrivacyLevelType.PRIVATE );
-
-        ProfileWithoutOrganUberonIds payload = new ProfileWithoutOrganUberonIds();
-        payload.setProfile( updatedProfile );
+        JSONObject payload = new JSONObject();
+        payload.put( "department", "Department" );
+        payload.put( "description", "Description" );
+        payload.put( "lastName", "LastName" );
+        payload.put( "name", "Name" );
+        payload.put( "organization", "Organization" );
+        payload.put( "phone", "555-555-5555" );
+        payload.put( "website", "http://test.com" );
+        payload.put( "privacyLevel", PrivacyLevelType.PRIVATE.ordinal() );
+        payload.put( "publications", new ArrayList<>() );
+        JSONObject payload2 = new JSONObject();
+        payload2.put( "profile", payload );
 
         mvc.perform( post( "/user/profile" )
                         .contentType( MediaType.APPLICATION_JSON )
-                        .content( objectMapper.writeValueAsString( payload ) )
+                        .content( payload2.toString() )
                         .locale( Locale.ENGLISH ) )
                 .andExpect( status().isOk() );
 
-        verify( userService ).updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( user, updatedProfile, updatedProfile.getPublications(), null, null, Locale.ENGLISH );
+        Profile expectedProfile = new Profile();
+        expectedProfile.setDepartment( "Department" );
+        expectedProfile.setDescription( "Description" );
+        expectedProfile.setLastName( "LastName" );
+        expectedProfile.setName( "Name" );
+        expectedProfile.setOrganization( "Organization" );
+        expectedProfile.setPhone( "555-555-5555" );
+        expectedProfile.setWebsite( "http://test.com" );
+        expectedProfile.setPrivacyLevel( PrivacyLevelType.PRIVATE );
+
+        verify( userService ).updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( user, expectedProfile, expectedProfile.getPublications(), null, null, Locale.ENGLISH );
     }
 
     @Test
@@ -633,6 +646,7 @@ public class UserControllerTest {
 
         when( userService.findCurrentUser() ).thenReturn( user );
         JSONObject profileJson = new JSONObject( user.getProfile() );
+        profileJson.put( "privacyLevel", user.getProfile().getPrivacyLevel().ordinal() );
         JSONObject payload = new JSONObject();
         payload.put( "profile", profileJson );
 
@@ -655,7 +669,7 @@ public class UserControllerTest {
 
         JSONObject profileJson = new JSONObject( user.getProfile() );
         // FIXME: use jackson serializer to perform enum conversion from model
-        profileJson.put( "privacyLevel", PrivacyLevelType.SHARED.name() );
+        profileJson.put( "privacyLevel", PrivacyLevelType.SHARED.ordinal() );
 
         JSONObject payload = new JSONObject();
         payload.put( "profile", profileJson );
@@ -685,7 +699,7 @@ public class UserControllerTest {
 
         JSONObject profileJson = new JSONObject( user.getProfile() );
         // FIXME
-        profileJson.put( "privacyLevel", user.getProfile().getPrivacyLevel().name() );
+        profileJson.put( "privacyLevel", user.getProfile().getPrivacyLevel().ordinal() );
 
         JSONObject payload = new JSONObject();
         payload.put( "profile", profileJson );
@@ -827,7 +841,21 @@ public class UserControllerTest {
     @Test
     public void userSerialization() throws JsonProcessingException {
         User user = createUser( 1 );
+        user.getProfile().setName( "John" );
+        user.getProfile().setLastName( "Doe" );
         user.getProfile().setPrivacyLevel( PrivacyLevelType.PRIVATE );
+        User deserializedUser = objectMapper.readValue( objectMapper.writeValueAsString( user ), User.class );
+        assertThat( deserializedUser.getProfile().getPrivacyLevel() ).isEqualTo( PrivacyLevelType.PRIVATE );
+        assertThat( deserializedUser.getEffectivePrivacyLevel() ).isEqualTo( PrivacyLevelType.PRIVATE );
+        assertThat( deserializedUser.getProfile().getFullName() ).isEqualTo( "Doe, John" );
+        assertThat( deserializedUser.getProfile().getName() ).isEqualTo( "John" );
+        assertThat( deserializedUser.getProfile().getLastName() ).isEqualTo( "Doe" );
+    }
+
+    @Test
+    public void userSerialization_withNullProfile_thenDefaultToPrivate() throws JsonProcessingException {
+        User user = createUser( 1 );
+        user.setProfile( null );
         User deserializedUser = objectMapper.readValue( objectMapper.writeValueAsString( user ), User.class );
         assertThat( deserializedUser.getProfile().getPrivacyLevel() ).isEqualTo( PrivacyLevelType.PRIVATE );
         assertThat( deserializedUser.getEffectivePrivacyLevel() ).isEqualTo( PrivacyLevelType.PRIVATE );

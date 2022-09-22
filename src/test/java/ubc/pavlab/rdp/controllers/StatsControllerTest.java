@@ -2,11 +2,11 @@ package ubc.pavlab.rdp.controllers;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.info.BuildProperties;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.access.PermissionEvaluator;
@@ -17,7 +17,6 @@ import ubc.pavlab.rdp.services.UserGeneService;
 import ubc.pavlab.rdp.services.UserService;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.settings.SiteSettings;
-import ubc.pavlab.rdp.util.OntologyMessageSource;
 
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -49,8 +48,8 @@ public class StatsControllerTest {
     @MockBean
     private PermissionEvaluator permissionEvaluator;
 
-    @MockBean
-    private OntologyMessageSource ontologyMessageSource;
+    @MockBean(name = "ontologyMessageSource")
+    private MessageSource ontologyMessageSource;
 
     @MockBean
     private BuildProperties buildProperties;

@@ -219,9 +219,9 @@
     var currentTaxonId = [[${taxon.id}]];
     // TODO: serialize and use PrivacyLevelType instead of hardcoded values
     var privacyLevels = {
-        PRIVATE: {label: 'Private', ordinal: 0},
-        SHARED: {label: 'Shared', ordinal: 1},
-        PUBLIC: {label: 'Public', ordinal: 2}
+        0: {label: 'Private', ordinal: 0},
+        1: {label: 'Shared', ordinal: 1},
+        2: {label: 'Public', ordinal: 2}
     };
     var enabledGenePrivacyLevels = [[${@applicationSettings.privacy.enabledGeneLevels}]];
     var customizableGeneLevel = [[${@applicationSettings.privacy.customizableGeneLevel}]]

@@ -13,6 +13,7 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
+import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageImpl;
@@ -38,8 +39,8 @@ import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.repositories.*;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.settings.SiteSettings;
-import ubc.pavlab.rdp.util.OntologyMessageSource;
 
+import javax.annotation.PostConstruct;
 import javax.validation.ValidationException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -66,6 +67,18 @@ public class UserServiceImplTest {
 
     @TestConfiguration
     static class UserServiceImplTestContextConfiguration {
+
+        @MockBean
+        private ApplicationSettings applicationSettings;
+        @MockBean
+        private ApplicationSettings.InternationalSearchSettings internationalSearchSettings;
+
+        @PostConstruct
+        public void init() {
+            // this needs to be set early because it is used in UserServiceImpl.afterPropertiesSet()
+            when( internationalSearchSettings.getUserId() ).thenReturn( null );
+            when( applicationSettings.getIsearch() ).thenReturn( internationalSearchSettings );
+        }
 
         @Bean
         public PrivacyService privacyService() {
@@ -124,7 +137,7 @@ public class UserServiceImplTest {
     private OrganInfoService organInfoService;
     @MockBean
     private UserListener userListener;
-    @MockBean
+    @Autowired
     private ApplicationSettings applicationSettings;
     @MockBean
     private ApplicationSettings.OrganSettings organSettings;
@@ -136,8 +149,8 @@ public class UserServiceImplTest {
     private SiteSettings siteSettings;
     @MockBean
     private OntologyService ontologyService;
-    @MockBean
-    private OntologyMessageSource ontologyMessageSource;
+    @MockBean(name = "ontologyMessageSource")
+    private MessageSource ontologyMessageSource;
     @MockBean
     private PermissionEvaluator permissionEvaluator;
 

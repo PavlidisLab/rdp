@@ -8,7 +8,7 @@ import org.mockito.internal.verification.VerificationModeFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Import;
+import org.springframework.context.MessageSource;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.ResourceLoader;
@@ -30,7 +30,6 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StreamUtils;
-import ubc.pavlab.rdp.WebSecurityConfig;
 import ubc.pavlab.rdp.model.AccessToken;
 import ubc.pavlab.rdp.model.Role;
 import ubc.pavlab.rdp.model.User;
@@ -41,7 +40,6 @@ import ubc.pavlab.rdp.repositories.RoleRepository;
 import ubc.pavlab.rdp.services.*;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.settings.SiteSettings;
-import ubc.pavlab.rdp.util.OntologyMessageSource;
 import ubc.pavlab.rdp.util.ParseException;
 import ubc.pavlab.rdp.util.ProgressCallback;
 import ubc.pavlab.rdp.util.TestUtils;
@@ -51,6 +49,8 @@ import java.net.URI;
 import java.net.URL;
 import java.time.Duration;
 import java.util.*;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.zip.GZIPOutputStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -66,11 +66,13 @@ import static ubc.pavlab.rdp.util.TestUtils.createUser;
  */
 @RunWith(SpringRunner.class)
 @WebMvcTest(AdminController.class)
-@Import(WebSecurityConfig.class)
 public class AdminControllerTest {
 
     @Autowired
     private MockMvc mvc;
+
+    @Autowired
+    private AdminController adminController;
 
     @MockBean
     private UserDetailsService userDetailsService;
@@ -108,8 +110,8 @@ public class AdminControllerTest {
     @MockBean(name = "ontologyService")
     private OntologyService ontologyService;
 
-    @MockBean
-    private OntologyMessageSource ontologyMessageSource;
+    @MockBean(name = "ontologyMessageSource")
+    private MessageSource ontologyMessageSource;
 
     @Autowired
     private FormattingConversionService conversionService;
@@ -538,7 +540,7 @@ public class AdminControllerTest {
                 .andExpect( status().isOk() )
                 .andExpect( view().name( "admin/ontology" ) )
                 .andExpect( model().attribute( "message", "Successfully updated MONDO." ) );
-        verify( ontologyService ).save( ontology );
+        verify( ontologyService ).update( ontology );
         assertThat( ontology.isAvailableForGeneSearch() ).isTrue();
     }
 
@@ -815,7 +817,11 @@ public class AdminControllerTest {
                 .andExpect( redirectedUrl( "/admin/ontologies/1" ) );
         verify( reactomeService ).findPathwaysOntology();
         verify( reactomeService ).importPathwaysOntology();
-        // FIXME: this executes in a background thread, so it might necessary to wait a little amount of time
+        // the admin controller uses a single-threaded task executor, so if we queue and wait for a task to finish, it
+        // will guarantee that the pathways summations update has been invoked
+        Future<?> dummyTask = adminController.getTaskExecutor().submit( () -> {
+        } );
+        assertThat( dummyTask ).succeedsWithin( 1, TimeUnit.SECONDS );
         verify( reactomeService ).updatePathwaySummations( null );
         verifyNoMoreInteractions( reactomeService );
     }

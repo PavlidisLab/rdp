@@ -1,9 +1,7 @@
 package ubc.pavlab.rdp.services;
 
-import lombok.NonNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.security.authentication.BadCredentialsException;
 import ubc.pavlab.rdp.exception.TokenException;
 import ubc.pavlab.rdp.model.*;
@@ -29,6 +27,15 @@ public interface UserService {
 
     User createServiceAccount( User user );
 
+    List<Role> findAllRoles();
+
+    /**
+     * Update a user's roles.
+     * <p>
+     * Note that the current user cannot revoke its own roles as a safeguard.
+     */
+    void updateRoles( User user, Set<Role> roles ) throws RoleException;
+
     User update( User user );
 
     void delete( User user );
@@ -40,6 +47,8 @@ public interface UserService {
     String getCurrentEmail();
 
     User findCurrentUser();
+
+    boolean isCurrentUser( User user );
 
     User findUserById( int id );
 
@@ -118,23 +127,23 @@ public interface UserService {
      * <p>
      * Note: results are sorted according to {@link User#getComparator()}.
      */
-    List<User> findByLikeName( String nameLike, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherTypes, Collection<OrganInfo> userOrgans, Collection<OntologyTermInfo> ontologyTermInfos );
+    List<User> findByLikeName( String nameLike, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherTypes, Collection<OrganInfo> userOrgans, Map<Ontology, Set<OntologyTermInfo>> ontologyTermInfos );
 
     /**
      * Find users by their name using a prefix match.
      * <p>
      * Note: results are sorted according to {@link User#getComparator()}.
      */
-    List<User> findByStartsName( String startsName, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherTypes, Collection<OrganInfo> userOrgans, Collection<OntologyTermInfo> ontologyTermInfos );
+    List<User> findByStartsName( String startsName, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherTypes, Collection<OrganInfo> userOrgans, Map<Ontology, Set<OntologyTermInfo>> ontologyTermInfos );
 
     /**
      * Find users by their description and sorted according to {@link User#getComparator()}.
      * <p>
      * Note: results are sorted according to {@link User#getComparator()}.
      */
-    List<User> findByDescription( String descriptionLike, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherTypes, Collection<OrganInfo> userOrgans, Collection<OntologyTermInfo> ontologyTermInfos );
+    List<User> findByDescription( String descriptionLike, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherTypes, Collection<OrganInfo> userOrgans, Map<Ontology, Set<OntologyTermInfo>> ontologyTermInfos );
 
-    List<User> findByNameAndDescription( String nameLike, boolean prefix, String descriptionLike, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherCategories, Collection<OrganInfo> userOrgans, Collection<OntologyTermInfo> ontologyTermInfos );
+    List<User> findByNameAndDescription( String nameLike, boolean prefix, String descriptionLike, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherCategories, Collection<OrganInfo> userOrgans, Map<Ontology, Set<OntologyTermInfo>> ontologyTermInfos );
 
     Set<Integer> getUserTermInfoIds( User user );
 

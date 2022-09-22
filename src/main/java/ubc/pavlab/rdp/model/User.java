@@ -16,20 +16,18 @@ import org.springframework.util.StringUtils;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.model.ontology.Ontology;
-import ubc.pavlab.rdp.model.ontology.OntologyTerm;
 import ubc.pavlab.rdp.model.ontology.UserOntologyTerm;
 
 import javax.mail.internet.InternetAddress;
 import javax.persistence.*;
 import javax.validation.Valid;
-import java.io.Serializable;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.sql.Timestamp;
 import java.text.MessageFormat;
-import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -46,7 +44,7 @@ import java.util.stream.Collectors;
 @ToString(of = { "id", "anonymousId", "email", "enabled" })
 @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @CommonsLog
-public class User implements UserContent, Serializable {
+public class User implements RemoteResource, UserContent, Serializable {
 
     /**
      * Constraints for regular user accounts.
@@ -78,7 +76,11 @@ public class User implements UserContent, Serializable {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private UUID anonymousId;
 
+    /**
+     * For the JSON serialization, the representation is given by {@link #getVerifiedContactEmailJsonValue()}.
+     */
     @NaturalId
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @Column(name = "email", unique = true, nullable = false)
     @Email(message = "Your email address is not valid.", groups = { ValidationUserAccount.class })
     @NotNull(message = "Please provide an email address.", groups = { ValidationUserAccount.class, ValidationServiceAccount.class })
@@ -144,18 +146,6 @@ public class User implements UserContent, Serializable {
 
     @Transient
     private URI originUrl;
-
-    /**
-     * Ensure that the path of the URL is effectively stripped from any trailing slashes.
-     */
-    @SneakyThrows
-    public void setOriginUrl( URI originUrl ) {
-        if ( originUrl != null ) {
-            this.originUrl = new URI( originUrl.getScheme(), originUrl.getAuthority(), StringUtils.trimTrailingCharacter( originUrl.getPath(), '/' ), null, null );
-        } else {
-            this.originUrl = null;
-        }
-    }
 
     /* Research related information */
 
@@ -245,6 +235,21 @@ public class User implements UserContent, Serializable {
         }
     }
 
+    /**
+     * This is meant for JSON serialization of the user's public-facing email.
+     */
+    @JsonProperty("email")
+    public String getVerifiedContactEmailJsonValue() {
+        if ( profile != null && profile.isContactEmailVerified() ) {
+            return profile.getContactEmail();
+        } else if ( enabled ) {
+            return email;
+        } else {
+            return null;
+        }
+    }
+
+    @SuppressWarnings("unused")
     @JsonIgnore
     @Transient
     public Optional<Timestamp> getVerifiedAtContactEmail() {
@@ -264,7 +269,7 @@ public class User implements UserContent, Serializable {
     }
 
     @Override
-    @JsonProperty("privacyLevel")
+    @JsonProperty(value = "privacyLevel")
     public PrivacyLevelType getEffectivePrivacyLevel() {
         // this is a fallback
         if ( getProfile() == null || getProfile().getPrivacyLevel() == null ) {

@@ -6,11 +6,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.annotations.SortComparator;
 import org.springframework.context.MessageSourceResolvable;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.text.Collator;
 import java.util.*;
 
 /**
@@ -68,6 +70,27 @@ public class OntologyTermInfo extends OntologyTerm implements Serializable, Comp
                 .thenComparing( OntologyTermInfo::getTermId, Comparator.nullsLast( Comparator.naturalOrder() ) );
     }
 
+    /**
+     * Comparator used to compare and distinguish entries of {@link #synonyms}.
+     * <p>
+     * This is important because synonyms are part of the primary key alongside the {@link #id} and must respect the
+     * database collation.
+     */
+    public static class SynonymComparator implements Comparator<String> {
+
+        private static final Collator collator;
+
+        static {
+            collator = Collator.getInstance( Locale.ENGLISH );
+            collator.setStrength( Collator.PRIMARY );
+        }
+
+        @Override
+        public int compare( String a, String b ) {
+            return collator.compare( a, b );
+        }
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "ontology_term_info_id")
@@ -89,10 +112,11 @@ public class OntologyTermInfo extends OntologyTerm implements Serializable, Comp
      * Note: the collation of the synonym has to be binary since it is part of the primary key. Otherwise, two strings
      * differing by their case (i.e. 'foo' and 'Foo') would conflict.
      */
+    @SortComparator(SynonymComparator.class)
     @ElementCollection
     @CollectionTable(name = "ontology_term_info_synonyms", joinColumns = { @JoinColumn(name = "ontology_term_info_id") })
-    @Column(name = "synonym", nullable = false, columnDefinition = "varchar(" + OntologyTermInfo.MAX_SYNONYM_LENGTH + ") binary not null")
-    private final Set<String> synonyms = new HashSet<>();
+    @Column(name = "synonym", nullable = false)
+    private final SortedSet<String> synonyms = new TreeSet<>( new SynonymComparator() );
 
     /**
      * Indicate if the term is obsolete.

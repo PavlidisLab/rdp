@@ -88,7 +88,8 @@ public class OBOParser {
      * Types of relationship as defined by [Typedef] records.
      */
     @Data
-    @NoArgsConstructor
+    @AllArgsConstructor
+    @NoArgsConstructor(access = AccessLevel.PRIVATE)
     @EqualsAndHashCode(of = { "id" }, callSuper = false)
     public static class Typedef extends Stanza {
         /**
@@ -104,10 +105,6 @@ public class OBOParser {
         public static final Typedef PART_OF = new Typedef( "part_of" );
 
         private String id;
-
-        private Typedef( String id ) {
-            this.id = id;
-        }
     }
 
     /**
@@ -119,9 +116,12 @@ public class OBOParser {
 
         /**
          * Set of included relationships when parsing the OBO format.
+         * <p>
+         * Note: The {@link Typedef#IS_A} subclass relationship is always included, regardless of the value specified
+         * in this collection.
          */
         @Singular
-        Set<Typedef> includedRelationshipTypedefs;
+        private Set<Typedef> includedRelationshipTypedefs;
     }
 
     @Data

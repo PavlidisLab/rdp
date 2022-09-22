@@ -4,6 +4,7 @@ import lombok.*;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.Immutable;
 import org.hibernate.annotations.NaturalId;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 
 import javax.persistence.*;
 
@@ -30,4 +31,8 @@ public class Role {
     @NaturalId
     @Column(name = "role", unique = true)
     private String role;
+
+    public DefaultMessageSourceResolvable getResolvableTitle() {
+        return new DefaultMessageSourceResolvable( new String[]{ "Role." + role }, null, role );
+    }
 }

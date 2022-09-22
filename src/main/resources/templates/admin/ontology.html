@@ -218,7 +218,7 @@
                     </div>
                     <div th:if="${@userService.existsByOntology(ontology)}" class="card-body alert-warning">
                         The <strong th:text="${@messageSource.getMessage(ontology.resolvableTitle, #locale)}"></strong>
-                        category cannot be deleted because there users currently using it.
+                        category cannot be deleted because there are users currently using it.
                     </div>
                     <div th:unless="${@userService.existsByOntology(ontology)}" class="card-body">
                         <form th:action="@{/admin/ontologies/{ontologyId}(ontologyId=${ontology.id})}"

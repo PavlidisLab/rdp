@@ -1,6 +1,7 @@
 package ubc.pavlab.rdp.controllers;
 
 import lombok.extern.apachecommons.CommonsLog;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 import ubc.pavlab.rdp.exception.RemoteException;
+import ubc.pavlab.rdp.exception.UnknownRemoteApiException;
 import ubc.pavlab.rdp.model.GeneInfo;
 import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.model.User;
@@ -21,11 +23,12 @@ import ubc.pavlab.rdp.model.UserGene;
 import ubc.pavlab.rdp.model.enums.ResearcherCategory;
 import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import ubc.pavlab.rdp.model.enums.TierType;
+import ubc.pavlab.rdp.model.ontology.Ontology;
+import ubc.pavlab.rdp.model.ontology.OntologyTermInfo;
 import ubc.pavlab.rdp.services.*;
 
 import javax.validation.Valid;
 import java.net.URI;
-import java.text.MessageFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -308,6 +311,24 @@ public class SearchViewController extends AbstractSearchController {
                 .addObject( "orthologs", orthologMap );
     }
 
+    /**
+     * Summarize the available terms by partner API given a list of locally available terms used for searching.
+     * <p>
+     * The terms from this registry are matched in partner registries using the ontology name and the term ID as per
+     * {@link Ontology#getName()} and {@link OntologyTermInfo#getTermId()}.
+     *
+     * @param ontologyTermIds terms from this registry referred by their IDs
+     */
+    @PreAuthorize("hasPermission(null, 'international-search')")
+    @GetMapping("/search/view/international/available-terms-by-partner")
+    public ModelAndView getAvailableTermsByPartner( @RequestParam(required = false) List<Integer> ontologyTermIds ) {
+        if ( ontologyTermIds == null || ontologyTermIds.isEmpty() ) {
+            return new ModelAndView( "fragments/error::message", HttpStatus.BAD_REQUEST )
+                    .addObject( "errorMessage", "There must be at least one specified ontology term ID via 'ontologyTermIds'." );
+        }
+        return new ModelAndView( "fragments/search::available-terms-by-partner" )
+                .addObject( "ontologyAvailabilityByApiUri", getOntologyAvailabilityByApiUri( ontologyTermIds ) );
+    }
 
     @PreAuthorize("hasPermission(null, 'international-search')")
     @GetMapping(value = "/search/view/international", params = { "symbol", "taxonId" })
@@ -347,10 +368,14 @@ public class SearchViewController extends AbstractSearchController {
                                      @RequestParam(required = false) String remoteHost ) {
         User user;
         if ( remoteHost != null ) {
+            URI remoteHostUri = URI.create( remoteHost );
             try {
-                user = remoteResourceService.getRemoteUser( userId, URI.create( remoteHost ) );
+                user = remoteResourceService.getRemoteUser( userId, remoteHostUri );
+            } catch ( UnknownRemoteApiException e ) {
+                return new ModelAndView( "fragments/error::message", HttpStatus.BAD_REQUEST )
+                        .addObject( "errorMessage", String.format( "Unknown remote API %s.", remoteHostUri.getRawAuthority() ) );
             } catch ( RemoteException e ) {
-                log.error( "Could not retrieve user {0} from {1}.", e );
+                log.warn( String.format( "Failed to retrieve user with ID %d from %s: %s", userId, remoteHostUri.getRawAuthority(), ExceptionUtils.getRootCause( e ) ) );
                 return new ModelAndView( "fragments/error::message", HttpStatus.INTERNAL_SERVER_ERROR )
                         .addObject( "errorMessage", "Error querying remote user." );
             }
@@ -369,8 +394,11 @@ public class SearchViewController extends AbstractSearchController {
             URI remoteHostUri = URI.create( remoteHost );
             try {
                 user = remoteResourceService.getAnonymizedUser( anonymousId, remoteHostUri );
+            } catch ( UnknownRemoteApiException e ) {
+                return new ModelAndView( "fragments/error::message", HttpStatus.BAD_REQUEST )
+                        .addObject( "errorMessage", String.format( "Unknown remote API %s.", remoteHostUri.getRawAuthority() ) );
             } catch ( RemoteException e ) {
-                log.error( MessageFormat.format( "Failed to retrieve anonymized user {} from {}.", anonymousId, remoteHostUri.getRawAuthority() ), e );
+                log.warn( String.format( "Failed to retrieve user with anonymized user ID %s from %s: %s", anonymousId, remoteHostUri.getRawAuthority(), ExceptionUtils.getRootCauseMessage( e ) ) );
                 return new ModelAndView( "fragments/error::message", HttpStatus.INTERNAL_SERVER_ERROR )
                         .addObject( "errorMessage", "Error querying remote anonymous user." );
             }

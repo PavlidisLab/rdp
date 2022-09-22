@@ -11,5 +11,8 @@ nav:
   - release-notes.md
 plugins:
   - macros
+markdown_extensions:
+  - admonition
 extra:
-  rdp_version: 1.5.0-SNAPSHOT
+  rdp_version: 1.5.0
+  git_ref: release-1.5.0

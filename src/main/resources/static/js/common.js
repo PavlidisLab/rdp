@@ -142,7 +142,8 @@ var formUtil = require('./util/form');
             new ResizeObserver(function () {
                 document.querySelectorAll('.sticky-top').forEach(function (element) {
                     if (element !== stagingBanner) {
-                        element.style.top = stagingBanner.offsetHeight + 'px';
+                        // there's an extra pixel line that shows up above the sticky
+                        element.style.top = (stagingBanner.offsetHeight - 1) + 'px';
                     }
                 });
             }).observe(stagingBanner);
@@ -168,6 +169,10 @@ var formUtil = require('./util/form');
         var initialData = {};
         importantForms.forEach(function (form) {
             initialData[form] = formUtil.serialize(form);
+            /* update the initial data if the form is submitted */
+            form.addEventListener('submit', function () {
+                initialData[form] = formUtil.serialize(this);
+            });
         });
         window.addEventListener('beforeunload', function (event) {
             var unsavedChanges = Array.from(importantForms).some(function (form) {

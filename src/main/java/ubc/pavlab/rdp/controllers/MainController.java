@@ -2,19 +2,21 @@ package ubc.pavlab.rdp.controllers;
 
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseCookie;
-import org.springframework.http.ResponseEntity;
+import org.springframework.context.MessageSource;
+import org.springframework.context.NoSuchMessageException;
+import org.springframework.http.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
 import ubc.pavlab.rdp.services.UserService;
+import ubc.pavlab.rdp.util.Messages;
 
 import javax.servlet.http.HttpSession;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Locale;
 
 @Controller
 @CommonsLog
@@ -22,6 +24,9 @@ public class MainController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private MessageSource messageSource;
 
     @PreAuthorize("hasPermission(null, 'search')")
     @GetMapping(value = { "/" })
@@ -60,12 +65,24 @@ public class MainController {
     }
 
     @GetMapping(value = "/terms-of-service")
-    public String termsOfService() {
-        return "terms-of-service";
+    public ModelAndView termsOfService( Locale locale ) {
+        try {
+            return new ModelAndView( "terms-of-service" )
+                    .addObject( "termsOfService", messageSource.getMessage( "rdp.terms-of-service", new Object[]{ Messages.SHORTNAME, Messages.FULLNAME }, locale ) );
+        } catch ( NoSuchMessageException e ) {
+            return new ModelAndView( "error/404", HttpStatus.NOT_FOUND )
+                    .addObject( "message", "No terms of service document is setup for this registry." );
+        }
     }
 
     @GetMapping(value = "/privacy-policy")
-    public String privacyPolicy() {
-        return "privacy-policy";
+    public ModelAndView privacyPolicy( Locale locale ) {
+        try {
+            return new ModelAndView( "privacy-policy" )
+                    .addObject( "privacyPolicy", messageSource.getMessage( "rdp.privacy-policy", new Object[]{ Messages.SHORTNAME, Messages.FULLNAME }, locale ) );
+        } catch ( NoSuchMessageException e ) {
+            return new ModelAndView( "error/404", HttpStatus.NOT_FOUND )
+                    .addObject( "message", "No privacy policy is setup for this registry." );
+        }
     }
 }

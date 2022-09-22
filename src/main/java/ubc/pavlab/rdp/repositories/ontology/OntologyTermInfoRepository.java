@@ -84,7 +84,7 @@ public interface OntologyTermInfoRepository extends JpaRepository<OntologyTermIn
      * @see ubc.pavlab.rdp.services.OntologyService#createFromObo(Reader)
      * @see ubc.pavlab.rdp.services.OntologyService#updateFromObo(Ontology, Reader)
      */
-    @Query(value = "select t, synonym, match(synonym, lower(:query)) as score from OntologyTermInfo t join t.synonyms as synonym where t.active = :active and t.ontology in :ontologies and match(synonym, lower(:query)) > 0")
+    @Query(value = "select t, synonym, match(synonym, :query) as score from OntologyTermInfo t join t.synonyms as synonym where t.active = :active and t.ontology in :ontologies and match(synonym, :query) > 0")
     List<Object[]> findAllByOntologyInAndSynonymsMatchAndActive( @Param("ontologies") Set<Ontology> ontologies, @Param("query") String query, @Param("active") boolean active );
 
     /**
@@ -218,4 +218,6 @@ public interface OntologyTermInfoRepository extends JpaRepository<OntologyTermIn
     boolean existsByTermIdAndOntologyAndActiveTrue( String termId, Ontology ontology );
 
     boolean existsByOntologyAndActiveFalseAndObsoleteFalse( Ontology ontology );
+
+    List<OntologyTermInfo> findAllByOntologyAndActiveTrueAndTermIdIn( Ontology ontology, List<String> termIds );
 }

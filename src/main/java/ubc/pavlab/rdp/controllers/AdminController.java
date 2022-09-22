@@ -35,6 +35,7 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import ubc.pavlab.rdp.model.AccessToken;
 import ubc.pavlab.rdp.model.Profile;
+import ubc.pavlab.rdp.model.Role;
 import ubc.pavlab.rdp.model.User;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.ontology.Ontology;
@@ -57,7 +58,7 @@ import java.text.MessageFormat;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
-import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
@@ -94,7 +95,15 @@ public class AdminController {
      * Task executor used for background tasks.
      * TODO: make this a configurable bean
      */
-    private final Executor taskExecutor = Executors.newSingleThreadExecutor();
+    private final ExecutorService taskExecutor = Executors.newSingleThreadExecutor();
+
+    /**
+     * This is only meant for testing, please don't use.
+     */
+    @Secured(value = {})
+    ExecutorService getTaskExecutor() {
+        return taskExecutor;
+    }
 
     /**
      * List all users
@@ -137,6 +146,31 @@ public class AdminController {
         user = userService.createServiceAccount( user );
 
         return "redirect:/admin/users/" + user.getId();
+    }
+
+    @PostMapping(value = "/admin/users/{user}/roles")
+    public Object updateRoles( @PathVariable User user, @RequestParam(required = false) Set<Role> roles, RedirectAttributes redirectAttributes, Locale locale ) {
+        if ( roles == null ) {
+            roles = Collections.emptySet();
+        }
+        try {
+            userService.updateRoles( user, roles );
+            if ( roles.isEmpty() ) {
+                redirectAttributes.addFlashAttribute( "message", String.format(
+                        "All roles of %s have been revoked.",
+                        user.getProfile().getFullName() ) );
+            } else {
+                redirectAttributes.addFlashAttribute( "message", String.format(
+                        "The following roles have been assigned to %s: %s.",
+                        user.getProfile().getFullName(),
+                        roles.stream().map( role -> messageSource.getMessage( role.getResolvableTitle(), locale ) ).collect( Collectors.joining( ", " ) ) ) );
+            }
+        } catch ( RoleException e ) {
+            redirectAttributes.addFlashAttribute( "message", e.getMessage() );
+            redirectAttributes.addFlashAttribute( "error", true );
+        }
+        return "redirect:/admin/users/" + user.getId();
+
     }
 
     /**
@@ -296,7 +330,7 @@ public class AdminController {
             ontology.setDefinition( null );
         }
 
-        ontologyService.save( ontology );
+        ontologyService.update( ontology );
 
         modelAndView.addObject( "message", String.format( "Successfully updated %s.", messageSource.getMessage( ontology.getResolvableTitle(), locale ) ) );
 
@@ -327,7 +361,7 @@ public class AdminController {
                 redirectAttributes.addFlashAttribute( "message", String.format( "The %s category has been deleted.", messageSource.getMessage( ontology.getResolvableTitle(), locale ) ) );
                 return "redirect:/admin/ontologies";
             } catch ( DataIntegrityViolationException e ) {
-                log.error( String.format( "An administrator attempted to delete %s, but it failed.", ontology ), e );
+                log.warn( String.format( "An administrator attempted to delete %s, but it failed: %s", ontology, e.getMessage() ) );
                 modelAndView.setStatus( HttpStatus.BAD_REQUEST );
                 modelAndView.addObject( "error", true );
                 modelAndView.addObject( "message", String.format( "The %s category could not be deleted because it is being used. Instead, you should deactivate it.", messageSource.getMessage( ontology.getResolvableTitle(), locale ) ) );
@@ -617,7 +651,7 @@ public class AdminController {
                 int numActivated = ontologyService.propagateSubtreeActivation( ontology );
                 redirectAttributes.addFlashAttribute( "message", String.format( "Updated %s from %s. %d terms got activated via subtree propagation.", messageSource.getMessage( ontology.getResolvableTitle(), locale ), ontology.getOntologyUrl(), numActivated ) );
             } catch ( IOException | ParseException e ) {
-                log.error( String.format( "Failed to update ontology %s from administrative section.", ontology ), e );
+                log.warn( String.format( "Failed to update ontology %s from administrative section.", ontology ), e );
                 return new ModelAndView( "admin/ontology", HttpStatus.BAD_REQUEST )
                         .addAllObjects( defaultsForOntologyModelAndView( ontology ) )
                         .addObject( "message", String.format( "Failed to update %s: %s", messageSource.getMessage( ontology.getResolvableTitle(), locale ), e.getMessage() ) )
@@ -636,7 +670,7 @@ public class AdminController {
         try ( Reader reader = getReaderForImportOntologyForm( importOntologyForm ) ) {
             Ontology ontology = ontologyService.createFromObo( reader );
             ontology.setOntologyUrl( importOntologyForm.ontologyUrl );
-            ontologyService.save( ontology );
+            ontologyService.update( ontology );
             return "redirect:/admin/ontologies/" + ontology.getId();
         } catch ( OntologyNameAlreadyUsedException e ) {
             bindingResult.reject( "AdminController.ImportOntologyForm.ontologyWithSameNameAlreadyUsed", new String[]{ e.getOntologyName() },
@@ -644,7 +678,7 @@ public class AdminController {
             return new ModelAndView( "admin/ontologies", HttpStatus.BAD_REQUEST )
                     .addObject( "simpleOntologyForm", SimpleOntologyForm.withInitialRows() );
         } catch ( IOException | ParseException e ) {
-            log.error( String.format( "Failed to import ontology from submitted form: %s.", importOntologyForm ), e );
+            log.warn( String.format( "Failed to import ontology from submitted form: %s.", importOntologyForm ), e );
             bindingResult.reject( "AdminController.ImportOntologyForm.failedToParseOboFormat", new String[]{ importOntologyForm.getFilename(), e.getMessage() },
                     String.format( "Failed to parse the ontology OBO format from %s: %s", importOntologyForm.getFilename(), e.getMessage() ) );
             return new ModelAndView( "admin/ontologies", HttpStatus.INTERNAL_SERVER_ERROR )

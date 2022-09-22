@@ -20,10 +20,8 @@ import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
-import ubc.pavlab.rdp.WebSecurityConfig;
 import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.TierType;
@@ -48,7 +46,7 @@ import static ubc.pavlab.rdp.util.TestUtils.*;
 @WebMvcTest(value = ApiController.class,
         properties = { "rdp.site.mainsite=https://example.com" })
 @RunWith(SpringRunner.class)
-@Import({ WebSecurityConfig.class, SiteSettings.class })
+@Import({ SiteSettings.class })
 @EnableSpringDataWebSupport
 public class ApiControllerTest {
 
@@ -146,6 +144,41 @@ public class ApiControllerTest {
                 .andExpect( jsonPath( "$[0].originUrl" ).value( "http://localhost" ) );
         verify( userService ).findByNameAndDescription( "robert", false, "pancake", null, null, null, null );
         verify( userPrivacyService ).checkCurrentUserCanSeeGeneList( user );
+    }
+
+    @Test
+    public void searchUsers_whenTermDoesNotExist() throws Exception {
+        when( ontologyService.findTermByTermIdsAndOntologyNames( any(), any() ) ).thenReturn( Collections.emptyList() );
+        when( ontologyService.findByNameAndActiveTrue( "MONDO" ) ).thenReturn( null );
+        mvc.perform( get( "/api/users/search" )
+                        .param( "nameLike", "" )
+                        .param( "descriptionLike", "" )
+                        .param( "ontologyNames", "MONDO" )
+                        .param( "ontologyTermIds", "MONDO:0000001" ) )
+                .andExpect( status().isBadRequest() )
+                .andExpect( content().contentTypeCompatibleWith( MediaType.TEXT_PLAIN ) )
+                .andExpect( content().string( "The following ontologies do not exist in this registry: MONDO." ) );
+        verify( ontologyService ).findTermByTermIdsAndOntologyNames( Collections.singletonList( "MONDO:0000001" ), Collections.singletonList( "MONDO" ) );
+        verify( ontologyService ).findByNameAndActiveTrue( "MONDO" );
+        verifyNoInteractions( userService );
+    }
+
+    @Test
+    public void searchUsers_whenTermDoesNotExistByOntologyDoes_thenReturnEmptyList() throws Exception {
+        Ontology ontology = Ontology.builder( "MONDO" ).build();
+        when( ontologyService.findTermByTermIdsAndOntologyNames( any(), any() ) ).thenReturn( Collections.emptyList() );
+        when( ontologyService.findByNameAndActiveTrue( "MONDO" ) ).thenReturn( ontology );
+        mvc.perform( get( "/api/users/search" )
+                        .param( "nameLike", "" )
+                        .param( "descriptionLike", "" )
+                        .param( "ontologyNames", "MONDO" )
+                        .param( "ontologyTermIds", "MONDO:0000001" ) )
+                .andExpect( status().isOk() )
+                .andExpect( content().contentTypeCompatibleWith( MediaType.APPLICATION_JSON ) )
+                .andExpect( content().string( "[]" ) );
+        verify( ontologyService ).findTermByTermIdsAndOntologyNames( Collections.singletonList( "MONDO:0000001" ), Collections.singletonList( "MONDO" ) );
+        verify( ontologyService ).findByNameAndActiveTrue( "MONDO" );
+        verify( userService ).findByNameAndDescription( "", false, "", null, null, null, Collections.singletonMap( ontology, Collections.emptySet() ) );
     }
 
     @Test

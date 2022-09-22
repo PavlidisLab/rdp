@@ -17,7 +17,7 @@
                 ...
             </div>
         </div>
-        <div th:if="${viewUser} eq ${@userService.findCurrentUser()}" class="col text-right">
+        <div th:if="${@userService.isCurrentUser(viewUser)}" class="col text-right">
             <a class="btn btn-primary btn-lg"
                th:href="@{/user/profile}">
                 <i class="oi oi-pencil"></i>

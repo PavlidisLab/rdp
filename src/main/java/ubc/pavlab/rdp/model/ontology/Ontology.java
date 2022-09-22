@@ -2,6 +2,7 @@ package ubc.pavlab.rdp.model.ontology;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.LazyCollection;
 import org.hibernate.annotations.LazyCollectionOption;
 import org.springframework.context.MessageSourceResolvable;
@@ -25,7 +26,7 @@ import java.util.TreeSet;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
+@SuperBuilder
 @EqualsAndHashCode(of = { "name" })
 @ToString(of = { "id", "name" })
 public class Ontology implements Comparable<Ontology> {
@@ -36,8 +37,8 @@ public class Ontology implements Comparable<Ontology> {
      */
     public static final int MAX_NAME_LENGTH = 255;
 
-    public static OntologyBuilder builder( @NonNull String name ) {
-        return new OntologyBuilder().name( name );
+    public static OntologyBuilder<?, ?> builder( @NonNull String name ) {
+        return new OntologyBuilderImpl().name( name );
     }
 
     /**
@@ -88,7 +89,7 @@ public class Ontology implements Comparable<Ontology> {
      */
     @JsonIgnore
     @OneToMany(mappedBy = "ontology", cascade = CascadeType.ALL, orphanRemoval = true)
-    @OrderBy("ordering asc, name asc, termId asc")
+    @OrderBy("ordering asc, active desc, name asc, termId asc")
     @LazyCollection(LazyCollectionOption.EXTRA)
     private final SortedSet<OntologyTermInfo> terms = new TreeSet<>();
 

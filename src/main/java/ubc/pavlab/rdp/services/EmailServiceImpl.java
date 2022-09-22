@@ -27,8 +27,7 @@ import java.time.format.FormatStyle;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Locale;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
 
 /**
  * Created by mjacobson on 19/01/18.
@@ -46,7 +45,9 @@ public class EmailServiceImpl implements EmailService {
     @Autowired
     private MessageSource messageSource;
 
-    private Future<Void> sendSimpleMessage( String subject, String content, InternetAddress to, InternetAddress replyTo, InternetAddress cc ) throws AddressException {
+    private final ExecutorService executorService = Executors.newSingleThreadExecutor();
+
+    private Future<?> sendSimpleMessage( String subject, String content, InternetAddress to, InternetAddress replyTo, InternetAddress cc ) throws AddressException {
         SimpleMailMessage email = new SimpleMailMessage();
 
         email.setSubject( subject );
@@ -60,10 +61,10 @@ public class EmailServiceImpl implements EmailService {
             email.setCc( cc.toString() );
         }
 
-        return CompletableFuture.runAsync( () -> emailSender.send( email ) );
+        return executorService.submit( () -> emailSender.send( email ) );
     }
 
-    private Future<Void> sendMultipartMessage( String subject, String content, InternetAddress to, InternetAddress replyTo, MultipartFile attachment ) throws MessagingException {
+    private Future<?> sendMultipartMessage( String subject, String content, InternetAddress to, InternetAddress replyTo, MultipartFile attachment ) throws MessagingException {
         MimeMessage message = emailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper( message, true );
 
@@ -81,11 +82,11 @@ public class EmailServiceImpl implements EmailService {
             log.warn( String.format( "Attachment %s is lacking a filename, it will be discarded.", attachment ) );
         }
 
-        return CompletableFuture.runAsync( () -> emailSender.send( message ) );
+        return executorService.submit( () -> emailSender.send( message ) );
     }
 
     @Override
-    public Future<Void> sendSupportMessage( String message, String name, User user, String userAgent, MultipartFile attachment, Locale locale ) throws MessagingException {
+    public Future<?> sendSupportMessage( String message, String name, User user, String userAgent, MultipartFile attachment, Locale locale ) throws MessagingException {
         InternetAddress replyTo = user.getVerifiedContactEmail().orElseThrow( () -> new MessagingException( "Could not find a verified email address for user." ) );
         String shortName = messageSource.getMessage( "rdp.site.shortname", new String[]{ siteSettings.getHostUrl().toString() }, Locale.getDefault() );
         String subject = messageSource.getMessage( "EmailService.sendSupportMessage.subject", new String[]{ shortName }, locale );
@@ -104,7 +105,7 @@ public class EmailServiceImpl implements EmailService {
     }
 
     @Override
-    public Future<Void> sendResetTokenMessage( User user, PasswordResetToken token, Locale locale ) throws MessagingException {
+    public Future<?> sendResetTokenMessage( User user, PasswordResetToken token, Locale locale ) throws MessagingException {
         URI url = UriComponentsBuilder.fromUri( siteSettings.getHostUrl() )
                 .path( "updatePassword" )
                 .queryParam( "id", "{id}" )
@@ -132,7 +133,7 @@ public class EmailServiceImpl implements EmailService {
     }
 
     @Override
-    public Future<Void> sendRegistrationMessage( User user, VerificationToken token, Locale locale ) throws MessagingException {
+    public Future<?> sendRegistrationMessage( User user, VerificationToken token, Locale locale ) throws MessagingException {
         String shortName = messageSource.getMessage( "rdp.site.shortname", new String[]{ siteSettings.getHostUrl().toString() }, locale );
         String registrationWelcome = messageSource.getMessage( "rdp.site.email.registration-welcome", new String[]{ siteSettings.getHostUrl().toString(), shortName }, locale );
         String registrationEnding = messageSource.getMessage( "rdp.site.email.registration-ending", new String[]{ siteSettings.getContactEmail() }, locale );
@@ -150,7 +151,7 @@ public class EmailServiceImpl implements EmailService {
     }
 
     @Override
-    public Future<Void> sendContactEmailVerificationMessage( User user, VerificationToken token, Locale locale ) throws MessagingException {
+    public Future<?> sendContactEmailVerificationMessage( User user, VerificationToken token, Locale locale ) throws MessagingException {
         InternetAddress recipientAddress = new InternetAddress( user.getProfile().getContactEmail() );
         String shortName = messageSource.getMessage( "rdp.site.shortname", new String[]{ siteSettings.getHostUrl().toString() }, locale );
         String subject = messageSource.getMessage( "EmailService.sendContactEmailVerificationMessage.subject", new String[]{ shortName }, locale );
@@ -163,7 +164,7 @@ public class EmailServiceImpl implements EmailService {
     }
 
     @Override
-    public Future<Void> sendUserRegisteredEmail( User user ) throws MessagingException {
+    public Future<?> sendUserRegisteredEmail( User user ) throws MessagingException {
         // unfortunately, there's no way to tell the dmin locale
         Locale locale = Locale.getDefault();
         String shortname = messageSource.getMessage( "rdp.site.shortname", null, locale );
@@ -173,7 +174,7 @@ public class EmailServiceImpl implements EmailService {
     }
 
     @Override
-    public Future<Void> sendUserGeneAccessRequest( UserGene userGene, User replyTo, String reason ) throws MessagingException {
+    public Future<?> sendUserGeneAccessRequest( UserGene userGene, User replyTo, String reason ) throws MessagingException {
         URI viewUserUrl = UriComponentsBuilder.fromUri( siteSettings.getHostUrl() )
                 .path( "search/user/{userId}" )
                 .build( Collections.singletonMap( "userId", replyTo.getId() ) );

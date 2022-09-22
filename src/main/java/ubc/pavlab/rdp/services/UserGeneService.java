@@ -26,6 +26,7 @@ import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.ResearcherCategory;
 import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import ubc.pavlab.rdp.model.enums.TierType;
+import ubc.pavlab.rdp.model.ontology.Ontology;
 import ubc.pavlab.rdp.model.ontology.OntologyTermInfo;
 
 import java.util.*;
@@ -39,17 +40,19 @@ public interface UserGeneService {
 
     Page<UserGene> findByUserEnabledTrueAndPrivacyLevelNoAuth( PrivacyLevelType privacyLevelType, Pageable pageable );
 
-    Integer countUniqueAssociations();
+    long countUniqueAssociations();
 
-    Integer countAssociations();
+    long countAssociations();
 
-    Map<String, Integer> researcherCountByTaxon();
+    Map<String, Long> researcherCountByTaxon();
 
-    Integer countUsersWithGenes();
+    Map<Integer, Long> researcherCountByTaxonId();
 
-    Integer countUniqueAssociationsAllTiers();
+    long countUsersWithGenes();
 
-    Integer countUniqueAssociationsToHumanAllTiers();
+    long countUniqueAssociationsAllTiers();
+
+    long countUniqueAssociationsToHumanAllTiers();
 
     /**
      * Perform a search and retrieve all the user genes that match the provided gene description and optional
@@ -67,7 +70,7 @@ public interface UserGeneService {
      * @param organs              only retain results where the corresponding {@link User} tracks any of the given {@link OrganInfo}
      * @param ontologyTermInfos
      */
-    List<UserGene> handleGeneSearch( Gene gene, Set<TierType> tiers, Taxon orthologTaxon, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherTypes, Collection<OrganInfo> organs, Collection<OntologyTermInfo> ontologyTermInfos );
+    List<UserGene> handleGeneSearch( Gene gene, Set<TierType> tiers, Taxon orthologTaxon, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherTypes, Collection<OrganInfo> organs, Map<Ontology, Set<OntologyTermInfo>> ontologyTermInfos );
 
     void updateUserGenes();
 }

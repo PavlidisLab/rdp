@@ -5,10 +5,11 @@ import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.internal.verification.VerificationModeFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Import;
+import org.springframework.context.MessageSource;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -16,28 +17,31 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
-import ubc.pavlab.rdp.WebSecurityConfig;
 import ubc.pavlab.rdp.exception.RemoteException;
+import ubc.pavlab.rdp.exception.UnknownRemoteApiException;
 import ubc.pavlab.rdp.listeners.UserListener;
 import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.ResearcherCategory;
 import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import ubc.pavlab.rdp.model.enums.TierType;
+import ubc.pavlab.rdp.model.ontology.Ontology;
+import ubc.pavlab.rdp.model.ontology.OntologyTermInfo;
+import ubc.pavlab.rdp.model.ontology.RemoteOntology;
 import ubc.pavlab.rdp.security.Permissions;
 import ubc.pavlab.rdp.services.*;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.settings.SiteSettings;
-import ubc.pavlab.rdp.util.OntologyMessageSource;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.LinkedHashSet;
-import java.util.UUID;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -47,7 +51,6 @@ import static ubc.pavlab.rdp.util.TestUtils.*;
 
 @RunWith(SpringRunner.class)
 @WebMvcTest({ SearchController.class, SearchViewController.class })
-@Import(WebSecurityConfig.class)
 public class SearchControllerTest {
 
     @Autowired
@@ -119,8 +122,8 @@ public class SearchControllerTest {
     @MockBean(name = "ontologyService")
     private OntologyService ontologyService;
 
-    @MockBean
-    private OntologyMessageSource ontologyMessageSource;
+    @MockBean(name = "ontologyMessageSource")
+    private MessageSource ontologyMessageSource;
 
     @Before
     public void setUp() {
@@ -304,6 +307,16 @@ public class SearchControllerTest {
         mvc.perform( get( "/search/user/{userId}", 1 )
                         .param( "remoteHost", "example.com" ) )
                 .andExpect( status().isNotFound() );
+        verify( remoteResourceService ).getRemoteUser( 1, URI.create( "example.com" ) );
+    }
+
+    @Test
+    public void getUser_whenRemoteIsUnknown_thenReturnBadRequest() throws Exception {
+        when( remoteResourceService.getRemoteUser( 1, URI.create( "example.com" ) ) ).thenThrow( UnknownRemoteApiException.class );
+        when( privacyService.checkCurrentUserCanSearch( true ) ).thenReturn( true );
+        mvc.perform( get( "/search/user/{userId}", 1 )
+                        .param( "remoteHost", "example.com" ) )
+                .andExpect( status().isBadRequest() );
         verify( remoteResourceService ).getRemoteUser( 1, URI.create( "example.com" ) );
     }
 
@@ -560,6 +573,80 @@ public class SearchControllerTest {
                 .andExpect( status().is3xxRedirection() )
                 .andExpect( redirectedUrl( "/search/user/2" ) )
                 .andExpect( flash().attributeExists( "message" ) );
+    }
+
+    @Test
+    public void getOntologyAccessibility() throws Exception {
+        Ontology mondo = Ontology.builder( "mondo" ).build();
+        mondo.getTerms().addAll( IntStream.range( 1, 5 )
+                .mapToObj( i -> OntologyTermInfo.builder( mondo, String.format( "MONDO:%06d", i ) ).name( String.format( "MONDO:%06d", i ) ).build() )
+                .collect( Collectors.toList() ) );
+        Ontology uberon = Ontology.builder( "uberon" ).build();
+        mondo.getTerms().addAll( IntStream.range( 5, 9 )
+                .mapToObj( i -> OntologyTermInfo.builder( uberon, String.format( "UBERON:%06d", i ) ).name( String.format( "UBERON:%06d", i ) ).build() )
+                .collect( Collectors.toList() ) );
+        when( ontologyService.findAllTermsByIdIn( any() ) )
+                .thenReturn( new ArrayList<>( mondo.getTerms() ) );
+
+        // in this scenario, a partner API has a few terms in mondo and does not have uberon altogether
+        RemoteOntology remoteMondo = RemoteOntology.builder( "mondo" )
+                .origin( "RDP" )
+                .originUrl( URI.create( "http://example.com" ) ).build();
+        when( remoteResourceService.getApiUris() ).thenReturn( Collections.singletonList( URI.create( "http://example.com" ) ) );
+        when( remoteResourceService.getTermsByOntologyNameAndTerms( eq( mondo ), any(), eq( URI.create( "http://example.com" ) ) ) )
+                .thenReturn( CompletableFuture.completedFuture( createRemoteOntologyTerms( remoteMondo, "MONDO:000001", "MONDO:000003", "MONDO:000004" ) ) );
+        when( remoteResourceService.getTermsByOntologyNameAndTerms( eq( uberon ), any(), eq( URI.create( "http://example.com" ) ) ) )
+                .thenReturn( CompletableFuture.completedFuture( null ) );
+
+        mvc.perform( get( "/search/view/international/available-terms-by-partner" )
+                        .queryParam( "ontologyTermIds", "1", "2", "3", "4", "5", "6", "7", "8" ) )
+                .andExpect( status().isOk() )
+                .andExpect( content().contentTypeCompatibleWith( MediaType.TEXT_HTML ) )
+                // make sure the registry name gets interpolated correctly
+                .andExpect( content().string( Matchers.containsString( "RDP</a> does not have" ) ) )
+                .andExpect( content().string( Matchers.containsString( "There are missing categories and terms in partner registries, so not all results can be displayed." ) ) )
+                .andExpect( model().attribute( "ontologyAvailabilityByApiUri",
+                        hasEntry( Matchers.equalTo( URI.create( "http://example.com" ) ),
+                                Matchers.containsInAnyOrder(
+                                        allOf(
+                                                hasProperty( "origin", equalTo( "RDP" ) ),
+                                                hasProperty( "originUrl", equalTo( URI.create( "http://example.com" ) ) ),
+                                                hasProperty( "ontology", is( mondo ) ),
+                                                hasProperty( "available", equalTo( true ) ),
+                                                hasProperty( "availableTerms", Matchers.hasSize( 3 ) ),
+                                                hasProperty( "missingTerms", Matchers.hasSize( 1 ) )
+                                        ),
+                                        allOf(
+                                                // even if Uberon terms are missing from the output object, the origin and originUrl can still be inferred using MONDO
+                                                hasProperty( "origin", equalTo( "RDP" ) ),
+                                                hasProperty( "originUrl", equalTo( URI.create( "http://example.com" ) ) ),
+                                                hasProperty( "ontology", is( uberon ) ),
+                                                hasProperty( "available", equalTo( false ) ),
+                                                hasProperty( "availableTerms", Matchers.empty() ),
+                                                hasProperty( "missingTerms", Matchers.hasSize( 4 ) )
+                                        )
+                                ) ) ) );
+        verify( ontologyService ).findAllTermsByIdIn( Arrays.asList( 1, 2, 3, 4, 5, 6, 7, 8 ) );
+    }
+
+    @Test
+    public void getOntologyAccessibility_whenNoTermsAreSupplied() throws Exception {
+        mvc.perform( get( "/search/view/international/available-terms-by-partner" ) )
+                .andExpect( status().isBadRequest() )
+                .andExpect( view().name( "fragments/error::message" ) );
+        verifyNoInteractions( ontologyService );
+        verifyNoInteractions( remoteResourceService );
+    }
+
+    @Test
+    public void getOntologyAccessibility_whenNonExistingTermsAreSupplied() throws Exception {
+        mvc.perform( get( "/search/view/international/available-terms-by-partner" )
+                        .queryParam( "ontologyTermIds", "1" ) )
+                .andExpect( status().isOk() )
+                .andExpect( content().string( Matchers.not( Matchers.containsString( "There are missing categories and terms in partner registries, so not all results can be displayed." ) ) ) );
+        verify( ontologyService ).findAllTermsByIdIn( Collections.singletonList( 1 ) );
+        verify( remoteResourceService, VerificationModeFactory.atLeastOnce() ).getApiUris();
+        verifyNoMoreInteractions( remoteResourceService );
     }
 
     /**
