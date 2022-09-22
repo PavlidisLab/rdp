@@ -403,7 +403,7 @@ public class GOServiceImpl implements GOService, InitializingBean {
         }
         return goRepository.findById( id )
                 .map( term -> getGenesInTaxon( term, taxon ) )
-                .orElse( Collections.emptySet() );
+                .orElseGet( Collections::emptySet );
     }
 
     @Override

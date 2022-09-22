@@ -11,7 +11,6 @@ import org.springframework.context.MessageSourceResolvable;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 
 import javax.persistence.*;
-import java.io.Serializable;
 import java.text.Collator;
 import java.util.*;
 
@@ -35,7 +34,7 @@ import java.util.*;
 @ToString(of = { "id" }, callSuper = true)
 @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 @SuperBuilder
-public class OntologyTermInfo extends OntologyTerm implements Serializable, Comparable<OntologyTermInfo> {
+public class OntologyTermInfo extends OntologyTerm implements Comparable<OntologyTermInfo> {
 
     /**
      * Maximum size of term ID and name.

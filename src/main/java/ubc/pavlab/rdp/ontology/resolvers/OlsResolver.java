@@ -21,7 +21,7 @@ public class OlsResolver implements OntologyResolver {
 
     @Override
     public boolean accepts( Ontology ontology ) {
-        return ontology.getOntologyUrl() != null && ontology.getOntologyUrl().toString().startsWith( DEFAULT_IRI_PREFIX );
+        return ontology.getOntologyUrl() != null && ontology.getOntologyUrl().toExternalForm().startsWith( DEFAULT_IRI_PREFIX );
     }
 
     @Override
@@ -34,6 +34,6 @@ public class OlsResolver implements OntologyResolver {
     public URI resolveViewTermUrl( OntologyTerm term ) {
         return UriComponentsBuilder.fromHttpUrl( "https://www.ebi.ac.uk/ols/ontologies/{0}/terms" )
                 .queryParam( "iri", "{1}" )
-                .build( term.getOntology().getName(), DEFAULT_IRI_PREFIX + term.getTermId().replace( ":", "_" ) );
+                .build( term.getOntology().getName(), DEFAULT_IRI_PREFIX + term.getTermId().replace( ':', '_' ) );
     }
 }

@@ -70,6 +70,11 @@ public class OntologyServiceTest {
         public CacheManager cacheManager() {
             return new ConcurrentMapCacheManager();
         }
+
+        @Bean
+        public OBOParser oboParser() {
+            return new OBOParser();
+        }
     }
 
     @Autowired
@@ -267,7 +272,7 @@ public class OntologyServiceTest {
         // the ontology relationships might not have been fully initialized (i.e. term super terms when sub terms are set)
         entityManager.refresh( ontology );
         StringWriter buf = new StringWriter();
-        ontologyService.writeObo( ontology, buf );
+        ontologyService.writeObo( ontology, buf, TimeZone.getDefault() );
         Map<String, OBOParser.Term> parsedTerms = new OBOParser().parse( new StringReader( buf.getBuffer().toString() ) ).getTermsByIdOrAltId();
         assertThat( ontology.getTerms().stream()
                 .map( OntologyTerm::getTermId ).sorted().collect( Collectors.toList() ) )

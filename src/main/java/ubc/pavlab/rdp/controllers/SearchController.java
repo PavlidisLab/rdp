@@ -114,7 +114,7 @@ public class SearchController extends AbstractSearchController {
             } else {
                 modelAndView.addObject( "Invalid user search parameters." );
             }
-            modelAndView.addObject( "error", true );
+            modelAndView.addObject( "error", Boolean.TRUE );
             modelAndView.addObject( "users", Collections.emptyList() );
             if ( userSearchParams.isISearch() ) {
                 modelAndView.addObject( "itlUsers", Collections.emptyList() );
@@ -163,7 +163,7 @@ public class SearchController extends AbstractSearchController {
         if ( nameLike.isEmpty() ) {
             modelAndView.setStatus( HttpStatus.BAD_REQUEST );
             modelAndView.addObject( "message", "Researcher name cannot be empty." );
-            modelAndView.addObject( "error", true );
+            modelAndView.addObject( "error", Boolean.TRUE );
             modelAndView.addObject( "users", Collections.emptyList() );
             modelAndView.addObject( "itlUsers", Collections.emptyList() );
             modelAndView.addObject( "termsAvailabilityByApiUri", Collections.emptyMap() );
@@ -206,7 +206,7 @@ public class SearchController extends AbstractSearchController {
         if ( descriptionLike.isEmpty() ) {
             modelAndView.setStatus( HttpStatus.BAD_REQUEST );
             modelAndView.addObject( "message", "Research interests cannot be empty." );
-            modelAndView.addObject( "error", true );
+            modelAndView.addObject( "error", Boolean.TRUE );
             modelAndView.addObject( "users", Collections.emptyList() );
             modelAndView.addObject( "itlUsers", Collections.emptyList() );
             modelAndView.addObject( "termsAvailabilityByApiUri", Collections.emptyMap() );
@@ -275,7 +275,7 @@ public class SearchController extends AbstractSearchController {
         if ( symbol.isEmpty() ) {
             modelAndView.setStatus( HttpStatus.BAD_REQUEST );
             modelAndView.addObject( "message", "Gene symbol cannot be empty." );
-            modelAndView.addObject( "error", true );
+            modelAndView.addObject( "error", Boolean.TRUE );
             return modelAndView;
         }
 

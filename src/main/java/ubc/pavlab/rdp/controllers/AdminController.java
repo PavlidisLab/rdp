@@ -167,7 +167,7 @@ public class AdminController {
             }
         } catch ( RoleException e ) {
             redirectAttributes.addFlashAttribute( "message", e.getMessage() );
-            redirectAttributes.addFlashAttribute( "error", true );
+            redirectAttributes.addFlashAttribute( "error", Boolean.TRUE );
         }
         return "redirect:/admin/users/" + user.getId();
 
@@ -361,9 +361,9 @@ public class AdminController {
                 redirectAttributes.addFlashAttribute( "message", String.format( "The %s category has been deleted.", messageSource.getMessage( ontology.getResolvableTitle(), locale ) ) );
                 return "redirect:/admin/ontologies";
             } catch ( DataIntegrityViolationException e ) {
-                log.warn( String.format( "An administrator attempted to delete %s, but it failed: %s", ontology, e.getMessage() ) );
+                log.warn( String.format( "An administrator attempted to delete %s, but it failed: %s", ontology.toString().replaceAll( "[\r\n]", "" ), e.getMessage() ) );
                 modelAndView.setStatus( HttpStatus.BAD_REQUEST );
-                modelAndView.addObject( "error", true );
+                modelAndView.addObject( "error", Boolean.TRUE );
                 modelAndView.addObject( "message", String.format( "The %s category could not be deleted because it is being used. Instead, you should deactivate it.", messageSource.getMessage( ontology.getResolvableTitle(), locale ) ) );
             }
         }
@@ -592,9 +592,9 @@ public class AdminController {
                     .filter( row -> !row.isEmpty() )
                     .map( SimpleOntologyTermForm::getTermId )
                     .filter( termId -> !StringUtils.isEmpty( termId ) ) // empty or null term IDs are generated
-                    .collect( Collectors.groupingBy( t -> t, Collectors.counting() ) );
+                    .collect( Collectors.groupingBy( identity(), Collectors.counting() ) );
             if ( countsByTermId.values().stream().anyMatch( x -> x > 1 ) ) {
-                errors.rejectValue( "ontologyTerms", "AdminController.SimpleOntologyForm.ontologyTerms.nonUniqueTermIds", "termId must be unique" );
+                errors.rejectValue( "ontologyTerms", "AdminController.SimpleOntologyForm.ontologyTerms.nonUniqueTermIds" );
             }
 
             // validate non-empty rows
@@ -643,7 +643,7 @@ public class AdminController {
             return new ModelAndView( "admin/ontology", HttpStatus.BAD_REQUEST )
                     .addAllObjects( defaultsForOntologyModelAndView( ontology ) )
                     .addObject( "message", "The provided ontology cannot be updated because it lacks an external URL." )
-                    .addObject( "error", true );
+                    .addObject( "error", Boolean.TRUE );
         } else {
             Resource urlResource = ontologyService.resolveOntologyUrl( ontology.getOntologyUrl() );
             try ( Reader reader = new InputStreamReader( urlResource.getInputStream() ) ) {
@@ -651,11 +651,11 @@ public class AdminController {
                 int numActivated = ontologyService.propagateSubtreeActivation( ontology );
                 redirectAttributes.addFlashAttribute( "message", String.format( "Updated %s from %s. %d terms got activated via subtree propagation.", messageSource.getMessage( ontology.getResolvableTitle(), locale ), ontology.getOntologyUrl(), numActivated ) );
             } catch ( IOException | ParseException e ) {
-                log.warn( String.format( "Failed to update ontology %s from administrative section.", ontology ), e );
+                log.warn( String.format( "Failed to update ontology %s from administrative section.", ontology.toString().replaceAll( "[\r\n]", "" ) ), e );
                 return new ModelAndView( "admin/ontology", HttpStatus.BAD_REQUEST )
                         .addAllObjects( defaultsForOntologyModelAndView( ontology ) )
                         .addObject( "message", String.format( "Failed to update %s: %s", messageSource.getMessage( ontology.getResolvableTitle(), locale ), e.getMessage() ) )
-                        .addObject( "error", true );
+                        .addObject( "error", Boolean.TRUE );
             }
         }
         return "redirect:/admin/ontologies/" + ontology.getId();
@@ -673,14 +673,12 @@ public class AdminController {
             ontologyService.update( ontology );
             return "redirect:/admin/ontologies/" + ontology.getId();
         } catch ( OntologyNameAlreadyUsedException e ) {
-            bindingResult.reject( "AdminController.ImportOntologyForm.ontologyWithSameNameAlreadyUsed", new String[]{ e.getOntologyName() },
-                    String.format( "An ontology with the same name '%s' is already used.", e.getOntologyName() ) );
+            bindingResult.reject( "AdminController.ImportOntologyForm.ontologyWithSameNameAlreadyUsed", new String[]{ e.getOntologyName() }, null );
             return new ModelAndView( "admin/ontologies", HttpStatus.BAD_REQUEST )
                     .addObject( "simpleOntologyForm", SimpleOntologyForm.withInitialRows() );
         } catch ( IOException | ParseException e ) {
             log.warn( String.format( "Failed to import ontology from submitted form: %s.", importOntologyForm ), e );
-            bindingResult.reject( "AdminController.ImportOntologyForm.failedToParseOboFormat", new String[]{ importOntologyForm.getFilename(), e.getMessage() },
-                    String.format( "Failed to parse the ontology OBO format from %s: %s", importOntologyForm.getFilename(), e.getMessage() ) );
+            bindingResult.reject( "AdminController.ImportOntologyForm.failedToParseOboFormat", new String[]{ importOntologyForm.getFilename(), e.getMessage() }, null );
             return new ModelAndView( "admin/ontologies", HttpStatus.INTERNAL_SERVER_ERROR )
                     .addObject( "simpleOntologyForm", SimpleOntologyForm.withInitialRows() );
         }
@@ -711,7 +709,7 @@ public class AdminController {
         } catch ( ReactomeException e ) {
             log.error( "Failed to import Reactome pathways. Could this be an issue with the ontology configuration?", e );
             redirectAttributes.addFlashAttribute( "message", "Failed to import Reactome pathways: " + e.getMessage() + "." );
-            redirectAttributes.addFlashAttribute( "error", true );
+            redirectAttributes.addFlashAttribute( "error", Boolean.TRUE );
             return "redirect:/admin/ontologies";
         }
     }
@@ -730,7 +728,7 @@ public class AdminController {
         } catch ( ReactomeException e ) {
             log.error( "Failed to update Reactome pathways. Could this be an issue with the ontology configuration?", e );
             redirectAttributes.addFlashAttribute( "message", "Failed to update Reactome pathways: " + e.getMessage() + "." );
-            redirectAttributes.addFlashAttribute( "error", true );
+            redirectAttributes.addFlashAttribute( "error", Boolean.TRUE );
             return "redirect:/admin/ontologies";
         }
     }
@@ -948,7 +946,7 @@ public class AdminController {
      * Provides the ontology in OBO format.
      */
     @GetMapping(value = "/admin/ontologies/{ontology}/download", produces = "text/plain")
-    public ResponseEntity<StreamingResponseBody> downloadOntology( @PathVariable(required = false) Ontology ontology ) {
+    public ResponseEntity<StreamingResponseBody> downloadOntology( @PathVariable(required = false) Ontology ontology, TimeZone timeZone ) {
         if ( ontology == null ) {
             return ResponseEntity.notFound().build();
         }
@@ -957,7 +955,7 @@ public class AdminController {
         headers.set( "Content-Disposition", String.format( "attachment; filename=%s.obo", ontology.getName() ) );
         return new ResponseEntity<>( outputStream -> {
             try ( Writer writer = new OutputStreamWriter( outputStream ) ) {
-                ontologyService.writeObo( ontology, writer );
+                ontologyService.writeObo( ontology, writer, timeZone );
             }
         }, headers, HttpStatus.OK );
     }
@@ -1002,7 +1000,7 @@ public class AdminController {
             d = OntologyService.Direction.DOWN;
         } else {
             return new ModelAndView( "admin/ontologies", HttpStatus.BAD_REQUEST )
-                    .addObject( "error", true )
+                    .addObject( "error", Boolean.TRUE )
                     .addObject( "message", String.format( "Invalid direction %s.", direction ) )
                     .addObject( "simpleOntologyForm", SimpleOntologyForm.withInitialRows() );
         }
