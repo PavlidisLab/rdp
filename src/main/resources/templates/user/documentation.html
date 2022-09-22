@@ -108,15 +108,6 @@
                                                     <li th:each="ontology :${@ontologyService.findAllOntologies()}"
                                                         th:if="${@ontologyService.isSimple(ontology)}">
                                                         <span th:text="${@messageSource.getMessage(ontology.resolvableTitle, #locale)}"></span>
-                                                        <th:block
-                                                                th:if="${#messages.msgOrNull(ontology.resolvableDefinition.code)} != null">
-                                                            <br/>
-                                                            <small th:text="${@messageSource.getMessage(ontology.resolvableDefinition, #locale)}"></small>
-                                                        </th:block>
-                                                        <span th:if="${ontology.availableForGeneSearch}"
-                                                              class="badge badge-info">
-                                                            available for gene search
-                                                        </span>
                                                     </li>
                                                 </ul>
                                             </th:block>
@@ -125,21 +116,7 @@
                                                 <ul>
                                                     <li th:each="ontology :${@ontologyService.findAllOntologies()}"
                                                         th:unless="${@ontologyService.isSimple(ontology)}">
-                                                        <a th:if="${@ontologyResolver.accepts(ontology)}"
-                                                           th:text="${@messageSource.getMessage(ontology.resolvableTitle, #locale)}"
-                                                           th:href="${@ontologyResolver.resolveViewOntologyUrl(ontology)}"
-                                                           target="_blank" rel="noopener"></a>
-                                                        <span th:unless="${@ontologyResolver.accepts(ontology)}"
-                                                              th:text="${@messageSource.getMessage(ontology.resolvableTitle, #locale)}"></span>
-                                                        <span th:if="${ontology.availableForGeneSearch}"
-                                                              class="badge badge-info">
-                                                            available for gene search
-                                                        </span>
-                                                        <th:block
-                                                                th:if="${#messages.msgOrNull(ontology.resolvableDefinition.code)} != null">
-                                                            <br/>
-                                                            <small th:text="${@messageSource.getMessage(ontology.resolvableDefinition, #locale)}"></small>
-                                                        </th:block>
+                                                        <span th:text="${@messageSource.getMessage(ontology.resolvableTitle, #locale)}"></span>
                                                     </li>
                                                 </ul>
                                             </th:block>
@@ -489,11 +466,11 @@
                                      data-parent="#search-accordion">
                                     <div class="card-body">
                                         <p>
-                                            The <a th:href="@{/search}">Search</a> page allows you to search other
+                                            The <a th:href="@{/search}">Search page</a> allows you to search other
                                             registered users who chose to share their data publicly and/or with other
                                             users of the Registry. If "Include results from partner registries" option
                                             is selected, the registry will also connect to remote registries of the
-                                            <span th:text="#{rdp.site.shortname}"></span>partners and search their
+                                            <span th:text="#{rdp.site.shortname}"></span> partners and search their
                                             "public" users. These results will be displayed in a separate section with
                                             the indication from which registry the matches are coming from ("Origin").
                                         </p>
@@ -532,12 +509,8 @@
                                                 symbols for the selected organism (selection made in a dropdown menu).
                                                 If you want to search for a match using a human gene, but consider
                                                 orthologs in other model organisms, you would use the secondary
-                                                dropdown menu to indicate the preferred organism. The ortholog mapping
-                                                is based on
-                                                <a href="https://www.flyrnai.org/diopt" target="_blank"
-                                                   rel="noopener">DIOPT</a> 9.1
-                                                results, filtered for score strictly greater than 5, either best forward
-                                                or reverse match and rank "high" or "moderate".
+                                                dropdown menu to indicate the preferred organism.
+                                                <span th:utext="#{rdp.cache.ortholog-source-description}"></span>
                                             </p>
                                             <p>
                                                 The "Gene" tab allows you to search for registered users based on genes

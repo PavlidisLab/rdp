@@ -86,6 +86,14 @@ NCBI gene orthologs:
 rdp.settings.cache.orthologs-file=ftp://ftp.ncbi.nlm.nih.gov/gene/DATA/gene_orthologs.gz
 ```
 
+If you change the source, you should also adjust the text that appears in the user documentation in
+your `messages.properties` file.
+
+```properties
+rdp.cache.ortholog-source-description=The ortholog mapping is based on <a href="https://www.flyrnai.org/cgi-bin/DRSC_orthologs_v09.pl" target="_blank" rel="noopener">DIOPT version 9</a> \
+results, filtered for score >5, either best forward or reverse match and Rank = "high" or Rank = "moderate".
+```
+
 As with other remotely downloaded files, this would be updated monthly.
 
 ## Privacy levels
