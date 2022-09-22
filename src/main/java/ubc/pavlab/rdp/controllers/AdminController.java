@@ -361,7 +361,7 @@ public class AdminController {
                 redirectAttributes.addFlashAttribute( "message", String.format( "The %s category has been deleted.", messageSource.getMessage( ontology.getResolvableTitle(), locale ) ) );
                 return "redirect:/admin/ontologies";
             } catch ( DataIntegrityViolationException e ) {
-                log.error( String.format( "An administrator attempted to delete %s, but it failed.", ontology ), e );
+                log.warn( String.format( "An administrator attempted to delete %s, but it failed: %s", ontology, e.getMessage() ) );
                 modelAndView.setStatus( HttpStatus.BAD_REQUEST );
                 modelAndView.addObject( "error", true );
                 modelAndView.addObject( "message", String.format( "The %s category could not be deleted because it is being used. Instead, you should deactivate it.", messageSource.getMessage( ontology.getResolvableTitle(), locale ) ) );
@@ -651,7 +651,7 @@ public class AdminController {
                 int numActivated = ontologyService.propagateSubtreeActivation( ontology );
                 redirectAttributes.addFlashAttribute( "message", String.format( "Updated %s from %s. %d terms got activated via subtree propagation.", messageSource.getMessage( ontology.getResolvableTitle(), locale ), ontology.getOntologyUrl(), numActivated ) );
             } catch ( IOException | ParseException e ) {
-                log.error( String.format( "Failed to update ontology %s from administrative section.", ontology ), e );
+                log.warn( String.format( "Failed to update ontology %s from administrative section.", ontology ), e );
                 return new ModelAndView( "admin/ontology", HttpStatus.BAD_REQUEST )
                         .addAllObjects( defaultsForOntologyModelAndView( ontology ) )
                         .addObject( "message", String.format( "Failed to update %s: %s", messageSource.getMessage( ontology.getResolvableTitle(), locale ), e.getMessage() ) )
@@ -678,7 +678,7 @@ public class AdminController {
             return new ModelAndView( "admin/ontologies", HttpStatus.BAD_REQUEST )
                     .addObject( "simpleOntologyForm", SimpleOntologyForm.withInitialRows() );
         } catch ( IOException | ParseException e ) {
-            log.error( String.format( "Failed to import ontology from submitted form: %s.", importOntologyForm ), e );
+            log.warn( String.format( "Failed to import ontology from submitted form: %s.", importOntologyForm ), e );
             bindingResult.reject( "AdminController.ImportOntologyForm.failedToParseOboFormat", new String[]{ importOntologyForm.getFilename(), e.getMessage() },
                     String.format( "Failed to parse the ontology OBO format from %s: %s", importOntologyForm.getFilename(), e.getMessage() ) );
             return new ModelAndView( "admin/ontologies", HttpStatus.INTERNAL_SERVER_ERROR )

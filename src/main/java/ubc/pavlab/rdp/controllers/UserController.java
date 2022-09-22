@@ -325,7 +325,6 @@ public class UserController {
 
     @Data
     @Builder
-    @Jacksonized
     static class ProfileWithOrganUberonIdsAndOntologyTerms {
         /**
          * Profile

@@ -7,7 +7,6 @@ import org.mockito.internal.util.collections.Sets;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.junit4.SpringRunner;
 import ubc.pavlab.rdp.JpaAuditingConfig;
@@ -130,11 +129,6 @@ public class UserGeneRepositoryTest {
         long count = userGeneRepository.countDistinctGeneByUserEnabledTrueAndTierIn( TierType.MANUAL );
 
         assertThat( count ).isEqualTo( 2 );
-    }
-
-    @Test(expected = InvalidDataAccessResourceUsageException.class)
-    public void countDistinctGeneByTierIn_whenTierNotMatch_thenDontCount() {
-        long count = userGeneRepository.countDistinctGeneByUserEnabledTrueAndTierIn( EnumSet.noneOf( TierType.class ) );
     }
 
     @Test

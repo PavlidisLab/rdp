@@ -138,7 +138,7 @@ public class LoginController {
             redirectAttributes.addFlashAttribute( "message", "Your account has been enabled successfully, and you can now proceed to login." );
             modelAndView.setViewName( "redirect:/login" );
         } catch ( TokenException e ) {
-            log.error( String.format( "Could not confirm registration token: %s.", e.getMessage() ) );
+            log.warn( String.format( "Could not confirm registration token: %s.", e.getMessage() ) );
             modelAndView.setStatus( HttpStatus.NOT_FOUND );
             modelAndView.setViewName( "error/404" );
         }

@@ -321,7 +321,11 @@ public class SearchViewController extends AbstractSearchController {
      */
     @PreAuthorize("hasPermission(null, 'international-search')")
     @GetMapping("/search/view/international/available-terms-by-partner")
-    public ModelAndView getAvailableTermsByPartner( @RequestParam List<Integer> ontologyTermIds ) {
+    public ModelAndView getAvailableTermsByPartner( @RequestParam(required = false) List<Integer> ontologyTermIds ) {
+        if ( ontologyTermIds == null || ontologyTermIds.isEmpty() ) {
+            return new ModelAndView( "fragments/error::message", HttpStatus.BAD_REQUEST )
+                    .addObject( "errorMessage", "There must be at least one specified ontology term ID via 'ontologyTermIds'." );
+        }
         return new ModelAndView( "fragments/search::available-terms-by-partner" )
                 .addObject( "ontologyAvailabilityByApiUri", getOntologyAvailabilityByApiUri( ontologyTermIds ) );
     }

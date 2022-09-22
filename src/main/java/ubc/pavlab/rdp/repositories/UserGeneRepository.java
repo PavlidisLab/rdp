@@ -7,7 +7,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-import ubc.pavlab.rdp.model.GeneInfo;
 import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.model.UserGene;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
@@ -22,6 +21,16 @@ public interface UserGeneRepository extends JpaRepository<UserGene, Integer> {
 
     long countByUserEnabledTrueAndTierIn( Collection<TierType> tiers );
 
+    /**
+     * Count distinct genes among enabled users satisfying the given tiers.
+     * <p>
+     * Note: distinct in Spring JPA does not perform a distinct on the property, but rather the entity which is
+     * unsuitable for this query and some of the queries below. Also, as a result, the IN (...) clauses must not be
+     * passed empty collections.
+     *
+     * @param tiers a collection of tiers which must not be empty otherwise a {@link org.springframework.dao.InvalidDataAccessResourceUsageException}
+     *              will be raised
+     */
     @Query("select count(distinct ug.geneId) from UserGene ug where ug.user.enabled = true and ug.tier IN (:tiers)")
     long countDistinctGeneByUserEnabledTrueAndTierIn( @Param("tiers") Collection<TierType> tiers );
 

@@ -8,6 +8,9 @@
     <logger name="org.springframework" level="WARN"/>
     <logger name="org.hibernate" level="WARN"/>
     <logger name="org.hibernate.cache.ehcache.AbstractEhcacheRegionFactory" level="ERROR"/>
+    <logger name="org.hibernate.orm.deprecation" level="ERROR"/>
     <logger name="net.sf.ehcache.config.CacheConfiguration" level="ERROR"/>
+    <logger name="com.zaxxer.hikari" level="WARN"/>
+    <logger name="org.flywaydb.core" level="WARN"/>
     <logger name="ubc.pavlab.rdp" level="ERROR"/>
 </configuration>

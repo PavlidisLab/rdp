@@ -335,7 +335,7 @@ public class SearchController extends AbstractSearchController {
                 return new ModelAndView( "fragments/error::message", HttpStatus.BAD_REQUEST )
                         .addObject( "errorMessage", String.format( "Unknown remote API %s.", remoteHostUri.getRawAuthority() ) );
             } catch ( RemoteException e ) {
-                log.error( String.format( "Could not fetch the remote user id %s from %s: %s.", userId, remoteHostUri.getRawAuthority(), ExceptionUtils.getRootCauseMessage( e ) ) );
+                log.warn( String.format( "Could not fetch the remote user id %s from %s: %s.", userId, remoteHostUri.getRawAuthority(), ExceptionUtils.getRootCauseMessage( e ) ) );
                 return new ModelAndView( "error/503", HttpStatus.SERVICE_UNAVAILABLE );
             }
         } else {

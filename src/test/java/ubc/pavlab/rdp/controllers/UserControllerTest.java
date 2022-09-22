@@ -646,6 +646,7 @@ public class UserControllerTest {
 
         when( userService.findCurrentUser() ).thenReturn( user );
         JSONObject profileJson = new JSONObject( user.getProfile() );
+        profileJson.put( "privacyLevel", user.getProfile().getPrivacyLevel().ordinal() );
         JSONObject payload = new JSONObject();
         payload.put( "profile", profileJson );
 

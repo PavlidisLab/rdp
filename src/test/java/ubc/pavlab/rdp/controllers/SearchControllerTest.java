@@ -632,7 +632,8 @@ public class SearchControllerTest {
     @Test
     public void getOntologyAccessibility_whenNoTermsAreSupplied() throws Exception {
         mvc.perform( get( "/search/view/international/available-terms-by-partner" ) )
-                .andExpect( status().isBadRequest() );
+                .andExpect( status().isBadRequest() )
+                .andExpect( view().name( "fragments/error::message" ) );
         verifyNoInteractions( ontologyService );
         verifyNoInteractions( remoteResourceService );
     }
