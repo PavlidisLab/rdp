@@ -6,6 +6,7 @@ import lombok.EqualsAndHashCode;
 import lombok.SneakyThrows;
 import lombok.experimental.SuperBuilder;
 import lombok.extern.apachecommons.CommonsLog;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +25,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 import ubc.pavlab.rdp.exception.RemoteException;
+import ubc.pavlab.rdp.exception.UnknownRemoteApiException;
 import ubc.pavlab.rdp.model.RemoteResource;
 import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.model.User;
@@ -103,7 +105,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService, Initial
                                 log.warn( String.format( "Partner registry %s's origin URL %s differs from API URL in the configuration: %s.", rr.getOrigin(), rr.getOriginUrl(), apiUri ) );
                             }
                         } else {
-                            log.warn( String.format( "Failed to reach partner registry %s.", expectedOriginUrl ), ex );
+                            log.warn( String.format( "Failed to reach partner registry %s: %s", expectedOriginUrl, ExceptionUtils.getRootCauseMessage( ex ) ) );
                         }
                         return null;
                     } );
@@ -224,8 +226,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService, Initial
     }
 
     @Override
-    public List<User> findUsersByLikeNameAndDescription( String nameLike, boolean prefix, String
-            descriptionLike, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherCategories, Set<String> organUberonIds, Map<Ontology, Set<OntologyTermInfo>> ontologyTermInfos ) {
+    public List<User> findUsersByLikeNameAndDescription( String nameLike, boolean prefix, String descriptionLike, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherCategories, Set<String> organUberonIds, Map<Ontology, Set<OntologyTermInfo>> ontologyTermInfos ) {
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add( "nameLike", nameLike );
         params.add( "prefix", String.valueOf( prefix ) );
@@ -241,48 +242,49 @@ public class RemoteResourceServiceImpl implements RemoteResourceService, Initial
             requestFilters.add( satisfiesVersion( "1.5.0" ) );
         }
         requestFilters.add( ( remoteHost, path, apiParams, chain ) -> {
+            String apiVersion;
             try {
-                String apiVersion = remoteResourceService.getApiVersion( remoteHost );
-                if ( VersionUtils.satisfiesVersion( apiVersion, "1.5.0" ) ) {
-                    return chain.next().filter( remoteHost, path, apiParams, chain );
-                } else if ( VersionUtils.satisfiesVersion( apiVersion, "1.0.0" ) ) {
-                    // this is a pre-1.5 workaround that reproduces the result of the query by intersecting the output
-                    // of two endpoints
-
-                    // request 1 (nameLike)
-                    MultiValueMap<String, String> apiParams1 = new LinkedMultiValueMap<>( apiParams );
-                    apiParams1.remove( "descriptionLike" );
-                    URI uri1 = UriComponentsBuilder.fromUri( remoteHost )
-                            .path( path )
-                            .replaceQueryParams( apiParams1 )
-                            .build().toUri();
-                    CompletableFuture<ResponseEntity<User[]>> nameLikeFuture = asyncRestTemplate.getForEntity( uri1, User[].class ).completable();
-
-                    // request 2 (descriptionLike)
-                    MultiValueMap<String, String> apiParams2 = new LinkedMultiValueMap<>( apiParams );
-                    apiParams2.remove( "nameLike" );
-                    apiParams2.remove( "prefix" );
-                    URI uri2 = UriComponentsBuilder.fromUri( remoteHost )
-                            .path( path )
-                            .replaceQueryParams( apiParams2 )
-                            .build().toUri();
-                    CompletableFuture<ResponseEntity<User[]>> descriptionLikeFuture = asyncRestTemplate.getForEntity( uri2, User[].class ).completable();
-
-                    return Optional.of( Pair.of( uri1, nameLikeFuture.thenCombine( descriptionLikeFuture, ( a, b ) -> {
-                        if ( a.getBody() == null || b.getBody() == null ) {
-                            log.warn( String.format( "One or both of these responses had a null body: %s, %s. Nothing will be returned for the intersection.", a, b ) );
-                            return new ResponseEntity<>( new User[0], a.getHeaders(), a.getStatusCode() );
-                        }
-                        Set<User> nameLikeUsers = new HashSet<>( Arrays.asList( a.getBody() ) );
-                        Set<User> descriptionLikeUsers = new HashSet<>( Arrays.asList( b.getBody() ) );
-                        nameLikeUsers.retainAll( descriptionLikeUsers );
-                        return new ResponseEntity<>( nameLikeUsers.toArray( new User[0] ), a.getHeaders(), a.getStatusCode() );
-                    } ) ) );
-                } else {
-                    return Optional.empty();
-                }
+                apiVersion = remoteResourceService.getApiVersion( remoteHost );
             } catch ( RemoteException e ) {
-                log.warn( String.format( "Failed to retrieve API version from %s: %s.", remoteHost, e.getMessage() ), e );
+                log.warn( String.format( "Failed to retrieve API version from %s: %s.", remoteHost, ExceptionUtils.getRootCauseMessage( e ) ) );
+                return Optional.empty();
+            }
+            if ( VersionUtils.satisfiesVersion( apiVersion, "1.5.0" ) ) {
+                return chain.next().filter( remoteHost, path, apiParams, chain );
+            } else if ( VersionUtils.satisfiesVersion( apiVersion, "1.0.0" ) ) {
+                // this is a pre-1.5 workaround that reproduces the result of the query by intersecting the output
+                // of two endpoints
+
+                // request 1 (nameLike)
+                MultiValueMap<String, String> apiParams1 = new LinkedMultiValueMap<>( apiParams );
+                apiParams1.remove( "descriptionLike" );
+                URI uri1 = UriComponentsBuilder.fromUri( remoteHost )
+                        .path( path )
+                        .replaceQueryParams( apiParams1 )
+                        .build().toUri();
+                CompletableFuture<ResponseEntity<User[]>> nameLikeFuture = asyncRestTemplate.getForEntity( uri1, User[].class ).completable();
+
+                // request 2 (descriptionLike)
+                MultiValueMap<String, String> apiParams2 = new LinkedMultiValueMap<>( apiParams );
+                apiParams2.remove( "nameLike" );
+                apiParams2.remove( "prefix" );
+                URI uri2 = UriComponentsBuilder.fromUri( remoteHost )
+                        .path( path )
+                        .replaceQueryParams( apiParams2 )
+                        .build().toUri();
+                CompletableFuture<ResponseEntity<User[]>> descriptionLikeFuture = asyncRestTemplate.getForEntity( uri2, User[].class ).completable();
+
+                return Optional.of( Pair.of( uri1, nameLikeFuture.thenCombine( descriptionLikeFuture, ( a, b ) -> {
+                    if ( a.getBody() == null || b.getBody() == null ) {
+                        log.warn( String.format( "One or both of these responses had a null body: %s, %s. Nothing will be returned for the intersection.", a, b ) );
+                        return new ResponseEntity<>( new User[0], a.getHeaders(), a.getStatusCode() );
+                    }
+                    Set<User> nameLikeUsers = new HashSet<>( Arrays.asList( a.getBody() ) );
+                    Set<User> descriptionLikeUsers = new HashSet<>( Arrays.asList( b.getBody() ) );
+                    nameLikeUsers.retainAll( descriptionLikeUsers );
+                    return new ResponseEntity<>( nameLikeUsers.toArray( new User[0] ), a.getHeaders(), a.getStatusCode() );
+                } ) ) );
+            } else {
                 return Optional.empty();
             }
         } );
@@ -392,7 +394,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService, Initial
                         if ( ex instanceof HttpClientErrorException && ( (HttpClientErrorException) ex ).getStatusCode().equals( HttpStatus.NOT_FOUND ) ) {
                             return null;
                         } else {
-                            log.warn( String.format( "Failed to retrieve ontology terms from %s.", uri ), ex );
+                            log.warn( String.format( "Failed to retrieve ontology terms from %s: %s", uri, ExceptionUtils.getRootCauseMessage( ex ) ) );
                             throw new RuntimeException( ex );
                         }
                     } else if ( re.getBody() == null ) {
@@ -449,15 +451,16 @@ public class RemoteResourceServiceImpl implements RemoteResourceService, Initial
      */
     private <T> RequestFilter<T> satisfiesVersion( String minimumVersion ) {
         return ( remoteHost, path, params, chain ) -> {
+            String apiVersion;
             try {
-                if ( VersionUtils.satisfiesVersion( remoteResourceService.getApiVersion( remoteHost ), minimumVersion ) ) {
-                    return chain.next().filter( remoteHost, path, params, chain );
-                } else {
-                    return Optional.empty();
-                    // end processing here
-                }
+                apiVersion = remoteResourceService.getApiVersion( remoteHost );
             } catch ( RemoteException e ) {
-                log.warn( String.format( "Failed to retrieve API version from %s: %s", remoteHost, e.getMessage() ), e );
+                log.warn( String.format( "Failed to retrieve API version from %s: %s", remoteHost, ExceptionUtils.getRootCauseMessage( e ) ) );
+                return Optional.empty();
+            }
+            if ( VersionUtils.satisfiesVersion( apiVersion, minimumVersion ) ) {
+                return chain.next().filter( remoteHost, path, params, chain );
+            } else {
                 return Optional.empty();
             }
         };
@@ -512,7 +515,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService, Initial
                     // results
                     log.debug( String.format( "Partner API %s is missing some of the requested ontologies: %s", f.getLeft(), remoteException.getMessage() ) );
                 } else {
-                    log.warn( String.format( "Failed to retrieve entity from %s : %s", f.getLeft(), remoteException.getMessage() ) );
+                    log.warn( String.format( "Failed to retrieve entity from %s : %s", f.getLeft(), ExceptionUtils.getRootCauseMessage( remoteException ) ) );
                 }
             }
         }
@@ -548,12 +551,12 @@ public class RemoteResourceServiceImpl implements RemoteResourceService, Initial
         }
     }
 
-    private URI getApiUri( URI remoteHost ) throws RemoteException {
+    private URI getApiUri( URI remoteHost ) throws UnknownRemoteApiException {
         String remoteHostAuthority = remoteHost.getAuthority();
         Map<String, URI> apiUriByAuthority = Arrays.stream( applicationSettings.getIsearch().getApis() )
                 .collect( Collectors.toMap( URI::getAuthority, identity() ) );
         if ( !apiUriByAuthority.containsKey( remoteHost.getAuthority() ) ) {
-            throw new RemoteException( MessageFormat.format( "Unknown remote API {0}.", remoteHost.getRawAuthority() ) );
+            throw new UnknownRemoteApiException( remoteHost );
         }
         return apiUriByAuthority.get( remoteHostAuthority );
     }

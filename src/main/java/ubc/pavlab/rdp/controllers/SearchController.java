@@ -2,6 +2,7 @@ package ubc.pavlab.rdp.controllers;
 
 import lombok.Data;
 import lombok.extern.apachecommons.CommonsLog;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import ubc.pavlab.rdp.exception.RemoteException;
+import ubc.pavlab.rdp.exception.UnknownRemoteApiException;
 import ubc.pavlab.rdp.model.GeneInfo;
 import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.model.User;
@@ -329,8 +331,11 @@ public class SearchController extends AbstractSearchController {
             URI remoteHostUri = URI.create( remoteHost );
             try {
                 viewUser = remoteResourceService.getRemoteUser( userId, remoteHostUri );
+            } catch ( UnknownRemoteApiException e ) {
+                return new ModelAndView( "fragments/error::message", HttpStatus.BAD_REQUEST )
+                        .addObject( "errorMessage", String.format( "Unknown remote API %s.", remoteHostUri.getRawAuthority() ) );
             } catch ( RemoteException e ) {
-                log.error( MessageFormat.format( "Could not fetch the remote user id {0} from {1}.", userId, remoteHostUri.getRawAuthority() ), e );
+                log.error( String.format( "Could not fetch the remote user id %s from %s: %s.", userId, remoteHostUri.getRawAuthority(), ExceptionUtils.getRootCauseMessage( e ) ) );
                 return new ModelAndView( "error/503", HttpStatus.SERVICE_UNAVAILABLE );
             }
         } else {

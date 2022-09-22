@@ -18,6 +18,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import ubc.pavlab.rdp.exception.RemoteException;
+import ubc.pavlab.rdp.exception.UnknownRemoteApiException;
 import ubc.pavlab.rdp.listeners.UserListener;
 import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
@@ -306,6 +307,16 @@ public class SearchControllerTest {
         mvc.perform( get( "/search/user/{userId}", 1 )
                         .param( "remoteHost", "example.com" ) )
                 .andExpect( status().isNotFound() );
+        verify( remoteResourceService ).getRemoteUser( 1, URI.create( "example.com" ) );
+    }
+
+    @Test
+    public void getUser_whenRemoteIsUnknown_thenReturnBadRequest() throws Exception {
+        when( remoteResourceService.getRemoteUser( 1, URI.create( "example.com" ) ) ).thenThrow( UnknownRemoteApiException.class );
+        when( privacyService.checkCurrentUserCanSearch( true ) ).thenReturn( true );
+        mvc.perform( get( "/search/user/{userId}", 1 )
+                        .param( "remoteHost", "example.com" ) )
+                .andExpect( status().isBadRequest() );
         verify( remoteResourceService ).getRemoteUser( 1, URI.create( "example.com" ) );
     }
 

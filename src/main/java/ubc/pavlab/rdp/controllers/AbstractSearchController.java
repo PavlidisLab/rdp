@@ -2,6 +2,7 @@ package ubc.pavlab.rdp.controllers;
 
 import lombok.*;
 import lombok.extern.apachecommons.CommonsLog;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
@@ -279,7 +280,13 @@ public abstract class AbstractSearchController {
         }
 
         for ( Map.Entry<Pair<URI, Ontology>, ExecutionException> entry : exceptions.entrySet() ) {
-            log.warn( String.format( "Failed to obtain future from %s.", entry.getKey().getLeft() ), entry.getValue().getCause() );
+            ExecutionException e = entry.getValue();
+            if ( e.getCause() instanceof RemoteException ) {
+                log.warn( String.format( "Failed to collect future from %s: %s", entry.getKey().getLeft(), ExceptionUtils.getRootCauseMessage( entry.getValue() ) ) );
+            } else {
+                // a non-remote exception is actually pretty serious
+                log.error( String.format( "Failed to collect future from %s: %s", entry.getKey().getLeft(), e.getCause().getMessage() ), e );
+            }
         }
 
         Map<URI, List<OntologyAvailability>> availability = new HashMap<>();
@@ -299,7 +306,7 @@ public abstract class AbstractSearchController {
                 try {
                     rr = remoteResourceService.getRepresentativeRemoteResource( remoteHost );
                 } catch ( RemoteException e ) {
-                    log.warn( String.format( "Failed to retrieve a representative RemoteResource for %s", remoteHost ), e );
+                    log.warn( String.format( "Failed to retrieve a representative RemoteResource for %s: %s", remoteHost, ExceptionUtils.getRootCauseMessage( e ) ) );
                     continue;
                 }
             }
@@ -370,6 +377,7 @@ public abstract class AbstractSearchController {
 
     /**
      * No need to perform the same
+     *
      * @param ontologyTermIds
      * @return
      */
