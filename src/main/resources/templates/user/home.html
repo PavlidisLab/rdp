@@ -11,18 +11,19 @@
 <div th:replace="layouts/common::header">...</div>
 <div class="container py-4">
 
-    <div th:replace="layouts/common::title(title='Welcome', subtitle='Overview')">...</div>
+    <div th:replace="layouts/common::title(title='Home')">...</div>
 
-    <div class="main-content my-3">
+    <main id="main-content">
 
         <div th:utext="#{rdp.site.welcome(#{rdp.site.shortname}, @{/user/profile}, @{/user/faq}, @{/user/documentation}, @{/user/support})}"
              th:remove="tag"></div>
 
         <hr/>
 
-        <p><i>The Registry software was developed by the
-            <a href="http://pavlab.msl.ubc.ca/paul-pavlidis/" target="_blank">Pavlidis lab</a> at UBC</i></p>
-    </div>
+        <p>
+            <em>The Registry software was developed by the <a href="https://pavlab.msl.ubc.ca/" target="_blank" rel="noopener">Pavlidis Lab</a> at UBC.</em>
+        </p>
+    </main>
 
 </div>
 <div th:replace="layouts/common::footer">...</div>

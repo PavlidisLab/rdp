@@ -11,9 +11,9 @@
 <div th:replace="layouts/common::header">...</div>
 <div class="container py-4">
 
-    <div th:replace="layouts/common::title(title='Support', subtitle='Contact Us')">...</div>
+    <div th:replace="layouts/common::title(title='Contact Us')">...</div>
 
-    <div class="main-content my-3">
+    <main id="main-content">
         <div class="registry-support">
             <p class="mb-4">Question, comment or concern? Our contact form is the best way to
                 get in touch with someone at Registry Help.</p>
@@ -74,7 +74,7 @@
             <p><b>Contact Email:</b> <i th:text="${@siteSettings.contactEmail}"></i></p>
 
         </div>
-    </div>
+    </main>
 
 </div>
 <div th:replace="layouts/common::footer">...</div>

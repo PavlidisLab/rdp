@@ -8,28 +8,37 @@
  * The extra line between the end of the @file docblock
  * and the file-closure is important.
  */
-
 (function () {
     "use strict";
 
+    var $ = require('jquery');
+    var activityDetector = require('activity-detector');
+
     // Constants
-    var ONE_MINUTE = 60 * 1000;
     var serverTimeCookieName = 'serverTime';
     var expireTimeCookieName = 'sessionExpiry';
-    var timeoutWindow = ONE_MINUTE; // User has one minute to react when warned for expiring session.
-    var timeoutWarningMessage = 'Your session is going to be end in ' +
-        (timeoutWindow / ONE_MINUTE) + '  minutes. Please click OK to continue, or Cancel to log out.';
+    var timeoutWindow = 60 * 1000; // User has one minute to react when warned for expiring session.
+    var timeoutWarningMessage = 'Your session is going to be end in less than one minute. Please click OK to continue, or Cancel to log out.';
 
-    // Runtime
-    var startTime = (new Date()).getTime();  // Get initial client timestamp.
-    var serverTime = null;
-    var offset = null;
-    var activityDetected = false;
+    /**
+     * Time difference between client and server times.
+     *
+     * Adding this to a "server" time converts it to a "client" time.
+     *
+     * Normally, this is very small (<10ms) and essentially due to the round-trip latency, but if the client or server
+     * has misconfigured clock, the offset will correct for that.
+     *
+     * @type {Number}
+     */
+    var offset = 0;
 
-    function getCookie(name) {
-        /*
-          Get cookie by name; parse out value.
-         */
+    var ad = activityDetector.default();
+
+    /**
+     * Get one of the timeout cookies, as an integer.
+     * @return {Number}
+     */
+    function getTimeoutCookie(name) {
         name = name + "=";
         var ca = document.cookie.split(';');
         for (var i = 0; i < ca.length; i++) {
@@ -41,122 +50,88 @@
         return null; // Cookie is not set.
     }
 
-    function deleteCookies() {
-        /*
-          Force cookies to be expired.
-         */
+    /**
+     * Call backend to get a server time and expiry time cookie.
+     */
+    function refreshTimeoutCookies() {
+        var clientTime = (new Date()).getTime();
+        return $.ajax({
+            type: "GET",
+            url: window.contextPath + "/gettimeout",
+            data: null,
+            contentType: "application/json"
+        }).done(function () {
+            // update time offset
+            var serverTime = getTimeoutCookie(serverTimeCookieName);
+            offset = clientTime - serverTime;
+            if (Math.abs(offset) > 1000) {
+                window.console.warn("The difference between client and server times is high: " + offset + " ms. Your clock (or the server's?) might not be properly synchronized.");
+            }
+        }).fail(function () {
+            window.console.error("Failed to update the session, logging out...");
+            logout();
+        });
+    }
+
+    function deleteTimeoutCookies() {
+        // Force cookies to be expired.
         var expiredCookie = "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; ";
         document.cookie = serverTimeCookieName + expiredCookie;
         document.cookie = expireTimeCookieName + expiredCookie;
     }
 
+    /**
+     * Perform a logout.
+     */
+    function logout() {
+        ad.stop();
+        deleteTimeoutCookies();
+        window.location.href = window.contextPath + "/logout";
+    }
 
-    function getTimeToWarning() {
-        /*
-          Compute time left before issuing a warning. The session time is  based on the server cookies.
-          offset is the difference between the client time and the server time and is computed once only.
-         */
-
-        var expireTime = getCookie(expireTimeCookieName);
-
-        if (offset === null) {
-            // Set only once.
-            serverTime = getCookie(serverTimeCookieName);
-
-            if (serverTime === null) {
-                // Cookie is null. No timeout occurs.
-                return null;
-            }
-
-            // Offset is the different between "server time" and "client time"
-            offset = startTime - serverTime;
-
-            /*
-            console.log("Computing offset as: now - serverTime == offset " +
-                "|offset="+offset +
-                "|startTime="+startTime +
-                "|expireTime="+expireTime);
-            */
-
-        }
-
-        /*
-        console.log("Expire Time:" + expireTime +
-                "|offset:"+ offset +
-                "|currTime:" + currTime +
-                "|timeoutWindow" + timeoutWindow +
-                "|serverTime" + serverTime +
-                "| expireTime + offset - currTime - warningTime: " + timeToWarning);
-        */
-
+    /**
+     * Compute time left before logging out the user.
+     *
+     * The session time is based on the server cookies. The offset is the difference between the client time and the
+     * server time and is computed once only.
+     *
+     * @return {Number}
+     */
+    function getTimeToLogout() {
+        var expireTime = getTimeoutCookie(expireTimeCookieName);
         var currTime = (new Date()).getTime();
-
-        return parseInt(expireTime) + offset - currTime - timeoutWindow;
+        return expireTime + offset - currTime;
     }
 
-    function updateTimeout() {
-        /*
-          Call backend to get a server time and expiry time cookie.
-         */
-        $.ajax({
-            type: "GET",
-            url: "/gettimeout",
-            data: null,
-            contentType: "application/json",
-            success: function () {
-                // Confirm session is renewed.
-                // $('.success-row').show();
-                // $('.error-row').hide();
-            },
-            error: function () {
-                // Logout because response failed.
-                $(document).off("mousemove", monitorMovements); // Unbind monitor on mouse movements.
-                deleteCookies();
-                window.location.href = "/logout";
-            }
-        });
+    /**
+     * Compute time left before asking the user to refresh its session.
+     *
+     * @return {Number}
+     */
+    function getTimeToWarning() {
+        return getTimeToLogout() - timeoutWindow;
     }
 
-    function checkForTimeout() {
-        /*
-          Check for activity every 10 seconds; give a warning when timeoutWindow time is left.
-         */
+    ad.on('active', function () {
+        refreshTimeoutCookies();
+    });
 
-        var checkInterval = 10000; // Check activity monitor every 10s.
-        setTimeout(function () {
-
-            if (activityDetected) {
-                // Check if there was any activity since the last command.
-                updateTimeout();
-                // console.log("Activity was detected so timeout was updated.");
-                activityDetected = false;
-            }
-
-            var timeToWarning = getTimeToWarning();
-            //console.log("Warning expected in: " + timeToWarning + "ms | " + timeToWarning/1000 + "s");
-            if (timeToWarning < 0) {
-                if (window.confirm(timeoutWarningMessage) && getTimeToWarning() > (-1 * timeoutWindow)) {
-                    // Reset the timeout
-                    updateTimeout();
-                    checkForTimeout();
-                } else {
-                    // Logout requested
-                    $(document).off("mousemove", monitorMovements); // Unbind monitor on mouse movements.
-                    deleteCookies();
-                    window.location.href = "/logout";
-                }
+    ad.on('idle', function () {
+        var timeToWarning = getTimeToWarning();
+        if (timeToWarning < 0) {
+            // check if there is still time before and after asking the user
+            // if the user takes too much time, we will have to log him/her out unfortunately
+            if (getTimeToLogout() > 0 && window.confirm(timeoutWarningMessage) && getTimeToLogout() > 0) {
+                // Reset the timeout
+                refreshTimeoutCookies();
             } else {
-                checkForTimeout(); // Continue to monitor.
+                logout();
             }
-        }, checkInterval); // Check if logout should occur in `checkInterval` time.
-    }
+        }
+    });
 
-    function monitorMovements() {
-        activityDetected = true; // Update activity on mouse movement.
-    }
-
-    // console.log("Inactivity monitor loaded.");
-    updateTimeout(); // Get the cookies        
-    $(document).on("mousemove", monitorMovements); // Bind monitor on mouse movements.
-    checkForTimeout(); // Set the timeout.
+    // Get the cookies and then start the activity monitor (which requires the cookie set!)
+    refreshTimeoutCookies().then(function () {
+        ad.init();
+    });
 })();

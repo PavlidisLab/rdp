@@ -1,34 +1,36 @@
 package ubc.pavlab.rdp.controllers;
 
+import io.swagger.v3.oas.annotations.Operation;
+import lombok.SneakyThrows;
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.info.BuildProperties;
 import org.springframework.context.MessageSource;
+import org.springframework.context.NoSuchMessageException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.PermissionEvaluator;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import ubc.pavlab.rdp.exception.ApiException;
-import ubc.pavlab.rdp.exception.TokenException;
 import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.ResearcherCategory;
 import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import ubc.pavlab.rdp.model.enums.TierType;
+import ubc.pavlab.rdp.model.ontology.*;
+import ubc.pavlab.rdp.security.Permissions;
 import ubc.pavlab.rdp.services.*;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.settings.SiteSettings;
 
-import javax.servlet.http.HttpServletRequest;
+import java.net.URI;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -61,10 +63,17 @@ public class ApiController {
     private SiteSettings siteSettings;
     @Autowired
     private PermissionEvaluator permissionEvaluator;
+    @Autowired
+    private OntologyService ontologyService;
+    @Autowired
+    private UserPrivacyService userPrivacyService;
+    @Autowired
+    private BuildProperties buildProperties;
 
-    @ExceptionHandler({ AuthenticationException.class, AccessDeniedException.class })
-    public ResponseEntity<?> handleAuthenticationExceptionAndAccessDeniedException( HttpServletRequest req, Exception e ) {
-        log.warn( "Unauthorized access to the API via " + req.getRequestURI() + ".", e );
+    @ExceptionHandler({ AccessDeniedException.class })
+    public ResponseEntity<?> handleAccessDeniedException( Exception e ) {
+        // the stacktrace will contain enough information to trace the error, so no need to log the request URI
+        log.warn( "Unauthorized access to the API.", e );
         return ResponseEntity.status( HttpStatus.UNAUTHORIZED )
                 .contentType( MediaType.TEXT_PLAIN )
                 .body( e.getMessage() );
@@ -81,7 +90,8 @@ public class ApiController {
     /**
      * Handle all unmapped API requests with a 404 error.
      */
-    @RequestMapping(value = "/api/*")
+    @Operation(hidden = true)
+    @GetMapping(value = "/api/*")
     public void handleMissingRoute() {
         throw new ApiException( HttpStatus.NOT_FOUND, "No endpoint found for your request URL." );
     }
@@ -90,17 +100,27 @@ public class ApiController {
      * Provide general statistics about this registry.
      */
     @GetMapping(value = "/api/stats", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Object getStats() {
+    public Stats getStats() {
         return Stats.builder()
+                .version( buildProperties.getVersion() )
                 .users( userService.countResearchers() )
                 .publicUsers( userService.countPublicResearchers() )
                 .usersWithGenes( userGeneService.countUsersWithGenes() )
                 .userGenes( userGeneService.countAssociations() )
                 .uniqueUserGenes( userGeneService.countUniqueAssociations() )
-                .uniqueUserGenesTAll( userGeneService.countUniqueAssociationsAllTiers() )
-                .uniqueUserGenesHumanTAll( userGeneService.countUniqueAssociationsToHumanAllTiers() )
-                .researchersByTaxa( userGeneService.researcherCountByTaxon() )
+                .uniqueUserGenesInAllTiers( userGeneService.countUniqueAssociationsAllTiers() )
+                .uniqueHumanUserGenesInAllTiers( userGeneService.countUniqueAssociationsToHumanAllTiers() )
+                .researchersByTaxonId( userGeneService.researcherCountByTaxonId() )
                 .build();
+    }
+
+    @GetMapping("/api/taxa/{taxonId}")
+    public Taxon getTaxon( @PathVariable Integer taxonId ) {
+        Taxon taxon = taxonService.findById( taxonId );
+        if ( taxon == null ) {
+            throw new ApiException( HttpStatus.NOT_FOUND, String.format( "No taxon with ID %d.", taxonId ) );
+        }
+        return taxon;
     }
 
     /**
@@ -109,15 +129,12 @@ public class ApiController {
      * Results that cannot be displayed are anonymized.
      */
     @GetMapping(value = "/api/users", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Page<User> getUsers( @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorizationHeader,
-                                @Deprecated @RequestParam(required = false) String auth,
-                                Pageable pageable,
+    public Page<User> getUsers( Pageable pageable,
                                 Locale locale ) {
-        checkAuth( authorizationHeader, auth );
         if ( applicationSettings.getPrivacy().isEnableAnonymizedSearchResults() ) {
             final Authentication auth2 = SecurityContextHolder.getContext().getAuthentication();
             return userService.findByEnabledTrueNoAuth( pageable )
-                    .map( user -> permissionEvaluator.hasPermission( auth2, user, "read" ) ? user : userService.anonymizeUser( user ) )
+                    .map( user -> permissionEvaluator.hasPermission( auth2, user, Permissions.READ ) ? user : userService.anonymizeUser( user ) )
                     .map( user -> initUser( user, locale ) );
 
         } else {
@@ -131,19 +148,56 @@ public class ApiController {
      * Results that cannot be displayed are anonymized.
      */
     @GetMapping(value = "/api/genes", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Page<UserGene> getGenes( @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorizationHeader,
-                                    @Deprecated @RequestParam(required = false) String auth,
-                                    Pageable pageable,
+    public Page<UserGene> getGenes( Pageable pageable,
                                     Locale locale ) {
-        checkAuth( authorizationHeader, auth );
         if ( applicationSettings.getPrivacy().isEnableAnonymizedSearchResults() ) {
             final Authentication auth2 = SecurityContextHolder.getContext().getAuthentication();
             return userGeneService.findByUserEnabledTrueNoAuth( pageable )
-                    .map( userGene -> permissionEvaluator.hasPermission( auth2, userGene, "read" ) ? userGene : userService.anonymizeUserGene( userGene ) )
+                    .map( userGene -> permissionEvaluator.hasPermission( auth2, userGene, Permissions.READ ) ? userGene : userService.anonymizeUserGene( userGene ) )
                     .map( userGene -> initUserGene( userGene, locale ) );
         } else {
             return userGeneService.findByUserEnabledTrueAndPrivacyLevelNoAuth( PrivacyLevelType.PUBLIC, pageable ).map( userGene -> initUserGene( userGene, locale ) );
         }
+    }
+
+    @GetMapping(value = "/api/ontologies", produces = MediaType.APPLICATION_JSON_VALUE)
+    public List<RemoteOntology> getOntologies( Locale locale ) {
+        return ontologyService.findAllOntologies().stream()
+                .map( o -> initOntology( o, locale ) )
+                .collect( Collectors.toList() );
+    }
+
+    @GetMapping(value = "/api/ontologies/{ontologyName}/terms", produces = MediaType.APPLICATION_JSON_VALUE)
+    public Page<RemoteOntologyTermInfo> getOntologyTerms( @PathVariable String ontologyName, Pageable pageable, Locale locale ) {
+        Ontology ontology = ontologyService.findByName( ontologyName );
+        if ( ontology == null || !ontology.isActive() ) {
+            throw new ApiException( HttpStatus.NOT_FOUND, String.format( locale, "No ontology %s.", ontologyName ) );
+        }
+        return ontologyService.findAllTermsByOntology( ontology, pageable )
+                .map( t -> initTermInfo( t, locale ) );
+    }
+
+    @GetMapping(value = "/api/ontologies/{ontologyName}/terms", params = { "ontologyTermIds" }, produces = MediaType.APPLICATION_JSON_VALUE)
+    public List<RemoteOntologyTermInfo> getOntologyTermsByOntologyNameAndTermIds( @PathVariable String ontologyName, @RequestParam List<String> ontologyTermIds, Locale locale ) {
+        Ontology ontology = ontologyService.findByName( ontologyName );
+        if ( ontology == null || !ontology.isActive() ) {
+            throw new ApiException( HttpStatus.NOT_FOUND, String.format( locale, "No ontology %s.", ontologyName ) );
+        }
+        if ( ontologyTermIds == null || ontologyTermIds.isEmpty() ) {
+            return Collections.emptyList(); // technically impossible since that would match getOntologyTerms()
+        }
+        return ontologyService.findAllTermsByOntologyAndTermIdIn( ontology, ontologyTermIds ).stream()
+                .map( t -> initTermInfo( t, locale ) )
+                .collect( Collectors.toList() );
+    }
+
+    @GetMapping(value = "/api/ontologies/{ontologyName}/terms/{termId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public OntologyTermInfo getOntologyTerm( @PathVariable String ontologyName, @PathVariable String termId, Locale locale ) {
+        OntologyTermInfo ontologyTermInfo = ontologyService.findTermByTermIdAndOntologyName( termId, ontologyName );
+        if ( ontologyTermInfo == null || !ontologyTermInfo.isActive() || !ontologyTermInfo.getOntology().isActive() ) {
+            throw new ApiException( HttpStatus.NOT_FOUND, String.format( locale, "No ontology term %s in ontology %s.", termId, ontologyName ) );
+        }
+        return initTermInfo( ontologyTermInfo, locale );
     }
 
     @GetMapping(value = "/api/users/search", params = { "nameLike" }, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -152,15 +206,13 @@ public class ApiController {
                                          @RequestParam(required = false) Set<ResearcherPosition> researcherPositions,
                                          @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
                                          @RequestParam(required = false) Set<String> organUberonIds,
-                                         @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorizationHeader,
-                                         @Deprecated @RequestParam(required = false) String auth,
+                                         @RequestParam(required = false) List<String> ontologyNames,
+                                         @RequestParam(required = false) List<String> ontologyTermIds,
                                          Locale locale ) {
-        checkEnabled();
-        checkAuth( authorizationHeader, auth );
         if ( prefix ) {
-            return initUsers( userService.findByStartsName( nameLike, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ) ), locale );
+            return initUsers( userService.findByStartsName( nameLike, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ), ontologyTermsFromOntologyWithTermIds( ontologyNames, ontologyTermIds ) ), locale );
         } else {
-            return initUsers( userService.findByLikeName( nameLike, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ) ), locale );
+            return initUsers( userService.findByLikeName( nameLike, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ), ontologyTermsFromOntologyWithTermIds( ontologyNames, ontologyTermIds ) ), locale );
         }
     }
 
@@ -169,12 +221,23 @@ public class ApiController {
                                                 @RequestParam(required = false) Set<ResearcherPosition> researcherPositions,
                                                 @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
                                                 @RequestParam(required = false) Set<String> organUberonIds,
-                                                @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorizationHeader,
-                                                @Deprecated @RequestParam(required = false) String auth,
+                                                @RequestParam(required = false) List<String> ontologyNames,
+                                                @RequestParam(required = false) List<String> ontologyTermIds,
                                                 Locale locale ) {
-        checkEnabled();
-        checkAuth( authorizationHeader, auth );
-        return initUsers( userService.findByDescription( descriptionLike, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ) ), locale );
+        return initUsers( userService.findByDescription( descriptionLike, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ), ontologyTermsFromOntologyWithTermIds( ontologyNames, ontologyTermIds ) ), locale );
+    }
+
+    @GetMapping(value = "/api/users/search", params = { "nameLike", "descriptionLike" }, produces = MediaType.APPLICATION_JSON_VALUE)
+    public List<User> searchUsersByNameAndDescription( @RequestParam String nameLike,
+                                                       @RequestParam(required = false) boolean prefix,
+                                                       @RequestParam String descriptionLike,
+                                                       @RequestParam(required = false) Set<ResearcherPosition> researcherPositions,
+                                                       @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
+                                                       @RequestParam(required = false) Set<String> organUberonIds,
+                                                       @RequestParam(required = false) List<String> ontologyNames,
+                                                       @RequestParam(required = false) List<String> ontologyTermIds,
+                                                       Locale locale ) {
+        return initUsers( userService.findByNameAndDescription( nameLike, prefix, descriptionLike, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ), ontologyTermsFromOntologyWithTermIds( ontologyNames, ontologyTermIds ) ), locale );
     }
 
     /**
@@ -188,16 +251,18 @@ public class ApiController {
                                                    @RequestParam(required = false) Set<ResearcherPosition> researcherPositions,
                                                    @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
                                                    @RequestParam(required = false) Set<String> organUberonIds,
-                                                   @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorizationHeader,
-                                                   @Deprecated @RequestParam(required = false) String auth,
+                                                   @RequestParam(required = false) List<String> ontologyNames,
+                                                   @RequestParam(required = false) List<String> ontologyTermIds,
                                                    Locale locale ) {
-        checkEnabled();
-        checkAuth( authorizationHeader, auth );
 
         Taxon taxon = taxonService.findById( taxonId );
 
         if ( taxon == null ) {
             throw new ApiException( HttpStatus.NOT_FOUND, String.format( locale, "Unknown taxon ID: %s.", taxonId ) );
+        }
+
+        if ( symbol.isEmpty() ) {
+            throw new ApiException( HttpStatus.BAD_REQUEST, "Gene symbol cannot be empty." );
         }
 
         GeneInfo gene = geneService.findBySymbolAndTaxon( symbol, taxon );
@@ -220,7 +285,7 @@ public class ApiController {
             throw new ApiException( HttpStatus.NOT_FOUND, messageSource.getMessage( "ApiController.noOrthologsWithGivenParameters", null, locale ) );
         }
 
-        return initUserGenes( userGeneService.handleGeneSearch( gene, restrictTiers( tiers ), orthologTaxon, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ) ), locale );
+        return initUserGenes( userGeneService.handleGeneSearch( gene, restrictTiers( tiers ), orthologTaxon, researcherPositions, researcherCategories, organsFromUberonIds( organUberonIds ), ontologyTermsFromOntologyWithTermIds( ontologyNames, ontologyTermIds ) ), locale );
     }
 
     /**
@@ -238,8 +303,8 @@ public class ApiController {
                                                    @RequestParam(required = false) Set<ResearcherPosition> researcherPositions,
                                                    @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
                                                    @RequestParam(required = false) Set<String> organUberonIds,
-                                                   @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorizationHeader,
-                                                   @Deprecated @RequestParam(required = false) String auth,
+                                                   @RequestParam(required = false) List<String> ontologyNames,
+                                                   @RequestParam(required = false) List<String> ontologyTermIds,
                                                    Locale locale ) {
         Set<TierType> tiers;
         if ( tier.equals( "ANY" ) ) {
@@ -250,21 +315,17 @@ public class ApiController {
             try {
                 tiers = EnumSet.of( TierType.valueOf( tier ) );
             } catch ( IllegalArgumentException e ) {
-                log.error( String.format( "Could not parse tier type: %s.", e.getMessage() ) );
+                log.warn( String.format( "Could not parse tier type: %s.", e.getMessage() ) );
                 throw new ApiException( HttpStatus.BAD_REQUEST, String.format( locale, "Unknown tier: %s.", tier ), e );
             }
         }
 
-        return searchUsersByGeneSymbol( symbol, taxonId, tiers, orthologTaxonId, researcherPositions, researcherCategories, organUberonIds, authorizationHeader, auth, locale );
+        return searchUsersByGeneSymbol( symbol, taxonId, tiers, orthologTaxonId, researcherPositions, researcherCategories, organUberonIds, ontologyNames, ontologyTermIds, locale );
     }
 
     @GetMapping(value = "/api/users/{userId}", produces = MediaType.APPLICATION_JSON_VALUE)
     public User getUserById( @PathVariable Integer userId,
-                             @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorizationHeader,
-                             @RequestParam(name = "auth", required = false) String auth,
                              Locale locale ) {
-        checkEnabled();
-        checkAuth( authorizationHeader, auth );
         User user = userService.findUserById( userId );
         if ( user == null ) {
             throw new ApiException( HttpStatus.NOT_FOUND, String.format( locale, "Unknown user with ID: %d.", userId ) );
@@ -274,69 +335,30 @@ public class ApiController {
 
     @GetMapping(value = "/api/users/by-anonymous-id/{anonymousId}")
     public User getUserByAnonymousId( @PathVariable UUID anonymousId,
-                                      @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorizationHeader,
-                                      @RequestParam(name = "auth", required = false) String auth,
                                       Locale locale ) {
-        checkEnabled();
-        checkAnonymousResultsEnabled();
-        checkAuth( authorizationHeader, auth );
         User user = userService.findUserByAnonymousIdNoAuth( anonymousId );
         if ( user == null ) {
             throw new ApiException( HttpStatus.NOT_FOUND, String.format( "Unknown user with anonymous ID: %s.", anonymousId ) );
         }
-        if ( permissionEvaluator.hasPermission( SecurityContextHolder.getContext().getAuthentication(), user, "read" ) ) {
+        if ( permissionEvaluator.hasPermission( SecurityContextHolder.getContext().getAuthentication(), user, Permissions.READ ) ) {
             return initUser( user, locale );
         } else {
-            return initUser( userService.anonymizeUser( user ), locale );
+            return initUser( userService.anonymizeUser( user, anonymousId ), locale );
         }
     }
 
-    private void checkEnabled() {
-        if ( !applicationSettings.getIsearch().isEnabled() ) {
-            throw new ApiException( HttpStatus.SERVICE_UNAVAILABLE, "Public API is not available for this registry." );
+    @GetMapping(value = "/api/genes/by-anonymous-id/{anonymousId}")
+    public UserGene getUserGeneByAnonymousId( @PathVariable UUID anonymousId,
+                                              Locale locale ) {
+        UserGene userGene = userService.findUserGeneByAnonymousIdNoAuth( anonymousId );
+        if ( userGene == null ) {
+            throw new ApiException( HttpStatus.NOT_FOUND, String.format( "Unknown gene with anonymous ID: %s.", anonymousId ) );
         }
-    }
-
-    private void checkAnonymousResultsEnabled() {
-        if ( !applicationSettings.getPrivacy().isEnableAnonymizedSearchResults() ) {
-            throw new ApiException( HttpStatus.SERVICE_UNAVAILABLE, "Anonymized search results is not available for this registry." );
-        }
-    }
-
-    private void checkAuth( String authorizationHeader, String authToken ) throws AuthenticationException {
-        if ( authToken == null && authorizationHeader != null ) {
-            String[] pieces = authorizationHeader.split( " ", 2 );
-            if ( pieces.length == 2 && pieces[0].equalsIgnoreCase( "Bearer" ) ) {
-                authToken = pieces[1];
-            } else {
-                throw new ApiException( HttpStatus.BAD_REQUEST, "Cannot parse Authorization header, should be 'Bearer <api_key>'." );
-            }
-        }
-
-        User u;
-        if ( authToken == null ) {
-            // anonymous user which is the default for spring security
-            return;
-        } else if ( applicationSettings.getIsearch().getAuthTokens().contains( authToken ) ) {
-            // remote admin authentication
-            u = userService.getRemoteSearchUser()
-                    .orElseThrow( () -> new ApiException( HttpStatus.SERVICE_UNAVAILABLE, messageSource.getMessage( "ApiController.misconfiguredRemoteAdmin", null, Locale.getDefault() ) ) );
+        if ( permissionEvaluator.hasPermission( SecurityContextHolder.getContext().getAuthentication(), userGene, Permissions.READ ) ) {
+            return initUserGene( userGene, locale );
         } else {
-            // authentication via access token
-            try {
-                u = userService.findUserByAccessTokenNoAuth( authToken );
-            } catch ( TokenException e ) {
-                throw new BadCredentialsException( "Invalid API token.", e );
-            }
+            return initUserGene( userService.anonymizeUserGene( userGene, anonymousId ), locale );
         }
-
-        if ( u == null ) {
-            throw new BadCredentialsException( "No user associated to the provided API token." );
-        }
-
-        UserPrinciple principle = new UserPrinciple( u );
-        SecurityContextHolder.getContext().setAuthentication(
-                new UsernamePasswordAuthenticationToken( principle, null, principle.getAuthorities() ) );
     }
 
     private List<UserGene> initUserGenes( List<UserGene> genes, Locale locale ) {
@@ -362,9 +384,54 @@ public class ApiController {
     }
 
     private User initUser( User user, Locale locale ) {
-        user.setOrigin( messageSource.getMessage( "rdp.site.shortname", null, locale ) );
-        user.setOriginUrl( siteSettings.getHostUri() );
-        return user;
+        if ( !userPrivacyService.checkCurrentUserCanSeeGeneList( user ) ) {
+            user.getUserGenes().clear();
+        }
+        user.getUserOntologyTerms().forEach( term -> initUserTerm( term, locale ) );
+        return initRemoteResource( user, locale );
+    }
+
+    private RemoteOntology initOntology( Ontology ontology, Locale locale ) {
+        RemoteOntology remoteOntology = RemoteOntology.builder( ontology.getName() ).build();
+        remoteOntology.setNumberOfTerms( ontologyService.countActiveTerms( ontology ) );
+        remoteOntology.setNumberOfObsoleteTerms( ontologyService.countActiveAndObsoleteTerms( ontology ) );
+        try {
+            remoteOntology.setDefinition( messageSource.getMessage( ontology.getResolvableDefinition(), locale ) );
+        } catch ( NoSuchMessageException e ) {
+            remoteOntology.setDefinition( null );
+        }
+        return initRemoteResource( remoteOntology, locale );
+    }
+
+    private RemoteOntologyTermInfo initTermInfo( OntologyTermInfo termInfo, Locale locale ) {
+        RemoteOntologyTermInfo remoteOntologyTermInfo = RemoteOntologyTermInfo.builder( initOntology( termInfo.getOntology(), locale ), termInfo.getTermId() ).build();
+        remoteOntologyTermInfo.setName( messageSource.getMessage( termInfo.getResolvableTitle(), locale ) );
+        try {
+            remoteOntologyTermInfo.setDefinition( messageSource.getMessage( termInfo.getResolvableDefinition(), locale ) );
+        } catch ( NoSuchMessageException e ) {
+            remoteOntologyTermInfo.setDefinition( null );
+        }
+        // TODO: perform this in a single query
+        remoteOntologyTermInfo.setSubTermIds( termInfo.getSubTerms().stream()
+                .filter( OntologyTermInfo::isActive )
+                .map( OntologyTermInfo::getTermId )
+                .collect( Collectors.toSet() ) );
+        return initRemoteResource( remoteOntologyTermInfo, locale );
+    }
+
+    private void initUserTerm( UserOntologyTerm term, Locale locale ) {
+        term.setOntology( initOntology( term.getOntology(), locale ) );
+        term.setName( messageSource.getMessage( term.getResolvableTitle(), locale ) );
+    }
+
+    @SneakyThrows
+    private <T extends RemoteResource> T initRemoteResource( T remoteResource, Locale locale ) {
+        remoteResource.setOrigin( messageSource.getMessage( "rdp.site.shortname", null, locale ) );
+        // Ensure that the path of the URL is effectively stripped from any trailing slashes and that its string
+        // representation is free of query parameters, fragments, etc.
+        // The main reason we do this is to avoid double slashes when generating URLs to profiles on partner sites
+        remoteResource.setOriginUrl( new URI( siteSettings.getHostUrl().getScheme(), siteSettings.getHostUrl().getAuthority(), StringUtils.trimTrailingCharacter( siteSettings.getHostUrl().getPath(), '/' ), null, null ) );
+        return remoteResource;
     }
 
     /**
@@ -384,4 +451,38 @@ public class ApiController {
         return organUberonIds == null ? null : organInfoService.findByUberonIdIn( organUberonIds );
     }
 
+    private Map<Ontology, Set<OntologyTermInfo>> ontologyTermsFromOntologyWithTermIds( List<String> ontologyNames, List<String> termIds ) {
+        if ( ontologyNames == null || termIds == null ) {
+            return null;
+        }
+        if ( ontologyNames.size() != termIds.size() ) {
+            throw new ApiException( HttpStatus.BAD_REQUEST, "The 'ontologyNames' and 'ontologyTermIds' lists must have the same size." );
+        }
+        Map<Ontology, Set<OntologyTermInfo>> results = ontologyService.findTermByTermIdsAndOntologyNames( termIds, ontologyNames ).stream()
+                .collect( Collectors.groupingBy( OntologyTerm::getOntology, Collectors.toSet() ) );
+        Set<String> foundOntologyNames = results.keySet().stream().map( Ontology::getName ).collect( Collectors.toSet() );
+
+        // sorted alphabetically
+        SortedSet<String> missingOntologyNames = new TreeSet<>( ontologyNames );
+        missingOntologyNames.removeAll( foundOntologyNames );
+
+        // attempt to retrieve any missing ontologies (and associate it to an empty collection)
+        for ( String missingOntologyName : missingOntologyNames ) {
+            Ontology missingOntology = ontologyService.findByNameAndActiveTrue( missingOntologyName );
+            if ( missingOntology != null ) {
+                results.put( missingOntology, Collections.emptySet() );
+                foundOntologyNames.add( missingOntologyName );
+            }
+        }
+
+        // remove found ontologies without matching terms
+        missingOntologyNames.removeAll( foundOntologyNames );
+
+        // all ontologies must be represented
+        if ( !missingOntologyNames.isEmpty() ) {
+            throw new ApiException( HttpStatus.BAD_REQUEST, String.format( "The following ontologies do not exist in this registry: %s.", String.join( ", ", missingOntologyNames ) ) );
+        }
+
+        return results;
+    }
 }

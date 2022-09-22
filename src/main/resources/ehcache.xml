@@ -6,11 +6,11 @@
             maxElementsInMemory="10000"
             timeToLiveSeconds="600"/>
 
-    <cache name="org.hibernate.cache.internal.StandardQueryCache"
+    <cache name="default-query-results-region"
            maxElementsInMemory="10000"
            timeToLiveSeconds="300"/>
 
-    <cache name="org.hibernate.cache.spi.UpdateTimestampsCache"
+    <cache name="default-update-timestamps-region"
            maxElementsInMemory="10000"
            eternal="true"/>
 
@@ -51,6 +51,16 @@
            timeToLiveSeconds="3600"
            memoryStoreEvictionPolicy="FIFO"/>
 
+    <cache name="ubc.pavlab.rdp.model.ontology.OntologyTermInfo"
+           maxElementsInMemory="10000"
+           timeToLiveSeconds="600"/>
+    <cache name="ubc.pavlab.rdp.model.ontology.OntologyTermInfo.superTerms"
+           maxElementsInMemory="10000"
+           timeToLiveSeconds="600"/>
+    <cache name="ubc.pavlab.rdp.model.ontology.OntologyTermInfo.subTerms"
+           maxElementsInMemory="100000"
+           timeToLiveSeconds="600"/>
+
     <cache name="ubc.pavlab.rdp.stats"
            maxElementsInMemory="10"
            timeToLiveSeconds="30"/>
@@ -62,4 +72,20 @@
     <cache name="ubc.pavlab.rdp.services.UserService.remoteSearchUser"
            maxElementsInMemory="1"
            eternal="true"/>
+
+    <cache name="ubc.pavlab.rdp.services.GOService.ancestors"
+           maxElementsInMemory="10000"
+           eternal="true"/>
+
+    <cache name="ubc.pavlab.rdp.services.GOService.descendants"
+           maxElementsInMemory="10000"
+           eternal="true"/>
+
+    <cache name="ubc.pavlab.rdp.services.OntologyService.simpleOntologies"
+           maxElementsInMemory="10"
+           timeToLiveSeconds="600"/>
+
+    <cache name="ubc.pavlab.rdp.services.OntologyService.subtreeSizeByTerm"
+           maxElementsInMemory="1000"
+           timeToLiveSeconds="600"/>
 </ehcache>

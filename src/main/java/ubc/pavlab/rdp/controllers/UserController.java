@@ -1,10 +1,9 @@
 package ubc.pavlab.rdp.controllers;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.*;
 import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.validator.constraints.NotEmpty;
+import lombok.extern.jackson.Jacksonized;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
@@ -24,6 +23,7 @@ import ubc.pavlab.rdp.exception.TokenException;
 import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.TierType;
+import ubc.pavlab.rdp.model.ontology.UserOntologyTerm;
 import ubc.pavlab.rdp.services.*;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 
@@ -83,6 +83,7 @@ public class UserController {
         } else {
             modelAndView.addObject( "viewOnly", null );
             modelAndView.addObject( "user", user );
+            modelAndView.addObject( "userGenes", user.getGenesByTaxonAndTier( taxon, TierType.MANUAL ) );
             modelAndView.addObject( "taxon", taxon );
         }
         return modelAndView;
@@ -157,10 +158,10 @@ public class UserController {
 
     @Data
     private static class SupportForm {
-        @NotNull
-        @Size(min = 1, message = "Your must provide your name.")
+        @NotNull(message = "You must provide your name.")
+        @Size(min = 1, message = "You must provide your name.")
         private String name;
-        @NotNull
+        @NotNull(message = "The message must be provided.")
         @Size(min = 1, message = "The message must not be empty.")
         private String message;
         private MultipartFile attachment;
@@ -251,7 +252,8 @@ public class UserController {
     @EqualsAndHashCode(callSuper = true)
     public static class PasswordChange extends PasswordReset {
 
-        @NotEmpty(message = "Current password cannot be empty.")
+        @NotNull(message = "Current password cannot be empty.")
+        @Size(min = 1, message = "Current password cannot be empty.")
         private String oldPassword;
     }
 
@@ -314,7 +316,7 @@ public class UserController {
             userService.confirmVerificationToken( token );
             redirectAttributes.addFlashAttribute( "message", "Your contact email has been successfully verified." );
         } catch ( TokenException e ) {
-            log.error( String.format( "%s attempt to confirm verification token failed: %s.", userService.findCurrentUser(), e.getMessage() ) );
+            log.warn( String.format( "%s attempt to confirm verification token failed: %s.", userService.findCurrentUser(), e.getMessage() ) );
             redirectAttributes.addFlashAttribute( "message", e.getMessage() );
             redirectAttributes.addFlashAttribute( "error", Boolean.TRUE );
         }
@@ -322,10 +324,23 @@ public class UserController {
     }
 
     @Data
-    static class ProfileWithOrganUberonIds {
+    @Builder
+    static class ProfileWithOrganUberonIdsAndOntologyTerms {
+        /**
+         * Profile
+         */
         @Valid
         private final Profile profile;
+
+        /**
+         * Uberon IDs for organ systems.
+         */
         private final Set<String> organUberonIds;
+
+        /**
+         * Ontology terms.
+         */
+        private final Set<Integer> ontologyTermIds;
     }
 
     @Data
@@ -356,14 +371,14 @@ public class UserController {
 
     @ResponseBody
     @PostMapping(value = "/user/profile", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> saveProfile( @Valid @RequestBody ProfileWithOrganUberonIds profileWithOrganUberonIds, BindingResult bindingResult, Locale locale ) {
+    public ResponseEntity<?> saveProfile( @Valid @RequestBody ProfileWithOrganUberonIdsAndOntologyTerms profileWithOrganUberonIdsAndOntologyTerms, BindingResult bindingResult, Locale locale ) {
         User user = userService.findCurrentUser();
         if ( bindingResult.hasErrors() ) {
             return ResponseEntity.badRequest()
                     .body( BindingResultModel.fromBindingResult( bindingResult ) );
         } else {
             String previousContactEmail = user.getProfile().getContactEmail();
-            user = userService.updateUserProfileAndPublicationsAndOrgans( user, profileWithOrganUberonIds.profile, profileWithOrganUberonIds.profile.getPublications(), profileWithOrganUberonIds.organUberonIds, locale );
+            user = userService.updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( user, profileWithOrganUberonIdsAndOntologyTerms.profile, profileWithOrganUberonIdsAndOntologyTerms.profile.getPublications(), profileWithOrganUberonIdsAndOntologyTerms.organUberonIds, profileWithOrganUberonIdsAndOntologyTerms.ontologyTermIds, locale );
             String message = messageSource.getMessage( "UserController.profileSaved", new Object[]{ user.getProfile().getContactEmail() }, locale );
             if ( user.getProfile().getContactEmail() != null &&
                     !user.getProfile().getContactEmail().equals( previousContactEmail ) &&
@@ -396,6 +411,12 @@ public class UserController {
     @GetMapping(value = "/user/term", produces = MediaType.APPLICATION_JSON_VALUE)
     public Collection<UserTerm> getTerms() {
         return userService.findCurrentUser().getUserTerms();
+    }
+
+    @ResponseBody
+    @GetMapping(value = "/user/ontology-terms", produces = MediaType.APPLICATION_JSON_VALUE)
+    public Collection<UserOntologyTerm> getOntologyTerms() {
+        return userService.findCurrentUser().getUserOntologyTerms();
     }
 
     @Data
@@ -474,11 +495,20 @@ public class UserController {
 
     @ResponseBody
     @GetMapping(value = "/user/taxon/{taxonId}/term/recommend", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Object getRecommendedTermsForTaxon( @PathVariable Integer taxonId ) {
+    public Object getRecommendedTermsForTaxon( @PathVariable Integer taxonId,
+                                               @RequestParam(required = false) List<Integer> geneIds ) {
         Taxon taxon = taxonService.findById( taxonId );
         if ( taxon == null ) {
             return ResponseEntity.notFound().build();
         }
-        return userService.recommendTerms( userService.findCurrentUser(), taxon );
+
+        Set<GeneInfo> genes;
+        if ( geneIds != null ) {
+            genes = new HashSet<>( geneService.load( geneIds ) );
+        } else {
+            genes = Collections.emptySet();
+        }
+
+        return userService.recommendTerms( userService.findCurrentUser(), genes, taxon );
     }
 }

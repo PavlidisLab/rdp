@@ -4,9 +4,12 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.NaturalId;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 
 import javax.persistence.*;
+import java.sql.Timestamp;
 import java.util.Optional;
 
 /**
@@ -18,6 +21,7 @@ import java.util.Optional;
  * Created by mjacobson on 28/01/18.
  */
 @Entity
+@EntityListeners(AuditingEntityListener.class)
 @Table(name = "term",
         uniqueConstraints = { @UniqueConstraint(columnNames = { "user_id", "taxon_id", "go_id" }) },
         indexes = { @Index(columnList = "go_id") })
@@ -42,7 +46,6 @@ public class UserTerm extends GeneOntologyTerm implements UserContent {
     @JsonIgnore
     private User user;
 
-    @NaturalId
     @ManyToOne(optional = false)
     @JoinColumn(name = "taxon_id")
     private Taxon taxon;
@@ -52,6 +55,10 @@ public class UserTerm extends GeneOntologyTerm implements UserContent {
 
     @Column
     private Long size;
+
+    @CreatedDate
+    @JsonIgnore
+    private Timestamp createdAt;
 
     public static UserTerm createUserTerm( User user, GeneOntologyTerm term, Taxon taxon ) {
         UserTerm userTerm = new UserTerm();

@@ -1,10 +1,16 @@
 package ubc.pavlab.rdp.model;
 
-import lombok.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import org.hibernate.validator.constraints.Email;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 
 import javax.persistence.*;
+import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAmount;
@@ -14,6 +20,7 @@ import java.util.Optional;
  * Created by mjacobson on 22/01/18.
  */
 @Entity
+@EntityListeners(AuditingEntityListener.class)
 @Table(name = "verification_token")
 @Getter
 @Setter
@@ -35,6 +42,9 @@ public class VerificationToken extends Token implements UserContent {
     @Email
     @Column(name = "email")
     private String email;
+
+    @CreatedDate
+    private Timestamp createdAt;
 
     @Override
     protected TemporalAmount getDuration() {

@@ -7,6 +7,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ubc.pavlab.rdp.model.Gene;
 import ubc.pavlab.rdp.model.GeneInfo;
 import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.model.enums.GeneMatchType;
@@ -136,7 +137,7 @@ public class GeneInfoServiceImpl implements GeneInfoService {
                             gene.setModificationDate( record.getModificationDate() );
                             return gene;
                         } ).collect( Collectors.toSet() );
-                geneInfoRepository.save( geneData );
+                geneInfoRepository.saveAll( geneData );
                 log.info( MessageFormat.format( "Done updating genes for {0}.", taxon ) );
             } catch ( FileNotFoundException e ) {
                 log.warn( String.format( "Could not locate a gene info file for %s: %s.", taxon, e.getMessage() ) );
@@ -219,18 +220,19 @@ public class GeneInfoServiceImpl implements GeneInfoService {
                     .map( orthologByGeneId::get )
                     .filter( Objects::nonNull )
                     .collect( Collectors.toSet() );
-            gene.getOrthologs().removeIf( o -> !orthologs.contains( o ) );
-            gene.getOrthologs().addAll( orthologs );
+            CollectionUtils.update( gene.getOrthologs(), orthologs );
             geneInfoRepository.save( gene );
         }
         log.info( "Done updating gene orthologs." );
     }
 
-    private <T> boolean addAll( Collection<SearchResult<T>> container, Collection<T> newValues, GeneMatchType match, int maxSize ) {
+    private boolean addAll( Collection<SearchResult<GeneInfo>> container, Collection<GeneInfo> newValues, GeneMatchType match, int maxSize ) {
 
-        for ( T newValue : newValues ) {
+        for ( GeneInfo newValue : newValues ) {
             if ( maxSize == -1 || container.size() < maxSize ) {
-                container.add( new SearchResult<>( match, newValue ) );
+                SearchResult<GeneInfo> sr = new SearchResult<>( match, newValue.getId(), newValue.getSymbol(), newValue.getName(), newValue );
+                sr.setExtras( newValue.getAliases() );
+                container.add( sr );
             } else {
                 return true;
             }

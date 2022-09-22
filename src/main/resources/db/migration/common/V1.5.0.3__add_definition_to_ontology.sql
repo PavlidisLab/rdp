@@ -1,0 +1,1 @@
+alter table ontology add column definition text after name;

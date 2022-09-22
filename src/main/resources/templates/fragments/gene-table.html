@@ -3,13 +3,13 @@
 <body>
 <table th:fragment="gene-table (genes)"
        th:id="${viewOnly == null} ? 'gene-table' : ''"
-       class="gene-table table table-sm">
-    <thead class="thead-light">
+       class="gene-table table">
+    <thead>
     <tr>
+        <th>Gene ID</th>
         <th scope="col">Symbol</th>
-        <th scope="col" class="d-none" th:if="${viewOnly == null}">Id</th>
         <th scope="col">Name</th>
-        <th th:if="${@tierService.isTierEnabled(T(ubc.pavlab.rdp.model.enums.TierType).TIER1)} and ${@tierService.isTierEnabled(T(ubc.pavlab.rdp.model.enums.TierType).TIER2)}"
+        <th th:if="${@applicationSettings.enabledTiers.contains(T(ubc.pavlab.rdp.model.enums.TierType).TIER1)} and ${@applicationSettings.enabledTiers.contains(T(ubc.pavlab.rdp.model.enums.TierType).TIER2)}"
             class="text-center"
             scope="col"
             data-toggle="tooltip"
@@ -25,24 +25,16 @@
             Privacy Level
             <i class="tip oi oi-question-mark"></i>
         </th>
+        <th></th>
     </tr>
     </thead>
     <tbody>
     <tr th:each="gene : ${genes}">
-        <td class="align-middle">
-            <i th:if="${viewOnly == null}" class="delete-row align-middle"></i>
-            <a th:href="@{https://www.ncbi.nlm.nih.gov/gene/{geneId}(geneId=${gene.geneId})}"
-               th:text="${gene.symbol}"
-               target="_blank"
-               class="align-middle"></a>
-        </td>
-        <td th:if="${viewOnly == null}"
-            th:text="${gene.geneId}"
-            style="display: none;">
-        </td>
+        <td th:text="${gene.geneId}"></td>
+        <td class="align-middle" th:text="${gene.symbol}"></td>
         <td class="align-middle" th:text="${gene.name}"></td>
         <th:block
-                th:if="${@tierService.isTierEnabled(T(ubc.pavlab.rdp.model.enums.TierType).TIER1)} and ${@tierService.isTierEnabled(T(ubc.pavlab.rdp.model.enums.TierType).TIER2)}">
+                th:if="${@applicationSettings.enabledTiers.contains(T(ubc.pavlab.rdp.model.enums.TierType).TIER1)} and ${@applicationSettings.enabledTiers.contains(T(ubc.pavlab.rdp.model.enums.TierType).TIER2)}">
             <td class="text-center" th:if="${viewOnly == null}">
                 <input name="primary" type="checkbox" class="align-middle"
                        th:checked="${gene.tier == T(ubc.pavlab.rdp.model.enums.TierType).TIER1}"/>
@@ -61,11 +53,13 @@
                         th:text="#{'PrivacyLevelType.' + ${privacyLevel.name()}}"></option>
             </select>
         </td>
+        <td></td>
     </tr>
     </tbody>
     <tfoot th:if="${viewOnly != null}">
     <tr>
-        <td colspan="3"></td>
+        <td></td>
+        <td class="text-center"></td>
     </tr>
     </tfoot>
 </table>

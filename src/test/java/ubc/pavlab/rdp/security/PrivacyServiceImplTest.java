@@ -15,9 +15,12 @@ import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.repositories.RoleRepository;
 import ubc.pavlab.rdp.services.PrivacyService;
 import ubc.pavlab.rdp.services.PrivacyServiceImpl;
+import ubc.pavlab.rdp.services.UserPrivacyService;
 import ubc.pavlab.rdp.services.UserService;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -32,13 +35,13 @@ public class PrivacyServiceImplTest {
     static class PrivacyServiceImplTestContextConfiguration {
 
         @Bean
-        public PrivacyService privacyService() {
-            return new PrivacyServiceImpl();
+        public UserPrivacyService privacyService() {
+            return new UserPrivacyService();
         }
     }
 
     @Autowired
-    private PrivacyService privacyService;
+    private UserPrivacyService privacyService;
 
     @MockBean
     private ApplicationSettings applicationSettings;
@@ -69,8 +72,10 @@ public class PrivacyServiceImplTest {
         Role roleServiceAccount = createRole( 4, "ROLE_SERVICE_ACCOUNT" );
         user = createUser( 1 );
         user.setEnabled( true );
+        user.setEnabledAt( Timestamp.from( Instant.now() ) );
         otherUser = createUser( 2 );
         otherUser.setEnabled( true );
+        otherUser.setEnabledAt( Timestamp.from( Instant.now() ) );
         adminUser = createUserWithRoles( 3, roleAdmin );
         serviceAccountUser = createUserWithRoles( 4, roleServiceAccount );
         when( roleRepository.findByRole( "ROLE_ADMIN" ) ).thenReturn( roleAdmin );

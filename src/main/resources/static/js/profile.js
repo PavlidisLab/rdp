@@ -3,6 +3,33 @@
 
     var publicationTable = $('#publication-table');
 
+    var ontologyTermTable = $('.ontology-term-table');
+
+    ontologyTermTable.DataTable({
+        info: false,
+        paging: false,
+        searching: false,
+        columnDefs: [
+            {
+                targets: [0],
+                visible: false
+            },
+            {
+                targets: [3],
+                render: function (data) {
+                    return $('<span class="ontology-term-definition">').text(data)[0].outerHTML;
+                }
+            },
+            {
+                targets: [4],
+                sortable: false,
+                render: function () {
+                    return $('<button class="data-table-delete-row text-danger close">').text('×')[0].outerHTML;
+                }
+            }
+        ]
+    });
+
     function collectProfile() {
         var profile = {};
 
@@ -29,7 +56,7 @@
         // Research Information
         profile.description = $.trim($('[name="profile.description"]').val());
 
-        profile.privacyLevel = parseInt($('input[name=privacyLevel]:checked').val());
+        profile.privacyLevel = $('input[name=privacyLevel]:checked').val();
         profile.shared = $('[name="profile.shared"]').prop('checked');
         profile.hideGenelist = $('[name="profile.hideGenelist"]').prop('checked');
 
@@ -59,7 +86,25 @@
                 return elem.value;
             }).get();
 
-        return {'profile': profile, 'organUberonIds': organUberonIds};
+        var ontologyTermIds = $('[name="ontologyTermIds"]:checked')
+            .map(function (i, elem) {
+                return parseInt(elem.value);
+            }).get();
+
+        // gather the term IDs from all tables
+        ontologyTermTable.each(function (i, elem) {
+            var ids = $(elem).DataTable().column(0).data().toArray()
+                .map(function (value) {
+                    return parseInt(value);
+                });
+            Array.prototype.push.apply(ontologyTermIds, ids);
+        });
+
+        return {
+            'profile': profile,
+            'organUberonIds': organUberonIds,
+            'ontologyTermIds': ontologyTermIds
+        };
     }
 
     // auto-hide save message
@@ -74,7 +119,17 @@
         "paging": false,
         "searching": false,
         "info": false,
-        "order": [[0, "asc"]]
+        "order": [[0, "asc"]],
+        columnDefs: [
+            {
+                targets: [2],
+                orderable: false,
+                render: function () {
+                    return $('<button type="button" class="data-table-delete-row close text-danger">')
+                        .text('×')[0].outerHTML;
+                }
+            }
+        ]
     });
 
     // Create initial profile
@@ -130,30 +185,30 @@
         // Try to get metadata for the articles
         var rows = [];
         $.get('https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=pubmed&amp;id=' + encodeURIComponent(ids.join(",")) + '&amp;retmode=json', function (data) {
-            $.each(ids, function (idx, pubmed) {
+            $.each(ids, function (idx, pubmedId) {
                 /* check if it's already in the table */
-                var val = '<i class="delete-row"></i> ' + pubmed;
-                if (table.column(0).data().indexOf(val) !== -1) {
+                if (table.column(0).data().indexOf(pubmedId) !== -1) {
                     return;
                 }
                 var row = [];
-                row.push(val);
+                row.push(pubmedId);
                 try {
-                    var title = data.result[pubmed].title;
+                    var title = data.result[pubmedId].title;
                     title = title.length > 100 ?
                         title.substring(0, 100 - 3) + "..." :
                         title;
 
-                    row.push('<a href="https://www.ncbi.nlm.nih.gov/pubmed/' + encodeURIComponent(pubmed) + '" target="_blank" rel="noopener">' + (title ? title : 'Unknown Title') + '</a>');
+                    row.push('<a href="https://www.ncbi.nlm.nih.gov/pubmed/' + encodeURIComponent(pubmedId) + '" target="_blank" rel="noopener">' + (title ? title : 'Unknown Title') + '</a>');
                 } catch (e) {
-                    window.console.log("Issue obtaining metadata for: " + pubmed, e);
+                    row.push("Issue obtaining metadata for: " + pubmedId + ".");
                 }
+                row.push(null);
                 rows.push(row);
             });
         }).done(function () {
             table.rows.add(rows).draw().nodes()
                 .to$()
-                .addClass('new-row');
+                .addClass('alert-success');
         });
 
     });
@@ -168,39 +223,92 @@
         $('.is-invalid').toggleClass('is-invalid', false);
         $('.invalid-feedback').remove();
 
+        /**
+         * @typedef {{message: String, contactEmailVerified: Boolean}} ProfileSavedModel
+         * @typedef {{field: String, message: String, rejectedValue: Object}} FieldError
+         * @typedef {{fieldErrors: FieldError[]}} BindingResultModel
+         */
+
         // noinspection JSUnusedLocalSymbols
         $.ajax({
             type: "POST",
             url: window.location.href,
             data: JSON.stringify(profile),
             contentType: "application/json"
-        }).done(function (r) {
-            // update the initial profile to the newly saved one
-            initialProfile = profile;
-            $('#profile-success-alert-message').text(r.message);
-            $('#profile-success-alert').show();
-            $('#profile-error-alert').hide();
-            // display the verified badge if the email is verified
-            // hide the not verified badge and resend link if the email is verified
-            // sorry for the inversed logic here, the d-none class hides the tag
-            $('#contact-email-verified-badge').toggleClass('d-none', !r.contactEmailVerified);
-            $('#contact-email-not-verified-badge').toggleClass('d-none', r.contactEmailVerified);
-            $('#contact-email-resend-verification-email-button').toggleClass('d-none', r.contactEmailVerified);
-            $('#saved-button').focus();
-        }).fail(function (r) {
-            var message = "Your profile could not be saved.";
-            if ('fieldErrors' in r.responseJSON) {
-                r.responseJSON.fieldErrors.forEach(function (fieldError) {
-                    $('[name="' + fieldError.field + '"]')
-                        .toggleClass('is-invalid', true)
-                        .after($('<div/>', {'class': 'invalid-feedback text-danger d-block'}).text(fieldError.message));
-                });
-            }
-            $('#profile-error-alert-message').html(message);
-            $('#profile-error-alert').show();
-            $('#profile-success-alert').hide();
-        }).always(function () {
+        }).done(
+            /**
+             * @param {ProfileSavedModel} r
+             */
+            function (r) {
+                // update the initial profile to the newly saved one
+                initialProfile = profile;
+                $('#profile-success-alert-message').text(r.message);
+                $('#profile-success-alert').show();
+                $('#profile-error-alert').hide();
+                // display the verified badge if the email is verified
+                // hide the not verified badge and resend link if the email is verified
+                // sorry for the inversed logic here, the d-none class hides the tag
+                $('#contact-email-verified-badge').toggleClass('d-none', !r.contactEmailVerified);
+                $('#contact-email-not-verified-badge').toggleClass('d-none', r.contactEmailVerified);
+                $('#contact-email-resend-verification-email-button').toggleClass('d-none', r.contactEmailVerified);
+                $('#saved-button').focus();
+            }).fail(
+            /**
+             *
+             * @param {{responseJSON: BindingResultModel}} r
+             */
+            function (r) {
+                var message = "Your profile could not be saved.";
+                if ('fieldErrors' in r.responseJSON) {
+                    r.responseJSON.fieldErrors.forEach(function (fieldError) {
+                        $('[name="' + fieldError.field + '"]')
+                            .toggleClass('is-invalid', true)
+                            .after($('<div/>', {'class': 'invalid-feedback text-danger d-block'}).text(fieldError.message));
+                    });
+                }
+                $('#profile-error-alert-message').html(message);
+                $('#profile-error-alert').show();
+                $('#profile-success-alert').hide();
+            }).always(function () {
             spinner.toggleClass('d-none', true);
         });
     });
+
+    $('.ontology-term-autocomplete').autocomplete({
+        minLength: 3,
+        delay: 200,
+        source: function (request, response) {
+            var term = request.term;
+            var ontologyId = $(this.element).data('ontology-id');
+            $.getJSON('/search/ontology-terms/autocomplete', {
+                query: term,
+                ontologyId: ontologyId
+            }).done(function (data) {
+                if (!data.length) {
+                    return response([{
+                        noresults: true,
+                        label: 'No matches found for "' + term + '".',
+                        value: term
+                    }
+                    ]);
+                } else {
+                    response(data);
+                }
+            }).fail(function () {
+                response([{noresults: true, label: 'Error querying search endpoint.', value: term}]);
+            });
+        },
+        select: function (event, ui) {
+            var termTable = $(document.getElementById($(this).data('for-table'))).DataTable();
+            termTable.row
+                .add([ui.item.id, ui.item.match.termId, ui.item.match.name, ui.item.match.definition, null])
+                .draw()
+                .nodes()
+                .to$().addClass('alert-success');
+            $(this).val('');
+            return false;
+        }
+    });
+
+
 })();

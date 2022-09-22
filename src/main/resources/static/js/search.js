@@ -1,3 +1,5 @@
+var formUtil = require('./util/form');
+
 (function () {
     "use strict";
 
@@ -7,7 +9,7 @@
         var userId = element.data('user-id');
         var anonymousUserId = element.data('anonymous-user-id');
         var remoteHost = element.data('remote-host');
-        var popoverUrl = '/search/view/user-preview/';
+        var popoverUrl = window.contextPath + '/search/view/user-preview/';
         if (anonymousUserId) {
             popoverUrl += 'by-anonymous-id/' + encodeURIComponent(anonymousUserId);
         } else {
@@ -36,16 +38,6 @@
             });
     }
 
-    function checkItl(itlChbox) {
-        if (itlChbox.prop("checked")) {
-            $("#itlResults").show();
-            $("[name=iSearch]").val(true);
-        } else {
-            $("#itlResults").hide();
-            $('[name="iSearch"]').val(false);
-        }
-    }
-
     function checkTaxon(taxonSelect) {
         // noinspection EqualityComparisonWithCoercionJS // multi-browser support // Taxon also checked in SearchController.java
         if (taxonSelect.val() === "9606") {
@@ -55,69 +47,104 @@
         }
     }
 
+    var tableContainer = $("#userTable");
+    var searchSummary = $('#searchSummary');
+    var ontologyAvailability = $('#itlOntologyAvailability');
+    var orthologContainer = $("#orthologsResults");
+    var itlTableContainer = $("#itlUserTable");
+    var results = document.getElementById('results');
+    var itlResults = document.getElementById("itlResults");
+
+    // hide results with switching tab
+    $('.search-mode-link[data-toggle=tab]').on('hide.bs.tab', function () {
+        searchSummary.empty();
+        ontologyAvailability.empty();
+        orthologContainer.empty();
+        results.classList.toggle('d-none', true);
+        itlResults.classList.toggle('d-none', true);
+    });
+
+    // check if there is a fragment for toggling a search tab
+    var match = window.location.hash.match(/^#(by-.+-search)$/);
+    if (match !== null) {
+        var searchModeId = match[1];
+        var searchTab = document.querySelector('[href="#' + searchModeId + '"]');
+        $(searchTab).tab('show');
+    }
+
     $("form.search").submit(function (event) {
 
-        var formData = $(this).serialize();
+        var formData = formUtil.serialize(this);
 
-        /* retrieve nearby organ systems */
-        var organsForm = $(this).closest('.tab-pane').find('.organs-form').serialize();
-        if (organsForm) {
-            formData = formData + '&' + organsForm;
+        // ensure that iSearch is always part of the request parameters
+        // this could also be done using a hidden input with the '_' prefix, but we don't want to contaminate the search
+        // query syntax
+        var iSearch = $(this).find('input[name="iSearch"]').is(':checked');
+        if (!iSearch) {
+            formData += '&iSearch=false';
         }
 
         // Show search results
-        var tableContainer = $("#userTable");
         tableContainer.html($('<i class="mx-2 spinner"></i>'));
-
-        // noinspection JSUnusedLocalSymbols
-        tableContainer.load("/search/view", formData, function (responseText, textStatus) {
+        tableContainer.load(window.contextPath + "/search/view", formData, function (responseText, textStatus) {
             if (textStatus === "error") {
                 tableContainer.html(responseText);
+            } else {
+                tableContainer.find('[data-toggle="tooltip"]').tooltip();
+                tableContainer.find('.user-preview-popover').each(initializeUserPreviewPopover);
             }
-            tableContainer.find('[data-toggle="tooltip"]').tooltip();
-            tableContainer.find('.user-preview-popover').each(initializeUserPreviewPopover);
         });
 
-        // Show orthologs
-        $(".ortholog-search-text").html(""); // Clear existing results.
-        if ($("#symbolInput").val() !== "" && $("#ortholog-box").is(":visible")) {
-            var orthologContainer = $("#orthologsResults");
-            orthologContainer.html($('<i class="mx-2 spinner"></i>'));
-            orthologContainer.load("/search/view/orthologs", formData, function (responseText, textStatus) {
-                if (textStatus === "error") {
-                    /* display nothing if there's issue with orthologs */
-                    orthologContainer.html('');
-                }
-                orthologContainer.find('[data-toggle="tooltip"]').tooltip();
-                orthologContainer.find('.user-preview-popover').each(initializeUserPreviewPopover);
-            });
+        // show search summary
+        // this is quick to obtain, so no need for a spinner nor clear the output
+        searchSummary.load(window.contextPath + '/search/view', formData + '&summarize=true', function (responseText, textStatus) {
+            if (textStatus === "error") {
+                searchSummary.html(''); // the error will be displayed in the main search view
+            }
+        });
+
+        // Show available terms in partner registries
+        ontologyAvailability.empty(); // this is right next to the results, so no need for a spinner
+        if (formData.indexOf('ontologyTermIds') !== -1) {
+            ontologyAvailability.load(window.contextPath + '/search/view/international/available-terms-by-partner', formData);
         }
 
+        // Show orthologs
+        if ($("#symbolInput").val() !== "" && $("#ortholog-box").is(":visible")) {
+            orthologContainer.html($('<i class="mx-2 spinner"></i>'));
+            orthologContainer.load(window.contextPath + "/search/view/orthologs", formData, function (responseText, textStatus) {
+                if (textStatus === "error") {
+                    orthologContainer.html(responseText);
+                }
+            });
+        } else {
+            orthologContainer.empty();
+        }
+
+        // show search results
+        results.classList.toggle('d-none', false);
+
         // Show international search results
-        if ($("#isearch-checkbox").is(":checked")) {
-            var itlTableContainer = $("#itlUserTable");
+        if (iSearch) {
+            itlResults.classList.toggle('d-none', false);
             itlTableContainer.html($('<i class="mx-2 spinner"></i>'));
             // noinspection JSUnusedLocalSymbols
-            itlTableContainer.load("/search/view/international", formData, function (responseText, textStatus, req) {
+            itlTableContainer.load(window.contextPath + "/search/view/international", formData, function (responseText, textStatus, req) {
                 if (textStatus === "error") {
                     itlTableContainer.html(responseText);
+                } else {
+                    itlTableContainer.find('[data-toggle="tooltip"]').tooltip();
+                    itlTableContainer.find('.user-preview-popover').each(initializeUserPreviewPopover);
                 }
-                itlTableContainer.find('[data-toggle="tooltip"]').tooltip();
-                itlTableContainer.find('.user-preview-popover').each(initializeUserPreviewPopover);
             });
+        } else {
+            itlResults.classList.toggle('d-none', true);
         }
 
         // update history stack
         window.history.pushState({}, '', '?' + formData);
 
         event.preventDefault();
-    });
-
-    // International search property setting
-    var itlChbox = $("#isearch-checkbox");
-    checkItl(itlChbox);
-    itlChbox.click(function () {
-        checkItl(itlChbox);
     });
 
     // Ortholog selection show&hide
@@ -154,65 +181,78 @@
                 }
 
                 // noinspection JSUnusedLocalSymbols
-                $.getJSON("/taxon/" + encodeURIComponent(taxonId) + "/gene/search", {query: term, max: 10})
-                    .done(function (data, status, xhr) {
-                        if (!data.length) {
-                            data = [
-                                {
-                                    noresults: true,
-                                    label: 'No matches found',
-                                    value: term
-                                }
-                            ];
-                        }
-                        taxonCache[term] = data;
-                        response(data);
-                    })
-                    .fail(function () {
-                        response([{noresults: true, label: 'Error querying search endpoint.', value: term}]);
-                    });
+                $.getJSON(window.contextPath + "/taxon/" + encodeURIComponent(taxonId) + "/gene/search", {
+                    query: term,
+                    max: 10
+                }).done(function (data, status, xhr) {
+                    if (!data.length) {
+                        data = [
+                            {
+                                noresults: true,
+                                label: 'No matches found for "' + term + '".',
+                                value: term
+                            }
+                        ];
+                    }
+                    taxonCache[term] = data;
+                    response(data);
+                }).fail(function () {
+                    response([{noresults: true, label: 'Error querying search endpoint.', value: term}]);
+                });
             },
             select: function (event, ui) {
-                autocomplete.val(ui.item.match.symbol);
+                $(this).val(ui.item.label);
                 return false;
             }
         });
-        autocomplete.autocomplete("instance")._renderItem = function (ul, item) {
-            return $("<li>")
-                .append("<div class='pl-3'><b>" + item.match.symbol + "</b>: " + item.match.name + " (<i>" + item.match.aliases + "</i>)</div>")
-                .appendTo(ul);
-        };
-        autocomplete.autocomplete("instance")._create = function () {
-            this._super();
-            this.widget().menu("option", "items", "> :not(.ui-autocomplete-category)");
-        };
-        autocomplete.autocomplete("instance")._renderMenu = function (ul, items) {
-            var that = this,
-                currentCategory = "";
+    });
 
-            if (items.length === 1 && items[0].noresults) {
-                ul.append("<li aria-label='noresults' class='ui-autocomplete-category my-1 p-2 font-weight-bold' style='background-color: #fddce5; font-size: 1rem;'>No Results</li>");
-                return;
-            }
+    $('[name="nameLikeBtn"]').click(function () {
+        $('[name="nameLikeBtn"]').toggleClass('active', false);
+        $(this).toggleClass('active', true);
+    });
 
-            $.each(items, function (index, item) {
-                var li;
-                var label = item.matchType + " : " + item.match.symbol;
-                if (item.matchType !== currentCategory) {
-                    ul.append("<li aria-label='" + label + "' class='ui-autocomplete-category my-1 p-2 font-weight-bold' style='background-color: #e3f2fd; font-size: 1rem;'>" + item.matchType + "</li>");
-                    currentCategory = item.matchType;
+    $('.ontology-term-autocomplete').autocomplete({
+        minLength: 2,
+        delay: 200,
+        source: function (request, response) {
+            var term = request.term.trim();
+            var ontologyId = $(this.element).data('ontologyId');
+            response([{label: 'Loading results for "' + term + '"...'}]);
+            $.getJSON(window.contextPath + '/search/ontology-terms/autocomplete', {
+                query: term,
+                ontologyId: ontologyId
+            }).done(function (data) {
+                if (!data.length) {
+                    return response([{
+                        noresults: true,
+                        label: 'No matches found for "' + term + '".',
+                        value: term
+                    }
+                    ]);
+                } else {
+                    response(data);
                 }
-                li = that._renderItemData(ul, item);
-                if (item.matchType) {
-                    li.attr("aria-label", label);
-                }
+            }).fail(function () {
+                response([{noresults: true, label: 'Error querying search endpoint.', value: term}]);
             });
-        };
-
-        $('[name="nameLikeBtn"]').click(function () {
-            $('[name="nameLikeBtn"]').toggleClass('active', false);
-            $(this).toggleClass('active', true);
-        });
+        },
+        /**
+         *
+         * @param event
+         * @param ui {{item: SearchResult}}
+         * @returns {boolean}
+         */
+        select: function (event, ui) {
+            // add the term ID to the selection
+            $('<span class="badge badge-primary d-inline-flex align-items-center mr-1 mb-1">')
+                .append($('<span>').text(ui.item.description))
+                .append($('<button class="close" type="button">').text('×'))
+                .append($('<input name="ontologyTermIds" type="hidden">').val(ui.item.id))
+                .insertBefore($(this));
+            $(this).val('');
+            return false;
+        }
     });
 
     /* initialize user preview popovers */

@@ -3,14 +3,15 @@ package ubc.pavlab.rdp.services;
 import lombok.NonNull;
 import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PostFilter;
@@ -21,6 +22,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
 import ubc.pavlab.rdp.events.OnContactEmailUpdateEvent;
 import ubc.pavlab.rdp.events.OnRegistrationCompleteEvent;
 import ubc.pavlab.rdp.events.OnRequestAccessEvent;
@@ -31,28 +33,38 @@ import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.ResearcherCategory;
 import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import ubc.pavlab.rdp.model.enums.TierType;
+import ubc.pavlab.rdp.model.ontology.Ontology;
+import ubc.pavlab.rdp.model.ontology.OntologyTermInfo;
+import ubc.pavlab.rdp.model.ontology.UserOntologyTerm;
 import ubc.pavlab.rdp.repositories.*;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
+import ubc.pavlab.rdp.util.CacheUtils;
+import ubc.pavlab.rdp.util.CollectionUtils;
 
 import javax.validation.ValidationException;
 import java.security.SecureRandom;
+import java.sql.Timestamp;
 import java.text.MessageFormat;
 import java.time.Instant;
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static java.util.function.Function.identity;
-import static org.springframework.util.CollectionUtils.containsAny;
+import static ubc.pavlab.rdp.util.CollectionUtils.containsAtLeastOne;
+import static ubc.pavlab.rdp.util.CollectionUtils.nullOrContainsAtLeastOne;
 
 /**
  * Created by mjacobson on 16/01/18.
  */
 @Service("userService")
+@Transactional(readOnly = true)
 @CommonsLog
-public class UserServiceImpl implements UserService {
+public class UserServiceImpl implements UserService, InitializingBean {
 
-    public static final String USERS_BY_ANONYMOUS_ID_CACHE_KEY = "ubc.pavlab.rdp.model.User.byAnonymousId";
-    public static final String USER_GENES_BY_ANONYMOUS_ID_CACHE_KEY = "ubc.pavlab.rdp.model.UserGene.byAnonymousId";
+    static final String
+            USERS_BY_ANONYMOUS_ID_CACHE_NAME = "ubc.pavlab.rdp.model.User.byAnonymousId",
+            USER_GENES_BY_ANONYMOUS_ID_CACHE_NAME = "ubc.pavlab.rdp.model.UserGene.byAnonymousId";
 
     @Autowired
     private ApplicationSettings applicationSettings;
@@ -85,7 +97,23 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private SecureRandom secureRandom;
     @Autowired
-    private PermissionEvaluator permissionEvaluator;
+    private OntologyService ontologyService;
+
+    private Cache usersByAnonymousIdCache;
+    private Cache userGenesByAnonymousIdCache;
+
+    @Override
+    public void afterPropertiesSet() {
+        usersByAnonymousIdCache = CacheUtils.getCache( cacheManager, USERS_BY_ANONYMOUS_ID_CACHE_NAME );
+        userGenesByAnonymousIdCache = CacheUtils.getCache( cacheManager, USER_GENES_BY_ANONYMOUS_ID_CACHE_NAME );
+        Integer userId = applicationSettings.getIsearch().getUserId();
+        if ( userId != null ) {
+            User user = userRepository.findById( userId ).orElse( null );
+            Assert.notNull( user, String.format( "The remote search user with ID %d does not exist.", userId ) );
+            Assert.notEmpty( applicationSettings.getIsearch().getAuthTokens(), "There must be at least one authentication token configured in 'rdp.settings.isearch.auth-tokens'." );
+            log.info( String.format( "Using %s for performing remote admin search.", user ) );
+        }
+    }
 
     @Transactional
     @Override
@@ -116,6 +144,26 @@ public class UserServiceImpl implements UserService {
         user = userRepository.save( user );
         createAccessTokenForUser( user );
         return user;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Role> findAllRoles() {
+        return roleRepository.findAll();
+    }
+
+    @Override
+    @Secured("ROLE_ADMIN")
+    @Transactional(rollbackFor = RoleException.class)
+    public void updateRoles( User user, Set<Role> roles ) throws RoleException {
+        Role adminRole = roleRepository.findByRole( "ROLE_ADMIN" );
+        if ( isCurrentUser( user ) && !roles.containsAll( user.getRoles() ) ) {
+            throw new CannotRevokeOwnRolesException( "You cannot revoke your own roles." );
+        } else if ( user.getRoles().contains( adminRole ) && !roles.containsAll( user.getRoles() ) ) {
+            throw new CannotRevokeRolesFromOtherAdministratorException( "You cannot revoke the roles of another administrator." );
+        }
+        CollectionUtils.update( user.getRoles(), roles );
+        userRepository.save( user );
     }
 
     @Override
@@ -200,10 +248,25 @@ public class UserServiceImpl implements UserService {
         return findUserByIdNoAuth( ( (UserPrinciple) auth.getPrincipal() ).getId() );
     }
 
+    /**
+     * Test if the provided user is the current authenticated user.
+     * <p>
+     * Prefer this over {@link #findCurrentUser()} if you don't need to retrieve the current user and avoid a database
+     * roundtrip.
+     */
+    @Override
+    public boolean isCurrentUser( User user ) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if ( auth == null || auth.getPrincipal().equals( "anonymousUser" ) ) {
+            return false;
+        }
+        return ( (UserPrinciple) auth.getPrincipal() ).getId().equals( user.getId() );
+    }
+
     @Override
     @PostAuthorize("hasPermission(returnObject, 'read')")
     public User findUserById( int id ) {
-        return userRepository.findOne( id );
+        return userRepository.findById( id ).orElse( null );
     }
 
 
@@ -220,7 +283,7 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public User findUserByAnonymousIdNoAuth( UUID anonymousId ) {
-        return cacheManager.getCache( USERS_BY_ANONYMOUS_ID_CACHE_KEY ).get( anonymousId, User.class );
+        return usersByAnonymousIdCache.get( anonymousId, User.class );
     }
 
     /**
@@ -236,13 +299,13 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public UserGene findUserGeneByAnonymousIdNoAuth( UUID anonymousId ) {
-        return cacheManager.getCache( USER_GENES_BY_ANONYMOUS_ID_CACHE_KEY ).get( anonymousId, UserGene.class );
+        return userGenesByAnonymousIdCache.get( anonymousId, UserGene.class );
     }
 
     @Override
     public User findUserByIdNoAuth( int id ) {
         // Only use this in placed where no authentication of user is needed
-        return userRepository.findOneWithRoles( id );
+        return userRepository.findOneWithRoles( id ).orElse( null );
     }
 
     @Override
@@ -258,7 +321,7 @@ public class UserServiceImpl implements UserService {
         }
         if ( Instant.now().isAfter( token.getExpiryDate().toInstant() ) ) {
             // token is expired
-            throw new TokenException( "Token is expired." );
+            throw new ExpiredTokenException( "Token is expired." );
         }
         return token.getUser();
     }
@@ -266,38 +329,49 @@ public class UserServiceImpl implements UserService {
     @Override
     @PostAuthorize("hasPermission(returnObject, 'read')")
     public User anonymizeUser( User user ) {
+        return anonymizeUser( user, UUID.randomUUID() );
+    }
+
+    @Override
+    @PostAuthorize("hasPermission(returnObject, 'read')")
+    public User anonymizeUser( User user, UUID anonymousId ) {
+        String shortName = messageSource.getMessage( "rdp.site.shortname", null, Locale.getDefault() );
         Profile profile = Profile.builder()
-                .name( messageSource.getMessage( "rdp.site.anonymized-user-name", new String[]{}, Locale.getDefault() ) )
+                .name( messageSource.getMessage( "rdp.site.anonymized-user-name", new String[]{ shortName }, Locale.getDefault() ) )
                 .privacyLevel( applicationSettings.getPrivacy().isEnableAnonymizedSearchResults() ? PrivacyLevelType.PUBLIC : PrivacyLevelType.PRIVATE )
                 .shared( true )
                 .build();
         profile.getResearcherCategories().addAll( user.getProfile().getResearcherCategories() );
-        User anonymizedUser = User.builder()
-                .id( 0 )
+        User anonymizedUser = User.builder( profile )
+                .id( null )
                 .anonymousId( UUID.randomUUID() )
-                .profile( profile )
                 // FIXME: a disabled user will still cause an AccessDeniedException
                 .enabled( user.isEnabled() )
                 .build();
         // TODO: check if this is leaking too much personal information
         anonymizedUser.getUserOrgans().putAll( user.getUserOrgans() );
-        cacheManager.getCache( USERS_BY_ANONYMOUS_ID_CACHE_KEY ).put( anonymizedUser.getAnonymousId(), user );
+        usersByAnonymousIdCache.putIfAbsent( anonymizedUser.getAnonymousId(), user );
         return anonymizedUser;
     }
 
     @Override
     @PostAuthorize("hasPermission(returnObject, 'read')")
     public UserGene anonymizeUserGene( UserGene userGene ) {
-        UserGene anonymizedUserGene = UserGene.builder()
-                .id( 0 )
+        return anonymizeUserGene( userGene, UUID.randomUUID() );
+    }
+
+    @Override
+    @PostAuthorize("hasPermission(returnObject, 'read')")
+    public UserGene anonymizeUserGene( UserGene userGene, UUID anonymousIdToReuse ) {
+        UserGene anonymizedUserGene = UserGene.builder( anonymizeUser( userGene.getUser() ) )
+                .id( null )
                 .anonymousId( UUID.randomUUID() )
-                .user( anonymizeUser( userGene.getUser() ) )
                 .geneInfo( userGene.getGeneInfo() )
                 .privacyLevel( applicationSettings.getPrivacy().isEnableAnonymizedSearchResults() ? PrivacyLevelType.PUBLIC : PrivacyLevelType.PRIVATE )
                 .tier( userGene.getTier() )
                 .build();
         anonymizedUserGene.updateGene( userGene );
-        cacheManager.getCache( USER_GENES_BY_ANONYMOUS_ID_CACHE_KEY ).put( anonymizedUserGene.getAnonymousId(), userGene );
+        userGenesByAnonymousIdCache.putIfAbsent( anonymizedUserGene.getAnonymousId(), userGene );
         return anonymizedUserGene;
     }
 
@@ -317,17 +391,19 @@ public class UserServiceImpl implements UserService {
     @Override
     @Cacheable("ubc.pavlab.rdp.services.UserService.remoteSearchUser")
     public Optional<User> getRemoteSearchUser() {
-        if ( applicationSettings.getIsearch().getUserId() == null ) {
-            // there is no configured remote search user
-            return Optional.empty();
-        }
-        return Optional.ofNullable( userRepository.findOneWithRoles( applicationSettings.getIsearch().getUserId() ) );
+        return Optional.ofNullable( applicationSettings.getIsearch().getUserId() )
+                .flatMap( userRepository::findOneWithRoles );
     }
 
+    /**
+     * Results are ored
+     *
+     * @param pageable
+     * @return
+     */
     @Override
-    @PostFilter("hasPermission(filterObject, 'read')")
-    public Collection<User> findAll() {
-        return userRepository.findAll();
+    public Page<User> findAllNoAuth( Pageable pageable ) {
+        return userRepository.findAll( pageable );
     }
 
     @Override
@@ -342,36 +418,64 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @PostFilter("hasPermission(filterObject, 'read')")
-    public List<User> findByLikeName( String nameLike, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherTypes, Collection<OrganInfo> organs ) {
+    public List<User> findByLikeName( String nameLike, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherTypes, Collection<OrganInfo> organs, Map<Ontology, Set<OntologyTermInfo>> ontologyTermInfos ) {
         final Set<String> organUberonIds = organUberonIdsFromOrgans( organs );
+        Map<Ontology, Set<Integer>> ontologyTermInfoIds = ontologyTermInfoIdsFromOntologyTermInfo( ontologyTermInfos );
         return userRepository.findByProfileNameContainingIgnoreCaseOrProfileLastNameContainingIgnoreCase( nameLike, nameLike ).stream()
                 .filter( u -> researcherPositions == null || researcherPositions.contains( u.getProfile().getResearcherPosition() ) )
-                .filter( u -> researcherTypes == null || containsAny( researcherTypes, u.getProfile().getResearcherCategories() ) )
-                .filter( u -> organUberonIds == null || containsAny( organUberonIds, u.getUserOrgans().values().stream().map( UserOrgan::getUberonId ).collect( Collectors.toSet() ) ) )
+                .filter( u -> nullOrContainsAtLeastOne( researcherTypes, () -> u.getProfile().getResearcherCategories() ) )
+                .filter( u -> nullOrContainsAtLeastOne( organUberonIds, () -> u.getUserOrgans().values().stream().map( UserOrgan::getUberonId ).collect( Collectors.toSet() ) ) )
+                .filter( hasOntologyTermIn( ontologyTermInfoIds ) )
                 .sorted( User.getComparator() )
                 .collect( Collectors.toList() );
     }
 
     @Override
     @PostFilter("hasPermission(filterObject, 'read')")
-    public List<User> findByStartsName( String startsName, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherTypes, Collection<OrganInfo> organs ) {
+    public List<User> findByStartsName( String startsName, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherTypes, Collection<OrganInfo> organs, Map<Ontology, Set<OntologyTermInfo>> ontologyTermInfos ) {
         final Set<String> organUberonIds = organUberonIdsFromOrgans( organs );
+        Map<Ontology, Set<Integer>> ontologyTermInfoIds = ontologyTermInfoIdsFromOntologyTermInfo( ontologyTermInfos );
         return userRepository.findByProfileLastNameStartsWithIgnoreCase( startsName ).stream()
                 .filter( u -> researcherPositions == null || researcherPositions.contains( u.getProfile().getResearcherPosition() ) )
-                .filter( u -> researcherTypes == null || containsAny( researcherTypes, u.getProfile().getResearcherCategories() ) )
-                .filter( u -> organUberonIds == null || containsAny( organUberonIds, u.getUserOrgans().values().stream().map( UserOrgan::getUberonId ).collect( Collectors.toSet() ) ) )
+                .filter( u -> nullOrContainsAtLeastOne( researcherTypes, () -> u.getProfile().getResearcherCategories() ) )
+                .filter( u -> nullOrContainsAtLeastOne( organUberonIds, () -> u.getUserOrgans().values().stream().map( UserOrgan::getUberonId ).collect( Collectors.toSet() ) ) )
+                .filter( hasOntologyTermIn( ontologyTermInfoIds ) )
                 .sorted( User.getComparator() )
                 .collect( Collectors.toList() );
     }
 
     @Override
     @PostFilter("hasPermission(filterObject, 'read')")
-    public List<User> findByDescription( String descriptionLike, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherTypes, Collection<OrganInfo> organs ) {
+    public List<User> findByDescription( String descriptionLike, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherTypes, Collection<OrganInfo> organs, Map<Ontology, Set<OntologyTermInfo>> ontologyTermInfos ) {
         final Set<String> organUberonIds = organUberonIdsFromOrgans( organs );
-        return userRepository.findDistinctByProfileDescriptionContainingIgnoreCaseOrTaxonDescriptionsContainingIgnoreCase( descriptionLike, descriptionLike ).stream()
+        Map<Ontology, Set<Integer>> ontologyTermInfoIds = ontologyTermInfoIdsFromOntologyTermInfo( ontologyTermInfos );
+        return userRepository.findDistinctByProfileDescriptionLikeIgnoreCaseOrTaxonDescriptionsLikeIgnoreCaseOrUserOntologyTermsNameLikeIgnoreCase( "%" + descriptionLike + "%" ).stream()
                 .filter( u -> researcherPositions == null || researcherPositions.contains( u.getProfile().getResearcherPosition() ) )
-                .filter( u -> researcherTypes == null || containsAny( researcherTypes, u.getProfile().getResearcherCategories() ) )
-                .filter( u -> organUberonIds == null || containsAny( organUberonIds, u.getUserOrgans().values().stream().map( UserOrgan::getUberonId ).collect( Collectors.toSet() ) ) )
+                .filter( u -> nullOrContainsAtLeastOne( researcherTypes, () -> u.getProfile().getResearcherCategories() ) )
+                .filter( u -> nullOrContainsAtLeastOne( organUberonIds, () -> u.getUserOrgans().values().stream().map( UserOrgan::getUberonId ).collect( Collectors.toSet() ) ) )
+                .filter( hasOntologyTermIn( ontologyTermInfoIds ) )
+                .sorted( User.getComparator() )
+                .collect( Collectors.toList() );
+    }
+
+    @Override
+    @PostFilter("hasPermission(filterObject, 'read')")
+    public List<User> findByNameAndDescription( String nameLike, boolean prefix, String descriptionLike, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherCategories, Collection<OrganInfo> organs, Map<Ontology, Set<OntologyTermInfo>> ontologyTermInfos ) {
+        final Set<String> organUberonIds = organUberonIdsFromOrgans( organs );
+        String namePattern = prefix ? nameLike + "%" : "%" + nameLike + "%";
+        String descriptionPattern = "%" + descriptionLike + "%";
+        List<User> users;
+        if ( prefix ) {
+            users = userRepository.findDistinctByProfileLastNameLikeIgnoreCaseAndProfileDescriptionLikeIgnoreCaseOrTaxonDescriptionsLikeIgnoreCase( namePattern, descriptionPattern );
+        } else {
+            users = userRepository.findDistinctByProfileFullNameLikeIgnoreCaseAndProfileDescriptionLikeIgnoreCaseAndTaxonDescriptionsLikeIgnoreCaseOrTaxonDescriptionsLikeIgnoreCase( namePattern, descriptionPattern );
+        }
+        Map<Ontology, Set<Integer>> ontologyTermInfoIds = ontologyTermInfoIdsFromOntologyTermInfo( ontologyTermInfos );
+        return users.stream()
+                .filter( u -> researcherPositions == null || researcherPositions.contains( u.getProfile().getResearcherPosition() ) )
+                .filter( u -> nullOrContainsAtLeastOne( researcherCategories, () -> u.getProfile().getResearcherCategories() ) )
+                .filter( u -> nullOrContainsAtLeastOne( organUberonIds, () -> u.getUserOrgans().values().stream().map( UserOrgan::getUberonId ).collect( Collectors.toSet() ) ) )
+                .filter( hasOntologyTermIn( ontologyTermInfoIds ) )
                 .sorted( User.getComparator() )
                 .collect( Collectors.toList() );
     }
@@ -384,15 +488,46 @@ public class UserServiceImpl implements UserService {
         }
     }
 
+    private Map<Ontology, Set<Integer>> ontologyTermInfoIdsFromOntologyTermInfo( Map<Ontology, Set<OntologyTermInfo>> ontologyTermInfos ) {
+        if ( ontologyTermInfos != null ) {
+            return ontologyTermInfos.entrySet().stream()
+                    .collect( Collectors.toMap( Map.Entry::getKey, e -> ontologyService.inferTermIds( e.getValue() ) ) );
+        } else {
+            return null;
+        }
+    }
+
+    @Override
+    public Predicate<User> hasOntologyTermIn( Map<Ontology, Set<Integer>> ontologyTermInfoIdsByOntology ) {
+        return u -> ontologyTermInfoIdsByOntology == null || ontologyTermInfoIdsByOntology.values().stream()
+                .allMatch( entry -> containsAtLeastOne( entry, () -> getUserTermInfoIds( u ) ) );
+    }
+
+    @Override
+    public boolean existsByOntology( Ontology ontology ) {
+        return userRepository.existsByUserOntologyTermsOntology( ontology );
+    }
+
+    @Override
+    public Set<Integer> getUserTermInfoIds( User user ) {
+        return user.getUserOntologyTerms().stream()
+                .map( UserOntologyTerm::getTermInfo )
+                .filter( Objects::nonNull )
+                .filter( OntologyTermInfo::isActive ) // check this first, otherwise we might initialize the ontology for nothing
+                .filter( t -> t.getOntology().isActive() )
+                .map( OntologyTermInfo::getId )
+                .collect( Collectors.toSet() );
+    }
+
     @Override
     @Cacheable(cacheNames = "ubc.pavlab.rdp.stats", key = "#root.methodName")
     public long countResearchers() {
-        return userRepository.count();
+        return userRepository.countByEnabledTrue();
     }
 
     @Override
     public long countPublicResearchers() {
-        return userRepository.countByProfilePrivacyLevel( PrivacyLevelType.PUBLIC );
+        return userRepository.countByEnabledTrueAndProfilePrivacyLevel( PrivacyLevelType.PUBLIC );
     }
 
     @Override
@@ -415,14 +550,25 @@ public class UserServiceImpl implements UserService {
     @Override
     @PostFilter("hasPermission(filterObject, 'read')")
     public Collection<UserTerm> recommendTerms( @NonNull User user, @NonNull Taxon taxon ) {
-        return recommendTerms( user, taxon, 10, applicationSettings.getGoTermSizeLimit(), 2 );
+        return recommendTerms( user, user.getGenesByTaxonAndTier( taxon, TierType.MANUAL ), taxon, 10, applicationSettings.getGoTermSizeLimit(), 2 );
     }
 
     @Override
     @PostFilter("hasPermission(filterObject, 'read')")
-    public Collection<UserTerm> recommendTerms( @NonNull User user, @NonNull Taxon taxon, long minSize, long maxSize, long minFrequency ) {
-        Set<UserGene> genes = new HashSet<>( user.getGenesByTaxonAndTier( taxon, TierType.MANUAL ) );
+    public Collection<UserTerm> recommendTerms( User user, Set<? extends Gene> genes, Taxon taxon ) {
+        return recommendTerms( user, genes, taxon, 10, applicationSettings.getGoTermSizeLimit(), 2 );
+    }
 
+
+    /**
+     * This is only meant for testing purposes; refrain from using in actual code.
+     */
+    @PostFilter("hasPermission(filterObject, 'read')")
+    Collection<UserTerm> recommendTerms( @NonNull User user, @NonNull Taxon taxon, long minSize, long maxSize, long minFrequency ) {
+        return recommendTerms( user, user.getGenesByTaxonAndTier( taxon, TierType.MANUAL ), taxon, minSize, maxSize, minFrequency );
+    }
+
+    private Collection<UserTerm> recommendTerms( @NonNull User user, Set<? extends Gene> genes, @NonNull Taxon taxon, long minSize, long maxSize, long minFrequency ) {
         // terms already associated to user within the taxon
         Set<String> userTermGoIds = user.getUserTerms().stream()
                 .filter( ut -> ut.getTaxon().equals( taxon ) )
@@ -501,8 +647,7 @@ public class UserServiceImpl implements UserService {
         // update terms
         // go terms with the same identifier will be replaced
         Collection<UserTerm> userTerms = convertTerms( user, taxon, goTerms );
-        user.getUserTerms().removeIf( e -> e.getTaxon().equals( taxon ) && !userTerms.contains( e ) );
-        user.getUserTerms().addAll( userTerms );
+        CollectionUtils.updateIf( user.getUserTerms(), userTerms, e -> e.getTaxon().equals( taxon ) );
 
         // update frequency and size as those have likely changed with new genes
         for ( UserTerm userTerm : user.getUserTerms() ) {
@@ -532,7 +677,7 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public long computeTermFrequencyInTaxon( User user, GeneOntologyTerm term, Taxon taxon ) {
-        Set<Integer> geneIds = goService.getGenes( goService.getTerm( term.getGoId() ) ).stream().collect( Collectors.toSet() );
+        Set<Integer> geneIds = new HashSet<>( goService.getGenes( goService.getTerm( term.getGoId() ) ) );
         return user.getGenesByTaxonAndTier( taxon, TierType.MANUAL ).stream()
                 .map( UserGene::getGeneId )
                 .filter( geneIds::contains )
@@ -542,18 +687,18 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void sendGeneAccessRequest( User requestingUser, UserGene userGene, String reason ) {
-        eventPublisher.publishEvent( new OnRequestAccessEvent( requestingUser, userGene, reason ) );
+        eventPublisher.publishEvent( new OnRequestAccessEvent<>( requestingUser, userGene, reason ) );
     }
 
     @Transactional
     @Override
     @PreAuthorize("hasPermission(#user, 'update')")
-    public User updateUserProfileAndPublicationsAndOrgans( User user, Profile profile, Set<Publication> publications, Set<String> organUberonIds, Locale locale ) {
+    public User updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( User user, Profile profile, Set<Publication> publications, Set<String> organUberonIds, Set<Integer> termIdsByOntologyId, Locale locale ) {
         user.getProfile().setDepartment( profile.getDepartment() );
         user.getProfile().setDescription( profile.getDescription() );
         user.getProfile().setLastName( profile.getLastName() );
         user.getProfile().setName( profile.getName() );
-        if ( profile.getResearcherPosition() == null || applicationSettings.getProfile().getEnabledResearcherPositions().contains( profile.getResearcherPosition().name() ) ) {
+        if ( profile.getResearcherPosition() == null || applicationSettings.getProfile().getEnabledResearcherPositions().contains( profile.getResearcherPosition() ) ) {
             user.getProfile().setResearcherPosition( profile.getResearcherPosition() );
         } else {
             log.warn( MessageFormat.format( "User {0} attempted to set user {1} researcher position to an unknown value {2}.",
@@ -563,10 +708,7 @@ public class UserServiceImpl implements UserService {
         user.getProfile().setOrganization( profile.getOrganization() );
 
         if ( profile.getResearcherCategories() != null ) {
-            Set<String> researcherCategoryNames = profile.getResearcherCategories().stream()
-                    .map( ResearcherCategory::name )
-                    .collect( Collectors.toSet() );
-            if ( applicationSettings.getProfile().getEnabledResearcherCategories().containsAll( researcherCategoryNames ) ) {
+            if ( applicationSettings.getProfile().getEnabledResearcherCategories().containsAll( profile.getResearcherCategories() ) ) {
                 user.getProfile().getResearcherCategories().retainAll( profile.getResearcherCategories() );
                 user.getProfile().getResearcherCategories().addAll( profile.getResearcherCategories() );
             } else {
@@ -582,13 +724,16 @@ public class UserServiceImpl implements UserService {
                 if ( user.getProfile().getContactEmail().equals( user.getEmail() ) ) {
                     // if the contact email is set to the user email, it's de facto verified
                     user.getProfile().setContactEmailVerified( true );
+                    user.getProfile().setContactEmailVerifiedAt( user.getEnabledAt() );
                 } else {
                     user.getProfile().setContactEmailVerified( false );
+                    user.getProfile().setContactEmailVerifiedAt( null );
                     VerificationToken token = createContactEmailVerificationTokenForUser( user, locale );
                 }
             } else {
                 // contact email is unset, so we don't need to send a confirmation
                 user.getProfile().setContactEmailVerified( false );
+                user.getProfile().setContactEmailVerifiedAt( null );
             }
         }
 
@@ -622,12 +767,25 @@ public class UserServiceImpl implements UserService {
             user.getProfile().getPublications().addAll( publications );
         }
 
-        if ( applicationSettings.getOrgans().getEnabled() ) {
+        if ( applicationSettings.getOrgans().isEnabled() ) {
             Map<String, UserOrgan> userOrgans = organInfoService.findByUberonIdIn( organUberonIds ).stream()
                     .map( organInfo -> user.getUserOrgans().getOrDefault( organInfo.getUberonId(), UserOrgan.createFromOrganInfo( user, organInfo ) ) )
                     .collect( Collectors.toMap( Organ::getUberonId, identity() ) );
             user.getUserOrgans().clear();
             user.getUserOrgans().putAll( userOrgans );
+        }
+
+        if ( termIdsByOntologyId != null ) {
+            Set<UserOntologyTerm> userOntologyTerms = new HashSet<>();
+            for ( Integer ontologyTermId : termIdsByOntologyId ) {
+                OntologyTermInfo termInfo = ontologyService.findTermById( ontologyTermId );
+                if ( termInfo == null ) {
+                    log.warn( String.format( "Unknown term with ID %d.", ontologyTermId ) );
+                    continue;
+                }
+                userOntologyTerms.add( UserOntologyTerm.fromOntologyTermInfo( user, termInfo ) );
+            }
+            CollectionUtils.update( user.getUserOntologyTerms(), userOntologyTerms );
         }
 
         return update( user );
@@ -721,11 +879,13 @@ public class UserServiceImpl implements UserService {
 
         if ( verificationToken.getEmail().equals( user.getEmail() ) ) {
             user.setEnabled( true );
+            user.setEnabledAt( Timestamp.from( Instant.now() ) );
             tokenUsed = true;
         }
 
         if ( user.getProfile().getContactEmail() != null && verificationToken.getEmail().equals( user.getProfile().getContactEmail() ) ) {
             user.getProfile().setContactEmailVerified( true );
+            user.getProfile().setContactEmailVerifiedAt( Timestamp.from( Instant.now() ) );
             tokenUsed = true;
         }
 
@@ -739,10 +899,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public SortedSet<String> getLastNamesFirstChar() {
-        final Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        return userRepository.findAllWithNonEmptyProfileLastName()
+        return userRepository.findAllWithNonEmptyProfileLastNameAndProfilePrivacyLevelGreaterOrEqualThan( findCurrentUser() == null ? PrivacyLevelType.PUBLIC : PrivacyLevelType.SHARED )
                 .stream()
-                .filter( user -> permissionEvaluator.hasPermission( auth, user, "read" ) )
                 .map( u -> u.getProfile().getLastName().substring( 0, 1 ).toUpperCase() )
                 .filter( StringUtils::isAlpha )
                 .collect( Collectors.toCollection( TreeSet::new ) );
@@ -769,7 +927,7 @@ public class UserServiceImpl implements UserService {
     }
 
     private String createSecureRandomToken() {
-        byte tokenBytes[] = new byte[24];
+        byte[] tokenBytes = new byte[24];
         secureRandom.nextBytes( tokenBytes );
         return Base64.getEncoder().encodeToString( tokenBytes );
     }

@@ -1,15 +1,21 @@
 package ubc.pavlab.rdp.model;
 
-import lombok.*;
-import org.hibernate.annotations.CacheConcurrencyStrategy;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.hibernate.validator.constraints.Email;
-import org.hibernate.validator.constraints.NotEmpty;
 import org.hibernate.validator.constraints.URL;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.ResearcherCategory;
 import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
+import java.sql.Timestamp;
 import java.text.MessageFormat;
 import java.util.HashSet;
 import java.util.Set;
@@ -23,15 +29,19 @@ import java.util.Set;
 @AllArgsConstructor
 @Embeddable
 public class Profile {
+
     @Column(name = "name")
-    @NotEmpty(message = "Please provide your name.", groups = { User.ValidationUserAccount.class, User.ValidationServiceAccount.class })
+    @NotNull(message = "Please provide your name.", groups = { User.ValidationUserAccount.class, User.ValidationServiceAccount.class })
+    @Size(min = 1, message = "Please provide your name.", groups = { User.ValidationUserAccount.class, User.ValidationServiceAccount.class })
     private String name;
 
     @Column(name = "last_name")
-    @NotEmpty(message = "Please provide your last name.", groups = { User.ValidationUserAccount.class })
+    @NotNull(message = "Please provide your last name.", groups = { User.ValidationUserAccount.class })
+    @Size(min = 1, message = "Please provide your last name.", groups = { User.ValidationUserAccount.class })
     private String lastName;
 
     @Transient
+    @JsonIgnore
     public String getFullName() {
         if ( lastName == null || lastName.isEmpty() ) {
             return name == null ? "" : name;
@@ -55,24 +65,33 @@ public class Profile {
     @Column(name = "phone")
     private String phone;
 
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @Email(message = "Your email address is not valid.")
     @Column(name = "contact_email")
     private String contactEmail;
 
+    @JsonIgnore
     @Column(name = "contact_email_verified", nullable = false)
     private boolean contactEmailVerified;
+
+    @JsonIgnore
+    @Column(name = "contact_email_verified_at")
+    private Timestamp contactEmailVerifiedAt;
 
     @Column(name = "website")
     @URL
     private String website;
 
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @Enumerated(EnumType.ORDINAL)
     @Column(name = "privacy_level")
     private PrivacyLevelType privacyLevel;
 
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @Column(name = "shared", nullable = false)
     private boolean shared;
 
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @Column(name = "hide_genelist", nullable = false)
     private boolean hideGenelist;
 

@@ -9,33 +9,33 @@
 
 <body>
 <div th:replace="layouts/common::header">...</div>
-<div class="container py-4" th:object="${user.profile}">
-    <div class="main-content">
-        <div class="row mb-3">
-            <div class="col-8">
-                <div th:replace="layouts/common::title(title='My Account', subtitle='User Profile')">...</div>
-            </div>
-            <div class="d-flex align-items-center justify-content-center" th:if="${viewOnly != null}">
-                <h3 class="d-inline-block pr-3 mr-3 mb-0" th:text="${user.profile.contactEmail ?: user.email}"></h3>
-            </div>
-            <div class="col-4 my-auto text-right" th:if="${viewOnly == null}">
-                <a class="btn btn-lg d-none d-lg-inline" th:href="@{/userView/{userId}(userId=${user.id})}">View your public profile</a>
-                <button type="button" class="btn btn-primary btn-lg save-profile">
-                    <i class="mx-2 d-none spinner"></i>
-                    Save
-                </button>
+<div class="container pt-1 pb-4" th:object="${user.profile}">
+    <div class="row sticky-top bg-white py-3">
+        <div class="col-8">
+            <div th:replace="layouts/common::title(title='Profile', nomargin=true)">...
             </div>
         </div>
+        <div class="d-flex align-items-center justify-content-center" th:if="${viewOnly != null}">
+            <h3 class="d-inline-block pr-3 mr-3 mb-0" th:text="${user.profile.contactEmail ?: user.email}"></h3>
+        </div>
+        <div class="col-4 text-right" th:if="${viewOnly == null}">
+            <a class="btn btn-lg d-none d-lg-inline" th:href="@{/search/user/{userId}(userId=${user.id})}">View your
+                public profile</a>
+            <button id="main-save-button" type="button" class="btn btn-primary btn-lg save-profile">
+                <i class="mx-2 d-none spinner"></i>
+                Save
+            </button>
+        </div>
+    </div>
 
+    <div id="messages">
         <div id="profile-success-alert" class="alert alert-success alert-dismissible fade show mb-3"
-             role="alert"
              style="display: none;">
             <div id="profile-success-alert-message"></div>
             <button type="button" class="close" id="saved-button">
                 <span aria-hidden="true">&times;</span>
             </button>
         </div>
-
         <div id="profile-error-alert" class="alert alert-danger alert-dismissible fade show mb-3" role="alert"
              style="display: none;">
             <div id="profile-error-alert-message"></div>
@@ -43,16 +43,16 @@
                 <span aria-hidden="true">&times;</span>
             </button>
         </div>
-
         <div th:if="${user.userGenes.isEmpty()}"
-             class="alert alert-info mb-3" role="alert">
+             class="alert alert-info mb-3">
             There are no genes associated with your profile. Get started by choosing a
             <a href="#" class="dropdown-toggle" data-toggle="dropdown">Model Organism</a>
             <div th:replace="fragments/taxon::taxon-dropdown-menu"></div>
         </div>
-
         <div th:replace="layouts/common::message"></div>
+    </div>
 
+    <main id="main-content">
         <div class="row mb-3">
             <div class="col">
                 <div class="card basic-info">
@@ -61,7 +61,7 @@
                             <h3 class="mb-0">Basic Information</h3>
                         </div>
                     </div>
-                    <table class="table mb-0">
+                    <table class="table mb-0 table-responsive-sm">
                         <tr class="edit-container">
                             <td class="align-middle" style="width: 120px;">
                                 <label th:for="${#ids.next('profile.name')}" class="text-muted align-middle mb-0">First
@@ -256,9 +256,30 @@
                     </div>
                     <div class="card-body">
                         <p>
-                            Choose human organ systems your research is most relevant to:
+                            Choose <strong>Human Organ Systems</strong> your research is most relevant to:
                         </p>
                         <div th:replace="fragments/organ::organs-selection(checkedOrganUberonIds = ${user.userOrgans.keySet()})">
+                            ...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-3" th:each="ontology : ${@ontologyService.findAllOntologies()}">
+            <div class="col">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 th:text="${@messageSource.getMessage(ontology.resolvableTitle, #locale)}"
+                            class="mb-0"></h3>
+                    </div>
+                    <div class="card-body">
+                        <p>
+                            Choose
+                            <strong><span th:replace="fragments/ontology::ontology-name-with-definition-tooltip(${ontology})"></span></strong>
+                            terms your research is most relevant to:
+                        </p>
+                        <div th:replace="fragments/ontology::terms-selection(ontology = ${ontology}, selectedTerms = ${user.getUserOntologyTermsByOntology(ontology)}, showTable = true)">
                             ...
                         </div>
                     </div>
@@ -272,7 +293,7 @@
                     <div class="card-header">
                         <h3 class="mb-0">Genes</h3>
                     </div>
-                    <div class="card-body" role="alert">
+                    <div class="card-body">
                         To add genes to your profile, start by choosing a
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown">Model Organism</a>
                         <div th:replace="fragments/taxon::taxon-dropdown-menu"></div>
@@ -287,6 +308,9 @@
                     <div class="card-header">
                         <h3 class="mb-0">Publications</h3>
                     </div>
+                    <div class="card-body alert-info">
+                        Please indicate publications directly linked to your identified expertise.
+                    </div>
                     <div class="card-body">
                         <div class="mb-3">
                             <table id="publication-table" class="table">
@@ -294,20 +318,22 @@
                                 <tr>
                                     <th scope="col">PubMed</th>
                                     <th scope="col">Title</th>
+                                    <th></th>
                                 </tr>
                                 </thead>
                                 <tbody>
                                 <tr th:each="pub : ${user.profile.publications}">
                                     <!-- don't format the following line, the frontend makes assumption -->
-                                    <td><i class="delete-row" th:if="${viewOnly == null}"></i> <span
-                                            th:text="${pub.pmid}"
-                                            th:remove="tag"></span>
+                                    <td>
+                                        <span th:text="${pub.pmid}"
+                                              th:remove="tag"></span>
                                     </td>
                                     <td><a th:href="${'https://www.ncbi.nlm.nih.gov/pubmed/' + pub.pmid}"
                                            target="_blank"
                                            th:text="${pub.title != ''} ? ${pub.title} : 'Unknown Title'"
                                            rel="noopener"></a>
                                     </td>
+                                    <td></td>
                                 </tr>
                                 </tbody>
                             </table>
@@ -420,12 +446,12 @@
                 </div>
             </div>
         </div>
-    </div>
+    </main>
 </div>
 
 <div th:replace="layouts/common::footer">...</div>
 <div th:replace="layouts/common::scripts"></div>
-<script th:src="@{/js/profile.js}"></script>
+<script th:src="@{/dist/profile.bundle.js}"></script>
 <th:block th:if="${@applicationSettings.privacy.customizableGeneLevel}">
     <div th:replace="fragments/modal::confirmation(target=${#ids.seq('confirm-gene-privacy-level-reset')}, title='Your gene privacy levels will be adjusted!', body='Changing your profile privacy setting will reset the privacy levels of the genes associated to your model organisms to the selected value.')"></div>
     <script th:inline="javascript">

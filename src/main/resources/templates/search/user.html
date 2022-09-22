@@ -11,41 +11,33 @@
 <body>
 <div th:replace="layouts/common::header">...</div>
 <div class="container py-4">
-    <div class="main-content">
-        <div th:replace="layouts/common::title(title='User Profile', subtitle=${viewUser.profile.fullName})">
-            ...
+    <div class="row align-items-middle">
+        <div class="col">
+            <div th:replace="layouts/common::title(title='Profile', subtitle=${viewUser.profile.fullName})">
+                ...
+            </div>
         </div>
+        <div th:if="${@userService.isCurrentUser(viewUser)}" class="col text-right">
+            <a class="btn btn-primary btn-lg"
+               th:href="@{/user/profile}">
+                <i class="oi oi-pencil"></i>
+                Edit
+            </a>
+        </div>
+    </div>
 
+    <div id="messages">
         <div th:replace="layouts/common::message"></div>
-        <div class="row justify-content-center success-row mb-3">
-            <div class="col">
-                <div th:if="${viewUser.origin} != null" class="alert alert-info mb-0" role="alert">
-                    This is a remote user registered at
-                    <a th:href="@{{remoteHost}/userView/{userId}(remoteHost=${viewUser.originUrl},userId=${viewUser.id})}"
-                       th:text="${viewUser.origin}"
-                       target="_blank"
-                       rel="noopener"></a>.
-                </div>
-            </div>
+        <div th:if="${viewUser.origin} != null" class="alert alert-info">
+            This is a remote user registered at
+            <a th:href="@{{remoteHost}/userView/{userId}(remoteHost=${viewUser.originUrl},userId=${viewUser.id})}"
+               th:text="${viewUser.origin}"
+               target="_blank"
+               rel="noopener"></a>.
         </div>
-        <div class="row justify-content-center success-row mb-3" style="display: none;">
-            <div class="col">
-                <div class="alert alert-success alert-dismissible fade show" role="alert">Profile Saved!
-                    <button type="button" class="close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-            </div>
-        </div>
-        <div class="row justify-content-center error-row mb-3" style="display: none;">
-            <div class="col">
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">Error Saving Profile!
-                    <button type="button" class="close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-            </div>
-        </div>
+    </div>
+
+    <main id="main-content">
 
         <div class="row mb-3">
             <!--
@@ -185,6 +177,32 @@
             </div>
         </div>
 
+        <div th:each="ontology : ${@ontologyService.findAllOntologies()}"
+             th:unless="${viewUser.getUserOntologyTermsByOntology(ontology).isEmpty()}"
+             class="row mb-3">
+            <div class="col">
+                <div th:id="'category-' + ${ontology.id}" class="card">
+                    <div class="card-header">
+                        <h3 class="mb-0">
+                            <span th:replace="fragments/ontology::ontology-name-with-definition-tooltip(${ontology})"></span>
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <div th:replace="fragments/ontology::terms-display(ontology = ${ontology}, selectedTerms=${viewUser.getUserOntologyTermsByOntology(ontology)})">
+                            ...
+                        </div>
+                        <small th:if="${@ontologyResolver.accepts(ontology)}">
+                            Read more about
+                            <a th:href="${@ontologyResolver.resolveViewOntologyUrl(ontology)}"
+                               target="_blank"
+                               rel="noopener"
+                               th:text="${@messageSource.getMessage(ontology.resolvableTitle, #locale)}"></a>.
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div th:each="taxon : ${viewUser.taxons}" class="row mb-3">
             <div class="col">
                 <div th:id="${taxon.commonName} + '-research-focus'" class="card research-info edit-container">
@@ -194,7 +212,7 @@
                         <p th:unless="${#strings.isEmpty(viewUser.taxonDescriptions.get(taxon))}"
                            th:text="${viewUser.taxonDescriptions.get(taxon)}">...</p>
 
-                        <ul th:if="not ${viewUser.profile.hideGenelist} or (${user} == ${viewUser}) or ${user?.roles?.contains(@roleRepository.findByRole('ROLE_ADMIN'))}"
+                        <ul th:if="${@userPrivacyService.checkCurrentUserCanSeeGeneList(viewUser)}"
                             class="nav nav-tabs card-header-tabs" role="tablist">
                             <li class="nav-item">
                                 <a class="nav-link active genes-tab" data-toggle="tab"
@@ -210,7 +228,7 @@
                         </ul>
                     </div>
 
-                    <div th:if="not ${viewUser.profile.hideGenelist} or (${user} == ${viewUser}) or ${user?.roles?.contains(@roleRepository.findByRole('ROLE_ADMIN'))}"
+                    <div th:if="${@userPrivacyService.checkCurrentUserCanSeeGeneList(viewUser)}"
                          class="card-body">
                         <div class="tab-content">
                             <div class="tab-pane fade show active" th:id="${'genes-' + taxon.id}"
@@ -238,9 +256,9 @@
                     </div>
                     <div class="card-body">
                         <table id="publication-table" class="table mb-0">
-                            <thead class=".thead-light">
+                            <thead>
                             <tr>
-                                <th scope="col">PubMed</th>
+                                <th scope="col">PubMed ID</th>
                                 <th scope="col">Title</th>
                             </tr>
                             </thead>
@@ -266,7 +284,8 @@
             <div class="col">
                 <div id="data-privacy" class="card">
                     <div class="card-header">
-                        <h3 class="mb-0">Data Privacy</h3>
+                        <div class="badge badge-warning float-right align-middle">admin only</div>
+                        <h3 class="mb-0">Data Privacy </h3>
                     </div>
                     <div class="card-body">
                         <dl class="row mb-0">
@@ -285,7 +304,16 @@
                 </div>
             </div>
         </div>
-    </div>
+        <div th:if="${viewUser.modifiedAt} != null"
+             class="row">
+            <div class="col">
+                <p>
+                    Last modified on
+                    <span th:replace="fragments/temporal::date(${viewUser.modifiedAt.toInstant()})"></span>.
+                </p>
+            </div>
+        </div>
+    </main>
 </div>
 
 <div class="modal fade" id="overlapModal" tabindex="-1" role="dialog" aria-labelledby="overlapModal" aria-hidden="true">
@@ -303,6 +331,6 @@
 
 <div th:replace="layouts/common::footer">...</div>
 <div th:replace="layouts/common::scripts"></div>
-<script th:src="@{/js/view.js}"></script>
+<script th:src="@{/dist/view.bundle.js}"></script>
 </body>
 </html>

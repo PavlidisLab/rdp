@@ -1,7 +1,5 @@
 package ubc.pavlab.rdp.services;
 
-import ubc.pavlab.rdp.model.User;
-import ubc.pavlab.rdp.model.UserContent;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 
 /**
@@ -17,23 +15,4 @@ public interface PrivacyService {
     boolean isGenePrivacyLevelEnabled( PrivacyLevelType privacyLevel );
 
     PrivacyLevelType getDefaultPrivacyLevel();
-
-    /**
-     * Check of a given user has access to a privacy-sensitive content.
-     * <p>
-     * Consider using hasPermission(object, 'read') instead.
-     */
-    boolean checkUserCanSee( User user, UserContent content );
-
-
-    /**
-     * Check if a given user can search.
-     * <p>
-     * Consider using hasPermission(object, 'search') instead.
-     */
-    boolean checkUserCanSearch( User user, boolean international );
-
-    boolean checkCurrentUserCanSearch( boolean international );
-
-    boolean checkUserCanUpdate( User user, UserContent targetDomainObject );
 }

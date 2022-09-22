@@ -1,9 +1,15 @@
 package ubc.pavlab.rdp.model;
 
-import lombok.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 
 import javax.persistence.*;
+import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAmount;
@@ -13,6 +19,7 @@ import java.util.Optional;
  * Created by mjacobson on 19/01/18.
  */
 @Entity
+@EntityListeners(AuditingEntityListener.class)
 @Table(name = "password_reset_token")
 @Getter
 @Setter
@@ -27,6 +34,9 @@ public class PasswordResetToken extends Token implements UserContent {
     @ManyToOne(optional = false)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
+
+    @CreatedDate
+    private Timestamp createdAt;
 
     @Override
     public Optional<User> getOwner() {

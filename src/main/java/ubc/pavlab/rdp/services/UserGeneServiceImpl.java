@@ -35,16 +35,20 @@ import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.ResearcherCategory;
 import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import ubc.pavlab.rdp.model.enums.TierType;
+import ubc.pavlab.rdp.model.ontology.Ontology;
+import ubc.pavlab.rdp.model.ontology.OntologyTermInfo;
 import ubc.pavlab.rdp.repositories.TaxonRepository;
 import ubc.pavlab.rdp.repositories.UserGeneRepository;
+import ubc.pavlab.rdp.security.Permissions;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 
 import java.text.MessageFormat;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-import static java.util.Comparator.*;
-import static org.springframework.util.CollectionUtils.containsAny;
+import static ubc.pavlab.rdp.util.CollectionUtils.by;
+import static ubc.pavlab.rdp.util.CollectionUtils.nullOrContainsAtLeastOne;
 
 /**
  * Created by mjacobson on 17/01/18.
@@ -61,9 +65,6 @@ public class UserGeneServiceImpl implements UserGeneService {
 
     @Autowired
     private UserService userService;
-
-    @Autowired
-    private TierService tierService;
 
     @Autowired
     private PermissionEvaluator permissionEvaluator;
@@ -83,33 +84,40 @@ public class UserGeneServiceImpl implements UserGeneService {
 
     @Cacheable(cacheNames = "ubc.pavlab.rdp.stats", key = "#root.methodName")
     @Override
-    public Integer countUniqueAssociations() {
-        return userGeneRepository.countDistinctGeneByTierIn( TierType.MANUAL );
+    public long countUniqueAssociations() {
+        return userGeneRepository.countDistinctGeneByUserEnabledTrueAndTierIn( TierType.MANUAL );
     }
 
     @Cacheable(cacheNames = "ubc.pavlab.rdp.stats", key = "#root.methodName")
     @Override
-    public Integer countAssociations() {
-        return userGeneRepository.countByTierIn( TierType.MANUAL );
+    public long countAssociations() {
+        return userGeneRepository.countByUserEnabledTrueAndTierIn( TierType.MANUAL );
     }
 
     @Cacheable(cacheNames = "ubc.pavlab.rdp.stats", key = "#root.methodName")
     @Override
-    public Map<String, Integer> researcherCountByTaxon() {
+    public Map<String, Long> researcherCountByTaxon() {
+        return taxonRepository.findByActiveTrue().stream()
+                .collect( Collectors.toMap( Taxon::getCommonName, userGeneRepository::countDistinctUserByUserEnabledTrueAndTaxon ) );
+    }
+
+    @Cacheable(cacheNames = "ubc.pavlab.rdp.stats", key = "#root.methodName")
+    @Override
+    public Map<Integer, Long> researcherCountByTaxonId() {
         return taxonRepository.findByActiveTrueOrderByOrdering().stream()
-                .collect( Collectors.toMap( Taxon::getCommonName, userGeneRepository::countDistinctUserByTaxon ) );
+                .collect( Collectors.toMap( Taxon::getId, userGeneRepository::countDistinctUserByUserEnabledTrueAndTaxon ) );
     }
 
     @Cacheable(cacheNames = "ubc.pavlab.rdp.stats", key = "#root.methodName")
     @Override
-    public Integer countUsersWithGenes() {
-        return userGeneRepository.countDistinctUser();
+    public long countUsersWithGenes() {
+        return userGeneRepository.countDistinctUserByUserEnabledTrue();
     }
 
     @Cacheable(cacheNames = "ubc.pavlab.rdp.stats", key = "#root.methodName")
     @Override
-    public Integer countUniqueAssociationsAllTiers() {
-        return userGeneRepository.countDistinctGeneByTierIn( tierService.getEnabledTiers() );
+    public long countUniqueAssociationsAllTiers() {
+        return userGeneRepository.countDistinctGeneByUserEnabledTrueAndTierIn( applicationSettings.getEnabledTiers() );
     }
 
     /**
@@ -120,34 +128,39 @@ public class UserGeneServiceImpl implements UserGeneService {
      */
     @Cacheable(cacheNames = "ubc.pavlab.rdp.stats", key = "#root.methodName")
     @Override
-    public Integer countUniqueAssociationsToHumanAllTiers() {
-        Collection<Integer> humanGenes = new HashSet<>( userGeneRepository.findAllHumanGenes() );
-        humanGenes.addAll( userGeneRepository.findOrthologGeneIdsByOrthologToTaxon( 9606 ) );
-        return humanGenes.size();
+    public long countUniqueAssociationsToHumanAllTiers() {
+        Optional<Taxon> humanTaxon = taxonRepository.findById( 9606 );
+        if ( humanTaxon.isPresent() ) {
+            Collection<Integer> humanGenes = new HashSet<>( userGeneRepository.findAllDistinctGeneIdByTaxon( humanTaxon.get() ) );
+            humanGenes.addAll( userGeneRepository.findDistinctOrthologGeneIdsByOrthologToTaxon( 9606 ) );
+            return humanGenes.size();
+        } else {
+            return 0L;
+        }
     }
+
+    @Autowired
+    private OntologyService ontologyService;
 
     @Override
     @PostFilter("hasPermission(filterObject, 'read')")
-    public List<UserGene> handleGeneSearch( Gene gene, Set<TierType> tiers, Taxon orthologTaxon, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherCategories, Collection<OrganInfo> organs ) {
-        Set<UserGene> results;
+    public List<UserGene> handleGeneSearch( Gene gene, Set<TierType> tiers, Taxon orthologTaxon, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherCategories, Collection<OrganInfo> organs, Map<Ontology, Set<OntologyTermInfo>> ontologyTermInfos ) {
+        Stream<UserGene> results = handleGeneSearchInternal( gene, tiers, orthologTaxon, researcherPositions, researcherCategories, organs, ontologyTermInfos ).stream();
         if ( applicationSettings.getPrivacy().isEnableAnonymizedSearchResults() ) {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-            results = handleGeneSearchInternal( gene, tiers, orthologTaxon, researcherPositions, researcherCategories, organs ).stream()
+            results = results
                     // These must be excluded because anonymizeUserGene cannot receive a non-verified user.
                     // FIXME: Ideally, we would not fetch them altogether, but it's really cumbersome adjust all those
                     //        methods in the repository layer to exclude non-verified account.
                     .filter( ug -> ug.getUser().isEnabled() )
-                    .map( ug -> permissionEvaluator.hasPermission( auth, ug, "read" ) ? ug : userService.anonymizeUserGene( ug ) )
-                    .collect( Collectors.toSet() );
-        } else {
-            results = handleGeneSearchInternal( gene, tiers, orthologTaxon, researcherPositions, researcherCategories, organs );
+                    .map( ug -> permissionEvaluator.hasPermission( auth, ug, Permissions.READ ) ? ug : userService.anonymizeUserGene( ug ) );
         }
-        return results.stream()
+        return results
                 .sorted( UserGene.getComparator() )
                 .collect( Collectors.toList() ); // we need to preserve the search order
     }
 
-    private Set<UserGene> handleGeneSearchInternal( Gene gene, Set<TierType> tiers, Taxon orthologTaxon, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherCategories, Collection<OrganInfo> organs ) {
+    private Set<UserGene> handleGeneSearchInternal( Gene gene, Set<TierType> tiers, Taxon orthologTaxon, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherCategories, Collection<OrganInfo> organs, Map<Ontology, Set<OntologyTermInfo>> ontologyTermInfos ) {
         Set<UserGene> uGenes = new LinkedHashSet<>();
 
         // do this once to save time in the inner loop
@@ -158,30 +171,40 @@ public class UserGeneServiceImpl implements UserGeneService {
             organUberonIds = null;
         }
 
+        // inferred terms, grouped by ontology
+        final Map<Ontology, Set<Integer>> ontologyTermInfoIds;
+        if ( ontologyTermInfos != null ) {
+            ontologyTermInfoIds = ontologyTermInfos.entrySet().stream()
+                    .collect( Collectors.toMap( Map.Entry::getKey, e -> ontologyService.inferTermIds( e.getValue() ) ) );
+        } else {
+            ontologyTermInfoIds = null;
+        }
+
         // ortholog relationship is not reflexive (i.e. a gene is not its own ortholog), but we still want to display
         // that gene first when ortholog search is performed in the same MO
         if ( orthologTaxon == null || gene.getTaxon().equals( orthologTaxon ) ) {
             uGenes.addAll( userGeneRepository.findByGeneIdAndTierIn( gene.getGeneId(), tiers ).stream()
                     .filter( ug -> researcherPositions == null || researcherPositions.contains( ug.getUser().getProfile().getResearcherPosition() ) )
-                    .filter( ug -> researcherCategories == null || containsAny( researcherCategories, ug.getUser().getProfile().getResearcherCategories() ) )
-                    .filter( ortholog -> organUberonIds == null || containsAny( organUberonIds, ortholog.getUser().getUserOrgans().values().stream().map( UserOrgan::getUberonId ).collect( Collectors.toSet() ) ) )
+                    .filter( ug -> nullOrContainsAtLeastOne( researcherCategories, () -> ug.getUser().getProfile().getResearcherCategories() ) )
+                    .filter( ortholog -> nullOrContainsAtLeastOne( organUberonIds, () -> ortholog.getUser().getUserOrgans().values().stream().map( UserOrgan::getUberonId ).collect( Collectors.toSet() ) ) )
+                    .filter( by( UserGene::getUser, userService.hasOntologyTermIn( ontologyTermInfoIds ) ) )
                     .collect( Collectors.toSet() ) );
         }
 
-        uGenes.addAll( handleOrthologSearchInternal( gene, tiers, orthologTaxon, researcherPositions, researcherCategories, organUberonIds ) );
+        uGenes.addAll( handleOrthologSearchInternal( gene, tiers, orthologTaxon, researcherPositions, researcherCategories, organUberonIds, ontologyTermInfoIds ) );
 
         return uGenes;
     }
 
-    private Set<UserGene> handleOrthologSearchInternal( Gene gene, Set<TierType> tiers, Taxon orthologTaxon, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherCategories, Collection<String> organUberonIds ) {
+    private Set<UserGene> handleOrthologSearchInternal( Gene gene, Set<TierType> tiers, Taxon orthologTaxon, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherCategories, Collection<String> organUberonIds, Map<Ontology, Set<Integer>> ontologyTermInfoIds ) {
         return ( orthologTaxon == null ? userGeneRepository.findOrthologsByGeneId( gene.getGeneId() ) : userGeneRepository.findOrthologsByGeneIdAndTaxon( gene.getGeneId(), orthologTaxon ) ).stream()
                 .filter( ortholog -> tiers.contains( ortholog.getTier() ) )
                 .filter( ug -> researcherPositions == null || researcherPositions.contains( ug.getUser().getProfile().getResearcherPosition() ) )
-                .filter( ug -> researcherCategories == null || containsAny( researcherCategories, ug.getUser().getProfile().getResearcherCategories() ) )
-                .filter( ortholog -> organUberonIds == null || containsAny( organUberonIds, ortholog.getUser().getUserOrgans().values().stream().map( UserOrgan::getUberonId ).collect( Collectors.toSet() ) ) )
+                .filter( ug -> nullOrContainsAtLeastOne( researcherCategories, () -> ug.getUser().getProfile().getResearcherCategories() ) )
+                .filter( ortholog -> nullOrContainsAtLeastOne( organUberonIds, () -> ortholog.getUser().getUserOrgans().values().stream().map( UserOrgan::getUberonId ).collect( Collectors.toSet() ) ) )
+                .filter( by( UserGene::getUser, userService.hasOntologyTermIn( ontologyTermInfoIds ) ) )
                 .collect( Collectors.toSet() );
     }
-
 
     @Override
     @Transactional

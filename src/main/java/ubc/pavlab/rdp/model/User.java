@@ -1,40 +1,50 @@
 package ubc.pavlab.rdp.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import lombok.*;
 import lombok.extern.apachecommons.CommonsLog;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.NaturalId;
 import org.hibernate.validator.constraints.Email;
-import org.hibernate.validator.constraints.Length;
-import org.hibernate.validator.constraints.NotEmpty;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.util.StringUtils;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.TierType;
+import ubc.pavlab.rdp.model.ontology.Ontology;
+import ubc.pavlab.rdp.model.ontology.UserOntologyTerm;
 
 import javax.mail.internet.InternetAddress;
 import javax.persistence.*;
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
+import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.sql.Timestamp;
 import java.text.MessageFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Entity
+@EntityListeners(AuditingEntityListener.class)
 @Table(name = "user")
 @Cacheable
 @Getter
 @Setter
 @Builder
-@EqualsAndHashCode(of = { "email" })
+@EqualsAndHashCode(of = { "email", "originUrl" })
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString(of = { "id", "anonymousId", "email", "enabled" })
 @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @CommonsLog
-public class User implements UserContent {
+public class User implements RemoteResource, UserContent, Serializable {
 
     /**
      * Constraints for regular user accounts.
@@ -48,6 +58,10 @@ public class User implements UserContent {
     public interface ValidationServiceAccount {
     }
 
+    public static UserBuilder builder( Profile profile ) {
+        return new UserBuilder().profile( profile );
+    }
+
     public static Comparator<User> getComparator() {
         return Comparator.comparing( u -> u.getProfile().getFullName() );
     }
@@ -55,27 +69,55 @@ public class User implements UserContent {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "user_id")
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private Integer id;
 
     @Transient
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private UUID anonymousId;
 
+    /**
+     * For the JSON serialization, the representation is given by {@link #getVerifiedContactEmailJsonValue()}.
+     */
     @NaturalId
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @Column(name = "email", unique = true, nullable = false)
     @Email(message = "Your email address is not valid.", groups = { ValidationUserAccount.class })
-    @NotEmpty(message = "Please provide an email address.", groups = { ValidationUserAccount.class, ValidationServiceAccount.class })
+    @NotNull(message = "Please provide an email address.", groups = { ValidationUserAccount.class, ValidationServiceAccount.class })
+    @Size(min = 1, message = "Please provide an email address.", groups = { ValidationUserAccount.class, ValidationServiceAccount.class })
     private String email;
 
     @Column(name = "password")
-    @Length(min = 6, message = "Your password must have at least 6 characters.", groups = { ValidationUserAccount.class })
-    @NotEmpty(message = "Please provide your password.", groups = { ValidationUserAccount.class })
+    @Size(min = 6, message = "Your password must have at least 6 characters.", groups = { ValidationUserAccount.class })
+    @NotNull(message = "Please provide your password.", groups = { ValidationUserAccount.class })
     @JsonIgnore
     @org.springframework.data.annotation.Transient
     private String password;
 
+    /**
+     * Exact moment when this user was created, or null if unknown.
+     */
+    @CreatedDate
+    @JsonIgnore
+    private Timestamp createdAt;
+
+    /**
+     * Last moment when this user profile was updated, or null if unknown.
+     */
+    @LastModifiedDate
+    @JsonIgnore
+    private Timestamp modifiedAt;
+
     @Column(name = "enabled", nullable = false)
     @JsonIgnore
     private boolean enabled;
+
+    /**
+     * Exact moment when the user account was enabled.
+     */
+    @Column(name = "enabled_at")
+    @JsonIgnore
+    private Timestamp enabledAt;
 
     @ManyToMany
     @JoinTable(name = "user_role", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
@@ -105,14 +147,6 @@ public class User implements UserContent {
     @Transient
     private URI originUrl;
 
-    /**
-     * Ensure that the path of the URL is effectively stripped from any trailing slashes.
-     */
-    @SneakyThrows
-    public void setOriginUrl( URI originUrl ) {
-        this.originUrl = new URI( originUrl.getScheme(), originUrl.getAuthority(), StringUtils.trimTrailingCharacter( originUrl.getPath(), '/' ), null, null );
-    }
-
     /* Research related information */
 
     // @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
@@ -134,6 +168,18 @@ public class User implements UserContent {
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "user")
     @MapKey(name = "uberonId")
     private final Map<String, UserOrgan> userOrgans = new HashMap<>();
+
+    /**
+     * Associated terms to the user profile.
+     */
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private final Set<UserOntologyTerm> userOntologyTerms = new HashSet<>();
+
+    @Transient
+    @JsonIgnore
+    public Set<UserOntologyTerm> getUserOntologyTermsByOntology( Ontology ontology ) {
+        return userOntologyTerms.stream().filter( uo -> uo.getOntology().equals( ontology ) ).collect( Collectors.toSet() );
+    }
 
     @JsonIgnore
     @Transient
@@ -189,6 +235,33 @@ public class User implements UserContent {
         }
     }
 
+    /**
+     * This is meant for JSON serialization of the user's public-facing email.
+     */
+    @JsonProperty("email")
+    public String getVerifiedContactEmailJsonValue() {
+        if ( profile != null && profile.isContactEmailVerified() ) {
+            return profile.getContactEmail();
+        } else if ( enabled ) {
+            return email;
+        } else {
+            return null;
+        }
+    }
+
+    @SuppressWarnings("unused")
+    @JsonIgnore
+    @Transient
+    public Optional<Timestamp> getVerifiedAtContactEmail() {
+        if ( profile.isContactEmailVerified() ) {
+            return Optional.ofNullable( profile.getContactEmailVerifiedAt() );
+        } else if ( enabled ) {
+            return Optional.ofNullable( enabledAt );
+        } else {
+            return Optional.empty();
+        }
+    }
+
     @Override
     @JsonIgnore
     public Optional<User> getOwner() {
@@ -196,7 +269,7 @@ public class User implements UserContent {
     }
 
     @Override
-    @JsonIgnore
+    @JsonProperty(value = "privacyLevel")
     public PrivacyLevelType getEffectivePrivacyLevel() {
         // this is a fallback
         if ( getProfile() == null || getProfile().getPrivacyLevel() == null ) {

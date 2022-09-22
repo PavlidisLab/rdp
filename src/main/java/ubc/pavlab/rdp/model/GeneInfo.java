@@ -5,6 +5,7 @@ import lombok.Getter;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -20,7 +21,11 @@ import java.util.Set;
                 @Index(columnList = "gene_id, taxon_id"),
                 @Index(columnList = "symbol, taxon_id") })
 @Getter
-public class GeneInfo extends Gene implements Serializable {
+public class GeneInfo extends Gene implements Comparable<GeneInfo>, Serializable {
+
+    public static Comparator<GeneInfo> getComparator() {
+        return Comparator.comparing( GeneInfo::getGeneId );
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -35,4 +40,8 @@ public class GeneInfo extends Gene implements Serializable {
     @JsonIgnore
     private Set<GeneInfo> orthologs = new HashSet<>();
 
+    @Override
+    public int compareTo( GeneInfo other ) {
+        return getComparator().compare( this, other );
+    }
 }

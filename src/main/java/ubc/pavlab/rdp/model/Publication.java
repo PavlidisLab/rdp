@@ -1,5 +1,6 @@
 package ubc.pavlab.rdp.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.NaturalId;
@@ -23,6 +24,7 @@ public class Publication {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "publication_id")
+    @JsonIgnore
     private Integer id;
 
     @NaturalId

@@ -7,20 +7,18 @@ import org.mockito.internal.util.collections.Sets;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Bean;
-import org.springframework.security.access.PermissionEvaluator;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.junit4.SpringRunner;
-import ubc.pavlab.rdp.model.*;
+import ubc.pavlab.rdp.JpaAuditingConfig;
+import ubc.pavlab.rdp.model.Gene;
+import ubc.pavlab.rdp.model.Taxon;
+import ubc.pavlab.rdp.model.User;
+import ubc.pavlab.rdp.model.UserGene;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.TierType;
-import ubc.pavlab.rdp.services.*;
-import ubc.pavlab.rdp.settings.ApplicationSettings;
 
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -33,63 +31,14 @@ import static ubc.pavlab.rdp.util.TestUtils.*;
  */
 @RunWith(SpringRunner.class)
 @DataJpaTest
+@Import(JpaAuditingConfig.class)
 public class UserGeneRepositoryTest {
-
-    @TestConfiguration
-    static class UserGeneRepositoryTestContextConfiguration {
-
-        @Bean
-        public ApplicationSettings applicationSettings() {
-            return new ApplicationSettings();
-        }
-
-        @Bean
-        public PrivacyService privacyService() {
-            return new PrivacyServiceImpl();
-        }
-
-        @Bean
-        public UserService userService() {
-            return new UserServiceImpl();
-        }
-
-        @Bean
-        public UserGeneService userGeneService() {
-            return new UserGeneServiceImpl();
-        }
-
-        @Bean
-        public SecureRandom secureRandom() throws NoSuchAlgorithmException {
-            return SecureRandom.getInstance( "SHA1PRNG" );
-        }
-    }
 
     @Autowired
     private TestEntityManager entityManager;
 
     @Autowired
     private UserGeneRepository userGeneRepository;
-
-    @MockBean
-    private PermissionEvaluator permissionEvaluator;
-
-    @MockBean
-    private BCryptPasswordEncoder bCryptPasswordEncoder;
-
-    @MockBean
-    private TierService tierService;
-
-    @MockBean
-    private GOService goService;
-
-    @MockBean
-    private OrganInfoService organInfoService;
-
-    @MockBean
-    private EmailService emailService;
-
-    @MockBean
-    private GeneInfoService geneinfoService;
 
     private User user;
     private Taxon taxon;
@@ -98,6 +47,11 @@ public class UserGeneRepositoryTest {
     public void setUp() {
         taxon = entityManager.persistAndFlush( createTaxon( 1 ) );
         user = entityManager.persistAndFlush( createUserWithGenes( taxon ) );
+        assertThat( user.getUserGenes() )
+                .isNotEmpty()
+                .allSatisfy( ( geneId, userGene ) -> {
+                    assertThat( userGene.getCreatedAt() ).isCloseTo( Instant.now(), 500 );
+                } );
     }
 
     private User createUserWithGenes( Taxon taxon ) {
@@ -120,7 +74,7 @@ public class UserGeneRepositoryTest {
     @Test
     public void countByTierIn_whenTierExactMatch_thenCount() {
 
-        int count = userGeneRepository.countByTierIn( Collections.singleton( TierType.TIER1 ) );
+        long count = userGeneRepository.countByUserEnabledTrueAndTierIn( Collections.singleton( TierType.TIER1 ) );
 
         assertThat( count ).isEqualTo( 1 );
     }
@@ -128,16 +82,14 @@ public class UserGeneRepositoryTest {
     @Test
     public void countByTierIn_whenTierManualMatch_thenCount() {
 
-        int count = userGeneRepository.countByTierIn( TierType.MANUAL );
+        long count = userGeneRepository.countByUserEnabledTrueAndTierIn( TierType.MANUAL );
 
         assertThat( count ).isEqualTo( 2 );
     }
 
     @Test
     public void countByTierIn_whenTierNotMatch_thenDontCount() {
-
-        int count = userGeneRepository.countByTierIn( tierService.getEnabledTiers() );
-
+        long count = userGeneRepository.countByUserEnabledTrueAndTierIn( EnumSet.noneOf( TierType.class ) );
         assertThat( count ).isEqualTo( 0 );
     }
 
@@ -148,7 +100,7 @@ public class UserGeneRepositoryTest {
         user.getUserGenes().put( ug.getGeneId(), ug );
         user = entityManager.persistAndFlush( user );
 
-        int count = userGeneRepository.countByTierIn( EnumSet.of( TierType.TIER1 ) );
+        long count = userGeneRepository.countByUserEnabledTrueAndTierIn( EnumSet.of( TierType.TIER1 ) );
 
         assertThat( count ).isEqualTo( 2 );
     }
@@ -158,7 +110,7 @@ public class UserGeneRepositoryTest {
 
         entityManager.persist( createUserWithGenes( taxon ) );
 
-        int count = userGeneRepository.countByTierIn( EnumSet.of( TierType.TIER1 ) );
+        long count = userGeneRepository.countByUserEnabledTrueAndTierIn( EnumSet.of( TierType.TIER1 ) );
 
         assertThat( count ).isEqualTo( 2 );
     }
@@ -166,7 +118,7 @@ public class UserGeneRepositoryTest {
     @Test
     public void countDistinctGeneByTierIn_whenTierExactMatch_thenCount() {
 
-        int count = userGeneRepository.countDistinctGeneByTierIn( EnumSet.of( TierType.TIER1 ) );
+        long count = userGeneRepository.countDistinctGeneByUserEnabledTrueAndTierIn( EnumSet.of( TierType.TIER1 ) );
 
         assertThat( count ).isEqualTo( 1 );
     }
@@ -174,17 +126,9 @@ public class UserGeneRepositoryTest {
     @Test
     public void countDistinctGeneByTierIn_whenTierManualMatch_thenCount() {
 
-        int count = userGeneRepository.countDistinctGeneByTierIn( TierType.MANUAL );
+        long count = userGeneRepository.countDistinctGeneByUserEnabledTrueAndTierIn( TierType.MANUAL );
 
         assertThat( count ).isEqualTo( 2 );
-    }
-
-    @Test
-    public void countDistinctGeneByTierIn_whenTierNotMatch_thenDontCount() {
-
-        int count = userGeneRepository.countDistinctGeneByTierIn( tierService.getEnabledTiers() );
-
-        assertThat( count ).isEqualTo( 0 );
     }
 
     @Test
@@ -194,7 +138,7 @@ public class UserGeneRepositoryTest {
         user.getUserGenes().put( ug.getGeneId(), ug );
         entityManager.persist( user );
 
-        int count = userGeneRepository.countDistinctGeneByTierIn( Collections.singleton( TierType.TIER1 ) );
+        long count = userGeneRepository.countDistinctGeneByUserEnabledTrueAndTierIn( Collections.singleton( TierType.TIER1 ) );
 
         assertThat( count ).isEqualTo( 2 );
     }
@@ -205,7 +149,7 @@ public class UserGeneRepositoryTest {
         // Create another user.
         entityManager.persist( createUserWithGenes( taxon ) );
 
-        int count = userGeneRepository.countDistinctGeneByTierIn( TierType.MANUAL );
+        long count = userGeneRepository.countDistinctGeneByUserEnabledTrueAndTierIn( TierType.MANUAL );
 
         assertThat( count ).isEqualTo( 2 );
     }
@@ -213,7 +157,7 @@ public class UserGeneRepositoryTest {
     @Test
     public void countDistinctUserByTaxon_whenTaxonExactMatch_thenCount() {
 
-        int count = userGeneRepository.countDistinctUserByTaxon( taxon );
+        long count = userGeneRepository.countDistinctUserByUserEnabledTrueAndTaxon( taxon );
 
         assertThat( count ).isEqualTo( 1 );
     }
@@ -221,7 +165,7 @@ public class UserGeneRepositoryTest {
     @Test
     public void countDistinctUserByTaxon_whenTaxonNotMatch_thenDontCount() {
 
-        int count = userGeneRepository.countDistinctUserByTaxon( createTaxon( 2 ) );
+        long count = userGeneRepository.countDistinctUserByUserEnabledTrueAndTaxon( createTaxon( 2 ) );
 
         assertThat( count ).isEqualTo( 0 );
     }
@@ -233,7 +177,7 @@ public class UserGeneRepositoryTest {
         user.getUserGenes().put( ug.getGeneId(), ug );
         entityManager.persist( user );
 
-        int count = userGeneRepository.countDistinctUserByTaxon( taxon );
+        long count = userGeneRepository.countDistinctUserByUserEnabledTrueAndTaxon( taxon );
 
         assertThat( count ).isEqualTo( 1 );
     }
@@ -244,7 +188,7 @@ public class UserGeneRepositoryTest {
         // Create another user.
         entityManager.persist( createUserWithGenes( taxon ) );
 
-        int count = userGeneRepository.countDistinctUserByTaxon( taxon );
+        long count = userGeneRepository.countDistinctUserByUserEnabledTrueAndTaxon( taxon );
 
         assertThat( count ).isEqualTo( 2 );
     }
@@ -252,7 +196,7 @@ public class UserGeneRepositoryTest {
     @Test
     public void countDistinctUser_thenCount() {
 
-        int count = userGeneRepository.countDistinctUser();
+        long count = userGeneRepository.countDistinctUserByUserEnabledTrue();
 
         assertThat( count ).isEqualTo( 1 );
     }
@@ -263,7 +207,7 @@ public class UserGeneRepositoryTest {
         // Create another user.
         entityManager.persist( createUserWithGenes( taxon ) );
 
-        int count = userGeneRepository.countDistinctUser();
+        long count = userGeneRepository.countDistinctUserByUserEnabledTrue();
 
         assertThat( count ).isEqualTo( 2 );
     }
@@ -278,7 +222,7 @@ public class UserGeneRepositoryTest {
         Taxon taxon2 = entityManager.persist( createTaxon( 2 ) );
         entityManager.persist( createUserWithGenes( taxon2 ) );
 
-        int count = userGeneRepository.countDistinctUser();
+        long count = userGeneRepository.countDistinctUserByUserEnabledTrue();
 
         assertThat( count ).isEqualTo( 3 );
     }
@@ -287,6 +231,7 @@ public class UserGeneRepositoryTest {
     public void findByUserEnabledTrue() {
         Gene gene = entityManager.persist( createGene( 1, taxon ) );
         user.setEnabled( true );
+        user.setEnabledAt( Timestamp.from( Instant.now() ) );
         user.getProfile().setPrivacyLevel( PrivacyLevelType.PUBLIC );
         user.getUserGenes().clear();
         user = entityManager.persistAndFlush( user );
@@ -298,6 +243,8 @@ public class UserGeneRepositoryTest {
     @Test
     public void findByUserEnabledTrue_whenUserIsNotEnabled_thenExcludeTheGene() {
         Gene gene = entityManager.persist( createGene( 1, taxon ) );
+        user.setEnabled( false );
+        user.setEnabledAt( null );
         user.getProfile().setPrivacyLevel( PrivacyLevelType.PUBLIC );
         user.getUserGenes().clear();
         user = entityManager.persistAndFlush( user );
@@ -313,6 +260,7 @@ public class UserGeneRepositoryTest {
         Gene gene2 = entityManager.persist( createGene( 2, taxon ) );
         Gene gene3 = entityManager.persist( createGene( 3, taxon ) );
         user.setEnabled( true );
+        user.setEnabledAt( Timestamp.from( Instant.now() ) );
         user.getProfile().setPrivacyLevel( PrivacyLevelType.PUBLIC );
         user.getUserGenes().clear();
         user = entityManager.persistAndFlush( user );
@@ -333,6 +281,7 @@ public class UserGeneRepositoryTest {
         Gene gene2 = entityManager.persist( createGene( 2, taxon ) );
         Gene gene3 = entityManager.persist( createGene( 3, taxon ) );
         user.setEnabled( true );
+        user.setEnabledAt( Timestamp.from( Instant.now() ) );
         user.getProfile().setPrivacyLevel( PrivacyLevelType.PRIVATE );
         user.getUserGenes().clear();
         user = entityManager.persistAndFlush( user );
@@ -349,6 +298,7 @@ public class UserGeneRepositoryTest {
     public void findAllByPrivacyLevelAndUserProfilePrivacyLevel_whenGenePrivacyLevelIsNull_thenFallbackOnProfile() {
         Gene gene = entityManager.persist( createGene( 1, taxon ) );
         user.setEnabled( true );
+        user.setEnabledAt( Timestamp.from( Instant.now() ) );
         user.getProfile().setPrivacyLevel( PrivacyLevelType.PUBLIC );
         user.getUserGenes().clear();
         user = entityManager.persistAndFlush( user );
@@ -360,6 +310,8 @@ public class UserGeneRepositoryTest {
     @Test
     public void findByPrivacyLevelAndUserEnabledTrueAndUserProfilePrivacyLevel_whenUserIsNotEnabled_thenReturnNothing() {
         Gene gene = entityManager.persist( createGene( 1, taxon ) );
+        user.setEnabled( false );
+        user.setEnabledAt( null );
         user.getProfile().setPrivacyLevel( PrivacyLevelType.PUBLIC );
         user.getUserGenes().clear();
         user = entityManager.persistAndFlush( user );

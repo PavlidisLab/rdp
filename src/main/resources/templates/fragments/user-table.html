@@ -4,7 +4,7 @@
 <body>
 <!-- User table -->
 <table th:fragment="user-table (users, remote)"
-       class="user-table table table-sm">
+       class="user-table table table-sm table-responsive-sm">
     <thead class="thead-light">
     <tr>
         <th scope="col"></th>
@@ -20,13 +20,13 @@
     <tr th:each="u : ${users}">
         <td class="text-center" style="width: 10em;">
             <a th:if="${remote}"
-               th:href="@{/userView/{userId}(userId=${u.id},remoteHost=${u.originUrl})}"
+               th:href="@{/search/user/{userId}(userId=${u.id},remoteHost=${u.originUrl})}"
                class="btn btn-primary btn-sm">
                 <i class="oi oi-person"></i>
                 View User Profile
             </a>
             <a th:if="not ${remote}"
-               th:href="@{/userView/{userId}(userId=${u.id})}"
+               th:href="@{/search/user/{userId}(userId=${u.id})}"
                th:attr="data-user-id=${u.id}"
                class="btn btn-primary btn-sm btn-block user-preview-popover">
                 <i class="oi oi-person"></i>
@@ -48,7 +48,8 @@
     </tbody>
 </table>
 
-<table class="user-table table table-sm" th:fragment="usergenes-table (usergenes, remote)">
+<table th:fragment="usergenes-table (usergenes, remote)"
+       class="user-table table table-sm table-responsive-sm">
     <tr th:each="map : ${mapsList}">
         <td colspan="100" th:each="mapEntry : ${map}">
             <span th:text="${mapEntry.key}"></span>
@@ -80,14 +81,14 @@
     <tr th:each="ug : ${usergenes}" th:unless="${ug.anonymousId} and ${remote}">
         <td class="text-center" style="width: 10em;">
             <a th:if="${ug.anonymousId} == null and ${remote}"
-               th:href="@{/userView/{userId}(userId=${ug.user.id},remoteHost=${ug.user.originUrl})}"
+               th:href="@{/search/user/{userId}(userId=${ug.user.id},remoteHost=${ug.user.originUrl})}"
                th:attr="data-user-id=${ug.user.id},data-remote-host=${ug.user.originUrl}"
                class="btn btn-primary btn-sm btn-block user-preview-popover">
                 <i class="oi oi-person"></i>
                 View User Profile
             </a>
             <a th:if="${ug.anonymousId} == null and not ${remote}"
-               th:href="@{/userView/{userId}(userId=${ug.user.id})}"
+               th:href="@{/search/user/{userId}(userId=${ug.user.id})}"
                th:attr="data-user-id=${ug.user.id}"
                class="btn btn-primary btn-sm btn-block user-preview-popover">
                 <i class="oi oi-person"></i>

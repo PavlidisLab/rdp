@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
-<table th:id="${viewOnly == null} ? 'term-table' : ''" class="term-table table table-sm"
+<table th:id="${viewOnly == null} ? 'term-table' : ''" class="term-table table"
        th:fragment="term-table (userTerms)">
-    <thead class="thead-light">
+    <thead>
     <tr>
         <th scope="col">Term</th>
         <th scope="col">Name</th>
@@ -20,13 +20,13 @@
             Size
             <i class="tip oi oi-question-mark"></i>
         </th>
+        <th></th>
     </tr>
     </thead>
     <tbody>
     <tr th:each="ut : ${userTerms}">
         <td class="align-middle">
-            <i th:if="${viewOnly == null}" class="delete-row align-middle"/>
-            <a th:href="@{http://www.ebi.ac.uk/QuickGO/GTerm(id=${ut.goId})}"
+            <a th:href="@{https://www.ebi.ac.uk/QuickGO/GTerm(id=${ut.goId})}"
                th:text="${ut.goId}"
                target="_blank"
                rel="noopener"
@@ -45,6 +45,7 @@
                th:text="${ut.frequency}"></a>
         </td>
         <td class="align-middle" th:text="${ut.size}"></td>
+        <td></td>
     </tr>
     </tbody>
 </table>

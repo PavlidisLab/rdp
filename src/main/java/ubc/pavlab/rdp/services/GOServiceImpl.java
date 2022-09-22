@@ -1,9 +1,12 @@
 package ubc.pavlab.rdp.services;
 
 import lombok.extern.apachecommons.CommonsLog;
+import org.apache.commons.lang3.time.StopWatch;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
+import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
 import ubc.pavlab.rdp.model.Gene;
@@ -15,16 +18,17 @@ import ubc.pavlab.rdp.model.enums.RelationshipType;
 import ubc.pavlab.rdp.model.enums.TermMatchType;
 import ubc.pavlab.rdp.repositories.GeneOntologyTermInfoRepository;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
-import ubc.pavlab.rdp.util.Gene2GoParser;
-import ubc.pavlab.rdp.util.OBOParser;
-import ubc.pavlab.rdp.util.ParseException;
-import ubc.pavlab.rdp.util.SearchResult;
+import ubc.pavlab.rdp.util.*;
 
 import java.io.IOException;
-import java.text.MessageFormat;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -39,7 +43,11 @@ import static java.util.stream.Collectors.groupingBy;
  */
 @Service("goService")
 @CommonsLog
-public class GOServiceImpl implements GOService {
+public class GOServiceImpl implements GOService, InitializingBean {
+
+    static final String
+            ANCESTORS_CACHE_NAME = "ubc.pavlab.rdp.services.GOService.ancestors",
+            DESCENDANTS_CACHE_NAME = "ubc.pavlab.rdp.services.GOService.descendants";
 
     @Autowired
     private GeneOntologyTermInfoRepository goRepository;
@@ -54,11 +62,43 @@ public class GOServiceImpl implements GOService {
     private Gene2GoParser gene2GoParser;
 
     @Autowired
+    private CacheManager cacheManager;
+
+    @Autowired
     private ResourceLoader resourceLoader;
 
-    private static Relationship convertRelationship( OBOParser.Relationship parsedRelationship ) {
+    /**
+     * Lock used to make atomic operations on {@link #ancestorsCache} and {@link #descendantsCache} caches alongside the
+     * internal state of the {@link #goRepository}.
+     * <p>
+     * The repository itself is thread-safe, so no explicit locking is necessary unless you use the cache.
+     */
+    private final ReadWriteLock rwLock = new ReentrantReadWriteLock();
+
+    private Cache ancestorsCache;
+    private Cache descendantsCache;
+
+    @Override
+    public void afterPropertiesSet() {
+        ancestorsCache = CacheUtils.getCache( cacheManager, ANCESTORS_CACHE_NAME );
+        descendantsCache = CacheUtils.getCache( cacheManager, DESCENDANTS_CACHE_NAME );
+        // FIXME: because terms are not stored in the database, we need to initialize GO terms
+        Executors.newSingleThreadExecutor().submit( this::updateGoTerms );
+    }
+
+    private static Relationship convertRelationship( OBOParser.Term.Relationship parsedRelationship ) {
         return new Relationship( convertTermIgnoringRelationship( parsedRelationship.getNode() ),
-                RelationshipType.valueOf( parsedRelationship.getRelationshipType().toString() ) );
+                convertTypedef( parsedRelationship.getTypedef() ) );
+    }
+
+    private static RelationshipType convertTypedef( OBOParser.Typedef typedef ) {
+        if ( typedef.equals( OBOParser.Typedef.IS_A ) ) {
+            return RelationshipType.IS_A;
+        } else if ( typedef.equals( OBOParser.Typedef.PART_OF ) ) {
+            return RelationshipType.PART_OF;
+        } else {
+            throw new IllegalArgumentException( String.format( "Unknown relationship type: %s.", typedef ) );
+        }
     }
 
     private static GeneOntologyTermInfo convertTermIgnoringRelationship( OBOParser.Term parsedTerm ) {
@@ -72,8 +112,8 @@ public class GOServiceImpl implements GOService {
 
     private static GeneOntologyTermInfo convertTerm( OBOParser.Term parsedTerm ) {
         GeneOntologyTermInfo geneOntologyTerm = convertTermIgnoringRelationship( parsedTerm );
-        geneOntologyTerm.setParents( parsedTerm.getParents().stream().map( GOServiceImpl::convertRelationship ).collect( Collectors.toSet() ) );
-        geneOntologyTerm.setChildren( parsedTerm.getChildren().stream().map( GOServiceImpl::convertRelationship ).collect( Collectors.toSet() ) );
+        geneOntologyTerm.setParents( parsedTerm.getRelationships().stream().map( GOServiceImpl::convertRelationship ).collect( Collectors.toSet() ) );
+        geneOntologyTerm.setChildren( parsedTerm.getInverseRelationships().stream().map( GOServiceImpl::convertRelationship ).collect( Collectors.toSet() ) );
         return geneOntologyTerm;
     }
 
@@ -87,14 +127,10 @@ public class GOServiceImpl implements GOService {
         return goTerms;
     }
 
-    /**
-     * TODO: store the terms in the database to avoid this initialization
-     */
     @Override
     public void updateGoTerms() {
+        StopWatch timer = StopWatch.createStarted();
         ApplicationSettings.CacheSettings cacheSettings = applicationSettings.getCache();
-
-        log.info( MessageFormat.format( "Loading GO terms from: {0}.", cacheSettings.getTermFile() ) );
 
         if ( cacheSettings.getTermFile() == null || cacheSettings.getTermFile().isEmpty() ) {
             log.warn( "No term file is defined, skipping update of GO terms." );
@@ -106,24 +142,29 @@ public class GOServiceImpl implements GOService {
             return;
         }
 
+        Resource resource = resourceLoader.getResource( cacheSettings.getTermFile() );
+        log.info( String.format( "Loading GO terms from: %s.", resource ) );
+
         Map<String, GeneOntologyTermInfo> terms;
-        try {
-            terms = convertTerms( oboParser.parseStream( resourceLoader.getResource( cacheSettings.getTermFile() ).getInputStream() ) );
+        try ( Reader reader = new InputStreamReader( resource.getInputStream() ) ) {
+            terms = convertTerms( oboParser.parse( reader, OBOParser.Configuration.builder()
+                    .includedRelationshipTypedef( OBOParser.Typedef.PART_OF )
+                    .build() ).getTermsByIdOrAltId() );
         } catch ( IOException | ParseException e ) {
-            log.error( "Failed to parse GO terms.", e );
+            log.error( String.format( "Failed to parse GO terms from %s.", cacheSettings.getTermFile() ), e );
             return;
         }
 
-        log.info( MessageFormat.format( "Loading gene2go annotations from: {0}.", cacheSettings.getAnnotationFile() ) );
+        log.info( String.format( "Loading gene2go annotations from: %s.", cacheSettings.getAnnotationFile() ) );
 
         Collection<Gene2GoParser.Record> records;
         try {
             records = gene2GoParser.parse( new GZIPInputStream( cacheSettings.getAnnotationFile().getInputStream() ) );
         } catch ( IOException e ) {
-            log.error( "Failed to retrieve gene2go annotations.", e );
+            log.error( String.format( "Failed to retrieve gene2go annotations from %s.", cacheSettings.getAnnotationFile() ), e );
             return;
         } catch ( ParseException e ) {
-            log.error( "Failed to parse gene2go annotations.", e );
+            log.error( String.format( "Failed to parse gene2go annotations from %s.", cacheSettings.getAnnotationFile() ), e );
             return;
         }
 
@@ -147,17 +188,13 @@ public class GOServiceImpl implements GOService {
 
         // this tends to produce a lot of warnings, so we just warn for the first 5 or so
         for ( String goTerm : missingFromTermFile.stream().limit( 5 ).collect( Collectors.toSet() ) ) {
-            log.warn( MessageFormat.format( "{0} is missing from {1}, its direct genes will be ignored.", goTerm, cacheSettings.getTermFile() ) );
+            log.warn( String.format( "%s is missing from %s, its direct genes will be ignored.", goTerm, cacheSettings.getTermFile() ) );
         }
         if ( missingFromTermFile.size() > 5 ) {
-            log.warn( MessageFormat.format( "{0} more terms were missing from {1}, their direct genes will also be ignored.", missingFromTermFile.size() - 5, cacheSettings.getTermFile() ) );
+            log.warn( String.format( "%d more terms were missing from %s, their direct genes will also be ignored.", missingFromTermFile.size() - 5, cacheSettings.getTermFile() ) );
         }
 
-        log.info( "Clearing ancestor and descendants cache as it is no longer fresh." );
-        ancestorsCache.clear();
-        descendantsCache.clear();
-
-        log.info( MessageFormat.format( "Done updating GO terms, total of {0} items.", count() ) );
+        log.info( String.format( "Done updating GO terms, total of %d items got updated in %d ms.", count(), timer.getTime( TimeUnit.MILLISECONDS ) ) );
     }
 
     @Override
@@ -169,54 +206,80 @@ public class GOServiceImpl implements GOService {
 
     private SearchResult<GeneOntologyTermInfo> queryTerm( String queryString, GeneOntologyTermInfo term ) {
         if ( term.getGoId().equalsIgnoreCase( queryString ) || term.getGoId().equalsIgnoreCase( "GO:" + queryString ) ) {
-            return new SearchResult<>( TermMatchType.EXACT_ID, term );
+            return new SearchResult<>( TermMatchType.EXACT_ID, 0, term.getGoId(), term.getName(), term );
         }
 
         String pattern = "(?i:.*" + Pattern.quote( queryString ) + ".*)";
         if ( term.getName().matches( pattern ) ) {
-            return new SearchResult<>( TermMatchType.NAME_CONTAINS, term );
+            return new SearchResult<>( TermMatchType.NAME_CONTAINS, 0, term.getGoId(), term.getName(), term );
         }
 
         if ( term.getDefinition().matches( pattern ) ) {
-            return new SearchResult<>( TermMatchType.DEFINITION_CONTAINS, term );
+            return new SearchResult<>( TermMatchType.DEFINITION_CONTAINS, 0, term.getGoId(), term.getName(), term );
         }
 
-        List<String> splitPatternlist = Arrays.stream( queryString.split( " " ) )
+        List<String> splitPatterns = Arrays.stream( queryString.split( " " ) )
                 .filter( s -> !s.equals( "" ) )
                 .map( s -> "(?i:.*" + Pattern.quote( s ) + ".*)" ).collect( Collectors.toList() );
 
-        for ( String splitPattern : splitPatternlist ) {
+        for ( String splitPattern : splitPatterns ) {
             if ( term.getName().matches( splitPattern ) ) {
-                return new SearchResult<>( TermMatchType.NAME_CONTAINS_PART, term );
+                return new SearchResult<>( TermMatchType.NAME_CONTAINS_PART, 0, term.getGoId(), term.getName(), term );
             }
         }
 
-        for ( String splitPattern : splitPatternlist ) {
+        for ( String splitPattern : splitPatterns ) {
             if ( term.getDefinition().matches( splitPattern ) ) {
-                return new SearchResult<>( TermMatchType.DEFINITION_CONTAINS_PART, term );
+                return new SearchResult<>( TermMatchType.DEFINITION_CONTAINS_PART, 0, term.getGoId(), term.getName(), term );
             }
         }
         return null;
     }
 
+    /**
+     * Search for GO terms matching a query.
+     * <p>
+     * Results are sorted by match type, size in taxon (i.e. number of genes referring to the term) and then match.
+     */
     @Override
     public List<SearchResult<GeneOntologyTermInfo>> search( String queryString, Taxon taxon, int max ) {
-        Stream<SearchResult<GeneOntologyTermInfo>> stream = goRepository.findAll().stream()
-                .filter( t -> getSizeInTaxon( t, taxon ) <= applicationSettings.getGoTermSizeLimit() )
-                .map( t -> queryTerm( queryString, t ) )
-                .filter( Objects::nonNull )
-                .sorted( Comparator.comparingInt( sr -> sr.getMatchType().getOrder() ) );
+        StopWatch timer = StopWatch.createStarted();
+        try ( Stream<GeneOntologyTermInfo> stream2 = goRepository.findAllAsStream() ) {
+            Stream<SearchResult<GeneOntologyTermInfo>> stream = stream2
+                    .map( t -> queryTerm( queryString, t ) )
+                    .filter( Objects::nonNull )
+                    .filter( t -> {
+                        long sizeInTaxon = getSizeInTaxon( t.getMatch(), taxon );
+                        if ( sizeInTaxon <= applicationSettings.getGoTermSizeLimit() ) {
+                            t.getMatch().setSize( sizeInTaxon );
+                            return true;
+                        } else {
+                            return false;
+                        }
+                    } )
+                    .peek( t -> t.setExtras( String.format( "%s genes", t.getMatch().getSize() ) ) )
+                    .sorted();
 
-        if ( max > -1 ) {
-            stream = stream.limit( max );
+            if ( max > -1 ) {
+                stream = stream.limit( max );
+            }
+
+            return stream.collect( Collectors.toList() );
+        } finally {
+            if ( timer.getTime( TimeUnit.MILLISECONDS ) > 1000 ) {
+                log.warn( String.format( "Searching for GO terms for query %s took %s ms.", queryString, timer.getTime( TimeUnit.MILLISECONDS ) ) );
+            }
         }
-
-        return stream.collect( Collectors.toList() );
     }
 
     @Override
     public long getSizeInTaxon( GeneOntologyTermInfo t, Taxon taxon ) {
-        return getGenesInTaxon( t, taxon ).size();
+        Collection<GeneOntologyTermInfo> descendants = getDescendants( t );
+        descendants.add( t );
+        return descendants.stream()
+                .distinct()
+                .mapToLong( term -> term.getDirectGeneIdsByTaxonId().getOrDefault( taxon.getId(), Collections.emptyList() ).size() )
+                .sum();
     }
 
     @Override
@@ -229,27 +292,62 @@ public class GOServiceImpl implements GOService {
 
     @Override
     public GeneOntologyTermInfo save( GeneOntologyTermInfo term ) {
-        return goRepository.save( term );
+        Lock lock = rwLock.writeLock();
+        try {
+            lock.lock();
+            return goRepository.save( term );
+        } finally {
+            evict( term );
+            lock.unlock();
+        }
     }
 
     @Override
     public Iterable<GeneOntologyTermInfo> save( Iterable<GeneOntologyTermInfo> terms ) {
-        return goRepository.save( terms );
+        Lock lock = rwLock.writeLock();
+        try {
+            lock.lock();
+            return goRepository.saveAll( terms );
+        } finally {
+            evict( terms );
+            lock.unlock();
+        }
     }
 
     @Override
     public GeneOntologyTermInfo saveAlias( String goId, GeneOntologyTermInfo term ) {
-        return goRepository.saveAlias( goId, term );
+        Lock lock = rwLock.writeLock();
+        try {
+            lock.lock();
+            return goRepository.saveByAlias( goId, term );
+        } finally {
+            evict( term );
+            lock.unlock();
+        }
     }
 
     @Override
     public Iterable<GeneOntologyTermInfo> saveAlias( Map<String, GeneOntologyTermInfo> terms ) {
-        return goRepository.saveAlias( terms );
+        Lock lock = rwLock.writeLock();
+        try {
+            lock.lock();
+            return goRepository.saveAllByAlias( terms );
+        } finally {
+            evict( terms.values() );
+            lock.unlock();
+        }
     }
 
     @Override
     public void deleteAll() {
-        goRepository.deleteAll();
+        Lock lock = rwLock.writeLock();
+        try {
+            lock.lock();
+            goRepository.deleteAll();
+        } finally {
+            evictAll();
+            lock.unlock();
+        }
     }
 
     @Override
@@ -259,15 +357,26 @@ public class GOServiceImpl implements GOService {
 
     @Override
     public Collection<GeneOntologyTermInfo> getDescendants( GeneOntologyTermInfo entry ) {
-        return getDescendantsInternal( entry );
+        StopWatch timer = StopWatch.createStarted();
+        Lock lock = rwLock.readLock();
+        try {
+            lock.lock();
+            return getDescendantsInternal( entry );
+        } finally {
+            lock.unlock();
+            if ( timer.getTime( TimeUnit.MILLISECONDS ) > 1000 ) {
+                log.warn( String.format( "Retrieving descendants for %s took %d ms.", entry, timer.getTime( TimeUnit.MILLISECONDS ) ) );
+            }
+        }
     }
 
-    private ConcurrentMap<GeneOntologyTermInfo, Set<GeneOntologyTermInfo>> descendantsCache = new ConcurrentHashMap<>();
-
     private Set<GeneOntologyTermInfo> getDescendantsInternal( GeneOntologyTermInfo entry ) {
-        if ( descendantsCache.containsKey( entry ) )
-            return descendantsCache.get( entry );
-        Set<GeneOntologyTermInfo> results = new HashSet<>();
+        //noinspection unchecked
+        Set<GeneOntologyTermInfo> results = descendantsCache.get( entry, Set.class );
+        if ( results != null ) {
+            return results;
+        }
+        results = new HashSet<>();
         for ( GeneOntologyTermInfo child : getChildren( entry ) ) {
             results.add( child );
             results.addAll( getDescendantsInternal( child ) );
@@ -279,8 +388,6 @@ public class GOServiceImpl implements GOService {
     /**
      * Obtain genes directly associated to this GO term.
      *
-     * @param term
-     * @return
      * @deprecated use {@link GeneOntologyTermInfo#getDirectGeneIds()} to obtain direct genes
      */
     @Override
@@ -291,9 +398,12 @@ public class GOServiceImpl implements GOService {
 
     @Override
     public Collection<Integer> getGenesInTaxon( String id, Taxon taxon ) {
-        GeneOntologyTermInfo term = goRepository.findOne( id );
-        if ( term == null ) return Collections.emptySet();
-        return getGenesInTaxon( term, taxon );
+        if ( id == null ) {
+            return Collections.emptySet();
+        }
+        return goRepository.findById( id )
+                .map( term -> getGenesInTaxon( term, taxon ) )
+                .orElse( Collections.emptySet() );
     }
 
     @Override
@@ -309,7 +419,7 @@ public class GOServiceImpl implements GOService {
 
     @Override
     public Collection<Integer> getGenes( GeneOntologyTermInfo t ) {
-        Collection<GeneOntologyTermInfo> descendants = new HashSet<GeneOntologyTermInfo>( getDescendants( t ) );
+        Collection<GeneOntologyTermInfo> descendants = new HashSet<>( getDescendants( t ) );
 
         descendants.add( t );
 
@@ -325,12 +435,15 @@ public class GOServiceImpl implements GOService {
 
     @Override
     public GeneOntologyTermInfo getTerm( String goId ) {
-        return goRepository.findOne( goId );
+        if ( goId == null ) {
+            return null;
+        }
+        return goRepository.findById( goId ).orElse( null );
     }
 
     @Override
     public Collection<GeneOntologyTermInfo> getTermsForGene( Gene gene ) {
-        return goRepository.findAllByGene( gene );
+        return goRepository.findByDirectGeneIdsContaining( gene.getGeneId() );
     }
 
     @Override
@@ -338,7 +451,7 @@ public class GOServiceImpl implements GOService {
 
         Collection<GeneOntologyTermInfo> allGOTermSet = new HashSet<>();
 
-        for ( GeneOntologyTermInfo term : goRepository.findAllByGene( gene ) ) {
+        for ( GeneOntologyTermInfo term : goRepository.findByDirectGeneIdsContaining( gene.getGeneId() ) ) {
             allGOTermSet.add( term );
 
             if ( propagateUpwards ) {
@@ -358,20 +471,71 @@ public class GOServiceImpl implements GOService {
 
     @Override
     public Collection<GeneOntologyTermInfo> getAncestors( GeneOntologyTermInfo term ) {
-        return getAncestorsInternal( term );
+        Lock lock = rwLock.readLock();
+        try {
+            lock.lock();
+            return getAncestorsInternal( term );
+        } finally {
+            lock.unlock();
+        }
     }
 
-    private ConcurrentMap<GeneOntologyTermInfo, Set<GeneOntologyTermInfo>> ancestorsCache = new ConcurrentHashMap<>();
-
     private Collection<GeneOntologyTermInfo> getAncestorsInternal( GeneOntologyTermInfo term ) {
-        if ( ancestorsCache.containsKey( term ) )
-            return ancestorsCache.get( term );
-        Set<GeneOntologyTermInfo> results = new HashSet<>();
+        //noinspection unchecked
+        Set<GeneOntologyTermInfo> results = ancestorsCache.get( term, Set.class );
+        if ( results != null )
+            return results;
+        results = new HashSet<>();
         for ( GeneOntologyTermInfo parent : getParents( term ) ) {
             results.add( parent );
             results.addAll( getAncestorsInternal( parent ) );
         }
         ancestorsCache.put( term, results );
         return results;
+    }
+
+    private void evict( GeneOntologyTermInfo term ) {
+        evict( Collections.singleton( term ) );
+    }
+
+    private void evict( Iterable<GeneOntologyTermInfo> terms ) {
+        Set<GeneOntologyTermInfo> termsToEvict = new HashSet<>();
+        for ( GeneOntologyTermInfo term : terms ) {
+            termsToEvict.add( term );
+        }
+
+        log.debug( String.format( "Evicting %d terms from the GO ancestors and descendants caches.", termsToEvict.size() ) );
+
+        // first, let's retrieve what we already have in the cache
+        Collection<GeneOntologyTermInfo> ancestors = termsToEvict.stream()
+                .map( this::getAncestors )
+                .flatMap( Collection::stream )
+                .collect( Collectors.toSet() );
+        Collection<GeneOntologyTermInfo> descendants = termsToEvict.stream()
+                .map( this::getDescendants )
+                .flatMap( Collection::stream )
+                .collect( Collectors.toSet() );
+
+        // evict the terms from both caches
+        for ( GeneOntologyTermInfo term : termsToEvict ) {
+            ancestorsCache.evict( term );
+            descendantsCache.evict( term );
+        }
+
+        // all the ancestors mention one of the updated terms in their descendants, so we evict those
+        for ( GeneOntologyTermInfo ancestor : ancestors ) {
+            descendantsCache.evict( ancestor );
+        }
+
+        // conversely, all the descendants mention one of the updated term in their ancestors
+        for ( GeneOntologyTermInfo descendant : descendants ) {
+            ancestorsCache.evict( descendant );
+        }
+    }
+
+    private void evictAll() {
+        log.debug( "Evicting all the terms from ancestors and descendants caches." );
+        ancestorsCache.clear();
+        descendantsCache.clear();
     }
 }

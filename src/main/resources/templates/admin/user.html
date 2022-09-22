@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       lang="en">
 <head th:replace="layouts/common::head(title='Admin')">
@@ -7,9 +8,10 @@
 <body>
 <div th:replace="layouts/common::header"></div>
 
-<div class="container py-3">
+<div class="container py-4">
     <div th:replace="layouts/common::title(title='Administrate User', subtitle=${user.profile.fullName})"></div>
-    <div th:replace="layouts/common::message"></div>
+    <div th:replace="layouts/common::messages"></div>
+    <main id="main-content">
     <div class="row">
         <div class="col-3">
             <h3>User details</h3>
@@ -18,30 +20,67 @@
                 <dd th:text="${user.id}"></dd>
                 <dt>Name</dt>
                 <dd th:text="${user.profile.name}"></dd>
+                <dt>Last name</dt>
+                <dd th:text="${user.profile.lastName}"></dd>
                 <dt>Email</dt>
-                <dd th:text="${user.email}"></dd>
+                <dd>
+                    <a th:if="${user.enabled}" th:text="${user.email}" th:href="'mailto:' + ${user.email}"></a>
+                    <th:block th:unless="${user.enabled}">
+                        <span th:text="${user.email}"></span>
+                        <span class="badge badge-warning">not verified</span>
+                    </th:block>
+                </dd>
                 <dt>Enabled?</dt>
-                <dd th:text="${user.enabled} ? 'Yes' : 'No'"></dd>
+                <dd>
+            <span th:if="${user.enabled}">
+                Yes<span th:if="${user.enabledAt} !=null">, on <span
+                    th:replace="fragments/temporal::date-and-time(${user.enabledAt.toInstant()})"></span>.</span>
+            </span>
+                    <span th:unless="${user.enabled}">No</span>
+                </dd>
                 <th:block th:if="${user.verifiedContactEmail.isPresent()}">
                     <dt>Contact Email</dt>
-                    <dd th:text="${user.verifiedContactEmail.get().address}"></dd>
+                    <dd>
+                        <span th:text="${user.verifiedContactEmail.get().address}"></span>
+                        <th:block th:if="${user.verifiedAtContactEmail.isPresent()}">
+                            <br/>
+                            Verified on
+                            <span th:replace="fragments/temporal::date-and-time(${user.verifiedAtContactEmail.get().toInstant()})"></span>.
+                        </th:block>
+                    </dd>
                 </th:block>
             </dl>
-            <div class="form-group">
-                <a class="btn btn-primary btn-sm" th:href="@{/userView/{userId}(userId=${user.id})}">
-                    View user profile
+            <div th:if="${user.enabled}" class="form-group">
+                <a class="btn btn-primary btn-sm" th:href="@{/search/user/{userId}(userId=${user.id})}">
+                    <i class="oi oi-person"></i>
+                    View User Profile
                 </a>
             </div>
             <h3>Roles</h3>
-            <ul>
-                <li th:each="role : ${user.roles}"
-                    th:text="#{'Role.' + ${role.role}}">...
-                </li>
-            </ul>
+            <form th:action="@{/admin/users/{userId}/roles(userId=${user.id})}" method="post">
+                <input type="hidden" name="action"/>
+                <select type="hidden" name="roles" multiple class="form-control">
+                    <option th:each="role : ${@userService.findAllRoles()}"
+                            th:value="${role.id}"
+                            th:text="${@messageSource.getMessage(role.resolvableTitle, #locale)}"
+                            th:selected="${user.roles.contains(role)}"></option>
+                </select>
+                <button class="btn btn-primary" type="submit">Update Roles</button>
+            </form>
         </div>
-        <div class="col-4">
+        <div class="col-9">
+            <h3>Access Tokens</h3>
+            <p>
+                Access tokens provide access to the public API using the
+                <a href="https://datatracker.ietf.org/doc/html/rfc6750" target="_blank" rel="noopener">
+                    bearer authentication
+                </a>
+                or the <code>auth</code> query parameter.
+            </p>
+            <p th:if="${user.accessTokens.isEmpty()}">
+                No access token exist for this user.
+            </p>
             <th:block th:unless="${user.accessTokens.isEmpty()}">
-                <h3>Access Tokens</h3>
                 <ul class="list-group mb-3">
                     <li th:each="accessToken : ${user.accessTokens}"
                         class="list-group-item">
@@ -50,13 +89,26 @@
                               class="mb-0">
                             <span th:text="${accessToken.token}"></span><br/>
                             Expires on <span th:text="${accessToken.expiryDate}"></span>.<br/>
-                            <button class="btn btn-sm btn-danger">Revoke</button>
+                            <button class="btn btn-sm btn-danger">
+                                <i class="oi oi-trash"></i>
+                                Revoke
+                            </button>
                         </form>
                     </li>
                 </ul>
             </th:block>
+            <form th:action="@{/admin/users/{userId}/create-access-token(userId=${user.id})}"
+                  method="post">
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="oi oi-key"></i>
+                        Create New Access Token
+                    </button>
+                </div>
+            </form>
             <th:block th:unless="${user.verificationTokens.isEmpty()}">
                 <h3>Verification Tokens</h3>
+                <p>Verification tokens are used to verify user and contact emails.</p>
                 <ul>
                     <li th:each="verificationToken : ${user.verificationTokens}">
                         <span th:text="${verificationToken.token} ?: 'No value'"></span><br/>
@@ -74,10 +126,6 @@
                     </li>
                 </ul>
             </th:block>
-            <form th:action="@{/admin/users/{userId}/create-access-token(userId=${user.id})}"
-                  method="post">
-                <button type="submit" class="btn btn-primary">Create new access token</button>
-            </form>
             <h3>Delete <span th:text="${user.profile.fullName}"></span></h3>
             <form th:action="@{/admin/users/{userId}(userId=${user.id})}"
                   th:method="delete"
@@ -89,13 +137,17 @@
                            th:field="*{email}"
                            th:placeholder="${user.email}"
                            class="form-control" type="email"
-                           th:classappend="${#fields.hasErrors('email')} ? 'is-invalid'"/>
+                           th:errorclass="is-invalid"/>
                     <div class="invalid-feedback" th:errors="*{email}"></div>
                 </div>
-                <button class="btn btn-danger">Delete this user</button>
+                <button class="btn btn-danger">
+                    <i class="oi oi-trash"></i>
+                    Delete
+                </button>
             </form>
         </div>
-    </div>
+        </div>
+    </main>
 </div>
 <div th:replace="layouts/common::footer"></div>
 <div th:replace="layouts/common::scripts"></div>

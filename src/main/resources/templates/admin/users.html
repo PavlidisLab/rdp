@@ -7,22 +7,24 @@
 </head>
 <body>
 <div th:replace="layouts/common::header(title='Users')"></div>
-<div class="container py-3">
-    <div th:replace="layouts/common::title(title='Users')"></div>
-    <h2>List of all registered users</h2>
-    <table class="table table-compact">
+<div class="container py-4">
+    <div th:replace="layouts/common::title(title='Users', subtitle = 'List of all registered users')"></div>
+    <table id="main-content" class="table table-compact" role="main">
         <thead>
         <tr>
             <th>Email</th>
             <th>Full Name</th>
-            <th>Contact Email</th>
+            <th class="d-none d-md-table-cell">Contact Email</th>
         </tr>
         </thead>
         <tbody>
         <tr th:each="user : ${users}">
-            <td><a th:href="@{/admin/users/{userId}(userId=${user.id})}" th:text="${user.email}"></a></td>
-            <td th:text="${user.profile.fullName}"></td>
             <td>
+                <a th:href="@{/admin/users/{userId}(userId=${user.id})}" th:text="${user.email}"></a>
+                <span th:unless="${user.enabled}" class="badge badge-warning">not verified</span>
+            </td>
+            <td th:text="${user.profile.fullName}"></td>
+            <td class="d-none d-md-table-cell">
                 <a th:if="${user.verifiedContactEmail.isPresent()}"
                    th:href="'mailto:' + ${user.verifiedContactEmail.get().address}"
                    th:text="${user.verifiedContactEmail.get().address}"></a>
@@ -32,6 +34,42 @@
             </td>
         </tr>
         </tbody>
+        <tfoot>
+        <tr>
+            <th colspan="3">
+                <ul class="pagination justify-content-center"
+                    th:with="maxPages=2,totalPages=${users.totalPages}">
+                    <th:block th:if="${users.number} > ${maxPages}">
+                        <li class="page-item">
+                            <a th:href="@{/admin/users(page=0)}" class="page-link" th:text="1"></a>
+                        </li>
+                        <li th:if="${users.number} > ${maxPages} + 1" class="page-item disabled">
+                            <a href="#" class="page-link">...</a>
+                        </li>
+                    </th:block>
+                    <th:block th:each="page : ${#numbers.sequence(users.number - maxPages, users.number + maxPages)}"
+                              th:if="0 <= ${page} and ${page} < ${totalPages}">
+                        <li class="page-item"
+                            th:classappend="${page == users.number ? 'active' : ''}">
+                            <a class="page-link"
+                               th:href="@{/admin/users(page=${page})}"
+                               th:text="${page} + 1">
+                            </a>
+                        </li>
+                    </th:block>
+                    <th:block th:if="${users.number} < ${totalPages - maxPages - 1}">
+                        <li th:if="${users.number} < ${totalPages - maxPages - 2}" class="page-item disabled">
+                            <a href="#" class="page-link">...</a>
+                        </li>
+                        <li>
+                            <a th:href="@{/admin/users(page=${totalPages - 1})}" class="page-link"
+                               th:text="${totalPages}"></a>
+                        </li>
+                    </th:block>
+                </ul>
+            </th>
+        </tr>
+        </tfoot>
     </table>
 </div>
 <div th:replace="layouts/common::footer"></div>

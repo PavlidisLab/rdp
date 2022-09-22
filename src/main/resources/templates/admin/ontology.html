@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      lang="en">
+<head th:replace="layouts/common::head(title='Admin')">
+    <meta charset="UTF-8"/>
+    <title>Title</title>
+</head>
+<body>
+<div th:replace="layouts/common::header"></div>
+<div class="container py-4">
+    <div th:replace="layouts/common::title(title='Manage Profile Category', subtitle=${@messageSource.getMessage(ontology.resolvableTitle, #locale)})"></div>
+    <main id="main-content">
+        <div class="row">
+            <div class="col">
+                <p>
+                <span th:if="${ontology.active}"
+                      class="badge badge-success">active</span>
+                    <span th:unless="${ontology.active}"
+                          class="badge badge-secondary">inactive</span>
+                </p>
+                <p th:if="${#messages.msgOrNull(ontology.resolvableDefinition.code)} != null"
+                   class="lead"
+                   th:text="${@messageSource.getMessage(ontology.resolvableDefinition, #locale)}"></p>
+            </div>
+        </div>
+        <div id="messages">
+            <div th:replace="layouts/common::messages"></div>
+        </div>
+        <dl class="dl-inline">
+            <th:block th:if="${ontology.ontologyUrl} != null">
+                <dt>Source URL</dt>
+                <dd th:with="isSafeOrPurl=${ontology.ontologyUrl.protocol} == 'https' or ${ontology.ontologyUrl.authority} == 'purl.obolibrary.org'">
+                    <a th:if="${isSafeOrPurl}"
+                       th:href="${ontology.ontologyUrl}"
+                       th:text="${ontology.ontologyUrl}"></a>
+                    <!-- unsecure or local file -->
+                    <span th:unless="${isSafeOrPurl}"
+                          th:text="${ontology.ontologyUrl}"></span>
+                    <th:block
+                            th:if="${ontology.ontologyUrl} != null and not ${@ontologyService.resolveOntologyUrl(ontology.ontologyUrl).exists()}">
+                        <br/>
+                        <small class="text-danger">
+                            Yikes! It looks like the resource used to update this category is not available.
+                        </small>
+                    </th:block>
+                </dd>
+            </th:block>
+            <dt>Total terms</dt>
+            <dd th:text="${ontology.terms.size()}"></dd>
+            <dt>Active terms</dt>
+            <dd th:text="${@ontologyService.countActiveTerms(ontology)}"></dd>
+            <dt>Obsolete terms</dt>
+            <dd th:text="${@ontologyService.countObsoleteTerms(ontology)}"></dd>
+            <dt>Used terms</dt>
+            <dd th:text="${@ontologyService.countDistinctUserTerms(ontology)}"></dd>
+        </dl>
+        <div class="row">
+            <div class="col mb-3">
+                <form th:if="${ontology.active}"
+                      th:action="@{/admin/ontologies/{ontologyId}/deactivate(ontologyId=${ontology.id})}"
+                      method="post" class="d-inline-block align-top">
+                    <input type="hidden" name="includeTerms" th:value="not ${@ontologyService.isSimple(ontology)}"/>
+                    <button class="btn btn-warning" type="submit">
+                        Deactivate
+                        <span th:unless="${@ontologyService.isSimple(ontology)}">all Terms</span>
+                    </button>
+                </form>
+                <form th:unless="${ontology.active}"
+                      th:action="@{/admin/ontologies/{ontologyId}/activate(ontologyId=${ontology.id})}"
+                      th:object="${activateOntologyForm}"
+                      method="post"
+                      class="d-inline-block align-top">
+                    <input type="hidden" name="includeTerms" th:value="not ${@ontologyService.isSimple(ontology)}"/>
+                    <button class="btn btn-success" type="submit">
+                        Activate
+                        <span th:unless="${@ontologyService.isSimple(ontology)}">all Terms</span>
+                    </button>
+                </form>
+                <form th:if="${ontology.ontologyUrl} != null"
+                      th:action="@{/admin/ontologies/{ontologyId}/update(ontologyId=${ontology.id})}" method="post"
+                      class="d-inline-block align-top">
+                    <button class="btn btn-primary update-ontology-btn" type="submit">
+                        <span class="spinner d-none"></span>
+                        <i class="oi oi-cloud-download"></i>
+                        Update from
+                        <span th:if="${ontology.ontologyUrl.authority} != null"
+                              th:text="${ontology.ontologyUrl.authority}">
+        </span>
+                        <span th:if="${ontology.ontologyUrl.authority} == null">
+            disk
+        </span>
+                    </button>
+                </form>
+                <th:block th:if="${@reactomeService.findPathwaysOntology()} == ${ontology}">
+                    <form th:action="@{/admin/ontologies/{ontologyId}/update-reactome-pathways(ontologyId=${ontology.id})}"
+                          method="post"
+                          class="d-inline-block align-top">
+                        <button class="btn btn-primary" type="submit">
+                            <i class="oi oi-cloud-download"></i>
+                            Update from reactome.org
+                        </button>
+                    </form>
+                    <div class="form-group mb-0 d-inline-block align-top">
+                        <a th:href="@{/admin/ontologies/{ontologyId}/update-reactome-pathway-summations(ontologyId=${ontology.id})}"
+                           th:attr="data-reactome-ontology-id=${ontology.id}"
+                           class="btn btn-primary update-reactome-pathway-summations-btn">
+                            <i class="oi oi-cloud-download"></i>
+                            Update Pathways Summations from reactome.org
+                        </a>
+                        <div>
+                            <small class="progress-feedback"></small>
+                        </div>
+                    </div>
+                </th:block>
+                <a class="btn btn-primary align-top"
+                   th:href="@{/admin/ontologies/{ontologyId}/download(ontologyId=${ontology.id})}">
+                    <i class="oi oi-data-transfer-download"></i>
+                    Download as OBO
+                </a>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-4 col-md-6">
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h3 class="mb-0">Edit</h3>
+                    </div>
+                    <div class="card-body">
+                        <form th:action="@{/admin/ontologies/{ontologyId}(ontologyId=${ontology.id})}"
+                              method="post" th:object="${updateOntologyForm}"
+                              class="important">
+                            <div class="form-group">
+                                <label>Name</label>
+                                <input type="url" th:field="*{name}"
+                                       class="form-control"
+                                       th:errorclass="is-invalid"
+                                       readonly="readonly"/>
+                                <div class="invalid-feedback" th:errors="*{name}"></div>
+                                <div th:if="${#messages.msgOrNull(ontology.resolvableTitle.code)} != null"
+                                     class="feedback">
+                                    <small>
+                                        <strong>Note:</strong> There is an entry in <code>messages.properties</code>
+                                        that overrides the value of the name field.
+                                    </small>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label th:for="${#ids.next('definition')}">Definition</label>
+                                <textarea type="text" th:field="*{definition}"
+                                          class="form-control"
+                                          th:errorclass="is-invalid"></textarea>
+                                <div class="invalid-feedback" th:errors="*{definition}"></div>
+                                <div th:if="${#messages.msgOrNull(ontology.resolvableDefinition.code)} != null">
+                                    <small>
+                                        <strong>Note:</strong> There is an entry in <code>messages.properties</code>
+                                        that overrides the value of the definition field.
+                                    </small>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Source URL</label>
+                                <input type="url" th:field="*{ontologyUrl}"
+                                       class="form-control"
+                                       th:errorclass="is-invalid"
+                                       readonly="readonly"/>
+                                <div class="invalid-feedback" th:errors="*{ontologyUrl}"></div>
+                            </div>
+                            <div class="form-group">
+                                <div class="form-check">
+                                    <input th:field="*{availableForGeneSearch}" type="checkbox"
+                                           class="form-check-input"/>
+                                    <label th:for="${#ids.prev('availableForGeneSearch')}" class="form-check-label">
+                                        Available for gene search?
+                                    </label>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Save</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div th:unless="${@ontologyService.isSimple(ontology)}" class="col-lg-4 col-md-6">
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h3 class="mb-0">
+                            Activate Subtree
+                        </h3>
+                    </div>
+                    <div th:unless="${@ontologyService.existsByActiveFalseAndObsoleteFalse(ontology)}"
+                         class="card-body alert-warning">
+                        All possible subtrees are already active.
+                    </div>
+                    <div th:if="${@ontologyService.existsByActiveFalseAndObsoleteFalse(ontology)}" class="card-body">
+                        <form th:action="@{/admin/ontologies/{ontologyId}/activate-term(ontologyId=${ontology.id})}"
+                              th:object="${activateTermForm}"
+                              method="post">
+                            <div class="form-group">
+                                <input class="form-control ontology-term-autocomplete" th:field="*{ontologyTermInfoId}"
+                                       th:errorclass="is-invalid"
+                                       type="search"
+                                       th:placeholder="${@messageSource.getMessage(ontology.resolvableTitle, #locale)} + ' Terms'"
+                                       aria-autocomplete="list"/>
+                                <div class="invalid-feedback" th:errors="*{ontologyTermInfoId}"></div>
+                            </div>
+                            <input name="includeSubtree" type="hidden" value="true"/>
+                            <input name="includeOntology" type="hidden" value="true"/>
+                            <button class="btn btn-primary" type="submit">Activate Subtree</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h3 class="mb-0">
+                            Delete
+                        </h3>
+                    </div>
+                    <div th:if="${@userService.existsByOntology(ontology)}" class="card-body alert-warning">
+                        The <strong th:text="${@messageSource.getMessage(ontology.resolvableTitle, #locale)}"></strong>
+                        category cannot be deleted because there are users currently using it.
+                    </div>
+                    <div th:unless="${@userService.existsByOntology(ontology)}" class="card-body">
+                        <form th:action="@{/admin/ontologies/{ontologyId}(ontologyId=${ontology.id})}"
+                              th:method="delete"
+                              th:object="${deleteOntologyForm}"
+                              class="d-inline-block pull-right">
+                            <div class="form-group">
+                                <label for="confirmOntologyName" class="form-control-label">
+                                    Type the category name <strong th:text="${ontology.name}"></strong> to confirm:
+                                </label>
+                                <input th:field="*{ontologyNameConfirmation}" class="form-control"
+                                       th:placeholder="${ontology.name}"
+                                       th:errorclass="is-invalid"/>
+                                <div class="invalid-feedback" th:errors="*{ontologyNameConfirmation}"></div>
+                            </div>
+                            <button type="submit" class="btn btn-danger delete-ontology-btn">
+                                <span class="spinner d-none"></span>
+                                <i class="oi oi-trash"></i>
+                                Delete
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div th:unless="${@ontologyService.isSimple(ontology)}"
+             th:with="subtrees=${@ontologyService.findAllActiveNonTrivialSubtrees(ontology)}">
+            <h2>Active Subtrees</h2>
+            <p>Active subtrees are distinct parts of the ontology that are active.</p>
+            <table class="table table-sm">
+                <thead>
+                <tr>
+                    <th>Term ID</th>
+                    <th>Name</th>
+                    <th class="d-none d-lg-table-cell">Definition</th>
+                    <th class="d-none d-sm-table-cell ">Number of terms</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="subtree : ${subtrees}">
+                    <td th:text="${subtree.termId}" class="text-nowrap"></td>
+                    <td th:text="${subtree.name}"></td>
+                    <td class="d-none d-lg-table-cell">
+                    <span th:if="${#messages.msgOrNull(subtree.resolvableDefinition.code)} != null"
+                          th:text="${@messageSource.getMessage(subtree.resolvableDefinition, #locale)}"
+                          class="ontology-term-definition"></span>
+                    </td>
+                    <td class="d-none d-sm-table-cell text-nowrap">
+                        <span th:text="${@ontologyService.subtreeSize(subtree)}"></span> Terms
+                    </td>
+                    <td class="text-right">
+                        <form th:action="@{/admin/ontologies/{ontologyId}/deactivate-term(ontologyId=${ontology.id})}"
+                              method="post">
+                            <input type="hidden" name="ontologyTermInfoId" th:value="${subtree.termId}"/>
+                            <input type="hidden" name="includeSubtree" value="true"/>
+                            <button type="submit" class="btn btn-warning btn-sm">
+                                Deactivate
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <div th:if="${@ontologyService.isSimple(ontology)}" class="card">
+            <div class="card-header">
+                <h3 class="mb-0">
+                    Edit Terms
+                </h3>
+            </div>
+            <div class="card-body alert-info">
+                <p>
+                    This editor only applies to ontologies with 20 terms or less. For larger ontologies, you must
+                    provide terms in the OBO format.
+                </p>
+                <p>
+                    Terms following a grouping term will be added as sub-terms until another grouping term is
+                    encountered.
+                </p>
+                <p class="mb-0">
+                    If you check "Has icon?", make sure that you provide an icon in the static assets under
+                    <code>static/img/ontologies/{ontologyName}/{termName}.svg</code>, otherwise a textual icon will
+                    be
+                    used
+                    as a fallback.
+                </p>
+            </div>
+            <div class="card-body">
+                <div th:replace="fragments/ontology::simple-ontology-form(ontology = ${ontology}, simpleOntologyForm = ${simpleOntologyForm})"></div>
+            </div>
+        </div>
+    </main>
+</div>
+<div th:replace="layouts/common::footer"></div>
+<div th:replace="layouts/common::scripts"></div>
+<script th:inline="javascript">
+    var ontologyId = [[${ontology.id}]];
+</script>
+<script th:src="@{/dist/ontology.bundle.js}"></script>
+</body>
+</html>

@@ -53,12 +53,13 @@ public class UserGeneServiceImplTest {
     private UserService userService;
 
     @MockBean
-    private TierService tierService;
-    @MockBean
     private PermissionEvaluator permissionEvaluator;
 
     @MockBean
     private ApplicationSettings applicationSettings;
+
+    @MockBean
+    private OntologyService ontologyService;
 
     @Test
     public void updateUserGenes_withExistingUser_thenUserGeneAreUpdated() {

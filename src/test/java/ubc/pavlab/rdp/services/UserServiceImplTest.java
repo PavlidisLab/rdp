@@ -13,8 +13,12 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
+import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -33,10 +37,10 @@ import ubc.pavlab.rdp.model.enums.ResearcherCategory;
 import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.repositories.*;
-import ubc.pavlab.rdp.security.PermissionEvaluatorImpl;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
+import ubc.pavlab.rdp.settings.SiteSettings;
 
-import javax.mail.MessagingException;
+import javax.annotation.PostConstruct;
 import javax.validation.ValidationException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -51,7 +55,6 @@ import java.util.stream.LongStream;
 
 import static junit.framework.TestCase.fail;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 import static ubc.pavlab.rdp.util.TestUtils.*;
 
@@ -65,13 +68,25 @@ public class UserServiceImplTest {
     @TestConfiguration
     static class UserServiceImplTestContextConfiguration {
 
+        @MockBean
+        private ApplicationSettings applicationSettings;
+        @MockBean
+        private ApplicationSettings.InternationalSearchSettings internationalSearchSettings;
+
+        @PostConstruct
+        public void init() {
+            // this needs to be set early because it is used in UserServiceImpl.afterPropertiesSet()
+            when( internationalSearchSettings.getUserId() ).thenReturn( null );
+            when( applicationSettings.getIsearch() ).thenReturn( internationalSearchSettings );
+        }
+
         @Bean
         public PrivacyService privacyService() {
             return new PrivacyServiceImpl();
         }
 
         @Bean
-        public UserService userService() {
+        public UserServiceImpl userService() {
             return new UserServiceImpl();
         }
 
@@ -81,15 +96,10 @@ public class UserServiceImplTest {
         }
 
         @Bean
-        public PermissionEvaluator permissionEvaluator() {
-            return new PermissionEvaluatorImpl();
-        }
-
-        @Bean
         public CacheManager cacheManager() {
             return new ConcurrentMapCacheManager(
-                    UserServiceImpl.USERS_BY_ANONYMOUS_ID_CACHE_KEY,
-                    UserServiceImpl.USER_GENES_BY_ANONYMOUS_ID_CACHE_KEY );
+                    UserServiceImpl.USERS_BY_ANONYMOUS_ID_CACHE_NAME,
+                    UserServiceImpl.USER_GENES_BY_ANONYMOUS_ID_CACHE_NAME );
         }
 
         @Bean
@@ -100,7 +110,7 @@ public class UserServiceImplTest {
 
     @SuppressWarnings("SpringJavaAutowiredMembersInspection")
     @Autowired
-    private UserService userService;
+    private UserServiceImpl userService;
     @SuppressWarnings("SpringJavaAutowiredMembersInspection")
     @Autowired
     private BCryptPasswordEncoder bCryptPasswordEncoder;
@@ -127,7 +137,7 @@ public class UserServiceImplTest {
     private OrganInfoService organInfoService;
     @MockBean
     private UserListener userListener;
-    @MockBean
+    @Autowired
     private ApplicationSettings applicationSettings;
     @MockBean
     private ApplicationSettings.OrganSettings organSettings;
@@ -135,29 +145,40 @@ public class UserServiceImplTest {
     private ApplicationSettings.PrivacySettings privacySettings;
     @MockBean
     private ApplicationSettings.ProfileSettings profileSettings;
+    @MockBean
+    private SiteSettings siteSettings;
+    @MockBean
+    private OntologyService ontologyService;
+    @MockBean(name = "ontologyMessageSource")
+    private MessageSource ontologyMessageSource;
+    @MockBean
+    private PermissionEvaluator permissionEvaluator;
+
 
     @Before
     public void setUp() {
         User user = createUser( 1 );
 
-        when( userRepository.findOne( user.getId() ) ).thenReturn( user );
-        when( userRepository.findOneWithRoles( user.getId() ) ).thenReturn( user );
-        when( userRepository.save( any( User.class ) ) ).then( i -> i.getArgumentAt( 0, User.class ) );
-        when( passwordResetTokenRepository.save( any( PasswordResetToken.class ) ) ).then( i -> i.getArgumentAt( 0, PasswordResetToken.class ) );
-        when( tokenRepository.save( any( VerificationToken.class ) ) ).then( i -> i.getArgumentAt( 0, VerificationToken.class ) );
+        when( userRepository.findById( user.getId() ) ).thenReturn( Optional.of( user ) );
+        when( userRepository.findOneWithRoles( user.getId() ) ).thenReturn( Optional.of( user ) );
+        when( userRepository.save( any( User.class ) ) ).then( i -> i.getArgument( 0, User.class ) );
+        when( passwordResetTokenRepository.save( any( PasswordResetToken.class ) ) ).then( i -> i.getArgument( 0, PasswordResetToken.class ) );
+        when( tokenRepository.save( any( VerificationToken.class ) ) ).then( i -> i.getArgument( 0, VerificationToken.class ) );
 
         when( applicationSettings.getGoTermSizeLimit() ).thenReturn( 100L );
         when( applicationSettings.getOrgans() ).thenReturn( organSettings );
-        when( organSettings.getEnabled() ).thenReturn( true );
+        when( organSettings.isEnabled() ).thenReturn( true );
         when( privacySettings.isCustomizableLevel() ).thenReturn( true );
-        when( privacySettings.getEnabledLevels() ).thenReturn( EnumSet.allOf( PrivacyLevelType.class ).stream().map( PrivacyLevelType::name ).collect( Collectors.toList() ) );
+        when( privacySettings.getEnabledLevels() ).thenReturn( EnumSet.allOf( PrivacyLevelType.class ) );
         when( privacySettings.isCustomizableGeneLevel() ).thenReturn( true );
-        when( privacySettings.getEnabledGeneLevels() ).thenReturn( EnumSet.allOf( PrivacyLevelType.class ).stream().map( PrivacyLevelType::name ).collect( Collectors.toList() ) );
+        when( privacySettings.getEnabledGeneLevels() ).thenReturn( EnumSet.allOf( PrivacyLevelType.class ) );
+        when( profileSettings.getEnabledResearcherPositions() ).thenReturn( EnumSet.allOf( ResearcherPosition.class ) );
+        when( profileSettings.getEnabledResearcherCategories() ).thenReturn( EnumSet.allOf( ResearcherCategory.class ) );
         when( applicationSettings.getPrivacy() ).thenReturn( privacySettings );
         when( applicationSettings.getProfile() ).thenReturn( profileSettings );
 
-        when( geneInfoService.load( anyCollectionOf( Integer.class ) ) ).thenAnswer(
-                a -> a.getArgumentAt( 0, Collection.class ).stream()
+        when( geneInfoService.load( anyCollection() ) ).thenAnswer(
+                a -> a.getArgument( 0, Collection.class ).stream()
                         .map( o -> geneInfoService.load( (Integer) o ) )
                         .filter( Objects::nonNull )
                         .collect( Collectors.toSet() ) );
@@ -234,8 +255,8 @@ public class UserServiceImplTest {
                 .collect( Collectors.toMap( GeneOntologyTerm::getGoId, Function.identity() ) );
 
         when( goService.count() ).thenReturn( (long) termMap.size() );
-        when( goService.getTerm( any() ) ).thenAnswer( a -> termMap.get( a.getArgumentAt( 0, String.class ) ) );
-        when( goService.termFrequencyMap( Mockito.anyCollectionOf( GeneInfo.class ) ) ).thenReturn( termFrequencies );
+        when( goService.getTerm( any() ) ).thenAnswer( a -> termMap.get( a.getArgument( 0, String.class ) ) );
+        when( goService.termFrequencyMap( Mockito.anyCollection() ) ).thenReturn( termFrequencies );
     }
 
     @Test
@@ -347,7 +368,7 @@ public class UserServiceImplTest {
     @Test
     public void findCurrentUser_returnCurrentUser() {
         User user = createUser( 1 );
-        when( userRepository.findOneWithRoles( 1 ) ).thenReturn( user );
+        when( userRepository.findOneWithRoles( 1 ) ).thenReturn( Optional.of( user ) );
         becomeUser( user );
         assertThat( userService.findCurrentUser() ).isEqualTo( user );
         verify( userRepository ).findOneWithRoles( 1 );
@@ -356,9 +377,9 @@ public class UserServiceImplTest {
     @Test
     public void findUserById_whenValidId_thenReturnUser() {
         User user = createUser( 1 );
-        when( userRepository.findOne( 1 ) ).thenReturn( user );
+        when( userRepository.findById( 1 ) ).thenReturn( Optional.of( user ) );
         assertThat( userService.findUserById( user.getId() ) ).isEqualTo( user );
-        verify( userRepository ).findOne( 1 );
+        verify( userRepository ).findById( 1 );
     }
 
     @Test
@@ -369,7 +390,7 @@ public class UserServiceImplTest {
     @Test
     public void findUserByIdNoAuth_whenValidId_thenReturnUser() {
         User user = createUser( 1 );
-        when( userRepository.findOneWithRoles( 1 ) ).thenReturn( user );
+        when( userRepository.findOneWithRoles( 1 ) ).thenReturn( Optional.of( user ) );
         assertThat( userService.findUserByIdNoAuth( user.getId() ) ).isEqualTo( user );
         verify( userRepository ).findOneWithRoles( 1 );
     }
@@ -397,11 +418,11 @@ public class UserServiceImplTest {
     }
 
     @Test
-    public void findAll_thenReturnAllUsers() {
+    public void findAllNoAuth_thenReturnAllUsers() {
         User user = createUser( 1 );
-        when( userRepository.findAll() ).thenReturn( Collections.singletonList( user ) );
-
-        assertThat( userService.findAll() ).containsExactly( user );
+        when( userRepository.findAll( any( Pageable.class ) ) )
+                .thenAnswer( a -> new PageImpl<>( Collections.singletonList( user ), a.getArgument( 0, Pageable.class ), 1 ) );
+        assertThat( userService.findAllNoAuth( PageRequest.ofSize( 20 ) ) ).containsExactly( user );
     }
 
     @Test
@@ -546,7 +567,7 @@ public class UserServiceImplTest {
                 }
         ).collect( Collectors.toSet() );
 
-        User updatedUser = userService.updateUserProfileAndPublicationsAndOrgans( user, user.getProfile(), newPublications, null, Locale.getDefault() );
+        User updatedUser = userService.updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( user, user.getProfile(), newPublications, null, null, Locale.getDefault() );
 
         assertThat( updatedUser.getProfile().getPublications() ).containsExactlyElementsOf( newPublications );
 
@@ -554,15 +575,15 @@ public class UserServiceImplTest {
 
     @Test
     public void updateUserProfileAndPublication_whenOrgansIsEnabled_thenSaveOrgans() {
-        when( applicationSettings.getOrgans().getEnabled() ).thenReturn( true );
+        when( applicationSettings.getOrgans().isEnabled() ).thenReturn( true );
         User user = createUser( 1 );
         //noinspection unchecked
-        when( organInfoService.findByUberonIdIn( anyCollectionOf( String.class ) ) )
-                .thenAnswer( a -> ( (Collection<String>) a.getArgumentAt( 0, Collection.class ) ).stream()
+        when( organInfoService.findByUberonIdIn( anyCollection() ) )
+                .thenAnswer( a -> ( (Collection<String>) a.getArgument( 0, Collection.class ) ).stream()
                         .map( id -> createOrgan( id, null, null ) )
                         .collect( Collectors.toSet() ) );
         Set<String> organUberonIds = Sets.newSet( "UBERON:00001", "UBERON:00002" );
-        user = userService.updateUserProfileAndPublicationsAndOrgans( user, user.getProfile(), null, organUberonIds, Locale.getDefault() );
+        user = userService.updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( user, user.getProfile(), null, organUberonIds, null, Locale.getDefault() );
         verify( organInfoService ).findByUberonIdIn( organUberonIds );
         assertThat( user.getUserOrgans().values() )
                 .extracting( "uberonId" )
@@ -571,11 +592,11 @@ public class UserServiceImplTest {
 
     @Test
     public void updateUserProfileAndPublication_whenOrgansIsNotEnabled_thenIgnoreOrgans() {
-        when( applicationSettings.getOrgans().getEnabled() ).thenReturn( false );
+        when( applicationSettings.getOrgans().isEnabled() ).thenReturn( false );
         User user = createUser( 1 );
         Set<String> organUberonIds = Sets.newSet( "UBERON:00001", "UBERON:00002" );
-        user = userService.updateUserProfileAndPublicationsAndOrgans( user, user.getProfile(), null, organUberonIds, Locale.getDefault() );
-        verifyZeroInteractions( organInfoService );
+        user = userService.updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( user, user.getProfile(), null, organUberonIds, null, Locale.getDefault() );
+        verifyNoInteractions( organInfoService );
         assertThat( user.getUserOrgans() ).isEmpty();
     }
 
@@ -587,7 +608,7 @@ public class UserServiceImplTest {
 
         Profile profile = new Profile();
         profile.setPrivacyLevel( PrivacyLevelType.SHARED );
-        userService.updateUserProfileAndPublicationsAndOrgans( user, profile, null, null, Locale.getDefault() );
+        userService.updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( user, profile, null, null, null, Locale.getDefault() );
 
         assertThat( user.getProfile() ).hasFieldOrPropertyWithValue( "privacyLevel", PrivacyLevelType.PUBLIC );
     }
@@ -603,7 +624,7 @@ public class UserServiceImplTest {
 
         Profile profile = new Profile();
         profile.setPrivacyLevel( PrivacyLevelType.SHARED );
-        userService.updateUserProfileAndPublicationsAndOrgans( user, profile, null, null, Locale.getDefault() );
+        userService.updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( user, profile, null, null, null, Locale.getDefault() );
 
         assertThat( user.getProfile() )
                 .hasFieldOrPropertyWithValue( "privacyLevel", PrivacyLevelType.SHARED );
@@ -617,12 +638,12 @@ public class UserServiceImplTest {
         Profile profile = new Profile();
         profile.setPrivacyLevel( PrivacyLevelType.PUBLIC );
         profile.setContactEmail( "foo@example.com" );
-        userService.updateUserProfileAndPublicationsAndOrgans( user, profile, null, null, Locale.getDefault() );
+        userService.updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( user, profile, null, null, null, Locale.getDefault() );
         verify( userListener ).onContactEmailUpdate( any( OnContactEmailUpdateEvent.class ) );
         assertThat( user.getProfile().isContactEmailVerified() ).isFalse();
 
         // make sure that if user update its profile later on, he doesn't get spammed
-        userService.updateUserProfileAndPublicationsAndOrgans( user, profile, null, null, Locale.getDefault() );
+        userService.updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( user, profile, null, null, null, Locale.getDefault() );
         verifyNoMoreInteractions( userListener );
         assertThat( user.getProfile().isContactEmailVerified() ).isFalse();
     }
@@ -633,9 +654,9 @@ public class UserServiceImplTest {
         Profile profile = new Profile();
         profile.setPrivacyLevel( PrivacyLevelType.PUBLIC );
         profile.setContactEmail( user.getEmail() );
-        userService.updateUserProfileAndPublicationsAndOrgans( user, profile, null, null, Locale.getDefault() );
+        userService.updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( user, profile, null, null, null, Locale.getDefault() );
         assertThat( user.getProfile().isContactEmailVerified() ).isTrue();
-        verifyZeroInteractions( userListener );
+        verifyNoInteractions( userListener );
     }
 
     @Test
@@ -643,13 +664,15 @@ public class UserServiceImplTest {
         User user = createUser( 1 );
         user.getProfile().setContactEmail( "foo@example.com" );
         user.getProfile().setContactEmailVerified( true );
+        user.getProfile().setContactEmailVerifiedAt( Timestamp.from( Instant.now() ) );
         Profile profile = new Profile();
         profile.setPrivacyLevel( PrivacyLevelType.PUBLIC );
         profile.setContactEmail( null );
-        userService.updateUserProfileAndPublicationsAndOrgans( user, profile, null, null, Locale.getDefault() );
+        userService.updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( user, profile, null, null, null, Locale.getDefault() );
         assertThat( user.getProfile().getContactEmail() ).isNull();
         assertThat( user.getProfile().isContactEmailVerified() ).isFalse();
-        verifyZeroInteractions( userListener );
+        assertThat( user.getProfile().getContactEmailVerifiedAt() ).isNull();
+        verifyNoInteractions( userListener );
     }
 
     @Test
@@ -657,26 +680,25 @@ public class UserServiceImplTest {
         User user = createUser( 1 );
         user.getProfile().setContactEmail( "foo@example.com" );
         user.getProfile().setContactEmailVerified( true );
+        user.getProfile().setContactEmailVerifiedAt( Timestamp.from( Instant.now() ) );
         Profile profile = new Profile();
         profile.setPrivacyLevel( PrivacyLevelType.PUBLIC );
         profile.setContactEmail( "" );
-        userService.updateUserProfileAndPublicationsAndOrgans( user, profile, null, null, Locale.getDefault() );
+        userService.updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( user, profile, null, null, null, Locale.getDefault() );
         assertThat( user.getProfile().getContactEmail() ).isEmpty();
         assertThat( user.getProfile().isContactEmailVerified() ).isFalse();
-        verifyZeroInteractions( userListener );
+        assertThat( user.getProfile().getContactEmailVerifiedAt() ).isNull();
+        verifyNoInteractions( userListener );
     }
 
     @Test
     public void updateUserProfileAndPublicationsAndOrgans_whenResearcherPositionIsSet_thenUpdateResearcherPosition() {
-        List<String> researcherPositionNames = Arrays.stream( ResearcherPosition.values() )
-                .map( ResearcherPosition::name )
-                .collect( Collectors.toList() );
-        when( profileSettings.getEnabledResearcherPositions() ).thenReturn( researcherPositionNames );
+        when( profileSettings.getEnabledResearcherPositions() ).thenReturn( EnumSet.allOf( ResearcherPosition.class ) );
         User user = createUser( 1 );
         Profile profile = new Profile();
         profile.setPrivacyLevel( PrivacyLevelType.PUBLIC );
         profile.setResearcherPosition( ResearcherPosition.PRINCIPAL_INVESTIGATOR );
-        userService.updateUserProfileAndPublicationsAndOrgans( user, profile, null, null, Locale.getDefault() );
+        userService.updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( user, profile, null, null, null, Locale.getDefault() );
         assertThat( user.getProfile().getResearcherPosition() ).isEqualTo( ResearcherPosition.PRINCIPAL_INVESTIGATOR );
         verify( profileSettings ).getEnabledResearcherPositions();
         verify( userRepository ).save( user );
@@ -684,15 +706,12 @@ public class UserServiceImplTest {
 
     @Test
     public void updateUserProfileAndPublicationsAndOrgans_whenResearcherCategoriesAreSet_thenUpdateResearcherCategories() {
-        List<String> researcherCategoryNames = Arrays.stream( ResearcherCategory.values() )
-                .map( ResearcherCategory::name )
-                .collect( Collectors.toList() );
-        when( profileSettings.getEnabledResearcherCategories() ).thenReturn( researcherCategoryNames );
+        when( profileSettings.getEnabledResearcherCategories() ).thenReturn( EnumSet.allOf( ResearcherCategory.class ) );
         User user = createUser( 1 );
         Profile profile = new Profile();
         profile.setPrivacyLevel( PrivacyLevelType.PUBLIC );
         profile.getResearcherCategories().add( ResearcherCategory.IN_SILICO );
-        userService.updateUserProfileAndPublicationsAndOrgans( user, profile, null, null, Locale.getDefault() );
+        userService.updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( user, profile, null, null, null, Locale.getDefault() );
         assertThat( user.getProfile().getResearcherCategories() ).containsExactly( ResearcherCategory.IN_SILICO );
         verify( profileSettings ).getEnabledResearcherCategories();
         verify( userRepository ).save( user );
@@ -796,12 +815,12 @@ public class UserServiceImplTest {
         Collection<GeneInfo> calculatedGenes = IntStream.range( 101, 110 ).boxed().map(
                 nbr -> createGene( nbr, taxon )
         ).collect( Collectors.toList() );
-        when( goService.getGenesInTaxon( Mockito.anyCollectionOf( GeneOntologyTermInfo.class ), any() ) ).thenReturn( calculatedGenes.stream().map( GeneInfo::getGeneId ).collect( Collectors.toList() ) );
+        when( goService.getGenesInTaxon( Mockito.anyCollection(), any() ) ).thenReturn( calculatedGenes.stream().map( GeneInfo::getGeneId ).collect( Collectors.toList() ) );
 
         Collection<GeneOntologyTermInfo> terms = IntStream.range( 1, 10 ).boxed().map(
                 nbr -> createTermWithGenes( toGOId( nbr ), createGene( 100 + nbr, taxon ) )
         ).collect( Collectors.toSet() );
-        when( geneInfoService.load( any( Integer.class ) ) ).thenAnswer( a -> createGene( a.getArgumentAt( 0, Integer.class ), taxon ) );
+        when( geneInfoService.load( any( Integer.class ) ) ).thenAnswer( a -> createGene( a.getArgument( 0, Integer.class ), taxon ) );
 
         for ( GeneOntologyTermInfo term : terms ) {
             when( goService.getTerm( term.getGoId() ) ).thenReturn( term );
@@ -853,7 +872,7 @@ public class UserServiceImplTest {
         for ( GeneInfo gi : calculatedGenes ) {
             when( geneInfoService.load( gi.getGeneId() ) ).thenReturn( gi );
         }
-        when( goService.getGenesInTaxon( Mockito.anyCollectionOf( GeneOntologyTermInfo.class ), any() ) ).thenReturn( calculatedGenes.stream().map( GeneInfo::getGeneId ).collect( Collectors.toList() ) );
+        when( goService.getGenesInTaxon( anyCollection(), any() ) ).thenReturn( calculatedGenes.stream().map( GeneInfo::getGeneId ).collect( Collectors.toList() ) );
 
         Collection<GeneOntologyTermInfo> terms = IntStream.range( 1, 10 ).boxed().map( nbr -> {
             GeneInfo g = createGene( nbr, taxon );
@@ -925,9 +944,9 @@ public class UserServiceImplTest {
                 .map( nbr -> createTermWithGenes( toGOId( nbr ), createGene( nbr, taxon ) ) )
                 .collect( Collectors.toSet() );
 
-        when( goService.getGenesInTaxon( Mockito.anyCollectionOf( GeneOntologyTermInfo.class ), any() ) )
+        when( goService.getGenesInTaxon( anyCollection(), any() ) )
                 .then( i -> {
-                    @SuppressWarnings("unchecked") Collection<GeneOntologyTermInfo> whenTerms = i.getArgumentAt( 0, Collection.class );
+                    @SuppressWarnings("unchecked") Collection<GeneOntologyTermInfo> whenTerms = i.getArgument( 0, Collection.class );
                     return whenTerms.stream().map( goService::getDirectGenes ).collect( Collectors.toSet() );
                 } );
 
@@ -978,7 +997,7 @@ public class UserServiceImplTest {
 
         // Mock goService.getRelatedGenes
         Collection<GeneInfo> calculatedGenes = Collections.singleton( createGene( 105, taxon ) );
-        when( goService.getGenesInTaxon( Mockito.anyCollectionOf( GeneOntologyTermInfo.class ), any() ) ).thenReturn( calculatedGenes.stream().map( GeneInfo::getGeneId ).collect( Collectors.toList() ) );
+        when( goService.getGenesInTaxon( anyCollection(), any() ) ).thenReturn( calculatedGenes.stream().map( GeneInfo::getGeneId ).collect( Collectors.toList() ) );
 
         Collection<GeneOntologyTermInfo> terms = Collections.singleton( createTermWithGenes( toGOId( 5 ), createGene( 5, taxon ) ) );
 
@@ -1028,7 +1047,7 @@ public class UserServiceImplTest {
 
         becomeUser( user );
 
-        when( goService.getGenesInTaxon( Mockito.anyCollectionOf( GeneOntologyTermInfo.class ), any() ) ).thenReturn( Collections.emptySet() );
+        when( goService.getGenesInTaxon( anyCollection(), any() ) ).thenReturn( Collections.emptySet() );
 
         Map<GeneInfo, TierType> geneTierMap = Maps.newHashMap( geneWillChangeTier, TierType.TIER1 );
         Map<GeneInfo, PrivacyLevelType> genePrivacyLevelTypeMap = Maps.newHashMap( geneWillChangeTier, PrivacyLevelType.PRIVATE );
@@ -1066,8 +1085,8 @@ public class UserServiceImplTest {
         GeneInfo gene205InTaxon1 = createGene( 205, taxon );
         Collection<GeneInfo> calculatedGenes = Collections.singleton( gene205InTaxon1 );
         when( geneInfoService.load( 205 ) ).thenReturn( gene205InTaxon1 );
-        when( goService.getGenesInTaxon( Mockito.anyCollectionOf( GeneOntologyTermInfo.class ), eq( taxon ) ) ).thenReturn( calculatedGenes.stream().map( GeneInfo::getGeneId ).collect( Collectors.toList() ) );
-        when( goService.getGenesInTaxon( Mockito.anyCollectionOf( GeneOntologyTermInfo.class ), eq( taxon2 ) ) ).thenReturn( Collections.emptySet() );
+        when( goService.getGenesInTaxon( anyCollection(), eq( taxon ) ) ).thenReturn( calculatedGenes.stream().map( GeneInfo::getGeneId ).collect( Collectors.toList() ) );
+        when( goService.getGenesInTaxon( anyCollection(), eq( taxon2 ) ) ).thenReturn( Collections.emptySet() );
 
         // Attempting to add term to taxon 1 that is already present in taxon 2
         GeneInfo g1 = createGene( 1005, taxon );
@@ -1251,7 +1270,7 @@ public class UserServiceImplTest {
     @Test
     public void recommendTerms_whenUserHasNoGenes_thenReturnEmpty() {
         Map<GeneOntologyTermInfo, Long> empyFMap = new HashMap<>();
-        when( goService.termFrequencyMap( Mockito.anyCollectionOf( GeneInfo.class ) ) ).thenReturn( empyFMap );
+        when( goService.termFrequencyMap( anyCollection() ) ).thenReturn( empyFMap );
 
         User user = createUser( 1 );
         Taxon taxon = createTaxon( 1 );
@@ -1276,11 +1295,6 @@ public class UserServiceImplTest {
         userService.recommendTerms( user, null, -1, -1, -1 );
     }
 
-    @Test
-    public void findAll_whenPrivacyLevelIsLow_ReturnNothing() {
-        Collection<User> userGene = userService.findAll();
-        assertThat( userGene ).isEmpty();
-    }
 
     @Test
     public void updateUserTerms_thenSucceed() {
@@ -1294,10 +1308,12 @@ public class UserServiceImplTest {
         when( privacySettings.isEnableAnonymizedSearchResults() ).thenReturn( true );
         User user = createUser( 1 );
         user.setEnabled( true );
+        user.setEnabledAt( Timestamp.from( Instant.now() ) );
         user.getProfile().setPrivacyLevel( PrivacyLevelType.PRIVATE );
         User anonymizedUser = userService.anonymizeUser( user );
         assertThat( anonymizedUser )
                 .hasFieldOrPropertyWithValue( "enabled", true )
+                .hasFieldOrPropertyWithValue( "enabledAt", null )
                 .hasFieldOrPropertyWithValue( "email", null )
                 .hasFieldOrPropertyWithValue( "profile.privacyLevel", PrivacyLevelType.PUBLIC );
         assertThat( anonymizedUser.getUserGenes() ).isEmpty();
@@ -1338,7 +1354,7 @@ public class UserServiceImplTest {
     private GeneOntologyTermInfo createTermWithGenes( String id, GeneInfo... genes ) {
         GeneOntologyTermInfo term = createTerm( id );
         when( goService.getDirectGenes( term ) ).thenReturn( Arrays.stream( genes ).map( GeneInfo::getGeneId ).collect( Collectors.toSet() ) );
-        when( goService.getSizeInTaxon( eq( term ), any( Taxon.class ) ) ).thenAnswer( a -> Arrays.stream( genes ).filter( g -> g.getTaxon().equals( a.getArgumentAt( 1, Taxon.class ) ) ).count() );
+        when( goService.getSizeInTaxon( eq( term ), any( Taxon.class ) ) ).thenAnswer( a -> Arrays.stream( genes ).filter( g -> g.getTaxon().equals( a.getArgument( 1, Taxon.class ) ) ).count() );
         return term;
     }
 }

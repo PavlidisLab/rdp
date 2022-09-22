@@ -6,7 +6,9 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.junit4.SpringRunner;
+import ubc.pavlab.rdp.JpaAuditingConfig;
 import ubc.pavlab.rdp.model.User;
 import ubc.pavlab.rdp.model.VerificationToken;
 
@@ -21,6 +23,7 @@ import static ubc.pavlab.rdp.util.TestUtils.createUnpersistedUser;
  */
 @RunWith(SpringRunner.class)
 @DataJpaTest
+@Import(JpaAuditingConfig.class)
 public class VerificationTokenRepositoryTest {
 
     @Autowired
@@ -29,23 +32,22 @@ public class VerificationTokenRepositoryTest {
     @Autowired
     private VerificationTokenRepository verificationTokenRepository;
 
-    private User user;
-    private User user2;
     private VerificationToken validToken;
     private VerificationToken expiredToken;
 
     @Before
     public void setUp() {
         // given
-        user = entityManager.persist( createUnpersistedUser() );
+        User user = entityManager.persist( createUnpersistedUser() );
 
         validToken = new VerificationToken();
         validToken.updateToken( "validtoken" );
         validToken.setUser( user );
         validToken.setEmail( user.getEmail() );
-        entityManager.persist( validToken );
+        validToken = entityManager.persistAndFlush( validToken );
+        assertThat( validToken.getCreatedAt() ).isCloseTo( Instant.now(), 500 );
 
-        user2 = entityManager.persistAndFlush( createUnpersistedUser() );
+        User user2 = entityManager.persistAndFlush( createUnpersistedUser() );
 
         expiredToken = new VerificationToken();
         expiredToken.setToken( "expiredtoken" );
@@ -53,8 +55,7 @@ public class VerificationTokenRepositoryTest {
         expiredToken.setEmail( user2.getEmail() );
         expiredToken.setExpiryDate( Timestamp.from( Instant.now() ) );
         expiredToken = entityManager.persistAndFlush( expiredToken );
-
-        entityManager.flush();
+        assertThat( expiredToken.getCreatedAt() ).isCloseTo( Instant.now(), 500 );
     }
 
     @Test

@@ -1,9 +1,9 @@
 package ubc.pavlab.rdp.controllers;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 import lombok.SneakyThrows;
-import org.assertj.core.util.Lists;
 import org.hamcrest.Matchers;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -15,7 +15,7 @@ import org.mockito.internal.util.collections.Sets;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Import;
+import org.springframework.context.MessageSource;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
@@ -25,26 +25,24 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.web.multipart.MultipartFile;
-import ubc.pavlab.rdp.WebSecurityConfig;
 import ubc.pavlab.rdp.exception.TokenException;
 import ubc.pavlab.rdp.model.*;
-import ubc.pavlab.rdp.model.enums.Aspect;
-import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
-import ubc.pavlab.rdp.model.enums.TierType;
+import ubc.pavlab.rdp.model.enums.*;
 import ubc.pavlab.rdp.services.*;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.settings.FaqSettings;
 import ubc.pavlab.rdp.settings.SiteSettings;
 
+import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.Locale;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.*;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -55,7 +53,6 @@ import static ubc.pavlab.rdp.util.TestUtils.*;
  */
 @RunWith(SpringRunner.class)
 @WebMvcTest(UserController.class)
-@Import(WebSecurityConfig.class)
 public class UserControllerTest {
 
     @Autowired
@@ -85,6 +82,9 @@ public class UserControllerTest {
     @MockBean
     private ApplicationSettings.InternationalSearchSettings iSearchSettings;
 
+    @MockBean
+    private ApplicationSettings.OntologySettings ontologySettings;
+
     @MockBean(name = "userService")
     private UserService userService;
 
@@ -103,9 +103,6 @@ public class UserControllerTest {
     @MockBean
     private OrganInfoService organInfoService;
 
-    @MockBean(name = "tierService")
-    private TierService tierService;
-
     //    WebSecurityConfig
     @MockBean
     private UserDetailsService userDetailsService;
@@ -118,17 +115,25 @@ public class UserControllerTest {
     @MockBean
     private EmailService emailService;
 
+    @MockBean(name = "ontologyService")
+    private OntologyService ontologyService;
+
+    @MockBean(name = "ontologyMessageSource")
+    private MessageSource ontologyMessageSource;
+
     @Before
     public void setUp() {
-        when( applicationSettings.getEnabledTiers() ).thenReturn( Lists.newArrayList( "TIER1", "TIER2", "TIER3" ) );
+        when( applicationSettings.getEnabledTiers() ).thenReturn( EnumSet.allOf( TierType.class ) );
         when( applicationSettings.getPrivacy() ).thenReturn( privacySettings );
         when( applicationSettings.getProfile() ).thenReturn( profileSettings );
-        when( profileSettings.getEnabledResearcherCategories() ).thenReturn( Lists.newArrayList( "TIER1", "TIER2", "TIER3" ) );
-        when( profileSettings.getEnabledResearcherPositions() ).thenReturn( Lists.newArrayList( "PRINCIPAL_INVESTIGATOR" ) );
+        when( applicationSettings.getOntology() ).thenReturn( ontologySettings );
+        when( ontologySettings.isEnabled() ).thenReturn( true );
+        when( profileSettings.getEnabledResearcherCategories() ).thenReturn( EnumSet.allOf( ResearcherCategory.class ) );
+        when( profileSettings.getEnabledResearcherPositions() ).thenReturn( EnumSet.of( ResearcherPosition.PRINCIPAL_INVESTIGATOR ) );
         when( applicationSettings.getOrgans() ).thenReturn( organSettings );
         when( applicationSettings.getIsearch() ).thenReturn( iSearchSettings );
-        when( taxonService.findById( any() ) ).then( i -> createTaxon( i.getArgumentAt( 0, Integer.class ) ) );
-        when( userService.updateUserProfileAndPublicationsAndOrgans( any(), any(), any(), any(), any() ) ).thenAnswer( arg -> arg.getArgumentAt( 0, User.class ) );
+        when( taxonService.findById( any() ) ).then( i -> createTaxon( i.getArgument( 0, Integer.class ) ) );
+        when( userService.updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( any(), any(), any(), any(), any(), any() ) ).thenAnswer( arg -> arg.getArgument( 0, User.class ) );
     }
 
     @Test
@@ -163,7 +168,7 @@ public class UserControllerTest {
     public void getTermsGenesForTaxon_thenReturnSuccess() throws Exception {
         User user = createUser( 1 );
         when( userService.findCurrentUser() ).thenReturn( user );
-        when( goService.getTerm( any( String.class ) ) ).then( i -> createTerm( i.getArgumentAt( 0, String.class ) ) );
+        when( goService.getTerm( any() ) ).then( i -> createTerm( i.getArgument( 0, String.class ) ) );
         mvc.perform( get( "/user/taxon/{taxonId}/term/{goId}/gene/view", 9606, "GO:0000001" ) )
                 .andExpect( status().isOk() )
                 .andExpect( view().name( "fragments/gene-table::gene-table" ) );
@@ -213,7 +218,7 @@ public class UserControllerTest {
         byte[] attachmentContent = new byte[1];
         MockMultipartFile attachment = new MockMultipartFile( "attachment", "README.md", "text/plain", attachmentContent );
 
-        mvc.perform( fileUpload( "/user/support" )
+        mvc.perform( multipart( "/user/support" )
                         .file( attachment )
                         .param( "name", "John Doe" )
                         .param( "message", "Is everything okay?" )
@@ -240,7 +245,7 @@ public class UserControllerTest {
         byte[] attachmentContent = new byte[1];
         MockMultipartFile attachment = new MockMultipartFile( "attachment", "blob.bin", "application/octet-stream", attachmentContent );
 
-        mvc.perform( fileUpload( "/user/support" )
+        mvc.perform( multipart( "/user/support" )
                         .file( attachment )
                         .param( "name", "John Doe" )
                         .param( "message", "Is everything okay?" )
@@ -249,7 +254,7 @@ public class UserControllerTest {
                 .andExpect( view().name( "user/support" ) )
                 .andExpect( model().attributeHasFieldErrors( "supportForm", "attachment" ) );
 
-        verifyZeroInteractions( emailService );
+        verifyNoInteractions( emailService );
     }
 
     @Test
@@ -268,7 +273,7 @@ public class UserControllerTest {
         byte[] attachmentContent = new byte[0];
         MockMultipartFile attachment = new MockMultipartFile( "attachment", attachmentContent );
 
-        mvc.perform( fileUpload( "/user/support" )
+        mvc.perform( multipart( "/user/support" )
                         .file( attachment )
                         .param( "name", "John Doe" )
                         .param( "message", "Is everything okay?" )
@@ -276,7 +281,7 @@ public class UserControllerTest {
                 .andExpect( status().isOk() )
                 .andExpect( view().name( "user/support" ) );
 
-        verify( emailService ).sendSupportMessage( eq( "Is everything okay?" ), eq( "John Doe" ), eq( user ), any(), isNull( MultipartFile.class ), eq( Locale.ENGLISH ) );
+        verify( emailService ).sendSupportMessage( eq( "Is everything okay?" ), eq( "John Doe" ), eq( user ), any(), isNull(), eq( Locale.ENGLISH ) );
     }
 
     @Test
@@ -544,8 +549,8 @@ public class UserControllerTest {
 
 
         when( userService.findCurrentUser() ).thenReturn( user );
-        when( userService.recommendTerms( any(), eq( taxon ) ) ).thenReturn( Sets.newSet( t1, t2 ) );
-        when( userService.recommendTerms( any(), eq( taxon2 ) ) ).thenReturn( Sets.newSet( t3, t4 ) );
+        when( userService.recommendTerms( any(), any(), eq( taxon ) ) ).thenReturn( Sets.newSet( t1, t2 ) );
+        when( userService.recommendTerms( any(), any(), eq( taxon2 ) ) ).thenReturn( Sets.newSet( t3, t4 ) );
 
         mvc.perform( get( "/user/taxon/1/term/recommend" )
                         .contentType( MediaType.APPLICATION_JSON ) )
@@ -553,6 +558,7 @@ public class UserControllerTest {
                 .andExpect( jsonPath( "$", hasSize( 2 ) ) )
                 .andExpect( jsonPath( "$[*].goId" ).value( containsInAnyOrder( t1.getGoId(), t2.getGoId() ) ) )
                 .andExpect( jsonPath( "$[*].taxon.id" ).value( contains( taxon.getId(), taxon.getId() ) ) );
+        verify( userService ).recommendTerms( eq( user ), any(), eq( taxon ) );
 
         mvc.perform( get( "/user/taxon/2/term/recommend" )
                         .contentType( MediaType.APPLICATION_JSON ) )
@@ -560,6 +566,7 @@ public class UserControllerTest {
                 .andExpect( jsonPath( "$" ).value( hasSize( 2 ) ) )
                 .andExpect( jsonPath( "$[*].goId" ).value( containsInAnyOrder( t3.getGoId(), t4.getGoId() ) ) )
                 .andExpect( jsonPath( "$[*].taxon.id" ).value( contains( taxon2.getId(), taxon2.getId() ) ) );
+        verify( userService ).recommendTerms( eq( user ), any(), eq( taxon2 ) );
     }
 
     // POST
@@ -597,26 +604,36 @@ public class UserControllerTest {
         User user = createUser( 1 );
         when( userService.findCurrentUser() ).thenReturn( user );
 
-        Profile updatedProfile = new Profile();
-        updatedProfile.setDepartment( "Department" );
-        updatedProfile.setDescription( "Description" );
-        updatedProfile.setLastName( "LastName" );
-        updatedProfile.setName( "Name" );
-        updatedProfile.setOrganization( "Organization" );
-        updatedProfile.setPhone( "555-555-5555" );
-        updatedProfile.setWebsite( "http://test.com" );
-        updatedProfile.setPrivacyLevel( PrivacyLevelType.PRIVATE );
-
-        ProfileWithoutOrganUberonIds payload = new ProfileWithoutOrganUberonIds();
-        payload.setProfile( updatedProfile );
+        JSONObject payload = new JSONObject();
+        payload.put( "department", "Department" );
+        payload.put( "description", "Description" );
+        payload.put( "lastName", "LastName" );
+        payload.put( "name", "Name" );
+        payload.put( "organization", "Organization" );
+        payload.put( "phone", "555-555-5555" );
+        payload.put( "website", "http://test.com" );
+        payload.put( "privacyLevel", PrivacyLevelType.PRIVATE.ordinal() );
+        payload.put( "publications", new ArrayList<>() );
+        JSONObject payload2 = new JSONObject();
+        payload2.put( "profile", payload );
 
         mvc.perform( post( "/user/profile" )
                         .contentType( MediaType.APPLICATION_JSON )
-                        .content( objectMapper.writeValueAsString( payload ) )
+                        .content( payload2.toString() )
                         .locale( Locale.ENGLISH ) )
                 .andExpect( status().isOk() );
 
-        verify( userService ).updateUserProfileAndPublicationsAndOrgans( user, updatedProfile, updatedProfile.getPublications(), null, Locale.ENGLISH );
+        Profile expectedProfile = new Profile();
+        expectedProfile.setDepartment( "Department" );
+        expectedProfile.setDescription( "Description" );
+        expectedProfile.setLastName( "LastName" );
+        expectedProfile.setName( "Name" );
+        expectedProfile.setOrganization( "Organization" );
+        expectedProfile.setPhone( "555-555-5555" );
+        expectedProfile.setWebsite( "http://test.com" );
+        expectedProfile.setPrivacyLevel( PrivacyLevelType.PRIVATE );
+
+        verify( userService ).updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( user, expectedProfile, expectedProfile.getPublications(), null, null, Locale.ENGLISH );
     }
 
     @Test
@@ -629,6 +646,7 @@ public class UserControllerTest {
 
         when( userService.findCurrentUser() ).thenReturn( user );
         JSONObject profileJson = new JSONObject( user.getProfile() );
+        profileJson.put( "privacyLevel", user.getProfile().getPrivacyLevel().ordinal() );
         JSONObject payload = new JSONObject();
         payload.put( "profile", profileJson );
 
@@ -664,7 +682,7 @@ public class UserControllerTest {
 
         Profile profile = user.getProfile();
         profile.setPrivacyLevel( PrivacyLevelType.SHARED );
-        verify( userService ).updateUserProfileAndPublicationsAndOrgans( user, profile, profile.getPublications(), null, Locale.ENGLISH );
+        verify( userService ).updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( user, profile, profile.getPublications(), null, null, Locale.ENGLISH );
     }
 
     @Test
@@ -672,7 +690,7 @@ public class UserControllerTest {
     @SneakyThrows
     public void givenLoggedIn_whenSaveProfileWithUberonOrganIds_thenReturnSuccess() {
         User user = createUser( 1 );
-        Organ organ = createOrgan( "UBERON", "Appendage", null );
+        OrganInfo organ = createOrgan( "UBERON", "Appendage", null );
 
         when( userService.findCurrentUser() ).thenReturn( user );
         when( organInfoService.findByUberonIdIn( Mockito.anyCollection() ) ).thenReturn( Sets.newSet( organ ) );
@@ -693,7 +711,7 @@ public class UserControllerTest {
                         .locale( Locale.ENGLISH ) )
                 .andExpect( status().isOk() );
 
-        verify( userService ).updateUserProfileAndPublicationsAndOrgans( user, user.getProfile(), user.getProfile().getPublications(), Sets.newSet( organ.getUberonId() ), Locale.ENGLISH );
+        verify( userService ).updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( user, user.getProfile(), user.getProfile().getPublications(), Sets.newSet( organ.getUberonId() ), null, Locale.ENGLISH );
     }
 
     @Test
@@ -718,9 +736,9 @@ public class UserControllerTest {
         Taxon taxon = createTaxon( 1 );
 
         when( userService.convertTerm( any(), eq( taxon ), Mockito.any( GeneOntologyTermInfo.class ) ) )
-                .thenAnswer( answer -> createUserTerm( 1, user, answer.getArgumentAt( 2, GeneOntologyTerm.class ), taxon ) );
+                .thenAnswer( answer -> createUserTerm( 1, user, answer.getArgument( 2, GeneOntologyTerm.class ), taxon ) );
         when( goService.getTerm( any() ) )
-                .then( i -> createTerm( i.getArgumentAt( 0, String.class ) ) );
+                .then( i -> createTerm( i.getArgument( 0, String.class ) ) );
 
         when( userService.findCurrentUser() ).thenReturn( user );
 
@@ -811,12 +829,45 @@ public class UserControllerTest {
         when( userService.findCurrentUser() ).thenReturn( user );
         Profile updatedProfile = new Profile();
         updatedProfile.setWebsite( "bad-url" );
-        UserController.ProfileWithOrganUberonIds profileWithOrganUberonIds = new UserController.ProfileWithOrganUberonIds( updatedProfile, null );
+        UserController.ProfileWithOrganUberonIdsAndOntologyTerms profileWithOrganUberonIdsAndOntologyTerms = UserController.ProfileWithOrganUberonIdsAndOntologyTerms.builder().profile( updatedProfile ).build();
         mvc.perform( post( "/user/profile" )
                         .contentType( MediaType.APPLICATION_JSON )
-                        .content( objectMapper.writeValueAsString( profileWithOrganUberonIds ) ) )
+                        .content( objectMapper.writeValueAsString( profileWithOrganUberonIdsAndOntologyTerms ) ) )
                 .andExpect( status().isBadRequest() )
                 .andExpect( jsonPath( "$.fieldErrors[0].field" ).value( "profile.website" ) )
                 .andExpect( jsonPath( "$.fieldErrors[0].rejectedValue" ).value( "bad-url" ) );
+    }
+
+    @Test
+    public void userSerialization() throws JsonProcessingException {
+        User user = createUser( 1 );
+        user.getProfile().setName( "John" );
+        user.getProfile().setLastName( "Doe" );
+        user.getProfile().setPrivacyLevel( PrivacyLevelType.PRIVATE );
+        User deserializedUser = objectMapper.readValue( objectMapper.writeValueAsString( user ), User.class );
+        assertThat( deserializedUser.getProfile().getPrivacyLevel() ).isEqualTo( PrivacyLevelType.PRIVATE );
+        assertThat( deserializedUser.getEffectivePrivacyLevel() ).isEqualTo( PrivacyLevelType.PRIVATE );
+        assertThat( deserializedUser.getProfile().getFullName() ).isEqualTo( "Doe, John" );
+        assertThat( deserializedUser.getProfile().getName() ).isEqualTo( "John" );
+        assertThat( deserializedUser.getProfile().getLastName() ).isEqualTo( "Doe" );
+    }
+
+    @Test
+    public void userSerialization_withNullProfile_thenDefaultToPrivate() throws JsonProcessingException {
+        User user = createUser( 1 );
+        user.setProfile( null );
+        User deserializedUser = objectMapper.readValue( objectMapper.writeValueAsString( user ), User.class );
+        assertThat( deserializedUser.getProfile().getPrivacyLevel() ).isEqualTo( PrivacyLevelType.PRIVATE );
+        assertThat( deserializedUser.getEffectivePrivacyLevel() ).isEqualTo( PrivacyLevelType.PRIVATE );
+    }
+
+    @Test
+    public void userGeneSerialization() throws JsonProcessingException {
+        User user = createUser( 1 );
+        user.getProfile().setPrivacyLevel( PrivacyLevelType.PRIVATE );
+        UserGene gene = UserGene.builder( user ).privacyLevel( PrivacyLevelType.PUBLIC ).build();
+        UserGene deserializedGene = objectMapper.readValue( objectMapper.writeValueAsString( gene ), UserGene.class );
+        assertThat( deserializedGene.getPrivacyLevel() ).isEqualTo( PrivacyLevelType.PRIVATE );
+        assertThat( deserializedGene.getEffectivePrivacyLevel() ).isEqualTo( PrivacyLevelType.PRIVATE );
     }
 }

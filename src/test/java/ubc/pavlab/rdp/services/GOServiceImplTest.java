@@ -7,7 +7,8 @@ import org.junit.runner.RunWith;
 import org.mockito.internal.util.collections.Sets;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -27,8 +28,6 @@ import java.util.stream.IntStream;
 
 import static java.util.function.Function.identity;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
 import static ubc.pavlab.rdp.util.TestUtils.*;
 
 /**
@@ -43,6 +42,7 @@ public class GOServiceImplTest {
         @Bean
         public ApplicationSettings applicationSettings() {
             ApplicationSettings a = new ApplicationSettings();
+            a.setGoTermSizeLimit( 50L );
             ApplicationSettings.CacheSettings cacheSettings = new ApplicationSettings.CacheSettings();
             cacheSettings.setEnabled( false );
             cacheSettings.setTermFile( "classpath:cache/go.obo" );
@@ -69,6 +69,11 @@ public class GOServiceImplTest {
         @Bean
         public GeneOntologyTermInfoRepository goRepository() {
             return new GeneOntologyTermInfoRepository();
+        }
+
+        @Bean
+        public CacheManager cacheManager() {
+            return new ConcurrentMapCacheManager( GOServiceImpl.ANCESTORS_CACHE_NAME, GOServiceImpl.DESCENDANTS_CACHE_NAME );
         }
     }
 
