@@ -535,7 +535,7 @@ public class GOServiceImpl implements GOService, InitializingBean {
 
     private void evictAll() {
         log.debug( "Evicting all the terms from ancestors and descendants caches." );
-        ancestorsCache.clear();
-        descendantsCache.clear();
+        ancestorsCache.invalidate();
+        descendantsCache.invalidate();
     }
 }
