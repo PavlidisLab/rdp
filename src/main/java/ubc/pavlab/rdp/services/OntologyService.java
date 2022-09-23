@@ -436,14 +436,14 @@ public class OntologyService implements InitializingBean {
     @Secured("ROLE_ADMIN")
     @Transactional
     public void move( Ontology ontology, Direction direction ) {
-        List<Ontology> ontologies = ontologyRepository.findAllByActiveTrue();
+        List<Ontology> ontologies = ontologyRepository.findAll();
         ontologies.sort( Ontology.getComparator() );
 
         // compute the original position
         int i = ontologies.indexOf( ontology );
 
         if ( i == -1 ) {
-            throw new IllegalArgumentException( "The provided ontology is not active." );
+            throw new IllegalArgumentException( String.format( "Unknown ontology %s.", ontology.getName() ) );
         }
 
         // compute the target position
