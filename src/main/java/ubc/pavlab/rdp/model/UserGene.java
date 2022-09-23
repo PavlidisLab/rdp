@@ -43,7 +43,7 @@ import java.io.Serializable;
 @CommonsLog
 @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @ToString(of = { "user", "tier", "privacyLevel" }, callSuper = true)
-public class UserGene extends Gene implements UserContent, Serializable {
+public class UserGene extends Gene implements UserContent {
 
     public static UserGeneBuilder builder( User user ) {
         return new UserGeneBuilder().user( user );

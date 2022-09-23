@@ -603,8 +603,8 @@ public class SearchControllerTest {
                 .andExpect( status().isOk() )
                 .andExpect( content().contentTypeCompatibleWith( MediaType.TEXT_HTML ) )
                 // make sure the registry name gets interpolated correctly
-                .andExpect( content().string( Matchers.containsString( "RDP</a> does not have" ) ) )
-                .andExpect( content().string( Matchers.containsString( "There are missing categories and terms in partner registries, so not all results can be displayed." ) ) )
+                .andExpect( content().string( Matchers.containsString( "RDP</a> does not use" ) ) )
+                .andExpect( content().string( Matchers.containsString( "The following partner registries do not use the following categories and/or terms which impacts the results" ) ) )
                 .andExpect( model().attribute( "ontologyAvailabilityByApiUri",
                         hasEntry( Matchers.equalTo( URI.create( "http://example.com" ) ),
                                 Matchers.containsInAnyOrder(

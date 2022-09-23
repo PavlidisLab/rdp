@@ -21,7 +21,7 @@ public class OntobeeResolver implements OntologyResolver {
 
     @Override
     public boolean accepts( Ontology ontology ) {
-        return ontology.getOntologyUrl().toString().startsWith( DEFAULT_IRI_PREFIX );
+        return ontology.getOntologyUrl().toExternalForm().startsWith( DEFAULT_IRI_PREFIX );
     }
 
     @Override
@@ -34,6 +34,6 @@ public class OntobeeResolver implements OntologyResolver {
     public URI resolveViewTermUrl( OntologyTerm term ) {
         return UriComponentsBuilder.fromHttpUrl( "https://ontobee.org/ontology/{0}" )
                 .queryParam( "iri", "{1}" )
-                .build( term.getOntology().getName().toUpperCase(), DEFAULT_IRI_PREFIX + term.getTermId().replace( ":", "_" ) );
+                .build( term.getOntology().getName().toUpperCase(), DEFAULT_IRI_PREFIX + term.getTermId().replace( ':', '_' ) );
     }
 }

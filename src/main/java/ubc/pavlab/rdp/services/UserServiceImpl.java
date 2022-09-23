@@ -776,7 +776,7 @@ public class UserServiceImpl implements UserService, InitializingBean {
         }
 
         if ( termIdsByOntologyId != null ) {
-            Set<UserOntologyTerm> userOntologyTerms = new HashSet<>();
+            Set<UserOntologyTerm> userOntologyTerms = new HashSet<>( termIdsByOntologyId.size() );
             for ( Integer ontologyTermId : termIdsByOntologyId ) {
                 OntologyTermInfo termInfo = ontologyService.findTermById( ontologyTermId );
                 if ( termInfo == null ) {

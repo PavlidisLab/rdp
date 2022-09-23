@@ -7,9 +7,9 @@ import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
-import org.springframework.util.Assert;
 import ubc.pavlab.rdp.events.OnOntologyUpdateEvent;
 import ubc.pavlab.rdp.services.OntologyService;
+import ubc.pavlab.rdp.util.CacheUtils;
 
 /**
  * Listener for {@link ubc.pavlab.rdp.model.ontology.Ontology}-related events.
@@ -28,10 +28,8 @@ public class OntologyListener implements InitializingBean {
 
     @Override
     public void afterPropertiesSet() {
-        subtreeSizeCache = cacheManager.getCache( OntologyService.SUBTREE_SIZE_BY_TERM_CACHE_NAME );
-        Assert.notNull( subtreeSizeCache, String.format( "There is no cache named %s.", OntologyService.SIMPLE_ONTOLOGIES_CACHE_NAME ) );
-        simpleOntologiesCache = cacheManager.getCache( OntologyService.SUBTREE_SIZE_BY_TERM_CACHE_NAME );
-        Assert.notNull( simpleOntologiesCache, String.format( "There is no cache named %s.", OntologyService.SIMPLE_ONTOLOGIES_CACHE_NAME ) );
+        subtreeSizeCache = CacheUtils.getCache( cacheManager, OntologyService.SUBTREE_SIZE_BY_TERM_CACHE_NAME );
+        simpleOntologiesCache = CacheUtils.getCache( cacheManager, OntologyService.SUBTREE_SIZE_BY_TERM_CACHE_NAME );
     }
 
     @TransactionalEventListener

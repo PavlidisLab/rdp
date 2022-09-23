@@ -31,9 +31,8 @@ import ubc.pavlab.rdp.util.*;
 import javax.persistence.EntityManager;
 import java.io.*;
 import java.net.URL;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.time.Instant;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -57,7 +56,11 @@ public class OntologyService implements InitializingBean {
      * @see #isSimple(Ontology)
      */
     public static final int SIMPLE_ONTOLOGY_MAX_SIZE = 20;
-    private static final DateFormat OBO_DATE_FORMAT = new SimpleDateFormat( "dd:MM:yyyy HH:mm" );
+
+    /**
+     * Note: the format for the 'date:' is not ISO 8601 for historical reason and does not hold time zone information.
+     */
+    private static final DateTimeFormatter OBO_DATE_FORMAT = DateTimeFormatter.ofPattern( "dd:MM:yyyy HH:mm", Locale.ENGLISH );
 
     public static final String SUBTREE_SIZE_BY_TERM_CACHE_NAME = "ubc.pavlab.rdp.services.OntologyService.subtreeSizeByTerm";
     public static final String SIMPLE_ONTOLOGIES_CACHE_NAME = "ubc.pavlab.rdp.services.OntologyService.simpleOntologies";
@@ -80,6 +83,9 @@ public class OntologyService implements InitializingBean {
 
     @Autowired
     private ApplicationEventPublisher eventPublisher;
+
+    @Autowired
+    private OBOParser oboParser;
 
     @Autowired
     public OntologyService( OntologyRepository ontologyRepository, OntologyTermInfoRepository ontologyTermInfoRepository ) {
@@ -237,9 +243,9 @@ public class OntologyService implements InitializingBean {
      * @throws org.springframework.dao.DataIntegrityViolationException if an ontology with the same name already exists
      */
     @Secured("ROLE_ADMIN")
-    @Transactional
+    @Transactional(rollbackFor = { OntologyNameAlreadyUsedException.class, IOException.class, ParseException.class })
     public Ontology createFromObo( Reader reader ) throws IOException, ParseException, OntologyNameAlreadyUsedException {
-        OBOParser.ParsingResult parsingResult = new OBOParser().parse( reader );
+        OBOParser.ParsingResult parsingResult = oboParser.parse( reader );
         String ontologyName = parsingResult.getOntology().getName();
         if ( ontologyName == null ) {
             throw new IllegalArgumentException( "Ontology has no defined name." );
@@ -265,9 +271,9 @@ public class OntologyService implements InitializingBean {
      * @return the updated ontology
      */
     @Secured("ROLE_ADMIN")
-    @Transactional
+    @Transactional(rollbackFor = { IOException.class, ParseException.class })
     public Ontology updateFromObo( Ontology ontology, Reader reader ) throws IOException, ParseException {
-        OBOParser.ParsingResult parsingResult = new OBOParser().parse( reader );
+        OBOParser.ParsingResult parsingResult = oboParser.parse( reader );
         eventPublisher.publishEvent( new OnOntologyUpdateEvent( ontology ) );
         return saveFromObo( ontology, parsingResult );
     }
@@ -275,9 +281,9 @@ public class OntologyService implements InitializingBean {
     private Ontology saveFromObo( Ontology ontology, OBOParser.ParsingResult parsingResult ) {
         // TODO: maybe let Hibernate do the mapping via a SortedMap?
         Map<String, OntologyTermInfo> existingTermsById = ontology.getTerms().stream()
-                .collect( Collectors.toMap( OntologyTermInfo::getTermId, t -> t ) );
+                .collect( Collectors.toMap( OntologyTermInfo::getTermId, identity() ) );
 
-        Set<OntologyTermInfo> convertedTerms = new HashSet<>();
+        Set<OntologyTermInfo> convertedTerms = new HashSet<>( parsingResult.getTerms().size() );
 
         // first pass for saving terms
         for ( OBOParser.Term term : parsingResult.getTerms() ) {
@@ -430,14 +436,14 @@ public class OntologyService implements InitializingBean {
     @Secured("ROLE_ADMIN")
     @Transactional
     public void move( Ontology ontology, Direction direction ) {
-        List<Ontology> ontologies = ontologyRepository.findAllByActiveTrue();
+        List<Ontology> ontologies = ontologyRepository.findAll();
         ontologies.sort( Ontology.getComparator() );
 
         // compute the original position
         int i = ontologies.indexOf( ontology );
 
         if ( i == -1 ) {
-            throw new IllegalArgumentException( "The provided ontology is not active." );
+            throw new IllegalArgumentException( String.format( "Unknown ontology %s.", ontology.getName() ) );
         }
 
         // compute the target position
@@ -526,13 +532,15 @@ public class OntologyService implements InitializingBean {
      * Write the provided ontology to OBO format.
      * <p>
      * TODO: how should inactive terms be handled?
+     *
+     * @param timeZone time zone used to render the 'date:' field
      */
     @Transactional(readOnly = true)
-    public void writeObo( Ontology ontology, Writer writer ) throws IOException {
+    public void writeObo( Ontology ontology, Writer writer, TimeZone timeZone ) throws IOException {
         try ( OboWriter bw = new OboWriter( writer ) ) {
             bw.writeLine( "format-version: 1.2" );
             bw.writeLine( "ontology: " + ontology.getName() );
-            bw.writeLine( "date: " + OBO_DATE_FORMAT.format( Date.from( Instant.now() ) ) );
+            bw.writeLine( "date: " + OBO_DATE_FORMAT.withZone( timeZone.toZoneId() ).format( Instant.now() ) );
             bw.writeLine( String.format( "auto-generated-by: %s:%s %s", buildProperties.getGroup(),
                     buildProperties.getArtifact(), buildProperties.getVersion() ) );
             boolean hasOrderedTerms = false, hasGroupingTerms = false;
@@ -568,7 +576,7 @@ public class OntologyService implements InitializingBean {
     }
 
 
-    @Transactional
+    @Transactional(rollbackFor = { OntologyNameAlreadyUsedException.class })
     @Secured("ROLE_ADMIN")
     public Ontology create( Ontology ontology ) throws OntologyNameAlreadyUsedException {
         if ( ontology.getId() != null ) {
@@ -590,7 +598,7 @@ public class OntologyService implements InitializingBean {
         return ontologyRepository.save( ontology );
     }
 
-    @Transactional
+    @Transactional(rollbackFor = { OntologyNameAlreadyUsedException.class })
     @Secured("ROLE_ADMIN")
     public void updateNameAndTerms( Ontology ontology, String name, Set<OntologyTermInfo> terms ) throws OntologyNameAlreadyUsedException {
         if ( ontology.getId() == null ) {
@@ -809,7 +817,7 @@ public class OntologyService implements InitializingBean {
         topologicalSortTimer.stop();
 
         String searchSummary = String.format( "Found %d suitable results for autocompletion of query '%s' (normalized as '%s', full-text as '%s') in %d ms (initial query: %d ms, topological sort and ranking: %d ms).",
-                results.size(), query, normalizedQuery, fullTextQuery, timer.getTime(), initialQueryTimer.getTime(), topologicalSortTimer.getTime() );
+                results.size(), query.replaceAll( "[\r\n]", "" ), normalizedQuery.replaceAll( "[\r\n]", "" ), fullTextQuery.replaceAll( "[\r\n]", "" ), timer.getTime(), initialQueryTimer.getTime(), topologicalSortTimer.getTime() );
 
         if ( timer.getTime() > ( isFullTextSupported() ? 500 : 1000 ) ) {
             log.warn( searchSummary );
@@ -859,10 +867,12 @@ public class OntologyService implements InitializingBean {
      * consider using the size of {@link #inferTermIds(Collection)} instead.
      *
      * @return the subtree size, which is at least one
+     * @see #inferTermIds(Collection)
      */
     @Cacheable(value = SUBTREE_SIZE_BY_TERM_CACHE_NAME)
+    @Transactional(readOnly = true)
     public long subtreeSize( OntologyTermInfo term ) {
-        return inferTermIds( Collections.singleton( term ) ).size();
+        return getDescendentIds( Collections.singleton( term ) ).size();
     }
 
     private SearchResult<OntologyTermInfo> toSearchResult( OntologyTermInfo t, OntologyTermMatchType matchType, String extras, double tfIdf, Locale locale ) {

@@ -7,27 +7,30 @@
 <div th:fragment="available-terms-by-partner(ontologyAvailabilityByApiUri)">
     <!-- this is empty if all terms were matched in partner registries -->
     <div th:unless="${ontologyAvailabilityByApiUri.isEmpty()}" class="alert alert-warning" role="alert">
-        <p class="lead">
-            There are missing categories and terms in partner registries, so not all results can be displayed.
+        <p class="mb-1">
+            The following partner registries do not use the following categories and/or terms which impacts the results
+            of your search:
         </p>
-        <th:block th:each="entry : ${ontologyAvailabilityByApiUri}"
-                  th:with="apiUri=${entry.key}">
-            <a th:href="${entry.value[0].originUrl} + '/'" th:text="${entry.value[0].origin}" target="_blank"
-               rel="noopener" class="alert-link"></a> does not have
-            <th:block th:each="ontologyAvailability, i : ${entry.value}">
-                <!-- render unavailable terms in available ontologies -->
-                <th:block th:each="v : ${ontologyAvailability.missingTerms}"
-                          th:if="${ontologyAvailability.available}">
-                    <b th:text="${@messageSource.getMessage(ontologyAvailability.ontology.resolvableTitle, #locale)} + ':' + ${@messageSource.getMessage(v.resolvableTitle, #locale)}">
-                    </b><span th:text="${i.last} ? '.' : ','"></span>
+        <ul class="list-unstyled mb-0">
+            <li th:each="entry, k : ${ontologyAvailabilityByApiUri}"
+                th:with="apiUri=${entry.key}">
+                <a th:href="${entry.value[0].originUrl} + '/'" th:text="${entry.value[0].origin}" target="_blank"
+                   rel="noopener" class="alert-link"></a> does not use:
+                <th:block th:each="ontologyAvailability, i : ${entry.value}">
+                    <!-- render unavailable terms in available ontologies -->
+                    <th:block th:each="v, j : ${ontologyAvailability.missingTerms}"
+                              th:if="${ontologyAvailability.available}">
+                        <b th:text="${@messageSource.getMessage(ontologyAvailability.ontology.resolvableTitle, #locale)} + ':' + ${@messageSource.getMessage(v.resolvableTitle, #locale)}">
+                        </b> term<span th:text="${i.last} ? '.' : ','"></span>
+                    </th:block>
+                    <!-- render unavailable ontologies -->
+                    <th:block th:unless="${ontologyAvailability.available}">
+                        <b th:text="${@messageSource.getMessage(ontologyAvailability.ontology.resolvableTitle, #locale)}">
+                        </b> category<span th:text="${i.last} ? '.' : ','"></span>
+                    </th:block>
                 </th:block>
-                <!-- render unavailable ontologies -->
-                <th:block th:unless="${ontologyAvailability.available}">
-                    <b th:text="${@messageSource.getMessage(ontologyAvailability.ontology.resolvableTitle, #locale)}">
-                    </b><span th:text="${i.last} ? '.' : ','"></span>
-                </th:block>
-            </th:block>
-        </th:block>
+            </li>
+        </ul>
     </div>
 </div>
 </body>

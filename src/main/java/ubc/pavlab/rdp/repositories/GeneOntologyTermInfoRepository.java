@@ -162,9 +162,14 @@ public class GeneOntologyTermInfoRepository implements CrudRepository<GeneOntolo
     public Stream<GeneOntologyTermInfo> findAllAsStream() {
         Lock lock = rwLock.readLock();
         lock.lock();
-        return termsByIdOrAlias.values().stream()
-                .onClose( lock::unlock )
-                .distinct();
+        try {
+            return termsByIdOrAlias.values().stream()
+                    .onClose( lock::unlock )
+                    .distinct();
+        } catch ( Throwable t ) {
+            lock.unlock();
+            throw t;
+        }
     }
 
     /**
