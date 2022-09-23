@@ -29,13 +29,13 @@
     <div id="messages">
         <div class="alert alert-success alert-dismissible fade show success-row mb-3"
              style="display: none;">
-            The <strong th:text="${taxon.commonName}"></strong> model organism section of your profile has been saved.
+            The <strong th:text="${taxon.commonName}" class="text-capitalize"></strong> model organism section of your profile has been saved.
             <button type="button" class="close" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
             </button>
         </div>
         <div class="alert alert-danger alert-dismissible fade show error-row mb-3" role="alert" style="display: none;">
-            The <strong th:text="${taxon.commonName}"></strong> model organism section of your profile could not be
+            The <strong th:text="${taxon.commonName}" class="text-capitalize"></strong> model organism section of your profile could not be
             saved!
             <button type="button" class="close" aria-label="Close">
                 <span aria-hidden="true">&times;</span>

@@ -26,6 +26,7 @@ import ubc.pavlab.rdp.model.ontology.Ontology;
 import ubc.pavlab.rdp.repositories.ontology.OntologyRepository;
 import ubc.pavlab.rdp.repositories.ontology.OntologyTermInfoRepository;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
+import ubc.pavlab.rdp.util.OBOParser;
 import ubc.pavlab.rdp.util.ReactomeConfig;
 
 import java.io.IOException;
@@ -54,6 +55,11 @@ public class ReactomeServiceTest {
         @Bean
         public ReactomeService reactomeService( OntologyService ontologyService, ApplicationSettings applicationSettings, RestTemplate restTemplate ) {
             return new ReactomeService( ontologyService, applicationSettings, restTemplate );
+        }
+
+        @Bean
+        public OBOParser oboParser() {
+            return new OBOParser();
         }
     }
 

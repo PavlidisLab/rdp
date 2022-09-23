@@ -1,7 +1,6 @@
 package ubc.pavlab.rdp.model.ontology;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import io.micrometer.core.lang.Nullable;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.NaturalId;
@@ -12,6 +11,7 @@ import javax.persistence.Column;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.MappedSuperclass;
+import java.io.Serializable;
 import java.util.Locale;
 
 /**
@@ -26,7 +26,7 @@ import java.util.Locale;
 @EqualsAndHashCode(of = { "ontology", "termId" })
 @ToString(of = { "ontology", "termId", "name" })
 @SuperBuilder
-public abstract class OntologyTerm {
+public abstract class OntologyTerm implements Serializable {
 
     /**
      * Ontology to which is term is part of.

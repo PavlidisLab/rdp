@@ -291,7 +291,7 @@ public abstract class AbstractSearchController {
 
         Map<URI, List<OntologyAvailability>> availability = new HashMap<>();
         for ( URI remoteHost : remoteResourceService.getApiUris() ) {
-            List<OntologyAvailability> availabilities = new ArrayList<>();
+            List<OntologyAvailability> availabilities = new ArrayList<>( termsByOntology.size() );
             // lookup origin and origin URL in all terms from all ontologies
             // when an ontology is not present, there are no terms returned and thus no way to determine the origin, so
             // we increase our chance by of finding something useful this way

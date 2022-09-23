@@ -796,7 +796,7 @@ public class AdminControllerTest {
         doAnswer( a -> {
             a.getArgument( 1, Writer.class ).write( "test" );
             return null;
-        } ).when( ontologyService ).writeObo( eq( ontology ), any( Writer.class ) );
+        } ).when( ontologyService ).writeObo( eq( ontology ), any( Writer.class ), eq( TimeZone.getDefault() ) );
 
         mvc.perform( get( "/admin/ontologies/{ontologyId}/download", ontology.getId() ) )
                 .andDo( MvcResult::getAsyncResult )
@@ -805,7 +805,7 @@ public class AdminControllerTest {
                 .andExpect( header().string( "Content-Disposition", "attachment; filename=mondo.obo" ) )
                 .andExpect( content().string( "test" ) );
 
-        verify( ontologyService ).writeObo( eq( ontology ), any( OutputStreamWriter.class ) );
+        verify( ontologyService ).writeObo( eq( ontology ), any( OutputStreamWriter.class ), eq( TimeZone.getDefault() ) );
     }
 
     @Test

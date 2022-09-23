@@ -21,7 +21,7 @@ import java.util.Set;
                 @Index(columnList = "gene_id, taxon_id"),
                 @Index(columnList = "symbol, taxon_id") })
 @Getter
-public class GeneInfo extends Gene implements Comparable<GeneInfo>, Serializable {
+public class GeneInfo extends Gene implements Comparable<GeneInfo> {
 
     public static Comparator<GeneInfo> getComparator() {
         return Comparator.comparing( GeneInfo::getGeneId );

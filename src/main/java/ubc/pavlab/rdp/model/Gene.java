@@ -19,7 +19,7 @@ import java.util.Date;
 @Setter
 @EqualsAndHashCode(of = { "geneId" })
 @ToString(of = { "geneId", "symbol", "taxon" })
-public abstract class Gene {
+public abstract class Gene implements Serializable {
 
     @NaturalId
     @Column(name = "gene_id")

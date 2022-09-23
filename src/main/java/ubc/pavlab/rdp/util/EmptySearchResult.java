@@ -27,13 +27,18 @@ public class EmptySearchResult<T extends Comparable<T>> extends SearchResult<T> 
         return Collections.singletonList( new EmptySearchResult<>( label, value ) );
     }
 
-    @SuppressWarnings("SpellCheckingInspection")
-    private final boolean noresults = true;
-
     private final String value;
 
     private EmptySearchResult( String label, String value ) {
         super( null, null, label, null, null );
         this.value = value;
+    }
+
+    /**
+     * This is used by the frontend to display a "No results" message.
+     */
+    @SuppressWarnings({ "SpellCheckingInspection", "unused" })
+    public boolean getNoresults() {
+        return true;
     }
 }

@@ -391,7 +391,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService, Initial
         return asyncRestTemplate.getForEntity( uri, RemoteOntologyTermInfo[].class ).completable()
                 .handle( ( re, ex ) -> {
                     if ( ex != null ) {
-                        if ( ex instanceof HttpClientErrorException && ( (HttpClientErrorException) ex ).getStatusCode().equals( HttpStatus.NOT_FOUND ) ) {
+                        if ( ex instanceof HttpClientErrorException && ( (HttpClientErrorException) ex ).getStatusCode() == HttpStatus.NOT_FOUND ) {
                             return null;
                         } else {
                             log.warn( String.format( "Failed to retrieve ontology terms from %s: %s", uri, ExceptionUtils.getRootCauseMessage( ex ) ) );
