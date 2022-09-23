@@ -28,7 +28,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.6.10</version>
+        <version>2.6.12</version>
     </parent>
 
     <dependencies>
@@ -108,7 +108,7 @@
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-webmvc-core</artifactId>
-            <version>1.6.9</version>
+            <version>1.6.11</version>
         </dependency>
 
         <!-- Database Migration -->
