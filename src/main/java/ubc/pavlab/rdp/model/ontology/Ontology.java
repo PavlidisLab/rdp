@@ -131,7 +131,14 @@ public class Ontology implements Comparable<Ontology> {
      */
     @JsonIgnore
     public DefaultMessageSourceResolvable getResolvableTitle() {
-        return new DefaultMessageSourceResolvable( new String[]{ "rdp.ontologies." + Ontology.this.getName() + ".title" }, name.toUpperCase() );
+        String defaultMessage;
+        if ( ontologyUrl != null ) {
+            // this implies that the name is pulled from the OBO format, so its default value is not suitable for display
+            defaultMessage = name.toUpperCase();
+        } else {
+            defaultMessage = name;
+        }
+        return new DefaultMessageSourceResolvable( new String[]{ "rdp.ontologies." + name + ".title" }, defaultMessage );
     }
 
     /**
@@ -141,7 +148,8 @@ public class Ontology implements Comparable<Ontology> {
      * when calling {@link org.springframework.context.MessageSource#getMessage(MessageSourceResolvable, Locale)}.
      */
     @JsonIgnore
+
     public DefaultMessageSourceResolvable getResolvableDefinition() {
-        return new DefaultMessageSourceResolvable( new String[]{ "rdp.ontologies." + Ontology.this.getName() + ".definition" }, definition );
+        return new DefaultMessageSourceResolvable( new String[]{ "rdp.ontologies." + name + ".definition" }, definition );
     }
 }
