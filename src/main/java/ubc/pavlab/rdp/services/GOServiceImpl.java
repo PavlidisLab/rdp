@@ -517,20 +517,13 @@ public class GOServiceImpl implements GOService, InitializingBean {
                 .collect( Collectors.toSet() );
 
         // evict the terms from both caches
-        for ( GeneOntologyTermInfo term : termsToEvict ) {
-            ancestorsCache.evict( term );
-            descendantsCache.evict( term );
-        }
+        CacheUtils.evictAll( descendantsCache, termsToEvict );
 
         // all the ancestors mention one of the updated terms in their descendants, so we evict those
-        for ( GeneOntologyTermInfo ancestor : ancestors ) {
-            descendantsCache.evict( ancestor );
-        }
+        CacheUtils.evictAll( descendantsCache, ancestors );
 
         // conversely, all the descendants mention one of the updated term in their ancestors
-        for ( GeneOntologyTermInfo descendant : descendants ) {
-            ancestorsCache.evict( descendant );
-        }
+        CacheUtils.evictAll( ancestorsCache, descendants );
     }
 
     private void evictAll() {
