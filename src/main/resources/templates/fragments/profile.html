@@ -6,15 +6,23 @@
     <p th:unless="${user.profile.researcherCategories.isEmpty()}">
         <span th:each="researcherCategory : ${user.profile.researcherCategories}"
               class="badge badge-info"
-              th:text="#{'ResearcherCategory.' + ${researcherCategory.name()}}"></span>
+              th:text="${@messageSource.getMessage(researcherCategory.resolvableTitle, #locale)}"></span>
     </p>
     <p th:text="${#strings.abbreviate(user.profile.description, 200)}"></p>
-    <div th:if="${@applicationSettings.organs.enabled}">
-        <img th:each="element : ${user.userOrgans}"
-             th:src="@{/images/organs/{uberonId}.svg(uberonId=${element.value.uberonId})}"
-             th:alt="${#strings.capitalize(element.value.name)}"
-             width="32"
-             class="mb-3"/>
+    <div>
+        <th:block th:if="${@applicationSettings.organs.enabled}">
+            <img th:each="element : ${user.userOrgans}"
+                 th:src="@{/images/organs/{uberonId}.svg(uberonId=${element.value.uberonId})}"
+                 th:alt="${@messageSource.getMessage(element.value.resolvableTitle, #locale)}"
+                 width="32" class="mr-1 mb-1"/>
+        </th:block>
+        <th:block>
+            <img th:each="element : ${user.userOntologyTerms}"
+                 th:if="${element.termInfo.hasIcon}"
+                 th:src="@{/images/ontologies/{ontologyName}/{termName}.svg(ontologyName=${element.ontology.name},termName=${element.name})}"
+                 th:alt="${element.resolvableTitle}"
+                 width="32" class="mr-1 mb-1"/>
+        </th:block>
     </div>
 </div>
 <div th:fragment="researcher-position-selection(selectedResearcherPosition)">

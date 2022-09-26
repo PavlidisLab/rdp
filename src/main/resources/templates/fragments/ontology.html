@@ -67,9 +67,7 @@
                     </th:block>
                 </th:block>
                 <div th:if="${term.active} and not ${readOnly}"
-                     class="form-check mb-1"
-                     data-toggle="tooltip"
-                     th:title="${term.hasIcon} ? ${@messageSource.getMessage(term.resolvableTitle, #locale)}">
+                     class="form-check mb-1">
                     <input type="checkbox"
                            th:id="${#ids.seq('ontologyTermIds')}"
                            name="ontologyTermIds"
@@ -78,6 +76,8 @@
                            th:checked="${@ontologyService.termIsIn(term, selectedTerms)}"
                            class="form-check-input"/>
                     <label th:for="${#ids.prev('ontologyTermIds')}"
+                           data-toggle="tooltip"
+                           th:title="${term.hasIcon} ? ${@messageSource.getMessage(term.resolvableTitle, #locale)}"
                            class="form-check-label">
                         <img th:if="${term.hasIcon}"
                              th:src="@{/images/ontologies/{ontologyName}/{termName}.svg(ontologyName=${ontology.name},termName=${term.name})}"
