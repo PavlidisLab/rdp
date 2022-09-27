@@ -61,6 +61,8 @@ public class UserGene extends Gene implements UserContent {
     public static Comparator<UserGene> getComparator() {
         return Comparator.comparing( UserGene::getTaxon, Taxon.getComparator() )
                 .thenComparing( UserGene::getTier )
+                .thenComparing( UserGene::getSymbol )
+                .thenComparing( UserGene::getGeneId )
                 .thenComparing( UserGene::getUser, User.getComparator() );
     }
 
