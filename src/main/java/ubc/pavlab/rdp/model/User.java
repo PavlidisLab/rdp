@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.media.SchemaProperty;
 import lombok.*;
 import lombok.extern.apachecommons.CommonsLog;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
@@ -109,7 +111,7 @@ public class User implements RemoteResource, UserContent, Serializable {
     private Timestamp modifiedAt;
 
     @Column(name = "enabled", nullable = false)
-    @JsonIgnore
+    @Schema(description = "This is deprecated: users exposed through the API are always enabled.", deprecated = true)
     private boolean enabled;
 
     /**

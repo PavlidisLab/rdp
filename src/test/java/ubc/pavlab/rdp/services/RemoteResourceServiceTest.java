@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.servers.Server;
+import org.assertj.core.groups.Tuple;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -205,7 +206,7 @@ public class RemoteResourceServiceTest {
                 .andRespond( withStatus( HttpStatus.OK )
                         .contentType( MediaType.APPLICATION_JSON )
                         .body( objectMapper.writeValueAsString( new User[]{} ) ) );
-        remoteResourceService.findUsersByLikeName( "ok", true, null, null, null, null );
+        assertThat( remoteResourceService.findUsersByLikeName( "ok", true, null, null, null, null ) ).isEmpty();
         mockServer.verify();
     }
 
@@ -222,7 +223,7 @@ public class RemoteResourceServiceTest {
                         .body( objectMapper.writeValueAsString( new User[]{} ) ) );
         when( iSearchSettings.getSearchToken() ).thenReturn( "1234" );
         when( userService.findCurrentUser() ).thenReturn( adminUser );
-        remoteResourceService.findUsersByLikeName( "ok", true, null, null, null, null );
+        assertThat( remoteResourceService.findUsersByLikeName( "ok", true, null, null, null, null ) ).isEmpty();
         mockServer.verify();
     }
 
@@ -239,8 +240,8 @@ public class RemoteResourceServiceTest {
                         .body( objectMapper.writeValueAsString( new User[]{ createRemoteUser( 1, URI.create( "http://example.com" ) ) } ) ) );
         assertThat( remoteResourceService.findUsersByLikeNameAndDescription( "ok", true, "ok2", null, null, null, null ) )
                 .hasSize( 1 )
-                .extracting( "id" )
-                .containsExactly( 1 );
+                .extracting( "id", "enabled" )
+                .containsExactly( Tuple.tuple( 1, true ) );
         mockServer.verify();
     }
 
