@@ -17,8 +17,16 @@ public class RemoteResourceConfig {
         SimpleClientHttpRequestFactory httpRequestFactory = new SimpleClientHttpRequestFactory();
         httpRequestFactory.setTaskExecutor( new SimpleAsyncTaskExecutor() );
         if ( applicationSettings.getIsearch().getRequestTimeout() != null ) {
+            log.warn( "The 'rdp.settings.isearch.request-timeout' configuration is deprecated." );
             httpRequestFactory.setConnectTimeout( 1000 );
             httpRequestFactory.setReadTimeout( (int) applicationSettings.getIsearch().getRequestTimeout().toMillis() );
+        } else {
+            if ( applicationSettings.getIsearch().getConnectTimeout() != null ) {
+                httpRequestFactory.setConnectTimeout( (int) applicationSettings.getIsearch().getConnectTimeout().toMillis() );
+            }
+            if ( applicationSettings.getIsearch().getReadTimeout() != null ) {
+                httpRequestFactory.setReadTimeout( (int) applicationSettings.getIsearch().getReadTimeout().toMillis() );
+            }
         }
         return new AsyncRestTemplate( httpRequestFactory );
     }
