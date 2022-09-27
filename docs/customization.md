@@ -324,6 +324,10 @@ rdp.ontologies.{ontologyName}.terms.{termName}.title
 rdp.ontologies.{ontologyName}.terms.{termName}.definition
 ```
 
+If your ontology/category is based on a [PURL](https://obofoundry.org/principles/fp-003-uris.html) source, its name will
+be rendered un uppercase. For example, "uberon" from http://purl.obolibrary.org/obo/uberon.obo will be displayed as
+"UBERON". You may override this by setting a custom title as described above.
+
 Note that we provide defaults for Reactome in the JAR package, so you must use custom messages for overriding those
 values. A warning will be displayed in the admin section if this is the case.
 
