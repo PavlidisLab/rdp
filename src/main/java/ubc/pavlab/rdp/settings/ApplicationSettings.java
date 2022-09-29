@@ -217,9 +217,23 @@ public class ApplicationSettings {
          * <p>
          * When formatted as a number, it is interpreted as a number of seconds. You may also use a unit suffix (i.e. '100ms')
          * to specify a precise amount of time.
+         *
+         * @deprecated use {@link #connectTimeout} and {@link #readTimeout} instead which provide more granularity in
+         * defining the timeout.
          */
+        @Deprecated
         @DurationUnit(value = ChronoUnit.SECONDS)
         private Duration requestTimeout;
+        /**
+         * Connection timeout in milliseconds, or null to disable.
+         */
+        @DurationUnit(value = ChronoUnit.MILLIS)
+        private Duration connectTimeout;
+        /**
+         * Read timeout in milliseconds, or null to disable.
+         */
+        @DurationUnit(value = ChronoUnit.MILLIS)
+        private Duration readTimeout;
     }
 
     @Data

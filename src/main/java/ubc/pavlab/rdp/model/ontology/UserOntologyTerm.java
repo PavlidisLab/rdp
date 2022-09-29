@@ -8,6 +8,7 @@ import org.springframework.context.MessageSourceResolvable;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import org.springframework.lang.Nullable;
 import ubc.pavlab.rdp.model.User;
 import ubc.pavlab.rdp.model.UserContent;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
@@ -63,6 +64,7 @@ public class UserOntologyTerm extends OntologyTerm implements UserContent {
     /**
      * Original term from which this user term derived, if still available otherwise null.
      */
+    @Nullable
     @ManyToOne
     @JoinColumns(value = {
             @JoinColumn(name = "ontology_id", referencedColumnName = "ontology_id", insertable = false, updatable = false),

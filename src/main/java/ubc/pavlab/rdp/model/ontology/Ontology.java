@@ -15,6 +15,8 @@ import java.util.Locale;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import static ubc.pavlab.rdp.util.PurlUtils.isPurl;
+
 /**
  * An ontology of terms.
  *
@@ -127,11 +129,21 @@ public class Ontology implements Comparable<Ontology> {
     /**
      * Obtain a resolvable for the title of this ontology.
      * <p>
-     * The default value is the upper case {@link #name}.
+     * The default value is the upper case {@link #name} if {@link #ontologyUrl} is set and is a
+     * <a href="https://obofoundry.org/principles/fp-003-uris.html">PURL</a>.
+     *
+     * @see ubc.pavlab.rdp.util.PurlUtils#isPurl(URL)
      */
     @JsonIgnore
     public DefaultMessageSourceResolvable getResolvableTitle() {
-        return new DefaultMessageSourceResolvable( new String[]{ "rdp.ontologies." + Ontology.this.getName() + ".title" }, name.toUpperCase() );
+        String defaultMessage;
+        if ( ontologyUrl != null && isPurl( ontologyUrl ) ) {
+            // this implies that the name is pulled from the OBO format, so its default value is not suitable for display
+            defaultMessage = name.toUpperCase();
+        } else {
+            defaultMessage = name;
+        }
+        return new DefaultMessageSourceResolvable( new String[]{ "rdp.ontologies." + name + ".title" }, defaultMessage );
     }
 
     /**
@@ -141,7 +153,8 @@ public class Ontology implements Comparable<Ontology> {
      * when calling {@link org.springframework.context.MessageSource#getMessage(MessageSourceResolvable, Locale)}.
      */
     @JsonIgnore
+
     public DefaultMessageSourceResolvable getResolvableDefinition() {
-        return new DefaultMessageSourceResolvable( new String[]{ "rdp.ontologies." + Ontology.this.getName() + ".definition" }, definition );
+        return new DefaultMessageSourceResolvable( new String[]{ "rdp.ontologies." + name + ".definition" }, definition );
     }
 }
