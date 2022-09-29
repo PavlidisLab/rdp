@@ -59,12 +59,14 @@
             <h3>Roles</h3>
             <form th:action="@{/admin/users/{userId}/roles(userId=${user.id})}" method="post">
                 <input type="hidden" name="action"/>
-                <select type="hidden" name="roles" multiple class="form-control">
-                    <option th:each="role : ${@userService.findAllRoles()}"
-                            th:value="${role.id}"
-                            th:text="${@messageSource.getMessage(role.resolvableTitle, #locale)}"
-                            th:selected="${user.roles.contains(role)}"></option>
-                </select>
+                <div class="form-group">
+                    <select type="hidden" name="roles" multiple class="form-control">
+                        <option th:each="role : ${@userService.findAllRoles()}"
+                                th:value="${role.id}"
+                                th:text="${@messageSource.getMessage(role.resolvableTitle, #locale)}"
+                                th:selected="${user.roles.contains(role)}"></option>
+                    </select>
+                </div>
                 <button class="btn btn-primary" type="submit">Update Roles</button>
             </form>
         </div>
