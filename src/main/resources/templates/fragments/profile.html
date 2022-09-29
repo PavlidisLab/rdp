@@ -18,7 +18,7 @@
         </th:block>
         <th:block>
             <img th:each="element : ${user.userOntologyTerms}"
-                 th:if="${element.termInfo.hasIcon}"
+                 th:if="${element.termInfo != null} and ${element.termInfo.hasIcon}"
                  th:src="@{/images/ontologies/{ontologyName}/{termName}.svg(ontologyName=${element.ontology.name},termName=${element.name})}"
                  th:alt="${element.resolvableTitle}"
                  width="32" class="mr-1 mb-1"/>
