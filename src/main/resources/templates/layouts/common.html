@@ -14,6 +14,7 @@
         var contextPath = [[${#httpServletRequest.contextPath}]];
     </script>
     <script th:src="@{/dist/common.bundle.js}"></script>
+    <script sec:authorize="hasRole('ROLE_ADMIN')" th:src="@{/dist/admin.bundle.js}"></script>
 </head>
 <body>
 <th:block th:fragment="header">

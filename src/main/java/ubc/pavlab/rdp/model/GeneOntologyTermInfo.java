@@ -41,6 +41,14 @@ public class GeneOntologyTermInfo extends GeneOntologyTerm implements Comparable
     private MultiValueMap<Integer, Integer> directGeneIdsByTaxonId = new LinkedMultiValueMap<>();
 
     /**
+     * Alias for {@link #getGoId()}.
+     */
+    @JsonIgnore
+    public String getId() {
+        return getGoId();
+    }
+
+    /**
      * Obtain the size of the term as a number of genes in a taxon.
      * <p>
      * The taxon is unknown and may change since this attribute is merely used as a temporary storage for the result of

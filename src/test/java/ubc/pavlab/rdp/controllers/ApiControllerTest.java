@@ -141,7 +141,8 @@ public class ApiControllerTest {
                 .andExpect( status().isOk() )
                 .andExpect( jsonPath( "$[0].id" ).value( 1 ) )
                 .andExpect( jsonPath( "$[0].origin" ).value( "RDMM" ) )
-                .andExpect( jsonPath( "$[0].originUrl" ).value( "http://localhost" ) );
+                .andExpect( jsonPath( "$[0].originUrl" ).value( "http://localhost" ) )
+                .andExpect( jsonPath( "$[0].enabled" ).value( true ) );
         verify( userService ).findByNameAndDescription( "robert", false, "pancake", null, null, null, null );
         verify( userPrivacyService ).checkCurrentUserCanSeeGeneList( user );
     }

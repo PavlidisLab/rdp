@@ -4,7 +4,10 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.NaturalId;
+import org.springframework.context.MessageSourceResolvable;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 
 import javax.persistence.Column;
 import javax.persistence.Lob;
@@ -28,4 +31,18 @@ public abstract class Organ {
     @Lob
     @Column(columnDefinition = "TEXT")
     private String description;
+
+    /**
+     * Obtain a resolvable title for this organ system.
+     */
+    public MessageSourceResolvable resolvableTitle() {
+        return new DefaultMessageSourceResolvable( new String[]{ "rdp.ontologies.uberon." + name + ".title" }, null, StringUtils.capitalize( name ) );
+    }
+
+    /**
+     * Obtain a resolvable definition for this organ system.
+     */
+    public MessageSourceResolvable resolvableDefinition() {
+        return new DefaultMessageSourceResolvable( new String[]{ "rdp.ontologies.uberon." + name + ".definition" }, null, description );
+    }
 }

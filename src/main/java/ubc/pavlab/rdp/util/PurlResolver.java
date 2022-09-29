@@ -18,19 +18,20 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import static ubc.pavlab.rdp.util.PurlUtils.isPurl;
+
 /**
  * Resolve resources from <a href="http://purl.obolibrary.org">purl.obolibrary.org</a>.
  *
  * @author poirigui
+ * @see PurlUtils
  */
 @CommonsLog
 public class PurlResolver implements ProtocolResolver {
 
-    private static final String PURL_PREFIX = "http://purl.obolibrary.org";
-
     @Override
     public Resource resolve( String location, ResourceLoader resourceLoader ) {
-        if ( !location.startsWith( PURL_PREFIX ) ) {
+        if ( !isPurl( location ) ) {
             return null;
         }
 

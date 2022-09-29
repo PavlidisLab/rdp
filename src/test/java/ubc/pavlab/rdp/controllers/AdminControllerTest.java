@@ -539,7 +539,7 @@ public class AdminControllerTest {
                         .param( "availableForGeneSearch", "true" ) )
                 .andExpect( status().isOk() )
                 .andExpect( view().name( "admin/ontology" ) )
-                .andExpect( model().attribute( "message", "Successfully updated MONDO." ) );
+                .andExpect( model().attribute( "message", "Successfully updated mondo." ) );
         verify( ontologyService ).update( ontology );
         assertThat( ontology.isAvailableForGeneSearch() ).isTrue();
     }
@@ -706,7 +706,7 @@ public class AdminControllerTest {
     @Test
     @WithMockUser(roles = { "ADMIN" })
     public void activateOntology() throws Exception {
-        Ontology ontology = Ontology.builder( "mondo" ).id( 1 ).build();
+        Ontology ontology = Ontology.builder( "mondo" ).id( 1 ).ontologyUrl( new URL( "http://purl.obolibrary.org/obo/mondo.obo" ) ).build();
         when( ontologyService.findById( 1 ) ).thenReturn( ontology );
         mvc.perform( post( "/admin/ontologies/{ontologyId}/activate", ontology.getId() ) )
                 .andExpect( status().is3xxRedirection() )
@@ -960,7 +960,7 @@ public class AdminControllerTest {
     @Test
     @WithMockUser(roles = "ADMIN")
     public void deleteOntology_whenUserHaveAssociatedTerms_thenReturnBadRequest() throws Exception {
-        Ontology ontology = Ontology.builder( "mondo" ).id( 1 ).build();
+        Ontology ontology = Ontology.builder( "mondo" ).id( 1 ).ontologyUrl( new URL( "http://purl.obolibrary.org/obo/mondo.obo" ) ).build();
         when( ontologyService.findById( 1 ) ).thenReturn( ontology );
         doThrow( DataIntegrityViolationException.class ).when( ontologyService ).delete( ontology );
         mvc.perform( delete( "/admin/ontologies/{ontologyId}", ontology.getId() )
@@ -1019,7 +1019,7 @@ public class AdminControllerTest {
     @Test
     @WithMockUser(roles = "ADMIN")
     public void autocomplete_whenTermIsAlreadyActive_thenReturnBadRequest() throws Exception {
-        Ontology ontology = Ontology.builder( "mondo" ).id( 1 ).build();
+        Ontology ontology = Ontology.builder( "mondo" ).id( 1 ).ontologyUrl( new URL( "http://purl.obolibrary.org/obo/mondo.obo" ) ).build();
         OntologyTermInfo term = OntologyTermInfo.builder( ontology, "MONDO:000001" ).name( "disease" ).active( true ).build();
         when( ontologyService.findById( 1 ) ).thenReturn( ontology );
         when( ontologyService.existsByTermIdAndOntologyAndActiveTrue( "MONDO:000001", ontology ) ).thenReturn( true );

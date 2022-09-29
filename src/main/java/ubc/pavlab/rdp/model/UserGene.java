@@ -10,6 +10,7 @@ import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.NaturalId;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import org.springframework.lang.Nullable;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.TierType;
 
@@ -61,6 +62,8 @@ public class UserGene extends Gene implements UserContent {
     public static Comparator<UserGene> getComparator() {
         return Comparator.comparing( UserGene::getTaxon, Taxon.getComparator() )
                 .thenComparing( UserGene::getTier )
+                .thenComparing( UserGene::getSymbol )
+                .thenComparing( UserGene::getGeneId )
                 .thenComparing( UserGene::getUser, User.getComparator() );
     }
 
@@ -101,6 +104,7 @@ public class UserGene extends Gene implements UserContent {
     @JsonIgnore
     private Timestamp createdAt;
 
+    @Nullable
     @ManyToOne
     @JoinColumn(name = "gene_id", referencedColumnName = "gene_id", insertable = false, updatable = false, foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT))
     @JsonIgnore

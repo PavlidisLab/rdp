@@ -2,6 +2,8 @@ package ubc.pavlab.rdp.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.media.SchemaProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -87,10 +89,12 @@ public class Profile {
     @Column(name = "privacy_level")
     private PrivacyLevelType privacyLevel;
 
+    @Schema(hidden = true)
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @Column(name = "shared", nullable = false)
     private boolean shared;
 
+    @Schema(hidden = true)
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @Column(name = "hide_genelist", nullable = false)
     private boolean hideGenelist;
