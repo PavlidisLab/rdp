@@ -572,6 +572,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService, Initial
     }
 
     private void initUser( User user ) {
+        user.setEnabled( true );
         user.getUserGenes().values().forEach( ug -> ug.setUser( user ) );
         user.getUserTerms().forEach( ug -> ug.setUser( user ) );
         user.getUserOrgans().values().forEach( ug -> ug.setUser( user ) );

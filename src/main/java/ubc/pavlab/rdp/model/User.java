@@ -115,8 +115,8 @@ public class User implements RemoteResource, UserContent, Serializable {
     @JsonIgnore
     private Timestamp modifiedAt;
 
+    @JsonIgnore
     @Column(name = "enabled", nullable = false)
-    @Schema(description = "This is deprecated: users exposed through the API are always enabled.", deprecated = true)
     private boolean enabled;
 
     /**
