@@ -30,7 +30,7 @@
         <div th:replace="layouts/common::message"></div>
         <div th:if="${viewUser.origin} != null" class="alert alert-info">
             This is a remote user registered at
-            <a th:href="@{{remoteHost}/userView/{userId}(remoteHost=${viewUser.originUrl},userId=${viewUser.id})}"
+            <a th:href="${@remoteResourceService.getViewUserUrl(viewUser)}"
                th:text="${viewUser.origin}"
                target="_blank"
                rel="noopener"></a>.

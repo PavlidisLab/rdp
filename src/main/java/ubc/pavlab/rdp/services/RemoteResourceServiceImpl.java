@@ -53,7 +53,7 @@ import java.util.stream.Collectors;
 
 import static java.util.function.Function.identity;
 
-@Service("RemoteResourceService")
+@Service("remoteResourceService")
 @CommonsLog
 @PreAuthorize("hasPermission(null, 'international-search')")
 public class RemoteResourceServiceImpl implements RemoteResourceService, InitializingBean {
@@ -131,6 +131,18 @@ public class RemoteResourceServiceImpl implements RemoteResourceService, Initial
         } else {
             return openAPI.getInfo().getVersion();
         }
+    }
+
+    @Override
+    public URI getViewUserUrl( User user ) throws RemoteException {
+        if ( user.getId() == null ) {
+            throw new IllegalArgumentException( "User must have a non-null ID." );
+        } else if ( user.getOriginUrl() == null ) {
+            throw new IllegalArgumentException( "User must be a remote user with an origin URL." );
+        }
+        return UriComponentsBuilder.fromUri( getApiUri( user.getOriginUrl() ) )
+                .path( "/viewUser/{userId}" )
+                .build( user.getId() );
     }
 
     @Override

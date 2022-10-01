@@ -41,6 +41,15 @@ public interface RemoteResourceService {
     String getApiVersion( URI remoteHost ) throws RemoteException;
 
     /**
+     * Obtain n URL to view a remote user.
+     *
+     * @param user
+     * @return
+     * @throws RemoteException
+     */
+    URI getViewUserUrl( User user ) throws RemoteException;
+
+    /**
      * Obtain a representative {@link RemoteResource} for a partner registry that can be used to extract the 'origin'
      * and 'originUrl' attributes.
      */
