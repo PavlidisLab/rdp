@@ -420,6 +420,16 @@ public class RemoteResourceServiceImpl implements RemoteResourceService, Initial
                 .collect( Collectors.toList() );
     }
 
+    @Override
+    public URI getApiUriByRemoteHost( URI remoteHost ) throws UnknownRemoteApiException {
+        URI apiUri = getApiUri( remoteHost );
+        try {
+            return new URI( apiUri.getScheme(), apiUri.getAuthority(), apiUri.getPath(), null, null );
+        } catch ( URISyntaxException e ) {
+            throw new RuntimeException( e );
+        }
+    }
+
     private User getUserByUri( URI uri ) throws RemoteException {
         User user = getFromRequestFuture( uri, asyncRestTemplate.getForEntity( uri, User.class ) );
         initUser( user );

@@ -17,6 +17,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.util.UriComponentsBuilder;
 import ubc.pavlab.rdp.exception.RemoteException;
 import ubc.pavlab.rdp.exception.UnknownRemoteApiException;
 import ubc.pavlab.rdp.model.GeneInfo;
@@ -372,7 +373,22 @@ public class SearchController extends AbstractSearchController {
     @PreAuthorize("hasPermission(null, 'search') and hasAnyRole('USER', 'ADMIN')")
     @GetMapping("/search/gene/by-anonymous-id/{anonymousId}/request-access")
     public Object requestGeneAccessView( @PathVariable UUID anonymousId,
+                                         @RequestParam(required = false) URI remoteHost,
                                          RedirectAttributes redirectAttributes ) {
+        if ( remoteHost != null ) {
+            URI apiUri;
+            try {
+                apiUri = remoteResourceService.getApiUriByRemoteHost( remoteHost );
+            } catch ( UnknownRemoteApiException e ) {
+                return new ModelAndView( "error/404", HttpStatus.BAD_REQUEST )
+                        .addObject( "message", String.format( "Unknown partner API %s.", remoteHost.getRawAuthority() ) );
+            }
+            // redirect to partner API
+            URI requestAccessUrl = UriComponentsBuilder.fromUri( apiUri )
+                    .path( "/search/gene/by-anonymous-id/{anonymousId}/request-access" )
+                    .build( anonymousId );
+            return "redirect:" + requestAccessUrl;
+        }
         UserGene userGene = userService.findUserGeneByAnonymousIdNoAuth( anonymousId );
         if ( userGene == null ) {
             return new ModelAndView( "error/404", HttpStatus.NOT_FOUND );

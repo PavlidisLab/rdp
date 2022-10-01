@@ -2,6 +2,7 @@ package ubc.pavlab.rdp.services;
 
 import ubc.pavlab.rdp.controllers.ApiController;
 import ubc.pavlab.rdp.exception.RemoteException;
+import ubc.pavlab.rdp.exception.UnknownRemoteApiException;
 import ubc.pavlab.rdp.model.RemoteResource;
 import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.model.User;
@@ -96,4 +97,6 @@ public interface RemoteResourceService {
      * @see ApiController#getOntologyTermsByOntologyNameAndTermIds(String, List, Locale)
      */
     Future<List<RemoteOntologyTermInfo>> getTermsByOntologyNameAndTerms( Ontology ontology, Collection<OntologyTermInfo> terms, URI remoteHost ) throws RemoteException;
+
+    URI getApiUriByRemoteHost( URI remoteHost ) throws UnknownRemoteApiException;
 }

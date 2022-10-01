@@ -78,7 +78,7 @@
     </thead>
     <tbody>
     <!-- remote anonymous user genes are not yet supported -->
-    <tr th:each="ug : ${usergenes}" th:unless="${ug.anonymousId} and ${remote}">
+    <tr th:each="ug : ${usergenes}">
         <td class="text-center" style="width: 10em;">
             <a th:if="${ug.anonymousId} == null and ${remote}"
                th:href="@{/search/user/{userId}(userId=${ug.user.id},remoteHost=${ug.user.originUrl})}"
@@ -94,7 +94,6 @@
                 <i class="oi oi-person"></i>
                 View User Profile
             </a>
-            <!-- FIXME: this is not supported yet
             <a th:if="${ug.anonymousId} and ${remote}"
                th:href="@{/search/gene/by-anonymous-id/{anonymousId}/request-access(anonymousId=${ug.anonymousId},remoteHost=${ug.user.originUrl})}"
                th:attr="data-anonymous-user-id=${ug.user.anonymousId},data-remote-host=${ug.user.originUrl}"
@@ -102,7 +101,6 @@
                 <i class="oi oi-lock-locked"></i>
                 Request Access
             </a>
-            -->
             <a th:if="${ug.anonymousId} and not ${remote}"
                th:href="@{/search/gene/by-anonymous-id/{anonymousId}/request-access(anonymousId=${ug.anonymousId})}"
                th:attr="data-anonymous-user-id=${ug.user.anonymousId}"
