@@ -65,9 +65,12 @@ public class User implements RemoteResource, UserContent, Serializable {
     }
 
     public static Comparator<User> getComparator() {
-        return Comparator.comparing( ( User u ) -> u.getProfile().getFullName() )
-                .thenComparing( User::getEmail )
-                .thenComparing( User::getOriginUrl );
+        return Comparator
+                .comparing( ( User u ) -> u.getProfile().getFullName() )
+                .thenComparing( User::getOriginUrl )
+                // at least one of the two must be non-null
+                .thenComparing( User::getId, Comparator.nullsLast( Comparator.naturalOrder() ) )
+                .thenComparing( User::getAnonymousId, Comparator.nullsLast( Comparator.naturalOrder() ) );
     }
 
     @Id
@@ -112,8 +115,8 @@ public class User implements RemoteResource, UserContent, Serializable {
     @JsonIgnore
     private Timestamp modifiedAt;
 
+    @JsonIgnore
     @Column(name = "enabled", nullable = false)
-    @Schema(description = "This is deprecated: users exposed through the API are always enabled.", deprecated = true)
     private boolean enabled;
 
     /**

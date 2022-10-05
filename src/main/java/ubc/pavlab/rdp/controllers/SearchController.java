@@ -30,6 +30,7 @@ import ubc.pavlab.rdp.model.ontology.Ontology;
 import ubc.pavlab.rdp.model.ontology.OntologyTermInfo;
 import ubc.pavlab.rdp.security.Permissions;
 import ubc.pavlab.rdp.services.*;
+import ubc.pavlab.rdp.services.RemoteResourceService;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.util.SearchResult;
 
@@ -37,7 +38,6 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.net.URI;
-import java.text.MessageFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -372,7 +372,16 @@ public class SearchController extends AbstractSearchController {
     @PreAuthorize("hasPermission(null, 'search') and hasAnyRole('USER', 'ADMIN')")
     @GetMapping("/search/gene/by-anonymous-id/{anonymousId}/request-access")
     public Object requestGeneAccessView( @PathVariable UUID anonymousId,
+                                         @RequestParam(required = false) URI remoteHost,
                                          RedirectAttributes redirectAttributes ) {
+        if ( remoteHost != null ) {
+            try {
+                return "redirect:" + remoteResourceService.getRequestGeneAccessUrl( remoteHost, anonymousId );
+            } catch ( UnknownRemoteApiException e ) {
+                return new ModelAndView( "error/404", HttpStatus.BAD_REQUEST )
+                        .addObject( "message", String.format( "Unknown partner API %s.", remoteHost.getRawAuthority() ) );
+            }
+        }
         UserGene userGene = userService.findUserGeneByAnonymousIdNoAuth( anonymousId );
         if ( userGene == null ) {
             return new ModelAndView( "error/404", HttpStatus.NOT_FOUND );
