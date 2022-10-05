@@ -10,7 +10,8 @@ This section describes the essential steps to deploy an RDP registry.
 
 ## Obtain a distribution of RDP
 
-Download the [latest jar distribution](https://github.com/PavlidisLab/rgr/releases/latest) from GitHub.
+Download the [JAR distribution from GitHub](https://github.com/PavlidisLab/rgr/releases/v{{ config.extra.rdp_version }}).
+
 
 ```bash
 wget https://github.com/PavlidisLab/rgr/releases/download/v{{ config.extra.rdp_version }}/rdp-{{ config.extra.rdp_version }}.jar
