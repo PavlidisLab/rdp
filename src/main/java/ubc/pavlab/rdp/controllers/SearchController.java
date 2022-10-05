@@ -17,7 +17,6 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import org.springframework.web.util.UriComponentsBuilder;
 import ubc.pavlab.rdp.exception.RemoteException;
 import ubc.pavlab.rdp.exception.UnknownRemoteApiException;
 import ubc.pavlab.rdp.model.GeneInfo;
@@ -31,6 +30,7 @@ import ubc.pavlab.rdp.model.ontology.Ontology;
 import ubc.pavlab.rdp.model.ontology.OntologyTermInfo;
 import ubc.pavlab.rdp.security.Permissions;
 import ubc.pavlab.rdp.services.*;
+import ubc.pavlab.rdp.services.RemoteResourceService;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.util.SearchResult;
 
@@ -38,7 +38,6 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.net.URI;
-import java.text.MessageFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -376,18 +375,12 @@ public class SearchController extends AbstractSearchController {
                                          @RequestParam(required = false) URI remoteHost,
                                          RedirectAttributes redirectAttributes ) {
         if ( remoteHost != null ) {
-            URI apiUri;
             try {
-                apiUri = remoteResourceService.getApiUriByRemoteHost( remoteHost );
+                return "redirect:" + remoteResourceService.getRequestGeneAccessUrl( remoteHost, anonymousId );
             } catch ( UnknownRemoteApiException e ) {
                 return new ModelAndView( "error/404", HttpStatus.BAD_REQUEST )
                         .addObject( "message", String.format( "Unknown partner API %s.", remoteHost.getRawAuthority() ) );
             }
-            // redirect to partner API
-            URI requestAccessUrl = UriComponentsBuilder.fromUri( apiUri )
-                    .path( "/search/gene/by-anonymous-id/{anonymousId}/request-access" )
-                    .build( anonymousId );
-            return "redirect:" + requestAccessUrl;
         }
         UserGene userGene = userService.findUserGeneByAnonymousIdNoAuth( anonymousId );
         if ( userGene == null ) {

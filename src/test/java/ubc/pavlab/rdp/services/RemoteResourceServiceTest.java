@@ -217,7 +217,7 @@ public class RemoteResourceServiceTest {
                 .andRespond( withStatus( HttpStatus.OK )
                         .contentType( MediaType.APPLICATION_JSON )
                         .body( objectMapper.writeValueAsString( new OpenAPI().info( new Info().version( "1.0.0" ) ) ) ) );
-        mockServer.expect( requestTo( "http://example.com/api/users/search?nameLike=ok&prefix=true&auth=1234" ) )
+        mockServer.expect( requestTo( "http://example.com/api/users/search?auth=1234&nameLike=ok&prefix=true" ) )
                 .andRespond( withStatus( HttpStatus.OK )
                         .contentType( MediaType.APPLICATION_JSON )
                         .body( objectMapper.writeValueAsString( new User[]{} ) ) );
