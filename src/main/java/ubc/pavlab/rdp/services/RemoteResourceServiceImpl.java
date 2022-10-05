@@ -142,7 +142,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService, Initial
             throw new IllegalArgumentException( "User must be a remote user with an origin URL." );
         }
         return UriComponentsBuilder.fromUri( getApiUri( user.getOriginUrl(), false ) )
-                .path( "/viewUser/{userId}" )
+                .path( "/userView/{userId}" )
                 .build( user.getId() );
     }
 
