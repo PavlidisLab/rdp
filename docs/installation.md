@@ -10,11 +10,21 @@ This section describes the essential steps to deploy an RDP registry.
 
 ## Obtain a distribution of RDP
 
-Download the [latest JAR distribution](https://github.com/PavlidisLab/rdp/releases/latest) from GitHub.
+{% if config.extra.git_ref == 'development' %}
+Build a JAR distribution from source. For that, you will need a Java JDK 8+, Maven and Node.js.
+
+```bash
+git clone https://github.com/PavlidisLab/rdp.git
+cd rdp
+mvn package
+```
+{% else %}
+Download the [JAR distribution from GitHub](https://github.com/PavlidisLab/rdp/releases/v{{ config.extra.rdp_version }}).
 
 ```bash
 wget https://github.com/PavlidisLab/rdp/releases/download/v{{ config.extra.rdp_version }}/rdp-{{ config.extra.rdp_version }}.jar
 ```
+{% endif %}
 
 The JAR contains the core application, including an embedded webserver (Tomcat 9), a task scheduler, an in-memory
 cache, and much more!
