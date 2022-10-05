@@ -5,7 +5,7 @@
 
     <groupId>ubc.pavlab</groupId>
     <artifactId>rdp</artifactId>
-    <version>1.5.3</version>
+    <version>1.5.4</version>
 
     <description>
         Registry for model organism researchers, developed for the Canadian Rare Disease Models &amp; Mechanisms Network.
