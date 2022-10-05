@@ -53,7 +53,7 @@ import java.util.stream.Collectors;
 
 import static java.util.function.Function.identity;
 
-@Service("RemoteResourceService")
+@Service("remoteResourceService")
 @CommonsLog
 @PreAuthorize("hasPermission(null, 'international-search')")
 public class RemoteResourceServiceImpl implements RemoteResourceService, InitializingBean {
@@ -117,7 +117,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService, Initial
     public String getApiVersion( URI remoteHost ) throws RemoteException {
         // Ensure that the remoteHost is one of our known APIs by comparing the URI authority component and always use
         // the URI defined in the configuration
-        URI apiUri = getApiUri( remoteHost );
+        URI apiUri = getApiUri( remoteHost, false );
         URI uri = UriComponentsBuilder.fromUri( apiUri )
                 .path( GET_OPENAPI_PATH )
                 .build()
@@ -134,8 +134,28 @@ public class RemoteResourceServiceImpl implements RemoteResourceService, Initial
     }
 
     @Override
+    public URI getViewUserUrl( User user ) throws UnknownRemoteApiException {
+        if ( user.getId() == null ) {
+            throw new IllegalArgumentException( "User must have a non-null ID." );
+        }
+        if ( user.getOriginUrl() == null ) {
+            throw new IllegalArgumentException( "User must be a remote user with an origin URL." );
+        }
+        return UriComponentsBuilder.fromUri( getApiUri( user.getOriginUrl(), false ) )
+                .path( "/viewUser/{userId}" )
+                .build( user.getId() );
+    }
+
+    @Override
+    public URI getRequestGeneAccessUrl( URI remoteHost, UUID anonymousId ) throws UnknownRemoteApiException {
+        return UriComponentsBuilder.fromUri( getApiUri( remoteHost, false ) )
+                .path( "/search/gene/by-anonymous-id/{anonymousId}/request-access" )
+                .build( anonymousId );
+    }
+
+    @Override
     public RemoteResource getRepresentativeRemoteResource( URI remoteHost ) throws RemoteException {
-        URI uri = UriComponentsBuilder.fromUri( getApiUri( remoteHost ) )
+        URI uri = UriComponentsBuilder.fromUri( getApiUri( remoteHost, false ) )
                 .path( API_ROOT_PATH )
                 .build().toUri();
         return extractRemoteResource( getFromRequestFuture( uri, asyncRestTemplate.getForEntity( uri, OpenAPI.class ) ), remoteHost );
@@ -165,7 +185,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService, Initial
     }
 
     @Data
-    public static class OpenAPI {
+    private static class OpenAPI {
 
         @Data
         public static class Info {
@@ -193,13 +213,14 @@ public class RemoteResourceServiceImpl implements RemoteResourceService, Initial
                 .organUberonIds( organUberonIds )
                 .ontologyTermInfos( ontologyTermInfos )
                 .build().toMultiValueMap() );
-        List<RequestFilter<User[]>> filters;
+        RequestFilter<User[]> filters;
         if ( ontologyTermInfos != null ) {
-            filters = Collections.singletonList( satisfiesVersion( "1.5.0" ) );
+            filters = satisfiesVersion( "1.5.0" );
         } else {
-            filters = Collections.singletonList( satisfiesVersion( "1.0.0" ) );
+            filters = satisfiesVersion( "1.0.0" );
         }
         return getRemoteEntities( User[].class, SEARCH_USERS_PATH, params, filters ).stream()
+                .map( this::initUser )
                 .sorted( User.getComparator() )
                 .collect( Collectors.toList() );
     }
@@ -214,13 +235,14 @@ public class RemoteResourceServiceImpl implements RemoteResourceService, Initial
                 .organUberonIds( organUberonIds )
                 .ontologyTermInfos( ontologyTermInfos )
                 .build().toMultiValueMap() );
-        List<RequestFilter<User[]>> filters;
+        RequestFilter<User[]> filters;
         if ( ontologyTermInfos != null ) {
-            filters = Collections.singletonList( satisfiesVersion( "1.5.0" ) );
+            filters = satisfiesVersion( "1.5.0" );
         } else {
-            filters = Collections.singletonList( satisfiesVersion( "1.0.0" ) );
+            filters = satisfiesVersion( "1.0.0" );
         }
         return getRemoteEntities( User[].class, SEARCH_USERS_PATH, params, filters ).stream()
+                .map( this::initUser )
                 .sorted( User.getComparator() )
                 .collect( Collectors.toList() );
     }
@@ -237,44 +259,37 @@ public class RemoteResourceServiceImpl implements RemoteResourceService, Initial
                 .organUberonIds( organUberonIds )
                 .ontologyTermInfos( ontologyTermInfos )
                 .build().toMultiValueMap() );
-        List<RequestFilter<User[]>> requestFilters = new ArrayList<>();
-        if ( ontologyTermInfos != null ) {
-            requestFilters.add( satisfiesVersion( "1.5.0" ) );
-        }
-        requestFilters.add( ( remoteHost, path, apiParams, chain ) -> {
+        RequestFilter<User[]> requestFilters = ( apiUri, chain ) -> {
             String apiVersion;
             try {
-                apiVersion = remoteResourceService.getApiVersion( remoteHost );
+                apiVersion = remoteResourceService.getApiVersion( apiUri );
             } catch ( RemoteException e ) {
-                log.warn( String.format( "Failed to retrieve API version from %s: %s.", remoteHost, ExceptionUtils.getRootCauseMessage( e ) ) );
-                return Optional.empty();
+                log.warn( String.format( "Failed to retrieve API version from %s: %s.", apiUri, ExceptionUtils.getRootCauseMessage( e ) ) );
+                return null;
             }
             if ( VersionUtils.satisfiesVersion( apiVersion, "1.5.0" ) ) {
-                return chain.next().filter( remoteHost, path, apiParams, chain );
+                return chain.filter( apiUri, chain );
+            } else if ( ontologyTermInfos != null ) {
+                // pre-1.5 registry do not support ontology terms
+                return CompletableFuture.completedFuture( ResponseEntity.ok( new User[0] ) );
             } else if ( VersionUtils.satisfiesVersion( apiVersion, "1.0.0" ) ) {
                 // this is a pre-1.5 workaround that reproduces the result of the query by intersecting the output
                 // of two endpoints
 
                 // request 1 (nameLike)
-                MultiValueMap<String, String> apiParams1 = new LinkedMultiValueMap<>( apiParams );
-                apiParams1.remove( "descriptionLike" );
-                URI uri1 = UriComponentsBuilder.fromUri( remoteHost )
-                        .path( path )
-                        .replaceQueryParams( apiParams1 )
+                URI uri1 = UriComponentsBuilder.fromUri( apiUri )
+                        .replaceQueryParam( "descriptionLike" )
                         .build().toUri();
                 CompletableFuture<ResponseEntity<User[]>> nameLikeFuture = asyncRestTemplate.getForEntity( uri1, User[].class ).completable();
 
                 // request 2 (descriptionLike)
-                MultiValueMap<String, String> apiParams2 = new LinkedMultiValueMap<>( apiParams );
-                apiParams2.remove( "nameLike" );
-                apiParams2.remove( "prefix" );
-                URI uri2 = UriComponentsBuilder.fromUri( remoteHost )
-                        .path( path )
-                        .replaceQueryParams( apiParams2 )
+                URI uri2 = UriComponentsBuilder.fromUri( apiUri )
+                        .replaceQueryParam( "nameLike" )
+                        .replaceQueryParam( "prefix" )
                         .build().toUri();
                 CompletableFuture<ResponseEntity<User[]>> descriptionLikeFuture = asyncRestTemplate.getForEntity( uri2, User[].class ).completable();
 
-                return Optional.of( Pair.of( uri1, nameLikeFuture.thenCombine( descriptionLikeFuture, ( a, b ) -> {
+                return nameLikeFuture.thenCombine( descriptionLikeFuture, ( a, b ) -> {
                     if ( a.getBody() == null || b.getBody() == null ) {
                         log.warn( String.format( "One or both of these responses had a null body: %s, %s. Nothing will be returned for the intersection.", a, b ) );
                         return new ResponseEntity<>( new User[0], a.getHeaders(), a.getStatusCode() );
@@ -283,12 +298,13 @@ public class RemoteResourceServiceImpl implements RemoteResourceService, Initial
                     Set<User> descriptionLikeUsers = new HashSet<>( Arrays.asList( b.getBody() ) );
                     nameLikeUsers.retainAll( descriptionLikeUsers );
                     return new ResponseEntity<>( nameLikeUsers.toArray( new User[0] ), a.getHeaders(), a.getStatusCode() );
-                } ) ) );
+                } );
             } else {
-                return Optional.empty();
+                return null;
             }
-        } );
+        };
         return getRemoteEntities( User[].class, SEARCH_USERS_PATH, params, requestFilters ).stream()
+                .map( this::initUser )
                 .sorted( User.getComparator() )
                 .collect( Collectors.toList() );
     }
@@ -310,11 +326,11 @@ public class RemoteResourceServiceImpl implements RemoteResourceService, Initial
                     .organUberonIds( organUberonIds )
                     .ontologyTermInfos( ontologyTermInfos )
                     .build().toMultiValueMap() );
-            List<RequestFilter<UserGene[]>> filters;
+            RequestFilter<UserGene[]> filters;
             if ( ontologyTermInfos != null ) {
-                filters = Collections.singletonList( satisfiesVersion( "1.5.0" ) );
+                filters = satisfiesVersion( "1.5.0" );
             } else {
-                filters = Collections.singletonList( satisfiesVersion( "1.0.0" ) );
+                filters = satisfiesVersion( "1.0.0" );
             }
             intlUsergenes.addAll( getRemoteEntities( UserGene[].class, SEARCH_GENES_PATH, params, filters ) );
         }
@@ -322,7 +338,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService, Initial
                 .collect( Collectors.toMap( Taxon::getId, Taxon::getOrdering ) );
         for ( UserGene g : intlUsergenes ) {
             // add back-reference to user
-            g.setUser( g.getRemoteUser() );
+            g.setUser( initUser( g.getRemoteUser() ) );
             // populate taxon ordering
             g.getTaxon().setOrdering( taxonOrderingById.getOrDefault( g.getTaxon().getId(), null ) );
         }
@@ -336,13 +352,9 @@ public class RemoteResourceServiceImpl implements RemoteResourceService, Initial
     public User getRemoteUser( Integer userId, URI remoteHost ) throws RemoteException {
         // Ensure that the remoteHost is one of our known APIs by comparing the URI authority component and always use
         // the URI defined in the configuration
-        URI apiUri = getApiUri( remoteHost );
-
-        MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
-        addAuthParamIfAdmin( apiUri, queryParams );
+        URI apiUri = getApiUri( remoteHost, true );
         URI uri = UriComponentsBuilder.fromUri( apiUri )
                 .path( GET_USER_PATH )
-                .replaceQueryParams( queryParams )
                 .build( Collections.singletonMap( "userId", userId ) );
 
         return getUserByUri( uri );
@@ -350,7 +362,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService, Initial
 
     @Override
     public User getAnonymizedUser( UUID anonymousId, URI remoteHost ) throws RemoteException {
-        URI apiUri = getApiUri( remoteHost );
+        URI apiUri = getApiUri( remoteHost, true );
 
         // the currentProxy() is necessary to have the result cached
         if ( !VersionUtils.satisfiesVersion( remoteResourceService.getApiVersion( remoteHost ), "1.4.0" ) ) {
@@ -358,11 +370,8 @@ public class RemoteResourceServiceImpl implements RemoteResourceService, Initial
             return null;
         }
 
-        MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
-        addAuthParamIfAdmin( apiUri, queryParams );
         URI uri = UriComponentsBuilder.fromUri( apiUri )
                 .path( GET_USER_BY_ANONYMOUS_ID_PATH )
-                .replaceQueryParams( queryParams )
                 .buildAndExpand( Collections.singletonMap( "anonymousId", anonymousId ) )
                 .toUri();
 
@@ -384,7 +393,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService, Initial
         List<String> termIds = terms.stream()
                 .map( OntologyTermInfo::getTermId )
                 .collect( Collectors.toList() );
-        URI uri = UriComponentsBuilder.fromUri( getApiUri( remoteHost ) )
+        URI uri = UriComponentsBuilder.fromUri( getApiUri( remoteHost, false ) )
                 .path( GET_ONTOLOGY_TERMS_PATH )
                 .queryParam( "ontologyTermIds", termIds )
                 .build( ontology.getName() );
@@ -408,101 +417,37 @@ public class RemoteResourceServiceImpl implements RemoteResourceService, Initial
 
     @Override
     public List<URI> getApiUris() {
-        return Arrays.stream( applicationSettings.getIsearch().getApis() )
-                .map( u -> {
-                    try {
-                        // some URIs have the 'auth' and 'noauth' query parameter, we don't want to make that visible
-                        return new URI( u.getScheme(), u.getAuthority(), u.getPath(), null, null );
-                    } catch ( URISyntaxException e ) {
-                        throw new RuntimeException( e );
-                    }
-                } )
-                .collect( Collectors.toList() );
+        return getApiUris( false );
     }
+
 
     private User getUserByUri( URI uri ) throws RemoteException {
-        User user = getFromRequestFuture( uri, asyncRestTemplate.getForEntity( uri, User.class ) );
-        initUser( user );
-        return user;
-    }
-
-    /**
-     * This interface allow one to post-process.
-     *
-     * @param <T> the type of entities that is retrieved from the endpoint
-     */
-    @FunctionalInterface
-    private interface RequestFilter<T> {
-
-        /**
-         * @param remoteHost remote host
-         * @param params     the query parameters
-         * @param chain      to call the next step in the process
-         * @return the result of the step, or {@link Optional#empty()} to abort the chain
-         */
-        Optional<Pair<URI, Future<ResponseEntity<T>>>> filter( URI remoteHost, String path, MultiValueMap<String, String> params, Iterator<RequestFilter<T>> chain );
-    }
-
-    /**
-     * Filter to check if and endpoint satisfies a given API version requirement.
-     *
-     * @param minimumVersion minimum version requirement as per {@link VersionUtils#satisfiesVersion(String, String)}
-     * @return the result of the next filter in the chain if the version requirement is satisfied, otherwise null
-     */
-    private <T> RequestFilter<T> satisfiesVersion( String minimumVersion ) {
-        return ( remoteHost, path, params, chain ) -> {
-            String apiVersion;
-            try {
-                apiVersion = remoteResourceService.getApiVersion( remoteHost );
-            } catch ( RemoteException e ) {
-                log.warn( String.format( "Failed to retrieve API version from %s: %s", remoteHost, ExceptionUtils.getRootCauseMessage( e ) ) );
-                return Optional.empty();
-            }
-            if ( VersionUtils.satisfiesVersion( apiVersion, minimumVersion ) ) {
-                return chain.next().filter( remoteHost, path, params, chain );
-            } else {
-                return Optional.empty();
-            }
-        };
-    }
-
-    private <T> RequestFilter<T> createFinalUri() {
-        return ( remoteHost, path, params, chain ) -> {
-            // work on a copy because we'll be selectively adding auth information
-            LinkedMultiValueMap<String, String> apiParams = new LinkedMultiValueMap<>( params );
-            addAuthParamIfAdmin( remoteHost, apiParams );
-            return chain.next().filter( UriComponentsBuilder.fromUri( remoteHost )
-                    .path( path )
-                    .replaceQueryParams( apiParams )
-                    .build().toUri(), path, apiParams, chain );
-        };
-    }
-
-    private <T> RequestFilter<T[]> performApiQuery( Class<T[]> arrCls ) {
-        return ( uri, path, params, chain ) -> Optional.of( Pair.of( uri, asyncRestTemplate.getForEntity( uri, arrCls ) ) );
+        return initUser( getFromRequestFuture( uri, asyncRestTemplate.getForEntity( uri, User.class ) ) );
     }
 
     /**
      * Retrieve entities from all registered partner APIs.
      *
-     * @param arrCls         the type of entities to retrieve as a {@link Class}
-     * @param path           the API endpoint to query
-     * @param params         the initial API parameters
-     * @param requestFilters a chain of {@link RequestFilter} to apply on the above parameters to ultimately produce the
-     *                       desired entity
-     * @param <T>            the type of entities to retrieve
+     * @param arrCls        the type of entities to retrieve as a {@link Class}
+     * @param path          the API endpoint to query
+     * @param params        the initial API parameters
+     * @param requestFilter a {@link RequestFilter} to apply on the above parameters to ultimately produce the
+     *                      desired entity
+     * @param <T>           the type of entities to retrieve
      * @return the entities from all registered partner APIs
      */
-    private <T> Collection<T> getRemoteEntities( Class<T[]> arrCls, String path, MultiValueMap<String, String> params, List<RequestFilter<T[]>> requestFilters ) {
-        List<RequestFilter<T[]>> pp = new ArrayList<>( requestFilters.size() + 2 );
-        pp.addAll( requestFilters );
-        pp.add( createFinalUri() );
-        pp.add( performApiQuery( arrCls ) );
-
+    private <T> Collection<T> getRemoteEntities( Class<T[]> arrCls, String path, MultiValueMap<String, String> params, RequestFilter<T[]> requestFilter ) {
         // it's important to collect, otherwise the future will be created and joined one-by-one, defeating the purpose of using them in the first place
-        List<Pair<URI, Future<ResponseEntity<T[]>>>> uriAndFutures = Arrays.stream( applicationSettings.getIsearch().getApis() )
-                .map( uri -> invokeChain( pp, uri, path, params ) )
-                .filter( Optional::isPresent ).map( Optional::get )
+        List<Pair<URI, Future<ResponseEntity<T[]>>>> uriAndFutures = getApiUris( true ).stream()
+                .map( uri -> UriComponentsBuilder.fromUri( uri )
+                        .path( path )
+                        .queryParams( params )
+                        .build().toUri() )
+                .map( uri -> {
+                    Future<ResponseEntity<T[]>> entity = requestFilter.filter( uri, ( apiUri, next ) -> asyncRestTemplate.getForEntity( apiUri, arrCls ) );
+                    return entity == null ? null : Pair.of( uri, entity );
+                } )
+                .filter( Objects::nonNull )
                 .collect( Collectors.toList() );
 
         List<T> entities = new ArrayList<>();
@@ -531,11 +476,6 @@ public class RemoteResourceServiceImpl implements RemoteResourceService, Initial
         return false;
     }
 
-    private <T> Optional<Pair<URI, Future<ResponseEntity<T>>>> invokeChain( List<RequestFilter<T>> chain, URI uri, String path, MultiValueMap<String, String> params ) {
-        Iterator<RequestFilter<T>> c = chain.iterator();
-        return c.next().filter( uri, path, params, c );
-    }
-
     private <T> T getFromRequestFuture( URI uri, Future<ResponseEntity<T>> future ) throws RemoteException {
         try {
             T entity = future.get().getBody();
@@ -551,20 +491,61 @@ public class RemoteResourceServiceImpl implements RemoteResourceService, Initial
         }
     }
 
-    private URI getApiUri( URI remoteHost ) throws UnknownRemoteApiException {
+    /**
+     * Obtain an API URI given a remote host with the option of preserving authentication information.
+     *
+     * @param remoteHost   remote host used to match one of the configured API URI
+     * @param authenticate authenticate the given URI if the current user is an administrator
+     * @return an API URI configured with authentication if authenticate is true and the current user is an
+     * administrator
+     * @throws UnknownRemoteApiException if no API URI can be found matching the remote host
+     */
+    private URI getApiUri( URI remoteHost, boolean authenticate ) throws UnknownRemoteApiException {
         String remoteHostAuthority = remoteHost.getAuthority();
         Map<String, URI> apiUriByAuthority = Arrays.stream( applicationSettings.getIsearch().getApis() )
                 .collect( Collectors.toMap( URI::getAuthority, identity() ) );
-        if ( !apiUriByAuthority.containsKey( remoteHost.getAuthority() ) ) {
+        URI apiUri = apiUriByAuthority.get( remoteHostAuthority );
+        if ( apiUri == null ) {
             throw new UnknownRemoteApiException( remoteHost );
         }
-        return apiUriByAuthority.get( remoteHostAuthority );
+        return prepareApiUri( apiUri, authenticate );
     }
 
-    private void initUser( User user ) {
+    public List<URI> getApiUris( boolean authenticate ) {
+        return Arrays.stream( applicationSettings.getIsearch().getApis() )
+                .map( apiUri -> prepareApiUri( apiUri, authenticate ) )
+                .collect( Collectors.toList() );
+    }
+
+    private URI prepareApiUri( URI apiUri, boolean authenticate ) {
+        UriComponentsBuilder uri = UriComponentsBuilder.fromUri( apiUri )
+                .replaceQueryParam( "auth" )
+                .replaceQueryParam( "noauth" );
+        if ( authenticate ) {
+            User user = userService.findCurrentUser();
+            if ( user != null && user.getRoles().contains( roleRepository.findByRole( "ROLE_ADMIN" ) ) ) {
+                UriComponents apiUriComponents = UriComponentsBuilder.fromUri( apiUri ).build();
+                //noinspection StatementWithEmptyBody
+                if ( apiUriComponents.getQueryParams().containsKey( "noauth" ) ) {
+                    // do nothing, we don't have admin access for this partner
+                } else if ( apiUriComponents.getQueryParams().containsKey( "auth" ) ) {
+                    // use a specific search token
+                    uri.queryParam( "auth", apiUriComponents.getQueryParams().getFirst( "auth" ) );
+                } else if ( applicationSettings.getIsearch().getSearchToken() != null ) {
+                    // use the default search token
+                    uri.queryParam( "auth", applicationSettings.getIsearch().getSearchToken() );
+                }
+            }
+        }
+        return uri.build().toUri();
+    }
+
+    private User initUser( User user ) {
+        user.setEnabled( true );
         user.getUserGenes().values().forEach( ug -> ug.setUser( user ) );
         user.getUserTerms().forEach( ug -> ug.setUser( user ) );
         user.getUserOrgans().values().forEach( ug -> ug.setUser( user ) );
+        return user;
     }
 
     private SortedSet<TierType> restrictTiers( Set<TierType> tiers ) {
@@ -573,26 +554,45 @@ public class RemoteResourceServiceImpl implements RemoteResourceService, Initial
                 .collect( Collectors.toCollection( TreeSet::new ) );
     }
 
-    private void addAuthParamIfAdmin( URI apiUri, MultiValueMap<String, String> query ) {
-        User user = userService.findCurrentUser();
-        if ( user != null && user.getRoles().contains( roleRepository.findByRole( "ROLE_ADMIN" ) ) ) {
-            UriComponents apiUriComponents = UriComponentsBuilder.fromUri( apiUri ).build();
-            //noinspection StatementWithEmptyBody
-            if ( apiUriComponents.getQueryParams().containsKey( "noauth" ) ) {
-                // do nothing, we don't have admin access for this partner
-            } else if ( apiUriComponents.getQueryParams().containsKey( "auth" ) ) {
-                // use a specific search token
-                query.add( "auth", apiUriComponents.getQueryParams().getFirst( "auth" ) );
-            } else if ( applicationSettings.getIsearch().getSearchToken() != null ) {
-                // use the default search token
-                query.add( "auth", applicationSettings.getIsearch().getSearchToken() );
+    /**
+     * Interface used to construct a filter chain.
+     *
+     * @param <T> the type of entities that is retrieved from the endpoint
+     */
+    @FunctionalInterface
+    private interface RequestFilter<T> {
+
+        /**
+         * @param apiUri the API URI
+         * @return the result of the step, or null to abort the chain
+         * @
+         */
+        Future<ResponseEntity<T>> filter( URI apiUri, RequestFilter<T> next );
+    }
+
+    /**
+     * Filter that checks if and endpoint satisfies a given API version requirement.
+     */
+    private <T> RequestFilter<T> satisfiesVersion( String minimumVersion ) {
+        return ( apiUri, next ) -> {
+            String apiVersion;
+            try {
+                apiVersion = remoteResourceService.getApiVersion( apiUri );
+            } catch ( RemoteException e ) {
+                log.warn( String.format( "Failed to retrieve API version from %s: %s", apiUri, ExceptionUtils.getRootCauseMessage( e ) ) );
+                return null;
             }
-        }
+            if ( VersionUtils.satisfiesVersion( apiVersion, minimumVersion ) ) {
+                return next.filter( apiUri, null );
+            } else {
+                return null;
+            }
+        };
     }
 
     @Data
     @SuperBuilder
-    static class UserSearchParams {
+    private static class UserSearchParams {
 
         private Collection<ResearcherPosition> researcherPositions;
         private Collection<ResearcherCategory> researcherCategories;
@@ -631,7 +631,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService, Initial
     @Data
     @EqualsAndHashCode(callSuper = true)
     @SuperBuilder
-    static class UserGeneSearchParams extends UserSearchParams {
+    private static class UserGeneSearchParams extends UserSearchParams {
 
         private Integer taxonId;
         private TierType tier;

@@ -37,24 +37,18 @@
         ],
         "footerCallback": function () {
             var api = this.api();
-            var columnData = api.columns().data();
-            var tiers = columnData[2];
+            var tiers = api.column(3).data();
             var counts = tiers.reduce(function (acc, curr) {
-                if (acc[curr]) {
-                    acc[curr]++;
-                } else {
-                    acc[curr] = 1;
-                }
+                acc[curr]++;
                 return acc;
-            }, {});
-            $(api.column(1).footer()).html(
-                '<span class="mx-1"><b>' + ('TIER1' in counts ? counts.TIER1 : "0") + '</b> TIER1' + '</span>' +
-                '<span class="mx-1" style="border-right: 3px solid #f2f7f9;"></span>' +
-                '<span class="mx-1"><b>' + ('TIER2' in counts ? counts.TIER2 : "0") + '</b> TIER2' + '</span>' +
-                '<span class="mx-1" style="border-right: 3px solid #F2F7F9;"></span>' +
-                '<span class="mx-1"><b>' + ('TIER3' in counts ? counts.TIER3 : "0") + '</b> TIER3' + '</span>'
-            );
-
+            }, {TIER1: 0, TIER2: 0, TIER3: 0});
+            var footer = api.column(1).footer();
+            footer.innerHTML =
+                '<span><b>' + counts.TIER1 + '</b> Tier 1' + '</span>' +
+                '<span class="mx-2 border-right"></span>' +
+                '<span><b>' + counts.TIER2 + '</b> Tier 2' + '</span>' +
+                '<span class="mx-2 border-right"></span>' +
+                '<span><b>' + counts.TIER3 + '</b> Tier 3' + '</span>';
         }
     });
 

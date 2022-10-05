@@ -5,7 +5,7 @@
     <h4 th:text="${user.profile.fullName}"></h4>
     <p th:unless="${user.profile.researcherCategories.isEmpty()}">
         <span th:each="researcherCategory : ${user.profile.researcherCategories}"
-              class="badge badge-info"
+              class="badge badge-info mr-1"
               th:text="${@messageSource.getMessage(researcherCategory.resolvableTitle, #locale)}"></span>
     </p>
     <p th:text="${#strings.abbreviate(user.profile.description, 200)}"></p>
