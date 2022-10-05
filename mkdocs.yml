@@ -12,4 +12,5 @@ nav:
 plugins:
   - macros
 extra:
-  rdp_version: 1.4.6
+  rdp_version: 1.4.11
+  git_ref: support-1.4

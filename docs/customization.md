@@ -278,7 +278,7 @@ rdp.settings.privacy.enable-anonymized-search-results=false
 
 Some text displayed in RDP can be customized and/or internationalized. To do so, copy a provided `messages.properties`
 file in the working directory of the Web application and edit it. The file is found in
-[messages.properties](https://github.com/PavlidisLab/rgr/blob/master/src/main/resources/messages.properties)
+[messages.properties](https://github.com/PavlidisLab/rgr/blob/{{ git_ref }}/src/main/resources/messages.properties)
 
 You can use suffixed like `messages_en_CA.properties` for region-specific customization.
 
@@ -303,7 +303,7 @@ rdp.faq.answers.<q_key>=A plausible answer.
 ```
 
 The provided default file can be found
-in [faq.properties](https://github.com/PavlidisLab/rgr/tree/master/src/main/resources/faq.properties).
+in [faq.properties](https://github.com/PavlidisLab/rgr/tree/{{ git_ref }}/src/main/resources/faq.properties).
 
 ## Terms of service and privacy policy
 

@@ -70,7 +70,7 @@ This file contains the database and SMTP credentials and various runtime configu
 the user that will run the instance.
 
 Documentation for options with their default values are available
-in [application.properties](https://github.com/PavlidisLab/rgr/blob/development/src/main/resources/application.properties)
+in [application.properties](https://github.com/PavlidisLab/rgr/blob/{{ git_ref }}/src/main/resources/application.properties)
 .
 
 That should be enough to get the Web service started. Now you can launch it by issuing the following command:
