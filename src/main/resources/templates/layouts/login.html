@@ -37,7 +37,7 @@
                      class="col-6 text-center">
                     <a th:href="@{/login}">Return to my user profile</a>
                 </div>
-                <div sec:authorize="!isAuthenticated()"
+                <div sec:authorize="isAnonymous()"
                      class="col-6 text-center">
                     <a th:href="@{/login}">Return to login</a>
                 </div>

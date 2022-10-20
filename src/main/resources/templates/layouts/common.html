@@ -64,7 +64,7 @@
                         <a class="nav-link" th:href="@{/search}" href="/search">Search</a>
                     </li>
                 </ul>
-                <ul sec:authorize="!isAuthenticated()"
+                <ul sec:authorize="isAnonymous()"
                     class="navbar-nav mr-auto"></ul>
                 <ul class="navbar-nav">
                     <li sec:authorize="isAuthenticated()"
@@ -96,7 +96,7 @@
                             <a class="dropdown-item" th:href="@{/logout}" href="/logout">Logout</a>
                         </div>
                     </li>
-                    <li sec:authorize="!isAuthenticated()"
+                    <li sec:authorize="isAnonymous()"
                         class="nav-item">
                         <a class="nav-link" th:href="@{/login}" href="/login">Login &amp; Registration</a>
                     </li>
@@ -142,7 +142,7 @@
         All rights reserved.
     </span>
     <a sec:authorize="isAuthenticated()" class="d-inline-block" th:href="@{/user/support}">Contact Support</a>
-    <a sec:authorize="!isAuthenticated()" class="d-inline-block" th:href="${'mailto:' + @siteSettings.contactEmail}">Contact
+    <a sec:authorize="isAnonymous()" class="d-inline-block" th:href="${'mailto:' + @siteSettings.contactEmail}">Contact
         Support</a>
 </footer>
 <th:block th:fragment="scripts">
