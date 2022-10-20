@@ -1,17 +1,15 @@
 package ubc.pavlab.rdp.security.authentication;
 
-import org.springframework.context.MessageSource;
 import org.springframework.security.authentication.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.util.Assert;
 import ubc.pavlab.rdp.exception.TokenException;
 import ubc.pavlab.rdp.model.User;
 import ubc.pavlab.rdp.model.UserPrinciple;
 import ubc.pavlab.rdp.services.ExpiredTokenException;
 import ubc.pavlab.rdp.services.UserService;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
-
-import java.util.Locale;
 
 /**
  * @author poirigui
@@ -25,6 +23,10 @@ public class TokenBasedAuthenticationManager implements AuthenticationManager, A
     public TokenBasedAuthenticationManager( UserService userService, ApplicationSettings applicationSettings ) {
         this.userService = userService;
         this.applicationSettings = applicationSettings;
+        Assert.isTrue( applicationSettings.getIsearch().getAuthTokens().isEmpty() || applicationSettings.getIsearch().getUserId() != null,
+                "The remote search user is not configured correctly: there are auth tokens configured, no user ID is specified." );
+        Assert.isTrue( applicationSettings.getIsearch().getUserId() == null || userService.getRemoteSearchUser().isPresent(),
+                String.format( "The remote search user is not configured correctly: no user can be found with ID %d.", applicationSettings.getIsearch().getUserId() ) );
     }
 
     @Override
@@ -33,10 +35,10 @@ public class TokenBasedAuthenticationManager implements AuthenticationManager, A
         User u;
         if ( applicationSettings.getIsearch().getAuthTokens().contains( authToken ) ) {
             // remote admin authentication
-            u = userService.getRemoteSearchUser().orElse( null );
-            if ( u == null ) {
-                throw new InternalAuthenticationServiceException( "The remote search user is not configured correctly." );
-            }
+            u = userService.getRemoteSearchUser()
+                    .orElseThrow( () -> new InternalAuthenticationServiceException(
+                            String.format( "The remote search user is not configured correctly: no user can be found with ID %d.",
+                                    applicationSettings.getIsearch().getUserId() ) ) );
         } else {
             // authentication via access token
             try {
