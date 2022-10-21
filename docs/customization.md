@@ -520,13 +520,30 @@ In the file, each entry requires two parts: `rdp.faq.questions.<q_key>` and `rdp
 question and the corresponding answer, respectively.
 
 ```properties
+rdp.faq.keys=<q_key>
 rdp.faq.questions.<q_key>=A relevant question.
 rdp.faq.answers.<q_key>=A plausible answer.
 ```
 
-The provided default file can be found
-in [faq.properties](https://github.com/PavlidisLab/rdp/tree/{{ config.extra.git_ref
-}}/src/main/resources/faq.properties).
+The provided default file can be found in [faq.properties](https://github.com/PavlidisLab/rdp/tree/{{ config.extra.git_ref }}/src/main/resources/faq.properties).
+
+### Ordering FAQ entries
+
+!!! note
+
+    New in 1.5.4
+
+he `rdp.faq.keys` FAQ setting can be used to customize the ordering and appearance of FAQ entries. If the setting is
+left unset, the default will be to arrange FAQ questions in alphabetic order of their keys.
+
+### Translating FAQ entries
+
+!!! note
+
+    New in 1.5.4
+
+The FAQ messages can now be translated by reusing the `rdp.faq.questions.<q_key>` and `rdp.faq.answers.<q_key>` as codes
+for the `messages.properties` file.
 
 ## Terms of service and privacy policy
 

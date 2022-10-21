@@ -17,20 +17,20 @@
 
         <nav id="main-nav" class="navbar navbar-light bg-light">
             <nav class="nav flex-column">
-                <a th:each="question : ${@faqSettings.questions}" th:href="${'#' + question.key}"
-                   th:text="${@messageSource.getMessage(@faqSettings.getResolvableQuestion(question.key), #locale)}"></a>
+                <a th:each="key : ${@faqSettings.keys}" th:href="${'#' + key}"
+                   th:text="${@messageSource.getMessage(@faqSettings.getResolvableQuestion(key), #locale)}"></a>
             </nav>
         </nav>
         <div class="dropdown-divider"></div>
         <div>
-            <div th:each="question : ${@faqSettings.questions}" class="card my-3">
+            <div th:each="key : ${@faqSettings.keys}" class="card my-3">
                 <div class="card-header">
-                    <h4 th:id="${question.key}"
-                        th:text="${@messageSource.getMessage(@faqSettings.getResolvableQuestion(question.key), #locale)}">
+                    <h4 th:id="${key}"
+                        th:text="${@messageSource.getMessage(@faqSettings.getResolvableQuestion(key), #locale)}">
                         class="mb-0"></h4>
                 </div>
                 <div class="card-body"
-                     th:utext="${@messageSource.getMessage(@faqSettings.getResolvableAnswer(question.key), #locale)}">
+                     th:utext="${@messageSource.getMessage(@faqSettings.getResolvableAnswer(key), #locale)}">
                 </div>
             </div>
         </div>
