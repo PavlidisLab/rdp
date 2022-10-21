@@ -318,10 +318,10 @@ The content of `messages.properties` has precedence over the values stored in th
 categories and terms. This allows you to override values that are imported from an OBO source as you see fit.
 
 ```properties
-rdp.ontologies.{ontologyName}.title
-rdp.ontologies.{ontologyName}.definition
-rdp.ontologies.{ontologyName}.terms.{termName}.title
-rdp.ontologies.{ontologyName}.terms.{termName}.definition
+rdp.ontologies.{ontologyName}.title=
+rdp.ontologies.{ontologyName}.definition=
+rdp.ontologies.{ontologyName}.terms.{termName}.title=
+rdp.ontologies.{ontologyName}.terms.{termName}.definition=
 ```
 
 If your ontology/category is based on a [PURL](https://obofoundry.org/principles/fp-003-uris.html) source, its name will
