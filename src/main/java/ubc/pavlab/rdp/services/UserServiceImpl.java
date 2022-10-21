@@ -40,6 +40,7 @@ import ubc.pavlab.rdp.repositories.*;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.util.CacheUtils;
 import ubc.pavlab.rdp.util.CollectionUtils;
+import ubc.pavlab.rdp.util.Messages;
 
 import javax.validation.ValidationException;
 import java.security.SecureRandom;
@@ -335,9 +336,8 @@ public class UserServiceImpl implements UserService, InitializingBean {
     @Override
     @PostAuthorize("hasPermission(returnObject, 'read')")
     public User anonymizeUser( User user, UUID anonymousId ) {
-        String shortName = messageSource.getMessage( "rdp.site.shortname", null, Locale.getDefault() );
         Profile profile = Profile.builder()
-                .name( messageSource.getMessage( "rdp.site.anonymized-user-name", new String[]{ shortName }, Locale.getDefault() ) )
+                .name( messageSource.getMessage( "rdp.site.anonymized-user-name", new Object[]{ Messages.SHORTNAME }, Locale.getDefault() ) )
                 .privacyLevel( applicationSettings.getPrivacy().isEnableAnonymizedSearchResults() ? PrivacyLevelType.PUBLIC : PrivacyLevelType.PRIVATE )
                 .shared( true )
                 .build();
