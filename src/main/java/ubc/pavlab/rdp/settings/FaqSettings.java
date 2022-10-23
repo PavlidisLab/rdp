@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 /**
  * Created by mjacobson on 22/01/18.
  */
-@Configuration
+@Configuration("faqSettings")
 @ConfigurationProperties(prefix = "rdp.faq")
 @PropertySource("${rdp.settings.faq-file}")
 @Data

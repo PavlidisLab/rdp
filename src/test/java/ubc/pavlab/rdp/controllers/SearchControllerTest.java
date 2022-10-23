@@ -2,20 +2,20 @@ package ubc.pavlab.rdp.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hamcrest.Matchers;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.internal.verification.VerificationModeFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import ubc.pavlab.rdp.exception.RemoteException;
 import ubc.pavlab.rdp.exception.UnknownRemoteApiException;
@@ -23,7 +23,6 @@ import ubc.pavlab.rdp.listeners.UserListener;
 import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.ResearcherCategory;
-import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.model.ontology.Ontology;
 import ubc.pavlab.rdp.model.ontology.OntologyTermInfo;
@@ -35,13 +34,17 @@ import ubc.pavlab.rdp.settings.SiteSettings;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -49,7 +52,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static ubc.pavlab.rdp.util.TestUtils.*;
 
-@RunWith(SpringRunner.class)
+@TestPropertySource("classpath:application.properties")
+@Import({ ApplicationSettings.class, SiteSettings.class })
 @WebMvcTest({ SearchController.class, SearchViewController.class })
 public class SearchControllerTest {
 
@@ -58,30 +62,6 @@ public class SearchControllerTest {
 
     @Autowired
     private ObjectMapper objectMapper;
-
-    @MockBean(name = "applicationSettings")
-    private ApplicationSettings applicationSettings;
-
-    @MockBean
-    private ApplicationSettings.ProfileSettings profileSettings;
-
-    @MockBean
-    private ApplicationSettings.PrivacySettings privacySettings;
-
-    @MockBean(name = "siteSettings")
-    private SiteSettings siteSettings;
-
-    @MockBean
-    private ApplicationSettings.SearchSettings searchSettings;
-
-    @MockBean
-    private ApplicationSettings.OrganSettings organSettings;
-
-    @MockBean
-    private ApplicationSettings.InternationalSearchSettings iSearchSettings;
-
-    @MockBean
-    private ApplicationSettings.OntologySettings ontologySettings;
 
     @MockBean(name = "userService")
     private UserService userService;
@@ -125,18 +105,8 @@ public class SearchControllerTest {
     @MockBean(name = "ontologyMessageSource")
     private MessageSource ontologyMessageSource;
 
-    @Before
+    @BeforeEach
     public void setUp() {
-        when( applicationSettings.getEnabledTiers() ).thenReturn( EnumSet.allOf( TierType.class ) );
-        when( applicationSettings.getPrivacy() ).thenReturn( privacySettings );
-        when( applicationSettings.getProfile() ).thenReturn( profileSettings );
-        when( profileSettings.getEnabledResearcherCategories() ).thenReturn( EnumSet.allOf( ResearcherCategory.class ) );
-        when( profileSettings.getEnabledResearcherPositions() ).thenReturn( EnumSet.of( ResearcherPosition.PRINCIPAL_INVESTIGATOR ) );
-        when( applicationSettings.getSearch() ).thenReturn( searchSettings );
-        when( searchSettings.getEnabledSearchModes() ).thenReturn( new LinkedHashSet<>( EnumSet.allOf( ApplicationSettings.SearchSettings.SearchMode.class ) ) );
-        when( applicationSettings.getOrgans() ).thenReturn( organSettings );
-        when( applicationSettings.getIsearch() ).thenReturn( iSearchSettings );
-        when( applicationSettings.getOntology() ).thenReturn( ontologySettings );
         when( permissionEvaluator.hasPermission( any(), isNull(), eq( Permissions.SEARCH ) ) ).thenReturn( true );
         when( permissionEvaluator.hasPermission( any(), isNull(), eq( Permissions.INTERNATIONAL_SEARCH ) ) ).thenReturn( true );
     }
