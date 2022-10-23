@@ -40,6 +40,8 @@ public class FaqSettings implements InitializingBean {
 
     @Override
     public void afterPropertiesSet() {
+        if ( faqFile == null )
+            return;
         if ( keys == null ) {
             log.warn( "The 'faq.keys' is unset, will default to the question keys in alphabetic order." );
             keys = questions.keySet().stream().sorted().collect( Collectors.toList() );
