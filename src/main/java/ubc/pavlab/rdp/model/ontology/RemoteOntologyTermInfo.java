@@ -12,7 +12,7 @@ import java.net.URI;
 @Data
 @SuperBuilder
 @NoArgsConstructor
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(of = { "ontology" }, callSuper = true)
 public class RemoteOntologyTermInfo extends OntologyTermInfo implements RemoteResource {
 
     public static RemoteOntologyTermInfoBuilder<?, ?> builder( RemoteOntology ontology, String termId ) {

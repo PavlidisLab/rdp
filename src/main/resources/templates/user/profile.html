@@ -237,6 +237,7 @@
                             <label th:for="${#ids.next('profile.description')}" class="mb-0">About My Research</label>
                         </h3>
                     </div>
+                    <div class="card-body alert-info p-3">We recommend using 100-500 words to describe your research interests with details sufficient to match your specific interests and expertise with preclinical research questions submitted to the network</div>
                     <div class="p-2" style="height: 120px;">
                         <textarea th:id="${#ids.seq('profile.description')}"
                                   th:field="*{description}"
@@ -308,7 +309,7 @@
                     <div class="card-header">
                         <h3 class="mb-0">Publications</h3>
                     </div>
-                    <div class="card-body alert-info">
+                    <div class="card-body alert-info p-3">
                         Please indicate publications directly linked to your identified expertise.
                     </div>
                     <div class="card-body">

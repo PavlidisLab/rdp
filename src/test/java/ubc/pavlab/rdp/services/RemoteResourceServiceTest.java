@@ -177,6 +177,7 @@ public class RemoteResourceServiceTest {
                         .body( objectMapper.writeValueAsString( new OpenAPI().info( new Info().title( "RDP RESTful API" ) )
                                 .servers( Collections.singletonList( new Server().url( "http://example.com/2" ) ) ) ) ) );
         assertThat( remoteResourceService.getRepresentativeRemoteResource( URI.create( "http://example.com/" ) ) )
+                .succeedsWithin( 1, TimeUnit.SECONDS )
                 .hasFieldOrPropertyWithValue( "origin", "RDP" )
                 .hasFieldOrPropertyWithValue( "originUrl", URI.create( "http://example.com/2" ) );
         mockServer.verify();
@@ -190,6 +191,7 @@ public class RemoteResourceServiceTest {
                         .contentType( MediaType.APPLICATION_JSON )
                         .body( "{\"message\":\"This is this applications API. Please see documentation.\",\"version\":\"1.0.0\"}" ) );
         assertThat( remoteResourceService.getRepresentativeRemoteResource( URI.create( "http://example.com/" ) ) )
+                .succeedsWithin( 1, TimeUnit.SECONDS )
                 .hasFieldOrPropertyWithValue( "origin", "example.com" )
                 .hasFieldOrPropertyWithValue( "originUrl", URI.create( "http://example.com/" ) );
         mockServer.verify();

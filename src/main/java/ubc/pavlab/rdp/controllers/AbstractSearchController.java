@@ -26,6 +26,7 @@ import ubc.pavlab.rdp.model.ontology.RemoteOntologyTermInfo;
 import ubc.pavlab.rdp.services.OntologyService;
 import ubc.pavlab.rdp.services.OrganInfoService;
 import ubc.pavlab.rdp.services.RemoteResourceService;
+import ubc.pavlab.rdp.services.RemoteResourceServiceImpl;
 
 import javax.validation.constraints.NotNull;
 import java.net.URI;
@@ -304,9 +305,13 @@ public abstract class AbstractSearchController {
             // this is a last resort attempt by guessing the RemoteResource from the OpenAPI spec
             if ( rr == null ) {
                 try {
-                    rr = remoteResourceService.getRepresentativeRemoteResource( remoteHost );
+                    rr = remoteResourceService.collectFuture( remoteHost, remoteResourceService.getRepresentativeRemoteResource( remoteHost ) );
                 } catch ( RemoteException e ) {
                     log.warn( String.format( "Failed to retrieve a representative RemoteResource for %s: %s", remoteHost, ExceptionUtils.getRootCauseMessage( e ) ) );
+                    continue;
+                } catch ( InterruptedException e ) {
+                    Thread.currentThread().interrupt();
+                    log.error( String.format( "The current thread was interrupted while waiting for a representative RemoteResource from %s.", remoteHost ), e );
                     continue;
                 }
             }
@@ -359,7 +364,7 @@ public abstract class AbstractSearchController {
      *                              {@link Future#get()}.
      * @see Future#get()
      */
-    private static <K, T> Map<K, T> collectAsManyFuturesAsPossible( Map<K, ? extends Future<T>> futures, Map<K, ExecutionException> executionExceptions ) throws InterruptedException {
+    public static <K, T> Map<K, T> collectAsManyFuturesAsPossible( Map<K, ? extends Future<T>> futures, Map<K, ExecutionException> executionExceptions ) throws InterruptedException {
         Map<K, T> results = new HashMap<>();
         for ( Map.Entry<K, ? extends Future<T>> entry : futures.entrySet() ) {
             try {

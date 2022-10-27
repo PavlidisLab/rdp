@@ -1,5 +1,8 @@
 package ubc.pavlab.rdp.services;
 
+import lombok.Builder;
+import lombok.Value;
+import net.bytebuddy.pool.TypePool;
 import ubc.pavlab.rdp.controllers.ApiController;
 import ubc.pavlab.rdp.exception.RemoteException;
 import ubc.pavlab.rdp.exception.UnknownRemoteApiException;
@@ -21,8 +24,37 @@ import java.util.concurrent.Future;
 /**
  * Interface for remote resource methods. These mirror methods from UserService and UserGeneService, but the implementation
  * fetches the results from remote origins.
+ * <p>
+ * Some methods here return a {@link Future}. You might want to use {@link #collectFuture(URI, Future)} to extract the
+ * value and convert potential exceptions into {@link RemoteException}.
  */
 public interface RemoteResourceService {
+
+    @Value
+    @Builder
+    class PartnerRegistry {
+        /**
+         * API URI used to query this registry.
+         */
+        URI apiUri;
+        /**
+         * Name of this partner registry.
+         */
+        String origin;
+        /**
+         * Indicate if access to this partner registry is authenticated with the search token from <code>rdp.settings.isearch.search-token</code>.
+         */
+        boolean authenticatedWithSearchToken;
+    }
+
+    /**
+     * Collect a given future supplied by this service and convert any exception to an appropriate {@link RemoteException}
+     *
+     * @throws RemoteException      for any checked exception, note that {@link java.util.concurrent.ExecutionException}
+     *                              are converted with their cause unwrapped as direct cause of the remote exception
+     * @throws InterruptedException if the current thread was interrupted while waiting for the future to complete
+     */
+    <T> T collectFuture( URI uri, Future<T> future ) throws RemoteException, InterruptedException;
 
     /**
      * Obtain the list of URIs this registry is configured to communicate with.
@@ -30,6 +62,11 @@ public interface RemoteResourceService {
      * Any authentication information is stripped.
      */
     List<URI> getApiUris();
+
+    /**
+     * Obtain the list of partner URIs this registry is configured to communicate with.
+     */
+    List<PartnerRegistry> getPartnerRegistries() throws RemoteException;
 
     /**
      * Get the version of the remote API by reading its OpenAPI specification.
@@ -54,7 +91,7 @@ public interface RemoteResourceService {
      * Obtain a representative {@link RemoteResource} for a partner registry that can be used to extract the 'origin'
      * and 'originUrl' attributes.
      */
-    RemoteResource getRepresentativeRemoteResource( URI remoteHost ) throws RemoteException;
+    Future<RemoteResource> getRepresentativeRemoteResource( URI remoteHost ) throws UnknownRemoteApiException;
 
     /**
      * Find users by name among all partner registries.

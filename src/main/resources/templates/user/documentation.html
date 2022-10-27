@@ -122,7 +122,8 @@
                                             </th:block>
                                         </section>
 
-                                        <section th:if="${@applicationSettings.privacy.customizableLevel}">
+                                        <section
+                                                th:if="${@applicationSettings.privacy.customizableLevel} or ${@applicationSettings.privacy.customizableSharing}">
                                             <h5>Privacy Settings</h5>
 
                                             <p>
@@ -154,16 +155,22 @@
                                                 </li>
                                             </ul>
 
-                                            <p th:if="${@applicationSettings.privacy.customizableSharing}">
-                                                Furthermore, this section gives you the option to set your preference
-                                                for sharing your data with the network’s partner registries for the
-                                                purposes of establishing connections between clinician sciences who are
-                                                submitting their rare disease genes to partner registries and Canadian
-                                                model organism researchers. The data shared with partner registries will
-                                                only be visible to the administrators of those registries. If your data
-                                                privacy level is set to "public", partner registries will gain access
-                                                automatically.
-                                            </p>
+                                            <div th:if="${@applicationSettings.privacy.customizableSharing}"
+                                                 th:with="partnerRegistries=${@remoteResourceService.getPartnerRegistries()}">
+                                                <p>
+                                                    Furthermore, this section gives you the option to set your
+                                                    preference for sharing your data with the network’s partner
+                                                    registries<span th:text="${partnerRegistries.isEmpty() ? '.' : ':'}"></span>
+                                                    <span th:each="partnerRegistry, i : ${partnerRegistries}"
+                                                          th:if="${partnerRegistry.authenticatedWithSearchToken}">
+                                                        <a th:text="${partnerRegistry.origin}"
+                                                           th:href="${partnerRegistry.apiUri}"
+                                                           target="_blank"
+                                                           rel="noopener"></a><span
+                                                            th:text="${i.last} ? '.' : ','"></span>
+                                                    </span>
+                                                </p>
+                                            </div>
                                         </section>
                                     </div>
                                 </div>

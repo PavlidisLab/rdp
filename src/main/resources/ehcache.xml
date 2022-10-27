@@ -65,6 +65,10 @@
            maxElementsInMemory="10"
            timeToLiveSeconds="30"/>
 
+    <cache name="ubc.pavlab.rdp.services.RemoteResourceService.partnerRegistries"
+           maxElementsInMemory="10"
+           timeToLiveSeconds="600"/>
+
     <cache name="ubc.pavlab.rdp.services.RemoteResourceService.apiVersionByRemoteHostAuthority"
            maxElementsInMemory="10"
            timeToLiveSeconds="10"/>

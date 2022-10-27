@@ -36,7 +36,7 @@ public class SiteSettings {
      */
     private URI mainsite;
 
-    @Pattern(regexp = "#[a-fA-F\\d]{6}", message = "The theme color must be a valid hex color (i.e. '#FFFFFF').")
+    @Pattern(regexp = "^#[a-fA-F\\d]{6}$", message = "The theme color must be a valid hex color (i.e. '#FFFFFF').")
     private String themeColor;
 
     @Email(message = "The contact email must be valid.")

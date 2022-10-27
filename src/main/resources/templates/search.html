@@ -328,7 +328,8 @@
                         <div class="form-group mb-0">
                             <label th:for="${#ids.next('ontologyTermIds')}">
                                 With at least one of the following
-                                <strong><span th:replace="fragments/ontology::ontology-name-with-definition-tooltip(${ontology})"></span></strong>
+                                <strong><span
+                                        th:replace="fragments/ontology::ontology-name-with-definition-tooltip(${ontology})"></span></strong>
                                 terms (or any if none are selected):
                             </label>
                             <div th:replace="fragments/ontology::terms-selection(ontology = ${ontology}, selectedTerms = ${ontologyTerms}, showTable = false)"></div>
@@ -354,7 +355,7 @@
 
     <!--Results-->
     <section id="results" class="mb-3"
-         th:classappend="${searchSummary} != null ? '' : 'd-none'">
+             th:classappend="${searchSummary} != null ? '' : 'd-none'">
         <h4 th:text="'Researchers registered in ' + #{rdp.site.shortname}"></h4>
         <div id="userTable">
             <th:block th:if="${users}">
@@ -372,9 +373,9 @@
 
     <!--International results-->
     <section th:if="${@applicationSettings.getIsearch().isEnabled()}"
-         id="itlResults"
-         class="mb-3"
-         th:classappend="${searchSummary} != null and ${iSearch} ? '' : 'd-none'">
+             id="itlResults"
+             class="mb-3"
+             th:classappend="${searchSummary} != null and ${iSearch} ? '' : 'd-none'">
         <h4>Partner registry results</h4>
         <div id="itlOntologyAvailability" class="mb-3">
             <th:block th:if="${termsAvailabilityByApiUri} != null">

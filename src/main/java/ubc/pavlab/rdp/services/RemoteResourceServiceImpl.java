@@ -24,6 +24,7 @@ import org.springframework.web.client.AsyncRestTemplate;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
+import ubc.pavlab.rdp.controllers.AbstractSearchController;
 import ubc.pavlab.rdp.exception.RemoteException;
 import ubc.pavlab.rdp.exception.UnknownRemoteApiException;
 import ubc.pavlab.rdp.model.RemoteResource;
@@ -90,15 +91,14 @@ public class RemoteResourceServiceImpl implements RemoteResourceService, Initial
     private RemoteResourceService remoteResourceService;
 
     @Override
-    @SneakyThrows(URISyntaxException.class)
+    @SneakyThrows({ URISyntaxException.class, UnknownRemoteApiException.class })
     public void afterPropertiesSet() {
         for ( URI apiUri : applicationSettings.getIsearch().getApis() ) {
             URI uri = UriComponentsBuilder.fromUri( apiUri )
                     .path( API_ROOT_PATH )
                     .build().toUri();
             URI expectedOriginUrl = new URI( apiUri.getScheme(), apiUri.getAuthority(), StringUtils.trimTrailingCharacter( apiUri.getPath(), '/' ), null, null );
-            asyncRestTemplate.getForEntity( uri, OpenAPI.class ).completable()
-                    .thenApply( re -> extractRemoteResource( Objects.requireNonNull( re.getBody(), String.format( "Unexpected null response body for %s.", uri ) ), apiUri ) )
+            getRepresentativeRemoteResource( uri )
                     .handle( ( rr, ex ) -> {
                         if ( ex == null ) {
                             if ( !rr.getOriginUrl().equals( expectedOriginUrl ) ) {
@@ -122,7 +122,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService, Initial
                 .path( GET_OPENAPI_PATH )
                 .build()
                 .toUri();
-        OpenAPI openAPI = getFromRequestFuture( uri, asyncRestTemplate.getForEntity( uri, OpenAPI.class ) );
+        OpenAPI openAPI = getFromRequestFuture( uri, asyncRestTemplate.getForEntity( uri, OpenAPI.class ).completable() );
         // The OpenAPI specification was introduced in 1.4, so we assume 1.0.0 for previous versions
         if ( openAPI.getInfo() == null ) {
             return "1.0.0";
@@ -154,27 +154,27 @@ public class RemoteResourceServiceImpl implements RemoteResourceService, Initial
     }
 
     @Override
-    public RemoteResource getRepresentativeRemoteResource( URI remoteHost ) throws RemoteException {
+    public CompletableFuture<RemoteResource> getRepresentativeRemoteResource( URI remoteHost ) throws UnknownRemoteApiException {
         URI uri = UriComponentsBuilder.fromUri( getApiUri( remoteHost, false ) )
                 .path( API_ROOT_PATH )
                 .build().toUri();
-        return extractRemoteResource( getFromRequestFuture( uri, asyncRestTemplate.getForEntity( uri, OpenAPI.class ) ), remoteHost );
-    }
-
-    private static RemoteResource extractRemoteResource( OpenAPI openAPI, URI remoteHost ) {
-        Pattern titlePattern = Pattern.compile( "^(.+) RESTful API$" );
-        String origin = remoteHost.getAuthority();
-        URI originUrl = remoteHost;
-        if ( openAPI.info != null && openAPI.info.title != null ) {
-            Matcher matcher = titlePattern.matcher( openAPI.info.title );
-            if ( matcher.matches() ) {
-                origin = matcher.group( 1 );
-            }
-        }
-        if ( openAPI.servers != null && openAPI.servers.size() == 1 ) {
-            originUrl = openAPI.servers.get( 0 ).url;
-        }
-        return new SimpleRemoteResource( origin, originUrl );
+        return asyncRestTemplate.getForEntity( uri, OpenAPI.class ).completable()
+                .thenApply( re -> Objects.requireNonNull( re.getBody(), String.format( "Unexpected null response body for %s.", uri ) ) )
+                .thenApply( b -> {
+                    Pattern titlePattern = Pattern.compile( "^(.+) RESTful API$" );
+                    String origin = remoteHost.getAuthority();
+                    URI originUrl = remoteHost;
+                    if ( b.info != null && b.info.title != null ) {
+                        Matcher matcher = titlePattern.matcher( b.info.title );
+                        if ( matcher.matches() ) {
+                            origin = matcher.group( 1 );
+                        }
+                    }
+                    if ( b.servers != null && b.servers.size() == 1 ) {
+                        originUrl = b.servers.get( 0 ).url;
+                    }
+                    return new SimpleRemoteResource( origin, originUrl );
+                } );
     }
 
     @Data
@@ -420,9 +420,35 @@ public class RemoteResourceServiceImpl implements RemoteResourceService, Initial
         return getApiUris( false );
     }
 
+    @Override
+    public List<PartnerRegistry> getPartnerRegistries() throws RemoteException {
+        Map<URI, Future<PartnerRegistry>> results = new HashMap<>();
+        for ( URI uri : getApiUris( false ) ) {
+            URI authenticatedUri = this.prepareApiUri( uri, true );
+            UriComponents components = UriComponentsBuilder.fromUri( authenticatedUri ).build();
+            String searchToken = applicationSettings.getIsearch().getSearchToken();
+            try {
+                results.put( uri, getRepresentativeRemoteResource( uri ).thenApply( remoteResource -> PartnerRegistry.builder()
+                        .origin( remoteResource.getOrigin() )
+                        .apiUri( uri )
+                        .authenticatedWithSearchToken( searchToken != null && searchToken.equals( components.getQueryParams().getFirst( "auth" ) ) )
+                        .build() ) );
+            } catch ( RemoteException e ) {
+                log.warn( String.format( "%s was not available when obtaining the list of partner registries: %s.", uri, ExceptionUtils.getRootCauseMessage( e ) ) );
+            }
+        }
+        Map<URI, ExecutionException> executionExceptions = new HashMap<>();
+        try {
+            return new ArrayList<>( AbstractSearchController.collectAsManyFuturesAsPossible( results, executionExceptions ).values() );
+        } catch ( InterruptedException e ) {
+            Thread.currentThread().interrupt();
+            throw new RemoteException( "The current thread was interrupted while waiting for multiple responses from all partner registries.", e );
+        }
+    }
+
 
     private User getUserByUri( URI uri ) throws RemoteException {
-        return initUser( getFromRequestFuture( uri, asyncRestTemplate.getForEntity( uri, User.class ) ) );
+        return initUser( getFromRequestFuture( uri, asyncRestTemplate.getForEntity( uri, User.class ).completable() ) );
     }
 
     /**
@@ -438,20 +464,20 @@ public class RemoteResourceServiceImpl implements RemoteResourceService, Initial
      */
     private <T> Collection<T> getRemoteEntities( Class<T[]> arrCls, String path, MultiValueMap<String, String> params, RequestFilter<T[]> requestFilter ) {
         // it's important to collect, otherwise the future will be created and joined one-by-one, defeating the purpose of using them in the first place
-        List<Pair<URI, Future<ResponseEntity<T[]>>>> uriAndFutures = getApiUris( true ).stream()
+        List<Pair<URI, CompletableFuture<ResponseEntity<T[]>>>> uriAndFutures = getApiUris( true ).stream()
                 .map( uri -> UriComponentsBuilder.fromUri( uri )
                         .path( path )
                         .queryParams( params )
                         .build().toUri() )
                 .map( uri -> {
-                    Future<ResponseEntity<T[]>> entity = requestFilter.filter( uri, ( apiUri, next ) -> asyncRestTemplate.getForEntity( apiUri, arrCls ) );
+                    CompletableFuture<ResponseEntity<T[]>> entity = requestFilter.filter( uri, ( apiUri, next ) -> asyncRestTemplate.getForEntity( apiUri, arrCls ).completable() );
                     return entity == null ? null : Pair.of( uri, entity );
                 } )
                 .filter( Objects::nonNull )
                 .collect( Collectors.toList() );
 
         List<T> entities = new ArrayList<>();
-        for ( Pair<URI, Future<ResponseEntity<T[]>>> f : uriAndFutures ) {
+        for ( Pair<URI, CompletableFuture<ResponseEntity<T[]>>> f : uriAndFutures ) {
             try {
                 entities.addAll( Arrays.asList( getFromRequestFuture( f.getLeft(), f.getRight() ) ) );
             } catch ( RemoteException remoteException ) {
@@ -476,18 +502,25 @@ public class RemoteResourceServiceImpl implements RemoteResourceService, Initial
         return false;
     }
 
-    private <T> T getFromRequestFuture( URI uri, Future<ResponseEntity<T>> future ) throws RemoteException {
+    private <T> T getFromRequestFuture( URI uri, CompletableFuture<ResponseEntity<T>> future ) throws RemoteException {
         try {
-            T entity = future.get().getBody();
+            T entity = collectFuture( uri, future ).getBody();
             if ( entity == null ) {
                 throw new RemoteException( String.format( "Invalid response for %s: the body is null.", uri ) );
             }
             return entity;
-        } catch ( ExecutionException e ) {
-            throw new RemoteException( String.format( "Unsuccessful response received for %s.", uri ), e.getCause() );
         } catch ( InterruptedException e ) {
             Thread.currentThread().interrupt();
-            throw new RemoteException( String.format( "A thread was interrupted while waiting for %s response.", uri ), e );
+            throw new RuntimeException( String.format( "The current thread was interrupted while waiting for a response from %s.", uri ), e );
+        }
+    }
+
+    @Override
+    public <T> T collectFuture( URI uri, Future<T> future ) throws RemoteException, InterruptedException {
+        try {
+            return future.get();
+        } catch ( ExecutionException e ) {
+            throw new RemoteException( String.format( "Unsuccessful response received for %s.", uri ), e.getCause() );
         }
     }
 
@@ -511,7 +544,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService, Initial
         return prepareApiUri( apiUri, authenticate );
     }
 
-    public List<URI> getApiUris( boolean authenticate ) {
+    private List<URI> getApiUris( boolean authenticate ) {
         return Arrays.stream( applicationSettings.getIsearch().getApis() )
                 .map( apiUri -> prepareApiUri( apiUri, authenticate ) )
                 .collect( Collectors.toList() );
@@ -567,7 +600,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService, Initial
          * @return the result of the step, or null to abort the chain
          * @
          */
-        Future<ResponseEntity<T>> filter( URI apiUri, RequestFilter<T> next );
+        CompletableFuture<ResponseEntity<T>> filter( URI apiUri, RequestFilter<T> next );
     }
 
     /**
