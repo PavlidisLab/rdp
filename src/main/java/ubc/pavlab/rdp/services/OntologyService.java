@@ -309,14 +309,21 @@ public class OntologyService implements InitializingBean {
             t.getAltTermIds().clear();
             t.getAltTermIds().addAll( term.getAltIds() );
 
-            t.getSynonyms().clear();
+            // FIXME: there's a bug in Hibernate (I think?) that insert duplicate records when a synonym is replaced with another of a different casing (see https://github.com/PavlidisLab/rdp/issues/296)
+            // This will unfortunately result in never updating synonyms with different casing
+            Set<String> synonyms = new TreeSet<>( new OntologyTermInfo.SynonymComparator() );
             for ( OBOParser.Term.Synonym s : term.getSynonyms() ) {
-                if ( s.getSynonym().length() > OntologyTermInfo.MAX_SYNONYM_LENGTH ) {
+                synonyms.add( s.getSynonym() );
+            }
+
+            t.getSynonyms().removeIf( s -> !synonyms.contains( s ) );
+            for ( String s : synonyms ) {
+                if ( s.length() > OntologyTermInfo.MAX_SYNONYM_LENGTH ) {
                     log.warn( String.format( "Synonym %s for term %s is too wide (%d characters) to fit in the database, it will be ignored.",
-                            s, term, s.getSynonym().length() ) );
+                            s, term, s.length() ) );
                     continue;
                 }
-                t.getSynonyms().add( s.getSynonym() );
+                t.getSynonyms().add( s );
             }
 
             t.setObsolete( term.getObsolete() != null && term.getObsolete() );
