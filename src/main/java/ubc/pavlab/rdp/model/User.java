@@ -67,7 +67,7 @@ public class User implements RemoteResource, UserContent, Serializable {
     public static Comparator<User> getComparator() {
         return Comparator
                 .comparing( ( User u ) -> u.getProfile().getFullName() )
-                .thenComparing( User::getOriginUrl )
+                .thenComparing( User::getOriginUrl, Comparator.nullsLast( Comparator.naturalOrder() ) )
                 // at least one of the two must be non-null
                 .thenComparing( User::getId, Comparator.nullsLast( Comparator.naturalOrder() ) )
                 .thenComparing( User::getAnonymousId, Comparator.nullsLast( Comparator.naturalOrder() ) );
