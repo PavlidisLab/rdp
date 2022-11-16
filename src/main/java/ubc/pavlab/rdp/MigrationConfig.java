@@ -21,26 +21,43 @@ import java.util.Arrays;
 @CommonsLog
 public class MigrationConfig {
 
+    @RequiredArgsConstructor
+    private enum NewChecksumReason {
+        /**
+         * A migration applied with Flyway 3.
+         * <p>
+         * The checksum algorithm has changed.
+         */
+        FLYWAY_3( "has been performed with Flyway 3.2.1" ),
+        /**
+         * A migration that introduced a regression with MySQL 5.7.
+         */
+        MYSQL_5_7_REGRESSION( "introduced a regression with MySQL 5.7" );
+        final String reason;
+    }
+
     /**
      * Expected migration information that are used to determine if a repair is necessary.
      */
     @RequiredArgsConstructor
     private static class ExpectedMigrationInfo {
         private final String version;
-        private final int pre15Checksum;
-        private final int post15Checksum;
+        private final int preRepairChecksum;
+        private final int postRepairChecksum;
+        private final NewChecksumReason newChecksumReason;
     }
 
     private static final ExpectedMigrationInfo[] MIGRATION_META = {
-            new ExpectedMigrationInfo( "1.0.0", -330642568, 1889522940 ),
-            new ExpectedMigrationInfo( "1.3.2", 1109324745, 1109324745 ),
-            new ExpectedMigrationInfo( "1.4.0", 310023814, 1017485172 ),
-            new ExpectedMigrationInfo( "1.4.1", -1543189200, 1330781885 ),
-            new ExpectedMigrationInfo( "1.4.2", 1706447069, 253128706 ),
-            new ExpectedMigrationInfo( "1.4.3", 571489108, 571489108 ),
-            new ExpectedMigrationInfo( "1.4.6", 399726006, 504755998 ),
-            new ExpectedMigrationInfo( "1.4.11", 1536441374, 709491229 ),
-            new ExpectedMigrationInfo( "1.4.11.1", -1312864724, -907949910 )
+            new ExpectedMigrationInfo( "1.0.0", -330642568, 1889522940, NewChecksumReason.FLYWAY_3 ),
+            new ExpectedMigrationInfo( "1.3.2", 1109324745, 1109324745, NewChecksumReason.FLYWAY_3 ),
+            new ExpectedMigrationInfo( "1.4.0", 310023814, 1017485172, NewChecksumReason.FLYWAY_3 ),
+            new ExpectedMigrationInfo( "1.4.1", -1543189200, 1330781885, NewChecksumReason.FLYWAY_3 ),
+            new ExpectedMigrationInfo( "1.4.2", 1706447069, 253128706, NewChecksumReason.FLYWAY_3 ),
+            new ExpectedMigrationInfo( "1.4.3", 571489108, 571489108, NewChecksumReason.FLYWAY_3 ),
+            new ExpectedMigrationInfo( "1.4.6", 399726006, 504755998, NewChecksumReason.FLYWAY_3 ),
+            new ExpectedMigrationInfo( "1.4.11", 1536441374, 709491229, NewChecksumReason.FLYWAY_3 ),
+            new ExpectedMigrationInfo( "1.4.11.1", -1312864724, -907949910, NewChecksumReason.FLYWAY_3 ),
+            new ExpectedMigrationInfo( "1.5.0.4", 625408518, 1560455114, NewChecksumReason.MYSQL_5_7_REGRESSION )
     };
 
     /**
@@ -74,15 +91,16 @@ public class MigrationConfig {
                         .orElse( null );
                 if ( expectedMigration != null &&
                         appliedMigration.getChecksum() != null &&
-                        appliedMigration.getChecksum().equals( expectedMigration.pre15Checksum ) &&
-                        !appliedMigration.getChecksum().equals( expectedMigration.post15Checksum ) ) {
-                    log.warn( String.format( "Flyway migration %s has been performed with Flyway 3.2.1, checksum will be bumped from %s to %s after repair.",
-                            appliedMigration.getVersion(), appliedMigration.getChecksum(), expectedMigration.post15Checksum ) );
+                        appliedMigration.getChecksum().equals( expectedMigration.preRepairChecksum ) &&
+                        !appliedMigration.getChecksum().equals( expectedMigration.postRepairChecksum ) ) {
                     repairNeeded = true;
+                    log.warn( String.format( "Flyway migration %s %s, checksum will be bumped from %s to %s after repair.",
+                            appliedMigration.getVersion(), expectedMigration.newChecksumReason.reason,
+                            appliedMigration.getChecksum(), expectedMigration.postRepairChecksum ) );
                 }
             }
             if ( repairNeeded ) {
-                log.warn( "Flyway 3.2.1 migrations detected, Flyway repair will be performed." );
+                log.warn( "Flyway repair will now be performed." );
                 flyway.repair();
             }
             flyway.migrate();
