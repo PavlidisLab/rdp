@@ -158,7 +158,9 @@
             }
 
             gtag('js', new Date());
-            gtag('config', [[${@siteSettings.gaTracker}]]);
+            gtag('config', [[${@siteSettings.gaTracker}]], {
+                'user_id': [[${@userService.findCurrentUser()?.id}]]
+            });
         </script>
     </th:block>
 </th:block>

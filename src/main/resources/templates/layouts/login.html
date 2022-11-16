@@ -49,6 +49,22 @@
     </div>
 </div>
 <th:block th:fragment="scripts">
+    <th:block th:unless="${#strings.isEmpty(@siteSettings.gaTracker)}">
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script th:src="@{https://www.googletagmanager.com/gtag/js(id=${@siteSettings.gaTracker})}"></script>
+        <script th:inline="javascript">
+            window.dataLayer = window.dataLayer || [];
+
+            function gtag() {
+                dataLayer.push(arguments);
+            }
+
+            gtag('js', new Date());
+            gtag('config', [[${@siteSettings.gaTracker}]], {
+                'user_id': [[${@userService.findCurrentUser()?.id}]]
+            });
+        </script>
+    </th:block>
 </th:block>
 </body>
 </html>
