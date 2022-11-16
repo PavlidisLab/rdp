@@ -1,5 +1,5 @@
-mysql:
-  image: mysql
+mysql57:
+  image: mysql:5.7
   ports:
     - "3306:3306"
   environment:
@@ -7,5 +7,21 @@ mysql:
     - MYSQL_PASSWORD=ThePassword
     - MYSQL_DATABASE=db_example
     - MYSQL_RANDOM_ROOT_PASSWORD=true
-  volumes:
-    - "./conf.d:/etc/mysql/conf.d:ro"
+mysql:
+  image: mysql:8.0
+  ports:
+    - "3306:3306"
+  environment:
+    - MYSQL_USER=springuser
+    - MYSQL_PASSWORD=ThePassword
+    - MYSQL_DATABASE=db_example
+    - MYSQL_RANDOM_ROOT_PASSWORD=true
+mariadb:
+  image: mariadb:10.6
+  ports:
+    - "3306:3306"
+  environment:
+    - MARIADB_USER=springuser
+    - MARIADB_PASSWORD=ThePassword
+    - MARIADB_DATABASE=db_example
+    - MARIADB_RANDOM_ROOT_PASSWORD=true
