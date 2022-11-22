@@ -1,5 +1,6 @@
 package ubc.pavlab.rdp;
 
+import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 /**
@@ -7,6 +8,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
  *
  * @author poirigui
  */
+@Configuration
 @EnableJpaAuditing
 public class JpaAuditingConfig {
 }
