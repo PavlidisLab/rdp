@@ -57,7 +57,7 @@ public class MigrationConfig {
             new ExpectedMigrationInfo( "1.4.6", 399726006, 504755998, NewChecksumReason.FLYWAY_3 ),
             new ExpectedMigrationInfo( "1.4.11", 1536441374, 709491229, NewChecksumReason.FLYWAY_3 ),
             new ExpectedMigrationInfo( "1.4.11.1", -1312864724, -907949910, NewChecksumReason.FLYWAY_3 ),
-            new ExpectedMigrationInfo( "1.5.0.4", 625408518, 1560455114, NewChecksumReason.MYSQL_5_7_REGRESSION )
+            new ExpectedMigrationInfo( "1.5.0.4", 625408518, -1065145387, NewChecksumReason.MYSQL_5_7_REGRESSION )
     };
 
     /**
