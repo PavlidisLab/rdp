@@ -39,6 +39,12 @@ You should also adjust Hibernate dialect by adding the following to your `applic
 spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQL55Dialect
 ```
 
+Likewise, if you are using MariaDB, for which we recommend the current 10.6 LTS, use the following dialect:
+
+```properties
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MariaDB106Dialect
+```
+
 ## Setup application.properties
 
 In the working directory of the Web application, create an `application.properties`
