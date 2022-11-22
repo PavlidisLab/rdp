@@ -10,7 +10,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 
 import javax.persistence.*;
-import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.Optional;
 
 /**
@@ -42,7 +42,7 @@ public class UserOrgan extends Organ implements UserContent {
 
     @CreatedDate
     @JsonIgnore
-    private Timestamp createdAt;
+    private Instant createdAt;
 
     public static UserOrgan createFromOrganInfo( User user, OrganInfo organInfo ) {
         UserOrgan userOrgan = new UserOrgan();

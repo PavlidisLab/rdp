@@ -14,7 +14,7 @@ import ubc.pavlab.rdp.model.UserContent;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 
 import javax.persistence.*;
-import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.Optional;
 
 /**
@@ -83,7 +83,7 @@ public class UserOntologyTerm extends OntologyTerm implements UserContent {
 
     @CreatedDate
     @JsonIgnore
-    private Timestamp createdAt;
+    private Instant createdAt;
 
     @Override
     @JsonIgnore

@@ -126,7 +126,7 @@ public class EmailServiceImpl implements EmailService {
         InternetAddress to = new InternetAddress( user.getEmail() );
         String subject = messageSource.getMessage( "EmailService.sendResetTokenMessage.subject", new Object[]{ Messages.SHORTNAME }, locale );
         String content = messageSource.getMessage( "EmailService.sendResetTokenMessage", new String[]{
-                user.getProfile().getName(), url.toString(), dateTimeFormatter.format( token.getExpiryDate().toInstant() ) }, locale );
+                user.getProfile().getName(), url.toString(), dateTimeFormatter.format( token.getExpiryDate() ) }, locale );
 
         return sendSimpleMessage( subject, content, to, null, null );
     }

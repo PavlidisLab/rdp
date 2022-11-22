@@ -3,7 +3,6 @@ package ubc.pavlab.rdp.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.media.SchemaProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -17,8 +16,8 @@ import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import java.sql.Timestamp;
 import java.text.MessageFormat;
+import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -78,7 +77,7 @@ public class Profile {
 
     @JsonIgnore
     @Column(name = "contact_email_verified_at")
-    private Timestamp contactEmailVerifiedAt;
+    private Instant contactEmailVerifiedAt;
 
     @Column(name = "website")
     @URL

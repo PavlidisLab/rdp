@@ -53,7 +53,6 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.io.*;
 import java.net.URL;
-import java.sql.Timestamp;
 import java.text.MessageFormat;
 import java.time.Duration;
 import java.time.Instant;
@@ -134,7 +133,7 @@ public class AdminController {
 
         user.setEmail( serviceEmail );
         user.setEnabled( true );
-        user.setEnabledAt( Timestamp.from( Instant.now() ) );
+        user.setEnabledAt( Instant.now() );
 
         Profile profile = user.getProfile();
         profile.setPrivacyLevel( PrivacyLevelType.PRIVATE );

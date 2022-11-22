@@ -28,8 +28,8 @@ import javax.validation.constraints.Size;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
-import java.sql.Timestamp;
 import java.text.MessageFormat;
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -106,14 +106,14 @@ public class User implements RemoteResource, UserContent, Serializable {
      */
     @CreatedDate
     @JsonIgnore
-    private Timestamp createdAt;
+    private Instant createdAt;
 
     /**
      * Last moment when this user profile was updated, or null if unknown.
      */
     @LastModifiedDate
     @JsonIgnore
-    private Timestamp modifiedAt;
+    private Instant modifiedAt;
 
     @JsonIgnore
     @Column(name = "enabled", nullable = false)
@@ -124,7 +124,7 @@ public class User implements RemoteResource, UserContent, Serializable {
      */
     @Column(name = "enabled_at")
     @JsonIgnore
-    private Timestamp enabledAt;
+    private Instant enabledAt;
 
     @ManyToMany
     @JoinTable(name = "user_role", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
@@ -259,7 +259,7 @@ public class User implements RemoteResource, UserContent, Serializable {
     @SuppressWarnings("unused")
     @JsonIgnore
     @Transient
-    public Optional<Timestamp> getVerifiedAtContactEmail() {
+    public Optional<Instant> getVerifiedAtContactEmail() {
         if ( profile.isContactEmailVerified() ) {
             return Optional.ofNullable( profile.getContactEmailVerifiedAt() );
         } else if ( enabled ) {

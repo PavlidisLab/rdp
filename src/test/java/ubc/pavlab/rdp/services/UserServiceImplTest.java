@@ -44,7 +44,6 @@ import javax.annotation.PostConstruct;
 import javax.validation.ValidationException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
-import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -199,7 +198,7 @@ public class UserServiceImplTest {
         token = new PasswordResetToken();
         token.setUser( user );
         token.setToken( "token1Expired" );
-        token.setExpiryDate( Timestamp.from( Instant.now().minusSeconds( 1 ) ) );
+        token.setExpiryDate( Instant.now().minusSeconds( 1 ) );
         when( passwordResetTokenRepository.findByToken( token.getToken() ) ).thenReturn( token );
 
         token = new PasswordResetToken();
@@ -222,7 +221,7 @@ public class UserServiceImplTest {
         token.setUser( user );
         token.setEmail( user.getEmail() );
         token.setToken( "token1Expired" );
-        token.setExpiryDate( Timestamp.from( Instant.now().minus( 1, ChronoUnit.SECONDS ) ) );
+        token.setExpiryDate( Instant.now().minus( 1, ChronoUnit.SECONDS ) );
         when( tokenRepository.findByToken( token.getToken() ) ).thenReturn( token );
 
         when( tokenRepository.findByToken( "tokenBad" ) ).thenReturn( null );
@@ -664,7 +663,7 @@ public class UserServiceImplTest {
         User user = createUser( 1 );
         user.getProfile().setContactEmail( "foo@example.com" );
         user.getProfile().setContactEmailVerified( true );
-        user.getProfile().setContactEmailVerifiedAt( Timestamp.from( Instant.now() ) );
+        user.getProfile().setContactEmailVerifiedAt( Instant.now() );
         Profile profile = new Profile();
         profile.setPrivacyLevel( PrivacyLevelType.PUBLIC );
         profile.setContactEmail( null );
@@ -680,7 +679,7 @@ public class UserServiceImplTest {
         User user = createUser( 1 );
         user.getProfile().setContactEmail( "foo@example.com" );
         user.getProfile().setContactEmailVerified( true );
-        user.getProfile().setContactEmailVerifiedAt( Timestamp.from( Instant.now() ) );
+        user.getProfile().setContactEmailVerifiedAt( Instant.now() );
         Profile profile = new Profile();
         profile.setPrivacyLevel( PrivacyLevelType.PUBLIC );
         profile.setContactEmail( "" );
@@ -726,7 +725,7 @@ public class UserServiceImplTest {
         Instant upperBound = Instant.now().plus( 2, ChronoUnit.HOURS ).plus( 1, ChronoUnit.MINUTES );
 
         // one minute tolerance
-        assertThat( passwordResetToken.getExpiryDate().toInstant() ).isBetween( lowerBound, upperBound );
+        assertThat( passwordResetToken.getExpiryDate() ).isBetween( lowerBound, upperBound );
         verify( userListener ).onUserPasswordReset( new OnUserPasswordResetEvent( user, passwordResetToken, Locale.getDefault() ) );
     }
 
@@ -768,7 +767,7 @@ public class UserServiceImplTest {
         Instant upperBound = Instant.now().plus( 24, ChronoUnit.HOURS ).plus( 1, ChronoUnit.MINUTES );
 
         // one minute tolerance
-        assertThat( verificationToken.getExpiryDate().toInstant() ).isBetween( lowerBound, upperBound );
+        assertThat( verificationToken.getExpiryDate() ).isBetween( lowerBound, upperBound );
         verify( userListener ).onRegistrationComplete( any( OnRegistrationCompleteEvent.class ) );
     }
 
@@ -1308,7 +1307,7 @@ public class UserServiceImplTest {
         when( privacySettings.isEnableAnonymizedSearchResults() ).thenReturn( true );
         User user = createUser( 1 );
         user.setEnabled( true );
-        user.setEnabledAt( Timestamp.from( Instant.now() ) );
+        user.setEnabledAt( Instant.now() );
         user.getProfile().setPrivacyLevel( PrivacyLevelType.PRIVATE );
         User anonymizedUser = userService.anonymizeUser( user );
         assertThat( anonymizedUser )
