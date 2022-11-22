@@ -29,9 +29,15 @@ create user  '<database username>'@'%' identified by '<database password>';
 grant all on rdp.* to '<database username>'@'%';
 ```
 
-If you're using MySQL 5.6 or prior, use the `utf8` character set. It is a 3 bytes subset of the typical 4-bytes UTF-8
-character encoding. Otherwise, you will face issues with the index size limit of 767 bytes due to some of our indexed
-columns containing 255 characters (4 * 255 = 1020 > 767, but 3 * 255 = 765).
+If you're using MySQL 5.6 or prior, use the `utf8mb3` character set. It is a 3 bytes subset of the typical 4-bytes 
+UTF-8 character encoding. Otherwise, you will face issues with the index size limit of 767 bytes due to some of our
+indexed columns containing 255 characters (4 * 255 = 1020 > 767, but 3 * 255 = 765).
+
+You should also adjust Hibernate dialect by adding the following to your `application.properties`:
+
+```properties
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQL55Dialect
+```
 
 ## Setup application.properties
 
