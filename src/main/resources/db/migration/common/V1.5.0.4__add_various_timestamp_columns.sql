@@ -1,22 +1,22 @@
 alter table user
-    add column created_at timestamp;
+    add column created_at timestamp null default null;
 alter table user
-    add column modified_at timestamp;
+    add column modified_at timestamp null default null;
 alter table user
-    add column enabled_at timestamp after enabled;
+    add column enabled_at timestamp null default null after enabled;
 alter table user
-    add column contact_email_verified_at timestamp after contact_email_verified;
+    add column contact_email_verified_at timestamp null default null after contact_email_verified;
 alter table gene
-    add column created_at timestamp;
+    add column created_at timestamp null default null;
 alter table user_ontology_term
-    add column created_at timestamp;
+    add column created_at timestamp null default null;
 alter table user_organ
-    add column created_at timestamp;
+    add column created_at timestamp null default null;
 alter table term
-    add column created_at timestamp;
+    add column created_at timestamp null default null;
 alter table access_token
-    add column created_at timestamp;
+    add column created_at timestamp null default null;
 alter table verification_token
-    add column created_at timestamp;
+    add column created_at timestamp null default null;
 alter table password_reset_token
-    add column created_at timestamp;
+    add column created_at timestamp null default null;

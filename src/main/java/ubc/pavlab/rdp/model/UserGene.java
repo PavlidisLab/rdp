@@ -15,8 +15,8 @@ import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.TierType;
 
 import javax.persistence.*;
-import java.sql.Timestamp;
 import java.text.MessageFormat;
+import java.time.Instant;
 import java.util.Comparator;
 import java.util.Optional;
 import java.util.UUID;
@@ -102,7 +102,7 @@ public class UserGene extends Gene implements UserContent {
      */
     @CreatedDate
     @JsonIgnore
-    private Timestamp createdAt;
+    private Instant createdAt;
 
     @Nullable
     @ManyToOne

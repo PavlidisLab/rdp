@@ -2,31 +2,25 @@ package ubc.pavlab.rdp.controllers;
 
 import org.hamcrest.FeatureMatcher;
 import org.hamcrest.Matcher;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.MessageSource;
 import org.springframework.context.NoSuchMessageException;
+import org.springframework.context.annotation.Import;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import ubc.pavlab.rdp.model.User;
-import ubc.pavlab.rdp.model.enums.ResearcherCategory;
-import ubc.pavlab.rdp.model.enums.ResearcherPosition;
-import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.security.Permissions;
 import ubc.pavlab.rdp.services.TaxonService;
 import ubc.pavlab.rdp.services.UserService;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.settings.SiteSettings;
-
-import java.util.EnumSet;
 
 import static org.hamcrest.Matchers.closeTo;
 import static org.hamcrest.Matchers.containsString;
@@ -37,30 +31,13 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static ubc.pavlab.rdp.util.TestUtils.createUser;
 
-@RunWith(SpringRunner.class)
 @WebMvcTest(MainController.class)
+@TestPropertySource("classpath:application.properties")
+@Import({ ApplicationSettings.class, SiteSettings.class })
 public class MainControllerTest {
 
     @Autowired
-    MockMvc mvc;
-
-    @MockBean(name = "applicationSettings")
-    private ApplicationSettings applicationSettings;
-
-    @MockBean
-    private ApplicationSettings.ProfileSettings profileSettings;
-
-    @MockBean
-    private ApplicationSettings.PrivacySettings privacySettings;
-
-    @MockBean(name = "siteSettings")
-    private SiteSettings siteSettings;
-
-    @MockBean
-    private ApplicationSettings.OrganSettings organSettings;
-
-    @MockBean
-    private ApplicationSettings.InternationalSearchSettings iSearchSettings;
+    private MockMvc mvc;
 
     @MockBean(name = "userService")
     private UserService userService;
@@ -79,17 +56,6 @@ public class MainControllerTest {
 
     @MockBean(name = "ontologyMessageSource")
     private MessageSource ontologyMessageSource;
-
-    @Before
-    public void setUp() {
-        when( applicationSettings.getEnabledTiers() ).thenReturn( EnumSet.allOf( TierType.class ) );
-        when( applicationSettings.getPrivacy() ).thenReturn( privacySettings );
-        when( applicationSettings.getProfile() ).thenReturn( profileSettings );
-        when( profileSettings.getEnabledResearcherCategories() ).thenReturn( EnumSet.allOf( ResearcherCategory.class ) );
-        when( profileSettings.getEnabledResearcherPositions() ).thenReturn( EnumSet.of( ResearcherPosition.PRINCIPAL_INVESTIGATOR ) );
-        when( applicationSettings.getOrgans() ).thenReturn( organSettings );
-        when( applicationSettings.getIsearch() ).thenReturn( iSearchSettings );
-    }
 
     @Test
     public void getIndex_redirect3xx() throws Exception {

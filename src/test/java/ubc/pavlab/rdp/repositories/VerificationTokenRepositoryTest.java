@@ -1,5 +1,6 @@
 package ubc.pavlab.rdp.repositories;
 
+import org.assertj.core.data.TemporalUnitOffset;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -12,8 +13,8 @@ import ubc.pavlab.rdp.JpaAuditingConfig;
 import ubc.pavlab.rdp.model.User;
 import ubc.pavlab.rdp.model.VerificationToken;
 
-import java.sql.Timestamp;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static ubc.pavlab.rdp.util.TestUtils.createUnpersistedUser;
@@ -45,7 +46,8 @@ public class VerificationTokenRepositoryTest {
         validToken.setUser( user );
         validToken.setEmail( user.getEmail() );
         validToken = entityManager.persistAndFlush( validToken );
-        assertThat( validToken.getCreatedAt() ).isCloseTo( Instant.now(), 500 );
+        assertThat( validToken.getCreatedAt() )
+                .isBetween( Instant.now().minus( 500, ChronoUnit.MILLIS ), Instant.now() );
 
         User user2 = entityManager.persistAndFlush( createUnpersistedUser() );
 
@@ -53,9 +55,10 @@ public class VerificationTokenRepositoryTest {
         expiredToken.setToken( "expiredtoken" );
         expiredToken.setUser( user2 );
         expiredToken.setEmail( user2.getEmail() );
-        expiredToken.setExpiryDate( Timestamp.from( Instant.now() ) );
+        expiredToken.setExpiryDate( Instant.now() );
         expiredToken = entityManager.persistAndFlush( expiredToken );
-        assertThat( expiredToken.getCreatedAt() ).isCloseTo( Instant.now(), 500 );
+        assertThat( expiredToken.getCreatedAt() )
+                .isBetween( Instant.now().minus( 500, ChronoUnit.MILLIS ), Instant.now() );
     }
 
     @Test
@@ -81,7 +84,7 @@ public class VerificationTokenRepositoryTest {
 
     @Test
     public void deleteAllExpiredSince_whenValidDate_thenDeleteTokens() {
-        verificationTokenRepository.deleteAllExpiredSince( Timestamp.from( Instant.now() ) );
+        verificationTokenRepository.deleteAllExpiredSince( Instant.now() );
         assertThat( verificationTokenRepository.findAll() ).containsExactly( validToken );
 
     }

@@ -15,6 +15,7 @@ import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import ubc.pavlab.rdp.model.enums.TierType;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Collection;
 import java.util.EnumSet;
 
@@ -495,7 +496,8 @@ public class UserRepositoryTest {
         user.getProfile().setResearcherPosition( ResearcherPosition.PRINCIPAL_INVESTIGATOR );
         user.getProfile().getResearcherCategories().add( ResearcherCategory.IN_SILICO );
         User persistedUser = entityManager.persistAndFlush( user );
-        assertThat( persistedUser.getCreatedAt() ).isCloseTo( Instant.now(), 500 );
+        assertThat( persistedUser.getCreatedAt() )
+                .isBetween( Instant.now().minus( 500, ChronoUnit.MILLIS ), Instant.now() );
         assertThat( persistedUser.getProfile() )
                 .hasFieldOrPropertyWithValue( "researcherPosition", ResearcherPosition.PRINCIPAL_INVESTIGATOR )
                 .hasFieldOrPropertyWithValue( "researcherCategories", EnumSet.of( ResearcherCategory.IN_SILICO ) );

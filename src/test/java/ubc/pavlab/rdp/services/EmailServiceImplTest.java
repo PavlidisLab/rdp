@@ -24,7 +24,6 @@ import ubc.pavlab.rdp.settings.SiteSettings;
 
 import javax.mail.MessagingException;
 import java.net.URI;
-import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.Locale;
 import java.util.concurrent.ExecutionException;
@@ -85,7 +84,7 @@ public class EmailServiceImplTest {
     public void sendSupportMessage_thenSucceed() throws MessagingException {
         User user = createUser( 1 );
         user.setEnabled( true );
-        user.setEnabledAt( Timestamp.from( Instant.now() ) );
+        user.setEnabledAt( Instant.now() );
         assertThat( emailService.sendSupportMessage( "I need help!", "John Doe", user, "Google Chrome", null, Locale.getDefault() ) )
                 .succeedsWithin( 1, TimeUnit.SECONDS );
         ArgumentCaptor<SimpleMailMessage> mailMessageCaptor = ArgumentCaptor.forClass( SimpleMailMessage.class );
@@ -173,11 +172,11 @@ public class EmailServiceImplTest {
         User user = createUser( 1 );
         user.getProfile().setContactEmail( "foo@example.com" );
         user.getProfile().setContactEmailVerified( true );
-        user.getProfile().setContactEmailVerifiedAt( Timestamp.from( Instant.now() ) );
+        user.getProfile().setContactEmailVerifiedAt( Instant.now() );
         User user2 = createUser( 2 );
         user2.getProfile().setContactEmail( "bar@example.com" );
         user2.getProfile().setContactEmailVerified( true );
-        user2.getProfile().setContactEmailVerifiedAt( Timestamp.from( Instant.now() ) );
+        user2.getProfile().setContactEmailVerifiedAt( Instant.now() );
         UserGene userGene = createUserGene( 1, createGene( 1, createTaxon( 1 ) ), user2, TierType.TIER1, PrivacyLevelType.PRIVATE );
         assertThat( emailService.sendUserGeneAccessRequest( userGene, user, "Because." ) )
                 .succeedsWithin( 1, TimeUnit.SECONDS );

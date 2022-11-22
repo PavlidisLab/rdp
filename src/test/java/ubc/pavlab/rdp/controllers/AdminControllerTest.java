@@ -1,14 +1,14 @@
 package ubc.pavlab.rdp.controllers;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.internal.verification.VerificationModeFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.Import;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.ResourceLoader;
@@ -24,6 +24,7 @@ import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -45,7 +46,6 @@ import ubc.pavlab.rdp.util.ProgressCallback;
 import ubc.pavlab.rdp.util.TestUtils;
 
 import java.io.*;
-import java.net.URI;
 import java.net.URL;
 import java.time.Duration;
 import java.util.*;
@@ -64,8 +64,9 @@ import static ubc.pavlab.rdp.util.TestUtils.createUser;
 /**
  * Created by mjacobson on 13/02/18.
  */
-@RunWith(SpringRunner.class)
 @WebMvcTest(AdminController.class)
+@TestPropertySource("classpath:application.properties")
+@Import({ ApplicationSettings.class, SiteSettings.class })
 public class AdminControllerTest {
 
     @Autowired
@@ -94,15 +95,6 @@ public class AdminControllerTest {
 
     @MockBean(name = "userService")
     private UserService userService;
-
-    @MockBean(name = "applicationSettings")
-    private ApplicationSettings applicationSettings;
-
-    @MockBean
-    ApplicationSettings.PrivacySettings privacySettings;
-
-    @MockBean(name = "siteSettings")
-    private SiteSettings siteSettings;
 
     @MockBean
     private PermissionEvaluator permissionEvaluator;
@@ -150,9 +142,8 @@ public class AdminControllerTest {
         }
     }
 
-    @Before
+    @BeforeEach
     public void setUp() {
-        when( applicationSettings.getPrivacy() ).thenReturn( privacySettings );
         when( ontologyService.resolveOntologyUrl( any( URL.class ) ) ).thenAnswer( a -> resourceLoader.getResource( a.getArgument( 0, URL.class ).toString() ) );
         when( ontologyService.isSimple( any( Ontology.class ) ) ).thenAnswer( a -> a.getArgument( 0, Ontology.class ).getTerms().size() <= 20 );
         conversionService.addConverter( new UserIdToUserConverter() );
@@ -179,7 +170,6 @@ public class AdminControllerTest {
     @Test
     @WithMockUser(roles = { "ADMIN" })
     public void givenLoggedIn_whenCreateServiceAccount_thenRedirect3xx() throws Exception {
-        when( siteSettings.getHostUrl() ).thenReturn( URI.create( "http://localhost/" ) );
         when( roleRepository.findById( 1 ) ).thenReturn( Optional.of( createRole( 1, "ROLE_USER" ) ) );
         when( roleRepository.findById( 2 ) ).thenReturn( Optional.of( createRole( 2, "ROLE_ADMIN" ) ) );
         when( userService.createServiceAccount( any() ) ).thenAnswer( answer -> {

@@ -29,6 +29,7 @@ import ubc.pavlab.rdp.security.Permissions;
 import ubc.pavlab.rdp.services.*;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.settings.SiteSettings;
+import ubc.pavlab.rdp.util.Messages;
 
 import java.net.URI;
 import java.util.*;
@@ -426,7 +427,7 @@ public class ApiController {
 
     @SneakyThrows
     private <T extends RemoteResource> T initRemoteResource( T remoteResource, Locale locale ) {
-        remoteResource.setOrigin( messageSource.getMessage( "rdp.site.shortname", null, locale ) );
+        remoteResource.setOrigin( messageSource.getMessage( Messages.SHORTNAME, locale ) );
         // Ensure that the path of the URL is effectively stripped from any trailing slashes and that its string
         // representation is free of query parameters, fragments, etc.
         // The main reason we do this is to avoid double slashes when generating URLs to profiles on partner sites

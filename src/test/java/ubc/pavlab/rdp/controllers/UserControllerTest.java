@@ -7,34 +7,37 @@ import lombok.SneakyThrows;
 import org.hamcrest.Matchers;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.mockito.internal.util.collections.Sets;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.MessageSource;
-import org.springframework.core.io.ClassPathResource;
+import org.springframework.context.annotation.Import;
+import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import ubc.pavlab.rdp.exception.TokenException;
 import ubc.pavlab.rdp.model.*;
-import ubc.pavlab.rdp.model.enums.*;
+import ubc.pavlab.rdp.model.enums.Aspect;
+import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
+import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.services.*;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.settings.FaqSettings;
 import ubc.pavlab.rdp.settings.SiteSettings;
 
 import java.util.ArrayList;
-import java.util.EnumSet;
 import java.util.Locale;
 import java.util.Set;
 
@@ -51,39 +54,22 @@ import static ubc.pavlab.rdp.util.TestUtils.*;
 /**
  * Created by mjacobson on 13/02/18.
  */
-@RunWith(SpringRunner.class)
 @WebMvcTest(UserController.class)
+@TestPropertySource(value = "classpath:application.properties", properties = {
+        "rdp.settings.faq-file=classpath:faq.properties",
+        "rdp.settings.enabled-tiers=TIER1,TIER2,TIER3",
+        "rdp.settings.ontology.enabled=true",
+        "rdp.settings.profile.enabled-researcher-categories=IN_SILICO,IN_VITRO_BIOCHEMICAL,IN_VITRO_CELLS,IN_VITRO_STRUCTURAL,IN_VIVO,OTHER",
+        "rdp.settings.profile.enabled-researcher-positions=PRINCIPAL_INVESTIGATOR"
+})
+@Import({ ApplicationSettings.class, SiteSettings.class, FaqSettings.class })
 public class UserControllerTest {
 
     @Autowired
     private MockMvc mvc;
 
     @Autowired
-    ObjectMapper objectMapper;
-
-    @MockBean(name = "applicationSettings")
-    private ApplicationSettings applicationSettings;
-
-    @MockBean
-    private ApplicationSettings.ProfileSettings profileSettings;
-
-    @MockBean
-    private ApplicationSettings.PrivacySettings privacySettings;
-
-    @MockBean(name = "siteSettings")
-    private SiteSettings siteSettings;
-
-    @MockBean(name = "faqSettings")
-    private FaqSettings faqSettings;
-
-    @MockBean
-    private ApplicationSettings.OrganSettings organSettings;
-
-    @MockBean
-    private ApplicationSettings.InternationalSearchSettings iSearchSettings;
-
-    @MockBean
-    private ApplicationSettings.OntologySettings ontologySettings;
+    private ObjectMapper objectMapper;
 
     @MockBean(name = "userService")
     private UserService userService;
@@ -100,7 +86,7 @@ public class UserControllerTest {
     @MockBean
     private PrivacyService privacyService;
 
-    @MockBean
+    @MockBean(name = "organInfoService")
     private OrganInfoService organInfoService;
 
     //    WebSecurityConfig
@@ -121,17 +107,8 @@ public class UserControllerTest {
     @MockBean(name = "ontologyMessageSource")
     private MessageSource ontologyMessageSource;
 
-    @Before
+    @BeforeEach
     public void setUp() {
-        when( applicationSettings.getEnabledTiers() ).thenReturn( EnumSet.allOf( TierType.class ) );
-        when( applicationSettings.getPrivacy() ).thenReturn( privacySettings );
-        when( applicationSettings.getProfile() ).thenReturn( profileSettings );
-        when( applicationSettings.getOntology() ).thenReturn( ontologySettings );
-        when( ontologySettings.isEnabled() ).thenReturn( true );
-        when( profileSettings.getEnabledResearcherCategories() ).thenReturn( EnumSet.allOf( ResearcherCategory.class ) );
-        when( profileSettings.getEnabledResearcherPositions() ).thenReturn( EnumSet.of( ResearcherPosition.PRINCIPAL_INVESTIGATOR ) );
-        when( applicationSettings.getOrgans() ).thenReturn( organSettings );
-        when( applicationSettings.getIsearch() ).thenReturn( iSearchSettings );
         when( taxonService.findById( any() ) ).then( i -> createTaxon( i.getArgument( 0, Integer.class ) ) );
         when( userService.updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( any(), any(), any(), any(), any(), any() ) ).thenAnswer( arg -> arg.getArgument( 0, User.class ) );
     }
@@ -179,7 +156,6 @@ public class UserControllerTest {
     public void getUserStaticEndpoints_thenReturnSuccess() throws Exception {
         User user = createUser( 1 );
         when( userService.findCurrentUser() ).thenReturn( user );
-        when( applicationSettings.getFaqFile() ).thenReturn( new ClassPathResource( "faq.properties" ) );
         mvc.perform( get( "/user/home" ) )
                 .andExpect( status().isOk() )
                 .andExpect( view().name( "user/home" ) );
@@ -191,13 +167,32 @@ public class UserControllerTest {
                 .andExpect( view().name( "user/faq" ) );
     }
 
-    @Test
-    @WithMockUser
-    public void getUserFaq_whenFaqIsDisabled_thenReturn404() throws Exception {
-        when( applicationSettings.getFaqFile() ).thenReturn( null );
-        mvc.perform( get( "/user/faq" ) )
-                .andExpect( status().isNotFound() )
-                .andExpect( view().name( "error/404" ) );
+    @Autowired
+    private ApplicationSettings applicationSettings;
+
+    @Nested
+    public class WithoutFaq {
+
+        private Resource originalFaq;
+
+        @BeforeEach
+        public void setUp() {
+            originalFaq = applicationSettings.getFaqFile();
+            applicationSettings.setFaqFile( null );
+        }
+
+        @AfterEach
+        public void tearDown() {
+            applicationSettings.setFaqFile( originalFaq );
+        }
+
+        @Test
+        @WithMockUser
+        public void getUserFaq_whenFaqIsDisabled_thenReturn404() throws Exception {
+            mvc.perform( get( "/user/faq" ) )
+                    .andExpect( status().isNotFound() )
+                    .andExpect( view().name( "error/404" ) );
+        }
     }
 
     @Test

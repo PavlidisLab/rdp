@@ -15,6 +15,7 @@ import ubc.pavlab.rdp.repositories.UserRepository;
 
 import javax.persistence.EntityManager;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static ubc.pavlab.rdp.util.TestUtils.createUnpersistedUser;
@@ -52,8 +53,10 @@ public class UserOntologyRepositoryTest {
         UserOntologyTerm uo = UserOntologyTerm.fromOntologyTermInfo( user, term );
         user.getUserOntologyTerms().add( uo );
         user = userRepository.saveAndFlush( user );
+        Instant a = Instant.now().minus( 500, ChronoUnit.MILLIS );
+        Instant b = Instant.now();
         assertThat( user.getUserOntologyTerms() ).allSatisfy( userTerm -> {
-            assertThat( userTerm.getCreatedAt() ).isCloseTo( Instant.now(), 500 );
+            assertThat( userTerm.getCreatedAt() ).isBetween( a, b );
         } );
 
         ontology.getTerms().remove( term );

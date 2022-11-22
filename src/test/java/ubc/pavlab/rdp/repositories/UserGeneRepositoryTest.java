@@ -17,8 +17,8 @@ import ubc.pavlab.rdp.model.UserGene;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.TierType;
 
-import java.sql.Timestamp;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -47,10 +47,13 @@ public class UserGeneRepositoryTest {
     public void setUp() {
         taxon = entityManager.persistAndFlush( createTaxon( 1 ) );
         user = entityManager.persistAndFlush( createUserWithGenes( taxon ) );
+        Instant a = Instant.now().minus( 500, ChronoUnit.MILLIS );
+        Instant b = Instant.now();
         assertThat( user.getUserGenes() )
                 .isNotEmpty()
                 .allSatisfy( ( geneId, userGene ) -> {
-                    assertThat( userGene.getCreatedAt() ).isCloseTo( Instant.now(), 500 );
+                    assertThat( userGene.getCreatedAt() )
+                            .isBetween( a, b );
                 } );
     }
 
@@ -231,7 +234,7 @@ public class UserGeneRepositoryTest {
     public void findByUserEnabledTrue() {
         Gene gene = entityManager.persist( createGene( 1, taxon ) );
         user.setEnabled( true );
-        user.setEnabledAt( Timestamp.from( Instant.now() ) );
+        user.setEnabledAt( Instant.now() );
         user.getProfile().setPrivacyLevel( PrivacyLevelType.PUBLIC );
         user.getUserGenes().clear();
         user = entityManager.persistAndFlush( user );
@@ -260,7 +263,7 @@ public class UserGeneRepositoryTest {
         Gene gene2 = entityManager.persist( createGene( 2, taxon ) );
         Gene gene3 = entityManager.persist( createGene( 3, taxon ) );
         user.setEnabled( true );
-        user.setEnabledAt( Timestamp.from( Instant.now() ) );
+        user.setEnabledAt( Instant.now() );
         user.getProfile().setPrivacyLevel( PrivacyLevelType.PUBLIC );
         user.getUserGenes().clear();
         user = entityManager.persistAndFlush( user );
@@ -281,7 +284,7 @@ public class UserGeneRepositoryTest {
         Gene gene2 = entityManager.persist( createGene( 2, taxon ) );
         Gene gene3 = entityManager.persist( createGene( 3, taxon ) );
         user.setEnabled( true );
-        user.setEnabledAt( Timestamp.from( Instant.now() ) );
+        user.setEnabledAt( Instant.now() );
         user.getProfile().setPrivacyLevel( PrivacyLevelType.PRIVATE );
         user.getUserGenes().clear();
         user = entityManager.persistAndFlush( user );
@@ -298,7 +301,7 @@ public class UserGeneRepositoryTest {
     public void findAllByPrivacyLevelAndUserProfilePrivacyLevel_whenGenePrivacyLevelIsNull_thenFallbackOnProfile() {
         Gene gene = entityManager.persist( createGene( 1, taxon ) );
         user.setEnabled( true );
-        user.setEnabledAt( Timestamp.from( Instant.now() ) );
+        user.setEnabledAt( Instant.now() );
         user.getProfile().setPrivacyLevel( PrivacyLevelType.PUBLIC );
         user.getUserGenes().clear();
         user = entityManager.persistAndFlush( user );

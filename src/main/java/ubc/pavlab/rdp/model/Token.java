@@ -1,12 +1,14 @@
 package ubc.pavlab.rdp.model;
 
-import lombok.*;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 import org.hibernate.annotations.NaturalId;
 
 import javax.persistence.Column;
 import javax.persistence.MappedSuperclass;
 import java.io.Serializable;
-import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.temporal.TemporalAmount;
 
@@ -22,7 +24,7 @@ public abstract class Token implements Serializable {
     private String token;
 
     @Column(name = "expiry_date", nullable = false)
-    private Timestamp expiryDate;
+    private Instant expiryDate;
 
     protected abstract TemporalAmount getDuration();
 
@@ -32,6 +34,6 @@ public abstract class Token implements Serializable {
 
     public void updateToken( final String token ) {
         this.token = token;
-        this.expiryDate = Timestamp.from( calculateExpiryDate() );
+        this.expiryDate = calculateExpiryDate();
     }
 }

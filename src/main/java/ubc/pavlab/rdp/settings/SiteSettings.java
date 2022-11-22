@@ -16,7 +16,7 @@ import java.net.URI;
  * Created by mjacobson on 22/01/18.
  */
 @Validated
-@Configuration
+@Configuration("siteSettings")
 @ConfigurationProperties(prefix = "rdp.site")
 @Data
 public class SiteSettings {

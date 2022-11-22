@@ -13,6 +13,7 @@ import ubc.pavlab.rdp.model.User;
 import ubc.pavlab.rdp.model.UserOrgan;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Collection;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -44,7 +45,7 @@ public class UserOrganRepositoryTest {
     public void setUp() {
         User user = entityManager.persistAndFlush( createUnpersistedUser() );
         userOrgan = entityManager.persistAndFlush( createUserOrgan( user, "UBERON_....", "Limb/Appendage", "Limb or appendage" ) );
-        assertThat( userOrgan.getCreatedAt() ).isCloseTo( Instant.now(), 500 );
+        assertThat( userOrgan.getCreatedAt() ).isBetween( Instant.now().minus( 500, ChronoUnit.MILLIS ), Instant.now() );
     }
 
     @Test

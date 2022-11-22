@@ -10,7 +10,7 @@ This section describes the essential steps to deploy an RDP registry.
 
 ## Obtain a distribution of RDP
 
-Download the [latest JAR distribution](https://github.com/PavlidisLab/rdp/releases/latest) from GitHub.
+Download the [JAR distribution from GitHub](https://github.com/PavlidisLab/rdp/releases/v{{ config.extra.rdp_version }}).
 
 ```bash
 wget https://github.com/PavlidisLab/rdp/releases/download/v{{ config.extra.rdp_version }}/rdp-{{ config.extra.rdp_version }}.jar
@@ -29,9 +29,21 @@ create user  '<database username>'@'%' identified by '<database password>';
 grant all on rdp.* to '<database username>'@'%';
 ```
 
-If you're using MySQL 5.6 or prior, use the `utf8` character set. It is a 3 bytes subset of the typical 4-bytes UTF-8
-character encoding. Otherwise, you will face issues with the index size limit of 767 bytes due to some of our indexed
-columns containing 255 characters (4 * 255 = 1020 > 767, but 3 * 255 = 765).
+If you're using MySQL 5.6 or prior, use the `utf8mb3` character set. It is a 3 bytes subset of the typical 4-bytes 
+UTF-8 character encoding. Otherwise, you will face issues with the index size limit of 767 bytes due to some of our
+indexed columns containing 255 characters (4 * 255 = 1020 > 767, but 3 * 255 = 765).
+
+You should also adjust Hibernate dialect by adding the following to your `application.properties`:
+
+```properties
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQL55Dialect
+```
+
+Likewise, if you are using MariaDB, for which we recommend the current 10.6 LTS, use the following dialect:
+
+```properties
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MariaDB106Dialect
+```
 
 ## Setup application.properties
 

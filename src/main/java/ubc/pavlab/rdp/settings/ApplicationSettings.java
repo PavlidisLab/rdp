@@ -30,7 +30,7 @@ import java.util.List;
  * Created by mjacobson on 22/01/18.
  */
 @Validated
-@Configuration
+@Configuration("applicationSettings")
 @ConfigurationProperties(prefix = "rdp.settings")
 @Data
 public class ApplicationSettings {

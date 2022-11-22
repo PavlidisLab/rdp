@@ -3,7 +3,7 @@ package ubc.pavlab.rdp.model;
 import lombok.NonNull;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 
-import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.Optional;
 
 /**
@@ -28,5 +28,5 @@ public interface UserContent {
     /**
      * Exact moment when this user-associated content was created, or null if unknown.
      */
-    Timestamp getCreatedAt();
+    Instant getCreatedAt();
 }
