@@ -6,10 +6,10 @@ import org.flywaydb.core.api.MigrationInfo;
 import org.springframework.boot.autoconfigure.flyway.FlywayMigrationStrategy;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.jdbc.core.ConnectionCallback;
+import org.springframework.jdbc.core.JdbcTemplate;
 
-import java.sql.Connection;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.Arrays;
 
 /**
@@ -67,20 +67,17 @@ public class MigrationConfig {
     @Bean
     public FlywayMigrationStrategy flywayMigrationStrategy() {
         return flyway -> {
-            try {
-                // drop version_rank column
-                Connection connection = flyway.getConfiguration().getDataSource().getConnection();
-                // lookup the schema_version table and version_rank column
-                boolean hasVersionRankColumn;
-                try ( ResultSet resultSet = connection.getMetaData().getColumns( null, null, "schema_version", "version_rank" ) ) {
-                    hasVersionRankColumn = resultSet.next();
+            // drop version_rank column
+            JdbcTemplate jdbcTemplate = new JdbcTemplate( flyway.getConfiguration().getDataSource() );
+            // lookup the schema_version table and version_rank column
+            Boolean hasVersionRankColumn = jdbcTemplate.execute( (ConnectionCallback<Boolean>) con -> {
+                try ( ResultSet resultSet = con.getMetaData().getColumns( null, null, "schema_version", "version_rank" ) ) {
+                    return resultSet.next();
                 }
-                if ( hasVersionRankColumn ) {
-                    log.warn( "The 'schema_version' table is still using the 'version_rank' column from Flyway 3.2.1; will proceed to remove it..." );
-                    connection.createStatement().execute( "alter table schema_version drop column version_rank" );
-                }
-            } catch ( SQLException e ) {
-                throw new RuntimeException( e );
+            } );
+            if ( hasVersionRankColumn != null && hasVersionRankColumn ) {
+                log.warn( "The 'schema_version' table is still using the 'version_rank' column from Flyway 3.2.1; will proceed to remove it..." );
+                jdbcTemplate.execute( "alter table schema_version drop column version_rank" );
             }
             MigrationInfo[] appliedMigrations = flyway.info().applied();
             boolean repairNeeded = false;
