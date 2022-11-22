@@ -14,5 +14,5 @@ plugins:
 markdown_extensions:
   - admonition
 extra:
-  rdp_version: 1.6.0
+  rdp_version: 1.6.0-SNAPSHOT
   git_ref: development
