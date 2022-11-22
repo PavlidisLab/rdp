@@ -1,13 +1,15 @@
 package ubc.pavlab.rdp.controllers;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.Import;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import ubc.pavlab.rdp.model.GeneOntologyTermInfo;
@@ -28,8 +30,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static ubc.pavlab.rdp.util.TestUtils.createTaxon;
 import static ubc.pavlab.rdp.util.TestUtils.createTerm;
 
-@RunWith(SpringRunner.class)
 @WebMvcTest(TermController.class)
+@TestPropertySource("classpath:application.properties")
+@Import({ ApplicationSettings.class, SiteSettings.class })
 public class TermControllerTest {
 
     @Autowired
@@ -40,12 +43,6 @@ public class TermControllerTest {
 
     @MockBean
     private GOService goService;
-
-    @MockBean
-    private ApplicationSettings applicationSettings;
-
-    @MockBean
-    private SiteSettings siteSettings;
 
     @MockBean
     private UserService userService;

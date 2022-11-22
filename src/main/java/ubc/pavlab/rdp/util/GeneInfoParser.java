@@ -7,10 +7,10 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.stereotype.Component;
 
 import java.io.*;
-import java.text.DateFormat;
 import java.text.MessageFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -27,7 +27,7 @@ public class GeneInfoParser {
 
     private static final String[] EXPECTED_HEADER_FIELDS = { "#tax_id", "GeneID", "Symbol", "Synonyms", "description", "Modification_date" };
 
-    private static final DateFormat NCBI_DATE_FORMAT = new SimpleDateFormat( "yyyyMMdd" );
+    private static final DateTimeFormatter NCBI_DATE_FORMAT = DateTimeFormatter.ofPattern( "yyyyMMdd" );
 
     public List<Record> parse( InputStream input, Integer taxonId ) throws ParseException, IOException {
         try ( LineNumberReader br = new LineNumberReader( new InputStreamReader( input ) ) ) {
@@ -67,7 +67,7 @@ public class GeneInfoParser {
         private String symbol;
         private String synonyms;
         private String description;
-        private Date modificationDate;
+        private LocalDate modificationDate;
 
         public static Record parseLine( String line, String[] header, int lineNumber ) throws UncheckedParseException {
             String[] values = line.split( "\t" );
@@ -89,10 +89,10 @@ public class GeneInfoParser {
             String symbol = values[indexOf( header, "Symbol" )];
             String synonyms = values[indexOf( header, "Synonyms" )];
             String description = values[indexOf( header, "description" )];
-            Date modificationDate = null;
+            LocalDate modificationDate = null;
             try {
-                modificationDate = NCBI_DATE_FORMAT.parse( values[indexOf( header, "Modification_date" )] );
-            } catch ( java.text.ParseException e ) {
+                modificationDate = LocalDate.parse( values[indexOf( header, "Modification_date" )], NCBI_DATE_FORMAT );
+            } catch ( DateTimeParseException e ) {
                 log.warn( MessageFormat.format( "Malformed date for gene {0} in taxon {1}, value will be ignored.", geneId, taxonId ), e );
             }
             return new Record( taxonId, geneId, symbol, synonyms, description, modificationDate );

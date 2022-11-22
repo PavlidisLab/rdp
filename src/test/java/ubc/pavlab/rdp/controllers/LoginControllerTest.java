@@ -1,13 +1,13 @@
 package ubc.pavlab.rdp.controllers;
 
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.Import;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.format.support.FormattingConversionService;
 import org.springframework.http.MediaType;
@@ -15,7 +15,7 @@ import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import ubc.pavlab.rdp.exception.TokenException;
 import ubc.pavlab.rdp.model.Profile;
@@ -37,8 +37,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static ubc.pavlab.rdp.util.TestUtils.createUser;
 
-@RunWith(SpringRunner.class)
 @WebMvcTest(LoginController.class)
+@TestPropertySource(value = "classpath:application.properties", properties = {
+        "rdp.site.contact-email=support@example.com"
+})
+@Import({ ApplicationSettings.class, SiteSettings.class })
 public class LoginControllerTest {
 
     @Autowired
@@ -49,15 +52,6 @@ public class LoginControllerTest {
 
     @MockBean
     private PrivacyService privacyService;
-
-    @MockBean
-    private ApplicationSettings applicationSettings;
-
-    @MockBean
-    private ApplicationSettings.PrivacySettings privacySettings;
-
-    @MockBean(name = "siteSettings")
-    private SiteSettings siteSettings;
 
     @MockBean
     private UserDetailsService userDetailsService;
@@ -74,10 +68,8 @@ public class LoginControllerTest {
     @MockBean(name = "ontologyMessageSource")
     private MessageSource ontologyMessageSource;
 
-    @Before
+    @BeforeEach
     public void setUp() {
-        when( applicationSettings.getPrivacy() ).thenReturn( privacySettings );
-        when( siteSettings.getContactEmail() ).thenReturn( "support@example.com" );
         when( privacyService.getDefaultPrivacyLevel() ).thenReturn( PrivacyLevelType.PRIVATE );
     }
 
@@ -112,13 +104,11 @@ public class LoginControllerTest {
                 .andExpect( status().isOk() )
                 .andExpect( view().name( "registration" ) )
                 .andExpect( model().attribute( "user", new User() ) );
-
-        when( applicationSettings.getPrivacy() ).thenReturn( privacySettings );
         when( userService.create( any() ) ).thenAnswer( answer -> answer.getArgument( 0, User.class ) );
     }
 
     @Test
-    @Ignore("I have absolutely no idea why this converter does not work anymore. See https://github.com/PavlidisLab/rdp/issues/171 for details.")
+    @Disabled("I have absolutely no idea why this converter does not work anymore. See https://github.com/PavlidisLab/rdp/issues/171 for details.")
     public void register_whenEmailIsUsedButNotEnabled_thenResendConfirmation() throws Exception {
         User user = User.builder( new Profile() )
                 .email( "foo@example.com" )

@@ -12,9 +12,8 @@ import ubc.pavlab.rdp.JpaAuditingConfig;
 import ubc.pavlab.rdp.model.PasswordResetToken;
 import ubc.pavlab.rdp.model.User;
 
-import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.Date;
+import java.time.temporal.ChronoUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static ubc.pavlab.rdp.util.TestUtils.createUnpersistedUser;
@@ -45,16 +44,18 @@ public class PasswordResetTokenRepositoryTest {
         validToken.updateToken( "validtoken" );
         validToken.setUser( user );
         entityManager.persist( validToken );
-        assertThat( validToken.getCreatedAt() ).isCloseTo( Instant.now(), 500 );
+        assertThat( validToken.getCreatedAt() )
+                .isBetween( Instant.now().minus( 500, ChronoUnit.MILLIS ), Instant.now() );
 
         User user2 = entityManager.persistAndFlush( createUnpersistedUser() );
 
         expiredToken = new PasswordResetToken();
         expiredToken.setToken( "expiredtoken" );
         expiredToken.setUser( user2 );
-        expiredToken.setExpiryDate( Timestamp.from( Instant.now() ) );
+        expiredToken.setExpiryDate( Instant.now() );
         expiredToken = entityManager.persistAndFlush( expiredToken );
-        assertThat( expiredToken.getCreatedAt() ).isCloseTo( Instant.now(), 500 );
+        assertThat( expiredToken.getCreatedAt() )
+                .isBetween( Instant.now().minus( 500, ChronoUnit.MILLIS ), Instant.now() );
     }
 
     @Test
@@ -80,7 +81,7 @@ public class PasswordResetTokenRepositoryTest {
 
     @Test
     public void deleteAllExpiredSince_whenValidDate_thenDeleteTokens() {
-        passwordResetTokenRepository.deleteAllExpiredSince( new Date() );
+        passwordResetTokenRepository.deleteAllExpiredSince( Instant.now() );
         assertThat( passwordResetTokenRepository.findAll() ).containsExactly( validToken );
     }
 

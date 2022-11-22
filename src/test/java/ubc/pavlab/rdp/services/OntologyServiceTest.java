@@ -164,6 +164,24 @@ public class OntologyServiceTest {
     }
 
     @Test
+    public void updateFromObo_whenSynonymChangeCase_thenIgnoreNewValue() throws OntologyNameAlreadyUsedException, IOException, ParseException {
+        Set<String> synonyms;
+
+        Ontology ontology = ontologySetupService.setupOntology( "mondo", false );
+        // need to rehash because the sorted set is case insensitive
+        synonyms = new HashSet<>( ontologyService.findTermByTermIdAndOntology( "MONDO:0005296", ontology ).getSynonyms() );
+        assertThat( synonyms ).contains( "sleep Apneas, mixed" );
+
+        // the casing has changed to "sleep apneas, mixed" in mondo2
+        Resource resource = new ClassPathResource( "cache/mondo2.obo" );
+        try ( Reader reader = new InputStreamReader( resource.getInputStream() ) ) {
+            ontologyService.updateFromObo( ontology, reader );
+        }
+        synonyms = new HashSet<>( ontologyService.findTermByTermIdAndOntology( "MONDO:0005296", ontology ).getSynonyms() );
+        assertThat( synonyms ).contains( "sleep Apneas, mixed" );
+    }
+
+    @Test
     public void autocomplete() throws IOException, ParseException, OntologyNameAlreadyUsedException {
         Ontology ontology = ontologySetupService.setupOntology( "uberon", true );
         entityManager.refresh( ontology );

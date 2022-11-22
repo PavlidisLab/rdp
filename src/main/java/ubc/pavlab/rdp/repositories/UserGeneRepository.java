@@ -104,7 +104,7 @@ public interface UserGeneRepository extends JpaRepository<UserGene, Integer> {
      * Only genes from enabled users are included.
      */
     @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
-    @Query(value = "select distinct ug.geneId from UserGene ug where ug.user.enabled = true")
+    @Query(value = "select distinct ug.geneId from UserGene ug where ug.user.enabled = true and ug.taxon = :taxon")
     Collection<Integer> findAllDistinctGeneIdByTaxon( Taxon taxon );
 
     /**

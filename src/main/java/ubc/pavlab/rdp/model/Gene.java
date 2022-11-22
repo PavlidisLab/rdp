@@ -9,7 +9,7 @@ import org.hibernate.annotations.NaturalId;
 
 import javax.persistence.*;
 import java.io.Serializable;
-import java.util.Date;
+import java.time.LocalDate;
 
 /**
  * Created by mjacobson on 17/01/18.
@@ -41,7 +41,6 @@ public abstract class Gene implements Serializable {
     private String aliases;
 
     @JsonIgnore
-    @Temporal(TemporalType.DATE)
     @Column(name = "modification_date")
-    private Date modificationDate;
+    private LocalDate modificationDate;
 }

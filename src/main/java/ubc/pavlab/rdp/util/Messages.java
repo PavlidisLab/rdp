@@ -10,6 +10,6 @@ import org.springframework.context.support.DefaultMessageSourceResolvable;
  */
 public final class Messages {
 
-    public static final MessageSourceResolvable SHORTNAME = new DefaultMessageSourceResolvable( "rdp.site.shortname" );
+    public static final DefaultMessageSourceResolvable SHORTNAME = new DefaultMessageSourceResolvable( "rdp.site.shortname" );
     public static final MessageSourceResolvable FULLNAME = new DefaultMessageSourceResolvable( "rdp.site.fullname" );
 }

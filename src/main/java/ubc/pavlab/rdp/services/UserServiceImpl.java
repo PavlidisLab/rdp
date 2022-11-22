@@ -40,10 +40,10 @@ import ubc.pavlab.rdp.repositories.*;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.util.CacheUtils;
 import ubc.pavlab.rdp.util.CollectionUtils;
+import ubc.pavlab.rdp.util.Messages;
 
 import javax.validation.ValidationException;
 import java.security.SecureRandom;
-import java.sql.Timestamp;
 import java.text.MessageFormat;
 import java.time.Instant;
 import java.util.*;
@@ -319,7 +319,7 @@ public class UserServiceImpl implements UserService, InitializingBean {
         if ( token == null ) {
             return null;
         }
-        if ( Instant.now().isAfter( token.getExpiryDate().toInstant() ) ) {
+        if ( Instant.now().isAfter( token.getExpiryDate() ) ) {
             // token is expired
             throw new ExpiredTokenException( "Token is expired." );
         }
@@ -335,9 +335,8 @@ public class UserServiceImpl implements UserService, InitializingBean {
     @Override
     @PostAuthorize("hasPermission(returnObject, 'read')")
     public User anonymizeUser( User user, UUID anonymousId ) {
-        String shortName = messageSource.getMessage( "rdp.site.shortname", null, Locale.getDefault() );
         Profile profile = Profile.builder()
-                .name( messageSource.getMessage( "rdp.site.anonymized-user-name", new String[]{ shortName }, Locale.getDefault() ) )
+                .name( messageSource.getMessage( "rdp.site.anonymized-user-name", new Object[]{ Messages.SHORTNAME }, Locale.getDefault() ) )
                 .privacyLevel( applicationSettings.getPrivacy().isEnableAnonymizedSearchResults() ? PrivacyLevelType.PUBLIC : PrivacyLevelType.PRIVATE )
                 .shared( true )
                 .build();
@@ -814,7 +813,7 @@ public class UserServiceImpl implements UserService, InitializingBean {
             throw new TokenException( "Password reset token is invalid." );
         }
 
-        if ( Instant.now().isAfter( passToken.getExpiryDate().toInstant() ) ) {
+        if ( Instant.now().isAfter( passToken.getExpiryDate() ) ) {
             throw new TokenException( "Password reset token is expired." );
         }
 
@@ -869,7 +868,7 @@ public class UserServiceImpl implements UserService, InitializingBean {
             throw new TokenException( "Verification token is invalid." );
         }
 
-        if ( Instant.now().isAfter( verificationToken.getExpiryDate().toInstant() ) ) {
+        if ( Instant.now().isAfter( verificationToken.getExpiryDate() ) ) {
             throw new TokenException( "Verification token is expired." );
         }
 
@@ -879,13 +878,13 @@ public class UserServiceImpl implements UserService, InitializingBean {
 
         if ( verificationToken.getEmail().equals( user.getEmail() ) ) {
             user.setEnabled( true );
-            user.setEnabledAt( Timestamp.from( Instant.now() ) );
+            user.setEnabledAt( Instant.now() );
             tokenUsed = true;
         }
 
         if ( user.getProfile().getContactEmail() != null && verificationToken.getEmail().equals( user.getProfile().getContactEmail() ) ) {
             user.getProfile().setContactEmailVerified( true );
-            user.getProfile().setContactEmailVerifiedAt( Timestamp.from( Instant.now() ) );
+            user.getProfile().setContactEmailVerifiedAt( Instant.now() );
             tokenUsed = true;
         }
 

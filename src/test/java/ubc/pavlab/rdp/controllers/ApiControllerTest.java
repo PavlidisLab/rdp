@@ -2,8 +2,10 @@ package ubc.pavlab.rdp.controllers;
 
 import org.assertj.core.util.Lists;
 import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.info.BuildProperties;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -20,7 +22,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
@@ -31,6 +33,7 @@ import ubc.pavlab.rdp.security.Permissions;
 import ubc.pavlab.rdp.services.*;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.settings.SiteSettings;
+import ubc.pavlab.rdp.util.Messages;
 
 import java.util.*;
 
@@ -43,10 +46,14 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static ubc.pavlab.rdp.util.TestUtils.*;
 
-@WebMvcTest(value = ApiController.class,
-        properties = { "rdp.site.mainsite=https://example.com" })
-@RunWith(SpringRunner.class)
-@Import({ SiteSettings.class })
+@WebMvcTest(value = ApiController.class)
+@TestPropertySource(value = "classpath:application.properties", properties = {
+        "rdp.settings.search.enabled-search-modes=BY_RESEARCHER,BY_GENE",
+        "rdp.settings.privacy.enable-anonymized-search-results=false",
+        "rdp.settings.isearch.enabled=true",
+        "rdp.site.mainsite=https://example.com"
+})
+@Import(value = { ApplicationSettings.class, SiteSettings.class })
 @EnableSpringDataWebSupport
 public class ApiControllerTest {
 
@@ -68,14 +75,6 @@ public class ApiControllerTest {
     @MockBean
     private OrganInfoService organInfoService;
     @MockBean
-    private ApplicationSettings applicationSettings;
-    @MockBean
-    private ApplicationSettings.SearchSettings searchSettings;
-    @MockBean
-    private ApplicationSettings.InternationalSearchSettings iSearchSettings;
-    @MockBean
-    private ApplicationSettings.PrivacySettings privacySettings;
-    @MockBean
     private UserDetailsService userDetailsService;
     @MockBean
     private PermissionEvaluator permissionEvaluator;
@@ -86,16 +85,11 @@ public class ApiControllerTest {
     @MockBean
     private BuildProperties buildProperties;
 
-    @Before
+    @BeforeEach
     public void setUp() {
-        when( applicationSettings.getSearch() ).thenReturn( searchSettings );
-        when( applicationSettings.getIsearch() ).thenReturn( iSearchSettings );
-        when( applicationSettings.getPrivacy() ).thenReturn( privacySettings );
-        when( searchSettings.getEnabledSearchModes() ).thenReturn( new LinkedHashSet<>( EnumSet.allOf( ApplicationSettings.SearchSettings.SearchMode.class ) ) );
-        when( iSearchSettings.isEnabled() ).thenReturn( true );
-        when( messageSource.getMessage( eq( "rdp.site.shortname" ), any(), any() ) ).thenReturn( "RDMM" );
         when( userService.getRemoteSearchUser() ).thenReturn( Optional.empty() );
         when( buildProperties.getVersion() ).thenReturn( "1.5.0" );
+        when( messageSource.getMessage( eq( Messages.SHORTNAME ), any() ) ).thenReturn( "RDMM" );
     }
 
     @Test
@@ -135,9 +129,11 @@ public class ApiControllerTest {
         User user = createUser( 1 );
         when( userService.findByNameAndDescription( "robert", false, "pancake", null, null, null, null ) )
                 .thenReturn( Collections.singletonList( user ) );
+        when( messageSource.getMessage( Messages.SHORTNAME, Locale.getDefault() ) ).thenReturn( "RDMM" );
         mvc.perform( get( "/api/users/search" )
                         .param( "nameLike", "robert" )
-                        .param( "descriptionLike", "pancake" ) )
+                        .param( "descriptionLike", "pancake" )
+                        .locale( Locale.getDefault() ) )
                 .andExpect( status().isOk() )
                 .andExpect( jsonPath( "$[0].id" ).value( 1 ) )
                 .andExpect( jsonPath( "$[0].origin" ).value( "RDMM" ) )
@@ -182,71 +178,109 @@ public class ApiControllerTest {
         verify( userService ).findByNameAndDescription( "", false, "", null, null, null, Collections.singletonMap( ontology, Collections.emptySet() ) );
     }
 
-    @Test
-    public void searchGenes_withSearchDisabled_thenReturnServiceUnavailable() throws Exception {
-        // configure remote authentication
-        when( iSearchSettings.getAuthTokens() ).thenReturn( Collections.singletonList( "1234" ) );
-        when( userService.getRemoteSearchUser() ).thenReturn( Optional.of( createUser( 1 ) ) );
+    @Nested
+    public class WithAuthTokenButWithoutInternationalSearchEnabled {
 
-        when( iSearchSettings.isEnabled() ).thenReturn( false );
-        mvc.perform( get( "/api/genes/search" )
-                        .header( "Authorization", "Bearer 1234" )
-                        .param( "symbol", "CDH1" )
-                        .param( "taxonId", "9606" )
-                        .param( "tier", "TIER1" ) )
-                .andExpect( status().isServiceUnavailable() );
+        @BeforeEach
+        public void setUp() {
+            applicationSettings.getIsearch().setEnabled( false );
+            applicationSettings.getIsearch().setUserId( 1 );
+            applicationSettings.getIsearch().setAuthTokens( Collections.singletonList( "1234" ) );
+        }
+
+        @AfterEach
+        public void tearDown() {
+            applicationSettings.getIsearch().setEnabled( true );
+            applicationSettings.getIsearch().setUserId( null );
+            applicationSettings.getIsearch().setAuthTokens( Collections.emptyList() );
+        }
+
+        @Test
+        public void searchGenes_withSearchDisabled_thenReturnServiceUnavailable() throws Exception {
+            // configure remote authentication
+            when( userService.getRemoteSearchUser() ).thenReturn( Optional.of( createUser( 1 ) ) );
+            mvc.perform( get( "/api/genes/search" )
+                            .header( "Authorization", "Bearer 1234" )
+                            .param( "symbol", "CDH1" )
+                            .param( "taxonId", "9606" )
+                            .param( "tier", "TIER1" ) )
+                    .andExpect( status().isServiceUnavailable() );
+        }
     }
 
-    @Test
-    public void searchGenes_withAuthToken_thenReturnSuccess() throws Exception {
-        // configure remote authentication
-        when( iSearchSettings.getAuthTokens() ).thenReturn( Collections.singletonList( "1234" ) );
-        when( userService.getRemoteSearchUser() ).thenReturn( Optional.of( createUser( 1 ) ) );
+    @Nested
+    public class WithAuthToken {
 
-        // configure one search result
-        Taxon humanTaxon = createTaxon( 9606 );
-        User user = createUser( 2 );
-        GeneInfo cdh1GeneInfo = createGene( 1, humanTaxon );
-        UserGene cdh1UserGene = createUserGene( 1, cdh1GeneInfo, user, TierType.TIER1, PrivacyLevelType.PRIVATE );
-        when( taxonService.findById( 9606 ) ).thenReturn( humanTaxon );
-        when( geneService.findBySymbolAndTaxon( "CDH1", humanTaxon ) ).thenReturn( cdh1GeneInfo );
-        when( userGeneService.handleGeneSearch( cdh1GeneInfo, EnumSet.of( TierType.TIER1 ), humanTaxon, null, null, null, null ) )
-                .thenReturn( Lists.newArrayList( cdh1UserGene ) );
+        @BeforeEach
+        public void setUp() {
+            applicationSettings.getIsearch().setAuthTokens( Collections.singletonList( "1234" ) );
+        }
 
-        mvc.perform( get( "/api/genes/search" )
-                        .header( "Authorization", "Bearer 1234" )
-                        .param( "symbol", "CDH1" )
-                        .param( "taxonId", "9606" )
-                        .param( "tier", "TIER1" ) )
-                .andExpect( status().is2xxSuccessful() );
+        @AfterEach
+        public void tearDown() {
+            applicationSettings.getIsearch().setAuthTokens( Collections.emptyList() );
+        }
 
-        verify( userService ).getRemoteSearchUser();
-    }
+        @Test
+        public void searchGenes_withAuthToken_thenReturnSuccess() throws Exception {
+            // configure remote authentication
+            when( userService.getRemoteSearchUser() ).thenReturn( Optional.of( createUser( 1 ) ) );
 
-    @Test
-    public void searchGenes_withAuthTokenInQuery_thenReturnSuccess() throws Exception {
-        // configure remote authentication
-        when( iSearchSettings.getAuthTokens() ).thenReturn( Collections.singletonList( "1234" ) );
-        when( userService.getRemoteSearchUser() ).thenReturn( Optional.of( createUser( 1 ) ) );
+            // configure one search result
+            Taxon humanTaxon = createTaxon( 9606 );
+            User user = createUser( 2 );
+            GeneInfo cdh1GeneInfo = createGene( 1, humanTaxon );
+            UserGene cdh1UserGene = createUserGene( 1, cdh1GeneInfo, user, TierType.TIER1, PrivacyLevelType.PRIVATE );
+            when( taxonService.findById( 9606 ) ).thenReturn( humanTaxon );
+            when( geneService.findBySymbolAndTaxon( "CDH1", humanTaxon ) ).thenReturn( cdh1GeneInfo );
+            when( userGeneService.handleGeneSearch( cdh1GeneInfo, EnumSet.of( TierType.TIER1 ), humanTaxon, null, null, null, null ) )
+                    .thenReturn( Lists.newArrayList( cdh1UserGene ) );
 
-        // configure one search result
-        Taxon humanTaxon = createTaxon( 9606 );
-        User user = createUser( 2 );
-        GeneInfo cdh1GeneInfo = createGene( 1, humanTaxon );
-        UserGene cdh1UserGene = createUserGene( 1, cdh1GeneInfo, user, TierType.TIER1, PrivacyLevelType.PRIVATE );
-        when( taxonService.findById( 9606 ) ).thenReturn( humanTaxon );
-        when( geneService.findBySymbolAndTaxon( "CDH1", humanTaxon ) ).thenReturn( cdh1GeneInfo );
-        when( userGeneService.handleGeneSearch( cdh1GeneInfo, EnumSet.of( TierType.TIER1 ), humanTaxon, null, null, null, null ) )
-                .thenReturn( Lists.newArrayList( cdh1UserGene ) );
+            mvc.perform( get( "/api/genes/search" )
+                            .header( "Authorization", "Bearer 1234" )
+                            .param( "symbol", "CDH1" )
+                            .param( "taxonId", "9606" )
+                            .param( "tier", "TIER1" ) )
+                    .andExpect( status().is2xxSuccessful() );
 
-        mvc.perform( get( "/api/genes/search" )
-                        .param( "symbol", "CDH1" )
-                        .param( "taxonId", "9606" )
-                        .param( "tier", "TIER1" )
-                        .param( "auth", "1234" ) )
-                .andExpect( status().is2xxSuccessful() );
+            verify( userService ).getRemoteSearchUser();
+        }
 
-        verify( userService ).getRemoteSearchUser();
+        @Test
+        public void searchGenes_withAuthTokenInQuery_thenReturnSuccess() throws Exception {
+            // configure remote authentication
+            when( userService.getRemoteSearchUser() ).thenReturn( Optional.of( createUser( 1 ) ) );
+
+            // configure one search result
+            Taxon humanTaxon = createTaxon( 9606 );
+            User user = createUser( 2 );
+            GeneInfo cdh1GeneInfo = createGene( 1, humanTaxon );
+            UserGene cdh1UserGene = createUserGene( 1, cdh1GeneInfo, user, TierType.TIER1, PrivacyLevelType.PRIVATE );
+            when( taxonService.findById( 9606 ) ).thenReturn( humanTaxon );
+            when( geneService.findBySymbolAndTaxon( "CDH1", humanTaxon ) ).thenReturn( cdh1GeneInfo );
+            when( userGeneService.handleGeneSearch( cdh1GeneInfo, EnumSet.of( TierType.TIER1 ), humanTaxon, null, null, null, null ) )
+                    .thenReturn( Lists.newArrayList( cdh1UserGene ) );
+
+            mvc.perform( get( "/api/genes/search" )
+                            .param( "symbol", "CDH1" )
+                            .param( "taxonId", "9606" )
+                            .param( "tier", "TIER1" )
+                            .param( "auth", "1234" ) )
+                    .andExpect( status().is2xxSuccessful() );
+
+            verify( userService ).getRemoteSearchUser();
+        }
+
+        @Test
+        public void searchGenes_whenMisconfiguredRemoteAdmin_thenReturnUnauthorized() throws Exception {
+            mvc.perform( get( "/api/genes/search" )
+                            .header( "Authorization", "Bearer 1234" )
+                            .param( "symbol", "CDH1" )
+                            .param( "taxonId", "9606" )
+                            .param( "tier", "TIER1" ) )
+                    .andExpect( status().isUnauthorized() )
+                    .andExpect( content().contentType( MediaType.TEXT_PLAIN ) );
+        }
     }
 
     @Test
@@ -271,18 +305,6 @@ public class ApiControllerTest {
                         .param( "taxonId", "9606" )
                         .param( "tier", "TIER1" ) )
                 .andExpect( status().isNotFound() )
-                .andExpect( content().contentType( MediaType.TEXT_PLAIN ) );
-    }
-
-    @Test
-    public void searchGenes_whenMisconfiguredRemoteAdmin_thenReturnUnauthorized() throws Exception {
-        when( iSearchSettings.getAuthTokens() ).thenReturn( Collections.singletonList( "1234" ) );
-        mvc.perform( get( "/api/genes/search" )
-                        .header( "Authorization", "Bearer 1234" )
-                        .param( "symbol", "CDH1" )
-                        .param( "taxonId", "9606" )
-                        .param( "tier", "TIER1" ) )
-                .andExpect( status().isUnauthorized() )
                 .andExpect( content().contentType( MediaType.TEXT_PLAIN ) );
     }
 
@@ -439,75 +461,89 @@ public class ApiControllerTest {
     public void getUser_thenReturn2xxSuccessful() throws Exception {
         User user = createUser( 1 );
         when( userService.findUserById( 1 ) ).thenReturn( user );
-        mvc.perform( get( "/api/users/{userId}", 1 ) )
+        when( messageSource.getMessage( Messages.SHORTNAME, Locale.getDefault() ) ).thenReturn( "RDMM" );
+        mvc.perform( get( "/api/users/{userId}", 1 ).locale( Locale.getDefault() ) )
                 .andExpect( status().is2xxSuccessful() )
                 .andExpect( jsonPath( "$.id" ).value( 1 ) )
                 .andExpect( jsonPath( "$.origin" ).value( "RDMM" ) )
                 .andExpect( jsonPath( "$.originUrl" ).value( "http://localhost" ) );
     }
 
-    @Test
-    public void getUser_withAnonymousId_thenReturn2xxSuccessful() throws Exception {
-        User user = createUser( 1 );
-        UUID anonymousId = UUID.randomUUID();
-        when( applicationSettings.getPrivacy().isEnableAnonymizedSearchResults() ).thenReturn( true );
-        when( userService.findUserByAnonymousIdNoAuth( anonymousId ) ).thenReturn( user );
-        when( userService.anonymizeUser( user, anonymousId ) ).thenReturn( User.builder( new Profile() ).anonymousId( anonymousId ).build() );
-        mvc.perform( get( "/api/users/by-anonymous-id/{anonymousId}", anonymousId ) )
-                .andExpect( status().is2xxSuccessful() )
-                .andExpect( jsonPath( "$.id" ).doesNotExist() )
-                .andExpect( jsonPath( "$.anonymousId" ).value( anonymousId.toString() ) )
-                .andExpect( jsonPath( "$.origin" ).value( "RDMM" ) )
-                .andExpect( jsonPath( "$.originUrl" ).value( "http://localhost" ) );
-        verify( userService ).anonymizeUser( user, anonymousId );
+    @Autowired
+    private ApplicationSettings applicationSettings;
+
+    @Nested
+    public class WithEnabledAnonymizedSearchResults {
+
+        @BeforeEach
+        public void setUp() {
+            applicationSettings.getPrivacy().setEnableAnonymizedSearchResults( true );
+        }
+
+        @AfterEach
+        public void tearDown() {
+            applicationSettings.getPrivacy().setEnableAnonymizedSearchResults( false );
+        }
+
+        @Test
+        public void getUser_withAnonymousId_thenReturn2xxSuccessful() throws Exception {
+            User user = createUser( 1 );
+            UUID anonymousId = UUID.randomUUID();
+            when( userService.findUserByAnonymousIdNoAuth( anonymousId ) ).thenReturn( user );
+            when( userService.anonymizeUser( user, anonymousId ) ).thenReturn( User.builder( new Profile() ).anonymousId( anonymousId ).build() );
+            mvc.perform( get( "/api/users/by-anonymous-id/{anonymousId}", anonymousId ) )
+                    .andExpect( status().is2xxSuccessful() )
+                    .andExpect( jsonPath( "$.id" ).doesNotExist() )
+                    .andExpect( jsonPath( "$.anonymousId" ).value( anonymousId.toString() ) )
+                    .andExpect( jsonPath( "$.origin" ).value( "RDMM" ) )
+                    .andExpect( jsonPath( "$.originUrl" ).value( "http://localhost" ) );
+            verify( userService ).anonymizeUser( user, anonymousId );
+        }
+
+        @Test
+        public void getUserGene_withAnonymousId() throws Exception {
+            Gene gene = createGene( 1, createTaxon( 9606 ) );
+            UserGene userGene = createUserGene( 1, gene, createUser( 1 ), TierType.TIER1, PrivacyLevelType.PRIVATE );
+            assertThat( userGene.getEffectivePrivacyLevel() ).isEqualTo( PrivacyLevelType.PRIVATE );
+            UUID anonymousId = UUID.randomUUID();
+            when( userService.findUserGeneByAnonymousIdNoAuth( anonymousId ) ).thenReturn( userGene );
+            when( userService.anonymizeUserGene( userGene, anonymousId ) ).thenReturn( UserGene.builder( User.builder( new Profile() ).build() )
+                    .anonymousId( anonymousId )
+                    .privacyLevel( PrivacyLevelType.PUBLIC )
+                    .build() );
+            when( permissionEvaluator.hasPermission( any(), eq( userGene ), eq( Permissions.READ ) ) ).thenReturn( false );
+            mvc.perform( get( "/api/genes/by-anonymous-id/{anonymousId}", anonymousId ) )
+                    .andExpect( status().isOk() )
+                    .andExpect( jsonPath( "$.id" ).doesNotExist() )
+                    .andExpect( jsonPath( "$.anonymousId" ).value( anonymousId.toString() ) );
+            verify( userService ).findUserGeneByAnonymousIdNoAuth( anonymousId );
+            verify( userService ).anonymizeUserGene( userGene, anonymousId );
+        }
+
+        @Test
+        public void getUserGeneByAnonymousId_whenUserCanSeeTheGene_thenReturnUnanonymizedUserGene() throws Exception {
+            Gene gene = createGene( 1, createTaxon( 9606 ) );
+            UserGene userGene = createUserGene( 1, gene, createUser( 1 ), TierType.TIER1, PrivacyLevelType.PRIVATE );
+            UUID anonymousId = UUID.randomUUID();
+            when( userService.findUserGeneByAnonymousIdNoAuth( anonymousId ) ).thenReturn( userGene );
+            when( userService.anonymizeUserGene( userGene ) ).thenReturn( UserGene.builder( User.builder( new Profile() ).build() ).anonymousId( anonymousId ).build() );
+            when( permissionEvaluator.hasPermission( any(), eq( userGene ), eq( Permissions.READ ) ) ).thenReturn( true );
+            mvc.perform( get( "/api/genes/by-anonymous-id/{anonymousId}", anonymousId ) )
+                    .andExpect( status().isOk() );
+            verify( userService ).findUserGeneByAnonymousIdNoAuth( anonymousId );
+            verifyNoMoreInteractions( userService );
+        }
     }
 
     @Test
     public void getUser_withAnonymousIdAndFeatureIsDisabled_thenReturnServiceUnavailable() throws Exception {
         User user = createUser( 1 );
         UUID anonymousId = UUID.randomUUID();
-        when( applicationSettings.getPrivacy().isEnableAnonymizedSearchResults() ).thenReturn( false );
         when( userService.findUserByAnonymousIdNoAuth( anonymousId ) ).thenReturn( user );
         when( userService.anonymizeUser( user, anonymousId ) ).thenReturn( User.builder( new Profile() ).anonymousId( anonymousId ).build() );
         mvc.perform( get( "/api/users/by-anonymous-id/{anonymousId}", anonymousId ) )
                 .andExpect( status().isServiceUnavailable() );
         verifyNoInteractions( userService );
-    }
-
-    @Test
-    public void getUserGene_withAnonymousId() throws Exception {
-        Gene gene = createGene( 1, createTaxon( 9606 ) );
-        UserGene userGene = createUserGene( 1, gene, createUser( 1 ), TierType.TIER1, PrivacyLevelType.PRIVATE );
-        assertThat( userGene.getEffectivePrivacyLevel() ).isEqualTo( PrivacyLevelType.PRIVATE );
-        UUID anonymousId = UUID.randomUUID();
-        when( userService.findUserGeneByAnonymousIdNoAuth( anonymousId ) ).thenReturn( userGene );
-        when( userService.anonymizeUserGene( userGene, anonymousId ) ).thenReturn( UserGene.builder( User.builder( new Profile() ).build() )
-                .anonymousId( anonymousId )
-                .privacyLevel( PrivacyLevelType.PUBLIC )
-                .build() );
-        when( permissionEvaluator.hasPermission( any(), eq( userGene ), eq( Permissions.READ ) ) ).thenReturn( false );
-        when( applicationSettings.getPrivacy().isEnableAnonymizedSearchResults() ).thenReturn( true );
-        mvc.perform( get( "/api/genes/by-anonymous-id/{anonymousId}", anonymousId ) )
-                .andExpect( status().isOk() )
-                .andExpect( jsonPath( "$.id" ).doesNotExist() )
-                .andExpect( jsonPath( "$.anonymousId" ).value( anonymousId.toString() ) );
-        verify( userService ).findUserGeneByAnonymousIdNoAuth( anonymousId );
-        verify( userService ).anonymizeUserGene( userGene, anonymousId );
-    }
-
-    @Test
-    public void getUserGeneByAnonymousId_whenUserCanSeeTheGene_thenReturnUnanonymizedUserGene() throws Exception {
-        Gene gene = createGene( 1, createTaxon( 9606 ) );
-        UserGene userGene = createUserGene( 1, gene, createUser( 1 ), TierType.TIER1, PrivacyLevelType.PRIVATE );
-        UUID anonymousId = UUID.randomUUID();
-        when( userService.findUserGeneByAnonymousIdNoAuth( anonymousId ) ).thenReturn( userGene );
-        when( userService.anonymizeUserGene( userGene ) ).thenReturn( UserGene.builder( User.builder( new Profile() ).build() ).anonymousId( anonymousId ).build() );
-        when( permissionEvaluator.hasPermission( any(), eq( userGene ), eq( Permissions.READ ) ) ).thenReturn( true );
-        when( applicationSettings.getPrivacy().isEnableAnonymizedSearchResults() ).thenReturn( true );
-        mvc.perform( get( "/api/genes/by-anonymous-id/{anonymousId}", anonymousId ) )
-                .andExpect( status().isOk() );
-        verify( userService ).findUserGeneByAnonymousIdNoAuth( anonymousId );
-        verifyNoMoreInteractions( userService );
     }
 
     @Test

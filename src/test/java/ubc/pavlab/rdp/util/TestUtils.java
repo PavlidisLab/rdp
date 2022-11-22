@@ -16,7 +16,6 @@ import ubc.pavlab.rdp.model.ontology.RemoteOntologyTermInfo;
 
 import java.net.URI;
 import java.net.URL;
-import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.*;
 import java.util.function.Function;
@@ -73,7 +72,7 @@ public final class TestUtils {
                 .email( String.format( EMAIL_FORMAT, emailCount++ ) )
                 .password( ENCODED_PASSWORD ) // imbatman
                 .enabled( true )
-                .enabledAt( Timestamp.from( Instant.now() ) )
+                .enabledAt( Instant.now() )
                 .build();
     }
 

@@ -1,7 +1,6 @@
 package ubc.pavlab.rdp.controllers;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.info.BuildProperties;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -11,7 +10,6 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import ubc.pavlab.rdp.services.UserGeneService;
 import ubc.pavlab.rdp.services.UserService;
@@ -23,21 +21,13 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@TestPropertySource(properties = {
-        "rdp.site.host=localhost",
-        "rdp.site.contact-email=contact@localhost",
-        "rdp.site.admin-email=admin@localhost",
-        "rdp.site.mainsite=https://example.com" })
-@RunWith(SpringRunner.class)
 @WebMvcTest(StatsController.class)
-@Import(SiteSettings.class)
+@TestPropertySource("classpath:application.properties")
+@Import({ ApplicationSettings.class, SiteSettings.class })
 public class StatsControllerTest {
 
     @Autowired
     private MockMvc mvc;
-
-    @MockBean
-    private ApplicationSettings applicationSettings;
 
     @MockBean
     private UserService userService;

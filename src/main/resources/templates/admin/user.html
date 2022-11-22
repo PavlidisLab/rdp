@@ -34,7 +34,7 @@
                 <dd>
             <span th:if="${user.enabled}">
                 Yes<span th:if="${user.enabledAt} !=null">, on <span
-                    th:replace="fragments/temporal::date-and-time(${user.enabledAt.toInstant()})"></span>.</span>
+                    th:replace="fragments/temporal::date-and-time(${user.enabledAt})"></span>.</span>
             </span>
                     <span th:unless="${user.enabled}">No</span>
                 </dd>
@@ -45,7 +45,7 @@
                         <th:block th:if="${user.verifiedAtContactEmail.isPresent()}">
                             <br/>
                             Verified on
-                            <span th:replace="fragments/temporal::date-and-time(${user.verifiedAtContactEmail.get().toInstant()})"></span>.
+                            <span th:replace="fragments/temporal::date-and-time(${user.verifiedAtContactEmail.get()})"></span>.
                         </th:block>
                     </dd>
                 </th:block>

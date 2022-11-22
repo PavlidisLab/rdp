@@ -17,7 +17,7 @@ public class RemoteResourceConfig {
         SimpleClientHttpRequestFactory httpRequestFactory = new SimpleClientHttpRequestFactory();
         httpRequestFactory.setTaskExecutor( new SimpleAsyncTaskExecutor() );
         if ( applicationSettings.getIsearch().getRequestTimeout() != null ) {
-            log.warn( "The 'rdp.settings.isearch.request-timeout' configuration is deprecated." );
+            log.warn( "The 'rdp.settings.isearch.request-timeout' configuration is deprecated, use 'rdp.settings.isearch.connect-timeout' and 'rdp.settings.isearch.read-timeout' instead." );
             httpRequestFactory.setConnectTimeout( 1000 );
             httpRequestFactory.setReadTimeout( (int) applicationSettings.getIsearch().getRequestTimeout().toMillis() );
         } else {

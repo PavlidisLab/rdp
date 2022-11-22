@@ -19,3 +19,4 @@ src/test/resources/cache/reactome_stable_ids.txt filter=lfs diff=lfs merge=lfs -
 src/test/resources/cache/nbo-base.obo filter=lfs diff=lfs merge=lfs -text
 src/main/resources/cache/DIOPT_filtered_data_Sept2022.gz filter=lfs diff=lfs merge=lfs -text
 src/main/resources/cache/DIOPT_filtered_data_May2021.gz filter=lfs diff=lfs merge=lfs -text
+src/test/resources/cache/mondo2.obo filter=lfs diff=lfs merge=lfs -text
