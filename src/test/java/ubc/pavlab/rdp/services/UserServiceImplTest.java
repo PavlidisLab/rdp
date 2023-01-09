@@ -164,6 +164,7 @@ public class UserServiceImplTest {
         when( passwordResetTokenRepository.save( any( PasswordResetToken.class ) ) ).then( i -> i.getArgument( 0, PasswordResetToken.class ) );
         when( tokenRepository.save( any( VerificationToken.class ) ) ).then( i -> i.getArgument( 0, VerificationToken.class ) );
 
+        when( applicationSettings.getEnabledTiers() ).thenReturn( TierType.ANY );
         when( applicationSettings.getGoTermSizeLimit() ).thenReturn( 100L );
         when( applicationSettings.getOrgans() ).thenReturn( organSettings );
         when( organSettings.isEnabled() ).thenReturn( true );
