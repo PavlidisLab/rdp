@@ -65,7 +65,7 @@ set active = 1
 where taxon_id = 10090;
 ```
 
-Every time the new model organisms are added to the application, they will have to be activated in this manner.
+Every time new model systems are added to the application, they will have to be activated in this manner.
 
 ## Ortholog mapping
 
@@ -578,8 +578,6 @@ Here's the list of paths that can be adjusted using the above setting:
 ```
 static/
     images/
-        model-organisms/
-            <taxon_id>.svg
         organs/
             <uberon_id>.svg
         researcher-categories/
