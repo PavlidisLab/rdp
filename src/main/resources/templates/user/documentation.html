@@ -93,7 +93,7 @@
                                             </p>
                                         </section>
 
-                                        <section th:if="${@applicationSettings.ontology.enabled}">
+                                        <section th:if="${@applicationSettings.ontology.enabled} and ${@ontologyService.count() > 0}">
                                             <h5>Additional Profile Categories</h5>
                                             <p>
                                                 For each additional profile category, you can select one or more terms
