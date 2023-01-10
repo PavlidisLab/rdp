@@ -204,7 +204,7 @@ public class AdminController {
     }
 
     @Data
-    private static class ConfirmEmailForm {
+    public static class ConfirmEmailForm {
         private String email;
     }
 
@@ -273,7 +273,7 @@ public class AdminController {
     }
 
     @Data
-    private static class UpdateOntologyForm {
+    public static class UpdateOntologyForm {
         public static UpdateOntologyForm fromOntology( Ontology ontology ) {
             UpdateOntologyForm form = new UpdateOntologyForm();
             form.setName( ontology.getName() );
@@ -365,7 +365,7 @@ public class AdminController {
     }
 
     @Data
-    private static class DeleteOntologyForm {
+    public static class DeleteOntologyForm {
         @NotNull
         private String ontologyNameConfirmation;
     }
@@ -414,7 +414,7 @@ public class AdminController {
     }
 
     @Data
-    private static class SimpleOntologyForm {
+    public static class SimpleOntologyForm {
 
         public static final int DEFAULT_INITIAL_EMPTY_ROWS = 5;
 
@@ -792,18 +792,18 @@ public class AdminController {
     }
 
     @Data
-    private static class ActivateOrDeactivateOntologyForm {
+    public static class ActivateOrDeactivateOntologyForm {
         private boolean includeTerms;
     }
 
     @Data
     @EqualsAndHashCode(callSuper = true)
-    private static class ActivateOntologyForm extends ActivateOrDeactivateOntologyForm {
+    public static class ActivateOntologyForm extends ActivateOrDeactivateOntologyForm {
     }
 
     @Data
     @EqualsAndHashCode(callSuper = true)
-    private static class DeactivateOntologyForm extends ActivateOrDeactivateOntologyForm {
+    public static class DeactivateOntologyForm extends ActivateOrDeactivateOntologyForm {
     }
 
     @PostMapping("/admin/ontologies/{ontology}/activate")
@@ -831,7 +831,7 @@ public class AdminController {
     }
 
     @Data
-    private static class ActivateOrDeactivateTermForm {
+    public static class ActivateOrDeactivateTermForm {
         @NotEmpty
         private String ontologyTermInfoId;
         /**
@@ -842,7 +842,7 @@ public class AdminController {
 
     @Data
     @EqualsAndHashCode(callSuper = true)
-    private static class ActivateTermForm extends ActivateOrDeactivateTermForm {
+    public static class ActivateTermForm extends ActivateOrDeactivateTermForm {
         /**
          * Include the ontology in the activation.
          */
@@ -851,7 +851,7 @@ public class AdminController {
 
     @Data
     @EqualsAndHashCode(callSuper = true)
-    private static class DeactivateTermForm extends ActivateOrDeactivateTermForm {
+    public static class DeactivateTermForm extends ActivateOrDeactivateTermForm {
     }
 
     @PostMapping("/admin/ontologies/{ontology}/activate-term")
@@ -1002,7 +1002,7 @@ public class AdminController {
     }
 
     @Data
-    private static class ImportOntologyForm {
+    public static class ImportOntologyForm {
         private URL ontologyUrl;
         private MultipartFile ontologyFile;
 
