@@ -10,9 +10,12 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.task.AsyncTaskExecutor;
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.context.junit4.SpringRunner;
+import ubc.pavlab.rdp.EmailConfig;
 import ubc.pavlab.rdp.WebMvcConfig;
 import ubc.pavlab.rdp.model.PasswordResetToken;
 import ubc.pavlab.rdp.model.User;
@@ -35,7 +38,7 @@ import static org.mockito.Mockito.when;
 import static ubc.pavlab.rdp.util.TestUtils.*;
 
 @RunWith(SpringRunner.class)
-@Import(WebMvcConfig.class)
+@Import({ WebMvcConfig.class, EmailConfig.class })
 public class EmailServiceImplTest {
 
     @TestConfiguration

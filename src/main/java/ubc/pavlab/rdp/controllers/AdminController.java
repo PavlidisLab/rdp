@@ -7,9 +7,11 @@ import lombok.NoArgsConstructor;
 import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.MessageSource;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.core.io.Resource;
+import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -57,8 +59,6 @@ import java.text.MessageFormat;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -94,15 +94,9 @@ public class AdminController {
      * Task executor used for background tasks.
      * TODO: make this a configurable bean
      */
-    private final ExecutorService taskExecutor = Executors.newSingleThreadExecutor();
-
-    /**
-     * This is only meant for testing, please don't use.
-     */
-    @Secured(value = {})
-    ExecutorService getTaskExecutor() {
-        return taskExecutor;
-    }
+    @Autowired
+    @Qualifier("adminTaskExecutor")
+    private AsyncTaskExecutor taskExecutor;
 
     /**
      * List all users
