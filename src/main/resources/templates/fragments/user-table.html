@@ -119,7 +119,7 @@
         </td>
         <td th:text="${ug.symbol}"></td>
         <td th:text="${ug.tier}"></td>
-        <td th:text="${#strings.capitalizeWords(ug.taxon.commonName)}"></td>
+        <td th:text="${@messageSource.getMessage(ug.taxon.resolvableCommonName, #locale)}"></td>
     </tr>
     <tr th:if="${#lists.isEmpty(usergenes)}" class="table-warning">
         <td class="text-center warning" th:colspan="100">No user genes found matching the provided search criteria.</td>

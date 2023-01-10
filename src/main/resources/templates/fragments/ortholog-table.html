@@ -8,7 +8,7 @@
         <span th:if="${iterOrtholog.first}">
           Showing results for the specified human gene and the following orthologs:
         </span>
-        <span th:text="${#strings.capitalize(entry.key.commonName)}"></span>
+        <span th:text="${@messageSource.getMessage(entry.key.resolvableCommonName, #locale)}"></span>
         <th:block th:each="orthologGene, iterGene : ${entry.value}"><th:block th:if="${iterGene.first}">(</th:block><a th:href="@{https://www.ncbi.nlm.nih.gov/gene/{geneId}(geneId=${orthologGene.geneId})}" th:text="${orthologGene.symbol}" target="_blank" rel="noopener"></a><th:block th:if="${!iterGene.last}">, </th:block><th:block th:if="${iterGene.last}">)</th:block></th:block><span th:text="${iterOrtholog.last} ? '.' : ','"></span>
     </th:block>
 </div>
