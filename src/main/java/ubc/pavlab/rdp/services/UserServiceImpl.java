@@ -549,7 +549,7 @@ public class UserServiceImpl implements UserService, InitializingBean {
     @Override
     @PostFilter("hasPermission(filterObject, 'read')")
     public Collection<UserTerm> recommendTerms( @NonNull User user, @NonNull Taxon taxon ) {
-        return recommendTerms( user, user.getGenesByTaxonAndTier( taxon, TierType.MANUAL ), taxon, 10, applicationSettings.getGoTermSizeLimit(), 2 );
+        return recommendTerms( user, user.getGenesByTaxonAndTier( taxon, getManualTiers() ), taxon, 10, applicationSettings.getGoTermSizeLimit(), 2 );
     }
 
     @Override
@@ -564,7 +564,7 @@ public class UserServiceImpl implements UserService, InitializingBean {
      */
     @PostFilter("hasPermission(filterObject, 'read')")
     Collection<UserTerm> recommendTerms( @NonNull User user, @NonNull Taxon taxon, long minSize, long maxSize, long minFrequency ) {
-        return recommendTerms( user, user.getGenesByTaxonAndTier( taxon, TierType.MANUAL ), taxon, minSize, maxSize, minFrequency );
+        return recommendTerms( user, user.getGenesByTaxonAndTier( taxon, getManualTiers() ), taxon, minSize, maxSize, minFrequency );
     }
 
     private Collection<UserTerm> recommendTerms( @NonNull User user, Set<? extends Gene> genes, @NonNull Taxon taxon, long minSize, long maxSize, long minFrequency ) {
@@ -677,7 +677,7 @@ public class UserServiceImpl implements UserService, InitializingBean {
     @Override
     public long computeTermFrequencyInTaxon( User user, GeneOntologyTerm term, Taxon taxon ) {
         Set<Integer> geneIds = new HashSet<>( goService.getGenes( goService.getTerm( term.getGoId() ) ) );
-        return user.getGenesByTaxonAndTier( taxon, TierType.MANUAL ).stream()
+        return user.getGenesByTaxonAndTier( taxon, getManualTiers() ).stream()
                 .map( UserGene::getGeneId )
                 .filter( geneIds::contains )
                 .count();
@@ -929,5 +929,9 @@ public class UserServiceImpl implements UserService, InitializingBean {
         byte[] tokenBytes = new byte[24];
         secureRandom.nextBytes( tokenBytes );
         return Base64.getEncoder().encodeToString( tokenBytes );
+    }
+
+    private Set<TierType> getManualTiers() {
+        return applicationSettings.getEnabledTiers().stream().filter( TierType.MANUAL::contains ).collect( Collectors.toSet() );
     }
 }

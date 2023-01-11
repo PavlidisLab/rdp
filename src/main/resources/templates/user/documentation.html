@@ -24,7 +24,7 @@
                     <li class="nav-item">
                         <a class="nav-link" id="model-tab" data-toggle="tab" href="#model" role="tab"
                            aria-controls="model"
-                           aria-selected="true">Model Organisms</a>
+                           aria-selected="true">Model Systems</a>
                     </li>
                     <li th:if="${@applicationSettings.privacy.registeredSearch}" class="nav-item">
                         <a class="nav-link" id="search-tab" data-toggle="tab" href="#search" role="tab"
@@ -93,7 +93,7 @@
                                             </p>
                                         </section>
 
-                                        <section th:if="${@applicationSettings.ontology.enabled}">
+                                        <section th:if="${@applicationSettings.ontology.enabled} and ${@ontologyService.count() > 0}">
                                             <h5>Additional Profile Categories</h5>
                                             <p>
                                                 For each additional profile category, you can select one or more terms
@@ -159,7 +159,7 @@
                                                 for sharing your data with the network’s partner registries for the
                                                 purposes of establishing connections between clinician sciences who are
                                                 submitting their rare disease genes to partner registries and Canadian
-                                                model organism researchers. The data shared with partner registries will
+                                                model organism/system researchers. The data shared with partner registries will
                                                 only be visible to the administrators of those registries. If your data
                                                 privacy level is set to "public", partner registries will gain access
                                                 automatically.
@@ -217,7 +217,7 @@
                                     <h5 class="mb-0">
                                         <button class="btn btn-link" data-toggle="collapse" data-target="#modelmanager"
                                                 aria-expanded="false" aria-controls="modelmanager">
-                                            Model Organism Tab
+                                            Model System Tab
                                         </button>
                                     </h5>
                                 </div>
@@ -226,8 +226,8 @@
                                      data-parent="#model-accordion">
                                     <div class="card-body">
                                         <p>
-                                            After selecting a model organism in the drop-down menu, you can optionally
-                                            enter a description of your research on this organism (Organism Research
+                                            After selecting a model system in the drop-down menu, you can optionally
+                                            enter a description of your research on this system (Model System Specific Research
                                             Focus), if you feel it is different from the description you may have
                                             provided in your
                                             <b><a th:href="@{/user/profile}">Profile</a></b> (About My Research).
@@ -266,7 +266,7 @@
                                         <ul th:if="${@applicationSettings.enabledTiers.size()} > 1">
                                             <li th:if="${@applicationSettings.enabledTiers.contains(T(ubc.pavlab.rdp.model.enums.TierType).TIER1)}">
                                                 <b>Primary genes</b> (Tier 1) are those you currently work on in a model
-                                                organism. You must be able to immediately, specifically and rapidly
+                                                system. You must be able to immediately, specifically and rapidly
                                                 study them in your laboratory. Genes you have recently published on are
                                                 especially good Primary genes. We expect this to
                                                 typically be between 1-10 genes.
@@ -364,11 +364,12 @@
                                                               rel="noopener">geneontology.org</a>.
                                         </p>
 
-                                        <p>To enter GO terms for an organism, click on the "Terms" tab on the Model
-                                            Organism Manager page. From here you can let us suggest some terms based on
-                                            the genes
-                                            you already entered by clicking on the "Recommend Terms" button or
-                                            input terms manually using the input box below the table.</p>
+                                        <p>
+                                            To enter GO terms for an system, click on the "Terms" tab on the Model
+                                            System Manager page. From here you can let us suggest some terms based on
+                                            the genes you already entered by clicking on the "Recommend Terms" button or
+                                            input terms manually using the input box below the table.
+                                        </p>
 
                                         <p>
                                             <b>Note:</b> You need to have at least two genes in order for us to
@@ -395,7 +396,7 @@
                                             </li>
                                             <li>
                                                 Term Size, which indicates how many genes in the currently chosen model
-                                                organism are annotated with that term and will be added as Tier 3 genes
+                                                system are annotated with that term and will be added as Tier 3 genes
                                                 if the term is selected (excluding the genes that are already added as
                                                 Tier 1 or 2)
                                             </li>
@@ -506,21 +507,13 @@
                                                 The <a th:href="@{/search#by-gene-search}">Gene tab</a> allows you to
                                                 search for registered users based on genes they study. Gene symbols are
                                                 organism-specific and will be matched against the list of known gene
-                                                symbols for the selected organism (selection made in a dropdown menu).
+                                                symbols for the selected model organism (selection made in a dropdown menu).
                                                 If you want to search for a match using a human gene, but consider
                                                 orthologs in other model organisms, you would use the secondary
-                                                dropdown menu to indicate the preferred organism.
+                                                dropdown menu to indicate the preferred system.
                                                 <span th:utext="#{rdp.cache.ortholog-source-description}"></span>
                                             </p>
-                                            <p>
-                                                The "Gene" tab allows you to search for registered users based on genes
-                                                they study. Gene symbols are organism-specific and will be matched
-                                                against the list of known gene symbols for the selected organism
-                                                (selection made in a dropdown menu). If you want to search for a match
-                                                using a human gene, but consider orthologs in other model organisms, you
-                                                would use the secondary dropdown menu to indicate the preferred
-                                                organism.
-                                            </p>
+                                       
                                             <p>
                                                 You can filter the results of your search using any of the categories
                                                 displayed on the "Gene" tab page.

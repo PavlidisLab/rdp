@@ -278,7 +278,6 @@ public class OBOParser {
                                 throw new ParseException( String.format( "Could not parse the right hand side %s of line: %s.", tagValuePair[1], line ), br.getLineNumber() );
                             }
                             currentNode.getSynonyms().add( new Term.Synonym( m.group( 1 ), m.group( 2 ) ) );
-                        default:
                             break;
                     }
                 } else {

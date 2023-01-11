@@ -46,7 +46,7 @@
         <div th:if="${user.userGenes.isEmpty()}"
              class="alert alert-info mb-3">
             There are no genes associated with your profile. Get started by choosing a
-            <a href="#" class="dropdown-toggle" data-toggle="dropdown">Model Organism</a>
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown">Model System</a>
             <div th:replace="fragments/taxon::taxon-dropdown-menu"></div>
         </div>
         <div th:replace="layouts/common::message"></div>
@@ -295,7 +295,7 @@
                     </div>
                     <div class="card-body">
                         To add genes to your profile, start by choosing a
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Model Organism</a>
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Model System</a>
                         <div th:replace="fragments/taxon::taxon-dropdown-menu"></div>
                     </div>
                 </div>
@@ -453,7 +453,7 @@
 <div th:replace="layouts/common::scripts"></div>
 <script th:src="@{/dist/profile.bundle.js}"></script>
 <th:block th:if="${@applicationSettings.privacy.customizableGeneLevel}">
-    <div th:replace="fragments/modal::confirmation(target=${#ids.seq('confirm-gene-privacy-level-reset')}, title='Your gene privacy levels will be adjusted!', body='Changing your profile privacy setting will reset the privacy levels of the genes associated to your model organisms to the selected value.')"></div>
+    <div th:replace="fragments/modal::confirmation(target=${#ids.seq('confirm-gene-privacy-level-reset')}, title='Your gene privacy levels will be adjusted!', body='Changing your profile privacy setting will reset the privacy levels of the genes associated to your model systems to the selected value.')"></div>
     <script th:inline="javascript">
         (function () {
             "use strict";
