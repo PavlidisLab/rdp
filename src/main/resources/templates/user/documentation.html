@@ -227,7 +227,7 @@
                                     <div class="card-body">
                                         <p>
                                             After selecting a model system in the drop-down menu, you can optionally
-                                            enter a description of your research on this system (System Research
+                                            enter a description of your research on this system (Model System Specific Research
                                             Focus), if you feel it is different from the description you may have
                                             provided in your
                                             <b><a th:href="@{/user/profile}">Profile</a></b> (About My Research).
@@ -506,22 +506,14 @@
                                             <p>
                                                 The <a th:href="@{/search#by-gene-search}">Gene tab</a> allows you to
                                                 search for registered users based on genes they study. Gene symbols are
-                                                system-specific and will be matched against the list of known gene
-                                                symbols for the selected system (selection made in a dropdown menu).
+                                                organism-specific and will be matched against the list of known gene
+                                                symbols for the selected model organism (selection made in a dropdown menu).
                                                 If you want to search for a match using a human gene, but consider
-                                                orthologs in other model systems, you would use the secondary
+                                                orthologs in other model organisms, you would use the secondary
                                                 dropdown menu to indicate the preferred system.
                                                 <span th:utext="#{rdp.cache.ortholog-source-description}"></span>
                                             </p>
-                                            <p>
-                                                The "Gene" tab allows you to search for registered users based on genes
-                                                they study. Gene symbols are system-specific and will be matched
-                                                against the list of known gene symbols for the selected system
-                                                (selection made in a dropdown menu). If you want to search for a match
-                                                using a human gene, but consider orthologs in other model systems, you
-                                                would use the secondary dropdown menu to indicate the preferred
-                                                system.
-                                            </p>
+                                       
                                             <p>
                                                 You can filter the results of your search using any of the categories
                                                 displayed on the "Gene" tab page.
