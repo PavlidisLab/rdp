@@ -83,7 +83,7 @@ public class UserController {
         } else {
             modelAndView.addObject( "viewOnly", null );
             modelAndView.addObject( "user", user );
-            modelAndView.addObject( "userGenes", user.getGenesByTaxonAndTier( taxon, TierType.MANUAL ) );
+            modelAndView.addObject( "userGenes", user.getGenesByTaxonAndTier( taxon, getManualTiers() ) );
             modelAndView.addObject( "taxon", taxon );
         }
         return modelAndView;
@@ -106,7 +106,7 @@ public class UserController {
         if ( term != null ) {
             Collection<Integer> geneIds = goService.getGenesInTaxon( term, taxon );
             modelAndView.addObject( "genes",
-                    user.getGenesByTaxonAndTier( taxon, TierType.MANUAL ).stream()
+                    user.getGenesByTaxonAndTier( taxon, getManualTiers() ).stream()
                             .filter( ug -> geneIds.contains( ug.getGeneId() ) )
                             .collect( Collectors.toSet() ) );
         } else {
@@ -157,7 +157,7 @@ public class UserController {
     }
 
     @Data
-    private static class SupportForm {
+    public static class SupportForm {
         @NotNull(message = "You must provide your name.")
         @Size(min = 1, message = "You must provide your name.")
         private String name;
@@ -510,5 +510,9 @@ public class UserController {
         }
 
         return userService.recommendTerms( userService.findCurrentUser(), genes, taxon );
+    }
+
+    private Set<TierType> getManualTiers() {
+        return applicationSettings.getEnabledTiers().stream().filter( TierType.MANUAL::contains ).collect( Collectors.toSet() );
     }
 }

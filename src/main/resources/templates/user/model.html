@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org"
       lang="en">
 
-<head th:replace="layouts/common::head(title=${#strings.capitalizeWords(taxon.commonName)})">
+<head th:replace="layouts/common::head(title=${@messageSource.getMessage(taxon.resolvableTitle, #locale)})">
     <meta charset="UTF-8"/>
     <title>...</title>
 </head>
@@ -13,7 +13,7 @@
 
     <div class="row sticky-top bg-white py-3">
         <div class="col-sm-10">
-            <div th:replace="layouts/common::title(title='Model Organisms', subtitle=${#strings.capitalizeWords(taxon.commonName + (taxon.id == 9606 ? ' / other' : ''))}, nomargin=true)">
+            <div th:replace="layouts/common::title(title='Model Systems', subtitle=${@messageSource.getMessage(taxon.resolvableTitle, #locale)}, nomargin=true)">
                 ...
             </div>
         </div>
@@ -29,14 +29,15 @@
     <div id="messages">
         <div class="alert alert-success alert-dismissible fade show success-row mb-3"
              style="display: none;">
-            The <strong th:text="${taxon.commonName}" class="text-capitalize"></strong> model organism section of your profile has been saved.
+            The <strong th:text="${@messageSource.getMessage(taxon.resolvableTitle, #locale)}" class="text-capitalize"></strong> model system section of your
+            profile has been saved.
             <button type="button" class="close" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
             </button>
         </div>
         <div class="alert alert-danger alert-dismissible fade show error-row mb-3" role="alert" style="display: none;">
-            The <strong th:text="${taxon.commonName}" class="text-capitalize"></strong> model organism section of your profile could not be
-            saved!
+            The <strong th:text="${@messageSource.getMessage(taxon.resolvableTitle, #locale)}" class="text-capitalize"></strong>
+            model system section of your profile could not be saved!
             <button type="button" class="close" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
             </button>
@@ -56,7 +57,7 @@
                         <i class="editable" th:if="${viewOnly == null}"></i>
                         <h3 class="mb-0 d-inline-block">
                             <label th:for="${#ids.next('taxonDescriptions')}" class="mb-0">
-                                Organism Research Focus
+                                Model System Specific Research Focus
                             </label>
                         </h3>
                     </div>

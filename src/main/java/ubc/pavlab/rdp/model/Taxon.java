@@ -2,8 +2,11 @@ package ubc.pavlab.rdp.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
+import org.apache.commons.text.WordUtils;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.Immutable;
+import org.springframework.context.MessageSourceResolvable;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -49,4 +52,9 @@ public class Taxon implements Serializable {
 
     @JsonIgnore
     private Integer ordering;
+
+    @JsonIgnore
+    public MessageSourceResolvable getResolvableTitle() {
+        return new DefaultMessageSourceResolvable( new String[]{ "rdp.taxa." + id + ".title" }, WordUtils.capitalize( commonName ) );
+    }
 }

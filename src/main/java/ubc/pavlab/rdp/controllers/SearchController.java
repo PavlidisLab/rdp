@@ -363,7 +363,7 @@ public class SearchController extends AbstractSearchController {
     }
 
     @Data
-    private static class RequestAccessForm {
+    public static class RequestAccessForm {
         @NotNull(message = "Reason cannot be blank.")
         @Size(min = 1, message = "Reason cannot be blank.")
         private String reason;

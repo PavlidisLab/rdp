@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.internal.verification.VerificationModeFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.MessageSource;
@@ -12,6 +13,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.ResourceLoader;
+import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -110,6 +112,10 @@ public class AdminControllerTest {
 
     @Autowired
     private ResourceLoader resourceLoader;
+
+    @Autowired
+    @Qualifier("adminTaskExecutor")
+    private AsyncTaskExecutor adminTaskExecutor;
 
     private class UserIdToUserConverter implements Converter<String, User> {
 
@@ -809,7 +815,7 @@ public class AdminControllerTest {
         verify( reactomeService ).importPathwaysOntology();
         // the admin controller uses a single-threaded task executor, so if we queue and wait for a task to finish, it
         // will guarantee that the pathways summations update has been invoked
-        Future<?> dummyTask = adminController.getTaskExecutor().submit( () -> {
+        Future<?> dummyTask = adminTaskExecutor.submit( () -> {
         } );
         assertThat( dummyTask ).succeedsWithin( 1, TimeUnit.SECONDS );
         verify( reactomeService ).updatePathwaySummations( null );

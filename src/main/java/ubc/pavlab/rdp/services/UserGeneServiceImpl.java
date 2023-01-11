@@ -85,13 +85,13 @@ public class UserGeneServiceImpl implements UserGeneService {
     @Cacheable(cacheNames = "ubc.pavlab.rdp.stats", key = "#root.methodName")
     @Override
     public long countUniqueAssociations() {
-        return userGeneRepository.countDistinctGeneByUserEnabledTrueAndTierIn( TierType.MANUAL );
+        return userGeneRepository.countDistinctGeneByUserEnabledTrueAndTierIn( getManualTiers() );
     }
 
     @Cacheable(cacheNames = "ubc.pavlab.rdp.stats", key = "#root.methodName")
     @Override
     public long countAssociations() {
-        return userGeneRepository.countByUserEnabledTrueAndTierIn( TierType.MANUAL );
+        return userGeneRepository.countByUserEnabledTrueAndTierIn( getManualTiers() );
     }
 
     @Cacheable(cacheNames = "ubc.pavlab.rdp.stats", key = "#root.methodName")
@@ -220,5 +220,9 @@ public class UserGeneServiceImpl implements UserGeneService {
             userGeneRepository.save( userGene );
         }
         log.info( "Done updating user genes." );
+    }
+
+    private Set<TierType> getManualTiers() {
+        return applicationSettings.getEnabledTiers().stream().filter( TierType.MANUAL::contains ).collect( Collectors.toSet() );
     }
 }

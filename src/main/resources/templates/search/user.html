@@ -207,7 +207,7 @@
             <div class="col">
                 <div th:id="${taxon.commonName} + '-research-focus'" class="card research-info edit-container">
                     <div class="card-header align-items-center">
-                        <h3 th:text="${taxon.commonName + ' Research Focus'}" class="text-capitalize"></h3>
+                        <h3 th:text="${@messageSource.getMessage(taxon.resolvableTitle, #locale) + ' Research Focus'}" class="text-capitalize"></h3>
 
                         <p th:unless="${#strings.isEmpty(viewUser.taxonDescriptions.get(taxon))}"
                            th:text="${viewUser.taxonDescriptions.get(taxon)}">...</p>

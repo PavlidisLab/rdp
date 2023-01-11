@@ -7,9 +7,11 @@ import lombok.NoArgsConstructor;
 import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.MessageSource;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.core.io.Resource;
+import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -57,8 +59,6 @@ import java.text.MessageFormat;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -94,15 +94,9 @@ public class AdminController {
      * Task executor used for background tasks.
      * TODO: make this a configurable bean
      */
-    private final ExecutorService taskExecutor = Executors.newSingleThreadExecutor();
-
-    /**
-     * This is only meant for testing, please don't use.
-     */
-    @Secured(value = {})
-    ExecutorService getTaskExecutor() {
-        return taskExecutor;
-    }
+    @Autowired
+    @Qualifier("adminTaskExecutor")
+    private AsyncTaskExecutor taskExecutor;
 
     /**
      * List all users
@@ -210,7 +204,7 @@ public class AdminController {
     }
 
     @Data
-    private static class ConfirmEmailForm {
+    public static class ConfirmEmailForm {
         private String email;
     }
 
@@ -279,7 +273,7 @@ public class AdminController {
     }
 
     @Data
-    private static class UpdateOntologyForm {
+    public static class UpdateOntologyForm {
         public static UpdateOntologyForm fromOntology( Ontology ontology ) {
             UpdateOntologyForm form = new UpdateOntologyForm();
             form.setName( ontology.getName() );
@@ -371,7 +365,7 @@ public class AdminController {
     }
 
     @Data
-    private static class DeleteOntologyForm {
+    public static class DeleteOntologyForm {
         @NotNull
         private String ontologyNameConfirmation;
     }
@@ -420,7 +414,7 @@ public class AdminController {
     }
 
     @Data
-    private static class SimpleOntologyForm {
+    public static class SimpleOntologyForm {
 
         public static final int DEFAULT_INITIAL_EMPTY_ROWS = 5;
 
@@ -798,18 +792,18 @@ public class AdminController {
     }
 
     @Data
-    private static class ActivateOrDeactivateOntologyForm {
+    public static class ActivateOrDeactivateOntologyForm {
         private boolean includeTerms;
     }
 
     @Data
     @EqualsAndHashCode(callSuper = true)
-    private static class ActivateOntologyForm extends ActivateOrDeactivateOntologyForm {
+    public static class ActivateOntologyForm extends ActivateOrDeactivateOntologyForm {
     }
 
     @Data
     @EqualsAndHashCode(callSuper = true)
-    private static class DeactivateOntologyForm extends ActivateOrDeactivateOntologyForm {
+    public static class DeactivateOntologyForm extends ActivateOrDeactivateOntologyForm {
     }
 
     @PostMapping("/admin/ontologies/{ontology}/activate")
@@ -837,7 +831,7 @@ public class AdminController {
     }
 
     @Data
-    private static class ActivateOrDeactivateTermForm {
+    public static class ActivateOrDeactivateTermForm {
         @NotEmpty
         private String ontologyTermInfoId;
         /**
@@ -848,7 +842,7 @@ public class AdminController {
 
     @Data
     @EqualsAndHashCode(callSuper = true)
-    private static class ActivateTermForm extends ActivateOrDeactivateTermForm {
+    public static class ActivateTermForm extends ActivateOrDeactivateTermForm {
         /**
          * Include the ontology in the activation.
          */
@@ -857,7 +851,7 @@ public class AdminController {
 
     @Data
     @EqualsAndHashCode(callSuper = true)
-    private static class DeactivateTermForm extends ActivateOrDeactivateTermForm {
+    public static class DeactivateTermForm extends ActivateOrDeactivateTermForm {
     }
 
     @PostMapping("/admin/ontologies/{ontology}/activate-term")
@@ -1008,7 +1002,7 @@ public class AdminController {
     }
 
     @Data
-    private static class ImportOntologyForm {
+    public static class ImportOntologyForm {
         private URL ontologyUrl;
         private MultipartFile ontologyFile;
 

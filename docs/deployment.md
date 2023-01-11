@@ -37,7 +37,7 @@ Likewise, you can set up a proxy for FTP connections with `-Dftp.proxyHost` and 
 4. Create `application.properties`, and optionally `faq.properties` and
    `messages.properties` if you want to [customize messages](customization.md#customizing-the-applications-messages).
 5. Test your setup: `java -jar rdp-{{ config.extra.rdp_version }}.jar`
-6. Log into the database and activate other organisms and organ systems (optional)
+6. Log into the database and activate other model and organ systems (optional)
 7. Deploy using [systemd](#integration-with-systemd) or a Docker container
 
 ## Integration with systemd

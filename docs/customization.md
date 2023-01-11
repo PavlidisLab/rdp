@@ -65,7 +65,17 @@ set active = 1
 where taxon_id = 10090;
 ```
 
-Every time the new model organisms are added to the application, they will have to be activated in this manner.
+Every time new model systems are added to the application, they will have to be activated in this manner.
+
+### Customizing taxon appearance (new in 1.5.5)
+
+By default, taxon are rendered using the common name in title case. The only exception is for *Homo sapiens* which
+renders as "Human / Other". You may override this by setting the following entries in the `messages.properties` file,
+replacing `{taxonId}` by the taxon ID of your choice:
+
+```properties
+rdp.taxa.{taxonId}.title=
+```
 
 ## Ortholog mapping
 
@@ -578,8 +588,6 @@ Here's the list of paths that can be adjusted using the above setting:
 ```
 static/
     images/
-        model-organisms/
-            <taxon_id>.svg
         organs/
             <uberon_id>.svg
         researcher-categories/
