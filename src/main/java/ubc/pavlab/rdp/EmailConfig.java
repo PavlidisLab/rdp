@@ -10,6 +10,8 @@ public class EmailConfig {
 
     @Bean
     public AsyncTaskExecutor emailTaskExecutor() {
-        return new ThreadPoolTaskExecutor();
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setWaitForTasksToCompleteOnShutdown( true );
+        return executor;
     }
 }
