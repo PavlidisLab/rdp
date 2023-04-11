@@ -17,18 +17,18 @@
     "popper.js": "~1.16.1"
   },
   "devDependencies": {
-    "@babel/core": "^7.20.12",
-    "@babel/preset-env": "^7.20.2",
+    "@babel/core": "^7.21.4",
+    "@babel/preset-env": "^7.21.4",
     "babel-loader": "^8.3.0",
     "css-loader": "^6.7.3",
     "postcss": "^8.4.21",
-    "postcss-loader": "^7.0.2",
+    "postcss-loader": "^7.2.4",
     "postcss-preset-env": "^7.8.3",
-    "sass": "^1.57.1",
-    "sass-loader": "^13.2.0",
+    "sass": "^1.61.0",
+    "sass-loader": "^13.2.2",
     "source-map-loader": "^4.0.1",
-    "style-loader": "^3.3.1",
-    "webpack": "^5.76.0",
+    "style-loader": "^3.3.2",
+    "webpack": "^5.78.0",
     "webpack-cli": "^4.10.0"
   },
   "browserslist": [
