@@ -2,8 +2,9 @@
   "name": "rdp",
   "private": true,
   "scripts": {
-    "build": "webpack --config webpack.config.js",
-    "watch": "webpack watch --config webpack.config.js"
+    "build": "webpack --config webpack.config.js --mode=production",
+    "devbuild": "webpack --config webpack.config.js --mode=development",
+    "watch": "webpack watch --config webpack.config.js --mode=development"
   },
   "dependencies": {
     "activity-detector": "^3.0.0",

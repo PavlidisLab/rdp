@@ -1,7 +1,6 @@
 var path = require('path');
 
 module.exports = {
-    mode: 'development',
     entry: {
         'activity-monitor': './static/js/activity-monitor.js',
         common: './static/js/common.js',
