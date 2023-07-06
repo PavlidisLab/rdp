@@ -75,9 +75,12 @@ public class UserPrivacyService {
         return otherUser.equals( currentUser ) // User is looking at himself
                 || ( privacyLevel == PrivacyLevelType.PUBLIC ) // Data is public
                 || ( privacyLevel == PrivacyLevelType.SHARED && currentUser != null && !isRemoteSearchUser( currentUser ) )// data is accessible for registerd users and there is a user logged in who is not the remote admin
-                || ( privacyLevel == PrivacyLevelType.PRIVATE && currentUser != null && currentUser.getRoles().contains( getAdminRole() ) && !isRemoteSearchUser( currentUser ) )// data is private and there is an admin logged in who is not the remote search user
-                || ( privacyLevel == PrivacyLevelType.PRIVATE && currentUser != null && currentUser.getRoles().contains( getServiceAccountRole() ) && !isRemoteSearchUser( currentUser ) ) // user is a service account
-                || ( profile.isShared() && currentUser != null && currentUser.getRoles().contains( getAdminRole() ) && isRemoteSearchUser( currentUser ) ); // data is designated as remotely shared and there is an admin logged in who is the remote search user
+                || ( privacyLevel == PrivacyLevelType.PRIVATE && currentUser != null && isAdminOrServiceAccount( currentUser ) && !isRemoteSearchUser( currentUser ) ) // data is private and there is an admin (or service account) logged in who is not the remote search user
+                || ( profile.isShared() && currentUser != null && isAdminOrServiceAccount( currentUser ) && isRemoteSearchUser( currentUser ) ); // data is designated as remotely shared and there is an admin (or service account) logged in who is the remote search user
+    }
+
+    private boolean isAdminOrServiceAccount( User user ) {
+        return user.getRoles().contains( getAdminRole() ) || user.getRoles().contains( getServiceAccountRole() );
     }
 
     /**
