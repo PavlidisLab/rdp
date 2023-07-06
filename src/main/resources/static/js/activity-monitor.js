@@ -47,7 +47,7 @@
                 return parseInt(c.substring(name.length, c.length));
             }
         }
-        return null; // Cookie is not set.
+        throw new Error("No cookie with name " + name + " is found.");
     }
 
     /**
