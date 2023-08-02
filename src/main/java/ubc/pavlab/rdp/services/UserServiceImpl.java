@@ -27,7 +27,9 @@ import ubc.pavlab.rdp.events.OnContactEmailUpdateEvent;
 import ubc.pavlab.rdp.events.OnRegistrationCompleteEvent;
 import ubc.pavlab.rdp.events.OnRequestAccessEvent;
 import ubc.pavlab.rdp.events.OnUserPasswordResetEvent;
+import ubc.pavlab.rdp.exception.TokenDoesNotMatchEmailException;
 import ubc.pavlab.rdp.exception.TokenException;
+import ubc.pavlab.rdp.exception.TokenNotFoundException;
 import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.ResearcherCategory;
@@ -865,11 +867,11 @@ public class UserServiceImpl implements UserService, InitializingBean {
     public User confirmVerificationToken( String token ) throws TokenException {
         VerificationToken verificationToken = tokenRepository.findByToken( token );
         if ( verificationToken == null ) {
-            throw new TokenException( "Verification token is invalid." );
+            throw new TokenNotFoundException( "Verification token is invalid." );
         }
 
         if ( Instant.now().isAfter( verificationToken.getExpiryDate() ) ) {
-            throw new TokenException( "Verification token is expired." );
+            throw new ExpiredTokenException( "Verification token is expired." );
         }
 
         User user = verificationToken.getUser();
@@ -892,7 +894,7 @@ public class UserServiceImpl implements UserService, InitializingBean {
             tokenRepository.delete( verificationToken );
             return userRepository.save( user );
         } else {
-            throw new TokenException( "Verification token email does not match neither the user email nor contact email." );
+            throw new TokenDoesNotMatchEmailException( "Verification token email does not match neither the user email nor contact email." );
         }
     }
 

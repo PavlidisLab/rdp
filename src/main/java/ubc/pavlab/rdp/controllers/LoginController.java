@@ -15,8 +15,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import ubc.pavlab.rdp.exception.TokenException;
+import ubc.pavlab.rdp.exception.TokenNotFoundException;
 import ubc.pavlab.rdp.model.Profile;
 import ubc.pavlab.rdp.model.User;
+import ubc.pavlab.rdp.services.ExpiredTokenException;
 import ubc.pavlab.rdp.services.PrivacyService;
 import ubc.pavlab.rdp.services.UserService;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
@@ -131,19 +133,24 @@ public class LoginController {
     @GetMapping(value = "/registrationConfirm")
     public ModelAndView confirmRegistration( @RequestParam("token") String token,
                                              RedirectAttributes redirectAttributes ) {
-        ModelAndView modelAndView = new ModelAndView();
-
         try {
             userService.confirmVerificationToken( token );
             redirectAttributes.addFlashAttribute( "message", "Your account has been enabled successfully, and you can now proceed to login." );
-            modelAndView.setViewName( "redirect:/login" );
+            return new ModelAndView( "redirect:/login" );
         } catch ( TokenException e ) {
             log.warn( String.format( "Could not confirm registration token: %s.", e.getMessage() ) );
-            modelAndView.setStatus( HttpStatus.NOT_FOUND );
-            modelAndView.setViewName( "error/404" );
+            if ( e instanceof TokenNotFoundException ) {
+                // this is our best guess
+                redirectAttributes.addFlashAttribute( "message", "The registration link was already used. You may now proceed to login." );
+                return new ModelAndView( "redirect:/login" );
+            } else if ( e instanceof ExpiredTokenException ) {
+                redirectAttributes.addFlashAttribute( "message", "The registration link is expired." );
+                return new ModelAndView( "redirect:/resendConfirmation" );
+            } else {
+                return new ModelAndView( "registrationConfirm", HttpStatus.BAD_REQUEST )
+                        .addObject( "message", "The registration link is invalid." )
+                        .addObject( "error", Boolean.TRUE );
+            }
         }
-
-        return modelAndView;
     }
-
 }
