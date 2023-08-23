@@ -23,6 +23,7 @@ import ubc.pavlab.rdp.services.PrivacyService;
 import ubc.pavlab.rdp.services.UserService;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.Locale;
 
 /**
@@ -132,9 +133,10 @@ public class LoginController {
 
     @GetMapping(value = "/registrationConfirm")
     public ModelAndView confirmRegistration( @RequestParam("token") String token,
+                                             HttpServletRequest request,
                                              RedirectAttributes redirectAttributes ) {
         try {
-            userService.confirmVerificationToken( token );
+            userService.confirmVerificationToken( token, request );
             redirectAttributes.addFlashAttribute( "message", "Your account has been enabled successfully, and you can now proceed to login." );
             return new ModelAndView( "redirect:/login" );
         } catch ( TokenException e ) {

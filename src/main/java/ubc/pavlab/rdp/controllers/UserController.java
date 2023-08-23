@@ -1,9 +1,10 @@
 package ubc.pavlab.rdp.controllers;
 
-import lombok.*;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.lang3.StringUtils;
-import lombok.extern.jackson.Jacksonized;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
@@ -13,7 +14,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Controller;
-import org.springframework.validation.*;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.Errors;
+import org.springframework.validation.FieldError;
+import org.springframework.validation.Validator;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -28,6 +32,7 @@ import ubc.pavlab.rdp.services.*;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 
 import javax.mail.MessagingException;
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
@@ -311,9 +316,9 @@ public class UserController {
     }
 
     @GetMapping("/user/verify-contact-email")
-    public String verifyContactEmail( @RequestParam String token, RedirectAttributes redirectAttributes ) {
+    public String verifyContactEmail( @RequestParam String token, RedirectAttributes redirectAttributes, HttpServletRequest request ) {
         try {
-            userService.confirmVerificationToken( token );
+            userService.confirmVerificationToken( token, request );
             redirectAttributes.addFlashAttribute( "message", "Your contact email has been successfully verified." );
         } catch ( TokenException e ) {
             log.warn( String.format( "%s attempt to confirm verification token failed: %s.", userService.findCurrentUser(), e.getMessage() ) );
