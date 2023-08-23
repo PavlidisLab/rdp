@@ -19,6 +19,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -37,10 +38,12 @@ import ubc.pavlab.rdp.model.enums.ResearcherCategory;
 import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.repositories.*;
+import ubc.pavlab.rdp.security.SecureTokenChallenge;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.settings.SiteSettings;
 
 import javax.annotation.PostConstruct;
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.ValidationException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -152,6 +155,8 @@ public class UserServiceImplTest {
     private MessageSource ontologyMessageSource;
     @MockBean
     private PermissionEvaluator permissionEvaluator;
+    @MockBean
+    private SecureTokenChallenge<HttpServletRequest> secureTokenChallenge;
 
 
     @Before
@@ -331,7 +336,7 @@ public class UserServiceImplTest {
         setUpPasswordResetTokenMocks();
         User user = createUser( 1 );
 
-        User updatedUser = userService.changePasswordByResetToken( user.getId(), "token1", new PasswordReset( "newPassword", "newPassword" ) );
+        User updatedUser = userService.changePasswordByResetToken( user.getId(), "token1", new PasswordReset( "newPassword", "newPassword" ), new MockHttpServletRequest() );
         assertThat( updatedUser ).isNotNull();
         assertThat( bCryptPasswordEncoder.matches( "newPassword", updatedUser.getPassword() ) ).isTrue();
         verify( passwordResetTokenRepository ).delete( any( PasswordResetToken.class ) );
@@ -341,21 +346,21 @@ public class UserServiceImplTest {
     public void changePasswordByResetToken_whenInvalidToken_thenThrowTokenException() throws TokenException {
         setUpPasswordResetTokenMocks();
         User user = createUser( 1 );
-        userService.changePasswordByResetToken( user.getId(), "tokenBad", new PasswordReset( "newPassword", "newPassword" ) );
+        userService.changePasswordByResetToken( user.getId(), "tokenBad", new PasswordReset( "newPassword", "newPassword" ), new MockHttpServletRequest() );
     }
 
     @Test(expected = TokenException.class)
     public void changePasswordByResetToken_whenInvalidUserId_thenThrowTokenException() throws TokenException {
         setUpPasswordResetTokenMocks();
         User user = createUser( 1 );
-        userService.changePasswordByResetToken( user.getId(), "token2", new PasswordReset( "newPassword", "newPassword" ) );
+        userService.changePasswordByResetToken( user.getId(), "token2", new PasswordReset( "newPassword", "newPassword" ), new MockHttpServletRequest() );
     }
 
     @Test(expected = TokenException.class)
     public void changePasswordByResetToken_whenExpiredToken_thenThrowTokenException() throws TokenException {
         setUpPasswordResetTokenMocks();
         User user = createUser( 1 );
-        userService.changePasswordByResetToken( user.getId(), "token1Expired", new PasswordReset( "newPassword", "newPassword" ) );
+        userService.changePasswordByResetToken( user.getId(), "token1Expired", new PasswordReset( "newPassword", "newPassword" ), new MockHttpServletRequest() );
     }
 
     @Test
@@ -735,28 +740,28 @@ public class UserServiceImplTest {
         setUpPasswordResetTokenMocks();
         User user = createUser( 1 );
 
-        userService.verifyPasswordResetToken( user.getId(), "token1" );
+        userService.verifyPasswordResetToken( user.getId(), "token1", new MockHttpServletRequest() );
     }
 
     @Test(expected = TokenException.class)
     public void verifyPasswordResetToken_whenInvalidToken_thenThrowTokenException() throws TokenException {
         setUpPasswordResetTokenMocks();
         User user = createUser( 1 );
-        userService.verifyPasswordResetToken( user.getId(), "tokenBad" );
+        userService.verifyPasswordResetToken( user.getId(), "tokenBad", new MockHttpServletRequest() );
     }
 
     @Test(expected = TokenException.class)
     public void verifyPasswordResetToken_whenInvalidUserId_thenThrowTokenException() throws TokenException {
         setUpPasswordResetTokenMocks();
         User user = createUser( 1 );
-        userService.verifyPasswordResetToken( user.getId(), "token2" );
+        userService.verifyPasswordResetToken( user.getId(), "token2", new MockHttpServletRequest() );
     }
 
     @Test(expected = TokenException.class)
     public void verifyPasswordResetToken_whenExpiredToken_thenThrowTokenException() throws TokenException {
         setUpPasswordResetTokenMocks();
         User user = createUser( 1 );
-        userService.verifyPasswordResetToken( user.getId(), "token1Expired" );
+        userService.verifyPasswordResetToken( user.getId(), "token1Expired", new MockHttpServletRequest() );
     }
 
     @Test
@@ -776,7 +781,7 @@ public class UserServiceImplTest {
     public void confirmVerificationToken_whenValidToken_thenSucceed() throws TokenException {
         setUpVerificationTokenMocks();
 
-        User user = userService.confirmVerificationToken( "token1" );
+        User user = userService.confirmVerificationToken( "token1", new MockHttpServletRequest() );
         assertThat( user.isEnabled() ).isTrue();
         verify( tokenRepository ).delete( any( VerificationToken.class ) );
 
@@ -785,13 +790,13 @@ public class UserServiceImplTest {
     @Test(expected = TokenException.class)
     public void confirmVerificationToken_whenInvalidToken_thenThrowTokenException() throws TokenException {
         setUpVerificationTokenMocks();
-        userService.confirmVerificationToken( "tokenBad" );
+        userService.confirmVerificationToken( "tokenBad", new MockHttpServletRequest() );
     }
 
     @Test(expected = TokenException.class)
     public void confirmVerificationToken_whenExpiredToken_thenThrowTokenException() throws TokenException {
         setUpVerificationTokenMocks();
-        userService.confirmVerificationToken( "token1Expired" );
+        userService.confirmVerificationToken( "token1Expired", new MockHttpServletRequest() );
     }
 
     @Test(expected = TokenException.class)
@@ -802,7 +807,7 @@ public class UserServiceImplTest {
         token.setEmail( "foo@example.com" );
         token.updateToken( "token1" );
         when( tokenRepository.findByToken( token.getToken() ) ).thenReturn( token );
-        userService.confirmVerificationToken( "token1" );
+        userService.confirmVerificationToken( "token1", new MockHttpServletRequest() );
     }
 
     @Test

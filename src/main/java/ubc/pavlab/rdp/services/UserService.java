@@ -12,6 +12,7 @@ import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.model.ontology.Ontology;
 import ubc.pavlab.rdp.model.ontology.OntologyTermInfo;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.ValidationException;
 import java.util.*;
 import java.util.function.Predicate;
@@ -182,15 +183,15 @@ public interface UserService {
 
     PasswordResetToken createPasswordResetTokenForUser( User user, Locale locale );
 
-    PasswordResetToken verifyPasswordResetToken( int userId, String token ) throws TokenException;
+    PasswordResetToken verifyPasswordResetToken( int userId, String token, HttpServletRequest request ) throws TokenException;
 
-    User changePasswordByResetToken( int userId, String token, PasswordReset passwordReset ) throws TokenException;
+    User changePasswordByResetToken( int userId, String token, PasswordReset passwordReset, HttpServletRequest request ) throws TokenException;
 
     VerificationToken createVerificationTokenForUser( User user, Locale locale );
 
     VerificationToken createContactEmailVerificationTokenForUser( User user, Locale locale );
 
-    User confirmVerificationToken( String token ) throws TokenException;
+    User confirmVerificationToken( String token, HttpServletRequest request ) throws TokenException;
 
     SortedSet<String> getLastNamesFirstChar();
 

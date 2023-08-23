@@ -155,6 +155,13 @@
             <version>1.10.0</version>
         </dependency>
 
+        <!-- User-Agent header parsing -->
+        <dependency>
+            <groupId>nl.basjes.parse.useragent</groupId>
+            <artifactId>yauaa</artifactId>
+            <version>7.22.0</version>
+        </dependency>
+
         <!-- Testing Support -->
 
         <dependency>
