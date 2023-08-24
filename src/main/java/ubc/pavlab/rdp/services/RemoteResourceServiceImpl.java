@@ -102,7 +102,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService, Initial
                     .handle( ( rr, ex ) -> {
                         if ( ex == null ) {
                             if ( !rr.getOriginUrl().equals( expectedOriginUrl ) ) {
-                                log.warn( String.format( "Partner registry %s's origin URL %s differs from API URL in the configuration: %s.", rr.getOrigin(), rr.getOriginUrl(), apiUri ) );
+                                log.warn( String.format( "Partner registry %s's origin URL %s differs from API URL in the configuration: %s.", rr.getOrigin(), rr.getOriginUrl(), prepareApiUri( apiUri, false ) ) );
                             }
                         } else {
                             log.warn( String.format( "Failed to reach partner registry %s: %s", expectedOriginUrl, ExceptionUtils.getRootCauseMessage( ex ) ) );
@@ -264,7 +264,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService, Initial
             try {
                 apiVersion = remoteResourceService.getApiVersion( apiUri );
             } catch ( RemoteException e ) {
-                log.warn( String.format( "Failed to retrieve API version from %s: %s.", apiUri, ExceptionUtils.getRootCauseMessage( e ) ) );
+                log.warn( String.format( "Failed to retrieve API version from %s: %s.", prepareApiUri( apiUri, false ), ExceptionUtils.getRootCauseMessage( e ) ) );
                 return null;
             }
             if ( VersionUtils.satisfiesVersion( apiVersion, "1.5.0" ) ) {
@@ -403,11 +403,11 @@ public class RemoteResourceServiceImpl implements RemoteResourceService, Initial
                         if ( ex instanceof HttpClientErrorException && ( (HttpClientErrorException) ex ).getStatusCode() == HttpStatus.NOT_FOUND ) {
                             return null;
                         } else {
-                            log.warn( String.format( "Failed to retrieve ontology terms from %s: %s", uri, ExceptionUtils.getRootCauseMessage( ex ) ) );
+                            log.warn( String.format( "Failed to retrieve ontology terms from %s: %s", prepareApiUri( uri, false ), ExceptionUtils.getRootCauseMessage( ex ) ) );
                             throw new RuntimeException( ex );
                         }
                     } else if ( re.getBody() == null ) {
-                        log.warn( String.format( "Invalid response for %s: the body is null.", uri ) );
+                        log.warn( String.format( "Invalid response for %s: the body is null.", prepareApiUri( uri, false ) ) );
                         return null;
                     } else {
                         return Arrays.asList( re.getBody() );
@@ -458,9 +458,9 @@ public class RemoteResourceServiceImpl implements RemoteResourceService, Initial
                 if ( isMissingOntologyException( remoteException ) ) {
                     // this is producing a 400 Bad Request, but we can safely ignore it and treat it as producing no
                     // results
-                    log.debug( String.format( "Partner API %s is missing some of the requested ontologies: %s", f.getLeft(), remoteException.getMessage() ) );
+                    log.debug( String.format( "Partner API %s is missing some of the requested ontologies: %s", prepareApiUri( f.getLeft(), false ), remoteException.getMessage() ) );
                 } else {
-                    log.warn( String.format( "Failed to retrieve entity from %s : %s", f.getLeft(), ExceptionUtils.getRootCauseMessage( remoteException ) ) );
+                    log.warn( String.format( "Failed to retrieve entity from %s : %s", prepareApiUri( f.getLeft(), false ), ExceptionUtils.getRootCauseMessage( remoteException ) ) );
                 }
             }
         }
@@ -511,13 +511,23 @@ public class RemoteResourceServiceImpl implements RemoteResourceService, Initial
         return prepareApiUri( apiUri, authenticate );
     }
 
-    public List<URI> getApiUris( boolean authenticate ) {
+    /**
+     * Obtain a list of all partner APIs URIs.
+     *
+     * @param authenticate if true and the current user is an administrator, add an authentication token for a remote
+     *                     administrator
+     */
+    private List<URI> getApiUris( boolean authenticate ) {
         return Arrays.stream( applicationSettings.getIsearch().getApis() )
                 .map( apiUri -> prepareApiUri( apiUri, authenticate ) )
                 .collect( Collectors.toList() );
     }
 
+    /**
+     * Prepare a given API URI, optionally adding authentication details for a remote administrator.
+     */
     private URI prepareApiUri( URI apiUri, boolean authenticate ) {
+        // strip authentication information, it will be added later if authenticate is true
         UriComponentsBuilder uri = UriComponentsBuilder.fromUri( apiUri )
                 .replaceQueryParam( "auth" )
                 .replaceQueryParam( "noauth" );
@@ -579,7 +589,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService, Initial
             try {
                 apiVersion = remoteResourceService.getApiVersion( apiUri );
             } catch ( RemoteException e ) {
-                log.warn( String.format( "Failed to retrieve API version from %s: %s", apiUri, ExceptionUtils.getRootCauseMessage( e ) ) );
+                log.warn( String.format( "Failed to retrieve API version from %s: %s", prepareApiUri( apiUri, false ), ExceptionUtils.getRootCauseMessage( e ) ) );
                 return null;
             }
             if ( VersionUtils.satisfiesVersion( apiVersion, minimumVersion ) ) {

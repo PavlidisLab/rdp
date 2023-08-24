@@ -17,10 +17,12 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
-import ubc.pavlab.rdp.exception.TokenException;
+import ubc.pavlab.rdp.exception.TokenDoesNotMatchEmailException;
+import ubc.pavlab.rdp.exception.TokenNotFoundException;
 import ubc.pavlab.rdp.model.Profile;
 import ubc.pavlab.rdp.model.User;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
+import ubc.pavlab.rdp.services.ExpiredTokenException;
 import ubc.pavlab.rdp.services.PrivacyService;
 import ubc.pavlab.rdp.services.UserService;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
@@ -30,6 +32,7 @@ import java.util.Locale;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -161,20 +164,45 @@ public class LoginControllerTest {
     @Test
     public void registrationConfirm_thenReturnSuccess() throws Exception {
         User user = createUser( 1 );
-        when( userService.confirmVerificationToken( "1234" ) ).thenReturn( user );
+        when( userService.confirmVerificationToken( eq( "1234" ), any() ) ).thenReturn( user );
         mvc.perform( get( "/registrationConfirm" )
                         .param( "token", "1234" ) )
                 .andExpect( status().is3xxRedirection() )
                 .andExpect( redirectedUrl( "/login" ) )
-                .andExpect( flash().attributeExists( "message" ) );
+                .andExpect( flash().attributeExists( "message" ) )
+                .andExpect( flash().attribute( "error", (Object) null ) );
     }
 
     @Test
-    public void registrationConfirm_whenTokenDoesNotExist_thenReturnError() throws Exception {
-        when( userService.confirmVerificationToken( "1234" ) ).thenThrow( TokenException.class );
+    public void registrationConfirm_whenTokenDoesNotExist_thenRedirectToLoginWithMessage() throws Exception {
+        when( userService.confirmVerificationToken( eq( "1234" ), any() ) ).thenThrow( TokenNotFoundException.class );
         mvc.perform( get( "/registrationConfirm" )
                         .param( "token", "1234" ) )
-                .andExpect( status().isNotFound() )
-                .andExpect( view().name( "error/404" ) );
+                .andExpect( status().is3xxRedirection() )
+                .andExpect( redirectedUrl( "/login" ) )
+                .andExpect( flash().attributeExists( "message" ) )
+                .andExpect( flash().attribute( "error", (Object) null ) );
+    }
+
+    @Test
+    public void registrationConfirm_whenTokenIsExpired_thenRedirectToResendConfirmation() throws Exception {
+        when( userService.confirmVerificationToken( eq( "1234" ), any() ) ).thenThrow( ExpiredTokenException.class );
+        mvc.perform( get( "/registrationConfirm" )
+                        .param( "token", "1234" ) )
+                .andExpect( status().is3xxRedirection() )
+                .andExpect( redirectedUrl( "/resendConfirmation" ) )
+                .andExpect( flash().attributeExists( "message" ) )
+                .andExpect( flash().attribute( "error", (Object) null ) );
+    }
+
+    @Test
+    public void registrationConfirm_whenTokenIsInvalid_thenReturn400() throws Exception {
+        when( userService.confirmVerificationToken( eq( "1234" ), any() ) ).thenThrow( TokenDoesNotMatchEmailException.class );
+        mvc.perform( get( "/registrationConfirm" )
+                        .param( "token", "1234" ) )
+                .andExpect( status().isBadRequest() )
+                .andExpect( view().name( "registrationConfirm" ) )
+                .andExpect( model().attributeExists( "message" ) )
+                .andExpect( model().attribute( "error", Boolean.TRUE ) );
     }
 }

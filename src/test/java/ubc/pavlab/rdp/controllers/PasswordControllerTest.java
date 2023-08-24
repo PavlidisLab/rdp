@@ -16,12 +16,14 @@ import org.springframework.test.web.servlet.MockMvc;
 import ubc.pavlab.rdp.model.PasswordReset;
 import ubc.pavlab.rdp.model.User;
 import ubc.pavlab.rdp.repositories.UserRepository;
+import ubc.pavlab.rdp.security.SecureTokenChallenge;
 import ubc.pavlab.rdp.services.EmailService;
 import ubc.pavlab.rdp.services.UserDetailsServiceImpl;
 import ubc.pavlab.rdp.services.UserService;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.settings.SiteSettings;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.Locale;
 
 import static org.mockito.Mockito.*;
@@ -67,6 +69,9 @@ public class PasswordControllerTest {
     @MockBean(name = "ontologyMessageSource")
     private MessageSource ontologyMessageSource;
 
+    @MockBean
+    private SecureTokenChallenge<HttpServletRequest> secureTokenChallenge;
+
     @Test
     public void forgotPassword_thenReturnSuccess() throws Exception {
         mvc.perform( get( "/forgotPassword" ) )
@@ -105,7 +110,7 @@ public class PasswordControllerTest {
                 .andExpect( status().isOk() )
                 .andExpect( view().name( "updatePassword" ) );
 
-        verify( userService ).verifyPasswordResetToken( 1, "1234" );
+        verify( userService ).verifyPasswordResetToken( eq( 1 ), eq( "1234" ), any() );
 
         mvc.perform( post( "/updatePassword" )
                         .param( "id", "1" )
@@ -115,7 +120,7 @@ public class PasswordControllerTest {
                 .andExpect( status().is3xxRedirection() )
                 .andExpect( redirectedUrl( "/user/home" ) );
 
-        verify( userService ).changePasswordByResetToken( 1, "1234", new PasswordReset( "123456", "123456" ) );
+        verify( userService ).changePasswordByResetToken( eq( 1 ), eq( "1234" ), eq( new PasswordReset( "123456", "123456" ) ), any() );
     }
 
     @Test

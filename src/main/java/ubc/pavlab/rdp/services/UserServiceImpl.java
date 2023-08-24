@@ -27,7 +27,9 @@ import ubc.pavlab.rdp.events.OnContactEmailUpdateEvent;
 import ubc.pavlab.rdp.events.OnRegistrationCompleteEvent;
 import ubc.pavlab.rdp.events.OnRequestAccessEvent;
 import ubc.pavlab.rdp.events.OnUserPasswordResetEvent;
+import ubc.pavlab.rdp.exception.TokenDoesNotMatchEmailException;
 import ubc.pavlab.rdp.exception.TokenException;
+import ubc.pavlab.rdp.exception.TokenNotFoundException;
 import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.ResearcherCategory;
@@ -37,11 +39,13 @@ import ubc.pavlab.rdp.model.ontology.Ontology;
 import ubc.pavlab.rdp.model.ontology.OntologyTermInfo;
 import ubc.pavlab.rdp.model.ontology.UserOntologyTerm;
 import ubc.pavlab.rdp.repositories.*;
+import ubc.pavlab.rdp.security.SecureTokenChallenge;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.util.CacheUtils;
 import ubc.pavlab.rdp.util.CollectionUtils;
 import ubc.pavlab.rdp.util.Messages;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.ValidationException;
 import java.security.SecureRandom;
 import java.text.MessageFormat;
@@ -98,6 +102,8 @@ public class UserServiceImpl implements UserService, InitializingBean {
     private SecureRandom secureRandom;
     @Autowired
     private OntologyService ontologyService;
+    @Autowired
+    private SecureTokenChallenge<HttpServletRequest> secureTokenChallenge;
 
     private Cache usersByAnonymousIdCache;
     private Cache userGenesByAnonymousIdCache;
@@ -802,12 +808,14 @@ public class UserServiceImpl implements UserService, InitializingBean {
     }
 
     @Override
-    public PasswordResetToken verifyPasswordResetToken( int userId, String token ) throws TokenException {
+    public PasswordResetToken verifyPasswordResetToken( int userId, String token, HttpServletRequest request ) throws TokenException {
         PasswordResetToken passToken = passwordResetTokenRepository.findByToken( token );
 
         if ( passToken == null ) {
             throw new TokenException( "Password reset token is invalid." );
         }
+
+        secureTokenChallenge.challenge( passToken, request );
 
         if ( !passToken.getUser().getId().equals( userId ) ) {
             throw new TokenException( "Password reset token is invalid." );
@@ -822,9 +830,9 @@ public class UserServiceImpl implements UserService, InitializingBean {
 
     @Transactional(rollbackFor = { TokenException.class })
     @Override
-    public User changePasswordByResetToken( int userId, String token, PasswordReset passwordReset ) throws TokenException, ValidationException {
+    public User changePasswordByResetToken( int userId, String token, PasswordReset passwordReset, HttpServletRequest request ) throws TokenException, ValidationException {
 
-        PasswordResetToken passToken = verifyPasswordResetToken( userId, token );
+        PasswordResetToken passToken = verifyPasswordResetToken( userId, token, request );
 
         // Preauthorize might cause trouble here if implemented, fix by setting manual authentication
         User user = findUserByIdNoAuth( userId );
@@ -862,14 +870,17 @@ public class UserServiceImpl implements UserService, InitializingBean {
 
     @Override
     @Transactional(rollbackFor = { TokenException.class })
-    public User confirmVerificationToken( String token ) throws TokenException {
+    public User confirmVerificationToken( String token, HttpServletRequest request ) throws TokenException {
         VerificationToken verificationToken = tokenRepository.findByToken( token );
+
         if ( verificationToken == null ) {
-            throw new TokenException( "Verification token is invalid." );
+            throw new TokenNotFoundException( "Verification token is invalid." );
         }
 
+        secureTokenChallenge.challenge( verificationToken, request );
+
         if ( Instant.now().isAfter( verificationToken.getExpiryDate() ) ) {
-            throw new TokenException( "Verification token is expired." );
+            throw new ExpiredTokenException( "Verification token is expired." );
         }
 
         User user = verificationToken.getUser();
@@ -892,7 +903,7 @@ public class UserServiceImpl implements UserService, InitializingBean {
             tokenRepository.delete( verificationToken );
             return userRepository.save( user );
         } else {
-            throw new TokenException( "Verification token email does not match neither the user email nor contact email." );
+            throw new TokenDoesNotMatchEmailException( "Verification token email does not match neither the user email nor contact email." );
         }
     }
 

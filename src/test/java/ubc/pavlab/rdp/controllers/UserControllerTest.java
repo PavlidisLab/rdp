@@ -32,11 +32,13 @@ import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.Aspect;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.TierType;
+import ubc.pavlab.rdp.security.SecureTokenChallenge;
 import ubc.pavlab.rdp.services.*;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.settings.FaqSettings;
 import ubc.pavlab.rdp.settings.SiteSettings;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Set;
@@ -106,6 +108,9 @@ public class UserControllerTest {
 
     @MockBean(name = "ontologyMessageSource")
     private MessageSource ontologyMessageSource;
+
+    @MockBean
+    private SecureTokenChallenge<HttpServletRequest> secureTokenChallenge;
 
     @BeforeEach
     public void setUp() {
@@ -782,7 +787,7 @@ public class UserControllerTest {
                 .andExpect( status().is3xxRedirection() )
                 .andExpect( redirectedUrl( "/user/profile" ) )
                 .andExpect( flash().attributeExists( "message" ) );
-        verify( userService ).confirmVerificationToken( "1234" );
+        verify( userService ).confirmVerificationToken( eq( "1234" ), any() );
         verifyNoMoreInteractions( userService );
     }
 
@@ -791,7 +796,7 @@ public class UserControllerTest {
     public void givenLoggedIn_whenVerifyContactEmailWithToken_andTokenDoesNotExist_thenReturn3xx() throws Exception {
         User user = createUser( 1 );
         when( userService.findCurrentUser() ).thenReturn( user );
-        when( userService.confirmVerificationToken( "1234" ) ).thenAnswer( answer -> {
+        when( userService.confirmVerificationToken( eq( "1234" ), any() ) ).thenAnswer( answer -> {
             throw new TokenException( "Verification token does not exist." );
         } );
         mvc.perform( get( "/user/verify-contact-email" )
@@ -799,7 +804,7 @@ public class UserControllerTest {
                 .andExpect( status().is3xxRedirection() )
                 .andExpect( flash().attributeExists( "message" ) )
                 .andExpect( flash().attribute( "error", true ) );
-        verify( userService ).confirmVerificationToken( "1234" );
+        verify( userService ).confirmVerificationToken( eq( "1234" ), any() );
     }
 
     @Test

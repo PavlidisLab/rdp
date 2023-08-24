@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      lang="en">
+
+<head th:replace="layouts/login::head(title='Confirm Registration')">
+    <meta charset="UTF-8"/>
+    <title>...</title>
+</head>
+
+<body>
+
+<div class="wrapper d-flex justify-content-center align-items-center">
+    <div class="container py-4">
+        <h4 class="form-signin-heading"><a th:href="@{/login}" th:text="#{rdp.site.fullname}"></a></h4>
+        <h6 class="form-signin-subheading">Researcher Registry</h6>
+        <div th:replace="layouts/login::message"></div>
+        <div th:replace="layouts/login::actions"></div>
+    </div>
+</div>
+<div th:replace="layouts/login::scripts"></div>
+</body>
+</html>

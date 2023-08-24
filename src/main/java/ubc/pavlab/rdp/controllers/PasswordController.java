@@ -18,6 +18,7 @@ import ubc.pavlab.rdp.model.User;
 import ubc.pavlab.rdp.model.UserPrinciple;
 import ubc.pavlab.rdp.services.UserService;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.util.Locale;
 
@@ -59,11 +60,11 @@ public class PasswordController {
     }
 
     @GetMapping(value = "/updatePassword")
-    public ModelAndView changePassword( @RequestParam("id") int id, @RequestParam("token") String token ) {
+    public ModelAndView changePassword( @RequestParam("id") int id, @RequestParam("token") String token, HttpServletRequest request ) {
         ModelAndView modelAndView = new ModelAndView( "updatePassword" );
 
         try {
-            userService.verifyPasswordResetToken( id, token );
+            userService.verifyPasswordResetToken( id, token, request );
         } catch ( TokenException e ) {
             modelAndView.setStatus( HttpStatus.BAD_REQUEST );
             modelAndView.addObject( "error", e.getMessage() );
@@ -78,7 +79,8 @@ public class PasswordController {
 
     @PostMapping(value = "/updatePassword")
     public ModelAndView showChangePasswordPage( @RequestParam("id") int id, @RequestParam("token") String token,
-                                                @Valid PasswordReset passwordReset, BindingResult bindingResult ) {
+                                                @Valid PasswordReset passwordReset, BindingResult bindingResult,
+                                                HttpServletRequest request ) {
         ModelAndView modelAndView = new ModelAndView( "updatePassword" );
 
         if ( !passwordReset.isValid() ) {
@@ -93,7 +95,7 @@ public class PasswordController {
         }
 
         try {
-            userService.changePasswordByResetToken( id, token, passwordReset );
+            userService.changePasswordByResetToken( id, token, passwordReset, request );
         } catch ( TokenException e ) {
             modelAndView.setStatus( HttpStatus.BAD_REQUEST );
             modelAndView.addObject( "message", e.getMessage() );

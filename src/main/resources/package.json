@@ -2,8 +2,9 @@
   "name": "rdp",
   "private": true,
   "scripts": {
-    "build": "webpack --config webpack.config.js",
-    "watch": "webpack watch --config webpack.config.js"
+    "build": "webpack --config webpack.config.js --mode=production",
+    "devbuild": "webpack --config webpack.config.js --mode=development",
+    "watch": "webpack watch --config webpack.config.js --mode=development"
   },
   "dependencies": {
     "activity-detector": "^3.0.0",
@@ -17,18 +18,18 @@
     "popper.js": "~1.16.1"
   },
   "devDependencies": {
-    "@babel/core": "^7.20.12",
-    "@babel/preset-env": "^7.20.2",
+    "@babel/core": "^7.22.10",
+    "@babel/preset-env": "^7.22.10",
     "babel-loader": "^8.3.0",
-    "css-loader": "^6.7.3",
-    "postcss": "^8.4.21",
-    "postcss-loader": "^7.0.2",
+    "css-loader": "^6.8.1",
+    "postcss": "^8.4.28",
+    "postcss-loader": "^7.3.3",
     "postcss-preset-env": "^7.8.3",
-    "sass": "^1.57.1",
-    "sass-loader": "^13.2.0",
+    "sass": "^1.66.1",
+    "sass-loader": "^13.3.2",
     "source-map-loader": "^4.0.1",
-    "style-loader": "^3.3.1",
-    "webpack": "^5.75.0",
+    "style-loader": "^3.3.3",
+    "webpack": "^5.88.2",
     "webpack-cli": "^4.10.0"
   },
   "browserslist": [
