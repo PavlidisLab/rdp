@@ -511,7 +511,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService, Initial
         return prepareApiUri( apiUri, authenticate );
     }
 
-    public List<URI> getApiUris( boolean authenticate ) {
+    private List<URI> getApiUris( boolean authenticate ) {
         return Arrays.stream( applicationSettings.getIsearch().getApis() )
                 .map( apiUri -> prepareApiUri( apiUri, authenticate ) )
                 .collect( Collectors.toList() );
