@@ -33,12 +33,15 @@ the [International data](customization.md#international-data)
 customization section.
 
 For external services, authentication should instead be performed with using a [service account](service-accounts.md)
-with a secret access token.
+with an access token and a secret.
 
 ```http
 GET /api/** HTTP/1.1
-Authorization: Bearer {accessToken}
+Authorization: Bearer {accessToken}:{secret}
 ```
+
+Tokens created prior to the 1.6 release may omit the `:{secret}` part. We highly recommend that you revoke and
+regenerate new tokens with secrets.
 
 Passing the authorization token via `auth` query parameter is deprecated as of 1.4.0.
 
@@ -160,7 +163,6 @@ GET /api/ontologies/{ontologyName}/terms HTTP/1.1
 
 - `page` the page to query starting from zero to `totalPages`
 
-
 ## List specific terms in a category/ontology
 
 !!! note
@@ -171,8 +173,10 @@ GET /api/ontologies/{ontologyName}/terms HTTP/1.1
 GET /api/ontologies/{ontologyName}/terms?ontologyTermIds HTTP/1.1
 ```
 
-To retrieve specific terms, you may use `ontologyTermIds` query parameter and pass it as many time as you want. The output is
-not paginated and the `page` parameter from [List all terms in a category/ontology](#list-all-terms-in-a-categoryontology) is ignored.
+To retrieve specific terms, you may use `ontologyTermIds` query parameter and pass it as many time as you want. The
+output is
+not paginated and the `page` parameter
+from [List all terms in a category/ontology](#list-all-terms-in-a-categoryontology) is ignored.
 
 ## Retrieve a single category/ontology term
 

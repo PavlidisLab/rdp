@@ -73,7 +73,7 @@ public class TokenBasedAuthenticationManagerTest {
         when( userService.getRemoteSearchUser() ).thenReturn( Optional.empty() );
 
         Authentication auth = mock( Authentication.class );
-        when( auth.getCredentials() ).thenReturn( "test" );
+        when( auth.getPrincipal() ).thenReturn( "test" );
         assertThatThrownBy( () -> manager.authenticate( auth ) )
                 .isInstanceOf( InternalAuthenticationServiceException.class );
     }

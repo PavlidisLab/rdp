@@ -114,7 +114,7 @@ public class AdminController {
     }
 
     @PostMapping(value = "/admin/create-service-account")
-    public Object createServiceAccount( @Validated(User.ValidationServiceAccount.class) User user, BindingResult bindingResult ) {
+    public Object createServiceAccount( @Validated(User.ValidationServiceAccount.class) User user, BindingResult bindingResult, RedirectAttributes redirectAttributes ) {
         String serviceEmail = user.getEmail() + '@' + siteSettings.getHostUrl().getHost();
 
         if ( userService.findUserByEmailNoAuth( serviceEmail ) != null ) {
@@ -136,9 +136,13 @@ public class AdminController {
         profile.setContactEmailVerified( false );
         user.setProfile( profile );
 
-        user = userService.createServiceAccount( user );
+        UserService.ServiceAccountAndAccessToken userAndAccessToken = userService.createServiceAccount( user );
 
-        return "redirect:/admin/users/" + user.getId();
+        redirectAttributes.addFlashAttribute( "message", String.format( "Created service account with token %s and secret %s.",
+                userAndAccessToken.getAccessTokenWithRawSecret().getAccessToken().getToken(),
+                userAndAccessToken.getAccessTokenWithRawSecret().getRawSecret() ) );
+
+        return "redirect:/admin/users/" + userAndAccessToken.getUser().getId();
     }
 
     @PostMapping(value = "/admin/users/{user}/roles")
@@ -184,8 +188,8 @@ public class AdminController {
             return new ModelAndView( "error/404", HttpStatus.NOT_FOUND )
                     .addObject( "message", messageSource.getMessage( "AdminController.userNotFoundById", null, locale ) );
         }
-        AccessToken accessToken = userService.createAccessTokenForUser( user );
-        redirectAttributes.addFlashAttribute( "message", MessageFormat.format( "Successfully created an access token {0}.", accessToken.getToken() ) );
+        UserService.AccessTokenWithRawSecret accessToken = userService.createAccessTokenForUser( user );
+        redirectAttributes.addFlashAttribute( "message", MessageFormat.format( "Successfully created an access token {0} with secret {1}.", accessToken.getAccessToken().getToken(), accessToken.getRawSecret() ) );
         return "redirect:/admin/users/" + user.getId();
     }
 

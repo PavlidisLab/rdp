@@ -16,6 +16,7 @@ class TokenBasedAuthenticationConverter implements AuthenticationConverter {
     public final TokenBasedAuthentication convert( HttpServletRequest request ) throws IllegalArgumentException {
         String authorizationHeader = request.getHeader( "Authorization" );
         String authToken = request.getParameter( "auth" );
+        String secret;
         if ( authToken == null && authorizationHeader != null ) {
             String[] pieces = authorizationHeader.split( " ", 2 );
             if ( pieces[0].equalsIgnoreCase( "Bearer" ) ) {
@@ -28,6 +29,13 @@ class TokenBasedAuthenticationConverter implements AuthenticationConverter {
                 return null; /* unsupported authentication scheme */
             }
         }
-        return authToken != null ? new TokenBasedAuthentication( authToken ) : null;
+        if ( authToken != null && authToken.contains( ":" ) ) {
+            String[] pieces = authToken.split( ":", 2 );
+            authToken = pieces[0];
+            secret = pieces[1];
+        } else {
+            secret = null;
+        }
+        return authToken != null ? new TokenBasedAuthentication( authToken, secret ) : null;
     }
 }

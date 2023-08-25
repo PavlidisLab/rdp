@@ -28,6 +28,8 @@ public class AccessToken extends Token implements UserContent {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    private String secret;
+
     @CreatedDate
     private Instant createdAt;
 

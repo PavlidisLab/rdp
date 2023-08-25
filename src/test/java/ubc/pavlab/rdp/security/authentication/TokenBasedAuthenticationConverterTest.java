@@ -17,17 +17,29 @@ public class TokenBasedAuthenticationConverterTest {
     @Test
     public void convert_withAuthorizationHeader() {
         MockHttpServletRequest request = request( HttpMethod.GET, "/" )
+                .header( "Authorization", "Bearer 1234:5678" )
+                .buildRequest( servletContext );
+        assertThat( new TokenBasedAuthenticationConverter().convert( request ) )
+                .isNotNull()
+                .hasFieldOrPropertyWithValue( "principal", "1234" )
+                .hasFieldOrPropertyWithValue( "credentials", "5678" );
+    }
+
+    @Test
+    public void convert_withAuthorizationHeaderWithoutSecret() {
+        MockHttpServletRequest request = request( HttpMethod.GET, "/" )
                 .header( "Authorization", "Bearer 1234" )
                 .buildRequest( servletContext );
         assertThat( new TokenBasedAuthenticationConverter().convert( request ) )
                 .isNotNull()
-                .hasFieldOrPropertyWithValue( "credentials", "1234" );
+                .hasFieldOrPropertyWithValue( "principal", "1234" )
+                .hasFieldOrPropertyWithValue( "credentials", null );
     }
 
     @Test
     public void convert_withUnsupportedAuthenticationScheme_thenIgnoreAndReturnNull() {
         MockHttpServletRequest request = request( HttpMethod.GET, "/" )
-                .header( "Authorization", "Basic 1234" )
+                .header( "Authorization", "Basic 1234:5678" )
                 .buildRequest( servletContext );
         assertThat( new TokenBasedAuthenticationConverter().convert( request ) )
                 .isNull();
@@ -40,11 +52,11 @@ public class TokenBasedAuthenticationConverterTest {
                 .buildRequest( servletContext );
         assertThat( new TokenBasedAuthenticationConverter().convert( request ) )
                 .isNotNull()
-                .hasFieldOrPropertyWithValue( "credentials", "1234" );
+                .hasFieldOrPropertyWithValue( "principal", "1234" );
     }
 
     @Test
-    public void convert_whenCredentialsAreMissing_thenReturnNull() {
+    public void convert_whenPrincipalIsMissing_thenReturnNull() {
         MockHttpServletRequest request = request( HttpMethod.GET, "/" )
                 .buildRequest( servletContext );
         assertThat( new TokenBasedAuthenticationConverter().convert( request ) )

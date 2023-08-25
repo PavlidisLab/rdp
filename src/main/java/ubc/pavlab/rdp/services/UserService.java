@@ -1,5 +1,6 @@
 package ubc.pavlab.rdp.services;
 
+import lombok.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -26,7 +27,13 @@ public interface UserService {
 
     User createAdmin( User admin );
 
-    User createServiceAccount( User user );
+    ServiceAccountAndAccessToken createServiceAccount( User user );
+
+    @Value
+    class ServiceAccountAndAccessToken {
+        User user;
+        AccessTokenWithRawSecret accessTokenWithRawSecret;
+    }
 
     List<Role> findAllRoles();
 
@@ -61,7 +68,7 @@ public interface UserService {
 
     User findUserByEmailNoAuth( String email );
 
-    User findUserByAccessTokenNoAuth( String accessToken ) throws TokenException;
+    User findUserByAccessTokenNoAuth( String accessToken, String secret ) throws TokenException;
 
     /**
      * Anonymize the given user.
@@ -113,7 +120,13 @@ public interface UserService {
 
     void revokeAccessToken( AccessToken accessToken );
 
-    AccessToken createAccessTokenForUser( User user );
+    AccessTokenWithRawSecret createAccessTokenForUser( User user );
+
+    @Value
+    class AccessTokenWithRawSecret {
+        AccessToken accessToken;
+        String rawSecret;
+    }
 
     Optional<User> getRemoteSearchUser();
 
