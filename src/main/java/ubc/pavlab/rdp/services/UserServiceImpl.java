@@ -143,13 +143,13 @@ public class UserServiceImpl implements UserService, InitializingBean {
     @Override
     @Secured("ROLE_ADMIN")
     @Transactional
-    public User createServiceAccount( User user ) {
+    public ServiceAccountAndAccessToken createServiceAccount( User user ) {
         user.setPassword( bCryptPasswordEncoder.encode( createSecureRandomToken() ) );
         Role serviceAccountRole = roleRepository.findByRole( "ROLE_SERVICE_ACCOUNT" );
         user.getRoles().add( serviceAccountRole );
         user = userRepository.save( user );
-        createAccessTokenForUser( user );
-        return user;
+        AccessTokenWithRawSecret accessToken = createAccessTokenForUser( user );
+        return new ServiceAccountAndAccessToken( user, accessToken );
     }
 
     @Override
@@ -320,7 +320,7 @@ public class UserServiceImpl implements UserService, InitializingBean {
     }
 
     @Override
-    public User findUserByAccessTokenNoAuth( String accessToken ) throws TokenException {
+    public User findUserByAccessTokenNoAuth( String accessToken, String secret ) throws TokenException {
         AccessToken token = accessTokenRepository.findByToken( accessToken );
         if ( token == null ) {
             return null;
@@ -328,6 +328,9 @@ public class UserServiceImpl implements UserService, InitializingBean {
         if ( Instant.now().isAfter( token.getExpiryDate() ) ) {
             // token is expired
             throw new ExpiredTokenException( "Token is expired." );
+        }
+        if ( token.getSecret() != null && !bCryptPasswordEncoder.matches( secret, token.getSecret() ) ) {
+            throw new TokenException( "Provided secret does not match the token." );
         }
         return token.getUser();
     }
@@ -386,11 +389,13 @@ public class UserServiceImpl implements UserService, InitializingBean {
     }
 
     @Override
-    public AccessToken createAccessTokenForUser( User user ) {
+    public AccessTokenWithRawSecret createAccessTokenForUser( User user ) {
         AccessToken token = new AccessToken();
         token.updateToken( createSecureRandomToken() );
         token.setUser( user );
-        return accessTokenRepository.save( token );
+        String secret = createSecureRandomToken();
+        token.setSecret( bCryptPasswordEncoder.encode( secret ) );
+        return new AccessTokenWithRawSecret( accessTokenRepository.save( token ), secret );
     }
 
     @Override

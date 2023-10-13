@@ -31,7 +31,8 @@ public class TokenBasedAuthenticationManager implements AuthenticationManager, A
 
     @Override
     public Authentication authenticate( Authentication authentication ) throws AuthenticationException {
-        String authToken = (String) authentication.getCredentials();
+        String authToken = (String) authentication.getPrincipal();
+        String secret = (String) authentication.getCredentials();
         User u;
         if ( applicationSettings.getIsearch().getAuthTokens().contains( authToken ) ) {
             // remote admin authentication
@@ -42,7 +43,7 @@ public class TokenBasedAuthenticationManager implements AuthenticationManager, A
         } else {
             // authentication via access token
             try {
-                u = userService.findUserByAccessTokenNoAuth( authToken );
+                u = userService.findUserByAccessTokenNoAuth( authToken, secret );
             } catch ( ExpiredTokenException e ) {
                 throw new CredentialsExpiredException( "API token is expired.", e );
             } catch ( TokenException e ) {

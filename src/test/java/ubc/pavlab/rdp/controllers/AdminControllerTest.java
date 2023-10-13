@@ -27,7 +27,6 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.util.LinkedMultiValueMap;
@@ -181,13 +180,17 @@ public class AdminControllerTest {
         when( userService.createServiceAccount( any() ) ).thenAnswer( answer -> {
             User createdUser = answer.getArgument( 0, User.class );
             createdUser.setId( 1 );
-            return createdUser;
+            AccessToken accessToken = new AccessToken();
+            accessToken.setToken( "1234" );
+            return new UserService.ServiceAccountAndAccessToken( createdUser, new UserService.AccessTokenWithRawSecret( accessToken, "5678" ) );
         } );
         mvc.perform( post( "/admin/create-service-account" )
                         .param( "profile.name", "Service Account" )
                         .param( "email", "service-account" ) )
                 .andExpect( status().is3xxRedirection() )
-                .andExpect( redirectedUrl( "/admin/users/1" ) );
+                .andExpect( redirectedUrl( "/admin/users/1" ) )
+                .andExpect( flash().attribute( "message", containsString( "1234" ) ) )
+                .andExpect( flash().attribute( "message", containsString( "5678" ) ) );
         ArgumentCaptor<User> captor = ArgumentCaptor.forClass( User.class );
         verify( userService ).createServiceAccount( captor.capture() );
         assertThat( captor.getValue() )
@@ -200,12 +203,15 @@ public class AdminControllerTest {
     public void givenLoggedIn_whenCreateAccessToken_thenRedirect3xx() throws Exception {
         User user = createUser( 1 );
         AccessToken accessToken = TestUtils.createAccessToken( 1, user, "1234" );
+        UserService.AccessTokenWithRawSecret accessTokenWithSecret = new UserService.AccessTokenWithRawSecret( accessToken, "5678" );
         when( userService.findUserById( 1 ) ).thenReturn( user );
-        when( userService.createAccessTokenForUser( user ) ).thenReturn( accessToken );
+        when( userService.createAccessTokenForUser( user ) ).thenReturn( accessTokenWithSecret );
         when( roleRepository.findByRole( "ROLE_USER" ) ).thenReturn( createRole( 1, "ROLE_USER" ) );
         mvc.perform( post( "/admin/users/{user}/create-access-token", user.getId() ) )
                 .andExpect( status().is3xxRedirection() )
-                .andExpect( redirectedUrl( "/admin/users/1" ) );
+                .andExpect( redirectedUrl( "/admin/users/1" ) )
+                .andExpect( flash().attribute( "message", containsString( "1234" ) ) )
+                .andExpect( flash().attribute( "message", containsString( "5678" ) ) );
         verify( userService ).createAccessTokenForUser( user );
     }
 
