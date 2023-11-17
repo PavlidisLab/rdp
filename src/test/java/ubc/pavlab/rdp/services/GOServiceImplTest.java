@@ -7,6 +7,7 @@ import org.junit.runner.RunWith;
 import org.mockito.internal.util.collections.Sets;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
 import org.springframework.context.annotation.Bean;
@@ -28,6 +29,9 @@ import java.util.stream.IntStream;
 
 import static java.util.function.Function.identity;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.internal.verification.VerificationModeFactory.times;
 import static ubc.pavlab.rdp.util.TestUtils.*;
 
 /**
@@ -58,7 +62,7 @@ public class GOServiceImplTest {
 
         @Bean
         public Gene2GoParser gene2GoParser() {
-            return new Gene2GoParser();
+            return new Gene2GoParser( null );
         }
 
         @Bean
@@ -80,6 +84,9 @@ public class GOServiceImplTest {
     @Autowired
     private GOService goService;
 
+    @MockBean
+    public TaxonService taxonService;
+
     private Taxon taxon;
     private Map<Integer, GeneInfo> genes;
     private Map<Integer, GeneOntologyTermInfo> terms;
@@ -95,6 +102,7 @@ public class GOServiceImplTest {
         //  T2[G2] T3[G1] T5[G1]
 
         taxon = createTaxon( 1 );
+        when( taxonService.findByActiveTrue() ).thenReturn( Collections.singleton( taxon ) );
 
         genes = new HashMap<>();
 
@@ -456,5 +464,6 @@ public class GOServiceImplTest {
     public void updateGoTerms() {
         goService.updateGoTerms();
         assertThat( goService.getTerm( "GO:0000001" ) ).isNotNull();
+        verify( taxonService, times( 2 ) ).findByActiveTrue();
     }
 }
