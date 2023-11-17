@@ -50,6 +50,9 @@ public class GOServiceImpl implements GOService, InitializingBean {
             DESCENDANTS_CACHE_NAME = "ubc.pavlab.rdp.services.GOService.descendants";
 
     @Autowired
+    private TaxonService taxonService;
+
+    @Autowired
     private GeneOntologyTermInfoRepository goRepository;
 
     @Autowired
@@ -57,9 +60,6 @@ public class GOServiceImpl implements GOService, InitializingBean {
 
     @Autowired
     private OBOParser oboParser;
-
-    @Autowired
-    private Gene2GoParser gene2GoParser;
 
     @Autowired
     private CacheManager cacheManager;
@@ -156,6 +156,11 @@ public class GOServiceImpl implements GOService, InitializingBean {
         }
 
         log.info( String.format( "Loading gene2go annotations from: %s.", cacheSettings.getAnnotationFile() ) );
+
+        Set<Integer> activeTaxa = taxonService.findByActiveTrue().stream()
+                .map( Taxon::getId )
+                .collect( Collectors.toSet() );
+        Gene2GoParser gene2GoParser = new Gene2GoParser( activeTaxa );
 
         Collection<Gene2GoParser.Record> records;
         try {

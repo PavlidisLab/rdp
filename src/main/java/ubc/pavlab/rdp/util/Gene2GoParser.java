@@ -1,16 +1,17 @@
 package ubc.pavlab.rdp.util;
 
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Value;
 import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.lang3.ArrayUtils;
-import org.springframework.stereotype.Component;
+import org.apache.commons.lang3.time.StopWatch;
 
-import java.io.*;
-import java.text.MessageFormat;
-import java.util.Collection;
-import java.util.Objects;
-import java.util.stream.Collectors;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.LineNumberReader;
+import java.util.*;
 
 /**
  * Read in the Gene2Go file provided by NCBI.
@@ -18,35 +19,34 @@ import java.util.stream.Collectors;
  * Created by mjacobson on 17/01/18.
  */
 @CommonsLog
-@Component
 public class Gene2GoParser {
 
     private static final String TAXON_ID_FIELD = "#tax_id", GENE_ID_FIELD = "GeneID", GO_ID_FIELD = "GO_ID";
     private static final String[] EXPECTED_FIELDS = { TAXON_ID_FIELD, GENE_ID_FIELD, GO_ID_FIELD };
+    private static final int
+            TAXON_ID_INDEX = ArrayUtils.indexOf( EXPECTED_FIELDS, TAXON_ID_FIELD ),
+            GENE_ID_INDEX = ArrayUtils.indexOf( EXPECTED_FIELDS, GENE_ID_FIELD ),
+            GO_ID_INDEX = ArrayUtils.indexOf( EXPECTED_FIELDS, GO_ID_FIELD );
 
-    @Data
-    @AllArgsConstructor
+    private final Set<Integer> retainedTaxa;
+
+    /**
+     * @param retainedTaxa a set of taxa to retain from the gene2go input, or null to ignore
+     */
+    public Gene2GoParser( Set<Integer> retainedTaxa ) {
+        this.retainedTaxa = retainedTaxa;
+    }
+
+    @Value
+    @AllArgsConstructor(access = AccessLevel.PRIVATE)
     public static class Record {
-        private Integer taxonId;
-        private Integer geneId;
-        private String goId;
-
-        public static Record parseLine( String line, String[] headerFields, int lineNumber ) throws UncheckedParseException {
-            String[] values = line.split( "\t" );
-            if ( values.length < headerFields.length ) {
-                throw new UncheckedParseException( MessageFormat.format( "Unexpected number of parts in: {0}", line ), lineNumber );
-            }
-            try {
-                return new Record( Integer.valueOf( values[ArrayUtils.indexOf( headerFields, TAXON_ID_FIELD )] ),
-                        Integer.valueOf( values[ArrayUtils.indexOf( headerFields, GENE_ID_FIELD )] ),
-                        values[ArrayUtils.indexOf( headerFields, GO_ID_FIELD )] );
-            } catch ( NumberFormatException e ) {
-                throw new UncheckedParseException( MessageFormat.format( "Could not parse number for: {0}.", line ), lineNumber, e );
-            }
-        }
+        int taxonId;
+        int geneId;
+        String goId;
     }
 
     public Collection<Record> parse( InputStream input ) throws ParseException, IOException {
+        StopWatch timer = StopWatch.createStarted();
         try ( LineNumberReader br = new LineNumberReader( new InputStreamReader( input ) ) ) {
             String headerLine = br.readLine();
 
@@ -58,19 +58,48 @@ public class Gene2GoParser {
 
             for ( String field : EXPECTED_FIELDS ) {
                 if ( !ArrayUtils.contains( headerFields, field ) ) {
-                    throw new ParseException( MessageFormat.format( "Unexpected header line: {0}.", headerLine ), br.getLineNumber() );
+                    throw new ParseException( String.format( "Unexpected header line: %s", headerLine ), br.getLineNumber() );
                 }
             }
 
-            try {
-                return br.lines()
-                        .map( line -> Record.parseLine( line, headerFields, br.getLineNumber() ) )
-                        .collect( Collectors.toList() );
-            } catch ( UncheckedIOException ioe ) {
-                throw ioe.getCause();
-            } catch ( UncheckedParseException e ) {
-                throw e.getCause();
+            String line;
+            Set<Integer> seenTaxa = new HashSet<>();
+            List<Record> records = new ArrayList<>();
+            while ( ( line = br.readLine() ) != null ) {
+                Record r;
+                int lineNumber = br.getLineNumber();
+                int taxonId, geneId;
+                String goId;
+                String[] values = line.split( "\t" );
+                if ( values.length < headerFields.length ) {
+                    throw new ParseException( String.format( "Unexpected number of parts in: %s", line ), lineNumber );
+                }
+                try {
+                    taxonId = Integer.parseInt( values[TAXON_ID_INDEX] );
+                    seenTaxa.add( taxonId );
+                    if ( retainedTaxa != null && !retainedTaxa.contains( taxonId ) ) {
+                        // we've seen all the taxa that we needed to, terminate
+                        if ( seenTaxa.containsAll( retainedTaxa ) ) {
+                            log.debug( "All taxa we needed were parsed, terminating early!" );
+                            break;
+                        }
+                        continue;
+                    } else {
+                        geneId = Integer.parseInt( values[GENE_ID_INDEX] );
+                        goId = values[GO_ID_INDEX];
+                        r = new Record( taxonId, geneId, goId );
+                    }
+                } catch ( NumberFormatException e ) {
+                    throw new ParseException( String.format( "Could not parse number for: %s", line ), lineNumber, e );
+                } finally {
+                    if ( ( lineNumber + 1 ) % 1000000 == 0 ) {
+                        log.debug( String.format( "Parsed %d line from (%d line/s)",
+                                lineNumber + 1, (int) ( 1000.0 * ( lineNumber + 1 ) / timer.getTime() ) ) );
+                    }
+                }
+                records.add( r );
             }
+            return records;
         }
     }
 }

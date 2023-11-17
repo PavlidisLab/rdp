@@ -40,6 +40,8 @@ GO terms, on the other hand, are obtained from Ontobee:
 rdp.settings.cache.term-file=http://purl.obolibrary.org/obo/go.obo
 ```
 
+gene2go associations will only be populated for active taxa (new in 1.5.8).
+
 ## Gene Tiers
 
 Users' genes are categorized in tiers based on their familiarity and experience with the gene. This is explained in
