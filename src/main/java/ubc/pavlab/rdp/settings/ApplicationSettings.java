@@ -6,18 +6,17 @@ import org.springframework.boot.convert.DurationUnit;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
 import org.springframework.validation.annotation.Validated;
-import ubc.pavlab.rdp.ontology.resolvers.OntologyResolver;
 import ubc.pavlab.rdp.model.GeneInfo;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.ResearcherCategory;
 import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.model.ontology.Ontology;
+import ubc.pavlab.rdp.ontology.resolvers.OntologyResolver;
 import ubc.pavlab.rdp.services.GeneInfoService;
 
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
-import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Size;
 import java.net.URI;
 import java.time.Duration;
@@ -273,4 +272,19 @@ public class ApplicationSettings {
      * Enabled tier types.
      */
     public EnumSet<TierType> enabledTiers;
+    /**
+     * File containing allowed email domains for registering users.
+     * <p>
+     * May be null, in which case any email address will be allowed.
+     */
+    private Resource allowedEmailDomainsFile;
+    /**
+     * Refresh delay to reload the allowed email domains file, in seconds.
+     */
+    @DurationUnit(value = ChronoUnit.SECONDS)
+    private Duration allowedEmailDomainsRefreshDelay;
+    /**
+     * Allow internationalized domain names.
+     */
+    private boolean allowInternationalizedDomainNames;
 }

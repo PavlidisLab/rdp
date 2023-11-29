@@ -1,5 +1,40 @@
 # Customize your instance
 
+## Allowed email domains (new in 1.5.8)
+
+You may restrict the email domains that can be used for creating new accounts by specifying a file containing one line
+per domain. Matches are performed in a case-insensitive manner.
+
+```properties
+rdp.settings.allowed-email-domains-file=file:swot.txt
+rdp.settings.allowed-email-domains-refresh-delay=3600
+```
+
+This feature is disabled by default.
+
+Note that [internationalized domains](https://en.wikipedia.org/wiki/Internationalized_domain_name) are not allowed and
+will be ignored from the file.
+
+The default refresh delay is set to one hour. To disable it, you can set `rdp.settings.allowed-email-domains-refresh-delay` 
+to empty.
+
+There's a few projects out there that curate institutional email addresses which should be generally suitable
+
+Refer to [JetBrains/swot](https://github.com/JetBrains/swot) for a list of institu
+
+## reCAPTCHA (new in 1.5.8)
+
+RDP supports [reCAPTCHA v2](https://www.google.com/recaptcha/about/) to mitigate the registration of spam accounts by
+bots. To enable it, add the reCAPTCHA secret to your configuration.
+
+```properties
+rdp.settings.recaptcha-secret=mysecret
+```
+
+This feature is disabled by default.
+
+## Cached data
+
 Most of the data used by the application is retrieved remotely at startup and subsequently updated on a monthly basis.
 
 To prevent data from being loaded on startup and/or recurrently, set the following parameter in
@@ -11,6 +46,8 @@ rdp.settings.cache.enabled=false
 
 You should deploy your RDP instance at least once to have initial data before setting this property and whenever you
 update the software.
+
+The following sections will cover in details individual data sources that can be imported in your registry.
 
 ## Gene information and GO terms
 
@@ -271,19 +308,20 @@ The page lists some basic stats at the very top and provides few action buttons:
 
 ![Actions available for simple categories.](images/simple-category-actions.png)
 
-- "Deactivate" (or "Deactivate All Terms" in the case of an ontology category): this will remove the category from the Profile and Search pages. This action is reversible, as the category can be easily re-activated. This action is recommended in cases where a category cannot be deleted because it has already been used by some users.
+- "Deactivate" (or "Deactivate All Terms" in the case of an ontology category): this will remove the category from the
+  Profile and Search pages. This action is reversible, as the category can be easily re-activated. This action is
+  recommended in cases where a category cannot be deleted because it has already been used by some users.
 
 - Update from "source": Update the ontology category using the original URL (if available)
 
 - Download as OBO: Download the category as an OBO file
 
-
-
 The number of used terms indicate how many terms in the ontology have been associated with associated with users.
 
 In the Edit window on the Manage Profile Category page, you can add a definition/description of the category, which
 is used in a tooltip on the Profile Page. You can also specify if this category will be used as a filter on the Gene
-Search page. While all active categories will be available on the Researcher Search page, only categories that have "Available for gene search?" checked will be displayed on the Gene Search page.
+Search page. While all active categories will be available on the Researcher Search page, only categories that have "
+Available for gene search?" checked will be displayed on the Gene Search page.
 
 ![Interface for editing the properties of an ontology.](images/edit-an-ontology.png)
 
@@ -348,8 +386,6 @@ values. A warning will be displayed in the admin section if this is the case.
 Read more about configuring messages in [Customizing the application messages](#customizing-the-applications-messages)
 section of this page.
 
-
-
 ### Resolving external URLs
 
 By default, ontologies and terms are resolved from [OLS](https://www.ebi.ac.uk/ols/index). Reactome pathways get a
@@ -402,7 +438,6 @@ settings will retrieve all the necessary files relative to the working directory
 #this setting relates only to gene info files. Files for all taxons will be stord under gene/
 rdp.settings.cache.load-from-disk=true
 rdp.settings.cache.gene-files-location=file:genes/
-
 #file for GO ontology
 rdp.settings.cache.term-file=file:go.obo
 #file for gene GO annotation
@@ -537,7 +572,8 @@ rdp.faq.questions.<q_key>=A relevant question.
 rdp.faq.answers.<q_key>=A plausible answer.
 ```
 
-The provided default file can be found in [faq.properties](https://github.com/PavlidisLab/rdp/tree/{{ config.extra.git_ref }}/src/main/resources/faq.properties).
+The provided default file can be found in [faq.properties](https://github.com/PavlidisLab/rdp/tree/{{
+config.extra.git_ref }}/src/main/resources/faq.properties).
 
 ### Ordering FAQ entries
 

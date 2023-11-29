@@ -13,6 +13,14 @@
         <h4 class="form-signin-heading"><a th:href="@{/login}" th:text="#{rdp.site.fullname}"></a></h4>
         <h6 class="form-signin-subheading">Researcher Registry</h6>
         <div th:replace="layouts/login::message"></div>
+        <div th:if="${domainNotAllowed}">
+            Yikes! It looks like your email domain is not in our list of allowed domains. If you think this is a
+            mistake,
+            <a th:href="'mailto:' + ${@siteSettings.contactEmail} + '?from=' + ${domainNotAllowedFrom} + '&subject=' + ${domainNotAllowedSubject} + '&body=' + ${domainNotAllowedBody}">
+                contact us
+            </a>
+            so that we can complete your registration.
+        </div>
         <form th:action="@{/registration}" th:object="${user}" method="POST">
             <div class="form-row">
                 <div class="form-group offset-md-1 col-md-5">
@@ -50,6 +58,8 @@
             <div class="form-group row">
                 <div class="offset-md-1 col-md-4">
                     <button class="btn btn-primary btn-block"
+                            th:classappend="${!#strings.isEmpty(@siteSettings.recaptchaSecret)} ? 'g-recaptcha'"
+                            th:data="${!#strings.isEmpty(@siteSettings.recaptchaSecret)} ? 'sitekey=' + ${@siteSettings.recaptchaSecret}"
                             name="Submit"
                             value="Register User"
                             type="Submit"
@@ -65,5 +75,8 @@
     </div>
 </div>
 <div th:replace="layouts/login::scripts"></div>
+<th:block th:unlss="${#strings.isEmpty(@siteSettings.recaptchaToken)}">
+    <script src="https://www.google.com/recaptcha/api.js"></script>
+</th:block>
 </body>
 </html>

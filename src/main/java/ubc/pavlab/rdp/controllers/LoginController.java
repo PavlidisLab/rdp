@@ -2,12 +2,13 @@ package ubc.pavlab.rdp.controllers;
 
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
-import org.springframework.validation.BindingResult;
+import org.springframework.validation.*;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,6 +25,8 @@ import ubc.pavlab.rdp.services.ExpiredTokenException;
 import ubc.pavlab.rdp.services.PrivacyService;
 import ubc.pavlab.rdp.services.UserService;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
+import ubc.pavlab.rdp.validation.EmailValidator;
+import ubc.pavlab.rdp.validation.RecaptchaValidator;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Locale;
@@ -44,9 +47,49 @@ public class LoginController {
     @Autowired
     private ApplicationSettings applicationSettings;
 
+    @Autowired
+    private EmailValidator emailValidator;
+
+    @Autowired
+    private RecaptchaValidator recaptchaValidator;
+
+    @Autowired
+    private MessageSource messageSource;
+
+    /**
+     * Wraps a {@link EmailValidator} so that it can be applied to the {@code user.email} nested path.
+     */
+    private class UserEmailValidator implements Validator {
+
+        @Override
+        public boolean supports( Class<?> clazz ) {
+            return User.class.isAssignableFrom( clazz );
+        }
+
+        @Override
+        public void validate( Object target, Errors errors ) {
+            User user = (User) target;
+            if ( user.getEmail() != null ) {
+                try {
+                    errors.pushNestedPath( "email" );
+                    ValidationUtils.invokeValidator( emailValidator, user.getEmail(), errors );
+                } finally {
+                    errors.popNestedPath();
+                }
+            }
+        }
+    }
+
     @InitBinder("user")
     public void configureUserDataBinder( WebDataBinder dataBinder ) {
         dataBinder.setAllowedFields( "email", "password", "profile.name", "profile.lastName" );
+        dataBinder.addValidators( new UserEmailValidator() );
+    }
+
+    @InitBinder("recaptcha")
+    public void configureRecaptchaDataBinder( WebDataBinder dataBinder ) {
+        dataBinder.setAllowedFields( "secret" );
+        dataBinder.addValidators( recaptchaValidator );
     }
 
     @GetMapping("/login")
@@ -87,6 +130,9 @@ public class LoginController {
 
         // initialize a basic user profile
         Profile userProfile = user.getProfile();
+        if ( userProfile == null ) {
+            userProfile = new Profile();
+        }
         userProfile.setPrivacyLevel( privacyService.getDefaultPrivacyLevel() );
         userProfile.setShared( applicationSettings.getPrivacy().isDefaultSharing() );
         userProfile.setHideGenelist( false );
@@ -105,6 +151,22 @@ public class LoginController {
 
         if ( bindingResult.hasErrors() ) {
             modelAndView.setStatus( HttpStatus.BAD_REQUEST );
+            // indicate to the mode
+            boolean isDomainNotAllowed = bindingResult.getFieldErrors( "email" ).stream()
+                    .map( FieldError::getCode )
+                    .anyMatch( "EmailValidator.domainNotAllowed"::equals );
+            modelAndView.addObject( "domainNotAllowed", isDomainNotAllowed );
+            if ( isDomainNotAllowed ) {
+                // this code is not set if the email is not minimally valid, so we can safely parse it
+                String domain = user.getEmail().split( "@", 2 )[1];
+                modelAndView.addObject( "domainNotAllowedFrom", user.getEmail() );
+                modelAndView.addObject( "domainNotAllowedSubject",
+                        messageSource.getMessage( "LoginController.domainNotAllowedSubject",
+                                new String[]{ domain }, locale ) );
+                modelAndView.addObject( "domainNotAllowedBody",
+                        messageSource.getMessage( "LoginController.domainNotAllowedBody",
+                                new String[]{ user.getEmail(), domain, user.getProfile().getFullName() }, locale ) );
+            }
         } else {
             user = userService.create( user );
             userService.createVerificationTokenForUser( user, locale );

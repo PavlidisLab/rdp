@@ -18,6 +18,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.validation.Errors;
 import ubc.pavlab.rdp.exception.TokenDoesNotMatchEmailException;
 import ubc.pavlab.rdp.exception.TokenNotFoundException;
 import ubc.pavlab.rdp.model.Profile;
@@ -28,6 +29,8 @@ import ubc.pavlab.rdp.services.PrivacyService;
 import ubc.pavlab.rdp.services.UserService;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.settings.SiteSettings;
+import ubc.pavlab.rdp.validation.EmailValidator;
+import ubc.pavlab.rdp.validation.RecaptchaValidator;
 
 import java.util.Locale;
 
@@ -35,8 +38,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -73,9 +75,16 @@ public class LoginControllerTest {
     @MockBean(name = "ontologyMessageSource")
     private MessageSource ontologyMessageSource;
 
+    @MockBean
+    private RecaptchaValidator recaptchaValidator;
+
+    @MockBean
+    private EmailValidator emailValidator;
+
     @BeforeEach
     public void setUp() {
         when( privacyService.getDefaultPrivacyLevel() ).thenReturn( PrivacyLevelType.PRIVATE );
+        when( emailValidator.supports( String.class ) ).thenReturn( true );
     }
 
     @Test
@@ -128,6 +137,28 @@ public class LoginControllerTest {
             assertThat( user.isEnabled() ).isFalse();
             assertThat( user.getAnonymousId() ).isNull();
         } );
+    }
+
+    @Test
+    public void register_whenEmailDomainIsNotAccepted_thenProduceHelpfulMessage() throws Exception {
+        doAnswer( a -> {
+            a.getArgument( 1, Errors.class ).rejectValue( null, "EmailValidator.domainNotAllowed" );
+            return null;
+        } ).when( emailValidator ).validate( eq( "bob@example.com" ), any() );
+        when( emailValidator.supports( String.class ) ).thenReturn( true );
+        String expectedMailto = "from=foo@example.com&subject=&body=";
+        mvc.perform( post( "/registration" )
+                        .param( "profile.name", "Bob" )
+                        .param( "profile.lastName", "Smith" )
+                        .param( "email", "bob@example.com" )
+                        .param( "password", "123456" )
+                        .param( "passwordConfirm", "123456" ) )
+                .andExpect( status().isBadRequest() )
+                .andExpect( model().attribute( "domainNotAllowed", true ) )
+                .andExpect( model().attribute( "domainNotAllowedFrom", "bob@example.com" ) )
+                .andExpect( model().attribute( "domainNotAllowedSubject", "Attempting to register with example.com as an email domain is not allowed" ) )
+                .andExpect( model().attribute( "domainNotAllowedBody", "" ) )
+                .andExpect( xpath( "a[href ~= 'mailto:'].href" ).string( expectedMailto ) );
     }
 
     @Test
