@@ -3,6 +3,7 @@ package ubc.pavlab.rdp.controllers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -30,6 +31,7 @@ import ubc.pavlab.rdp.settings.SiteSettings;
 
 import java.util.Locale;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -108,6 +110,24 @@ public class LoginControllerTest {
                 .andExpect( view().name( "registration" ) )
                 .andExpect( model().attribute( "user", new User() ) );
         when( userService.create( any() ) ).thenAnswer( answer -> answer.getArgument( 0, User.class ) );
+        mvc.perform( post( "/registration" )
+                        .param( "profile.name", "Bob" )
+                        .param( "profile.lastName", "Smith" )
+                        .param( "email", "bob@example.com" )
+                        .param( "password", "123456" )
+                        .param( "passwordConfirm", "123456" )
+                        .param( "id", "27" ) ) // this field is ignored
+                .andExpect( status().is3xxRedirection() )
+                .andExpect( redirectedUrl( "/login" ) );
+        ArgumentCaptor<User> captor = ArgumentCaptor.forClass( User.class );
+        verify( userService ).create( captor.capture() );
+        verify( userService ).createVerificationTokenForUser( eq( captor.getValue() ), any() );
+        assertThat( captor.getValue() ).satisfies( user -> {
+            assertThat( user.getId() ).isNull();
+            assertThat( user.getEmail() ).isEqualTo( "bob@example.com" );
+            assertThat( user.isEnabled() ).isFalse();
+            assertThat( user.getAnonymousId() ).isNull();
+        } );
     }
 
     @Test
