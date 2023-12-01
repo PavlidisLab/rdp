@@ -98,6 +98,11 @@ public class AdminController {
     @Qualifier("adminTaskExecutor")
     private AsyncTaskExecutor taskExecutor;
 
+    @InitBinder("user")
+    public void configureUserInitBinder( WebDataBinder dataBinder ) {
+        dataBinder.setAllowedFields( "email", "profile.name" );
+    }
+
     /**
      * List all users
      */
