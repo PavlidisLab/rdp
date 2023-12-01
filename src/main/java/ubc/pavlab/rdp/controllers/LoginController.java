@@ -78,6 +78,11 @@ public class LoginController {
         ModelAndView modelAndView = new ModelAndView( "registration" );
         User existingUser = userService.findUserByEmailNoAuth( user.getEmail() );
 
+        // profile can be missing of no profile.* fields have been set
+        if ( user.getProfile() == null ) {
+            user.setProfile( new Profile() );
+        }
+
         user.setEnabled( false );
 
         // initialize a basic user profile
