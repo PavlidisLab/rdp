@@ -330,7 +330,7 @@ public class UserController {
 
     @Data
     @Builder
-    static class ProfileWithOrganUberonIdsAndOntologyTerms {
+    public static class ProfileWithOrganUberonIdsAndOntologyTerms {
         /**
          * Profile
          */
@@ -425,7 +425,7 @@ public class UserController {
     }
 
     @Data
-    static class Model {
+    public static class Model {
         private Map<Integer, TierType> geneTierMap;
         private Map<Integer, PrivacyLevelType> genePrivacyLevelMap;
         private List<String> goIds;
