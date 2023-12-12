@@ -1,7 +1,16 @@
 package ubc.pavlab.rdp.validation;
 
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.Data;
-import lombok.Value;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
 import org.springframework.web.client.RestTemplate;
@@ -17,6 +26,9 @@ public class RecaptchaValidator implements Validator {
     private final String secret;
 
     public RecaptchaValidator( RestTemplate restTemplate, String secret ) {
+        Assert.isTrue( restTemplate.getMessageConverters().stream().anyMatch( converter -> converter.canWrite( MultiValueMap.class, MediaType.APPLICATION_FORM_URLENCODED ) ),
+                "The supplied RestTemplate must support writing " + MediaType.APPLICATION_FORM_URLENCODED_VALUE + " messages." );
+        Assert.isTrue( StringUtils.isNotBlank( secret ), "The secret must not be empty." );
         this.restTemplate = restTemplate;
         this.secret = secret;
     }
@@ -24,17 +36,28 @@ public class RecaptchaValidator implements Validator {
     @Override
     public void validate( Object target, Errors errors ) {
         Recaptcha recaptcha = (Recaptcha) target;
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType( MediaType.APPLICATION_FORM_URLENCODED );
+        MultiValueMap<String, String> payload = new LinkedMultiValueMap<>();
+        payload.add( "secret", secret );
+        payload.add( "response", recaptcha.getResponse() );
+        if ( recaptcha.getRemoteIp() != null ) {
+            payload.add( "remoteip", recaptcha.getRemoteIp() );
+        }
+        HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>( payload, headers );
         Reply reply = restTemplate.postForObject( "https://www.google.com/recaptcha/api/siteverify",
-                new Payload( secret, recaptcha.getResponse(), recaptcha.getRemoteIp() ), Reply.class );
+                requestEntity, Reply.class );
         if ( reply == null ) {
-            errors.reject( "" );
+            errors.reject( "RecaptchaValidator.empty-reply" );
             return;
         }
         if ( !reply.success ) {
-            errors.reject( "" );
+            errors.reject( "RecaptchaValidator.unsuccessful-response" );
         }
-        for ( String errorCode : reply.errorCodes ) {
-            errors.reject( errorCode );
+        if ( reply.errorCodes != null ) {
+            for ( String errorCode : reply.errorCodes ) {
+                errors.reject( "RecaptchaValidator." + errorCode );
+            }
         }
     }
 
@@ -43,18 +66,13 @@ public class RecaptchaValidator implements Validator {
         return Recaptcha.class.isAssignableFrom( clazz );
     }
 
-    @Value
-    private static class Payload {
-        String secret;
-        String response;
-        String remoteIp;
-    }
-
     @Data
+    @JsonNaming(PropertyNamingStrategies.KebabCaseStrategy.class)
     private static class Reply {
         private boolean success;
         private String challengeTs;
         private String hostname;
+        @Nullable
         private String[] errorCodes;
     }
 }

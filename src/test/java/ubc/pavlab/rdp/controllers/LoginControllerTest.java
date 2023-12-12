@@ -1,5 +1,6 @@
 package ubc.pavlab.rdp.controllers;
 
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -30,6 +31,7 @@ import ubc.pavlab.rdp.services.UserService;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.settings.SiteSettings;
 import ubc.pavlab.rdp.validation.EmailValidator;
+import ubc.pavlab.rdp.validation.Recaptcha;
 import ubc.pavlab.rdp.validation.RecaptchaValidator;
 
 import java.util.Locale;
@@ -120,11 +122,13 @@ public class LoginControllerTest {
                 .andExpect( model().attribute( "user", new User() ) );
         when( userService.create( any() ) ).thenAnswer( answer -> answer.getArgument( 0, User.class ) );
         mvc.perform( post( "/registration" )
+                        .header( "X-Forwarded-For", "127.0.0.1", "10.0.0.2" )
                         .param( "profile.name", "Bob" )
                         .param( "profile.lastName", "Smith" )
                         .param( "email", "bob@example.com" )
                         .param( "password", "123456" )
                         .param( "passwordConfirm", "123456" )
+                        .param( "g-recaptcha-response", "1234" )
                         .param( "id", "27" ) ) // this field is ignored
                 .andExpect( status().is3xxRedirection() )
                 .andExpect( redirectedUrl( "/login" ) );
@@ -137,6 +141,12 @@ public class LoginControllerTest {
             assertThat( user.isEnabled() ).isFalse();
             assertThat( user.getAnonymousId() ).isNull();
         } );
+        ArgumentCaptor<Recaptcha> recaptchaCaptor = ArgumentCaptor.forClass( Recaptcha.class );
+        verify( recaptchaValidator ).validate( recaptchaCaptor.capture(), any() );
+        assertThat( recaptchaCaptor.getValue() ).satisfies( r -> {
+            assertThat( r.getResponse() ).isEqualTo( "1234" );
+            assertThat( r.getRemoteIp() ).isEqualTo( "127.0.0.1" );
+        } );
     }
 
     @Test
@@ -146,7 +156,7 @@ public class LoginControllerTest {
             return null;
         } ).when( emailValidator ).validate( eq( "bob@example.com" ), any() );
         when( emailValidator.supports( String.class ) ).thenReturn( true );
-        String expectedMailto = "from=foo@example.com&subject=&body=";
+        String expectedMailto = "mailto:admin@...from=foo@example.com&subject=&body=";
         mvc.perform( post( "/registration" )
                         .param( "profile.name", "Bob" )
                         .param( "profile.lastName", "Smith" )
@@ -157,8 +167,8 @@ public class LoginControllerTest {
                 .andExpect( model().attribute( "domainNotAllowed", true ) )
                 .andExpect( model().attribute( "domainNotAllowedFrom", "bob@example.com" ) )
                 .andExpect( model().attribute( "domainNotAllowedSubject", "Attempting to register with example.com as an email domain is not allowed" ) )
-                .andExpect( model().attribute( "domainNotAllowedBody", "" ) )
-                .andExpect( xpath( "a[href ~= 'mailto:'].href" ).string( expectedMailto ) );
+                .andExpect( model().attribute( "domainNotAllowedBody", containsString( "bob@example.com" ) ) )
+                .andExpect( xpath( "//a[starts-with(@href, 'mailto:')]/@href" ).string( Matchers.startsWith( "mailto:support@example.com?from=bob@example.com&subject=Attempting" ) ) );
     }
 
     @Test

@@ -1,31 +1,28 @@
 package ubc.pavlab.rdp.validation;
 
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.RepeatedTest;
+import org.junit.jupiter.api.Test;
+import org.springframework.core.io.PathResource;
 import org.springframework.validation.Errors;
 
+import java.io.BufferedWriter;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.Duration;
 import java.util.Collections;
 
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.*;
 
 public class EmailValidatorTest {
 
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
-
-    @Mock
+    private EmailValidator v;
     private Errors e;
 
-    private EmailValidator v;
-
-    @Before
+    @BeforeEach
     public void setUp() {
         v = new EmailValidator();
+        e = mock( Errors.class );
     }
 
     @Test
@@ -38,7 +35,7 @@ public class EmailValidatorTest {
     public void validate_whenDomainIsNotInAllowedDomains_thenReject() {
         v = new EmailValidator( Collections.singleton( "test.com" ), false );
         v.validate( "test@test2.com", e );
-        verify( e ).rejectValue( null, "EmailValidator.domainNotAllowed" );
+        verify( e ).rejectValue( null, "EmailValidator.domainNotAllowed", new String[]{ "test2.com" }, null );
     }
 
     @Test
@@ -70,5 +67,40 @@ public class EmailValidatorTest {
     public void validate_whenAddressIsEmpty_thenReject() {
         v.validate( "@test.com", e );
         verify( e ).rejectValue( null, "EmailValidator.emptyUser" );
+    }
+
+    @RepeatedTest(10)
+    public void validate_whenDelayForRefreshingExpiresAndDomainIsRemoved_thenReject() throws Exception {
+        Path tmpFile = Files.createTempFile( "test", null );
+
+        try ( BufferedWriter writer = Files.newBufferedWriter( tmpFile ) ) {
+            writer.write( "ubc.ca" );
+        }
+
+        EmailValidator v = new EmailValidator( new ResourceBasedAllowedDomainStrategy( new PathResource( tmpFile ), Duration.ofMillis( 50 ) ), false );
+
+        Errors errors = mock( Errors.class );
+        v.validate( "foo@ubc.ca", errors );
+        verifyNoInteractions( errors );
+
+        try ( BufferedWriter writer = Files.newBufferedWriter( tmpFile ) ) {
+            writer.write( "ubc2.ca" );
+        }
+
+        // no immediate change
+        errors = mock( Errors.class );
+        v.validate( "foo@ubc.ca", errors );
+        verifyNoInteractions( errors );
+
+        // until the refresh delay expires...
+        Thread.sleep( 50 );
+
+        errors = mock( Errors.class );
+        v.validate( "foo@ubc.ca", errors );
+        verify( errors ).rejectValue( null, "EmailValidator.domainNotAllowed", new String[]{ "ubc.ca" }, null );
+
+        errors = mock( Errors.class );
+        v.validate( "foo@ubc2.ca", errors );
+        verifyNoInteractions( errors );
     }
 }

@@ -11,10 +11,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.validation.*;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.WebDataBinder;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.InitBinder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import ubc.pavlab.rdp.exception.TokenException;
@@ -26,10 +23,13 @@ import ubc.pavlab.rdp.services.PrivacyService;
 import ubc.pavlab.rdp.services.UserService;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.validation.EmailValidator;
+import ubc.pavlab.rdp.validation.Recaptcha;
 import ubc.pavlab.rdp.validation.RecaptchaValidator;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 import java.util.Locale;
+import java.util.stream.Collectors;
 
 /**
  * Created by mjacobson on 16/01/18.
@@ -50,7 +50,7 @@ public class LoginController {
     @Autowired
     private EmailValidator emailValidator;
 
-    @Autowired
+    @Autowired(required = false)
     private RecaptchaValidator recaptchaValidator;
 
     @Autowired
@@ -86,12 +86,6 @@ public class LoginController {
         dataBinder.addValidators( new UserEmailValidator() );
     }
 
-    @InitBinder("recaptcha")
-    public void configureRecaptchaDataBinder( WebDataBinder dataBinder ) {
-        dataBinder.setAllowedFields( "secret" );
-        dataBinder.addValidators( recaptchaValidator );
-    }
-
     @GetMapping("/login")
     public ModelAndView login() {
         ModelAndView modelAndView = new ModelAndView( "login" );
@@ -116,9 +110,24 @@ public class LoginController {
     @PostMapping("/registration")
     public ModelAndView createNewUser( @Validated(User.ValidationUserAccount.class) User user,
                                        BindingResult bindingResult,
+                                       @RequestParam(name = "g-recaptcha-response", required = false) String recaptchaResponse,
+                                       @RequestHeader(name = "X-Forwarded-For", required = false) List<String> clientIp,
                                        RedirectAttributes redirectAttributes,
                                        Locale locale ) {
         ModelAndView modelAndView = new ModelAndView( "registration" );
+
+        if ( recaptchaValidator != null ) {
+            Recaptcha recaptcha = new Recaptcha( recaptchaResponse, clientIp != null ? clientIp.iterator().next() : null );
+            BindingResult recaptchaBindingResult = new BeanPropertyBindingResult( recaptcha, "recaptcha" );
+            recaptchaValidator.validate( recaptcha, recaptchaBindingResult );
+            if ( recaptchaBindingResult.hasErrors() ) {
+                modelAndView.setStatus( HttpStatus.BAD_REQUEST );
+                modelAndView.addObject( "message", recaptchaBindingResult.getAllErrors().stream().map( oe -> messageSource.getMessage( oe, locale ) ).collect( Collectors.joining( "<br>" ) ) );
+                modelAndView.addObject( "error", Boolean.TRUE );
+                return modelAndView;
+            }
+        }
+
         User existingUser = userService.findUserByEmailNoAuth( user.getEmail() );
 
         // profile can be missing of no profile.* fields have been set

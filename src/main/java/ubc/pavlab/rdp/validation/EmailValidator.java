@@ -69,7 +69,7 @@ public class EmailValidator implements Validator {
             try {
                 domain = IDN.toASCII( domain );
             } catch ( IllegalArgumentException e ) {
-                errors.rejectValue( null, "EmailValidator.domainNotConformToRfc3490", new String[]{ e.getMessage() }, "" );
+                errors.rejectValue( null, "EmailValidator.domainNotConformToRfc3490", new String[]{ e.getMessage() }, null );
                 return;
             }
         } else if ( !StringUtils.isAsciiPrintable( domain ) ) {
@@ -77,7 +77,9 @@ public class EmailValidator implements Validator {
             return;
         }
         if ( allowedDomainStrategy != null && !allowedDomainStrategy.allows( domain ) ) {
-            errors.rejectValue( null, "EmailValidator.domainNotAllowed" );
+            // at this point, the domain only contains ascii-printable, so it can safely be passed back to the user in
+            // an error message
+            errors.rejectValue( null, "EmailValidator.domainNotAllowed", new String[]{ domain }, null );
         }
     }
 }

@@ -3,6 +3,7 @@ package ubc.pavlab.rdp.validation;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -28,5 +29,9 @@ public class SetBasedAllowedDomainStrategy implements AllowedDomainStrategy {
     @Override
     public boolean allows( String domain ) {
         return allowedDomains.contains( domain );
+    }
+
+    public Set<String> getAllowedDomains() {
+        return Collections.unmodifiableSet( allowedDomains );
     }
 }

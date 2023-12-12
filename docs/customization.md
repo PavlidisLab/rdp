@@ -28,7 +28,8 @@ RDP supports [reCAPTCHA v2](https://www.google.com/recaptcha/about/) to mitigate
 bots. To enable it, add the reCAPTCHA secret to your configuration.
 
 ```properties
-rdp.settings.recaptcha-secret=mysecret
+rdp.site.recaptcha-token=mytoken
+rdp.site.recaptcha-secret=mysecret
 ```
 
 This feature is disabled by default.

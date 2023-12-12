@@ -9,6 +9,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.time.Duration;
+import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -30,6 +31,11 @@ import java.util.stream.Collectors;
  */
 @CommonsLog
 public class ResourceBasedAllowedDomainStrategy implements AllowedDomainStrategy {
+
+    /**
+     * Resolution to use when comparing the last modified of a file against some recorded timestamp.
+     */
+    private final static int LAST_MODIFIED_RESOLUTION_MS = 2;
 
     /**
      * A resource where email domains are found.
@@ -86,6 +92,17 @@ public class ResourceBasedAllowedDomainStrategy implements AllowedDomainStrategy
     }
 
     /**
+     * Obtain a set of allowed email domains.
+     */
+    public Set<String> getAllowedDomains() {
+        if ( strategy == null ) {
+            return Collections.emptySet();
+        } else {
+            return strategy.getAllowedDomains();
+        }
+    }
+
+    /**
      * Verify if the resource should be reloaded.
      */
     private boolean shouldRefresh() {
@@ -94,10 +111,15 @@ public class ResourceBasedAllowedDomainStrategy implements AllowedDomainStrategy
         }
 
         // check if the file is stale
+
         if ( System.currentTimeMillis() - lastRefresh >= refreshDelay.toMillis() ) {
             try {
-                // avoid refreshing if the file hasn't changed
-                return allowedEmailDomainsFile.getFile().lastModified() > lastRefresh;
+                long lastModified = allowedEmailDomainsFile.getFile().lastModified();
+                if ( lastModified == 0L ) {
+                    // error reading the last modified, assume it's stale
+                    return true;
+                }
+                return lastModified + LAST_MODIFIED_RESOLUTION_MS > lastRefresh;
             } catch ( FileNotFoundException ignored ) {
                 //  resource is not backed by a file, most likely
             } catch ( IOException e ) {
