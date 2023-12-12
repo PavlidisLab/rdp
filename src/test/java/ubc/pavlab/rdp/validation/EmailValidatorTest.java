@@ -46,6 +46,14 @@ public class EmailValidatorTest {
     }
 
     @Test
+    public void validate_whenIdnIsEnabledAndDomainHasInvalidUnicodeSymbols_thenReject() {
+        v = new EmailValidator( (AllowedDomainStrategy) null, true );
+        // that's the code for a chequered flag 🏁
+        v.validate( "foo@B\uD83C\uDFC1cher.example", e );
+        verify( e ).rejectValue( isNull(), eq( "EmailValidator.domainNotConformToRfc3490" ), any(), isNull() );
+    }
+
+    @Test
     public void validate_whenDomainContainsUnsupportedCharacters_thenReject() {
         v.validate( "foo@Bücher.example", e );
         verify( e ).rejectValue( null, "EmailValidator.domainContainsUnsupportedCharacters" );
