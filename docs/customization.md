@@ -1,33 +1,42 @@
 # Customize your instance
 
-## Allowed email domains (new in 1.5.8)
+This section contains instruction to customize your RDP registry.
 
-You may restrict the email domains that can be used for creating new accounts by specifying a file containing one line
-per domain. Matches are performed in a case-insensitive manner.
+## Allowed email providers (new in 1.5.8)
 
-```properties
+You may restrict which email providers can be used for creating new accounts by specifying a list or a file
+containing allowed domains. Matches are performed in a case-insensitive manner. Only printable ASCII characters are
+allowed.
+
+```ini
+rdp.settings.allowed-email-domains=example.com
 rdp.settings.allowed-email-domains-file=file:swot.txt
-rdp.settings.allowed-email-domains-refresh-delay=3600
+rdp.settings.allowed-email-domains-file-refresh-delay=3600
 ```
+
+The default refresh delay is set to one hour. Disable it by setting it to an empty value. A value of `0` will cause a
+refresh on every validation.
 
 This feature is disabled by default.
 
-Note that [internationalized domains](https://en.wikipedia.org/wiki/Internationalized_domain_name) are not allowed and
-will be ignored from the file.
+### Internationalized domain names
 
-The default refresh delay is set to one hour. To disable it, you can set `rdp.settings.allowed-email-domains-refresh-delay` 
-to empty.
+To use [internationalized domain names](https://en.wikipedia.org/wiki/Internationalized_domain_name) in email addresses,
+add their Punycode to the list or file and set the following setting:
 
-There's a few projects out there that curate institutional email addresses which should be generally suitable
+```ini
+rdp.settings.allow-internationalized-email-domains=true
+```
 
-Refer to [JetBrains/swot](https://github.com/JetBrains/swot) for a list of institu
+For example, to allow users from `universität.example.com` to register, add `xn--universitt-y5a.example.com` to the
+file.
 
 ## reCAPTCHA (new in 1.5.8)
 
-RDP supports [reCAPTCHA v2](https://www.google.com/recaptcha/about/) to mitigate the registration of spam accounts by
-bots. To enable it, add the reCAPTCHA secret to your configuration.
+RDP supports [reCAPTCHA v2](https://www.google.com/recaptcha/about/) to mitigate the registration of accounts by bots.
+To enable it, add the reCAPTCHA token and secret to your configuration.
 
-```properties
+```ini
 rdp.site.recaptcha-token=mytoken
 rdp.site.recaptcha-secret=mysecret
 ```
