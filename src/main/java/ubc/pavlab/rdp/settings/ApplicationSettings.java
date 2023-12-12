@@ -273,6 +273,12 @@ public class ApplicationSettings {
      */
     public EnumSet<TierType> enabledTiers;
     /**
+     * List of allowed email domains for registering users.
+     * <p>
+     * May be null or empty, in which case any email address will be allowed.
+     */
+    private List<String> allowedEmailDomains;
+    /**
      * File containing allowed email domains for registering users.
      * <p>
      * May be null, in which case any email address will be allowed.
@@ -282,9 +288,10 @@ public class ApplicationSettings {
      * Refresh delay to reload the allowed email domains file, in seconds.
      */
     @DurationUnit(value = ChronoUnit.SECONDS)
-    private Duration allowedEmailDomainsRefreshDelay;
+    private Duration allowedEmailDomainsFileRefreshDelay;
     /**
-     * Allow internationalized domain names.
+     * Allow <a href="https://en.wikipedia.org/wiki/Internationalized_domain_name">internationalized domain names</a>.
+     * If set to true, Punycode can be added to {@link #allowedEmailDomains} or {@link #allowedEmailDomainsFile}.
      */
-    private boolean allowInternationalizedDomainNames;
+    private boolean allowInternationalizedEmailDomains;
 }

@@ -1,6 +1,7 @@
 package ubc.pavlab.rdp.validation;
 
 import lombok.extern.apachecommons.CommonsLog;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.core.io.Resource;
@@ -34,7 +35,8 @@ import java.util.stream.Collectors;
 public class ResourceBasedAllowedDomainStrategy implements AllowedDomainStrategy {
 
     /**
-     * Resolution to use when comparing the last modified of a file against some recorded timestamp.
+     * Resolution to use when comparing the last modified of a file against a recorded timestamp with
+     * {@link System#currentTimeMillis()}.
      */
     private final static int LAST_MODIFIED_RESOLUTION_MS = 2;
 
@@ -111,16 +113,10 @@ public class ResourceBasedAllowedDomainStrategy implements AllowedDomainStrategy
         if ( refreshDelay == null ) {
             return false;
         }
-
-        // check if the file is stale
-
         if ( System.currentTimeMillis() - lastRefresh >= refreshDelay.toMillis() ) {
+            // check if the file is stale
             try {
-                long lastModified = allowedEmailDomainsFile.getFile().lastModified();
-                if ( lastModified == 0L ) {
-                    // error reading the last modified, assume it's stale
-                    return true;
-                }
+                long lastModified = FileUtils.lastModified( allowedEmailDomainsFile.getFile() );
                 return lastModified + LAST_MODIFIED_RESOLUTION_MS > lastRefresh;
             } catch ( FileNotFoundException ignored ) {
                 //  resource is not backed by a file, most likely
@@ -129,7 +125,6 @@ public class ResourceBasedAllowedDomainStrategy implements AllowedDomainStrategy
             }
             return true;
         }
-
         return false;
     }
 }

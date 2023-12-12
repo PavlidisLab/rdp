@@ -111,4 +111,31 @@ public class EmailValidatorTest {
         v.validate( "foo@ubc2.ca", errors );
         verifyNoInteractions( errors );
     }
+
+    @Test
+    public void validate_whenDelayForRefreshingIsZero() throws Exception {
+        Path tmpFile = Files.createTempFile( "test", null );
+
+        try ( BufferedWriter writer = Files.newBufferedWriter( tmpFile ) ) {
+            writer.write( "ubc.ca" );
+        }
+
+        EmailValidator v = new EmailValidator( new ResourceBasedAllowedDomainStrategy( new PathResource( tmpFile ), Duration.ofMillis( 0 ) ), false );
+
+        Errors errors = mock( Errors.class );
+        v.validate( "foo@ubc.ca", errors );
+        verifyNoInteractions( errors );
+
+        try ( BufferedWriter writer = Files.newBufferedWriter( tmpFile ) ) {
+            writer.write( "ubc2.ca" );
+        }
+
+        errors = mock( Errors.class );
+        v.validate( "foo@ubc.ca", errors );
+        verify( errors ).rejectValue( null, "EmailValidator.domainNotAllowed", new String[]{ "ubc.ca" }, null );
+
+        errors = mock( Errors.class );
+        v.validate( "foo@ubc2.ca", errors );
+        verifyNoInteractions( errors );
+    }
 }

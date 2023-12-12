@@ -18,9 +18,10 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(SpringExtension.class)
 @TestPropertySource(properties = {
+        "rdp.settings.allowed-email-domains=ubc3.ca",
         "rdp.settings.allowed-email-domains-file=classpath:allowed-email-domains-test.txt",
-        "rdp.settings.allowed-email-domains-refresh-delay=PT0.1S",
-        "rdp.settings.allow-internationalized-domain-names=true"
+        "rdp.settings.allowed-email-domains-file-refresh-delay=PT0.1S",
+        "rdp.settings.allow-internationalized-email-domains=true"
 })
 public class EmailValidatorWithContextTest {
 
@@ -41,6 +42,13 @@ public class EmailValidatorWithContextTest {
     public void test() {
         Errors errors = mock( Errors.class );
         emailValidator.validate( "foo@ubc.ca", errors );
+        verifyNoInteractions( errors );
+    }
+
+    @Test
+    public void testDomainFromList() {
+        Errors errors = mock( Errors.class );
+        emailValidator.validate( "foo@ubc3.ca", errors );
         verifyNoInteractions( errors );
     }
 
