@@ -1,6 +1,7 @@
 package ubc.pavlab.rdp.validation;
 
 import lombok.extern.apachecommons.CommonsLog;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.core.io.Resource;
 
@@ -84,7 +85,8 @@ public class ResourceBasedAllowedDomainStrategy implements AllowedDomainStrategy
         StopWatch timer = StopWatch.createStarted();
         Set<String> allowedDomains;
         try ( BufferedReader ir = new BufferedReader( new InputStreamReader( allowedEmailDomainsFile.getInputStream() ) ) ) {
-            allowedDomains = ir.lines().collect( Collectors.toSet() );
+            // TODO: warn for rejected lines
+            allowedDomains = ir.lines().filter( StringUtils::isAsciiPrintable ).collect( Collectors.toSet() );
         }
         strategy = new SetBasedAllowedDomainStrategy( allowedDomains );
         lastRefresh = System.currentTimeMillis();
