@@ -14,8 +14,9 @@
         <h6 class="form-signin-subheading">Researcher Registry</h6>
         <div th:replace="layouts/login::message"></div>
         <div th:if="${domainNotAllowed}" class="alert alert-danger">
-            Yikes! It looks like your email does not belong to an allowed provider. If you think this is a mistake,
-            <a th:href="@{mailto:__${@siteSettings.contactEmail}__?from=__${domainNotAllowedFrom}__&subject=__${domainNotAllowedSubject}__&body=__${domainNotAllowedBody}__}">
+            Yikes! It looks like your email address was not issued from an allowed provider. If you think this is a
+            mistake,
+            <a th:href="@{mailto:__${@siteSettings.contactEmail}__(from=${domainNotAllowedFrom},subject=${domainNotAllowedSubject},body=${domainNotAllowedBody})}">
                 contact us
             </a>
             so that we can complete your registration.
