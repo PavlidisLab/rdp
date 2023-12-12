@@ -12,8 +12,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.time.Duration;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * A resource-based strategy for allowing domains.
@@ -87,8 +87,17 @@ public class ResourceBasedAllowedDomainStrategy implements AllowedDomainStrategy
         StopWatch timer = StopWatch.createStarted();
         Set<String> allowedDomains;
         try ( BufferedReader ir = new BufferedReader( new InputStreamReader( allowedEmailDomainsFile.getInputStream() ) ) ) {
-            // TODO: warn for rejected lines
-            allowedDomains = ir.lines().filter( StringUtils::isAsciiPrintable ).collect( Collectors.toSet() );
+            allowedDomains = new HashSet<>();
+            String line;
+            int lineno = 0;
+            while ( ( line = ir.readLine() ) != null ) {
+                lineno++;
+                if ( StringUtils.isAsciiPrintable( line ) ) {
+                    allowedDomains.add( line.trim() );
+                } else {
+                    log.warn( String.format( "Invalid characters in line %d from %s, it will be ignored.", lineno, allowedEmailDomainsFile ) );
+                }
+            }
         }
         strategy = new SetBasedAllowedDomainStrategy( allowedDomains );
         lastRefresh = System.currentTimeMillis();
