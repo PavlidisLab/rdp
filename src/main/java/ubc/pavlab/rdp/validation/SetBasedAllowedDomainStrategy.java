@@ -1,6 +1,7 @@
 package ubc.pavlab.rdp.validation;
 
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.util.Assert;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -19,9 +20,8 @@ public class SetBasedAllowedDomainStrategy implements AllowedDomainStrategy {
 
     public SetBasedAllowedDomainStrategy( Collection<String> allowedDomains ) {
         // ascii-only domains, case-insensitive
-        if ( allowedDomains.stream().anyMatch( d -> !StringUtils.isAsciiPrintable( d ) ) ) {
-            throw new IllegalArgumentException( "Allowed domains must only contain ASCII-printable characters." );
-        }
+        Assert.isTrue( allowedDomains.stream().allMatch( StringUtils::isAsciiPrintable ),
+                "Allowed domains must only contain ASCII-printable characters." );
         this.allowedDomains = new TreeSet<>( String.CASE_INSENSITIVE_ORDER );
         this.allowedDomains.addAll( allowedDomains );
     }

@@ -21,7 +21,6 @@ import org.springframework.web.client.RestTemplate;
  * @author poirigui
  */
 public class RecaptchaValidator implements Validator {
-
     private final RestTemplate restTemplate;
     private final String secret;
 
