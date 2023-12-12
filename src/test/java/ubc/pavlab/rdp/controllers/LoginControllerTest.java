@@ -156,7 +156,6 @@ public class LoginControllerTest {
             return null;
         } ).when( emailValidator ).validate( eq( "bob@example.com" ), any() );
         when( emailValidator.supports( String.class ) ).thenReturn( true );
-        String expectedMailto = "mailto:admin@...from=foo@example.com&subject=&body=";
         mvc.perform( post( "/registration" )
                         .param( "profile.name", "Bob" )
                         .param( "profile.lastName", "Smith" )
@@ -166,9 +165,9 @@ public class LoginControllerTest {
                 .andExpect( status().isBadRequest() )
                 .andExpect( model().attribute( "domainNotAllowed", true ) )
                 .andExpect( model().attribute( "domainNotAllowedFrom", "bob@example.com" ) )
-                .andExpect( model().attribute( "domainNotAllowedSubject", "Attempting to register with example.com as an email domain is not allowed" ) )
+                .andExpect( model().attribute( "domainNotAllowedSubject", "Register with an email address from example.com" ) )
                 .andExpect( model().attribute( "domainNotAllowedBody", containsString( "bob@example.com" ) ) )
-                .andExpect( xpath( "//a[starts-with(@href, 'mailto:')]/@href" ).string( Matchers.startsWith( "mailto:support@example.com?from=bob@example.com&subject=Attempting" ) ) );
+                .andExpect( xpath( "//a[starts-with(@href, 'mailto:')]/@href" ).string( Matchers.startsWith( "mailto:support@example.com?from=bob@example.com&subject=Register" ) ) );
     }
 
     @Test
