@@ -38,7 +38,7 @@ public class ResourceBasedAllowedDomainStrategy implements AllowedDomainStrategy
      * Resolution to use when comparing the last modified of a file against a recorded timestamp with
      * {@link System#currentTimeMillis()}.
      */
-    private final static int LAST_MODIFIED_RESOLUTION_MS = 2;
+    private final static int LAST_MODIFIED_RESOLUTION_MS = 10;
 
     /**
      * A resource where email domains are found.
