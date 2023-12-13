@@ -264,6 +264,11 @@ public class ApplicationSettings {
     private Resource faqFile;
     private boolean sendEmailOnRegistration;
     /**
+     * Minimum overlap with TIER1 or TIER2 genes for recommending a term.
+     */
+    @Min(1)
+    private long goTermMinOverlap;
+    /**
      * Maximum number of GO terms.
      */
     @Min(0)
