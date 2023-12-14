@@ -577,6 +577,17 @@ public class UserServiceImpl implements UserService, InitializingBean {
         return recommendTerms( user, user.getGenesByTaxonAndTier( taxon, getManualTiers() ), taxon, maxSize, minFrequency, null );
     }
 
+    /**
+     * Recommend terms to a given user.
+     *
+     * @param user         user who receives recommendations
+     * @param genes        genes to use for recommendation
+     * @param taxon        taxon to restrict recommendations
+     * @param maxSize      maximum number of genes a recommended term can be associated with
+     * @param minFrequency minimum number of overlaps between the genes and
+     * @param feedback     feedback is appended in the form of {@link MessageSourceResolvable} if non-null
+     * @return the recommended terms for the given parameters
+     */
     private Collection<UserTerm> recommendTerms( @NonNull User user, Set<? extends Gene> genes, Taxon taxon, long maxSize, long minFrequency, @Nullable List<MessageSourceResolvable> feedback ) {
         // terms already associated to user within the taxon
         Set<String> userTermGoIds = user.getUserTerms().stream()
