@@ -10,8 +10,11 @@ import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.MessageSource;
+import org.springframework.context.MessageSourceResolvable;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.lang.Nullable;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PostFilter;
@@ -381,11 +384,13 @@ public class UserServiceImpl implements UserService, InitializingBean {
     }
 
     @Override
+    @Transactional
     public void revokeAccessToken( AccessToken accessToken ) {
         accessTokenRepository.delete( accessToken );
     }
 
     @Override
+    @Transactional
     public AccessToken createAccessTokenForUser( User user ) {
         AccessToken token = new AccessToken();
         token.updateToken( createSecureRandomToken() );
@@ -554,47 +559,97 @@ public class UserServiceImpl implements UserService, InitializingBean {
 
     @Override
     @PostFilter("hasPermission(filterObject, 'read')")
-    public Collection<UserTerm> recommendTerms( @NonNull User user, @NonNull Taxon taxon ) {
-        return recommendTerms( user, user.getGenesByTaxonAndTier( taxon, getManualTiers() ), taxon, 10, applicationSettings.getGoTermSizeLimit(), 2 );
+    public Collection<UserTerm> recommendTerms( @NonNull User user, Taxon taxon, List<MessageSourceResolvable> feedback ) {
+        return recommendTerms( user, user.getGenesByTaxonAndTier( taxon, getManualTiers() ), taxon, applicationSettings.getGoTermSizeLimit(), applicationSettings.getGoTermMinOverlap(), feedback );
     }
 
     @Override
     @PostFilter("hasPermission(filterObject, 'read')")
-    public Collection<UserTerm> recommendTerms( User user, Set<? extends Gene> genes, Taxon taxon ) {
-        return recommendTerms( user, genes, taxon, 10, applicationSettings.getGoTermSizeLimit(), 2 );
+    public Collection<UserTerm> recommendTerms( User user, Set<? extends Gene> genes, Taxon taxon, List<MessageSourceResolvable> feedback ) {
+        return recommendTerms( user, genes, taxon, applicationSettings.getGoTermSizeLimit(), applicationSettings.getGoTermMinOverlap(), feedback );
     }
-
 
     /**
      * This is only meant for testing purposes; refrain from using in actual code.
      */
     @PostFilter("hasPermission(filterObject, 'read')")
-    Collection<UserTerm> recommendTerms( @NonNull User user, @NonNull Taxon taxon, long minSize, long maxSize, long minFrequency ) {
-        return recommendTerms( user, user.getGenesByTaxonAndTier( taxon, getManualTiers() ), taxon, minSize, maxSize, minFrequency );
+    Collection<UserTerm> recommendTerms( @NonNull User user, @NonNull Taxon taxon, long maxSize, long minFrequency ) {
+        return recommendTerms( user, user.getGenesByTaxonAndTier( taxon, getManualTiers() ), taxon, maxSize, minFrequency, null );
     }
 
-    private Collection<UserTerm> recommendTerms( @NonNull User user, Set<? extends Gene> genes, @NonNull Taxon taxon, long minSize, long maxSize, long minFrequency ) {
+    /**
+     * Recommend terms to a given user.
+     *
+     * @param user         user who receives recommendations
+     * @param genes        genes to use for recommendation
+     * @param taxon        taxon to restrict recommendations
+     * @param maxSize      maximum number of genes a recommended term can be associated with
+     * @param minFrequency minimum number of overlaps between the genes and
+     * @param feedback     feedback is appended in the form of {@link MessageSourceResolvable} if non-null
+     * @return the recommended terms for the given parameters
+     */
+    private Collection<UserTerm> recommendTerms( @NonNull User user, Set<? extends Gene> genes, Taxon taxon, long maxSize, long minFrequency, @Nullable List<MessageSourceResolvable> feedback ) {
         // terms already associated to user within the taxon
         Set<String> userTermGoIds = user.getUserTerms().stream()
                 .filter( ut -> ut.getTaxon().equals( taxon ) )
                 .map( UserTerm::getGoId )
                 .collect( Collectors.toSet() );
 
+        if ( genes.size() < minFrequency ) {
+            addFeedback( "UserService.recommendTerms.tooFewGenes", new String[]{ String.valueOf( minFrequency ) }, feedback );
+            return Collections.emptySet();
+        }
+
+        // include TIER3 genes when recommending terms with novel genes
+        HashSet<Gene> allGenes = new HashSet<>( genes );
+        allGenes.addAll( user.getGenesByTaxonAndTier( taxon, EnumSet.of( TierType.TIER3 ) ) );
+        Map<GeneOntologyTermInfo, Long> sizeOfAllGenes = goService.termFrequencyMap( allGenes );
+
         // Then keep only those terms not already added and with the highest frequency
         Set<GeneOntologyTermInfo> topResults = goService.termFrequencyMap( genes ).entrySet().stream()
-                .filter( e -> minFrequency < 0 || e.getValue() >= minFrequency )
-                .filter( e -> minSize < 0 || goService.getSizeInTaxon( e.getKey(), taxon ) >= minSize )
-                .filter( e -> maxSize < 0 || goService.getSizeInTaxon( e.getKey(), taxon ) <= maxSize )
+                .filter( e -> e.getValue() >= minFrequency )
                 .filter( e -> !userTermGoIds.contains( e.getKey().getGoId() ) )
+                .filter( e -> {
+                    long numberOfGenesInTaxon = goService.getSizeInTaxon( e.getKey(), taxon );
+                    // never recommend terms that have more than the GO term size limit
+                    if ( maxSize >= 0 && numberOfGenesInTaxon > maxSize ) {
+                        return false;
+                    }
+                    long numberOfUserGenesInTaxon = sizeOfAllGenes.getOrDefault( e.getKey(), 0L );
+                    // the difference between the size and frequency from the gene set is the number of new genes that
+                    // the term would add to the user profile
+                    long numberOfNewGenesInTaxon = numberOfGenesInTaxon - numberOfUserGenesInTaxon;
+                    // ensure that at least 1 novel gene is being added
+                    return numberOfNewGenesInTaxon > 0;
+                } )
                 .map( Map.Entry::getKey )
                 .collect( Collectors.toSet() );
+
+        if ( topResults.isEmpty() ) {
+            // check for some common causes
+            if ( goService.countByTaxon( taxon ) == 0 ) {
+                addFeedback( "UserService.recommendTerms.noTermsInTaxon", new String[]{ taxon.getCommonName() }, feedback );
+                return Collections.emptySet();
+            } else if ( goService.countGeneAssociationsByTaxon( taxon ) == 0 ) {
+                addFeedback( "UserService.recommendTerms.noGeneAssociationsInTaxon", new String[]{ taxon.getCommonName() }, feedback );
+                return Collections.emptySet();
+            } else {
+                addFeedback( "UserService.recommendTerms.noResults", null, feedback );
+                return Collections.emptySet();
+            }
+        }
 
         // Keep only leafiest of remaining terms (keep if it has no descendants in results)
         return topResults.stream()
                 .filter( term -> Collections.disjoint( topResults, goService.getDescendants( term ) ) )
-                .filter( term -> goService.getSizeInTaxon( term, taxon ) <= applicationSettings.getGoTermSizeLimit() )
                 .map( term -> convertTerm( user, taxon, term ) )
                 .collect( Collectors.toSet() );
+    }
+
+    private void addFeedback( String code, @Nullable Object[] args, @Nullable List<MessageSourceResolvable> feedback ) {
+        if ( feedback != null ) {
+            feedback.add( new DefaultMessageSourceResolvable( new String[]{ code }, args, null ) );
+        }
     }
 
     @Transactional
@@ -627,8 +682,12 @@ public class UserServiceImpl implements UserService, InitializingBean {
                 .collect( Collectors.toMap( Gene::getGeneId, identity() ) );
 
         // add calculated genes from terms
+        long maxSize = applicationSettings.getGoTermSizeLimit();
         Map<Integer, UserGene> userGenesFromTerms = goTerms.stream()
-                .flatMap( term -> goService.getGenesInTaxon( term, taxon ).stream() )
+                .map( term -> goService.getGenesInTaxon( term, taxon ) )
+                // never add genes from terms that exceed the GO limit (those are never recommended)
+                .filter( c -> maxSize < 0 || c.size() <= maxSize )
+                .flatMap( Collection::stream )
                 .distinct() // terms might refer to the same gene
                 .map( geneInfoService::load )
                 .filter( Objects::nonNull )
@@ -657,7 +716,7 @@ public class UserServiceImpl implements UserService, InitializingBean {
         // update frequency and size as those have likely changed with new genes
         for ( UserTerm userTerm : user.getUserTerms() ) {
             GeneOntologyTermInfo cachedTerm = goService.getTerm( userTerm.getGoId() );
-            userTerm.setFrequency( computeTermFrequencyInTaxon( user, cachedTerm, taxon ) );
+            userTerm.setFrequency( computeTermFrequencyInTaxon( user, userTerm, taxon ) );
             userTerm.setSize( goService.getSizeInTaxon( cachedTerm, taxon ) );
         }
 
@@ -682,7 +741,12 @@ public class UserServiceImpl implements UserService, InitializingBean {
      */
     @Override
     public long computeTermFrequencyInTaxon( User user, GeneOntologyTerm term, Taxon taxon ) {
-        Set<Integer> geneIds = new HashSet<>( goService.getGenes( goService.getTerm( term.getGoId() ) ) );
+        GeneOntologyTermInfo termInfo = goService.getTerm( term.getGoId() );
+        if ( termInfo == null ) {
+            log.warn( String.format( "Could not find a term info for %s, returning zero for the frequency.", term.getGoId() ) );
+            return 0L;
+        }
+        Set<Integer> geneIds = new HashSet<>( goService.getGenesInTaxon( termInfo, taxon ) );
         return user.getGenesByTaxonAndTier( taxon, getManualTiers() ).stream()
                 .map( UserGene::getGeneId )
                 .filter( geneIds::contains )

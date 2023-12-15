@@ -3,14 +3,17 @@ package ubc.pavlab.rdp.controllers;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Value;
 import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
+import org.springframework.context.MessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.InvalidMediaTypeException;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.lang.Nullable;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Controller;
@@ -330,7 +333,7 @@ public class UserController {
 
     @Data
     @Builder
-    static class ProfileWithOrganUberonIdsAndOntologyTerms {
+    public static class ProfileWithOrganUberonIdsAndOntologyTerms {
         /**
          * Profile
          */
@@ -425,7 +428,7 @@ public class UserController {
     }
 
     @Data
-    static class Model {
+    public static class Model {
         private Map<Integer, TierType> geneTierMap;
         private Map<Integer, PrivacyLevelType> genePrivacyLevelMap;
         private List<String> goIds;
@@ -498,23 +501,45 @@ public class UserController {
         return goIds.stream().collect( toNullableMap( identity(), goId -> goService.getTerm( goId ) == null ? null : userService.convertTerm( user, taxon, goService.getTerm( goId ) ) ) );
     }
 
+    @Value
+    static class RecommendedTermsModel {
+        /**
+         * List of recommended GO terms.
+         */
+        public Collection<UserTerm> recommendedTerms;
+        /**
+         * Feedback to be displayed or null if no feedback is available.
+         */
+        @Nullable
+        public String feedback;
+    }
+
     @ResponseBody
     @GetMapping(value = "/user/taxon/{taxonId}/term/recommend", produces = MediaType.APPLICATION_JSON_VALUE)
     public Object getRecommendedTermsForTaxon( @PathVariable Integer taxonId,
-                                               @RequestParam(required = false) List<Integer> geneIds ) {
+                                               @RequestParam(required = false) List<Integer> geneIds,
+                                               Locale locale ) {
         Taxon taxon = taxonService.findById( taxonId );
         if ( taxon == null ) {
             return ResponseEntity.notFound().build();
         }
 
-        Set<GeneInfo> genes;
+        User user = userService.findCurrentUser();
+
+        Collection<UserTerm> recommendedTerms;
+        List<MessageSourceResolvable> feedback = new ArrayList<>();
         if ( geneIds != null ) {
-            genes = new HashSet<>( geneService.load( geneIds ) );
+            Set<? extends Gene> genes = new HashSet<>( geneService.load( geneIds ) );
+            recommendedTerms = userService.recommendTerms( user, genes, taxon, feedback );
         } else {
-            genes = Collections.emptySet();
+            recommendedTerms = userService.recommendTerms( user, taxon, feedback );
         }
 
-        return userService.recommendTerms( userService.findCurrentUser(), genes, taxon );
+        String formattedFeedback = feedback.isEmpty() ? null : feedback.stream()
+                .map( f -> messageSource.getMessage( f, locale ) )
+                .collect( Collectors.joining( "\n" ) );
+
+        return new RecommendedTermsModel( recommendedTerms, formattedFeedback );
     }
 
     private Set<TierType> getManualTiers() {

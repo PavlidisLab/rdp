@@ -6,18 +6,17 @@ import org.springframework.boot.convert.DurationUnit;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
 import org.springframework.validation.annotation.Validated;
-import ubc.pavlab.rdp.ontology.resolvers.OntologyResolver;
 import ubc.pavlab.rdp.model.GeneInfo;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.ResearcherCategory;
 import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.model.ontology.Ontology;
+import ubc.pavlab.rdp.ontology.resolvers.OntologyResolver;
 import ubc.pavlab.rdp.services.GeneInfoService;
 
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
-import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Size;
 import java.net.URI;
 import java.time.Duration;
@@ -265,6 +264,11 @@ public class ApplicationSettings {
     private Resource faqFile;
     private boolean sendEmailOnRegistration;
     /**
+     * Minimum overlap with TIER1 or TIER2 genes for recommending a term.
+     */
+    @Min(1)
+    private long goTermMinOverlap;
+    /**
      * Maximum number of GO terms.
      */
     @Min(0)
@@ -273,4 +277,26 @@ public class ApplicationSettings {
      * Enabled tier types.
      */
     public EnumSet<TierType> enabledTiers;
+    /**
+     * List of allowed email domains for registering users.
+     * <p>
+     * May be null or empty, in which case any email address will be allowed.
+     */
+    private List<String> allowedEmailDomains;
+    /**
+     * File containing allowed email domains for registering users.
+     * <p>
+     * May be null, in which case any email address will be allowed.
+     */
+    private Resource allowedEmailDomainsFile;
+    /**
+     * Refresh delay to reload the allowed email domains file, in seconds.
+     */
+    @DurationUnit(value = ChronoUnit.SECONDS)
+    private Duration allowedEmailDomainsFileRefreshDelay;
+    /**
+     * Allow <a href="https://en.wikipedia.org/wiki/Internationalized_domain_name">internationalized domain names</a>.
+     * If set to true, Punycode can be added to {@link #allowedEmailDomains} or {@link #allowedEmailDomainsFile}.
+     */
+    private boolean allowInternationalizedEmailDomains;
 }

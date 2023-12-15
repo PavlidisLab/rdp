@@ -4,17 +4,13 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.media.SchemaProperty;
 import lombok.*;
 import lombok.extern.apachecommons.CommonsLog;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.NaturalId;
-import org.hibernate.validator.constraints.Email;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-import org.springframework.util.StringUtils;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.model.ontology.Ontology;
@@ -89,7 +85,6 @@ public class User implements RemoteResource, UserContent, Serializable {
     @NaturalId
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @Column(name = "email", unique = true, nullable = false)
-    @Email(message = "Your email address is not valid.", groups = { ValidationUserAccount.class })
     @NotNull(message = "Please provide an email address.", groups = { ValidationUserAccount.class, ValidationServiceAccount.class })
     @Size(min = 1, message = "Please provide an email address.", groups = { ValidationUserAccount.class, ValidationServiceAccount.class })
     private String email;
@@ -144,6 +139,7 @@ public class User implements RemoteResource, UserContent, Serializable {
     private final Set<PasswordResetToken> passwordResetTokens = new HashSet<>();
 
     @Valid
+    @NotNull
     @Embedded
     @JsonUnwrapped
     private Profile profile;

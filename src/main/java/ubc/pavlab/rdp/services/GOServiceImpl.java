@@ -50,6 +50,9 @@ public class GOServiceImpl implements GOService, InitializingBean {
             DESCENDANTS_CACHE_NAME = "ubc.pavlab.rdp.services.GOService.descendants";
 
     @Autowired
+    private TaxonService taxonService;
+
+    @Autowired
     private GeneOntologyTermInfoRepository goRepository;
 
     @Autowired
@@ -57,9 +60,6 @@ public class GOServiceImpl implements GOService, InitializingBean {
 
     @Autowired
     private OBOParser oboParser;
-
-    @Autowired
-    private Gene2GoParser gene2GoParser;
 
     @Autowired
     private CacheManager cacheManager;
@@ -156,6 +156,11 @@ public class GOServiceImpl implements GOService, InitializingBean {
         }
 
         log.info( String.format( "Loading gene2go annotations from: %s.", cacheSettings.getAnnotationFile() ) );
+
+        Set<Integer> activeTaxa = taxonService.findByActiveTrue().stream()
+                .map( Taxon::getId )
+                .collect( Collectors.toSet() );
+        Gene2GoParser gene2GoParser = new Gene2GoParser( activeTaxa );
 
         Collection<Gene2GoParser.Record> records;
         try {
@@ -274,12 +279,12 @@ public class GOServiceImpl implements GOService, InitializingBean {
 
     @Override
     public long getSizeInTaxon( GeneOntologyTermInfo t, Taxon taxon ) {
-        Collection<GeneOntologyTermInfo> descendants = getDescendants( t );
+        Collection<GeneOntologyTermInfo> descendants = new HashSet<>( getDescendants( t ) );
         descendants.add( t );
         return descendants.stream()
+                .flatMap( term -> term.getDirectGeneIdsByTaxonId().getOrDefault( taxon.getId(), Collections.emptyList() ).stream() )
                 .distinct()
-                .mapToLong( term -> term.getDirectGeneIdsByTaxonId().getOrDefault( taxon.getId(), Collections.emptyList() ).size() )
-                .sum();
+                .count();
     }
 
     @Override
@@ -356,12 +361,22 @@ public class GOServiceImpl implements GOService, InitializingBean {
     }
 
     @Override
+    public long countByTaxon( Taxon taxon ) {
+        return goRepository.countByTaxon( taxon );
+    }
+
+    @Override
+    public long countGeneAssociationsByTaxon( Taxon taxon ) {
+        return goRepository.countGeneAssociationsByTaxon( taxon );
+    }
+
+    @Override
     public Collection<GeneOntologyTermInfo> getDescendants( GeneOntologyTermInfo entry ) {
         StopWatch timer = StopWatch.createStarted();
         Lock lock = rwLock.readLock();
         try {
             lock.lock();
-            return getDescendantsInternal( entry );
+            return Collections.unmodifiableCollection( getDescendantsInternal( entry ) );
         } finally {
             lock.unlock();
             if ( timer.getTime( TimeUnit.MILLISECONDS ) > 1000 ) {
@@ -380,6 +395,9 @@ public class GOServiceImpl implements GOService, InitializingBean {
         for ( GeneOntologyTermInfo child : getChildren( entry ) ) {
             results.add( child );
             results.addAll( getDescendantsInternal( child ) );
+        }
+        if ( results.remove( entry ) ) {
+            log.warn( String.format( "%s is its own descendant, removing it to prevent cycles.", entry ) );
         }
         descendantsCache.put( entry, results );
         return results;
@@ -474,7 +492,7 @@ public class GOServiceImpl implements GOService, InitializingBean {
         Lock lock = rwLock.readLock();
         try {
             lock.lock();
-            return getAncestorsInternal( term );
+            return Collections.unmodifiableCollection( getAncestorsInternal( term ) );
         } finally {
             lock.unlock();
         }
@@ -489,6 +507,9 @@ public class GOServiceImpl implements GOService, InitializingBean {
         for ( GeneOntologyTermInfo parent : getParents( term ) ) {
             results.add( parent );
             results.addAll( getAncestorsInternal( parent ) );
+        }
+        if ( results.remove( term ) ) {
+            log.warn( String.format( "%s is its own ancestor, removing it to prevent cycle.", term ) );
         }
         ancestorsCache.put( term, results );
         return results;
