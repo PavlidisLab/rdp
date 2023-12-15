@@ -1,7 +1,9 @@
 package ubc.pavlab.rdp.services;
 
+import org.springframework.context.MessageSourceResolvable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.lang.Nullable;
 import org.springframework.security.authentication.BadCredentialsException;
 import ubc.pavlab.rdp.exception.TokenException;
 import ubc.pavlab.rdp.model.*;
@@ -161,12 +163,12 @@ public interface UserService {
      * <p>
      * The recommendation are based on the user's {@link TierType#MANUAL}  gene set.
      */
-    Collection<UserTerm> recommendTerms( User user, Taxon taxon );
+    Collection<UserTerm> recommendTerms( User user, Taxon taxon, @Nullable List<MessageSourceResolvable> feedback );
 
     /**
      * Recommend terms for a user using a supplied gene set which might differ from the user's.
      */
-    Collection<UserTerm> recommendTerms( User user, Set<? extends Gene> genes, Taxon taxon );
+    Collection<UserTerm> recommendTerms( User user, Set<? extends Gene> genes, Taxon taxon, @Nullable List<MessageSourceResolvable> feedback );
 
     User updateTermsAndGenesInTaxon( User user,
                                      Taxon taxon,

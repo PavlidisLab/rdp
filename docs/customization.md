@@ -116,6 +116,29 @@ where taxon_id = 10090;
 
 Every time new model systems are added to the application, they will have to be activated in this manner.
 
+## GO term recommendation
+
+Users can receive recommended terms based on the TIER1 and TIER2 genes they have added to their profiles.
+
+The recommendation algorithm works as follows:
+
+1. Retrieve GO terms associated to all TIER1 and TIER2 genes
+2. Retrieve all the descendants of these terms
+3. For each term, compute how many TIER1 or TIER2 genes they are associated either directly or indirectly via their
+   descendants
+4. Keep terms that are not already on the user profile and that mention at least 2 TIER1 or TIER2 genes
+5. Exclude terms with more than 50 associated genes
+6. Retain terms that have at least one novel gene that is not on the user's profile
+7. Retain most specific terms if a given term and its descendant is recommended
+
+You can adjust the number of overlapping TIER1 or TIER2 genes and the maximum size of a GO term by setting the
+following:
+
+```ini
+rdp.settings.go-term-min-overlap=2 # new in 1.5.8
+rdp.settings.go-term-size-limit=50
+```
+
 ### Customizing taxon appearance (new in 1.5.5)
 
 By default, taxon are rendered using the common name in title case. The only exception is for *Homo sapiens* which
