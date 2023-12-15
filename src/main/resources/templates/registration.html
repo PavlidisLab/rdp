@@ -13,7 +13,15 @@
         <h4 class="form-signin-heading"><a th:href="@{/login}" th:text="#{rdp.site.fullname}"></a></h4>
         <h6 class="form-signin-subheading">Researcher Registry</h6>
         <div th:replace="layouts/login::message"></div>
-        <form th:action="@{/registration}" th:object="${user}" method="POST">
+        <div th:if="${domainNotAllowed}" class="alert alert-danger">
+            It looks like your email address does not match one of the approved email domains. If you think this is a
+            mistake,
+            <a th:href="@{mailto:__${@siteSettings.contactEmail}__(from=${domainNotAllowedFrom},subject=${domainNotAllowedSubject},body=${domainNotAllowedBody})}">
+                contact us
+            </a>
+            so that we can complete your registration.
+        </div>
+        <form id="registration-form" th:action="@{/registration}" th:object="${user}" method="POST">
             <div class="form-row">
                 <div class="form-group offset-md-1 col-md-5">
                     <label th:for="${#ids.next('profile.name')}">Name</label>
@@ -50,6 +58,8 @@
             <div class="form-group row">
                 <div class="offset-md-1 col-md-4">
                     <button class="btn btn-primary btn-block"
+                            th:classappend="g-recaptcha"
+                            th:attr="data-sitekey=${@siteSettings.recaptchaToken},data-callback=onSubmit"
                             name="Submit"
                             value="Register User"
                             type="Submit"
@@ -65,5 +75,13 @@
     </div>
 </div>
 <div th:replace="layouts/login::scripts"></div>
+<th:block th:unless="${#strings.isEmpty(@siteSettings.recaptchaToken)}">
+    <script src="https://www.google.com/recaptcha/api.js"></script>
+    <script>
+        function onSubmit() {
+            document.getElementById('registration-form').submit();
+        }
+    </script>
+</th:block>
 </body>
 </html>
