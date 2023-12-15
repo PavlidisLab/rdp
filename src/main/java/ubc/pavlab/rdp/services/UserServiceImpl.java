@@ -381,11 +381,13 @@ public class UserServiceImpl implements UserService, InitializingBean {
     }
 
     @Override
+    @Transactional
     public void revokeAccessToken( AccessToken accessToken ) {
         accessTokenRepository.delete( accessToken );
     }
 
     @Override
+    @Transactional
     public AccessToken createAccessTokenForUser( User user ) {
         AccessToken token = new AccessToken();
         token.updateToken( createSecureRandomToken() );
