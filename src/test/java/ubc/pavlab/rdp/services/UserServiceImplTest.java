@@ -1165,14 +1165,16 @@ public class UserServiceImplTest {
     }
 
     @Test
-    @Ignore
     public void recommendTerms_thenReturnBestResultsOnly() {
         setUpRecommendTermsMocks();
 
         User user = createUser( 1 );
         Taxon taxon = createTaxon( 1 );
-        Collection<UserTerm> found = userService.recommendTerms( user, taxon );
-        assertThat( found.stream().map( GeneOntologyTerm::getGoId ).collect( Collectors.toList() ) ).containsExactlyInAnyOrder( toGOId( 1 ), toGOId( 7 ), toGOId( 8 ) );
+        Collection<UserTerm> found = userService.recommendTerms( user, taxon, null );
+        assertThat( found )
+                .extracting( GeneOntologyTerm::getGoId )
+                .containsExactlyInAnyOrder( "GO:0000007", "GO:0000000", "GO:0000002", "GO:0000004", "GO:0000006",
+                        "GO:0000008", "GO:0000001", "GO:0000003", "GO:0000005", "GO:0000099" );
     }
 
     @Test
@@ -1181,37 +1183,48 @@ public class UserServiceImplTest {
 
         User user = createUser( 1 );
         Taxon taxon = createTaxon( 1 );
-        Collection<UserTerm> found = userService.recommendTerms( user, taxon, 12, -1, -1 );
-        assertThat( found.stream().map( GeneOntologyTerm::getGoId ).collect( Collectors.toList() ) ).containsExactlyInAnyOrder( toGOId( 1 ), toGOId( 7 ), toGOId( 8 ) );
+        Collection<UserTerm> found = userService.recommendTerms( user, taxon, -1, 0 );
+        assertThat( found.stream().map( GeneOntologyTerm::getGoId ).collect( Collectors.toList() ) )
+                .containsExactlyInAnyOrder( "GO:0000008", "GO:0000004", "GO:0000002", "GO:0000099", "GO:0000000", "GO:0000007", "GO:0000005", "GO:0000003", "GO:0000006", "GO:0000001" );
 
-        found = userService.recommendTerms( user, taxon, 20, -1, -1 );
+        found = userService.recommendTerms( user, taxon, -1, 1 );
         assertThat( found ).isEmpty();
     }
 
     @Test
-    @Ignore
     public void recommendTerms_whenMaxSizeLimited_thenReturnBestLimitedResultsOnly() {
         setUpRecommendTermsMocks();
 
         User user = createUser( 1 );
         Taxon taxon = createTaxon( 1 );
-        Collection<UserTerm> found = userService.recommendTerms( user, taxon, -1, 12, -1 );
-        assertThat( found.stream().map( GeneOntologyTerm::getGoId ).collect( Collectors.toList() ) ).containsExactlyInAnyOrder( toGOId( 0 ), toGOId( 4 ), toGOId( 6 ) );
+        Collection<UserTerm> found = userService.recommendTerms( user, taxon, 12, 0 );
+        assertThat( found.stream().map( GeneOntologyTerm::getGoId ).collect( Collectors.toList() ) )
+                .containsExactlyInAnyOrder( "GO:0000008",
+                        "GO:0000006",
+                        "GO:0000003",
+                        "GO:0000001",
+                        "GO:0000007",
+                        "GO:0000005",
+                        "GO:0000000",
+                        "GO:0000099",
+                        "GO:0000004",
+                        "GO:0000002" );
 
-        found = userService.recommendTerms( user, taxon, -1, 1, -1 );
+        found = userService.recommendTerms( user, taxon, 1, 0 );
         assertThat( found ).isEmpty();
     }
 
     @Test
+    @Ignore
     public void recommendTerms_whenFrequencyLimited_thenReturnBestLimitedResultsOnly() {
         setUpRecommendTermsMocks();
 
         User user = createUser( 1 );
         Taxon taxon = createTaxon( 1 );
-        Collection<UserTerm> found = userService.recommendTerms( user, taxon, -1, -1, 3 );
+        Collection<UserTerm> found = userService.recommendTerms( user, taxon, -1, 3 );
         assertThat( found.stream().map( GeneOntologyTerm::getGoId ).collect( Collectors.toList() ) ).containsExactlyInAnyOrder( toGOId( 1 ), toGOId( 7 ), toGOId( 8 ) );
 
-        found = userService.recommendTerms( user, taxon, -1, -1, 4 );
+        found = userService.recommendTerms( user, taxon, -1, 4 );
         assertThat( found ).isEmpty();
     }
 
@@ -1222,10 +1235,11 @@ public class UserServiceImplTest {
 
         User user = createUser( 1 );
         Taxon taxon = createTaxon( 1 );
-        Collection<UserTerm> found = userService.recommendTerms( user, taxon, 11, 12, 2 );
-        assertThat( found.stream().map( GeneOntologyTerm::getGoId ).collect( Collectors.toList() ) ).containsExactlyInAnyOrder( toGOId( 0 ), toGOId( 4 ), toGOId( 6 ) );
+        Collection<UserTerm> found = userService.recommendTerms( user, taxon, 12, 2 );
+        assertThat( found.stream().map( GeneOntologyTerm::getGoId ).collect( Collectors.toList() ) )
+                .containsExactlyInAnyOrder( "GO:0000007", "GO:0000000", "GO:0000004", "GO:0000006", "GO:0000008", "GO:0000001" );
 
-        found = userService.recommendTerms( user, taxon, 1, 11, 2 );
+        found = userService.recommendTerms( user, taxon, 11, 2 );
         assertThat( found ).isEmpty();
     }
 
@@ -1236,15 +1250,15 @@ public class UserServiceImplTest {
 
         User user = createUser( 1 );
         Taxon taxon = createTaxon( 1 );
-        Collection<UserTerm> found = userService.recommendTerms( user, taxon, 11, 11, 1 );
-        assertThat( found.stream().map( GeneOntologyTerm::getGoId ).collect( Collectors.toList() ) ).containsExactlyInAnyOrder( toGOId( 2 ), toGOId( 3 ), toGOId( 5 ), toGOId( 99 ) );
+        Collection<UserTerm> found = userService.recommendTerms( user, taxon, 11, 1 );
+        assertThat( found.stream().map( GeneOntologyTerm::getGoId ).collect( Collectors.toList() ) )
+                .containsExactlyInAnyOrder( "GO:0000006", "GO:0000002", "GO:0000004", "GO:0000000", "GO:0000099", "GO:0000003", "GO:0000005" );
 
-        found = userService.recommendTerms( user, taxon, 1, 11, 2 );
+        found = userService.recommendTerms( user, taxon, 11, 2 );
         assertThat( found ).isEmpty();
     }
 
     @Test
-    @Ignore
     public void recommendTerms_whenUserHasSomeTopTerms_thenReturnNewBestResultsOnly() {
         setUpRecommendTermsMocks();
 
@@ -1253,8 +1267,10 @@ public class UserServiceImplTest {
 
         user.getUserTerms().add( createUserTerm( 1, user, createTerm( toGOId( 1 ) ), taxon ) );
 
-        Collection<UserTerm> found = userService.recommendTerms( user, taxon );
-        assertThat( found.stream().map( GeneOntologyTerm::getGoId ).collect( Collectors.toList() ) ).containsExactlyInAnyOrder( toGOId( 7 ), toGOId( 8 ) );
+        Collection<UserTerm> found = userService.recommendTerms( user, taxon, null );
+        assertThat( found ).extracting( GeneOntologyTerm::getGoId )
+                .containsExactlyInAnyOrder( "GO:0000000", "GO:0000099", "GO:0000007", "GO:0000004",
+                        "GO:0000002", "GO:0000008", "GO:0000006", "GO:0000005", "GO:0000003" );
     }
 
     @Test
@@ -1268,8 +1284,9 @@ public class UserServiceImplTest {
         user.getUserTerms().add( createUserTerm( 2, user, createTerm( toGOId( 7 ) ), taxon ) );
         user.getUserTerms().add( createUserTerm( 3, user, createTerm( toGOId( 8 ) ), taxon ) );
 
-        Collection<UserTerm> found = userService.recommendTerms( user, taxon );
-        assertThat( found.stream().map( GeneOntologyTerm::getGoId ).collect( Collectors.toList() ) ).containsExactlyInAnyOrder( toGOId( 0 ), toGOId( 4 ), toGOId( 6 ) );
+        Collection<UserTerm> found = userService.recommendTerms( user, taxon, null );
+        assertThat( found ).extracting( GeneOntologyTerm::getGoId )
+                .containsExactlyInAnyOrder( "GO:0000003", "GO:0000005", "GO:0000000", "GO:0000099", "GO:0000002", "GO:0000004", "GO:0000006" );
     }
 
     @Test
@@ -1279,7 +1296,7 @@ public class UserServiceImplTest {
 
         User user = createUser( 1 );
         Taxon taxon = createTaxon( 1 );
-        Collection<UserTerm> found = userService.recommendTerms( user, taxon, -1, -1, -1 );
+        Collection<UserTerm> found = userService.recommendTerms( user, taxon, -1, -1 );
         assertThat( found ).isEmpty();
     }
 
@@ -1288,7 +1305,7 @@ public class UserServiceImplTest {
         setUpRecommendTermsMocks();
 
         Taxon taxon = createTaxon( 1 );
-        Collection<UserTerm> found = userService.recommendTerms( null, taxon, -1, -1, -1 );
+        Collection<UserTerm> found = userService.recommendTerms( null, taxon, -1, -1 );
         assertThat( found ).isNull();
     }
 
@@ -1297,7 +1314,7 @@ public class UserServiceImplTest {
         setUpRecommendTermsMocks();
 
         User user = createUser( 1 );
-        userService.recommendTerms( user, null, -1, -1, -1 );
+        userService.recommendTerms( user, null, -1, -1 );
     }
 
 

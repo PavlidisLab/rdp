@@ -47,5 +47,16 @@ public class SiteSettings {
     @NotEmpty(message = "The admin email must be specified.")
     private String adminEmail;
 
+    /**
+     * GA4 tracker.
+     */
     private String gaTracker;
+    /**
+     * Public reCAPTCHA key.
+     */
+    private String recaptchaToken;
+    /**
+     * Secret reCAPTCHA key.
+     */
+    private String recaptchaSecret;
 }

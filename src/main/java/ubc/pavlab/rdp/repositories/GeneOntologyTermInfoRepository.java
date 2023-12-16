@@ -6,6 +6,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import ubc.pavlab.rdp.model.GeneOntologyTermInfo;
+import ubc.pavlab.rdp.model.Taxon;
 
 import java.util.*;
 import java.util.concurrent.locks.Lock;
@@ -193,6 +194,40 @@ public class GeneOntologyTermInfoRepository implements CrudRepository<GeneOntolo
         try {
             lock.lock();
             return termsToAliases.size();
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    /**
+     * Count the number of terms for the given taxon;
+     */
+    public long countByTaxon( Taxon taxon ) {
+        Lock lock = rwLock.readLock();
+        try {
+            lock.lock();
+            return termsByIdOrAlias.values().stream()
+                    .distinct()
+                    .map( GeneOntologyTermInfo::getDirectGeneIdsByTaxonId )
+                    .filter( m -> m.containsKey( taxon.getId() ) )
+                    .count();
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    /**
+     * Count the number of term-gene associations for the given taxon.
+     */
+    public long countGeneAssociationsByTaxon( Taxon taxon ) {
+        Lock lock = rwLock.readLock();
+        try {
+            lock.lock();
+            return termsByIdOrAlias.values().stream()
+                    .distinct()
+                    .map( GeneOntologyTermInfo::getDirectGeneIdsByTaxonId )
+                    .mapToLong( m -> m.getOrDefault( taxon.getId(), Collections.emptyList() ).size() )
+                    .sum();
         } finally {
             lock.unlock();
         }

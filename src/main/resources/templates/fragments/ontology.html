@@ -48,7 +48,7 @@
 
             <!-- non grouping terms -->
 
-            <div th:unless="${term.group}"
+            <div th:if="not ${term.group} and (not ${readOnly} or ${@ontologyService.termIsIn(term, selectedTerms)})"
                  th:classappend="${ontologyHasIcons} ? 'col-3 col-md-2 col-lg-1' : 'col-12'">
                 <th:block th:if="${readOnly}">
                     <img th:if="${term.hasIcon}"

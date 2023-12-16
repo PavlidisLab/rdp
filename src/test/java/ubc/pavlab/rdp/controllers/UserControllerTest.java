@@ -549,24 +549,26 @@ public class UserControllerTest {
 
 
         when( userService.findCurrentUser() ).thenReturn( user );
-        when( userService.recommendTerms( any(), any(), eq( taxon ) ) ).thenReturn( Sets.newSet( t1, t2 ) );
-        when( userService.recommendTerms( any(), any(), eq( taxon2 ) ) ).thenReturn( Sets.newSet( t3, t4 ) );
+        when( userService.recommendTerms( any(), eq( taxon ), any() ) ).thenReturn( Sets.newSet( t1, t2 ) );
+        when( userService.recommendTerms( any(), eq( taxon2 ), any() ) ).thenReturn( Sets.newSet( t3, t4 ) );
 
         mvc.perform( get( "/user/taxon/1/term/recommend" )
                         .contentType( MediaType.APPLICATION_JSON ) )
                 .andExpect( status().isOk() )
-                .andExpect( jsonPath( "$", hasSize( 2 ) ) )
-                .andExpect( jsonPath( "$[*].goId" ).value( containsInAnyOrder( t1.getGoId(), t2.getGoId() ) ) )
-                .andExpect( jsonPath( "$[*].taxon.id" ).value( contains( taxon.getId(), taxon.getId() ) ) );
-        verify( userService ).recommendTerms( eq( user ), any(), eq( taxon ) );
+                .andExpect( jsonPath( "$.recommendedTerms", hasSize( 2 ) ) )
+                .andExpect( jsonPath( "$.recommendedTerms[*].goId" ).value( containsInAnyOrder( t1.getGoId(), t2.getGoId() ) ) )
+                .andExpect( jsonPath( "$.recommendedTerms[*].taxon.id" ).value( contains( taxon.getId(), taxon.getId() ) ) )
+                .andExpect( jsonPath( "$.feedback" ).value( nullValue() ) );
+        verify( userService ).recommendTerms( eq( user ), eq( taxon ), any() );
 
         mvc.perform( get( "/user/taxon/2/term/recommend" )
                         .contentType( MediaType.APPLICATION_JSON ) )
                 .andExpect( status().isOk() )
-                .andExpect( jsonPath( "$" ).value( hasSize( 2 ) ) )
-                .andExpect( jsonPath( "$[*].goId" ).value( containsInAnyOrder( t3.getGoId(), t4.getGoId() ) ) )
-                .andExpect( jsonPath( "$[*].taxon.id" ).value( contains( taxon2.getId(), taxon2.getId() ) ) );
-        verify( userService ).recommendTerms( eq( user ), any(), eq( taxon2 ) );
+                .andExpect( jsonPath( "$.recommendedTerms" ).value( hasSize( 2 ) ) )
+                .andExpect( jsonPath( "$.recommendedTerms[*].goId" ).value( containsInAnyOrder( t3.getGoId(), t4.getGoId() ) ) )
+                .andExpect( jsonPath( "$.recommendedTerms[*].taxon.id" ).value( contains( taxon2.getId(), taxon2.getId() ) ) )
+                .andExpect( jsonPath( "$.feedback" ).value( nullValue() ) );
+        verify( userService ).recommendTerms( eq( user ), eq( taxon2 ), any() );
     }
 
     // POST

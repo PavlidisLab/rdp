@@ -419,18 +419,18 @@
         var spinner = $(this).find('.spinner');
         spinner.toggleClass("d-none", false);
         recommendMessage.classList.toggle('d-none', true);
-        var geneIds = geneTable.DataTable().column(0).data().toArray();
+        var geneIds = geneTable.DataTable().column(1).data().toArray();
         $.getJSON(window.contextPath + "/user/taxon/" + encodeURIComponent(window.currentTaxonId) + "/term/recommend", {
             geneIds: geneIds
         }).done(function (data) {
-            var addedTerms = addTermRow(data);
+            var addedTerms = addTermRow(data.recommendedTerms);
             if (addedTerms > 0) {
                 recommendMessage.textContent = 'Recommended ' + addedTerms + ' terms.';
                 recommendMessage.classList.toggle('alert-success', true);
                 recommendMessage.classList.toggle('alert-danger', false);
                 recommendMessage.removeAttribute('role');
             } else {
-                recommendMessage.textContent = 'Could not recommend new terms. Try adding more genes first.';
+                recommendMessage.textContent = 'Could not recommend new terms' + (data.feedback ? ': ' + data.feedback : '') + '.';
                 recommendMessage.classList.toggle('alert-success', false);
                 recommendMessage.classList.toggle('alert-danger', true);
                 recommendMessage.setAttribute('role', 'alert');

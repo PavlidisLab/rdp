@@ -24,6 +24,10 @@ public interface GOService {
 
     long count();
 
+    long countByTaxon( Taxon taxon );
+
+    long countGeneAssociationsByTaxon( Taxon taxon );
+
     Collection<GeneOntologyTermInfo> getDescendants( GeneOntologyTermInfo entry );
 
     Collection<GeneOntologyTermInfo> getAncestors( GeneOntologyTermInfo entry );
