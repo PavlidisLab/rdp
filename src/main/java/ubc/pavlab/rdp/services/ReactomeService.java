@@ -12,6 +12,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.ResponseEntity;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
@@ -54,6 +55,7 @@ public class ReactomeService {
     /**
      * @return
      */
+    @Nullable
     public Ontology findPathwaysOntology() {
         return ontologyService.findByName( applicationSettings.getOntology().getReactomePathwaysOntologyName() );
     }
@@ -83,6 +85,7 @@ public class ReactomeService {
      * @throws ReactomeException if any operation with the data files fail, in which case the whole transaction will be
      *                           rolled back.
      */
+    @Nullable
     @Transactional(rollbackFor = ReactomeException.class)
     public Ontology updatePathwaysOntology() throws ReactomeException {
         if ( ontologyService.existsByName( applicationSettings.getOntology().getReactomePathwaysOntologyName() ) ) {
@@ -176,7 +179,7 @@ public class ReactomeService {
      *                           transaction will be rolled back.
      */
     @Transactional(rollbackFor = ReactomeException.class)
-    public void updatePathwaySummations( ProgressCallback progressCallback ) throws ReactomeException {
+    public void updatePathwaySummations( @Nullable ProgressCallback progressCallback ) throws ReactomeException {
         String ontologyName = applicationSettings.getOntology().getReactomePathwaysOntologyName();
         Ontology ontology = ontologyService.findByName( ontologyName );
         if ( ontology == null ) {

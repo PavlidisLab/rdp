@@ -56,11 +56,10 @@ public class OrganInfoServiceImpl implements OrganInfoService {
     @Override
     @Transactional
     public void updateOrganInfos() {
-        Resource organFile = null;
-        if ( applicationSettings.getCache().getOrganFile() != null || applicationSettings.getCache().getOrganFile().isEmpty() ) {
+        Resource organFile;
+        if ( applicationSettings.getCache().getOrganFile() != null && !applicationSettings.getCache().getOrganFile().isEmpty() ) {
             organFile = resourceLoader.getResource( applicationSettings.getCache().getOrganFile() );
-        }
-        if ( organFile == null ) {
+        } else {
             log.warn( "No organ system ontology file found, skipping update." );
             return;
         }
@@ -75,7 +74,7 @@ public class OrganInfoServiceImpl implements OrganInfoService {
         Map<String, OrganInfo> organInfosByUberonId = organInfoRepository.findAll().stream()
                 .collect( Collectors.toMap( OrganInfo::getUberonId, identity() ) );
         for ( OBOParser.Term term : parsedTerms ) {
-            OrganInfo organInfo = organInfosByUberonId.get(term.getId());
+            OrganInfo organInfo = organInfosByUberonId.get( term.getId() );
             if ( organInfo == null ) {
                 organInfo = new OrganInfo();
                 organInfo.setUberonId( term.getId() );

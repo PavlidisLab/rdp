@@ -12,6 +12,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.lang.Nullable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.Authentication;
@@ -179,7 +180,7 @@ public class ApiController {
     }
 
     @GetMapping(value = "/api/ontologies/{ontologyName}/terms", params = { "ontologyTermIds" }, produces = MediaType.APPLICATION_JSON_VALUE)
-    public List<RemoteOntologyTermInfo> getOntologyTermsByOntologyNameAndTermIds( @PathVariable String ontologyName, @RequestParam List<String> ontologyTermIds, Locale locale ) {
+    public List<RemoteOntologyTermInfo> getOntologyTermsByOntologyNameAndTermIds( @PathVariable String ontologyName, @Nullable @RequestParam List<String> ontologyTermIds, Locale locale ) {
         Ontology ontology = ontologyService.findByName( ontologyName );
         if ( ontology == null || !ontology.isActive() ) {
             throw new ApiException( HttpStatus.NOT_FOUND, String.format( locale, "No ontology %s.", ontologyName ) );
@@ -247,13 +248,13 @@ public class ApiController {
     @GetMapping(value = "/api/genes/search", params = { "symbol", "taxonId" }, produces = MediaType.APPLICATION_JSON_VALUE)
     public List<UserGene> searchUsersByGeneSymbol( @RequestParam String symbol,
                                                    @RequestParam Integer taxonId,
-                                                   @RequestParam(required = false) Set<TierType> tiers,
-                                                   @RequestParam(required = false) Integer orthologTaxonId,
-                                                   @RequestParam(required = false) Set<ResearcherPosition> researcherPositions,
-                                                   @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
-                                                   @RequestParam(required = false) Set<String> organUberonIds,
-                                                   @RequestParam(required = false) List<String> ontologyNames,
-                                                   @RequestParam(required = false) List<String> ontologyTermIds,
+                                                   @Nullable @RequestParam(required = false) Set<TierType> tiers,
+                                                   @Nullable @RequestParam(required = false) Integer orthologTaxonId,
+                                                   @Nullable @RequestParam(required = false) Set<ResearcherPosition> researcherPositions,
+                                                   @Nullable @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
+                                                   @Nullable @RequestParam(required = false) Set<String> organUberonIds,
+                                                   @Nullable @RequestParam(required = false) List<String> ontologyNames,
+                                                   @Nullable @RequestParam(required = false) List<String> ontologyTermIds,
                                                    Locale locale ) {
 
         Taxon taxon = taxonService.findById( taxonId );
@@ -448,11 +449,13 @@ public class ApiController {
                 .collect( Collectors.toSet() );
     }
 
-    private Collection<OrganInfo> organsFromUberonIds( Set<String> organUberonIds ) {
+    @Nullable
+    private Collection<OrganInfo> organsFromUberonIds( @Nullable Set<String> organUberonIds ) {
         return organUberonIds == null ? null : organInfoService.findByUberonIdIn( organUberonIds );
     }
 
-    private Map<Ontology, Set<OntologyTermInfo>> ontologyTermsFromOntologyWithTermIds( List<String> ontologyNames, List<String> termIds ) {
+    @Nullable
+    private Map<Ontology, Set<OntologyTermInfo>> ontologyTermsFromOntologyWithTermIds( @Nullable List<String> ontologyNames, @Nullable List<String> termIds ) {
         if ( ontologyNames == null || termIds == null ) {
             return null;
         }

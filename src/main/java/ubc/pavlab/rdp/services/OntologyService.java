@@ -19,6 +19,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.util.Pair;
+import org.springframework.lang.Nullable;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -106,14 +107,17 @@ public class OntologyService implements InitializingBean {
         return HibernateUtils.getDialect( entityManager ) instanceof MySQLDialect;
     }
 
+    @Nullable
     public Ontology findById( Integer id ) {
         return ontologyRepository.findById( id ).orElse( null );
     }
 
+    @Nullable
     public Ontology findByName( String name ) {
         return ontologyRepository.findByName( name );
     }
 
+    @Nullable
     public Ontology findByNameAndActiveTrue( String name ) {
         return ontologyRepository.findByNameAndActiveTrue( name );
     }
@@ -625,6 +629,7 @@ public class OntologyService implements InitializingBean {
         ontologyTermInfoRepository.saveAll( terms );
     }
 
+    @Nullable
     @Transactional(readOnly = true)
     public OntologyTermInfo findTermByTermIdAndOntologyName( String termId, String ontologyName ) {
         return ontologyTermInfoRepository.findByTermIdAndOntologyName( termId, ontologyName );
@@ -835,6 +840,7 @@ public class OntologyService implements InitializingBean {
         return new ArrayList<>( sortedResults );
     }
 
+    @Nullable
     private String getTermDefinition( OntologyTermInfo term, Locale locale ) {
         try {
             return messageSource.getMessage( term.getResolvableDefinition(), locale );
@@ -882,7 +888,7 @@ public class OntologyService implements InitializingBean {
         return getDescendentIds( Collections.singleton( term ) ).size();
     }
 
-    private SearchResult<OntologyTermInfo> toSearchResult( OntologyTermInfo t, OntologyTermMatchType matchType, String extras, double tfIdf, Locale locale ) {
+    private SearchResult<OntologyTermInfo> toSearchResult( OntologyTermInfo t, OntologyTermMatchType matchType, @Nullable String extras, double tfIdf, Locale locale ) {
         SearchResult<OntologyTermInfo> result = new SearchResult<>(
                 matchType,
                 t.getId(),
@@ -908,6 +914,7 @@ public class OntologyService implements InitializingBean {
                 .thenComparing( SearchResult::getMatch, getTopologicalComparator( foundTerms, similarityByMatch, maxResults ) );
     }
 
+    @Nullable
     public OntologyTermInfo findTermById( Integer ontologyTermId ) {
         return ontologyTermInfoRepository.findById( ontologyTermId ).orElse( null );
     }

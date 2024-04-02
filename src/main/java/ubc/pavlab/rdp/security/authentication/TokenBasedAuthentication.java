@@ -1,5 +1,6 @@
 package ubc.pavlab.rdp.security.authentication;
 
+import org.springframework.lang.Nullable;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 
 public class TokenBasedAuthentication extends AbstractAuthenticationToken {
@@ -17,6 +18,7 @@ public class TokenBasedAuthentication extends AbstractAuthenticationToken {
     }
 
     @Override
+    @Nullable
     public Object getPrincipal() {
         return null;
     }

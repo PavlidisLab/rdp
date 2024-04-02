@@ -19,6 +19,7 @@
 
 package ubc.pavlab.rdp.services;
 
+import org.springframework.lang.Nullable;
 import ubc.pavlab.rdp.model.GeneInfo;
 import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.util.SearchResult;
@@ -30,10 +31,12 @@ import java.util.Collection;
  */
 public interface GeneInfoService {
 
+    @Nullable
     GeneInfo load( Integer geneId );
 
     Collection<GeneInfo> load( Collection<Integer> ids );
 
+    @Nullable
     GeneInfo findBySymbolAndTaxon( String officialSymbol, Taxon taxon );
 
     Collection<GeneInfo> findBySymbolInAndTaxon( Collection<String> symbols, Taxon taxon );
