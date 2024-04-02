@@ -21,6 +21,7 @@ package ubc.pavlab.rdp.services;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.lang.Nullable;
 import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.ResearcherCategory;
@@ -29,7 +30,10 @@ import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.model.ontology.Ontology;
 import ubc.pavlab.rdp.model.ontology.OntologyTermInfo;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Created by mjacobson on 17/01/18.
@@ -70,7 +74,7 @@ public interface UserGeneService {
      * @param organs              only retain results where the corresponding {@link User} tracks any of the given {@link OrganInfo}
      * @param ontologyTermInfos
      */
-    List<UserGene> handleGeneSearch( Gene gene, Set<TierType> tiers, Taxon orthologTaxon, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherTypes, Collection<OrganInfo> organs, Map<Ontology, Set<OntologyTermInfo>> ontologyTermInfos );
+    List<UserGene> handleGeneSearch( Gene gene, @Nullable Set<TierType> tiers, @Nullable Taxon orthologTaxon, @Nullable Set<ResearcherPosition> researcherPositions, @Nullable Collection<ResearcherCategory> researcherTypes, @Nullable Collection<OrganInfo> organs, @Nullable Map<Ontology, Set<OntologyTermInfo>> ontologyTermInfos );
 
     void updateUserGenes();
 }

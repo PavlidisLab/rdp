@@ -8,6 +8,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.lang.Nullable;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -30,7 +31,6 @@ import ubc.pavlab.rdp.model.ontology.Ontology;
 import ubc.pavlab.rdp.model.ontology.OntologyTermInfo;
 import ubc.pavlab.rdp.security.Permissions;
 import ubc.pavlab.rdp.services.*;
-import ubc.pavlab.rdp.services.RemoteResourceService;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 import ubc.pavlab.rdp.util.SearchResult;
 
@@ -40,6 +40,8 @@ import javax.validation.constraints.Size;
 import java.net.URI;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static java.util.Objects.requireNonNull;
 
 /**
  * Created by mjacobson on 05/02/18.
@@ -136,10 +138,10 @@ public class SearchController extends AbstractSearchController {
     public ModelAndView searchUsersByName( @RequestParam String nameLike,
                                            @RequestParam(required = false) boolean prefix,
                                            @RequestParam boolean iSearch,
-                                           @RequestParam(required = false) Set<ResearcherPosition> researcherPositions,
-                                           @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
-                                           @RequestParam(required = false) Set<String> organUberonIds,
-                                           @RequestParam(required = false) List<Integer> ontologyTermIds,
+                                           @RequestParam(required = false) @Nullable Set<ResearcherPosition> researcherPositions,
+                                           @RequestParam(required = false) @Nullable Set<ResearcherCategory> researcherCategories,
+                                           @RequestParam(required = false) @Nullable Set<String> organUberonIds,
+                                           @RequestParam(required = false) @Nullable List<Integer> ontologyTermIds,
                                            Locale locale ) {
         Collection<User> users;
         if ( prefix ) {
@@ -185,10 +187,10 @@ public class SearchController extends AbstractSearchController {
     @GetMapping(value = "/search", params = { "descriptionLike" })
     public ModelAndView searchUsersByDescription( @RequestParam String descriptionLike,
                                                   @RequestParam boolean iSearch,
-                                                  @RequestParam(required = false) Set<ResearcherPosition> researcherPositions,
-                                                  @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
-                                                  @RequestParam(required = false) Set<String> organUberonIds,
-                                                  @RequestParam(required = false) List<Integer> ontologyTermIds,
+                                                  @RequestParam(required = false) @Nullable Set<ResearcherPosition> researcherPositions,
+                                                  @RequestParam(required = false) @Nullable Set<ResearcherCategory> researcherCategories,
+                                                  @RequestParam(required = false) @Nullable Set<String> organUberonIds,
+                                                  @RequestParam(required = false) @Nullable List<Integer> ontologyTermIds,
                                                   Locale locale ) {
         ModelAndView modelAndView = new ModelAndView( "search" )
                 .addObject( "activeSearchMode", ApplicationSettings.SearchSettings.SearchMode.BY_RESEARCHER )
@@ -229,12 +231,12 @@ public class SearchController extends AbstractSearchController {
     public ModelAndView searchUsersByGene( @RequestParam String symbol,
                                            @RequestParam Integer taxonId,
                                            @RequestParam boolean iSearch,
-                                           @RequestParam(required = false) Set<TierType> tiers,
-                                           @RequestParam(required = false) Integer orthologTaxonId,
-                                           @RequestParam(required = false) Set<ResearcherPosition> researcherPositions,
-                                           @RequestParam(required = false) Set<ResearcherCategory> researcherCategories,
-                                           @RequestParam(required = false) Set<String> organUberonIds,
-                                           @RequestParam(required = false) List<Integer> ontologyTermIds,
+                                           @RequestParam(required = false) @Nullable Set<TierType> tiers,
+                                           @RequestParam(required = false) @Nullable Integer orthologTaxonId,
+                                           @RequestParam(required = false) @Nullable Set<ResearcherPosition> researcherPositions,
+                                           @RequestParam(required = false) @Nullable Set<ResearcherCategory> researcherCategories,
+                                           @RequestParam(required = false) @Nullable Set<String> organUberonIds,
+                                           @RequestParam(required = false) @Nullable List<Integer> ontologyTermIds,
                                            Locale locale ) {
         // Only look for orthologs when taxon is human
         if ( taxonId != 9606 ) {
@@ -324,7 +326,7 @@ public class SearchController extends AbstractSearchController {
     @PreAuthorize("hasPermission(null, #remoteHost == null ? 'search' : 'international-search')")
     @GetMapping(value = "/search/user/{userId}")
     public ModelAndView getUser( @PathVariable Integer userId,
-                                 @RequestParam(required = false) String remoteHost ) {
+                                 @RequestParam(required = false) @Nullable String remoteHost ) {
         User user = userService.findCurrentUser();
         User viewUser;
         if ( remoteHost != null && !remoteHost.isEmpty() ) {
@@ -372,7 +374,7 @@ public class SearchController extends AbstractSearchController {
     @PreAuthorize("hasPermission(null, 'search') and hasAnyRole('USER', 'ADMIN')")
     @GetMapping("/search/gene/by-anonymous-id/{anonymousId}/request-access")
     public Object requestGeneAccessView( @PathVariable UUID anonymousId,
-                                         @RequestParam(required = false) URI remoteHost,
+                                         @RequestParam(required = false) @Nullable URI remoteHost,
                                          RedirectAttributes redirectAttributes ) {
         if ( remoteHost != null ) {
             try {
@@ -402,16 +404,16 @@ public class SearchController extends AbstractSearchController {
                                            @Valid RequestAccessForm requestAccessForm,
                                            BindingResult bindingResult,
                                            RedirectAttributes redirectAttributes ) {
-        UserGene userGene = userService.findUserGeneByAnonymousIdNoAuth( anonymousId );
-        if ( userGene == null ) {
+        User user = requireNonNull( userService.findCurrentUser() );
+        UserGene requestedUserGene = userService.findUserGeneByAnonymousIdNoAuth( anonymousId );
+        if ( requestedUserGene == null ) {
             return new ModelAndView( "error/404", HttpStatus.NOT_FOUND );
         }
-
         if ( bindingResult.hasErrors() ) {
             return new ModelAndView( "search/request-access", HttpStatus.BAD_REQUEST )
-                    .addObject( "userGene", userService.anonymizeUserGene( userGene ) );
+                    .addObject( "userGene", userService.anonymizeUserGene( requestedUserGene ) );
         } else {
-            userService.sendGeneAccessRequest( userService.findCurrentUser(), userGene, requestAccessForm.getReason() );
+            userService.sendGeneAccessRequest( user, requestedUserGene, requestAccessForm.getReason() );
             redirectAttributes.addFlashAttribute( "message", "An access request has been sent and will be reviewed." );
             return new ModelAndView( "redirect:/search" );
         }
@@ -425,7 +427,7 @@ public class SearchController extends AbstractSearchController {
      */
     @ResponseBody
     @GetMapping("/search/ontology-terms/autocomplete")
-    public Object autocompleteTerms( @RequestParam String query, @RequestParam(required = false) Integer ontologyId, Locale locale ) {
+    public Object autocompleteTerms( @RequestParam String query, @RequestParam(required = false) @Nullable Integer ontologyId, Locale locale ) {
         if ( ontologyId != null ) {
             Ontology ontology = ontologyService.findById( ontologyId );
             if ( ontology == null || !ontology.isActive() ) {

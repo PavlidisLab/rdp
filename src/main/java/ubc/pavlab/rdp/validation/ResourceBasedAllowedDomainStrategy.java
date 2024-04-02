@@ -5,6 +5,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.core.io.Resource;
+import org.springframework.lang.Nullable;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -55,7 +56,7 @@ public class ResourceBasedAllowedDomainStrategy implements AllowedDomainStrategy
     private volatile SetBasedAllowedDomainStrategy strategy;
     private long lastRefresh;
 
-    public ResourceBasedAllowedDomainStrategy( Resource allowedEmailDomainsFile, Duration refreshDelay ) {
+    public ResourceBasedAllowedDomainStrategy( Resource allowedEmailDomainsFile, @Nullable Duration refreshDelay ) {
         this.allowedEmailDomainsFile = allowedEmailDomainsFile;
         this.refreshDelay = refreshDelay;
     }

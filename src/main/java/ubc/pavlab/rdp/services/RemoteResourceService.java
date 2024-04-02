@@ -1,5 +1,6 @@
 package ubc.pavlab.rdp.services;
 
+import org.springframework.lang.Nullable;
 import ubc.pavlab.rdp.controllers.ApiController;
 import ubc.pavlab.rdp.exception.RemoteException;
 import ubc.pavlab.rdp.exception.UnknownRemoteApiException;
@@ -62,7 +63,7 @@ public interface RemoteResourceService {
      * @return matching users sorted according to {@link User#getComparator()}.
      * @see ApiController#searchUsersByName(String, Boolean, Set, Set, Set, List, List, Locale)
      */
-    List<User> findUsersByLikeName( String nameLike, Boolean prefix, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherTypes, Collection<String> organUberonIds, Map<Ontology, Set<OntologyTermInfo>> ontologyTermInfos );
+    List<User> findUsersByLikeName( String nameLike, Boolean prefix, @Nullable Set<ResearcherPosition> researcherPositions, @Nullable Collection<ResearcherCategory> researcherTypes, @Nullable Collection<String> organUberonIds, @Nullable Map<Ontology, Set<OntologyTermInfo>> ontologyTermInfos );
 
     /**
      * Find users by description among all partner registries.
@@ -70,9 +71,9 @@ public interface RemoteResourceService {
      * @return matching users sorted according to {@link User#getComparator()}.
      * @see ApiController#searchUsersByDescription(String, Set, Set, Set, List, List, Locale)
      */
-    List<User> findUsersByDescription( String descriptionLike, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherTypes, Collection<String> organUberonIds, Map<Ontology, Set<OntologyTermInfo>> ontologyTermInfos );
+    List<User> findUsersByDescription( String descriptionLike, @Nullable Set<ResearcherPosition> researcherPositions, @Nullable Collection<ResearcherCategory> researcherTypes, @Nullable Collection<String> organUberonIds, @Nullable Map<Ontology, Set<OntologyTermInfo>> ontologyTermInfos );
 
-    List<User> findUsersByLikeNameAndDescription( String nameLike, boolean prefix, String descriptionLike, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherCategories, Set<String> organUberonIds, Map<Ontology, Set<OntologyTermInfo>> ontologyTermInfos );
+    List<User> findUsersByLikeNameAndDescription( String nameLike, boolean prefix, String descriptionLike, @Nullable Set<ResearcherPosition> researcherPositions, @Nullable Set<ResearcherCategory> researcherCategories, @Nullable Set<String> organUberonIds, @Nullable Map<Ontology, Set<OntologyTermInfo>> ontologyTermInfos );
 
     /**
      * Find genes by symbol among all partner registries.
@@ -80,7 +81,7 @@ public interface RemoteResourceService {
      * @return matching genes sorted according to {@link UserGene#getComparator()}.
      * @see ApiController#searchUsersByGeneSymbol(String, Integer, Set, Integer, Set, Set, Set, List, List, Locale)
      */
-    List<UserGene> findGenesBySymbol( String symbol, Taxon taxon, Set<TierType> tier, Integer orthologTaxonId, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherTypes, Set<String> organUberonIds, Map<Ontology, Set<OntologyTermInfo>> ontologyTermInfos );
+    List<UserGene> findGenesBySymbol( String symbol, Taxon taxon, Set<TierType> tier, @Nullable Integer orthologTaxonId, @Nullable Set<ResearcherPosition> researcherPositions, @Nullable Set<ResearcherCategory> researcherTypes, @Nullable Set<String> organUberonIds, @Nullable Map<Ontology, Set<OntologyTermInfo>> ontologyTermInfos );
 
     /**
      * Retrieve a user from a specific registry.
@@ -94,6 +95,7 @@ public interface RemoteResourceService {
      *
      * @see ApiController#getUserByAnonymousId(UUID, Locale)
      */
+    @Nullable
     User getAnonymizedUser( UUID anonymousId, URI remoteHost ) throws RemoteException;
 
     /**

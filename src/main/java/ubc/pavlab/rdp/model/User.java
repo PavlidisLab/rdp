@@ -11,6 +11,7 @@ import org.hibernate.annotations.NaturalId;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import org.springframework.lang.Nullable;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.TierType;
 import ubc.pavlab.rdp.model.ontology.Ontology;
@@ -205,7 +206,7 @@ public class User implements RemoteResource, UserContent, Serializable {
 
     @JsonIgnore
     @Transient
-    public boolean hasTaxon( @NonNull Taxon taxon ) {
+    public boolean hasTaxon( Taxon taxon ) {
         return this.getUserGenes().values().stream().anyMatch( g -> g.getTaxon().equals( taxon ) );
     }
 
@@ -241,6 +242,7 @@ public class User implements RemoteResource, UserContent, Serializable {
     /**
      * This is meant for JSON serialization of the user's public-facing email.
      */
+    @Nullable
     @JsonProperty("email")
     public String getVerifiedContactEmailJsonValue() {
         if ( profile != null && profile.isContactEmailVerified() ) {

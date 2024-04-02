@@ -1,6 +1,7 @@
 package ubc.pavlab.rdp.util;
 
 import lombok.SneakyThrows;
+import org.springframework.lang.Nullable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -176,13 +177,13 @@ public final class TestUtils {
         return ut;
     }
 
-    public static UserGene createUserGene( int id, Gene gene, User user, TierType tier, PrivacyLevelType privacyLevelType ) {
+    public static UserGene createUserGene( int id, Gene gene, User user, TierType tier, @Nullable PrivacyLevelType privacyLevelType ) {
         UserGene ug = createUnpersistedUserGene( gene, user, tier, privacyLevelType );
         ug.setId( id );
         return ug;
     }
 
-    public static UserGene createUnpersistedUserGene( Gene gene, User user, TierType tier, PrivacyLevelType privacyLevelType ) {
+    public static UserGene createUnpersistedUserGene( Gene gene, User user, TierType tier, @Nullable PrivacyLevelType privacyLevelType ) {
         UserGene ug = new UserGene();
         ug.setUser( user );
         ug.setTier( tier );
@@ -195,7 +196,7 @@ public final class TestUtils {
         return String.format( "GO:%07d", id );
     }
 
-    public static OrganInfo createOrgan( String uberonId, String name, String description ) {
+    public static OrganInfo createOrgan( String uberonId, @Nullable String name, @Nullable String description ) {
         OrganInfo oi = new OrganInfo();
         oi.setUberonId( uberonId );
         oi.setName( name );

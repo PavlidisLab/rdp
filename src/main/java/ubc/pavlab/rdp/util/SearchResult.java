@@ -2,6 +2,7 @@ package ubc.pavlab.rdp.util;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.springframework.lang.Nullable;
 
 import java.util.Comparator;
 
@@ -39,6 +40,7 @@ public class SearchResult<T extends Comparable<T>> implements Comparable<SearchR
     /**
      * Extra information which not all results might have.
      */
+    @Nullable
     private String extras;
     /**
      * A score for the search.

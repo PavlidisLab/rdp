@@ -382,7 +382,7 @@ public class OntologyServiceTest {
                 .containsExactly( "ont0", "ont1", "ont2", "ont3", "ont4" );
 
         Ontology ontology = ontologyService.findByName( "ont" + 3 );
-        assertThat( ontology ).hasFieldOrPropertyWithValue( "ordering", 4 );
+        assertThat( ontology ).isNotNull().hasFieldOrPropertyWithValue( "ordering", 4 );
 
         ontologyService.move( ontology, OntologyService.Direction.UP );
 
@@ -404,7 +404,7 @@ public class OntologyServiceTest {
                 .containsExactly( "ont0", "ont1", "ont2", "ont3", "ont4" );
 
         Ontology ontology = ontologyService.findByName( "ont" + 3 );
-        assertThat( ontology ).hasFieldOrPropertyWithValue( "ordering", null );
+        assertThat( ontology ).isNotNull().hasFieldOrPropertyWithValue( "ordering", null );
 
         ontologyService.move( ontology, OntologyService.Direction.UP );
 

@@ -1,5 +1,6 @@
 package ubc.pavlab.rdp.security.authentication;
 
+import org.springframework.lang.Nullable;
 import org.springframework.security.web.authentication.AuthenticationConverter;
 
 import javax.servlet.http.HttpServletRequest;
@@ -12,6 +13,7 @@ import javax.servlet.http.HttpServletRequest;
  */
 class TokenBasedAuthenticationConverter implements AuthenticationConverter {
 
+    @Nullable
     @Override
     public final TokenBasedAuthentication convert( HttpServletRequest request ) throws IllegalArgumentException {
         String authorizationHeader = request.getHeader( "Authorization" );

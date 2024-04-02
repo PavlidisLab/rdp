@@ -8,6 +8,7 @@ import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import ubc.pavlab.rdp.model.Gene;
 import ubc.pavlab.rdp.model.GeneOntologyTermInfo;
@@ -209,6 +210,7 @@ public class GOServiceImpl implements GOService, InitializingBean {
                 .collect( groupingBy( identity(), counting() ) );
     }
 
+    @Nullable
     private SearchResult<GeneOntologyTermInfo> queryTerm( String queryString, GeneOntologyTermInfo term ) {
         if ( term.getGoId().equalsIgnoreCase( queryString ) || term.getGoId().equalsIgnoreCase( "GO:" + queryString ) ) {
             return new SearchResult<>( TermMatchType.EXACT_ID, 0, term.getGoId(), term.getName(), term );
@@ -415,17 +417,14 @@ public class GOServiceImpl implements GOService, InitializingBean {
     }
 
     @Override
-    public Collection<Integer> getGenesInTaxon( String id, Taxon taxon ) {
-        if ( id == null ) {
-            return Collections.emptySet();
-        }
+    public Collection<Integer> getGenesInTaxon( String id,  Taxon taxon ) {
         return goRepository.findById( id )
                 .map( term -> getGenesInTaxon( term, taxon ) )
                 .orElseGet( Collections::emptySet );
     }
 
     @Override
-    public Collection<Integer> getGenesInTaxon( GeneOntologyTermInfo t, Taxon taxon ) {
+    public Collection<Integer> getGenesInTaxon( GeneOntologyTermInfo t,  Taxon taxon ) {
         Collection<GeneOntologyTermInfo> descendants = new HashSet<>( getDescendants( t ) );
 
         descendants.add( t );
@@ -453,9 +452,6 @@ public class GOServiceImpl implements GOService, InitializingBean {
 
     @Override
     public GeneOntologyTermInfo getTerm( String goId ) {
-        if ( goId == null ) {
-            return null;
-        }
         return goRepository.findById( goId ).orElse( null );
     }
 

@@ -6,6 +6,7 @@ import lombok.Value;
 import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.time.StopWatch;
+import org.springframework.lang.Nullable;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -28,12 +29,13 @@ public class Gene2GoParser {
             GENE_ID_INDEX = ArrayUtils.indexOf( EXPECTED_FIELDS, GENE_ID_FIELD ),
             GO_ID_INDEX = ArrayUtils.indexOf( EXPECTED_FIELDS, GO_ID_FIELD );
 
+    @Nullable
     private final Set<Integer> retainedTaxa;
 
     /**
      * @param retainedTaxa a set of taxa to retain from the gene2go input, or null to ignore
      */
-    public Gene2GoParser( Set<Integer> retainedTaxa ) {
+    public Gene2GoParser( @Nullable Set<Integer> retainedTaxa ) {
         this.retainedTaxa = retainedTaxa;
     }
 

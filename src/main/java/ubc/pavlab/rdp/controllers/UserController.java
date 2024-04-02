@@ -43,6 +43,7 @@ import java.text.MessageFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static java.util.Objects.requireNonNull;
 import static java.util.function.Function.identity;
 import static ubc.pavlab.rdp.util.CollectionUtils.toNullableMap;
 
@@ -74,15 +75,14 @@ public class UserController {
 
     @GetMapping(value = { "/user/home" })
     public ModelAndView userHome() {
-        ModelAndView modelAndView = new ModelAndView( "user/home" );
-        modelAndView.addObject( "user", userService.findCurrentUser() );
-        return modelAndView;
+        return new ModelAndView( "user/home" )
+                .addObject( "user", requireNonNull( userService.findCurrentUser() ) );
     }
 
     @GetMapping(value = { "/user/model/{taxonId}" })
     public ModelAndView model( @PathVariable Integer taxonId ) {
         ModelAndView modelAndView = new ModelAndView( "user/model" );
-        User user = userService.findCurrentUser();
+        User user = requireNonNull( userService.findCurrentUser() );
         Taxon taxon = taxonService.findById( taxonId );
         if ( taxon == null ) {
             modelAndView.setViewName( "error/404" );
@@ -100,7 +100,7 @@ public class UserController {
     @GetMapping(value = "/user/taxon/{taxonId}/term/{goId}/gene/view")
     public ModelAndView getTermsGenesForTaxon( @PathVariable Integer taxonId, @PathVariable String goId ) {
         ModelAndView modelAndView = new ModelAndView( "fragments/gene-table::gene-table" );
-        User user = userService.findCurrentUser();
+        User user = requireNonNull( userService.findCurrentUser() );
         Taxon taxon = taxonService.findById( taxonId );
 
         if ( taxon == null ) {
@@ -156,12 +156,11 @@ public class UserController {
 
     @GetMapping(value = { "/user/support" })
     public ModelAndView support( SupportForm supportForm ) {
-        ModelAndView modelAndView = new ModelAndView( "user/support" );
-        User user = userService.findCurrentUser();
+        User user = requireNonNull( userService.findCurrentUser() );
         supportForm.setName( user.getProfile().getFullName() );
-        modelAndView.addObject( "user", user );
-        modelAndView.addObject( "supportForm", supportForm );
-        return modelAndView;
+        return new ModelAndView( "user/support" )
+                .addObject( "user", user )
+                .addObject( "supportForm", supportForm );
     }
 
     @Data
@@ -226,7 +225,7 @@ public class UserController {
     @PostMapping(value = { "/user/support" })
     public ModelAndView supportPost( @RequestHeader(value = "User-Agent", required = false) String userAgent, @Valid @ModelAttribute("supportForm") SupportForm supportForm, BindingResult bindingResult, Locale locale ) {
         ModelAndView modelAndView = new ModelAndView( "user/support" );
-        User user = userService.findCurrentUser();
+        User user = requireNonNull( userService.findCurrentUser() );
         modelAndView.addObject( "user", user );
 
         // ignore empty attachment
@@ -309,7 +308,7 @@ public class UserController {
 
     @PostMapping("/user/resend-contact-email-verification")
     public Object resendContactEmailVerification( RedirectAttributes redirectAttributes, Locale locale ) {
-        User user = userService.findCurrentUser();
+        User user = requireNonNull( userService.findCurrentUser() );
         if ( user.getProfile().isContactEmailVerified() ) {
             return ResponseEntity.badRequest().body( "Contact email is already verified." );
         }
@@ -380,7 +379,7 @@ public class UserController {
     @ResponseBody
     @PostMapping(value = "/user/profile", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> saveProfile( @Valid @RequestBody ProfileWithOrganUberonIdsAndOntologyTerms profileWithOrganUberonIdsAndOntologyTerms, BindingResult bindingResult, Locale locale ) {
-        User user = userService.findCurrentUser();
+        User user = requireNonNull( userService.findCurrentUser() );
         if ( bindingResult.hasErrors() ) {
             return ResponseEntity.badRequest()
                     .body( BindingResultModel.fromBindingResult( bindingResult ) );
@@ -400,31 +399,31 @@ public class UserController {
     @ResponseBody
     @GetMapping(value = "/user", produces = MediaType.APPLICATION_JSON_VALUE)
     public User getUser() {
-        return userService.findCurrentUser();
+        return requireNonNull( userService.findCurrentUser() );
     }
 
     @ResponseBody
     @GetMapping(value = "/user/taxon", produces = MediaType.APPLICATION_JSON_VALUE)
     public Set<Taxon> getTaxons() {
-        return userService.findCurrentUser().getUserGenes().values().stream().map( UserGene::getTaxon ).collect( Collectors.toSet() );
+        return requireNonNull( userService.findCurrentUser() ).getUserGenes().values().stream().map( UserGene::getTaxon ).collect( Collectors.toSet() );
     }
 
     @ResponseBody
     @GetMapping(value = "/user/gene", produces = MediaType.APPLICATION_JSON_VALUE)
     public Collection<UserGene> getGenes() {
-        return userService.findCurrentUser().getUserGenes().values();
+        return requireNonNull( userService.findCurrentUser() ).getUserGenes().values();
     }
 
     @ResponseBody
     @GetMapping(value = "/user/term", produces = MediaType.APPLICATION_JSON_VALUE)
     public Collection<UserTerm> getTerms() {
-        return userService.findCurrentUser().getUserTerms();
+        return requireNonNull( userService.findCurrentUser() ).getUserTerms();
     }
 
     @ResponseBody
     @GetMapping(value = "/user/ontology-terms", produces = MediaType.APPLICATION_JSON_VALUE)
     public Collection<UserOntologyTerm> getOntologyTerms() {
-        return userService.findCurrentUser().getUserOntologyTerms();
+        return requireNonNull( userService.findCurrentUser() ).getUserOntologyTerms();
     }
 
     @Data
@@ -438,7 +437,7 @@ public class UserController {
     @ResponseBody
     @PostMapping(value = "/user/model/{taxonId}", produces = MediaType.TEXT_PLAIN_VALUE)
     public Object saveModelForTaxon( @PathVariable Integer taxonId, @RequestBody Model model ) {
-        User user = userService.findCurrentUser();
+        User user = requireNonNull( userService.findCurrentUser() );
         Taxon taxon = taxonService.findById( taxonId );
 
         if ( taxon == null ) {
@@ -476,7 +475,7 @@ public class UserController {
         if ( taxon == null ) {
             return ResponseEntity.notFound().build();
         }
-        return userService.findCurrentUser().getGenesByTaxon( taxon );
+        return requireNonNull( userService.findCurrentUser() ).getGenesByTaxon( taxon );
     }
 
     @ResponseBody
@@ -486,7 +485,7 @@ public class UserController {
         if ( taxon == null ) {
             return ResponseEntity.notFound().build();
         }
-        return userService.findCurrentUser().getTermsByTaxon( taxon );
+        return requireNonNull( userService.findCurrentUser() ).getTermsByTaxon( taxon );
     }
 
     @ResponseBody
@@ -497,8 +496,11 @@ public class UserController {
         if ( taxon == null ) {
             return ResponseEntity.notFound().build();
         }
-        User user = userService.findCurrentUser();
-        return goIds.stream().collect( toNullableMap( identity(), goId -> goService.getTerm( goId ) == null ? null : userService.convertTerm( user, taxon, goService.getTerm( goId ) ) ) );
+        User user = requireNonNull( userService.findCurrentUser() );
+        return goIds.stream().collect( toNullableMap( identity(), goId -> {
+            GeneOntologyTermInfo term = goService.getTerm( goId );
+            return term == null ? null : userService.convertTerm( user, taxon, term );
+        } ) );
     }
 
     @Value
@@ -517,14 +519,14 @@ public class UserController {
     @ResponseBody
     @GetMapping(value = "/user/taxon/{taxonId}/term/recommend", produces = MediaType.APPLICATION_JSON_VALUE)
     public Object getRecommendedTermsForTaxon( @PathVariable Integer taxonId,
-                                               @RequestParam(required = false) List<Integer> geneIds,
+                                               @RequestParam(required = false) @Nullable List<Integer> geneIds,
                                                Locale locale ) {
         Taxon taxon = taxonService.findById( taxonId );
         if ( taxon == null ) {
             return ResponseEntity.notFound().build();
         }
 
-        User user = userService.findCurrentUser();
+        User user = requireNonNull( userService.findCurrentUser() );
 
         Collection<UserTerm> recommendedTerms;
         List<MessageSourceResolvable> feedback = new ArrayList<>();

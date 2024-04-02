@@ -1,6 +1,5 @@
 package ubc.pavlab.rdp.services;
 
-import lombok.NonNull;
 import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.InitializingBean;
@@ -57,6 +56,7 @@ import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import static java.util.Objects.requireNonNull;
 import static java.util.function.Function.identity;
 import static ubc.pavlab.rdp.util.CollectionUtils.containsAtLeastOne;
 import static ubc.pavlab.rdp.util.CollectionUtils.nullOrContainsAtLeastOne;
@@ -222,7 +222,7 @@ public class UserServiceImpl implements UserService, InitializingBean {
     @Override
     public User changePassword( String oldPassword, String newPassword )
             throws BadCredentialsException, ValidationException {
-        User user = findCurrentUser();
+        User user = requireNonNull( findCurrentUser() );
         if ( bCryptPasswordEncoder.matches( oldPassword, user.getPassword() ) ) {
             if ( newPassword.length() >= 6 ) { //TODO: Tie in with hibernate constraint on User or not necessary?
 
@@ -287,7 +287,6 @@ public class UserServiceImpl implements UserService, InitializingBean {
      * There is no authorization check performed, so make sure that you reuse anonymizeUser before presenting the data
      * in the view.
      *
-     * @param anonymousId
      * @return the user if found, otherwise null
      */
     @Override
@@ -303,7 +302,6 @@ public class UserServiceImpl implements UserService, InitializingBean {
      * There is no authorization check performed, so make sure that you reuse anonymizeUserGene before presenting the
      * data in the view.
      *
-     * @param anonymousId
      * @return the user's gene if found, otherwise null
      */
     @Override
@@ -405,12 +403,6 @@ public class UserServiceImpl implements UserService, InitializingBean {
                 .flatMap( userRepository::findOneWithRoles );
     }
 
-    /**
-     * Results are ored
-     *
-     * @param pageable
-     * @return
-     */
     @Override
     public Page<User> findAllNoAuth( Pageable pageable ) {
         return userRepository.findAll( pageable );
@@ -559,13 +551,13 @@ public class UserServiceImpl implements UserService, InitializingBean {
 
     @Override
     @PostFilter("hasPermission(filterObject, 'read')")
-    public Collection<UserTerm> recommendTerms( @NonNull User user, Taxon taxon, List<MessageSourceResolvable> feedback ) {
+    public Collection<UserTerm> recommendTerms( User user, Taxon taxon, @Nullable List<MessageSourceResolvable> feedback ) {
         return recommendTerms( user, user.getGenesByTaxonAndTier( taxon, getManualTiers() ), taxon, applicationSettings.getGoTermSizeLimit(), applicationSettings.getGoTermMinOverlap(), feedback );
     }
 
     @Override
     @PostFilter("hasPermission(filterObject, 'read')")
-    public Collection<UserTerm> recommendTerms( User user, Set<? extends Gene> genes, Taxon taxon, List<MessageSourceResolvable> feedback ) {
+    public Collection<UserTerm> recommendTerms( User user, Set<? extends Gene> genes, Taxon taxon, @Nullable List<MessageSourceResolvable> feedback ) {
         return recommendTerms( user, genes, taxon, applicationSettings.getGoTermSizeLimit(), applicationSettings.getGoTermMinOverlap(), feedback );
     }
 
@@ -573,7 +565,7 @@ public class UserServiceImpl implements UserService, InitializingBean {
      * This is only meant for testing purposes; refrain from using in actual code.
      */
     @PostFilter("hasPermission(filterObject, 'read')")
-    Collection<UserTerm> recommendTerms( @NonNull User user, @NonNull Taxon taxon, long maxSize, long minFrequency ) {
+    Collection<UserTerm> recommendTerms( User user, Taxon taxon, long maxSize, long minFrequency ) {
         return recommendTerms( user, user.getGenesByTaxonAndTier( taxon, getManualTiers() ), taxon, maxSize, minFrequency, null );
     }
 
@@ -588,7 +580,7 @@ public class UserServiceImpl implements UserService, InitializingBean {
      * @param feedback     feedback is appended in the form of {@link MessageSourceResolvable} if non-null
      * @return the recommended terms for the given parameters
      */
-    private Collection<UserTerm> recommendTerms( @NonNull User user, Set<? extends Gene> genes, Taxon taxon, long maxSize, long minFrequency, @Nullable List<MessageSourceResolvable> feedback ) {
+    private Collection<UserTerm> recommendTerms( User user, Set<? extends Gene> genes, Taxon taxon, long maxSize, long minFrequency, @Nullable List<MessageSourceResolvable> feedback ) {
         // terms already associated to user within the taxon
         Set<String> userTermGoIds = user.getUserTerms().stream()
                 .filter( ut -> ut.getTaxon().equals( taxon ) )
@@ -715,9 +707,13 @@ public class UserServiceImpl implements UserService, InitializingBean {
 
         // update frequency and size as those have likely changed with new genes
         for ( UserTerm userTerm : user.getUserTerms() ) {
-            GeneOntologyTermInfo cachedTerm = goService.getTerm( userTerm.getGoId() );
             userTerm.setFrequency( computeTermFrequencyInTaxon( user, userTerm, taxon ) );
-            userTerm.setSize( goService.getSizeInTaxon( cachedTerm, taxon ) );
+            GeneOntologyTermInfo cachedTerm = goService.getTerm( userTerm.getGoId() );
+            if ( cachedTerm != null ) {
+                userTerm.setSize( goService.getSizeInTaxon( cachedTerm, taxon ) );
+            } else {
+                log.warn( String.format( "Could not find GO term %s to update user term.", userTerm.getGoId() ) );
+            }
         }
 
         return update( user );
@@ -733,11 +729,6 @@ public class UserServiceImpl implements UserService, InitializingBean {
 
     /**
      * Compute the number of TIER1/TIER2 user genes that are associated to a given ontology term.
-     *
-     * @param user
-     * @param term
-     * @param taxon
-     * @return
      */
     @Override
     public long computeTermFrequencyInTaxon( User user, GeneOntologyTerm term, Taxon taxon ) {
@@ -762,7 +753,7 @@ public class UserServiceImpl implements UserService, InitializingBean {
     @Transactional
     @Override
     @PreAuthorize("hasPermission(#user, 'update')")
-    public User updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( User user, Profile profile, Set<Publication> publications, Set<String> organUberonIds, Set<Integer> termIdsByOntologyId, Locale locale ) {
+    public User updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( User user, Profile profile, @Nullable Set<Publication> publications, @Nullable Set<String> organUberonIds, @Nullable Set<Integer> termIdsByOntologyId, Locale locale ) {
         user.getProfile().setDepartment( profile.getDepartment() );
         user.getProfile().setDescription( profile.getDescription() );
         user.getProfile().setLastName( profile.getLastName() );
@@ -836,7 +827,7 @@ public class UserServiceImpl implements UserService, InitializingBean {
             user.getProfile().getPublications().addAll( publications );
         }
 
-        if ( applicationSettings.getOrgans().isEnabled() ) {
+        if ( applicationSettings.getOrgans().isEnabled() && organUberonIds != null ) {
             Map<String, UserOrgan> userOrgans = organInfoService.findByUberonIdIn( organUberonIds ).stream()
                     .map( organInfo -> user.getUserOrgans().getOrDefault( organInfo.getUberonId(), UserOrgan.createFromOrganInfo( user, organInfo ) ) )
                     .collect( Collectors.toMap( Organ::getUberonId, identity() ) );
@@ -899,7 +890,7 @@ public class UserServiceImpl implements UserService, InitializingBean {
         PasswordResetToken passToken = verifyPasswordResetToken( userId, token, request );
 
         // Preauthorize might cause trouble here if implemented, fix by setting manual authentication
-        User user = findUserByIdNoAuth( userId );
+        User user = requireNonNull( findUserByIdNoAuth( userId ) );
 
         user.setPassword( bCryptPasswordEncoder.encode( passwordReset.getNewPassword() ) );
 

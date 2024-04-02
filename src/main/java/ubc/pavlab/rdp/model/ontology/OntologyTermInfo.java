@@ -51,7 +51,7 @@ public class OntologyTermInfo extends OntologyTerm implements Comparable<Ontolog
      */
     public static final int MAX_SYNONYM_LENGTH = 255;
 
-    public static OntologyTermInfoBuilder<?, ?> builder( @NonNull Ontology ontology, @NonNull String termId ) {
+    public static OntologyTermInfoBuilder<?, ?> builder( Ontology ontology, String termId ) {
         return new OntologyTermInfo.OntologyTermInfoBuilderImpl()
                 .ontology( ontology )
                 .termId( termId );

@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.repository.query.Param;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Repository;
 import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.model.UserGene;
@@ -43,7 +44,7 @@ public interface UserGeneRepository extends JpaRepository<UserGene, Integer> {
     /**
      * Find all genes from enabled users.
      */
-    Page<UserGene> findByUserEnabledTrue( Pageable pageable );
+    Page<UserGene> findByUserEnabledTrue( @Nullable Pageable pageable );
 
     /**
      * Find all user genes that fall within a given privacy level amonng enabled users.
@@ -51,7 +52,7 @@ public interface UserGeneRepository extends JpaRepository<UserGene, Integer> {
      * If the user gene privacy level is less strict than the profile value or null, then the profile value is taken.
      */
     @Query("select ug from UserGene as ug join ug.user where ug.user.enabled is true and (case when ug.privacyLevel is null or ug.privacyLevel > ug.user.profile.privacyLevel then ug.user.profile.privacyLevel else ug.privacyLevel end) = :privacyLevel")
-    Page<UserGene> findByPrivacyLevelAndUserEnabledTrueAndUserProfilePrivacyLevel( @Param("privacyLevel") PrivacyLevelType privacyLevel, Pageable pageable );
+    Page<UserGene> findByPrivacyLevelAndUserEnabledTrueAndUserProfilePrivacyLevel( @Param("privacyLevel") PrivacyLevelType privacyLevel, @Nullable Pageable pageable );
 
     @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
     UserGene findById( int id );

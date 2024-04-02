@@ -6,6 +6,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
+import org.springframework.lang.Nullable;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
 import org.springframework.web.bind.WebDataBinder;
@@ -60,14 +61,18 @@ public abstract class AbstractSearchController {
     @Data
     @NoArgsConstructor
     @AllArgsConstructor(access = AccessLevel.PROTECTED)
-    protected static class SearchParams {
+    public static class SearchParams {
         private boolean iSearch;
+        @Nullable
         private Set<ResearcherPosition> researcherPositions;
+        @Nullable
         private Set<ResearcherCategory> researcherCategories;
+        @Nullable
         private Set<String> organUberonIds;
         /**
          * Order matters here because we want to preserve the UI rendering.
          */
+        @Nullable
         private List<Integer> ontologyTermIds;
 
         /**
@@ -81,14 +86,14 @@ public abstract class AbstractSearchController {
     @Data
     @EqualsAndHashCode(callSuper = true)
     @NoArgsConstructor
-    protected static class UserSearchParams extends SearchParams {
+    public static class UserSearchParams extends SearchParams {
         @NotNull
         private String nameLike;
         private boolean prefix;
         @NotNull
         private String descriptionLike;
 
-        public UserSearchParams( String nameLike, boolean prefix, String descriptionLike, boolean iSearch, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherCategories, Set<String> organUberonIds, List<Integer> ontologyTermIds ) {
+        public UserSearchParams( String nameLike, boolean prefix, String descriptionLike, boolean iSearch, @Nullable Set<ResearcherPosition> researcherPositions, @Nullable Set<ResearcherCategory> researcherCategories, @Nullable Set<String> organUberonIds, @Nullable List<Integer> ontologyTermIds ) {
             super( iSearch, researcherPositions, researcherCategories, organUberonIds, ontologyTermIds );
             this.nameLike = nameLike;
             this.prefix = prefix;
@@ -101,7 +106,7 @@ public abstract class AbstractSearchController {
         }
     }
 
-    protected static class UserSearchParamsValidator implements Validator {
+    public static class UserSearchParamsValidator implements Validator {
 
         @Override
         public boolean supports( Class<?> clazz ) {
@@ -129,9 +134,10 @@ public abstract class AbstractSearchController {
         @NotNull
         private GeneInfo gene;
         private Set<TierType> tiers;
+        @Nullable
         private Taxon orthologTaxon;
 
-        public GeneSearchParams( GeneInfo gene, Set<TierType> tiers, Taxon orthologTaxon, boolean iSearch, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherCategories, Set<String> organUberonIds, List<Integer> ontologyTermIds ) {
+        public GeneSearchParams( GeneInfo gene, Set<TierType> tiers, @Nullable Taxon orthologTaxon, boolean iSearch, @Nullable Set<ResearcherPosition> researcherPositions, @Nullable Set<ResearcherCategory> researcherCategories, @Nullable Set<String> organUberonIds, @Nullable List<Integer> ontologyTermIds ) {
             super( iSearch, researcherPositions, researcherCategories, organUberonIds, ontologyTermIds );
             this.gene = gene;
             this.tiers = tiers;
@@ -371,17 +377,13 @@ public abstract class AbstractSearchController {
         return results;
     }
 
-    protected Collection<OrganInfo> organsFromUberonIds( Set<String> organUberonIds ) {
+    @Nullable
+    protected Collection<OrganInfo> organsFromUberonIds( @Nullable Set<String> organUberonIds ) {
         return organUberonIds == null ? null : organInfoService.findByUberonIdIn( organUberonIds );
     }
 
-    /**
-     * No need to perform the same
-     *
-     * @param ontologyTermIds
-     * @return
-     */
-    protected Map<Ontology, Set<OntologyTermInfo>> ontologyTermsFromIds( List<Integer> ontologyTermIds ) {
+    @Nullable
+    protected Map<Ontology, Set<OntologyTermInfo>> ontologyTermsFromIds( @Nullable List<Integer> ontologyTermIds ) {
         return ontologyTermIds == null ? null : ontologyService.findAllTermsByIdIn( ontologyTermIds ).stream()
                 .collect( Collectors.groupingBy( OntologyTermInfo::getOntology, Collectors.toSet() ) );
     }

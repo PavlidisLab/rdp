@@ -39,7 +39,7 @@ public class Ontology implements Comparable<Ontology> {
      */
     public static final int MAX_NAME_LENGTH = 255;
 
-    public static OntologyBuilder<?, ?> builder( @NonNull String name ) {
+    public static OntologyBuilder<?, ?> builder( String name ) {
         return new OntologyBuilderImpl().name( name );
     }
 

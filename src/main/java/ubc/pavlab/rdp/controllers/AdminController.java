@@ -19,6 +19,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.lang.Nullable;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.concurrent.DelegatingSecurityContextRunnable;
 import org.springframework.stereotype.Controller;
@@ -713,7 +714,7 @@ public class AdminController {
     }
 
     @PostMapping("/admin/ontologies/{ontology}/update-reactome-pathways")
-    public Object updateReactomePathways( @PathVariable(required = false) Ontology ontology, RedirectAttributes redirectAttributes, Locale locale ) {
+    public Object updateReactomePathways( @PathVariable(required = false) @Nullable Ontology ontology, RedirectAttributes redirectAttributes, Locale locale ) {
         // null-check is not necessary, but can save a database call
         if ( ontology == null || !ontology.equals( reactomeService.findPathwaysOntology() ) ) {
             return new ModelAndView( "error/404", HttpStatus.NOT_FOUND )
@@ -721,8 +722,16 @@ public class AdminController {
         }
         try {
             Ontology reactomeOntology = reactomeService.updatePathwaysOntology();
-            redirectAttributes.addFlashAttribute( "message", "Successfully updated Reactome pathways ontology." );
-            return "redirect:/admin/ontologies/" + reactomeOntology.getId();
+            if ( reactomeOntology != null ) {
+                redirectAttributes.addFlashAttribute( "message", "Successfully updated Reactome pathways ontology." );
+                return "redirect:/admin/ontologies/" + reactomeOntology.getId();
+            } else {
+                String message = "It seems that Reactome ontology does not setup.";
+                log.error( message );
+                redirectAttributes.addFlashAttribute( "message", message );
+                redirectAttributes.addFlashAttribute( "error", Boolean.TRUE );
+                return "redirect:/admin/ontologies";
+            }
         } catch ( ReactomeException e ) {
             log.error( "Failed to update Reactome pathways. Could this be an issue with the ontology configuration?", e );
             redirectAttributes.addFlashAttribute( "message", "Failed to update Reactome pathways: " + e.getMessage() + "." );
@@ -735,9 +744,9 @@ public class AdminController {
      * Update Reactome Pathways summations.
      */
     @PostMapping(value = "/admin/ontologies/{ontology}/update-reactome-pathway-summations")
-    public Object updateReactomePathwaySummations( @PathVariable(required = false) Ontology ontology, Locale locale ) {
+    public Object updateReactomePathwaySummations( @PathVariable(required = false) @Nullable Ontology ontology, Locale locale ) {
         // null-check is not necessary, but can save a database call
-        if ( ontology == null || !reactomeService.findPathwaysOntology().equals( ontology ) ) {
+        if ( ontology == null || !Objects.equals( reactomeService.findPathwaysOntology(), ontology ) ) {
             return new ModelAndView( "error/404", HttpStatus.NOT_FOUND )
                     .addObject( "message", messageSource.getMessage( "AdminController.ontologyNotFoundById", null, locale ) );
         }
@@ -756,9 +765,9 @@ public class AdminController {
      * @see #updateReactomePathwaySummations(Ontology, Locale)
      */
     @GetMapping(value = "/admin/ontologies/{ontology}/update-reactome-pathway-summations", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Object updateReactomePathwaySummationsSse( @PathVariable(required = false) Ontology ontology, Locale locale ) {
+    public Object updateReactomePathwaySummationsSse( @PathVariable(required = false) @Nullable Ontology ontology, Locale locale ) {
         // null-check is not necessary, but can save a database call
-        if ( ontology == null || !reactomeService.findPathwaysOntology().equals( ontology ) ) {
+        if ( ontology == null || !Objects.equals( reactomeService.findPathwaysOntology(), ontology ) ) {
             return ResponseEntity.status( HttpStatus.NOT_FOUND )
                     .body( messageSource.getMessage( "AdminController.ontologyNotFoundById", null, locale ) );
         }
@@ -1011,6 +1020,7 @@ public class AdminController {
         private URL ontologyUrl;
         private MultipartFile ontologyFile;
 
+        @Nullable
         public String getFilename() {
             if ( ontologyUrl != null ) {
                 // path cannot be null, but it can be empty if missing (i.e. http://github.com)
@@ -1034,13 +1044,13 @@ public class AdminController {
         } else if ( !isMultipartFileEmpty( importOntologyForm.ontologyFile ) ) {
             is = importOntologyForm.ontologyFile.getInputStream();
         } else {
-            return null;
+            throw new RuntimeException( "No reader can be created from the import ontology form." );
         }
         boolean hasGzipExtension = FilenameUtils.isExtension( importOntologyForm.getFilename(), "gz" );
         return new InputStreamReader( hasGzipExtension ? new GZIPInputStream( is ) : is );
     }
 
-    private static boolean isMultipartFileEmpty( MultipartFile mp ) {
+    private static boolean isMultipartFileEmpty( @Nullable MultipartFile mp ) {
         return mp == null || mp.isEmpty();
     }
 
