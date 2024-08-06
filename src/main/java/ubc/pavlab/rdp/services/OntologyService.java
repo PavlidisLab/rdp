@@ -292,13 +292,15 @@ public class OntologyService implements InitializingBean {
         // first pass for saving terms
         for ( OBOParser.Term term : parsingResult.getTerms() ) {
             assert term.getId() != null;
-            assert term.getName() != null;
             OntologyTermInfo t = existingTermsById.get( term.getId() );
             if ( t == null ) {
                 t = OntologyTermInfo.builder( ontology, term.getId() ).build();
             }
 
-            if ( term.getName().length() > OntologyTermInfo.MAX_NAME_LENGTH ) {
+            if ( StringUtils.isBlank( term.getName() ) ) {
+                log.warn( String.format( "Name for term %s is blank, will default to its ID.", term ) );
+                t.setName( term.getId() );
+            } else if ( term.getName().length() > OntologyTermInfo.MAX_NAME_LENGTH ) {
                 log.warn( String.format( "Name %s for term %s is too wide (%d characters) to fit in the database, it will be truncated to %d characters.",
                         term.getName(), term, term.getName().length(), OntologyTermInfo.MAX_NAME_LENGTH ) );
                 t.setName( term.getName().substring( 0, OntologyTermInfo.MAX_NAME_LENGTH ) );
