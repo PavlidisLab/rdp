@@ -89,8 +89,7 @@
                         <tr th:unless="${#strings.isEmpty(viewUser.profile.website)}" class="edit-container">
                             <td class="align-middle"><span class="text-muted align-middle">Website</span></td>
                             <td>
-                                <input class="data-edit" type="text" name="website"
-                                       th:value="${viewUser.profile.website}" disabled="disabled"/>
+                                <a th:href="${viewUser.profile.website}" th:text="${viewUser.profile.website}"></a>
                             </td>
                         </tr>
                         <tr th:unless="${@applicationSettings.profile.enabledResearcherCategories.isEmpty()} or ${viewUser.profile.researcherCategories.isEmpty()}">
@@ -138,8 +137,7 @@
                         <tr th:unless="${#strings.isEmpty(viewUser.profile.phone)}" class="edit-container">
                             <td class="align-middle"><span class="text-muted align-middle">Phone</span></td>
                             <td>
-                                <input class="data-edit" type="text" name="phone" th:value="${viewUser.profile.phone}"
-                                       disabled="disabled"/>
+                                <a th:href="'tel:'+${viewUser.profile.phone}" th:text="${viewUser.profile.phone}"></a>
                             </td>
                         </tr>
                     </table>
