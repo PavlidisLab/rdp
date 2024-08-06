@@ -1,5 +1,6 @@
 package ubc.pavlab.rdp.services;
 
+import org.springframework.lang.Nullable;
 import ubc.pavlab.rdp.model.Taxon;
 
 import java.util.Collection;
@@ -9,6 +10,7 @@ import java.util.Collection;
  */
 public interface TaxonService {
 
+    @Nullable
     Taxon findById( final Integer id );
 
     Collection<Taxon> findByActiveTrue();

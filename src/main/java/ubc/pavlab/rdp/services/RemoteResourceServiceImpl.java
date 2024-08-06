@@ -15,6 +15,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.lang.Nullable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
@@ -248,7 +249,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService, Initial
     }
 
     @Override
-    public List<User> findUsersByLikeNameAndDescription( String nameLike, boolean prefix, String descriptionLike, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherCategories, Set<String> organUberonIds, Map<Ontology, Set<OntologyTermInfo>> ontologyTermInfos ) {
+    public List<User> findUsersByLikeNameAndDescription( String nameLike, boolean prefix, String descriptionLike, @Nullable Set<ResearcherPosition> researcherPositions, @Nullable Set<ResearcherCategory> researcherCategories, @Nullable Set<String> organUberonIds, @Nullable Map<Ontology, Set<OntologyTermInfo>> ontologyTermInfos ) {
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add( "nameLike", nameLike );
         params.add( "prefix", String.valueOf( prefix ) );
@@ -268,7 +269,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService, Initial
                 return null;
             }
             if ( VersionUtils.satisfiesVersion( apiVersion, "1.5.0" ) ) {
-                return chain.filter( apiUri, chain );
+                return chain != null ? chain.filter( apiUri, chain ) : null;
             } else if ( ontologyTermInfos != null ) {
                 // pre-1.5 registry do not support ontology terms
                 return CompletableFuture.completedFuture( ResponseEntity.ok( new User[0] ) );
@@ -311,8 +312,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService, Initial
 
 
     @Override
-    public List<UserGene> findGenesBySymbol( String symbol, Taxon taxon, Set<TierType> tiers, Integer
-            orthologTaxonId, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherCategories, Set<String> organUberonIds, Map<Ontology, Set<OntologyTermInfo>> ontologyTermInfos ) {
+    public List<UserGene> findGenesBySymbol( String symbol, Taxon taxon, Set<TierType> tiers, @Nullable Integer orthologTaxonId, @Nullable Set<ResearcherPosition> researcherPositions, @Nullable Set<ResearcherCategory> researcherCategories, @Nullable Set<String> organUberonIds, @Nullable Map<Ontology, Set<OntologyTermInfo>> ontologyTermInfos ) {
         List<UserGene> intlUsergenes = new LinkedList<>();
         for ( TierType tier : restrictTiers( tiers ) ) {
             MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
@@ -577,7 +577,8 @@ public class RemoteResourceServiceImpl implements RemoteResourceService, Initial
          * @return the result of the step, or null to abort the chain
          * @
          */
-        Future<ResponseEntity<T>> filter( URI apiUri, RequestFilter<T> next );
+        @Nullable
+        Future<ResponseEntity<T>> filter( URI apiUri, @Nullable RequestFilter<T> next );
     }
 
     /**
@@ -593,7 +594,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService, Initial
                 return null;
             }
             if ( VersionUtils.satisfiesVersion( apiVersion, minimumVersion ) ) {
-                return next.filter( apiUri, null );
+                return next != null ? next.filter( apiUri, null ) : null;
             } else {
                 return null;
             }

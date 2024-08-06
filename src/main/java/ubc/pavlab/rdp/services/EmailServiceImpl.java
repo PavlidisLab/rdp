@@ -5,7 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.MessageSource;
 import org.springframework.core.task.AsyncTaskExecutor;
-import org.springframework.core.task.TaskExecutor;
+import org.springframework.lang.Nullable;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -31,7 +31,7 @@ import java.time.format.FormatStyle;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Locale;
-import java.util.concurrent.*;
+import java.util.concurrent.Future;
 
 /**
  * Created by mjacobson on 19/01/18.
@@ -53,7 +53,7 @@ public class EmailServiceImpl implements EmailService {
     @Qualifier("emailTaskExecutor")
     private AsyncTaskExecutor executorService;
 
-    private Future<?> sendSimpleMessage( String subject, String content, InternetAddress to, InternetAddress replyTo, InternetAddress cc ) throws AddressException {
+    private Future<?> sendSimpleMessage( String subject, String content, InternetAddress to, @Nullable InternetAddress replyTo, @Nullable InternetAddress cc ) throws AddressException {
         SimpleMailMessage email = new SimpleMailMessage();
 
         email.setSubject( subject );
@@ -70,7 +70,7 @@ public class EmailServiceImpl implements EmailService {
         return executorService.submit( () -> emailSender.send( email ) );
     }
 
-    private Future<?> sendMultipartMessage( String subject, String content, InternetAddress to, InternetAddress replyTo, MultipartFile attachment ) throws MessagingException {
+    private Future<?> sendMultipartMessage( String subject, String content, InternetAddress to, @Nullable InternetAddress replyTo, MultipartFile attachment ) throws MessagingException {
         MimeMessage message = emailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper( message, true );
 
@@ -92,7 +92,7 @@ public class EmailServiceImpl implements EmailService {
     }
 
     @Override
-    public Future<?> sendSupportMessage( String message, String name, User user, String userAgent, MultipartFile attachment, Locale locale ) throws MessagingException {
+    public Future<?> sendSupportMessage( String message, String name, User user, String userAgent, @Nullable MultipartFile attachment, Locale locale ) throws MessagingException {
         InternetAddress replyTo = user.getVerifiedContactEmail().orElseThrow( () -> new MessagingException( "Could not find a verified email address for user." ) );
         String subject = messageSource.getMessage( "EmailService.sendSupportMessage.subject", new Object[]{ Messages.SHORTNAME }, locale );
         String content = "Name: " + name + "\r\n" +

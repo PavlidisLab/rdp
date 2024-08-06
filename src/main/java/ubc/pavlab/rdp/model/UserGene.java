@@ -20,7 +20,6 @@ import java.time.Instant;
 import java.util.Comparator;
 import java.util.Optional;
 import java.util.UUID;
-import java.io.Serializable;
 
 /**
  * Created by mjacobson on 17/01/18.
@@ -91,6 +90,7 @@ public class UserGene extends Gene implements UserContent {
     @Transient
     private User remoteUser;
 
+    @Nullable
     @Column(name = "user_privacy_level")
     @ColumnDefault("NULL")
     @Enumerated(EnumType.ORDINAL)
@@ -153,7 +153,7 @@ public class UserGene extends Gene implements UserContent {
     }
 
     @JsonProperty("privacyLevel")
-    public void setPrivacyLevel( PrivacyLevelType privacyLevel ) {
+    public void setPrivacyLevel( @Nullable PrivacyLevelType privacyLevel ) {
         this.privacyLevel = privacyLevel;
     }
 

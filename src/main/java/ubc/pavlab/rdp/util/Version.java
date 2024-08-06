@@ -1,5 +1,7 @@
 package ubc.pavlab.rdp.util;
 
+import org.springframework.lang.Nullable;
+
 import java.util.Optional;
 
 public class Version implements Comparable<Version> {
@@ -25,7 +27,7 @@ public class Version implements Comparable<Version> {
      * @param preRelease
      * @throws VersionException if the components contains an invalid number
      */
-    public Version( String[] components, String preRelease ) throws VersionException {
+    public Version( String[] components, @Nullable  String preRelease ) throws VersionException {
         if ( components.length > FACTORS.length ) {
             throw new VersionException( "Version must have at most " + FACTORS.length + " components." );
         }
