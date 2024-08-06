@@ -1,6 +1,6 @@
 package ubc.pavlab.rdp.util;
 
-import lombok.NonNull;
+import org.springframework.lang.NonNull;
 
 import java.util.Collection;
 import java.util.HashMap;

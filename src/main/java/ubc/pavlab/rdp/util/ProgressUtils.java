@@ -2,6 +2,7 @@ package ubc.pavlab.rdp.util;
 
 import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.lang3.time.StopWatch;
+import org.springframework.lang.Nullable;
 
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
@@ -19,7 +20,7 @@ public class ProgressUtils {
      * @param totalElements     total number of elements to be processed, which must be greater than one
      * @param elapsedTime       elapsed time since the processing started
      */
-    public static void emitProgress( ProgressCallback progressCallback, long processedElements, long totalElements, Duration elapsedTime ) {
+    public static void emitProgress( @Nullable ProgressCallback progressCallback, long processedElements, long totalElements, Duration elapsedTime ) {
         if ( processedElements < 0 ) {
             throw new IllegalArgumentException( "The processedElements parameter must be positive." );
         }
@@ -44,7 +45,7 @@ public class ProgressUtils {
         }
     }
 
-    public static void emitProgress( ProgressCallback progressCallback, long processedElements, long totalElements, long elapsedTimeMillis ) {
+    public static void emitProgress( @Nullable ProgressCallback progressCallback, long processedElements, long totalElements, long elapsedTimeMillis ) {
         emitProgress( progressCallback, processedElements, totalElements, Duration.ofMillis( elapsedTimeMillis ) );
     }
 }

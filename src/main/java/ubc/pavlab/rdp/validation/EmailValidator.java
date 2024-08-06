@@ -1,6 +1,7 @@
 package ubc.pavlab.rdp.validation;
 
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.lang.Nullable;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
 
@@ -34,7 +35,7 @@ public class EmailValidator implements Validator {
         this.allowIdn = false;
     }
 
-    public EmailValidator( AllowedDomainStrategy allowedDomainStrategy, boolean allowIdn ) {
+    public EmailValidator( @Nullable AllowedDomainStrategy allowedDomainStrategy, boolean allowIdn ) {
         this.allowedDomainStrategy = allowedDomainStrategy;
         this.allowIdn = allowIdn;
     }

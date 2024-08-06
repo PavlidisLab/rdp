@@ -1,6 +1,9 @@
 package ubc.pavlab.rdp.services;
 
-import ubc.pavlab.rdp.model.*;
+import org.springframework.lang.Nullable;
+import ubc.pavlab.rdp.model.Gene;
+import ubc.pavlab.rdp.model.GeneOntologyTermInfo;
+import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.util.SearchResult;
 
 import java.util.Collection;
@@ -48,6 +51,7 @@ public interface GOService {
 
     Collection<Integer> getGenesInTaxon( Collection<GeneOntologyTermInfo> goTerms, Taxon taxon );
 
+    @Nullable
     GeneOntologyTermInfo getTerm( String goId );
 
     Collection<GeneOntologyTermInfo> getTermsForGene( Gene gene );

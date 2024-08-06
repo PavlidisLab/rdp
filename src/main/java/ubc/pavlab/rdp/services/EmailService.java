@@ -1,5 +1,6 @@
 package ubc.pavlab.rdp.services;
 
+import org.springframework.lang.Nullable;
 import org.springframework.web.multipart.MultipartFile;
 import ubc.pavlab.rdp.model.PasswordResetToken;
 import ubc.pavlab.rdp.model.User;
@@ -15,7 +16,7 @@ import java.util.concurrent.Future;
  */
 public interface EmailService {
 
-    Future<?> sendSupportMessage( String message, String name, User user, String userAgent, MultipartFile attachment, Locale locale ) throws MessagingException;
+    Future<?> sendSupportMessage( String message, String name, User user, String userAgent, @Nullable MultipartFile attachment, Locale locale ) throws MessagingException;
 
     Future<?> sendResetTokenMessage( User user, PasswordResetToken token, Locale locale ) throws MessagingException;
 

@@ -3,6 +3,7 @@ package ubc.pavlab.rdp.services;
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import ubc.pavlab.rdp.model.Profile;
 import ubc.pavlab.rdp.model.Role;
@@ -13,6 +14,8 @@ import ubc.pavlab.rdp.repositories.RoleRepository;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 
 import java.text.MessageFormat;
+
+import static java.util.Objects.requireNonNull;
 
 @Service
 @CommonsLog
@@ -27,11 +30,11 @@ public class UserPrivacyService {
     @Autowired
     private ApplicationSettings applicationSettings;
 
-    public boolean checkUserCanSee( User user, UserContent content ) {
+    public boolean checkUserCanSee( @Nullable User user, UserContent content ) {
         return checkUserCanSeeOtherUserContentWithPrivacyLevel( user, content.getOwner().orElse( null ), content.getEffectivePrivacyLevel() );
     }
 
-    public boolean checkUserCanSearch( User user, boolean international ) {
+    public boolean checkUserCanSearch( @Nullable User user, boolean international ) {
         // international search is not enabled
         if ( international && !applicationSettings.getIsearch().isEnabled() ) {
             return false;
@@ -46,12 +49,12 @@ public class UserPrivacyService {
         return checkUserCanSearch( userService.findCurrentUser(), international );
     }
 
-    public boolean checkUserCanUpdate( User user, UserContent userContent ) {
+    public boolean checkUserCanUpdate( @Nullable User user, UserContent userContent ) {
         // only admins or rightful owner can update user content
         return user != null && ( user.getRoles().contains( getAdminRole() ) || userContent.getOwner().filter( user::equals ).isPresent() );
     }
 
-    private boolean checkUserCanSeeOtherUserContentWithPrivacyLevel( User currentUser, User otherUser, PrivacyLevelType privacyLevel ) {
+    private boolean checkUserCanSeeOtherUserContentWithPrivacyLevel( @Nullable User currentUser, @Nullable User otherUser, PrivacyLevelType privacyLevel ) {
         // Never show the remote admin profile (or accidental null users)
         if ( otherUser == null || ( applicationSettings.getIsearch() != null && isRemoteSearchUser( otherUser ) ) ) {
             return false;
@@ -96,12 +99,12 @@ public class UserPrivacyService {
 
     @Cacheable(value = "ubc.pavlab.rdp.model.Role.byRole", key = "'ROLE_ADMIN'")
     public Role getAdminRole() {
-        return roleRepository.findByRole( "ROLE_ADMIN" );
+        return requireNonNull( roleRepository.findByRole( "ROLE_ADMIN" ) );
     }
 
     @Cacheable(value = "ubc.pavlab.rdp.model.Role.byRole", key = "'ROLE_SERVICE_ACCOUNT'")
     public Role getServiceAccountRole() {
-        return roleRepository.findByRole( "ROLE_SERVICE_ACCOUNT" );
+        return requireNonNull( roleRepository.findByRole( "ROLE_SERVICE_ACCOUNT" ) );
     }
 
     private boolean isRemoteSearchUser( User user ) {

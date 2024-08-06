@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.NaturalId;
-import org.springframework.context.MessageSourceResolvable;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -93,7 +92,7 @@ public class UserOntologyTerm extends OntologyTerm implements UserContent {
 
     @Override
     @JsonIgnore
-    public @NonNull PrivacyLevelType getEffectivePrivacyLevel() {
+    public PrivacyLevelType getEffectivePrivacyLevel() {
         return user.getEffectivePrivacyLevel();
     }
 

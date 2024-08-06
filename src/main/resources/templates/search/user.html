@@ -72,25 +72,24 @@
                                        th:value="${viewUser.profile.lastName}" disabled="disabled"/>
                             </td>
                         </tr>
-                        <tr class="edit-container">
+                        <tr th:unless="${#strings.isEmpty(viewUser.profile.organization)}" class="edit-container">
                             <td class="align-middle"><span class="text-muted align-middle">Organization</span></td>
                             <td>
                                 <input class="data-edit" type="text" name="organization"
                                        th:value="${viewUser.profile.organization}" disabled="disabled"/>
                             </td>
                         </tr>
-                        <tr class="edit-container">
+                        <tr th:unless="${#strings.isEmpty(viewUser.profile.department)}" class="edit-container">
                             <td class="align-middle"><span class="text-muted align-middle">Department</span></td>
                             <td>
                                 <input class="data-edit" type="text" name="department"
                                        th:value="${viewUser.profile.department}" disabled="disabled"/>
                             </td>
                         </tr>
-                        <tr class="edit-container">
+                        <tr th:unless="${#strings.isEmpty(viewUser.profile.website)}" class="edit-container">
                             <td class="align-middle"><span class="text-muted align-middle">Website</span></td>
                             <td>
-                                <input class="data-edit" type="text" name="website"
-                                       th:value="${viewUser.profile.website}" disabled="disabled"/>
+                                <a th:href="${viewUser.profile.website}" th:text="${viewUser.profile.website}"></a>
                             </td>
                         </tr>
                         <tr th:unless="${@applicationSettings.profile.enabledResearcherCategories.isEmpty()} or ${viewUser.profile.researcherCategories.isEmpty()}">
@@ -126,21 +125,19 @@
                     <div class="card-header">
                         <h3 class="mb-0">Contact Information</h3>
                     </div>
-                    <table class="table mb-0">
-                        <tr th:unless="${viewUser.origin}">
+                    <table th:if="${viewUser.verifiedContactEmail.isPresent()}" class="table mb-0">
+                        <tr>
                             <td class="align-middle" style="width: 120px;"><span
                                     class="text-muted align-middle">Email</span></td>
                             <td>
-                                <a th:if="${viewUser.verifiedContactEmail.isPresent()}"
-                                   th:href="${'mailto:' + viewUser.verifiedContactEmail.get().address}"
+                                <a th:href="${'mailto:' + viewUser.verifiedContactEmail.get().address}"
                                    th:text="${viewUser.verifiedContactEmail.get().address}"></a>
                             </td>
                         </tr>
-                        <tr class="edit-container">
+                        <tr th:unless="${#strings.isEmpty(viewUser.profile.phone)}" class="edit-container">
                             <td class="align-middle"><span class="text-muted align-middle">Phone</span></td>
                             <td>
-                                <input class="data-edit" type="text" name="phone" th:value="${viewUser.profile.phone}"
-                                       disabled="disabled"/>
+                                <a th:href="'tel:'+${viewUser.profile.phone}" th:text="${viewUser.profile.phone}"></a>
                             </td>
                         </tr>
                     </table>

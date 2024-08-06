@@ -411,6 +411,7 @@ public class UserServiceImplTest {
         when( userRepository.findByEmailIgnoreCase( user.getEmail() ) ).thenReturn( user );
 
         User found = userService.findUserByEmailNoAuth( user.getEmail() );
+        assertThat( found ).isNotNull();
         assertThat( found.getEmail() )
                 .isEqualTo( user.getEmail() );
     }
@@ -1299,24 +1300,6 @@ public class UserServiceImplTest {
         Collection<UserTerm> found = userService.recommendTerms( user, taxon, -1, -1 );
         assertThat( found ).isEmpty();
     }
-
-    @Test(expected = NullPointerException.class)
-    public void recommendTerms_whenUserNull_thenThrowNullPointerException() {
-        setUpRecommendTermsMocks();
-
-        Taxon taxon = createTaxon( 1 );
-        Collection<UserTerm> found = userService.recommendTerms( null, taxon, -1, -1 );
-        assertThat( found ).isNull();
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void recommendTerms_whenTaxonNull_thenThrowNullPointerException() {
-        setUpRecommendTermsMocks();
-
-        User user = createUser( 1 );
-        userService.recommendTerms( user, null, -1, -1 );
-    }
-
 
     @Test
     public void updateUserTerms_thenSucceed() {

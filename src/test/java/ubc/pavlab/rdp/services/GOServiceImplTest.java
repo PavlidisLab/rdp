@@ -154,14 +154,9 @@ public class GOServiceImplTest {
         return term;
     }
 
-    @Test(expected = NullPointerException.class)
-    public void termFrequencyMap_whenGenesNull_thenThroNullPointerException() {
-        Map<GeneOntologyTermInfo, Long> fmap = goService.termFrequencyMap( null );
-    }
-
     @Test
     public void termFrequencyMap_whenGenesEmpty_thenReturnEmpty() {
-        Map<GeneOntologyTermInfo, Long> fmap = goService.termFrequencyMap( Collections.EMPTY_SET );
+        Map<GeneOntologyTermInfo, Long> fmap = goService.termFrequencyMap( Collections.emptySet() );
         assertThat( fmap ).isEmpty();
     }
 
@@ -285,11 +280,6 @@ public class GOServiceImplTest {
         assertThat( matches ).hasSize( 90 );
     }
 
-    @Test(expected = NullPointerException.class)
-    public void getChildren_whenNull_thenReturnNull() {
-        Collection<GeneOntologyTermInfo> found = goService.getChildren( null );
-    }
-
     @Test
     public void getChildren_whenDefault_thenReturnAllChildren() {
         Collection<GeneOntologyTermInfo> found = goService.getChildren( terms.get( 1 ) );
@@ -300,11 +290,6 @@ public class GOServiceImplTest {
     public void getChildren_whenIncludePartOf_thenReturnAllChildren() {
         Collection<GeneOntologyTermInfo> found = goService.getChildren( terms.get( 1 ) );
         assertThat( found ).containsExactlyInAnyOrder( terms.get( 2 ), terms.get( 3 ) );
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void getDescendants_whenNull_thenReturnNull() {
-        Collection<GeneOntologyTermInfo> found = goService.getDescendants( null );
     }
 
     @Test
@@ -344,18 +329,6 @@ public class GOServiceImplTest {
     }
 
     @Test
-    public void getGenes_whenNullString_thenReturnNull() {
-        String goId = null;
-        Collection<Integer> found = goService.getGenesInTaxon( goId, taxon );
-        assertThat( found ).isEmpty();
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void getGenes_whenValidStringAndNullTaxon_thenReturnNull() {
-        Collection<Integer> found = goService.getGenesInTaxon( terms.get( 0 ).getGoId(), null );
-    }
-
-    @Test
     public void getGenes_whenValidTerm_thenReturnGenes() {
         Collection<Integer> found = goService.getGenes( terms.get( 0 ) );
         assertThat( found ).containsExactlyInAnyOrder( 1, 2 );
@@ -371,12 +344,6 @@ public class GOServiceImplTest {
     public void getGenes_whenInvalidTerm_thenReturnEmpty() {
         Collection<Integer> found = goService.getGenes( createTerm( toGOId( 999 ) ) );
         assertThat( found ).isEmpty();
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void getGenes_whenNullTerm_thenReturnNull() {
-        GeneOntologyTermInfo term = null;
-        Collection<Integer> found = goService.getGenes( term );
     }
 
     @Test
@@ -395,17 +362,6 @@ public class GOServiceImplTest {
     public void getGenes_whenInvalidTaxon_thenReturnEmpty() {
         Collection<Integer> found = goService.getGenesInTaxon( terms.get( 0 ), createTaxon( 2 ) );
         assertThat( found ).isEmpty();
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void getGenes_whenNullTermAndTaxon_thenReturnNull() {
-        GeneOntologyTermInfo term = null;
-        Collection<Integer> found = goService.getGenesInTaxon( term, taxon );
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void getGenes_whenNullTaxon_thenReturnNull() {
-        Collection<Integer> found = goService.getGenesInTaxon( terms.get( 0 ), null );
     }
 
     //
@@ -431,17 +387,6 @@ public class GOServiceImplTest {
         assertThat( found ).isEmpty();
     }
 
-    @Test(expected = NullPointerException.class)
-    public void getGenes_whenNullTermsAndTaxon_thenReturnNull() {
-        Collection<GeneOntologyTermInfo> terms = null;
-        Collection<Integer> found = goService.getGenesInTaxon( terms, taxon );
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void getGenes_whenMultipleTermsAndNullTaxon_thenReturnNull() {
-        Collection<Integer> found = goService.getGenesInTaxon( Sets.newSet( terms.get( 1 ), terms.get( 4 ) ), null );
-    }
-
     @Test
     public void getTerm_whenValidId_thenReturnTerm() {
         GeneOntologyTerm found = goService.getTerm( terms.get( 1 ).getGoId() );
@@ -451,12 +396,6 @@ public class GOServiceImplTest {
     @Test
     public void getTerm_whenInvalidId_thenReturnNull() {
         GeneOntologyTerm found = goService.getTerm( "xyz" );
-        assertThat( found ).isNull();
-    }
-
-    @Test
-    public void getTerm_whenNullId_thenReturnNull() {
-        GeneOntologyTerm found = goService.getTerm( null );
         assertThat( found ).isNull();
     }
 
