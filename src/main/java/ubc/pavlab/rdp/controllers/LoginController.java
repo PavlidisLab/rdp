@@ -4,6 +4,7 @@ import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
+import org.springframework.lang.Nullable;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -26,7 +27,6 @@ import ubc.pavlab.rdp.validation.EmailValidator;
 import ubc.pavlab.rdp.validation.Recaptcha;
 import ubc.pavlab.rdp.validation.RecaptchaValidator;
 
-import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Locale;
