@@ -5,13 +5,6 @@ import org.springframework.core.io.ProtocolResolver;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.io.UrlResource;
-import org.springframework.beans.BeansException;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
-import org.springframework.context.ResourceLoaderAware;
-import org.springframework.context.support.GenericApplicationContext;
-import org.springframework.core.io.*;
-import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -54,6 +47,7 @@ public class PurlResolver implements ProtocolResolver {
             log.warn( String.format( "Invalid 'Location' header for PURL %s.", url ) );
         } catch ( IOException e ) {
             log.error( String.format( "Failed to resolve PURL %s.", url ), e );
+        } finally {
             if ( con != null ) {
                 con.disconnect();
             }

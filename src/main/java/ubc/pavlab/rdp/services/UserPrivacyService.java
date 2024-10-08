@@ -2,7 +2,6 @@ package ubc.pavlab.rdp.services;
 
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import ubc.pavlab.rdp.model.Profile;
@@ -14,8 +13,6 @@ import ubc.pavlab.rdp.repositories.RoleRepository;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 
 import java.text.MessageFormat;
-
-import static java.util.Objects.requireNonNull;
 
 @Service
 @CommonsLog
@@ -56,7 +53,7 @@ public class UserPrivacyService {
 
     private boolean checkUserCanSeeOtherUserContentWithPrivacyLevel( @Nullable User currentUser, @Nullable User otherUser, PrivacyLevelType privacyLevel ) {
         // Never show the remote admin profile (or accidental null users)
-        if ( otherUser == null || ( applicationSettings.getIsearch() != null && isRemoteSearchUser( otherUser ) ) ) {
+        if ( otherUser == null || isRemoteSearchUser( otherUser ) ) {
             return false;
         }
 
@@ -67,7 +64,7 @@ public class UserPrivacyService {
 
         Profile profile = otherUser.getProfile();
 
-        if ( profile == null || profile.getPrivacyLevel() == null ) {
+        if ( profile.getPrivacyLevel() == null ) {
             log.error( MessageFormat.format( "User without a profile, privacy levels or sharing set: {0}", otherUser ) );
             return false;
         }
@@ -75,7 +72,7 @@ public class UserPrivacyService {
 
         // Either the user is looking at himself, or the user is public, or shared with registered users - check for any logged-in user, or private - check for admin; If logged-in user is admin, we have to
         // check whether this user is the designated actor for the authenticated remote search, in which case we have to check for remote search privileges on the user.
-        return otherUser.equals( currentUser ) // User is looking at himself
+        return ( currentUser != null && currentUser.equals( otherUser ) ) // User is looking at himself
                 || ( privacyLevel == PrivacyLevelType.PUBLIC ) // Data is public
                 || ( privacyLevel == PrivacyLevelType.SHARED && currentUser != null && !isRemoteSearchUser( currentUser ) )// data is accessible for registerd users and there is a user logged in who is not the remote admin
                 || ( privacyLevel == PrivacyLevelType.PRIVATE && currentUser != null && isAdminOrServiceAccount( currentUser ) && !isRemoteSearchUser( currentUser ) ) // data is private and there is an admin (or service account) logged in who is not the remote search user
@@ -97,14 +94,12 @@ public class UserPrivacyService {
                 || ( currentUser != null && currentUser.getRoles().contains( getAdminRole() ) ) );
     }
 
-    @Cacheable(value = "ubc.pavlab.rdp.model.Role.byRole", key = "'ROLE_ADMIN'")
-    public Role getAdminRole() {
-        return requireNonNull( roleRepository.findByRole( "ROLE_ADMIN" ) );
+    private Role getAdminRole() {
+        return roleRepository.findByRole( "ROLE_ADMIN" ).orElseThrow( NullPointerException::new );
     }
 
-    @Cacheable(value = "ubc.pavlab.rdp.model.Role.byRole", key = "'ROLE_SERVICE_ACCOUNT'")
-    public Role getServiceAccountRole() {
-        return requireNonNull( roleRepository.findByRole( "ROLE_SERVICE_ACCOUNT" ) );
+    private Role getServiceAccountRole() {
+        return roleRepository.findByRole( "ROLE_SERVICE_ACCOUNT" ).orElseThrow( NullPointerException::new );
     }
 
     private boolean isRemoteSearchUser( User user ) {

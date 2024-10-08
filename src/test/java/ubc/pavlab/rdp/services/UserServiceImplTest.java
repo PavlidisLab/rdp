@@ -190,7 +190,7 @@ public class UserServiceImplTest {
     }
 
     private void setUpRoleMocks() {
-        when( roleRepository.findByRole( "ROLE_USER" ) ).thenReturn( createRole( 2, "ROLE_USER" ) );
+        when( roleRepository.findByRole( "ROLE_USER" ) ).thenReturn( Optional.of( createRole( 2, "ROLE_USER" ) ) );
     }
 
     private void setUpPasswordResetTokenMocks() {
@@ -199,20 +199,20 @@ public class UserServiceImplTest {
         PasswordResetToken token = new PasswordResetToken();
         token.setUser( user );
         token.updateToken( "token1" );
-        when( passwordResetTokenRepository.findByToken( token.getToken() ) ).thenReturn( token );
+        when( passwordResetTokenRepository.findByToken( token.getToken() ) ).thenReturn( Optional.of( token ) );
 
         token = new PasswordResetToken();
         token.setUser( user );
         token.setToken( "token1Expired" );
         token.setExpiryDate( Instant.now().minusSeconds( 1 ) );
-        when( passwordResetTokenRepository.findByToken( token.getToken() ) ).thenReturn( token );
+        when( passwordResetTokenRepository.findByToken( token.getToken() ) ).thenReturn( Optional.of( token ) );
 
         token = new PasswordResetToken();
         token.setUser( otherUser );
         token.updateToken( "token2" );
-        when( passwordResetTokenRepository.findByToken( token.getToken() ) ).thenReturn( token );
+        when( passwordResetTokenRepository.findByToken( token.getToken() ) ).thenReturn( Optional.of( token ) );
 
-        when( passwordResetTokenRepository.findByToken( "tokenBad" ) ).thenReturn( null );
+        when( passwordResetTokenRepository.findByToken( "tokenBad" ) ).thenReturn( Optional.empty() );
     }
 
     private void setUpVerificationTokenMocks() {
@@ -221,16 +221,16 @@ public class UserServiceImplTest {
         token.setUser( user );
         token.setEmail( user.getEmail() );
         token.updateToken( "token1" );
-        when( tokenRepository.findByToken( token.getToken() ) ).thenReturn( token );
+        when( tokenRepository.findByToken( token.getToken() ) ).thenReturn( Optional.of( token ) );
 
         token = new VerificationToken();
         token.setUser( user );
         token.setEmail( user.getEmail() );
         token.setToken( "token1Expired" );
         token.setExpiryDate( Instant.now().minus( 1, ChronoUnit.SECONDS ) );
-        when( tokenRepository.findByToken( token.getToken() ) ).thenReturn( token );
+        when( tokenRepository.findByToken( token.getToken() ) ).thenReturn( Optional.of( token ) );
 
-        when( tokenRepository.findByToken( "tokenBad" ) ).thenReturn( null );
+        when( tokenRepository.findByToken( "tokenBad" ) ).thenReturn( Optional.empty() );
     }
 
     private void setUpRecommendTermsMocks() {
@@ -408,7 +408,7 @@ public class UserServiceImplTest {
     @Test
     public void findUserByEmail_whenValidEmail_thenUserShouldBeFound() {
         User user = createUser( 1 );
-        when( userRepository.findByEmailIgnoreCase( user.getEmail() ) ).thenReturn( user );
+        when( userRepository.findByEmailIgnoreCase( user.getEmail() ) ).thenReturn( Optional.of( user ) );
 
         User found = userService.findUserByEmailNoAuth( user.getEmail() );
         assertThat( found ).isNotNull();
@@ -807,7 +807,7 @@ public class UserServiceImplTest {
         token.setUser( user );
         token.setEmail( "foo@example.com" );
         token.updateToken( "token1" );
-        when( tokenRepository.findByToken( token.getToken() ) ).thenReturn( token );
+        when( tokenRepository.findByToken( token.getToken() ) ).thenReturn( Optional.of( token ) );
         userService.confirmVerificationToken( "token1", new MockHttpServletRequest() );
     }
 

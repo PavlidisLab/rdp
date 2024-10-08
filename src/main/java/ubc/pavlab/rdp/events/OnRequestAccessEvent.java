@@ -11,9 +11,9 @@ import java.io.Serializable;
 @EqualsAndHashCode(callSuper = false)
 public class OnRequestAccessEvent<T extends Serializable> extends ApplicationEvent {
 
-    private User user;
-    private T object;
-    private String reason;
+    private final User user;
+    private final T object;
+    private final String reason;
 
     public OnRequestAccessEvent( User user, T object, String reason ) {
         super( user );

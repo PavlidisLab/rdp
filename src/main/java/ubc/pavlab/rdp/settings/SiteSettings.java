@@ -3,8 +3,8 @@ package ubc.pavlab.rdp.settings;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.lang.Nullable;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotEmpty;
@@ -34,6 +34,7 @@ public class SiteSettings {
      * If configured, CORS policies will be setup so that scripts running on the main site can freely access the
      * '/stats' and '/api/**' endpoints.
      */
+    @Nullable
     private URI mainsite;
 
     @Pattern(regexp = "#[a-fA-F\\d]{6}", message = "The theme color must be a valid hex color (i.e. '#FFFFFF').")

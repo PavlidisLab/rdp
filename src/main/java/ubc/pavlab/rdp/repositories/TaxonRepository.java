@@ -13,6 +13,7 @@ public interface TaxonRepository extends JpaRepository<Taxon, Integer> {
 
     @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
     List<Taxon> findByActiveTrue();
+
     @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
     List<Taxon> findByActiveTrueOrderByOrdering();
 }

@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
 import org.springframework.http.converter.FormHttpMessageConverter;
+import org.springframework.lang.Nullable;
 import org.springframework.web.client.RestTemplate;
 import ubc.pavlab.rdp.validation.*;
 
@@ -27,8 +28,8 @@ public class ValidationConfig {
 
     @Bean
     public EmailValidator emailValidator(
-            @Value("${rdp.settings.allowed-email-domains}") List<String> allowedEmailDomains,
-            @Value("${rdp.settings.allowed-email-domains-file}") Resource allowedEmailDomainsFile,
+            @Value("${rdp.settings.allowed-email-domains}") @Nullable List<String> allowedEmailDomains,
+            @Value("${rdp.settings.allowed-email-domains-file}") @Nullable Resource allowedEmailDomainsFile,
             @Value("${rdp.settings.allowed-email-domains-file-refresh-delay}") @DurationUnit(ChronoUnit.SECONDS) Duration refreshDelay,
             @Value("${rdp.settings.allow-internationalized-email-domains}") boolean allowIdn ) throws IOException {
         List<AllowedDomainStrategy> strategies = new ArrayList<>();

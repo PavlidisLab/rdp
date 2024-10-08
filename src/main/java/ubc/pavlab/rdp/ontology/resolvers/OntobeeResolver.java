@@ -21,7 +21,7 @@ public class OntobeeResolver implements OntologyResolver {
 
     @Override
     public boolean accepts( Ontology ontology ) {
-        return ontology.getOntologyUrl().toExternalForm().startsWith( DEFAULT_IRI_PREFIX );
+        return ontology.getOntologyUrl() != null && ontology.getOntologyUrl().toExternalForm().startsWith( DEFAULT_IRI_PREFIX );
     }
 
     @Override

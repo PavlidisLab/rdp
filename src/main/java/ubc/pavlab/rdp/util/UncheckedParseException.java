@@ -2,10 +2,10 @@ package ubc.pavlab.rdp.util;
 
 import lombok.Getter;
 
+@Getter
 public class UncheckedParseException extends RuntimeException {
 
-    @Getter
-    private ParseException cause;
+    private final ParseException cause;
 
     protected UncheckedParseException( ParseException cause ) {
         super( cause );

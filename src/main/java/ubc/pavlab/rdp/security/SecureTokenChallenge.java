@@ -7,7 +7,7 @@ public interface SecureTokenChallenge<T> {
 
     /**
      * @param token the token being challenged
-     * @throws TokenException
+     * @throws TokenException if the challenge fails
      */
     void challenge( Token token, T object ) throws TokenException;
 

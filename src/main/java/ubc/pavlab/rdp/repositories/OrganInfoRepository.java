@@ -5,11 +5,12 @@ import org.springframework.stereotype.Repository;
 import ubc.pavlab.rdp.model.OrganInfo;
 
 import java.util.Collection;
+import java.util.Optional;
 
 @Repository
 public interface OrganInfoRepository extends JpaRepository<OrganInfo, Integer> {
 
-    OrganInfo findByUberonId( String id );
+    Optional<OrganInfo> findByUberonId( String id );
 
     Collection<OrganInfo> findByActiveTrueOrderByOrdering();
 

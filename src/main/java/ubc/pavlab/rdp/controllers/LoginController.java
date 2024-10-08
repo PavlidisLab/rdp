@@ -26,6 +26,7 @@ import ubc.pavlab.rdp.validation.EmailValidator;
 import ubc.pavlab.rdp.validation.Recaptcha;
 import ubc.pavlab.rdp.validation.RecaptchaValidator;
 
+import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Locale;
@@ -110,8 +111,8 @@ public class LoginController {
     @PostMapping("/registration")
     public ModelAndView createNewUser( @Validated(User.ValidationUserAccount.class) User user,
                                        BindingResult bindingResult,
-                                       @RequestParam(name = "g-recaptcha-response", required = false) String recaptchaResponse,
-                                       @RequestHeader(name = "X-Forwarded-For", required = false) List<String> clientIp,
+                                       @RequestParam(name = "g-recaptcha-response", required = false) @Nullable String recaptchaResponse,
+                                       @RequestHeader(name = "X-Forwarded-For", required = false) @Nullable List<String> clientIp,
                                        RedirectAttributes redirectAttributes,
                                        Locale locale ) {
         ModelAndView modelAndView = new ModelAndView( "registration" );
@@ -129,19 +130,10 @@ public class LoginController {
         }
 
         User existingUser = userService.findUserByEmailNoAuth( user.getEmail() );
-
-        // profile can be missing of no profile.* fields have been set
-        if ( user.getProfile() == null ) {
-            user.setProfile( new Profile() );
-        }
-
         user.setEnabled( false );
 
         // initialize a basic user profile
         Profile userProfile = user.getProfile();
-        if ( userProfile == null ) {
-            userProfile = new Profile();
-        }
         userProfile.setPrivacyLevel( privacyService.getDefaultPrivacyLevel() );
         userProfile.setShared( applicationSettings.getPrivacy().isDefaultSharing() );
         userProfile.setHideGenelist( false );

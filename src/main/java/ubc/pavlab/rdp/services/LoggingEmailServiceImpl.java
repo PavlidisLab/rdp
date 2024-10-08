@@ -3,6 +3,7 @@ package ubc.pavlab.rdp.services;
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -32,7 +33,7 @@ public class LoggingEmailServiceImpl implements EmailService {
     private SiteSettings siteSettings;
 
     @Override
-    public Future<?> sendSupportMessage( String message, String name, User user, String userAgent, MultipartFile attachment, Locale locale ) {
+    public Future<?> sendSupportMessage( String message, String name, User user, String userAgent, @Nullable MultipartFile attachment, Locale locale ) {
         log.info( MessageFormat.format( "Support message for {0}:\n{1}", user, message ) );
         return CompletableFuture.completedFuture( null );
     }

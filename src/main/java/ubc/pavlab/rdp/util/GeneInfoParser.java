@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.lang3.ArrayUtils;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 
 import java.io.*;
@@ -67,6 +68,7 @@ public class GeneInfoParser {
         private String symbol;
         private String synonyms;
         private String description;
+        @Nullable
         private LocalDate modificationDate;
 
         public static Record parseLine( String line, String[] header, int lineNumber ) throws UncheckedParseException {

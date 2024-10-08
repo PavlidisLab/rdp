@@ -19,10 +19,12 @@ import java.util.Comparator;
 @EqualsAndHashCode(of = { "match" })
 public class SearchResult<T extends Comparable<T>> implements Comparable<SearchResult<T>> {
 
+    @Nullable
     private final MatchType matchType;
     /**
      * A unique, internal ID that disambiguate results with the same {@link #label}. This is not being displayed.
      */
+    @Nullable
     private final Integer id;
     /**
      * A label to identify the result.
@@ -31,6 +33,7 @@ public class SearchResult<T extends Comparable<T>> implements Comparable<SearchR
     /**
      * A short description for the result.
      */
+    @Nullable
     private final String description;
     /**
      * The result itself.

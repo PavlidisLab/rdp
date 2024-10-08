@@ -5,6 +5,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.convert.DurationUnit;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
+import org.springframework.lang.Nullable;
 import org.springframework.validation.annotation.Validated;
 import ubc.pavlab.rdp.model.GeneInfo;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
@@ -55,22 +56,24 @@ public class ApplicationSettings {
         /**
          * Location of GO terms.
          */
+        @Nullable
         private String termFile;
         /**
          * Location of gene2go annotations.
-         * <p>
-         * FIXME: use a {@link Resource}, but resolving is not supported at the config-level (see <a href="https://github.com/PavlidisLab/rdp/pull/192">#192</a>)
          */
+        @Nullable
         private Resource annotationFile;
         /**
          * Location of gene orthologs.
          */
+        @Nullable
         private Resource orthologFile;
         /**
          * Location of organ system terms.
          * <p>
          * FIXME: use a {@link Resource}, but resolving is not supported at the config-level (see <a href="https://github.com/PavlidisLab/rdp/pull/192">#192</a>)
          */
+        @Nullable
         private String organFile;
 
     }
@@ -197,6 +200,7 @@ public class ApplicationSettings {
          * <p>
          * If set, the user must exist at startup and there must be at least one {@link #authTokens} specified.
          */
+        @Nullable
         private Integer userId;
         /**
          * List of partner APIs endpoints.
@@ -210,6 +214,7 @@ public class ApplicationSettings {
         /**
          * Token used to query other partner registries.
          */
+        @Nullable
         private String searchToken;
         /**
          * Request timeout when querying partner registries, or null to disable.
@@ -221,16 +226,19 @@ public class ApplicationSettings {
          * defining the timeout.
          */
         @Deprecated
+        @Nullable
         @DurationUnit(value = ChronoUnit.SECONDS)
         private Duration requestTimeout;
         /**
          * Connection timeout in milliseconds, or null to disable.
          */
+        @Nullable
         @DurationUnit(value = ChronoUnit.MILLIS)
         private Duration connectTimeout;
         /**
          * Read timeout in milliseconds, or null to disable.
          */
+        @Nullable
         @DurationUnit(value = ChronoUnit.MILLIS)
         private Duration readTimeout;
     }
@@ -261,6 +269,7 @@ public class ApplicationSettings {
     private OrganSettings organs;
     private OntologySettings ontology;
 
+    @Nullable
     private Resource faqFile;
     private boolean sendEmailOnRegistration;
     /**

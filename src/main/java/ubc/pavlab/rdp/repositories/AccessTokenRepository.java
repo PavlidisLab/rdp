@@ -4,8 +4,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import ubc.pavlab.rdp.model.AccessToken;
 
+import java.util.Optional;
+
 @Repository
 public interface AccessTokenRepository extends JpaRepository<AccessToken, Integer> {
 
-    AccessToken findByToken( String token );
+    Optional<AccessToken> findByToken( String token );
 }

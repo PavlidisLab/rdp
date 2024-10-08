@@ -26,10 +26,6 @@
            maxElementsInMemory="10"
            eternal="true"/>
 
-    <cache name="ubc.pavlab.rdp.model.Role.byRole"
-           maxElementsInMemory="10"
-           eternal="true"/>
-
     <cache name="ubc.pavlab.rdp.model.UserGene"
            maxElementsInMemory="10000"
            timeToLiveSeconds="600"/>

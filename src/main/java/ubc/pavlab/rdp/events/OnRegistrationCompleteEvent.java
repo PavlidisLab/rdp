@@ -2,7 +2,6 @@ package ubc.pavlab.rdp.events;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.Setter;
 import org.springframework.context.ApplicationEvent;
 import ubc.pavlab.rdp.model.User;
 import ubc.pavlab.rdp.model.VerificationToken;

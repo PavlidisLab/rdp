@@ -226,7 +226,7 @@ public class GOServiceImpl implements GOService, InitializingBean {
         }
 
         List<String> splitPatterns = Arrays.stream( queryString.split( " " ) )
-                .filter( s -> !s.equals( "" ) )
+                .filter( s -> !s.isEmpty() )
                 .map( s -> "(?i:.*" + Pattern.quote( s ) + ".*)" ).collect( Collectors.toList() );
 
         for ( String splitPattern : splitPatterns ) {

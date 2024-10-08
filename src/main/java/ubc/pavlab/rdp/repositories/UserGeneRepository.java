@@ -15,6 +15,7 @@ import ubc.pavlab.rdp.model.enums.TierType;
 
 import javax.persistence.QueryHint;
 import java.util.Collection;
+import java.util.Optional;
 import java.util.Set;
 
 @Repository
@@ -55,7 +56,7 @@ public interface UserGeneRepository extends JpaRepository<UserGene, Integer> {
     Page<UserGene> findByPrivacyLevelAndUserEnabledTrueAndUserProfilePrivacyLevel( @Param("privacyLevel") PrivacyLevelType privacyLevel, @Nullable Pageable pageable );
 
     @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
-    UserGene findById( int id );
+    Optional<UserGene> findById( int id );
 
     @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
     Collection<UserGene> findByGeneId( int geneId );
@@ -75,7 +76,7 @@ public interface UserGeneRepository extends JpaRepository<UserGene, Integer> {
     @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
     Collection<UserGene> findBySymbolContainingIgnoreCaseAndTaxonAndTierIn( String symbolContaining, Taxon taxon, Set<TierType> tiers );
 
-    UserGene findBySymbolAndTaxon( String symbol, Taxon taxon );
+    Optional<UserGene> findBySymbolAndTaxon( String symbol, Taxon taxon );
 
     /**
      * Find all user genes ortholog to a given gene.

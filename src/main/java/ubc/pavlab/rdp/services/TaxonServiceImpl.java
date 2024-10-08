@@ -26,9 +26,4 @@ public class TaxonServiceImpl implements TaxonService {
         return taxonRepository.findByActiveTrueOrderByOrdering();
     }
 
-    @Override
-    public Collection<Taxon> loadAll() {
-        return taxonRepository.findAll();
-    }
-
 }
