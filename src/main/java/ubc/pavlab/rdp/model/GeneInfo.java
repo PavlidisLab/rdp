@@ -33,7 +33,7 @@ public class GeneInfo extends Gene implements Comparable<GeneInfo> {
     @JsonIgnore
     private Integer id;
 
-    @ManyToMany(cascade = CascadeType.ALL)
+    @ManyToMany
     @JoinTable(name = "ortholog",
             joinColumns = @JoinColumn(name = "source_gene"),
             inverseJoinColumns = @JoinColumn(name = "target_gene"))
