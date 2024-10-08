@@ -115,7 +115,7 @@ public class UserControllerTest {
     @BeforeEach
     public void setUp() {
         when( taxonService.findById( any() ) ).then( i -> createTaxon( i.getArgument( 0, Integer.class ) ) );
-        when( userService.updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( any(), any(), any(), any(), any(), any() ) ).thenAnswer( arg -> arg.getArgument( 0, User.class ) );
+        when( userService.updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( any(), any(), any(), any(), any(), any(), any() ) ).thenAnswer( arg -> arg.getArgument( 0, User.class ) );
     }
 
     @Test
@@ -635,7 +635,7 @@ public class UserControllerTest {
         expectedProfile.setWebsite( "http://test.com" );
         expectedProfile.setPrivacyLevel( PrivacyLevelType.PRIVATE );
 
-        verify( userService ).updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( user, expectedProfile, expectedProfile.getPublications(), null, null, Locale.ENGLISH );
+        verify( userService ).updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( user, expectedProfile, expectedProfile.getResearcherCategories(), expectedProfile.getPublications(), null, null, Locale.ENGLISH );
     }
 
     @Test
@@ -684,7 +684,7 @@ public class UserControllerTest {
 
         Profile profile = user.getProfile();
         profile.setPrivacyLevel( PrivacyLevelType.SHARED );
-        verify( userService ).updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( user, profile, profile.getPublications(), null, null, Locale.ENGLISH );
+        verify( userService ).updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( user, profile, profile.getResearcherCategories(), profile.getPublications(), null, null, Locale.ENGLISH );
     }
 
     @Test
@@ -713,7 +713,7 @@ public class UserControllerTest {
                         .locale( Locale.ENGLISH ) )
                 .andExpect( status().isOk() );
 
-        verify( userService ).updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( user, user.getProfile(), user.getProfile().getPublications(), Sets.newSet( organ.getUberonId() ), null, Locale.ENGLISH );
+        verify( userService ).updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( user, user.getProfile(), user.getProfile().getResearcherCategories(), user.getProfile().getPublications(), Sets.newSet( organ.getUberonId() ), null, Locale.ENGLISH );
     }
 
     @Test

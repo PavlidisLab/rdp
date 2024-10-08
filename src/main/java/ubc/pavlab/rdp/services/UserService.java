@@ -185,7 +185,8 @@ public interface UserService {
 
     User updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( User user,
                                                                     Profile profile,
-                                                                    Set<Publication> publications,
+                                                                    @Nullable Set<ResearcherCategory> researcherCategories,
+                                                                    @Nullable Set<Publication> publications,
                                                                     @Nullable Set<String> organUberonIds,
                                                                     @Nullable Set<Integer> ontologyTermIds,
                                                                     Locale locale );

@@ -748,7 +748,7 @@ public class UserServiceImpl implements UserService, InitializingBean {
     @Transactional
     @Override
     @PreAuthorize("hasPermission(#user, 'update')")
-    public User updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( User user, Profile profile, @Nullable Set<Publication> publications, @Nullable Set<String> organUberonIds, @Nullable Set<Integer> termIdsByOntologyId, Locale locale ) {
+    public User updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( User user, Profile profile, @Nullable Set<ResearcherCategory> researcherCategories, @Nullable Set<Publication> publications, @Nullable Set<String> organUberonIds, @Nullable Set<Integer> termIdsByOntologyId, Locale locale ) {
         user.getProfile().setDepartment( profile.getDepartment() );
         user.getProfile().setDescription( profile.getDescription() );
         user.getProfile().setLastName( profile.getLastName() );
@@ -762,12 +762,14 @@ public class UserServiceImpl implements UserService, InitializingBean {
         user.getProfile().setResearcherPosition( profile.getResearcherPosition() );
         user.getProfile().setOrganization( profile.getOrganization() );
 
-        if ( applicationSettings.getProfile().getEnabledResearcherCategories().containsAll( profile.getResearcherCategories() ) ) {
-            user.getProfile().getResearcherCategories().retainAll( profile.getResearcherCategories() );
-            user.getProfile().getResearcherCategories().addAll( profile.getResearcherCategories() );
-        } else {
-            log.warn( MessageFormat.format( "User {0} attempted to set user {1} researcher type to an unknown value {2}.",
-                    findCurrentUser(), user, profile.getResearcherCategories() ) );
+        if ( researcherCategories != null ) {
+            if ( applicationSettings.getProfile().getEnabledResearcherCategories().containsAll( researcherCategories ) ) {
+                user.getProfile().getResearcherCategories().retainAll( researcherCategories );
+                user.getProfile().getResearcherCategories().addAll( researcherCategories );
+            } else {
+                log.warn( MessageFormat.format( "User {0} attempted to set user {1} researcher type to an unknown value {2}.",
+                        findCurrentUser(), user, researcherCategories ) );
+            }
         }
 
         if ( user.getProfile().getContactEmail() == null ||

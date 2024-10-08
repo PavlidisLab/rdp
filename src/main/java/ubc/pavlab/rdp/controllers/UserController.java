@@ -388,7 +388,13 @@ public class UserController {
                     .body( BindingResultModel.fromBindingResult( bindingResult ) );
         } else {
             String previousContactEmail = user.getProfile().getContactEmail();
-            user = userService.updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( user, profileWithOrganUberonIdsAndOntologyTerms.profile, profileWithOrganUberonIdsAndOntologyTerms.profile.getPublications(), profileWithOrganUberonIdsAndOntologyTerms.organUberonIds, profileWithOrganUberonIdsAndOntologyTerms.ontologyTermIds, locale );
+            user = userService.updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( user,
+                    profileWithOrganUberonIdsAndOntologyTerms.profile,
+                    profileWithOrganUberonIdsAndOntologyTerms.profile.getResearcherCategories(),
+                    profileWithOrganUberonIdsAndOntologyTerms.profile.getPublications(),
+                    profileWithOrganUberonIdsAndOntologyTerms.organUberonIds,
+                    profileWithOrganUberonIdsAndOntologyTerms.ontologyTermIds,
+                    locale );
             String message = messageSource.getMessage( "UserController.profileSaved", new Object[]{ user.getProfile().getContactEmail() }, locale );
             if ( user.getProfile().getContactEmail() != null &&
                     !user.getProfile().getContactEmail().equals( previousContactEmail ) &&
