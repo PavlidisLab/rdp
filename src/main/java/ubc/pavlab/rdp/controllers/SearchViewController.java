@@ -264,8 +264,8 @@ public class SearchViewController extends AbstractSearchController {
     @GetMapping(value = "/search/view/orthologs")
     public ModelAndView searchOrthologsForGene( @RequestParam String symbol,
                                                 @RequestParam Integer taxonId,
-                                                @RequestParam(required = false) Set<TierType> tiers,
-                                                @RequestParam(required = false) Integer orthologTaxonId,
+                                                @RequestParam(required = false) @Nullable Set<TierType> tiers,
+                                                @RequestParam(required = false) @Nullable Integer orthologTaxonId,
                                                 Locale locale ) {
         // Only look for orthologs when taxon is human
         if ( taxonId != 9606 ) {
@@ -324,7 +324,7 @@ public class SearchViewController extends AbstractSearchController {
      */
     @PreAuthorize("hasPermission(null, 'international-search')")
     @GetMapping("/search/view/international/available-terms-by-partner")
-    public ModelAndView getAvailableTermsByPartner( @RequestParam(required = false) List<Integer> ontologyTermIds ) {
+    public ModelAndView getAvailableTermsByPartner( @RequestParam(required = false) @Nullable List<Integer> ontologyTermIds ) {
         if ( ontologyTermIds == null || ontologyTermIds.isEmpty() ) {
             return new ModelAndView( "fragments/error::message", HttpStatus.BAD_REQUEST )
                     .addObject( "errorMessage", "There must be at least one specified ontology term ID via 'ontologyTermIds'." );

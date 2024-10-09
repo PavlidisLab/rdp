@@ -2,6 +2,7 @@ package ubc.pavlab.rdp.util;
 
 import lombok.*;
 import lombok.extern.apachecommons.CommonsLog;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -30,6 +31,7 @@ public class OBOParser {
         private String formatVersion;
         private String dataVersion;
         private String defaultNamespace;
+        @Nullable
         private String name;
     }
 
@@ -77,6 +79,7 @@ public class OBOParser {
         private String name;
         private String definition;
         private List<Synonym> synonyms = new ArrayList<>();
+        @Nullable
         private Boolean obsolete;
 
         /* we map both directions of a relationship */

@@ -1,6 +1,6 @@
 package ubc.pavlab.rdp.util;
 
-import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -88,11 +88,11 @@ public class CollectionUtils {
      * will return false regardless of the supplied candidates
      * @see org.springframework.util.CollectionUtils#containsAny(Collection, Collection)
      */
-    public static boolean nullOrContainsAtLeastOne( Collection<?> source, Supplier<Collection<?>> candidates ) {
+    public static boolean nullOrContainsAtLeastOne( @Nullable Collection<?> source, Supplier<Collection<?>> candidates ) {
         return source == null || containsAtLeastOne( source, candidates );
     }
 
-    public static boolean containsAtLeastOne( @NonNull Collection<?> source, Supplier<Collection<?>> candidates ) {
+    public static boolean containsAtLeastOne( Collection<?> source, Supplier<Collection<?>> candidates ) {
         return ( !source.isEmpty() && containsAny( source, candidates.get() ) );
     }
 }

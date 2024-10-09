@@ -27,7 +27,6 @@ import ubc.pavlab.rdp.util.SearchResult;
 
 import java.io.IOException;
 import java.net.URL;
-import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.Collections;
@@ -37,10 +36,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static ubc.pavlab.rdp.util.TestUtils.createGene;
 import static ubc.pavlab.rdp.util.TestUtils.createTaxon;
 
@@ -303,7 +299,7 @@ public class GeneInfoServiceImplTest {
         verify( taxonService ).findByActiveTrue();
         verify( geneInfoParser ).parse( any(), eq( humanTaxon.getId() ) );
         assertThat( geneInfoRepository.findByGeneId( 4 ) )
-                .isNotNull()
+                .get()
                 .hasFieldOrPropertyWithValue( "symbol", "FOO" )
                 .hasFieldOrPropertyWithValue( "name", "BAR" )
                 .hasFieldOrPropertyWithValue( "taxon", humanTaxon );
@@ -318,7 +314,7 @@ public class GeneInfoServiceImplTest {
         geneService.updateGenes();
         verify( taxonService ).findByActiveTrue();
         verify( geneInfoParser ).parse( any(), eq( 9606 ) );
-        assertThat( geneInfoRepository.findByGeneId( 4 ) ).isNull();
+        assertThat( geneInfoRepository.findByGeneId( 4 ) ).isEmpty();
     }
 
     @Test
@@ -332,7 +328,7 @@ public class GeneInfoServiceImplTest {
         geneService.updateGenes();
         verify( taxonService ).findByActiveTrue();
         assertThat( geneInfoRepository.findByGeneId( 4 ) )
-                .isNotNull()
+                .get()
                 .hasFieldOrPropertyWithValue( "symbol", "FOO" )
                 .hasFieldOrPropertyWithValue( "name", "BAR" )
                 .hasFieldOrPropertyWithValue( "taxon", humanTaxon );
@@ -350,7 +346,7 @@ public class GeneInfoServiceImplTest {
         verify( taxonService ).findByActiveTrue();
         verify( geneInfoParser ).parse( any(), eq( fissionYeastTaxon.getId() ) );
         assertThat( geneInfoRepository.findByGeneId( 4 ) )
-                .isNotNull()
+                .get()
                 .hasFieldOrPropertyWithValue( "symbol", "FOO" )
                 .hasFieldOrPropertyWithValue( "name", "BAR" )
                 .hasFieldOrPropertyWithValue( "taxon", fissionYeastTaxon );

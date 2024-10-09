@@ -22,6 +22,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.util.Locale;
 
+import static java.util.Objects.requireNonNull;
+
 /**
  * Created by mjacobson on 23/01/18.
  */
@@ -103,7 +105,7 @@ public class PasswordController {
         }
 
         // Log in
-        User user = userService.findUserByIdNoAuth( id );
+        User user = requireNonNull( userService.findUserByIdNoAuth( id ) );
         UserPrinciple principle = new UserPrinciple( user );
         Authentication auth = new UsernamePasswordAuthenticationToken( principle, null, principle.getAuthorities() );
         SecurityContextHolder.getContext().setAuthentication( auth );

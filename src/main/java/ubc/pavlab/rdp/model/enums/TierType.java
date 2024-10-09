@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.util.EnumSet;
-import java.util.Set;
 
 /**
  * Created by mjacobson on 28/01/18.

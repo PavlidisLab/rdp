@@ -20,6 +20,8 @@ import ubc.pavlab.rdp.repositories.TaxonRepository;
 import ubc.pavlab.rdp.repositories.UserGeneRepository;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
 
+import java.util.Optional;
+
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static ubc.pavlab.rdp.util.TestUtils.*;
@@ -69,7 +71,7 @@ public class UserGeneServiceImplTest {
         UserGene userGene = createUserGene( 1, gene, user, TierType.TIER1, PrivacyLevelType.PRIVATE );
         userGene.setGeneInfo( gene );
         when( userGeneRepository.findAllWithGeneInfo() ).thenReturn( Lists.newArrayList( userGene ) );
-        when( geneInfoRepository.findByGeneIdAndTaxon( gene.getGeneId(), gene.getTaxon() ) ).thenReturn( gene );
+        when( geneInfoRepository.findByGeneIdAndTaxon( gene.getGeneId(), gene.getTaxon() ) ).thenReturn( Optional.of( gene ) );
         userGeneService.updateUserGenes();
         verify( userGeneRepository ).save( userGene );
     }

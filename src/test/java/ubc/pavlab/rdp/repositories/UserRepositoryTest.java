@@ -48,11 +48,11 @@ public class UserRepositoryTest {
         entityManager.flush();
 
         // when
-        User found = userRepository.findByEmailIgnoreCase( user.getEmail() );
-
-        // then
-        assertThat( found.getEmail() )
-                .isEqualTo( user.getEmail() );
+        assertThat( userRepository.findByEmailIgnoreCase( user.getEmail() ) ).hasValueSatisfying( found -> {
+            // then
+            assertThat( found.getEmail() )
+                    .isEqualTo( user.getEmail() );
+        } );
     }
 
     @Test
@@ -65,10 +65,10 @@ public class UserRepositoryTest {
         entityManager.flush();
 
         // when
-        User found = userRepository.findByEmailIgnoreCase( user.getEmail().toUpperCase() );
-
-        // then
-        assertThat( found ).isEqualTo( user );
+        assertThat( userRepository.findByEmailIgnoreCase( user.getEmail().toUpperCase() ) ).hasValueSatisfying( found -> {
+            // then
+            assertThat( found ).isEqualTo( user );
+        } );
     }
 
     @Test
@@ -326,6 +326,7 @@ public class UserRepositoryTest {
         entityManager.flush();
 
         // when
+        assertThat( user.getProfile().getDescription() ).isNotNull();
         String search = user.getProfile().getDescription().toUpperCase();
         Collection<User> found = userRepository.findDistinctByProfileDescriptionLikeIgnoreCaseOrTaxonDescriptionsLikeIgnoreCaseOrUserOntologyTermsNameLikeIgnoreCase( "%" + search + "%" );
 
@@ -344,6 +345,7 @@ public class UserRepositoryTest {
         entityManager.flush();
 
         // when
+        assertThat( user.getProfile().getDescription() ).isNotNull();
         String search = user.getProfile().getDescription().substring( 0, 3 );
         Collection<User> found = userRepository.findDistinctByProfileDescriptionLikeIgnoreCaseOrTaxonDescriptionsLikeIgnoreCaseOrUserOntologyTermsNameLikeIgnoreCase( "%" + search + "%" );
 
@@ -362,6 +364,7 @@ public class UserRepositoryTest {
         entityManager.flush();
 
         // when
+        assertThat( user.getProfile().getDescription() ).isNotNull();
         String search = user.getProfile().getDescription().substring( 3 );
         Collection<User> found = userRepository.findDistinctByProfileDescriptionLikeIgnoreCaseOrTaxonDescriptionsLikeIgnoreCaseOrUserOntologyTermsNameLikeIgnoreCase( "%" + search + "%" );
 
@@ -380,6 +383,7 @@ public class UserRepositoryTest {
         entityManager.flush();
 
         // when
+        assertThat( user.getProfile().getDescription() ).isNotNull();
         String search = user.getProfile().getDescription().substring( 1, 3 );
         Collection<User> found = userRepository.findDistinctByProfileDescriptionLikeIgnoreCaseOrTaxonDescriptionsLikeIgnoreCaseOrUserOntologyTermsNameLikeIgnoreCase( "%" + search + "%" );
 
@@ -551,7 +555,7 @@ public class UserRepositoryTest {
         UserOrgan userOrgan = entityManager.persistAndFlush( createUserOrgan( user, organInfo ) );
 
         user.getVerificationTokens().add( token );
-        user.getRoles().add( roleRepository.findByRole( "ROLE_USER" ) );
+        user.getRoles().add( roleRepository.findByRole( "ROLE_USER" ).orElseThrow( NullPointerException::new ) );
         user.getProfile().getResearcherCategories().add( ResearcherCategory.IN_SILICO );
         user.getUserOrgans().put( userOrgan.getUberonId(), userOrgan );
         user.getTaxonDescriptions().put( humanTaxon, "I'm a human researcher." );

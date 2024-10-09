@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 import ubc.pavlab.rdp.model.ontology.Ontology;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author poirigui
@@ -21,9 +22,9 @@ public interface OntologyRepository extends JpaRepository<Ontology, Integer> {
 
     List<Ontology> findAllByNameIn( List<String> asList );
 
-    Ontology findByName( String name );
+    Optional<Ontology> findByName( String name );
 
-    Ontology findByNameAndActiveTrue( String name );
+    Optional<Ontology> findByNameAndActiveTrue( String name );
 
     boolean existsByName( String name );
 

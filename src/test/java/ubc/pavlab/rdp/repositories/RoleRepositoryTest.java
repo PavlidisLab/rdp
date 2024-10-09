@@ -47,7 +47,7 @@ public class RoleRepositoryTest {
         entityManager.persist( role );
         entityManager.flush();
 
-        Role found = roleRepository.findByRole( "TEST_ROLE" );
+        Role found = roleRepository.findByRole( "TEST_ROLE" ).orElse( null );
 
         assertThat( found ).isEqualTo( role );
 
@@ -57,7 +57,7 @@ public class RoleRepositoryTest {
     @Test
     public void findByRole_whenInvalidRole_thenReturnNull() {
 
-        Role found = roleRepository.findByRole( "XXX" );
+        Role found = roleRepository.findByRole( "XXX" ).orElse( null );
 
         assertThat( found ).isNull();
 

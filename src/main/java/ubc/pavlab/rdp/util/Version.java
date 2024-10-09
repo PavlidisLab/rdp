@@ -23,11 +23,9 @@ public class Version implements Comparable<Version> {
     /**
      * Create a new version from an array of components and an optional pre-release.
      *
-     * @param components
-     * @param preRelease
      * @throws VersionException if the components contains an invalid number
      */
-    public Version( String[] components, @Nullable  String preRelease ) throws VersionException {
+    public Version( String[] components, @Nullable String preRelease ) throws VersionException {
         if ( components.length > FACTORS.length ) {
             throw new VersionException( "Version must have at most " + FACTORS.length + " components." );
         }

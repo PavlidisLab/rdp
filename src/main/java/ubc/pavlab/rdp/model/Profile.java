@@ -9,6 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.validator.constraints.Email;
 import org.hibernate.validator.constraints.URL;
+import org.springframework.lang.Nullable;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 import ubc.pavlab.rdp.model.enums.ResearcherCategory;
 import ubc.pavlab.rdp.model.enums.ResearcherPosition;
@@ -55,6 +56,7 @@ public class Profile {
 
     @Lob
     @Column(name = "description", columnDefinition = "TEXT")
+    @Nullable
     private String description;
 
     @Column(name = "organization")
@@ -66,6 +68,7 @@ public class Profile {
     @Column(name = "phone")
     private String phone;
 
+    @Nullable
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @Email(message = "Your email address is not valid.")
     @Column(name = "contact_email")
@@ -76,6 +79,7 @@ public class Profile {
     private boolean contactEmailVerified;
 
     @JsonIgnore
+    @Nullable
     @Column(name = "contact_email_verified_at")
     private Instant contactEmailVerifiedAt;
 
@@ -83,6 +87,7 @@ public class Profile {
     @URL
     private String website;
 
+    @Nullable
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @Enumerated(EnumType.ORDINAL)
     @Column(name = "privacy_level")
@@ -102,6 +107,7 @@ public class Profile {
     @JoinColumn(name = "user_id")
     private final Set<Publication> publications = new HashSet<>();
 
+    @Nullable
     @Enumerated(EnumType.STRING)
     @Column(name = "researcher_position")
     private ResearcherPosition researcherPosition;

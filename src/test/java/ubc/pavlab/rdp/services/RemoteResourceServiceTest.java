@@ -34,10 +34,7 @@ import ubc.pavlab.rdp.settings.ApplicationSettings;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -126,7 +123,7 @@ public class RemoteResourceServiceTest {
         adminRole.setId( 1 );
         adminRole.setRole( "ADMIN" );
         adminUser.getRoles().add( adminRole );
-        when( roleRepository.findByRole( "ROLE_ADMIN" ) ).thenReturn( adminRole );
+        when( roleRepository.findByRole( "ROLE_ADMIN" ) ).thenReturn( Optional.ofNullable( adminRole ) );
     }
 
     @After

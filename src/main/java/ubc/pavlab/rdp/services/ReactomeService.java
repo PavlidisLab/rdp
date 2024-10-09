@@ -52,9 +52,6 @@ public class ReactomeService {
         this.restTemplate = restTemplate;
     }
 
-    /**
-     * @return
-     */
     @Nullable
     public Ontology findPathwaysOntology() {
         return ontologyService.findByName( applicationSettings.getOntology().getReactomePathwaysOntologyName() );
@@ -199,7 +196,7 @@ public class ReactomeService {
             ProgressUtils.emitProgress( progressCallback, ( i * 20L ) + page.getNumberOfElements(), page.getTotalElements(), timer.getTime( TimeUnit.MILLISECONDS ) );
             if ( entity.getStatusCode().is2xxSuccessful() && entity.getBody() != null ) {
                 Map<String, String> results = Arrays.stream( entity.getBody() )
-                        .filter( e -> e.getSummation() != null && e.getSummation().size() > 0 )
+                        .filter( e -> e.getSummation() != null && !e.getSummation().isEmpty() )
                         .collect( Collectors.toMap( ReactomeEntity::getStId, e -> e.getSummation().get( 0 ).getText() ) );
                 for ( OntologyTermInfo term : page ) {
                     if ( results.containsKey( term.getTermId() ) ) {
@@ -220,6 +217,7 @@ public class ReactomeService {
     @Data
     public static class ReactomeEntity {
         private String stId;
+        @Nullable
         private List<ReactomeSummation> summation;
     }
 

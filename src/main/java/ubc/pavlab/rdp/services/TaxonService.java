@@ -14,7 +14,4 @@ public interface TaxonService {
     Taxon findById( final Integer id );
 
     Collection<Taxon> findByActiveTrue();
-
-    Collection<Taxon> loadAll();
-
 }

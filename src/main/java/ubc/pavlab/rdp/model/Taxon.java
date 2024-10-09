@@ -7,6 +7,7 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.Immutable;
 import org.springframework.context.MessageSourceResolvable;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
+import org.springframework.lang.Nullable;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -43,6 +44,7 @@ public class Taxon implements Serializable {
 
     private String commonName;
 
+    @Nullable
     @JsonIgnore
     private URL geneUrl;
 

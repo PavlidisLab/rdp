@@ -4,6 +4,7 @@ import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
+import org.springframework.lang.Nullable;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -110,8 +111,8 @@ public class LoginController {
     @PostMapping("/registration")
     public ModelAndView createNewUser( @Validated(User.ValidationUserAccount.class) User user,
                                        BindingResult bindingResult,
-                                       @RequestParam(name = "g-recaptcha-response", required = false) String recaptchaResponse,
-                                       @RequestHeader(name = "X-Forwarded-For", required = false) List<String> clientIp,
+                                       @RequestParam(name = "g-recaptcha-response", required = false) @Nullable String recaptchaResponse,
+                                       @RequestHeader(name = "X-Forwarded-For", required = false) @Nullable List<String> clientIp,
                                        RedirectAttributes redirectAttributes,
                                        Locale locale ) {
         ModelAndView modelAndView = new ModelAndView( "registration" );
@@ -129,19 +130,10 @@ public class LoginController {
         }
 
         User existingUser = userService.findUserByEmailNoAuth( user.getEmail() );
-
-        // profile can be missing of no profile.* fields have been set
-        if ( user.getProfile() == null ) {
-            user.setProfile( new Profile() );
-        }
-
         user.setEnabled( false );
 
         // initialize a basic user profile
         Profile userProfile = user.getProfile();
-        if ( userProfile == null ) {
-            userProfile = new Profile();
-        }
         userProfile.setPrivacyLevel( privacyService.getDefaultPrivacyLevel() );
         userProfile.setShared( applicationSettings.getPrivacy().isDefaultSharing() );
         userProfile.setHideGenelist( false );

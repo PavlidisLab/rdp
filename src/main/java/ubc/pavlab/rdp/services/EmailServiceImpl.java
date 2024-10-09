@@ -10,6 +10,7 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.UriComponentsBuilder;
 import ubc.pavlab.rdp.model.PasswordResetToken;
@@ -155,6 +156,7 @@ public class EmailServiceImpl implements EmailService {
 
     @Override
     public Future<?> sendContactEmailVerificationMessage( User user, VerificationToken token, Locale locale ) throws MessagingException {
+        Assert.notNull( user.getProfile().getContactEmail(), "User must have a contact email." );
         InternetAddress recipientAddress = new InternetAddress( user.getProfile().getContactEmail() );
         String subject = messageSource.getMessage( "EmailService.sendContactEmailVerificationMessage.subject", new Object[]{ Messages.SHORTNAME }, locale );
         URI confirmationUrl = UriComponentsBuilder.fromUri( siteSettings.getHostUrl() )

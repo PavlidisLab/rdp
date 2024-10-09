@@ -190,7 +190,7 @@ public class UserServiceImplTest {
     }
 
     private void setUpRoleMocks() {
-        when( roleRepository.findByRole( "ROLE_USER" ) ).thenReturn( createRole( 2, "ROLE_USER" ) );
+        when( roleRepository.findByRole( "ROLE_USER" ) ).thenReturn( Optional.of( createRole( 2, "ROLE_USER" ) ) );
     }
 
     private void setUpPasswordResetTokenMocks() {
@@ -199,20 +199,20 @@ public class UserServiceImplTest {
         PasswordResetToken token = new PasswordResetToken();
         token.setUser( user );
         token.updateToken( "token1" );
-        when( passwordResetTokenRepository.findByToken( token.getToken() ) ).thenReturn( token );
+        when( passwordResetTokenRepository.findByToken( token.getToken() ) ).thenReturn( Optional.of( token ) );
 
         token = new PasswordResetToken();
         token.setUser( user );
         token.setToken( "token1Expired" );
         token.setExpiryDate( Instant.now().minusSeconds( 1 ) );
-        when( passwordResetTokenRepository.findByToken( token.getToken() ) ).thenReturn( token );
+        when( passwordResetTokenRepository.findByToken( token.getToken() ) ).thenReturn( Optional.of( token ) );
 
         token = new PasswordResetToken();
         token.setUser( otherUser );
         token.updateToken( "token2" );
-        when( passwordResetTokenRepository.findByToken( token.getToken() ) ).thenReturn( token );
+        when( passwordResetTokenRepository.findByToken( token.getToken() ) ).thenReturn( Optional.of( token ) );
 
-        when( passwordResetTokenRepository.findByToken( "tokenBad" ) ).thenReturn( null );
+        when( passwordResetTokenRepository.findByToken( "tokenBad" ) ).thenReturn( Optional.empty() );
     }
 
     private void setUpVerificationTokenMocks() {
@@ -221,16 +221,16 @@ public class UserServiceImplTest {
         token.setUser( user );
         token.setEmail( user.getEmail() );
         token.updateToken( "token1" );
-        when( tokenRepository.findByToken( token.getToken() ) ).thenReturn( token );
+        when( tokenRepository.findByToken( token.getToken() ) ).thenReturn( Optional.of( token ) );
 
         token = new VerificationToken();
         token.setUser( user );
         token.setEmail( user.getEmail() );
         token.setToken( "token1Expired" );
         token.setExpiryDate( Instant.now().minus( 1, ChronoUnit.SECONDS ) );
-        when( tokenRepository.findByToken( token.getToken() ) ).thenReturn( token );
+        when( tokenRepository.findByToken( token.getToken() ) ).thenReturn( Optional.of( token ) );
 
-        when( tokenRepository.findByToken( "tokenBad" ) ).thenReturn( null );
+        when( tokenRepository.findByToken( "tokenBad" ) ).thenReturn( Optional.empty() );
     }
 
     private void setUpRecommendTermsMocks() {
@@ -408,7 +408,7 @@ public class UserServiceImplTest {
     @Test
     public void findUserByEmail_whenValidEmail_thenUserShouldBeFound() {
         User user = createUser( 1 );
-        when( userRepository.findByEmailIgnoreCase( user.getEmail() ) ).thenReturn( user );
+        when( userRepository.findByEmailIgnoreCase( user.getEmail() ) ).thenReturn( Optional.of( user ) );
 
         User found = userService.findUserByEmailNoAuth( user.getEmail() );
         assertThat( found ).isNotNull();
@@ -573,7 +573,7 @@ public class UserServiceImplTest {
                 }
         ).collect( Collectors.toSet() );
 
-        User updatedUser = userService.updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( user, user.getProfile(), newPublications, null, null, Locale.getDefault() );
+        User updatedUser = userService.updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( user, user.getProfile(), null, newPublications, null, null, Locale.getDefault() );
 
         assertThat( updatedUser.getProfile().getPublications() ).containsExactlyElementsOf( newPublications );
 
@@ -589,7 +589,7 @@ public class UserServiceImplTest {
                         .map( id -> createOrgan( id, null, null ) )
                         .collect( Collectors.toSet() ) );
         Set<String> organUberonIds = Sets.newSet( "UBERON:00001", "UBERON:00002" );
-        user = userService.updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( user, user.getProfile(), null, organUberonIds, null, Locale.getDefault() );
+        user = userService.updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( user, user.getProfile(), null, null, organUberonIds, null, Locale.getDefault() );
         verify( organInfoService ).findByUberonIdIn( organUberonIds );
         assertThat( user.getUserOrgans().values() )
                 .extracting( "uberonId" )
@@ -601,7 +601,7 @@ public class UserServiceImplTest {
         when( applicationSettings.getOrgans().isEnabled() ).thenReturn( false );
         User user = createUser( 1 );
         Set<String> organUberonIds = Sets.newSet( "UBERON:00001", "UBERON:00002" );
-        user = userService.updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( user, user.getProfile(), null, organUberonIds, null, Locale.getDefault() );
+        user = userService.updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( user, user.getProfile(), null, null, organUberonIds, null, Locale.getDefault() );
         verifyNoInteractions( organInfoService );
         assertThat( user.getUserOrgans() ).isEmpty();
     }
@@ -614,7 +614,7 @@ public class UserServiceImplTest {
 
         Profile profile = new Profile();
         profile.setPrivacyLevel( PrivacyLevelType.SHARED );
-        userService.updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( user, profile, null, null, null, Locale.getDefault() );
+        userService.updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( user, profile, null, null, null, null, Locale.getDefault() );
 
         assertThat( user.getProfile() ).hasFieldOrPropertyWithValue( "privacyLevel", PrivacyLevelType.PUBLIC );
     }
@@ -630,7 +630,7 @@ public class UserServiceImplTest {
 
         Profile profile = new Profile();
         profile.setPrivacyLevel( PrivacyLevelType.SHARED );
-        userService.updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( user, profile, null, null, null, Locale.getDefault() );
+        userService.updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( user, profile, null, null, null, null, Locale.getDefault() );
 
         assertThat( user.getProfile() )
                 .hasFieldOrPropertyWithValue( "privacyLevel", PrivacyLevelType.SHARED );
@@ -644,12 +644,12 @@ public class UserServiceImplTest {
         Profile profile = new Profile();
         profile.setPrivacyLevel( PrivacyLevelType.PUBLIC );
         profile.setContactEmail( "foo@example.com" );
-        userService.updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( user, profile, null, null, null, Locale.getDefault() );
+        userService.updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( user, profile, null, null, null, null, Locale.getDefault() );
         verify( userListener ).onContactEmailUpdate( any( OnContactEmailUpdateEvent.class ) );
         assertThat( user.getProfile().isContactEmailVerified() ).isFalse();
 
         // make sure that if user update its profile later on, he doesn't get spammed
-        userService.updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( user, profile, null, null, null, Locale.getDefault() );
+        userService.updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( user, profile, null, null, null, null, Locale.getDefault() );
         verifyNoMoreInteractions( userListener );
         assertThat( user.getProfile().isContactEmailVerified() ).isFalse();
     }
@@ -660,7 +660,7 @@ public class UserServiceImplTest {
         Profile profile = new Profile();
         profile.setPrivacyLevel( PrivacyLevelType.PUBLIC );
         profile.setContactEmail( user.getEmail() );
-        userService.updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( user, profile, null, null, null, Locale.getDefault() );
+        userService.updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( user, profile, null, null, null, null, Locale.getDefault() );
         assertThat( user.getProfile().isContactEmailVerified() ).isTrue();
         verifyNoInteractions( userListener );
     }
@@ -674,7 +674,7 @@ public class UserServiceImplTest {
         Profile profile = new Profile();
         profile.setPrivacyLevel( PrivacyLevelType.PUBLIC );
         profile.setContactEmail( null );
-        userService.updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( user, profile, null, null, null, Locale.getDefault() );
+        userService.updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( user, profile, null, null, null, null, Locale.getDefault() );
         assertThat( user.getProfile().getContactEmail() ).isNull();
         assertThat( user.getProfile().isContactEmailVerified() ).isFalse();
         assertThat( user.getProfile().getContactEmailVerifiedAt() ).isNull();
@@ -690,7 +690,7 @@ public class UserServiceImplTest {
         Profile profile = new Profile();
         profile.setPrivacyLevel( PrivacyLevelType.PUBLIC );
         profile.setContactEmail( "" );
-        userService.updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( user, profile, null, null, null, Locale.getDefault() );
+        userService.updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( user, profile, null, null, null, null, Locale.getDefault() );
         assertThat( user.getProfile().getContactEmail() ).isEmpty();
         assertThat( user.getProfile().isContactEmailVerified() ).isFalse();
         assertThat( user.getProfile().getContactEmailVerifiedAt() ).isNull();
@@ -704,7 +704,7 @@ public class UserServiceImplTest {
         Profile profile = new Profile();
         profile.setPrivacyLevel( PrivacyLevelType.PUBLIC );
         profile.setResearcherPosition( ResearcherPosition.PRINCIPAL_INVESTIGATOR );
-        userService.updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( user, profile, null, null, null, Locale.getDefault() );
+        userService.updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( user, profile, null, null, null, null, Locale.getDefault() );
         assertThat( user.getProfile().getResearcherPosition() ).isEqualTo( ResearcherPosition.PRINCIPAL_INVESTIGATOR );
         verify( profileSettings ).getEnabledResearcherPositions();
         verify( userRepository ).save( user );
@@ -717,7 +717,7 @@ public class UserServiceImplTest {
         Profile profile = new Profile();
         profile.setPrivacyLevel( PrivacyLevelType.PUBLIC );
         profile.getResearcherCategories().add( ResearcherCategory.IN_SILICO );
-        userService.updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( user, profile, null, null, null, Locale.getDefault() );
+        userService.updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( user, profile, profile.getResearcherCategories(), null, null, null, Locale.getDefault() );
         assertThat( user.getProfile().getResearcherCategories() ).containsExactly( ResearcherCategory.IN_SILICO );
         verify( profileSettings ).getEnabledResearcherCategories();
         verify( userRepository ).save( user );
@@ -807,7 +807,7 @@ public class UserServiceImplTest {
         token.setUser( user );
         token.setEmail( "foo@example.com" );
         token.updateToken( "token1" );
-        when( tokenRepository.findByToken( token.getToken() ) ).thenReturn( token );
+        when( tokenRepository.findByToken( token.getToken() ) ).thenReturn( Optional.of( token ) );
         userService.confirmVerificationToken( "token1", new MockHttpServletRequest() );
     }
 

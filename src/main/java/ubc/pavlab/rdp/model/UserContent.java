@@ -1,6 +1,5 @@
 package ubc.pavlab.rdp.model;
 
-import org.springframework.lang.NonNull;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
 
 import java.time.Instant;

@@ -8,7 +8,6 @@ import org.springframework.stereotype.Component;
 
 import java.io.*;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -64,7 +63,6 @@ public class GeneOrthologsParser {
             }
             return br.lines()
                     .map( line -> Record.parseLine( line, header, br.getLineNumber() ) )
-                    .filter( Objects::nonNull )
                     .collect( Collectors.toList() );
         } catch ( UncheckedIOException ioe ) {
             throw ioe.getCause();

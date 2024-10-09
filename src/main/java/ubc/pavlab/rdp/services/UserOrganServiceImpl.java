@@ -4,7 +4,6 @@ import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ubc.pavlab.rdp.model.OrganInfo;
 import ubc.pavlab.rdp.model.UserOrgan;
 import ubc.pavlab.rdp.repositories.OrganInfoRepository;
 import ubc.pavlab.rdp.repositories.UserOrganRepository;
@@ -24,11 +23,10 @@ public class UserOrganServiceImpl implements UserOrganService {
     public void updateUserOrgans() {
         log.info( "Updating user organs..." );
         for ( UserOrgan userOrgan : userOrganRepository.findAll() ) {
-            OrganInfo organInfo = organInfoRepository.findByUberonId( userOrgan.getUberonId() );
-            if ( organInfo != null ) {
+            organInfoRepository.findByUberonId( userOrgan.getUberonId() ).ifPresent( organInfo -> {
                 userOrgan.updateOrgan( organInfo );
                 userOrganRepository.save( userOrgan );
-            }
+            } );
         }
         log.info( "Done updating user organs." );
     }

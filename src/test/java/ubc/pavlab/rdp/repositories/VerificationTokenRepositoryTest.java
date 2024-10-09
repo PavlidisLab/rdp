@@ -1,6 +1,5 @@
 package ubc.pavlab.rdp.repositories;
 
-import org.assertj.core.data.TemporalUnitOffset;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -63,23 +62,17 @@ public class VerificationTokenRepositoryTest {
 
     @Test
     public void findByToken_whenValidToken_thenReturnToken() {
-
-        VerificationToken found = verificationTokenRepository.findByToken( "validtoken" );
-        assertThat( found ).isEqualTo( validToken );
+        assertThat( verificationTokenRepository.findByToken( "validtoken" ) ).hasValue( validToken );
     }
 
     @Test
     public void findByToken_whenExpredToken_thenReturnToken() {
-
-        VerificationToken found = verificationTokenRepository.findByToken( "expiredtoken" );
-        assertThat( found ).isEqualTo( expiredToken );
+        assertThat( verificationTokenRepository.findByToken( "expiredtoken" ) ).hasValue( expiredToken );
     }
 
     @Test
     public void findByToken_whenInvalidToken_thenReturnNull() {
-
-        VerificationToken found = verificationTokenRepository.findByToken( "invalidtoken" );
-        assertThat( found ).isNull();
+        assertThat( verificationTokenRepository.findByToken( "invalidtoken" ) ).isEmpty();
     }
 
     @Test

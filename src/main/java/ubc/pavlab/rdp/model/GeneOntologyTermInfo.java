@@ -1,17 +1,14 @@
 package ubc.pavlab.rdp.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import ubc.pavlab.rdp.model.enums.RelationshipType;
 import ubc.pavlab.rdp.services.GOService;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Getter
 @Setter

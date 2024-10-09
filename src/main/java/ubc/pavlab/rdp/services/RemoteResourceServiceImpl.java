@@ -27,10 +27,7 @@ import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 import ubc.pavlab.rdp.exception.RemoteException;
 import ubc.pavlab.rdp.exception.UnknownRemoteApiException;
-import ubc.pavlab.rdp.model.RemoteResource;
-import ubc.pavlab.rdp.model.Taxon;
-import ubc.pavlab.rdp.model.User;
-import ubc.pavlab.rdp.model.UserGene;
+import ubc.pavlab.rdp.model.*;
 import ubc.pavlab.rdp.model.enums.ResearcherCategory;
 import ubc.pavlab.rdp.model.enums.ResearcherPosition;
 import ubc.pavlab.rdp.model.enums.TierType;
@@ -199,12 +196,13 @@ public class RemoteResourceServiceImpl implements RemoteResourceService, Initial
             private URI url;
         }
 
+        @Nullable
         private Info info;
         private List<Server> servers;
     }
 
     @Override
-    public List<User> findUsersByLikeName( String nameLike, Boolean prefix, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherCategories, Collection<String> organUberonIds, Map<Ontology, Set<OntologyTermInfo>> ontologyTermInfos ) {
+    public List<User> findUsersByLikeName( String nameLike, Boolean prefix, @Nullable Set<ResearcherPosition> researcherPositions, @Nullable Collection<ResearcherCategory> researcherCategories, @Nullable Collection<String> organUberonIds, @Nullable Map<Ontology, Set<OntologyTermInfo>> ontologyTermInfos ) {
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add( "nameLike", nameLike );
         params.add( "prefix", prefix.toString() );
@@ -227,7 +225,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService, Initial
     }
 
     @Override
-    public List<User> findUsersByDescription( String descriptionLike, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherCategories, Collection<String> organUberonIds, Map<Ontology, Set<OntologyTermInfo>> ontologyTermInfos ) {
+    public List<User> findUsersByDescription( String descriptionLike, @Nullable Set<ResearcherPosition> researcherPositions, @Nullable Collection<ResearcherCategory> researcherCategories, @Nullable Collection<String> organUberonIds, @Nullable Map<Ontology, Set<OntologyTermInfo>> ontologyTermInfos ) {
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add( "descriptionLike", descriptionLike );
         params.putAll( UserSearchParams.builder()
@@ -533,7 +531,8 @@ public class RemoteResourceServiceImpl implements RemoteResourceService, Initial
                 .replaceQueryParam( "noauth" );
         if ( authenticate ) {
             User user = userService.findCurrentUser();
-            if ( user != null && user.getRoles().contains( roleRepository.findByRole( "ROLE_ADMIN" ) ) ) {
+            Role adminRole = roleRepository.findByRole( "ROLE_ADMIN" ).orElseThrow( NullPointerException::new );
+            if ( user != null && user.getRoles().contains( adminRole ) ) {
                 UriComponents apiUriComponents = UriComponentsBuilder.fromUri( apiUri ).build();
                 //noinspection StatementWithEmptyBody
                 if ( apiUriComponents.getQueryParams().containsKey( "noauth" ) ) {
@@ -605,9 +604,13 @@ public class RemoteResourceServiceImpl implements RemoteResourceService, Initial
     @SuperBuilder
     private static class UserSearchParams {
 
+        @Nullable
         private Collection<ResearcherPosition> researcherPositions;
+        @Nullable
         private Collection<ResearcherCategory> researcherCategories;
+        @Nullable
         private Collection<String> organUberonIds;
+        @Nullable
         private Map<Ontology, Set<OntologyTermInfo>> ontologyTermInfos;
 
         public MultiValueMap<String, String> toMultiValueMap() {
@@ -646,6 +649,7 @@ public class RemoteResourceServiceImpl implements RemoteResourceService, Initial
 
         private Integer taxonId;
         private TierType tier;
+        @Nullable
         private Integer orthologTaxonId;
 
         @Override
