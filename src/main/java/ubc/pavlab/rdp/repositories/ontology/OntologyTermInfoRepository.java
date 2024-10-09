@@ -15,6 +15,7 @@ import javax.persistence.QueryHint;
 import java.io.Reader;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -25,7 +26,7 @@ import java.util.Set;
 @Repository
 public interface OntologyTermInfoRepository extends JpaRepository<OntologyTermInfo, Integer> {
 
-    OntologyTermInfo findByTermIdAndOntology( String ontologyTermInfoId, Ontology ontology );
+    Optional<OntologyTermInfo> findByTermIdAndOntology( String ontologyTermInfoId, Ontology ontology );
 
     List<OntologyTermInfo> findAllByActiveTrueAndIdIn( Collection<Integer> ids );
 
@@ -178,14 +179,14 @@ public interface OntologyTermInfoRepository extends JpaRepository<OntologyTermIn
     @Query(value = "select ontology_sub_term_info_id from ontology_term_info_sub_terms where ontology_term_info_id in :termIds", nativeQuery = true)
     List<Integer> findSubTermsIdsByTermIdIn( @Param("termIds") Set<Integer> termIds );
 
-    OntologyTermInfo findByTermIdAndOntologyName( String termId, String ontologyName );
+    Optional<OntologyTermInfo> findByTermIdAndOntologyName( String termId, String ontologyName );
 
     /**
      * Retrieve the definition of an ontology.
      */
     @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
     @Query("select o.definition from Ontology o where o.name = :ontologyName")
-    String findDefinitionByOntologyName( @Param("ontologyName") String ontologyName );
+    Optional<String> findDefinitionByOntologyName( @Param("ontologyName") String ontologyName );
 
     /**
      * Retrieve all the definitions matching an term name and its corresponding ontology name.

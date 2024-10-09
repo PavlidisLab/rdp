@@ -69,7 +69,7 @@ public class OntologyMessageSourceTest {
 
     @Test
     public void resolveCode_whenCodeIsAnOntologyDefinition() {
-        when( ontologyService.findDefinitionByOntologyName( "mondo" ) ).thenReturn( "A diseases ontology." );
+        when( ontologyService.findDefinitionByOntologyName( "mondo" ) ).thenReturn( Optional.of( "A diseases ontology." ) );
         assertThat( messageSource.getMessage( "rdp.ontologies.mondo.definition", null, Locale.getDefault() ) )
                 .isEqualTo( "A diseases ontology." );
         verify( ontologyService ).findDefinitionByOntologyName( "mondo" );
@@ -78,7 +78,7 @@ public class OntologyMessageSourceTest {
     @Test
     public void resolveCode_whenCodeIsAnOntologyDefinitionMessageSourceResolvable_thenResolveItCorrectly() {
         Ontology ontology = Ontology.builder( "mondo" ).build();
-        when( ontologyService.findDefinitionByOntologyName( "mondo" ) ).thenReturn( "A disease ontology." );
+        when( ontologyService.findDefinitionByOntologyName( "mondo" ) ).thenReturn( Optional.of( "A disease ontology." ) );
         assertThat( messageSource.getMessage( ontology.getResolvableDefinition(), Locale.getDefault() ) )
                 .isEqualTo( "A disease ontology." );
         verify( ontologyService ).findDefinitionByOntologyName( "mondo" );

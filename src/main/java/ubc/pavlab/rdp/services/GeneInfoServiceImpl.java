@@ -7,7 +7,6 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ubc.pavlab.rdp.model.Gene;
 import ubc.pavlab.rdp.model.GeneInfo;
 import ubc.pavlab.rdp.model.Taxon;
 import ubc.pavlab.rdp.model.enums.GeneMatchType;
@@ -50,7 +49,7 @@ public class GeneInfoServiceImpl implements GeneInfoService {
 
     @Override
     public GeneInfo load( Integer id ) {
-        return geneInfoRepository.findByGeneId( id );
+        return geneInfoRepository.findByGeneId( id ).orElse( null );
     }
 
     @Override
@@ -60,7 +59,7 @@ public class GeneInfoServiceImpl implements GeneInfoService {
 
     @Override
     public GeneInfo findBySymbolAndTaxon( String symbol, Taxon taxon ) {
-        return geneInfoRepository.findBySymbolAndTaxon( symbol, taxon );
+        return geneInfoRepository.findBySymbolAndTaxon( symbol, taxon ).orElse( null );
     }
 
     @Override

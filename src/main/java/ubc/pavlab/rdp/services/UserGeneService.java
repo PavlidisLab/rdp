@@ -67,12 +67,14 @@ public interface UserGeneService {
      *
      * @param tiers               only retain results in the given {@link TierType}, or any if null
      * @param orthologTaxon       only retain results in the given ortholog {@link Taxon}, or any if null
-     * @param researcherPositions only retain results where the corresponding {@link User} holds any given {@link ResearcherPosition},
-     *                            or any if null
-     * @param researcherTypes     only retain results where the corresponding {@link User} has any of the given {@link ResearcherCategory}
-     *                            or any if null
-     * @param organs              only retain results where the corresponding {@link User} tracks any of the given {@link OrganInfo}
-     * @param ontologyTermInfos
+     * @param researcherPositions only retain results where the corresponding {@link User} holds any given
+     *                            {@link ResearcherPosition}, or any if null
+     * @param researcherTypes     only retain results where the corresponding {@link User} has any of the given
+     *                            {@link ResearcherCategory}, or any if null
+     * @param organs              only retain results where the corresponding {@link User} tracks any of the given
+     *                            {@link OrganInfo}, or any if null
+     * @param ontologyTermInfos   only retain results where the corresponding {@link User} tracks any of the given
+     *                            {@link OntologyTermInfo}, or any if null
      */
     List<UserGene> handleGeneSearch( Gene gene, @Nullable Set<TierType> tiers, @Nullable Taxon orthologTaxon, @Nullable Set<ResearcherPosition> researcherPositions, @Nullable Collection<ResearcherCategory> researcherTypes, @Nullable Collection<OrganInfo> organs, @Nullable Map<Ontology, Set<OntologyTermInfo>> ontologyTermInfos );
 

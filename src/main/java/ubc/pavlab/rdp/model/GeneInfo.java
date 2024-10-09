@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 
 import javax.persistence.*;
-import java.io.Serializable;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
@@ -33,7 +32,7 @@ public class GeneInfo extends Gene implements Comparable<GeneInfo> {
     @JsonIgnore
     private Integer id;
 
-    @ManyToMany(cascade = CascadeType.ALL)
+    @ManyToMany
     @JoinTable(name = "ortholog",
             joinColumns = @JoinColumn(name = "source_gene"),
             inverseJoinColumns = @JoinColumn(name = "target_gene"))

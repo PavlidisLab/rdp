@@ -128,7 +128,7 @@ public class UserServiceImpl implements UserService, InitializingBean {
     @Override
     public User create( User user ) {
         user.setPassword( bCryptPasswordEncoder.encode( user.getPassword() ) );
-        Role userRole = roleRepository.findByRole( "ROLE_USER" );
+        Role userRole = roleRepository.findByRole( "ROLE_USER" ).orElseThrow( NullPointerException::new );
         user.getRoles().add( userRole );
         return userRepository.save( user );
     }
@@ -138,7 +138,7 @@ public class UserServiceImpl implements UserService, InitializingBean {
     @Override
     public User createAdmin( User admin ) {
         admin.setPassword( bCryptPasswordEncoder.encode( admin.getPassword() ) );
-        Role adminRole = roleRepository.findByRole( "ROLE_ADMIN" );
+        Role adminRole = roleRepository.findByRole( "ROLE_ADMIN" ).orElseThrow( NullPointerException::new );
         admin.getRoles().add( adminRole );
         return userRepository.save( admin );
     }
@@ -148,7 +148,7 @@ public class UserServiceImpl implements UserService, InitializingBean {
     @Transactional
     public User createServiceAccount( User user ) {
         user.setPassword( bCryptPasswordEncoder.encode( createSecureRandomToken() ) );
-        Role serviceAccountRole = roleRepository.findByRole( "ROLE_SERVICE_ACCOUNT" );
+        Role serviceAccountRole = roleRepository.findByRole( "ROLE_SERVICE_ACCOUNT" ).orElseThrow( NullPointerException::new );
         user.getRoles().add( serviceAccountRole );
         user = userRepository.save( user );
         createAccessTokenForUser( user );
@@ -165,7 +165,7 @@ public class UserServiceImpl implements UserService, InitializingBean {
     @Secured("ROLE_ADMIN")
     @Transactional(rollbackFor = RoleException.class)
     public void updateRoles( User user, Set<Role> roles ) throws RoleException {
-        Role adminRole = roleRepository.findByRole( "ROLE_ADMIN" );
+        Role adminRole = roleRepository.findByRole( "ROLE_ADMIN" ).orElseThrow( NullPointerException::new );
         if ( isCurrentUser( user ) && !roles.containsAll( user.getRoles() ) ) {
             throw new CannotRevokeOwnRolesException( "You cannot revoke your own roles." );
         } else if ( user.getRoles().contains( adminRole ) && !roles.containsAll( user.getRoles() ) ) {
@@ -178,18 +178,13 @@ public class UserServiceImpl implements UserService, InitializingBean {
     @Override
     @PreAuthorize("hasPermission(#user, 'update')")
     public User update( User user ) {
-        if ( applicationSettings.getPrivacy() == null ) {
-            // FIXME: this should not be possible...
-            log.warn( MessageFormat.format( "{0} attempted to update, but applicationSettings.privacy is null.", user.getEmail() ) );
-        } else {
-            PrivacyLevelType defaultPrivacyLevel = PrivacyLevelType.values()[applicationSettings.getPrivacy().getDefaultLevel()];
-            boolean defaultSharing = applicationSettings.getPrivacy().isDefaultSharing();
-            boolean defaultGenelist = applicationSettings.getPrivacy().isAllowHideGenelist();
+        PrivacyLevelType defaultPrivacyLevel = PrivacyLevelType.values()[applicationSettings.getPrivacy().getDefaultLevel()];
+        boolean defaultSharing = applicationSettings.getPrivacy().isDefaultSharing();
+        boolean defaultGenelist = applicationSettings.getPrivacy().isAllowHideGenelist();
 
-            if ( user.getProfile().getPrivacyLevel() == null ) {
-                log.warn( "Received a null 'privacyLevel' value in profile." );
-                user.getProfile().setPrivacyLevel( defaultPrivacyLevel );
-            }
+        if ( user.getProfile().getPrivacyLevel() == null ) {
+            log.warn( "Received a null 'privacyLevel' value in profile." );
+            user.getProfile().setPrivacyLevel( defaultPrivacyLevel );
         }
 
         PrivacyLevelType userPrivacyLevel = user.getProfile().getPrivacyLevel();
@@ -220,14 +215,12 @@ public class UserServiceImpl implements UserService, InitializingBean {
 
     @Transactional
     @Override
-    public User changePassword( String oldPassword, String newPassword )
-            throws BadCredentialsException, ValidationException {
+    public User changePassword( String oldPassword, String newPassword ) throws BadCredentialsException, ValidationException {
         User user = requireNonNull( findCurrentUser() );
         if ( bCryptPasswordEncoder.matches( oldPassword, user.getPassword() ) ) {
             if ( newPassword.length() >= 6 ) { //TODO: Tie in with hibernate constraint on User or not necessary?
-
                 user.setPassword( bCryptPasswordEncoder.encode( newPassword ) );
-                return update( user );
+                return userRepository.save( user );
             } else {
                 throw new ValidationException( "Password must be a minimum of 6 characters" );
             }
@@ -317,12 +310,12 @@ public class UserServiceImpl implements UserService, InitializingBean {
 
     @Override
     public User findUserByEmailNoAuth( String email ) {
-        return userRepository.findByEmailIgnoreCase( email );
+        return userRepository.findByEmailIgnoreCase( email ).orElse( null );
     }
 
     @Override
     public User findUserByAccessTokenNoAuth( String accessToken ) throws TokenException {
-        AccessToken token = accessTokenRepository.findByToken( accessToken );
+        AccessToken token = accessTokenRepository.findByToken( accessToken ).orElse( null );
         if ( token == null ) {
             return null;
         }
@@ -420,7 +413,7 @@ public class UserServiceImpl implements UserService, InitializingBean {
 
     @Override
     @PostFilter("hasPermission(filterObject, 'read')")
-    public List<User> findByLikeName( String nameLike, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherTypes, Collection<OrganInfo> organs, Map<Ontology, Set<OntologyTermInfo>> ontologyTermInfos ) {
+    public List<User> findByLikeName( String nameLike, @Nullable Set<ResearcherPosition> researcherPositions, @Nullable Set<ResearcherCategory> researcherTypes, @Nullable Collection<OrganInfo> organs, @Nullable Map<Ontology, Set<OntologyTermInfo>> ontologyTermInfos ) {
         final Set<String> organUberonIds = organUberonIdsFromOrgans( organs );
         Map<Ontology, Set<Integer>> ontologyTermInfoIds = ontologyTermInfoIdsFromOntologyTermInfo( ontologyTermInfos );
         return userRepository.findByProfileNameContainingIgnoreCaseOrProfileLastNameContainingIgnoreCase( nameLike, nameLike ).stream()
@@ -434,7 +427,7 @@ public class UserServiceImpl implements UserService, InitializingBean {
 
     @Override
     @PostFilter("hasPermission(filterObject, 'read')")
-    public List<User> findByStartsName( String startsName, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherTypes, Collection<OrganInfo> organs, Map<Ontology, Set<OntologyTermInfo>> ontologyTermInfos ) {
+    public List<User> findByStartsName( String startsName, @Nullable Set<ResearcherPosition> researcherPositions, @Nullable Set<ResearcherCategory> researcherTypes, @Nullable Collection<OrganInfo> organs, @Nullable Map<Ontology, Set<OntologyTermInfo>> ontologyTermInfos ) {
         final Set<String> organUberonIds = organUberonIdsFromOrgans( organs );
         Map<Ontology, Set<Integer>> ontologyTermInfoIds = ontologyTermInfoIdsFromOntologyTermInfo( ontologyTermInfos );
         return userRepository.findByProfileLastNameStartsWithIgnoreCase( startsName ).stream()
@@ -448,7 +441,7 @@ public class UserServiceImpl implements UserService, InitializingBean {
 
     @Override
     @PostFilter("hasPermission(filterObject, 'read')")
-    public List<User> findByDescription( String descriptionLike, Set<ResearcherPosition> researcherPositions, Collection<ResearcherCategory> researcherTypes, Collection<OrganInfo> organs, Map<Ontology, Set<OntologyTermInfo>> ontologyTermInfos ) {
+    public List<User> findByDescription( String descriptionLike, @Nullable Set<ResearcherPosition> researcherPositions, @Nullable Collection<ResearcherCategory> researcherTypes, @Nullable Collection<OrganInfo> organs, @Nullable Map<Ontology, Set<OntologyTermInfo>> ontologyTermInfos ) {
         final Set<String> organUberonIds = organUberonIdsFromOrgans( organs );
         Map<Ontology, Set<Integer>> ontologyTermInfoIds = ontologyTermInfoIdsFromOntologyTermInfo( ontologyTermInfos );
         return userRepository.findDistinctByProfileDescriptionLikeIgnoreCaseOrTaxonDescriptionsLikeIgnoreCaseOrUserOntologyTermsNameLikeIgnoreCase( "%" + descriptionLike + "%" ).stream()
@@ -462,7 +455,7 @@ public class UserServiceImpl implements UserService, InitializingBean {
 
     @Override
     @PostFilter("hasPermission(filterObject, 'read')")
-    public List<User> findByNameAndDescription( String nameLike, boolean prefix, String descriptionLike, Set<ResearcherPosition> researcherPositions, Set<ResearcherCategory> researcherCategories, Collection<OrganInfo> organs, Map<Ontology, Set<OntologyTermInfo>> ontologyTermInfos ) {
+    public List<User> findByNameAndDescription( String nameLike, boolean prefix, String descriptionLike, @Nullable Set<ResearcherPosition> researcherPositions, @Nullable Set<ResearcherCategory> researcherCategories, @Nullable Collection<OrganInfo> organs, @Nullable Map<Ontology, Set<OntologyTermInfo>> ontologyTermInfos ) {
         final Set<String> organUberonIds = organUberonIdsFromOrgans( organs );
         String namePattern = prefix ? nameLike + "%" : "%" + nameLike + "%";
         String descriptionPattern = "%" + descriptionLike + "%";
@@ -482,7 +475,8 @@ public class UserServiceImpl implements UserService, InitializingBean {
                 .collect( Collectors.toList() );
     }
 
-    private Set<String> organUberonIdsFromOrgans( Collection<OrganInfo> organs ) {
+    @Nullable
+    private Set<String> organUberonIdsFromOrgans( @Nullable Collection<OrganInfo> organs ) {
         if ( organs != null ) {
             return organs.stream().map( Organ::getUberonId ).collect( Collectors.toSet() );
         } else {
@@ -490,7 +484,8 @@ public class UserServiceImpl implements UserService, InitializingBean {
         }
     }
 
-    private Map<Ontology, Set<Integer>> ontologyTermInfoIdsFromOntologyTermInfo( Map<Ontology, Set<OntologyTermInfo>> ontologyTermInfos ) {
+    @Nullable
+    private Map<Ontology, Set<Integer>> ontologyTermInfoIdsFromOntologyTermInfo( @Nullable Map<Ontology, Set<OntologyTermInfo>> ontologyTermInfos ) {
         if ( ontologyTermInfos != null ) {
             return ontologyTermInfos.entrySet().stream()
                     .collect( Collectors.toMap( Map.Entry::getKey, e -> ontologyService.inferTermIds( e.getValue() ) ) );
@@ -500,7 +495,7 @@ public class UserServiceImpl implements UserService, InitializingBean {
     }
 
     @Override
-    public Predicate<User> hasOntologyTermIn( Map<Ontology, Set<Integer>> ontologyTermInfoIdsByOntology ) {
+    public Predicate<User> hasOntologyTermIn( @Nullable Map<Ontology, Set<Integer>> ontologyTermInfoIdsByOntology ) {
         return u -> ontologyTermInfoIdsByOntology == null || ontologyTermInfoIdsByOntology.values().stream()
                 .allMatch( entry -> containsAtLeastOne( entry, () -> getUserTermInfoIds( u ) ) );
     }
@@ -753,7 +748,7 @@ public class UserServiceImpl implements UserService, InitializingBean {
     @Transactional
     @Override
     @PreAuthorize("hasPermission(#user, 'update')")
-    public User updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( User user, Profile profile, @Nullable Set<Publication> publications, @Nullable Set<String> organUberonIds, @Nullable Set<Integer> termIdsByOntologyId, Locale locale ) {
+    public User updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( User user, Profile profile, @Nullable Set<ResearcherCategory> researcherCategories, @Nullable Set<Publication> publications, @Nullable Set<String> organUberonIds, @Nullable Set<Integer> termIdsByOntologyId, Locale locale ) {
         user.getProfile().setDepartment( profile.getDepartment() );
         user.getProfile().setDescription( profile.getDescription() );
         user.getProfile().setLastName( profile.getLastName() );
@@ -767,13 +762,13 @@ public class UserServiceImpl implements UserService, InitializingBean {
         user.getProfile().setResearcherPosition( profile.getResearcherPosition() );
         user.getProfile().setOrganization( profile.getOrganization() );
 
-        if ( profile.getResearcherCategories() != null ) {
-            if ( applicationSettings.getProfile().getEnabledResearcherCategories().containsAll( profile.getResearcherCategories() ) ) {
-                user.getProfile().getResearcherCategories().retainAll( profile.getResearcherCategories() );
-                user.getProfile().getResearcherCategories().addAll( profile.getResearcherCategories() );
+        if ( researcherCategories != null ) {
+            if ( applicationSettings.getProfile().getEnabledResearcherCategories().containsAll( researcherCategories ) ) {
+                user.getProfile().getResearcherCategories().retainAll( researcherCategories );
+                user.getProfile().getResearcherCategories().addAll( researcherCategories );
             } else {
                 log.warn( MessageFormat.format( "User {0} attempted to set user {1} researcher type to an unknown value {2}.",
-                        findCurrentUser(), user, profile.getResearcherCategories() ) );
+                        findCurrentUser(), user, researcherCategories ) );
             }
         }
 
@@ -802,7 +797,7 @@ public class UserServiceImpl implements UserService, InitializingBean {
 
         // privacy settings
         if ( applicationSettings.getPrivacy().isCustomizableLevel() ) {
-            if ( privacyService.isPrivacyLevelEnabled( profile.getPrivacyLevel() ) ) {
+            if ( profile.getPrivacyLevel() == null || privacyService.isPrivacyLevelEnabled( profile.getPrivacyLevel() ) ) {
                 // reset gene privacy levels if the profile value is changed
                 if ( applicationSettings.getPrivacy().isCustomizableGeneLevel() &&
                         user.getProfile().getPrivacyLevel() != profile.getPrivacyLevel() ) {
@@ -864,7 +859,7 @@ public class UserServiceImpl implements UserService, InitializingBean {
 
     @Override
     public PasswordResetToken verifyPasswordResetToken( int userId, String token, HttpServletRequest request ) throws TokenException {
-        PasswordResetToken passToken = passwordResetTokenRepository.findByToken( token );
+        PasswordResetToken passToken = passwordResetTokenRepository.findByToken( token ).orElse( null );
 
         if ( passToken == null ) {
             throw new TokenException( "Password reset token is invalid." );
@@ -914,6 +909,7 @@ public class UserServiceImpl implements UserService, InitializingBean {
     @Transactional
     @Override
     public VerificationToken createContactEmailVerificationTokenForUser( User user, Locale locale ) {
+        Assert.notNull( user.getProfile().getContactEmail(), "User does not have a contact email." );
         VerificationToken userToken = new VerificationToken();
         userToken.setUser( user );
         userToken.setEmail( user.getProfile().getContactEmail() );
@@ -926,7 +922,7 @@ public class UserServiceImpl implements UserService, InitializingBean {
     @Override
     @Transactional(rollbackFor = { TokenException.class })
     public User confirmVerificationToken( String token, HttpServletRequest request ) throws TokenException {
-        VerificationToken verificationToken = tokenRepository.findByToken( token );
+        VerificationToken verificationToken = tokenRepository.findByToken( token ).orElse( null );
 
         if ( verificationToken == null ) {
             throw new TokenNotFoundException( "Verification token is invalid." );

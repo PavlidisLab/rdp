@@ -25,7 +25,6 @@ import ubc.pavlab.rdp.security.authentication.TokenBasedAuthenticationFilter;
 import ubc.pavlab.rdp.security.authentication.TokenBasedAuthenticationManager;
 import ubc.pavlab.rdp.services.UserService;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
-import ubc.pavlab.rdp.settings.SiteSettings;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
@@ -62,9 +61,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     private UserService userService;
-
-    @Autowired
-    private SiteSettings siteSettings;
 
     @Override
     protected void configure( AuthenticationManagerBuilder auth ) throws Exception {

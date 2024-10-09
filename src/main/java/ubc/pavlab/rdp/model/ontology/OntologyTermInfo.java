@@ -9,6 +9,7 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.SortComparator;
 import org.springframework.context.MessageSourceResolvable;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
+import org.springframework.lang.Nullable;
 
 import javax.persistence.*;
 import java.text.Collator;
@@ -103,6 +104,7 @@ public class OntologyTermInfo extends OntologyTerm implements Comparable<Ontolog
 
     @Lob
     @Column(columnDefinition = "TEXT")
+    @Nullable
     private String definition;
 
     /**
@@ -138,6 +140,7 @@ public class OntologyTermInfo extends OntologyTerm implements Comparable<Ontolog
      */
     @JsonIgnore
     @Column
+    @Nullable
     private Integer ordering;
 
     /**
@@ -214,6 +217,6 @@ public class OntologyTermInfo extends OntologyTerm implements Comparable<Ontolog
     @Override
     @JsonIgnore
     public DefaultMessageSourceResolvable getResolvableDefinition() {
-        return new DefaultMessageSourceResolvable( new String[]{ "rdp.ontologies." + getOntology().getName() + ".terms." + getName() + ".definition" }, definition );
+        return new DefaultMessageSourceResolvable( new String[]{ "rdp.ontologies." + getOntology().getName() + ".terms." + getName() + ".definition" }, null, definition );
     }
 }

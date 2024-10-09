@@ -2,6 +2,7 @@ package ubc.pavlab.rdp.security;
 
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.lang.Nullable;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -25,7 +26,7 @@ public class PermissionEvaluatorImpl implements PermissionEvaluator {
     private UserPrivacyService privacyService;
 
     @Override
-    public boolean hasPermission( Authentication authentication, Object targetDomainObject, Object permission ) {
+    public boolean hasPermission( Authentication authentication, @Nullable Object targetDomainObject, Object permission ) {
         User user = authentication instanceof AnonymousAuthenticationToken ? null : userService.findUserByIdNoAuth( ( (UserPrinciple) authentication.getPrincipal() ).getId() );
         if ( permission.equals( Permissions.SEARCH ) ) {
             return privacyService.checkUserCanSearch( user, false );

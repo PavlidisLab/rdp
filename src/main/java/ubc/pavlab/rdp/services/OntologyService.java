@@ -114,12 +114,12 @@ public class OntologyService implements InitializingBean {
 
     @Nullable
     public Ontology findByName( String name ) {
-        return ontologyRepository.findByName( name );
+        return ontologyRepository.findByName( name ).orElse( null );
     }
 
     @Nullable
     public Ontology findByNameAndActiveTrue( String name ) {
-        return ontologyRepository.findByNameAndActiveTrue( name );
+        return ontologyRepository.findByNameAndActiveTrue( name ).orElse( null );
     }
 
     @Transactional(readOnly = true)
@@ -489,10 +489,7 @@ public class OntologyService implements InitializingBean {
         }
         LinkedHashSet<OntologyTermInfo> results = new LinkedHashSet<>( termIds.size() );
         for ( int i = 0; i < ontologyNames.size(); i++ ) {
-            OntologyTermInfo term = ontologyTermInfoRepository.findByTermIdAndOntologyName( termIds.get( i ), ontologyNames.get( i ) );
-            if ( term != null ) {
-                results.add( term );
-            }
+            ontologyTermInfoRepository.findByTermIdAndOntologyName( termIds.get( i ), ontologyNames.get( i ) ).ifPresent( results::add );
         }
         return new ArrayList<>( results );
     }
@@ -634,7 +631,7 @@ public class OntologyService implements InitializingBean {
     @Nullable
     @Transactional(readOnly = true)
     public OntologyTermInfo findTermByTermIdAndOntologyName( String termId, String ontologyName ) {
-        return ontologyTermInfoRepository.findByTermIdAndOntologyName( termId, ontologyName );
+        return ontologyTermInfoRepository.findByTermIdAndOntologyName( termId, ontologyName ).orElse( null );
     }
 
     @Transactional
@@ -655,7 +652,7 @@ public class OntologyService implements InitializingBean {
     }
 
     @Transactional(readOnly = true)
-    public String findDefinitionByOntologyName( String ontologyName ) {
+    public Optional<String> findDefinitionByOntologyName( String ontologyName ) {
         return ontologyTermInfoRepository.findDefinitionByOntologyName( ontologyName );
     }
 
@@ -746,7 +743,7 @@ public class OntologyService implements InitializingBean {
                 .collect( Collectors.joining( " " ) );
 
         // make last term, if available a prefix match
-        if ( fullTextQuery.length() > 0 ) {
+        if ( !fullTextQuery.isEmpty() ) {
             fullTextQuery += "*";
         }
 
@@ -1066,7 +1063,7 @@ public class OntologyService implements InitializingBean {
     }
 
     @Transactional(readOnly = true)
-    public OntologyTermInfo findTermByTermIdAndOntology( String ontologyTermInfoId, Ontology ontology ) {
+    public Optional<OntologyTermInfo> findTermByTermIdAndOntology( String ontologyTermInfoId, Ontology ontology ) {
         return ontologyTermInfoRepository.findByTermIdAndOntology( ontologyTermInfoId, ontology );
     }
 

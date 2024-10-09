@@ -2,17 +2,9 @@ package ubc.pavlab.rdp.services;
 
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
-import ubc.pavlab.rdp.model.Profile;
-import ubc.pavlab.rdp.model.Role;
-import ubc.pavlab.rdp.model.User;
-import ubc.pavlab.rdp.model.UserContent;
 import ubc.pavlab.rdp.model.enums.PrivacyLevelType;
-import ubc.pavlab.rdp.repositories.RoleRepository;
 import ubc.pavlab.rdp.settings.ApplicationSettings;
-
-import java.text.MessageFormat;
 
 /**
  * Logic regarding privacy

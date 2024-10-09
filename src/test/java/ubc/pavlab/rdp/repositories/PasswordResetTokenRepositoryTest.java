@@ -60,23 +60,17 @@ public class PasswordResetTokenRepositoryTest {
 
     @Test
     public void findByToken_whenValidToken_thenReturnToken() {
-
-        PasswordResetToken found = passwordResetTokenRepository.findByToken( "validtoken" );
-        assertThat( found ).isEqualTo( validToken );
+        assertThat( passwordResetTokenRepository.findByToken( "validtoken" ) ).hasValue( validToken );
     }
 
     @Test
     public void findByToken_whenExpredToken_thenReturnToken() {
-
-        PasswordResetToken found = passwordResetTokenRepository.findByToken( "expiredtoken" );
-        assertThat( found ).isEqualTo( expiredToken );
+        assertThat( passwordResetTokenRepository.findByToken( "expiredtoken" ) ).hasValue( expiredToken );
     }
 
     @Test
     public void findByToken_whenInvalidToken_thenReturnNull() {
-
-        PasswordResetToken found = passwordResetTokenRepository.findByToken( "invalidtoken" );
-        assertThat( found ).isNull();
+        assertThat( passwordResetTokenRepository.findByToken( "invalidtoken" ) ).isEmpty();
     }
 
     @Test

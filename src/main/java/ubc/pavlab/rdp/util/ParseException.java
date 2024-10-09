@@ -7,10 +7,10 @@ import java.text.MessageFormat;
 /**
  * Exception raised when a parsing error occurs for biological data.
  */
+@Getter
 public class ParseException extends Exception {
 
-    @Getter
-    private int lineNumber;
+    private final int lineNumber;
 
     public ParseException( String message, int lineNumber ) {
         super( MessageFormat.format( "{0}: {1}", lineNumber, message ) );

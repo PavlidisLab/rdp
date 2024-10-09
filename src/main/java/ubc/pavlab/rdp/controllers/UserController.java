@@ -171,6 +171,7 @@ public class UserController {
         @NotNull(message = "The message must be provided.")
         @Size(min = 1, message = "The message must not be empty.")
         private String message;
+        @Nullable
         private MultipartFile attachment;
     }
 
@@ -359,7 +360,9 @@ public class UserController {
     @Data
     static class FieldErrorModel {
         private final String field;
+        @Nullable
         private final String message;
+        @Nullable
         private final Object rejectedValue;
 
         public static FieldErrorModel fromFieldError( FieldError fieldError ) {
@@ -385,7 +388,13 @@ public class UserController {
                     .body( BindingResultModel.fromBindingResult( bindingResult ) );
         } else {
             String previousContactEmail = user.getProfile().getContactEmail();
-            user = userService.updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( user, profileWithOrganUberonIdsAndOntologyTerms.profile, profileWithOrganUberonIdsAndOntologyTerms.profile.getPublications(), profileWithOrganUberonIdsAndOntologyTerms.organUberonIds, profileWithOrganUberonIdsAndOntologyTerms.ontologyTermIds, locale );
+            user = userService.updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( user,
+                    profileWithOrganUberonIdsAndOntologyTerms.profile,
+                    profileWithOrganUberonIdsAndOntologyTerms.profile.getResearcherCategories(),
+                    profileWithOrganUberonIdsAndOntologyTerms.profile.getPublications(),
+                    profileWithOrganUberonIdsAndOntologyTerms.organUberonIds,
+                    profileWithOrganUberonIdsAndOntologyTerms.ontologyTermIds,
+                    locale );
             String message = messageSource.getMessage( "UserController.profileSaved", new Object[]{ user.getProfile().getContactEmail() }, locale );
             if ( user.getProfile().getContactEmail() != null &&
                     !user.getProfile().getContactEmail().equals( previousContactEmail ) &&

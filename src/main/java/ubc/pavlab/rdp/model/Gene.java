@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.annotations.NaturalId;
+import org.springframework.lang.Nullable;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -42,5 +43,6 @@ public abstract class Gene implements Serializable {
 
     @JsonIgnore
     @Column(name = "modification_date")
+    @Nullable
     private LocalDate modificationDate;
 }

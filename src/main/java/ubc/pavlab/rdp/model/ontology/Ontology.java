@@ -7,6 +7,7 @@ import org.hibernate.annotations.LazyCollection;
 import org.hibernate.annotations.LazyCollectionOption;
 import org.springframework.context.MessageSourceResolvable;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
+import org.springframework.lang.Nullable;
 
 import javax.persistence.*;
 import java.net.URL;
@@ -65,6 +66,7 @@ public class Ontology implements Comparable<Ontology> {
 
     @Lob
     @Column(columnDefinition = "TEXT")
+    @Nullable
     private String definition;
 
     /**
@@ -101,6 +103,7 @@ public class Ontology implements Comparable<Ontology> {
      * The only supported format for now is OBO.
      */
     @JsonIgnore
+    @Nullable
     private URL ontologyUrl;
 
     /**
@@ -155,6 +158,6 @@ public class Ontology implements Comparable<Ontology> {
     @JsonIgnore
 
     public DefaultMessageSourceResolvable getResolvableDefinition() {
-        return new DefaultMessageSourceResolvable( new String[]{ "rdp.ontologies." + name + ".definition" }, definition );
+        return new DefaultMessageSourceResolvable( new String[]{ "rdp.ontologies." + name + ".definition" }, null, definition );
     }
 }

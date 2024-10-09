@@ -13,8 +13,8 @@ import ubc.pavlab.rdp.model.ontology.Ontology;
 
 import javax.persistence.QueryHint;
 import java.util.Collection;
-import java.util.Optional;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Integer> {
@@ -39,7 +39,7 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     Page<User> findByEnabledTrueAndProfilePrivacyLevel( PrivacyLevelType privacyLevel, Pageable pageable );
 
     @Query("select user from User user left join fetch user.roles where lower(user.email) = lower(:email)")
-    User findByEmailIgnoreCase( @Param("email") String email );
+    Optional<User> findByEmailIgnoreCase( @Param("email") String email );
 
     @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
     @Query("select u from User u where u.profile.lastName is not NULL and u.profile.lastName <> '' and u.profile.privacyLevel >= :privacyLevel")

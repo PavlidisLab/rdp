@@ -1,16 +1,10 @@
 package ubc.pavlab.rdp.util;
 
-import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.AbstractMessageSource;
 import org.springframework.stereotype.Component;
-import org.springframework.web.util.UriComponentsBuilder;
-import ubc.pavlab.rdp.model.ontology.OntologyTermInfo;
-import ubc.pavlab.rdp.repositories.ontology.OntologyTermInfoRepository;
 import ubc.pavlab.rdp.services.OntologyService;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.text.MessageFormat;
 import java.util.Locale;
 import java.util.regex.Matcher;
@@ -50,7 +44,7 @@ public class OntologyMessageSource extends AbstractMessageSource {
             return ontologyService.findDefinitionByTermNameAndOntologyName( termName, ontologyName ).orElse( null );
         } else if ( ( matcher = ONTOLOGY_DEFINITION.matcher( code ) ).matches() ) {
             String ontologyName = matcher.group( 1 );
-            return ontologyService.findDefinitionByOntologyName( ontologyName );
+            return ontologyService.findDefinitionByOntologyName( ontologyName ).orElse( null );
         } else {
             return super.resolveCodeWithoutArguments( code, locale );
         }

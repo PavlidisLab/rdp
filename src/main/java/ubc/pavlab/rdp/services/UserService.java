@@ -69,6 +69,7 @@ public interface UserService {
     @Nullable
     User findUserByEmailNoAuth( String email );
 
+    @Nullable
     User findUserByAccessTokenNoAuth( String accessToken ) throws TokenException;
 
     /**
@@ -83,7 +84,7 @@ public interface UserService {
      * Note: when using this, ensure that the user is enabled as per {@link User#isEnabled()}, otherwise a
      * {@link org.springframework.security.access.AccessDeniedException} will be raised. That is because a non-enabled
      * user will not satisfy the 'read' permission for any user as defined in {@link ubc.pavlab.rdp.security.PermissionEvaluatorImpl}
-     * and {@link PrivacyService#checkUserCanSee(User, UserContent)}.
+     * and {@link UserPrivacyService#checkUserCanSee(User, UserContent)}.
      *
      * @throws org.springframework.security.access.AccessDeniedException if the user is not enabled
      */
@@ -184,7 +185,8 @@ public interface UserService {
 
     User updateUserProfileAndPublicationsAndOrgansAndOntologyTerms( User user,
                                                                     Profile profile,
-                                                                    Set<Publication> publications,
+                                                                    @Nullable Set<ResearcherCategory> researcherCategories,
+                                                                    @Nullable Set<Publication> publications,
                                                                     @Nullable Set<String> organUberonIds,
                                                                     @Nullable Set<Integer> ontologyTermIds,
                                                                     Locale locale );
@@ -219,15 +221,12 @@ public interface UserService {
      * inference from {@link OntologyService#inferTermIds(Collection)}.
      *
      * @param ontologyTermInfoIdsByOntology the term IDs grouped by ontology
-     * @return true if all the ontologies possess at least one match - or zero if empty, false otherwise
+     * @return a predicate that indicates if all the ontologies possess at least one match - or zero if empty, false otherwise
      */
-    Predicate<User> hasOntologyTermIn( Map<Ontology, Set<Integer>> ontologyTermInfoIdsByOntology );
+    Predicate<User> hasOntologyTermIn( @Nullable Map<Ontology, Set<Integer>> ontologyTermInfoIdsByOntology );
 
     /**
      * Indicate if there are users with terms in the given ontology.
-     *
-     * @param ontology
-     * @return
      */
     boolean existsByOntology( Ontology ontology );
 }

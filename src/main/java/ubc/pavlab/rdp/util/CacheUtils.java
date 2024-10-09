@@ -5,7 +5,6 @@ import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 
 import java.util.Collection;
-import java.util.Map;
 
 /**
  * Utilities for working with {@link CacheManager} and {@link Cache}.

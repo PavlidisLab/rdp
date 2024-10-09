@@ -134,8 +134,9 @@ public class ReactomeServiceTest {
         reactomeService.updatePathwaySummations( null );
 
         assertThat( ontologyService.findTermByTermIdAndOntology( "R-HSA-164843", reactome ) )
-                .isNotNull()
-                .hasFieldOrPropertyWithValue( "definition", "the new summation" );
+                .hasValueSatisfying( term -> {
+                    assertThat( term ).hasFieldOrPropertyWithValue( "definition", "the new summation" );
+                } );
 
         mockServer.verify();
     }

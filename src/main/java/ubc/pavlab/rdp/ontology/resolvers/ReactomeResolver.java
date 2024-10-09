@@ -23,7 +23,8 @@ public class ReactomeResolver implements OntologyResolver {
 
     @Override
     public boolean accepts( Ontology ontology ) {
-        return ontology.equals( reactomeService.findPathwaysOntology() );
+        Ontology reactome = reactomeService.findPathwaysOntology();
+        return reactome != null && reactome.equals( ontology );
     }
 
     @Override

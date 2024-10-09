@@ -77,8 +77,8 @@ public class PrivacyServiceImplTest {
         otherUser.setEnabledAt( Instant.now() );
         adminUser = createUserWithRoles( 3, roleAdmin );
         serviceAccountUser = createUserWithRoles( 4, roleServiceAccount );
-        when( roleRepository.findByRole( "ROLE_ADMIN" ) ).thenReturn( roleAdmin );
-        when( roleRepository.findByRole( "ROLE_SERVICE_ACCOUNT" ) ).thenReturn( roleServiceAccount );
+        when( roleRepository.findByRole( "ROLE_ADMIN" ) ).thenReturn( Optional.of( roleAdmin ) );
+        when( roleRepository.findByRole( "ROLE_SERVICE_ACCOUNT" ) ).thenReturn( Optional.of( roleServiceAccount ) );
         when( applicationSettings.getPrivacy() ).thenReturn( privacySettings );
         when( applicationSettings.getIsearch() ).thenReturn( iSearchSettings );
         when( privacySettings.isRegisteredSearch() ).thenReturn( true );

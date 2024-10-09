@@ -111,7 +111,7 @@ public class OntologyServiceTest {
         public Ontology setupOntology( String ont, boolean activateTerms ) throws IOException, OntologyNameAlreadyUsedException, ParseException {
             if ( ontologyRepository.existsByName( ont ) ) {
                 log.info( String.format( "%s ontology already setup, skipping...", ont ) );
-                return ontologyRepository.findByName( ont );
+                return ontologyRepository.findByName( ont ).orElseThrow( NullPointerException::new );
             }
             Resource resource = new ClassPathResource( "cache/" + ont + ".obo" );
             try ( Reader reader = new InputStreamReader( resource.getInputStream() ) ) {
@@ -137,11 +137,11 @@ public class OntologyServiceTest {
         assertThat( term.getSynonyms() )
                 .hasSize( 9 )
                 .contains( "canalis cervicis uteri" );
-        term = ontologyService.findTermByTermIdAndOntology( "UBERON:0000044", ontology );
+        term = ontologyService.findTermByTermIdAndOntology( "UBERON:0000044", ontology ).orElse( null );
         assertThat( term ).isNotNull();
         assertThat( term.getAltTermIds() )
                 .containsExactly( "UBERON:0026602" );
-        OntologyTermInfo termWithMixedCaseSynonym = ontologyService.findTermByTermIdAndOntology( "UBERON:8000005", ontology );
+        OntologyTermInfo termWithMixedCaseSynonym = ontologyService.findTermByTermIdAndOntology( "UBERON:8000005", ontology ).orElse( null );
         assertThat( termWithMixedCaseSynonym ).isNotNull();
         assertThat( termWithMixedCaseSynonym.getSynonyms() )
                 .contains( "nerve fiber layer of Henle".toLowerCase() );
@@ -169,7 +169,7 @@ public class OntologyServiceTest {
 
         Ontology ontology = ontologySetupService.setupOntology( "mondo", false );
         // need to rehash because the sorted set is case insensitive
-        synonyms = new HashSet<>( ontologyService.findTermByTermIdAndOntology( "MONDO:0005296", ontology ).getSynonyms() );
+        synonyms = new HashSet<>( ontologyService.findTermByTermIdAndOntology( "MONDO:0005296", ontology ).get().getSynonyms() );
         assertThat( synonyms ).contains( "sleep Apneas, mixed" );
 
         // the casing has changed to "sleep apneas, mixed" in mondo2
@@ -177,7 +177,7 @@ public class OntologyServiceTest {
         try ( Reader reader = new InputStreamReader( resource.getInputStream() ) ) {
             ontologyService.updateFromObo( ontology, reader );
         }
-        synonyms = new HashSet<>( ontologyService.findTermByTermIdAndOntology( "MONDO:0005296", ontology ).getSynonyms() );
+        synonyms = new HashSet<>( ontologyService.findTermByTermIdAndOntology( "MONDO:0005296", ontology ).get().getSynonyms() );
         assertThat( synonyms ).contains( "sleep Apneas, mixed" );
     }
 
@@ -330,7 +330,7 @@ public class OntologyServiceTest {
     @Test
     public void activateTerm() throws OntologyNameAlreadyUsedException, IOException, ParseException {
         Ontology mondo = ontologySetupService.setupOntology( "mondo", true );
-        OntologyTermInfo term = ontologyService.findTermByTermIdAndOntology( "MONDO:0000001", mondo );
+        OntologyTermInfo term = ontologyService.findTermByTermIdAndOntology( "MONDO:0000001", mondo ).orElse( null );
         ontologyService.activateTerm( term );
         entityManager.refresh( term );
         assertThat( term.isActive() ).isTrue();
@@ -342,7 +342,7 @@ public class OntologyServiceTest {
     @Test
     public void activateTermSubtree() throws OntologyNameAlreadyUsedException, IOException, ParseException {
         Ontology mondo = ontologySetupService.setupOntology( "mondo", false );
-        OntologyTermInfo term = ontologyService.findTermByTermIdAndOntology( "MONDO:0000001", mondo );
+        OntologyTermInfo term = ontologyService.findTermByTermIdAndOntology( "MONDO:0000001", mondo ).orElse( null );
         int activatedTerms = ontologyService.activateTermSubtree( term );
         assertThat( activatedTerms ).isEqualTo( 22027 );
     }
@@ -361,7 +361,7 @@ public class OntologyServiceTest {
     public void inferTermIds_whenTopTermIsUsed() throws OntologyNameAlreadyUsedException, IOException, ParseException {
         Ontology uberon = ontologySetupService.setupOntology( "uberon", true );
         StopWatch stopWatch = StopWatch.createStarted();
-        OntologyTermInfo brainTerm = ontologyService.findTermByTermIdAndOntology( "UBERON:0001062", uberon );
+        OntologyTermInfo brainTerm = ontologyService.findTermByTermIdAndOntology( "UBERON:0001062", uberon ).orElse( null );
         stopWatch.stop();
         Set<Integer> inferredTerms = ontologyService.inferTermIds( Collections.singleton( brainTerm ) );
         assertThat( inferredTerms ).hasSize( 13848 );

@@ -63,7 +63,7 @@ public class User implements RemoteResource, UserContent, Serializable {
 
     public static Comparator<User> getComparator() {
         return Comparator
-                .comparing( ( User u ) -> u.getProfile().getFullName() )
+                .comparing( ( User u ) -> u.getProfile().getFullName(), Comparator.nullsLast( Comparator.naturalOrder() ) )
                 .thenComparing( User::getOriginUrl, Comparator.nullsLast( Comparator.naturalOrder() ) )
                 // at least one of the two must be non-null
                 .thenComparing( User::getId, Comparator.nullsLast( Comparator.naturalOrder() ) )
@@ -140,15 +140,15 @@ public class User implements RemoteResource, UserContent, Serializable {
     private final Set<PasswordResetToken> passwordResetTokens = new HashSet<>();
 
     @Valid
-    @NotNull
     @Embedded
     @JsonUnwrapped
-    private Profile profile;
+    private Profile profile = new Profile();
 
     @Transient
     private String origin;
 
     @Transient
+    @Nullable
     private URI originUrl;
 
     /* Research related information */
@@ -258,7 +258,7 @@ public class User implements RemoteResource, UserContent, Serializable {
     @JsonIgnore
     @Transient
     public Optional<Instant> getVerifiedAtContactEmail() {
-        if ( profile.isContactEmailVerified() ) {
+        if ( profile != null && profile.isContactEmailVerified() ) {
             return Optional.ofNullable( profile.getContactEmailVerifiedAt() );
         } else if ( enabled ) {
             return Optional.ofNullable( enabledAt );
@@ -276,11 +276,13 @@ public class User implements RemoteResource, UserContent, Serializable {
     @Override
     @JsonProperty(value = "privacyLevel")
     public PrivacyLevelType getEffectivePrivacyLevel() {
+        // profile can be null when deserialized by Jackson
+        PrivacyLevelType privacyLevel = profile != null ? profile.getPrivacyLevel() : PrivacyLevelType.PRIVATE;
         // this is a fallback
-        if ( getProfile() == null || getProfile().getPrivacyLevel() == null ) {
-            log.warn( MessageFormat.format( "User {0} has no profile or a null privacy level defined in its profile.", this ) );
+        if ( privacyLevel == null ) {
+            log.warn( MessageFormat.format( this + " has a null privacy level defined in its profile, defaulting to PRIVATE.", this ) );
             return PrivacyLevelType.PRIVATE;
         }
-        return getProfile().getPrivacyLevel();
+        return privacyLevel;
     }
 }
