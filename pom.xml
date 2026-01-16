@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <name>Rare Disease Project</name>
-    <groupId>ubc.pavlab</groupId>
+    <groupId>ca.ubc.msl.pavlab</groupId>
     <artifactId>rdp</artifactId>
     <version>1.6.0-SNAPSHOT</version>
 
